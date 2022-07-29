@@ -8,6 +8,7 @@ import OlFontSymbol from "../utils/FontSymbol";
 import OlShadow from "../utils/Shadow";
 
 import poisAoisStore from "../store/modules/poisaois";
+import isochroneStore from "../store/modules/isochrones";
 import mapStore from "../store/modules/map";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
@@ -189,10 +190,8 @@ export function getIsochroneStyle() {
     // Style array
     let styles = [];
     // Get the incomeLevel and modus from the feature properties
-    let modus = feature.get("modus");
     let isVisible = feature.get("isVisible");
     let geomType = feature.getGeometry().getType();
-    const highlightFeature = feature.get("highlightFeature");
 
     /**
      * Creates styles for isochrone polygon geometry type and isochrone
@@ -207,62 +206,20 @@ export function getIsochroneStyle() {
       if (isVisible === false) {
         return;
       }
-
-      if (feature.get("routing_type") === "public_transport") {
-        return [
-          new OlStyle({
-            fill: new OlFill({
-              color: "rgba(40, 54, 72, 0.3)"
-            })
-          })
-        ];
-      }
-      //Fallback isochrone style
-      if (!modus) {
-        let genericIsochroneStyle = new OlStyle({
+      const calculationColors = isochroneStore.state.calculationColors;
+      const selectedCalculations = isochroneStore.state.selectedCalculations;
+      const calculationNumber = feature.get("calculationNumber");
+      const calculationIndex = selectedCalculations.findIndex(calculation => {
+        return calculation.id === calculationNumber;
+      });
+      styles.push(
+        new OlStyle({
           fill: new OlFill({
-            color: "rgba(235, 57, 21, 0.3)"
+            color: calculationColors[calculationIndex]
           })
-        });
-        styles.push(genericIsochroneStyle);
-      }
-      //highlight color
-      if (highlightFeature !== false) {
-        styles.push(
-          new OlStyle({
-            stroke: new OlStroke({
-              color: "#FFFFFF",
-              width: 8
-            })
-          })
-        );
-      }
-      // If the modus is 1 it is a default isochrone
-      if (modus === "default" || modus === "comparison") {
-        let style = new OlStyle({
-          fill: new OlFill({
-            color: [0, 0, 0, 0]
-          }),
-          stroke: new OlStroke({
-            color: feature.get("color"),
-            width: 5
-          })
-        });
+        })
+      );
 
-        styles.push(style);
-      } else {
-        let style = new OlStyle({
-          fill: new OlFill({
-            color: [0, 0, 0, 0]
-          }),
-          stroke: new OlStroke({
-            color: feature.get("color"),
-            width: 5
-          })
-        });
-
-        styles.push(style);
-      }
       if (feature.get("showLabel")) {
         if (geomType !== ["Polygon", "LineString"]) {
           styles.push(

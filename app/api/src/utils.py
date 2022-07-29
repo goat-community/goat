@@ -335,6 +335,8 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     surface = np.empty(grid_size)
     TRAVEL_TIME_PERCENTILES = [5, 25, 50, 75, 95]
     percentile_index = 0
+    if depth == 1:
+        percentile = 5  # Walking and cycling
     closest_diff = math.inf
     for index, p in enumerate(TRAVEL_TIME_PERCENTILES):
         current_diff = abs(p - percentile)
@@ -360,7 +362,6 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
-@njit
 def amenity_r5_grid_intersect(
     west,
     north,
@@ -390,9 +391,12 @@ def amenity_r5_grid_intersect(
         width = width
         index = y * width + x
         time_cost = surface[index]
-        if time_cost < 2147483647:
-            population = get_population_sum_population[idx]
-            population_grid_count[int(time_cost)] += population
+        if (
+            time_cost < 2147483647
+            and get_population_sum_population[idx] > 0
+            and time_cost <= MAX_TIME
+        ):
+            population_grid_count[int(time_cost)] += get_population_sum_population[idx]
     population_grid_count = np.cumsum(population_grid_count)
 
     # - loop poi_one_entrance
@@ -412,7 +416,7 @@ def amenity_r5_grid_intersect(
             poi_one_entrance_grid_count.append(np.zeros(MAX_TIME))
 
         time_cost = surface[index]
-        if time_cost < 2147483647:
+        if time_cost < 2147483647 and time_cost <= MAX_TIME:
             count = get_poi_one_entrance_sum_cnt[idx]
             poi_one_entrance_grid_count[poi_one_entrance_list.index(category)][
                 int(time_cost)
@@ -441,7 +445,11 @@ def amenity_r5_grid_intersect(
 
         time_cost = surface[index]
         category_name = f"{category}_{name}"
-        if time_cost < 2147483647 and category_name not in visited_more_entrance_categories:
+        if (
+            time_cost < 2147483647
+            and category_name not in visited_more_entrance_categories
+            and time_cost <= MAX_TIME
+        ):
             count = get_poi_more_entrance_sum_cnt[idx]
             poi_more_entrance_grid_count[poi_more_entrance_list.index(category)][
                 int(time_cost)
@@ -495,6 +503,24 @@ def coordinate_from_pixel(pixel, zoom):
         "lat": pixel_to_latitude(pixel["y"], zoom),
         "lon": pixel_to_longitude(pixel["x"], zoom),
     }
+
+
+def coordinate_to_pixel(input, zoom):
+    return {
+        "x": longitude_to_pixel(input[0], zoom),
+        "y": latitude_to_pixel(input[1], zoom),
+    }
+
+
+def longitude_to_pixel(longitude, zoom):
+    return ((longitude + 180) / 360) * z_scale(zoom)
+
+
+def latitude_to_pixel(latitude, zoom):
+    lat_rad = (latitude * math.pi) / 180
+    return ((1 - math.log(math.tan(lat_rad) + 1 / math.cos(lat_rad)) / math.pi) / 2) * z_scale(
+        zoom
+    )
 
 
 def katana(geometry, threshold, count=0):

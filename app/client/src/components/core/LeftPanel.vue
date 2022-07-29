@@ -130,7 +130,7 @@ export default {
       return this.mini === true ? this.appColor.primary : "";
     },
     ...mapGetters("isochrones", {
-      selectedThematicData: "selectedThematicData",
+      selectedCalculations: "selectedCalculations",
       calculations: "calculations"
     }),
     ...mapGetters("app", {
@@ -143,7 +143,7 @@ export default {
     })
   },
   watch: {
-    selectedThematicData(calculation) {
+    selectedCalculations(calculation) {
       if (calculation) {
         this.calculations.forEach(value => {
           if (value.id !== calculation.calculationId) {

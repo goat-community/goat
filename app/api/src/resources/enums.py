@@ -165,3 +165,12 @@ class UpdateTableFunction(str, Enum):
     study_area = "update_study_area"
     heatmap = "update_heatmap"
     all = "all"
+
+
+class LayerGroupsEnum(str, Enum):
+    buildings_landuse = "buildings_landuse"
+    street_level_quality = "street_level_quality"
+    environmental_quality = "environmental_quality"
+    additional_data = "additional_data"
+    basemap = "basemap"
+    heatmap = "heatmap"

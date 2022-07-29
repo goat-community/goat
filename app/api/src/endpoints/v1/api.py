@@ -4,6 +4,7 @@ from src.endpoints.v1 import (
     customizations,
     heatmap,
     isochrones,
+    layer_library,
     layers,
     login,
     organizations,
@@ -14,6 +15,7 @@ from src.endpoints.v1 import (
     scenarios,
     static_layers,
     static_layers_extra,
+    study_area,
     upload,
     users,
     utils,
@@ -51,3 +53,11 @@ layer_tiles = layers.VectorTilerFactory(
 api_router.include_router(layer_tiles.router, prefix=layer_tiles_prefix, tags=["Layers"])
 api_router.include_router(public_transport.router, prefix="/pt", tags=["PT"])
 api_router.include_router(r5.router, prefix="/r5", tags=["PT-R5"])
+api_router.include_router(
+    layer_library.styles_router, prefix="/config/layers/library/styles", tags=["Layer Library"]
+)
+api_router.include_router(layer_library.router, prefix="/layers/library", tags=["Layer Library"])
+api_router.include_router(
+    layer_library.router, prefix="/config/layers/library", tags=["Layer Library"]
+)
+api_router.include_router(study_area.router, prefix="/config/study-area", tags=["Layer Library"])

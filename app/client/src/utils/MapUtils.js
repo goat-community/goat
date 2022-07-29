@@ -263,6 +263,35 @@ export function pixelToLatitude(y, zoom) {
 export function pixelToLongitude(x, zoom) {
   return (x / zScale(zoom)) * 360 - 180;
 }
+/**
+ * Convert a longitude to it's pixel value given a `zoom` level.
+ *
+ * @param {number} longitude
+ * @param {number} zoom
+ * @return {number} pixel
+ * @example
+ * var xPixel = lonlat.longitudeToPixel(-70, 9) //= 40049.77777777778
+ */
+export function longitudeToPixel(longitude, zoom) {
+  return ((longitude + 180) / 360) * zScale(zoom);
+}
+
+/**
+ * Convert a latitude to it's pixel value given a `zoom` level.
+ *
+ * @param {number} latitude
+ * @param {number} zoom
+ * @return {number} pixel
+ * @example
+ * var yPixel = lonlat.latitudeToPixel(40, 9) //= 49621.12736343896
+ */
+export function latitudeToPixel(latitude, zoom) {
+  const latRad = (latitude * Math.PI) / 180;
+  return (
+    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) *
+    zScale(zoom)
+  );
+}
 
 /**
  * Conveyal (conveyal-ui)
@@ -279,6 +308,90 @@ export function fromPixel(pixel, zoom) {
     lat: pixelToLatitude(pixel.y, zoom),
     lon: pixelToLongitude(pixel.x, zoom)
   };
+}
+
+/**
+ * Convert a coordinate to a pixel.
+ *
+ * @param {lonlat.types.input} input
+ * @param {number} zoom
+ * @return {Object} An object with `x` and `y` attributes representing pixel coordinates
+ * @throws {lonlat.types.InvalidCoordinateException}
+ * @throws {Error} If latitude is above or below `MAX_LAT`
+ * @throws {Error} If `zoom` is undefined.
+ * @example
+ * var pixel = lonlat.toPixel({lon: -70, lat: 40}, 9) //= {x: 40049.77777777778, y:49621.12736343896}
+ */
+export function toPixel(input, zoom) {
+  const ll = normalize(input);
+  return {
+    x: longitudeToPixel(ll.lon, zoom),
+    y: latitudeToPixel(ll.lat, zoom)
+  };
+}
+
+function parseFloatWithAlternates(alternates) {
+  if (Array.isArray(alternates) && alternates.length > 0) {
+    const num = parseFloat(alternates[0]);
+    if (isNaN(num)) {
+      return parseFloatWithAlternates(alternates.slice(1));
+    } else {
+      return num;
+    }
+  }
+  return null;
+}
+
+// Can the various ways in which lat/long pairs can be expressed to this
+// method be expressed as a type?
+// eslint-disable-next-line complexity
+function floatize(lonlat) {
+  const lon = parseFloatWithAlternates([
+    lonlat.lon,
+    lonlat.lng,
+    lonlat.longitude
+  ]);
+  const lat = parseFloatWithAlternates([lonlat.lat, lonlat.latitude]);
+  if ((!lon || lon > 180 || lon < -180) && lon !== 0) {
+    throw new Error(
+      "Invalid longitude value: " +
+        (lonlat.lon || lonlat.lng || lonlat.longitude)
+    );
+  }
+  if ((!lat || lat > 90 || lat < -90) && lat !== 0) {
+    throw new Error(
+      "Invalid latitude value: " + (lonlat.lat || lonlat.latitude)
+    );
+  }
+  return { lat, lon };
+}
+export function fromString(str) {
+  const arr = str.split(",");
+  return floatize({ lat: arr[1], lon: arr[0] });
+}
+
+export function fromCoordinates(coordinates) {
+  return floatize({ lat: coordinates[1], lon: coordinates[0] });
+}
+export function fromPoint(point) {
+  return floatize({ lat: point.y, lon: point.x });
+}
+
+export function normalize(unknown) {
+  if (!unknown) throw new Error("Value must not be null or undefined.");
+  if (Array.isArray(unknown)) return fromCoordinates(unknown);
+  else if (typeof unknown === "string") return fromString(unknown);
+  else if ("coordinates" in unknown)
+    return fromCoordinates(unknown.coordinates);
+  else if (
+    "x" in unknown &&
+    "y" in unknown &&
+    (unknown.x || unknown.x === 0) &&
+    (unknown.y || unknown.y === 0)
+  ) {
+    return fromPoint(unknown);
+  }
+  return floatize(unknown);
 }
 
 /**
