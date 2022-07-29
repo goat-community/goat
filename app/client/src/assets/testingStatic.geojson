@@ -1,0 +1,4355 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.80335,
+          47.99457
+        ]
+      },
+      "properties": {
+        "stop_id": "1::de:08311:30601",
+        "stop_name": "Freiburg Am Lindenwäldle",
+        "trip_cnt": {
+          "0": 79
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.784082,
+          47.974167
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:240",
+        "stop_name": "FR - St. Georgen Reiterhof",
+        "trip_cnt": {
+          "3": 15
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.724662,
+          48.023827
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30054",
+        "stop_name": "Freiburg, Schutternstraße",
+        "trip_cnt": {
+          "3": 19
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.719255,
+          48.023453
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30055",
+        "stop_name": "Freiburg, Waltershofen Ochsen",
+        "trip_cnt": {
+          "3": 18
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.7205,
+          48.02188
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30056",
+        "stop_name": "Freiburg, Am Weiher",
+        "trip_cnt": {
+          "3": 15
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.74073,
+          47.99822
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30060",
+        "stop_name": "Freiburg, Kleingärten",
+        "trip_cnt": {
+          "3": 14
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.72704,
+          47.999092
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30061",
+        "stop_name": "Freiburg, Opfingen Ziegelei",
+        "trip_cnt": {
+          "3": 14
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.717914,
+          47.999107
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30062",
+        "stop_name": "Freiburg, Gewerbestraße",
+        "trip_cnt": {
+          "3": 11
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.712772,
+          47.99736
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30063",
+        "stop_name": "Freiburg, Im Hausgarten",
+        "trip_cnt": {
+          "3": 14
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.715448,
+          48.00022
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30064",
+        "stop_name": "Freiburg, Opfingen Rathaus",
+        "trip_cnt": {
+          "3": 15
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.720074,
+          48.00444
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30065",
+        "stop_name": "Freiburg, Unterdorf",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.723408,
+          48.012177
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30066",
+        "stop_name": "Freiburg, St. Nikolaus",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.71014,
+          48.012096
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30067",
+        "stop_name": "Freiburg, Wippertskirch",
+        "trip_cnt": {
+          "3": 6
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.848625,
+          48.02485
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30069",
+        "stop_name": "Freiburg, Max-Planck-Institut",
+        "trip_cnt": {
+          "3": 48
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.718123,
+          47.999893
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30077",
+        "stop_name": "Freiburg, Hofmattstraße",
+        "trip_cnt": {
+          "3": 2
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.715962,
+          47.982178
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30078",
+        "stop_name": "Tiengen Freiburger Landstraße",
+        "trip_cnt": {
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.718927,
+          47.982563
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30080",
+        "stop_name": "Freiburg, Im Maierbrühl",
+        "trip_cnt": {
+          "3": 14
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.715468,
+          47.98807
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30081",
+        "stop_name": "Freiburg, Etzmattenstraße",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.714552,
+          47.982742
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30082",
+        "stop_name": "Tiengen Vogteistraße",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.707631,
+          47.978928
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30083",
+        "stop_name": "Freiburg, Siedlerhöfe",
+        "trip_cnt": {
+          "3": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.701126,
+          47.97284
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30084",
+        "stop_name": "Munzingen, Häusleacker",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.699874,
+          47.96906
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30085",
+        "stop_name": "Munzingen Apotheke",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.695618,
+          47.96766
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30086",
+        "stop_name": "Munzingen, Windhäuslegasse",
+        "trip_cnt": {
+          "3": 19
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.716896,
+          47.989906
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30089",
+        "stop_name": "Freiburg, Im Hubhof",
+        "trip_cnt": {
+          "3": 3
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.849802,
+          47.99483
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30100",
+        "stop_name": "Freiburg Bertoldsbrunnen",
+        "trip_cnt": {
+          "0": 150
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.852803,
+          47.997913
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30101",
+        "stop_name": "Freiburg, Europaplatz",
+        "trip_cnt": {
+          "0": 77,
+          "3": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.854496,
+          48.003105
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30102",
+        "stop_name": "Freiburg, Tennenbacher Straße",
+        "trip_cnt": {
+          "0": 39
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.848541,
+          47.991875
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30103",
+        "stop_name": "Freiburg, Holzmarkt",
+        "trip_cnt": {
+          "0": 62
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.847982,
+          47.989315
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30104",
+        "stop_name": "Freiburg, Johanneskirche",
+        "trip_cnt": {
+          "0": 63
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.848422,
+          47.998432
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30105",
+        "stop_name": "Freiburg, Fahnenbergplatz",
+        "trip_cnt": {
+          "0": 38,
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.845688,
+          47.99556
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30106",
+        "stop_name": "Freiburg Stadttheater",
+        "trip_cnt": {
+          "0": 187
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.836049,
+          47.998226
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30108",
+        "stop_name": "Freiburg, Eschholzstraße",
+        "trip_cnt": {
+          "0": 151,
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.841879,
+          48.001614
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30109",
+        "stop_name": "Freiburg, Kreuzstraße",
+        "trip_cnt": {
+          "3": 30
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.838739,
+          47.99284
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30112",
+        "stop_name": "Freiburg, Faulerstraße",
+        "trip_cnt": {
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.845311,
+          47.992546
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30114",
+        "stop_name": "Freiburg, Erbprinzenstraße",
+        "trip_cnt": {
+          "0": 38
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.856406,
+          47.997936
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30115",
+        "stop_name": "Freiburg, Stadtgarten",
+        "trip_cnt": {
+          "3": 21
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.858679,
+          48.000584
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30116",
+        "stop_name": "Freiburg, Hochmeisterstraße",
+        "trip_cnt": {
+          "3": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.860242,
+          48.002632
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30117",
+        "stop_name": "Freiburg, Starkenstraße",
+        "trip_cnt": {
+          "3": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.853618,
+          47.993725
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30118",
+        "stop_name": "Freiburg, Oberlinden",
+        "trip_cnt": {
+          "0": 48
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.854355,
+          47.99072
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30119",
+        "stop_name": "Freiburg, Schwabentorbrücke",
+        "trip_cnt": {
+          "0": 49,
+          "3": 2
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.858458,
+          47.989357
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30120",
+        "stop_name": "Freiburg, Brauerei Ganter",
+        "trip_cnt": {
+          "0": 50
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.843287,
+          47.989567
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30123",
+        "stop_name": "Freiburg, Mattenstraße",
+        "trip_cnt": {
+          "0": 39
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.843613,
+          48.000206
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30126",
+        "stop_name": "Freiburg, Am Planetarium",
+        "trip_cnt": {
+          "3": 11
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.804423,
+          47.982475
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30129",
+        "stop_name": "Freiburg, Wihlerweg",
+        "trip_cnt": {
+          "3": 10
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.831098,
+          47.97874
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30131",
+        "stop_name": "Freiburg, Peter-Thumb-Straße",
+        "trip_cnt": {
+          "0": 40
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.78966,
+          47.996803
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30132",
+        "stop_name": "Freiburg, Nelly-Sachs-Straße",
+        "trip_cnt": {
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.854545,
+          48.015358
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30200",
+        "stop_name": "Freiburg Hornusstraße",
+        "trip_cnt": {
+          "0": 66,
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.856861,
+          48.01919
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30201",
+        "stop_name": "Freiburg, Tullastraße",
+        "trip_cnt": {
+          "0": 40,
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.858135,
+          48.02221
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30202",
+        "stop_name": "Freiburg, Reutebachgasse",
+        "trip_cnt": {
+          "0": 40
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.854536,
+          48.011047
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30203",
+        "stop_name": "Freiburg, Okenstraße",
+        "trip_cnt": {
+          "0": 39,
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.855181,
+          48.007267
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30204",
+        "stop_name": "Freiburg, Hauptstraße",
+        "trip_cnt": {
+          "0": 38
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.845728,
+          48.00749
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30205",
+        "stop_name": "Freiburg, Hauptfriedhof",
+        "trip_cnt": {
+          "0": 25
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.848051,
+          48.00895
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30206",
+        "stop_name": "Freiburg Rennweg",
+        "trip_cnt": {
+          "0": 26,
+          "3": 2
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.850356,
+          48.01031
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30207",
+        "stop_name": "Freiburg, Eichstetter Straße",
+        "trip_cnt": {
+          "0": 25
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.854135,
+          48.012733
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30208",
+        "stop_name": "Freiburg, Komturplatz",
+        "trip_cnt": {
+          "0": 26
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.849954,
+          48.021767
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30209",
+        "stop_name": "Freiburg, Engesserstraße",
+        "trip_cnt": {
+          "3": 9
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.834696,
+          48.02837
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30211",
+        "stop_name": "Freiburg, IKEA",
+        "trip_cnt": {
+          "3": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.825067,
+          47.995407
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30212",
+        "stop_name": "Freiburg, Haslacher Straße",
+        "trip_cnt": {
+          "3": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.854438,
+          48.028736
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30213",
+        "stop_name": "Freiburg, Hans-Bunte-Str. Mitte",
+        "trip_cnt": {
+          "3": 45
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.858866,
+          48.03101
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30214",
+        "stop_name": "Freiburg, Hans-Bunte-Str. Nord",
+        "trip_cnt": {
+          "3": 45
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.852337,
+          48.02732
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30215",
+        "stop_name": "Freiburg, Stübeweg",
+        "trip_cnt": {
+          "3": 50
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.863475,
+          48.025066
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30217",
+        "stop_name": "Freiburg Bernlappstraße",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.866163,
+          48.029644
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30218",
+        "stop_name": "Freiburg, Wildtalstraße",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.84585,
+          48.02776
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30219",
+        "stop_name": "Freiburg, badenova",
+        "trip_cnt": {
+          "3": 34
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.842786,
+          48.030556
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30220",
+        "stop_name": "Freiburg, Schlachthof",
+        "trip_cnt": {
+          "3": 34
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.849166,
+          48.033092
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30221",
+        "stop_name": "Freiburg, Wöhlerstraße",
+        "trip_cnt": {
+          "3": 7
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.851318,
+          48.029778
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30223",
+        "stop_name": "Freiburg, Auerstraße",
+        "trip_cnt": {
+          "3": 7
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.846146,
+          48.002075
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30224",
+        "stop_name": "Freiburg Albertstraße",
+        "trip_cnt": {
+          "3": 14
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.862957,
+          48.004726
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30225",
+        "stop_name": "Freiburg, Immentalstraße",
+        "trip_cnt": {
+          "3": 21
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.86328,
+          48.0065
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30226",
+        "stop_name": "Freiburg, Herdern Kirche",
+        "trip_cnt": {
+          "3": 19
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.862546,
+          48.00877
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30227",
+        "stop_name": "Freiburg, Sandstraße",
+        "trip_cnt": {
+          "3": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.862976,
+          48.011192
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30228",
+        "stop_name": "Freiburg, Richard-Strauss-Str.",
+        "trip_cnt": {
+          "3": 21
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.860262,
+          48.032753
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30230",
+        "stop_name": "Freiburg, Mooswaldallee",
+        "trip_cnt": {
+          "3": 45
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.849855,
+          48.00571
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30233",
+        "stop_name": "Freiburg, Sonnenstraße",
+        "trip_cnt": {
+          "3": 14
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.839481,
+          48.01905
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30234",
+        "stop_name": "Freiburg, Messe Freiburg",
+        "trip_cnt": {
+          "0": 39,
+          "3": 43
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.844577,
+          48.011
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30235",
+        "stop_name": "Freiburg, Kaiserstuhlstr. Mitte",
+        "trip_cnt": {
+          "3": 2
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.894359,
+          47.984528
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30300",
+        "stop_name": "Freiburg Laßbergstraße",
+        "trip_cnt": {
+          "0": 48,
+          "3": 45
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.888887,
+          47.98611
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30301",
+        "stop_name": "Freiburg, Römerhof",
+        "trip_cnt": {
+          "0": 50
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.883997,
+          47.98674
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30302",
+        "stop_name": "Freiburg, Hasemannstraße",
+        "trip_cnt": {
+          "0": 49
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.878912,
+          47.987095
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30303",
+        "stop_name": "Freiburg, Emil-Gött-Straße",
+        "trip_cnt": {
+          "0": 49
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.873352,
+          47.987686
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30304",
+        "stop_name": "Freiburg, Musikhochschule",
+        "trip_cnt": {
+          "0": 49
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.86917,
+          47.98841
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30305",
+        "stop_name": "Freiburg, Alter Messplatz",
+        "trip_cnt": {
+          "0": 49
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.864791,
+          47.988316
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30306",
+        "stop_name": "Freiburg, Maria-Hilf-Kirche",
+        "trip_cnt": {
+          "0": 50
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.894458,
+          47.981346
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30310",
+        "stop_name": "Freiburg Päd. Hochschule",
+        "trip_cnt": {
+          "3": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.89746,
+          47.978603
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30311",
+        "stop_name": "Freiburg, Sudetenstraße",
+        "trip_cnt": {
+          "3": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.900208,
+          47.978497
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30312",
+        "stop_name": "Freiburg, Römerstraße",
+        "trip_cnt": {
+          "3": 11
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.902915,
+          47.97783
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30313",
+        "stop_name": "Freiburg, Höllentalstraße",
+        "trip_cnt": {
+          "3": 19
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.90704,
+          47.97722
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30314",
+        "stop_name": "Freiburg, Am Hörchersberg",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.911136,
+          47.97732
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30315",
+        "stop_name": "Freiburg, Löwen",
+        "trip_cnt": {
+          "3": 25
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.915442,
+          47.97559
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30316",
+        "stop_name": "Freiburg Königsberger Straße",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.910785,
+          47.971085
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30317",
+        "stop_name": "Freiburg, Im Schulerdobel",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.909241,
+          47.966827
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30318",
+        "stop_name": "Freiburg, Peterbergstraße",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.908317,
+          47.964928
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30319",
+        "stop_name": "Freiburg, Kleintalstraße",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.909287,
+          47.962753
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30320",
+        "stop_name": "Freiburg, Am Bannwald",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.912764,
+          47.955933
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30321",
+        "stop_name": "Freiburg, Hercherhof",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.912087,
+          47.950565
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30322",
+        "stop_name": "Freiburg, Molzhofsiedlung",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.901069,
+          47.981506
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30323",
+        "stop_name": "Freiburg, R.-Schneider-Straße",
+        "trip_cnt": {
+          "3": 8
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.89824,
+          47.98273
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30324",
+        "stop_name": "Freiburg Ebneter Straße",
+        "trip_cnt": {
+          "3": 5
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.894188,
+          47.987556
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30325",
+        "stop_name": "Freiburg Strandbad",
+        "trip_cnt": {
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.898397,
+          47.987453
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30326",
+        "stop_name": "Freiburg, Nepomukbrücke",
+        "trip_cnt": {
+          "3": 9
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.904669,
+          47.986694
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30327",
+        "stop_name": "Freiburg, Ebnet-Rathaus",
+        "trip_cnt": {
+          "3": 11
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.906175,
+          47.988365
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30328",
+        "stop_name": "Freiburg, Pfarrheim",
+        "trip_cnt": {
+          "3": 11
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.910978,
+          47.989334
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30329",
+        "stop_name": "Freiburg, Im Gänderle",
+        "trip_cnt": {
+          "3": 11
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.915432,
+          47.989647
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30330",
+        "stop_name": "Freiburg, Langmatten",
+        "trip_cnt": {
+          "3": 11
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.903906,
+          47.980995
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30331",
+        "stop_name": "Freiburg, Zenlinweg",
+        "trip_cnt": {
+          "3": 8
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.904744,
+          47.984455
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30332",
+        "stop_name": "Freiburg, Unteres Grün",
+        "trip_cnt": {
+          "3": 5
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.912326,
+          47.95191
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30333",
+        "stop_name": "Freiburg, Butzenhofstraße",
+        "trip_cnt": {
+          "3": 6
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.912789,
+          47.951534
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30334",
+        "stop_name": "Freiburg, Molzhofstraße",
+        "trip_cnt": {
+          "3": 6
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.908878,
+          47.984703
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30335",
+        "stop_name": "Freiburg, Zartener Straße",
+        "trip_cnt": {
+          "3": 5
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.90574,
+          47.98619
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30336",
+        "stop_name": "Ebnet (Frbg.) Hirschen",
+        "trip_cnt": {
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.896015,
+          47.986683
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30337",
+        "stop_name": "Freiburg, Heinrich-Heine-Str.",
+        "trip_cnt": {
+          "3": 10
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.911047,
+          47.95865
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30388",
+        "stop_name": "Freiburg, Junghof",
+        "trip_cnt": {
+          "3": 11
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.857914,
+          47.964394
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30400",
+        "stop_name": "Freiburg Dorfstraße",
+        "trip_cnt": {
+          "0": 24,
+          "3": 13
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.855938,
+          47.965733
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30401",
+        "stop_name": "Freiburg, Klosterplatz",
+        "trip_cnt": {
+          "0": 24
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.852833,
+          47.96689
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30402",
+        "stop_name": "Freiburg, Wiesenweg",
+        "trip_cnt": {
+          "0": 24,
+          "3": 4
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.847503,
+          47.974705
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30403",
+        "stop_name": "Freiburg, Wonnhalde",
+        "trip_cnt": {
+          "0": 24
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.847879,
+          47.979492
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30404",
+        "stop_name": "Freiburg, Holbeinstraße",
+        "trip_cnt": {
+          "0": 25
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.847498,
+          47.98457
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30405",
+        "stop_name": "Freiburg, Lorettostraße",
+        "trip_cnt": {
+          "0": 24
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.839439,
+          47.987297
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30408",
+        "stop_name": "Freiburg, Reiterstraße",
+        "trip_cnt": {
+          "0": 38,
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.836102,
+          47.98615
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30411",
+        "stop_name": "Freiburg, H.-von-Stephan-Straße",
+        "trip_cnt": {
+          "0": 76,
+          "3": 48
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.861889,
+          47.96188
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30412",
+        "stop_name": "Freiburg, Vogelsang",
+        "trip_cnt": {
+          "3": 13
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.863569,
+          47.959755
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30413",
+        "stop_name": "Freiburg, Leimeweg",
+        "trip_cnt": {
+          "3": 13
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.863687,
+          47.957428
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30414",
+        "stop_name": "Freiburg, Kyburg",
+        "trip_cnt": {
+          "3": 14
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.83668,
+          47.984283
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30415",
+        "stop_name": "Freiburg, Weddigenstraße",
+        "trip_cnt": {
+          "0": 38,
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.820058,
+          47.97942
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30418",
+        "stop_name": "Freiburg, Lörracher Straße",
+        "trip_cnt": {
+          "3": 24
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.797537,
+          47.980175
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30421",
+        "stop_name": "Freiburg, Kalkackerweg",
+        "trip_cnt": {
+          "3": 4
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.822482,
+          47.97535
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30423",
+        "stop_name": "Freiburg, Vauban-Mitte",
+        "trip_cnt": {
+          "0": 38
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.817309,
+          47.976627
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30424",
+        "stop_name": "Freiburg, Innsbrucker Straße",
+        "trip_cnt": {
+          "0": 39,
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.795796,
+          47.98413
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30428",
+        "stop_name": "Freiburg Moosackerweg",
+        "trip_cnt": {
+          "3": 48
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.904307,
+          47.986107
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30429",
+        "stop_name": "Freiburg, Hirschenhofweg",
+        "trip_cnt": {
+          "3": 5
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.860446,
+          48.026222
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30431",
+        "stop_name": "Freiburg, Berggasse",
+        "trip_cnt": {
+          "0": 40,
+          "3": 13
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.862058,
+          48.03035
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30432",
+        "stop_name": "Freiburg, Glottertalstraße",
+        "trip_cnt": {
+          "0": 39
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.843903,
+          47.98478
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30480",
+        "stop_name": "Freiburg, Lorettoschule",
+        "trip_cnt": {
+          "3": 2
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.863194,
+          48.00615
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30481",
+        "stop_name": "Freiburg, Weiherhofschule",
+        "trip_cnt": {
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.841715,
+          48.016117
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30485",
+        "stop_name": "Freiburg, Liebigstraße",
+        "trip_cnt": {
+          "3": 19
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.832447,
+          47.99985
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30500",
+        "stop_name": "Freiburg, Rathaus im Stühlinge",
+        "trip_cnt": {
+          "0": 156
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.825383,
+          48.002148
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30501",
+        "stop_name": "Freiburg, Runzmattenweg",
+        "trip_cnt": {
+          "0": 96
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.818199,
+          48.006912
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30502",
+        "stop_name": "Freiburg, Am Bischofskreuz",
+        "trip_cnt": {
+          "0": 49
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.810516,
+          48.01115
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30503",
+        "stop_name": "Freiburg, Betzenhauser Torplatz",
+        "trip_cnt": {
+          "0": 50
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.80748,
+          48.013733
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30504",
+        "stop_name": "Freiburg, Paduaallee",
+        "trip_cnt": {
+          "0": 50,
+          "3": 83
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.8204,
+          48.002068
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30505",
+        "stop_name": "Freiburg, Bissierstraße",
+        "trip_cnt": {
+          "0": 42,
+          "3": 44
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.804423,
+          48.014366
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30506",
+        "stop_name": "Freiburg, Gescheidstraße",
+        "trip_cnt": {
+          "3": 31
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.800778,
+          48.016632
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30507",
+        "stop_name": "Freiburg, Kirchbergstraße",
+        "trip_cnt": {
+          "3": 32
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.798576,
+          48.01679
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30508",
+        "stop_name": "Freiburg, Ziegelhofstraße",
+        "trip_cnt": {
+          "3": 47
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.795092,
+          48.021915
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30509",
+        "stop_name": "Freiburg, Lehen Ziegelei",
+        "trip_cnt": {
+          "3": 14
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.83347,
+          47.994762
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30510",
+        "stop_name": "Freiburg, Ferdinand-Weiß-Str.",
+        "trip_cnt": {
+          "3": 23
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.829866,
+          47.9965
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30511",
+        "stop_name": "Freiburg, Vogesenstraße",
+        "trip_cnt": {
+          "3": 8
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.831468,
+          47.99797
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30512",
+        "stop_name": "Freiburg, Draisstraße",
+        "trip_cnt": {
+          "3": 8
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.781908,
+          48.008385
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30513",
+        "stop_name": "Freiburg, Mundenhof",
+        "trip_cnt": {
+          "3": 4
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.77664,
+          48.01591
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30515",
+        "stop_name": "Freiburg, Mundenhof Wirtgeb.",
+        "trip_cnt": {
+          "3": 4
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.88005,
+          47.991432
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30597",
+        "stop_name": "Freiburg, Sandfangweg",
+        "trip_cnt": {
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.807049,
+          47.997566
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30600",
+        "stop_name": "Freiburg, Bugginger Straße",
+        "trip_cnt": {
+          "0": 41
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.809646,
+          47.993027
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30602",
+        "stop_name": "Freiburg, Krozinger Straße",
+        "trip_cnt": {
+          "0": 39
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.815984,
+          47.99125
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30603",
+        "stop_name": "Freiburg, Dorfbrunnen",
+        "trip_cnt": {
+          "0": 39
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.819981,
+          47.99047
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30604",
+        "stop_name": "Freiburg, Scherrerplatz",
+        "trip_cnt": {
+          "0": 39,
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.823338,
+          47.989532
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30605",
+        "stop_name": "Freiburg, Haslach Bad",
+        "trip_cnt": {
+          "0": 38
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.80993,
+          47.99929
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30607",
+        "stop_name": "Freiburg, Rohrgraben",
+        "trip_cnt": {
+          "0": 41
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.711545,
+          47.982048
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30609",
+        "stop_name": "Freiburg, Rivanerweg",
+        "trip_cnt": {
+          "3": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.811377,
+          47.985886
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30610",
+        "stop_name": "Freiburg, Am Kirchacker",
+        "trip_cnt": {
+          "3": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.813844,
+          47.98815
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30611",
+        "stop_name": "Freiburg, Uffhauser Straße",
+        "trip_cnt": {
+          "3": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.818284,
+          47.987343
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30612",
+        "stop_name": "Freiburg, Belchenstraße",
+        "trip_cnt": {
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.830593,
+          47.993378
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30613",
+        "stop_name": "Freiburg, Marienmattenweg",
+        "trip_cnt": {
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.8263,
+          47.994835
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30614",
+        "stop_name": "Freiburg, Mühle",
+        "trip_cnt": {
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.817965,
+          47.997772
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30615",
+        "stop_name": "Freiburg, Laufener Straße",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.829339,
+          47.98596
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30616",
+        "stop_name": "Freiburg Pressehaus",
+        "trip_cnt": {
+          "0": 38,
+          "3": 38
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.821987,
+          47.99355
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30617",
+        "stop_name": "Freiburg, Markgrafenstraße",
+        "trip_cnt": {
+          "3": 23
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.801347,
+          47.987427
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30618",
+        "stop_name": "Freiburg, Struveweg",
+        "trip_cnt": {
+          "3": 10
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.821395,
+          47.997185
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30621",
+        "stop_name": "Freiburg, Mathias-Blank-Straße",
+        "trip_cnt": {
+          "3": 32
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.80764,
+          47.98296
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30622",
+        "stop_name": "Freiburg, Am Mettweg",
+        "trip_cnt": {
+          "3": 21
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.798922,
+          47.982246
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30623",
+        "stop_name": "Freiburg, Schulstraße",
+        "trip_cnt": {
+          "3": 8
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.827946,
+          47.97422
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30651",
+        "stop_name": "Freiburg Paula-Modersohn-Platz",
+        "trip_cnt": {
+          "0": 39,
+          "3": 13
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.794972,
+          47.977566
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30700",
+        "stop_name": "Freiburg, Obergasse",
+        "trip_cnt": {
+          "3": 19
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.803845,
+          47.980984
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30703",
+        "stop_name": "St. Georgen Blumenstraße",
+        "trip_cnt": {
+          "3": 2
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.80468,
+          47.978863
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30704",
+        "stop_name": "Freiburg, Kapellenwinkel",
+        "trip_cnt": {
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.810335,
+          47.97878
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30705",
+        "stop_name": "Freiburg, Schneeburgstraße",
+        "trip_cnt": {
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.816,
+          47.978252
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30706",
+        "stop_name": "Freiburg, Gabelsbergerstraße",
+        "trip_cnt": {
+          "3": 24
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.820115,
+          47.98166
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30707",
+        "stop_name": "Freiburg, Schopfheimer Straße",
+        "trip_cnt": {
+          "3": 23
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.822358,
+          47.98493
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30708",
+        "stop_name": "Freiburg, Bauhöferstraße",
+        "trip_cnt": {
+          "3": 38
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.826353,
+          47.98539
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30709",
+        "stop_name": "Freiburg, Fichtestraße",
+        "trip_cnt": {
+          "3": 25
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.803085,
+          47.9824
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30711",
+        "stop_name": "Freiburg, Schiff",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.795045,
+          47.981354
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30712",
+        "stop_name": "Freiburg, Besanconallee",
+        "trip_cnt": {
+          "3": 32
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.790216,
+          47.980476
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30713",
+        "stop_name": "Freiburg, Friedhof St.Georgen",
+        "trip_cnt": {
+          "3": 9
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.766155,
+          47.98397
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30714",
+        "stop_name": "Freiburg, KEIDEL Bad",
+        "trip_cnt": {
+          "3": 8
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.797663,
+          47.992065
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30715",
+        "stop_name": "Freiburg, VAG-Zentrum",
+        "trip_cnt": {
+          "0": 38,
+          "3": 8
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.796173,
+          47.988277
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30716",
+        "stop_name": "Freiburg Munzinger Straße",
+        "trip_cnt": {
+          "0": 37,
+          "3": 111
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.789286,
+          47.989315
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30717",
+        "stop_name": "Freiburg, Bötzinger Straße",
+        "trip_cnt": {
+          "3": 37
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.783974,
+          47.985542
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30720",
+        "stop_name": "Freiburg Burkheimer Straße",
+        "trip_cnt": {
+          "3": 15
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.788684,
+          47.9933
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30721",
+        "stop_name": "Freiburg, Rimsinger Weg",
+        "trip_cnt": {
+          "3": 23
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.78819,
+          47.988052
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30722",
+        "stop_name": "Freiburg, Riegeler Straße",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.794087,
+          47.981056
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30725",
+        "stop_name": "Freiburg, St. Georgen Kirche",
+        "trip_cnt": {
+          "3": 27
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.800947,
+          47.978115
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30726",
+        "stop_name": "Freiburg, Cardinalweg",
+        "trip_cnt": {
+          "3": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.787801,
+          48.000614
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30727",
+        "stop_name": "Freiburg Bollerstaudenstraße",
+        "trip_cnt": {
+          "0": 39
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.794896,
+          47.99752
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30733",
+        "stop_name": "Freiburg, Geschw.-Scholl-Platz",
+        "trip_cnt": {
+          "0": 38
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.791332,
+          47.99924
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30734",
+        "stop_name": "Freiburg, Maria-von-Rudloff-Platz",
+        "trip_cnt": {
+          "0": 39,
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.895326,
+          47.98004
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30738",
+        "stop_name": "Freiburg, Kunzenweg",
+        "trip_cnt": {
+          "3": 5
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.808579,
+          48.02888
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30800",
+        "stop_name": "Freiburg Moosweiher",
+        "trip_cnt": {
+          "0": 50,
+          "3": 38
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.812244,
+          48.023586
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30801",
+        "stop_name": "Freiburg Diakoniekrankenhaus",
+        "trip_cnt": {
+          "0": 49,
+          "3": 10
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.811692,
+          48.018303
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30802",
+        "stop_name": "Freiburg, Moosgrund",
+        "trip_cnt": {
+          "0": 49
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.818317,
+          48.01818
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30803",
+        "stop_name": "Freiburg, Hofackerstraße",
+        "trip_cnt": {
+          "3": 35
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.822893,
+          48.015602
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30804",
+        "stop_name": "Freiburg, Almendweg",
+        "trip_cnt": {
+          "3": 35
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.825939,
+          48.01367
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30805",
+        "stop_name": "Freiburg, Falkenbergerstraße",
+        "trip_cnt": {
+          "3": 35
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.829977,
+          48.011215
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30806",
+        "stop_name": "Freiburg Robert-Grumbach-Platz",
+        "trip_cnt": {
+          "3": 35
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.831423,
+          48.009617
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30807",
+        "stop_name": "Freiburg Elsässer Straße",
+        "trip_cnt": {
+          "0": 40,
+          "3": 43
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.830267,
+          48.00722
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30808",
+        "stop_name": "Freiburg, Berliner Allee",
+        "trip_cnt": {
+          "0": 40
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.833606,
+          48.00598
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30809",
+        "stop_name": "Freiburg, Killianstraße",
+        "trip_cnt": {
+          "0": 39
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.836992,
+          48.003838
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30810",
+        "stop_name": "Freiburg Robert-Koch-Straße",
+        "trip_cnt": {
+          "0": 64,
+          "3": 9
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.841196,
+          48.0034
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30811",
+        "stop_name": "Freiburg Friedrich-Ebert-Platz",
+        "trip_cnt": {
+          "0": 25
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.839716,
+          48.022762
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30812",
+        "stop_name": "Freiburg, Am Flughafen",
+        "trip_cnt": {
+          "3": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.835582,
+          48.012207
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30813",
+        "stop_name": "Freiburg, Technische Fakultät",
+        "trip_cnt": {
+          "0": 40,
+          "3": 21
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.811983,
+          48.0272
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30815",
+        "stop_name": "Freiburg Wirthstraße",
+        "trip_cnt": {
+          "3": 9
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.803536,
+          48.033012
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30820",
+        "stop_name": "Freiburg, CVUA Freiburg",
+        "trip_cnt": {
+          "3": 38
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.802704,
+          48.04579
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30821",
+        "stop_name": "Freiburg, Hochdorf Vorstadt",
+        "trip_cnt": {
+          "3": 27
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.801957,
+          48.04967
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30822",
+        "stop_name": "Freiburg, Hochdorf Dorfplatz",
+        "trip_cnt": {
+          "3": 26
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.809002,
+          48.05711
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30823",
+        "stop_name": "Freiburg, St.-Agatha Weg",
+        "trip_cnt": {
+          "3": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.807174,
+          48.047924
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30824",
+        "stop_name": "Freiburg, Kandelblickstraße",
+        "trip_cnt": {
+          "3": 4
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.813643,
+          48.041336
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30825",
+        "stop_name": "Freiburg, Beschläge Koch",
+        "trip_cnt": {
+          "3": 23
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.810007,
+          48.03557
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30827",
+        "stop_name": "Freiburg, Streck Transport",
+        "trip_cnt": {
+          "3": 7
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.807052,
+          48.04742
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30828",
+        "stop_name": "Freiburg, Högestraße",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.802338,
+          48.052895
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30829",
+        "stop_name": "Freiburg, Benzhauser Straße",
+        "trip_cnt": {
+          "3": 15
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.79678,
+          48.038105
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30830",
+        "stop_name": "Freiburg, Christ",
+        "trip_cnt": {
+          "3": 21
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.799097,
+          48.052086
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30831",
+        "stop_name": "Freiburg, An der Hohlgasse",
+        "trip_cnt": {
+          "3": 11
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.810447,
+          48.036842
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30832",
+        "stop_name": "Freiburg, Leinenweberstraße",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.796663,
+          48.051178
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30833",
+        "stop_name": "Freiburg, Zum Roten Stein",
+        "trip_cnt": {
+          "3": 14
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.815381,
+          48.038647
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30834",
+        "stop_name": "Freiburg, Hanferstraße",
+        "trip_cnt": {
+          "3": 23
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.791964,
+          48.013493
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30835",
+        "stop_name": "Freiburg, Am Sender",
+        "trip_cnt": {
+          "3": 4
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.825979,
+          48.006
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30836",
+        "stop_name": "Freiburg, Idingerstraße",
+        "trip_cnt": {
+          "3": 43
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.838168,
+          48.000973
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30901",
+        "stop_name": "Freiburg, Lehener Straße",
+        "trip_cnt": {
+          "3": 22
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.788883,
+          47.995068
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30916",
+        "stop_name": "Freiburg, Bettina-von-Arnim-Str.",
+        "trip_cnt": {
+          "3": 32
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.779304,
+          47.983067
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30938",
+        "stop_name": "Freiburg, Schaub",
+        "trip_cnt": {
+          "3": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.782158,
+          47.985912
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30939",
+        "stop_name": "Freiburg, Stryker",
+        "trip_cnt": {
+          "3": 16
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.794762,
+          48.02399
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30950",
+        "stop_name": "Freiburg, Lehen Gew.gebiet Mitte",
+        "trip_cnt": {
+          "3": 2
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.793761,
+          48.02727
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30951",
+        "stop_name": "Freiburg, Lehen Gew.gebiet Nord",
+        "trip_cnt": {
+          "3": 2
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.840662,
+          48.01285
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30978",
+        "stop_name": "Freiburg, FWTM Neuer Messplatz",
+        "trip_cnt": {
+          "3": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.83653,
+          48.014194
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:30979",
+        "stop_name": "Freiburg, Europa-Park Stadion",
+        "trip_cnt": {
+          "0": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.837487,
+          47.9901
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:32417",
+        "stop_name": "Freiburg, Rehlingstraße",
+        "trip_cnt": {
+          "3": 48
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.853962,
+          48.010963
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:5047",
+        "stop_name": "Freiburg Nordstraße",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.904447,
+          47.985058
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:5197",
+        "stop_name": "Ebnet (Frbg) Dreisamhalle",
+        "trip_cnt": {
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.69911,
+          47.96796
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:5220",
+        "stop_name": "Munzingen Romanstraße",
+        "trip_cnt": {
+          "3": 5
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.919646,
+          47.97408
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:5335",
+        "stop_name": "Kappel (Frbg) Faigle",
+        "trip_cnt": {
+          "3": 7
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.921093,
+          47.972595
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:5336",
+        "stop_name": "Kappel (Frbg) Ziegelmatten",
+        "trip_cnt": {
+          "3": 3
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.915909,
+          47.97564
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:5484",
+        "stop_name": "Freiburg Kappel Bahnhofstraße",
+        "trip_cnt": {
+          "3": 5
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.875656,
+          47.98792
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:567",
+        "stop_name": "Freiburg Schiff",
+        "trip_cnt": {
+          "3": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.840442,
+          47.996616
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:6508",
+        "stop_name": "Freiburg Hauptbahnhof",
+        "trip_cnt": {
+          "0": 149,
+          "2": 51,
+          "3": 96
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.84258,
+          48.00575
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:6509",
+        "stop_name": "Freiburg Klinikum Bahnhof",
+        "trip_cnt": {
+          "2": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.850638,
+          48.007828
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:6510",
+        "stop_name": "Freiburg Herdern Bahnhof",
+        "trip_cnt": {
+          "2": 11
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.812091,
+          48.027897
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:6511",
+        "stop_name": "Freiburg Landwasser",
+        "trip_cnt": {
+          "2": 14
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.863906,
+          48.02458
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:6512",
+        "stop_name": "Freiburg Zähringen Bahnhof",
+        "trip_cnt": {
+          "2": 9
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.894538,
+          47.98193
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:6540",
+        "stop_name": "Freiburg Littenweiler Bahnhof",
+        "trip_cnt": {
+          "2": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.854626,
+          47.982517
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:6541",
+        "stop_name": "Freiburg Wiehre Bahnhof",
+        "trip_cnt": {
+          "2": 20
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.802776,
+          47.975464
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:6589",
+        "stop_name": "St. Georgen (Frbg) Bahnhof",
+        "trip_cnt": {
+          "2": 5
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.834118,
+          48.01186
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:6707",
+        "stop_name": "Freiburg Messe/Universität",
+        "trip_cnt": {
+          "2": 17
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.863142,
+          48.035217
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:750",
+        "stop_name": "Freiburg, Gundelfinger Straße",
+        "trip_cnt": {
+          "3": 12
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.845023,
+          48.020103
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08311:8",
+        "stop_name": "Freiburg Industriepark Ost",
+        "trip_cnt": {
+          "3": 9
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7.865581,
+          47.950405
+        ]
+      },
+      "properties": {
+        "stop_id": "de:08315:30047",
+        "stop_name": "Horben Bernauer",
+        "trip_cnt": {
+          "3": 8
+        }
+      }
+    }
+  ]
+}

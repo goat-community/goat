@@ -8,7 +8,12 @@
     v-model="dialog"
     content-class="v-dialog"
   >
-    <v-card v-draggable="draggableValue" ondragstart="return false;">
+    <v-card
+      v-draggable="draggableValue"
+      ondragstart="return true;"
+      :style="[isExpanded ? { height: 'auto' } : { height: '50px' }]"
+      style="position:fixed;top:10px;left:360px;z-index:2;min-width:350px;max-width:450px;height:450px;overflow:hidden;"
+    >
       <v-layout justify-space-between column fill-height>
         <v-app-bar
           :color="appColor.primary"
@@ -56,9 +61,13 @@
 
 <script>
 import { mapGetters } from "vuex";
+import { Draggable } from "draggable-vue-directive";
 
 export default {
   props: ["status", "translate"],
+  directives: {
+    Draggable
+  },
   data() {
     return {
       selectedDay: [
@@ -72,6 +81,7 @@ export default {
       ],
       dialog: this.status,
       isExpanded: true,
+      handleId: "handle-id",
       draggableValue: {
         handle: undefined,
         boundingElement: undefined,
@@ -83,11 +93,6 @@ export default {
     ...mapGetters("app", {
       appColor: "appColor"
     })
-  },
-  watch: {
-    status(value) {
-      console.log(value);
-    }
   },
   methods: {
     close() {

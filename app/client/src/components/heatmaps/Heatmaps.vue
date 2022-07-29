@@ -24,7 +24,7 @@
                     src="img/layer-style-icons/hexagon.svg"
                   />
                 </v-flex>
-                <v-flex xs10 class="light-text" style="font-size:medium;">
+                <v-flex xs10 class="light-text" style="font-size: medium">
                   <div>
                     <b>{{
                       translate("layerGroup", Object.keys(layerGroup)[0])
@@ -77,7 +77,7 @@
                         <v-icon
                           v-show="layer.getVisible()"
                           small
-                          style="width: 30px; height: 30px;"
+                          style="width: 30px; height: 30px"
                           v-html="
                             layer.get('showOptions')
                               ? 'fas fa-chevron-down'
@@ -96,14 +96,14 @@
                   <v-card
                     class="pt-2"
                     v-show="layer.get('showOptions') === true"
-                    style="background-color: white;"
+                    style="background-color: white"
                     transition="slide-y-reverse-transition"
                   >
                     <InLegend :layer="layer"></InLegend>
-                    <v-layout row style="width:100%;padding-left: 10px;">
+                    <v-layout row style="width: 100%; padding-left: 10px">
                       <v-flex
                         class="xs2"
-                        style="text-align:center;"
+                        style="text-align: center"
                         v-if="
                           ['VECTORTILE', 'VECTOR', 'MVT', 'GEOBUF'].includes(
                             layer.get('type').toUpperCase()
@@ -112,7 +112,11 @@
                       >
                         <v-icon
                           v-ripple
-                          style="color:#B0B0B0;margin-top:3px;cursor:pointer"
+                          style="
+                            color: #b0b0b0;
+                            margin-top: 3px;
+                            cursor: pointer;
+                          "
                           dark
                           @click="openStyleDialog(layer)"
                         >
@@ -175,8 +179,27 @@
         @changeStatus="changeIndicatorDialogStatus"
       ></ModifyDialog>
     </span>
+    <overlay-popup
+      :color="appColor.primary"
+      :title="overlayTitle || 'No Title fetched'"
+      v-show="popup.isVisible"
+      ref="indicatorPopup"
+    >
+      <!-- <template v-slot:close>
+      </template> -->
+      <template v-slot:body>
+        <p
+          v-for="(transportMean, tranportKey) in transportationMeans"
+          :key="tranportKey"
+        >
+          {{ translatePT("pt_route_types", tranportKey.toString()) }} -
+          {{ transportMean }}
+        </p>
+      </template>
+    </overlay-popup>
   </v-flex>
 </template>
+
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import { EventBus } from "../../EventBus";
@@ -192,14 +215,25 @@ import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
+import OverlayPopup from "../viewer/ol/controls/Overlay.vue";
+import Overlay from "ol/Overlay";
+// import axios from "axios";
+
 export default {
   mixins: [Mapable, Legend, LayerTree],
   components: {
     InLegend,
     StyleDialog,
-    ModifyDialog
+    ModifyDialog,
+    "overlay-popup": OverlayPopup
   },
   data: () => ({
+    popup: {
+      rawHtml: null,
+      title: "info",
+      isVisible: false,
+      currentLayerIndex: 0
+    },
     heatmapPanel: [0],
     heatmapGroup: {},
     indicatorGroupLayers: [],
@@ -208,26 +242,25 @@ export default {
       "heatmap_accessibility_population",
       "heatmap_local_accessibility"
     ],
-
     updateHeatmaps: {
       poi: ["heatmap_local_accessibility", "heatmap_accessibility_population"],
       population: ["heatmap_accessibility_population", "heatmap_population"]
     },
     currentItem: null,
     styleDialogKey: 0,
-    // indicatorDialogKey: 0,
     styleDialogStatus: false,
-    IndicatorDialogStatus: false
+    IndicatorDialogStatus: false,
+    overlayTitle: "",
+    transportationMeans: {}
   }),
-
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
       this.styleDialogStatus = value;
     });
-
-    // EventBus.$on("updateModifyDialogStatus", value => {
-    //   this.IndicatorDialogStatus = value;
-    // });
+    window.setTimeout(() => {
+      this.createPopupOverlay();
+      this.showPopup();
+    }, 200);
   },
   computed: {
     ...mapGetters("app", {
@@ -257,8 +290,8 @@ export default {
      * This function is executed, after the map is bound (see mixins/Mapable)
      * and registers the current map layers.
      */
-    // Only to guid me through the proccess, everything static here will be done dynamic
 
+    // Only to guid me through the proccess, everything static here will be done dynamic
     changeIndicatorDialogStatus(value) {
       console.log(value);
       this.map
@@ -271,15 +304,68 @@ export default {
         });
       this.IndicatorDialogStatus = false;
     },
+    createPopupOverlay() {
+      this.popupOverlay = new Overlay({
+        element: this.$refs.indicatorPopup.$el,
+        autoPan: false,
+        autoPanMargin: 40,
+        positioning: "bottom-left",
+        autoPanAnimation: {
+          duration: 250
+        }
+      });
+      this.map.addOverlay(this.popupOverlay);
+    },
+    showPopup() {
+      this.map.on("click", e => {
+        // let overlayElement = this.$refs.indicatorPopup.$el;
+        this.popupOverlay.setPosition(undefined);
+        this.map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
+          console.log(feature, layer);
+          let clickedCoordinate = e.coordinate;
+          let clickedFeatureName = feature.get("stop_name");
+          this.overlayTitle = clickedFeatureName;
+
+          let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
+          this.transportationMeans = clickedFeatureAdditionalInfo;
+          console.log(clickedFeatureAdditionalInfo);
+          this.popupOverlay.setPosition(clickedCoordinate);
+          this.popup.isVisible = true;
+          // overlayFeatureName.innerHTML = clickedFeatureName;
+          // overlayFeatureAdditionalInfo.innerHTML = clickedFeatureAdditionalInfo;
+        });
+      });
+    },
     createStaticLayerGroups() {
       let publicTransportationLayerGroup = {
         publicTransportation: []
       };
 
+      // let headers = {
+      //   accept: "application/json",
+      //   Authorization:
+      //     "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTk3ODIyOTAsInN1YiI6IjEyMSIsInNjb3BlcyI6W119.3JwtU-ck7OQeLejl6QerttagF2B8XYQyvoM-2NoNxYI"
+      // };
+
+      // let params = {
+      //   start_time: "25200",
+      //   end_time: "32400",
+      //   weekday: "1",
+      //   return_type: "geojson"
+      // };
+
+      // axios.get(
+      //   "https://goat-dev.plan4better.de/api/v1/pt/indicators/stations-count",
+      //   {
+      //     params: params,
+      //     headers: headers
+      //   }
+      // );
+
       let newLayerForTesting = new VectorLayer({
         source: new VectorSource({
           url:
-            "https://api.maptiler.com/data/6838bc4e-7a17-41af-a594-6e8d43fb05c5/features.json?key=5SLMZCpBxmxow9QFVy7M",
+            "https://api.maptiler.com/data/c41dc533-7288-4e85-aeda-c5d0b2583335/features.json?key=5SLMZCpBxmxow9QFVy7M",
           format: new GeoJSON()
         }),
         attribution: "<p>Just for testinf porposes</p>",
@@ -297,8 +383,8 @@ export default {
 
       this.indicatorGroupLayers.push(publicTransportationLayerGroup);
     },
-
     //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
     onMapBound() {
       this.map
         .getLayers()
@@ -325,6 +411,14 @@ export default {
       const canTranslate = this.$te(`map.${type}.${key}`);
       if (canTranslate) {
         return this.$t(`map.${type}.${key}`);
+      } else {
+        return key;
+      }
+    },
+    translatePT(type, key) {
+      const canTranslate = this.$te(`${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`${type}.${key}`);
       } else {
         return key;
       }
@@ -379,7 +473,11 @@ export default {
       }
 
       if (layer.get("group") === "publicTransportation") {
-        this.IndicatorDialogStatus = true;
+        if (layer.getVisible() === false) {
+          this.IndicatorDialogStatus = false;
+        } else {
+          this.IndicatorDialogStatus = true;
+        }
       }
     },
     refreshAllVisibleHeatmaps() {
