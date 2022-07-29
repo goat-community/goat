@@ -59,7 +59,7 @@ class Dijkstra:
     def __init__(self, data_edges, start_vertexes, distance_limit):
         self.data_edges = data_edges
         self.start_vertexes = start_vertexes
-        self.distance_limit = max(distance_limit)
+        self.distance_limit = max(distance_limit) * 60
         self.distances = {}
         self.calculator = {}
         self.sparse_graph, self.vertexes_set = self.generate_sparse_graph(data_edges)

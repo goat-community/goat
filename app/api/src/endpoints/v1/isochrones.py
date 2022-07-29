@@ -46,24 +46,6 @@ async def create_isochrone(
     return result
 
 
-# @router.post("/single", response_class=JSONResponse)
-# async def calculate_single_isochrone(
-#     *,
-#     db: AsyncSession = Depends(deps.get_db),
-#     isochrone_in: IsochroneSingle = Body(..., examples=request_examples["single_isochrone"]),
-#     current_user: models.User = Depends(deps.get_current_active_user),
-# ) -> Any:
-#     """
-#     Calculate single isochrone.
-#     """
-#     isochrone_in.scenario_id = await deps.check_user_owns_scenario(
-#         db, isochrone_in.scenario_id, current_user
-#     )
-#     isochrone_in.active_upload_ids = current_user.active_data_upload_ids
-#     isochrone_in.user_id = current_user.id
-#     isochrone = await crud.isochrone.calculate_single_isochrone(db=db, obj_in=isochrone_in)
-#     return json.loads(isochrone.to_json())
-
 
 # @router.get("/network/{isochrone_calculation_id}/{modus}", response_class=JSONResponse)
 # async def calculate_reached_network(
@@ -193,31 +175,3 @@ async def create_isochrone(
 #         gdf = GeoDataFrame(pd.concat([gdf_default, gdf_scenario]))
 
 #     return json.loads(gdf.reset_index(drop=True).to_json())
-
-
-@router.get("/export/{isochrone_calculation_id}", response_class=StreamingResponse)
-async def export_isochrones(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
-    isochrone_calculation_id: int = Path(..., description="Isochrone Calculation ID", example=1),
-    return_type: IsochroneExportType = Query(
-        description="Return type of the response", default=IsochroneExportType.geojson
-    ),
-) -> Any:
-    """
-    Export isochrones.
-    """
-    isochrone_calculation_obj = await crud.isochrone_calculation.get_by_multi_keys(
-        db=db, keys={"id": isochrone_calculation_id, "user_id": current_user.id}
-    )
-    if isochrone_calculation_obj == []:
-        raise HTTPException(status_code=404, detail="Isochrone not found")
-
-    file_response = await crud.isochrone.export_isochrone(
-        db=db,
-        current_user=current_user,
-        isochrone_calculation_id=isochrone_calculation_obj[0].id,
-        return_type=return_type.value,
-    )
-    return file_response

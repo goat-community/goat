@@ -2,28 +2,36 @@ import json
 import logging
 import math
 import os
+import re
 import shutil
+import uuid
+import zipfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from tempfile import NamedTemporaryFile
+from typing import IO, Any, Dict, List, Optional
 
 import emails
 import geobuf
+import geopandas
 import numba
 import numpy as np
 from emails.template import JinjaTemplate
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
+from fiona import _err
 from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from jose import jwt
 from numba import njit
 from rich import print as print
+from sentry_sdk import HttpTransport
 from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
+from starlette import status
 from starlette.responses import Response
 
 from src.core.config import settings
-from src.resources.enums import MimeTypes
+from src.resources.enums import MaxUploadFileSize, MimeTypes
 
 
 def send_email_(
@@ -327,6 +335,8 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     surface = np.empty(grid_size)
     TRAVEL_TIME_PERCENTILES = [5, 25, 50, 75, 95]
     percentile_index = 0
+    if depth == 1:
+        percentile = 5  # Walking and cycling
     closest_diff = math.inf
     for index, p in enumerate(TRAVEL_TIME_PERCENTILES):
         current_diff = abs(p - percentile)
@@ -352,7 +362,6 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
-@njit
 def amenity_r5_grid_intersect(
     west,
     north,
@@ -382,7 +391,11 @@ def amenity_r5_grid_intersect(
         width = width
         index = y * width + x
         time_cost = surface[index]
-        if time_cost < 2147483647 and get_population_sum_population[idx] > 0:
+        if (
+            time_cost < 2147483647
+            and get_population_sum_population[idx] > 0
+            and time_cost <= MAX_TIME
+        ):
             population_grid_count[int(time_cost)] += get_population_sum_population[idx]
     population_grid_count = np.cumsum(population_grid_count)
 
@@ -403,7 +416,7 @@ def amenity_r5_grid_intersect(
             poi_one_entrance_grid_count.append(np.zeros(MAX_TIME))
 
         time_cost = surface[index]
-        if time_cost < 2147483647:
+        if time_cost < 2147483647 and time_cost <= MAX_TIME:
             count = get_poi_one_entrance_sum_cnt[idx]
             poi_one_entrance_grid_count[poi_one_entrance_list.index(category)][
                 int(time_cost)
@@ -432,7 +445,11 @@ def amenity_r5_grid_intersect(
 
         time_cost = surface[index]
         category_name = f"{category}_{name}"
-        if time_cost < 2147483647 and category_name not in visited_more_entrance_categories:
+        if (
+            time_cost < 2147483647
+            and category_name not in visited_more_entrance_categories
+            and time_cost <= MAX_TIME
+        ):
             count = get_poi_more_entrance_sum_cnt[idx]
             poi_more_entrance_grid_count[poi_more_entrance_list.index(category)][
                 int(time_cost)
@@ -486,6 +503,24 @@ def coordinate_from_pixel(pixel, zoom):
         "lat": pixel_to_latitude(pixel["y"], zoom),
         "lon": pixel_to_longitude(pixel["x"], zoom),
     }
+
+
+def coordinate_to_pixel(input, zoom):
+    return {
+        "x": longitude_to_pixel(input[0], zoom),
+        "y": latitude_to_pixel(input[1], zoom),
+    }
+
+
+def longitude_to_pixel(longitude, zoom):
+    return ((longitude + 180) / 360) * z_scale(zoom)
+
+
+def latitude_to_pixel(latitude, zoom):
+    lat_rad = (latitude * math.pi) / 180
+    return ((1 - math.log(math.tan(lat_rad) + 1 / math.cos(lat_rad)) / math.pi) / 2) * z_scale(
+        zoom
+    )
 
 
 def katana(geometry, threshold, count=0):
@@ -569,3 +604,124 @@ def print_info(message: str):
 
 def print_warning(message: str):
     print(f"[bold red]WARNING[/bold red]: {message}")
+
+
+def tablify(s):
+
+    # Replace file suffix dot with underscore
+
+    s = s.replace(".", "_")
+
+    # Remove all non-word characters (everything except numbers and letters)
+    s = re.sub(r"[^\w\s]", "", s)
+
+    # Replace all runs of whitespace with a single underscore
+    s = re.sub(r"\s+", "_", s)
+
+    # Lowercase to prevent having uppercase in table name
+    s = s.lower()
+
+    return s
+
+
+def generate_static_layer_table_name(prefix: str = None):
+    if prefix:
+        prefix = tablify(prefix)
+        # Add sl to prevent havin numbers at the beginning of the table name
+        table_name = "sl_" + prefix + "_" + uuid.uuid4().hex
+        # The table name limit is 63
+        table_name = table_name[:63]
+        return table_name
+    else:
+        return "static_layer_" + uuid.uuid4().hex
+
+
+def convert_postgist_to_4326(data_frame):
+    data_frame.to_crs(epsg=4326, inplace=True)
+    data_frame.set_crs(epsg=4326)
+
+
+def get_file_suffix(file_path):
+    # Eg: .zip
+    return os.path.splitext(file_path)[-1].lower()
+
+
+def save_file(data_file: UploadFile):
+    '''
+    Save file to temp directory.
+    '''
+    file_suffix = get_file_suffix(data_file.filename)
+
+    real_file_size = 0
+    temp: IO = NamedTemporaryFile(delete=False, suffix=file_suffix)
+    for chunk in data_file.file:
+        real_file_size += len(chunk)
+        if real_file_size > MaxUploadFileSize.max_upload_poi_file_size.value:
+            temp.close()
+            delete_file(temp.name)
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="The uploaded file size is to big the largest allowd size is %s MB."
+                % round(MaxUploadFileSize.max_upload_poi_file_size / 1024.0 ** 2, 2),
+            )
+
+        temp.write(chunk)
+    temp.close()
+
+    return temp.name
+
+
+def get_zip_directories(zip_file_dir):
+    '''
+    List directories of zip file
+    '''
+    with zipfile.ZipFile(zip_file_dir) as zip_file:
+        return [directory for directory in zip_file.namelist() if directory.endswith("/")]
+
+
+def get_geopandas_uri(file_path):
+    file_type = get_file_suffix(file_path)
+    if file_type == ".zip":
+        file_uri = "zip://" + file_path
+        directories = get_zip_directories(file_path)
+        if len(directories) == 1:
+            # It has only one directory. Let's open it.
+            directory = directories[0].replace("/", "")
+            file_uri = file_uri + "!" + directory
+        elif len(directories) > 1:
+            raise HTTPException(
+                status_code=400, detail="Several directories inside zip file is not supported."
+            )
+        else:
+            pass
+    else:
+        file_uri = file_path
+
+    return file_uri
+
+
+def geopandas_read_file(data_file: UploadFile):
+    file_type = get_file_suffix(data_file.filename)
+    if file_type != ".zip":
+        # Not zip file, don't save it to disk, Open it directly.
+        try:
+            return geopandas.read_file(data_file.file)
+        except Exception as e:
+            raise e
+    else:
+        temp_file_path = save_file(data_file)
+        # Generate file path. eg: zip://temp/some_name.zip!some_directory
+        file_uri = get_geopandas_uri(temp_file_path)
+        try:
+            return geopandas.read_file(file_uri)
+
+        except HTTPException as e:
+            # It's an HTTP Exception! So raise it to the endpoint.
+            raise e
+
+        except Exception as e:
+            print(e)
+            raise HTTPException(status_code=400, detail="Could not parse file.")
+
+        finally:
+            delete_file(temp_file_path)

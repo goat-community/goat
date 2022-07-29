@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from .scenario import Scenario
     from .study_area import StudyArea
     from .opportunity_config import OpportunityUserConfig
+    from .static_layer import StaticLayer
 
 from ._link_model import UserRole, UserStudyArea
 
@@ -79,4 +80,5 @@ class User(UserBase, table=True):
     isochrone_calculations: List["IsochroneCalculation"] = Relationship(back_populates="user")
     user_customizations: List["UserCustomization"] = Relationship(back_populates="users")
     opportunity_user_configs: List["OpportunityUserConfig"] = Relationship(back_populates="user")
+    static_layers: List["StaticLayer"] = Relationship(back_populates="user")
     # active_study_area: "StudyArea" = Relationship(back_populates="users_active")

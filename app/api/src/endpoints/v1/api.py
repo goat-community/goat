@@ -14,6 +14,7 @@ from src.endpoints.v1 import (
     roles,
     scenarios,
     static_layers,
+    static_layers_extra,
     study_area,
     upload,
     users,
@@ -36,6 +37,9 @@ api_router.include_router(poi_aoi.router, prefix="/pois-aois", tags=["POIs and A
 api_router.include_router(
     static_layers.router, prefix="/layers/vector", tags=["Static vector layers"]
 )
+api_router.include_router(
+    static_layers_extra.router, prefix="/config/layers/vector", tags=["Static vector layers"]
+)
 
 # LAYER: Vector tile endpoints.
 layer_tiles_prefix = "/layers/tiles"
@@ -57,4 +61,3 @@ api_router.include_router(
     layer_library.router, prefix="/config/layers/library", tags=["Layer Library"]
 )
 api_router.include_router(study_area.router, prefix="/config/study-area", tags=["Layer Library"])
-
