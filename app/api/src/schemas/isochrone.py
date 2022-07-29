@@ -342,9 +342,9 @@ class IsochroneDTO(BaseModel):
 
         # For walking and cycling travel time maximumn should be 20 minutes
         if values["mode"].value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
-            if values["settings"].travel_time >= 20:
+            if values["settings"].travel_time > 25:
                 raise ValueError(
-                    "Travel time maximum for walking and cycling should be less or equal to 20 minutes"
+                    "Travel time maximum for walking and cycling should be less or equal to 25 minutes"
                 )
 
         # For PT and Car Isochrone starting point should be only lat lon coordinates and not amenities, travel time smaller than 120 minutes

@@ -3,7 +3,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pyproj
-from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
+from scipy.interpolate import LinearNDInterpolator
 from shapely.geometry import Point
 from shapely.ops import transform
 
@@ -48,13 +48,9 @@ class Isochrone(Dijkstra):
         self.X, self.Y = np.meshgrid(self.X, self.Y)  # 2D grid for interpolation
         x = points[0]
         y = points[1]
-        # lat, lon, = wgs84 = 4326 (49.23424, 12.23423432) (unit degree)
-        # x, y = webmercator = 3857 (unit meters)  webmercator => wgs84 => pixels
-        # x, y = pixelProjection = (unit pixel)
         z = self.costs
         interpolate_function = LinearNDInterpolator(list(zip(x, y)), z)
         self.Z = interpolate_function(self.X, self.Y)
-
         project = pyproj.Transformer.from_crs(
             pyproj.CRS("EPSG:3857"), pyproj.CRS("EPSG:4326"), always_xy=True
         ).transform
@@ -79,7 +75,6 @@ class Isochrone(Dijkstra):
         grid_type = "ACCESSGR"
         grid_data = {}
         Z = np.ravel(self.Z)
-        z_diff = np.diff(Z, prepend=0)
         grid_data["version"] = 1
         grid_data["zoom"] = zoom
         grid_data["west"] = self.X
@@ -87,7 +82,7 @@ class Isochrone(Dijkstra):
         grid_data["width"] = self.Z.shape[0]
         grid_data["height"] = self.Z.shape[1]
         grid_data["depth"] = 1
-        grid_data["data"] = z_diff
+        grid_data["data"] = Z
 
         return grid_data
 

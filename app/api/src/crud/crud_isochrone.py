@@ -625,10 +625,13 @@ class CRUDIsochrone:
             # === Fetch Network ===#
             network, starting_ids = await self.__read_network(db, obj_in)
             # === Compute Grid ===#
-            grid = isochrone_single_depth_grid(network, starting_ids, [25], 10)
+            grid = isochrone_single_depth_grid(
+                network, starting_ids, [25], obj_in.output.resolution
+            )
             # === Amenity Intersect ===#
-            intersects = await self.__amenity_intersect(grid, 25)
-            return HTTPResponse("finished")
+            grid_decoded = await self.__amenity_intersect(grid, 25)
+            grid_encoded = encode_r5_grid(grid_decoded)
+            result = Response(bytes(grid_encoded))
         else:
             payload = {
                 "accessModes": obj_in.settings.access_mode.value.upper(),
