@@ -17,6 +17,7 @@ from .crud_public_transport import public_transport
 from .crud_r5 import r5
 from .crud_role import role, user_role
 from .crud_scenario import scenario
+from .crud_static_layer import static_layer
 from .crud_study_area import study_area
 from .crud_upload import data_upload, upload
 from .crud_user import user
