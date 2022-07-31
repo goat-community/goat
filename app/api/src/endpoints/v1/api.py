@@ -38,7 +38,7 @@ api_router.include_router(
     static_layers.router, prefix="/layers/vector", tags=["Static vector layers"]
 )
 api_router.include_router(
-    static_layers_extra.router, prefix="/config/layers/vector", tags=["Static vector layers"]
+    static_layers_extra.router, prefix="/config/layers/vector", tags=["Manage extra layers"]
 )
 
 # LAYER: Vector tile endpoints.
