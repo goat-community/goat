@@ -56,7 +56,6 @@ api_router.include_router(r5.router, prefix="/r5", tags=["PT-R5"])
 api_router.include_router(
     layer_library.styles_router, prefix="/config/layers/library/styles", tags=["Layer Library"]
 )
-api_router.include_router(layer_library.router, prefix="/layers/library", tags=["Layer Library"])
 api_router.include_router(
     layer_library.router, prefix="/config/layers/library", tags=["Layer Library"]
 )
