@@ -8,7 +8,66 @@
       </template>
 
       <v-card v-if="option === 'first'">
-        <h1>hi</h1>
+        <v-app-bar :color="appColor.primary" dark>
+          <v-app-bar-nav-icon
+            ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
+          >
+          <v-toolbar-title>{{
+            $t("externalGeoportals.selectGeoportal")
+          }}</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-app-bar-nav-icon @click="$emit('cancelHandlerEmiter')"
+            ><v-icon>close</v-icon></v-app-bar-nav-icon
+          >
+        </v-app-bar>
+        <v-card-text style="padding: 20px;">
+          <h2 class="mb-4 grey--text text--darken-3">
+            {{ translate("builtInGeoportals", "title") }}
+          </h2>
+          <div>
+            <div class="cards">
+              <div
+                v-for="(geoportal, idx) in geoportals"
+                :key="idx"
+                class="cardBox"
+                @click="builtInDataHandler(geoportal)"
+              >
+                <div class="overlay">+</div>
+                <img :src="geoportal.thumbnail_url" alt="" />
+                <div class="content">
+                  <p>{{ geoportal.name }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+        <v-card-text style="padding: 20px; padding-bottom: 20px">
+          <h2 class="mb-4 grey--text text--darken-3">
+            {{ translate("ownGeoportals", "title") }}
+          </h2>
+          <v-layout style="padding: 0 12px;" row align-center>
+            <v-flex xs10>
+              <v-form ref="form" lazy-validation>
+                <v-alert type="error" v-if="error">
+                  {{ error }}
+                </v-alert>
+                <v-text-field
+                  v-model="url"
+                  label="Source Url"
+                  required
+                ></v-text-field>
+              </v-form>
+            </v-flex>
+            <v-flex xs2 text-right>
+              <v-btn
+                text
+                @click="layerDataHandler"
+                :style="`color: ${appColor.primary}`"
+                >ADD</v-btn
+              >
+            </v-flex>
+          </v-layout>
+        </v-card-text>
       </v-card>
       <v-card v-if="option === 'upload'">
         <v-app-bar :color="appColor.primary" dark>
@@ -87,8 +146,9 @@
         </vue-scroll>
       </v-card>
       <pre-defined-geoportals
-        preDefinedLayerData="preDefinedGeoportals"
+        :preDefinedLayerData="preDefinedGeoportals"
         @cancelHandlerEmiter="cancelHandler"
+        @findAllTheLayersInGeoportal="findAllAvailableLayers"
         v-if="option === 'second'"
       ></pre-defined-geoportals>
     </v-dialog>
@@ -111,6 +171,7 @@ export default {
     option: "first",
     value: 0,
     preDefinedGeoportals: [],
+    geoportals: [],
     layerListToAdd: [],
     searchedListData: [],
     searchByName: "",
@@ -142,17 +203,7 @@ export default {
     getAllTheLayers(preDefined) {
       // We will extract the data from geoadmin
       preDefined.forEach(geoportal => {
-        if (geoportal.type === "geoadmin") {
-          let configuration = geoportal.configuration;
-
-          fetch(geoportal.url)
-            .then(result => result.json())
-            .then(data => {
-              for (let i = 0; i < data.length; i++) {
-                this.getTheCapabilitiesFromLink(configuration, data[i]);
-              }
-            });
-        }
+        this.geoportals.push(geoportal);
       });
     },
     getTheCapabilitiesFromLink(config, layer) {
@@ -219,15 +270,20 @@ export default {
       this.option = "first";
       this.searchByName = "";
     },
-    builtInDataHandler(layer) {
-      // $emit('addLayer', layer)
-      if (layer.url) {
-        this.layerListToAdd = [];
-        const data = {
-          layer_url: layer.url
-        };
-        this.findAllAvailableLayers(data);
+    builtInDataHandler(geoportal) {
+      this.option = "second";
+      if (geoportal.type === "geoadmin") {
+        let configuration = geoportal.configuration;
+
+        fetch(geoportal.url)
+          .then(result => result.json())
+          .then(data => {
+            for (let i = 0; i < data.length; i++) {
+              this.getTheCapabilitiesFromLink(configuration, data[i]);
+            }
+          });
       }
+      // console.log("getting the command", geoportal);
     },
     layerDataHandler() {
       if (this.url !== "") {
@@ -354,7 +410,7 @@ export default {
   height: 120px;
   cursor: pointer;
   position: relative;
-  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 0px 0px 1px;
 }
 
 .cardBox img {
