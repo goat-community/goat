@@ -329,7 +329,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     """
     Compute single value surface
     """
-    if data == None or width == None or height == None or depth == None:
+    if any((data is None, width is None, height is None, depth is None)):
         return None
     grid_size = width * height
     surface = np.empty(grid_size)
