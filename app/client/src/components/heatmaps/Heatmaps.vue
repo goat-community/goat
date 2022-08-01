@@ -185,8 +185,11 @@
       v-show="popup.isVisible"
       ref="indicatorPopup"
     >
-      <!-- <template v-slot:close>
-      </template> -->
+      <template v-slot:close>
+        <v-btn @click="closePopup()" icon>
+          <v-icon>close</v-icon>
+        </v-btn>
+      </template>
       <template v-slot:body>
         <p
           v-for="(transportMean, tranportKey) in transportationMeans"
@@ -292,8 +295,10 @@ export default {
      */
 
     // Only to guid me through the proccess, everything static here will be done dynamic
-    changeIndicatorDialogStatus(value) {
-      console.log(value);
+    closePopup() {
+      this.popup.isVisible = false;
+    },
+    changeIndicatorDialogStatus() {
       this.map
         .getLayers()
         .getArray()
@@ -321,7 +326,7 @@ export default {
         // let overlayElement = this.$refs.indicatorPopup.$el;
         this.popupOverlay.setPosition(undefined);
         this.map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
-          console.log(feature, layer);
+          console.log(layer);
           let clickedCoordinate = e.coordinate;
           let clickedFeatureName = feature.get("stop_name");
           this.overlayTitle = clickedFeatureName;
@@ -331,8 +336,6 @@ export default {
           console.log(clickedFeatureAdditionalInfo);
           this.popupOverlay.setPosition(clickedCoordinate);
           this.popup.isVisible = true;
-          // overlayFeatureName.innerHTML = clickedFeatureName;
-          // overlayFeatureAdditionalInfo.innerHTML = clickedFeatureAdditionalInfo;
         });
       });
     },

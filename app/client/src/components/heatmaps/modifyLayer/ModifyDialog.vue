@@ -39,14 +39,25 @@
           </v-icon>
         </v-app-bar>
         <v-card-text class="pa-3">
-          <v-select :items="selectedDay" label="Weekdays"></v-select>
+          <v-select
+            :items="selectedDay"
+            :value="currentDay"
+            @change="dayChange"
+            label="Weekdays"
+          ></v-select>
           <v-row>
             <v-col cols="6">
-              <v-text-field label="From Time" value="12:30:00" type="time">
+              <v-text-field
+                @change="startTimeChanged"
+                label="From Time"
+                :value="`${currentHour}:00`"
+                type="time"
+              >
               </v-text-field>
             </v-col>
             <v-col cols="6">
               <v-text-field
+                @change="endTimeChanged"
                 label="To Time"
                 value="12:30:00"
                 type="time"
@@ -80,6 +91,8 @@ export default {
         "Sunday"
       ],
       dialog: this.status,
+      currentDay: null,
+      currentHour: "",
       isExpanded: true,
       handleId: "handle-id",
       draggableValue: {
@@ -101,6 +114,47 @@ export default {
     },
     expand() {
       this.isExpanded = !this.isExpanded;
+    },
+    dayChange(e) {
+      let dayNr = 0;
+      switch (e) {
+        case "Sunday":
+          dayNr = 7;
+          break;
+        case "Monday":
+          dayNr = 1;
+          break;
+        case "Tuesday":
+          dayNr = 2;
+          break;
+        case "Wednesday":
+          dayNr = 3;
+          break;
+        case "Thursday":
+          dayNr = 4;
+          break;
+        case "Friday":
+          dayNr = 5;
+          break;
+        case "Saturday":
+          dayNr = 6;
+          break;
+        default:
+          break;
+      }
+      console.log(dayNr);
+    },
+    startTimeChanged(e) {
+      let hours = parseInt(e.split(":")[0]);
+      let minutes = parseInt(e.split(":")[1]);
+      let allMinutes = (hours * 60 + minutes) * 60;
+      console.log(allMinutes);
+    },
+    endTimeChanged(e) {
+      let hours = parseInt(e.split(":")[0]);
+      let minutes = parseInt(e.split(":")[1]);
+      let allMinutes = (hours * 60 + minutes) * 60;
+      console.log(allMinutes);
     }
   },
   mounted() {
@@ -108,6 +162,39 @@ export default {
     this.draggableValue.resetInitialPos = false;
     this.draggableValue.boundingElement = element;
     this.draggableValue.handle = this.$refs[this.handleId];
+
+    //get current day and hour\
+
+    let currentDayNum = new Date();
+    let minutes = currentDayNum.getMinutes().toString();
+    this.currentHour = `${currentDayNum.getHours()}:${
+      minutes.length > 1 ? minutes : "0" + minutes
+    }`;
+    switch (currentDayNum.getDay()) {
+      case 0:
+        this.currentDay = "Sunday";
+        break;
+      case 1:
+        this.currentDay = "Monday";
+        break;
+      case 2:
+        this.currentDay = "Tuesday";
+        break;
+      case 3:
+        this.currentDay = "Wednesday";
+        break;
+      case 4:
+        this.currentDay = "Thursday";
+        break;
+      case 5:
+        this.currentDay = "Friday";
+        break;
+      case 6:
+        this.currentDay = "Saturday";
+        break;
+      default:
+        break;
+    }
   }
 };
 </script>
