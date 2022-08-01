@@ -13,7 +13,7 @@ from src.utils import coordinate_from_pixel
 MAX_COORDS = 20000
 
 
-@njit
+# @njit
 def get_contour(surface, width, height, cutoff):
     """
     Get a contouring grid. Exported for testing purposes, not generally used
@@ -59,7 +59,7 @@ def get_contour(surface, width, height, cutoff):
     return contour
 
 
-@njit
+# @njit
 def followLoop(idx, xy, prev_xy):
     """
     Follow the loop
@@ -108,7 +108,7 @@ def followLoop(idx, xy, prev_xy):
         return [x, y]
 
 
-@njit
+# # @njit
 def interpolate(pos, cutoff, start, surface, width, height):
     """
     Do linear interpolation
@@ -151,7 +151,7 @@ def interpolate(pos, cutoff, start, surface, width, height):
     pass
 
 
-@njit
+# @njit
 def noInterpolate(pos, start):
     x = pos[0]
     y = pos[1]
@@ -173,14 +173,14 @@ def noInterpolate(pos, start):
 
 
 # Calculated fractions may not be numbers causing interpolation to fail.
-@njit
+# @njit
 def ensureFractionIsNumber(frac, direction):
     if math.isnan(frac) or math.isinf(frac):
         return 0.5
     return frac
 
 
-@njit
+# # @njit
 def jsolines(
     surface,
     width,
@@ -205,8 +205,8 @@ def jsolines(
     indices = []
 
     # We'll sort out what shell goes with what hole in a bit.
-    shells = List()
-    holes = List()
+    shells = []
+    holes = []
 
     # Find a cell that has a line in it, then follow that line, keeping filled
     # area to your left. This lets us use winding direction to determine holes.
@@ -317,7 +317,7 @@ def jsolines(
     return list(shells)
 
 
-@njit
+# @njit
 def pointinpolygon(x, y, poly):
     n = len(poly)
     inside = False
@@ -325,7 +325,7 @@ def pointinpolygon(x, y, poly):
     p2y = 0.0
     xints = 0.0
     p1x, p1y = poly[0]
-    for i in prange(n + 1):
+    for i in range(n + 1):
         p2x, p2y = poly[i % n]
         if y > min(p1y, p2y):
             if y <= max(p1y, p2y):
