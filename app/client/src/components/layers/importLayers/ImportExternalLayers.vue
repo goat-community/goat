@@ -8,66 +8,7 @@
       </template>
 
       <v-card v-if="option === 'first'">
-        <v-app-bar :color="appColor.primary" dark>
-          <v-app-bar-nav-icon
-            ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
-          >
-          <v-toolbar-title>{{
-            $t("externalGeoportals.selectGeoportal")
-          }}</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-app-bar-nav-icon @click="cancelHandler"
-            ><v-icon>close</v-icon></v-app-bar-nav-icon
-          >
-        </v-app-bar>
-        <v-card-text style="padding: 20px;">
-          <h2 class="mb-4 grey--text text--darken-3">
-            {{ $t("externalGeoportals.builtInGeoportals.title") }}
-          </h2>
-          <div>
-            <div class="cards">
-              <div
-                v-for="(layer, idx) in dummyLayerData"
-                :key="idx"
-                class="cardBox"
-                @click="builtInDataHandler(layer)"
-              >
-                <div class="overlay">+</div>
-                <img :src="layer.img" alt="" />
-                <div class="content">
-                  <p>{{ layer.title }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </v-card-text>
-        <v-card-text style="padding: 20px; padding-bottom: 20px">
-          <h2 class="mb-4 grey--text text--darken-3">
-            {{ $t("externalGeoportals.ownGeoportals.title") }}
-          </h2>
-          <v-layout style="padding: 0 12px;" row align-center>
-            <v-flex xs10>
-              <v-form ref="form" lazy-validation>
-                <v-alert type="error" v-if="error">
-                  {{ error }}
-                </v-alert>
-                <v-text-field
-                  v-model="url"
-                  label="Source Url"
-                  required
-                ></v-text-field>
-              </v-form>
-            </v-flex>
-            <v-flex xs2 text-right>
-              <v-btn
-                text
-                @click="layerDataHandler"
-                :style="`color: ${appColor.primary}`"
-                >ADD</v-btn
-              >
-            </v-flex>
-          </v-layout>
-        </v-card-text>
+        <h1>hi</h1>
       </v-card>
       <v-card v-if="option === 'upload'">
         <v-app-bar :color="appColor.primary" dark>
@@ -88,7 +29,7 @@
               class="mb-4 grey--text text--darken-3"
               v-if="currentLayerWMSTitle"
             >
-              {{ $t("externalGeoportals.ownGeoportals.getLayersFrom") }} "{{
+              {{ translate("ownGeoportals", "getLayersFrom") }} "{{
                 currentLayerWMSTitle
               }}"
             </h2>
@@ -121,7 +62,7 @@
                     @click="expandStyle(idx)"
                     :style="`cursor: pointer; color: ${appColor.primary};`"
                   >
-                    {{ $t("externalGeoportals.ownGeoportals.seeMore") }}
+                    {{ translate("ownGeoportals", "seeMore") }}
                   </p>
                 </v-card-text>
                 <v-card-actions>
@@ -145,16 +86,22 @@
           </v-card-text>
         </vue-scroll>
       </v-card>
+      <pre-defined-geoportals
+        preDefinedLayerData="preDefinedGeoportals"
+        @cancelHandlerEmiter="cancelHandler"
+        v-if="option === 'second'"
+      ></pre-defined-geoportals>
     </v-dialog>
   </div>
 </template>
 
 <script>
-import { dataBuiltInLayers } from "../../../testData";
 import { mapGetters } from "vuex";
 import { Mapable } from "../../../mixins/Mapable";
 import TileLayer from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS";
+import PreDefinedGeoportals from "./PreDefinedGeoportals.vue";
+
 export default {
   mixins: [Mapable],
   data: () => ({
@@ -163,12 +110,13 @@ export default {
     error: "",
     option: "first",
     value: 0,
-    dummyLayerData: [],
+    preDefinedGeoportals: [],
     layerListToAdd: [],
     searchedListData: [],
     searchByName: "",
     previewLayer: null,
-    currentLayerWMSTitle: ""
+    currentLayerWMSTitle: "",
+    CurrentPage: 1
   }),
   watch: {
     searchByName(newValue) {
@@ -181,16 +129,57 @@ export default {
       }
     }
   },
+  components: {
+    "pre-defined-geoportals": PreDefinedGeoportals
+  },
   computed: {
     ...mapGetters("app", {
       appConfig: "appConfig",
       appColor: "appColor"
     })
   },
-  mounted() {
-    this.dummyLayerData = dataBuiltInLayers;
-  },
   methods: {
+    getAllTheLayers(preDefined) {
+      // We will extract the data from geoadmin
+      preDefined.forEach(geoportal => {
+        if (geoportal.type === "geoadmin") {
+          let configuration = geoportal.configuration;
+
+          fetch(geoportal.url)
+            .then(result => result.json())
+            .then(data => {
+              for (let i = 0; i < data.length; i++) {
+                this.getTheCapabilitiesFromLink(configuration, data[i]);
+              }
+            });
+        }
+      });
+    },
+    getTheCapabilitiesFromLink(config, layer) {
+      if (layer[config["url"]] !== undefined) {
+        let finalUrl = "";
+        if (layer[config["url"]].includes("?")) {
+          finalUrl =
+            layer[config["url"]] + "SERVICE=WMS&REQUEST=GetCapabilities";
+        } else {
+          finalUrl =
+            layer[config["url"]] + "?SERVICE=WMS&REQUEST=GetCapabilities";
+        }
+        layer[config["url"]] = finalUrl;
+        let finalGeoportalInfo = {
+          title: layer.name,
+          img:
+            "https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2074&q=80",
+          geoportal_url: layer[config["url"]],
+          type: layer[config["type"]]
+        };
+        this.preDefinedGeoportals.push(finalGeoportalInfo);
+      }
+    },
+    onMapBound() {
+      let allGeoportals = this.appConfig.geostores;
+      this.getAllTheLayers(allGeoportals);
+    },
     onHoverHandler(layerInfo) {
       if (!this.previewLayer) {
         let newLayer = new TileLayer({
@@ -332,6 +321,14 @@ export default {
       } else {
         this.$refs[`description-${id}`][0].style.textOverflow = "clip";
         this.$refs[`description-${id}`][0].style.maxHeight = "fit-content";
+      }
+    },
+    translate(type, key) {
+      const canTranslate = this.$te(`externalGeoportals.${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`externalGeoportals.${type}.${key}`);
+      } else {
+        return key;
       }
     }
   }
