@@ -626,7 +626,7 @@ class CRUDIsochrone:
             network, starting_ids = await self.__read_network(db, obj_in)
             # === Compute Grid ===#
             grid = isochrone_single_depth_grid(
-                network, starting_ids, [25], obj_in.output.resolution
+                network, starting_ids, [20], obj_in.output.resolution
             )
             # === Amenity Intersect ===#
             grid_decoded = await self.__amenity_intersect(grid, 25)
