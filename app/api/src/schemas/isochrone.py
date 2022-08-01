@@ -716,6 +716,7 @@ request_examples = {
                 "type": "Feature",
                 "properties": {
                     "id": 1,
+                    "isochrone_calculation_id": 10,
                     "traveltime": 5,
                     "modus": "default",
                     "routing_profile": "walking_standard",

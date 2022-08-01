@@ -101,5 +101,7 @@
   "discount_gym": "Discount Gym",
   "gym": "Gym",
   "yoga": "Yoga",
-  "outdoor_fitness_station": "Outdoor fitness station"
+  "outdoor_fitness_station": "Outdoor fitness station",
+  "traveltime": "Travel Time",
+  "attributes": "Attributes"
 }

@@ -212,36 +212,7 @@ async def export_isochrones(
     file_response = await crud.isochrone.export_isochrone(
         db=db,
         current_user=current_user,
-        isochrone_calculation_id=0,
         return_type=return_type.value,
         geojson_dictionary=geojson,
-    )
-    return file_response
-
-
-@router.get("/export/{isochrone_calculation_id}", response_class=StreamingResponse)
-async def export_isochrones(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
-    isochrone_calculation_id: int = Path(..., description="Isochrone Calculation ID", example=1),
-    return_type: IsochroneExportType = Query(
-        description="Return type of the response", default=IsochroneExportType.geojson
-    ),
-) -> Any:
-    """
-    Export isochrones.
-    """
-    isochrone_calculation_obj = await crud.isochrone_calculation.get_by_multi_keys(
-        db=db, keys={"id": isochrone_calculation_id, "user_id": current_user.id}
-    )
-    if isochrone_calculation_obj == []:
-        raise HTTPException(status_code=404, detail="Isochrone not found")
-
-    file_response = await crud.isochrone.export_isochrone(
-        db=db,
-        current_user=current_user,
-        isochrone_calculation_id=isochrone_calculation_obj[0].id,
-        return_type=return_type.value,
     )
     return file_response

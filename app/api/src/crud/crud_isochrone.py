@@ -445,48 +445,27 @@ class CRUDIsochrone:
         db: AsyncSession,
         *,
         current_user,
-        isochrone_calculation_id,
         return_type,
-        geojson_dictionary: dict = None,
+        geojson_dictionary: dict,
     ) -> Any:
-        if geojson_dictionary:
-            features = geojson_dictionary["features"]
-            # Remove the payload and set to true to use it later
-            geojson_dictionary = True
-            for _data in features:
-                # Shape the geometries
-                _data["geometry"] = shape(_data["geometry"])
-            gdf = GeoDataFrame(features).set_geometry("geometry")
-            gdf["minutes"] = gdf["properties"][0]["traveltime"]
-        else:
 
-            sql = text(
-                """
-                SELECT f.step AS seconds, f.id, c.modus, c.routing_profile, f.reached_opportunities, f.geom
-                FROM customer.isochrone_calculation c, customer.isochrone_feature f
-                WHERE c.id = f.isochrone_calculation_id
-                AND c.id = :isochrone_calculation_id
-                AND c.user_id = :user_id
-                """
-            )
+        features = geojson_dictionary["features"]
+        # Remove the payload and set to true to use it later
+        geojson_dictionary = True
+        for _data in features:
+            # Shape the geometries
+            _data["geometry"] = shape(_data["geometry"])
+        gdf = GeoDataFrame(features).set_geometry("geometry")
+        # Translate the properties to columns
+        properties = list(features[0]["properties"].keys())
+        properties.remove("reached_opportunities")
+        for property_ in properties:
+            gdf[property_] = str(gdf["properties"][0][property_])
 
-            gdf = read_postgis(
-                sql,
-                legacy_engine,
-                geom_col="geom",
-                params={
-                    "user_id": current_user.id,
-                    "isochrone_calculation_id": isochrone_calculation_id,
-                },
-            )
-
-            gdf = pd.concat(
-                [gdf, pd.json_normalize(gdf["reached_opportunities"]).astype("Int64")],
-                axis=1,
-                join="inner",
-            )
-            gdf["seconds"] = round(gdf["seconds"] / 60).astype(int)
-            gdf = gdf.rename(columns={"seconds": "minutes"})
+        reached_opportunities = features[0]["properties"]["reached_opportunities"].keys()
+        for oportunity in reached_opportunities:
+            gdf[oportunity] = str(gdf["properties"][0]["reached_opportunities"][oportunity])
+        gdf = gdf.drop(["properties"], axis=1)
         # Preliminary fix for tranlation POIs categories
         ########################################################################################################################
         if current_user.language_preference == "de":
@@ -523,15 +502,13 @@ class CRUDIsochrone:
                 encoding="utf-8",
             )
         elif return_type == IsochroneExportType.xlsx:
-            if not geojson_dictionary:
-                gdf = gdf.drop(["reached_opportunities", "geom"], axis=1)
+            gdf = gdf.drop(["geometry"], axis=1)
             writer = pd.ExcelWriter(
                 file_name + "." + IsochroneExportType.xlsx.name, engine="xlsxwriter"
             )
             gdf_transposed = gdf.transpose()
             gdf_transposed.columns = [
-                str(c) + " " + translation_dict["minutes"]
-                for c in list(gdf[translation_dict["minutes"]])
+                translation_dict["attributes"] for c in list(gdf[translation_dict["traveltime"]])
             ]
             gdf_transposed[1:].to_excel(writer, sheet_name="Results")
             workbook = writer.book
