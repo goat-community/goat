@@ -323,7 +323,6 @@ export default {
     },
     showPopup() {
       this.map.on("click", e => {
-        // let overlayElement = this.$refs.indicatorPopup.$el;
         this.popupOverlay.setPosition(undefined);
         this.map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
           console.log(layer);
@@ -344,27 +343,6 @@ export default {
         publicTransportation: []
       };
 
-      // let headers = {
-      //   accept: "application/json",
-      //   Authorization:
-      //     "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTk3ODIyOTAsInN1YiI6IjEyMSIsInNjb3BlcyI6W119.3JwtU-ck7OQeLejl6QerttagF2B8XYQyvoM-2NoNxYI"
-      // };
-
-      // let params = {
-      //   start_time: "25200",
-      //   end_time: "32400",
-      //   weekday: "1",
-      //   return_type: "geojson"
-      // };
-
-      // axios.get(
-      //   "https://goat-dev.plan4better.de/api/v1/pt/indicators/stations-count",
-      //   {
-      //     params: params,
-      //     headers: headers
-      //   }
-      // );
-
       let newLayerForTesting = new VectorLayer({
         source: new VectorSource({
           url:
@@ -373,7 +351,7 @@ export default {
         }),
         attribution: "<p>Just for testinf porposes</p>",
         group: "publicTransportation",
-        name: "dpd Layer",
+        name: "Station Count",
         visible: false,
         opacity: 1,
         type: "GEOBUF",
@@ -386,7 +364,6 @@ export default {
 
       this.indicatorGroupLayers.push(publicTransportationLayerGroup);
     },
-    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
     onMapBound() {
       this.map

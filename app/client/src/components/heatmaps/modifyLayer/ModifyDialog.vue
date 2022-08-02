@@ -50,7 +50,7 @@
               <v-text-field
                 @change="startTimeChanged"
                 label="From Time"
-                :value="`${currentHour}:00`"
+                :value="`${startHour}:00`"
                 type="time"
               >
               </v-text-field>
@@ -59,7 +59,7 @@
               <v-text-field
                 @change="endTimeChanged"
                 label="To Time"
-                value="12:30:00"
+                :value="`${endHour}:00`"
                 type="time"
               ></v-text-field>
             </v-col>
@@ -92,7 +92,8 @@ export default {
       ],
       dialog: this.status,
       currentDay: null,
-      currentHour: "",
+      startHour: "",
+      endHour: "",
       isExpanded: true,
       handleId: "handle-id",
       draggableValue: {
@@ -163,38 +164,9 @@ export default {
     this.draggableValue.boundingElement = element;
     this.draggableValue.handle = this.$refs[this.handleId];
 
-    //get current day and hour\
-
-    let currentDayNum = new Date();
-    let minutes = currentDayNum.getMinutes().toString();
-    this.currentHour = `${currentDayNum.getHours()}:${
-      minutes.length > 1 ? minutes : "0" + minutes
-    }`;
-    switch (currentDayNum.getDay()) {
-      case 0:
-        this.currentDay = "Sunday";
-        break;
-      case 1:
-        this.currentDay = "Monday";
-        break;
-      case 2:
-        this.currentDay = "Tuesday";
-        break;
-      case 3:
-        this.currentDay = "Wednesday";
-        break;
-      case 4:
-        this.currentDay = "Thursday";
-        break;
-      case 5:
-        this.currentDay = "Friday";
-        break;
-      case 6:
-        this.currentDay = "Saturday";
-        break;
-      default:
-        break;
-    }
+    this.currentDay = "Monday";
+    this.startHour = "07:00";
+    this.endHour = "09:00";
   }
 };
 </script>
