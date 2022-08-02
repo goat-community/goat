@@ -647,9 +647,9 @@ def get_file_suffix(file_path):
 
 
 def save_file(data_file: UploadFile):
-    '''
+    """
     Save file to temp directory.
-    '''
+    """
     file_suffix = get_file_suffix(data_file.filename)
 
     real_file_size = 0
@@ -672,9 +672,9 @@ def save_file(data_file: UploadFile):
 
 
 def get_zip_directories(zip_file_dir):
-    '''
+    """
     List directories of zip file
-    '''
+    """
     with zipfile.ZipFile(zip_file_dir) as zip_file:
         return [directory for directory in zip_file.namelist() if directory.endswith("/")]
 

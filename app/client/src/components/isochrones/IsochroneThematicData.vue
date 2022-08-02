@@ -110,7 +110,7 @@
                     :color="appColor.secondary"
                     v-model="isochroneRange"
                     :min="1"
-                    :max="120"
+                    :max="60"
                     thumb-label="always"
                     thumb-size="25"
                     @input="udpateIsochroneSurface"

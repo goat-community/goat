@@ -181,7 +181,7 @@ class IsochroneSettings(BaseModel):
     travel_time: int = Field(
         10,
         gt=0,
-        description="Travel time in **minutes** for walking and cycling **(Not considered for PT or CAR)**",
+        description="Travel time in **minutes**",
     )
     speed: Optional[float] = Field(
         5,
@@ -398,8 +398,8 @@ request_examples = {
                 },
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
-                    "type": "geojson",
-                    "steps": "3",
+                    "type": "grid",
+                    "steps": "10",
                 },
             },
         },
@@ -418,8 +418,8 @@ request_examples = {
                     "region": 1,
                 },
                 "output": {
-                    "type": "geojson",
-                    "steps": "3",
+                    "type": "grid",
+                    "steps": "10",
                 },
             },
         },
