@@ -1308,7 +1308,7 @@ export default {
       let mode = routing;
       //-- SETTINGS --//
       let settings = {
-        travel_time: 2, //TODO: Make this configurable
+        travel_time: 15, //TODO: Make this configurable
         speed: this.speed
       };
       if (routing.includes("walking") || routing.includes("cycling")) {

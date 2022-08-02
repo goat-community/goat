@@ -642,7 +642,7 @@ class CRUDIsochrone:
                 "date": obj_in.settings.departure_date,
                 "fromTime": obj_in.settings.from_time,
                 "toTime": obj_in.settings.to_time,
-                "maxTripDurationMinutes": obj_in.settings.travel_time,
+                "maxTripDurationMinutes": obj_in.settings.travel_time,  # TODO: Fix this
                 "decayFunction": obj_in.settings.decay_function,
                 "destinationPointSetIds": [],
                 "directModes": obj_in.settings.access_mode.value.upper(),
@@ -669,7 +669,7 @@ class CRUDIsochrone:
             response = requests.post(settings.R5_API_URL + "/analysis", json=payload)
             grid_decoded = decode_r5_grid(response.content)
             # === Amenity Intersect and Encode ===#
-            grid_decoded = await self.__amenity_intersect(grid_decoded, 60)
+            grid_decoded = await self.__amenity_intersect(grid_decoded, 120)
             grid_encoded = encode_r5_grid(grid_decoded)
             result = Response(bytes(grid_encoded))
         return result

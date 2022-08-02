@@ -84,7 +84,7 @@ class Isochrone(Dijkstra):
         Z = np.ravel(self.Z)
         Z = np.nan_to_num(Z, nan=np.iinfo(np.intc).max)
         Z[Z < 1000] = 10  # This should go to jsoline
-        grid_data["version"] = 1
+        grid_data["version"] = 0
         grid_data["zoom"] = zoom
         grid_data["west"] = west
         grid_data["north"] = north
