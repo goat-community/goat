@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+    POSTGRES_DATABASE_URI: str = None
+
+    @validator("POSTGRES_DATABASE_URI", pre=True)
+    def postgres_database_uri_(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        return f'postgresql://{values.get("POSTGRES_USER")}:{values.get("POSTGRES_PASSWORD")}@{values.get("POSTGRES_SERVER")}:5432/{values.get("POSTGRES_DB")}'
+
     ASYNC_SQLALCHEMY_DATABASE_URI: Optional[AsyncPostgresDsn] = None
 
     @validator("ASYNC_SQLALCHEMY_DATABASE_URI", pre=True)
@@ -99,9 +105,9 @@ class Settings(BaseSettings):
             values.get("SMTP_HOST") and values.get("SMTP_PORT") and values.get("EMAILS_FROM_EMAIL")
         )
 
-    FIRST_ORGANIZATION: str 
-    FIRST_SUPERUSER_NAME: str 
-    FIRST_SUPERUSER_SURNAME: str 
+    FIRST_ORGANIZATION: str
+    FIRST_SUPERUSER_NAME: str
+    FIRST_SUPERUSER_SURNAME: str
     FIRST_SUPERUSER_PASSWORD: str
     FIRST_SUPERUSER_EMAIL: Optional[str] = "administrator@plan4better.de"
     FIRST_SUPERUSER_STORAGE: Optional[int] = 500000  # In kilobytes
@@ -127,6 +133,10 @@ class Settings(BaseSettings):
     MAX_FEATURES_PER_TILE: int = 10000
     DEFAULT_MINZOOM: int = 0
     DEFAULT_MAXZOOM: int = 22
+
+    # R5 config
+    R5_MONGO_DB_URL: Optional[str] = None
+    R5_API_URL: Optional[str] = None
 
     class Config:
         case_sensitive = True
