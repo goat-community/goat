@@ -1,29 +1,22 @@
-from collections import deque
+from collections import defaultdict, deque
 
 import numpy as np
-from scipy.sparse import coo_matrix, csr_matrix
 
 
 class Dijkstra:
-    def generate_sparse_graph(self, data_edges):
-        """
-        Generate Sparse Graph of edges and their costs (sources, targets, costs)
-        """
-        data_edges
-        row = np.concatenate([data_edges["source"], data_edges["target"]])
-        col = np.concatenate([data_edges["target"], data_edges["source"]])
-        cost_data = np.concatenate([data_edges["cost"], data_edges["reverse_cost"]])
-        sparse_graph = csr_matrix((cost_data, (row, col)), dtype=np.double)
-        unvisited_vertexes = set(row)
-        return sparse_graph, unvisited_vertexes
+    def generate_adjacancy_list(self, data_edges):
+        self.adjacancy_list = defaultdict(set)
+        for edge in data_edges.itertuples():
+            self.adjacancy_list[edge.source].add((edge.target, edge.cost))
+            self.adjacancy_list[edge.target].add((edge.source, edge.reverse_cost))
 
     def calculate_target_costs(self, node_id, calculator_id):
         """
         Calculate costs for adjacent vertexes
         """
-        targets = coo_matrix(self.sparse_graph.getrow(node_id))
+        # targets = coo_matrix(self.sparse_graph.getrow(node_id))
         self.unvisited_vertexes.remove(node_id)
-        for cost, target_id in zip(targets.data, targets.col):
+        for target_id, cost in self.adjacancy_list[node_id]:
             distance = self.distances[node_id] + cost
             if distance < self.distances[target_id]:
                 self.distances[target_id] = distance
@@ -59,10 +52,11 @@ class Dijkstra:
     def __init__(self, data_edges, start_vertexes, distance_limit):
         self.data_edges = data_edges
         self.start_vertexes = start_vertexes
-        self.distance_limit = max(distance_limit)
+        self.distance_limit = max(distance_limit) * 60
         self.distances = {}
         self.calculator = {}
-        self.sparse_graph, self.vertexes_set = self.generate_sparse_graph(data_edges)
+        self.generate_adjacancy_list(data_edges)
+        self.vertexes_set = set(self.adjacancy_list.keys())
         for vertex in self.vertexes_set:
             self.distances[vertex] = np.inf
             self.calculator[vertex] = np.inf

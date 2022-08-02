@@ -92,56 +92,6 @@ class IsochroneMultiCountPois(BaseModel):
     active_upload_ids: Optional[List[int]] = [0]
 
 
-"""
-Response DTOs
-"""
-# Shared properties
-class IsochronePropertiesShared(BaseModel):
-    gid: int
-    step: int
-    modus: int
-    speed: int
-    objectid: int
-    parent_id: int
-    coordinates: List
-
-
-class IsochroneSingleProperties(IsochronePropertiesShared):
-    starting_point: str
-    sum_pois: Dict
-
-
-# Single Isochrone
-class IsochroneSingleFeature(Feature):
-    geometry: Union[Polygon, MultiPolygon]
-    properties: IsochroneSingleProperties
-
-
-class IsochroneSingleCollection(FeatureCollection):
-    features: List[IsochroneSingleFeature]
-
-
-# Multi Isochrone
-class IsochroneMultiProperties(IsochronePropertiesShared):
-    userid: str
-    population: List
-    scenario_id: int
-    routing_profile: str
-    alphashape_parameter: str
-
-
-class IsochroneMultiFeature(Feature):
-    geometry: Union[Polygon, MultiPolygon]
-    properties: IsochroneMultiProperties
-
-
-class IsochroneMultiCollection(FeatureCollection):
-    features: List[IsochroneMultiFeature]
-
-
-# Count pois (multi-isochrone) TODO: THERE IS NO NEED IN THE CLIENT TO HAVE THIS AS FEATURE COLLECTION
-
-
 class IsochroneMultiCountPoisProperties(BaseModel):
     gid: int
     count_pois: int
@@ -151,207 +101,6 @@ class IsochroneMultiCountPoisProperties(BaseModel):
 class IsochroneMultiCountPoisFeature(Feature):
     geometry: Union[Polygon, MultiPolygon]
     properties: IsochroneMultiCountPoisProperties
-
-
-class IsochroneMultiCountPoisCollection(FeatureCollection):
-    features: List[IsochroneMultiCountPoisFeature]
-
-
-# request_examples = {
-#     "single_isochrone": {
-#         "default": {
-#             "summary": "Single isochrone default",
-#             "value": {
-#                 "minutes": 10,
-#                 "speed": 5,
-#                 "n": 2,
-#                 "modus": "default",
-#                 "x": 11.5696284,
-#                 "y": 48.1502132,
-#                 "routing_profile": "walking_standard",
-#             },
-#         },
-#         "scenario": {
-#             "summary": "Single isochrone scenario or comparison",
-#             "value": {
-#                 "minutes": 10,
-#                 "speed": 5,
-#                 "n": 2,
-#                 "modus": "default",
-#                 "x": 11.5696284,
-#                 "y": 48.1502132,
-#                 "routing_profile": "walking_standard",
-#                 "scenario_id": 1,
-#             },
-#         },
-#     },
-#     "reached_network": {
-#         "minutes": 10,
-#         "speed": 5,
-#         "n": 2,
-#         "modus": "default",
-#         "x": 11.5696284,
-#         "y": 48.1502132,
-#         "routing_profile": "walking_standard",
-#         "active_upload_ids": [0],
-#         "scenario_id": 0,
-#     },
-#     "multi_isochrone": {
-#         "minutes": 10,
-#         "speed": 5,
-#         "n": 2,
-#         "modus": "default",
-#         "x": [11.5696284, 11.573464],
-#         "y": [48.1502132, 48.153734],
-#         "routing_profile": "walking_standard",
-#         "active_upload_ids": [0],
-#         "scenario_id": 0,
-#     },
-#     "pois_multi_isochrone_study_area": {
-#         "multi_with_study_area": {
-#             "summary": "Multi Isochrone with Study Area",
-#             "value": {
-#                 "minutes": 10,
-#                 "speed": 5,
-#                 "n": 2,
-#                 "modus": "default",
-#                 "region_type": "study_area",
-#                 "region": ["1"],
-#                 "routing_profile": "walking_standard",
-#                 "amenities": [
-#                     "nursery",
-#                     "kindergarten",
-#                     "grundschule",
-#                     "realschule",
-#                     "werkrealschule",
-#                     "gymnasium",
-#                     "library",
-#                 ],
-#             },
-#         },
-#         "multi_with_study_area_scenario": {
-#             "summary": "Multi Isochrone with Study Area in Scenario and Comparison",
-#             "value": {
-#                 "minutes": 10,
-#                 "speed": 5,
-#                 "n": 2,
-#                 "modus": "default",
-#                 "region_type": "study_area",
-#                 "region": ["1"],
-#                 "routing_profile": "walking_standard",
-#                 "scenario_id": 0,
-#                 "amenities": [
-#                     "nursery",
-#                     "kindergarten",
-#                     "grundschule",
-#                     "realschule",
-#                     "werkrealschule",
-#                     "gymnasium",
-#                     "library",
-#                 ],
-#             },
-#         },
-#         "multi_with_polygon": {
-#             "summary": "Multi Isochrone with Polygon",
-#             "value": {
-#                 "minutes": 10,
-#                 "speed": 5,
-#                 "n": 2,
-#                 "modus": "default",
-#                 "region_type": "draw",
-#                 "region": [
-#                     "POLYGON((11.53605224646383 48.15855242757948,11.546141990292947 48.16035646918763,11.54836104048217 48.15434275044706,11.535497483916524 48.15080357881183,11.526586610500429 48.15300113241156,11.531302092152526 48.15799732509075,11.53605224646383 48.15855242757948))"
-#                 ],
-#                 "routing_profile": "walking_standard",
-#                 "scenario_id": 0,
-#                 "amenities": ["nursery", "kindergarten"],
-#             },
-#         },
-#     },
-#     "pois_multi_isochrone_count_pois": {
-#         "draw": {
-#             "summary": "Count pois with draw",
-#             "value": {
-#                 "region_type": "draw",
-#                 "region": [
-#                     "POLYGON((11.53605224646383 48.15855242757948,11.546141990292947 48.16035646918763,11.54836104048217 48.15434275044706,11.535497483916524 48.15080357881183,11.526586610500429 48.15300113241156,11.531302092152526 48.15799732509075,11.53605224646383 48.15855242757948))"
-#                 ],
-#                 "scenario_id": 0,
-#                 "modus": "default",
-#                 "routing_profile": "walking_standard",
-#                 "minutes": 10,
-#                 "speed": 5,
-#                 "amenities": [
-#                     "kindergarten",
-#                     "grundschule",
-#                     "hauptschule_mittelschule",
-#                     "realschule",
-#                     "gymnasium",
-#                     "library",
-#                 ],
-#             },
-#         },
-#         "study_area": {
-#             "summary": "Count pois with study area",
-#             "value": {
-#                 "region_type": "study_area",
-#                 "region": ["1", "2"],
-#                 "scenario_id": 0,
-#                 "modus": "default",
-#                 "routing_profile": "walking_standard",
-#                 "minutes": 10,
-#                 "speed": 5,
-#                 "amenities": [
-#                     "kindergarten",
-#                     "grundschule",
-#                     "hauptschule_mittelschule",
-#                     "realschule",
-#                     "gymnasium",
-#                     "library",
-#                 ],
-#             },
-#         },
-#     },
-# }
-
-
-# isochrone_payload = {
-#     "mode": "WALKING | CYCLING | TRANSIT | CAR ",
-#     "settings": {
-#         "travel_time": "600 seconds",
-#         "speed": "1.3888888888888888 m/s",
-#         "walking_profile": "walking_standard",
-#         "cycling_profile": "cycling_standard",
-#         "departure_time": "2022-06-03T08:00:00Z",
-#         "access_mode": "WALKING | CYCLING | CAR",
-#         "egress_mode": "WALKING | CYCLING",
-#         "transit_modes": "BUS,TRAM,SUBWAY,RAIL",
-#         "cycling_traffic_stress": 4,
-#         "cycling_max_time": 20,
-#         "cycling_max_rides": 4,
-#         "max_walking_time": 20,
-#         "percentiles": [5, 25, 50, 75, 95],
-#         "monte_carlo_draws": 200,
-#         "decay_function": {
-#             "type": "logistic",
-#             "standard_deviation_minutes": 12,
-#             "width_minutes": 10,
-#         },
-#     },
-#     "scenario": {"id": 1, "modus": "default"},
-#     "starting_point": {
-#         "coordinates": [{"lat": 52.5, "lon": 13.5}],
-#         "region_type": "study_area",
-#         "region": 1,
-#         "amenities": ["nursery", "kindergarten"],
-#     },
-#     "output": {
-#         "type": "grid | geojson",
-#         "resolution": "9 | 10 for binary OR steps number for geojson",
-#     },
-# }
-
-# =============================================================================
 
 
 class CalculationTypes(str, Enum):
@@ -593,9 +342,9 @@ class IsochroneDTO(BaseModel):
 
         # For walking and cycling travel time maximumn should be 20 minutes
         if values["mode"].value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
-            if values["settings"].travel_time >= 20:
+            if values["settings"].travel_time > 25:
                 raise ValueError(
-                    "Travel time maximum for walking and cycling should be less or equal to 20 minutes"
+                    "Travel time maximum for walking and cycling should be less or equal to 25 minutes"
                 )
 
         # For PT and Car Isochrone starting point should be only lat lon coordinates and not amenities, travel time smaller than 120 minutes
@@ -647,7 +396,7 @@ request_examples = {
                 "starting_point": {
                     "input": [{"lat": 48.1502132, "lon": 11.5696284}],
                 },
-                "scenario": {"id": 1, "modus": "default"},
+                "scenario": {"id": 0, "modus": "default"},
                 "output": {
                     "type": "geojson",
                     "steps": "3",
@@ -701,6 +450,7 @@ request_examples = {
                 "starting_point": {
                     "input": [{"lat": 48.1502132, "lon": 11.5696284}],
                 },
+                "scenario": {"id": 0, "modus": "default"},
                 "output": {
                     "type": "grid",
                     "resolution": "9",

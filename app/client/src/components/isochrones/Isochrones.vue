@@ -1312,8 +1312,8 @@ export default {
         speed: this.speed
       };
       if (routing.includes("walking") || routing.includes("cycling")) {
-        routing = routing.split("_")[0];
-        if (routing === "walking") {
+        routing = routing.split("_");
+        if (routing[0] === "walking") {
           settings["walking_profile"] = routing[1];
           mode = "walking";
         } else {
