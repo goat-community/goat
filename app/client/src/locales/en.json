@@ -428,6 +428,18 @@
     "heatmapComputedSuccessfully": "Heatmap computed successfully",
     "heatmapComputationFailed": "Heatmap computation failed"
   },
+  "pt_route_types": {
+    "0": "Tram",
+    "1": "Subway",
+    "2": "Rail",
+    "3": "Bus",
+    "4": "Ferry",
+    "5": "Cable Tram",
+    "6": "Aerial Lift",
+    "7": "Funicular",
+    "11": "Trolleybus",
+    "12": "Monorail"
+  },
   "poisFilter": {
     "showTimeFilter": "Add time filter",
     "selectHourLabel": "Select open time to filter",
@@ -479,6 +491,7 @@
       "streetlevelqualityLayers": "Street Level Quality",
       "environmental_quality": "Environmental data",
       "additional_data": "Additional data",
+      "publicTransportation": "Public Transportation",
       "accessbilityBasemaps": "Heatmaps",
       "basemap": "Background Layers",
       "heatmap": "Heatmaps"
