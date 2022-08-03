@@ -147,6 +147,8 @@
       </v-card>
       <pre-defined-geoportals
         :preDefinedLayerData="preDefinedGeoportals"
+        :showErrPopup="showErrPopup"
+        @changeErrPopup="showErrPopup = !showErrPopup"
         @cancelHandlerEmiter="cancelHandler"
         @findAllTheLayersInGeoportal="findAllAvailableLayers"
         v-if="option === 'second'"
@@ -161,6 +163,7 @@ import { Mapable } from "../../../mixins/Mapable";
 import TileLayer from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS";
 import PreDefinedGeoportals from "./PreDefinedGeoportals.vue";
+import ApiService from "../../../services/api.service";
 
 export default {
   mixins: [Mapable],
@@ -177,7 +180,8 @@ export default {
     searchByName: "",
     previewLayer: null,
     currentLayerWMSTitle: "",
-    CurrentPage: 1
+    CurrentPage: 1,
+    showErrPopup: false
   }),
   watch: {
     searchByName(newValue) {
@@ -207,7 +211,10 @@ export default {
       });
     },
     getTheCapabilitiesFromLink(config, layer) {
-      if (layer[config["url"]] !== undefined) {
+      if (
+        layer[config["url"]] !== undefined &&
+        layer[config["type"]].toUpperCase() === "WMS"
+      ) {
         let finalUrl = "";
         if (layer[config["url"]].includes("?")) {
           finalUrl =
@@ -218,12 +225,13 @@ export default {
         }
         layer[config["url"]] = finalUrl;
         let finalGeoportalInfo = {
-          title: layer.name,
+          title: layer[config["title"]],
           img:
             "https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2074&q=80",
           geoportal_url: layer[config["url"]],
           type: layer[config["type"]]
         };
+        console.log(finalGeoportalInfo.type);
         this.preDefinedGeoportals.push(finalGeoportalInfo);
       }
     },
@@ -264,6 +272,7 @@ export default {
     cancelHandler() {
       this.url = "";
       this.layerListToAdd = [];
+      this.preDefinedGeoportals = [];
       this.searchedListData = [];
       this.error = "";
       this.dialog = false;
@@ -278,12 +287,41 @@ export default {
         fetch(geoportal.url)
           .then(result => result.json())
           .then(data => {
-            for (let i = 0; i < data.length; i++) {
-              this.getTheCapabilitiesFromLink(configuration, data[i]);
+            if (Array.isArray(data)) {
+              for (let i = 0; i < data.length; i++) {
+                this.getTheCapabilitiesFromLink(configuration, data[i]);
+              }
+            } else {
+              for (let singleElement in data) {
+                this.getTheCapabilitiesFromLink(
+                  configuration,
+                  data[singleElement]
+                );
+              }
             }
+          })
+          .catch(() => {
+            ApiService.get_(`/utils/reverse-proxy?url=${geoportal.url}`).then(
+              data => {
+                if (Array.isArray(data.data)) {
+                  for (let i = 0; i < data.data.length; i++) {
+                    this.getTheCapabilitiesFromLink(
+                      configuration,
+                      data.data[i]
+                    );
+                  }
+                } else {
+                  for (let singleElement in data.data) {
+                    this.getTheCapabilitiesFromLink(
+                      configuration,
+                      data.data[singleElement]
+                    );
+                  }
+                }
+              }
+            );
           });
       }
-      // console.log("getting the command", geoportal);
     },
     layerDataHandler() {
       if (this.url !== "") {
@@ -362,7 +400,8 @@ export default {
               }
             });
             this.option = "upload";
-          });
+          })
+          .catch(() => (this.showErrPopup = true));
       } else {
         this.error =
           "Make sure to write an available link that contains all the capabilities!";

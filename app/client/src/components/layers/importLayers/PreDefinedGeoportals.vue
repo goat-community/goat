@@ -12,35 +12,84 @@
         ><v-icon>close</v-icon></v-app-bar-nav-icon
       >
     </v-app-bar>
-    <v-card-text style="padding: 20px;">
-      <h2 class="mb-4 grey--text text--darken-3">
-        {{ translate("builtInGeoportals", "title") }}
-      </h2>
-      <div>
-        <div class="cards">
-          <div
-            v-for="(layer, idx) in filteredGeoportalByPage"
-            :key="idx"
-            class="cardBox"
-            @click="creatingALayerObject(layer)"
-          >
-            <div class="overlay">+</div>
-            <img :src="layer.img" alt="" />
-            <div class="content">
-              <p>{{ layer.title }}</p>
-            </div>
+    <vue-scroll>
+      <v-card-text class="pa-6">
+        <h2 class="mb-4 grey--text text--darken-3">
+          {{ translate("builtInGeoportals", "title") }}
+        </h2>
+        <v-text-field
+          v-model="searchByName"
+          label="Search by name"
+          required
+        ></v-text-field>
+        <div>
+          <div class="cards">
+            <v-tooltip
+              top
+              v-for="(layer, idx) in filteredGeoportalByPage"
+              :key="idx"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <div
+                  class="cardBox"
+                  @click="creatingALayerObject(layer)"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <div class="overlay">+</div>
+                  <img :src="layer.img" alt="" />
+                  <div class="content">
+                    <p>{{ layer.title }}</p>
+                  </div>
+                </div>
+              </template>
+              <span>{{ layer.title }}</span>
+            </v-tooltip>
           </div>
         </div>
-      </div>
-      <div class="text-center mt-5">
-        <v-pagination
-          v-model="CurrentPage"
-          :color="appColor.primary"
-          :length="Math.round(preDefinedLayerData.length / 15)"
-          circle
-        ></v-pagination>
-      </div>
-    </v-card-text>
+        <div class="text-center mt-5">
+          <v-pagination
+            v-model="CurrentPage"
+            :color="appColor.primary"
+            :length="Math.round(searchedListData.length / 15)"
+            circle
+          ></v-pagination>
+        </div>
+      </v-card-text>
+    </vue-scroll>
+    <v-dialog v-model="showErrPopup" persistent width="300">
+      <v-card>
+        <v-app-bar :color="appColor.primary" dark>
+          <v-app-bar-nav-icon
+            ><v-icon>fas fa-circle-info</v-icon></v-app-bar-nav-icon
+          >
+          <v-toolbar-title>Info</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-app-bar-nav-icon @click="$emit('cancelHandlerEmiter')"
+            ><v-icon>close</v-icon></v-app-bar-nav-icon
+          >
+        </v-app-bar>
+        <v-card-text class="pt-3">
+          There has been a problem with the geoportal in the main geoserver and
+          it can not be retrieved. It will be fixed as soon as the update comes.
+          For now you can chose between thousands of over geoportals that we
+          offer for you directly from the software
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            :color="appColor.primary"
+            text
+            @click="$emit('changeErrPopup')"
+          >
+            I understand
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -48,12 +97,28 @@
 import { mapGetters } from "vuex";
 
 export default {
-  props: ["preDefinedLayerData"],
+  props: ["preDefinedLayerData", "showErrPopup"],
   data: () => ({
-    CurrentPage: 1
+    CurrentPage: 1,
+    searchByName: "",
+    searchedListData: []
+    // LayerNotLoading: false
   }),
+  watch: {
+    searchByName(newValue) {
+      if (!newValue) {
+        this.searchedListData = this.preDefinedLayerData;
+      } else {
+        this.searchedListData = this.preDefinedLayerData.filter(layer =>
+          layer.title.toLowerCase().match(newValue.toLowerCase())
+        );
+      }
+    }
+  },
   mounted() {
-    console.log(this.preDefinedLayerData);
+    this.searchedListData = this.preDefinedLayerData;
+    // The only way to remove a display bug, .__vue cannot be accessed since it is created by vutify and I had to select it via javascript for now
+    document.querySelector(".__view").style.width = "100px";
   },
   computed: {
     ...mapGetters("app", {
@@ -61,7 +126,7 @@ export default {
       appColor: "appColor"
     }),
     filteredGeoportalByPage() {
-      return this.preDefinedLayerData.filter(
+      return this.searchedListData.filter(
         (layer, idx) =>
           (this.CurrentPage - 1) * 15 < idx && idx < this.CurrentPage * 15 + 1
       );
