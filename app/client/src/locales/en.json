@@ -448,6 +448,19 @@
       "transparency": "Transparency"
     }
   },
+  "externalGeoportals": {
+    "selectGeoportal": "Choose Geoportal",
+    "externalGeoportal": "External Geoportal",
+    "builtInGeoportals": {
+      "title": "Built-in Geoportals"
+    },
+    "ownGeoportals": {
+      "title": "Add own Geoportal",
+      "getLayersFrom": "Import layer from",
+      "results": "results",
+      "seeMore": "see more..."
+    }
+  },
   "map": {
     "layerLegend": {
       "title": "Layers Legend"
@@ -479,6 +492,7 @@
       "streetlevelqualityLayers": "Street Level Quality",
       "environmental_quality": "Environmental data",
       "additional_data": "Additional data",
+      "external_layers": "External Layers",
       "accessbilityBasemaps": "Heatmaps",
       "basemap": "Background Layers",
       "heatmap": "Heatmaps"

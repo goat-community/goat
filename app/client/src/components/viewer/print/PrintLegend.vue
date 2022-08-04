@@ -16,11 +16,11 @@
           }}
         </p>
         <!-- WMS LEGEND -->
-        <div v-if="item.get('legendGraphicUrl')">
+        <div v-if="item.get('legendGraphicUrls')">
           <img
             crossorigin="anonymous"
             style="max-width:100%;"
-            :src="item.get('legendGraphicUrl')"
+            :src="item.get('legendGraphicUrls')"
             class="white--text mt-0 pt-0"
           />
         </div>
@@ -82,6 +82,7 @@ export default {
     onMapBound() {
       const me = this;
       const allLayers = me.map.getLayers().getArray();
+      console.log(allLayers);
       me.layers = allLayers.filter(layer => {
         return (
           layer.get("displayInLegend") !== false &&
