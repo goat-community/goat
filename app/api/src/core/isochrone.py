@@ -37,6 +37,17 @@ class Isochrone(Dijkstra):
         self.points = np.array(points, dtype=np.double)
         self.costs = np.array(costs, dtype=np.double)
 
+    def get_north_west(self, x, y, zoom):
+        project = pyproj.Transformer.from_crs(
+            pyproj.CRS("EPSG:3857"), pyproj.CRS("EPSG:4326"), always_xy=True
+        ).transform
+        point = Point(x.min(), y.max())
+        lon_lat_point = transform(project, point)
+        point_pixel = coordinate_to_pixel([lon_lat_point.x, lon_lat_point.y], zoom=zoom)
+        x_ = math.floor(point_pixel["x"])
+        y_ = math.floor(point_pixel["y"])
+        return y_, x_
+
     def build_grid_interpolate(self, zoom):
         points = self.points.transpose()
         min_x = math.floor(points[0].min())
@@ -51,19 +62,7 @@ class Isochrone(Dijkstra):
         z = self.costs
         interpolate_function = LinearNDInterpolator(list(zip(x, y)), z)
         self.Z = interpolate_function(self.X, self.Y)
-        project = pyproj.Transformer.from_crs(
-            pyproj.CRS("EPSG:3857"), pyproj.CRS("EPSG:4326"), always_xy=True
-        ).transform
-        point = Point(self.X.min(), self.Y.max())
-        lon_lat_point = transform(project, point)
-        point_pixel = coordinate_to_pixel([lon_lat_point.x, lon_lat_point.y], zoom=zoom)
-        self.X = math.floor(point_pixel["x"])
-        self.Y = math.floor(point_pixel["y"])
-        # plt.pcolormesh(self.X, self.Y, self.Z, shading="nearest")
-        # plt.legend()
-        # plt.colorbar()
-        # plt.axis("equal")
-        # plt.savefig("LinearNDInterpolator.png")
+
         return self.X, self.Y, self.Z
 
     def compute_isochrone(self, zoom):
@@ -71,14 +70,24 @@ class Isochrone(Dijkstra):
         self.get_isochrone_network()
         self.build_grid_interpolate(zoom)
 
+    def plot(self):
+        plt.pcolormesh(self.X, self.Y, self.Z, shading="nearest")
+        plt.legend()
+        plt.colorbar()
+        plt.axis("equal")
+        plt.savefig("LinearNDInterpolator.png")
+
     def get_single_depth_grid(self, zoom):
         grid_type = "ACCESSGR"
+        north, west = self.get_north_west(self.X, self.Y, zoom)
         grid_data = {}
         Z = np.ravel(self.Z)
+        Z = np.nan_to_num(Z, nan=np.iinfo(np.intc).max)
+        Z[Z < 1000] = 10  # This should go to jsoline
         grid_data["version"] = 1
         grid_data["zoom"] = zoom
-        grid_data["west"] = self.X
-        grid_data["north"] = self.Y
+        grid_data["west"] = west
+        grid_data["north"] = north
         grid_data["width"] = self.Z.shape[0]
         grid_data["height"] = self.Z.shape[1]
         grid_data["depth"] = 1
@@ -99,5 +108,7 @@ if __name__ == "__main__":
     edges_network, starting_id, distance_limits = get_sample_network(minutes=4)
     isochrone = Isochrone(edges_network, starting_id, distance_limits)
     isochrone.compute_isochrone(10)
+    a = isochrone.get_single_depth_grid(10)
+    isochrone.plot()
 
     print()

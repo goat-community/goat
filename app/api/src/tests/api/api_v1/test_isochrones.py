@@ -1,3 +1,4 @@
+import mimetypes
 from collections import defaultdict
 from typing import Dict
 
@@ -11,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import crud
 from src.core.config import settings
 from src.db import models
+from src.resources.enums import IsochroneExportType
 from src.schemas.isochrone import request_examples
 from src.schemas.scenario import (
     ScenarioFeatureCreate,
@@ -177,6 +179,23 @@ async def test_calculate_isochrone_single_cycling_pedelec(
     assert 200 <= r.status_code < 300
     assert len(response["features"]) > 0
     assert len(response["features"][0]["geometry"]["coordinates"][0][0]) > 3
+
+
+async def test_convert_geojson_to_shapefile_and_xlsx(
+    client: AsyncClient, superuser_token_headers: Dict[str, str]
+) -> None:
+    export_types = [IsochroneExportType.xlsx, IsochroneExportType.shp]
+    geojson_payload = request_examples["geojson_to_export"]
+    zip_mime_type = mimetypes.guess_type("x.zip")[0]
+    for export_type in export_types:
+        r = await client.post(
+            f"{settings.API_V1_STR}/isochrones/export/",
+            json=geojson_payload,
+            params={"return_type": export_type.value},
+            headers=superuser_token_headers,
+        )
+        assert 200 <= r.status_code < 300
+        assert r.headers["content-type"] == zip_mime_type
 
 
 # TODO: Calculate isochrone reached network default geojson

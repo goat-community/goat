@@ -440,6 +440,96 @@ class CRUDIsochrone:
 
         return isochrones_result
 
+    async def export_isochrone(
+        self,
+        db: AsyncSession,
+        *,
+        current_user,
+        return_type,
+        geojson_dictionary: dict,
+    ) -> Any:
+
+        features = geojson_dictionary["features"]
+        # Remove the payload and set to true to use it later
+        geojson_dictionary = True
+        for _data in features:
+            # Shape the geometries
+            _data["geometry"] = shape(_data["geometry"])
+        gdf = GeoDataFrame(features).set_geometry("geometry")
+        # Translate the properties to columns
+        properties = list(features[0]["properties"].keys())
+        properties.remove("reached_opportunities")
+        for property_ in properties:
+            gdf[property_] = str(gdf["properties"][0][property_])
+
+        reached_opportunities = features[0]["properties"]["reached_opportunities"].keys()
+        for oportunity in reached_opportunities:
+            gdf[oportunity] = str(gdf["properties"][0]["reached_opportunities"][oportunity])
+        gdf = gdf.drop(["properties"], axis=1)
+        # Preliminary fix for tranlation POIs categories
+        ########################################################################################################################
+        if current_user.language_preference == "de":
+            with open("/app/src/resources/poi_de.json") as json_file:
+                translation_dict = json.load(json_file)
+        else:
+            with open("/app/src/resources/poi_en.json") as json_file:
+                translation_dict = json.load(json_file)
+        updated_columns = []
+        for column in gdf.columns:
+            if column in translation_dict:
+                updated_columns.append(translation_dict[column])
+            else:
+                updated_columns.append(column)
+        gdf.columns = updated_columns
+        ########################################################################################################################
+
+        defined_uuid = uuid.uuid4().hex
+        file_name = "isochrone_export"
+        file_dir = f"/tmp/{defined_uuid}"
+
+        os.makedirs(file_dir + "/export")
+        os.chdir(file_dir + "/export")
+
+        if return_type == IsochroneExportType.geojson:
+            gdf.to_file(
+                file_name + "." + IsochroneExportType.geojson.name,
+                driver=IsochroneExportType.geojson.value,
+            )
+        elif return_type == IsochroneExportType.shp:
+            gdf.to_file(
+                file_name + "." + IsochroneExportType.shp.name,
+                driver=IsochroneExportType.shp.value,
+                encoding="utf-8",
+            )
+        elif return_type == IsochroneExportType.xlsx:
+            gdf = gdf.drop(["geometry"], axis=1)
+            writer = pd.ExcelWriter(
+                file_name + "." + IsochroneExportType.xlsx.name, engine="xlsxwriter"
+            )
+            gdf_transposed = gdf.transpose()
+            gdf_transposed.columns = [
+                translation_dict["attributes"] for c in list(gdf[translation_dict["traveltime"]])
+            ]
+            gdf_transposed[1:].to_excel(writer, sheet_name="Results")
+            workbook = writer.book
+            worksheet = writer.sheets["Results"]
+            worksheet.set_column(0, 0, 35, None)
+            worksheet.set_column(1, gdf.shape[0], 25, None)
+            writer.save()
+
+        os.chdir(file_dir)
+        shutil.make_archive(file_name, "zip", file_dir + "/export")
+
+        with open(file_name + ".zip", "rb") as f:
+            data = f.read()
+
+        delete_dir(file_dir)
+        response = StreamingResponse(io.BytesIO(data), media_type="application/zip")
+        response.headers["Content-Disposition"] = "attachment; filename={}".format(
+            file_name + ".zip"
+        )
+        return response
+
     # ===================================
     async def __read_network(self, db, obj_in: IsochroneDTO) -> Any:
         isochrone_type = None
@@ -626,7 +716,7 @@ class CRUDIsochrone:
             network, starting_ids = await self.__read_network(db, obj_in)
             # === Compute Grid ===#
             grid = isochrone_single_depth_grid(
-                network, starting_ids, [25], obj_in.output.resolution
+                network, starting_ids, [20], obj_in.output.resolution
             )
             # === Amenity Intersect ===#
             grid_decoded = await self.__amenity_intersect(grid, 25)
