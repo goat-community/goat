@@ -35,3 +35,5 @@ from .user import (
     UserUpdate,
 )
 from .layer_library import CreateLayerLibrary, CreateStyleLibrary
+
+from .geostore import CreateGeostore
