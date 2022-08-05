@@ -174,3 +174,8 @@ class LayerGroupsEnum(str, Enum):
     additional_data = "additional_data"
     basemap = "basemap"
     heatmap = "heatmap"
+
+
+class GeostoreType(str, Enum):
+    geoadmin = "geoadmin"
+    other = "other"
