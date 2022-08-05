@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy.dialects.postgresql import JSONB
@@ -6,16 +5,10 @@ from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
     from .study_area import StudyArea
 
+from sqlmodel import Column, Field, Integer, Relationship, SQLModel, Text
+
 from ._link_model import StudyAreaGeostore
 
-from sqlmodel import (
-    Column,
-    Field,
-    Integer,
-    Relationship,
-    SQLModel,
-    Text
-)
 
 class Geostore(SQLModel, table=True):
     __tablename__ = "geostore"
@@ -28,7 +21,6 @@ class Geostore(SQLModel, table=True):
     configuration: Optional[dict] = Field(sa_column=Column(JSONB))
     attribution: str = Field(sa_column=Column(Text), nullable=False)
     thumbnail_url: str = Field(sa_column=Column(Text), nullable=False)
-    study_areas: List["StudyArea"] = Relationship(back_populates="geostores", link_model=StudyAreaGeostore)
-
-
-
+    study_areas: List["StudyArea"] = Relationship(
+        back_populates="geostores", link_model=StudyAreaGeostore
+    )
