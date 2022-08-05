@@ -4,7 +4,6 @@ import requests
 
 request_examples = {
     "geostore": {
-        "id": 1,
         "configuration": {
             "url": "mapURL",
             "name": "Name",
@@ -36,7 +35,12 @@ class CreateGeostore(Geostore):
     @validator("configuration")
     def validate_configuration_keys(cls, field_value):
         config_keys = request_examples["geostore"]["configuration"].keys()
-        if set(field_value.keys()) != set(config_keys):
-            raise ValueError(
-                f'configuration keys should be exactly as of "{", ".join(list(config_keys))}".'
-            )
+        if field_value:
+            if set(field_value.keys()) != set(config_keys):
+                raise ValueError(
+                    f'configuration keys should be exactly as of "{", ".join(list(config_keys))}".'
+                )
+        return field_value
+
+    class Config:
+        schema_extra = {"example": request_examples["geostore"]}
