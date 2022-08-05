@@ -21,6 +21,8 @@ For more information:
 
 [GOAT Docs](https://plan4better.de/docs/background/)
 
+[GOAT Technical Docs](https://www.open-accessibility.org/docs/quick_start_docker/)
+
 [GOAT demo versions](https://plan4better.de/goatlive/)
 
 [Join GOAT User Group on Telegram](https://t.me/joinchat/EpAk7BYbIF72q7D3OTUCZQ)
@@ -37,3 +39,7 @@ Pajares, E.; Büttner, B.; Jehle, U.; Nichols, A.; Wulfhorst, G. Accessibility b
 accessibility instruments for active mobility. J. Transp. Geogr. 2021, 93, 103080, https://doi.org/10.1016/j.jtrangeo.2021.103080.
 
 Pajares, E.; Muñoz Nieto, R.; Meng, L.; Wulfhorst, G. Population Disaggregation on the Building Level Based on Outdated Census Data. ISPRS Int. J. Geo-Inf. 2021, 10, 662. https://doi.org/10.3390/ijgi10100662
+
+Pajares, E., Jehle, U., 2021. GOAT: Ein interaktives Erreichbarkeitsinstrument zur Planung der 15-Minuten-Stadt, in: Flächennutzungsmonitoring XIII: Flächenpolitik - Konzepte - Analysen - Tools, IÖR Schriften. Rhombos-Verlag, Berlin, pp. 265–273. https://doi.org/10.26084/13dfns-p024
+
+Jehle, U., Pajares, E., Analyse der Fußwegequalitäten zu Schulen – Entwicklung von Indikatoren auf Basis von OpenData. In: Meinel, G.; Krüger, T.; Behnisch, M.; Ehrhardt, D. (Hrsg.): Flächennutzungsmonitoring XIII: Flächenpolitik - Konzepte - Analysen - Tools. Berlin: Rhombos-Verlag, 2021, (IÖR-Schriften Band 79), S.221-232, https://doi.org/10.26084/13dfns-p020
