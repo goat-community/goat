@@ -19,10 +19,10 @@ async def list_geostores(
     limit: int = 100,
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    layers = await crud.geostore.get_multi(db, skip=skip, limit=limit)
-    if not layers:
+    geostores = await crud.geostore.get_multi(db, skip=skip, limit=limit)
+    if not geostores:
         raise HTTPException(status_code=404, detail="there is no (more) geostores.")
-    return layers
+    return geostores
 
 
 @router.get("/{id:int}", response_model=models.Geostore)
@@ -58,7 +58,7 @@ async def update_a_geostore(
     if not geostore_in_db:
         raise HTTPException(status_code=404, detail="geostore not found.")
 
-    geostore = await crud.geostore.update(db, db_obj=geostore_in_db[0], obj_in=geostore_in)
+    geostore = await crud.geostore.update(db, db_obj=geostore_in_db, obj_in=geostore_in)
     return geostore
 
 
@@ -71,8 +71,6 @@ async def delete_a_geostore(
     geostore = await crud.geostore.get(db, id=id)
     if not geostore:
         raise HTTPException(status_code=404, detail="geostore not found.")
-    else:
-        geostore = geostore[0]
 
     geostore = await crud.geostore.remove(db, id=geostore.id)
     return geostore
