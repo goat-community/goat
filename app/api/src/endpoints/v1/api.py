@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from src.endpoints.v1 import (
     customizations,
+    geostores,
     heatmap,
     isochrones,
     layer_library,
@@ -60,3 +61,4 @@ api_router.include_router(
     layer_library.router, prefix="/config/layers/library", tags=["Layer Library"]
 )
 api_router.include_router(study_area.router, prefix="/config/study-area", tags=["Layer Library"])
+api_router.include_router(geostores.router, prefix="/config/geostores", tags=["Geostores"])
