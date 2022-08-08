@@ -76,7 +76,7 @@ async def delete_a_geostore(
     return geostore
 
 
-@router.get("study_area/{study_area_id:int}", response_model=List[models.Geostore])
+@router.get("/study_area/{study_area_id:int}", response_model=List[models.Geostore])
 async def list_study_area_geostores(
     study_area_id: int,
     db: AsyncSession = Depends(deps.get_db),
@@ -95,7 +95,7 @@ async def list_study_area_geostores(
 
 
 @router.post(
-    "study_area/{study_area_id:int}/add/{geostore_id:int}", response_model=List[models.Geostore]
+    "/study_area/{study_area_id:int}/add/{geostore_id:int}", response_model=List[models.Geostore]
 )
 async def add_geostore_to_study_area(
     study_area_id: int,
@@ -123,7 +123,8 @@ async def add_geostore_to_study_area(
 
 
 @router.delete(
-    "study_area/{study_area_id:int}/add/{geostore_id:int}", response_model=List[models.Geostore]
+    "/study_area/{study_area_id:int}/remove/{geostore_id:int}",
+    response_model=List[models.Geostore],
 )
 async def add_geostore_to_study_area(
     study_area_id: int,
