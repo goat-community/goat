@@ -8,7 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import crud
 from src.core.config import settings
 from src.schemas.geostore import request_examples
-from src.tests.utils.geostores import create_sample_geostore
+from src.tests.utils.geostores import (
+    create_add_one_geostore_to_study_area,
+    create_add_two_geostores_to_study_area,
+    create_sample_geostore,
+)
 
 pytestmark = pytest.mark.asyncio
 
@@ -100,6 +104,37 @@ async def test_delete_geostore(
     assert r.status_code == 404
 
 
-# TODO: ADD GEOSTORE TO STUDY AREA
-# TODO: LIST STUDY AREA GEOSTORES
-# TODO: REMOVE GEOSTORE FROM STUDY AREA
+async def test_read_study_area_geostores_list(
+    client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
+) -> None:
+    study_area_id = await create_add_two_geostores_to_study_area(db)
+    r = await client.get(
+        f"{settings.API_V1_STR}/config/geostores/study_area/{study_area_id}",
+        headers=superuser_token_headers,
+    )
+    assert 200 <= r.status_code < 300
+    geostores = r.json()
+    assert len(geostores) > 1
+
+
+async def test_add_geostore_to_study_area(
+    client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
+) -> None:
+    study_area = await crud.study_area.get_first(db)
+    geostore = await create_sample_geostore(db)
+    r = await client.post(
+        f"{settings.API_V1_STR}/config/geostores/study_area/{study_area.id}/add/{geostore.id}",
+        headers=superuser_token_headers,
+    )
+    assert 200 <= r.status_code < 300
+
+
+async def test_remove_geostore_from_study_area(
+    client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
+) -> None:
+    study_area_id, geostore_id = await create_add_one_geostore_to_study_area(db)
+    r = await client.delete(
+        f"{settings.API_V1_STR}/config/geostores/study_area/{study_area_id}/remove/{geostore_id}",
+        headers=superuser_token_headers,
+    )
+    assert 200 <= r.status_code < 300
