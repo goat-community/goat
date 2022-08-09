@@ -29,6 +29,8 @@
                   <v-flex>
                     <ImportExternalLayers
                       @getLayerInfo="layerInfoSubmited"
+                      @changeErrPopup="ImportinglayerError = false"
+                      :ImportinglayerError="ImportinglayerError"
                       v-if="layerGroup.name === 'external_layers'"
                     />
                   </v-flex>
@@ -209,6 +211,8 @@ import ImportExternalLayers from "../importLayers/ImportExternalLayers.vue";
 //Openlayer imports
 import TileLayer from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS";
+import { fromLonLat } from "ol/proj";
+// import { containsExtent } from "ol/extent";
 
 export default {
   mixins: [Mapable, Legend],
@@ -217,6 +221,7 @@ export default {
       layerGroupsArr: [],
       currentItem: null,
       styleDialogKey: 0,
+      ImportinglayerError: false,
       styleDialogStatus: false
     };
   },
@@ -227,6 +232,9 @@ export default {
     }),
     ...mapFields("app", {
       layerTabIndex: "layerTabIndex"
+    }),
+    ...mapGetters("map", {
+      studyArea: "studyArea"
     })
   },
   components: { LayerOrder, InLegend, StyleDialog, ImportExternalLayers },
@@ -271,23 +279,110 @@ export default {
         showOptions: true
       });
 
-      if (this.layerGroupsArr.length === 5) {
-        this.layerGroupsArr.forEach(layerGroup => {
-          if (layerGroup.name === "external_layers") {
-            let hasLayer = layerGroup.children.filter(
-              layer => layer.get("name") === newLayer.get("name")
-            );
-            if (hasLayer.length === 0) {
-              this.map.addLayer(newLayer);
+      //checking if layer is in studyarea
+      const mapExtent = this.studyArea[0].values_.bounds;
+      let layerExtent = data.extend;
+      let firstHalf = fromLonLat([layerExtent[0], layerExtent[1]], "EPSG:3857");
+      let secondHalf = fromLonLat(
+        [layerExtent[2], layerExtent[3]],
+        "EPSG:3857"
+      );
+      layerExtent = [...firstHalf, ...secondHalf];
 
-              this.updateLayerArray();
+      if (
+        layerExtent[0] >= mapExtent[0] &&
+        layerExtent[0] <= mapExtent[2] &&
+        layerExtent[1] >= mapExtent[1] &&
+        layerExtent[1] <= mapExtent[3]
+      ) {
+        if (this.layerGroupsArr.length >= 5) {
+          this.layerGroupsArr.forEach(layerGroup => {
+            if (layerGroup.name === "external_layers") {
+              let hasLayer = layerGroup.children.filter(
+                layer => layer.get("name") === newLayer.get("name")
+              );
+              if (hasLayer.length === 0) {
+                this.map.addLayer(newLayer);
+                this.updateLayerArray();
+              }
             }
-          }
-        });
-      } else {
-        this.map.addLayer(newLayer);
+          });
+        } else {
+          this.map.addLayer(newLayer);
 
-        this.updateLayerArray();
+          this.updateLayerArray();
+        }
+      } else if (
+        layerExtent[2] >= mapExtent[0] &&
+        layerExtent[2] <= mapExtent[2] &&
+        layerExtent[3] >= mapExtent[1] &&
+        layerExtent[3] <= mapExtent[3]
+      ) {
+        if (this.layerGroupsArr.length >= 5) {
+          this.layerGroupsArr.forEach(layerGroup => {
+            if (layerGroup.name === "external_layers") {
+              let hasLayer = layerGroup.children.filter(
+                layer => layer.get("name") === newLayer.get("name")
+              );
+              if (hasLayer.length === 0) {
+                this.map.addLayer(newLayer);
+                this.updateLayerArray();
+              }
+            }
+          });
+        } else {
+          this.map.addLayer(newLayer);
+
+          this.updateLayerArray();
+        }
+      } else if (
+        mapExtent[0] >= layerExtent[0] &&
+        mapExtent[0] <= layerExtent[2] &&
+        mapExtent[1] >= layerExtent[1] &&
+        mapExtent[1] <= layerExtent[3]
+      ) {
+        if (this.layerGroupsArr.length >= 5) {
+          this.layerGroupsArr.forEach(layerGroup => {
+            if (layerGroup.name === "external_layers") {
+              let hasLayer = layerGroup.children.filter(
+                layer => layer.get("name") === newLayer.get("name")
+              );
+              if (hasLayer.length === 0) {
+                this.map.addLayer(newLayer);
+                this.updateLayerArray();
+              }
+            }
+          });
+        } else {
+          this.map.addLayer(newLayer);
+
+          this.updateLayerArray();
+        }
+      } else if (
+        mapExtent[2] >= layerExtent[0] &&
+        mapExtent[2] <= layerExtent[2] &&
+        mapExtent[3] >= layerExtent[1] &&
+        mapExtent[3] <= layerExtent[3]
+      ) {
+        if (this.layerGroupsArr.length >= 5) {
+          this.layerGroupsArr.forEach(layerGroup => {
+            if (layerGroup.name === "external_layers") {
+              let hasLayer = layerGroup.children.filter(
+                layer => layer.get("name") === newLayer.get("name")
+              );
+              if (hasLayer.length === 0) {
+                this.map.addLayer(newLayer);
+                this.updateLayerArray();
+              }
+            }
+          });
+        } else {
+          this.map.addLayer(newLayer);
+
+          this.updateLayerArray();
+        }
+      } else {
+        this.ImportinglayerError = true;
       }
     },
 

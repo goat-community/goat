@@ -6,7 +6,6 @@
           fas fa-link
         </v-icon>
       </template>
-
       <v-card v-if="option === 'first'">
         <v-app-bar :color="appColor.primary" dark>
           <v-app-bar-nav-icon
@@ -16,7 +15,7 @@
             $t("externalGeoportals.selectGeoportal")
           }}</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-app-bar-nav-icon @click="$emit('cancelHandlerEmiter')"
+          <v-app-bar-nav-icon @click="cancelHandler"
             ><v-icon>close</v-icon></v-app-bar-nav-icon
           >
         </v-app-bar>
@@ -71,6 +70,10 @@
       </v-card>
       <v-card v-if="option === 'upload'">
         <v-app-bar :color="appColor.primary" dark>
+          <v-app-bar-nav-icon @click="goBackHandler">
+            <v-icon>fas fa-chevron-left</v-icon>
+          </v-app-bar-nav-icon>
+
           <v-app-bar-nav-icon
             ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
           >
@@ -145,9 +148,36 @@
           </v-card-text>
         </vue-scroll>
       </v-card>
+      <!-- If Layer isn't shown in study area show this popup -->
+      <v-dialog v-model="ImportinglayerError" persistent width="300">
+        <v-card>
+          <v-app-bar :color="appColor.primary" dark>
+            <v-app-bar-nav-icon
+              ><v-icon>fas fa-circle-info</v-icon></v-app-bar-nav-icon
+            >
+            <v-toolbar-title>Error</v-toolbar-title>
+            <v-spacer></v-spacer>
+          </v-app-bar>
+          <v-card-text class="pt-3">
+            {{ $t("externalGeoportals.popups.errorMessage") }}
+          </v-card-text>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              :color="appColor.primary"
+              text
+              @click="$emit('changeErrPopup')"
+            >
+              {{ $t("externalGeoportals.popups.agreement") }}
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
       <pre-defined-geoportals
         :preDefinedLayerData="preDefinedGeoportals"
         :showErrPopup="showErrPopup"
+        @goBack="goBackHandler"
         @changeErrPopup="showErrPopup = !showErrPopup"
         @cancelHandlerEmiter="cancelHandler"
         @findAllTheLayersInGeoportal="findAllAvailableLayers"
@@ -167,11 +197,13 @@ import ApiService from "../../../services/api.service";
 
 export default {
   mixins: [Mapable],
+  props: ["ImportinglayerError"],
   data: () => ({
     url: "",
     dialog: false,
     error: "",
     option: "first",
+    prevOption: null,
     value: 0,
     preDefinedGeoportals: [],
     geoportals: [],
@@ -231,7 +263,6 @@ export default {
           geoportal_url: layer[config["url"]],
           type: layer[config["type"]]
         };
-        console.log(finalGeoportalInfo.type);
         this.preDefinedGeoportals.push(finalGeoportalInfo);
       }
     },
@@ -267,7 +298,25 @@ export default {
     },
     // navigation through the popup
     changeOption(value) {
+      this.prevOption = this.option;
       this.option = value;
+    },
+    goBackHandler() {
+      if (this.option === "second") {
+        this.prevOption = null;
+        this.option = "first";
+        this.preDefinedGeoportals = [];
+        this.searchedListData = [];
+        this.searchByName = "";
+      } else if (this.option === "upload") {
+        this.layerListToAdd = [];
+        this.option = this.prevOption;
+        this.searchedListData = [];
+        this.prevOption = "first";
+      } else if (this.option === "upload" && this.prevOption === "first") {
+        this.option = "first";
+        this.prevOption = null;
+      }
     },
     cancelHandler() {
       this.url = "";
@@ -280,7 +329,7 @@ export default {
       this.searchByName = "";
     },
     builtInDataHandler(geoportal) {
-      this.option = "second";
+      this.changeOption("second");
       if (geoportal.type === "geoadmin") {
         let configuration = geoportal.configuration;
 
@@ -365,6 +414,29 @@ export default {
                   url: data.layer_url.split("?")[0] + "?",
                   type: type
                 };
+
+                const geoBoundaries = layerElement.getElementsByTagName(
+                  "EX_GeographicBoundingBox"
+                )[0];
+                const layerExtends = [
+                  parseFloat(
+                    geoBoundaries.getElementsByTagName("westBoundLongitude")[0]
+                      .textContent
+                  ),
+                  parseFloat(
+                    geoBoundaries.getElementsByTagName("southBoundLatitude")[0]
+                      .textContent
+                  ),
+                  parseFloat(
+                    geoBoundaries.getElementsByTagName("eastBoundLongitude")[0]
+                      .textContent
+                  ),
+                  parseFloat(
+                    geoBoundaries.getElementsByTagName("northBoundLatitude")[0]
+                      .textContent
+                  )
+                ];
+                layerPossibility.extend = layerExtends;
                 for (const childElem of layerElement.children) {
                   if (childElem.nodeName === "Abstract") {
                     layerPossibility.description = layerElement.getElementsByTagName(
@@ -399,7 +471,7 @@ export default {
                 this.searchedListData.push(layerPossibility);
               }
             });
-            this.option = "upload";
+            this.changeOption("upload");
           })
           .catch(() => (this.showErrPopup = true));
       } else {

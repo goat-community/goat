@@ -459,6 +459,11 @@
       "getLayersFrom": "Import layer from",
       "results": "results",
       "seeMore": "see more..."
+    },
+    "popups": {
+      "info": "There has been a problem with the geoportal in the main geoserver and it can not be retrieved. It will be fixed as soon as the update comes. For now you can chose between thousands of other geoportals that we offer for you directly from the software",
+      "errorMessage": "This layer is not part of the study area, please select the other ones that are still available!",
+      "agreement": "I understand"    
     }
   },
   "map": {
