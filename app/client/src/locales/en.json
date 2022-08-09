@@ -461,8 +461,8 @@
       "seeMore": "see more..."
     },
     "popups": {
-      "info": "There has been a problem with the geoportal in the main geoserver and it can not be retrieved. It will be fixed as soon as the update comes. For now you can chose between thousands of other geoportals that we offer for you directly from the software",
-      "errorMessage": "This layer is not part of the study area, please select the other ones that are still available!",
+      "info": "There has been a problem with the external service running the geoportal. Please try to select another layer.",
+      "errorMessage": "This layer is not part of the study area, please select another layer!",
       "agreement": "I understand"    
     }
   },
@@ -493,13 +493,13 @@
       "scenarioEditMode": "Edit Mode"
     },
     "layerGroup": {
-      "buildings_landuse": "Buildings and Land Use",
-      "streetlevelqualityLayers": "Street Level Quality",
+      "buildings_landuse": "Buildings and land use",
+      "streetlevelqualityLayers": "Street level quality",
       "environmental_quality": "Environmental data",
       "additional_data": "Additional data",
-      "external_layers": "External Layers",
+      "external_layers": "External layers",
       "accessbilityBasemaps": "Heatmaps",
-      "basemap": "Background Layers",
+      "basemap": "Background layers",
       "heatmap": "Heatmaps"
     },
     "layerName": {
