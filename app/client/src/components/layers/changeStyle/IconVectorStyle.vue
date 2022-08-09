@@ -27,7 +27,7 @@
             v-model="iconSize"
             label="Icon Size"
             style="height:50px;"
-            @input="onIconSizeChange()"
+            @change="onIconSizeChange()"
           ></v-text-field>
         </span>
       </v-tab-item>
@@ -72,6 +72,9 @@ import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
 import { debounce } from "../../../utils/Helpers";
 import Legend from "../../viewer/ol/controls/Legend";
+import { Icon, Style } from "ol/style";
+import Fill from "ol/style/Fill";
+import Circle from "ol/style/Circle";
 
 export default {
   props: ["item", "ruleIndex"],
@@ -82,7 +85,10 @@ export default {
     dialogue: false,
     iconSize: null,
     urlIcon: null,
-    localIcon: null
+    localIcon: null,
+    iconStyle: null,
+    activeStyle: "square",
+    currentIcon: null
   }),
   computed: {
     ...mapGetters("app", {
@@ -100,6 +106,9 @@ export default {
   created() {
     this.dialogue = !this.dialogue;
     this.iconSize = this.style.symbolizers[0].size;
+  },
+  mounted() {
+    this.iconSize = this.style.symbolizers[0].radius;
   },
   methods: {
     expand() {
@@ -131,6 +140,7 @@ export default {
       //Get present stylefor layer attribute
       let targetStyle = this.vectorTileStyles[this.item.get("name")].style
         .rules[this.ruleIndex];
+      this.updateLayer(3);
 
       //Assign original style to present style to reset
       targetStyle.symbolizers[0].size = sourceStyle.symbolizers[0].size;
@@ -139,36 +149,134 @@ export default {
       this.item.getSource().changed();
       this.updateLegendRow();
     },
-    onIconSizeChange() {
-      //Change icon size on input change event
-      if (this.iconSize == 0) {
-        this.style.symbolizers[0].size = 0.001;
-      } else {
-        this.style.symbolizers[0].size = Number(this.iconSize);
-      }
+    updateLayer(rasiusSize) {
+      this.activeStyle = "square";
+      this.normalLayer = new Style({
+        image: new Circle({
+          fill: new Fill({
+            color: this.style.symbolizers[0].color
+          }),
+          radius: rasiusSize,
+          kind: "Mark",
+          wellKnownName: "Square",
+          title: "square"
+        })
+      });
+      this.item.setStyle(this.normalLayer);
       this.item.getSource().changed();
       this.updateLegendRow();
     },
+    updateIcon(radiusSize) {
+      this.activeStyle = "image";
+      this.iconStyle = new Style({
+        image: new Icon({
+          anchor: [0.5, 46],
+          anchorXUnits: "fraction",
+          anchorYUnits: "pixels",
+          scale: radiusSize,
+          src: this.currentIcon,
+          title: "image"
+        })
+      });
+
+      this.item.setStyle(this.iconStyle);
+      this.item.getSource().changed();
+      this.updateLegendRow();
+    },
+    updateUrlIcon(radiusSize) {
+      this.activeStyle = "image";
+      this.iconStyle = new Style({
+        image: new Icon({
+          anchor: [0.5, 46],
+          anchorXUnits: "fraction",
+          anchorYUnits: "pixels",
+          scale: radiusSize,
+          src: this.urlIcon,
+          title: "image"
+        })
+      });
+      this.activeStyle = "imageUrl";
+
+      this.item.setStyle(this.iconStyle);
+      this.item.getSource().changed();
+      this.updateLegendRow();
+    },
+    onIconSizeChange() {
+      //Change icon size on input change event
+
+      if (this.iconSize == 0) {
+        if (this.activeStyle === "square") {
+          this.updateLayer(0.001);
+        } else if (this.activeStyle === "image") {
+          this.updateIcon(0.001);
+        } else {
+          this.updateUrlIcon(0.001);
+        }
+        this.style.symbolizers[0].radius = 0.001;
+      } else {
+        if (this.activeStyle === "square") {
+          this.updateLayer(this.iconSize);
+        } else if (this.activeStyle === "image") {
+          this.updateIcon(this.iconSize);
+        } else {
+          this.updateUrlIcon(this.iconSize);
+        }
+        this.style.symbolizers[0].radius = Number(this.iconSize);
+      }
+    },
     localUpload(value) {
       //Upload new icon from local
+
       this.urlIcon = null;
       if (value) {
         const reader = new FileReader();
         reader.readAsDataURL(value);
         reader.onload = e => {
-          let icon = e.target.result;
-          this.style.symbolizers[0].image = icon;
+          this.currentIcon = e.target.result;
+          this.style.symbolizers[0].radius = 0.05;
+
+          this.iconStyle = new Style({
+            image: new Icon({
+              anchor: [0.5, 46],
+              anchorXUnits: "fraction",
+              anchorYUnits: "pixels",
+              scale: this.style.symbolizers[0].radius,
+              src: this.currentIcon,
+              title: "image"
+            })
+          });
+          this.activeStyle = "image";
+
+          this.item.setStyle(this.iconStyle);
           this.item.getSource().changed();
           this.updateLegendRow();
         };
+      } else {
+        this.updateLayer(3);
       }
     },
     urlUpload(value) {
       //Upload new icon from URL
       if (value) {
-        this.style.symbolizers[0].image = value;
+        this.style.symbolizers[0].radius = 0.05;
+
+        this.iconStyle = new Style({
+          image: new Icon({
+            anchor: [0.5, 46],
+            anchorXUnits: "fraction",
+            anchorYUnits: "pixels",
+            scale: this.style.symbolizers[0].radius,
+            src: this.urlIcon,
+            title: "image"
+          })
+        });
+        this.activeStyle = "imageUrl";
+
+        this.item.setStyle(this.iconStyle);
         this.item.getSource().changed();
         this.updateLegendRow();
+      } else {
+        this.updateLayer(3);
       }
     }
   }
