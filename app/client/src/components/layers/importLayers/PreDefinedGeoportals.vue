@@ -1,16 +1,19 @@
 <template>
   <v-card>
     <v-app-bar :color="appColor.primary" dark>
-      <v-app-bar-nav-icon
-        ><v-icon>fas fa-layer-group</v-icon></v-app-bar-nav-icon
-      >
+      <v-app-bar-nav-icon @click="$emit('goBack')">
+        <v-icon>fas fa-chevron-left</v-icon>
+      </v-app-bar-nav-icon>
+      <v-app-bar-nav-icon>
+        <v-icon>fas fa-layer-group</v-icon>
+      </v-app-bar-nav-icon>
       <v-toolbar-title>{{
         $t("externalGeoportals.selectGeoportal")
       }}</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-app-bar-nav-icon @click="$emit('cancelHandlerEmiter')"
-        ><v-icon>close</v-icon></v-app-bar-nav-icon
-      >
+      <v-app-bar-nav-icon @click="$emit('cancelHandlerEmiter')">
+        <v-icon>close</v-icon>
+      </v-app-bar-nav-icon>
     </v-app-bar>
     <vue-scroll>
       <v-card-text class="pa-6">
@@ -65,18 +68,10 @@
           >
           <v-toolbar-title>Info</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-app-bar-nav-icon @click="$emit('cancelHandlerEmiter')"
-            ><v-icon>close</v-icon></v-app-bar-nav-icon
-          >
         </v-app-bar>
         <v-card-text class="pt-3">
-          There has been a problem with the geoportal in the main geoserver and
-          it can not be retrieved. It will be fixed as soon as the update comes.
-          For now you can chose between thousands of over geoportals that we
-          offer for you directly from the software
+          {{ $t("externalGeoportals.popups.info") }}
         </v-card-text>
-
-        <v-divider></v-divider>
 
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -85,7 +80,7 @@
             text
             @click="$emit('changeErrPopup')"
           >
-            I understand
+            {{ $t("externalGeoportals.popups.agreement") }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -230,8 +225,4 @@ export default {
   max-height: 65px;
   font-size: 12px;
 }
-
-/* .v-application .primary {
-  background-color: rgb(43, 179, 129);
-} */
 </style>
