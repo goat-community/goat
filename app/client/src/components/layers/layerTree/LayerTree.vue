@@ -184,6 +184,7 @@
     </vue-scroll>
     <span v-if="styleDialogStatus">
       <style-dialog
+        @closeTheDialog="styleDialogStatus = false"
         :item="currentItem"
         :translate="translate"
         :key="styleDialogKey"

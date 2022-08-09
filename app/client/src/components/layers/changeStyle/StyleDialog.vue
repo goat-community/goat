@@ -60,7 +60,7 @@
               :key="ith"
             ></LineVectorStyle>
           </span>
-          <span v-else-if="kind === `Icon`">
+          <span v-else-if="kind === `Mark`">
             <IconVectorStyle
               :item="item"
               :ruleIndex="ith"
@@ -148,6 +148,7 @@ export default {
     close() {
       EventBus.$emit("updateStyleDialogStatusForLayerTree", false);
       EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
+      this.$emit("closeTheDialog");
       //Refresh the legend
       this.item.set("layerTreeKey", this.item.get("layerTreeKey") + 1);
     },
