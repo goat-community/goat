@@ -2,7 +2,7 @@
   <v-app id="inspire">
     <v-content>
       <v-container fluid fill-height class="pa-0">
-        <div style="width: 100%;">
+        <div style="width: 100%">
           <div class="carousel-widget-wrapper">
             <v-carousel
               height="100vh"
@@ -26,7 +26,13 @@
                   class="ma-0"
                   justify="center"
                   align="center"
-                  style="padding-top:60px;padding-bottom:60px;padding-left:35px;padding-right:35px;min-width:300px;"
+                  style="
+                    padding-top: 60px;
+                    padding-bottom: 60px;
+                    padding-left: 35px;
+                    padding-right: 35px;
+                    min-width: 300px;
+                  "
                 >
                   <img src="img/goat_standard.svg" height="40px" />
                 </v-row>
@@ -94,7 +100,7 @@
                   <v-row class="mx-2 mt-n5 pt-0">
                     <v-spacer></v-spacer>
                     <router-link
-                      style="z-index:2;color:#2BB381;text-decoration:none;"
+                      style="z-index: 2; color: #2bb381; text-decoration: none"
                       to="/forgot-password"
                       >{{ $t("login.passwordForgotten") }}</router-link
                     >
@@ -118,7 +124,7 @@
                       {{ $t("login.noAccount") }}
                     </p>
                     <router-link
-                      style="z-index:2;color:#2BB381;text-decoration:none;"
+                      style="z-index: 2; color: #2bb381; text-decoration: none"
                       to="/register"
                       class="ml-2"
                     >
@@ -216,7 +222,11 @@
                     <v-row class="mx-2 mt-n5 pt-0">
                       <v-spacer></v-spacer>
                       <router-link
-                        style="z-index:2;color:#2BB381;text-decoration:none;"
+                        style="
+                          z-index: 2;
+                          color: #2bb381;
+                          text-decoration: none;
+                        "
                         to="/login"
                         >{{ $t("login.backToLogin") }}</router-link
                       >
@@ -231,7 +241,7 @@
                         {{ $t("login.agreeTerms") }} &nbsp;
                         <a
                           target="_blank"
-                          style="color:#2BB381;text-decoration:none;"
+                          style="color: #2bb381; text-decoration: none"
                           href="https://plan4better.de/en/privacy/"
                           @click.stop
                         >
@@ -297,7 +307,7 @@
                   <v-row class="mx-2 mt-n5 pt-0">
                     <v-spacer></v-spacer>
                     <router-link
-                      style="z-index:2;color:#2BB381;text-decoration:none;"
+                      style="z-index: 2; color: #2bb381; text-decoration: none"
                       to="/login"
                       >{{ $t("login.backToLogin") }}</router-link
                     >
@@ -369,7 +379,7 @@
                   <v-row class="mx-2 mt-n5 pt-0">
                     <v-spacer></v-spacer>
                     <router-link
-                      style="z-index:2;color:#2BB381;text-decoration:none;"
+                      style="z-index: 2; color: #2bb381; text-decoration: none"
                       to="/login"
                       >{{ $t("login.backToLogin") }}</router-link
                     >
@@ -395,7 +405,7 @@
                   <div class="mx-3">
                     <a href="https://plan4better.de/" target="_blank">
                       <img
-                        style="cursor:pointer;"
+                        style="cursor: pointer"
                         src="img/plan4better_standard.svg"
                         height="30px"
                       />
@@ -526,6 +536,10 @@ export default {
       });
     },
     submitRegisterForm() {
+      let languageToRegisterWith = "en";
+      if (this.$i18n.local === "de") {
+        languageToRegisterWith = "de";
+      }
       this.$refs.authForm.validate();
       this.$nextTick(() => {
         if (!this.validForm) {
@@ -535,6 +549,7 @@ export default {
         this.loading = true;
         this.setMessage("");
         this.setError("");
+
         this.$store
           .dispatch(`auth/${CREATE_USER}`, {
             name: this.name,
@@ -544,7 +559,7 @@ export default {
             occupation: this.occupation,
             domain: this.domain,
             newsletter: this.newsletter,
-            language_preference: this.$i18n.locale
+            language_preference: languageToRegisterWith
           })
           .then(
             () => {
