@@ -126,7 +126,7 @@ async def add_geostore_to_study_area(
     "/study_area/{study_area_id:int}/remove/{geostore_id:int}",
     response_model=List[models.Geostore],
 )
-async def add_geostore_to_study_area(
+async def delete_geostore_to_study_area(
     study_area_id: int,
     geostore_id: int,
     db: AsyncSession = Depends(deps.get_db),

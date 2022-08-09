@@ -67,6 +67,7 @@ class AllowedVectorTables(str, Enum):
     """Allowed Vector Tables Enums."""
 
     sub_study_area = "basic.sub_study_area"
+    study_area = "basic.study_area"
 
 
 class IsochroneTypes(str, Enum):
@@ -81,6 +82,16 @@ class R5DecayFunctionType(str, Enum):
     step = "step"
     exponential = "exponential"
     linear = "linear"
+
+class StaticTableSQL(str, Enum):
+    """Static Table SQL that can be requested by study_area_id."""
+
+    study_area = """            
+        SELECT * FROM basic.study_area WHERE id = :study_area_id
+    """
+    sub_study_area = """            
+        SELECT * FROM basic.sub_study_area WHERE study_area_id = :study_area_id
+    """
 
 
 class SQLReturnTypes(str, Enum):
