@@ -951,6 +951,7 @@ export function poisAoisStyle(feature) {
   const icon = poiIconConf.icon;
   if (!poisAoisStyleCache[icon + color]) {
     // Font style
+    console.log(poiIconConf);
     poisAoisStyleCache[icon + color] = new OlStyle({
       image: new OlFontSymbol({
         form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
