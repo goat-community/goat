@@ -3,10 +3,15 @@
     <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
       <v-tab :key="1">
         <v-badge>
-          <b>Change Icon Size</b>
+          <b>Color</b>
         </v-badge>
       </v-tab>
       <v-tab :key="2">
+        <v-badge>
+          <b>Icon Size</b>
+        </v-badge>
+      </v-tab>
+      <v-tab :key="3">
         <v-badge>
           <b>Change Icon</b>
         </v-badge>
@@ -14,6 +19,18 @@
     </v-tabs>
     <v-tabs-items v-model="tab">
       <v-tab-item :key="1">
+        <v-color-picker
+          class="elevation-0"
+          canvas-height="100"
+          width="400"
+          style="margin:auto; margin-bottom: 20px;"
+          :mode.sync="hexa"
+          v-model="fillColor"
+          @input="onFillColorChange($event)"
+        >
+        </v-color-picker>
+      </v-tab-item>
+      <v-tab-item :key="2">
         <span
           class="d-flex mb-6"
           style="width:400px;margin:10px auto 0px auto;"
@@ -31,7 +48,7 @@
           ></v-text-field>
         </span>
       </v-tab-item>
-      <v-tab-item :key="2" style="padding-top:10px;">
+      <v-tab-item :key="3" style="padding-top:10px;">
         <v-file-input
           append-outer-icon
           outlined
@@ -82,13 +99,16 @@ export default {
   data: () => ({
     isExpanded: true,
     tab: null,
+    fillColor: null,
     dialogue: false,
     iconSize: null,
     urlIcon: null,
+    hexa: "hexa",
     localIcon: null,
     iconStyle: null,
     activeStyle: "square",
-    currentIcon: null
+    currentIcon: null,
+    defaultColor: null
   }),
   computed: {
     ...mapGetters("app", {
@@ -106,6 +126,8 @@ export default {
   created() {
     this.dialogue = !this.dialogue;
     this.iconSize = this.style.symbolizers[0].size;
+    this.fillColor = this.style.symbolizers[0].color;
+    this.defaultColor = this.style.symbolizers[0].color;
   },
   mounted() {
     this.iconSize = this.style.symbolizers[0].radius;
@@ -140,6 +162,8 @@ export default {
       //Get present stylefor layer attribute
       let targetStyle = this.vectorTileStyles[this.item.get("name")].style
         .rules[this.ruleIndex];
+
+      this.style.symbolizers[0].color = this.defaultColor;
       this.updateLayer(3);
 
       //Assign original style to present style to reset
@@ -148,6 +172,12 @@ export default {
       this.iconSize = sourceStyle.symbolizers[0].size;
       this.item.getSource().changed();
       this.updateLegendRow();
+    },
+    onFillColorChange(value) {
+      this.style.symbolizers[0].color = value;
+      this.item.getSource().changed();
+      this.updateLegendRow();
+      this.updateLayer(this.style.symbolizers[0].radius);
     },
     updateLayer(rasiusSize) {
       this.activeStyle = "square";
@@ -252,7 +282,8 @@ export default {
           this.updateLegendRow();
         };
       } else {
-        this.updateLayer(3);
+        this.style.symbolizers[0].radius = 3;
+        this.updateLayer(this.style.symbolizers[0].radius);
       }
     },
     urlUpload(value) {
@@ -276,7 +307,8 @@ export default {
         this.item.getSource().changed();
         this.updateLegendRow();
       } else {
-        this.updateLayer(3);
+        this.style.symbolizers[0].radius = 3;
+        this.updateLayer(this.style.symbolizers[0].radius);
       }
     }
   }
