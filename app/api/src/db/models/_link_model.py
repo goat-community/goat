@@ -66,8 +66,8 @@ class StudyAreaGeostore(SQLModel, table=True):
 
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     study_area_id: int = Field(
-        sa_column=Column(Integer, ForeignKey("basic.study_area.id"), nullable=False, index=True)
+        sa_column=Column(Integer, ForeignKey("basic.study_area.id", ondelete="CASCADE"), nullable=False, index=True)
     )
     geostore_id: int = Field(
-        sa_column=Column(Integer, ForeignKey("customer.geostore.id"), nullable=False, index=True)
+        sa_column=Column(Integer, ForeignKey("customer.geostore.id", ondelete="CASCADE"), nullable=False, index=True)
     )
