@@ -227,7 +227,8 @@ export const LayerFactory = {
    */
   createGeoBufLayer(lConf) {
     const url =
-      lConf.url || `/layers/vector/static/${lConf.name}?return_type=db_geobuf`;
+      lConf.url ||
+      `/read/table/active-study-area/${lConf.name}?return_type=db_geobuf`;
     const layer = new VectorImageLayer({
       ...this.baseConf(lConf).lOpts,
       source: new VectorSource({
