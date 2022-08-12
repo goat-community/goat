@@ -6,6 +6,6 @@ BEGIN
 END;
 $trigger_insert_way_modified$ LANGUAGE plpgsql;
 
---DROP TRIGGER IF EXISTS trigger_insert_way_modified ON customer.way_modified; 
+DROP TRIGGER IF EXISTS trigger_insert_way_modified ON customer.way_modified; 
 CREATE TRIGGER trigger_insert_way_modified AFTER INSERT ON customer.way_modified
 FOR EACH ROW EXECUTE PROCEDURE basic.trigger_insert_way_modified();
