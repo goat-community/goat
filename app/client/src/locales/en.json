@@ -299,6 +299,8 @@
       "fillColor": "Fill Color",
       "iconSize": "Icon Size",
       "changeIcon": "Change Icon",
+      "urlIcon": "Url Upload",
+      "importIcon": "Locoal Upload",
       "outlineColorAndWidth": "Outline color & width"
     }
   },

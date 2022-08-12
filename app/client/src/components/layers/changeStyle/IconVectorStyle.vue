@@ -42,7 +42,7 @@
             outlined
             tile
             v-model="iconSize"
-            label="Icon Size"
+            :label="$t('appBar.stylePanel.iconSize')"
             style="height:50px;"
             @change="onIconSizeChange()"
           ></v-text-field>
@@ -54,7 +54,7 @@
           outlined
           tile
           v-model="localIcon"
-          label="Local Upload"
+          :label="$t('appBar.stylePanel.importIcon')"
           @change="localUpload($event)"
           style="width:300px;margin-left:50px;"
         ></v-file-input>
@@ -66,7 +66,7 @@
             outlined
             tile
             v-model="urlIcon"
-            label="Url Upload"
+            :label="$t('appBar.stylePanel.urlIcon')"
             style="padding-left: 12px;"
             @input="urlUpload($event)"
           ></v-text-field>
