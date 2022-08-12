@@ -122,7 +122,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD_STAGING: Optional[str] = "secret"
     POSTGRES_OUTER_PORT_STAGING: Optional[int] = 5432
 
-    POSTGRES_FUNCTIONS_SCHEMA: Optional[str] = "temp_for_test_functions"
+    POSTGRES_FUNCTIONS_SCHEMA: Optional[str] = "basic"
 
     DEMO_USER_STUDY_AREA_ID: Optional[int] = 91620000  # Munich
     DEMO_USER_SCENARIO_LIMIT: Optional[int] = 5
