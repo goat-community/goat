@@ -3,17 +3,17 @@
     <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
       <v-tab :key="1">
         <v-badge>
-          <b>Color</b>
+          <b>{{ $t("appBar.stylePanel.fillColor") }}</b>
         </v-badge>
       </v-tab>
       <v-tab :key="2">
         <v-badge>
-          <b>Icon Size</b>
+          <b>{{ $t("appBar.stylePanel.iconSize") }}</b>
         </v-badge>
       </v-tab>
       <v-tab :key="3">
         <v-badge>
-          <b>Change Icon</b>
+          <b>{{ $t("appBar.stylePanel.changeIcon") }}</b>
         </v-badge>
       </v-tab>
     </v-tabs>

@@ -297,6 +297,8 @@
     "stylePanel": {
       "selectAttribute": "Select Attribute",
       "fillColor": "Fill Color",
+      "iconSize": "Icon Size",
+      "changeIcon": "Change Icon",
       "outlineColorAndWidth": "Outline color & width"
     }
   },
