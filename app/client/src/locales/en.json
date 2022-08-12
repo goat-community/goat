@@ -297,6 +297,10 @@
     "stylePanel": {
       "selectAttribute": "Select Attribute",
       "fillColor": "Fill Color",
+      "iconSize": "Icon Size",
+      "changeIcon": "Change Icon",
+      "urlIcon": "Url Upload",
+      "importIcon": "Local Upload",
       "outlineColorAndWidth": "Outline color & width"
     }
   },

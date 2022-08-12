@@ -154,7 +154,9 @@ export default {
       selectedAmenity: {}
     };
   },
-
+  // mounted() {
+  //   console.log(this.poiIcons);
+  // },
   methods: {
     toggleHeatmapDialog(amenity) {
       this.selectedAmenity = amenity;
@@ -219,6 +221,7 @@ export default {
     ...mapGetters("app", {
       appColor: "appColor",
       poisAoisTree: "poisAoisTree",
+      poiIcons: "poiIcons",
       uploadedData: "uploadedData",
       aoisConfig: "aoisConfig"
     }),
