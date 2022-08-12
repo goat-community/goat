@@ -34,13 +34,18 @@ class CreateGeostore(Geostore):
 
     @validator("configuration")
     def validate_configuration_keys(cls, field_value):
-        config_keys = request_examples["geostore"]["configuration"].keys()
         if field_value:
-            if set(field_value.keys()) != set(config_keys):
+            config_keys = request_examples["geostore"]["configuration"].keys()
+            if not set(config_keys).issuperset(set(field_value.keys())):
                 raise ValueError(
-                    f'configuration keys should be exactly as of "{", ".join(list(config_keys))}".'
+                    f'configuration keys should be subset of "{", ".join(list(config_keys))}".'
                 )
         return field_value
+
+    @validator("configuration")
+    def remove_empty_configuration(cls, field_value):
+        if field_value:
+            return {k: v for k, v in field_value.items() if v}
 
     class Config:
         schema_extra = {"example": request_examples["geostore"]}
