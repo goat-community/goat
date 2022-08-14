@@ -93,8 +93,8 @@ def main():
             """
             example usage:
                 cd /app
-                python src/db/sql/init_sql.py upgrade functions
-                python src/db/sql/init_sql.py downgrade triggers
+                python src/db/sql/init_sql.py upgrade -m functions
+                python src/db/sql/init_sql.py downgrade -m triggers
                 python src/db/sql/init_sql.py report
         """
         ),
