@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+import argparse
+import sys
 from pathlib import Path
 
 from alembic_utils.pg_function import PGFunction
@@ -71,6 +74,38 @@ def upgrade_triggers():
             legacy_engine.execute(text(statement.text))
 
 
+def run(args):
+    action = args.action
+    material = args.material
+    if action == "report":
+        print("Report is not implemented yet!")
+    else:
+        globals()[f"{action}_{material}"]()
+        print(f"{action.title()} {material} complete!")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Upgrade and Downgrade sql functions and triggers"
+    )
+    parser.add_argument(
+        "action",
+        help="The action to do on database",
+        choices=["upgrade", "downgrade", "report"],
+        type=str,
+    )
+    parser.add_argument(
+        "--material",
+        "-m",
+        required="upgrade" in sys.argv or "downgrade" in sys.argv,
+        help="functions or triggers",
+        choices=["functions", "triggers"],
+        type=str,
+    )
+    parser.set_defaults(func=run)
+    args = parser.parse_args()
+    args.func(args)
+
+
 if __name__ == "__main__":
-    upgrade_functions()
-    print()
+    main()
