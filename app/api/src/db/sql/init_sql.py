@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 import argparse
 import sys
+import textwrap
 from pathlib import Path
 
 from alembic_utils.pg_function import PGFunction
@@ -86,7 +87,17 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Upgrade and Downgrade sql functions and triggers"
+        description="Upgrade and Downgrade sql functions and triggers",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent(
+            """
+            example usage:
+                cd /app
+                python src/db/sql/init_sql.py upgrade functions
+                python src/db/sql/init_sql.py downgrade triggers
+                python src/db/sql/init_sql.py report
+        """
+        ),
     )
     parser.add_argument(
         "action",
