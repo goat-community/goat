@@ -36,7 +36,7 @@ api_router.include_router(heatmap.router, prefix="/heatmap", tags=["Heatmap"])
 api_router.include_router(scenarios.router, prefix="/scenarios", tags=["Scenarios"])
 api_router.include_router(poi_aoi.router, prefix="/pois-aois", tags=["POIs and AOIs"])
 api_router.include_router(
-    static_layers.router, prefix="/layers/vector", tags=["Static vector layers"]
+    static_layers.router, prefix="/read/table", tags=["Read Selected Tables"]
 )
 api_router.include_router(
     static_layers_extra.router, prefix="/config/layers/vector", tags=["Manage extra layers"]

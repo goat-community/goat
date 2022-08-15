@@ -792,9 +792,7 @@ export default {
           }
         });
         if (promiseArray.length > 0) {
-          console.log(promiseArray);
           axios.all(promiseArray).then(function(results) {
-            console.log(results);
             results.forEach(response => {
               if (response && response.data && response.data.features) {
                 const features = response.data.features;

@@ -7,7 +7,6 @@ from fastapi import HTTPException
 from src.core.config import settings
 from src.schemas.layer import VectorTileFunction, VectorTileTable
 from src.db import models 
-from src.resources.enums import SQLReturnTypes, StaticTableSQL
 
 class CRUDLayer:
     # === FETCH TABLES AND FUNCTIONS ===#
@@ -207,13 +206,5 @@ class CRUDLayer:
 
         return content
 
-    async def static_vector_layer(self, db: AsyncSession, current_user: models.User, layer_name: str, return_type: str) -> Any:
-        """Get Static Layer Data."""
-    
-        template_sql = SQLReturnTypes[return_type].value
-        sql_query = text(template_sql % StaticTableSQL[layer_name.split('.')[1]].value) 
-        
-        result = await db.execute(sql_query, {"study_area_id": current_user.active_study_area_id})
-        return result.fetchall()[0][0] 
 
 layer = CRUDLayer()

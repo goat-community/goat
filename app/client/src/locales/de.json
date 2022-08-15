@@ -298,6 +298,19 @@
         "source": "Quelle",
         "yearTimestamp": "Referenzjahr/Zeitstempel"
       }
+    },
+    "documentation": {
+      "title": "Dokumentation",
+      "openInNewTab": "In neuem Tab öffnen"
+    },
+    "stylePanel": {
+      "selectAttribute": "Attribut auswählen",
+      "fillColor": "Fülleffekt",
+      "iconSize": "Icon Größe",
+      "changeIcon": "Icon ändern",
+      "urlIcon": "URL Upload",
+      "importIcon": "Mein PC",
+      "outlineColorAndWidth": "Formkontur & Stärke"
     }
   },
   "isochrones": {

@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from geoalchemy2.shape import WKTElement, to_shape
 from shapely import wkt
 from shapely.ops import transform
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, or_
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import delete, select
 
@@ -70,9 +70,20 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
             )
             excluded_ids = excluded_ids_results.fetchall()
             excluded_ids_list = dict(excluded_ids[0])["select_customization_1"]
+
+            excluded_foot_results = await db.execute(
+                func.basic.select_customization("categories_no_foot")
+            )
+            excluded_foot = excluded_foot_results.fetchall()
+            excluded_foot_list = dict(excluded_foot[0])["select_customization_1"]
+
             statement = statement.where(
                 and_(
                     layer.class_id.notin_(excluded_ids_list),
+                    or_(   
+                        layer.foot.notin_(excluded_foot_list),
+                        layer.foot.is_(None)
+                    ),
                     layer.geom.ST_Intersects(polygon),
                     layer.scenario_id == None,
                 )
