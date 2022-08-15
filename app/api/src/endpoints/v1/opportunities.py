@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.get("", response_model=List[models.OpportunityDefaultConfig])
-async def list_opportuniities(
+async def list_opportunities(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
@@ -24,7 +24,7 @@ async def list_opportuniities(
 
 
 @router.get("/groups", response_model=List[models.OpportunityGroup])
-async def list_opportuniity_groups(
+async def list_opportunity_groups(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
