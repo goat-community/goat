@@ -11,7 +11,7 @@ from sqlalchemy import text
 
 from src.core.config import settings
 from src.db.session import legacy_engine
-from src.db.sql.utils import sorted_path_by_dependency
+from src.db.sql.utils import report, sorted_path_by_dependency
 
 
 def sql_function_entities():
@@ -79,7 +79,7 @@ def run(args):
     action = args.action
     material = args.material
     if action == "report":
-        print("Report is not implemented yet!")
+        report()
     else:
         globals()[f"{action}_{material}"]()
         print(f"{action.title()} {material} complete!")
