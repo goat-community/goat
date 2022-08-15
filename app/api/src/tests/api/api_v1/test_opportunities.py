@@ -1,13 +1,10 @@
 from typing import Dict
 
 import pytest
-from fastapi.encoders import jsonable_encoder
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import crud
 from src.core.config import settings
-from src.schemas.geostore import request_examples
 
 pytestmark = pytest.mark.asyncio
 
