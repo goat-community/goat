@@ -1,7 +1,9 @@
+import functools
 import os
 from collections import defaultdict, namedtuple
 from pathlib import Path
 
+import rich
 from sqlalchemy import text
 
 from src.core.config import settings
@@ -96,19 +98,21 @@ def report():
         classified_functions[directory_name].append(file_name)
 
     for key in classified_functions.keys():
-        print("##", key + "/")
+        rich.print(f"[bold blue]## {key}/[/bold blue]")
         for fn in classified_functions[key]:
             print("- ", fn)
     print()
-    print("# in db but not in files:")
-    for fn in functions:
-        print("- ", fn)
-    if not functions:
-        print("  None!")
+    if functools:
+        rich.print(f"[bold red]# in db but not in files:[/bold red]")
+        for fn in functions:
+            rich.print(f"[orange1]- {fn}[/orange1]")
+    else:
+        rich.print(f"[bold green]All database function names found in files.[/bold green]")
 
     print()
-    print("## in files but not in db:")
-    for fn in not_in_db:
-        print(f"- {fn[0]}/{fn[1]}")
-    if not not_in_db:
-        print("  None")
+    if not_in_db:
+        rich.print(f"[bold red]## in files but not in db:[/bold red]")
+        for fn in not_in_db:
+            rich.print(f"- {fn[0]}/[orange1]{fn[1]}[/orange1]")
+    else:
+        rich.print(f"[bold green]All function file names found in database.[/bold green]")
