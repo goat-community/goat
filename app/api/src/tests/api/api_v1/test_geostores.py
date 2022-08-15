@@ -46,7 +46,7 @@ async def test_get_geostores_by_id(
 async def test_create_geostores(
     client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
 ) -> None:
-    geostore = request_examples["geostore"]
+    geostore = request_examples.geostore
     r = await client.post(
         f"{settings.API_V1_STR}/config/geostores",
         headers=superuser_token_headers,
