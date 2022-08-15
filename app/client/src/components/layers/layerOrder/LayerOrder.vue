@@ -106,6 +106,97 @@
             </v-layout>
           </v-card>
         </v-expansion-panel>
+        <v-expansion-panel
+          v-for="layer in ActivePois"
+          :key="layer.value"
+          class="layer-row"
+        >
+          <v-expansion-panel-header expand-icon="" v-slot="{}" class="handle">
+            <v-layout row class="pl-1" wrap align-center>
+              <v-flex class="checkbox" xs1>
+                <v-simple-checkbox
+                  :color="appColor.primary"
+                  :value="true"
+                  disabled
+                ></v-simple-checkbox>
+              </v-flex>
+              <v-flex xs10 class="light-text">
+                <h4 class="pl-2">
+                  {{
+                    layer.value === "hauptschule"
+                      ? $t(`pois.hauptschule_mittelschule`)
+                      : $t(`pois.${layer.value}`)
+                  }}
+                </h4>
+              </v-flex>
+              <v-flex xs1>
+                <v-icon
+                  v-show="true"
+                  small
+                  style="width: 30px; height: 30px"
+                  v-html="
+                    layer.showOptions === false
+                      ? 'fas fa-chevron-down'
+                      : 'fas fa-chevron-up'
+                  "
+                  :class="
+                    layer.showOptions === true &&
+                      'expansion-panel__container--active'
+                  "
+                  @click.stop="changeOption(layer)"
+                ></v-icon>
+              </v-flex>
+            </v-layout>
+          </v-expansion-panel-header>
+          <v-card
+            class="pt-2"
+            v-show="layer.showOptions"
+            style="background-color: white"
+            transition="slide-y-reverse-transition"
+          >
+            <v-layout row style="width: 100%; padding-left: 10px">
+              <v-flex
+                class="xs2"
+                style="text-align: center"
+                v-if="['VECTORTILE', 'VECTOR', 'MVT', 'POI'].includes('POI')"
+              >
+                <v-icon
+                  v-ripple
+                  style="color: #b0b0b0; margin-top: 3px; cursor: pointer"
+                  dark
+                  @click="openStyleDialog(item)"
+                >
+                  fas fa-cog
+                </v-icon>
+              </v-flex>
+              <v-flex
+                :class="{
+                  xs10:
+                    [
+                      'VECTORTILE',
+                      'VECTOR',
+                      'MVT',
+                      'WMS',
+                      'WMTS',
+                      'POI'
+                    ].includes('POI') == true,
+                  xs12: false
+                }"
+              >
+                <v-slider
+                  :value="poisAoisLayer.getOpacity()"
+                  class="mx-5"
+                  step="0.05"
+                  min="0"
+                  max="1"
+                  @input="changeLayerOpacity($event, poisAoisLayer)"
+                  :label="$t('layerTree.settings.transparency')"
+                  :color="appColor.secondary"
+                ></v-slider>
+              </v-flex>
+            </v-layout>
+          </v-card>
+        </v-expansion-panel>
         <v-divider></v-divider>
       </draggable>
     </v-expansion-panels>
@@ -144,7 +235,9 @@ export default {
       name: ""
     },
     styleDialogKey: 0,
-    styleDialogStatus: false
+    styleDialogStatus: false,
+    ActivePois: null,
+    currentOpenedPois: null
   }),
   components: {
     draggable,
@@ -168,11 +261,28 @@ export default {
     },
     ...mapGetters("app", {
       appColor: "appColor"
+    }),
+    ...mapGetters("poisaois", {
+      poisAoisLayer: "poisAoisLayer",
+      selectedPois: "selectedPois",
+      selectedPoisAois: "selectedPoisAois"
     })
   },
   watch: {
     layerGroupsArr() {
       this.getAllVisibleLayers();
+    },
+    selectedPois(value) {
+      if (value.length) {
+        this.ActivePois = value.map(poiLayer => {
+          return {
+            ...poiLayer,
+            showOptions: false
+          };
+        });
+      } else {
+        this.ActivePois = [];
+      }
     }
   },
   created() {
@@ -183,8 +293,24 @@ export default {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
       this.styleDialogStatus = value;
     });
+    this.ActivePois = this.selectedPois;
+    if (this.selectedPois.length) {
+      this.ActivePois = this.selectedPois.map(poiLayer => {
+        return {
+          ...poiLayer,
+          showOptions: false
+        };
+      });
+    }
   },
   methods: {
+    changeOption(layer) {
+      this.ActivePois.forEach(poisElement => {
+        if (poisElement.value === layer.value) {
+          poisElement.showOptions = !poisElement.showOptions;
+        }
+      });
+    },
     getAllVisibleLayers() {
       this.allLayers = this.map
         .getLayers()
