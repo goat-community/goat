@@ -14,8 +14,8 @@
           <v-icon dark>add</v-icon>
         </v-btn>
       </template>
-      <span>Upload POI Dataset</span></v-tooltip
-    >
+      <span>Upload POI Dataset</span>
+    </v-tooltip>
 
     <v-treeview
       :key="treeViewKey"
@@ -154,9 +154,6 @@ export default {
       selectedAmenity: {}
     };
   },
-  // mounted() {
-  //   console.log(this.poiIcons);
-  // },
   methods: {
     toggleHeatmapDialog(amenity) {
       this.selectedAmenity = amenity;

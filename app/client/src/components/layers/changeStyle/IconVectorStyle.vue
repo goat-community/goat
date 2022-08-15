@@ -1,6 +1,6 @@
 <template>
   <vue-scroll>
-    <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
+    <v-tabs grow v-model="tab" style="width: 400px; margin: auto">
       <v-tab :key="1">
         <v-badge>
           <b>{{ $t("appBar.stylePanel.fillColor") }}</b>
@@ -23,7 +23,7 @@
           class="elevation-0"
           canvas-height="100"
           width="400"
-          style="margin:auto; margin-bottom: 20px;"
+          style="margin: auto; margin-bottom: 20px"
           :mode.sync="hexa"
           v-model="fillColor"
           @input="onFillColorChange($event)"
@@ -33,7 +33,7 @@
       <v-tab-item :key="2">
         <span
           class="d-flex mb-6"
-          style="width:400px;margin:10px auto 0px auto;"
+          style="width: 400px; margin: 10px auto 0px auto"
         >
           <v-text-field
             type="number"
@@ -43,12 +43,12 @@
             tile
             v-model="iconSize"
             :label="$t('appBar.stylePanel.iconSize')"
-            style="height:50px;"
+            style="height: 50px"
             @change="onIconSizeChange()"
           ></v-text-field>
         </span>
       </v-tab-item>
-      <v-tab-item :key="3" style="padding-top:10px;">
+      <v-tab-item :key="3" style="padding-top: 10px">
         <v-file-input
           append-outer-icon
           outlined
@@ -56,10 +56,12 @@
           v-model="localIcon"
           :label="$t('appBar.stylePanel.importIcon')"
           @change="localUpload($event)"
-          style="width:300px;margin-left:50px;"
+          style="width: 300px; margin-left: 50px"
         ></v-file-input>
-        <span class="d-flex mb-6" style="width:350px;">
-          <v-icon style="padding-left:53px;padding-bottom:30px;font-size:20px;">
+        <span class="d-flex mb-6" style="width: 350px">
+          <v-icon
+            style="padding-left: 53px; padding-bottom: 30px; font-size: 20px"
+          >
             fas fa-link
           </v-icon>
           <v-text-field
@@ -67,7 +69,7 @@
             tile
             v-model="urlIcon"
             :label="$t('appBar.stylePanel.urlIcon')"
-            style="padding-left: 12px;"
+            style="padding-left: 10px"
             @input="urlUpload($event)"
           ></v-text-field>
         </span>
@@ -77,7 +79,7 @@
       color="warning"
       dark
       @click="resetStyle"
-      style="width:100%;background-color: #2bb381 !important;"
+      style="width: 100%; background-color: #2bb381 !important"
     >
       Reset Style
     </v-btn>

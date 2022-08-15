@@ -257,7 +257,7 @@ export default {
         }
         layer[config["url"]] = finalUrl;
         let finalGeoportalInfo = {
-          title: layer[config["title"]],
+          title: layer[config["name"]],
           img:
             "https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2074&q=80",
           geoportal_url: layer[config["url"]],
