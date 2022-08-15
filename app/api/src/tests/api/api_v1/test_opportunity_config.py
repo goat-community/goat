@@ -41,7 +41,7 @@ async def test_get_opportunity_config_by_id(
 async def test_create_opportunity_configs(
     client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
 ) -> None:
-    opportunity_config = request_examples.oportunity_study_area_config
+    opportunity_config = await request_examples.async_oportunity_study_area_config(db=db)
     r = await client.post(
         f"{settings.API_V1_STR}/config/opportunity-study-area",
         headers=superuser_token_headers,
