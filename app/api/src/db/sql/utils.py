@@ -92,7 +92,7 @@ def report():
         if get_name_from_path(fn) in functions:
             functions.remove(get_name_from_path(fn))
         else:
-            not_in_db.append(file_name)
+            not_in_db.append((directory_name, file_name))
         classified_functions[directory_name].append(file_name)
 
     for key in classified_functions.keys():
@@ -103,7 +103,12 @@ def report():
     print("# in db but not in files:")
     for fn in functions:
         print("- ", fn)
+    if not functions:
+        print("  None!")
+
     print()
     print("## in files but not in db:")
     for fn in not_in_db:
-        print("- ", fn)
+        print(f"- {fn[0]}/{fn[1]}")
+    if not not_in_db:
+        print("  None")
