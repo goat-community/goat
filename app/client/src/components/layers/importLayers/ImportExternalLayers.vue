@@ -392,7 +392,6 @@ export default {
         data.layer_url.toLowerCase().includes("service=wms") &&
         data.layer_url.toLowerCase().includes("request=getcapabilities")
       ) {
-        console.log(data.layer_url);
         fetch(data.layer_url)
           .then(result => {
             return result.text();

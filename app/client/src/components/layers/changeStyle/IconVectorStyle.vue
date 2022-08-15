@@ -68,7 +68,7 @@
             outlined
             tile
             v-model="urlIcon"
-            label="Url Upload"
+            :label="$t('appBar.stylePanel.urlIcon')"
             style="padding-left: 10px"
             @input="urlUpload($event)"
           ></v-text-field>

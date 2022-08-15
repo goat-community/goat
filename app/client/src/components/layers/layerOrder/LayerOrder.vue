@@ -122,11 +122,7 @@
               </v-flex>
               <v-flex xs10 class="light-text">
                 <h4 class="pl-2">
-                  {{
-                    layer.value === "hauptschule"
-                      ? $t(`pois.hauptschule_mittelschule`)
-                      : $t(`pois.${layer.value}`)
-                  }}
+                  {{ $t(`pois.${layer.value}`) }}
                 </h4>
               </v-flex>
               <v-flex xs1>
@@ -155,11 +151,7 @@
             transition="slide-y-reverse-transition"
           >
             <v-layout row style="width: 100%; padding-left: 10px">
-              <v-flex
-                class="xs2"
-                style="text-align: center"
-                v-if="['VECTORTILE', 'VECTOR', 'MVT', 'POI'].includes('POI')"
-              >
+              <v-flex class="xs2" style="text-align: center">
                 <v-icon
                   v-ripple
                   style="color: #b0b0b0; margin-top: 3px; cursor: pointer"
@@ -171,15 +163,7 @@
               </v-flex>
               <v-flex
                 :class="{
-                  xs10:
-                    [
-                      'VECTORTILE',
-                      'VECTOR',
-                      'MVT',
-                      'WMS',
-                      'WMTS',
-                      'POI'
-                    ].includes('POI') == true,
+                  xs10: true,
                   xs12: false
                 }"
               >

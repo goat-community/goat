@@ -305,21 +305,6 @@ export default {
     EventBus.$emit("ol-map-mounted", me.map);
     //Add map to the vuex store.
     // resize the map, so it fits to parent
-
-    me.map.on("singleclick", function(evt) {
-      const viewResolution = me.map.getView().getResolution();
-      console.log("was geht's digga", evt, viewResolution);
-      // const url = me.map.getSource()
-      me.map.forEachLayerAtPixel(evt.pixel, function(layer) {
-        const url = layer
-          .getSource()
-          .getFeatureInfoUrl(evt.coordinate, viewResolution, "EPSG:3857", {
-            INFO_FORMAT: "text/html"
-          });
-        console.log(url);
-      });
-    });
-
     window.setTimeout(() => {
       me.map.setTarget(document.getElementById("ol-map-container"));
       me.map.updateSize();

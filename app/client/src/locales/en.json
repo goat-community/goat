@@ -816,6 +816,7 @@
     "gymnasium": "Gymnasium",
     "grundschule": "Grundschule",
     "realschule": "Realschule",
+    "hauptschule": "hauptschule",
     "hauptschule_mittelschule": "Haupt-/Mittelschule",
     "werkrealschule": "Werkrealschule",
     "school": "School",
