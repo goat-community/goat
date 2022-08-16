@@ -13,6 +13,7 @@ from src.utils import (
     convert_postgist_to_4326,
     generate_static_layer_table_name,
     geopandas_read_file,
+    uniquify_static_layer_name,
 )
 
 router = APIRouter()
@@ -41,7 +42,7 @@ async def upload_static_layer(
 
     static_layer = models.StaticLayer(
         user_id=current_user.id,
-        table_name=generate_static_layer_table_name(prefix=upload_file.filename),
+        table_name=await uniquify_static_layer_name(db, file_name=upload_file.filename),
     )
 
     # Save Data Frame to Database
