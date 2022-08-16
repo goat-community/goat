@@ -37,3 +37,5 @@ from .user import (
 from .layer_library import CreateLayerLibrary, CreateStyleLibrary
 
 from .geostore import CreateGeostore
+
+from .opportunity_config import CreateOpportunityStudyAreaConfig

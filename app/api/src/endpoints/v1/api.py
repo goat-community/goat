@@ -8,6 +8,8 @@ from src.endpoints.v1 import (
     layer_library,
     layers,
     login,
+    opportunities,
+    opportunity_config,
     organizations,
     poi_aoi,
     public_transport,
@@ -62,3 +64,9 @@ api_router.include_router(
 )
 api_router.include_router(study_area.router, prefix="/config/study-area", tags=["Layer Library"])
 api_router.include_router(geostores.router, prefix="/config/geostores", tags=["Geostores"])
+api_router.include_router(
+    opportunities.router, prefix="/config/opportunities", tags=["Opportunities"]
+)
+api_router.include_router(
+    opportunity_config.router, prefix="/config/opportunity-study-area", tags=["Opportunities"]
+)
