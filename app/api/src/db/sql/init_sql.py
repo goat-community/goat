@@ -1,3 +1,7 @@
+#! /usr/bin/env python
+import argparse
+import sys
+import textwrap
 from pathlib import Path
 
 from alembic_utils.pg_function import PGFunction
@@ -7,7 +11,7 @@ from sqlalchemy import text
 
 from src.core.config import settings
 from src.db.session import legacy_engine
-from src.db.sql.utils import sorted_path_by_dependency
+from src.db.sql.utils import report, sorted_path_by_dependency
 
 
 def sql_function_entities():
@@ -71,6 +75,48 @@ def upgrade_triggers():
             legacy_engine.execute(text(statement.text))
 
 
+def run(args):
+    action = args.action
+    material = args.material
+    if action == "report":
+        report()
+    else:
+        globals()[f"{action}_{material}"]()
+        print(f"{action.title()} {material} complete!")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Upgrade and Downgrade sql functions and triggers",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent(
+            """
+            example usage:
+                cd /app
+                python src/db/sql/init_sql.py upgrade -m functions
+                python src/db/sql/init_sql.py downgrade -m triggers
+                python src/db/sql/init_sql.py report
+        """
+        ),
+    )
+    parser.add_argument(
+        "action",
+        help="The action to do on database",
+        choices=["upgrade", "downgrade", "report"],
+        type=str,
+    )
+    parser.add_argument(
+        "--material",
+        "-m",
+        required="upgrade" in sys.argv or "downgrade" in sys.argv,
+        help="functions or triggers",
+        choices=["functions", "triggers"],
+        type=str,
+    )
+    parser.set_defaults(func=run)
+    args = parser.parse_args()
+    args.func(args)
+
+
 if __name__ == "__main__":
-    upgrade_functions()
-    print()
+    main()
