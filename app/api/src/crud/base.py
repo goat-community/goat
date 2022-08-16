@@ -111,8 +111,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             ids = [ids]
         statement = delete(self.model).where(self.model.id.in_(ids))
         await db.execute(statement)
-        a = await db.commit()
-        return a
+        await db.commit()
+
+    async def remove_multi_by_key(self, db: AsyncSession, *, key: str, values: Any) -> ModelType:
+        if not type(values) == list:
+            values = [values]
+        statement = delete(self.model).where(getattr(self.model, key).in_(values))
+        await db.execute(statement)
+        await db.commit()
 
     async def get_n_rows(self, db: AsyncSession, *, n: int) -> ModelType:
         statement = select(self.model).limit(n)
