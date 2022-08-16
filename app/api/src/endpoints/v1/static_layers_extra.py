@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -126,18 +126,24 @@ async def update_static_layer_data(
     return static_layer
 
 
-@router.delete("/static/{layer_id:int}")
+@router.delete("/static")
 async def delete_static_layer_data(
     *,
-    layer_id: int,
+    layer_ids: Union[int, List[int]],
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    static_layer = await crud.static_layer.get(db, id=layer_id)
-    if not static_layer:
-        raise HTTPException(status_code=404, detail="static layer not found.")
-    # Drop PostGIS table
-    await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
-    # Delete Object
-    static_layer = await crud.static_layer.remove(db, id=static_layer.id)
-    return static_layer
+    """
+    Delete multiple static layers at the same time.
+    """
+    if type(layer_ids) is int:
+        layer_ids = [layer_ids]
+
+    for layer_id in layer_ids:
+        static_layer = await crud.static_layer.get(db, id=layer_id)
+        if static_layer:
+            # Drop PostGIS table
+            await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
+        # Delete Objects
+        await crud.static_layer.remove_multi(db, ids=layer_ids)
+    return "ok"
