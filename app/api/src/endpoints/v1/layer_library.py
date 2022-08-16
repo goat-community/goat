@@ -1,5 +1,5 @@
 import http
-from typing import List
+from typing import List, Union
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -63,20 +63,15 @@ async def update_a_layer_library(
     return layer
 
 
-@router.delete("/{name}", response_model=models.LayerLibrary)
-async def delete_a_layer_library(
-    name: str,
+@router.delete("")
+async def delete_layer_libraries(
+    names: Union[str, List[str]],
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    layer = await crud.layer_library.get_by_key(db, key="name", value=name)
-    if not layer:
-        raise HTTPException(status_code=404, detail="layer library not found.")
-    else:
-        layer = layer[0]
 
-    layer = await crud.layer_library.remove(db, id=layer.id)
-    return layer
+    await crud.layer_library.remove_multi_by_key(db, key="name", values=names)
+    return "ok"
 
 
 styles_router = APIRouter()
@@ -133,17 +128,12 @@ async def update_style(
     return style
 
 
-@styles_router.delete("/{name}", response_model=models.StyleLibrary)
-async def delete_a_style_library(
-    name: str,
+@styles_router.delete("")
+async def delete_style_libraries(
+    names: Union[str, List[str]],
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    style = await crud.style_library.get_by_key(db, key="name", value=name)
-    if not style:
-        raise HTTPException(status_code=404, detail="style library not found.")
-    else:
-        style = style[0]
 
-    style = await crud.style_library.remove(db, id=style.id)
-    return style
+    await crud.style_library.remove_multi_by_key(db, key="name", values=names)
+    return "ok"
