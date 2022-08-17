@@ -299,7 +299,7 @@ async def read_user_by_id(
 @router.delete("")
 async def delete_users(
     *,
-    ids: Union[int, List[int]],
+    id: List[int] = Query(default=None, gt=0),
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
@@ -307,7 +307,7 @@ async def delete_users(
     Delete users.
     """
 
-    await crud.user.remove_multi(db, ids=ids)
+    await crud.user.remove_multi(db, ids=id)
     return "ok"
 
 
