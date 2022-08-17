@@ -80,8 +80,8 @@ async def test_delete_users_superuser(
 ) -> None:
     users = [await create_random_user(db=db) for i in range(2)]
     user_ids = [user.id for user in users]
-    r = await client.request(
-        "DELETE", f"{settings.API_V1_STR}/users", headers=superuser_token_headers, json=user_ids
+    r = await client.delete(
+        f"{settings.API_V1_STR}/users", headers=superuser_token_headers, params={"id": user_ids}
     )
     assert 200 <= r.status_code < 300
 

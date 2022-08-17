@@ -79,11 +79,10 @@ async def test_delete_layer_libraries(
 ) -> None:
     random_layers = [await create_random_layer_library(db=db) for i in range(2)]
     random_layer_names = [layer.name for layer in random_layers]
-    r = await client.request(
-        "DELETE",
+    r = await client.delete(
         f"{settings.API_V1_STR}/config/layers/library",
         headers=superuser_token_headers,
-        json=random_layer_names,
+        params={"name": random_layer_names},
     )
 
     assert 200 <= r.status_code < 300
@@ -198,11 +197,10 @@ async def test_delete_style_libraries(
 ) -> None:
     random_styles = [await create_random_style_library(db=db) for i in range(2)]
     random_style_names = [style.name for style in random_styles]
-    r = await client.request(
-        "DELETE",
+    r = await client.delete(
         f"{settings.API_V1_STR}/config/layers/library/styles",
         headers=superuser_token_headers,
-        json=random_style_names,
+        params={"name": random_style_names},
     )
 
     assert 200 <= r.status_code < 300

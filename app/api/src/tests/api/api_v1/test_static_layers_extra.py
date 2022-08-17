@@ -125,11 +125,10 @@ async def test_delete_static_layers(
 ) -> None:
     static_layers = [await create_static_layer(db=db) for i in range(2)]
     static_layer_ids = [layer.id for layer in static_layers]
-    r = await client.request(
-        "DELETE",
+    r = await client.delete(
         f"{settings.API_V1_STR}/config/layers/vector/static",
         headers=superuser_token_headers,
-        json=static_layer_ids,
+        params={"id": static_layer_ids},
     )
     assert 200 <= r.status_code < 300
     for static_layer in static_layers:

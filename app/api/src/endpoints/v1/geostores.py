@@ -62,7 +62,7 @@ async def update_a_geostore(
     return geostore
 
 
-@router.delete("/")
+@router.delete("")
 async def delete_geostores(
     id: List[int] = Query(default=None, gt=0),
     db: AsyncSession = Depends(deps.get_db),
