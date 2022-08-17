@@ -1,7 +1,7 @@
 import http
 from typing import List, Union
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, schemas
@@ -65,12 +65,12 @@ async def update_a_layer_library(
 
 @router.delete("")
 async def delete_layer_libraries(
-    names: Union[str, List[str]],
+    name: List[str] = Query(default=None),
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
 
-    await crud.layer_library.remove_multi_by_key(db, key="name", values=names)
+    await crud.layer_library.remove_multi_by_key(db, key="name", values=name)
     return "ok"
 
 
@@ -130,10 +130,10 @@ async def update_style(
 
 @styles_router.delete("")
 async def delete_style_libraries(
-    names: Union[str, List[str]],
+    name: List[str] = Query(default=None),
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
 
-    await crud.style_library.remove_multi_by_key(db, key="name", values=names)
+    await crud.style_library.remove_multi_by_key(db, key="name", values=name)
     return "ok"
