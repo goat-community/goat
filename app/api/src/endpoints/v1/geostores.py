@@ -62,14 +62,14 @@ async def update_a_geostore(
     return geostore
 
 
-@router.delete("")
+@router.delete("/")
 async def delete_geostores(
-    ids: Union[int, List[int]],
+    id: List[int] = Query(default=None, gt=0),
     db: AsyncSession = Depends(deps.get_db),
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
 ):
 
-    await crud.geostore.remove_multi(db, ids=ids)
+    await crud.geostore.remove_multi(db, ids=id)
     return "ok"
 
 
