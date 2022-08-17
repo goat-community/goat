@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
@@ -129,16 +129,14 @@ async def update_static_layer_data(
 @router.delete("/static")
 async def delete_static_layer_data(
     *,
-    layer_ids: Union[int, List[int]],
+    id: List[int] = Query(default=None, gt=0),
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
     """
     Delete multiple static layers at the same time.
     """
-    if type(layer_ids) is int:
-        layer_ids = [layer_ids]
-
+    layer_ids = id
     for layer_id in layer_ids:
         static_layer = await crud.static_layer.get(db, id=layer_id)
         if static_layer:
