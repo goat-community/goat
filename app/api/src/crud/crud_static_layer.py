@@ -12,7 +12,7 @@ class CRUDStaticLayer(CRUDBase[models.StaticLayer, models.StaticLayer, models.St
         table = Table(table_name, metadata_obj)
         await db.execute(DropTable(table, if_exists=True))
 
-    async def list_static_layer_table_names(self, db: AsyncSession, name_like=""):
+    async def list_static_layer_table_names(self, db: AsyncSession, name_like: str = ""):
         metadata_obj = MetaData(schema="information_schema")
         tables = Table(
             "tables",
