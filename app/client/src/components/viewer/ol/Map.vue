@@ -116,6 +116,38 @@
         </div>
       </template>
     </overlay-popup>
+    <!-- Popup For WMS/WMTS Layer -->
+    <overlay-popup
+      :color="appColor.primary"
+      :title="wmsPopup.title"
+      v-show="wmsPopup.isVisible"
+      ref="wmsPopup"
+    >
+      <v-btn icon>
+        <v-icon>close</v-icon>
+      </v-btn>
+      <template v-slot:close>
+        <v-btn @click="closeWmsPopup()" icon>
+          <v-icon>close</v-icon>
+        </v-btn>
+      </template>
+      <template v-slot:body>
+        <div style="max-height:800px;overflow:hidden;" v-if="wmsPopup.content">
+          <vue-scroll>
+            <v-simple-table dense class="pr-2">
+              <template v-slot:default>
+                <tbody>
+                  <tr v-for="item in wmsPopup.content" :key="item.property">
+                    <td>{{ item.property }}</td>
+                    <td>{{ item.value }}</td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
+          </vue-scroll>
+        </div>
+      </template>
+    </overlay-popup>
     <!-- Info Snackbar for not visible layers. -->
     <v-snackbar
       :color="appColor.primary"
@@ -287,6 +319,11 @@ export default {
         isVisible: false,
         currentLayerIndex: 0
       },
+      wmsPopup: {
+        isVisible: false,
+        title: null,
+        content: []
+      },
       getInfoResult: [],
       limitedVisibilityLayers: [],
       visibilityLayerSnackbar: {
@@ -315,6 +352,7 @@ export default {
       me.setupMapClick();
       me.setupMapPointerMove();
       me.createPopupOverlay();
+      me.createWmsWmtsPopup();
       EventBus.$on("toggleLayerVisiblity", this.showNonVisibleLayersInfo);
     }, 200);
   },
@@ -570,6 +608,20 @@ export default {
       me.map.addOverlay(me.popupOverlay);
     },
 
+    createWmsWmtsPopup() {
+      this.wmsPopupOverlay = new Overlay({
+        element: this.$refs.wmsPopup.$el,
+        autoPan: false,
+        autoPanMargin: 40,
+        positioning: "bottom-left",
+        autoPanAnimation: {
+          duration: 250
+        }
+      });
+
+      this.map.addOverlay(this.wmsPopupOverlay);
+    },
+
     /**
      * Closes the popup if user click X button.
      */
@@ -584,6 +636,12 @@ export default {
       if (me.getInfoLayerSource) {
         me.getInfoLayerSource.clear();
       }
+    },
+    closeWmsPopup() {
+      this.wmsPopupOverlay.isVisible = false;
+      this.wmsPopupOverlay.setPosition(undefined);
+      this.wmsPopup.title = null;
+      this.wmsPopup.content = [];
     },
 
     /**
@@ -802,31 +860,38 @@ export default {
                       content: []
                     };
                     let table = doc.getElementsByTagName("tbody")[0];
-                    let tableRows = table.getElementsByTagName("tr");
+                    if (table) {
+                      let tableRows = table.getElementsByTagName("tr");
 
-                    [...tableRows].forEach((tableRow, idx) => {
-                      if (idx === 0) {
-                        gatheredData.name = tableRow
-                          .querySelector(".tablerowheader")
-                          .getElementsByTagName("b")[0].innerHTML;
-                      } else {
-                        if (!tableRow.querySelector(".tablerownotice")) {
-                          let rowTitle = tableRow.querySelector(".tablerowleft")
-                            .innerHTML;
-                          let rowContent = tableRow.querySelector(
-                            ".tablerowright"
-                          ).innerHTML;
-                          let newObject = {
-                            property: rowTitle,
-                            value: rowContent
-                          };
-                          gatheredData.content.push(newObject);
+                      [...tableRows].forEach((tableRow, idx) => {
+                        if (idx === 0) {
+                          gatheredData.name = tableRow
+                            .querySelector(".tablerowheader")
+                            .getElementsByTagName("b")[0].innerHTML;
+                        } else {
+                          if (!tableRow.querySelector(".tablerownotice")) {
+                            let rowTitle = tableRow.querySelector(
+                              ".tablerowleft"
+                            ).innerHTML;
+                            let rowContent = tableRow.querySelector(
+                              ".tablerowright"
+                            ).innerHTML;
+                            let newObject = {
+                              property: rowTitle,
+                              value: rowContent
+                            };
+                            gatheredData.content.push(newObject);
+                          }
                         }
-                      }
-                    });
-                    console.log(gatheredData);
-                    this.getInfoResult.push(gatheredData);
-                    console.log("first", this.getInfoResult.length);
+                      });
+                    }
+                    if (gatheredData.name != "" && gatheredData.content) {
+                      this.wmsPopup.title = gatheredData.name;
+                      this.wmsPopup.content = gatheredData.content;
+                      this.wmsPopupOverlay.setPosition(undefined);
+                      this.wmsPopupOverlay.setPosition(evt.coordinate);
+                      this.wmsPopup.isVisible = true;
+                    }
                   });
               }
               break;
@@ -856,7 +921,7 @@ export default {
           });
         } else {
           //Only for WFS layer
-          console.log(me.getInfoResult.length);
+
           if (me.getInfoResult.length > 0) {
             me.showPopup(evt.coordinate);
           }
@@ -1007,7 +1072,6 @@ export default {
     ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {
       const feature = this.getInfoResult[this.popup.currentLayerIndex];
-      console.log(feature);
       if (!feature) return;
       const props = feature.getProperties();
       let transformed = [];
