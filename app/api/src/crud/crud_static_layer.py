@@ -20,16 +20,7 @@ class CRUDStaticLayer(CRUDBase[models.StaticLayer, models.StaticLayer, models.St
             Column("table_name", String()),
             Column("table_schema", String()),
         )
-        name_like = name_like + "%"
-        query = select(tables).where(tables.columns.table_name.like(name_like))
-        # query = """
-        # SELECT table_name
-        # FROM
-        #     information_schema.tables
-        # WHERE
-        #     table_schema = 'extra' AND
-        #     table_name like :name_like '%';
-        # """
+        query = select(tables).where(tables.columns.table_name.like(name_like + "%"))
         result = await db.execute(query)
         tables = result.scalars().all()
         return tables
