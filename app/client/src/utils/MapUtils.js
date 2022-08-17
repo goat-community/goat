@@ -430,8 +430,7 @@ export function computeSingleValuedSurface(travelTimeSurface, percentile) {
     travelTimeSurface.width * travelTimeSurface.height
   );
 
-  const percentileIndex =
-    travelTimeSurface.depth == 1 ? 0 : selectNearestPercentileIndex(percentile);
+  const percentileIndex = selectNearestPercentileIndex(percentile);
 
   // y on outside, loop in order, hope the CPU figures this out and prefetches
   for (let y = 0; y < travelTimeSurface.height; y++) {

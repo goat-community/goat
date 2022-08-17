@@ -32,7 +32,7 @@ int main()
   auto concave_points = concaveman<double, 16>({{0, 0}, {0.25, 0.15}, {1, 0}, {1, 1}}, {0, 2, 3}, 2, 0);
 
   // demo network file location
-  std::string network_file = "../data/test_network.csv";
+  std::string network_file = "../data/network_munich_small.csv";
   std::vector<Edge> data_edges_vector = read_file(network_file);
   static const int64_t total_edges = data_edges_vector.size();
   Edge *data_edges = new Edge[total_edges];
@@ -41,8 +41,8 @@ int main()
     data_edges[i] = data_edges_vector[i];
   }
   data_edges_vector.clear();
-  std::vector<double> distance_limits = {600};
-  std::vector<int64_t> start_vertices{2147483647};
+  std::vector<double> distance_limits = {100};
+  std::vector<int64_t> start_vertices{306077};
   bool only_minimum_cover = false;
   auto results = compute_isochrone2(data_edges, total_edges, start_vertices,
                                     distance_limits, only_minimum_cover);

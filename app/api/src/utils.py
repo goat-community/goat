@@ -324,12 +324,12 @@ def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     return header | metadata | {"data": data, "errors": [], "warnings": []}
 
 
-# @njit
+@njit
 def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     """
     Compute single value surface
     """
-    if any((data is None, width is None, height is None, depth is None)):
+    if data is None or width is None or height is None or depth is None:
         return None
     grid_size = width * height
     surface = np.empty(grid_size)
@@ -362,6 +362,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
+@njit
 def amenity_r5_grid_intersect(
     west,
     north,
@@ -468,7 +469,7 @@ def amenity_r5_grid_intersect(
     )
 
 
-# @njit
+@njit
 def z_scale(z):
     """
     2^z represents the tile number. Scale that by the number of pixels in each tile.
@@ -477,7 +478,7 @@ def z_scale(z):
     return 2 ** z * PIXELS_PER_TILE
 
 
-# @njit
+@njit
 def pixel_to_longitude(pixel_x, zoom):
     """
     Convert pixel x coordinate to longitude
@@ -485,7 +486,7 @@ def pixel_to_longitude(pixel_x, zoom):
     return (pixel_x / z_scale(zoom)) * 360 - 180
 
 
-# @njit
+@njit
 def pixel_to_latitude(pixel_y, zoom):
     """
     Convert pixel y coordinate to latitude
@@ -494,7 +495,7 @@ def pixel_to_latitude(pixel_y, zoom):
     return lat_rad * 180 / math.pi
 
 
-# @njit
+@njit
 def coordinate_from_pixel(pixel, zoom):
     """
     Convert pixel coordinate to longitude and latitude

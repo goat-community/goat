@@ -790,6 +790,7 @@ import axios from "axios";
 import { parseTimesData } from "../../utils/ParseTimeData";
 import { jsolines } from "../../utils/Jsolines";
 import { toLonLat } from "ol/proj";
+// import { isochroneHeatmap } from "../../utils/IsochroneHeatmap";
 
 export default {
   mixins: [Mapable, Isochrones, KeyShortcuts],
@@ -1450,10 +1451,16 @@ export default {
                 resolve(response);
                 if (response.data) {
                   const isochroneSurface = parseTimesData(response.data);
-                  const singleValuedSurface = computeSingleValuedSurface(
-                    isochroneSurface,
-                    50
-                  );
+                  let singleValuedSurface = {};
+                  if (isochroneSurface.depth === 1) {
+                    singleValuedSurface = isochroneSurface;
+                    singleValuedSurface["surface"] = isochroneSurface.data;
+                  } else {
+                    singleValuedSurface = computeSingleValuedSurface(
+                      isochroneSurface,
+                      50
+                    );
+                  }
                   const {
                     surface,
                     width,
@@ -1473,7 +1480,18 @@ export default {
                       return [ll.lon, ll.lat];
                     }
                   });
-
+                  console.log(isochronePolygon);
+                  // const isochroneGrid = isochroneHeatmap({
+                  //   cutoff: 30,
+                  //   height,
+                  //   width,
+                  //   surface,
+                  //   project: ([x, y]) => {
+                  //     const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+                  //     return [ll.lon, ll.lat];
+                  //   }
+                  // });
+                  // console.log(isochroneGrid);
                   let olFeatures = geojsonToFeature(isochronePolygon, {
                     dataProjection: "EPSG:4326",
                     featureProjection: "EPSG:3857"

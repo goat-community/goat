@@ -25,7 +25,7 @@ from sqlalchemy.sql import text
 from urllib3 import HTTPResponse
 
 from src.core.config import settings
-from src.core.isochrone import isochrone_single_depth_grid
+from src.core.isochrone import compute_isochrone
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
@@ -625,12 +625,13 @@ class CRUDIsochrone:
             # === Fetch Network ===#
             network, starting_ids = await self.__read_network(db, obj_in)
             # === Compute Grid ===#
-            grid = isochrone_single_depth_grid(
-                network, starting_ids, [obj_in.settings.travel_time], obj_in.output.resolution
+            grid = compute_isochrone(
+                network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
             )
             # === Amenity Intersect ===#
-            grid_decoded = await self.__amenity_intersect(grid, obj_in.settings.travel_time)
-            grid_encoded = encode_r5_grid(grid_decoded)
+            # grid_decoded = await self.__amenity_intersect(grid, obj_in.settings.travel_time)
+            grid_encoded = encode_r5_grid(grid)
+            grid_decoded_test = decode_r5_grid(grid_encoded)
             result = Response(bytes(grid_encoded))
         else:
             payload = {
@@ -666,7 +667,10 @@ class CRUDIsochrone:
                 "east": 11.94489,
                 "west": 11.31592,
             }
-            response = requests.post(settings.R5_API_URL + "/analysis", json=payload)
+            response = requests.post(
+                settings.R5_API_URL + "/analysis",
+                json=payload,
+            )
             grid_decoded = decode_r5_grid(response.content)
             # === Amenity Intersect and Encode ===#
             grid_decoded = await self.__amenity_intersect(grid_decoded, 120)
