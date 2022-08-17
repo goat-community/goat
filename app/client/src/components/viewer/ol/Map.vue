@@ -719,6 +719,10 @@ export default {
           return;
         }
 
+        const coordinate = evt.coordinate;
+        const projection = me.map.getView().getProjection();
+        const resolution = me.map.getView().getResolution();
+
         me.queryableLayers = getAllChildLayers(me.map).filter(
           layer =>
             layer.get("queryable") === true && layer.getVisible() === true
@@ -772,6 +776,61 @@ export default {
               }
               break;
             }
+            case "WMS":
+            case "WMTS": {
+              if (layer.get("queryable")) {
+                let url = layer
+                  .getSource()
+                  .getFeatureInfoUrl(coordinate, resolution, projection, {
+                    INFO_FORMAT: "text/html",
+                    QUERY_LAYERS: [
+                      layer
+                        .getSource()
+                        .url_.split("?")[0]
+                        .split("/")
+                        .pop()
+                    ]
+                  });
+                fetch(url)
+                  .then(response => response.text())
+                  .then(htmlData => {
+                    let parser = new DOMParser();
+                    let doc = parser.parseFromString(htmlData, "text/html");
+
+                    let gatheredData = {
+                      name: "",
+                      content: []
+                    };
+                    let table = doc.getElementsByTagName("tbody")[0];
+                    let tableRows = table.getElementsByTagName("tr");
+
+                    [...tableRows].forEach((tableRow, idx) => {
+                      if (idx === 0) {
+                        gatheredData.name = tableRow
+                          .querySelector(".tablerowheader")
+                          .getElementsByTagName("b")[0].innerHTML;
+                      } else {
+                        if (!tableRow.querySelector(".tablerownotice")) {
+                          let rowTitle = tableRow.querySelector(".tablerowleft")
+                            .innerHTML;
+                          let rowContent = tableRow.querySelector(
+                            ".tablerowright"
+                          ).innerHTML;
+                          let newObject = {
+                            property: rowTitle,
+                            value: rowContent
+                          };
+                          gatheredData.content.push(newObject);
+                        }
+                      }
+                    });
+                    console.log(gatheredData);
+                    this.getInfoResult.push(gatheredData);
+                    console.log("first", this.getInfoResult.length);
+                  });
+              }
+              break;
+            }
             default:
               break;
           }
@@ -797,6 +856,7 @@ export default {
           });
         } else {
           //Only for WFS layer
+          console.log(me.getInfoResult.length);
           if (me.getInfoResult.length > 0) {
             me.showPopup(evt.coordinate);
           }
@@ -881,13 +941,17 @@ export default {
     getPopupTitle() {
       if (this.getInfoResult[this.popup.currentLayerIndex]) {
         const layer = this.getInfoResult[this.popup.currentLayerIndex];
-        const canTranslate = this.$te(
-          `map.layerName.${layer.get("layerName")}`
-        );
-        if (canTranslate) {
-          return this.$t(`map.layerName.${layer.get("layerName")}`);
+        if (layer.get("name")) {
+          const canTranslate = this.$te(
+            `map.layerName.${layer.get("layerName")}`
+          );
+          if (canTranslate) {
+            return this.$t(`map.layerName.${layer.get("layerName")}`);
+          } else {
+            return layer.get("layerName");
+          }
         } else {
-          return layer.get("layerName");
+          return layer.name;
         }
       } else {
         return "";
@@ -943,6 +1007,7 @@ export default {
     ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {
       const feature = this.getInfoResult[this.popup.currentLayerIndex];
+      console.log(feature);
       if (!feature) return;
       const props = feature.getProperties();
       let transformed = [];
