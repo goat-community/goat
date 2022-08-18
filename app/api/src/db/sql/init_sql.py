@@ -20,15 +20,6 @@ def sql_function_entities():
         sql_function_entities.append(pg_function_entitity)
     return sql_function_entities
 
-
-# def sql_view_entities():
-#     sql_view_entities = []
-#     for p in Path(str(Path().resolve()) + "./views").glob("*.sql"):
-#         pg_view_entity = PGView.from_sql(p.read_text())
-#         sql_view_entities.append(pg_view_entity)
-#     return sql_view_entities
-
-
 def sql_trigger_entities():
 
     triger_paths = Path(str(Path().resolve()) + "/src/db/sql/triggers").glob("*.sql")
