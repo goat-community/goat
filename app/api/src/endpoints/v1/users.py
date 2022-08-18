@@ -296,7 +296,7 @@ async def read_user_by_id(
     return user
 
 
-@router.delete("")
+@router.delete("/")
 async def delete_users(
     *,
     id: List[int] = Query(default=None, gt=0),
@@ -307,8 +307,7 @@ async def delete_users(
     Delete users.
     """
 
-    await crud.user.remove_multi(db, ids=id)
-    return "ok"
+    return await crud.user.remove_multi(db, ids=id)
 
 
 @router.put("/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"})

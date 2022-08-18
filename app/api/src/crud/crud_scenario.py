@@ -295,5 +295,9 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         await db.execute(statement)
         await db.commit()
 
+        # Return empty string at the moment
+        # TODO: add removed items instead.
+        return ""
+
 
 scenario = CRUDScenario(models.Scenario)

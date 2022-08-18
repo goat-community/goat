@@ -80,7 +80,7 @@ async def test_delete_layer_libraries(
     random_layers = [await create_random_layer_library(db=db) for i in range(2)]
     random_layer_names = [layer.name for layer in random_layers]
     r = await client.delete(
-        f"{settings.API_V1_STR}/config/layers/library",
+        f"{settings.API_V1_STR}/config/layers/library/",
         headers=superuser_token_headers,
         params={"name": random_layer_names},
     )
@@ -95,8 +95,6 @@ async def test_delete_layer_libraries(
         )
 
         assert r.status_code == 404
-
-        # Try to delete again
 
 
 async def test_read_styles_list(
@@ -198,7 +196,7 @@ async def test_delete_style_libraries(
     random_styles = [await create_random_style_library(db=db) for i in range(2)]
     random_style_names = [style.name for style in random_styles]
     r = await client.delete(
-        f"{settings.API_V1_STR}/config/layers/library/styles",
+        f"{settings.API_V1_STR}/config/layers/library/styles/",
         headers=superuser_token_headers,
         params={"name": random_style_names},
     )

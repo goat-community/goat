@@ -113,12 +113,20 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await db.execute(statement)
         await db.commit()
 
+        # Return empty string at the moment
+        # TODO: add removed items instead.
+        return ""
+
     async def remove_multi_by_key(self, db: AsyncSession, *, key: str, values: Any) -> ModelType:
         if not type(values) == list:
             values = [values]
         statement = delete(self.model).where(getattr(self.model, key).in_(values))
         await db.execute(statement)
         await db.commit()
+
+        # Return empty string at the moment
+        # TODO: add removed items instead.
+        return ""
 
     async def get_n_rows(self, db: AsyncSession, *, n: int) -> ModelType:
         statement = select(self.model).limit(n)

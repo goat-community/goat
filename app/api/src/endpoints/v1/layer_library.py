@@ -63,15 +63,14 @@ async def update_a_layer_library(
     return layer
 
 
-@router.delete("")
+@router.delete("/")
 async def delete_layer_libraries(
     name: List[str] = Query(default=None),
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
 
-    await crud.layer_library.remove_multi_by_key(db, key="name", values=name)
-    return "ok"
+    return await crud.layer_library.remove_multi_by_key(db, key="name", values=name)
 
 
 styles_router = APIRouter()
@@ -128,12 +127,11 @@ async def update_style(
     return style
 
 
-@styles_router.delete("")
+@styles_router.delete("/")
 async def delete_style_libraries(
     name: List[str] = Query(default=None),
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
 
-    await crud.style_library.remove_multi_by_key(db, key="name", values=name)
-    return "ok"
+    return await crud.style_library.remove_multi_by_key(db, key="name", values=name)

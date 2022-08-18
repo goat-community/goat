@@ -82,7 +82,7 @@ async def test_delete_geostores(
     geostores = [await create_sample_geostore(db=db) for i in range(2)]
     geostore_ids = [geostore.id for geostore in geostores]
     r = await client.delete(
-        f"{settings.API_V1_STR}/config/geostores",
+        f"{settings.API_V1_STR}/config/geostores/",
         headers=superuser_token_headers,
         params={"id": geostore_ids},
     )

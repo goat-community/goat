@@ -98,8 +98,7 @@ async def delete_scenario(
     """
     Delete scenario.
     """
-    await crud.scenario.remove_multi_by_id_and_userid(db, ids=id, user_id=current_user.id)
-    return "ok"
+    return await crud.scenario.remove_multi_by_id_and_userid(db, ids=id, user_id=current_user.id)
 
 
 @router.get("/{scenario_id}/upload", response_model=Msg)

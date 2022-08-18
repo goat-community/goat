@@ -126,7 +126,7 @@ async def update_static_layer_data(
     return static_layer
 
 
-@router.delete("/static")
+@router.delete("/static/")
 async def delete_static_layer_data(
     *,
     id: List[int] = Query(default=None, gt=0),
@@ -142,6 +142,6 @@ async def delete_static_layer_data(
         if static_layer:
             # Drop PostGIS table
             await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
-        # Delete Objects
-        await crud.static_layer.remove_multi(db, ids=layer_ids)
-    return "ok"
+
+    # Delete Objects
+    return await crud.static_layer.remove_multi(db, ids=layer_ids)
