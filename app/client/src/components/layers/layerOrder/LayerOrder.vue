@@ -108,7 +108,7 @@
         </v-expansion-panel>
         <v-expansion-panel
           v-for="layer in ActivePois"
-          :key="layer.value"
+          :key="layer.get('name')"
           class="layer-row"
         >
           <v-expansion-panel-header expand-icon="" v-slot="{}" class="handle">
@@ -122,7 +122,8 @@
               </v-flex>
               <v-flex xs10 class="light-text">
                 <h4 class="pl-2">
-                  {{ $t(`pois.${layer.value}`) }}
+                  <!-- {{ $t(`pois.${layer.value}`) }} -->
+                  {{ translate("layerName", layer.get("name")) }}
                 </h4>
               </v-flex>
               <v-flex xs1>
@@ -131,12 +132,12 @@
                   small
                   style="width: 30px; height: 30px"
                   v-html="
-                    layer.showOptions === false
+                    layer.get('showOptions') === false
                       ? 'fas fa-chevron-down'
                       : 'fas fa-chevron-up'
                   "
                   :class="
-                    layer.showOptions === true &&
+                    layer.get('showOptions') === true &&
                       'expansion-panel__container--active'
                   "
                   @click.stop="changeOption(layer)"
@@ -146,7 +147,7 @@
           </v-expansion-panel-header>
           <v-card
             class="pt-2"
-            v-show="layer.showOptions"
+            v-show="layer.get('showOptions') === true"
             style="background-color: white"
             transition="slide-y-reverse-transition"
           >
@@ -258,12 +259,8 @@ export default {
     },
     selectedPois(value) {
       if (value.length) {
-        this.ActivePois = value.map(poiLayer => {
-          return {
-            ...poiLayer,
-            showOptions: false
-          };
-        });
+        this.poisAoisLayer.set("showOptions", false);
+        this.ActivePois = [this.poisAoisLayer];
       } else {
         this.ActivePois = [];
       }
@@ -277,23 +274,21 @@ export default {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
       this.styleDialogStatus = value;
     });
-    this.ActivePois = this.selectedPois;
     if (this.selectedPois.length) {
-      this.ActivePois = this.selectedPois.map(poiLayer => {
-        return {
-          ...poiLayer,
-          showOptions: false
-        };
-      });
+      this.poisAoisLayer.set("showOptions", false);
+
+      this.ActivePois = [this.poisAoisLayer];
+    } else {
+      this.ActivePois = [];
     }
   },
   methods: {
-    changeOption(layer) {
-      this.ActivePois.forEach(poisElement => {
-        if (poisElement.value === layer.value) {
-          poisElement.showOptions = !poisElement.showOptions;
-        }
-      });
+    changeOption() {
+      this.poisAoisLayer.set(
+        "showOptions",
+        !this.poisAoisLayer.get("showOptions")
+      );
+      this.ActivePois = [this.poisAoisLayer];
     },
     getAllVisibleLayers() {
       this.allLayers = this.map
