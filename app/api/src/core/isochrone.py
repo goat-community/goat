@@ -81,8 +81,8 @@ def get_single_depth_grid_(zoom, west, north, data):
     grid_data["zoom"] = zoom
     grid_data["west"] = west
     grid_data["north"] = north
-    grid_data["width"] = data.shape[0]
-    grid_data["height"] = data.shape[1]
+    grid_data["width"] = data.shape[1]
+    grid_data["height"] = data.shape[0]
     grid_data["depth"] = 1
     grid_data["data"] = Z
     return grid_data
@@ -155,7 +155,7 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     plt.colorbar()
     plt.axis("equal")
     plt.savefig("isochrone.png")
-    return np.array(Z)
+    return np.flip(Z, 0)
 
 
 def compute_isochrone(edge_network, start_vertexes, travel_time, zoom: int = 10):
@@ -230,7 +230,7 @@ def compute_isochrone(edge_network, start_vertexes, travel_time, zoom: int = 10)
 if __name__ == "__main__":
     from src.tests.utils.isochrone import get_sample_network
 
-    edges_network, starting_id, distance_limits = get_sample_network(minutes=2)
+    edges_network, starting_id, distance_limits = get_sample_network(speed=1.3, minutes=1)
 
     grid_data = compute_isochrone(edges_network, starting_id, travel_time=2, zoom=10)
     print()

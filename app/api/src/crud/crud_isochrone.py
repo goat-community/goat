@@ -349,16 +349,6 @@ class CRUDIsochrone:
             result = GeoDataFrame(pd.concat([isochrones_default, isochrones_scenario]))
         return result.reset_index(drop=True)
 
-    async def count_pois_multi_isochrones(self, db: AsyncSession, *, obj_in) -> dict:
-        obj_in_data = jsonable_encoder(obj_in)
-        obj_in_data["speed"] = obj_in_data["speed"] / 3.6
-        sql = text(
-            """SELECT count_pois
-            FROM basic.count_pois_multi_isochrones(:user_id,:modus,:minutes,:speed,:region_type,:region,:amenities,:scenario_id,:active_upload_ids)"""
-        )
-        result = await db.execute(sql, obj_in_data)
-        return result.fetchall()[0][0]
-
     async def calculate_pois_multi_isochrones(
         self, current_user, db: AsyncSession, *, obj_in
     ) -> GeoDataFrame:
@@ -530,6 +520,7 @@ class CRUDIsochrone:
         )
         return response
 
+    # ===================================
     # ===================================
     async def __read_network(self, db, obj_in: IsochroneDTO) -> Any:
         isochrone_type = None
@@ -707,6 +698,16 @@ class CRUDIsochrone:
 
         return grid_decoded
 
+    async def count_pois_multi_isochrones(self, db: AsyncSession, *, obj_in) -> dict:
+        obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data["speed"] = obj_in_data["speed"] / 3.6
+        sql = text(
+            """SELECT count_pois
+            FROM basic.count_pois_multi_isochrones(:user_id,:modus,:minutes,:speed,:region_type,:region,:amenities,:scenario_id,:active_upload_ids)"""
+        )
+        result = await db.execute(sql, obj_in_data)
+        return result.fetchall()[0][0]
+
     async def calculate(self, db: AsyncSession, obj_in: IsochroneDTO) -> Any:
         """
         Calculate the isochrone for a given location and time"""
@@ -721,7 +722,7 @@ class CRUDIsochrone:
             # === Amenity Intersect ===#
             grid_decoded = await self.__amenity_intersect(grid, obj_in.settings.travel_time)
             grid_encoded = encode_r5_grid(grid)
-            grid_decoded_test = decode_r5_grid(grid_encoded)
+            # grid_decoded_test = decode_r5_grid(grid_encoded)
             result = Response(bytes(grid_encoded))
         else:
             payload = {
@@ -765,7 +766,7 @@ class CRUDIsochrone:
             # === Amenity Intersect and Encode ===#
             grid_decoded = await self.__amenity_intersect(grid_decoded, 120)
             grid_encoded = encode_r5_grid(grid_decoded)
-            grid_decoded_test = decode_r5_grid(grid_encoded)
+            # grid_decoded_test = decode_r5_grid(grid_encoded)
             result = Response(bytes(grid_encoded))
         return result
 
