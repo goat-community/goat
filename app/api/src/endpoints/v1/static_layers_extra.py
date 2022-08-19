@@ -13,6 +13,7 @@ from src.utils import (
     convert_postgist_to_4326,
     generate_static_layer_table_name,
     geopandas_read_file,
+    uniquify_static_layer_name,
 )
 
 router = APIRouter()
@@ -41,7 +42,7 @@ async def upload_static_layer(
 
     static_layer = models.StaticLayer(
         user_id=current_user.id,
-        table_name=generate_static_layer_table_name(prefix=upload_file.filename),
+        table_name=await uniquify_static_layer_name(db, file_name=upload_file.filename),
     )
 
     # Save Data Frame to Database
@@ -127,7 +128,7 @@ async def update_static_layer_data(
 
 
 @router.delete("/static/{layer_id:int}")
-async def update_static_layer_data(
+async def delete_static_layer_data(
     *,
     layer_id: int,
     db: AsyncSession = Depends(deps.get_db),
@@ -138,6 +139,6 @@ async def update_static_layer_data(
         raise HTTPException(status_code=404, detail="static layer not found.")
     # Drop PostGIS table
     await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
-    # Delte Object
+    # Delete Object
     static_layer = await crud.static_layer.remove(db, id=static_layer.id)
     return static_layer

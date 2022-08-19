@@ -30,6 +30,7 @@ from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
 from starlette import status
 from starlette.responses import Response
 
+from src import crud
 from src.core.config import settings
 from src.resources.enums import MaxUploadFileSize, MimeTypes
 
@@ -726,3 +727,18 @@ def geopandas_read_file(data_file: UploadFile):
 
         finally:
             delete_file(temp_file_path)
+
+
+async def uniquify_static_layer_name(db, file_name):
+    original_name = file_name.split(".")[0]
+    original_name = tablify(original_name)
+    name = original_name
+    static_layer_table_names = await crud.static_layer.list_static_layer_table_names(
+        db=db, name_like=name
+    )
+    counter = 1
+    while name in static_layer_table_names:
+        name = f"{original_name}_{counter}"
+        counter += 1
+
+    return name

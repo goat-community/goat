@@ -2,11 +2,14 @@ from fastapi import APIRouter
 
 from src.endpoints.v1 import (
     customizations,
+    geostores,
     heatmap,
     isochrones,
     layer_library,
     layers,
     login,
+    opportunities,
+    opportunity_config,
     organizations,
     poi_aoi,
     public_transport,
@@ -35,10 +38,10 @@ api_router.include_router(heatmap.router, prefix="/heatmap", tags=["Heatmap"])
 api_router.include_router(scenarios.router, prefix="/scenarios", tags=["Scenarios"])
 api_router.include_router(poi_aoi.router, prefix="/pois-aois", tags=["POIs and AOIs"])
 api_router.include_router(
-    static_layers.router, prefix="/layers/vector", tags=["Static vector layers"]
+    static_layers.router, prefix="/read/table", tags=["Read Selected Tables"]
 )
 api_router.include_router(
-    static_layers_extra.router, prefix="/config/layers/vector", tags=["Static vector layers"]
+    static_layers_extra.router, prefix="/config/layers/vector", tags=["Manage extra layers"]
 )
 
 # LAYER: Vector tile endpoints.
@@ -56,8 +59,14 @@ api_router.include_router(r5.router, prefix="/r5", tags=["PT-R5"])
 api_router.include_router(
     layer_library.styles_router, prefix="/config/layers/library/styles", tags=["Layer Library"]
 )
-api_router.include_router(layer_library.router, prefix="/layers/library", tags=["Layer Library"])
 api_router.include_router(
     layer_library.router, prefix="/config/layers/library", tags=["Layer Library"]
 )
 api_router.include_router(study_area.router, prefix="/config/study-area", tags=["Layer Library"])
+api_router.include_router(geostores.router, prefix="/config/geostores", tags=["Geostores"])
+api_router.include_router(
+    opportunities.router, prefix="/config/opportunities", tags=["Opportunities"]
+)
+api_router.include_router(
+    opportunity_config.router, prefix="/config/opportunity-study-area", tags=["Opportunities"]
+)

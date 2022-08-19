@@ -45,14 +45,18 @@ class IsochroneCalculation(SQLModel, table=True):
         sa_column=Column(Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"))
     )
     user_id: int = Field(
+        default=None,
         sa_column=Column(
             Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
-        )
+        ),
     )
 
     scenario: Optional["Scenario"] = Relationship(back_populates="isochrone_calculations")
     user: "User" = Relationship(back_populates="isochrone_calculations")
-    isochrone_features: "IsochroneFeature" = Relationship(back_populates="isochrone_calculation")
+    isochrone_features: "IsochroneFeature" = Relationship(
+        back_populates="isochrone_calculation",
+        sa_relationship_kwargs={"cascade": "all,delete,delete-orphan"},
+    )
 
 
 class IsochroneFeature(SQLModel, table=True):
@@ -61,7 +65,9 @@ class IsochroneFeature(SQLModel, table=True):
 
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
     step: int = Field(nullable=False)
-    reached_opportunities: Optional[dict] = Field(sa_column=Column(JSONB, server_default=text("1::jsonb")))
+    reached_opportunities: Optional[dict] = Field(
+        sa_column=Column(JSONB, server_default=text("1::jsonb"))
+    )
     geom: str = Field(
         sa_column=Column(
             Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=False),

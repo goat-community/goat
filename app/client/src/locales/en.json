@@ -297,6 +297,10 @@
     "stylePanel": {
       "selectAttribute": "Select Attribute",
       "fillColor": "Fill Color",
+      "iconSize": "Icon Size",
+      "changeIcon": "Change Icon",
+      "urlIcon": "Url Upload",
+      "importIcon": "Local Upload",
       "outlineColorAndWidth": "Outline color & width"
     }
   },
@@ -448,6 +452,24 @@
       "transparency": "Transparency"
     }
   },
+  "externalGeoportals": {
+    "selectGeoportal": "Choose Geoportal",
+    "externalGeoportal": "External Geoportal",
+    "builtInGeoportals": {
+      "title": "Built-in Geoportals"
+    },
+    "ownGeoportals": {
+      "title": "Add own Geoportal",
+      "getLayersFrom": "Import layer from",
+      "results": "results",
+      "seeMore": "see more..."
+    },
+    "popups": {
+      "info": "There has been a problem with the external service running the geoportal. Please try to select another layer.",
+      "errorMessage": "This layer is not part of the study area, please select another layer!",
+      "agreement": "I understand"    
+    }
+  },
   "map": {
     "layerLegend": {
       "title": "Layers Legend"
@@ -475,12 +497,13 @@
       "scenarioEditMode": "Edit Mode"
     },
     "layerGroup": {
-      "buildings_landuse": "Buildings and Land Use",
-      "streetlevelqualityLayers": "Street Level Quality",
+      "buildings_landuse": "Buildings and land use",
+      "streetlevelqualityLayers": "Street level quality",
       "environmental_quality": "Environmental data",
       "additional_data": "Additional data",
+      "external_layers": "External layers",
       "accessbilityBasemaps": "Heatmaps",
-      "basemap": "Background Layers",
+      "basemap": "Background layers",
       "heatmap": "Heatmaps"
     },
     "layerName": {
@@ -793,6 +816,7 @@
     "gymnasium": "Gymnasium",
     "grundschule": "Grundschule",
     "realschule": "Realschule",
+    "hauptschule": "Hauptschule",
     "hauptschule_mittelschule": "Haupt-/Mittelschule",
     "werkrealschule": "Werkrealschule",
     "school": "School",

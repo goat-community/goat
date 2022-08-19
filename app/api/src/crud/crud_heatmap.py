@@ -595,11 +595,11 @@ class CRUDHeatmap:
             )
             UPDATE basic.grid_visualization v
             SET percentile_population = 
-            (CASE WHEN p.population BETWEEN 1 AND 20 THEN 1 
-            WHEN p.population BETWEEN 20 AND 80 THEN 2
-            WHEN p.population BETWEEN 80 AND 200 THEN 3 
-            WHEN p.population BETWEEN 200 AND 400 THEN 4 
-            WHEN p.population > 400 THEN 5 END),
+            (CASE WHEN p.population BETWEEN 1 AND 80 THEN 1 
+            WHEN p.population BETWEEN 80 AND 200 THEN 2
+            WHEN p.population BETWEEN 200 AND 500 THEN 3 
+            WHEN p.population BETWEEN 500 AND 1000 THEN 4 
+            WHEN p.population > 1000 THEN 5 END),
             population = p.population
             FROM grouped_population p 
             WHERE p.population IS NOT NULL

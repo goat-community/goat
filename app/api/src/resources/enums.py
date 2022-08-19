@@ -1,7 +1,5 @@
 from enum import Enum
 
-from src.db.models import scenario
-
 
 class ReturnType(str, Enum):
     """ "Default return types"""
@@ -66,7 +64,8 @@ class RoutingTypes(str, Enum):
 class AllowedVectorTables(str, Enum):
     """Allowed Vector Tables Enums."""
 
-    sub_study_area = "basic.sub_study_area"
+    sub_study_area = 'sub_study_area'
+    study_area = 'study_area'
 
 
 class IsochroneTypes(str, Enum):
@@ -82,6 +81,15 @@ class R5DecayFunctionType(str, Enum):
     exponential = "exponential"
     linear = "linear"
 
+class StaticTableSQLActive(str, Enum):
+    """Static Table SQL that can be requested by study_area_id."""
+
+    study_area = """            
+        SELECT * FROM basic.study_area WHERE id = :study_area_id
+    """
+    sub_study_area = """            
+        SELECT * FROM basic.sub_study_area WHERE study_area_id = :study_area_id
+    """
 
 class SQLReturnTypes(str, Enum):
     """Allowed Vector Tables Enums."""
@@ -174,3 +182,8 @@ class LayerGroupsEnum(str, Enum):
     additional_data = "additional_data"
     basemap = "basemap"
     heatmap = "heatmap"
+
+
+class GeostoreType(str, Enum):
+    geoadmin = "geoadmin"
+    other = "other"
