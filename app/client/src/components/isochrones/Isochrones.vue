@@ -1590,9 +1590,10 @@ export default {
             const pixel = toPixel(lonLat, calculation.surfaceData.zoom);
             const x = Math.floor(pixel.x - calculation.surfaceData.west);
             const y = Math.floor(pixel.y - calculation.surfaceData.north);
+            const depthIndex = calculation.rawData.depth === 1 ? 0 : 2;
             let time = null;
-            if (calculation.rawData.contains(x, y, 2)) {
-              time = [calculation.rawData.get(x, y, 2)];
+            if (calculation.rawData.contains(x, y, depthIndex)) {
+              time = [calculation.rawData.get(x, y, depthIndex)];
             }
             if (time) {
               overlayerInnerHtml += `<div>${calculationId}- Time: ${time} min</div>`;

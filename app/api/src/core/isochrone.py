@@ -1,6 +1,7 @@
 import heapq
 import math
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pyproj
 from numba import njit
@@ -74,6 +75,7 @@ def web_mercator_to_pixel(x, y, zoom):
 def get_single_depth_grid_(zoom, west, north, data):
     grid_data = {}
     Z = np.ravel(data)
+    Z = np.ceil(Z)
     Z = np.nan_to_num(Z, nan=np.iinfo(np.intc).max, posinf=np.iinfo(np.intc).max)
     grid_data["version"] = 0
     grid_data["zoom"] = zoom
@@ -145,7 +147,14 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     Y = np.arange(start=extent[1], stop=extent[3], step=step_y)
     X, Y = np.meshgrid(X, Y)  # 2D grid for interpolation
     interpolate_function = LinearNDInterpolator(list(points), costs)
+
     Z = interpolate_function(X, Y)
+    plt.figure().clear()
+    plt.pcolormesh(X, Y, Z, shading="auto")
+    plt.legend()
+    plt.colorbar()
+    plt.axis("equal")
+    plt.savefig("isochrone.png")
     return np.array(Z)
 
 
@@ -192,18 +201,17 @@ def compute_isochrone(edge_network, start_vertexes, travel_time, zoom: int = 10)
     web_mercator_y_distance = extent[3] - extent[1]
 
     # get corners in pixel
+    # Pixel coordinates origin is at the top left corner of the image. (y of top right/left corner is smaller than y of bottom right/left corner)
     xy_bottom_left = web_mercator_to_pixel(extent[0], extent[1], zoom=zoom)
     xy_top_right = web_mercator_to_pixel(extent[2], extent[3], zoom=zoom)
 
     # pixel x, y distances
     pixel_x_distance = xy_top_right[0] - xy_bottom_left[0]
-    pixel_y_distance = xy_top_right[1] - xy_bottom_left[1]
+    pixel_y_distance = xy_bottom_left[1] - xy_top_right[1]
 
     # calculate step in web mercator size
     web_mercator_x_step = web_mercator_x_distance / pixel_x_distance
-    web_mercator_y_step = abs(
-        web_mercator_y_distance / pixel_y_distance
-    )  # TODO: fix the negative value
+    web_mercator_y_step = web_mercator_y_distance / pixel_y_distance
 
     # build grid
     Z = build_grid_interpolate_(
@@ -215,10 +223,7 @@ def compute_isochrone(edge_network, start_vertexes, travel_time, zoom: int = 10)
     )
 
     # build grid data (single depth)
-    grid_data = get_single_depth_grid_(
-        zoom, xy_bottom_left[0], xy_bottom_left[1], Z
-    )  # TODO: fix this
-
+    grid_data = get_single_depth_grid_(zoom, xy_bottom_left[0], xy_top_right[1], Z)
     return grid_data
 
 

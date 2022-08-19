@@ -326,8 +326,8 @@ class IsochroneDTO(BaseModel):
         # Validation check on grid resolution and number of steps for geojson
         if values["output"].type.value == IsochroneOutputType.GRID.value and values[
             "output"
-        ].resolution not in [9, 10]:
-            raise ValueError("Resolution must be 9 or 10")
+        ].resolution not in [9, 10, 11, 12, 13]:
+            raise ValueError("Resolution must be 9, 10, 11, 12, or 13")
         if values["output"].type.value == IsochroneOutputType.GEOJSON.value and (
             values["output"].steps > 6 or values["output"].steps < 1
         ):
@@ -340,12 +340,14 @@ class IsochroneDTO(BaseModel):
         ]:
             raise ValueError("Multi-Isochrone is not supported for Transit and Car")
 
-        # For walking and cycling travel time maximumn should be 20 minutes
+        # For walking and cycling travel time maximumn should be 20 minutes and speed to m/s
         if values["mode"].value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
             if values["settings"].travel_time > 25:
                 raise ValueError(
                     "Travel time maximum for walking and cycling should be less or equal to 25 minutes"
                 )
+            if values["settings"].speed:
+                values["settings"].speed = values["settings"].speed / 3.6
 
         # For PT and Car Isochrone starting point should be only lat lon coordinates and not amenities, travel time smaller than 120 minutes
         if values["mode"].value in [

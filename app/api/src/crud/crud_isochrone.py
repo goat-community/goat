@@ -719,7 +719,7 @@ class CRUDIsochrone:
                 network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
             )
             # === Amenity Intersect ===#
-            # grid_decoded = await self.__amenity_intersect(grid, obj_in.settings.travel_time)
+            grid_decoded = await self.__amenity_intersect(grid, obj_in.settings.travel_time)
             grid_encoded = encode_r5_grid(grid)
             grid_decoded_test = decode_r5_grid(grid_encoded)
             result = Response(bytes(grid_encoded))
@@ -765,6 +765,7 @@ class CRUDIsochrone:
             # === Amenity Intersect and Encode ===#
             grid_decoded = await self.__amenity_intersect(grid_decoded, 120)
             grid_encoded = encode_r5_grid(grid_decoded)
+            grid_decoded_test = decode_r5_grid(grid_encoded)
             result = Response(bytes(grid_encoded))
         return result
 
