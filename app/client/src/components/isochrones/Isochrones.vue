@@ -1306,10 +1306,11 @@ export default {
      */
     calculateIsochrone(startPoint) {
       let routing = this.routing;
+      let _routing = this.routing; //store selected routing for later use
       let mode = routing;
       //-- SETTINGS --//
       let settings = {
-        travel_time: 15, //TODO: Make this configurable
+        travel_time: 20, //TODO: Make this configurable
         speed: this.speed
       };
       if (routing.includes("walking") || routing.includes("cycling")) {
@@ -1480,18 +1481,6 @@ export default {
                       return [ll.lon, ll.lat];
                     }
                   });
-                  console.log(isochronePolygon);
-                  // const isochroneGrid = isochroneHeatmap({
-                  //   cutoff: 30,
-                  //   height,
-                  //   width,
-                  //   surface,
-                  //   project: ([x, y]) => {
-                  //     const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-                  //     return [ll.lon, ll.lat];
-                  //   }
-                  // });
-                  // console.log(isochroneGrid);
                   let olFeatures = geojsonToFeature(isochronePolygon, {
                     dataProjection: "EPSG:4326",
                     featureProjection: "EPSG:3857"
@@ -1507,7 +1496,7 @@ export default {
                   olFeatures[0].set("calculationNumber", calculationNumber);
                   let calculation = {
                     id: calculationNumber,
-                    routing,
+                    routing: _routing,
                     config: payload,
                     rawData: isochroneSurface,
                     surfaceData: singleValuedSurface,

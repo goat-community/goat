@@ -110,7 +110,7 @@
                     :color="appColor.secondary"
                     v-model="isochroneRange"
                     :min="1"
-                    :max="60"
+                    :max="getMaxIsochroneRange"
                     thumb-label="always"
                     thumb-size="25"
                     @input="udpateIsochroneSurface"
@@ -401,6 +401,16 @@ export default {
       }
 
       return items;
+    },
+    getMaxIsochroneRange() {
+      let maxIsochroneRange = 60;
+      const walkingCyclingCalculations = this.selectedCalculations.filter(
+        c => !["transit", "car"].includes(c.routing)
+      );
+      if (walkingCyclingCalculations.length > 0) {
+        maxIsochroneRange = 20;
+      }
+      return maxIsochroneRange;
     },
 
     ...mapGetters("isochrones", {
