@@ -40,7 +40,6 @@ from src.schemas.isochrone import (
     IsochroneSingle,
     IsochroneStartingPointCoord,
     IsochroneTypeEnum,
-    IsochroneMultiRegionType
 )
 from src.utils import (
     compute_single_value_surface,
@@ -128,8 +127,10 @@ class CRUDIsochrone:
                 "routing_profile": routing_profile,
             },
         )
-        starting_id = edges_network.iloc[0].starting_ids
-        if len(obj_in.starting_point.input) == 1:
+        starting_ids = edges_network.iloc[0].starting_ids
+        if len(obj_in.starting_point.input) == 1 and isinstance(
+            obj_in.starting_point.input[0], IsochroneStartingPointCoord
+        ):
             starting_point_geom = str(
                 GeoDataFrame(
                     {"geometry": Point(edges_network.iloc[-1:]["geom"].values[0][0])},
@@ -157,7 +158,6 @@ class CRUDIsochrone:
 
         db.add(obj_starting_point)
         await db.commit()
-        await db.refresh(obj_starting_point)
 
         # return edges_network and obj_starting_point
         edges_network.astype(
@@ -170,7 +170,7 @@ class CRUDIsochrone:
                 "length": np.double,
             }
         )
-        return edges_network, starting_id
+        return edges_network, starting_ids
 
     async def export_isochrone(
         self,
@@ -262,7 +262,6 @@ class CRUDIsochrone:
         )
         return response
 
-   
     async def get_max_isochrone_shape(self, grid_decoded, max_time):
         """
         Gets the isochrone with the highest travel time for opportunity intersect.
@@ -289,15 +288,16 @@ class CRUDIsochrone:
         )
         return multipolygon_shape
 
-    async def get_opportunities_multi_isochrone(self, grid_decoded, isochrone_obj, current_user) -> Any:
+    async def get_opportunities_multi_isochrone(
+        self, grid_decoded, isochrone_obj, current_user
+    ) -> Any:
         """
         Get opportunities (population) for multiple isochrones
         """
-        max_time = isochrone_obj.settings.travel_time 
+        max_time = isochrone_obj.settings.travel_time
         modus = isochrone_obj.scenario.modus.value
         scenario_id = isochrone_obj.scenario.id
 
-        
         max_isochrone_geom = await self.get_max_isochrone_shape(grid_decoded, max_time)
         max_isochrone_wkt = max_isochrone_geom.wkt
 
@@ -307,12 +307,14 @@ class CRUDIsochrone:
                 FROM basic.reachable_population_study_area({scenario_id},'{modus}', ARRAY{isochrone_obj})
             """
 
-    async def get_opportunities_single_isochrone(self, grid_decoded, isochrone_obj, current_user) -> Any:
+    async def get_opportunities_single_isochrone(
+        self, grid_decoded, isochrone_obj, current_user
+    ) -> Any:
         """
         Get opportunities (population+POIs) for single isochrone
         """
 
-        max_time = isochrone_obj.settings.travel_time 
+        max_time = isochrone_obj.settings.travel_time
         modus = isochrone_obj.scenario.modus.value
         scenario_id = isochrone_obj.scenario.id
         active_data_upload_ids = current_user.active_data_upload_ids
@@ -463,8 +465,10 @@ class CRUDIsochrone:
         starting_points = await db.execute(sql_starting_points, obj_in_data)
         starting_points = starting_points.fetchall()
         return starting_points
-    
-    async def calculate(self, db: AsyncSession, obj_in: IsochroneDTO, current_user: models.User) -> Any:
+
+    async def calculate(
+        self, db: AsyncSession, obj_in: IsochroneDTO, current_user: models.User
+    ) -> Any:
         """
         Calculate the isochrone for a given location and time
         """
@@ -474,7 +478,6 @@ class CRUDIsochrone:
             grid = compute_isochrone(
                 network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
             )
-            # === Amenity Intersect ===#
             grid_decoded = await self.get_opportunities_single_isochrone(
                 grid, obj_in, current_user
             )
