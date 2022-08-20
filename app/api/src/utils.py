@@ -363,8 +363,39 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
+def group_opportunities_multi_isochrone(
+    west,
+    north,
+    width,
+    surface,
+    get_population_sum_pixel,
+    get_population_sum_population,
+    MAX_TIME=120
+):
+    """
+    Return a list of amenity count for every minute
+    """
+    population_grid_count = np.zeros(MAX_TIME)
+    # - loop population
+    for idx, pixel in enumerate(get_population_sum_pixel):
+        pixel_x = pixel[1]
+        pixel_y = pixel[0]
+        x = pixel_x - west
+        y = pixel_y - north
+        width = width
+        index = y * width + x
+        time_cost = surface[index]
+        if (
+            time_cost < 2147483647
+            and get_population_sum_population[idx] > 0
+            and time_cost <= MAX_TIME
+        ):
+            population_grid_count[int(time_cost)] += get_population_sum_population[idx]
+    population_grid_count = np.cumsum(population_grid_count)
+
+
 @njit
-def amenity_r5_grid_intersect(
+def group_opportunities_single_isochrone(
     west,
     north,
     width,

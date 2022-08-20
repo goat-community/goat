@@ -37,7 +37,7 @@ from src.schemas.r5 import (
     request_examples,
 )
 from src.utils import (
-    amenity_r5_grid_intersect,
+    group_opportunities_single_isochrone,
     compute_single_value_surface,
     decode_r5_grid,
     encode_r5_grid,
@@ -445,7 +445,7 @@ async def analysis(
         get_poi_more_entrance_sum["name"], return_inverse=True
     )
     get_poi_more_entrance_sum_cnt = get_poi_more_entrance_sum["cnt"].to_numpy()
-    amenity_grid_count = amenity_r5_grid_intersect(
+    amenity_grid_count = get_opportunities_single_isochrone(
         grid_decoded["west"],
         grid_decoded["north"],
         grid_decoded["width"],
