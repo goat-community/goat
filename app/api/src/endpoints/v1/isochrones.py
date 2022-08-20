@@ -140,7 +140,7 @@ router = APIRouter()
 
 
 @router.post("")
-async def create_isochrone(
+async def calculate_isochrone(
     *,
     db: AsyncSession = Depends(deps.get_db),
     isochrone_in: IsochroneDTO = Body(..., examples=request_examples["isochrone"]),
@@ -151,7 +151,7 @@ async def create_isochrone(
     """
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
-    result = await crud.isochrone.calculate(db, isochrone_in)
+    result = await crud.isochrone.calculate(db, isochrone_in, current_user)
     return result
 
 
