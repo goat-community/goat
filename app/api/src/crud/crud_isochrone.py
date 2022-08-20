@@ -38,13 +38,14 @@ from src.schemas.isochrone import (
     IsochroneMulti,
     IsochroneSingle,
     IsochroneTypeEnum,
+    IsochroneMultiRegionType
 )
 from src.utils import (
-    amenity_r5_grid_intersect,
     compute_single_value_surface,
     decode_r5_grid,
     delete_dir,
     encode_r5_grid,
+    group_opportunities_single_isochrone,
 )
 
 
@@ -607,9 +608,9 @@ class CRUDIsochrone:
         )
         return edges_network, starting_id
 
-    async def __amenity_intersect(self, grid_decoded, max_time) -> Any:
+    async def get_max_isochrone_shape(self, grid_decoded, max_time):
         """
-        Calculate the intersection of the isochrone with the amenities (pois and population)
+        Gets the isochrone with the highest travel time for opportunity intersect.
         """
         single_value_surface = compute_single_value_surface(
             grid_decoded["width"],
@@ -631,10 +632,67 @@ class CRUDIsochrone:
         multipolygon_shape = shape(
             {"type": "MultiPolygon", "coordinates": isochrone_multipolygon_coordinates}
         )
-        test_geom_wkt = multipolygon_shape.wkt
-        get_population_sum_query = f"""SELECT * FROM basic.get_population_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
-        get_poi_one_entrance_sum_query = f"""SELECT * FROM basic.get_poi_one_entrance_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
-        get_poi_more_entrance_sum_query = f"""SELECT * FROM basic.get_poi_more_entrance_sum(15, 'default'::text, ST_GeomFromText('{test_geom_wkt}', 4326), {grid_decoded["zoom"]})"""
+        return multipolygon_shape
+
+    async def get_opportunities_multi_isochrone(self, grid_decoded, max_time, region_type: IsochroneMultiRegionType) -> Any:
+        """
+        Get opportunities (population) for multiple isochrones
+        """
+        max_isochrone_geom = await self.get_max_isochrone_shape(grid_decoded, max_time)
+        max_isochrone_wkt = max_isochrone_geom.wkt
+
+        if region_type == IsochroneMultiRegionType.STUDY_AREA:
+            get_study_area_population = f"""SELECT * FROM basic.reachable_population_study_area(2,'default', ARRAY[17,24,26])"""
+
+    async def get_opportunities_single_isochrone(self, grid_decoded, isochrone_obj, current_user) -> Any:
+        """
+        Get opportunities (population+POIs) for single isochrone
+        """
+
+        max_time = isochrone_obj.settings.travel_time 
+        modus = isochrone_obj.scenario.modus.value
+        scenario_id = isochrone_obj.scenario.id
+        active_data_upload_ids = current_user.active_data_upload_ids
+        max_isochrone_geom = await self.get_max_isochrone_shape(grid_decoded, max_time)
+        max_isochrone_wkt = max_isochrone_geom.wkt
+
+        get_population_sum_query = f"""
+            SELECT * 
+            FROM basic.get_population_sum(
+                {current_user.id}, 
+                '{modus}', 
+                ST_GeomFromText('{max_isochrone_wkt}', 4326), 
+                {grid_decoded["zoom"]},
+                {scenario_id}
+        )"""
+        get_poi_one_entrance_sum_query = f"""
+            SELECT * 
+            FROM basic.get_poi_one_entrance_sum(
+                {current_user.id}, 
+                '{modus}', 
+                ST_GeomFromText('{max_isochrone_wkt}', 4326), 
+                {grid_decoded["zoom"]},
+                {scenario_id},
+                ARRAY{active_data_upload_ids}
+            )
+        """
+        get_poi_more_entrance_sum_query = f"""
+            SELECT * 
+            FROM basic.get_poi_more_entrance_sum(
+                {current_user.id}, 
+                '{modus}', 
+                ST_GeomFromText('{max_isochrone_wkt}', 4326), 
+                {grid_decoded["zoom"]},
+                {scenario_id},
+                ARRAY{active_data_upload_ids}
+            )
+        """
+        get_aoi_query = f"""
+            SELECT category, ST_AREA(geom::geography)::integer AS area, geom 
+            FROM basic.aoi a 
+            WHERE ST_Intersects(a.geom, ST_GeomFromText('{max_isochrone_wkt}', 4326))
+        """
+
         get_population_sum = read_sql(
             get_population_sum_query,
             legacy_engine,
@@ -647,6 +705,7 @@ class CRUDIsochrone:
             get_poi_more_entrance_sum_query,
             legacy_engine,
         )
+        get_aoi = read_sql(get_aoi_query, legacy_engine)
         ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
         get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
         get_population_sum_population = get_population_sum["population"].to_numpy()
@@ -665,7 +724,7 @@ class CRUDIsochrone:
             get_poi_more_entrance_sum["name"], return_inverse=True
         )
         get_poi_more_entrance_sum_cnt = get_poi_more_entrance_sum["cnt"].to_numpy()
-        amenity_grid_count = amenity_r5_grid_intersect(
+        amenity_grid_count = group_opportunities_single_isochrone(
             grid_decoded["west"],
             grid_decoded["north"],
             grid_decoded["width"],
@@ -708,9 +767,10 @@ class CRUDIsochrone:
         result = await db.execute(sql, obj_in_data)
         return result.fetchall()[0][0]
 
-    async def calculate(self, db: AsyncSession, obj_in: IsochroneDTO) -> Any:
+    async def calculate(self, db: AsyncSession, obj_in: IsochroneDTO, current_user: models.User) -> Any:
         """
-        Calculate the isochrone for a given location and time"""
+        Calculate the isochrone for a given location and time
+        """
         result = None
         if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
             # === Fetch Network ===#
@@ -720,7 +780,9 @@ class CRUDIsochrone:
                 network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
             )
             # === Amenity Intersect ===#
-            grid_decoded = await self.__amenity_intersect(grid, obj_in.settings.travel_time)
+            grid_decoded = await self.get_opportunities_single_isochrone(
+                grid, obj_in, current_user
+            )
             grid_encoded = encode_r5_grid(grid)
             # grid_decoded_test = decode_r5_grid(grid_encoded)
             result = Response(bytes(grid_encoded))
@@ -764,7 +826,7 @@ class CRUDIsochrone:
             )
             grid_decoded = decode_r5_grid(response.content)
             # === Amenity Intersect and Encode ===#
-            grid_decoded = await self.__amenity_intersect(grid_decoded, 120)
+            grid_decoded = await self.get_opportunities_single_isochrone(grid_decoded, 120)
             grid_encoded = encode_r5_grid(grid_decoded)
             # grid_decoded_test = decode_r5_grid(grid_encoded)
             result = Response(bytes(grid_encoded))
