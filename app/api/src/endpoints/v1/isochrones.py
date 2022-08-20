@@ -172,7 +172,7 @@ async def count_pois_multi_isochrones(
     )
     isochrone_in.active_upload_ids = current_user.active_data_upload_ids
     isochrone_in.user_id = current_user.id
-    cnt = await crud.isochrone.count_pois_multi_isochrones(db=db, obj_in=isochrone_in)
+    cnt = await crud.isochrone.count_opportunity(db=db, obj_in=isochrone_in)
     return cnt
 
 
