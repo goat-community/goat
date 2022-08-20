@@ -48,6 +48,7 @@ from src.utils import (
     delete_dir,
     encode_r5_grid,
     group_opportunities_single_isochrone,
+    group_opportunities_multi_isochrone
 )
 
 
@@ -297,15 +298,68 @@ class CRUDIsochrone:
         modus = isochrone_obj.scenario.modus.value
         scenario_id = isochrone_obj.scenario.id
 
+
         
         max_isochrone_geom = await self.get_max_isochrone_shape(grid_decoded, max_time)
         max_isochrone_wkt = max_isochrone_geom.wkt
 
-        if isochrone_obj.scenario.region_type.value == IsochroneMultiRegionType.STUDY_AREA:
-            get_study_area_population = f"""
+        # isochrone_obj.scenario.region_type.value
+        if 'study_area' == IsochroneMultiRegionType.STUDY_AREA.value:
+
+            ################################################
+            # TODO: Read study area ids from payload
+            sub_study_area_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] 
+
+            get_study_area_reachable_population_query = f"""
                 SELECT * 
-                FROM basic.reachable_population_study_area({scenario_id},'{modus}', ARRAY{isochrone_obj})
+                FROM basic.reachable_population_study_area({scenario_id},'{modus}', ARRAY{sub_study_area_ids})
             """
+            get_study_area_reachable_population = read_sql(
+                get_study_area_reachable_population_query,
+                legacy_engine,
+            )
+
+            get_population_multi_query = f"""
+                SELECT * 
+                FROM basic.get_population_multi_sum(
+                    {current_user.id}, 
+                    '{modus}', 
+                    ST_GeomFromText('{max_isochrone_wkt}', 4326), 
+                    ARRAY{sub_study_area_ids},
+                    {grid_decoded["zoom"]},
+                    {scenario_id}
+                ) 
+            """
+            get_population_multi = read_sql(
+                get_population_multi_query,
+                legacy_engine,
+            )
+
+            get_population_sum_pixel = np.array(get_population_multi["pixel"].tolist())
+            get_population_sum_population = get_population_multi["population"].to_numpy()
+            get_population_sub_study_area_id = get_population_multi["sub_study_area_id"].to_numpy()
+
+            amenity_grid_count = group_opportunities_multi_isochrone(
+                grid_decoded["west"],
+                grid_decoded["north"],
+                grid_decoded["width"],
+                grid_decoded["surface"],
+                get_population_sum_pixel,
+                get_population_sum_population,
+                get_population_sub_study_area_id,
+                np.array(sub_study_area_ids),
+                max_time,
+            )
+            
+            for i in amenity_grid_count[1]:
+                
+                # index = np.where(get_poi_one_entrance_sum_category[1] == amenity_grid_count[1][i])[0]
+                # value = get_poi_one_entrance_sum["category"][index[0]]
+                # amenity_count[value] = amenity_grid_count[2][i].tolist()
+                print(i)
+
+
+            return amenity_grid_count
 
     async def get_opportunities_single_isochrone(self, grid_decoded, isochrone_obj, current_user) -> Any:
         """
@@ -475,7 +529,7 @@ class CRUDIsochrone:
                 network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
             )
             # === Amenity Intersect ===#
-            grid_decoded = await self.get_opportunities_single_isochrone(
+            grid_decoded = await self.get_opportunities_multi_isochrone(
                 grid, obj_in, current_user
             )
             grid_encoded = encode_r5_grid(grid)

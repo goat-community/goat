@@ -362,7 +362,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
             surface[index] = coord
     return surface
 
-
+#@njit
 def group_opportunities_multi_isochrone(
     west,
     north,
@@ -370,12 +370,15 @@ def group_opportunities_multi_isochrone(
     surface,
     get_population_sum_pixel,
     get_population_sum_population,
+    get_population_sub_study_area_id,
+    sub_study_areas_ids,
     MAX_TIME=120
 ):
     """
     Return a list of amenity count for every minute
     """
-    population_grid_count = np.zeros(MAX_TIME)
+
+    population_grid_count = np.zeros((MAX_TIME, len(sub_study_areas_ids)))
     # - loop population
     for idx, pixel in enumerate(get_population_sum_pixel):
         pixel_x = pixel[1]
@@ -390,9 +393,14 @@ def group_opportunities_multi_isochrone(
             and get_population_sum_population[idx] > 0
             and time_cost <= MAX_TIME
         ):
-            population_grid_count[int(time_cost)] += get_population_sum_population[idx]
-    population_grid_count = np.cumsum(population_grid_count)
-
+            for id_sub_study_area_id, sub_study_area_id in enumerate(sub_study_areas_ids):
+                if get_population_sub_study_area_id[idx] == sub_study_area_id:
+                    population_grid_count[int(time_cost) - 1][id_sub_study_area_id] += get_population_sum_population[idx]
+    
+    for idx, population_per_study_area in enumerate(population_grid_count):
+        population_grid_count[idx] = np.cumsum(population_per_study_area)
+    
+    return population_grid_count
 
 @njit
 def group_opportunities_single_isochrone(
@@ -429,7 +437,7 @@ def group_opportunities_single_isochrone(
             and get_population_sum_population[idx] > 0
             and time_cost <= MAX_TIME
         ):
-            population_grid_count[int(time_cost)] += get_population_sum_population[idx]
+            population_grid_count[int(time_cost) - 1] += get_population_sum_population[idx]
     population_grid_count = np.cumsum(population_grid_count)
 
     # - loop poi_one_entrance
@@ -452,7 +460,7 @@ def group_opportunities_single_isochrone(
         if time_cost < 2147483647 and time_cost <= MAX_TIME:
             count = get_poi_one_entrance_sum_cnt[idx]
             poi_one_entrance_grid_count[poi_one_entrance_list.index(category)][
-                int(time_cost)
+                int(time_cost) - 1
             ] += count
 
     for index, value in enumerate(poi_one_entrance_grid_count):
@@ -485,7 +493,7 @@ def group_opportunities_single_isochrone(
         ):
             count = get_poi_more_entrance_sum_cnt[idx]
             poi_more_entrance_grid_count[poi_more_entrance_list.index(category)][
-                int(time_cost)
+                int(time_cost) - 1
             ] += count
             visited_more_entrance_categories.append(category_name)
 
