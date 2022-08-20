@@ -109,36 +109,38 @@ def construct_adjacency_list_(n, edge_source, edge_target, edge_cost, edge_rever
 
 
 @njit
-def dijkstra_(start_vertex, adj_list, travel_time):
+def dijkstra_(start_vertices, adj_list, travel_time):
     """
     Dijkstra's algorithm one-to-all shortest path search
     """
     n = len(adj_list)
     distances = [np.Inf for _ in range(n)]
-    distances[start_vertex] = 0.0
-    visited = [False for _ in range(n)]
-    # set up priority queue
-    pq = [(0.0, start_vertex)]
-    while len(pq) > 0:
-        if pq[0][0] >= travel_time:
-            break
-        # get the root, discard current distance (!!!distances in the data are in seconds)
-        _, u = heapq.heappop(pq)
-        # if the node is visited, skip
-        if visited[u]:
-            continue
-        # set the node to visited
-        visited[u] = True
-        # check the distance and node and distance
-        for v, l in adj_list[u]:
-            v = int(v)
-            l = l / 60.0  # convert cost to minutes
-            # if the current node's distance + distance to the node we're visiting
-            # is less than the distance of the node we're visiting on file
-            # replace that distance and push the node we're visiting into the priority queue
-            if distances[u] + l < distances[v]:
-                distances[v] = distances[u] + l
-                heapq.heappush(pq, (distances[v], v))
+    # loop over all start vertices
+    for start_vertex in start_vertices:
+        distances[start_vertex] = 0.0
+        visited = [False for _ in range(n)]
+        # set up priority queue
+        pq = [(0.0, start_vertex)]
+        while len(pq) > 0:
+            if pq[0][0] >= travel_time:
+                break
+            # get the root, discard current distance (!!!distances in the data are in seconds)
+            _, u = heapq.heappop(pq)
+            # if the node is visited, skip
+            if visited[u]:
+                continue
+            # set the node to visited
+            visited[u] = True
+            # check the distance and node and distance
+            for v, l in adj_list[u]:
+                v = int(v)
+                l = l / 60.0  # convert cost to minutes
+                # if the current node's distance + distance to the node we're visiting
+                # is less than the distance of the node we're visiting on file
+                # replace that distance and push the node we're visiting into the priority queue
+                if distances[u] + l < distances[v]:
+                    distances[v] = distances[u] + l
+                    heapq.heappush(pq, (distances[v], v))
     return distances
 
 
@@ -149,21 +151,21 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     interpolate_function = LinearNDInterpolator(list(points), costs)
 
     Z = interpolate_function(X, Y)
-    plt.figure().clear()
-    plt.pcolormesh(X, Y, Z, shading="auto")
-    plt.legend()
-    plt.colorbar()
-    plt.axis("equal")
-    plt.savefig("isochrone.png")
+    # plt.figure().clear()
+    # plt.pcolormesh(X, Y, Z, shading="auto")
+    # plt.legend()
+    # plt.colorbar()
+    # plt.axis("equal")
+    # plt.savefig("isochrone.png")
     return np.flip(Z, 0)
 
 
-def compute_isochrone(edge_network, start_vertexes, travel_time, zoom: int = 10):
+def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10):
     """
-    Compute isochrone for a given start vertexes
+    Compute isochrone for a given start vertices
 
     :param edge_network: Edge Network DataFrame
-    :param start_vertexes: List of start vertexes
+    :param start_vertices: List of start vertices
     :param travel_time: Travel time in minutes
     :return: R5 Grid
     """
@@ -192,9 +194,8 @@ def compute_isochrone(edge_network, start_vertexes, travel_time, zoom: int = 10)
     )
 
     # run dijkstra
-    distances = dijkstra_(
-        unordered_map[start_vertexes[0]], adj_list, travel_time
-    )  # TODO: Fix starting point
+    start_vertices_ids = [unordered_map[v] for v in start_vertices]
+    distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
 
     # minx, miny, maxx, maxy
     web_mercator_x_distance = extent[2] - extent[0]
