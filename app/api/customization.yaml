@@ -5,7 +5,7 @@ superuser:
     categories_no_foot: ["use_sidepath", "no"]
     excluded_class_id_cycling:
         [0, 101, 102, 103, 104, 105, 106, 107, 501, 502, 503, 504, 701, 801]
-    categories_no_bicycle: ["use_sidepath", "no"]
+    categories_no_bicycle: ["use_sidepath"]
     #categories_sidewalk_no_foot: ["separate"] #Used for visualization purpose only
     cycling_crossings_delay:
         delay_1: 15 #seconds
