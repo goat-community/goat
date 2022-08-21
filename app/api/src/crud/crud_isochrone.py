@@ -46,8 +46,8 @@ from src.utils import (
     decode_r5_grid,
     delete_dir,
     encode_r5_grid,
+    group_opportunities_multi_isochrone,
     group_opportunities_single_isochrone,
-    group_opportunities_multi_isochrone
 )
 
 
@@ -70,14 +70,7 @@ isochrone_feature = CRUDIsochroneCalculation(models.IsochroneFeature)
 
 
 class CRUDIsochrone:
-    async def read_network(self, db, obj_in: IsochroneDTO, current_user) -> Any:
-        isochrone_type = None
-        if len(obj_in.starting_point.input) == 1 and isinstance(
-            obj_in.starting_point.input[0], IsochroneStartingPointCoord
-        ):
-            isochrone_type = IsochroneTypeEnum.single.value
-        else:
-            isochrone_type = IsochroneTypeEnum.multi.value
+    async def read_network(self, db, obj_in: IsochroneDTO, current_user, isochrone_type) -> Any:
 
         if isochrone_type == IsochroneTypeEnum.single.value:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
@@ -98,7 +91,7 @@ class CRUDIsochrone:
             routing_profile = obj_in.mode.value + "_" + obj_in.settings.walking_profile.value
 
         if obj_in.mode.value == IsochroneMode.CYCLING.value:
-            routing_profile = obj_in.mode.value + "_" + obj_in.settings.walking_profile.value
+            routing_profile = obj_in.mode.value + "_" + obj_in.settings.cycling_profile.value
 
         x = y = None
         if isochrone_type == IsochroneTypeEnum.multi.value:
@@ -289,87 +282,116 @@ class CRUDIsochrone:
         )
         return multipolygon_shape
 
-    async def get_opportunities_multi_isochrone(
-        self, grid_decoded, isochrone_obj, current_user
-    ) -> Any:
+    async def get_opportunities_multi_isochrone(self, grid_decoded, obj_in, current_user) -> Any:
         """
         Get opportunities (population) for multiple isochrones
         """
-        max_time = isochrone_obj.settings.travel_time
-        modus = isochrone_obj.scenario.modus.value
-        scenario_id = isochrone_obj.scenario.id
+        max_time = obj_in.settings.travel_time
+        modus = obj_in.scenario.modus.value
+        scenario_id = obj_in.scenario.id
 
-        max_isochrone_geom = await self.get_max_isochrone_shape(grid_decoded, max_time)
-        max_isochrone_wkt = max_isochrone_geom.wkt
-
-        # isochrone_obj.scenario.region_type.value
-        if 'study_area' == IsochroneMultiRegionType.STUDY_AREA.value:
-
-            ################################################
-            # TODO: Read study area ids from payload
-            sub_study_area_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] 
-
-            get_study_area_reachable_population_query = f"""
+        clip_population_geom = await self.get_max_isochrone_shape(grid_decoded, max_time)
+        if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
+            # Use study area ids to get reachable population
+            clip_population_wkt = clip_population_geom.wkt
+            sub_study_area_ids = [int(i) for i in obj_in.starting_point.region]
+            get_reachable_population_query = f"""
                 SELECT * 
-                FROM basic.reachable_population_study_area({scenario_id},'{modus}', ARRAY{sub_study_area_ids})
+                FROM basic.reachable_population_study_area({scenario_id}, '{modus}', ARRAY{sub_study_area_ids})
             """
-            get_study_area_reachable_population = read_sql(
-                get_study_area_reachable_population_query,
+            get_reachable_population = read_sql(
+                get_reachable_population_query,
                 legacy_engine,
             )
+            sub_study_area_ids = get_reachable_population["sub_study_area_id"]
 
-            get_population_multi_query = f"""
-                SELECT * 
-                FROM basic.get_population_multi_sum(
-                    {current_user.id}, 
-                    '{modus}', 
-                    ST_GeomFromText('{max_isochrone_wkt}', 4326), 
-                    ARRAY{sub_study_area_ids},
-                    {grid_decoded["zoom"]},
-                    {scenario_id}
-                ) 
+        elif obj_in.starting_point.region_type == IsochroneMultiRegionType.DRAW:
+            # Get intersecting study_area_ids to pass to population reader
+            clip_population_wkt = obj_in.starting_point.region[0]
+            get_relevant_study_area_ids_query = f"""
+                SELECT DISTINCT id AS sub_study_area_id
+                FROM basic.sub_study_area
+                WHERE ST_Intersects(geom, ST_GeomFromText('{clip_population_wkt}', 4326))
             """
-            get_population_multi = read_sql(
-                get_population_multi_query,
+            get_relevant_study_area_ids = read_sql(
+                get_relevant_study_area_ids_query, legacy_engine
+            )
+            sub_study_area_ids = np.array([int(i) for i in get_relevant_study_area_ids["sub_study_area_id"]])
+            # Use polygon to get reachable population
+            get_reachable_population_query = f"""
+                SELECT 1 AS sub_study_area_id, * 
+                FROM basic.reachable_population_polygon({scenario_id}, '{modus}', '{clip_population_wkt}')
+            """
+            get_reachable_population = read_sql(
+                get_reachable_population_query,
                 legacy_engine,
             )
+   
+        get_population_multi_query = f"""
+            SELECT * 
+            FROM basic.get_population_multi_sum(
+                {current_user.id}, 
+                '{modus}', 
+                ST_GeomFromText('{clip_population_wkt}', 4326), 
+                ARRAY{sub_study_area_ids.tolist()},
+                {grid_decoded["zoom"]},
+                {scenario_id}
+            ) 
+        """
+        # Read relevant population from database
+        get_population_multi = read_sql(
+            get_population_multi_query,
+            legacy_engine,
+        )
 
-            get_population_sum_pixel = np.array(get_population_multi["pixel"].tolist())
-            get_population_sum_population = get_population_multi["population"].to_numpy()
-            get_population_sub_study_area_id = get_population_multi["sub_study_area_id"].to_numpy()
+        get_population_sum_pixel = np.array(get_population_multi["pixel"].tolist())
+        get_population_sum_population = get_population_multi["population"].to_numpy()
+        get_population_sub_study_area_id = get_population_multi["sub_study_area_id"].to_numpy()
 
-            amenity_grid_count = group_opportunities_multi_isochrone(
-                grid_decoded["west"],
-                grid_decoded["north"],
-                grid_decoded["width"],
-                grid_decoded["surface"],
-                get_population_sum_pixel,
-                get_population_sum_population,
-                get_population_sub_study_area_id,
-                np.array(sub_study_area_ids),
-                max_time,
-            )
-            
-            for i in amenity_grid_count[1]:
+        # Count population for each sub_study_area_id/polygon
+        population_grid_count = group_opportunities_multi_isochrone(
+            grid_decoded["west"],
+            grid_decoded["north"],
+            grid_decoded["width"],
+            grid_decoded["surface"],
+            get_population_sum_pixel,
+            get_population_sum_population,
+            get_population_sub_study_area_id,
+            sub_study_area_ids,
+            max_time,
+        )
+        population_count = {}
+
+        # Bring into correct format for client
+        if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
+            for idx, sub_study_area in get_reachable_population.iterrows():
+                population_count[sub_study_area["name"]] = {
+                    "total_population": sub_study_area["population"],
+                    "reached_population": population_grid_count[idx].tolist(),
+                }
+        elif obj_in.starting_point.region_type == IsochroneMultiRegionType.DRAW:
+            reached_population = np.zeros(max_time)
+            for idx, sub_study_area_id in enumerate(sub_study_area_ids):
+                reached_population += population_grid_count[idx]
                 
-                # index = np.where(get_poi_one_entrance_sum_category[1] == amenity_grid_count[1][i])[0]
-                # value = get_poi_one_entrance_sum["category"][index[0]]
-                # amenity_count[value] = amenity_grid_count[2][i].tolist()
-                print(i)
+            population_count["polygon"] = {
+                "total_population": int(get_reachable_population["population"][0]),
+                "reached_population": reached_population.tolist(),
+            }
 
+        # Add population count to grid decoded
+        grid_decoded["accessibility"] = population_count
 
-            return amenity_grid_count
+        return grid_decoded
 
-    async def get_opportunities_single_isochrone(
-        self, grid_decoded, isochrone_obj, current_user
-    ) -> Any:
+    async def get_opportunities_single_isochrone(self, grid_decoded, obj_in, current_user) -> Any:
         """
         Get opportunities (population+POIs) for single isochrone
         """
 
-        max_time = isochrone_obj.settings.travel_time
-        modus = isochrone_obj.scenario.modus.value
-        scenario_id = isochrone_obj.scenario.id
+        max_time = obj_in.settings.travel_time
+        modus = obj_in.scenario.modus.value
+        scenario_id = obj_in.scenario.id
         active_data_upload_ids = current_user.active_data_upload_ids
         max_isochrone_geom = await self.get_max_isochrone_shape(grid_decoded, max_time)
         max_isochrone_wkt = max_isochrone_geom.wkt
@@ -509,11 +531,11 @@ class CRUDIsochrone:
                 int(study_area_id) for study_area_id in obj_in.starting_point.region
             ]
         elif obj_in.starting_point.region_type.value == IsochroneMultiRegionType.DRAW.value:
-            obj_in_data["region_geom"] = obj_in.starting_point.region
+            obj_in_data["region_geom"] = obj_in.starting_point.region[0]
 
         sql_starting_points = text(
             """SELECT x, y 
-        FROM basic.starting_points_multi_isochrones(:user_id, :modus, :minutes, :speed, :amenities, :scenario_id, :active_upload_ids, :region_geom, :study_area_ids)"""
+            FROM basic.starting_points_multi_isochrones(:user_id, :modus, :minutes, :speed, :amenities, :scenario_id, :active_upload_ids, :region_geom, :study_area_ids)"""
         )
         starting_points = await db.execute(sql_starting_points, obj_in_data)
         starting_points = starting_points.fetchall()
@@ -526,14 +548,30 @@ class CRUDIsochrone:
         Calculate the isochrone for a given location and time
         """
         result = None
+        if len(obj_in.starting_point.input) == 1 and isinstance(
+            obj_in.starting_point.input[0], IsochroneStartingPointCoord
+        ):
+            isochrone_type = IsochroneTypeEnum.single.value
+        else:
+            isochrone_type = IsochroneTypeEnum.multi.value
+
         if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
-            network, starting_ids = await self.read_network(db, obj_in, current_user)
+            network, starting_ids = await self.read_network(
+                db, obj_in, current_user, isochrone_type
+            )
             grid = compute_isochrone(
                 network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
             )
-            grid_decoded = await self.get_opportunities_single_isochrone(
-                grid, obj_in, current_user
-            )
+
+            if isochrone_type == IsochroneTypeEnum.single.value:
+                grid_decoded = await self.get_opportunities_single_isochrone(
+                    grid, obj_in, current_user
+                )
+            elif isochrone_type == IsochroneTypeEnum.multi.value:
+                grid_decoded = await self.get_opportunities_multi_isochrone(
+                    grid, obj_in, current_user
+                )
+
             grid_encoded = encode_r5_grid(grid)
             result = Response(bytes(grid_encoded))
         else:

@@ -362,7 +362,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
             surface[index] = coord
     return surface
 
-#@njit
+@njit
 def group_opportunities_multi_isochrone(
     west,
     north,
@@ -375,10 +375,10 @@ def group_opportunities_multi_isochrone(
     MAX_TIME=120
 ):
     """
-    Return a list of amenity count for every minute
+    Return a list of population count for every minute and study-area/polygon
     """
 
-    population_grid_count = np.zeros((MAX_TIME, len(sub_study_areas_ids)))
+    population_grid_count = np.zeros((len(sub_study_areas_ids), MAX_TIME))
     # - loop population
     for idx, pixel in enumerate(get_population_sum_pixel):
         pixel_x = pixel[1]
@@ -395,7 +395,7 @@ def group_opportunities_multi_isochrone(
         ):
             for id_sub_study_area_id, sub_study_area_id in enumerate(sub_study_areas_ids):
                 if get_population_sub_study_area_id[idx] == sub_study_area_id:
-                    population_grid_count[int(time_cost) - 1][id_sub_study_area_id] += get_population_sum_population[idx]
+                    population_grid_count[id_sub_study_area_id][int(time_cost) - 1] += get_population_sum_population[idx]
     
     for idx, population_per_study_area in enumerate(population_grid_count):
         population_grid_count[idx] = np.cumsum(population_per_study_area)
