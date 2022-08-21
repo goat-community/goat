@@ -46,6 +46,7 @@ from src.utils import (
     decode_r5_grid,
     delete_dir,
     encode_r5_grid,
+    geometry_to_pixel,
     group_opportunities_single_isochrone,
 )
 
@@ -353,8 +354,8 @@ class CRUDIsochrone:
             )
         """
         get_aoi_query = f"""
-            SELECT category, ST_AREA(geom::geography)::integer AS area, geom 
-            FROM basic.aoi a 
+            SELECT category, ST_AREA(d.geom::geography)::integer AS area, ST_AsGeoJSON(d.geom) :: json->'coordinates' AS geom
+            FROM basic.aoi a, LATERAL ST_DUMP(a.geom) d
             WHERE ST_Intersects(a.geom, ST_GeomFromText('{max_isochrone_wkt}', 4326))
         """
 
@@ -371,7 +372,12 @@ class CRUDIsochrone:
             legacy_engine,
         )
         get_aoi = read_sql(get_aoi_query, legacy_engine)
-        # TODO: Get intersection of AOI and isochrone
+        # loop through get_aoi geoms
+        for aoi_coordinates in get_aoi["geom"]:
+            aoi_pixel_coordinates = geometry_to_pixel(
+                {"type": "Polygon", "coordinates": aoi_coordinates}, grid_decoded["zoom"]
+            )
+            print(aoi_pixel_coordinates)
 
         ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
         get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())

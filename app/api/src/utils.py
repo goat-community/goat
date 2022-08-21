@@ -538,11 +538,13 @@ def coordinate_from_pixel(pixel, zoom):
     }
 
 
-def coordinate_to_pixel(input, zoom):
-    return {
-        "x": longitude_to_pixel(input[0], zoom),
-        "y": latitude_to_pixel(input[1], zoom),
-    }
+def coordinate_to_pixel(input, zoom, return_dict=True):
+    x = longitude_to_pixel(input[0], zoom)
+    y = latitude_to_pixel(input[1], zoom)
+    if return_dict:
+        return {"x": x, "y": y}
+    else:
+        return [x, y]
 
 
 def longitude_to_pixel(longitude, zoom):
@@ -554,6 +556,25 @@ def latitude_to_pixel(latitude, zoom):
     return ((1 - math.log(math.tan(lat_rad) + 1 / math.cos(lat_rad)) / math.pi) / 2) * z_scale(
         zoom
     )
+
+
+def geometry_to_pixel(geometry, zoom):
+    """
+    Convert a geometry to pixel coordinate
+    """
+    pixel_coordinates = []
+    if geometry["type"] == "Point":
+        pixel_coordinates.append(coordinate_to_pixel(geometry["coordinates"], zoom))
+    if geometry["type"] == "LineString":
+        for coordinate in geometry["coordinates"]:
+            pixel_coordinates.append(coordinate_to_pixel(coordinate, zoom))
+    elif geometry["type"] == "Polygon":
+        for ring in geometry["coordinates"]:
+            pixel_coordinates.append([coordinate_to_pixel(coord, zoom) for coord in ring])
+    else:
+        raise ValueError(f"Unsupported geometry type {geometry['type']}")
+
+    return pixel_coordinates
 
 
 def katana(geometry, threshold, count=0):
