@@ -16,6 +16,7 @@ import geobuf
 import geopandas
 import numba
 import numpy as np
+import pyproj
 from emails.template import JinjaTemplate
 from fastapi import HTTPException, UploadFile
 from fiona import _err
@@ -27,6 +28,7 @@ from numba import njit
 from rich import print as print
 from sentry_sdk import HttpTransport
 from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
+from shapely.ops import transform
 from starlette import status
 from starlette.responses import Response
 
@@ -362,6 +364,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
             surface[index] = coord
     return surface
 
+
 @njit
 def group_opportunities_multi_isochrone(
     west,
@@ -372,7 +375,7 @@ def group_opportunities_multi_isochrone(
     get_population_sum_population,
     get_population_sub_study_area_id,
     sub_study_areas_ids,
-    MAX_TIME=120
+    MAX_TIME=120,
 ):
     """
     Return a list of population count for every minute and study-area/polygon
@@ -395,12 +398,15 @@ def group_opportunities_multi_isochrone(
         ):
             for id_sub_study_area_id, sub_study_area_id in enumerate(sub_study_areas_ids):
                 if get_population_sub_study_area_id[idx] == sub_study_area_id:
-                    population_grid_count[id_sub_study_area_id][int(time_cost) - 1] += get_population_sum_population[idx]
-    
+                    population_grid_count[id_sub_study_area_id][
+                        int(time_cost) - 1
+                    ] += get_population_sum_population[idx]
+
     for idx, population_per_study_area in enumerate(population_grid_count):
         population_grid_count[idx] = np.cumsum(population_per_study_area)
-    
+
     return population_grid_count
+
 
 @njit
 def group_opportunities_single_isochrone(
@@ -546,9 +552,12 @@ def coordinate_from_pixel(pixel, zoom):
     }
 
 
-def coordinate_to_pixel(input, zoom, return_dict=True):
+def coordinate_to_pixel(input, zoom, return_dict=True, round_int=False):
     x = longitude_to_pixel(input[0], zoom)
     y = latitude_to_pixel(input[1], zoom)
+    if round_int:
+        x = round(x)
+        y = round(y)
     if return_dict:
         return {"x": x, "y": y}
     else:
@@ -572,17 +581,46 @@ def geometry_to_pixel(geometry, zoom):
     """
     pixel_coordinates = []
     if geometry["type"] == "Point":
-        pixel_coordinates.append(coordinate_to_pixel(geometry["coordinates"], zoom))
+        pixel_coordinates.append(
+            coordinate_to_pixel(geometry["coordinates"], zoom, return_dict=False, round_int=True)
+        )
     if geometry["type"] == "LineString":
         for coordinate in geometry["coordinates"]:
-            pixel_coordinates.append(coordinate_to_pixel(coordinate, zoom))
+
+            pixel_coordinates.append(
+                np.unique(
+                    np.array(
+                        coordinate_to_pixel(coordinate, zoom, return_dict=False, round_int=True)
+                    ),
+                    axis=0,
+                )
+            )
     elif geometry["type"] == "Polygon":
         for ring in geometry["coordinates"]:
-            pixel_coordinates.append([coordinate_to_pixel(coord, zoom) for coord in ring])
+            ring_pixels = np.unique(
+                np.array(
+                    [
+                        coordinate_to_pixel(coord, zoom, return_dict=False, round_int=True)
+                        for coord in ring
+                    ]
+                ),
+                axis=0,
+            )
+
+            pixel_coordinates.append(ring_pixels)
     else:
         raise ValueError(f"Unsupported geometry type {geometry['type']}")
 
     return pixel_coordinates
+
+
+project = pyproj.Transformer.from_crs(
+    pyproj.CRS("EPSG:4326"), pyproj.CRS("EPSG:3857"), always_xy=True
+).transform
+
+
+def wgs84_to_web_mercator(geometry):
+    return transform(project, geometry)
 
 
 def katana(geometry, threshold, count=0):

@@ -1,11 +1,15 @@
 import io
 import json
+import math
 import os
 import shutil
+import time
 import uuid
 from errno import ELOOP
 from typing import Any
+from unicodedata import category
 
+import matplotlib.path
 import numpy as np
 import pandas as pd
 import requests
@@ -17,6 +21,7 @@ from geopandas import GeoDataFrame, GeoSeries
 from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
 from pyproj import Transformer
+from shapely import wkt
 from shapely.geometry import MultiPolygon, Point, Polygon, shape
 from shapely.ops import unary_union
 from sqlalchemy import intersect
@@ -49,6 +54,7 @@ from src.utils import (
     geometry_to_pixel,
     group_opportunities_multi_isochrone,
     group_opportunities_single_isochrone,
+    wgs84_to_web_mercator,
 )
 
 
@@ -317,7 +323,9 @@ class CRUDIsochrone:
             get_relevant_study_area_ids = read_sql(
                 get_relevant_study_area_ids_query, legacy_engine
             )
-            sub_study_area_ids = np.array([int(i) for i in get_relevant_study_area_ids["sub_study_area_id"]])
+            sub_study_area_ids = np.array(
+                [int(i) for i in get_relevant_study_area_ids["sub_study_area_id"]]
+            )
             # Use polygon to get reachable population
             get_reachable_population_query = f"""
                 SELECT 1 AS sub_study_area_id, * 
@@ -327,7 +335,7 @@ class CRUDIsochrone:
                 get_reachable_population_query,
                 legacy_engine,
             )
-   
+
         get_population_multi_query = f"""
             SELECT * 
             FROM basic.get_population_multi_sum(
@@ -374,7 +382,7 @@ class CRUDIsochrone:
             reached_population = np.zeros(max_time)
             for idx, sub_study_area_id in enumerate(sub_study_area_ids):
                 reached_population += population_grid_count[idx]
-                
+
             population_count["polygon"] = {
                 "total_population": int(get_reachable_population["population"][0]),
                 "reached_population": reached_population.tolist(),
@@ -429,7 +437,7 @@ class CRUDIsochrone:
             )
         """
         get_aoi_query = f"""
-            SELECT category, ST_AREA(d.geom::geography)::integer AS area, ST_AsGeoJSON(d.geom) :: json->'coordinates' AS geom
+            SELECT category, ST_AREA(d.geom::geography)::integer AS area, ST_AsText(ST_Transform(d.geom,3857)) as geom
             FROM basic.aoi a, LATERAL ST_DUMP(a.geom) d
             WHERE ST_Intersects(a.geom, ST_GeomFromText('{max_isochrone_wkt}', 4326))
         """
@@ -447,12 +455,6 @@ class CRUDIsochrone:
             legacy_engine,
         )
         get_aoi = read_sql(get_aoi_query, legacy_engine)
-        # loop through get_aoi geoms
-        for aoi_coordinates in get_aoi["geom"]:
-            aoi_pixel_coordinates = geometry_to_pixel(
-                {"type": "Polygon", "coordinates": aoi_coordinates}, grid_decoded["zoom"]
-            )
-            print(aoi_pixel_coordinates)
 
         ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
         get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
@@ -499,6 +501,28 @@ class CRUDIsochrone:
             index = np.where(get_poi_more_entrance_sum_category[1] == amenity_grid_count[3][i])[0]
             value = get_poi_more_entrance_sum["category"][index[0]]
             amenity_count[value] = amenity_grid_count[4][i].tolist()
+        # aoi count TODO: fix performance for public transport
+        aoi_categories = {}
+        for idx, aoi in get_aoi.iterrows():
+            geom = aoi["geom"]
+            category = aoi["category"]
+            geom_shapely = wkt.loads(geom)
+            # add category to aoi_categories if not already in there
+            if category not in aoi_categories:
+                aoi_categories[category] = []
+            aoi_categories[category].append(geom_shapely)
+        # loop through aoi_categories
+        for category, polygons in aoi_categories.items():
+            aoi_categories[category] = MultiPolygon(polygons)
+
+        for current_time in range(max_time):
+            isochrone_shape = await self.get_max_isochrone_shape(grid_decoded, current_time + 1)
+            isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
+            for category, aoi_geom in aoi_categories.items():
+                category_area = isochrone_polygon.intersection(aoi_geom).area
+                if category not in amenity_count:
+                    amenity_count[category] = [0] * max_time
+                amenity_count[category][current_time] = category_area
 
         ##-- ADD AMENITY TO GRID DECODED --##
         grid_decoded["accessibility"] = amenity_count
@@ -553,6 +577,7 @@ class CRUDIsochrone:
         """
         Calculate the isochrone for a given location and time
         """
+        grid = None
         result = None
         if len(obj_in.starting_point.input) == 1 and isinstance(
             obj_in.starting_point.input[0], IsochroneStartingPointCoord
@@ -561,6 +586,7 @@ class CRUDIsochrone:
         else:
             isochrone_type = IsochroneTypeEnum.multi.value
 
+        # == Walking and cycling isochrone ==
         if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
             network, starting_ids = await self.read_network(
                 db, obj_in, current_user, isochrone_type
@@ -568,18 +594,7 @@ class CRUDIsochrone:
             grid = compute_isochrone(
                 network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
             )
-
-            if isochrone_type == IsochroneTypeEnum.single.value:
-                grid_decoded = await self.get_opportunities_single_isochrone(
-                    grid, obj_in, current_user
-                )
-            elif isochrone_type == IsochroneTypeEnum.multi.value:
-                grid_decoded = await self.get_opportunities_multi_isochrone(
-                    grid, obj_in, current_user
-                )
-
-            grid_encoded = encode_r5_grid(grid)
-            result = Response(bytes(grid_encoded))
+        # == Public transport isochrone ==
         else:
             payload = {
                 "accessModes": obj_in.settings.access_mode.value.upper(),
@@ -618,11 +633,16 @@ class CRUDIsochrone:
                 settings.R5_API_URL + "/analysis",
                 json=payload,
             )
-            grid_decoded = decode_r5_grid(response.content)
-            # === Amenity Intersect and Encode ===#
-            grid_decoded = await self.get_opportunities_single_isochrone(grid_decoded, 120)
-            grid_encoded = encode_r5_grid(grid_decoded)
-            result = Response(bytes(grid_encoded))
+            grid = decode_r5_grid(response.content)
+
+        # Opportunity intersect
+        if isochrone_type == IsochroneTypeEnum.single.value:
+            grid = await self.get_opportunities_single_isochrone(grid, obj_in, current_user)
+        elif isochrone_type == IsochroneTypeEnum.multi.value:
+            grid = await self.get_opportunities_multi_isochrone(grid, obj_in, current_user)
+
+        grid_encoded = encode_r5_grid(grid)
+        result = Response(bytes(grid_encoded))
         return result
 
 

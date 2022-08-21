@@ -1334,7 +1334,7 @@ export default {
         const toTimeArr = this.publicTransport.toTime.split(":");
         settings = {
           ...settings,
-          travel_time: 15,
+          travel_time: 60,
           transit_modes: routing === ["car"] ? "" : transitModes,
           departure_date: this.publicTransport.date,
           access_mode:
