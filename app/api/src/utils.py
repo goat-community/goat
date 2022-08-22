@@ -618,9 +618,17 @@ project = pyproj.Transformer.from_crs(
     pyproj.CRS("EPSG:4326"), pyproj.CRS("EPSG:3857"), always_xy=True
 ).transform
 
+unproject = pyproj.Transformer.from_crs(
+    pyproj.CRS("EPSG:3857"), pyproj.CRS("EPSG:4326"), always_xy=True
+).transform
+
 
 def wgs84_to_web_mercator(geometry):
     return transform(project, geometry)
+
+
+def web_mercator_to_wgs84(geometry):
+    return transform(unproject, geometry)
 
 
 def katana(geometry, threshold, count=0):
