@@ -35,11 +35,11 @@ BEGIN
 	 	),
 	 	scenario_population AS 
 	 	(
-		 	SELECT p.sub_study_area_id, sum(population) population 
+		 	SELECT p.sub_study_area_id, sum(p.population) population 
 		 	FROM prepared_scenario p 
 		 	GROUP BY p.sub_study_area_id
 		)
-		SELECT s.id AS sub_study_area_id, s.name, (s.population + COALESCE(sp.population, 0)) AS population 
+		SELECT s.id AS sub_study_area_id, s.name, (s.population + COALESCE(sp.population, 0))::integer AS population 
 		FROM basic.sub_study_area s
 		LEFT JOIN scenario_population sp 
 		ON s.id = sp.sub_study_area_id
