@@ -376,7 +376,7 @@ class CRUDIsochrone:
             for idx, sub_study_area in get_reachable_population.iterrows():
                 population_count[sub_study_area["name"]] = {
                     "total_population": sub_study_area["population"],
-                    "reached_population": population_grid_count[idx].tolist(),
+                    "reached_population": population_grid_count[idx].astype(int).tolist(),
                 }
         elif obj_in.starting_point.region_type == IsochroneMultiRegionType.DRAW:
             reached_population = np.zeros(max_time)
@@ -385,7 +385,7 @@ class CRUDIsochrone:
 
             population_count["polygon"] = {
                 "total_population": int(get_reachable_population["population"][0]),
-                "reached_population": reached_population.tolist(),
+                "reached_population": reached_population.astype(int).tolist(),
             }
 
         # Add population count to grid decoded
@@ -490,7 +490,7 @@ class CRUDIsochrone:
             get_poi_more_entrance_sum_cnt,
             max_time,
         )
-        amenity_count = {"population": amenity_grid_count[0].tolist()}
+        amenity_count = {"population": amenity_grid_count[0].astype(int).tolist()}
         # poi one entrance
         for i in amenity_grid_count[1]:
             index = np.where(get_poi_one_entrance_sum_category[1] == amenity_grid_count[1][i])[0]

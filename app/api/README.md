@@ -483,4 +483,4 @@ Traefik UI: http://localhost.tiangolo.com:8090
 
 To create an empty data dump used for the data preparation the following command can be executed.
 
-`pg_dump -d db-name -U user-name -h host-name -s -n basic -n customer -x > dump_schema.sql`
+`pg_dump -d goat -U postgres -h goatdb-dev.chmmut4l0c8h.eu-central-1.rds.amazonaws.com -F t -s -n basic -n customer -x > dump_schema.sql`
