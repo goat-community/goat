@@ -542,8 +542,8 @@ request_examples = {
                 ],
             },
         },
-        "multi_isochrone": {
-            "summary": "Multi isochrone",
+        "multi_isochrones": {
+            "summary": "Multi isochrones",
             "value": {
                 "type": "FeatureCollection",
                 "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
