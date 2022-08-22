@@ -1285,21 +1285,7 @@ export default {
         isochroneMarkerFeature.setId("isochrone_marker_" + calculationNumber);
         isochroneMarkerFeature.set("showLabel", false);
         this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
-        const promiseArray = this.calculateIsochrone(startPoint);
-        axios
-          .all(promiseArray)
-          .then(() => {})
-          .catch(error => {
-            if (error && error.message === "cancelled") {
-              return;
-            }
-            this.toggleSnackbar({
-              type: "error", //success or error
-              message: this.$t("map.snackbarMessages.calculateIsochroneError"),
-              state: true,
-              timeout: 2500
-            });
-          });
+        this.calculateIsochrone(startPoint);
         this.clear();
       }
     },
@@ -1395,7 +1381,8 @@ export default {
       }
       //-- SCENARIO --// (** CONSIDERED ONLY FOR WALKING AND CYCLING **)
       let scenario = {
-        id: this.activeScenario ? this.activeScenario : 0,
+        id:
+          this.calculationMode.active === "scenario" ? this.activeScenario : 0,
         modus: this.calculationMode.active
       };
 
@@ -1408,7 +1395,7 @@ export default {
 
       // If modus is "comparision" do two requests one for default and one for scenario
       if (
-        this.calculationMode.active === "comparision" &&
+        this.calculationMode.active === "comparison" &&
         (routing.includes("walking") || routing.includes("cycling"))
       ) {
         const defaultPayload = {
@@ -1447,120 +1434,129 @@ export default {
       payloads.forEach(payload => {
         const axiosInstance = axios.create();
         promiseArray.push(
-          new Promise((resolve, reject) => {
+          new Promise(resolve => {
             axiosInstance
               .post(`./isochrones`, payload, {
                 responseType: "arraybuffer"
               })
               .then(response => {
                 resolve(response);
-                if (response.data) {
-                  const isochroneSurface = parseTimesData(response.data);
-                  let singleValuedSurface = {};
-                  if (isochroneSurface.depth === 1) {
-                    singleValuedSurface = isochroneSurface;
-                    singleValuedSurface["surface"] = isochroneSurface.data;
-                  } else {
-                    singleValuedSurface = computeSingleValuedSurface(
-                      isochroneSurface,
-                      50
-                    );
-                  }
-                  const {
-                    surface,
-                    width,
-                    height,
-                    west,
-                    north,
-                    zoom
-                    // eslint-disable-next-line no-undef
-                  } = singleValuedSurface;
-                  const isochronePolygon = jsolines({
-                    surface,
-                    width,
-                    height,
-                    cutoff: this.isochroneRange,
-                    project: ([x, y]) => {
-                      const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-                      return [ll.lon, ll.lat];
-                    }
-                  });
-                  let olFeatures = geojsonToFeature(isochronePolygon, {
-                    dataProjection: "EPSG:4326",
-                    featureProjection: "EPSG:3857"
-                  });
-
-                  const calculationNumber = this.calculations.length + 1;
-                  const isochroneCalculationUid =
-                    olFeatures[0].get("isochrone_calculation_id") ||
-                    calculationNumber;
-                  olFeatures[0].setId(
-                    "isochrone_feature_" + isochroneCalculationUid
-                  );
-                  olFeatures[0].set("calculationNumber", calculationNumber);
-                  let calculation = {
-                    id: calculationNumber,
-                    type: _type,
-                    routing: _routing,
-                    config: payload,
-                    rawData: isochroneSurface,
-                    surfaceData: singleValuedSurface,
-                    feature: olFeatures[0]
-                  };
-                  if (_type == "single") {
-                    //Geocode
-                    delete axiosInstance.defaults.headers.common[
-                      "Authorization"
-                    ];
-                    axiosInstance
-                      .get(
-                        `https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
-                      )
-                      .then(response => {
-                        if (
-                          response.status === 200 &&
-                          response.data.display_name
-                        ) {
-                          const address = response.data.display_name;
-                          calculation.position = address;
-                        }
-                      })
-                      .catch(() => {
-                        calculation.position = "Unknown";
-                      })
-                      .finally(() => {
-                        this.isMapBusy = false;
-                        this.isIsochroneBusy = false;
-                        if (this.selectedCalculations.length === 2) {
-                          // Remove first calculation if length is already 2
-                          this.selectedCalculations.shift();
-                        }
-                        this.calculations.unshift(calculation);
-                        this.selectedCalculations.push(calculation);
-                        this.isOptionsElVisible = false;
-                      });
-                  } else {
-                    calculation.position = "multiIsochroneCalculation";
-                    this.calculations.unshift(calculation);
-                    this.selectedCalculations = [];
-                    this.selectedCalculations.push(calculation);
-                    this.isOptionsElVisible = false;
-                  }
-                }
-              })
-              .catch(error => {
-                reject(error);
-              })
-              .finally(() => {
-                this.multiIsochroneSelectionLayer.getSource().clear();
-                this.isMapBusy = false;
-                this.isIsochroneBusy = false;
-                this.clear();
               });
           })
         );
       });
-      return promiseArray;
+      Promise.all(promiseArray)
+        .then(results => {
+          results.forEach((response, index) => {
+            if (response.data) {
+              const payload = payloads[index];
+              const isochroneSurface = parseTimesData(response.data);
+              let singleValuedSurface = {};
+              if (isochroneSurface.depth === 1) {
+                singleValuedSurface = isochroneSurface;
+                singleValuedSurface["surface"] = isochroneSurface.data;
+              } else {
+                singleValuedSurface = computeSingleValuedSurface(
+                  isochroneSurface,
+                  50
+                );
+              }
+              const {
+                surface,
+                width,
+                height,
+                west,
+                north,
+                zoom
+                // eslint-disable-next-line no-undef
+              } = singleValuedSurface;
+              const isochronePolygon = jsolines({
+                surface,
+                width,
+                height,
+                cutoff: this.isochroneRange,
+                project: ([x, y]) => {
+                  const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+                  return [ll.lon, ll.lat];
+                }
+              });
+              let olFeatures = geojsonToFeature(isochronePolygon, {
+                dataProjection: "EPSG:4326",
+                featureProjection: "EPSG:3857"
+              });
+
+              const calculationNumber = this.calculations.length + 1;
+              const isochroneCalculationUid =
+                olFeatures[0].get("isochrone_calculation_id") ||
+                calculationNumber;
+              olFeatures[0].setId(
+                "isochrone_feature_" + isochroneCalculationUid
+              );
+              olFeatures[0].set("calculationNumber", calculationNumber);
+              let calculation = {
+                id: calculationNumber,
+                type: _type,
+                routing: _routing,
+                config: payload,
+                rawData: isochroneSurface,
+                surfaceData: singleValuedSurface,
+                feature: olFeatures[0]
+              };
+              if (_type == "single") {
+                //Geocode
+                const axiosInstance = axios.create();
+                delete axiosInstance.defaults.headers.common["Authorization"];
+                axiosInstance
+                  .get(
+                    `https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
+                  )
+                  .then(response => {
+                    if (response.status === 200 && response.data.display_name) {
+                      const address = response.data.display_name;
+                      calculation.position = address;
+                    }
+                  })
+                  .catch(() => {
+                    calculation.position = "Unknown";
+                  })
+                  .finally(() => {
+                    this.isMapBusy = false;
+                    this.isIsochroneBusy = false;
+                    if (this.selectedCalculations.length === 2) {
+                      // Remove first calculation if length is already 2
+                      this.selectedCalculations.shift();
+                    }
+                    this.calculations.unshift(calculation);
+                    this.selectedCalculations.push(calculation);
+                    this.isOptionsElVisible = false;
+                  });
+              } else {
+                calculation.position = "multiIsochroneCalculation";
+                this.calculations.unshift(calculation);
+                this.selectedCalculations = [];
+                this.selectedCalculations.push(calculation);
+                this.isOptionsElVisible = false;
+              }
+            }
+          });
+        })
+        .catch(error => {
+          if (error && error.message === "cancelled") {
+            return;
+          }
+          this.toggleSnackbar({
+            type: "error", //success or error
+            message: this.$t("map.snackbarMessages.calculateIsochroneError"),
+            state: true,
+            timeout: 2500
+          });
+        })
+        .finally(() => {
+          this.multiIsochroneSelectionLayer.getSource().clear();
+          this.isMapBusy = false;
+          this.isIsochroneBusy = false;
+          this.clear();
+        });
     },
     /**
      * Map pointer move event .

@@ -403,7 +403,9 @@
         "shared": "Share"
       },
       "travelTime": "Traveltime (minutes)",
-      "amenityCount": "Amenity Count"
+      "amenityCount": "Amenity Count",
+      "populationCount": "Population Count",
+      "aoisArea": "AOIs Area"
     },
     "isochrones": "Isochrones",
     "deleteTitle": "Delete",
