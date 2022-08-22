@@ -638,9 +638,12 @@
                             <v-icon small class="text-xs-center mx-2"
                               >fas fa-tachometer-alt
                             </v-icon>
-                            <span class="caption">{{
-                              calculation.config.settings.speed
-                            }}</span>
+                            <span class="caption"
+                              >{{
+                                calculation.config.settings.speed
+                              }}
+                              km/h</span
+                            >
                           </template>
                           <template
                             v-if="
@@ -1307,6 +1310,7 @@ export default {
     calculateIsochrone(startPoint) {
       let routing = this.routing;
       let _routing = this.routing; //store selected routing for later use
+      let _type = this.type; //store selected type for later use
       let mode = routing;
       //-- SETTINGS --//
       let settings = {
@@ -1502,35 +1506,44 @@ export default {
                     surfaceData: singleValuedSurface,
                     feature: olFeatures[0]
                   };
-                  //Geocode
-                  delete axiosInstance.defaults.headers.common["Authorization"];
-                  axiosInstance
-                    .get(
-                      `https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
-                    )
-                    .then(response => {
-                      if (
-                        response.status === 200 &&
-                        response.data.display_name
-                      ) {
-                        const address = response.data.display_name;
-                        calculation.position = address;
-                      }
-                    })
-                    .catch(() => {
-                      calculation.position = "Unknown";
-                    })
-                    .finally(() => {
-                      this.isMapBusy = false;
-                      this.isIsochroneBusy = false;
-                      if (this.selectedCalculations.length === 2) {
-                        // Remove first calculation if length is already 2
-                        this.selectedCalculations.shift();
-                      }
-                      this.calculations.unshift(calculation);
-                      this.selectedCalculations.push(calculation);
-                      this.isOptionsElVisible = false;
-                    });
+                  if (_type == "single") {
+                    //Geocode
+                    delete axiosInstance.defaults.headers.common[
+                      "Authorization"
+                    ];
+                    axiosInstance
+                      .get(
+                        `https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
+                      )
+                      .then(response => {
+                        if (
+                          response.status === 200 &&
+                          response.data.display_name
+                        ) {
+                          const address = response.data.display_name;
+                          calculation.position = address;
+                        }
+                      })
+                      .catch(() => {
+                        calculation.position = "Unknown";
+                      })
+                      .finally(() => {
+                        this.isMapBusy = false;
+                        this.isIsochroneBusy = false;
+                        if (this.selectedCalculations.length === 2) {
+                          // Remove first calculation if length is already 2
+                          this.selectedCalculations.shift();
+                        }
+                        this.calculations.unshift(calculation);
+                        this.selectedCalculations.push(calculation);
+                        this.isOptionsElVisible = false;
+                      });
+                  } else {
+                    calculation.position = "multiIsochroneCalculation";
+                    this.calculations.unshift(calculation);
+                    this.selectedCalculations.push(calculation);
+                    this.isOptionsElVisible = false;
+                  }
                 }
               })
               .catch(error => {

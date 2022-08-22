@@ -366,7 +366,7 @@ class CRUDIsochrone:
             get_population_sum_pixel,
             get_population_sum_population,
             get_population_sub_study_area_id,
-            sub_study_area_ids,
+            sub_study_area_ids.to_list(),
             max_time,
         )
         population_count = {}
@@ -519,7 +519,8 @@ class CRUDIsochrone:
             isochrone_shape = await self.get_max_isochrone_shape(grid_decoded, current_time + 1)
             isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
             for category, aoi_geom in aoi_categories.items():
-                category_area = isochrone_polygon.intersection(aoi_geom).area
+                category_area_diff = aoi_geom.difference(isochrone_polygon).area
+                category_area = aoi_geom.area - category_area_diff
                 if category not in amenity_count:
                     amenity_count[category] = [0] * max_time
                 amenity_count[category][current_time] = category_area

@@ -89,8 +89,10 @@
                     small
                     :disabled="
                       (selectedPoisOnlyKeys.length < 2 &&
+                        selectedAoisOnlyKeys.length < 2 &&
                         selectedCalculations.length === 1) ||
                         (selectedPoisOnlyKeys.length < 3 &&
+                          selectedAoisOnlyKeys.length < 3 &&
                           selectedCalculations.length === 2)
                     "
                   >
@@ -135,7 +137,8 @@
                 selectedCalculations &&
                   selectedCalculations.length === 1 &&
                   resultViewType === 2 &&
-                  selectedPoisOnlyKeys.length > 1
+                  (selectedPoisOnlyKeys.length > 1 ||
+                    selectedAoisOnlyKeys.length > 1)
               "
             />
             <isochrone-amenities-radar-chart-vue
@@ -144,24 +147,29 @@
                 selectedCalculations &&
                   selectedCalculations.length === 2 &&
                   resultViewType === 2 &&
-                  selectedPoisOnlyKeys.length > 2
+                  (selectedPoisOnlyKeys.length > 2 ||
+                    selectedAoisOnlyKeys.length > 2)
               "
             ></isochrone-amenities-radar-chart-vue>
             <v-btn-toggle
-              v-if="
-                [1].includes(resultViewType) && selectedPoisOnlyKeys.length > 0
-              "
+              v-if="resultViewType !== 0"
               v-model="chartDatasetType"
               mandatory
             >
-              <v-btn small>
+              <v-btn :disabled="resultViewType !== 1" small>
                 <i
                   class="v-icon notranslate fa-solid fa-people-group theme--light"
                   style="font-size: 16px;"
                 ></i>
               </v-btn>
-              <v-btn small>
+              <v-btn small :disabled="selectedPoisOnlyKeys.length < 2">
                 <v-icon small>fa-solid fa-location-dot</v-icon>
+              </v-btn>
+              <v-btn small :disabled="selectedAoisOnlyKeys.length < 2">
+                <i
+                  class="v-icon notranslate fa-brands fa-square-pied-piper theme--light"
+                  style="font-size: 16px;"
+                ></i>
               </v-btn>
             </v-btn-toggle>
             <v-data-table
@@ -420,7 +428,8 @@ export default {
     ...mapGetters("poisaois", {
       poisAois: "poisAois",
       selectedPois: "selectedPois",
-      selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
+      selectedPoisOnlyKeys: "selectedPoisOnlyKeys",
+      selectedAoisOnlyKeys: "selectedAoisOnlyKeys"
     }),
     ...mapGetters("app", {
       appColor: "appColor"
@@ -433,29 +442,68 @@ export default {
     })
   },
   watch: {
+    resultViewType(value) {
+      if (value === 2 && this.chartDatasetType === 0) {
+        if (this.selectedPoisOnlyKeys.length > 0) {
+          this.chartDatasetType = 1;
+        } else {
+          this.chartDatasetType = 2;
+        }
+      }
+    },
     selectedPoisOnlyKeys(value) {
-      if (value.length > 0) {
-        // Show amenities
-        this.chartDatasetType = 1;
-      } else {
-        // Show population
-        this.chartDatasetType = 0;
+      if (this.chartDatasetType === 2 && value.length < 2) {
+        if (this.selectedAoisOnlyKeys.length > 1) {
+          this.chartDatasetType = 1;
+        } else {
+          this.chartDatasetType = 0;
+          this.resultViewType = 1;
+        }
       }
       if (
         value.length < 3 &&
         this.resultViewType === 2 &&
-        this.selectedCalculations.length === 1
+        this.selectedCalculations.length === 1 &&
+        this.chartDatasetType === 1
       ) {
         this.resultViewType = 1;
       }
       if (
         this.selectedCalculations.length === 2 &&
         value.length < 3 &&
-        this.resultViewType === 2
+        this.resultViewType === 2 &&
+        this.chartDatasetType === 1
       ) {
         this.chartDatasetType = 0;
         this.resultViewType = 1;
       }
+    }
+  },
+  selectedAoisOnlyKeys(value) {
+    if (this.chartDatasetType === 2 && value.length < 2) {
+      if (this.selectedPoisOnlyKeys.length > 1) {
+        this.chartDatasetType = 1;
+      } else {
+        this.chartDatasetType = 0;
+        this.resultViewType = 1;
+      }
+    }
+    if (
+      value.length < 3 &&
+      this.resultViewType === 2 &&
+      this.selectedCalculations.length === 1 &&
+      this.chartDatasetType === 2
+    ) {
+      this.resultViewType = 1;
+    }
+    if (
+      this.selectedCalculations.length === 2 &&
+      value.length < 3 &&
+      this.resultViewType === 2 &&
+      this.chartDatasetType === 2
+    ) {
+      this.chartDatasetType = 0;
+      this.resultViewType = 1;
     }
   },
   mounted() {
