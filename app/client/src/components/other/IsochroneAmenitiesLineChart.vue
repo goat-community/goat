@@ -22,7 +22,8 @@ export default {
       const accessibilityData = this.selectedCalculations[0].surfaceData
         .accessibility;
       const accessibilityKeys = Object.keys(accessibilityData);
-      const labels = [...accessibilityData[accessibilityKeys[0]].keys()];
+      let labels = [...accessibilityData[accessibilityKeys[0]].keys()];
+      labels = labels.map(num => num + 1);
       const datasets = [];
       this.selectedCalculations.forEach((calculation, index) => {
         const calculationData = calculation.surfaceData.accessibility;
@@ -66,6 +67,15 @@ export default {
         }
       });
 
+      let labelString = "";
+      if (this.chartDatasetType === 0) {
+        labelString = this.$t("isochrones.tableData.populationCount");
+      } else if (this.chartDatasetType === 1) {
+        labelString = this.$t("isochrones.tableData.amenityCount");
+      } else if (this.chartDatasetType === 2) {
+        labelString = this.$t("isochrones.tableData.aoisArea");
+      }
+
       this.renderChart(
         {
           labels,
@@ -82,7 +92,7 @@ export default {
                 },
                 scaleLabel: {
                   display: true,
-                  labelString: this.$t("isochrones.tableData.amenityCount")
+                  labelString: labelString
                 }
               }
             ],

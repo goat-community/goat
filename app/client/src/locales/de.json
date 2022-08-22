@@ -406,7 +406,10 @@
         "population": "Bevölkerung",
         "reachedPopulation": "Erreichbare Bevölkerung",
         "shared": "Anteil"
-      }
+      },
+      "amenityCount": "Amenity Count",
+      "populationCount": "Population Count",
+      "aoisArea": "AOIs Area"
     },
     "isochrones": "Isochronen",
     "deleteTitle": "Löschen",
@@ -453,7 +456,7 @@
     "settings": {
       "transparency": "Transparenz"
     }
-  }, 
+  },
   "externalGeoportals": {
     "selectGeoportal": "Wähle Geoportal",
     "externalGeoportal": "Externes Geoportal",
@@ -469,7 +472,7 @@
     "popups": {
       "info": "Es wurde eine Fehler bei dem externen Service festgestellt, der das Geoportal betreibt. Bitte wählen Sie einen anderen Layer.",
       "errorMessage": "Dieser Layer ist nicht teil Ihres Untersuchungsgebietes. Bitte wählen Sie einen anderen Layer.",
-      "agreement": "Ich verstehe"    
+      "agreement": "Ich verstehe"
     }
   },
   "map": {
