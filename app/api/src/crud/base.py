@@ -1,6 +1,7 @@
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import RelationshipProperty, selectinload
@@ -104,6 +105,28 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await db.delete(obj)
         await db.commit()
         return obj
+
+    async def remove_multi(self, db: AsyncSession, *, ids: Union[int, List[int]]) -> ModelType:
+        if type(ids) == int:
+            ids = [ids]
+        statement = delete(self.model).where(self.model.id.in_(ids))
+        await db.execute(statement)
+        await db.commit()
+
+        # Return empty string at the moment
+        # TODO: add removed items instead.
+        return ""
+
+    async def remove_multi_by_key(self, db: AsyncSession, *, key: str, values: Any) -> ModelType:
+        if not type(values) == list:
+            values = [values]
+        statement = delete(self.model).where(getattr(self.model, key).in_(values))
+        await db.execute(statement)
+        await db.commit()
+
+        # Return empty string at the moment
+        # TODO: add removed items instead.
+        return ""
 
     async def get_n_rows(self, db: AsyncSession, *, n: int) -> ModelType:
         statement = select(self.model).limit(n)

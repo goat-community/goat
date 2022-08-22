@@ -1,3 +1,4 @@
+import json
 from typing import Dict
 
 import pytest
@@ -75,33 +76,27 @@ async def test_update_geostores(
     assert retrieved_geostore.get("id")
 
 
-async def test_delete_geostore(
+async def test_delete_geostores(
     client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
 ) -> None:
-    geostore = await create_sample_geostore(db=db)
+    geostores = [await create_sample_geostore(db=db) for i in range(2)]
+    geostore_ids = [geostore.id for geostore in geostores]
     r = await client.delete(
-        f"{settings.API_V1_STR}/config/geostores/{geostore.id}",
+        f"{settings.API_V1_STR}/config/geostores/",
         headers=superuser_token_headers,
+        params={"id": geostore_ids},
     )
 
     assert 200 <= r.status_code < 300
 
-    # Try to get
-    r = await client.get(
-        f"{settings.API_V1_STR}/config/geostores/{geostore.id}",
-        headers=superuser_token_headers,
-    )
+    for geostore in geostores:
+        # Try to get
+        r = await client.get(
+            f"{settings.API_V1_STR}/config/geostores/{geostore.id}",
+            headers=superuser_token_headers,
+        )
 
-    assert r.status_code == 404
-
-    # Try to delete again
-
-    r = await client.delete(
-        f"{settings.API_V1_STR}/config/geostores/{geostore.id}",
-        headers=superuser_token_headers,
-    )
-
-    assert r.status_code == 404
+        assert r.status_code == 404
 
 
 async def test_read_study_area_geostores_list(

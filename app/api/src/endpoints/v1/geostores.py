@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Union
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
@@ -62,18 +62,14 @@ async def update_a_geostore(
     return geostore
 
 
-@router.delete("/{id:int}", response_model=models.Geostore)
-async def delete_a_geostore(
-    id: int,
+@router.delete("/")
+async def delete_geostores(
+    id: List[int] = Query(default=None, gt=0),
     db: AsyncSession = Depends(deps.get_db),
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    geostore = await crud.geostore.get(db, id=id)
-    if not geostore:
-        raise HTTPException(status_code=404, detail="geostore not found.")
 
-    geostore = await crud.geostore.remove(db, id=geostore.id)
-    return geostore
+    return await crud.geostore.remove_multi(db, ids=id)
 
 
 @router.get("/study_area/{study_area_id:int}", response_model=List[models.Geostore])
