@@ -78,7 +78,11 @@
                   <span>Isochrone {{ selectedCalculations[1].id }}</span>
                 </template>
                 <v-spacer></v-spacer>
-                <v-btn-toggle v-model="resultViewType" mandatory>
+                <v-btn-toggle
+                  v-model="resultViewType"
+                  v-if="selectedCalculations[0].type !== 'multiple'"
+                  mandatory
+                >
                   <v-btn small>
                     <v-icon small>fa-solid fa-table</v-icon>
                   </v-btn>
@@ -300,7 +304,7 @@ export default {
       // Single Isochrone calculation table header
       if (
         this.selectedCalculations.length > 0 &&
-        this.selectedCalculations[0].config.starting_point.input.length === 1
+        this.selectedCalculations[0].type === "single"
       ) {
         headers = [
           {
@@ -321,28 +325,22 @@ export default {
       } else {
         headers = [
           {
-            text: this.$t("isochrones.tableData.table.isochrone"),
-            value: "isochrone",
-            sortable: false,
-            width: "25%"
-          },
-          {
             text: this.$t("isochrones.tableData.table.studyArea"),
             value: "studyArea",
             sortable: false,
-            width: "15%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.population"),
             value: "population",
             sortable: false,
-            width: "20%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.reachedPopulation"),
             value: "reachPopulation",
             sortable: false,
-            width: "20%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.shared"),
@@ -359,9 +357,9 @@ export default {
       let poisObj = {};
       this.selectedCalculations.forEach(calculation => {
         // Single isochrone calculation
-        if (calculation.config.starting_point.input.length === 1) {
-          let pois = calculation.surfaceData.accessibility;
-          let selectedTime = this.isochroneRange;
+        let pois = calculation.surfaceData.accessibility;
+        let selectedTime = this.isochroneRange;
+        if (calculation.type === "single") {
           let keys = Object.keys(pois);
           if (keys.length > 0) {
             let sumPois = {};
@@ -391,13 +389,24 @@ export default {
             }
           }
         } else {
-          // TODO:
-          console.log("multi isochrone calculation");
+          Object.keys(pois).forEach(studyArea => {
+            const reachedPopulation =
+              pois[studyArea].reached_population[selectedTime - 1];
+            items.push({
+              studyArea: studyArea,
+              population: parseInt(pois[studyArea].total_population),
+              reachPopulation: parseInt(reachedPopulation),
+              shared: `${(
+                (reachedPopulation / pois[studyArea].total_population) *
+                100
+              ).toFixed(1)}%`
+            });
+          });
         }
       });
-      items = Object.values(poisObj);
       //Sort table rows based on number of amenties || alphabeticaly (only on single calculations)
-      if (this.calculations[0].config.starting_point.input.length === 1) {
+      if (this.calculations[0].type === "single") {
+        items = Object.values(poisObj);
         items.sort((a, b) => {
           const b_Value = b[Object.keys(b)[0]];
           const a_Value = a[Object.keys(a)[0]];
@@ -407,7 +416,6 @@ export default {
           return b_Value - a_Value;
         });
       }
-
       return items;
     },
     getMaxIsochroneRange() {

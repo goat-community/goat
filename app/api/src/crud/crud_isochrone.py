@@ -366,7 +366,7 @@ class CRUDIsochrone:
             get_population_sum_pixel,
             get_population_sum_population,
             get_population_sub_study_area_id,
-            sub_study_area_ids.to_list(),
+            sub_study_area_ids.tolist(),
             max_time,
         )
         population_count = {}

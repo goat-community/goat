@@ -91,7 +91,7 @@ const state = {
     transitModes: []
   },
   chartDatasetType: 0, // 0: population, 1: pois, 2: aois
-  isochroneRange: 15, // in minutes
+  isochroneRange: 10, // in minutes
   calculationColors: ["rgba(40, 54, 72, 0.4)", "rgba(235, 57, 21, 0.4)"], // [0]: default, [1]: scenario or compare
   // Cancel Request
   cancelReq: undefined

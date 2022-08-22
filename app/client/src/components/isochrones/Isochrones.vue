@@ -1500,6 +1500,7 @@ export default {
                   olFeatures[0].set("calculationNumber", calculationNumber);
                   let calculation = {
                     id: calculationNumber,
+                    type: _type,
                     routing: _routing,
                     config: payload,
                     rawData: isochroneSurface,
@@ -1541,6 +1542,7 @@ export default {
                   } else {
                     calculation.position = "multiIsochroneCalculation";
                     this.calculations.unshift(calculation);
+                    this.selectedCalculations = [];
                     this.selectedCalculations.push(calculation);
                     this.isOptionsElVisible = false;
                   }
@@ -1631,6 +1633,15 @@ export default {
         if (this.selectedCalculations.length === 2) {
           // Remove first calculation if length is already 2
           this.selectedCalculations.shift();
+        }
+        const multiCalculations = this.selectedCalculations.filter(
+          selectedCalculation => {
+            return selectedCalculation.type === "multiple";
+          }
+        );
+        if (calculation.type === "multiple" || multiCalculations.length > 0) {
+          // Clear calculation if type is multiple
+          this.selectedCalculations = [];
         }
         this.selectedCalculations.push(calculation);
       }
@@ -1758,8 +1769,8 @@ export default {
         this.isochroneLayer.getSource().addFeatures([calculation.feature]);
       });
       if (this.selectedCalculations.length === 0) {
-        this.isochroneRange = 15;
-        // Reset features to 15 minutes.
+        this.isochroneRange = 10;
+        // Reset features to 10 minutes.
         this.calculations.forEach(calculation => {
           const {
             surface,
