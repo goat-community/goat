@@ -21,8 +21,6 @@ For more information:
 
 [GOAT Docs](https://plan4better.de/docs/background/)
 
-[GOAT Technical Docs](https://www.open-accessibility.org/docs/quick_start_docker/)
-
 [GOAT demo versions](https://plan4better.de/goatlive/)
 
 [Join GOAT User Group on Telegram](https://t.me/joinchat/EpAk7BYbIF72q7D3OTUCZQ)
