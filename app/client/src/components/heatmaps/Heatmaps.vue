@@ -3,10 +3,11 @@
     <vue-scroll>
       <template>
         <!-- HEATMAP LAYERS -->
+
         <v-expansion-panels accordion multiple v-model="heatmapPanel">
           <v-expansion-panel
-            v-for="(layerGroupValue, layerGroupKey) in heatmapGroup"
-            :key="layerGroupKey"
+            v-for="(layerGroup, idx) in indicatorGroupLayers"
+            :key="idx"
             expand
           >
             <v-expansion-panel-header
@@ -23,9 +24,11 @@
                     src="img/layer-style-icons/hexagon.svg"
                   />
                 </v-flex>
-                <v-flex xs10 class="light-text" style="font-size:medium;">
+                <v-flex xs10 class="light-text" style="font-size: medium">
                   <div>
-                    <b>{{ translate("layerGroup", layerGroupKey) }}</b>
+                    <b>{{
+                      translate("layerGroup", Object.keys(layerGroup)[0])
+                    }}</b>
                   </div>
                 </v-flex>
                 <v-flex xs1>
@@ -33,11 +36,11 @@
                 </v-flex>
               </v-layout>
             </v-expansion-panel-header>
+            <!-- Layers -->
             <v-expansion-panel-content>
-              <!-- LAYERS -->
               <v-expansion-panels readonly>
                 <v-expansion-panel
-                  v-for="(layer, i) in layerGroupValue"
+                  v-for="(layer, i) in layerGroup[Object.keys(layerGroup)[0]]"
                   :key="i"
                   :disabled="isHeatmapDisabled(layer)"
                   class="layer-row"
@@ -58,7 +61,10 @@
                           :color="appColor.secondary"
                           :input-value="layer.getVisible()"
                           @change="
-                            toggleLayerVisibility(layer, layerGroupValue)
+                            toggleLayerVisibility(
+                              layer,
+                              layerGroup[Object.keys(layerGroup)[0]]
+                            )
                           "
                         ></v-checkbox>
                       </v-flex>
@@ -71,7 +77,7 @@
                         <v-icon
                           v-show="layer.getVisible()"
                           small
-                          style="width: 30px; height: 30px;"
+                          style="width: 30px; height: 30px"
                           v-html="
                             layer.get('showOptions')
                               ? 'fas fa-chevron-down'
@@ -87,19 +93,17 @@
                       </v-flex>
                     </v-layout>
                   </v-expansion-panel-header>
-                  <!-- --- -->
-                  <!-- LAYER LEGEND AND SETTINGS  -->
                   <v-card
                     class="pt-2"
                     v-show="layer.get('showOptions') === true"
-                    style="background-color: white;"
+                    style="background-color: white"
                     transition="slide-y-reverse-transition"
                   >
                     <InLegend :layer="layer"></InLegend>
-                    <v-layout row style="width:100%;padding-left: 10px;">
+                    <v-layout row style="width: 100%; padding-left: 10px">
                       <v-flex
                         class="xs2"
-                        style="text-align:center;"
+                        style="text-align: center"
                         v-if="
                           ['VECTORTILE', 'VECTOR', 'MVT', 'GEOBUF'].includes(
                             layer.get('type').toUpperCase()
@@ -108,7 +112,11 @@
                       >
                         <v-icon
                           v-ripple
-                          style="color:#B0B0B0;margin-top:3px;cursor:pointer"
+                          style="
+                            color: #b0b0b0;
+                            margin-top: 3px;
+                            cursor: pointer;
+                          "
                           dark
                           @click="openStyleDialog(layer)"
                         >
@@ -137,7 +145,6 @@
                       </v-flex>
                     </v-layout>
                   </v-card>
-                  <!-- --- -->
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-expansion-panel-content>
@@ -165,8 +172,37 @@
         :styleDialogStatus="styleDialogStatus"
       ></StyleDialog>
     </span>
+    <span v-if="IndicatorDialogStatus">
+      <ModifyDialog
+        :status="IndicatorDialogStatus"
+        :translate="translate"
+        @changeStatus="changeIndicatorDialogStatus"
+      ></ModifyDialog>
+    </span>
+    <overlay-popup
+      :color="appColor.primary"
+      :title="overlayTitle || 'No Title fetched'"
+      v-show="popup.isVisible"
+      ref="indicatorPopup"
+    >
+      <template v-slot:close>
+        <v-btn @click="closePopup()" icon>
+          <v-icon>close</v-icon>
+        </v-btn>
+      </template>
+      <template v-slot:body>
+        <p
+          v-for="(transportMean, tranportKey) in transportationMeans"
+          :key="tranportKey"
+        >
+          {{ translatePT("pt_route_types", tranportKey.toString()) }} -
+          {{ transportMean }}
+        </p>
+      </template>
+    </overlay-popup>
   </v-flex>
 </template>
+
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import { EventBus } from "../../EventBus";
@@ -175,38 +211,59 @@ import { mapFields } from "vuex-map-fields";
 import Legend from "../viewer/ol/controls/Legend";
 import LayerTree from "../layers/layerTree/LayerTree";
 import StyleDialog from "../layers/changeStyle/StyleDialog.vue";
+import ModifyDialog from "./modifyLayer/ModifyDialog.vue";
 import InLegend from "../viewer/ol/controls/InLegend.vue";
 import ApiService from "../../services/api.service";
 import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
+import GeoJSON from "ol/format/GeoJSON";
+import OverlayPopup from "../viewer/ol/controls/Overlay.vue";
+import Overlay from "ol/Overlay";
+// import axios from "axios";
 
 export default {
   mixins: [Mapable, Legend, LayerTree],
   components: {
     InLegend,
-    StyleDialog
+    StyleDialog,
+    ModifyDialog,
+    "overlay-popup": OverlayPopup
   },
   data: () => ({
+    popup: {
+      rawHtml: null,
+      title: "info",
+      isVisible: false,
+      currentLayerIndex: 0
+    },
     heatmapPanel: [0],
     heatmapGroup: {},
+    indicatorGroupLayers: [],
     interactionType: "heatmap-interaction",
     heatmapsWithPois: [
       "heatmap_accessibility_population",
       "heatmap_local_accessibility"
     ],
-
     updateHeatmaps: {
       poi: ["heatmap_local_accessibility", "heatmap_accessibility_population"],
       population: ["heatmap_accessibility_population", "heatmap_population"]
     },
     currentItem: null,
     styleDialogKey: 0,
-    styleDialogStatus: false
+    styleDialogStatus: false,
+    IndicatorDialogStatus: false,
+    overlayTitle: "",
+    transportationMeans: {}
   }),
-
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
       this.styleDialogStatus = value;
     });
+    window.setTimeout(() => {
+      this.createPopupOverlay();
+      this.showPopup();
+    }, 200);
   },
   computed: {
     ...mapGetters("app", {
@@ -236,6 +293,79 @@ export default {
      * This function is executed, after the map is bound (see mixins/Mapable)
      * and registers the current map layers.
      */
+
+    // Only to guid me through the proccess, everything static here will be done dynamic
+    closePopup() {
+      this.popup.isVisible = false;
+    },
+    changeIndicatorDialogStatus() {
+      this.map
+        .getLayers()
+        .getArray()
+        .forEach(layer => {
+          if (layer.get("group") === "publicTransportation") {
+            layer.setVisible(false);
+          }
+        });
+      this.IndicatorDialogStatus = false;
+    },
+    createPopupOverlay() {
+      this.popupOverlay = new Overlay({
+        element: this.$refs.indicatorPopup.$el,
+        autoPan: false,
+        autoPanMargin: 40,
+        positioning: "bottom-left",
+        autoPanAnimation: {
+          duration: 250
+        }
+      });
+      this.map.addOverlay(this.popupOverlay);
+    },
+    showPopup() {
+      this.map.on("click", e => {
+        this.popupOverlay.setPosition(undefined);
+        this.map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
+          console.log(layer);
+          let clickedCoordinate = e.coordinate;
+          let clickedFeatureName = feature.get("stop_name");
+          this.overlayTitle = clickedFeatureName;
+
+          let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
+          this.transportationMeans = clickedFeatureAdditionalInfo;
+          console.log(clickedFeatureAdditionalInfo);
+          this.popupOverlay.setPosition(clickedCoordinate);
+          this.popup.isVisible = true;
+        });
+      });
+    },
+    createStaticLayerGroups() {
+      let publicTransportationLayerGroup = {
+        publicTransportation: []
+      };
+
+      let newLayerForTesting = new VectorLayer({
+        source: new VectorSource({
+          url:
+            "https://api.maptiler.com/data/c41dc533-7288-4e85-aeda-c5d0b2583335/features.json?key=5SLMZCpBxmxow9QFVy7M",
+          format: new GeoJSON()
+        }),
+        attribution: "<p>Just for testinf porposes</p>",
+        group: "publicTransportation",
+        name: "Station Count",
+        visible: false,
+        opacity: 1,
+        type: "GEOBUF",
+        showOptions: true
+      });
+      console.log(newLayerForTesting);
+      publicTransportationLayerGroup.publicTransportation.push(
+        newLayerForTesting
+      );
+      this.map.addLayer(newLayerForTesting);
+
+      this.indicatorGroupLayers.push(publicTransportationLayerGroup);
+    },
+
     onMapBound() {
       this.map
         .getLayers()
@@ -252,6 +382,8 @@ export default {
       EventBus.$on("update-heatmap", updateHeatmapsLinkedTo => {
         this.refreshHeatmap(updateHeatmapsLinkedTo);
       });
+      this.indicatorGroupLayers.push(this.heatmapGroup);
+      this.createStaticLayerGroups();
     },
     toggleHeatmapOptions(layer) {
       layer.set("showOptions", !layer.get("showOptions"));
@@ -264,8 +396,17 @@ export default {
         return key;
       }
     },
+    translatePT(type, key) {
+      const canTranslate = this.$te(`${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`${type}.${key}`);
+      } else {
+        return key;
+      }
+    },
     openStyleDialog(item) {
       //This function is used for opening Style Setting dialog component for a layer
+
       EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
       this.styleDialogStatus = true;
       if (
@@ -310,6 +451,14 @@ export default {
         layer.getSource().refresh();
         this.checkIfHeatmapNeedsPois(layer);
         layer.set("showOptions", true);
+      }
+
+      if (layer.get("group") === "publicTransportation") {
+        if (layer.getVisible() === false) {
+          this.IndicatorDialogStatus = false;
+        } else {
+          this.IndicatorDialogStatus = true;
+        }
       }
     },
     refreshAllVisibleHeatmaps() {
