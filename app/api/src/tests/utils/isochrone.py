@@ -15,10 +15,9 @@ from src.schemas.isochrone import (
 )
 
 
-async def get_sample_network(speed=5, minutes=10):
+async def get_sample_network(minutes=10):
     obj_in = IsochroneDTO(**request_examples["isochrone"]["single_walking_default"]["value"])
     obj_in.settings.travel_time = minutes
-    obj_in.settings.speed = speed
     db = async_session()
     read_network_start = time.time()
     if len(obj_in.starting_point.input) == 1 and isinstance(
@@ -36,4 +35,4 @@ async def get_sample_network(speed=5, minutes=10):
     print("Read network took ", (read_network_stop - read_network_start), " seconds.")
     # asyncio.run(db.close())
 
-    return network, starting_ids
+    return network, starting_ids, obj_in
