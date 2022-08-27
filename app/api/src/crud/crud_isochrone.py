@@ -83,6 +83,7 @@ isochrone_feature = CRUDIsochroneCalculation(models.IsochroneFeature)
 class CRUDIsochrone:
     async def read_network(self, db, obj_in: IsochroneDTO, current_user, isochrone_type) -> Any:
 
+        sql_text = ""
         if isochrone_type == IsochroneTypeEnum.single.value:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
             FROM basic.fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)

@@ -1,3 +1,4 @@
+import asyncio
 import heapq
 import math
 
@@ -194,7 +195,8 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     )
 
     # run dijkstra
-    start_vertices_ids = [unordered_map[v] for v in start_vertices]
+
+    start_vertices_ids = List([unordered_map[v] for v in start_vertices])
     distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
 
     # minx, miny, maxx, maxy
@@ -228,10 +230,13 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     return grid_data
 
 
+async def main():
+    edges_network, starting_ids = await get_sample_network(speed=1.3, minutes=1)
+    grid_data = compute_isochrone(edges_network, starting_ids, travel_time=2, zoom=10)
+    print()
+
+
 if __name__ == "__main__":
     from src.tests.utils.isochrone import get_sample_network
 
-    edges_network, starting_id, distance_limits = get_sample_network(speed=1.3, minutes=1)
-
-    grid_data = compute_isochrone(edges_network, starting_id, travel_time=2, zoom=10)
-    print()
+    asyncio.run(main())
