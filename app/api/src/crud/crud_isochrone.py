@@ -83,6 +83,7 @@ isochrone_feature = CRUDIsochroneCalculation(models.IsochroneFeature)
 class CRUDIsochrone:
     async def read_network(self, db, obj_in: IsochroneDTO, current_user, isochrone_type) -> Any:
 
+        sql_text = ""
         if isochrone_type == IsochroneTypeEnum.single.value:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
             FROM basic.fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
@@ -445,11 +446,6 @@ class CRUDIsochrone:
                 ARRAY{active_data_upload_ids}
             )
         """
-        get_aoi_query = f"""
-            SELECT category, ST_AREA(d.geom::geography)::integer AS area, ST_AsText(ST_Transform(d.geom,3857)) as geom
-            FROM basic.aoi a, LATERAL ST_DUMP(a.geom) d
-            WHERE ST_Intersects(a.geom, ST_GeomFromText('{max_isochrone_wkt}', 4326))
-        """
 
         get_population_sum = read_sql(
             get_population_sum_query,
@@ -463,7 +459,6 @@ class CRUDIsochrone:
             get_poi_more_entrance_sum_query,
             legacy_engine,
         )
-        get_aoi = read_sql(get_aoi_query, legacy_engine)
 
         ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
         get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
@@ -510,42 +505,52 @@ class CRUDIsochrone:
             index = np.where(get_poi_more_entrance_sum_category[1] == amenity_grid_count[3][i])[0]
             value = get_poi_more_entrance_sum["category"][index[0]]
             amenity_count[value] = amenity_grid_count[4][i].tolist()
-        # aoi count TODO: fix performance for public transport
-        aoi_categories = {}
-        for idx, aoi in get_aoi.iterrows():
-            geom = aoi["geom"]
-            category = aoi["category"]
-            geom_shapely = wkt.loads(geom)
-            # add category to aoi_categories if not already in there
-            if category not in aoi_categories:
-                aoi_categories[category] = []
-            aoi_categories[category].append(geom_shapely)
-        # loop through aoi_categories
-        for category, polygons in aoi_categories.items():
-            multipolygon = MultiPolygon(polygons)
-            first_coordinate = web_mercator_to_wgs84(
-                Point(
-                    multipolygon.geoms[0].exterior.coords.xy[0][0],
-                    multipolygon.geoms[0].exterior.coords.xy[1][0],
+        # aoi count
+        if obj_in.mode.value not in [IsochroneMode.TRANSIT.value, IsochroneMode.CAR.value]:
+            # TODO: fix performance for public transport
+            get_aoi_query = f"""
+                SELECT category, ST_AREA(d.geom::geography)::integer AS area, ST_AsText(ST_Transform(d.geom,3857)) as geom
+                FROM basic.aoi a, LATERAL ST_DUMP(a.geom) d
+                WHERE ST_Intersects(a.geom, ST_GeomFromText('{max_isochrone_wkt}', 4326))
+            """
+            get_aoi = read_sql(get_aoi_query, legacy_engine)
+            aoi_categories = {}
+            for idx, aoi in get_aoi.iterrows():
+                geom = aoi["geom"]
+                category = aoi["category"]
+                geom_shapely = wkt.loads(geom)
+                # add category to aoi_categories if not already in there
+                if category not in aoi_categories:
+                    aoi_categories[category] = []
+                aoi_categories[category].append(geom_shapely)
+            # loop through aoi_categories
+            for category, polygons in aoi_categories.items():
+                multipolygon = MultiPolygon(polygons)
+                first_coordinate = web_mercator_to_wgs84(
+                    Point(
+                        multipolygon.geoms[0].exterior.coords.xy[0][0],
+                        multipolygon.geoms[0].exterior.coords.xy[1][0],
+                    )
                 )
-            )
-            scale_factor = web_mercator_proj.get_factors(
-                first_coordinate.x, first_coordinate.y, errcheck=True
-            ).areal_scale
+                scale_factor = web_mercator_proj.get_factors(
+                    first_coordinate.x, first_coordinate.y, errcheck=True
+                ).areal_scale
 
-            aoi_categories[category] = {"geom": multipolygon, "scale_factor": scale_factor}
+                aoi_categories[category] = {"geom": multipolygon, "scale_factor": scale_factor}
 
-        for current_time in range(max_time):
-            isochrone_shape = await self.get_max_isochrone_shape(grid_decoded, current_time + 1)
-            isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
-            for category, aoi in aoi_categories.items():
-                aoi_geom = aoi["geom"]
-                aoi_scale_factor = aoi["scale_factor"]
-                category_area_diff = aoi_geom.difference(isochrone_polygon).area
-                category_area = aoi_geom.area - category_area_diff
-                if category not in amenity_count:
-                    amenity_count[category] = [0] * max_time
-                amenity_count[category][current_time] = category_area / aoi_scale_factor
+            for current_time in range(max_time):
+                isochrone_shape = await self.get_max_isochrone_shape(
+                    grid_decoded, current_time + 1
+                )
+                isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
+                for category, aoi in aoi_categories.items():
+                    aoi_geom = aoi["geom"]
+                    aoi_scale_factor = aoi["scale_factor"]
+                    category_area_diff = aoi_geom.difference(isochrone_polygon).area
+                    category_area = aoi_geom.area - category_area_diff
+                    if category not in amenity_count:
+                        amenity_count[category] = [0] * max_time
+                    amenity_count[category][current_time] = category_area / aoi_scale_factor
 
         ##-- ADD AMENITY TO GRID DECODED --##
         grid_decoded["accessibility"] = amenity_count

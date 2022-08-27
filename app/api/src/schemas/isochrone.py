@@ -401,7 +401,7 @@ request_examples = {
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
                     "type": "grid",
-                    "steps": "10",
+                    "steps": "12",
                 },
             },
         },

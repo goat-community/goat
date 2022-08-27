@@ -4,6 +4,7 @@ from sqlalchemy.schema import DropTable
 
 from src.crud.base import CRUDBase
 from src.db import models
+from src.utils import tablify
 
 
 class CRUDStaticLayer(CRUDBase[models.StaticLayer, models.StaticLayer, models.StaticLayer]):
@@ -24,6 +25,18 @@ class CRUDStaticLayer(CRUDBase[models.StaticLayer, models.StaticLayer, models.St
         result = await db.execute(query)
         tables = result.scalars().all()
         return tables
+
+    async def uniquify_static_layer_name(self, db: AsyncSession, file_name: str):
+        original_name = file_name.split(".")[0]
+        original_name = tablify(original_name)
+        name = original_name
+        static_layer_table_names = await self.list_static_layer_table_names(db=db, name_like=name)
+        counter = 1
+        while name in static_layer_table_names:
+            name = f"{original_name}_{counter}"
+            counter += 1
+
+        return name
 
 
 static_layer = CRUDStaticLayer(models.StaticLayer)

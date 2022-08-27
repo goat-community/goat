@@ -15,7 +15,10 @@ export default {
   },
   methods: {
     renderRadarChart: function() {
-      const labels = this.selectedPoisOnlyKeys;
+      let labels = this.selectedPoisOnlyKeys;
+      if (this.chartDatasetType === 2) {
+        labels = this.selectedAoisOnlyKeys;
+      }
       const datasets = [];
 
       this.selectedCalculations.forEach((calculation, index) => {

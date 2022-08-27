@@ -3,33 +3,36 @@ import time
 
 from fastapi.encoders import jsonable_encoder
 
+from src import crud
+from src.core.config import settings
 from src.crud import isochrone as crud_isochrone
 from src.db.session import async_session
-from src.schemas.isochrone import IsochroneSingle, IsochroneTypeEnum
+from src.schemas.isochrone import (
+    IsochroneDTO,
+    IsochroneStartingPointCoord,
+    IsochroneTypeEnum,
+    request_examples,
+)
 
 
-def get_sample_network(speed=5, minutes=10):
-    single_isochrone = {
-        "minutes": minutes,
-        "speed": speed,
-        "n": 2,
-        "modus": "default",
-        "x": 11.5696284,
-        "y": 48.1502132,
-        "routing_profile": "walking_standard",
-        "scenario_id": 0,
-        "user_id": 119,
-    }
-    obj_in = IsochroneSingle(**single_isochrone)
-    obj_in_data = jsonable_encoder(obj_in)
-
+async def get_sample_network(minutes=10):
+    obj_in = IsochroneDTO(**request_examples["isochrone"]["single_walking_default"]["value"])
+    obj_in.settings.travel_time = minutes
     db = async_session()
     read_network_start = time.time()
-    (edges_network, starting_id, distance_limits, obj_starting_point,) = asyncio.run(
-        crud_isochrone.read_network(db, IsochroneTypeEnum.single.value, obj_in, obj_in_data)
+    if len(obj_in.starting_point.input) == 1 and isinstance(
+        obj_in.starting_point.input[0], IsochroneStartingPointCoord
+    ):
+        isochrone_type = IsochroneTypeEnum.single.value
+    else:
+        isochrone_type = IsochroneTypeEnum.multi.value
+    superuser = await crud.user.get_by_key(db, key="email", value=settings.FIRST_SUPERUSER_EMAIL)
+    network, starting_ids = await crud_isochrone.read_network(
+        db, obj_in, superuser[0], isochrone_type
     )
+
     read_network_stop = time.time()
     print("Read network took ", (read_network_stop - read_network_start), " seconds.")
     # asyncio.run(db.close())
 
-    return edges_network, starting_id, distance_limits
+    return network, starting_ids, obj_in

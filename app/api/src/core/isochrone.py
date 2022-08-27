@@ -1,3 +1,4 @@
+import asyncio
 import heapq
 import math
 
@@ -41,7 +42,12 @@ def remap_edges_(edge_source, edge_target, edge_geom):
             unordered_map[edge_source[i]] = id
             edge_source[i] = id
             node_coords[id] = edge_geom[i][0]
-            check_extent(extent, edge_geom[i][0])
+            if len(edge_geom[i]) > 2:
+                # loop from first element to one before last
+                for coord in edge_geom[i][0:-1]:
+                    check_extent(extent, coord)
+            else:
+                check_extent(extent, edge_geom[i][0])
             id += 1
         else:
             edge_source[i] = unordered_map.get(edge_source[i])
@@ -50,10 +56,15 @@ def remap_edges_(edge_source, edge_target, edge_geom):
             unordered_map[edge_target[i]] = id
             edge_target[i] = id
             node_coords[id] = edge_geom[i][-1]
-            check_extent(extent, edge_geom[i][0])
+            if len(edge_geom[i]) > 2:
+                for coord in edge_geom[i][1:]:
+                    check_extent(extent, coord)
+            else:
+                check_extent(extent, edge_geom[i][-1])
             id += 1
         else:
             edge_target[i] = unordered_map.get(edge_target[i])
+
     return unordered_map, node_coords, extent
 
 
@@ -151,12 +162,12 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     interpolate_function = LinearNDInterpolator(list(points), costs)
 
     Z = interpolate_function(X, Y)
-    # plt.figure().clear()
-    # plt.pcolormesh(X, Y, Z, shading="auto")
-    # plt.legend()
-    # plt.colorbar()
-    # plt.axis("equal")
-    # plt.savefig("isochrone.png")
+    plt.figure().clear()
+    plt.pcolormesh(X, Y, Z, shading="auto")
+    plt.legend()
+    plt.colorbar()
+    plt.axis("equal")
+    plt.savefig("isochrone.png")
     return np.flip(Z, 0)
 
 
@@ -188,13 +199,20 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     edges_geom = np.array(edge_network["geom"])
     unordered_map, node_coords, extent = remap_edges_(edges_source, edges_target, edges_geom)
 
+    # add buffer of 200 meters to extent
+    extent[0] -= 200
+    extent[1] -= 200
+    extent[2] += 200
+    extent[3] += 200
+
     # construct adjacency list
     adj_list = construct_adjacency_list_(
         len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
     )
 
     # run dijkstra
-    start_vertices_ids = [unordered_map[v] for v in start_vertices]
+
+    start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
     distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
 
     # minx, miny, maxx, maxy
@@ -228,10 +246,18 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     return grid_data
 
 
+async def main():
+    edges_network, starting_ids, obj_in = await get_sample_network(minutes=5)
+    grid_data = compute_isochrone(
+        edges_network,
+        starting_ids,
+        travel_time=5,
+        zoom=12,
+    )
+    print()
+
+
 if __name__ == "__main__":
     from src.tests.utils.isochrone import get_sample_network
 
-    edges_network, starting_id, distance_limits = get_sample_network(speed=1.3, minutes=1)
-
-    grid_data = compute_isochrone(edges_network, starting_id, travel_time=2, zoom=10)
-    print()
+    asyncio.run(main())
