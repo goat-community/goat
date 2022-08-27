@@ -103,5 +103,7 @@
   "yoga": "Yoga",
   "outdoor_fitness_station": "Outdoor fitness station",
   "traveltime": "Travel Time",
-  "attributes": "Attributes"
+  "attributes": "Attributes",
+  "reached_population": "Reached Population",
+  "total_population": "Total Population"
 }
