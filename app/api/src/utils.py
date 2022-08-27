@@ -365,7 +365,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
-@njit
+#@njit
 def group_opportunities_multi_isochrone(
     west,
     north,
@@ -404,6 +404,7 @@ def group_opportunities_multi_isochrone(
 
     for idx, population_per_study_area in enumerate(population_grid_count):
         population_grid_count[idx] = np.cumsum(population_per_study_area)
+        population_grid_count[idx][population_grid_count[idx] < 5] = 0 
 
     return population_grid_count
 
@@ -440,11 +441,12 @@ def group_opportunities_single_isochrone(
         time_cost = surface[index]
         if (
             time_cost < 2147483647
-            and get_population_sum_population[idx] > 0
+            and get_population_sum_population[idx   ] > 0
             and time_cost <= MAX_TIME
         ):
             population_grid_count[int(time_cost) - 1] += get_population_sum_population[idx]
     population_grid_count = np.cumsum(population_grid_count)
+    population_grid_count[population_grid_count < 5] = 0 
 
     # - loop poi_one_entrance
     poi_one_entrance_list = []
