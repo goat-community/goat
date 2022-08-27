@@ -46,7 +46,6 @@ async def create_isochrone(
     return result
 
 
-
 # @router.get("/network/{isochrone_calculation_id}/{modus}", response_class=JSONResponse)
 # async def calculate_reached_network(
 #     *,
@@ -176,12 +175,13 @@ async def create_isochrone(
 
 #     return json.loads(gdf.reset_index(drop=True).to_json())
 
+
 @router.post("/export/", response_class=StreamingResponse)
 async def export_isochrones(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    geojson: Dict = Body(..., example=request_examples["geojson_to_export"]),
+    geojson: Dict = Body(..., examples=request_examples["to_export"]),
     return_type: IsochroneExportType = Query(
         description="Return type of the response", default=IsochroneExportType.geojson
     ),
