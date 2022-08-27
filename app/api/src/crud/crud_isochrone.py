@@ -12,6 +12,7 @@ from unicodedata import category
 import matplotlib.path
 import numpy as np
 import pandas as pd
+import pyproj
 import requests
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
@@ -54,8 +55,11 @@ from src.utils import (
     geometry_to_pixel,
     group_opportunities_multi_isochrone,
     group_opportunities_single_isochrone,
+    web_mercator_to_wgs84,
     wgs84_to_web_mercator,
 )
+
+web_mercator_proj = pyproj.Proj("EPSG:3857")
 
 
 class CRUDIsochroneCalculation(
@@ -513,17 +517,30 @@ class CRUDIsochrone:
             aoi_categories[category].append(geom_shapely)
         # loop through aoi_categories
         for category, polygons in aoi_categories.items():
-            aoi_categories[category] = MultiPolygon(polygons)
+            multipolygon = MultiPolygon(polygons)
+            first_coordinate = web_mercator_to_wgs84(
+                Point(
+                    multipolygon.geoms[0].exterior.coords.xy[0][0],
+                    multipolygon.geoms[0].exterior.coords.xy[1][0],
+                )
+            )
+            scale_factor = web_mercator_proj.get_factors(
+                first_coordinate.x, first_coordinate.y, errcheck=True
+            ).areal_scale
+
+            aoi_categories[category] = {"geom": multipolygon, "scale_factor": scale_factor}
 
         for current_time in range(max_time):
             isochrone_shape = await self.get_max_isochrone_shape(grid_decoded, current_time + 1)
             isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
-            for category, aoi_geom in aoi_categories.items():
+            for category, aoi in aoi_categories.items():
+                aoi_geom = aoi["geom"]
+                aoi_scale_factor = aoi["scale_factor"]
                 category_area_diff = aoi_geom.difference(isochrone_polygon).area
                 category_area = aoi_geom.area - category_area_diff
                 if category not in amenity_count:
                     amenity_count[category] = [0] * max_time
-                amenity_count[category][current_time] = category_area
+                amenity_count[category][current_time] = category_area / aoi_scale_factor
 
         ##-- ADD AMENITY TO GRID DECODED --##
         grid_decoded["accessibility"] = amenity_count

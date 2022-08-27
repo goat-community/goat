@@ -88,7 +88,8 @@ export default {
             yAxes: [
               {
                 ticks: {
-                  beginAtZero: true
+                  beginAtZero: true,
+                  min: 0
                 },
                 scaleLabel: {
                   display: true,

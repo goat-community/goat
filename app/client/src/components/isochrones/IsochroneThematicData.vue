@@ -166,10 +166,10 @@
                   style="font-size: 16px;"
                 ></i>
               </v-btn>
-              <v-btn small :disabled="selectedPoisOnlyKeys.length < 2">
+              <v-btn small :disabled="selectedPoisOnlyKeys.length < 1">
                 <v-icon small>fa-solid fa-location-dot</v-icon>
               </v-btn>
-              <v-btn small :disabled="selectedAoisOnlyKeys.length < 2">
+              <v-btn small :disabled="selectedAoisOnlyKeys.length < 1">
                 <i
                   class="v-icon notranslate fa-brands fa-square-pied-piper theme--light"
                   style="font-size: 16px;"
@@ -204,16 +204,23 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 // import IsochroneUtils from "../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
 import { mapFields } from "vuex-map-fields";
-import { fromPixel, geojsonToFeature } from "../../utils/MapUtils";
+import {
+  featuresToGeojson,
+  fromPixel,
+  geojsonToFeature
+} from "../../utils/MapUtils";
 import { jsolines } from "../../utils/Jsolines";
 import IsochroneAmenitiesLineChart from "../other/IsochroneAmenitiesLineChart.vue";
 import IsochroneAmenitiesPieChart from "../other/IsochroneAmenitiesPieChart.vue";
 import IsochroneAmenitiesRadarChartVue from "../other/IsochroneAmenitiesRadarChart.vue";
+import { saveAs } from "file-saver";
 import { debounce } from "../../utils/Helpers";
+import ApiService from "../../services/api.service";
+import JSZip from "jszip";
 export default {
   components: {
     IsochroneAmenitiesLineChart,
@@ -238,9 +245,12 @@ export default {
     },
     downloadDialogState: false,
     selectedCalculationForDownload: null,
-    isochroneDownloadTypes: ["GeoJson", "Shapefile", "XLSX"]
+    isochroneDownloadTypes: ["GeoJSON", "ESRI Shapefile", "XLSX"]
   }),
   methods: {
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    }),
     expand() {
       this.isExpanded = !this.isExpanded;
     },
@@ -295,7 +305,78 @@ export default {
       });
     }, 30),
     downloadIsochrone(type) {
-      console.log(type);
+      const promiseArray = [];
+      this.selectedCalculations.forEach(calculation => {
+        const feature = calculation.feature.clone();
+        const reached_opportunities = {};
+        const accessibility = calculation.surfaceData.accessibility;
+        if (calculation.type === "single") {
+          Object.keys(accessibility).forEach(category => {
+            reached_opportunities[category] =
+              accessibility[category][this.isochroneRange - 1];
+          });
+        } else {
+          Object.keys(accessibility).forEach(studyAreaId => {
+            reached_opportunities[studyAreaId] = {
+              reached_population:
+                accessibility[studyAreaId]["reached_population"][
+                  this.isochroneRange - 1
+                ],
+              total_population: accessibility[studyAreaId]["total_population"]
+            };
+          });
+        }
+        const properties = {
+          isochrone_calculation_id: calculation.id,
+          traveltime: this.isochroneRange,
+          modus: calculation.config.scenario.modus,
+          routing_profile: calculation.routing,
+          reached_opportunities
+        };
+        feature.setProperties(properties);
+        const geojsonPayload = featuresToGeojson(
+          [feature],
+          "EPSG:3857",
+          "EPSG:4326"
+        );
+        promiseArray.push(
+          ApiService.post(
+            `/isochrones/export?return_type=${type}`,
+            geojsonPayload,
+            {
+              responseType: "blob",
+              headers: {
+                "Content-Type": "application/json"
+              }
+            }
+          )
+        );
+      });
+      Promise.all(promiseArray)
+        .then(responses => {
+          const zip = new JSZip();
+          responses.forEach((response, index) => {
+            const exportName = `isochrone-export_${index}_${this.isochroneRange}-min.zip`;
+            if (responses.length === 1) {
+              saveAs(response.data, exportName);
+            }
+            zip.file(exportName, response.data, { blob: true });
+          });
+          if (responses.length > 1) {
+            zip.generateAsync({ type: "blob" }).then(function(content) {
+              saveAs(content, "isochrone-export.zip");
+            });
+          }
+        })
+        .catch(e => {
+          console.log(e);
+          this.toggleSnackbar({
+            type: "error",
+            message: "Error downloading isochrones",
+            state: true,
+            timeout: 10000
+          });
+        });
     }
   },
   computed: {
@@ -460,16 +541,16 @@ export default {
       }
     },
     selectedPoisOnlyKeys(value) {
-      if (this.chartDatasetType === 2 && value.length < 2) {
-        if (this.selectedAoisOnlyKeys.length > 1) {
-          this.chartDatasetType = 1;
+      if (this.chartDatasetType === 1 && value.length < 2) {
+        if (this.selectedAoisOnlyKeys.length >= 1) {
+          this.chartDatasetType = 2;
         } else {
           this.chartDatasetType = 0;
           this.resultViewType = 1;
         }
       }
       if (
-        value.length < 3 &&
+        value.length < 2 &&
         this.resultViewType === 2 &&
         this.selectedCalculations.length === 1 &&
         this.chartDatasetType === 1
@@ -485,33 +566,33 @@ export default {
         this.chartDatasetType = 0;
         this.resultViewType = 1;
       }
-    }
-  },
-  selectedAoisOnlyKeys(value) {
-    if (this.chartDatasetType === 2 && value.length < 2) {
-      if (this.selectedPoisOnlyKeys.length > 1) {
-        this.chartDatasetType = 1;
-      } else {
+    },
+    selectedAoisOnlyKeys(value) {
+      if (this.chartDatasetType === 2 && value.length < 2) {
+        if (this.selectedPoisOnlyKeys.length >= 1) {
+          this.chartDatasetType = 1;
+        } else {
+          this.chartDatasetType = 0;
+          this.resultViewType = 1;
+        }
+      }
+      if (
+        value.length < 2 &&
+        this.resultViewType === 2 &&
+        this.selectedCalculations.length === 1 &&
+        this.chartDatasetType === 2
+      ) {
+        this.resultViewType = 1;
+      }
+      if (
+        this.selectedCalculations.length === 2 &&
+        value.length < 3 &&
+        this.resultViewType === 2 &&
+        this.chartDatasetType === 2
+      ) {
         this.chartDatasetType = 0;
         this.resultViewType = 1;
       }
-    }
-    if (
-      value.length < 3 &&
-      this.resultViewType === 2 &&
-      this.selectedCalculations.length === 1 &&
-      this.chartDatasetType === 2
-    ) {
-      this.resultViewType = 1;
-    }
-    if (
-      this.selectedCalculations.length === 2 &&
-      value.length < 3 &&
-      this.resultViewType === 2 &&
-      this.chartDatasetType === 2
-    ) {
-      this.chartDatasetType = 0;
-      this.resultViewType = 1;
     }
   },
   mounted() {
