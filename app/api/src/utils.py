@@ -364,7 +364,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
-# @njit
+@njit
 def group_opportunities_multi_isochrone(
     west,
     north,
