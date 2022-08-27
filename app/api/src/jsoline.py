@@ -13,7 +13,7 @@ from src.utils import coordinate_from_pixel
 MAX_COORDS = 20000
 
 
-# @njit
+@njit
 def get_contour(surface, width, height, cutoff):
     """
     Get a contouring grid. Exported for testing purposes, not generally used
@@ -59,7 +59,7 @@ def get_contour(surface, width, height, cutoff):
     return contour
 
 
-# @njit
+@njit
 def followLoop(idx, xy, prev_xy):
     """
     Follow the loop
@@ -108,7 +108,7 @@ def followLoop(idx, xy, prev_xy):
         return [x, y]
 
 
-# # @njit
+@njit
 def interpolate(pos, cutoff, start, surface, width, height):
     """
     Do linear interpolation
@@ -151,7 +151,7 @@ def interpolate(pos, cutoff, start, surface, width, height):
     pass
 
 
-# @njit
+@njit
 def noInterpolate(pos, start):
     x = pos[0]
     y = pos[1]
@@ -173,14 +173,14 @@ def noInterpolate(pos, start):
 
 
 # Calculated fractions may not be numbers causing interpolation to fail.
-# @njit
+@njit
 def ensureFractionIsNumber(frac, direction):
     if math.isnan(frac) or math.isinf(frac):
         return 0.5
     return frac
 
 
-# # @njit
+@njit
 def jsolines(
     surface,
     width,
@@ -317,7 +317,7 @@ def jsolines(
     return list(shells)
 
 
-# @njit
+@njit
 def pointinpolygon(x, y, poly):
     n = len(poly)
     inside = False

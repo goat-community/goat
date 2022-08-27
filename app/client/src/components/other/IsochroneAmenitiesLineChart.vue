@@ -22,14 +22,12 @@ export default {
       const accessibilityData = this.selectedCalculations[0].surfaceData
         .accessibility;
       const accessibilityKeys = Object.keys(accessibilityData);
-      const labels = [...accessibilityData[accessibilityKeys[0]].keys()];
+      let labels = [...accessibilityData[accessibilityKeys[0]].keys()];
+      labels = labels.map(num => num + 1);
       const datasets = [];
       this.selectedCalculations.forEach((calculation, index) => {
         const calculationData = calculation.surfaceData.accessibility;
-        if (
-          this.selectedPoisOnlyKeys.length === 0 ||
-          this.chartDatasetType === 0
-        ) {
+        if (this.chartDatasetType === 0) {
           // add only population data
           datasets.push({
             data: calculationData["population"],
@@ -42,8 +40,17 @@ export default {
             pointRadius: 1
           });
         } else {
-          // add only amenities
-          this.selectedPoisOnlyKeys.forEach(amenity => {
+          let keys = [];
+          let config = [];
+          if (this.chartDatasetType === 1) {
+            keys = this.selectedPoisOnlyKeys;
+            config = this.poisConfig;
+          } else if (this.chartDatasetType === 2) {
+            keys = this.selectedAoisOnlyKeys;
+            config = this.aoisConfig;
+          }
+          // add only pois
+          keys.forEach(amenity => {
             if (calculationData[amenity]) {
               datasets.push({
                 data: calculationData[amenity],
@@ -51,8 +58,7 @@ export default {
                   ? this.$t(`pois.${amenity}`)
                   : amenity,
                 fill: false,
-                borderColor:
-                  this.poisConfig[amenity].color[0] || "rgb(54, 162, 235)",
+                borderColor: config[amenity].color[0] || "rgb(54, 162, 235)",
                 borderDash: index === 0 ? [0, 0] : [10, 5],
                 pointRadius: 1
               });
@@ -60,6 +66,15 @@ export default {
           });
         }
       });
+
+      let labelString = "";
+      if (this.chartDatasetType === 0) {
+        labelString = this.$t("isochrones.tableData.populationCount");
+      } else if (this.chartDatasetType === 1) {
+        labelString = this.$t("isochrones.tableData.amenityCount");
+      } else if (this.chartDatasetType === 2) {
+        labelString = this.$t("isochrones.tableData.aoisArea");
+      }
 
       this.renderChart(
         {
@@ -73,11 +88,12 @@ export default {
             yAxes: [
               {
                 ticks: {
-                  beginAtZero: true
+                  beginAtZero: true,
+                  min: 0
                 },
                 scaleLabel: {
                   display: true,
-                  labelString: this.$t("isochrones.tableData.amenityCount")
+                  labelString: labelString
                 }
               }
             ],
@@ -119,6 +135,12 @@ export default {
       },
       deep: true
     },
+    selectedAoisOnlyKeys: {
+      handler: function() {
+        this.renderLineChart();
+      },
+      deep: true
+    },
     isochroneRange: function() {
       this.renderLineChart();
     },
@@ -137,10 +159,12 @@ export default {
       calculationColors: "calculationColors"
     }),
     ...mapGetters("poisaois", {
-      selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
+      selectedPoisOnlyKeys: "selectedPoisOnlyKeys",
+      selectedAoisOnlyKeys: "selectedAoisOnlyKeys"
     }),
     ...mapGetters("app", {
-      poisConfig: "poisConfig"
+      poisConfig: "poisConfig",
+      aoisConfig: "aoisConfig"
     })
   }
 };

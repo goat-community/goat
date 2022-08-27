@@ -181,7 +181,7 @@ class IsochroneSettings(BaseModel):
     travel_time: int = Field(
         10,
         gt=0,
-        description="Travel time in **minutes** for walking and cycling **(Not considered for PT or CAR)**",
+        description="Travel time in **minutes**",
     )
     speed: Optional[float] = Field(
         5,
@@ -326,8 +326,8 @@ class IsochroneDTO(BaseModel):
         # Validation check on grid resolution and number of steps for geojson
         if values["output"].type.value == IsochroneOutputType.GRID.value and values[
             "output"
-        ].resolution not in [9, 10]:
-            raise ValueError("Resolution must be 9 or 10")
+        ].resolution not in [9, 10, 11, 12, 13]:
+            raise ValueError("Resolution must be 9, 10, 11, 12, or 13")
         if values["output"].type.value == IsochroneOutputType.GEOJSON.value and (
             values["output"].steps > 6 or values["output"].steps < 1
         ):
@@ -340,12 +340,14 @@ class IsochroneDTO(BaseModel):
         ]:
             raise ValueError("Multi-Isochrone is not supported for Transit and Car")
 
-        # For walking and cycling travel time maximumn should be 20 minutes
+        # For walking and cycling travel time maximumn should be 20 minutes and speed to m/s
         if values["mode"].value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
             if values["settings"].travel_time > 25:
                 raise ValueError(
                     "Travel time maximum for walking and cycling should be less or equal to 25 minutes"
                 )
+            if values["settings"].speed:
+                values["settings"].speed = values["settings"].speed / 3.6
 
         # For PT and Car Isochrone starting point should be only lat lon coordinates and not amenities, travel time smaller than 120 minutes
         if values["mode"].value in [
@@ -398,8 +400,8 @@ request_examples = {
                 },
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
-                    "type": "geojson",
-                    "steps": "3",
+                    "type": "grid",
+                    "steps": "10",
                 },
             },
         },
@@ -418,8 +420,8 @@ request_examples = {
                     "region": 1,
                 },
                 "output": {
-                    "type": "geojson",
-                    "steps": "3",
+                    "type": "grid",
+                    "steps": "10",
                 },
             },
         },
@@ -612,6 +614,50 @@ request_examples = {
                     }
                 ],
             },
-        },
+        }
     },
+    "pois_multi_isochrone_count_pois": {
+        "draw": {
+            "summary": "Count pois with draw",
+            "value": {
+                "region_type": "draw",
+                "region": [
+                    "POLYGON((11.53605224646383 48.15855242757948,11.546141990292947 48.16035646918763,11.54836104048217 48.15434275044706,11.535497483916524 48.15080357881183,11.526586610500429 48.15300113241156,11.531302092152526 48.15799732509075,11.53605224646383 48.15855242757948))"
+                ],
+                "scenario_id": 0,
+                "modus": "default",
+                "routing_profile": "walking_standard",
+                "minutes": 10,
+                "speed": 5,
+                "amenities": [
+                    "kindergarten",
+                    "grundschule",
+                    "hauptschule_mittelschule",
+                    "realschule",
+                    "gymnasium",
+                    "library",
+                ],
+            },
+        },
+        "study_area": {
+            "summary": "Count pois with study area",
+            "value": {
+                "region_type": "study_area",
+                "region": ["1", "2"],
+                "scenario_id": 0,
+                "modus": "default",
+                "routing_profile": "walking_standard",
+                "minutes": 10,
+                "speed": 5,
+                "amenities": [
+                    "kindergarten",
+                    "grundschule",
+                    "hauptschule_mittelschule",
+                    "realschule",
+                    "gymnasium",
+                    "library",
+                ],
+            },
+        },
+    }
 }

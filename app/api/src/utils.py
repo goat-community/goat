@@ -16,6 +16,7 @@ import geobuf
 import geopandas
 import numba
 import numpy as np
+import pyproj
 from emails.template import JinjaTemplate
 from fastapi import HTTPException, UploadFile
 from fiona import _err
@@ -27,6 +28,7 @@ from numba import njit
 from rich import print as print
 from sentry_sdk import HttpTransport
 from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
+from shapely.ops import transform
 from starlette import status
 from starlette.responses import Response
 
@@ -325,12 +327,12 @@ def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     return header | metadata | {"data": data, "errors": [], "warnings": []}
 
 
-# @njit
+@njit
 def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     """
     Compute single value surface
     """
-    if any((data is None, width is None, height is None, depth is None)):
+    if data is None or width is None or height is None or depth is None:
         return None
     grid_size = width * height
     surface = np.empty(grid_size)
@@ -363,7 +365,52 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
-def amenity_r5_grid_intersect(
+#@njit
+def group_opportunities_multi_isochrone(
+    west,
+    north,
+    width,
+    surface,
+    get_population_sum_pixel,
+    get_population_sum_population,
+    get_population_sub_study_area_id,
+    sub_study_areas_ids,
+    MAX_TIME=120,
+):
+    """
+    Return a list of population count for every minute and study-area/polygon
+    """
+
+    population_grid_count = np.zeros((len(sub_study_areas_ids), MAX_TIME))
+    # - loop population
+    for idx, pixel in enumerate(get_population_sum_pixel):
+        pixel_x = pixel[1]
+        pixel_y = pixel[0]
+        x = pixel_x - west
+        y = pixel_y - north
+        width = width
+        index = y * width + x
+        time_cost = surface[index]
+        if (
+            time_cost < 2147483647
+            and get_population_sum_population[idx] > 0
+            and time_cost <= MAX_TIME
+        ):
+            for id_sub_study_area_id, sub_study_area_id in enumerate(sub_study_areas_ids):
+                if get_population_sub_study_area_id[idx] == sub_study_area_id:
+                    population_grid_count[id_sub_study_area_id][
+                        int(time_cost) - 1
+                    ] += get_population_sum_population[idx]
+
+    for idx, population_per_study_area in enumerate(population_grid_count):
+        population_grid_count[idx] = np.cumsum(population_per_study_area)
+        population_grid_count[idx][population_grid_count[idx] < 5] = 0 
+
+    return population_grid_count
+
+
+@njit
+def group_opportunities_single_isochrone(
     west,
     north,
     width,
@@ -394,11 +441,12 @@ def amenity_r5_grid_intersect(
         time_cost = surface[index]
         if (
             time_cost < 2147483647
-            and get_population_sum_population[idx] > 0
+            and get_population_sum_population[idx   ] > 0
             and time_cost <= MAX_TIME
         ):
-            population_grid_count[int(time_cost)] += get_population_sum_population[idx]
+            population_grid_count[int(time_cost) - 1] += get_population_sum_population[idx]
     population_grid_count = np.cumsum(population_grid_count)
+    population_grid_count[population_grid_count < 5] = 0 
 
     # - loop poi_one_entrance
     poi_one_entrance_list = []
@@ -420,7 +468,7 @@ def amenity_r5_grid_intersect(
         if time_cost < 2147483647 and time_cost <= MAX_TIME:
             count = get_poi_one_entrance_sum_cnt[idx]
             poi_one_entrance_grid_count[poi_one_entrance_list.index(category)][
-                int(time_cost)
+                int(time_cost) - 1
             ] += count
 
     for index, value in enumerate(poi_one_entrance_grid_count):
@@ -453,7 +501,7 @@ def amenity_r5_grid_intersect(
         ):
             count = get_poi_more_entrance_sum_cnt[idx]
             poi_more_entrance_grid_count[poi_more_entrance_list.index(category)][
-                int(time_cost)
+                int(time_cost) - 1
             ] += count
             visited_more_entrance_categories.append(category_name)
 
@@ -469,7 +517,7 @@ def amenity_r5_grid_intersect(
     )
 
 
-# @njit
+@njit
 def z_scale(z):
     """
     2^z represents the tile number. Scale that by the number of pixels in each tile.
@@ -478,7 +526,7 @@ def z_scale(z):
     return 2 ** z * PIXELS_PER_TILE
 
 
-# @njit
+@njit
 def pixel_to_longitude(pixel_x, zoom):
     """
     Convert pixel x coordinate to longitude
@@ -486,7 +534,7 @@ def pixel_to_longitude(pixel_x, zoom):
     return (pixel_x / z_scale(zoom)) * 360 - 180
 
 
-# @njit
+@njit
 def pixel_to_latitude(pixel_y, zoom):
     """
     Convert pixel y coordinate to latitude
@@ -495,7 +543,7 @@ def pixel_to_latitude(pixel_y, zoom):
     return lat_rad * 180 / math.pi
 
 
-# @njit
+@njit
 def coordinate_from_pixel(pixel, zoom):
     """
     Convert pixel coordinate to longitude and latitude
@@ -506,11 +554,16 @@ def coordinate_from_pixel(pixel, zoom):
     }
 
 
-def coordinate_to_pixel(input, zoom):
-    return {
-        "x": longitude_to_pixel(input[0], zoom),
-        "y": latitude_to_pixel(input[1], zoom),
-    }
+def coordinate_to_pixel(input, zoom, return_dict=True, round_int=False):
+    x = longitude_to_pixel(input[0], zoom)
+    y = latitude_to_pixel(input[1], zoom)
+    if round_int:
+        x = round(x)
+        y = round(y)
+    if return_dict:
+        return {"x": x, "y": y}
+    else:
+        return [x, y]
 
 
 def longitude_to_pixel(longitude, zoom):
@@ -522,6 +575,62 @@ def latitude_to_pixel(latitude, zoom):
     return ((1 - math.log(math.tan(lat_rad) + 1 / math.cos(lat_rad)) / math.pi) / 2) * z_scale(
         zoom
     )
+
+
+def geometry_to_pixel(geometry, zoom):
+    """
+    Convert a geometry to pixel coordinate
+    """
+    pixel_coordinates = []
+    if geometry["type"] == "Point":
+        pixel_coordinates.append(
+            coordinate_to_pixel(geometry["coordinates"], zoom, return_dict=False, round_int=True)
+        )
+    if geometry["type"] == "LineString":
+        for coordinate in geometry["coordinates"]:
+
+            pixel_coordinates.append(
+                np.unique(
+                    np.array(
+                        coordinate_to_pixel(coordinate, zoom, return_dict=False, round_int=True)
+                    ),
+                    axis=0,
+                )
+            )
+    elif geometry["type"] == "Polygon":
+        for ring in geometry["coordinates"]:
+            ring_pixels = np.unique(
+                np.array(
+                    [
+                        coordinate_to_pixel(coord, zoom, return_dict=False, round_int=True)
+                        for coord in ring
+                    ]
+                ),
+                axis=0,
+            )
+
+            pixel_coordinates.append(ring_pixels)
+    else:
+        raise ValueError(f"Unsupported geometry type {geometry['type']}")
+
+    return pixel_coordinates
+
+
+project = pyproj.Transformer.from_crs(
+    pyproj.CRS("EPSG:4326"), pyproj.CRS("EPSG:3857"), always_xy=True
+).transform
+
+unproject = pyproj.Transformer.from_crs(
+    pyproj.CRS("EPSG:3857"), pyproj.CRS("EPSG:4326"), always_xy=True
+).transform
+
+
+def wgs84_to_web_mercator(geometry):
+    return transform(project, geometry)
+
+
+def web_mercator_to_wgs84(geometry):
+    return transform(unproject, geometry)
 
 
 def katana(geometry, threshold, count=0):

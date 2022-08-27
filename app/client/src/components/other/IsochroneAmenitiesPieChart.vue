@@ -27,19 +27,29 @@ export default {
       const calculation = this.selectedCalculations[this.calculationIndex];
       const calculationData = calculation.surfaceData.accessibility;
       // Add only amenities
-      this.selectedPoisOnlyKeys.forEach(amenity => {
+      let keys = [];
+      let config = [];
+      if (this.chartDatasetType === 1) {
+        keys = this.selectedPoisOnlyKeys;
+        config = this.poisConfig;
+      } else if (this.chartDatasetType === 2) {
+        keys = this.selectedAoisOnlyKeys;
+        config = this.aoisConfig;
+      }
+      keys.forEach(amenity => {
         if (calculationData[amenity]) {
           datasets[0].data.push(
             calculationData[amenity][this.isochroneRange - 1]
           );
           datasets[0].backgroundColor.push(
-            this.poisConfig[amenity].color[0] || "rgb(54, 162, 235)"
+            config[amenity].color[0] || "rgb(54, 162, 235)"
           );
           labels.push(
             this.$te(`pois.${amenity}`) ? this.$t(`pois.${amenity}`) : amenity
           );
         }
       });
+
       this.renderChart(
         {
           labels,
@@ -57,6 +67,12 @@ export default {
   },
   watch: {
     selectedPoisOnlyKeys: {
+      handler: function() {
+        this.renderPieChart();
+      },
+      deep: true
+    },
+    selectedAoisOnlyKeys: {
       handler: function() {
         this.renderPieChart();
       },
@@ -80,10 +96,12 @@ export default {
       calculationColors: "calculationColors"
     }),
     ...mapGetters("poisaois", {
-      selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
+      selectedPoisOnlyKeys: "selectedPoisOnlyKeys",
+      selectedAoisOnlyKeys: "selectedAoisOnlyKeys"
     }),
     ...mapGetters("app", {
-      poisConfig: "poisConfig"
+      poisConfig: "poisConfig",
+      aoisConfig: "aoisConfig"
     })
   }
 };
