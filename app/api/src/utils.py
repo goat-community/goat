@@ -32,7 +32,6 @@ from shapely.ops import transform
 from starlette import status
 from starlette.responses import Response
 
-from src import crud
 from src.core.config import settings
 from src.resources.enums import MaxUploadFileSize, MimeTypes
 
@@ -365,7 +364,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
-#@njit
+# @njit
 def group_opportunities_multi_isochrone(
     west,
     north,
@@ -404,7 +403,7 @@ def group_opportunities_multi_isochrone(
 
     for idx, population_per_study_area in enumerate(population_grid_count):
         population_grid_count[idx] = np.cumsum(population_per_study_area)
-        population_grid_count[idx][population_grid_count[idx] < 5] = 0 
+        population_grid_count[idx][population_grid_count[idx] < 5] = 0
 
     return population_grid_count
 
@@ -441,12 +440,12 @@ def group_opportunities_single_isochrone(
         time_cost = surface[index]
         if (
             time_cost < 2147483647
-            and get_population_sum_population[idx   ] > 0
+            and get_population_sum_population[idx] > 0
             and time_cost <= MAX_TIME
         ):
             population_grid_count[int(time_cost) - 1] += get_population_sum_population[idx]
     population_grid_count = np.cumsum(population_grid_count)
-    population_grid_count[population_grid_count < 5] = 0 
+    population_grid_count[population_grid_count < 5] = 0
 
     # - loop poi_one_entrance
     poi_one_entrance_list = []
@@ -835,18 +834,3 @@ def geopandas_read_file(data_file: UploadFile):
 
         finally:
             delete_file(temp_file_path)
-
-
-async def uniquify_static_layer_name(db, file_name):
-    original_name = file_name.split(".")[0]
-    original_name = tablify(original_name)
-    name = original_name
-    static_layer_table_names = await crud.static_layer.list_static_layer_table_names(
-        db=db, name_like=name
-    )
-    counter = 1
-    while name in static_layer_table_names:
-        name = f"{original_name}_{counter}"
-        counter += 1
-
-    return name
