@@ -196,7 +196,7 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
 
     # run dijkstra
 
-    start_vertices_ids = List([unordered_map[v] for v in start_vertices])
+    start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
     distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
 
     # minx, miny, maxx, maxy
