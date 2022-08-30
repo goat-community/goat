@@ -15,6 +15,11 @@ from src.utils import coordinate_to_pixel
 
 
 def check_extent(extent, coord):
+    """
+    Check and update extent
+    :param extent: Extent
+    :param coord: Coordinate
+    """
     if coord[0] < extent[0]:
         extent[0] = coord[0]
 
@@ -28,9 +33,12 @@ def check_extent(extent, coord):
         extent[3] = coord[1]
 
 
-def remap_edges_(edge_source, edge_target, edge_geom):
+def remap_edges(edge_source, edge_target, edge_geom):
     """
     Remap edges to start from 0
+    :param edge_source: List of source nodes
+    :param edge_target: List of target nodes
+    :param edge_geom: List of edge geometries
     """
     unordered_map = {}
     node_coords = {}
@@ -68,9 +76,63 @@ def remap_edges_(edge_source, edge_target, edge_geom):
     return unordered_map, node_coords, extent
 
 
+def split_edges(edge_source, edge_target, edge_length, edge_geom, agg_costs, split_distance):
+    """
+    Split edges into multiple edges
+    :param edge_source: List of source nodes
+    :param edge_target: List of target nodes
+    :param edge_length: List of edge lengths
+    :param edge_geom: List of edge geometries
+    :param agg_costs: List of aggregated costs from dijkstra algorithm
+    :param split_distance: Distance to split edges in meters
+    :return: List of interpolated coordinates and costs along the line every x meters, including vertices
+    """
+    coords = []
+    costs = []
+    for i in range(len(edge_source)):
+        source_id = edge_source[i]
+        target_id = edge_target[i]
+        source_cost = agg_costs[source_id]
+        target_cost = agg_costs[target_id]
+        length_m = edge_length[i]
+        geom = edge_geom[i]
+        if np.inf not in [source_cost, target_cost]:
+            if length_m > split_distance or len(geom) > 2:
+                # split edge into multiple edges
+                previous_agg = source_cost
+                for idx, coord in enumerate(geom[:-1]):
+                    # find distance between current and next point
+                    next_coord = geom[idx + 1]
+                    dist_m = math.sqrt(
+                        (coord[0] - next_coord[0]) ** 2 + ((coord[1] - next_coord[1])) ** 2
+                    )
+                    n_splits = math.floor(dist_m / split_distance)
+                    for n in range(1, n_splits + 1):
+                        distance_to_next = n * split_distance
+                        x = coord[0] - ((distance_to_next * (coord[0] - next_coord[0])) / dist_m)
+                        y = coord[1] - ((distance_to_next * (coord[1] - next_coord[1])) / dist_m)
+                        coords.append([x, y])
+                        cost = previous_agg + (distance_to_next / length_m) * (
+                            target_cost - source_cost
+                        )
+                        costs.append(cost)
+                    # if next point is vertex, add it and update previous
+                    if idx + 1 <= len(geom) - 2:
+                        coords.append(geom[idx + 1])
+                        cost = source_cost + (dist_m / length_m) * (target_cost - source_cost)
+                        costs.append(cost)
+                        previous_agg = cost
+
+    return coords, costs
+
+
 def web_mercator_to_pixel(x, y, zoom):
     """
     Convert web mercator to pixel coordinates
+    :param x: Web mercator x coordinate
+    :param y: Web mercator y coordinate
+    :param zoom: Zoom level
+    :return: Pixel coordinates
     """
     project = pyproj.Transformer.from_crs(
         pyproj.CRS("EPSG:3857"), pyproj.CRS("EPSG:4326"), always_xy=True
@@ -83,26 +145,16 @@ def web_mercator_to_pixel(x, y, zoom):
     return [x_, y_]
 
 
-def get_single_depth_grid_(zoom, west, north, data):
-    grid_data = {}
-    Z = np.ravel(data)
-    Z = np.ceil(Z)
-    Z = np.nan_to_num(Z, nan=np.iinfo(np.intc).max, posinf=np.iinfo(np.intc).max)
-    grid_data["version"] = 0
-    grid_data["zoom"] = zoom
-    grid_data["west"] = west
-    grid_data["north"] = north
-    grid_data["width"] = data.shape[1]
-    grid_data["height"] = data.shape[0]
-    grid_data["depth"] = 1
-    grid_data["data"] = Z
-    return grid_data
-
-
 @njit
 def construct_adjacency_list_(n, edge_source, edge_target, edge_cost, edge_reverse_cost):
     """
     Construct adjacency list from edges
+    :param n: Number of nodes
+    :param edge_source: List of edge source nodes
+    :param edge_target: List of edge target nodes
+    :param edge_cost: List of edge costs
+    :param edge_reverse_cost: List of edge reverse costs
+    :return: Adjacency list
     """
     adj_list = List([List([List([-1.001, -1.001])])] * n)
     for i in range(len(edge_source)):
@@ -119,10 +171,13 @@ def construct_adjacency_list_(n, edge_source, edge_target, edge_cost, edge_rever
     return adj_list
 
 
-@njit
 def dijkstra_(start_vertices, adj_list, travel_time):
     """
     Dijkstra's algorithm one-to-all shortest path search
+    :param start_vertices: List of start vertices
+    :param adj_list: Adjacency list
+    :param travel_time: Travel time matrix
+    :return: List of shortest paths and costs
     """
     n = len(adj_list)
     distances = [np.Inf for _ in range(n)]
@@ -155,11 +210,44 @@ def dijkstra_(start_vertices, adj_list, travel_time):
     return distances
 
 
+def get_single_depth_grid_(zoom, west, north, data):
+    """
+    Get single depth grid
+    :param zoom: Zoom level
+    :param west: West coordinate
+    :param north: North coordinate
+    :param data: Data to be gridded
+    :return: Gridded data
+    """
+    grid_data = {}
+    Z = np.ravel(data)
+    Z = np.ceil(Z)
+    Z = np.nan_to_num(Z, nan=np.iinfo(np.intc).max, posinf=np.iinfo(np.intc).max)
+    grid_data["version"] = 0
+    grid_data["zoom"] = zoom
+    grid_data["west"] = west
+    grid_data["north"] = north
+    grid_data["width"] = data.shape[1]
+    grid_data["height"] = data.shape[0]
+    grid_data["depth"] = 1
+    grid_data["data"] = Z
+    return grid_data
+
+
 def build_grid_interpolate_(points, costs, extent, step_x, step_y):
+    """
+    Build grid interpolate
+    :param points: List of points
+    :param costs: List of costs
+    :param extent: Extent of the grid
+    :param step_x: Step size in x direction
+    :param step_y: Step size in y direction
+    :return: Grid interpolate
+    """
     X = np.arange(start=extent[0], stop=extent[2], step=step_x)
     Y = np.arange(start=extent[1], stop=extent[3], step=step_y)
     X, Y = np.meshgrid(X, Y)  # 2D grid for interpolation
-    interpolate_function = LinearNDInterpolator(list(points), costs)
+    interpolate_function = LinearNDInterpolator(points, costs)
 
     Z = interpolate_function(X, Y)
     plt.figure().clear()
@@ -197,7 +285,8 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     edges_cost = edge_network["cost"].to_numpy()
     edges_reverse_cost = edge_network["reverse_cost"].to_numpy()
     edges_geom = np.array(edge_network["geom"])
-    unordered_map, node_coords, extent = remap_edges_(edges_source, edges_target, edges_geom)
+    edges_length = np.array(edge_network["length"])
+    unordered_map, node_coords, extent = remap_edges(edges_source, edges_target, edges_geom)
 
     # add buffer of 200 meters to extent
     extent[0] -= 200
@@ -211,7 +300,6 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     )
 
     # run dijkstra
-
     start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
     distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
 
@@ -232,10 +320,22 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     web_mercator_x_step = web_mercator_x_distance / pixel_x_distance
     web_mercator_y_step = web_mercator_y_distance / pixel_y_distance
 
+    # split edges based on resolution
+    interpolated_coords = []
+    interpolated_costs = []
+    interpolated_coords, interpolated_costs = split_edges(
+        edges_source,
+        edges_target,
+        edges_length,
+        edges_geom,
+        distances,
+        min([web_mercator_x_step, web_mercator_y_step]),
+    )
+
     # build grid
     Z = build_grid_interpolate_(
-        node_coords.values(),
-        distances,
+        list(node_coords.values()) + interpolated_coords,
+        distances + interpolated_costs,
         extent,
         step_x=web_mercator_x_step,
         step_y=web_mercator_y_step,

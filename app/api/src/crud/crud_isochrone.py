@@ -22,7 +22,7 @@ from geopandas import GeoDataFrame, GeoSeries
 from geopandas.io.sql import read_postgis
 from pandas.io.sql import read_sql
 from pyproj import Transformer
-from shapely import wkt
+from shapely import wkb, wkt
 from shapely.geometry import MultiPolygon, Point, Polygon, shape
 from shapely.ops import unary_union
 from sqlalchemy import intersect
@@ -30,6 +30,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 from urllib3 import HTTPResponse
 
+from src import crud
 from src.core.config import settings
 from src.core.isochrone import compute_isochrone
 from src.crud.base import CRUDBase
@@ -628,7 +629,7 @@ class CRUDIsochrone:
                 "date": obj_in.settings.departure_date,
                 "fromTime": obj_in.settings.from_time,
                 "toTime": obj_in.settings.to_time,
-                "maxTripDurationMinutes": obj_in.settings.travel_time,  # TODO: Fix this
+                "maxTripDurationMinutes": 120,  # TODO: Fix this
                 "decayFunction": obj_in.settings.decay_function,
                 "destinationPointSetIds": [],
                 "directModes": obj_in.settings.access_mode.value.upper(),
@@ -644,16 +645,18 @@ class CRUDIsochrone:
                 "variantIndex": -1,
                 "workerVersion": "v6.4",
             }
-            # TODO: Get the project id and bbox from study area.
-            payload["projectId"] = "6294f0ae0cfee1c6747d696c"
+            # TODO: Get the project id.
+            payload["projectId"] = "630c0014aad8682ef8461b44"
+            study_area = await crud.user.get_active_study_area(db, current_user)
+            study_area_bounds = study_area["bounds"]
             payload["bounds"] = {
-                "north": 48.2905,
-                "south": 47.99727,
-                "east": 11.94489,
-                "west": 11.31592,
+                "north": study_area_bounds[3],
+                "south": study_area_bounds[1],
+                "west": study_area_bounds[0],
+                "east": study_area_bounds[2],
             }
             response = requests.post(
-                settings.R5_API_URL + "/analysis",
+                "http://ec2-3-122-55-252.eu-central-1.compute.amazonaws.com:7070/api/analysis",
                 json=payload,
             )
             grid = decode_r5_grid(response.content)
