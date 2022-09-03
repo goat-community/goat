@@ -202,11 +202,14 @@ class CRUDIsochrone:
         for property_ in properties:
             gdf[property_] = str(gdf["properties"][0][property_])
 
-        reached_opportunities = features[0]["properties"]["reached_opportunities"].keys(
-        )
-        for oportunity in reached_opportunities:
-            gdf[oportunity] = str(gdf["properties"][0]
-                                  ["reached_opportunities"][oportunity])
+        reached_opportunities = features[0]["properties"]["reached_opportunities"]
+        for oportunity in reached_opportunities.keys():
+            if type(reached_opportunities[oportunity]) is dict:
+                for key in reached_opportunities[oportunity].keys():
+                    gdf[key] = reached_opportunities[oportunity][key]
+            else:
+                gdf[oportunity] = str(reached_opportunities[oportunity])
+
         gdf = gdf.drop(["properties"], axis=1)
         # Preliminary fix for tranlation POIs categories
         ########################################################################################################################

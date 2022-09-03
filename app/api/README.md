@@ -481,9 +481,11 @@ Traefik UI: http://localhost.tiangolo.com:8090
 
 ### Dump empty table schema using pgDump
 
-To create an empty data dump the following command can be executed.
-
+To create an empty schema-only dump the following command can be executed.
 `pg_dump -d goat -U postgres -h URL -F t -s -n basic -n customer -x > dump_schema.sql`
+
+To create an empty data-only dump the following command can be executed.
+`pg_dump -d goat -U postgres -h URL -t YOUR-TABLE --data-only > dump_schema.sql`
 
 To creat a full dump you can do the following.
 `pg_dump -U postgres -h URL -Fc -Z 9  --file=file.dump goat`

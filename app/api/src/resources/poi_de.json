@@ -91,5 +91,7 @@
     "yoga": "Yoga",
     "outdoor_fitness_station": "Outdoor Fitness",
     "traveltime": "Reisezeit",
-    "attributes": "Attribute"
+    "attributes": "Attribute",
+    "reached_population": "Erreichbare Einwohner",
+    "total_population": "Einwohner Insgesamt"
   }

@@ -20,5 +20,8 @@
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.formatting.provider": "black"
     },
-    "postCreateCommand": "bash scripts/post-create.sh"
+    "postCreateCommand": "bash scripts/post-create.sh",
+    "runServices": [
+        "api"
+    ]
 }
