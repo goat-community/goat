@@ -75,18 +75,24 @@ setup-kube-config:
 docker-login:
 	$(DOCKER) login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD) $(REGISTRY)
 
-# target: make build-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
+# make docker-build for pr workflow (without tag)
+# target: make build-docker-image-pr -e COMPONENT=api|client
+.PHONY: build-docker-image-pr
+build-docker-image-pr: app/$(COMPONENT)/Dockerfile
+	$(DOCKER) build -f app/$(COMPONENT)/Dockerfile app/$(COMPONENT) --build-arg FONTAWESOME_NPM_AUTH_TOKEN=$(FONTAWESOME_NPM_AUTH_TOKEN)
+
+# target: make build-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client
 .PHONY: build-docker-image
 build-docker-image: app/$(COMPONENT)/Dockerfile
 	$(DOCKER) build -f app/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/$(COMPONENT)
 
-# target: build-client-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
+# target: build-client-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client
 .PHONY: build-client-docker-image
 build-client-docker-image: app/$(COMPONENT)/Dockerfile
 	$(DOCKER) build -f app/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/$(COMPONENT) --build-arg FONTAWESOME_NPM_AUTH_TOKEN=$(FONTAWESOME_NPM_AUTH_TOKEN)
 
 
-# target: make release-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
+# target: make release-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client
 .PHONY: release-docker-image
 release-docker-image: docker-login build-docker-image
 	$(DOCKER) push $(DOCKER_IMAGE)
