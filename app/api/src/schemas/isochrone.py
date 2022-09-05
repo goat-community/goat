@@ -198,7 +198,9 @@ class IsochroneSettings(BaseModel):
         description="Cycling profile. **(Not considered for PT)**",
     )
     # === SETTINGS FOR CAR AND PT ===#
-    departure_date: Optional[str] = Field("2022-04-25", description="(PT) Departure date")
+    weekday: Optional[int] = Field(
+        0, ge=0, le=6, description="(PT) Departure weekday, 0=Monday, 6=Sunday"
+    )
     from_time: Optional[int] = Field(
         25200, gt=0, lt=86400, description="(PT) From time. Number of seconds since midnight"
     )
@@ -432,7 +434,7 @@ request_examples = {
                 "settings": {
                     "travel_time": "60",
                     "transit_modes": ["bus", "tram", "subway", "rail"],
-                    "departure_date": "2022-04-25",
+                    "weekday": "0",  # 0 - Monday, 6 - Sunday
                     "access_mode": "walk",
                     "egress_mode": "walk",
                     "bike_traffic_stress": 4,
@@ -614,7 +616,7 @@ request_examples = {
                     }
                 ],
             },
-        }
+        },
     },
     "pois_multi_isochrone_count_pois": {
         "draw": {
@@ -659,5 +661,5 @@ request_examples = {
                 ],
             },
         },
-    }
+    },
 }

@@ -46,6 +46,16 @@
       "other": "Andere"
     }
   },
+  "weekday": "Wochentag",
+  "daysOfWeek": {
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag",
+    "sunday": "Sonntag"
+  },
   "appBar": {
     "buttons": {
       "login": "Login",
@@ -440,16 +450,7 @@
   "poisFilter": {
     "showTimeFilter": "Zeitlichen Filter hinzufügen",
     "selectHourLabel": "Uhrzeit wählen",
-    "selectDayLabel": "Tag wählen",
-    "daysOfWeek": {
-      "monday": "Montag",
-      "tuesday": "Dienstag",
-      "wednesday": "Mittwoch",
-      "thursday": "Donnerstag",
-      "friday": "Freitag",
-      "saturday": "Samstag",
-      "sunday": "Sonntag"
-    }
+    "selectDayLabel": "Tag wählen"
   },
   "layerTree": {
     "title": "Layer",

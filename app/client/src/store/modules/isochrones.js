@@ -84,10 +84,10 @@ const state = {
   // Public transport options
   publicTransport: {
     accessMode: "walking",
+    weekday: 0,
     egressMode: "walking",
     fromTime: "07:00",
     toTime: "09:00",
-    date: new Date().toISOString().split("T")[0],
     transitModes: []
   },
   chartDatasetType: 0, // 0: population, 1: pois, 2: aois

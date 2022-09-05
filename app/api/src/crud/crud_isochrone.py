@@ -64,8 +64,7 @@ web_mercator_proj = pyproj.Proj("EPSG:3857")
 
 
 class CRUDIsochroneCalculation(
-    CRUDBase[models.IsochroneCalculation,
-             models.IsochroneCalculation, models.IsochroneCalculation]
+    CRUDBase[models.IsochroneCalculation, models.IsochroneCalculation, models.IsochroneCalculation]
 ):
     pass
 
@@ -367,8 +366,7 @@ class CRUDIsochrone:
 
         get_population_sum_pixel = np.array(get_population_multi["pixel"].tolist())
         get_population_sum_population = get_population_multi["population"].to_numpy()
-        get_population_sub_study_area_id = get_population_multi["sub_study_area_id"].to_numpy(
-        )
+        get_population_sub_study_area_id = get_population_multi["sub_study_area_id"].to_numpy()
 
         # Count population for each sub_study_area_id/polygon
         population_grid_count = group_opportunities_multi_isochrone(
@@ -466,14 +464,12 @@ class CRUDIsochrone:
         ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
         get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
         get_population_sum_population = get_population_sum["population"].to_numpy()
-        get_poi_one_entrance_sum_pixel = np.array(
-            get_poi_one_entrance_sum["pixel"].tolist())
+        get_poi_one_entrance_sum_pixel = np.array(get_poi_one_entrance_sum["pixel"].tolist())
         get_poi_one_entrance_sum_category = np.unique(
             get_poi_one_entrance_sum["category"], return_inverse=True
         )
         get_poi_one_entrance_sum_cnt = get_poi_one_entrance_sum["cnt"].to_numpy()
-        get_poi_more_entrance_sum_pixel = np.array(
-            get_poi_more_entrance_sum["pixel"].tolist())
+        get_poi_more_entrance_sum_pixel = np.array(get_poi_more_entrance_sum["pixel"].tolist())
         get_poi_more_entrance_sum_category = np.unique(
             get_poi_more_entrance_sum["category"], return_inverse=True
         )
@@ -502,14 +498,12 @@ class CRUDIsochrone:
         amenity_count = {"population": amenity_grid_count[0].astype(int).tolist()}
         # poi one entrance
         for i in amenity_grid_count[1]:
-            index = np.where(
-                get_poi_one_entrance_sum_category[1] == amenity_grid_count[1][i])[0]
+            index = np.where(get_poi_one_entrance_sum_category[1] == amenity_grid_count[1][i])[0]
             value = get_poi_one_entrance_sum["category"][index[0]]
             amenity_count[value] = amenity_grid_count[2][i].tolist()
         # poi more entrances
         for i in amenity_grid_count[3]:
-            index = np.where(
-                get_poi_more_entrance_sum_category[1] == amenity_grid_count[3][i])[0]
+            index = np.where(get_poi_more_entrance_sum_category[1] == amenity_grid_count[3][i])[0]
             value = get_poi_more_entrance_sum["category"][index[0]]
             amenity_count[value] = amenity_grid_count[4][i].tolist()
         # aoi count
@@ -543,8 +537,7 @@ class CRUDIsochrone:
                     first_coordinate.x, first_coordinate.y, errcheck=True
                 ).areal_scale
 
-                aoi_categories[category] = {
-                    "geom": multipolygon, "scale_factor": scale_factor}
+                aoi_categories[category] = {"geom": multipolygon, "scale_factor": scale_factor}
 
             for current_time in range(max_time):
                 isochrone_shape = await self.get_max_isochrone_shape(
@@ -558,8 +551,7 @@ class CRUDIsochrone:
                     category_area = aoi_geom.area - category_area_diff
                     if category not in amenity_count:
                         amenity_count[category] = [0] * max_time
-                    amenity_count[category][current_time] = category_area / \
-                        aoi_scale_factor
+                    amenity_count[category][current_time] = category_area / aoi_scale_factor
 
         ##-- ADD AMENITY TO GRID DECODED --##
         grid_decoded["accessibility"] = amenity_count
@@ -633,13 +625,25 @@ class CRUDIsochrone:
             )
         # == Public transport isochrone ==
         else:
+            # TODO: get the mapping dynamically from the database based on the study area
+            weekday = obj_in.settings.weekday
+            available_dates = {
+                0: "2022-05-16",
+                1: "2022-05-17",
+                2: "2022-05-18",
+                3: "2022-05-19",
+                4: "2022-05-20",
+                5: "2022-05-21",
+                6: "2022-05-22",
+            }
+
             payload = {
                 "accessModes": obj_in.settings.access_mode.value.upper(),
                 "transitModes": ",".join(x.value.upper() for x in obj_in.settings.transit_modes),
                 "bikeSpeed": obj_in.settings.bike_speed,
                 "walkSpeed": obj_in.settings.walk_speed,
                 "bikeTrafficStress": obj_in.settings.bike_traffic_stress,
-                "date": obj_in.settings.departure_date,
+                "date": available_dates[weekday],
                 "fromTime": obj_in.settings.from_time,
                 "toTime": obj_in.settings.to_time,
                 "maxTripDurationMinutes": 120,  # TODO: Fix this
