@@ -88,33 +88,34 @@
                   <template v-if="['transit', 'car'].includes(routing)">
                     <!-- DATE -->
                     <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
-                      <v-menu
-                        ref="pt_date"
-                        v-model="dateMenu"
-                        :close-on-content-click="false"
-                        :nudge-right="40"
-                        transition="scale-transition"
-                        offset-y
-                        min-width="auto"
+                      <v-select
+                        :label="$t(`weekday`)"
+                        class="mb-2 mt-0"
+                        v-model="publicTransport.weekday"
+                        :items="weekdays"
+                        item-value="value"
+                        item-text="text"
+                        hide-details
                       >
-                        <template v-slot:activator="{ on, attrs }">
-                          <v-text-field
-                            v-model="publicTransport.date"
-                            label="Date"
-                            class="mb-0 pb-0"
-                            prepend-inner-icon="fas fa-calendar"
-                            readonly
-                            v-bind="attrs"
-                            v-on="on"
-                          ></v-text-field>
+                        <template slot="selection" slot-scope="{ item }">
+                          <v-row>
+                            <v-col cols="12" class="py-0"
+                              ><span class="cb-item">{{
+                                $t(`daysOfWeek.${item.text}`)
+                              }}</span></v-col
+                            >
+                          </v-row>
                         </template>
-                        <v-date-picker
-                          v-if="dateMenu"
-                          :color="appColor.primary"
-                          v-model="publicTransport.date"
-                          @input="dateMenu = false"
-                        ></v-date-picker>
-                      </v-menu>
+                        <template slot="item" slot-scope="{ item }">
+                          <v-row>
+                            <v-col cols="12"
+                              ><span class="cb-item">{{
+                                $t(`daysOfWeek.${item.text}`)
+                              }}</span></v-col
+                            >
+                          </v-row>
+                        </template>
+                      </v-select>
                     </v-col>
                     <!-- FROM TIME -->
                     <v-col class="d-flex mt-2 pt-0" cols="12" sm="6">
@@ -654,7 +655,7 @@
                               >fas fa-clock
                             </v-icon>
                             <span class="caption">{{
-                              calculation.config.settings.departure_date
+                              calculation.config.settings.weekday
                             }}</span>
                           </template>
 
@@ -833,7 +834,16 @@ export default {
     dateMenu: false,
     //Hover Overlya
     isochroneHoverOverlay: null,
-    isochroneHoverOverlayEl: null
+    isochroneHoverOverlayEl: null,
+    weekdays: [
+      { text: "monday", value: 0 },
+      { text: "tuesday", value: 1 },
+      { text: "wednesday", value: 2 },
+      { text: "thursday", value: 3 },
+      { text: "friday", value: 4 },
+      { text: "saturday", value: 5 },
+      { text: "sunday", value: 6 }
+    ]
   }),
   computed: {
     ...mapGetters("scenarios", {
@@ -1326,7 +1336,7 @@ export default {
           ...settings,
           travel_time: 60,
           transit_modes: routing === ["car"] ? "" : transitModes,
-          departure_date: this.publicTransport.date,
+          weekday: this.publicTransport.weekday,
           access_mode:
             routing === "car" ? "car" : this.publicTransport.accessMode,
           egress_mode: this.publicTransport.egressMode,
