@@ -250,12 +250,12 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     interpolate_function = LinearNDInterpolator(points, costs)
 
     Z = interpolate_function(X, Y)
-    plt.figure().clear()
-    plt.pcolormesh(X, Y, Z, shading="auto")
-    plt.legend()
-    plt.colorbar()
-    plt.axis("equal")
-    plt.savefig("isochrone.png")
+    # plt.figure().clear()
+    # plt.pcolormesh(X, Y, Z, shading="auto")
+    # plt.legend()
+    # plt.colorbar()
+    # plt.axis("equal")
+    # plt.savefig("isochrone.png")
     return np.flip(Z, 0)
 
 

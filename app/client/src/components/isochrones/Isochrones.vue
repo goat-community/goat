@@ -826,8 +826,8 @@ export default {
     drawPolygon: null,
     mapPointerMoveKey: null,
     maxAmenities: 1000, //TODO: make this a configurable setting
-    // Cancel Request Token
-    cancelRequestToken: null,
+    // Cancel Request Tokens
+    cancelRequestTokens: [],
     // ----PT---
     fromTimeMenu: false,
     toTimeMenu: false,
@@ -1441,16 +1441,25 @@ export default {
       this.isMapBusy = true;
       this.isIsochroneBusy = true;
       const promiseArray = [];
+      this.cancelRequestTokens = [];
+      const CancelToken = axios.CancelToken;
       payloads.forEach(payload => {
         const axiosInstance = axios.create();
         promiseArray.push(
-          new Promise(resolve => {
+          new Promise((resolve, reject) => {
             axiosInstance
               .post(`./isochrones`, payload, {
-                responseType: "arraybuffer"
+                responseType: "arraybuffer",
+                cancelToken: new CancelToken(c => {
+                  // An executor function receives a cancel function as a parameter
+                  this.cancelRequestTokens.push(c);
+                })
               })
               .then(response => {
                 resolve(response);
+              })
+              .catch(e => {
+                reject(e);
               });
           })
         );
@@ -1554,12 +1563,23 @@ export default {
           if (error && error.message === "cancelled") {
             return;
           }
-          this.toggleSnackbar({
-            type: "error", //success or error
-            message: this.$t("map.snackbarMessages.calculateIsochroneError"),
-            state: true,
-            timeout: 2500
-          });
+          const calculationNumber = this.calculations.length + 1;
+          this.isochroneLayer
+            .getSource()
+            .getFeatures()
+            .forEach(feature => {
+              if (feature.get("calculationNumber") === calculationNumber) {
+                this.isochroneLayer.getSource().removeFeature(feature);
+              }
+            });
+          setTimeout(() => {
+            this.toggleSnackbar({
+              type: "error", //success or error
+              message: this.$t("map.snackbarMessages.calculateIsochroneError"),
+              state: true,
+              timeout: 2500
+            });
+          }, 200);
         })
         .finally(() => {
           this.multiIsochroneSelectionLayer.getSource().clear();
@@ -1707,9 +1727,21 @@ export default {
      */
     stopIsochroneCalculation() {
       this.clear();
-      if (this.cancelRequestToken instanceof Function) {
-        this.cancelRequestToken("cancelled");
-      }
+      const calculationNumber = this.calculations.length + 1;
+      this.isochroneLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (feature.get("calculationNumber") === calculationNumber) {
+            this.isochroneLayer.getSource().removeFeature(feature);
+          }
+        });
+      this.cancelRequestTokens.forEach(cancelRequestToken => {
+        if (cancelRequestToken instanceof Function) {
+          cancelRequestToken("cancelled");
+        }
+      });
+      this.cancelRequestTokens = [];
       this.toggleSnackbar({
         type: "error",
         message: this.$t("map.snackbarMessages.calculationCancelled"),

@@ -175,6 +175,7 @@ async def calculate_isochrone(
 
 #     return json.loads(gdf.reset_index(drop=True).to_json())
 
+
 @router.post("/multi/count-pois", response_class=JSONResponse)
 async def count_pois_multi_isochrones(
     *,
