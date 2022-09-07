@@ -30,9 +30,4 @@ COPY ./pyproject.toml ./poetry.lock* /app/
 ARG INSTALL_DEV=false
 RUN bash -c "if [ $INSTALL_DEV == 'True' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
 COPY . /app
-# chown all the files to the app user
-#RUN chown -R app:app /app
-# change to the app user
-#USER app
-# run gunicorn
-CMD gunicorn --bind 0.0.0.0:5000 src.main:app -k uvicorn.workers.UvicornWorker
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
