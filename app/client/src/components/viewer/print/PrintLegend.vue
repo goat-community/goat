@@ -82,7 +82,6 @@ export default {
     onMapBound() {
       const me = this;
       const allLayers = me.map.getLayers().getArray();
-      console.log(allLayers);
       me.layers = allLayers.filter(layer => {
         return (
           layer.get("displayInLegend") !== false &&

@@ -583,8 +583,15 @@
               >far fa-list-alt</v-icon
             >
             <h3>{{ $t("isochrones.results.title") }}</h3>
+            <v-switch
+              :color="appColor.secondary"
+              class="mb-0 pb-0 mx-2"
+              hide-details
+              @click.native.stop
+              v-if="calculations.length > 0"
+              v-model="isochroneResultWindow"
+            ></v-switch>
             <v-spacer></v-spacer>
-
             <v-hover v-slot="{ hover }">
               <v-btn
                 small
@@ -594,8 +601,7 @@
                 outlined
                 @click.stop="deleteAll"
               >
-                <v-icon left>delete</v-icon
-                >{{ $t("isochrones.results.deleteAll") }}
+                <v-icon>delete</v-icon>
               </v-btn>
             </v-hover>
 
@@ -882,7 +888,8 @@ export default {
       scenarioIsochroneColor: "scenarioIsochroneColor",
       selectedCalculations: "selectedCalculations",
       publicTransport: "publicTransport",
-      isochroneRange: "isochroneRange"
+      isochroneRange: "isochroneRange",
+      isochroneResultWindow: "isochroneResultWindow"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
@@ -1547,6 +1554,7 @@ export default {
                     }
                     this.calculations.unshift(calculation);
                     this.selectedCalculations.push(calculation);
+                    this.isochroneResultWindow = true;
                     this.isOptionsElVisible = false;
                   });
               } else {
@@ -1554,6 +1562,7 @@ export default {
                 this.calculations.unshift(calculation);
                 this.selectedCalculations = [];
                 this.selectedCalculations.push(calculation);
+                this.isochroneResultWindow = true;
                 this.isOptionsElVisible = false;
               }
             }
@@ -1798,7 +1807,6 @@ export default {
         .getSource()
         .getFeatures()
         .forEach(feature => {
-          console.log(feature.getGeometry().getType());
           if (feature.getGeometry().getType() !== "Point") {
             this.isochroneLayer.getSource().removeFeature(feature);
           }
@@ -1835,6 +1843,7 @@ export default {
           });
           calculation.feature.setGeometry(olFeatures[0].getGeometry());
         });
+        this.isochroneResultWindow = false;
       }
     }
   },

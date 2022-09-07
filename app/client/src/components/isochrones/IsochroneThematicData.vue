@@ -1,6 +1,6 @@
 <template>
   <v-card
-    v-if="selectedCalculations.length > 0"
+    v-if="isochroneResultWindow === true"
     v-draggable="draggableValue"
     class="thematic-data elevation-4"
     id="isochroneWindowId"
@@ -261,7 +261,7 @@ export default {
         .forEach(f => {
           f.set("highlightFeature", false);
         });
-      this.selectedCalculations = [];
+      this.isochroneResultWindow = false;
     },
     stopPropagation(e) {
       e.stopPropagation();
@@ -527,7 +527,8 @@ export default {
       calculations: "calculations",
       selectedCalculations: "selectedCalculations",
       chartDatasetType: "chartDatasetType",
-      isochroneRange: "isochroneRange"
+      isochroneRange: "isochroneRange",
+      isochroneResultWindow: "isochroneResultWindow"
     })
   },
   watch: {

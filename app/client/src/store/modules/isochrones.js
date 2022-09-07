@@ -94,7 +94,8 @@ const state = {
   isochroneRange: 10, // in minutes
   calculationColors: ["rgba(40, 54, 72, 0.4)", "rgba(235, 57, 21, 0.4)"], // [0]: default, [1]: scenario or compare
   // Cancel Request
-  cancelReq: undefined
+  cancelReq: undefined,
+  isochroneResultWindow: false
 };
 
 const getters = {
@@ -106,6 +107,7 @@ const getters = {
   calculations: state => state.calculations,
   calculationColors: state => state.calculationColors,
   chartDatasetType: state => state.chartDatasetType,
+  isochroneResultWindow: state => state.isochroneResultWindow,
   getField
 };
 
