@@ -20,7 +20,6 @@ sentry_sdk.init(
     traces_sample_rate=0.2,
 )
 
-
 app = FastAPI(
     title=settings.PROJECT_NAME,
     # docs_url="/api/docs",
