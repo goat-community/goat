@@ -1,5 +1,5 @@
 import os
-
+import logging
 import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.openapi.docs import get_swagger_ui_html
@@ -54,6 +54,10 @@ if settings.BACKEND_CORS_ORIGINS:
 
 @app.on_event("startup")
 async def startup_event():
+    logger = logging.getLogger("uvicorn.access")
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    logger.addHandler(handler)
     print("App is starting...")
     async with async_session() as db:
         table_index = await crud.layer.table_index(db)
