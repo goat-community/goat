@@ -17,3 +17,4 @@ node_modules
 __pycache__
 /app/api/src/data/*
 !/app/api/src/data/.gitkeep
+.DS_Store
