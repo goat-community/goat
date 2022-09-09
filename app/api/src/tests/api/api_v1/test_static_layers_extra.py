@@ -120,19 +120,21 @@ async def test_update_static_layer(
         assert retrieved_layer.get("id") == static_layer.id
 
 
-async def test_delete_static_layer(
+async def test_delete_static_layers(
     client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
 ) -> None:
-    static_layer = await create_static_layer(db=db)
+    static_layers = [await create_static_layer(db=db) for i in range(2)]
+    static_layer_ids = [layer.id for layer in static_layers]
     r = await client.delete(
-        f"{settings.API_V1_STR}/config/layers/vector/static/{static_layer.id}",
+        f"{settings.API_V1_STR}/config/layers/vector/static/",
         headers=superuser_token_headers,
+        params={"id": static_layer_ids},
     )
     assert 200 <= r.status_code < 300
+    for static_layer in static_layers:
+        r = await client.get(
+            f"{settings.API_V1_STR}/config/layers/vector/static/{static_layer.id}",
+            headers=superuser_token_headers,
+        )
 
-    r = await client.get(
-        f"{settings.API_V1_STR}/config/layers/vector/static/{static_layer.id}",
-        headers=superuser_token_headers,
-    )
-
-    assert r.status_code == 404
+        assert r.status_code == 404

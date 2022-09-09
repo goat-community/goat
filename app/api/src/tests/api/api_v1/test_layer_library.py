@@ -74,33 +74,27 @@ async def test_update_layer_library(
     assert retrieved_layer.get("id")
 
 
-async def test_delete_layer_library(
+async def test_delete_layer_libraries(
     client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
 ) -> None:
-    random_layer = await create_random_layer_library(db=db)
+    random_layers = [await create_random_layer_library(db=db) for i in range(2)]
+    random_layer_names = [layer.name for layer in random_layers]
     r = await client.delete(
-        f"{settings.API_V1_STR}/config/layers/library/{random_layer.name}",
+        f"{settings.API_V1_STR}/config/layers/library/",
         headers=superuser_token_headers,
+        params={"name": random_layer_names},
     )
 
     assert 200 <= r.status_code < 300
 
-    # Try to get
-    r = await client.get(
-        f"{settings.API_V1_STR}/config/layers/library/{random_layer.name}",
-        headers=superuser_token_headers,
-    )
+    for random_layer in random_layers:
+        # Try to get
+        r = await client.get(
+            f"{settings.API_V1_STR}/config/layers/library/{random_layer.name}",
+            headers=superuser_token_headers,
+        )
 
-    assert r.status_code == 404
-
-    # Try to delete again
-
-    r = await client.delete(
-        f"{settings.API_V1_STR}/config/layers/library/{random_layer.name}",
-        headers=superuser_token_headers,
-    )
-
-    assert r.status_code == 404
+        assert r.status_code == 404
 
 
 async def test_read_styles_list(
@@ -196,30 +190,23 @@ async def test_update_style_library(
     assert retrieved_style.get("id")
 
 
-async def test_delete_style_library(
+async def test_delete_style_libraries(
     client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
 ) -> None:
-    random_style = await create_random_style_library(db=db)
+    random_styles = [await create_random_style_library(db=db) for i in range(2)]
+    random_style_names = [style.name for style in random_styles]
     r = await client.delete(
-        f"{settings.API_V1_STR}/config/layers/library/styles/{random_style.name}",
+        f"{settings.API_V1_STR}/config/layers/library/styles/",
         headers=superuser_token_headers,
+        params={"name": random_style_names},
     )
 
     assert 200 <= r.status_code < 300
+    for random_style in random_styles:
+        # Try to get
+        r = await client.get(
+            f"{settings.API_V1_STR}/config/layers/library/styles/{random_style.name}",
+            headers=superuser_token_headers,
+        )
 
-    # Try to get
-    r = await client.get(
-        f"{settings.API_V1_STR}/config/layers/library/styles/{random_style.name}",
-        headers=superuser_token_headers,
-    )
-
-    assert r.status_code == 404
-
-    # Try to delete again
-
-    r = await client.delete(
-        f"{settings.API_V1_STR}/config/layers/library/styles/{random_style.name}",
-        headers=superuser_token_headers,
-    )
-
-    assert r.status_code == 404
+        assert r.status_code == 404

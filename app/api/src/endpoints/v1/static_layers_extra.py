@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Union
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
@@ -128,18 +128,22 @@ async def update_static_layer_data(
     return static_layer
 
 
-@router.delete("/static/{layer_id:int}")
+@router.delete("/static/")
 async def delete_static_layer_data(
     *,
-    layer_id: int,
+    id: List[int] = Query(default=None, gt=0),
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    static_layer = await crud.static_layer.get(db, id=layer_id)
-    if not static_layer:
-        raise HTTPException(status_code=404, detail="static layer not found.")
-    # Drop PostGIS table
-    await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
-    # Delete Object
-    static_layer = await crud.static_layer.remove(db, id=static_layer.id)
-    return static_layer
+    """
+    Delete multiple static layers at the same time.
+    """
+    layer_ids = id
+    for layer_id in layer_ids:
+        static_layer = await crud.static_layer.get(db, id=layer_id)
+        if static_layer:
+            # Drop PostGIS table
+            await crud.static_layer.drop_postgis_table(db, static_layer.table_name)
+
+    # Delete Objects
+    return await crud.static_layer.remove_multi(db, ids=layer_ids)
