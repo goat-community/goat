@@ -87,11 +87,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db_obj: ModelType,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
-        fields = obj_in.__fields__.keys()
+        
         if isinstance(obj_in, dict):
             update_data = obj_in
+            fields = obj_in.keys()
         else:
             update_data = obj_in.dict(exclude_unset=True)
+            fields = obj_in.__fields__.keys()
         for field in fields:
             if field in update_data:
                 setattr(db_obj, field, update_data[field])

@@ -257,8 +257,13 @@ class CRUDDynamicCustomization:
             default_setting = await crud.opportunity_default_config.get_by_key(
                 db=db, key="category", value=category
             )
+            study_area_setting = await crud.opportunity_study_area_config.get_by_multi_keys(
+                db=db, keys={"category": category, "study_area_id": current_user.active_study_area_id}
+            )
             if default_setting != []:
                 opportunity_group_id = default_setting[0].opportunity_group_id
+            elif study_area_setting != []:
+                opportunity_group_id = study_area_setting[0].opportunity_group_id
             else:
                 opportunity_group_id = await crud.opportunity_group.get_by_key(
                     db=db, key="group", value="other"

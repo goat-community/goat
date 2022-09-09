@@ -23,7 +23,10 @@ class Settings(BaseSettings):
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000", \
     # "http://localhost:8080", "http://local.dockertoolbox.tiangolo.com"]'
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = ["https://dashboard.plan4better.de"]
+    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = [
+        "https://dashboard.plan4better.de",
+        "https://dashboard-dev.plan4better.de",
+    ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
@@ -137,8 +140,19 @@ class Settings(BaseSettings):
     DEFAULT_MAXZOOM: int = 22
 
     # R5 config
+    R5_HOST: str = None
     R5_MONGO_DB_URL: Optional[str] = None
+
+    @validator("R5_MONGO_DB_URL", pre=True)
+    def r5_mongodb_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        # mongodb://172.17.0.1:27017/analysis
+        return f'mongodb://{values.get("R5_HOST")}:27017/analysis'
+
     R5_API_URL: Optional[str] = None
+
+    @validator("R5_API_URL", pre=True)
+    def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        return f'http://{values.get("R5_HOST")}:7070/api'
 
     class Config:
         case_sensitive = True

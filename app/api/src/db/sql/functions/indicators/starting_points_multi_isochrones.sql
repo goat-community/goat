@@ -27,6 +27,8 @@ BEGIN
    
 	IF modus = 'scenario' THEN
         excluded_pois_id = basic.modified_pois(scenario_id_input);
+    ELSEIF modus = 'default' THEN
+    	scenario_id_input = 0; 
     END IF;
 	
 

@@ -793,7 +793,6 @@ export const mapillaryStyleDefs = {
   activeSequence: "",
   baseOverlayStyle: map => {
     const styleFunction = feature => {
-      // console.log(feature);
       let color = "rgba(53, 175, 109,0.7)";
       if (
         [

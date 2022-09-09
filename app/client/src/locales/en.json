@@ -64,6 +64,16 @@
     "smallerThanThousand": "Value should be smaller than 1000",
     "onlyTwoDecimalPlaces": "Only 2 decimal places are allowed"
   },
+  "weekday": "Weekday",
+  "daysOfWeek": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
   "appBar": {
     "buttons": {
       "login": "Login",
@@ -403,7 +413,9 @@
         "shared": "Share"
       },
       "travelTime": "Traveltime (minutes)",
-      "amenityCount": "Amenity Count"
+      "amenityCount": "Amenity Count",
+      "populationCount": "Population Count",
+      "aoisArea": "AOIs Area"
     },
     "isochrones": "Isochrones",
     "deleteTitle": "Delete",
@@ -435,16 +447,7 @@
   "poisFilter": {
     "showTimeFilter": "Add time filter",
     "selectHourLabel": "Select open time to filter",
-    "selectDayLabel": "Select day",
-    "daysOfWeek": {
-      "monday": "Monday",
-      "tuesday": "Tuesday",
-      "wednesday": "Wednesday",
-      "thursday": "Thursday",
-      "friday": "Friday",
-      "saturday": "Saturday",
-      "sunday": "Sunday"
-    }
+    "selectDayLabel": "Select day"
   },
   "layerTree": {
     "title": "Layers",
@@ -1109,6 +1112,17 @@
     "emoji": "Emoji",
     "camping": "Camping",
     "gender": "Genders",
-    "hands": "Hands"
+    "hands": "Hands",
+    "all": "All",
+    "custom(p4b)": "Custom Icons",
+    "communication & devices": "Communication & Devices",
+    "others": "Others",
+    "food & drinks": "Food & Drinks",
+    "health": "Health",
+    "items": "Items",
+    "people & clothing": "People & Clothing",
+    "sign & symbols": "Sign & Symbols",
+    "sport": "Sport",
+    "tourism & holidays": "Tourism & Holiday"
   }
 }

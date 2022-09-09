@@ -88,33 +88,34 @@
                   <template v-if="['transit', 'car'].includes(routing)">
                     <!-- DATE -->
                     <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
-                      <v-menu
-                        ref="pt_date"
-                        v-model="dateMenu"
-                        :close-on-content-click="false"
-                        :nudge-right="40"
-                        transition="scale-transition"
-                        offset-y
-                        min-width="auto"
+                      <v-select
+                        :label="$t(`weekday`)"
+                        class="mb-2 mt-0"
+                        v-model="publicTransport.weekday"
+                        :items="weekdays"
+                        item-value="value"
+                        item-text="text"
+                        hide-details
                       >
-                        <template v-slot:activator="{ on, attrs }">
-                          <v-text-field
-                            v-model="publicTransport.date"
-                            label="Date"
-                            class="mb-0 pb-0"
-                            prepend-inner-icon="fas fa-calendar"
-                            readonly
-                            v-bind="attrs"
-                            v-on="on"
-                          ></v-text-field>
+                        <template slot="selection" slot-scope="{ item }">
+                          <v-row>
+                            <v-col cols="12" class="py-0"
+                              ><span class="cb-item">{{
+                                $t(`daysOfWeek.${item.text}`)
+                              }}</span></v-col
+                            >
+                          </v-row>
                         </template>
-                        <v-date-picker
-                          v-if="dateMenu"
-                          :color="appColor.primary"
-                          v-model="publicTransport.date"
-                          @input="dateMenu = false"
-                        ></v-date-picker>
-                      </v-menu>
+                        <template slot="item" slot-scope="{ item }">
+                          <v-row>
+                            <v-col cols="12"
+                              ><span class="cb-item">{{
+                                $t(`daysOfWeek.${item.text}`)
+                              }}</span></v-col
+                            >
+                          </v-row>
+                        </template>
+                      </v-select>
                     </v-col>
                     <!-- FROM TIME -->
                     <v-col class="d-flex mt-2 pt-0" cols="12" sm="6">
@@ -582,8 +583,15 @@
               >far fa-list-alt</v-icon
             >
             <h3>{{ $t("isochrones.results.title") }}</h3>
+            <v-switch
+              :color="appColor.secondary"
+              class="mb-0 pb-0 mx-2"
+              hide-details
+              @click.native.stop
+              v-if="calculations.length > 0"
+              v-model="isochroneResultWindow"
+            ></v-switch>
             <v-spacer></v-spacer>
-
             <v-hover v-slot="{ hover }">
               <v-btn
                 small
@@ -593,8 +601,7 @@
                 outlined
                 @click.stop="deleteAll"
               >
-                <v-icon left>delete</v-icon
-                >{{ $t("isochrones.results.deleteAll") }}
+                <v-icon>delete</v-icon>
               </v-btn>
             </v-hover>
 
@@ -638,9 +645,12 @@
                             <v-icon small class="text-xs-center mx-2"
                               >fas fa-tachometer-alt
                             </v-icon>
-                            <span class="caption">{{
-                              calculation.config.settings.speed
-                            }}</span>
+                            <span class="caption"
+                              >{{
+                                calculation.config.settings.speed
+                              }}
+                              km/h</span
+                            >
                           </template>
                           <template
                             v-if="
@@ -651,7 +661,7 @@
                               >fas fa-clock
                             </v-icon>
                             <span class="caption">{{
-                              calculation.config.settings.departure_date
+                              calculation.config.settings.weekday
                             }}</span>
                           </template>
 
@@ -790,6 +800,7 @@ import axios from "axios";
 import { parseTimesData } from "../../utils/ParseTimeData";
 import { jsolines } from "../../utils/Jsolines";
 import { toLonLat } from "ol/proj";
+// import { isochroneHeatmap } from "../../utils/IsochroneHeatmap";
 
 export default {
   mixins: [Mapable, Isochrones, KeyShortcuts],
@@ -820,16 +831,25 @@ export default {
     multiIsochronePoiCount: null,
     drawPolygon: null,
     mapPointerMoveKey: null,
-    maxAmenities: 150, //TODO: make this a configurable setting
-    // Cancel Request Token
-    cancelRequestToken: null,
+    maxAmenities: 1000, //TODO: make this a configurable setting
+    // Cancel Request Tokens
+    cancelRequestTokens: [],
     // ----PT---
     fromTimeMenu: false,
     toTimeMenu: false,
     dateMenu: false,
     //Hover Overlya
     isochroneHoverOverlay: null,
-    isochroneHoverOverlayEl: null
+    isochroneHoverOverlayEl: null,
+    weekdays: [
+      { text: "monday", value: 0 },
+      { text: "tuesday", value: 1 },
+      { text: "wednesday", value: 2 },
+      { text: "thursday", value: 3 },
+      { text: "friday", value: 4 },
+      { text: "saturday", value: 5 },
+      { text: "sunday", value: 6 }
+    ]
   }),
   computed: {
     ...mapGetters("scenarios", {
@@ -868,7 +888,8 @@ export default {
       scenarioIsochroneColor: "scenarioIsochroneColor",
       selectedCalculations: "selectedCalculations",
       publicTransport: "publicTransport",
-      isochroneRange: "isochroneRange"
+      isochroneRange: "isochroneRange",
+      isochroneResultWindow: "isochroneResultWindow"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
@@ -1281,21 +1302,7 @@ export default {
         isochroneMarkerFeature.setId("isochrone_marker_" + calculationNumber);
         isochroneMarkerFeature.set("showLabel", false);
         this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
-        const promiseArray = this.calculateIsochrone(startPoint);
-        axios
-          .all(promiseArray)
-          .then(() => {})
-          .catch(error => {
-            if (error && error.message === "cancelled") {
-              return;
-            }
-            this.toggleSnackbar({
-              type: "error", //success or error
-              message: this.$t("map.snackbarMessages.calculateIsochroneError"),
-              state: true,
-              timeout: 2500
-            });
-          });
+        this.calculateIsochrone(startPoint);
         this.clear();
       }
     },
@@ -1305,10 +1312,12 @@ export default {
      */
     calculateIsochrone(startPoint) {
       let routing = this.routing;
+      let _routing = this.routing; //store selected routing for later use
+      let _type = this.type; //store selected type for later use
       let mode = routing;
       //-- SETTINGS --//
       let settings = {
-        travel_time: 25, //TODO: Make this configurable
+        travel_time: 20, //TODO: Make this configurable
         speed: this.speed
       };
       if (routing.includes("walking") || routing.includes("cycling")) {
@@ -1332,9 +1341,9 @@ export default {
         const toTimeArr = this.publicTransport.toTime.split(":");
         settings = {
           ...settings,
-          travel_time: 120,
+          travel_time: 60,
           transit_modes: routing === ["car"] ? "" : transitModes,
-          departure_date: this.publicTransport.date,
+          weekday: this.publicTransport.weekday,
           access_mode:
             routing === "car" ? "car" : this.publicTransport.accessMode,
           egress_mode: this.publicTransport.egressMode,
@@ -1389,20 +1398,21 @@ export default {
       }
       //-- SCENARIO --// (** CONSIDERED ONLY FOR WALKING AND CYCLING **)
       let scenario = {
-        id: this.activeScenario ? this.activeScenario : 0,
+        id:
+          this.calculationMode.active === "scenario" ? this.activeScenario : 0,
         modus: this.calculationMode.active
       };
 
       //-- OUTPUT --//
       let output = {
         type: "grid",
-        resolution: ["car", "transit"].includes(routing) ? 9 : 10 // TODO: make this configurable
+        resolution: ["car", "transit"].includes(routing) ? 9 : 12
       };
       const payloads = [];
 
       // If modus is "comparision" do two requests one for default and one for scenario
       if (
-        this.calculationMode.active === "comparision" &&
+        this.calculationMode.active === "comparison" &&
         (routing.includes("walking") || routing.includes("cycling"))
       ) {
         const defaultPayload = {
@@ -1438,107 +1448,154 @@ export default {
       this.isMapBusy = true;
       this.isIsochroneBusy = true;
       const promiseArray = [];
+      this.cancelRequestTokens = [];
+      const CancelToken = axios.CancelToken;
       payloads.forEach(payload => {
         const axiosInstance = axios.create();
         promiseArray.push(
           new Promise((resolve, reject) => {
             axiosInstance
               .post(`./isochrones`, payload, {
-                responseType: "arraybuffer"
+                responseType: "arraybuffer",
+                cancelToken: new CancelToken(c => {
+                  // An executor function receives a cancel function as a parameter
+                  this.cancelRequestTokens.push(c);
+                })
               })
               .then(response => {
                 resolve(response);
-                if (response.data) {
-                  const isochroneSurface = parseTimesData(response.data);
-                  const singleValuedSurface = computeSingleValuedSurface(
-                    isochroneSurface,
-                    50
-                  );
-                  const {
-                    surface,
-                    width,
-                    height,
-                    west,
-                    north,
-                    zoom
-                    // eslint-disable-next-line no-undef
-                  } = singleValuedSurface;
-                  const isochronePolygon = jsolines({
-                    surface,
-                    width,
-                    height,
-                    cutoff: this.isochroneRange,
-                    project: ([x, y]) => {
-                      const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-                      return [ll.lon, ll.lat];
-                    }
-                  });
-
-                  let olFeatures = geojsonToFeature(isochronePolygon, {
-                    dataProjection: "EPSG:4326",
-                    featureProjection: "EPSG:3857"
-                  });
-
-                  const calculationNumber = this.calculations.length + 1;
-                  const isochroneCalculationUid =
-                    olFeatures[0].get("isochrone_calculation_id") ||
-                    calculationNumber;
-                  olFeatures[0].setId(
-                    "isochrone_feature_" + isochroneCalculationUid
-                  );
-                  olFeatures[0].set("calculationNumber", calculationNumber);
-                  let calculation = {
-                    id: calculationNumber,
-                    routing,
-                    config: payload,
-                    rawData: isochroneSurface,
-                    surfaceData: singleValuedSurface,
-                    feature: olFeatures[0]
-                  };
-                  //Geocode
-                  delete axiosInstance.defaults.headers.common["Authorization"];
-                  axiosInstance
-                    .get(
-                      `https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
-                    )
-                    .then(response => {
-                      if (
-                        response.status === 200 &&
-                        response.data.display_name
-                      ) {
-                        const address = response.data.display_name;
-                        calculation.position = address;
-                      }
-                    })
-                    .catch(() => {
-                      calculation.position = "Unknown";
-                    })
-                    .finally(() => {
-                      this.isMapBusy = false;
-                      this.isIsochroneBusy = false;
-                      if (this.selectedCalculations.length === 2) {
-                        // Remove first calculation if length is already 2
-                        this.selectedCalculations.shift();
-                      }
-                      this.calculations.unshift(calculation);
-                      this.selectedCalculations.push(calculation);
-                      this.isOptionsElVisible = false;
-                    });
-                }
               })
-              .catch(error => {
-                reject(error);
-              })
-              .finally(() => {
-                this.multiIsochroneSelectionLayer.getSource().clear();
-                this.isMapBusy = false;
-                this.isIsochroneBusy = false;
-                this.clear();
+              .catch(e => {
+                reject(e);
               });
           })
         );
       });
-      return promiseArray;
+      Promise.all(promiseArray)
+        .then(results => {
+          results.forEach((response, index) => {
+            if (response.data) {
+              const payload = payloads[index];
+              const isochroneSurface = parseTimesData(response.data);
+              let singleValuedSurface = {};
+              if (isochroneSurface.depth === 1) {
+                singleValuedSurface = isochroneSurface;
+                singleValuedSurface["surface"] = isochroneSurface.data;
+              } else {
+                singleValuedSurface = computeSingleValuedSurface(
+                  isochroneSurface,
+                  50
+                );
+              }
+              const {
+                surface,
+                width,
+                height,
+                west,
+                north,
+                zoom
+                // eslint-disable-next-line no-undef
+              } = singleValuedSurface;
+              const isochronePolygon = jsolines({
+                surface,
+                width,
+                height,
+                cutoff: this.isochroneRange,
+                project: ([x, y]) => {
+                  const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+                  return [ll.lon, ll.lat];
+                }
+              });
+              let olFeatures = geojsonToFeature(isochronePolygon, {
+                dataProjection: "EPSG:4326",
+                featureProjection: "EPSG:3857"
+              });
+
+              const calculationNumber = this.calculations.length + 1;
+              const isochroneCalculationUid =
+                olFeatures[0].get("isochrone_calculation_id") ||
+                calculationNumber;
+              olFeatures[0].setId(
+                "isochrone_feature_" + isochroneCalculationUid
+              );
+              olFeatures[0].set("calculationNumber", calculationNumber);
+              let calculation = {
+                id: calculationNumber,
+                type: _type,
+                routing: _routing,
+                config: payload,
+                rawData: isochroneSurface,
+                surfaceData: singleValuedSurface,
+                feature: olFeatures[0]
+              };
+              if (_type == "single") {
+                //Geocode
+                const axiosInstance = axios.create();
+                delete axiosInstance.defaults.headers.common["Authorization"];
+                axiosInstance
+                  .get(
+                    `https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
+                  )
+                  .then(response => {
+                    if (response.status === 200 && response.data.display_name) {
+                      const address = response.data.display_name;
+                      calculation.position = address;
+                    }
+                  })
+                  .catch(() => {
+                    calculation.position = "Unknown";
+                  })
+                  .finally(() => {
+                    this.isMapBusy = false;
+                    this.isIsochroneBusy = false;
+                    if (this.selectedCalculations.length === 2) {
+                      // Remove first calculation if length is already 2
+                      this.selectedCalculations.shift();
+                    }
+                    this.calculations.unshift(calculation);
+                    this.selectedCalculations.push(calculation);
+                    this.isochroneResultWindow = true;
+                    this.isOptionsElVisible = false;
+                  });
+              } else {
+                calculation.position = "multiIsochroneCalculation";
+                this.calculations.unshift(calculation);
+                this.selectedCalculations = [];
+                this.selectedCalculations.push(calculation);
+                this.isochroneResultWindow = true;
+                this.isOptionsElVisible = false;
+              }
+            }
+          });
+        })
+        .catch(error => {
+          if (error && error.message === "cancelled") {
+            return;
+          }
+          const calculationNumber = this.calculations.length + 1;
+          this.isochroneLayer
+            .getSource()
+            .getFeatures()
+            .forEach(feature => {
+              if (feature.get("calculationNumber") === calculationNumber) {
+                this.isochroneLayer.getSource().removeFeature(feature);
+              }
+            });
+          setTimeout(() => {
+            this.toggleSnackbar({
+              type: "error", //success or error
+              message: this.$t("map.snackbarMessages.calculateIsochroneError"),
+              state: true,
+              timeout: 2500
+            });
+          }, 200);
+        })
+        .finally(() => {
+          this.multiIsochroneSelectionLayer.getSource().clear();
+          this.isMapBusy = false;
+          this.isIsochroneBusy = false;
+          this.clear();
+        });
     },
     /**
      * Map pointer move event .
@@ -1572,9 +1629,10 @@ export default {
             const pixel = toPixel(lonLat, calculation.surfaceData.zoom);
             const x = Math.floor(pixel.x - calculation.surfaceData.west);
             const y = Math.floor(pixel.y - calculation.surfaceData.north);
+            const depthIndex = calculation.rawData.depth === 1 ? 0 : 2;
             let time = null;
-            if (calculation.rawData.contains(x, y, 2)) {
-              time = [calculation.rawData.get(x, y, 2)];
+            if (calculation.rawData.contains(x, y, depthIndex)) {
+              time = [calculation.rawData.get(x, y, depthIndex)];
             }
             if (time) {
               overlayerInnerHtml += `<div>${calculationId}- Time: ${time} min</div>`;
@@ -1610,6 +1668,15 @@ export default {
         if (this.selectedCalculations.length === 2) {
           // Remove first calculation if length is already 2
           this.selectedCalculations.shift();
+        }
+        const multiCalculations = this.selectedCalculations.filter(
+          selectedCalculation => {
+            return selectedCalculation.type === "multiple";
+          }
+        );
+        if (calculation.type === "multiple" || multiCalculations.length > 0) {
+          // Clear calculation if type is multiple
+          this.selectedCalculations = [];
         }
         this.selectedCalculations.push(calculation);
       }
@@ -1669,9 +1736,21 @@ export default {
      */
     stopIsochroneCalculation() {
       this.clear();
-      if (this.cancelRequestToken instanceof Function) {
-        this.cancelRequestToken("cancelled");
-      }
+      const calculationNumber = this.calculations.length + 1;
+      this.isochroneLayer
+        .getSource()
+        .getFeatures()
+        .forEach(feature => {
+          if (feature.get("calculationNumber") === calculationNumber) {
+            this.isochroneLayer.getSource().removeFeature(feature);
+          }
+        });
+      this.cancelRequestTokens.forEach(cancelRequestToken => {
+        if (cancelRequestToken instanceof Function) {
+          cancelRequestToken("cancelled");
+        }
+      });
+      this.cancelRequestTokens = [];
       this.toggleSnackbar({
         type: "error",
         message: this.$t("map.snackbarMessages.calculationCancelled"),
@@ -1728,7 +1807,6 @@ export default {
         .getSource()
         .getFeatures()
         .forEach(feature => {
-          console.log(feature.getGeometry().getType());
           if (feature.getGeometry().getType() !== "Point") {
             this.isochroneLayer.getSource().removeFeature(feature);
           }
@@ -1737,8 +1815,8 @@ export default {
         this.isochroneLayer.getSource().addFeatures([calculation.feature]);
       });
       if (this.selectedCalculations.length === 0) {
-        this.isochroneRange = 15;
-        // Reset features to 15 minutes.
+        this.isochroneRange = 10;
+        // Reset features to 10 minutes.
         this.calculations.forEach(calculation => {
           const {
             surface,
@@ -1765,6 +1843,7 @@ export default {
           });
           calculation.feature.setGeometry(olFeatures[0].getGeometry());
         });
+        this.isochroneResultWindow = false;
       }
     }
   },

@@ -1,5 +1,5 @@
 import os
-
+import logging
 import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.openapi.docs import get_swagger_ui_html
@@ -20,7 +20,6 @@ sentry_sdk.init(
     traces_sample_rate=0.2,
 )
 
-
 app = FastAPI(
     title=settings.PROJECT_NAME,
     # docs_url="/api/docs",
@@ -31,6 +30,7 @@ app = FastAPI(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
 @app.get("/api/docs", include_in_schema=False)
 async def swagger_ui_html():
     return get_swagger_ui_html(
@@ -38,6 +38,7 @@ async def swagger_ui_html():
         openapi_url=f"{settings.API_V1_STR}/openapi.json",
         title=settings.PROJECT_NAME,
     )
+
 
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:
@@ -49,8 +50,13 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
+
 @app.on_event("startup")
 async def startup_event():
+    logger = logging.getLogger("uvicorn.access")
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    logger.addHandler(handler)
     print("App is starting...")
     async with async_session() as db:
         table_index = await crud.layer.table_index(db)

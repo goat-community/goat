@@ -1,6 +1,6 @@
 <template>
   <v-card
-    v-if="selectedCalculations.length > 0"
+    v-if="isochroneResultWindow === true"
     v-draggable="draggableValue"
     class="thematic-data elevation-4"
     id="isochroneWindowId"
@@ -78,7 +78,11 @@
                   <span>Isochrone {{ selectedCalculations[1].id }}</span>
                 </template>
                 <v-spacer></v-spacer>
-                <v-btn-toggle v-model="resultViewType" mandatory>
+                <v-btn-toggle
+                  v-model="resultViewType"
+                  v-if="selectedCalculations[0].type !== 'multiple'"
+                  mandatory
+                >
                   <v-btn small>
                     <v-icon small>fa-solid fa-table</v-icon>
                   </v-btn>
@@ -89,8 +93,10 @@
                     small
                     :disabled="
                       (selectedPoisOnlyKeys.length < 2 &&
+                        selectedAoisOnlyKeys.length < 2 &&
                         selectedCalculations.length === 1) ||
                         (selectedPoisOnlyKeys.length < 3 &&
+                          selectedAoisOnlyKeys.length < 3 &&
                           selectedCalculations.length === 2)
                     "
                   >
@@ -110,7 +116,7 @@
                     :color="appColor.secondary"
                     v-model="isochroneRange"
                     :min="1"
-                    :max="120"
+                    :max="getMaxIsochroneRange"
                     thumb-label="always"
                     thumb-size="25"
                     @input="udpateIsochroneSurface"
@@ -135,7 +141,8 @@
                 selectedCalculations &&
                   selectedCalculations.length === 1 &&
                   resultViewType === 2 &&
-                  selectedPoisOnlyKeys.length > 1
+                  (selectedPoisOnlyKeys.length > 1 ||
+                    selectedAoisOnlyKeys.length > 1)
               "
             />
             <isochrone-amenities-radar-chart-vue
@@ -144,24 +151,29 @@
                 selectedCalculations &&
                   selectedCalculations.length === 2 &&
                   resultViewType === 2 &&
-                  selectedPoisOnlyKeys.length > 2
+                  (selectedPoisOnlyKeys.length > 2 ||
+                    selectedAoisOnlyKeys.length > 2)
               "
             ></isochrone-amenities-radar-chart-vue>
             <v-btn-toggle
-              v-if="
-                [1].includes(resultViewType) && selectedPoisOnlyKeys.length > 0
-              "
+              v-if="resultViewType !== 0"
               v-model="chartDatasetType"
               mandatory
             >
-              <v-btn small>
+              <v-btn :disabled="resultViewType !== 1" small>
                 <i
                   class="v-icon notranslate fa-solid fa-people-group theme--light"
                   style="font-size: 16px;"
                 ></i>
               </v-btn>
-              <v-btn small>
+              <v-btn small :disabled="selectedPoisOnlyKeys.length < 1">
                 <v-icon small>fa-solid fa-location-dot</v-icon>
+              </v-btn>
+              <v-btn small :disabled="selectedAoisOnlyKeys.length < 1">
+                <i
+                  class="v-icon notranslate fa-brands fa-square-pied-piper theme--light"
+                  style="font-size: 16px;"
+                ></i>
               </v-btn>
             </v-btn-toggle>
             <v-data-table
@@ -192,16 +204,23 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 // import IsochroneUtils from "../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
 import { mapFields } from "vuex-map-fields";
-import { fromPixel, geojsonToFeature } from "../../utils/MapUtils";
+import {
+  featuresToGeojson,
+  fromPixel,
+  geojsonToFeature
+} from "../../utils/MapUtils";
 import { jsolines } from "../../utils/Jsolines";
 import IsochroneAmenitiesLineChart from "../other/IsochroneAmenitiesLineChart.vue";
 import IsochroneAmenitiesPieChart from "../other/IsochroneAmenitiesPieChart.vue";
 import IsochroneAmenitiesRadarChartVue from "../other/IsochroneAmenitiesRadarChart.vue";
+import { saveAs } from "file-saver";
 import { debounce } from "../../utils/Helpers";
+import ApiService from "../../services/api.service";
+import JSZip from "jszip";
 export default {
   components: {
     IsochroneAmenitiesLineChart,
@@ -226,9 +245,12 @@ export default {
     },
     downloadDialogState: false,
     selectedCalculationForDownload: null,
-    isochroneDownloadTypes: ["GeoJson", "Shapefile", "XLSX"]
+    isochroneDownloadTypes: ["GeoJSON", "ESRI Shapefile", "XLSX"]
   }),
   methods: {
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    }),
     expand() {
       this.isExpanded = !this.isExpanded;
     },
@@ -239,7 +261,7 @@ export default {
         .forEach(f => {
           f.set("highlightFeature", false);
         });
-      this.selectedCalculations = [];
+      this.isochroneResultWindow = false;
     },
     stopPropagation(e) {
       e.stopPropagation();
@@ -283,7 +305,78 @@ export default {
       });
     }, 30),
     downloadIsochrone(type) {
-      console.log(type);
+      const promiseArray = [];
+      this.selectedCalculations.forEach(calculation => {
+        const feature = calculation.feature.clone();
+        const reached_opportunities = {};
+        const accessibility = calculation.surfaceData.accessibility;
+        if (calculation.type === "single") {
+          Object.keys(accessibility).forEach(category => {
+            reached_opportunities[category] =
+              accessibility[category][this.isochroneRange - 1];
+          });
+        } else {
+          Object.keys(accessibility).forEach(studyAreaId => {
+            reached_opportunities[studyAreaId] = {
+              reached_population:
+                accessibility[studyAreaId]["reached_population"][
+                  this.isochroneRange - 1
+                ],
+              total_population: accessibility[studyAreaId]["total_population"]
+            };
+          });
+        }
+        const properties = {
+          isochrone_calculation_id: calculation.id,
+          traveltime: this.isochroneRange,
+          modus: calculation.config.scenario.modus,
+          routing_profile: calculation.routing,
+          reached_opportunities
+        };
+        feature.setProperties(properties);
+        const geojsonPayload = featuresToGeojson(
+          [feature],
+          "EPSG:3857",
+          "EPSG:4326"
+        );
+        promiseArray.push(
+          ApiService.post(
+            `/isochrones/export?return_type=${type}`,
+            geojsonPayload,
+            {
+              responseType: "blob",
+              headers: {
+                "Content-Type": "application/json"
+              }
+            }
+          )
+        );
+      });
+      Promise.all(promiseArray)
+        .then(responses => {
+          const zip = new JSZip();
+          responses.forEach((response, index) => {
+            const exportName = `isochrone-export_${index}_${this.isochroneRange}-min.zip`;
+            if (responses.length === 1) {
+              saveAs(response.data, exportName);
+            }
+            zip.file(exportName, response.data, { blob: true });
+          });
+          if (responses.length > 1) {
+            zip.generateAsync({ type: "blob" }).then(function(content) {
+              saveAs(content, "isochrone-export.zip");
+            });
+          }
+        })
+        .catch(e => {
+          console.log(e);
+          this.toggleSnackbar({
+            type: "error",
+            message: "Error downloading isochrones",
+            state: true,
+            timeout: 10000
+          });
+        });
     }
   },
   computed: {
@@ -292,7 +385,7 @@ export default {
       // Single Isochrone calculation table header
       if (
         this.selectedCalculations.length > 0 &&
-        this.selectedCalculations[0].config.starting_point.input.length === 1
+        this.selectedCalculations[0].type === "single"
       ) {
         headers = [
           {
@@ -313,28 +406,22 @@ export default {
       } else {
         headers = [
           {
-            text: this.$t("isochrones.tableData.table.isochrone"),
-            value: "isochrone",
-            sortable: false,
-            width: "25%"
-          },
-          {
             text: this.$t("isochrones.tableData.table.studyArea"),
             value: "studyArea",
             sortable: false,
-            width: "15%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.population"),
             value: "population",
             sortable: false,
-            width: "20%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.reachedPopulation"),
             value: "reachPopulation",
             sortable: false,
-            width: "20%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.shared"),
@@ -351,9 +438,9 @@ export default {
       let poisObj = {};
       this.selectedCalculations.forEach(calculation => {
         // Single isochrone calculation
-        if (calculation.config.starting_point.input.length === 1) {
-          let pois = calculation.surfaceData.accessibility;
-          let selectedTime = this.isochroneRange;
+        let pois = calculation.surfaceData.accessibility;
+        let selectedTime = this.isochroneRange;
+        if (calculation.type === "single") {
           let keys = Object.keys(pois);
           if (keys.length > 0) {
             let sumPois = {};
@@ -383,13 +470,24 @@ export default {
             }
           }
         } else {
-          // TODO:
-          console.log("multi isochrone calculation");
+          Object.keys(pois).forEach(studyArea => {
+            const reachedPopulation =
+              pois[studyArea].reached_population[selectedTime - 1];
+            items.push({
+              studyArea: studyArea,
+              population: parseInt(pois[studyArea].total_population),
+              reachPopulation: parseInt(reachedPopulation),
+              shared: `${(
+                (reachedPopulation / pois[studyArea].total_population) *
+                100
+              ).toFixed(1)}%`
+            });
+          });
         }
       });
-      items = Object.values(poisObj);
       //Sort table rows based on number of amenties || alphabeticaly (only on single calculations)
-      if (this.calculations[0].config.starting_point.input.length === 1) {
+      if (this.calculations[0].type === "single") {
+        items = Object.values(poisObj);
         items.sort((a, b) => {
           const b_Value = b[Object.keys(b)[0]];
           const a_Value = a[Object.keys(a)[0]];
@@ -399,8 +497,17 @@ export default {
           return b_Value - a_Value;
         });
       }
-
       return items;
+    },
+    getMaxIsochroneRange() {
+      let maxIsochroneRange = 60;
+      const walkingCyclingCalculations = this.selectedCalculations.filter(
+        c => !["transit", "car"].includes(c.routing)
+      );
+      if (walkingCyclingCalculations.length > 0) {
+        maxIsochroneRange = 20;
+      }
+      return maxIsochroneRange;
     },
 
     ...mapGetters("isochrones", {
@@ -410,7 +517,8 @@ export default {
     ...mapGetters("poisaois", {
       poisAois: "poisAois",
       selectedPois: "selectedPois",
-      selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
+      selectedPoisOnlyKeys: "selectedPoisOnlyKeys",
+      selectedAoisOnlyKeys: "selectedAoisOnlyKeys"
     }),
     ...mapGetters("app", {
       appColor: "appColor"
@@ -419,29 +527,69 @@ export default {
       calculations: "calculations",
       selectedCalculations: "selectedCalculations",
       chartDatasetType: "chartDatasetType",
-      isochroneRange: "isochroneRange"
+      isochroneRange: "isochroneRange",
+      isochroneResultWindow: "isochroneResultWindow"
     })
   },
   watch: {
+    resultViewType(value) {
+      if (value === 2 && this.chartDatasetType === 0) {
+        if (this.selectedPoisOnlyKeys.length > 0) {
+          this.chartDatasetType = 1;
+        } else {
+          this.chartDatasetType = 2;
+        }
+      }
+    },
     selectedPoisOnlyKeys(value) {
-      if (value.length > 0) {
-        // Show amenities
-        this.chartDatasetType = 1;
-      } else {
-        // Show population
-        this.chartDatasetType = 0;
+      if (this.chartDatasetType === 1 && value.length < 2) {
+        if (this.selectedAoisOnlyKeys.length >= 1) {
+          this.chartDatasetType = 2;
+        } else {
+          this.chartDatasetType = 0;
+          this.resultViewType = 1;
+        }
       }
       if (
-        value.length < 3 &&
+        value.length < 2 &&
         this.resultViewType === 2 &&
-        this.selectedCalculations.length === 1
+        this.selectedCalculations.length === 1 &&
+        this.chartDatasetType === 1
       ) {
         this.resultViewType = 1;
       }
       if (
         this.selectedCalculations.length === 2 &&
         value.length < 3 &&
-        this.resultViewType === 2
+        this.resultViewType === 2 &&
+        this.chartDatasetType === 1
+      ) {
+        this.chartDatasetType = 0;
+        this.resultViewType = 1;
+      }
+    },
+    selectedAoisOnlyKeys(value) {
+      if (this.chartDatasetType === 2 && value.length < 2) {
+        if (this.selectedPoisOnlyKeys.length >= 1) {
+          this.chartDatasetType = 1;
+        } else {
+          this.chartDatasetType = 0;
+          this.resultViewType = 1;
+        }
+      }
+      if (
+        value.length < 2 &&
+        this.resultViewType === 2 &&
+        this.selectedCalculations.length === 1 &&
+        this.chartDatasetType === 2
+      ) {
+        this.resultViewType = 1;
+      }
+      if (
+        this.selectedCalculations.length === 2 &&
+        value.length < 3 &&
+        this.resultViewType === 2 &&
+        this.chartDatasetType === 2
       ) {
         this.chartDatasetType = 0;
         this.resultViewType = 1;

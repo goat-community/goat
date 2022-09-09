@@ -15,13 +15,23 @@ export default {
   },
   methods: {
     renderRadarChart: function() {
-      const labels = this.selectedPoisOnlyKeys;
+      let labels = this.selectedPoisOnlyKeys;
+      if (this.chartDatasetType === 2) {
+        labels = this.selectedAoisOnlyKeys;
+      }
       const datasets = [];
+
       this.selectedCalculations.forEach((calculation, index) => {
         const calculationData = calculation.surfaceData.accessibility;
         // add only amenities
         const data = [];
-        this.selectedPoisOnlyKeys.forEach(amenity => {
+        let keys = [];
+        if (this.chartDatasetType === 1) {
+          keys = this.selectedPoisOnlyKeys;
+        } else if (this.chartDatasetType === 2) {
+          keys = this.selectedAoisOnlyKeys;
+        }
+        keys.forEach(amenity => {
           if (calculationData[amenity]) {
             data.push(calculationData[amenity][this.isochroneRange - 1]);
           }
@@ -55,6 +65,12 @@ export default {
       },
       deep: true
     },
+    selectedAoisOnlyKeys: {
+      handler: function() {
+        this.renderRadarChart();
+      },
+      deep: true
+    },
     isochroneRange: function() {
       this.renderRadarChart();
     },
@@ -73,10 +89,12 @@ export default {
       calculationColors: "calculationColors"
     }),
     ...mapGetters("poisaois", {
-      selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
+      selectedPoisOnlyKeys: "selectedPoisOnlyKeys",
+      selectedAoisOnlyKeys: "selectedAoisOnlyKeys"
     }),
     ...mapGetters("app", {
-      poisConfig: "poisConfig"
+      poisConfig: "poisConfig",
+      aoisConfig: "aoisConfig"
     })
   }
 };

@@ -31,7 +31,7 @@ router = APIRouter()
 
 
 @router.post("")
-async def create_isochrone(
+async def calculate_isochrone(
     *,
     db: AsyncSession = Depends(deps.get_db),
     isochrone_in: IsochroneDTO = Body(..., examples=request_examples["isochrone"]),
@@ -42,9 +42,8 @@ async def create_isochrone(
     """
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
-    result = await crud.isochrone.calculate(db, isochrone_in)
+    result = await crud.isochrone.calculate(db, isochrone_in, current_user)
     return result
-
 
 
 # @router.get("/network/{isochrone_calculation_id}/{modus}", response_class=JSONResponse)
@@ -176,12 +175,34 @@ async def create_isochrone(
 
 #     return json.loads(gdf.reset_index(drop=True).to_json())
 
-@router.post("/export/", response_class=StreamingResponse)
+
+@router.post("/multi/count-pois", response_class=JSONResponse)
+async def count_pois_multi_isochrones(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    isochrone_in: IsochroneMultiCountPois = Body(
+        ..., examples=request_examples["pois_multi_isochrone_count_pois"]
+    ),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Count pois under study area.
+    """
+    isochrone_in.scenario_id = await deps.check_user_owns_scenario(
+        db=db, scenario_id=isochrone_in.scenario_id, current_user=current_user
+    )
+    isochrone_in.active_upload_ids = current_user.active_data_upload_ids
+    isochrone_in.user_id = current_user.id
+    cnt = await crud.isochrone.count_opportunity(db=db, obj_in=isochrone_in)
+    return cnt
+
+
+@router.post("/export", response_class=StreamingResponse)
 async def export_isochrones(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    geojson: Dict = Body(..., example=request_examples["geojson_to_export"]),
+    geojson: Dict = Body(..., examples=request_examples["to_export"]),
     return_type: IsochroneExportType = Query(
         description="Return type of the response", default=IsochroneExportType.geojson
     ),
