@@ -504,6 +504,7 @@
       "streetlevelqualityLayers": "Street level quality",
       "environmental_quality": "Environmental data",
       "additional_data": "Additional data",
+      "publicTransportation": "Public Transportation",
       "external_layers": "External layers",
       "accessbilityBasemaps": "Heatmaps",
       "basemap": "Background layers",
