@@ -27,3 +27,4 @@ coverage.xml
 # Temporary files
 NearestNDInterpolate.png
 costs.bin
+.DS_Store
