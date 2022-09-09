@@ -1863,7 +1863,7 @@ export default {
 
         .then(confirm => {
           if (confirm) {
-            ApiService.delete(`/scenarios/${this.activeScenario}`).then(
+            ApiService.delete(`/scenarios/?id=${this.activeScenario}`).then(
               response => {
                 if (response.data === "error") {
                   //Show error message can't delete
