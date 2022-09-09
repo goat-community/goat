@@ -193,7 +193,7 @@
                         <v-select
                           label="Access Mode"
                           v-model="publicTransport.accessMode"
-                          class="mb-2 mt-0"
+                          class="mb-2 mt-0 pt-0"
                           item-value="type"
                           hide-details
                           :items="appConfig.routing[3].access_modes"
@@ -232,7 +232,7 @@
                       <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
                         <v-select
                           label="Egress Mode"
-                          class="mb-2 mt-0"
+                          class="mb-2 mt-0 pt-0"
                           v-model="publicTransport.egressMode"
                           item-value="type"
                           hide-details

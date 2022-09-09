@@ -5,8 +5,7 @@ Translated from https://github.com/goat-community/goat/blob/0089611acacbebf4e297
 import math
 
 import numpy as np
-from numba import njit, prange
-from numba.typed import List
+from numba import njit
 
 from src.utils import coordinate_from_pixel
 

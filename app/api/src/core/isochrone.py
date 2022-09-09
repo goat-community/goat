@@ -5,13 +5,98 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pyproj
-from numba import njit
+from numba import complex64, float64, int64, njit
+from numba.core.types.npytypes import Array
+from numba.pycc import CC
 from numba.typed import List
+from numba.types import ListType
 from scipy.interpolate import LinearNDInterpolator
 from shapely.geometry import Point
 from shapely.ops import transform
 
 from src.utils import coordinate_to_pixel
+
+# cc = CC("isochrone")
+# cc.verbose = True
+
+
+# @cc.export(
+#     "construct_adjacency_list_",
+#     ListType(ListType(ListType(float64)))(
+#         int64,
+#         Array(int64, 1, "C"),
+#         Array(int64, 1, "C"),
+#         Array(float64, 1, "C"),
+#         Array(float64, 1, "C"),
+#     ),
+# )
+@njit
+def construct_adjacency_list_(n, edge_source, edge_target, edge_cost, edge_reverse_cost):
+    """
+    Construct adjacency list from edges
+    :param n: Number of nodes
+    :param edge_source: List of edge source nodes
+    :param edge_target: List of edge target nodes
+    :param edge_cost: List of edge costs
+    :param edge_reverse_cost: List of edge reverse costs
+    :return: Adjacency list
+    """
+    adj_list = List([List([List([-1.001, -1.001])])] * n)
+    for i in range(len(edge_source)):
+        if edge_cost[i] >= 0.0:
+            if adj_list[edge_source[i]][0][0] == -1.001:
+                adj_list[edge_source[i]] = List([List([edge_target[i], edge_cost[i]])])
+            else:
+                adj_list[edge_source[i]].append(List([edge_target[i], edge_cost[i]]))
+        if edge_reverse_cost[i] >= 0.0:
+            if adj_list[edge_target[i]][0][0] == -1.001:
+                adj_list[edge_target[i]] = List([List([edge_source[i], edge_reverse_cost[i]])])
+            else:
+                adj_list[edge_target[i]].append(List([edge_source[i], edge_reverse_cost[i]]))
+    return adj_list
+
+
+# @cc.export(
+#     "dijkstra_", float64[:](Array(int64, 1, "C"), ListType(ListType(ListType(float64))), int64)
+# )
+@njit
+def dijkstra_(start_vertices, adj_list, travel_time):
+    """
+    Dijkstra's algorithm one-to-all shortest path search
+    :param start_vertices: List of start vertices
+    :param adj_list: Adjacency list
+    :param travel_time: Travel time matrix
+    :return: List of shortest paths and costs
+    """
+    n = len(adj_list)
+    distances = [np.Inf for _ in range(n)]
+    # loop over all start vertices
+    for start_vertex in start_vertices:
+        distances[start_vertex] = 0.0
+        visited = [False for _ in range(n)]
+        # set up priority queue
+        pq = [(0.0, start_vertex)]
+        while len(pq) > 0:
+            if pq[0][0] >= travel_time:
+                break
+            # get the root, discard current distance (!!!distances in the data are in seconds)
+            _, u = heapq.heappop(pq)
+            # if the node is visited, skip
+            if visited[u]:
+                continue
+            # set the node to visited
+            visited[u] = True
+            # check the distance and node and distance
+            for v, l in adj_list[u]:
+                v = int(v)
+                l = l / 60.0  # convert cost to minutes
+                # if the current node's distance + distance to the node we're visiting
+                # is less than the distance of the node we're visiting on file
+                # replace that distance and push the node we're visiting into the priority queue
+                if distances[u] + l < distances[v]:
+                    distances[v] = distances[u] + l
+                    heapq.heappush(pq, (distances[v], v))
+    return distances
 
 
 def check_extent(extent, coord):
@@ -143,71 +228,6 @@ def web_mercator_to_pixel(x, y, zoom):
     x_ = math.floor(point_pixel["x"])
     y_ = math.floor(point_pixel["y"])
     return [x_, y_]
-
-
-@njit
-def construct_adjacency_list_(n, edge_source, edge_target, edge_cost, edge_reverse_cost):
-    """
-    Construct adjacency list from edges
-    :param n: Number of nodes
-    :param edge_source: List of edge source nodes
-    :param edge_target: List of edge target nodes
-    :param edge_cost: List of edge costs
-    :param edge_reverse_cost: List of edge reverse costs
-    :return: Adjacency list
-    """
-    adj_list = List([List([List([-1.001, -1.001])])] * n)
-    for i in range(len(edge_source)):
-        if edge_cost[i] >= 0.0:
-            if adj_list[edge_source[i]][0][0] == -1.001:
-                adj_list[edge_source[i]] = List([List([edge_target[i], edge_cost[i]])])
-            else:
-                adj_list[edge_source[i]].append(List([edge_target[i], edge_cost[i]]))
-        if edge_reverse_cost[i] >= 0.0:
-            if adj_list[edge_target[i]][0][0] == -1.001:
-                adj_list[edge_target[i]] = List([List([edge_source[i], edge_reverse_cost[i]])])
-            else:
-                adj_list[edge_target[i]].append(List([edge_source[i], edge_reverse_cost[i]]))
-    return adj_list
-
-
-def dijkstra_(start_vertices, adj_list, travel_time):
-    """
-    Dijkstra's algorithm one-to-all shortest path search
-    :param start_vertices: List of start vertices
-    :param adj_list: Adjacency list
-    :param travel_time: Travel time matrix
-    :return: List of shortest paths and costs
-    """
-    n = len(adj_list)
-    distances = [np.Inf for _ in range(n)]
-    # loop over all start vertices
-    for start_vertex in start_vertices:
-        distances[start_vertex] = 0.0
-        visited = [False for _ in range(n)]
-        # set up priority queue
-        pq = [(0.0, start_vertex)]
-        while len(pq) > 0:
-            if pq[0][0] >= travel_time:
-                break
-            # get the root, discard current distance (!!!distances in the data are in seconds)
-            _, u = heapq.heappop(pq)
-            # if the node is visited, skip
-            if visited[u]:
-                continue
-            # set the node to visited
-            visited[u] = True
-            # check the distance and node and distance
-            for v, l in adj_list[u]:
-                v = int(v)
-                l = l / 60.0  # convert cost to minutes
-                # if the current node's distance + distance to the node we're visiting
-                # is less than the distance of the node we're visiting on file
-                # replace that distance and push the node we're visiting into the priority queue
-                if distances[u] + l < distances[v]:
-                    distances[v] = distances[u] + l
-                    heapq.heappush(pq, (distances[v], v))
-    return distances
 
 
 def get_single_depth_grid_(zoom, west, north, data):
