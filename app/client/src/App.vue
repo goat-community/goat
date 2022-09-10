@@ -18,7 +18,7 @@ export default {
     delete axiosInstance.defaults.headers.common["Authorization"];
     axiosInstance.defaults.baseURL = "./api";
     axiosInstance
-      .get("/healthz", {
+      .get("/status", {
         responseType: "arraybuffer",
         cancelToken: new CancelToken(c => {
           // An executor function receives a cancel function as a parameter

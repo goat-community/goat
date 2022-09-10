@@ -23,9 +23,10 @@
 
 <script>
 import axios from "axios";
-import router from "../router";
 import { mapFields } from "vuex-map-fields";
-
+import { LOGOUT } from "../store/actions.type";
+import router from "../router";
+import store from "../store/index";
 export default {
   computed: {
     ...mapFields("app", {
@@ -45,7 +46,7 @@ export default {
         this.healthZCancelToken = null;
       }
       axiosInstance
-        .get("/healthz", {
+        .get("/status", {
           responseType: "arraybuffer",
           cancelToken: new CancelToken(c => {
             // An executor function receives a cancel function as a parameter
@@ -53,8 +54,9 @@ export default {
           })
         })
         .then(() => {
-          router.push({ name: "login" });
           window.clearInterval(intervalId);
+          store.dispatch(`auth/${LOGOUT}`);
+          router.push({ name: "login" });
         })
         .catch(e => {
           console.log(e);
