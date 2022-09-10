@@ -236,6 +236,32 @@ class CRUDDynamicCustomization:
         # Added geostores to settings
         study_area_obj = await crud.study_area.get(db, id=current_user.active_study_area_id, extra_fields=[models.StudyArea.geostores])
         combined_settings["geostores"] = jsonable_encoder(study_area_obj.geostores)
+        
+        # Remove transit modes that are not operating in study area from settings
+        transit_modes = {}
+        for index_mode, mode in enumerate(default_settings["routing"]):
+            if mode["type"] == 'transit':
+                transit = mode
+                index_transit = index_mode
+                break
+        
+        if transit != {}:
+            filtered_transit_modes = []
+            for public_transport_type in transit["transit_modes"]:
+                # Check if station type is in study area
+                statement = select(models.Poi).where(
+                    and_(
+                        models.Poi.geom.ST_Intersects(study_area_obj.geom),
+                        models.Poi.category == public_transport_type["poi_category"],
+                    )
+                ).limit(1)
+                result = await db.execute(statement)
+                result = result.first()
+
+                if result is not None:
+                    filtered_transit_modes.append(public_transport_type)
+        
+            combined_settings["routing"][index_transit]["transit_modes"] = filtered_transit_modes
 
         return combined_settings
 
