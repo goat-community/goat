@@ -446,12 +446,6 @@ BEGIN
 	--INSERT NEW VERTICES AND WAYS INTO THE EXISTING TABLES
 	----------------------------------------------------------------------------------------------------------------------
 
-	UPDATE basic.node n 
-	SET class_ids = v.class_ids, foot = v.foot, bicycle = v.bicycle, lit_classified = v.lit_classified, wheelchair_classified = v.wheelchair_classified 
-	FROM vertices_to_add v 
-	WHERE n.id = v.node_id
-	AND n.scenario_id = scenario_id_input; 
-
 	/*DO $$
 	DECLARE 
 		rec record;
