@@ -8,32 +8,26 @@ BEGIN
 	WITH 
 	g AS 
 	(
-		WITH st AS 
-		(
-			SELECT st.*
+		WITH parent_stations AS 
+		(	
+			SELECT count(*) cnt_children, st.parent_station 
 			FROM gtfs.stops st, basic.study_area s
 			WHERE ST_Intersects(st.stop_loc, s.geom)
 			AND st.location_type IS NULL 
 			AND s.id = study_area_id
-		),
-		cnt_children AS 
-		(
-			SELECT count(*) cnt_children, st.parent_station 
-			FROM st 
 			GROUP BY st.parent_station 
 		)
-		SELECT j.parent_station, j.route_type, sum(cnt) AS cnt
-		FROM st, cnt_children c  
+		SELECT c.parent_station, j.route_type, cnt AS cnt
+		FROM parent_stations c  
 		CROSS JOIN LATERAL 
 		(
-			SELECT st.parent_station, route_type, SUM(weekdays[weekday]::integer) cnt 
-			FROM gtfs.stop_times_optimized t
-			WHERE t.stop_id = st.stop_id
+			SELECT t.route_type, SUM(weekdays[weekday]::integer) cnt 
+			FROM gtfs.stop_times_optimized t, gtfs.stops s  
+			WHERE t.stop_id = s.stop_id
+			AND s.parent_station = c.parent_station
 			AND t.arrival_time BETWEEN start_time AND end_time
-			GROUP BY st.parent_station, route_type 
-		) j
-		WHERE st.parent_station = c.parent_station
-		GROUP BY j.parent_station, route_type 
+			GROUP BY t.route_type 
+		) j		
 	),
 	o AS 
 	(

@@ -597,7 +597,9 @@
       "heatmap_connectivity": "Connectivity",
       "heatmap_local_accessibility": "Local Accessibility",
       "heatmap_accessibility_population": "Accessibility and Population Density",
-      "heatmap_population": "Population Density"
+      "heatmap_population": "Population Density",
+      "pt_station_count": "Departure count public transport",
+      "pt_oev_gueteklasse": "ÖV Güteklassen (Public transport benchmark)"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Click for isochrone calculation. Press ESC to exit",

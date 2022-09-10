@@ -577,6 +577,8 @@
       "heatmap_accessibility_population": "Vergleich von Erreichbarkeit und Bevölkerungsdichte",
       "heatmap_population": "Bevölkerungsdichte",
       "heatmap_local_accessibility": "Lokale Erreichbarkeit",
+      "pt_station_count": "Anzahl Abfahrten Öffentlicher Verkehr",
+      "pt_oev_gueteklasse": "ÖV Güteklassen",
       "primary_school_streams": "Fußgängerpotentialströme zu Grundschulen",
       "studyArea": "Untersuchungsgebiet",
       "ways": "Wege",
