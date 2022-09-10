@@ -1,7 +1,7 @@
 import os
 import logging
 import sentry_sdk
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -13,6 +13,9 @@ from src import crud
 from src.core.config import settings
 from src.db.session import async_session, r5_mongo_db_client
 from src.endpoints.v1.api import api_router
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.endpoints import deps
+
 
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,
@@ -81,6 +84,22 @@ except Exception:
 def ping():
     """Health check."""
     return {"ping": "pong!"}
+
+@app.get("/api/status", description="Status Check", tags=["Health Check"])
+async def status_check(
+    db: AsyncSession = Depends(deps.get_db)
+):
+    """Status check."""
+    try:
+        results = await crud.system.get_by_key(db, key="type", value="status")
+        results = results[0]
+    except Exception as e:
+        return JSONResponse(status_code=503, content={"message": "Service Unavailable"})
+
+    if results.setting["status"] == "maintenance":
+        return JSONResponse(status_code=503, content={"message": "Service Unavailable"})
+    else:
+        return {"status": "ok"}
 
 
 # Calling this endpoint to see if the setup works. If yes, an error message will show in Sentry dashboard

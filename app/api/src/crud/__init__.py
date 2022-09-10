@@ -22,3 +22,4 @@ from .crud_study_area import study_area
 from .crud_study_area_geostore import study_area_geostore
 from .crud_upload import data_upload, upload
 from .crud_user import user
+from .crud_system import system
