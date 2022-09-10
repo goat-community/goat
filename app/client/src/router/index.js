@@ -55,6 +55,11 @@ let router = new Router({
       meta: {
         requiresAuth: false
       }
+    },
+    {
+      path: "/maintenance",
+      name: "maintenance",
+      component: () => import("../views/Maintenance.vue")
     }
   ]
 });

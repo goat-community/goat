@@ -27,7 +27,8 @@ const state = {
     active: "default"
   },
   isRecomputingHeatmap: false,
-  scenarioLayerEditModeColor: "#283648"
+  scenarioLayerEditModeColor: "#283648",
+  healthZCancelToken: null
 };
 
 const getters = {
