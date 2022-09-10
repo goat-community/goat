@@ -72,15 +72,6 @@ class CRUDIsochroneCalculation(
 isochrone_calculation = CRUDIsochroneCalculation(models.IsochroneCalculation)
 
 
-class CRUDIsochroneFeature(
-    CRUDBase[models.IsochroneFeature, models.IsochroneFeature, models.IsochroneFeature]
-):
-    pass
-
-
-isochrone_feature = CRUDIsochroneCalculation(models.IsochroneFeature)
-
-
 class CRUDIsochrone:
     async def read_network(self, db, obj_in: IsochroneDTO, current_user, isochrone_type) -> Any:
 

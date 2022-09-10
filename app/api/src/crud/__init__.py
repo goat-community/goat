@@ -2,7 +2,7 @@ from .crud_check_data import check_data
 from .crud_customization import customization, dynamic_customization, user_customization
 from .crud_geostore import geostore
 from .crud_heatmap import heatmap
-from .crud_isochrone import isochrone, isochrone_calculation, isochrone_feature
+from .crud_isochrone import isochrone, isochrone_calculation
 from .crud_layer import layer
 from .crud_layer_library import layer_library, style_library
 from .crud_opportunity_config import (

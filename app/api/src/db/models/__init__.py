@@ -11,7 +11,7 @@ from .heatmap import (
     ReachedEdgeHeatmapGridCalculation,
     ReachedPoiHeatmap,
 )
-from .isochrone import IsochroneCalculation, IsochroneFeature
+from .isochrone import IsochroneCalculation
 from .layer_library import LayerLibrary, LayerSource, StyleLibrary
 from .node import Node
 from .opportunity_config import (
