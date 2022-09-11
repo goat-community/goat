@@ -708,7 +708,8 @@ class CRUDIndicator:
         stations = await db.execute(
             text(
                 """
-                SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom FROM basic.count_public_transport_services_station(:study_area_id, :start_time, :end_time, :weekday)
+                SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom 
+                FROM basic.count_public_transport_services_station(:study_area_id, :start_time, :end_time, :weekday)
                 """
             ),
             {
@@ -772,7 +773,9 @@ class CRUDIndicator:
                 geometry=transform(project, difference_geom),
                 properties={"class": classification},
             )
-            features.append(feature)
+            if feature.geometry is not None:
+                features.append(feature)
+           
         return FeatureCollection(features)
 
 

@@ -306,7 +306,7 @@ class CRUDIsochrone:
             sub_study_area_ids = [int(i) for i in obj_in.starting_point.region]
             get_reachable_population_query = f"""
                 SELECT * 
-                FROM basic.reachable_population_study_area({scenario_id}, '{modus}', ARRAY{sub_study_area_ids})
+                FROM basic.reachable_population_study_area({scenario_id}, '{modus}', ARRAY{sub_study_area_ids}::integer[])
             """
             get_reachable_population = read_sql(
                 get_reachable_population_query,
@@ -344,7 +344,7 @@ class CRUDIsochrone:
                 {current_user.id}, 
                 '{modus}', 
                 ST_GeomFromText('{clip_population_wkt}', 4326), 
-                ARRAY{sub_study_area_ids.tolist()},
+                ARRAY{sub_study_area_ids.tolist()}::integer[],
                 {grid_decoded["zoom"]},
                 {scenario_id}
             ) 
@@ -424,7 +424,7 @@ class CRUDIsochrone:
                 ST_GeomFromText('{max_isochrone_wkt}', 4326), 
                 {grid_decoded["zoom"]},
                 {scenario_id},
-                ARRAY{active_data_upload_ids}
+                ARRAY{active_data_upload_ids}::integer[]
             )
         """
         get_poi_more_entrance_sum_query = f"""
@@ -435,7 +435,7 @@ class CRUDIsochrone:
                 ST_GeomFromText('{max_isochrone_wkt}', 4326), 
                 {grid_decoded["zoom"]},
                 {scenario_id},
-                ARRAY{active_data_upload_ids}
+                ARRAY{active_data_upload_ids}::integer[]
             )
         """
 

@@ -238,8 +238,8 @@ class CRUDDynamicCustomization:
         combined_settings["geostores"] = jsonable_encoder(study_area_obj.geostores)
         
         # Remove transit modes that are not operating in study area from settings
-        transit_modes = {}
-        for index_mode, mode in enumerate(default_settings["routing"]):
+        transit = {}
+        for index_mode, mode in enumerate(combined_settings["routing"]):
             if mode["type"] == 'transit':
                 transit = mode
                 index_transit = index_mode

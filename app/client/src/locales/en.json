@@ -604,7 +604,8 @@
       "heatmap_accessibility_population": "Accessibility and Population Density",
       "heatmap_population": "Population Density",
       "pt_station_count": "Departure count public transport",
-      "pt_oev_gueteklasse": "ÖV Güteklassen (Public transport benchmark)"
+      "pt_oev_gueteklasse": "ÖV Güteklassen (Public transport benchmark)",
+      "public_transport": "Public Transport"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Click for isochrone calculation. Press ESC to exit",
@@ -825,6 +826,9 @@
     "secondary_school": "Secondary school",
     "gymnasium": "Gymnasium",
     "grundschule": "Grundschule",
+    "elementary_school": "Elementary school",
+    "middle_school": "Middle school",
+    "high_school": "High school",
     "realschule": "Realschule",
     "hauptschule": "Hauptschule",
     "hauptschule_mittelschule": "Haupt-/Mittelschule",
