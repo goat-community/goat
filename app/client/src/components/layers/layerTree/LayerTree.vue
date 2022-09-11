@@ -400,7 +400,7 @@ export default {
 
       layerGroups.forEach(lg => {
         const layerGroupName = Object.keys(lg)[0];
-        if (layerGroupName !== "heatmap") {
+        if (layerGroupName !== "indicator") {
           let newObject = {
             name: layerGroupName,
             children: []
@@ -413,7 +413,7 @@ export default {
         .getLayers()
         .getArray()
         .forEach(layer => {
-          if (layer.get("group") && layer.get("group") !== "heatmap") {
+          if (layer.get("group") && layer.get("group") !== "indicator") {
             this.layerGroupsArr.forEach((lay, idx) => {
               if (lay.name === layer.get("group")) {
                 this.layerGroupsArr[idx].children.push(layer);

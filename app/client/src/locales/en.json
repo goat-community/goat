@@ -74,6 +74,8 @@
     "saturday": "Saturday",
     "sunday": "Sunday"
   },
+  "fromTime": "From",
+  "toTime": "To",
   "appBar": {
     "buttons": {
       "login": "Login",
@@ -88,6 +90,7 @@
       "about": "About",
       "isochrones": "Isochrones",
       "heatmaps": "Heatmaps",
+      "indicators": "Indicators",
       "staticLayers": "Other Layers",
       "allLayers": "All Layer",
       "activeLayers": "Active Layer"
@@ -437,12 +440,14 @@
       "title": "Isochrone Color"
     }
   },
-  "heatmaps": {
-    "title": "Heatmaps",
-    "recomputeHeatmap": "Recompute",
-    "recomputingHeatmaps": "Recomputing Heatmaps",
-    "heatmapComputedSuccessfully": "Heatmap computed successfully",
-    "heatmapComputationFailed": "Heatmap computation failed"
+  "indicators": {
+    "title": "Indicators",
+    "recomputeIndicators": "Recompute",
+    "recomputingIndicators": "Recomputing Indicators",
+    "indicatorsComputedSuccessfully": "Indicators computed successfully",
+    "indicatorsComputationFailed": "Indicators computation failed",
+    "indicatorTimePicker": "Indicator Time Picker",
+    "timePickerErrorMessage": "Start time must be before end time"
   },
   "poisFilter": {
     "showTimeFilter": "Add time filter",
@@ -495,7 +500,6 @@
       "featuresAlreadyUploaded": "Features already exists",
       "cantExportScenario": "An error happened. Scenario can't be exported!",
       "zoomInToShowFeatures": "Zoom in to show features for",
-      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!",
       "calculationCancelled": "Calculation Cancelled!",
       "scenarioEditMode": "Edit Mode"
     },
@@ -598,7 +602,9 @@
       "heatmap_connectivity": "Connectivity",
       "heatmap_local_accessibility": "Local Accessibility",
       "heatmap_accessibility_population": "Accessibility and Population Density",
-      "heatmap_population": "Population Density"
+      "heatmap_population": "Population Density",
+      "pt_station_count": "Public Transport Station Count",
+      "pt_oev_gueteklasse": "Oev Gueteklasse"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Click for isochrone calculation. Press ESC to exit",

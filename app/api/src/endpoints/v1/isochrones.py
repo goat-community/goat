@@ -1,31 +1,19 @@
-import json
 from typing import Any, Dict
 
-import pandas as pd
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Body, Depends, Query
 from fastapi.responses import StreamingResponse
-from geopandas import GeoDataFrame
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
 
-from src import crud, schemas
+from src import crud
 from src.db import models
 from src.endpoints import deps
-from src.resources.enums import (
-    CalculationTypes,
-    IsochroneExportType,
-    ReturnWithoutDbGeobufEnum,
-)
-from src.schemas import isochrone
+from src.resources.enums import IsochroneExportType
 from src.schemas.isochrone import (
     IsochroneDTO,
-    IsochroneMulti,
     IsochroneMultiCountPois,
-    IsochronePoiMulti,
-    IsochroneSingle,
     request_examples,
 )
-from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()
 
@@ -53,8 +41,8 @@ async def calculate_isochrone(
 #     current_user: models.User = Depends(deps.get_current_active_user),
 #     isochrone_calculation_id: int = Path(..., description="Isochrone Calculation ID", example=1),
 #     modus: CalculationTypes = Path(..., description="Calculation modus"),
-#     return_type: ReturnWithoutDbGeobufEnum = Query(
-#         description="Return type of the response", default=ReturnWithoutDbGeobufEnum.geojson
+#     return_type: ReturnType = Query(
+#         description="Return type of the response", default=ReturnType.geojson
 #     ),
 # ) -> Any:
 #     """

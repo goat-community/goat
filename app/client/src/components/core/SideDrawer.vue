@@ -233,7 +233,7 @@ export default {
     },
     ...mapGetters("app", {
       appColor: "appColor",
-      isRecomputingHeatmap: "isRecomputingHeatmap"
+      isRecomputingIndicator: "isRecomputingIndicator"
     }),
     ...mapGetters("map", {
       selectedLayer: "selectedEditLayer"
@@ -243,7 +243,7 @@ export default {
     toggleComponent(component) {
       if (
         (component === "user-data-upload" && this.selectedLayer) ||
-        this.isRecomputingHeatmap
+        this.isRecomputingIndicator
       ) {
         return;
       }
@@ -261,7 +261,7 @@ export default {
       }
       if (
         (item.componentToShow === "user-data-upload" && this.selectedLayer) ||
-        this.isRecomputingHeatmap
+        this.isRecomputingIndicator
       ) {
         style += "cursor: not-allowed;";
       }
@@ -280,10 +280,10 @@ export default {
     }
   },
   watch: {
-    isRecomputingHeatmap() {
+    isRecomputingIndicator() {
       if (
         this.activeUpComponent === "user-data-upload" &&
-        this.isRecomputingHeatmap
+        this.isRecomputingIndicator
       ) {
         this.hide();
       }

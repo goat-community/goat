@@ -30,7 +30,7 @@ superuser:
                 environmental_quality: "fas fa-leaf"
                 additional_data: "more"
                 basemap: "fas fa-globe"
-                heatmap: "hexagon"
+                indicator: "hexagon"
     # Map settings
     map:
         projection_code: "EPSG:3857"
@@ -60,7 +60,7 @@ superuser:
         - environmental_quality: []
         - street_level_quality: []
         - additional_data: ["accidents_pedestrians", "accidents_cyclists"]
-        - heatmap:
+        - indicator:
               [
                   "heatmap_connectivity",
                   "heatmap_local_accessibility",

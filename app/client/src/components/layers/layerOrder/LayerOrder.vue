@@ -236,7 +236,7 @@ export default {
         return this.allLayers.filter(
           layer =>
             layer.getVisible() === true &&
-            !["basemap", "heatmap"].includes(layer.get("group"))
+            !["basemap", "indicator"].includes(layer.get("group"))
         );
       },
       set: function() {

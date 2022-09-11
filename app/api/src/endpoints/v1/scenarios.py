@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from src import crud, schemas
 from src.db import models
 from src.endpoints import deps
-from src.resources.enums import ReturnWithoutDbGeobufEnum
+from src.resources.enums import ReturnType
 from src.schemas.msg import Msg
 from src.schemas.scenario import request_examples, scenario_deleted_columns
 from src.utils import return_geojson_or_geobuf, to_feature_collection
@@ -144,8 +144,8 @@ async def read_scenario_features(
         description="WKT Geometry to intersect with layer. Geometry must be in EPSG:4326. If not specified, all features are returned (only for _modified tables).",
         example=request_examples["read_features"]["intersect"],
     ),
-    return_type: ReturnWithoutDbGeobufEnum = Query(
-        default=ReturnWithoutDbGeobufEnum.geojson, description="Return type of the response"
+    return_type: ReturnType = Query(
+        default=ReturnType.geojson, description="Return type of the response"
     ),
 ) -> Any:
     """
@@ -163,7 +163,7 @@ async def read_scenario_features(
     features = to_feature_collection(
         result, exclude_properties=["coordinates_3857", "node_source", "node_target"]
     )
-    if return_type.value == ReturnWithoutDbGeobufEnum.geojson.value:
+    if return_type.value == ReturnType.geojson.value:
         features = jsonable_encoder(features)
 
     return return_geojson_or_geobuf(features, return_type.value)
