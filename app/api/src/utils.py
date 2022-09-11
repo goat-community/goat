@@ -24,7 +24,7 @@ from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from jose import jwt
-from numba import njit
+from numba import njit, types
 from rich import print as print
 from sentry_sdk import HttpTransport
 from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
@@ -475,6 +475,7 @@ def group_opportunities_single_isochrone(
 
     # - loop poi_more_entrance
     visited_more_entrance_categories = []
+    # List.empty_list(types.int64)
     poi_more_entrance_list = []
     poi_more_entrance_grid_count = []
     for idx, pixel in enumerate(get_poi_more_entrance_sum_pixel):

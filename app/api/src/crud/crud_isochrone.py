@@ -453,14 +453,18 @@ class CRUDIsochrone:
         )
 
         ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
-        get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
-        get_population_sum_population = get_population_sum["population"].to_numpy()
-        get_poi_one_entrance_sum_pixel = np.array(get_poi_one_entrance_sum["pixel"].tolist())
+        get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist(), dtype=np.int64)
+        get_population_sum_population = get_population_sum["population"].to_numpy(dtype=np.float64)
+        get_poi_one_entrance_sum_pixel = np.array(
+            get_poi_one_entrance_sum["pixel"].tolist(), dtype=np.int64
+        )
         get_poi_one_entrance_sum_category = np.unique(
             get_poi_one_entrance_sum["category"], return_inverse=True
         )
-        get_poi_one_entrance_sum_cnt = get_poi_one_entrance_sum["cnt"].to_numpy()
-        get_poi_more_entrance_sum_pixel = np.array(get_poi_more_entrance_sum["pixel"].tolist())
+        get_poi_one_entrance_sum_cnt = get_poi_one_entrance_sum["cnt"].to_numpy(dtype=np.int64)
+        get_poi_more_entrance_sum_pixel = np.array(
+            get_poi_more_entrance_sum["pixel"].tolist(), dtype=np.int64
+        )
         get_poi_more_entrance_sum_category = np.unique(
             get_poi_more_entrance_sum["category"], return_inverse=True
         )
@@ -469,7 +473,7 @@ class CRUDIsochrone:
         get_poi_more_entrance_sum_name = np.unique(
             get_poi_more_entrance_sum["name"], return_inverse=True
         )
-        get_poi_more_entrance_sum_cnt = get_poi_more_entrance_sum["cnt"].to_numpy()
+        get_poi_more_entrance_sum_cnt = get_poi_more_entrance_sum["cnt"].to_numpy(dtype=np.int64)
         amenity_grid_count = group_opportunities_single_isochrone(
             grid_decoded["west"],
             grid_decoded["north"],
