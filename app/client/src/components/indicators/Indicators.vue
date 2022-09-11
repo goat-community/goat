@@ -117,7 +117,7 @@
           :color="appColor.primary"
         >
           <v-icon left>fas fa-refresh</v-icon
-          >{{ $t("indicators.recomputeIndicator") }}</v-btn
+          >{{ $t("indicators.recomputeIndicators") }}</v-btn
         >
       </v-card-actions>
     </vue-scroll>

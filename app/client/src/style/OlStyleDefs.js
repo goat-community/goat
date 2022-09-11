@@ -985,8 +985,46 @@ export function poisAoisStyle(feature) {
   return st;
 }
 
+// PT Station count layer style
+// feature:
+// "properties": {
+//   "stop_id": "de:09162:1",
+//   "stop_name": "Karlsplatz (Stachus)",
+//   "trip_cnt": {
+//     "1": 14,
+//     "2": 31
+//   }
+// }
+export function ptStationCountStyle(feature) {
+  // demo style
+  const tripCnt = feature.get("trip_cnt");
+  const tripCntSum = Object.values(tripCnt).reduce((a, b) => a + b, 0);
+  let radius = 5;
+  if (tripCntSum <= 10 && tripCntSum > 0) {
+    radius = 7;
+  } else if (tripCntSum <= 20 && tripCntSum > 10) {
+    radius = 10;
+  } else if (tripCntSum <= 30 && tripCntSum > 20) {
+    radius = 13;
+  } else if (tripCntSum <= 40 && tripCntSum > 30) {
+    radius = 16;
+  } else if (tripCntSum > 40) {
+    radius = 19;
+  }
+
+  return new OlStyle({
+    image: new OlCircle({
+      radius: radius,
+      fill: new OlFill({
+        color: "#becf50"
+      })
+    })
+  });
+}
+
 export const stylesRef = {
   poisAoisStyle: poisAoisStyle,
   study_area_crop: baseStyleDefs.boundaryStyle,
-  sub_study_area: baseStyleDefs.subStudyAreaStyle
+  sub_study_area: baseStyleDefs.subStudyAreaStyle,
+  pt_station_count: ptStationCountStyle
 };

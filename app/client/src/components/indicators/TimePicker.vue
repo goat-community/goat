@@ -172,7 +172,7 @@ export default {
       fromTimeMenu: false,
       toTimeMenu: false,
       fromTime: "07:00",
-      toTime: "09:00",
+      toTime: "08:00",
       weekday: 0,
       dialog: this.status,
       isExpanded: true,

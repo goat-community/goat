@@ -404,14 +404,15 @@ export const LayerFactory = {
         format: "geostyler",
         style: lConf.style
       };
-    } else if (lConf.style === "custom") {
+    } else if (!lConf.style || lConf.style === "custom") {
       styleObj = {
         format: "custom"
       };
-    } else {
-      return layer;
     }
     const olStyle = OlStyleFactory.getOlStyle(styleObj, lConf.name);
+    if (!olStyle) {
+      return layer;
+    }
     if (olStyle) {
       if (olStyle instanceof Promise) {
         olStyle
