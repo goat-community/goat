@@ -3,7 +3,7 @@ from .crud_customization import customization, dynamic_customization, user_custo
 from .crud_geostore import geostore
 from .crud_isochrone import isochrone, isochrone_calculation
 from .crud_indicator import indicator
-from .crud_isochrone import isochrone, isochrone_calculation, isochrone_feature
+from .crud_isochrone import isochrone, isochrone_calculation
 from .crud_layer import layer
 from .crud_layer_library import layer_library, style_library
 from .crud_opportunity_config import (
