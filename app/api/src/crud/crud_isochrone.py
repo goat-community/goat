@@ -453,18 +453,29 @@ class CRUDIsochrone:
         )
 
         ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
-        get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist(), dtype=np.int64)
+        get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
         get_population_sum_population = get_population_sum["population"].to_numpy(dtype=np.float64)
-        get_poi_one_entrance_sum_pixel = np.array(
-            get_poi_one_entrance_sum["pixel"].tolist(), dtype=np.int64
+
+        get_poi_one_entrance_sum_pixel = np.array(get_poi_one_entrance_sum["pixel"].tolist())
+        if len(get_poi_one_entrance_sum_pixel.shape) == 1:
+            get_poi_one_entrance_sum_pixel.shape = (get_poi_one_entrance_sum_pixel.shape[0], 2)
+        get_poi_one_entrance_sum_pixel = np.insert(
+            get_poi_one_entrance_sum_pixel, 0, np.array([0, 0]), 0
         )
         get_poi_one_entrance_sum_category = np.unique(
             get_poi_one_entrance_sum["category"], return_inverse=True
         )
         get_poi_one_entrance_sum_cnt = get_poi_one_entrance_sum["cnt"].to_numpy(dtype=np.int64)
+
         get_poi_more_entrance_sum_pixel = np.array(
             get_poi_more_entrance_sum["pixel"].tolist(), dtype=np.int64
         )
+        if len(get_poi_more_entrance_sum_pixel.shape) == 1:
+            get_poi_more_entrance_sum_pixel.shape = (get_poi_more_entrance_sum_pixel.shape[0], 2)
+        get_poi_more_entrance_sum_pixel = np.insert(
+            get_poi_more_entrance_sum_pixel, 0, np.array([0, 0]), 0
+        )
+
         get_poi_more_entrance_sum_category = np.unique(
             get_poi_more_entrance_sum["category"], return_inverse=True
         )
