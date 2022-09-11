@@ -6,14 +6,6 @@ class ReturnType(str, Enum):
 
     geojson = "geojson"
     geobuf = "geobuf"
-    db_geobuf = "db_geobuf"
-
-
-class ReturnWithoutDbGeobufEnum(str, Enum):
-    """Enumeration for return types without db geobuf."""
-
-    geojson = "geojson"
-    geobuf = "geobuf"
 
 
 class VectorType(str, Enum):
@@ -64,8 +56,8 @@ class RoutingTypes(str, Enum):
 class AllowedVectorTables(str, Enum):
     """Allowed Vector Tables Enums."""
 
-    sub_study_area = 'sub_study_area'
-    study_area = 'study_area'
+    sub_study_area = "sub_study_area"
+    study_area = "study_area"
 
 
 class IsochroneTypes(str, Enum):
@@ -81,6 +73,7 @@ class R5DecayFunctionType(str, Enum):
     exponential = "exponential"
     linear = "linear"
 
+
 class StaticTableSQLActive(str, Enum):
     """Static Table SQL that can be requested by study_area_id."""
 
@@ -90,6 +83,7 @@ class StaticTableSQLActive(str, Enum):
     sub_study_area = """            
         SELECT * FROM basic.sub_study_area WHERE study_area_id = :study_area_id
     """
+
 
 class SQLReturnTypes(str, Enum):
     """Allowed Vector Tables Enums."""
@@ -181,7 +175,7 @@ class LayerGroupsEnum(str, Enum):
     environmental_quality = "environmental_quality"
     additional_data = "additional_data"
     basemap = "basemap"
-    heatmap = "heatmap"
+    indicator = "indicator"
 
 
 class GeostoreType(str, Enum):

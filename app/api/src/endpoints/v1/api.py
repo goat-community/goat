@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from src.endpoints.v1 import (
     customizations,
     geostores,
-    heatmap,
+    indicators,
     isochrones,
     layer_library,
     layers,
@@ -12,7 +12,6 @@ from src.endpoints.v1 import (
     opportunity_config,
     organizations,
     poi_aoi,
-    public_transport,
     r5,
     roles,
     scenarios,
@@ -34,7 +33,7 @@ api_router.include_router(customizations.router, prefix="/customizations", tags=
 api_router.include_router(utils.router, prefix="/utils", tags=["Utils"])
 api_router.include_router(upload.router, prefix="/custom-data", tags=["Custom Data"])
 api_router.include_router(isochrones.router, prefix="/isochrones", tags=["Isochrones"])
-api_router.include_router(heatmap.router, prefix="/heatmap", tags=["Heatmap"])
+api_router.include_router(indicators.router, prefix="/indicators", tags=["Indicators"])
 api_router.include_router(scenarios.router, prefix="/scenarios", tags=["Scenarios"])
 api_router.include_router(poi_aoi.router, prefix="/pois-aois", tags=["POIs and AOIs"])
 api_router.include_router(
@@ -54,7 +53,6 @@ layer_tiles = layers.VectorTilerFactory(
 )
 
 api_router.include_router(layer_tiles.router, prefix=layer_tiles_prefix, tags=["Layers"])
-api_router.include_router(public_transport.router, prefix="/pt", tags=["PT"])
 api_router.include_router(r5.router, prefix="/r5", tags=["PT-R5"])
 api_router.include_router(
     layer_library.styles_router, prefix="/config/layers/library/styles", tags=["Layer Library"]

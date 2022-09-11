@@ -220,18 +220,18 @@
     </v-snackbar>
     <v-snackbar
       :color="appColor.primary"
-      v-if="isRecomputingHeatmap"
+      v-if="isRecomputingIndicator"
       :timeout="0"
       top
       center
       style="font-size:14px;"
-      :value="isRecomputingHeatmap"
+      :value="isRecomputingIndicator"
     >
       <span
         >{{
-          $te(`heatmap.recomputingHeatmaps`)
-            ? $t(`heatmap.recomputingHeatmaps`)
-            : "Recomputing Heatmaps... "
+          $te(`indicators.recomputingIndicators`)
+            ? $t(`indicators.recomputingIndicators`)
+            : "Recomputing Indicators... "
         }}
       </span>
       <v-progress-circular indeterminate color="white"></v-progress-circular>
@@ -1059,7 +1059,7 @@ export default {
       appColor: "appColor",
       appConfig: "appConfig",
       scenarioLayerEditModeColor: "scenarioLayerEditModeColor",
-      isRecomputingHeatmap: "isRecomputingHeatmap",
+      isRecomputingIndicator: "isRecomputingIndicator",
       calculationMode: "calculationMode"
     }),
     ...mapGetters("isochrones", {

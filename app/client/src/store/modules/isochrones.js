@@ -87,7 +87,7 @@ const state = {
     weekday: 0,
     egressMode: "walking",
     fromTime: "07:00",
-    toTime: "09:00",
+    toTime: "08:00",
     transitModes: []
   },
   chartDatasetType: 0, // 0: population, 1: pois, 2: aois

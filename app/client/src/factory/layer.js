@@ -40,7 +40,7 @@ export const LayerFactory = {
   },
 
   baseConf(lConf) {
-    if (["heatmap", "basemap"].includes(lConf.group)) {
+    if (["indicator", "basemap"].includes(lConf.group)) {
       lConf.queryable = false;
     }
     lConf.queryable = lConf.queryable === undefined ? true : lConf.queryable;
@@ -90,8 +90,8 @@ export const LayerFactory = {
    */
   getInstance(lConf) {
     lConf.type = lConf.type.toUpperCase();
-    if (lConf.group.toLowerCase() === "heatmap") {
-      return this.createHeatmapLayer(lConf);
+    if (["indicator"].includes(lConf.group.toLowerCase())) {
+      return this.createIndicatorLayer(lConf);
     }
     if (lConf.type === "WMS") {
       return this.createWmsLayer(lConf);
@@ -228,7 +228,7 @@ export const LayerFactory = {
   createGeoBufLayer(lConf) {
     const url =
       lConf.url ||
-      `/read/table/active-study-area/${lConf.name}?return_type=db_geobuf`;
+      `/read/table/active-study-area/${lConf.name}?return_type=geobuf`;
     const layer = new VectorImageLayer({
       ...this.baseConf(lConf).lOpts,
       source: new VectorSource({
@@ -265,12 +265,12 @@ export const LayerFactory = {
   },
 
   /**
-   * Return heatmap layers
+   * Return indicator layers
    * @param {Object} lConf
    * @returns {ol.layer.VectorImage} OlVector layer instance
    */
 
-  createHeatmapLayer(lConf) {
+  createIndicatorLayer(lConf) {
     const layer = new VectorImageLayer({
       ...this.baseConf(lConf).lOpts,
       source: new VectorSource({
@@ -280,33 +280,38 @@ export const LayerFactory = {
           const proj = projection.getCode();
           const source = this;
           source.clear();
-          const baseUrl_ = `heatmap`;
-          const returnType = "db_geobuf";
+          const baseUrl_ = `indicators`;
+          const returnType = "geobuf";
           const modus = appStore.state.calculationMode.active;
           const activeScenario = scenarioStore.state.activeScenario;
           const scenarioId = `${
             activeScenario ? "&scenario_id=" + activeScenario : ""
           }`;
-          const heatmapConfiguration = {};
+          const amenityConfiguration = {};
           poisAoisStore.state.selectedPoisAois.forEach(poiAoiObject => {
             if (appStore.state.poiIcons[poiAoiObject.value]) {
-              heatmapConfiguration[poiAoiObject.value] = {
+              amenityConfiguration[poiAoiObject.value] = {
                 sensitivity: poiAoiObject.sensitivity,
                 weight: poiAoiObject.weight || 1
               };
             }
           });
-          const heatmapParams = {
+          const startTime = appStore.state.timeIndicators.startTime;
+          const endTime = appStore.state.timeIndicators.endTime;
+          const weekday = appStore.state.timeIndicators.weekday;
+          const indicatorParams = {
             heatmap_connectivity: `${baseUrl_}/connectivity?return_type=${returnType}`,
             heatmap_population: `${baseUrl_}/population?modus=${modus}${scenarioId}&return_type=${returnType}`,
             heatmap_accessibility_population: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_accessibility_population&heatmap_configuration=${JSON.stringify(
-              heatmapConfiguration
+              amenityConfiguration
             )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
             heatmap_local_accessibility: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_local_accessibility&heatmap_configuration=${JSON.stringify(
-              heatmapConfiguration
-            )}&modus=${modus}${scenarioId}&return_type=${returnType}`
+              amenityConfiguration
+            )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
+            pt_station_count: `${baseUrl_}/pt-station-count?start_time=${startTime}&end_time=${endTime}&weekday=${weekday}&return_type=${returnType}`,
+            pt_oev_gueteklasse: `${baseUrl_}/pt-oev-gueteklassen?start_time=${startTime}&end_time=${endTime}&weekday=${weekday}&return_type=${returnType}`
           };
-          const url = heatmapParams[lConf.name];
+          const url = indicatorParams[lConf.name];
           mapStore.state.isMapBusy = true;
           const CancelToken = axios.CancelToken;
           ApiService.get_(url, {
@@ -316,7 +321,7 @@ export const LayerFactory = {
             },
             cancelToken: new CancelToken(c => {
               // An executor function receives a cancel function as a parameter
-              mapStore.state.heatmapCancelToken = c;
+              mapStore.state.indicatorCancelToken = c;
             })
           })
             .then(response => {
@@ -325,7 +330,6 @@ export const LayerFactory = {
                   dataProjection: lConf.data_projection,
                   featureProjection: proj
                 });
-
                 source.addFeatures(olFeatures);
               }
             })
@@ -334,7 +338,7 @@ export const LayerFactory = {
             })
             .finally(() => {
               mapStore.state.isMapBusy = false;
-              mapStore.state.heatmapCancelToken = null;
+              mapStore.state.indicatorCancelToken = null;
             });
         },
         strategy: all
@@ -400,14 +404,15 @@ export const LayerFactory = {
         format: "geostyler",
         style: lConf.style
       };
-    } else if (lConf.style === "custom") {
+    } else if (!lConf.style || lConf.style === "custom") {
       styleObj = {
         format: "custom"
       };
-    } else {
-      return layer;
     }
     const olStyle = OlStyleFactory.getOlStyle(styleObj, lConf.name);
+    if (!olStyle) {
+      return layer;
+    }
     if (olStyle) {
       if (olStyle instanceof Promise) {
         olStyle

@@ -16,7 +16,7 @@ export default {
     renderLineChart: function() {
       this.renderChart(
         {
-          labels: this.dynamicHeatmapTravelTimes,
+          labels: this.dynamicIndicatorTravelTimes,
           datasets: [
             {
               label: this.$t(
@@ -80,10 +80,10 @@ export default {
   },
   computed: {
     ...mapGetters("poisaois", {
-      dynamicHeatmapTravelTimes: "dynamicHeatmapTravelTimes"
+      dynamicIndicatorTravelTimes: "dynamicIndicatorTravelTimes"
     }),
     accessibilityGravityData() {
-      const accessibilityGravity = this.dynamicHeatmapTravelTimes.map(
+      const accessibilityGravity = this.dynamicIndicatorTravelTimes.map(
         x => Math.exp(-(x * x) / this.amenity.sensitivity) * 100
       );
       return accessibilityGravity;

@@ -56,6 +56,8 @@
     "saturday": "Samstag",
     "sunday": "Sonntag"
   },
+  "fromTime": "Von",
+  "toTime": "Bis",
   "appBar": {
     "buttons": {
       "login": "Login",
@@ -70,6 +72,7 @@
       "about": "About",
       "isochrones": "Isochronen",
       "heatmaps": "Heatmaps",
+      "indicators": "Indikatoren",
       "staticLayers": "Weitere Layer",
       "allLayers": "Alle Layer",
       "activeLayers": "Aktive Layer"
@@ -440,12 +443,14 @@
       "title": "Farbe der Isochrone"
     }
   },
-  "heatmaps": {
-    "title": "Heatmaps",
-    "recomputeHeatmap": "Neuberechnung",
-    "recomputingHeatmaps": "Neuberechnung von Heatmaps",
-    "heatmapComputedSuccessfully": "Heatmap erfolgreich berechnet",
-    "heatmapComputationFailed": "Heatmap-Berechnung fehlgeschlagen"
+  "indicators": {
+    "title": "Indikatoren",
+    "recomputeIndicators": "Neuberechnung",
+    "recomputingIndicators": "Neuberechnung der Indikatoren",
+    "indicatorsComputedSuccessfully": "Indikatoren erfolgreich neu berechnet",
+    "indicatorsComputationFailed": "Indikatorenberechnung fehlgeschlagen",
+    "indicatorTimePicker": "Indikatoren Zeitbereich",
+    "timePickerErrorMessage": "Endzeit muss nach Startzeit liegen"
   },
   "poisFilter": {
     "showTimeFilter": "Zeitlichen Filter hinzufügen",
@@ -495,7 +500,6 @@
       "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
       "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!",
       "zoomInToShowFeatures": "Zoome um Objekte der folgenden Layer zu sehen",
-      "heatmapIsBusy": "Die Neuberechung der Heatmap dauert etwas. Bitte bleiben Sie geduldig!",
       "calculationCancelled": "Berechnung abgebrochen!",
       "scenarioEditMode": "Bearbeitungsmodus"
     },
@@ -604,7 +608,9 @@
       "strata": "sozio-ökonomische Schichten",
       "study_area_crop": "Untersuchungsgebiet",
       "study_area": "Grenzen",
-      "ways_Project_Sidewalk": "Project Sidewalk Score"
+      "ways_Project_Sidewalk": "Project Sidewalk Score",
+      "pt_station_count": "ÖPNV Haltestellen",
+      "pt_oev_gueteklasse": "ÖV Güteklassen"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Für Berechnung klicken",

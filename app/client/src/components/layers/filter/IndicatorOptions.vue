@@ -21,7 +21,7 @@
           <v-select
             v-model="selectedAmenity.weight"
             :items="weightListValues"
-            @change="updateHeatmap"
+            @change="updateIndicator"
             class="mx-2 mt-4"
             :label="$t('appBar.filter.poisSettings.selectWeight')"
             outlined
@@ -30,7 +30,7 @@
             <v-select
               v-model="selectedAmenity.sensitivity"
               :items="sensitivityListValues"
-              @change="updateHeatmap"
+              @change="updateIndicator"
               class="mx-2"
               :label="$t('appBar.filter.poisSettings.sensitivityIndex')"
               outlined
@@ -72,8 +72,8 @@ export default {
     color: { type: String, default: "#2BB381" }
   },
   methods: {
-    updateHeatmap() {
-      EventBus.$emit("update-heatmap", "poi");
+    updateIndicator() {
+      EventBus.$emit("update-indicator", "poi");
     },
     getDisplayName(item) {
       let value;

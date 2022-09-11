@@ -2040,7 +2040,7 @@ export default {
             this.poiModifiedFeatures.push(...featuresWithId);
           }
           this.editLayer.getSource().addFeatures(featuresWithId);
-          this.refreshHeatmap();
+          this.refreshIndicator();
           // Activate building entrance interaction if selected layer is building
           if (
             this.selectedLayer["name"] === "building" &&
@@ -2111,7 +2111,7 @@ export default {
             feature.set("layerName", this.selectedLayer["name"]);
           });
           this.editLayer.getSource().addFeatures(featuresWithId);
-          this.refreshHeatmap();
+          this.refreshIndicator();
         })
         .catch(() => {
           this.toggleSnackbar({
@@ -2207,7 +2207,7 @@ export default {
               }
             }
           });
-          this.refreshHeatmap();
+          this.refreshIndicator();
         })
         .catch(() => {
           this.toggleSnackbar({
@@ -2222,13 +2222,13 @@ export default {
           this.featuresToCommit = [];
         });
     },
-    refreshHeatmap() {
+    refreshIndicator() {
       if (this.selectedLayer["name"]) {
-        EventBus.$emit("update-heatmap", "poi");
+        EventBus.$emit("update-indicator", "poi");
       }
       if (this.selectedLayer["building"]) {
         // TODO: Update only when building population is added
-        EventBus.$emit("update-heatmap", "population");
+        EventBus.$emit("update-indicator", "population");
       }
     },
     ...mapMutations("map", {
