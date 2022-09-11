@@ -203,8 +203,8 @@ export default {
         return false;
       } else {
         this.timeIndicators.weekday = this.weekday;
-        this.timeIndicators.fromTime = this.fromTime;
-        this.timeIndicators.toTime = this.toTime;
+        this.timeIndicators.startTime = fromTimeInSeconds;
+        this.timeIndicators.endTime = toTimeInSeconds;
         this.$emit("updateTimeIndicators");
         this.isAlertVisible = false;
         return true;
@@ -218,10 +218,10 @@ export default {
     this.draggableValue.handle = this.$refs[this.handleId];
     this.weekday = this.timeIndicators.weekday;
     const fromTime = new Date(0);
-    fromTime.setSeconds(this.timeIndicators.fromTime);
+    fromTime.setSeconds(this.timeIndicators.startTime);
     this.fromTime = fromTime.toISOString().substring(11, 16);
     const toTime = new Date(0);
-    toTime.setSeconds(this.timeIndicators.toTime);
+    toTime.setSeconds(this.timeIndicators.endTime);
     this.toTime = toTime.toISOString().substring(11, 16);
   },
   watch: {

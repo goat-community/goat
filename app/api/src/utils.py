@@ -451,6 +451,9 @@ def group_opportunities_single_isochrone(
     poi_one_entrance_list = []
     poi_one_entrance_grid_count = []
     for idx, pixel in enumerate(get_poi_one_entrance_sum_pixel):
+        if idx == 0:
+            continue
+        idx = idx - 1
         pixel_x = pixel[1]
         pixel_y = pixel[0]
         x = pixel_x - west
@@ -478,6 +481,9 @@ def group_opportunities_single_isochrone(
     poi_more_entrance_list = []
     poi_more_entrance_grid_count = []
     for idx, pixel in enumerate(get_poi_more_entrance_sum_pixel):
+        if idx == 0:
+            continue
+        idx = idx - 1
         pixel_x = pixel[1]
         pixel_y = pixel[0]
         x = pixel_x - west
