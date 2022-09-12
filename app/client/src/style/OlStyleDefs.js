@@ -1027,7 +1027,7 @@ export function ptStationCountStyle(feature, resolution) {
       image: new OlCircle({
         radius: radius,
         fill: new OlFill({
-          color: "#becf50"
+          color: "#2BB381"
         })
       })
     });
