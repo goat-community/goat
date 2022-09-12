@@ -615,7 +615,7 @@
       "heatmap_local_accessibility": "Local Accessibility",
       "heatmap_accessibility_population": "Accessibility and Population Density",
       "heatmap_population": "Population Density",
-      "pt_station_count": "Departure count public transport",
+      "pt_station_count": "Average count of departures public transport (per hour)",
       "pt_oev_gueteklasse": "ÖV Güteklassen (Public transport benchmark)",
       "public_transport": "Public Transport"
     },

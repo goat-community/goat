@@ -449,7 +449,7 @@
     "recomputingIndicators": "Neuberechnung der Indikatoren",
     "indicatorsComputedSuccessfully": "Indikatoren erfolgreich neu berechnet",
     "indicatorsComputationFailed": "Indikatorenberechnung fehlgeschlagen",
-    "indicatorTimePicker": "Indikatoren Zeitbereich",
+    "indicatorTimePicker": "Indikatoren Zeitauswahl",
     "timePickerErrorMessage": "Endzeit muss nach Startzeit liegen"
   },
   "poisFilter": {
@@ -581,7 +581,7 @@
       "heatmap_accessibility_population": "Vergleich von Erreichbarkeit und Bevölkerungsdichte",
       "heatmap_population": "Bevölkerungsdichte",
       "heatmap_local_accessibility": "Lokale Erreichbarkeit",
-      "pt_station_count": "Anzahl Abfahrten Öffentlicher Verkehr",
+      "pt_station_count": "Durchschnittliche Anzahl Abfahrten Öffentlicher Verkehr (pro Stunde)",
       "pt_oev_gueteklasse": "ÖV Güteklassen",
       "public_transport": "Öffentlicher Verkehr",
       "primary_school_streams": "Fußgängerpotentialströme zu Grundschulen",
@@ -609,9 +609,7 @@
       "strata": "sozio-ökonomische Schichten",
       "study_area_crop": "Untersuchungsgebiet",
       "study_area": "Grenzen",
-      "ways_Project_Sidewalk": "Project Sidewalk Score",
-      "pt_station_count": "ÖPNV Haltestellen",
-      "pt_oev_gueteklasse": "ÖV Güteklassen"
+      "ways_Project_Sidewalk": "Project Sidewalk Score"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Für Berechnung klicken",
