@@ -559,9 +559,16 @@ def coordinate_from_pixel(pixel, zoom):
     }
 
 
-def coordinate_to_pixel(input, zoom, return_dict=True, round_int=False):
-    x = longitude_to_pixel(input[0], zoom)
-    y = latitude_to_pixel(input[1], zoom)
+def coordinate_to_pixel(input, zoom, return_dict=True, round_int=False, web_mercator=False):
+    """
+    Convert coordinate to pixel coordinate
+    """
+    if web_mercator:
+        x = web_mercator_x_to_pixel_x(input[0], zoom)
+        y = web_mercator_y_to_pixel_y(input[1], zoom)
+    else:
+        x = longitude_to_pixel(input[0], zoom)
+        y = latitude_to_pixel(input[1], zoom)
     if round_int:
         x = round(x)
         y = round(y)
@@ -580,6 +587,14 @@ def latitude_to_pixel(latitude, zoom):
     return ((1 - math.log(math.tan(lat_rad) + 1 / math.cos(lat_rad)) / math.pi) / 2) * z_scale(
         zoom
     )
+
+
+def web_mercator_x_to_pixel_x(x, zoom):
+    return (x + (40075016.68557849 / 2.0)) / (40075016.68557849 / (z_scale(zoom)))
+
+
+def web_mercator_y_to_pixel_y(y, zoom):
+    return (y - (40075016.68557849 / 2.0)) / (40075016.68557849 / (-1 * z_scale(zoom)))
 
 
 def geometry_to_pixel(geometry, zoom):
