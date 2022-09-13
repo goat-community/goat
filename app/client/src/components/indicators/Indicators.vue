@@ -309,9 +309,9 @@ export default {
       }
     },
     translatePT(type, key) {
-      const canTranslate = this.$te(`${type}.${key}`);
+      const canTranslate = this.$te(`indicators.${type}.${key}`);
       if (canTranslate) {
-        return this.$t(`${type}.${key}`);
+        return this.$t(`indicators.${type}.${key}`);
       } else {
         return key;
       }
