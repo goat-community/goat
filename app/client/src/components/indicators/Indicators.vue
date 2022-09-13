@@ -139,7 +139,7 @@
     </span>
     <overlay-popup
       :color="appColor.primary"
-      :title="overlayTitle || 'No Title fetched'"
+      :title="indicatorPopupInfo.name || 'No Title fetched'"
       v-show="popup.isVisible"
       ref="indicatorPopup"
     >
@@ -150,12 +150,14 @@
       </template>
       <template v-slot:body>
         <p
-          v-for="(transportMean, tranportKey) in transportationMeans"
+          v-for="(transportMean, tranportKey) in indicatorPopupInfo.description"
           :key="tranportKey"
         >
-          {{ translatePT("pt_route_types", tranportKey.toString()) }} -
+          <!-- {{ translatePT("pt_route_types", tranportKey.toString()) }} -
+          {{ transportMean }} -->
           {{ transportMean }}
         </p>
+        <p></p>
       </template>
     </overlay-popup>
   </v-flex>
@@ -207,8 +209,10 @@ export default {
     styleDialogKey: 0,
     styleDialogStatus: false,
     timePickerDialogStatus: false,
-    overlayTitle: "",
-    transportationMeans: {}
+    indicatorPopupInfo: {
+      name: "",
+      description: []
+    }
   }),
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
@@ -269,14 +273,24 @@ export default {
       this.map.on("click", e => {
         this.popupOverlay.setPosition(undefined);
         this.map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
-          console.log(layer);
+          console.log(feature, layer);
           let clickedCoordinate = e.coordinate;
-          let clickedFeatureName = feature.get("stop_name");
-          this.overlayTitle = clickedFeatureName;
-
-          let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
-          this.transportationMeans = clickedFeatureAdditionalInfo;
-          console.log(clickedFeatureAdditionalInfo);
+          if (!feature.get("stop_name")) {
+            this.indicatorPopupInfo.name = `Class ${feature.get("class")}`;
+            this.indicatorPopupInfo.description = [
+              this.translatePT("gutteklassenRating", feature.get("class"))
+            ];
+          } else {
+            let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
+            this.indicatorPopupInfo.name = feature.get("stop_name");
+            for (let element in clickedFeatureAdditionalInfo) {
+              this.indicatorPopupInfo.description.push(
+                `${this.translatePT("pt_route_types", element)} - ${
+                  clickedFeatureAdditionalInfo[element]
+                }`
+              );
+            }
+          }
           this.popupOverlay.setPosition(clickedCoordinate);
           this.popup.isVisible = true;
         });
@@ -373,6 +387,7 @@ export default {
     },
     refreshVisibleIndicators(selected) {
       let indicatorLayers = this.indicatorLayers;
+      console.log(selected);
       if (selected && Array.isArray(selected)) {
         indicatorLayers = indicatorLayers.filter(layer =>
           selected.includes(layer.get("name"))
