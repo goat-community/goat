@@ -139,7 +139,7 @@
     </span>
     <overlay-popup
       :color="appColor.primary"
-      :title="indicatorPopupInfo.name || 'No Title fetched'"
+      :title="overlayTitle || 'No Title fetched'"
       v-show="popup.isVisible"
       ref="indicatorPopup"
     >
@@ -150,14 +150,12 @@
       </template>
       <template v-slot:body>
         <p
-          v-for="(transportMean, tranportKey) in indicatorPopupInfo.description"
+          v-for="(transportMean, tranportKey) in transportationMeans"
           :key="tranportKey"
         >
-          <!-- {{ translatePT("pt_route_types", tranportKey.toString()) }} -
-          {{ transportMean }} -->
+          {{ translatePT("pt_route_types", tranportKey.toString()) }} -
           {{ transportMean }}
         </p>
-        <p></p>
       </template>
     </overlay-popup>
   </v-flex>
@@ -209,10 +207,8 @@ export default {
     styleDialogKey: 0,
     styleDialogStatus: false,
     timePickerDialogStatus: false,
-    indicatorPopupInfo: {
-      name: "",
-      description: []
-    }
+    overlayTitle: "",
+    transportationMeans: {}
   }),
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
@@ -272,25 +268,15 @@ export default {
     showPopup() {
       this.map.on("click", e => {
         this.popupOverlay.setPosition(undefined);
-        this.map.forEachFeatureAtPixel(e.pixel, feature => {
-          this.indicatorPopupInfo.description = [];
+        this.map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
+          console.log(layer);
           let clickedCoordinate = e.coordinate;
-          if (!feature.get("stop_name")) {
-            this.indicatorPopupInfo.name = `Class ${feature.get("class")}`;
-            this.indicatorPopupInfo.description = [
-              this.translatePT("gutteklassenRating", feature.get("class"))
-            ];
-          } else {
-            let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
-            this.indicatorPopupInfo.name = feature.get("stop_name");
-            for (let element in clickedFeatureAdditionalInfo) {
-              this.indicatorPopupInfo.description.push(
-                `${this.translatePT("pt_route_types", element)} - ${
-                  clickedFeatureAdditionalInfo[element]
-                }`
-              );
-            }
-          }
+          let clickedFeatureName = feature.get("stop_name");
+          this.overlayTitle = clickedFeatureName;
+
+          let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
+          this.transportationMeans = clickedFeatureAdditionalInfo;
+          console.log(clickedFeatureAdditionalInfo);
           this.popupOverlay.setPosition(clickedCoordinate);
           this.popup.isVisible = true;
         });
