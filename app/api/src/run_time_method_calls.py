@@ -14,7 +14,7 @@ async def run_calculate_isochrone_single_default(
 ) -> None:
     for isochrone_mode in request_examples["isochrone"].keys():
         data = request_examples["isochrone"][isochrone_mode]["value"]
-        if isochrone_mode in ["pois_multi_isochrone", "transit_single"]:
+        if isochrone_mode == "transit_single":
             if settings.R5_HOST:
                 try:
                     rich.print("[blue]check R5 for 3 seconds...[/blue]")

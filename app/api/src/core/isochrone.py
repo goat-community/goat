@@ -1,19 +1,18 @@
 import asyncio
 import heapq
-import json
 import math
 
-import matplotlib.pyplot as plt
 import numpy as np
-from numba import complex64, float64, int64, njit
-from numba.core.types.npytypes import Array
+from numba import njit
 from numba.pycc import CC
 from numba.typed import List
-from numba.types import ListType
 from scipy.interpolate import LinearNDInterpolator
-from shapely.geometry import Point
 
-from src.utils import coordinate_to_pixel
+from src.utils import (
+    coordinate_to_pixel,
+    web_mercator_x_to_pixel_x,
+    web_mercator_y_to_pixel_y,
+)
 
 # cc = CC("isochrone")
 # cc.verbose = True
@@ -98,6 +97,38 @@ def dijkstra_(start_vertices, adj_list, travel_time):
     return distances
 
 
+# @njit
+def filter_nodes(node_coords_list, node_costs_list, zoom, width, west, north):
+    """
+    Filter out nodes that fall inside the same pixel (keep the one with the lowest cost)
+    :param node_coords_list: List of node coordinates
+    :param node_costs_list: List of node costs
+    :param zoom: Zoom level
+    :param width: Width of the grid
+    :param west: West coordinate of the grid
+    :param north: North coordinate of the grid
+    :return: List of filtered nodes and costs
+    """
+    index_cost = {}
+    for idx, node_coord in enumerate(node_coords_list):
+        node_coord_pixel = [
+            round(web_mercator_x_to_pixel_x(node_coord[0], zoom)),
+            round(web_mercator_y_to_pixel_y(node_coord[1], zoom)),
+        ]
+        pixel_x = node_coord_pixel[0]
+        pixel_y = node_coord_pixel[1]
+        x = pixel_x - west
+        y = pixel_y - north
+        index = y * width + x
+        if node_costs_list[idx] != np.inf and (
+            index not in index_cost or node_costs_list[idx] < index_cost[index]
+        ):
+            index_cost[index] = idx
+    node_coords_list = [node_coords_list[idx] for idx in index_cost.values()]
+    node_costs_list = [node_costs_list[idx] for idx in index_cost.values()]
+    return node_coords_list, node_costs_list
+
+
 def check_extent(extent, coord):
     """
     Check and update extent
@@ -178,34 +209,38 @@ def split_edges(edge_source, edge_target, edge_length, edge_geom, agg_costs, spl
         target_id = edge_target[i]
         source_cost = agg_costs[source_id]
         target_cost = agg_costs[target_id]
-        length_m = edge_length[i]
+        total_length = edge_length[i]
         geom = edge_geom[i]
         if np.inf not in [source_cost, target_cost]:
-            if length_m > split_distance or len(geom) > 2:
+            if total_length > split_distance or len(geom) > 2:
                 # split edge into multiple edges
-                previous_agg = source_cost
+                previous_agg_dist = 0.0
                 for idx, coord in enumerate(geom[:-1]):
                     # find distance between current and next point
                     next_coord = geom[idx + 1]
-                    dist_m = math.sqrt(
+                    dist = math.sqrt(
                         (coord[0] - next_coord[0]) ** 2 + ((coord[1] - next_coord[1])) ** 2
                     )
-                    n_splits = math.floor(dist_m / split_distance)
+                    agg_dist = previous_agg_dist + dist
+
+                    n_splits = math.floor(dist / split_distance)
                     for n in range(1, n_splits + 1):
                         distance_to_next = n * split_distance
-                        x = coord[0] - ((distance_to_next * (coord[0] - next_coord[0])) / dist_m)
-                        y = coord[1] - ((distance_to_next * (coord[1] - next_coord[1])) / dist_m)
+                        x = coord[0] - ((distance_to_next * (coord[0] - next_coord[0])) / dist)
+                        y = coord[1] - ((distance_to_next * (coord[1] - next_coord[1])) / dist)
                         coords.append([x, y])
-                        cost = previous_agg + (distance_to_next / length_m) * (
-                            target_cost - source_cost
-                        )
+                        cost = source_cost + (
+                            (previous_agg_dist + distance_to_next) / total_length
+                        ) * (target_cost - source_cost)
                         costs.append(cost)
                     # if next point is vertex, add it and update previous
                     if idx + 1 <= len(geom) - 2:
                         coords.append(geom[idx + 1])
-                        cost = source_cost + (dist_m / length_m) * (target_cost - source_cost)
+                        cost = source_cost + (agg_dist / total_length) * (
+                            target_cost - source_cost
+                        )
                         costs.append(cost)
-                        previous_agg = cost
+                        previous_agg_dist = agg_dist
 
     return coords, costs
 
@@ -250,12 +285,6 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     interpolate_function = LinearNDInterpolator(points, costs)
 
     Z = interpolate_function(X, Y)
-    plt.figure().clear()
-    plt.pcolormesh(X, Y, Z, shading="auto")
-    plt.legend()
-    plt.colorbar()
-    plt.axis("equal")
-    plt.savefig("isochrone.png")
     return np.flip(Z, 0)
 
 
@@ -345,38 +374,24 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     node_coords_list = list(node_coords.values()) + interpolated_coords
     node_costs_list = distances + interpolated_costs
 
-    # filter out nodes that fall inside the same pixel (keep the one with the lowest cost)
-    # index_cost = {}
-    # for idx, node_coord in enumerate(node_coords_list):
-    #     node_coord_pixel = coordinate_to_pixel(
-    #         node_coord, zoom=zoom, return_dict=False, web_mercator=True, round_int=True
-    #     )
-    #     pixel_x = node_coord_pixel[0]
-    #     pixel_y = node_coord_pixel[1]
-    #     x = pixel_x - xy_bottom_left[0]
-    #     y = pixel_y - xy_top_right[1]
-    #     index = y * width_pixel + x
-    #     if index not in index_cost or index_cost[index][1] > node_costs_list[idx]:
-    #         index_cost[index] = [idx, node_costs_list[idx]]
+    node_coords_list, node_costs_list = filter_nodes(
+        node_coords_list, node_costs_list, zoom, width_pixel, xy_bottom_left[0], xy_top_right[1]
+    )
 
-    # # get filtered nodes and costs
-    # node_coords_list = [node_coords_list[idx] for idx, _ in index_cost.values()]
-    # node_costs_list = [cost for _, cost in index_cost.values()]
-
-    geojson = {
-        "type": "FeatureCollection",
-        "features": [
-            {
-                "type": "Feature",
-                "geometry": {"type": "Point", "coordinates": node_coords_list[idx]},
-                "properties": {"cost": node_costs_list[idx]},
-            }
-            for idx in range(len(node_coords_list))
-        ],
-    }
-    # write geojson
-    with open("isochrone.geojson", "w") as f:
-        json.dump(geojson, f)
+    # geojson = {
+    #     "type": "FeatureCollection",
+    #     "features": [
+    #         {
+    #             "type": "Feature",
+    #             "geometry": {"type": "Point", "coordinates": node_coords_list[idx]},
+    #             "properties": {"cost": node_costs_list[idx]},
+    #         }
+    #         for idx in range(len(node_coords_list))
+    #     ],
+    # }
+    # # write geojson
+    # with open("isochrone.geojson", "w") as f:
+    #     json.dump(geojson, f)
 
     # build grid
     Z = build_grid_interpolate_(

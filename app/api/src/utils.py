@@ -589,10 +589,12 @@ def latitude_to_pixel(latitude, zoom):
     )
 
 
+@njit
 def web_mercator_x_to_pixel_x(x, zoom):
     return (x + (40075016.68557849 / 2.0)) / (40075016.68557849 / (z_scale(zoom)))
 
 
+@njit
 def web_mercator_y_to_pixel_y(y, zoom):
     return (y - (40075016.68557849 / 2.0)) / (40075016.68557849 / (-1 * z_scale(zoom)))
 
