@@ -11,12 +11,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.cors import CORSMiddleware
 
-from src import crud
+from src import crud, run_time_method_calls
 from src.core.config import settings
 from src.db.session import async_session, r5_mongo_db_client
 from src.endpoints import deps
 from src.endpoints.v1.api import api_router
-from src import run_time_method_calls
 
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,
@@ -66,7 +65,8 @@ async def startup_event():
         table_index = await crud.layer.table_index(db)
         app.state.table_catalog = table_index
 
-    await run_time_method_calls.call_isochrones_startup(app=app)
+    if not os.environ.get("DISABLE_NUMBA_STARTUP_CALL") == "True":
+        await run_time_method_calls.call_isochrones_startup(app=app)
 
 
 @app.on_event("shutdown")
