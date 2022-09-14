@@ -1,21 +1,21 @@
-import os
 import logging
+import os
+
 import sentry_sdk
-from fastapi import FastAPI, Request, Depends
+from fastapi import Depends, FastAPI, Request
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.cors import CORSMiddleware
 
-from src import crud
+from src import crud, run_time_method_calls
 from src.core.config import settings
 from src.db.session import async_session, r5_mongo_db_client
-from src.endpoints.v1.api import api_router
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.endpoints import deps
-
+from src.endpoints.v1.api import api_router
 
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,
@@ -65,6 +65,9 @@ async def startup_event():
         table_index = await crud.layer.table_index(db)
         app.state.table_catalog = table_index
 
+    if not os.environ.get("DISABLE_NUMBA_STARTUP_CALL") == "True":
+        await run_time_method_calls.call_isochrones_startup(app=app)
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -85,10 +88,9 @@ def ping():
     """Health check."""
     return {"ping": "pong!"}
 
+
 @app.get("/api/status", description="Status Check", tags=["Health Check"])
-async def status_check(
-    db: AsyncSession = Depends(deps.get_db)
-):
+async def status_check(db: AsyncSession = Depends(deps.get_db)):
     """Status check."""
     try:
         results = await crud.system.get_by_key(db, key="type", value="status")
