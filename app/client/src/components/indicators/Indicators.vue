@@ -272,8 +272,8 @@ export default {
     showPopup() {
       this.map.on("click", e => {
         this.popupOverlay.setPosition(undefined);
-        this.map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
-          console.log(feature, layer);
+        this.map.forEachFeatureAtPixel(e.pixel, feature => {
+          this.indicatorPopupInfo.description = [];
           let clickedCoordinate = e.coordinate;
           if (!feature.get("stop_name")) {
             this.indicatorPopupInfo.name = `Class ${feature.get("class")}`;
@@ -387,7 +387,6 @@ export default {
     },
     refreshVisibleIndicators(selected) {
       let indicatorLayers = this.indicatorLayers;
-      console.log(selected);
       if (selected && Array.isArray(selected)) {
         indicatorLayers = indicatorLayers.filter(layer =>
           selected.includes(layer.get("name"))

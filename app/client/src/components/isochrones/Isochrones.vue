@@ -661,13 +661,9 @@
                               >fas fa-clock
                             </v-icon>
                             <span class="caption"
-                              >{{
-                                calculation.config.settings.from_time_parsed
-                              }}
+                              >{{ publicTransport.fromTime }}
                               -
-                              {{
-                                calculation.config.settings.to_time_parsed
-                              }}</span
+                              {{ publicTransport.toTime }}</span
                             >
                           </template>
 
@@ -781,6 +777,9 @@ import {
 //Store imports
 import { mapGetters, mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
+
+//Helpers
+import { secondsToHoursAndMins } from "../../utils/Helpers";
 
 //Ol imports
 import VectorSource from "ol/source/Vector";
@@ -1537,47 +1536,11 @@ export default {
               let calcTimeFrom = calculation.config.settings.from_time;
               let calcTimeTo = calculation.config.settings.to_time;
 
-              let calculatedTimeFrom = "";
-              if (calcTimeFrom % 3600 !== 0) {
-                let temp = calcTimeFrom / 3600;
-                let hours = parseInt(temp);
-                let minutes = Math.round((temp - hours) * 60);
-                if (hours / 10 < 1) {
-                  calculatedTimeFrom = `0${hours}:${minutes}`;
-                } else {
-                  calculatedTimeFrom = `${hours}:${minutes}`;
-                }
-              } else {
-                let temp = calcTimeFrom / 3600;
-                if (temp / 10 < 1) {
-                  calculatedTimeFrom = `0${temp}:00`;
-                } else {
-                  calculatedTimeFrom = `${temp}:00`;
-                }
-              }
+              this.publicTransport.fromTime = secondsToHoursAndMins(
+                calcTimeFrom
+              );
+              this.publicTransport.toTime = secondsToHoursAndMins(calcTimeTo);
 
-              let calculatedTimeTo = "";
-              if (calcTimeTo % 3600 !== 0) {
-                let temp = calcTimeTo / 3600;
-                let hours = parseInt(temp);
-                let minutes = Math.round((temp - hours) * 60);
-                if (hours / 10 < 1) {
-                  calculatedTimeTo = `0${hours}:${minutes}`;
-                } else {
-                  calculatedTimeTo = `${hours}:${minutes}`;
-                }
-              } else {
-                let temp = calcTimeTo / 3600;
-                if (temp / 10 < 1) {
-                  calculatedTimeTo = `0${temp}:00`;
-                } else {
-                  calculatedTimeTo = `${temp}:00`;
-                }
-              }
-
-              calculation.config.settings.from_time_parsed = calculatedTimeFrom;
-              calculation.config.settings.to_time_parsed = calculatedTimeTo;
-              console.log(calculation);
               if (_type == "single") {
                 //Geocode
                 const axiosInstance = axios.create();
