@@ -97,6 +97,7 @@
                   :color="appColor.primary"
                   v-model="fromTime"
                   no-title
+                  lazy
                   @click:minute="$refs.indicator_time_from.save(fromTime)"
                 ></v-time-picker>
               </v-menu>
@@ -130,6 +131,7 @@
                   :color="appColor.primary"
                   v-model="toTime"
                   no-title
+                  lazy
                   @click:minute="$refs.indicator_time_to.save(toTime)"
                 ></v-time-picker>
               </v-menu>
@@ -198,6 +200,9 @@ export default {
       const toTimeInSeconds = toTime[0] * 3600 + toTime[1] * 60;
       let fromTime = this.fromTime.split(":");
       const fromTimeInSeconds = fromTime[0] * 3600 + fromTime[1] * 60;
+      // console.log(
+      //   `from time: ${fromTimeInSeconds} - to time: ${toTimeInSeconds}`
+      // );
       if (toTimeInSeconds < fromTimeInSeconds) {
         this.isAlertVisible = true;
         return false;

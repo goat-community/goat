@@ -1005,16 +1005,20 @@ export function ptStationCountStyle(feature, resolution) {
   const tripCnt = feature.get("trip_cnt");
   if (resolution > 7) {
     const tripCntSum = Object.values(tripCnt).reduce((a, b) => a + b, 0) / time;
-    let radius = 5;
-    if (tripCntSum <= 10 && tripCntSum > 0) {
+    let radius = 3;
+    if (tripCntSum <= 5 && tripCntSum > 0) {
+      radius = 5;
+    } else if (tripCntSum <= 10 && tripCntSum > 5) {
       radius = 7;
     } else if (tripCntSum <= 20 && tripCntSum > 10) {
-      radius = 10;
+      radius = 9;
     } else if (tripCntSum <= 30 && tripCntSum > 20) {
-      radius = 13;
+      radius = 11;
     } else if (tripCntSum <= 40 && tripCntSum > 30) {
+      radius = 13;
+    } else if (tripCntSum <= 80 && tripCntSum > 40) {
       radius = 16;
-    } else if (tripCntSum > 40) {
+    } else if (tripCntSum > 80) {
       radius = 19;
     }
 
@@ -1022,7 +1026,7 @@ export function ptStationCountStyle(feature, resolution) {
       image: new OlCircle({
         radius: radius,
         fill: new OlFill({
-          color: "#becf50"
+          color: "#2BB381"
         })
       })
     });
