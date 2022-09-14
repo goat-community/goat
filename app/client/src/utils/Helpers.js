@@ -244,3 +244,9 @@ export const LinearColorInterpolator = {
     return new ColorObj(newColor);
   }
 };
+
+export const secondsToHoursAndMins = seconds => {
+  const fromTimeDate = new Date(0);
+  fromTimeDate.setSeconds(seconds);
+  return fromTimeDate.toISOString().substring(11, 16);
+};
