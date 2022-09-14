@@ -1002,9 +1002,8 @@ export function ptStationCountStyle(feature, resolution) {
     (appStore.state.timeIndicators.endTime -
       appStore.state.timeIndicators.startTime) /
     3600;
+  const tripCnt = feature.get("trip_cnt");
   if (resolution > 7) {
-    // demo style
-    const tripCnt = feature.get("trip_cnt");
     const tripCntSum = Object.values(tripCnt).reduce((a, b) => a + b, 0) / time;
     let radius = 5;
     if (tripCntSum <= 10 && tripCntSum > 0) {
@@ -1028,68 +1027,26 @@ export function ptStationCountStyle(feature, resolution) {
       })
     });
   } else {
-    const tripCnt = feature.get("trip_cnt");
-    console.log(tripCnt);
-
-    let dataAndColors = {
-      data: [],
-      colors: []
+    const colorMapping = {
+      0: "#D31E20",
+      1: "#004D89",
+      2: "#338FB4",
+      3: "#005567",
+      4: "#BEB8EB",
+      5: "#1A3A3A",
+      6: "#C57B57",
+      7: "#457B9D",
+      11: "#6A3E37",
+      12: "#34344A"
     };
-
-    for (const ctn in tripCnt) {
-      switch (ctn) {
-        case "0":
-          dataAndColors.data.push(tripCnt[ctn]);
-          dataAndColors.colors.push("#0075A2");
-          break;
-        case "1":
-          dataAndColors.data.push(tripCnt[ctn]);
-          dataAndColors.colors.push("#F7A9A8");
-          break;
-        case "2":
-          dataAndColors.data.push(tripCnt[ctn]);
-          dataAndColors.colors.push("#FFAA5A");
-          break;
-        case "3":
-          dataAndColors.data.push(tripCnt[ctn]);
-          dataAndColors.colors.push("#68A691");
-          break;
-        case "4":
-          dataAndColors.data.push(tripCnt[ctn]);
-          dataAndColors.colors.push("#BEB8EB");
-          break;
-        case "5":
-          dataAndColors.data.push(tripCnt[ctn]);
-          dataAndColors.colors.push("#1A3A3A");
-          break;
-        case "6":
-          dataAndColors.data.push(tripCnt[ctn]);
-          dataAndColors.colors.push("#C57B57");
-          break;
-        case "7":
-          dataAndColors.data.push(tripCnt[ctn]);
-          dataAndColors.colors.push("#457B9D");
-          break;
-        case "11":
-          dataAndColors.data.push(tripCnt[ctn]);
-          dataAndColors.colors.push("#6A3E37");
-          break;
-        case "12":
-          dataAndColors.data.push(tripCnt[ctn]);
-          dataAndColors.colors.push("#34344A");
-          break;
-
-        default:
-          break;
-      }
-    }
-
+    const colors = Object.keys(tripCnt).map(key => colorMapping[key]);
+    const data = Object.values(tripCnt).map(val => val / time);
     return new OlStyle({
       image: new Chart({
         type: "pie",
-        radius: 20,
-        colors: dataAndColors.colors,
-        data: dataAndColors.data
+        radius: 25,
+        colors,
+        data
       })
     });
   }
