@@ -15,13 +15,7 @@ export default {
   },
   methods: {
     renderRadarChart: function() {
-      let labels;
-      if (this.chartDatasetType === 1) {
-        labels = this.selectedPoisOnlyKeys.map(key => this.translatePOI(key));
-      } else if (this.chartDatasetType === 2) {
-        labels = this.selectedAoisOnlyKeys.map(key => this.translatePOI(key));
-      }
-      console.log(labels);
+      let labels = this.selectedPoisOnlyKeys;
       if (this.chartDatasetType === 2) {
         labels = this.selectedAoisOnlyKeys;
       }
@@ -32,12 +26,6 @@ export default {
         // add only amenities
         const data = [];
         let keys = [];
-        // if (this.chartDatasetType === 1) {
-        //   keys = this.selectedPoisOnlyKeys.map(key => this.translatePOI(key));
-        //   console.log(keys);
-        // } else if (this.chartDatasetType === 2) {
-        //   keys = this.selectedAoisOnlyKeys.map(key => this.translatePOI(key));
-        // }
         if (this.chartDatasetType === 1) {
           keys = this.selectedPoisOnlyKeys;
         } else if (this.chartDatasetType === 2) {
@@ -68,14 +56,6 @@ export default {
           }
         }
       );
-    },
-    translatePOI: function(key) {
-      const canTranslate = this.$te(`pois.${key}`);
-      if (canTranslate) {
-        return this.$t(`pois.${key}`);
-      } else {
-        return key;
-      }
     }
   },
   watch: {
