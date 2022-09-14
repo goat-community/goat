@@ -328,6 +328,7 @@
       "scenario": "Scenario"
     },
     "single": {
+      "singleIsochrone": "Isochrone Single",
       "title": "Starting Point",
       "type": "Single",
       "searchBox": "Search Starting Point",
@@ -355,6 +356,10 @@
       "speed": "Speed",
       "time": "Travel time",
       "nr": "Isochrones",
+      "from_time": "From Time",
+      "access_mode": "Access Mode",
+      "egress_mode": "Egress Mode",
+      "to_time": "To Time",
       "calcType": "Level of detail isochrones",
       "calcModus": "Calculation Mode",
       "alphaShapeMode": "Level of detail isochrones",
@@ -362,6 +367,7 @@
       "scenario": "Scenario",
       "comparison": "Comparison",
       "routingProfile": "Routing Profile",
+      "routing": "Routing",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
       "walking_safe_night": "Safe night",
@@ -370,6 +376,7 @@
       "walking_wheelchair_electric": "Electric",
       "cycling_standard": "Standard",
       "cycling_pedelec": "Pedelec",
+      "transitModes": "Transit Modes",
       "transit": "Transit",
       "walk": "Walk",
       "bicycle": "Bicycle",
@@ -459,6 +466,14 @@
       "7": "Funicular",
       "11": "Trolleybus",
       "12": "Monorail"
+    },
+    "gutteklassenRating": {
+      "A": "High quality accessibility to Public transport",
+      "B": "Good quality accessibility to Public Transport",
+      "C": "Average quality accessibility to Public Transport",
+      "D": "Not so good accessibility to Public Transport",
+      "E": "Bad accessibility Public Transport",
+      "F": "Worst accessibility to Public Transport"
     }
   },
   "poisFilter": {

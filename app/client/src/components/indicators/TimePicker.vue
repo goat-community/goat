@@ -97,6 +97,7 @@
                   :color="appColor.primary"
                   v-model="fromTime"
                   no-title
+                  lazy
                   @click:minute="$refs.indicator_time_from.save(fromTime)"
                 ></v-time-picker>
               </v-menu>
@@ -130,6 +131,7 @@
                   :color="appColor.primary"
                   v-model="toTime"
                   no-title
+                  lazy
                   @click:minute="$refs.indicator_time_to.save(toTime)"
                 ></v-time-picker>
               </v-menu>
@@ -152,7 +154,6 @@
 import { mapGetters } from "vuex";
 import { Draggable } from "draggable-vue-directive";
 import { mapFields } from "vuex-map-fields";
-
 export default {
   props: ["status", "translate"],
   directives: {

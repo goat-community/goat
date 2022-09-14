@@ -35,7 +35,7 @@
                 <v-row class="mt-n2" align="center">
                   <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
                     <v-select
-                      label="Routing"
+                      :label="$t(`isochrones.options.routing`)"
                       class="mb-2 mt-0"
                       item-value="type"
                       hide-details
@@ -132,7 +132,7 @@
                         <template v-slot:activator="{ on, attrs }">
                           <v-text-field
                             v-model="publicTransport.fromTime"
-                            label="From Time"
+                            :label="$t(`isochrones.options.from_time`)"
                             class="mb-0 pb-0"
                             prepend-inner-icon="fas fa-clock"
                             readonly
@@ -167,7 +167,7 @@
                         <template v-slot:activator="{ on, attrs }">
                           <v-text-field
                             v-model="publicTransport.toTime"
-                            label="To Time"
+                            :label="$t(`isochrones.options.to_time`)"
                             class="mb-0 pb-0"
                             prepend-inner-icon="fas fa-clock"
                             readonly
@@ -191,7 +191,7 @@
                       <!-- ACCESS MODE -->
                       <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
                         <v-select
-                          label="Access Mode"
+                          :label="$t(`isochrones.options.access_mode`)"
                           v-model="publicTransport.accessMode"
                           class="mb-2 mt-0 pt-0"
                           item-value="type"
@@ -231,7 +231,7 @@
                       <!-- EGRESS MODE -->
                       <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
                         <v-select
-                          label="Egress Mode"
+                          :label="$t(`isochrones.options.egress_mode`)"
                           class="mb-2 mt-0 pt-0"
                           v-model="publicTransport.egressMode"
                           item-value="type"
@@ -278,7 +278,7 @@
                           class="text-center mb-0"
                           color="rgba(0, 0, 0, 0.6)"
                         >
-                          Transit Modes
+                          {{ $t(`isochrones.options.transitModes`) }}
                         </span>
                       </v-col>
                       <v-col
@@ -399,7 +399,7 @@
                       </v-tooltip>
                     </span>
                     <br />
-                    <span>Isochrone Single</span>
+                    <span>{{ $t("isochrones.single.singleIsochrone") }}</span>
                   </template>
                   <span v-if="isIsochroneBusy">
                     <v-tooltip top>
@@ -660,9 +660,11 @@
                             <v-icon small class="text-xs-center mx-2"
                               >fas fa-clock
                             </v-icon>
-                            <span class="caption">{{
-                              calculation.config.settings.weekday
-                            }}</span>
+                            <span class="caption"
+                              >{{ publicTransport.fromTime }}
+                              -
+                              {{ publicTransport.toTime }}</span
+                            >
                           </template>
 
                           <span
@@ -775,6 +777,9 @@ import {
 //Store imports
 import { mapGetters, mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
+
+//Helpers
+import { secondsToHoursAndMins } from "../../utils/Helpers";
 
 //Ol imports
 import VectorSource from "ol/source/Vector";
@@ -1528,6 +1533,12 @@ export default {
                 surfaceData: singleValuedSurface,
                 feature: olFeatures[0]
               };
+              let calcTimeFrom = calculation.config.settings.from_time;
+              let calcTimeTo = calculation.config.settings.to_time;
+              this.publicTransport.fromTime = secondsToHoursAndMins(
+                calcTimeFrom
+              );
+              this.publicTransport.toTime = secondsToHoursAndMins(calcTimeTo);
               if (_type == "single") {
                 //Geocode
                 const axiosInstance = axios.create();
