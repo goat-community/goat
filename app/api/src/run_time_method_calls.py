@@ -2,6 +2,7 @@ from typing import Dict
 
 import httpx
 import requests
+import rich
 
 from src.core.config import settings
 from src.schemas.isochrone import request_examples
@@ -16,32 +17,41 @@ async def run_calculate_isochrone_single_default(
         if isochrone_mode in ["pois_multi_isochrone", "transit_single"]:
             if settings.R5_HOST:
                 try:
-                    print("check R5 for 3 seconds...")
-                    print(settings.R5_API_URL)
+                    rich.print("[blue]check R5 for 3 seconds...[/blue]")
                     requests.get(settings.R5_API_URL, verify=False, timeout=3)
                 except:
-                    print(f"Coudn't reach R5! So skip call {isochrone_mode}.")
+                    rich.print(
+                        f"[orange3]Coudn't reach R5! So skip call:[/orange3] [bold]{isochrone_mode}[/bold]"
+                    )
                     print()
                     continue
             else:
-                print(f"R5 is not set. Skip call {isochrone_mode}")
+                rich.print(
+                    f"[orange3]R5 is not set. Skip call:[/orange3] [bold]{isochrone_mode}[/bold]"
+                )
                 continue
 
-        print(f'running: {request_examples["isochrone"][isochrone_mode].get("summary")}')
+        rich.print(
+            f'[bold]running: [light_slate_blue]{request_examples["isochrone"][isochrone_mode].get("summary")}[/light_slate_blue]...[/bold]'
+        )
         r = await client.post(
             f"{settings.API_V1_STR}/isochrones",
             headers=superuser_token_headers,
             json=data,
         )
-        print(r.status_code)
         assert 200 <= r.status_code < 300
+        rich.print(
+            f'[green1]Finished:[/green1] {request_examples["isochrone"][isochrone_mode].get("summary")}'
+        )
 
 
 async def call_isochrones_startup(app):
-    print("First run of isochrones....")
-    print("To prevent this calling, set DISABLE_NUMBA_STARTUP_CALL environment variable to True.")
+    rich.print("[bold]First run of isochrones...[/bold]")
+    rich.print(
+        "To prevent this calling, set [blue][bold]DISABLE_NUMBA_STARTUP_CALL[/bold][/blue] environment variable to [bold]True[/bold].\n"
+    )
     async with httpx.AsyncClient(app=app, base_url="http://localhost:5000") as client:
         superuser_token_headers = await get_superuser_token_headers(client)
         await run_calculate_isochrone_single_default(client, superuser_token_headers)
 
-    print("Running isochrones first call complete!")
+    rich.print("\n[green4]Running isochrones first call complete![/green4]")
