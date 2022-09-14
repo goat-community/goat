@@ -661,9 +661,17 @@
                               >fas fa-clock
                             </v-icon>
                             <span class="caption"
-                              >{{ publicTransport.fromTime }}
+                              >{{
+                                secondsToHoursAndMins(
+                                  calculation.config.settings.from_time
+                                )
+                              }}
                               -
-                              {{ publicTransport.toTime }}</span
+                              {{
+                                secondsToHoursAndMins(
+                                  calculation.config.settings.to_time
+                                )
+                              }}</span
                             >
                           </template>
 
@@ -930,6 +938,7 @@ export default {
     }
   },
   methods: {
+    secondsToHoursAndMins,
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR",
       startHelpTooltip: "START_HELP_TOOLTIP",
@@ -1533,12 +1542,7 @@ export default {
                 surfaceData: singleValuedSurface,
                 feature: olFeatures[0]
               };
-              let calcTimeFrom = calculation.config.settings.from_time;
-              let calcTimeTo = calculation.config.settings.to_time;
-              this.publicTransport.fromTime = secondsToHoursAndMins(
-                calcTimeFrom
-              );
-              this.publicTransport.toTime = secondsToHoursAndMins(calcTimeTo);
+
               if (_type == "single") {
                 //Geocode
                 const axiosInstance = axios.create();
