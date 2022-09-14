@@ -1,3 +1,4 @@
+import time
 from typing import Any, Dict
 
 from fastapi import APIRouter, Body, Depends, Query
@@ -28,9 +29,13 @@ async def calculate_isochrone(
     """
     Calculate isochrone.
     """
+    et = time.time()
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
     result = await crud.isochrone.calculate(db, isochrone_in, current_user)
+    st = time.time()
+    elapsed_time = st - et
+    print("Execution time:", elapsed_time, "seconds")
     return result
 
 
