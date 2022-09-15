@@ -997,63 +997,53 @@ import Chart from "ol-ext/style/Chart";
 //     "2": 31
 //   }
 // }
-export function ptStationCountStyle(feature, resolution) {
+export function ptStationCountStyle(feature) {
   let time =
     (appStore.state.timeIndicators.endTime -
       appStore.state.timeIndicators.startTime) /
     3600;
   const tripCnt = feature.get("trip_cnt");
-  if (resolution > 7) {
-    const tripCntSum = Object.values(tripCnt).reduce((a, b) => a + b, 0) / time;
-    let radius = 3;
-    if (tripCntSum <= 5 && tripCntSum > 0) {
-      radius = 5;
-    } else if (tripCntSum <= 10 && tripCntSum > 5) {
-      radius = 7;
-    } else if (tripCntSum <= 20 && tripCntSum > 10) {
-      radius = 9;
-    } else if (tripCntSum <= 30 && tripCntSum > 20) {
-      radius = 11;
-    } else if (tripCntSum <= 40 && tripCntSum > 30) {
-      radius = 13;
-    } else if (tripCntSum <= 80 && tripCntSum > 40) {
-      radius = 16;
-    } else if (tripCntSum > 80) {
-      radius = 19;
-    }
 
-    return new OlStyle({
-      image: new OlCircle({
-        radius: radius,
-        fill: new OlFill({
-          color: "#2BB381"
-        })
-      })
-    });
-  } else {
-    const colorMapping = {
-      0: "#D31E20",
-      1: "#004D89",
-      2: "#338FB4",
-      3: "#005567",
-      4: "#BEB8EB",
-      5: "#1A3A3A",
-      6: "#C57B57",
-      7: "#457B9D",
-      11: "#6A3E37",
-      12: "#34344A"
-    };
-    const colors = Object.keys(tripCnt).map(key => colorMapping[key]);
-    const data = Object.values(tripCnt).map(val => val / time);
-    return new OlStyle({
-      image: new Chart({
-        type: "pie",
-        radius: 25,
-        colors,
-        data
-      })
-    });
+  const tripCntSum = Object.values(tripCnt).reduce((a, b) => a + b, 0) / time;
+  let radius = 3;
+  if (tripCntSum <= 5 && tripCntSum > 0) {
+    radius = 5;
+  } else if (tripCntSum <= 10 && tripCntSum > 5) {
+    radius = 7;
+  } else if (tripCntSum <= 20 && tripCntSum > 10) {
+    radius = 9;
+  } else if (tripCntSum <= 30 && tripCntSum > 20) {
+    radius = 11;
+  } else if (tripCntSum <= 40 && tripCntSum > 30) {
+    radius = 13;
+  } else if (tripCntSum <= 80 && tripCntSum > 40) {
+    radius = 16;
+  } else if (tripCntSum > 80) {
+    radius = 19;
   }
+
+  const colorMapping = {
+    0: "#D31E20",
+    1: "#004D89",
+    2: "#338FB4",
+    3: "#005567",
+    4: "#BEB8EB",
+    5: "#1A3A3A",
+    6: "#C57B57",
+    7: "#457B9D",
+    11: "#6A3E37",
+    12: "#34344A"
+  };
+  const colors = Object.keys(tripCnt).map(key => colorMapping[key]);
+  const data = Object.values(tripCnt).map(val => val / time);
+  return new OlStyle({
+    image: new Chart({
+      type: "pie",
+      radius: radius,
+      colors,
+      data
+    })
+  });
 }
 
 export const stylesRef = {

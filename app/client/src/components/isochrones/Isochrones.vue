@@ -594,6 +594,7 @@
             <v-spacer></v-spacer>
             <v-hover v-slot="{ hover }">
               <v-btn
+                :disabled="isIsochroneBusy"
                 small
                 v-show="isResultsElVisible === true && calculations.length > 1"
                 class="white--text mr-2"
@@ -696,6 +697,7 @@
                         <v-tooltip top>
                           <template v-slot:activator="{ on }">
                             <v-icon
+                              :disabled="isIsochroneBusy"
                               @click="deleteCalculation(calculation)"
                               small
                               v-on="on"
@@ -720,6 +722,7 @@
                     class="clickable subheader mt-1 pb-1"
                   >
                     <v-simple-checkbox
+                      :disabled="isIsochroneBusy"
                       :ripple="false"
                       @input="toggleCalculation(calculation)"
                       :value="isCalculationActive(calculation)"
@@ -1765,7 +1768,7 @@ export default {
               calculation[0].surfaceData = singleValuedSurface;
               calculation[0].feature.setGeometry(olFeatures[0].getGeometry());
             })
-            .catch(() => {
+            .catch(e => {
               // revert
               payload.starting_point.input[0].lon = oldLon;
               payload.starting_point.input[0].lat = oldLat;
@@ -1773,9 +1776,13 @@ export default {
                 .getGeometry()
                 .setCoordinates(fromLonLat([oldLon, oldLat]));
               this.toggleSnackbar({
-                type: "error", //success or error
+                type: "error",
                 message: this.$t(
-                  "map.snackbarMessages.calculateIsochroneError"
+                  `map.snackbarMessages.${
+                    e.message === "cancelled"
+                      ? "calculateIsochroneCancelled"
+                      : "calculateIsochroneError"
+                  }`
                 ),
                 state: true,
                 timeout: 2500
