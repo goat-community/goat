@@ -866,7 +866,8 @@ export default {
       { text: "friday", value: 4 },
       { text: "saturday", value: 5 },
       { text: "sunday", value: 6 }
-    ]
+    ],
+    locationIQ: "https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4"
   }),
   computed: {
     ...mapGetters("scenarios", {
@@ -1549,7 +1550,7 @@ export default {
                 delete axiosInstance.defaults.headers.common["Authorization"];
                 axiosInstance
                   .get(
-                    `https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
+                    `${this.locationIQ}&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
                   )
                   .then(response => {
                     if (response.status === 200 && response.data.display_name) {
@@ -1766,7 +1767,28 @@ export default {
               });
               calculation[0].rawData = isochroneSurface;
               calculation[0].surfaceData = singleValuedSurface;
-              calculation[0].feature.setGeometry(olFeatures[0].getGeometry());
+
+              delete axiosInstance.defaults.headers.common["Authorization"];
+              axiosInstance
+                .get(
+                  `${this.locationIQ}&lat=${lonLatCoordinate[1]}&lon=${lonLatCoordinate[0]}&format=json`
+                )
+                .then(response => {
+                  if (response.status === 200 && response.data.display_name) {
+                    const address = response.data.display_name;
+                    calculation[0].position = address;
+                  }
+                })
+                .catch(() => {
+                  calculation[0].position = "Unknown";
+                })
+                .finally(() => {
+                  this.isMapBusy = false;
+                  this.isIsochroneBusy = false;
+                  calculation[0].feature.setGeometry(
+                    olFeatures[0].getGeometry()
+                  );
+                });
             })
             .catch(e => {
               // revert
@@ -1787,8 +1809,6 @@ export default {
                 state: true,
                 timeout: 2500
               });
-            })
-            .finally(() => {
               this.isMapBusy = false;
               this.isIsochroneBusy = false;
             });
