@@ -325,11 +325,34 @@ class IsochroneDTO(BaseModel):
         if not values.get("starting_point"):
             raise ValueError("Isochrone starting point is required")
 
-        # Validation check on grid resolution and number of steps for geojson
-        if values["output"].type.value == IsochroneOutputType.GRID.value and values[
-            "output"
-        ].resolution not in [9, 10, 11, 12, 13]:
-            raise ValueError("Resolution must be 9, 10, 11, 12, or 13")
+        # Validation check on grid resolution and number of steps for geojson for walking and cycling isochrones
+        if (
+            values["output"].type.value == IsochroneOutputType.GRID.value
+            and values["output"].resolution not in [9, 10, 11, 12, 13, 14]
+            and values["mode"].value
+            in [
+                IsochroneAccessMode.WALK.value,
+                IsochroneAccessMode.CYCLE.value,
+            ]
+        ):
+
+            raise ValueError(
+                "Resolution must be between 9 and 14 for walking and cycling isochrones"
+            )
+
+        # Validation check on grid resolution and number of steps for geojson for public transport isochrones
+        if (
+            values["output"].type.value == IsochroneOutputType.GRID.value
+            and values["output"].resolution not in [9, 10]
+            and values["mode"].value
+            in [
+                IsochroneMode.TRANSIT.value,
+                IsochroneMode.CAR.value,
+            ]
+        ):
+            raise ValueError("Resolution must be between 9 or 10 for public transport isochrones")
+
+        # Validation for geojso output type
         if values["output"].type.value == IsochroneOutputType.GEOJSON.value and (
             values["output"].steps > 6 or values["output"].steps < 1
         ):
@@ -412,18 +435,19 @@ request_examples = {
             "value": {
                 "mode": "walking",
                 "settings": {
-                    "travel_time": "10",
+                    "travel_time": "20",
                     "speed": "5",
                     "walking_profile": "standard",
                 },
                 "starting_point": {
-                    "input": ["nursery", "kindergarten"],
+                    "input": ["nursery"],
                     "region_type": "study_area",
-                    "region": 1,
+                    "region": [27],
                 },
+                "scenario": {"id": 0, "modus": "default"},
                 "output": {
                     "type": "grid",
-                    "steps": "10",
+                    "resolution": "11",
                 },
             },
         },
@@ -445,11 +469,6 @@ request_examples = {
                     "max_walk_time": 20,
                     "percentiles": [5, 25, 50, 75, 95],
                     "monte_carlo_draws": 200,
-                    "decay_function": {
-                        "type": "logistic",
-                        "standard_deviation_minutes": 12,
-                        "width_minutes": 10,
-                    },
                 },
                 "starting_point": {
                     "input": [{"lat": 48.1502132, "lon": 11.5696284}],

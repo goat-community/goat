@@ -50,8 +50,60 @@
               v-html="renderLegend(item, index)"
             ></span>
           </div>
+          <div v-if="['GEOBUF', 'MVT'].includes(item.get('type'))">
+            <span
+              :ref="`legend-vector-${index}`"
+              v-html="renderLegend(item, index)"
+            ></span>
+          </div>
         </div>
       </div>
+    </template>
+    <!-- POI's -->
+    <template v-if="selectedPoisAois.length">
+      <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
+        {{ $t("map.layerName.pois_aois_layer") }}
+      </p>
+      <template v-for="(poi, poiIndex) in selectedPoisAois">
+        <div
+          :key="poi + poiIndex"
+          class="poi-wrapper"
+          :style="
+            Array.isArray(poi.color) && poi.color.length > 1
+              ? `--fa-primary-color: ${poi.color[0]};--fa-secondary-color: ${poi.color[1]};`
+              : `color: ${poi.color};`
+          "
+        >
+          <i :class="poi.icon + ' test'"></i>
+          <p>{{ $t(`pois.${poi.value}`) }}</p>
+        </div>
+      </template>
+    </template>
+    <!-- ISOCHRONES -->
+    <template v-if="calculations.length">
+      <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
+        {{ $t("isochrones.title") }}
+      </p>
+      <template v-for="calculation in calculations">
+        <div :key="calculation.id" class="isochrone-wrapper">
+          <span class="fa-stack fa-md mr-1 mt-2" style="color:#800000;">
+            <span class="fa fa-solid fa-location-pin fa-stack-2x"></span>
+            <strong
+              style="font-size:15px;margin-top: -3px"
+              class="white--text fa-stack-1x"
+            >
+              {{ calculation.id }}
+            </strong>
+          </span>
+          <p class="result-text">
+            {{
+              calculation.position === "multiIsochroneCalculation"
+                ? $t("isochrones.results.multiIsochroneHeader")
+                : calculation.position
+            }}
+          </p>
+        </div>
+      </template>
     </template>
   </div>
 </template>
@@ -200,10 +252,17 @@ export default {
 
   computed: {
     ...mapGetters("app", {
-      calculationMode: "calculationMode"
+      calculationMode: "calculationMode",
+      routingProfiles: "routingProfiles"
     }),
     ...mapFields("map", {
       vectorTileStyles: "vectorTileStyles"
+    }),
+    ...mapFields("poisaois", {
+      selectedPoisAois: "selectedPoisAois"
+    }),
+    ...mapFields("isochrones", {
+      calculations: "calculations"
     })
   },
   watch: {
@@ -221,5 +280,31 @@ export default {
 
 .v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
   padding: 2px 0px 0px 5px;
+}
+
+.poi-wrapper {
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 17px;
+}
+
+.poi-wrapper p {
+  margin: 0 5px;
+  color: currentColor;
+}
+
+.isochrone-wrapper {
+  border: 1px solid #ccc;
+  padding: 0 5px;
+  border-radius: 8px;
+  margin: 10px 10px 0 0;
+}
+
+.result-text {
+  margin-top: 10px;
+  font-size: 13px;
 }
 </style>

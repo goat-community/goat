@@ -139,7 +139,7 @@
     </span>
     <overlay-popup
       :color="appColor.primary"
-      :title="overlayTitle || 'No Title fetched'"
+      :title="indicatorPopupInfo.name || 'No Title fetched'"
       v-show="popup.isVisible"
       ref="indicatorPopup"
     >
@@ -150,12 +150,14 @@
       </template>
       <template v-slot:body>
         <p
-          v-for="(transportMean, tranportKey) in transportationMeans"
+          v-for="(transportMean, tranportKey) in indicatorPopupInfo.description"
           :key="tranportKey"
         >
-          {{ translatePT("pt_route_types", tranportKey.toString()) }} -
+          <!-- {{ translatePT("pt_route_types", tranportKey.toString()) }} -
+          {{ transportMean }} -->
           {{ transportMean }}
         </p>
+        <p></p>
       </template>
     </overlay-popup>
   </v-flex>
@@ -175,8 +177,6 @@ import ApiService from "../../services/api.service";
 import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
 import OverlayPopup from "../viewer/ol/controls/Overlay.vue";
 import Overlay from "ol/Overlay";
-// import axios from "axios";
-
 export default {
   mixins: [Mapable, Legend, LayerTree],
   components: {
@@ -207,8 +207,10 @@ export default {
     styleDialogKey: 0,
     styleDialogStatus: false,
     timePickerDialogStatus: false,
-    overlayTitle: "",
-    transportationMeans: {}
+    indicatorPopupInfo: {
+      name: "",
+      description: []
+    }
   }),
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
@@ -268,21 +270,30 @@ export default {
     showPopup() {
       this.map.on("click", e => {
         this.popupOverlay.setPosition(undefined);
-        this.map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
-          console.log(layer);
+        this.map.forEachFeatureAtPixel(e.pixel, feature => {
+          this.indicatorPopupInfo.description = [];
           let clickedCoordinate = e.coordinate;
-          let clickedFeatureName = feature.get("stop_name");
-          this.overlayTitle = clickedFeatureName;
-
-          let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
-          this.transportationMeans = clickedFeatureAdditionalInfo;
-          console.log(clickedFeatureAdditionalInfo);
+          if (!feature.get("stop_name")) {
+            this.indicatorPopupInfo.name = `Class ${feature.get("class")}`;
+            this.indicatorPopupInfo.description = [
+              this.translatePT("gutteklassenRating", feature.get("class"))
+            ];
+          } else {
+            let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
+            this.indicatorPopupInfo.name = feature.get("stop_name");
+            for (let element in clickedFeatureAdditionalInfo) {
+              this.indicatorPopupInfo.description.push(
+                `${this.translatePT("pt_route_types", element)} - ${
+                  clickedFeatureAdditionalInfo[element]
+                }`
+              );
+            }
+          }
           this.popupOverlay.setPosition(clickedCoordinate);
           this.popup.isVisible = true;
         });
       });
     },
-
     onMapBound() {
       this.map
         .getLayers()
@@ -318,7 +329,6 @@ export default {
     },
     openStyleDialog(item) {
       //This function is used for opening Style Setting dialog component for a layer
-
       EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);
       this.styleDialogStatus = true;
       if (
@@ -491,23 +501,18 @@ export default {
 .active-icon {
   color: #30c2ff;
 }
-
 .expansion-panel__container--active {
   background-color: white !important;
 }
-
 .checkbox >>> .v-input__control {
   height: 25px;
 }
-
 .v-expansion-panel-content >>> .v-expansion-panel-content__wrap {
   padding: 0px;
 }
-
 .v-expansion-panel-content >>> .v-input__slot {
   margin-bottom: 0px;
 }
-
 .layer-row >>> .v-expansion-panel-header {
   cursor: auto;
 }
