@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from src import crud, schemas
 from src.db import models
 from src.endpoints import deps
-from src.resources.enums import ReturnWithoutDbGeobufEnum
+from src.resources.enums import ReturnType
 from src.schemas.msg import Msg
 from src.schemas.scenario import request_examples, scenario_deleted_columns
 from src.utils import return_geojson_or_geobuf, to_feature_collection
@@ -45,7 +45,7 @@ async def create_scenario(
     obj_scenario = models.Scenario(
         scenario_name=scenario_in.scenario_name,
         user_id=current_user.id,
-        study_area_id=current_user.active_study_area_id
+        study_area_id=current_user.active_study_area_id,
     )
     result = await crud.scenario.create(db=db, obj_in=obj_scenario)
     return result
@@ -60,7 +60,10 @@ async def get_scenarios(
     """
     Get all scenarios.
     """
-    result = await crud.scenario.get_by_multi_keys(db=db, keys={"user_id": current_user.id, "study_area_id": current_user.active_study_area_id})
+    result = await crud.scenario.get_by_multi_keys(
+        db=db,
+        keys={"user_id": current_user.id, "study_area_id": current_user.active_study_area_id},
+    )
     return result
 
 
@@ -85,25 +88,17 @@ async def update_scenario(
         raise HTTPException(status_code=400, detail="Scenario not found")
 
 
-@router.delete("/{scenario_id}", response_model=Msg)
+@router.delete("/")
 async def delete_scenario(
     *,
+    id: List[int] = Query(default=None, gt=0),
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    scenario_id: int,
 ):
     """
     Delete scenario.
     """
-    scenario = await crud.scenario.get_by_multi_keys(
-        db, keys={"id": scenario_id, "user_id": current_user.id}
-    )
-    if len(scenario) > 0:
-        await db.execute("DELETE FROM customer.scenario WHERE id=:scenario_id", {"scenario_id": scenario_id})
-        await db.commit()
-        return {"msg": "Scenario deleted."}
-    else:
-        raise HTTPException(status_code=400, detail="Scenario not found")
+    return await crud.scenario.remove_multi_by_id_and_userid(db, ids=id, user_id=current_user.id)
 
 
 @router.get("/{scenario_id}/upload", response_model=Msg)
@@ -149,8 +144,8 @@ async def read_scenario_features(
         description="WKT Geometry to intersect with layer. Geometry must be in EPSG:4326. If not specified, all features are returned (only for _modified tables).",
         example=request_examples["read_features"]["intersect"],
     ),
-    return_type: ReturnWithoutDbGeobufEnum = Query(
-        default=ReturnWithoutDbGeobufEnum.geojson, description="Return type of the response"
+    return_type: ReturnType = Query(
+        default=ReturnType.geojson, description="Return type of the response"
     ),
 ) -> Any:
     """
@@ -168,7 +163,7 @@ async def read_scenario_features(
     features = to_feature_collection(
         result, exclude_properties=["coordinates_3857", "node_source", "node_target"]
     )
-    if return_type.value == ReturnWithoutDbGeobufEnum.geojson.value:
+    if return_type.value == ReturnType.geojson.value:
         features = jsonable_encoder(features)
 
     return return_geojson_or_geobuf(features, return_type.value)

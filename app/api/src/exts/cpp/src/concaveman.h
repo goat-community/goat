@@ -283,7 +283,7 @@ public:
         {
             best_child.get().insert(data, bounds);
 #ifdef DEBUG
-            std::cout << "best_child: " << bounds[0] << " " << bounds[1] << std::endl;
+            // std::cout << "best_child: " << bounds[0] << " " << bounds[1] << std::endl;
 #endif
             return;
         }
@@ -645,9 +645,9 @@ std::vector<std::array<T, 2>> concaveman(
     // start with a convex hull of the points
     const std::vector<int> &hull,
     // a relative measure of concavity; higher value means simpler hull
-    T concavity = 2,
+    T concavity = 7,
     // when a segment goes below this length threshold, it won't be drilled down further
-    T lengthThreshold = 0)
+    T lengthThreshold = 0.6)
 {
 
     typedef Node<T> node_type;
@@ -803,7 +803,7 @@ std::array<T, 2> findCandidate(
 {
 
     typedef std::array<T, 2> point_type;
-    //typedef CircularElement<Node<T>> circ_elem_type;
+    // typedef CircularElement<Node<T>> circ_elem_type;
     typedef rtree<T, 2, MAX_CHILDREN, std::array<T, 2>> tree_type;
     typedef const tree_type const_tree_type;
     typedef std::reference_wrapper<const_tree_type> tree_ref_type;

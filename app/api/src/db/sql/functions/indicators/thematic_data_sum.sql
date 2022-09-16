@@ -14,6 +14,8 @@ BEGIN
 	IF modus = 'scenario' THEN
 		excluded_pois_id = basic.modified_pois(scenario_id_input);
 		excluded_buildings_id  = basic.modified_buildings(scenario_id_input);
+	ELSE 
+		scenario_id_input = 0;
 	END IF;
 
 	data_upload_poi_categories = basic.poi_categories_data_uploads(user_id_input);

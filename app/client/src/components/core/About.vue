@@ -92,8 +92,10 @@
 
 <script>
 import { humanize } from "../../utils/Helpers";
+import { Mapable } from "../../mixins/Mapable";
 import { mapGetters } from "vuex";
 export default {
+  mixins: [Mapable],
   props: ["visible"],
   computed: {
     show: {
@@ -110,7 +112,7 @@ export default {
       let a = {};
       const attributeLayers = [
         ...this.layerConfigList,
-        ...this.appConfig.extra_source
+        ...(this.appConfig.extra_source || [])
       ];
       attributeLayers.forEach(layer => {
         if (

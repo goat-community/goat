@@ -8,14 +8,20 @@ import OlFontSymbol from "../utils/FontSymbol";
 import OlShadow from "../utils/Shadow";
 
 import poisAoisStore from "../store/modules/poisaois";
+import isochroneStore from "../store/modules/isochrones";
+import mapStore from "../store/modules/map";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
 import { getIconUnicode } from "../utils/Helpers";
 import Point from "ol/geom/Point";
+import { getArea } from "ol/sphere.js";
+import i18n from "../../src/plugins/i18n";
 
 OlFontSymbol.addDefs(
   {
-    font: "'Font Awesome 6 Pro'",
+    font: process.env.VUE_APP_FONTAWESOME_NPM_AUTH_TOKEN
+      ? "'Font Awesome 6 Pro'"
+      : "'Font Awesome 5 Free'",
     name: "FontAwesome",
     prefix: ""
   },
@@ -96,6 +102,30 @@ export function getSelectStyle() {
   });
 }
 
+export function getSearchHighlightStyle() {
+  return [
+    new OlStyle({
+      fill: new OlFill({
+        color: "rgba(255,0,0,0.2)"
+      }),
+      stroke: new OlStroke({
+        color: "#FF0000",
+        width: 3
+      }),
+      image: new OlCircle({
+        radius: 8,
+        stroke: new OlStroke({
+          color: "#FF0000",
+          width: 3
+        }),
+        fill: new OlFill({
+          color: "rgba(255,0,0,0.2)"
+        })
+      })
+    })
+  ];
+}
+
 export function getInfoStyle() {
   return new OlStyle({
     fill: new OlFill({
@@ -160,10 +190,8 @@ export function getIsochroneStyle() {
     // Style array
     let styles = [];
     // Get the incomeLevel and modus from the feature properties
-    let modus = feature.get("modus");
     let isVisible = feature.get("isVisible");
     let geomType = feature.getGeometry().getType();
-    const highlightFeature = feature.get("highlightFeature");
 
     /**
      * Creates styles for isochrone polygon geometry type and isochrone
@@ -178,58 +206,20 @@ export function getIsochroneStyle() {
       if (isVisible === false) {
         return;
       }
-
-      //Fallback isochrone style
-      if (!modus) {
-        let genericIsochroneStyle = new OlStyle({
+      const calculationColors = isochroneStore.state.calculationColors;
+      const selectedCalculations = isochroneStore.state.selectedCalculations;
+      const calculationNumber = feature.get("calculationNumber");
+      const calculationIndex = selectedCalculations.findIndex(calculation => {
+        return calculation.id === calculationNumber;
+      });
+      styles.push(
+        new OlStyle({
           fill: new OlFill({
-            color: [0, 0, 0, 0]
-          }),
-          stroke: new OlStroke({
-            color: "#0d0d0d",
-            width: 7
+            color: calculationColors[calculationIndex]
           })
-        });
+        })
+      );
 
-        styles.push(genericIsochroneStyle);
-      }
-      //highlight color
-      if (highlightFeature !== false) {
-        styles.push(
-          new OlStyle({
-            stroke: new OlStroke({
-              color: "#FFFFFF",
-              width: 8
-            })
-          })
-        );
-      }
-      // If the modus is 1 it is a default isochrone
-      if (modus === "default" || modus === "comparison") {
-        let style = new OlStyle({
-          fill: new OlFill({
-            color: [0, 0, 0, 0]
-          }),
-          stroke: new OlStroke({
-            color: feature.get("color"),
-            width: 5
-          })
-        });
-
-        styles.push(style);
-      } else {
-        let style = new OlStyle({
-          fill: new OlFill({
-            color: [0, 0, 0, 0]
-          }),
-          stroke: new OlStroke({
-            color: feature.get("color"),
-            width: 5
-          })
-        });
-
-        styles.push(style);
-      }
       if (feature.get("showLabel")) {
         if (geomType !== ["Polygon", "LineString"]) {
           styles.push(
@@ -251,7 +241,7 @@ export function getIsochroneStyle() {
                 return new Point(center);
               },
               text: new OlText({
-                text: Math.round(feature.get("step") / 60) + " min",
+                text: isochroneStore.state.isochroneRange + " min",
                 font: "bold 16px Arial",
                 placement: "point",
                 fill: new OlFill({
@@ -259,7 +249,7 @@ export function getIsochroneStyle() {
                 }),
                 maxAngle: 0,
                 backgroundFill: new OlFill({
-                  color: feature.get("color")
+                  color: calculationColors[calculationIndex]
                 }),
                 padding: [2, 2, 2, 2]
               })
@@ -269,11 +259,11 @@ export function getIsochroneStyle() {
           styles.push(
             new OlStyle({
               text: new OlText({
-                text: Math.round(feature.get("step") / 60) + " min",
+                text: isochroneStore.state.isochroneRange + " min",
                 font: "bold 16px Arial",
                 placement: "line",
                 fill: new OlFill({
-                  color: feature.get("color")
+                  color: calculationColors[calculationIndex]
                 }),
                 maxAngle: 0
               })
@@ -358,9 +348,10 @@ export function defaultStyle(feature) {
   };
   const fillOpt = {
     color: ["MultiPolygon", "Polygon"].includes(geomType)
-      ? "#707070"
+      ? "rgba(112, 112, 112, 0.5)"
       : [0, 0, 0, 0]
   };
+
   const style = new OlStyle({
     fill: new OlFill(fillOpt),
     stroke: new OlStroke(strokeOpt),
@@ -560,22 +551,120 @@ export function editStyleFn() {
         return waysNewRoadStyle();
       }
     }
-    if (props.layerName === "building" && props.hasOwnProperty("edit_type")) {
+    if (feature.get("layerName") === "building" && feature.get("edit_type")) {
+      const styles = [];
+      const geomType = feature.getGeometry().getType();
+      const strokeOpt = {
+        color: ["MultiPolygon", "Polygon"].includes(geomType)
+          ? "rgba(255, 0, 0, 1)"
+          : "#707070",
+        width: 3
+      };
+      const fillOpt = {
+        color: ["MultiPolygon", "Polygon"].includes(geomType)
+          ? "rgba(255, 0, 0, 0.5)"
+          : [0, 0, 0, 0]
+      };
+      const properties = feature.getProperties();
+      strokeOpt.lineDash = [0, 0];
+      strokeOpt.width = 4;
+
+      let isCompleted = true;
+      let hasEntranceFeature = false;
       if (
-        (props.building_type === "residential" && props.population) ||
-        props.building_type !== "residential"
+        mapStore.state.reqFields &&
+        mapStore.state.selectedEditLayer.get("name") === "building"
       ) {
-        return buildingStyleWithPopulation();
-      } else {
-        return buildingStyleWithNoPopulation();
+        mapStore.state.reqFields.forEach(field => {
+          if (!properties[field]) {
+            isCompleted = false;
+          }
+        });
       }
+      if (mapStore.state.bldEntranceLayer) {
+        const extent = feature.getGeometry().getExtent();
+        const entrancesInExtent = mapStore.state.bldEntranceLayer
+          .getSource()
+          .getFeaturesInExtent(extent);
+
+        let countEntrances = 0;
+        entrancesInExtent.forEach(entrance => {
+          const buildingId = feature.get("id") || feature.getId();
+          if (entrance.get("building_modified_id") === buildingId) {
+            countEntrances += 1;
+          }
+        });
+        countEntrances === 0
+          ? (hasEntranceFeature = false)
+          : (hasEntranceFeature = true);
+      }
+
+      if (isCompleted === true && hasEntranceFeature === true) {
+        strokeOpt.color = "rgb(0,128,0, 0.7)";
+        fillOpt.color = "rgb(0,128,0, 0.7)";
+      }
+      const area = getArea(feature.getGeometry());
+      const building_levels = feature.get("building_levels") || 0;
+      const population = feature.get("population");
+      const area_label = i18n.t(
+        "dynamicFields.attributes.building.labels.area"
+      );
+      const building_levels_label = i18n.t(
+        "dynamicFields.attributes.building.labels.building_levels"
+      );
+      const population_label = i18n.t(
+        "dynamicFields.attributes.building.labels.population"
+      );
+      const floor_area_label = i18n.t(
+        "dynamicFields.attributes.building.labels.gross_floor_area"
+      );
+      // Add label for building.
+      let fontSize = 11;
+
+      if (
+        resolution < 0.4 &&
+        mapStore.state.editLayer &&
+        mapStore.state.editLayer.get("showLabels") === 0
+      ) {
+        const style = new OlStyle({
+          text: new OlText({
+            text: `${area_label}: ${area.toFixed(
+              0
+            )} ㎡\n${building_levels_label}: ${building_levels}
+            ${floor_area_label}: ${parseInt(area * building_levels)} ㎡
+            ${population_label}: ${parseInt(population || 0)}`,
+            overflow: true,
+            font: `${fontSize}px Calibri, sans-serif`,
+            fill: new OlFill({
+              color: "black"
+            }),
+            backgroundFill: new OlFill({
+              color: "orange"
+            }),
+            padding: [1, 1, 1, 1]
+          })
+        });
+        styles.push(style);
+      }
+      const style = new OlStyle({
+        fill: new OlFill(fillOpt),
+        stroke: new OlStroke(strokeOpt),
+        image: new OlCircle({
+          radius: 7,
+          fill: new OlFill({
+            color: "#707070"
+          })
+        })
+      });
+      styles.push(style);
+      return styles;
     }
 
     if (feature.get("layerName") === "population") {
       return bldEntrancePointsStyle(feature, resolution);
     }
 
-    return defaultStyle(feature);
+    return defaultStyle(feature, resolution);
   };
   return styleFunction;
 }
@@ -703,12 +792,14 @@ export const baseStyleDefs = {
 export const mapillaryStyleDefs = {
   activeSequence: "",
   baseOverlayStyle: map => {
-    const styleFunction = function(feature) {
-      // console.log(feature);
+    const styleFunction = feature => {
       let color = "rgba(53, 175, 109,0.7)";
       if (
-        feature.get("key") === mapillaryStyleDefs.activeSequence ||
-        feature.get("skey") === mapillaryStyleDefs.activeSequence
+        [
+          feature.get("sequence"),
+          feature.get("id"),
+          feature.get("sequence_id")
+        ].includes(mapillaryStyleDefs.activeSequence)
       ) {
         color = "#30C2FF";
       }
@@ -731,8 +822,8 @@ export const mapillaryStyleDefs = {
   },
   highlightStyle: feature => {
     let styles = [];
-    const angle = feature.get("ca");
-    const skey = feature.get("skey");
+    const angle = feature.get("compass_angle");
+    const skey = feature.get("sequence_id");
     if (angle) {
       const wifiStyle = new OlStyle({
         text: new OlText({
@@ -894,8 +985,70 @@ export function poisAoisStyle(feature) {
   return st;
 }
 
+import Chart from "ol-ext/style/Chart";
+
+// PT Station count layer style
+// feature:
+// "properties": {
+//   "stop_id": "de:09162:1",
+//   "stop_name": "Karlsplatz (Stachus)",
+//   "trip_cnt": {
+//     "1": 14,
+//     "2": 31
+//   }
+// }
+export function ptStationCountStyle(feature) {
+  let time =
+    (appStore.state.timeIndicators.endTime -
+      appStore.state.timeIndicators.startTime) /
+    3600;
+  const tripCnt = feature.get("trip_cnt");
+
+  const tripCntSum = Object.values(tripCnt).reduce((a, b) => a + b, 0) / time;
+  let radius = 3;
+  if (tripCntSum <= 5 && tripCntSum > 0) {
+    radius = 5;
+  } else if (tripCntSum <= 10 && tripCntSum > 5) {
+    radius = 7;
+  } else if (tripCntSum <= 20 && tripCntSum > 10) {
+    radius = 9;
+  } else if (tripCntSum <= 30 && tripCntSum > 20) {
+    radius = 11;
+  } else if (tripCntSum <= 40 && tripCntSum > 30) {
+    radius = 13;
+  } else if (tripCntSum <= 80 && tripCntSum > 40) {
+    radius = 16;
+  } else if (tripCntSum > 80) {
+    radius = 19;
+  }
+
+  const colorMapping = {
+    0: "#D31E20",
+    1: "#004D89",
+    2: "#338FB4",
+    3: "#005567",
+    4: "#BEB8EB",
+    5: "#1A3A3A",
+    6: "#C57B57",
+    7: "#457B9D",
+    11: "#6A3E37",
+    12: "#34344A"
+  };
+  const colors = Object.keys(tripCnt).map(key => colorMapping[key]);
+  const data = Object.values(tripCnt).map(val => val / time);
+  return new OlStyle({
+    image: new Chart({
+      type: "pie",
+      radius: radius,
+      colors,
+      data
+    })
+  });
+}
+
 export const stylesRef = {
   poisAoisStyle: poisAoisStyle,
   study_area_crop: baseStyleDefs.boundaryStyle,
-  sub_study_area: baseStyleDefs.subStudyAreaStyle
+  sub_study_area: baseStyleDefs.subStudyAreaStyle,
+  pt_station_count: ptStationCountStyle
 };

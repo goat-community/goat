@@ -1,18 +1,8 @@
 from enum import Enum
 
-from src.db.models import scenario
-
 
 class ReturnType(str, Enum):
     """ "Default return types"""
-
-    geojson = "geojson"
-    geobuf = "geobuf"
-    db_geobuf = "db_geobuf"
-
-
-class ReturnWithoutDbGeobufEnum(str, Enum):
-    """Enumeration for return types without db geobuf."""
 
     geojson = "geojson"
     geobuf = "geobuf"
@@ -66,14 +56,34 @@ class RoutingTypes(str, Enum):
 class AllowedVectorTables(str, Enum):
     """Allowed Vector Tables Enums."""
 
-    sub_study_area = "basic.sub_study_area"
+    sub_study_area = "sub_study_area"
+    study_area = "study_area"
+
 
 class IsochroneTypes(str, Enum):
     """Isochrone Types Enums."""
 
     single = "single"
     multi = "multi"
-    
+
+
+class R5DecayFunctionType(str, Enum):
+    logistic = "logistic"
+    step = "step"
+    exponential = "exponential"
+    linear = "linear"
+
+
+class StaticTableSQLActive(str, Enum):
+    """Static Table SQL that can be requested by study_area_id."""
+
+    study_area = """            
+        SELECT * FROM basic.study_area WHERE id = :study_area_id
+    """
+    sub_study_area = """            
+        SELECT * FROM basic.sub_study_area WHERE study_area_id = :study_area_id
+    """
+
 
 class SQLReturnTypes(str, Enum):
     """Allowed Vector Tables Enums."""
@@ -110,6 +120,7 @@ class SQLReturnTypes(str, Enum):
     FROM make_geojson g; 
     """
 
+
 class MimeTypes(str, Enum):
     """Responses MineTypes."""
 
@@ -126,15 +137,47 @@ class MimeTypes(str, Enum):
 class UploadFileTypes(str, Enum):
     """Upload File Types."""
 
-    geojson = "application/geo+json"
-    zip = "application/zip"
+    geojson = ".geojson"
+    zip = ".zip"
+
 
 class SettingToModify(str, Enum):
     """Setting to reset."""
+
     poi = "poi"
+
 
 class LanguageEnum(str, Enum):
     """Language Enum."""
 
     en = "en"
     de = "de"
+
+
+class UpdateTableFunction(str, Enum):
+    """Update Table Functions."""
+
+    # The order of the functions is important.
+    opportunity_config = "update_opportunity_config"
+    layer_library = "update_layer_library"
+    customization = "update_customization"
+
+    aoi = "update_aoi"
+    poi = "update_poi"
+    study_area = "update_study_area"
+    heatmap = "update_heatmap"
+    all = "all"
+
+
+class LayerGroupsEnum(str, Enum):
+    buildings_landuse = "buildings_landuse"
+    street_level_quality = "street_level_quality"
+    environmental_quality = "environmental_quality"
+    additional_data = "additional_data"
+    basemap = "basemap"
+    indicator = "indicator"
+
+
+class GeostoreType(str, Enum):
+    geoadmin = "geoadmin"
+    other = "other"

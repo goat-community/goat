@@ -30,5 +30,7 @@ async def poi_aoi_visualization(
     pois = await crud.poi_aoi.poi_aoi_visualization(
         db=db, scenario_id=scenario_id, current_user=current_user, return_type=return_type
     )
-
-    return return_geojson_or_geobuf(pois, return_type)
+    _return_type = return_type.value
+    if return_type == ReturnType.geobuf.value:
+        _return_type = "db_geobuf"
+    return return_geojson_or_geobuf(pois, _return_type)

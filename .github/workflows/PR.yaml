@@ -22,7 +22,7 @@ jobs:
         run: echo ${{steps.get_file_changes.outputs.files}}
       - name: Build changed client
         if: contains(steps.get_file_changes.outputs.files, 'app/client')
-        run: make build-client-docker-image -e COMPONENT=client
+        run: make build-docker-image-pr -e COMPONENT=client
       - name: Build changed api
         if: contains(steps.get_file_changes.outputs.files, 'app/api')
-        run: make build-docker-image -e COMPONENT=api
+        run: make build-docker-image-pr -e COMPONENT=api

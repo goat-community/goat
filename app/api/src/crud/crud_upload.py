@@ -95,7 +95,7 @@ class CRUDUploadFile:
         )
         study_area_geom = to_shape(study_area_obj.geom)
 
-        if file.content_type == UploadFileTypes.geojson.value:
+        if UploadFileTypes.geojson.value in file_name:
             try:
                 gdf = gpd_read_file(file_dir, driver="GeoJSON")
                 delete_file(file_dir)
@@ -105,14 +105,20 @@ class CRUDUploadFile:
                     status_code=400,
                     detail="Failed reading the file in GeodataFrame",
                 )
-        elif file.content_type == UploadFileTypes.zip.value:
-            unzipped_file_dir = os.path.splitext(file_dir)[0]
+        elif UploadFileTypes.zip.value in file_name:
+            unzipped_file_dir = (
+                os.path.splitext(file_dir)[0]
+                + "/"
+                + file.filename.replace(UploadFileTypes.zip.value, "")
+            )
 
             # Create directory
             try:
                 shutil.unpack_archive(file_dir, os.path.splitext(file_dir)[0], "zip")
             except:
-                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
+                clean_unpacked_zip(
+                    zip_path=file_dir, dir_path=file_dir.replace(UploadFileTypes.zip.value, "")
+                )
                 raise HTTPException(status_code=400, detail="Could not read or process file.")
 
             # List shapefiles
@@ -121,20 +127,26 @@ class CRUDUploadFile:
                     f for f in os.listdir(unzipped_file_dir) if f.endswith(".shp")
                 ]
             except:
-                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
+                clean_unpacked_zip(
+                    zip_path=file_dir, dir_path=file_dir.replace(UploadFileTypes.zip.value, "")
+                )
                 raise HTTPException(status_code=400, detail="No shapefiles inside folder.")
 
             # Read shapefiles and append to GeoDataFrame
             if len(available_shapefiles) == 1:
                 gdf = gpd_read_file(f"{unzipped_file_dir}/{available_shapefiles[0]}")
             elif len(available_shapefiles) > 1:
-                clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
+                clean_unpacked_zip(
+                    zip_path=file_dir, dir_path=file_dir.replace(UploadFileTypes.zip.value, "")
+                )
                 raise HTTPException(
                     status_code=400, detail="More then one shapefiles inside folder."
                 )
             else:
                 raise HTTPException(status_code=400, detail="No shapefiles inside folder.")
-            clean_unpacked_zip(zip_path=file_dir, dir_path=unzipped_file_dir)
+            clean_unpacked_zip(
+                zip_path=file_dir, dir_path=file_dir.replace(UploadFileTypes.zip.value, "")
+            )
         else:
             raise HTTPException(status_code=400, detail="Invalid file type")
 
@@ -155,7 +167,9 @@ class CRUDUploadFile:
 
         gdf = gdf.drop(columns_to_drop, axis=1)
         if len(gdf) == 0:
-            raise HTTPException(status_code=400, detail="No valid data in file or data outside the study area.")
+            raise HTTPException(
+                status_code=400, detail="No valid data in file or data outside the study area."
+            )
 
         # Assign specified category to all points
         gdf["category"] = poi_category
@@ -220,13 +234,10 @@ class CRUDUploadFile:
                 if check_dict_schema(PoiCategory, new_setting) == False:
                     raise HTTPException(status_code=400, detail="Invalid JSON-schema")
 
-                await crud.dynamic_customization.handle_user_setting_modification(
-                    db=db,
-                    current_user=current_user,
-                    setting_type="poi",
-                    changeset=new_setting,
-                    modification_type="insert",
+                await crud.dynamic_customization.insert_opportunity_setting(
+                    db=db, current_user=current_user, insert_settings=new_setting, data_upload_id=upload_obj.id
                 )
+
         except:
             await db.execute(
                 """DELETE FROM customer.data_upload WHERE id = :data_upload_id""",
@@ -248,23 +259,11 @@ class CRUDUploadFile:
         category_name = await db.execute(
             select(models.PoiUser.category).where(models.PoiUser.data_upload_id == data_upload_id)
         )
-        category_name = category_name.first()
+        category_name = category_name.first()[0]
 
-        if category_name is not None:
-            category_name = category_name[0]
-            default_setting = await crud.customization.get_by_key(db, key="type", value="poi_groups")
-            default_setting = default_setting[0].setting
-            # Check if poi_category is default
-            in_default_setting = False
-            for poi_group in default_setting["poi_groups"]:
-                group_name = next(iter(poi_group))
-                for poi_category in poi_group[group_name]["children"]:
-                    default_poi_category = next(iter(poi_category))
-                    if category_name == default_poi_category:
-                        in_default_setting = True
-                        break
-        else:
-            in_default_setting = False
+        # Check if poi_category is default
+        default_category = await crud.opportunity_default_config.get_by_key(db, key="category", value=category_name)
+
         try:
             # Delete uploaded data
             await db.execute(
@@ -278,37 +277,23 @@ class CRUDUploadFile:
             await db.execute(sql, {"data_upload_id": [data_upload_id], "user_id": current_user.id})
 
             # Delete customization for uploaded pois
-            if in_default_setting == False and category_name is not None:
-                user_setting = await crud.dynamic_customization.get_user_settings(
-                    db=db, current_user=current_user, setting_type="poi_groups"
-                )
-                await crud.dynamic_customization.delete_user_settings(
+            if default_category == [] and category_name is not None:
+                await crud.dynamic_customization.delete_opportunity_setting(
                     db=db,
                     current_user=current_user,
-                    user_customizations=user_setting,
-                    setting_to_delete=category_name,
-                    setting_type="poi_groups",
+                    category=category_name,
+                    setting_type="poi",
                 )
 
-            await db.execute(
-                update(models.User)
-                .where(models.User.id == current_user.id)
-                .values(active_data_upload_ids=current_user.active_data_upload_ids)
-            )
             if (
                 current_user.active_data_upload_ids != []
                 and data_upload_id in current_user.active_data_upload_ids
             ):
                 current_user.active_data_upload_ids.remove(data_upload_id)
-                sql_query = text(
-                    """UPDATE customer.user SET active_data_upload_ids = :active_data_upload_ids WHERE id = :id"""
-                )
                 await db.execute(
-                    sql_query,
-                    {
-                        "active_data_upload_ids": current_user.active_data_upload_ids,
-                        "id": current_user.id,
-                    },
+                    update(models.User)
+                    .where(models.User.id == current_user.id)
+                    .values(active_data_upload_ids=current_user.active_data_upload_ids)
                 )
 
             await db.commit()

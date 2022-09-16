@@ -4,7 +4,7 @@
       <draggable
         v-model="getVisibleLayers"
         :move="onMove"
-        style="width:100%;"
+        style="width: 100%"
         handle=".handle"
       >
         <v-expansion-panel
@@ -32,9 +32,11 @@
               </v-flex>
               <v-flex xs1>
                 <v-icon
-                  v-show="layer.getVisible()"
+                  v-show="
+                    layer.getVisible() && layer.get('name') !== 'study_area'
+                  "
                   small
-                  style="width: 30px; height: 30px;"
+                  style="width: 30px; height: 30px"
                   v-html="
                     layer.get('showOptions') === false
                       ? 'fas fa-chevron-down'
@@ -51,18 +53,21 @@
           </v-expansion-panel-header>
           <v-card
             class="pt-2"
-            v-show="layer.get('showOptions') === true"
-            style="background-color: white;"
+            v-show="
+              layer.get('showOptions') === true &&
+                layer.get('name') !== 'study_area'
+            "
+            style="background-color: white"
             transition="slide-y-reverse-transition"
           >
             <InLegend
               v-if="layer.get('showOptions') === true"
               :layer="layer"
             ></InLegend>
-            <v-layout row style="width:100%;padding-left: 10px;">
+            <v-layout row style="width: 100%; padding-left: 10px">
               <v-flex
                 class="xs2"
-                style="text-align:center;"
+                style="text-align: center"
                 v-if="
                   ['VECTORTILE', 'VECTOR', 'MVT'].includes(
                     layer.get('type').toUpperCase()
@@ -71,7 +76,7 @@
               >
                 <v-icon
                   v-ripple
-                  style="color:#B0B0B0;margin-top:3px;cursor:pointer"
+                  style="color: #b0b0b0; margin-top: 3px; cursor: pointer"
                   dark
                   @click="openStyleDialog(item)"
                 >
@@ -81,7 +86,7 @@
               <v-flex
                 :class="{
                   xs10:
-                    ['VECTORTILE', 'VECTOR', 'MVT'].includes(
+                    ['VECTORTILE', 'VECTOR', 'MVT', 'WMS', 'WMTS'].includes(
                       layer.get('type').toUpperCase()
                     ) == true,
                   xs12: false
@@ -94,6 +99,82 @@
                   min="0"
                   max="1"
                   @input="changeLayerOpacity($event, layer)"
+                  :label="$t('layerTree.settings.transparency')"
+                  :color="appColor.secondary"
+                ></v-slider>
+              </v-flex>
+            </v-layout>
+          </v-card>
+        </v-expansion-panel>
+        <v-expansion-panel
+          v-for="layer in ActivePois"
+          :key="layer.get('name')"
+          class="layer-row"
+        >
+          <v-expansion-panel-header expand-icon="" v-slot="{}" class="handle">
+            <v-layout row class="pl-1" wrap align-center>
+              <v-flex class="checkbox" xs1>
+                <v-simple-checkbox
+                  :color="appColor.primary"
+                  :value="true"
+                  disabled
+                ></v-simple-checkbox>
+              </v-flex>
+              <v-flex xs10 class="light-text">
+                <h4 class="pl-2">
+                  <!-- {{ $t(`pois.${layer.value}`) }} -->
+                  {{ translate("layerName", layer.get("name")) }}
+                </h4>
+              </v-flex>
+              <v-flex xs1>
+                <v-icon
+                  v-show="true"
+                  small
+                  style="width: 30px; height: 30px"
+                  v-html="
+                    layer.get('showOptions') === false
+                      ? 'fas fa-chevron-down'
+                      : 'fas fa-chevron-up'
+                  "
+                  :class="
+                    layer.get('showOptions') === true &&
+                      'expansion-panel__container--active'
+                  "
+                  @click.stop="changeOption(layer)"
+                ></v-icon>
+              </v-flex>
+            </v-layout>
+          </v-expansion-panel-header>
+          <v-card
+            class="pt-2"
+            v-show="layer.get('showOptions') === true"
+            style="background-color: white"
+            transition="slide-y-reverse-transition"
+          >
+            <v-layout row style="width: 100%; padding-left: 10px">
+              <v-flex class="xs2" style="text-align: center">
+                <v-icon
+                  v-ripple
+                  style="color: #b0b0b0; margin-top: 3px; cursor: pointer"
+                  dark
+                  @click="openStyleDialog(item)"
+                >
+                  fas fa-cog
+                </v-icon>
+              </v-flex>
+              <v-flex
+                :class="{
+                  xs10: true,
+                  xs12: false
+                }"
+              >
+                <v-slider
+                  :value="poisAoisLayer.getOpacity()"
+                  class="mx-5"
+                  step="0.05"
+                  min="0"
+                  max="1"
+                  @input="changeLayerOpacity($event, poisAoisLayer)"
                   :label="$t('layerTree.settings.transparency')"
                   :color="appColor.secondary"
                 ></v-slider>
@@ -125,7 +206,13 @@ import { EventBus } from "../../../EventBus";
 import { mapGetters } from "vuex";
 
 export default {
-  props: ["map", "translate", "toggleLayerOptions", "changeLayerOpacity"],
+  props: [
+    "map",
+    "translate",
+    "toggleLayerOptions",
+    "changeLayerOpacity",
+    "layerGroupsArr"
+  ],
   data: () => ({
     allLayers: [],
     currentItem: {
@@ -133,7 +220,9 @@ export default {
       name: ""
     },
     styleDialogKey: 0,
-    styleDialogStatus: false
+    styleDialogStatus: false,
+    ActivePois: null,
+    currentOpenedPois: null
   }),
   components: {
     draggable,
@@ -147,7 +236,7 @@ export default {
         return this.allLayers.filter(
           layer =>
             layer.getVisible() === true &&
-            !["basemap", "heatmap"].includes(layer.get("group"))
+            !["basemap", "indicator"].includes(layer.get("group"))
         );
       },
       set: function() {
@@ -157,21 +246,56 @@ export default {
     },
     ...mapGetters("app", {
       appColor: "appColor"
+    }),
+    ...mapGetters("poisaois", {
+      poisAoisLayer: "poisAoisLayer",
+      selectedPois: "selectedPois",
+      selectedPoisAois: "selectedPoisAois"
     })
+  },
+  watch: {
+    layerGroupsArr() {
+      this.getAllVisibleLayers();
+    },
+    selectedPois(value) {
+      if (value.length) {
+        this.poisAoisLayer.set("showOptions", false);
+        this.ActivePois = [this.poisAoisLayer];
+      } else {
+        this.ActivePois = [];
+      }
+    }
   },
   created() {
     //Get list of all map layers
-    this.allLayers = this.map
-      .getLayers()
-      .getArray()
-      .filter(l => l.get("type") && l.get("displayInLayerList") !== false);
+    this.getAllVisibleLayers();
   },
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
       this.styleDialogStatus = value;
     });
+    if (this.selectedPois.length) {
+      this.poisAoisLayer.set("showOptions", false);
+
+      this.ActivePois = [this.poisAoisLayer];
+    } else {
+      this.ActivePois = [];
+    }
   },
   methods: {
+    changeOption() {
+      this.poisAoisLayer.set(
+        "showOptions",
+        !this.poisAoisLayer.get("showOptions")
+      );
+      this.ActivePois = [this.poisAoisLayer];
+    },
+    getAllVisibleLayers() {
+      this.allLayers = this.map
+        .getLayers()
+        .getArray()
+        .filter(l => l.get("type") && l.get("displayInLayerList") !== false);
+    },
     openStyleDialog(item) {
       //This function is used for opening Style Setting dialog component for a layer
       EventBus.$emit("updateStyleDialogStatusForLayerOrder", false);

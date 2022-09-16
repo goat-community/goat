@@ -6,6 +6,8 @@ networks:
 volumes:
   postgres_data:
     name: ${COMPOSE_PROJECT_NAME}_postgres_data
+  mongodb_r5_data: 
+    name: ${COMPOSE_PROJECT_NAME}_mongodb_r5_data
 
 services:
   traefik:
@@ -20,23 +22,35 @@ services:
     networks:
       proxy:
 
-  # client:
-  #   image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:client-${PROJECT_VERSION}
-  #   build:
-  #     dockerfile: Dockerfile
-  #     context: ./app/client
-  #   container_name: ${COMPOSE_PROJECT_NAME}_client
-  #   hostname: ${COMPOSE_PROJECT_NAME}_client
-  #   volumes:
-  #     - /app/node_modules
-  #     - ./app/client:/app
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.services.${COMPOSE_PROJECT_NAME}_client.loadbalancer.server.port=80"
-  #     - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/`)"
-  #     - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=web"
-  #   networks:
-  #     proxy:
+  client:
+    image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:client-${PROJECT_VERSION}
+    build:
+      dockerfile: Dockerfile
+      context: ./app/client
+      target: develop-stage
+      args:
+        - FONTAWESOME_NPM_AUTH_TOKEN=${FONTAWESOME_NPM_AUTH_TOKEN}
+    container_name: ${COMPOSE_PROJECT_NAME}_client
+    hostname: ${COMPOSE_PROJECT_NAME}_client
+    env_file:
+      - .env
+    stdin_open: true
+    tty: true
+    environment:
+      - HOST=0.0.0.0
+      - CHOKIDAR_USEPOLLING=true
+    command: npm run serve
+    volumes:
+      - /app/node_modules
+      - ./app/client:/app
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_client.loadbalancer.server.port=80"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=web"
+    networks:
+      proxy:
 
   api:
     image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:api-${PROJECT_VERSION}
@@ -52,8 +66,8 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_SERVER=goatdb-dev.chmmut4l0c8h.eu-central-1.rds.amazonaws.com
-      - POSTGRES_DB=goat
+      - POSTGRES_SERVER=${POSTGRES_SERVER}
+      - POSTGRES_DB=${COMPOSE_PROJECT_NAME}
       - PROJECT_NAME=${COMPOSE_PROJECT_NAME}
       - SERVER_NAME=${DOMAIN_NAME}
       - SERVER_HOST=http://${DOMAIN_NAME}
@@ -62,9 +76,8 @@ services:
     # command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)"
-      # The port below is for development only. On production, the port is 80.!
-      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_api.loadbalancer.server.port=80"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_api.loadbalancer.server.port=5000"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.entrypoints=web"
     ports:
       - "5000:5000"
@@ -72,27 +85,20 @@ services:
       proxy:
 
   db:
-    # image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:db-${PROJECT_VERSION}
-    build:
-      context: ./app/database
-      dockerfile: Dockerfile.dev
+    image: postgis/postgis:14-3.2
     container_name: ${COMPOSE_PROJECT_NAME}_db
     hostname: ${COMPOSE_PROJECT_NAME}_db
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_DBNAME=${COMPOSE_PROJECT_NAME}
+      - POSTGRES_DB=${COMPOSE_PROJECT_NAME}
       - DATABASE_URL=postgis://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${COMPOSE_PROJECT_NAME}_db:5432/${COMPOSE_PROJECT_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./app/database:/opt
-      - ./app/database/db:/opt/scripts/db
-      - ./app/config:/opt/config
-      # uncomment to enable remote connections to postgres
     ports:
       - "${POSTGRES_OUTER_PORT}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -101,21 +107,70 @@ services:
       proxy:
 
   pgadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:6.7
     container_name: ${COMPOSE_PROJECT_NAME}_pgadmin
     hostname: ${COMPOSE_PROJECT_NAME}_pgadmin
     environment:
       - PGADMIN_LISTEN_PORT=${PGADMIN_LISTEN_PORT}
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      - SCRIPT_NAME=/pgadmin4
     depends_on:
       - db
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_pgadmin.rule=Host(`pgadmin.${DOMAIN_NAME}`)"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_pgadmin.entrypoints=web"
       - "traefik.http.services.${COMPOSE_PROJECT_NAME}_pgadmin.loadbalancer.server.port=5050"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_pgadmin.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/pgadmin4`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_pgadmin.entrypoints=web"
     ports:
       - "5050:5050"
     networks:
       proxy:
+
+  # mongo:
+  #   image: mongo:4
+  #   container_name: ${COMPOSE_PROJECT_NAME}_r5_mongo
+  #   hostname: ${COMPOSE_PROJECT_NAME}_r5_mongo
+  #   restart: always
+  #   ports: 
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongodb_r5_data:/data/db:rw
+  #   networks:
+  #     proxy:
+
+  # r5:
+  #   image: majkshkurti/conveyal-r5:6.4-p1
+  #   container_name: ${COMPOSE_PROJECT_NAME}_r5
+  #   hostname: ${COMPOSE_PROJECT_NAME}_r5
+  #   depends_on:
+  #     - mongo
+  #   environment:
+  #     WAIT_HOSTS: ${COMPOSE_PROJECT_NAME}_r5_mongo:27017
+  #     JVM_HEAP_GB: 14
+  #   links:
+  #     - mongo
+  #   ports:
+  #     - "7070:7070"
+  #     - "7080:7080"
+  #   volumes:
+  #     - ./r5-cache:/r5/cache
+  #   networks:
+  #     proxy:
+
+  # r5-conveyal-ui:
+  #   container_name: conveyal_ui
+  #   hostname: conveyal_ui
+  #   image: majkshkurti/analysis-ui:latest
+  #   depends_on:
+  #     - r5
+  #   links:
+  #     - r5
+  #   ports:
+  #     - "4000:3000"
+  #   volumes: # (paths relative to the Compose file)
+  #     - ./app/config/conveyal.ui.properties:/app/.env:ro
+  #   networks:
+  #     proxy:
+  
+

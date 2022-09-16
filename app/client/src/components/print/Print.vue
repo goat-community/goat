@@ -15,8 +15,8 @@
               v-model="print.title"
               :label="$t(`appBar.printMap.form.title.label`)"
               type="text"
-              maxlength="40"
-              :counter="40"
+              maxlength="50"
+              :counter="50"
             ></v-text-field>
             <v-select
               v-model="print.layout"
@@ -313,8 +313,7 @@ export default {
     });
     this.scaleLineControl = new olScaleLine({
       steps: 2,
-      bar: true,
-      text: true
+      bar: true
     });
     this.map
       .getControls()

@@ -1,5 +1,5 @@
 <template>
-  <div id="mapillary-container">
+  <div id="mapillary-container" style="width: 100%; height: 100%;">
     <mapillary-image-preview
       ref="imagePreview"
       :imageUrl="previewImageUrl"
@@ -22,8 +22,9 @@ import { fromLonLat } from "ol/proj";
 import OlFeature from "ol/Feature";
 import MVT from "ol/format/MVT";
 import { unByKey } from "ol/Observable";
-import { toLonLat } from "ol/proj";
-import axios from "axios";
+import { transformExtent } from "ol/proj";
+// import { toLonLat } from "ol/proj";
+// import axios from "axios";
 
 //Style and map object import
 import { mapillaryStyleDefs } from "../../../style/OlStyleDefs";
@@ -33,7 +34,8 @@ import { mapFields } from "vuex-map-fields";
 // Image preview component import (enabled on hover)
 import MapillaryImagePreview from "./controls/MapillaryImagePreview";
 
-import "mapillary-js/dist/mapillary.min.css";
+import "mapillary-js/dist/mapillary.css";
+import { debounce } from "../../../utils/Helpers";
 
 export default {
   name: "app-mapillary",
@@ -41,15 +43,10 @@ export default {
     "mapillary-image-preview": MapillaryImagePreview
   },
   props: {
-    clientId: {
+    accessToken: {
       type: String,
       required: false,
-      default: "V1Qtd0JKNGhhb1J1cktMbmhFSi1iQTo5ODMxOWU3NmZlMjEyYTA3"
-    },
-    organization_key: {
-      type: String,
-      required: false,
-      default: "RmTboeISWnkEaYaSdtVRHp"
+      default: "MLY|4945732362162775|a3872ee8a2b737be51db110cdcdea3d4"
     },
     baseLayerExtent: {
       type: Array,
@@ -58,13 +55,6 @@ export default {
   },
   data() {
     return {
-      // Keys
-      baseOverlayUrl:
-        "https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt",
-      // Image api
-      mapillaryImgAPI: "https://a.mapillary.com/v3/images",
-      startImageKey: "rrKZdmgdvup_KYJKTESq0Q",
-      startSequenceKey: "k09tczrhxcsphcmlbo0dt2",
       // Preview Image url
       previewImageUrl: "",
       // Mapillary viewer
@@ -85,44 +75,47 @@ export default {
   },
   mixins: [Mapable],
   mounted() {
-    const coordinates = toLonLat(this.map.getView().getCenter());
-    axios
-      .get(this.mapillaryImgAPI, {
-        params: {
-          client_id: this.clientId,
-          closeto: [coordinates[0], coordinates[1]].toString(),
-          radius: 2500
-        }
-      })
+    const container = document.getElementById("mapillary-container");
+    const mapCenter = this.map.getView().getCenter();
+    const searchBounds = [
+      mapCenter[0] - 1500,
+      mapCenter[1] - 1500,
+      mapCenter[0] + 1500,
+      mapCenter[1] + 1500
+    ];
+    const extent = transformExtent(searchBounds, "EPSG:3857", "EPSG:4326");
+    fetch(
+      `https://graph.mapillary.com/images?fields=id,sequence&bbox=${extent.toString()}&limit=1`,
+      {
+        headers: { Authorization: "OAuth " + this.accessToken }
+      }
+    )
+      .then(response => response.json())
       .then(response => {
         this.isMapillaryBtnDisabled = false;
-
-        if (response.data) {
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          const startImageId = response.data[0].id;
+          mapillaryStyleDefs.activeSequence = response.data[0].sequence;
+          console.log(response.data[0]);
+          this.mapillary = new Viewer({
+            accessToken: this.accessToken,
+            container: container,
+            imageId: startImageId,
+            component: { cover: false }
+          });
           this.isMapillaryBtnDisabled = false;
-          const closestFeature = response.data.features[0];
-          this.startImageKey = closestFeature.properties.key;
-          this.startSequenceKey = closestFeature.properties.sequence_key;
-          this.mapillary = new Viewer(
-            "mapillary-container",
-            this.clientId,
-            this.startImageKey,
-            {
-              component: { cover: false }
-            }
-          );
           window.addEventListener("resize", this.resize());
+          this.createBaseOverlayLayer();
+          this.mapillary.on("image", this.mapillaryChanged);
           this.createFeatureOverlay();
           this.createImagePreviewOverlay();
           this.createMovePointLayer();
-          this.createBaseOverlayLayer();
           this.createHoverHighlightLayer();
           this.addInteractions();
           this.mapClickListenerKey = this.map.on("click", this.onClick);
-          this.mapillary.on(Viewer.nodechanged, this.mapillaryChanged);
-          mapillaryStyleDefs.activeSequence = this.startSequenceKey;
-          setTimeout(() => {
+          this.$nextTick(() => {
             this.resize();
-          }, 500);
+          });
         }
       })
       .catch(() => {
@@ -195,21 +188,7 @@ export default {
           tileGrid: createXYZ({ maxZoom: 14 }),
           tilePixelRatio: 16,
           opacity: 0.7,
-          url: this.baseOverlayUrl,
-          tileLoadFunction: function(tile, url) {
-            tile.setLoader(function(extent, resolution, projection) {
-              fetch(url).then(function(response) {
-                response.arrayBuffer().then(function(data) {
-                  const format = tile.getFormat(); // ol/format/MVT configured as source format
-                  let features = format.readFeatures(data, {
-                    extent: extent,
-                    featureProjection: projection
-                  });
-                  tile.setFeatures(features);
-                });
-              });
-            });
-          }
+          url: `https://tiles.mapillary.com/maps/vtp/mly1_computed_public/2/{z}/{x}/{y}?access_token=${this.accessToken}`
         }),
         style: mapillaryStyleDefs.baseOverlayStyle(this.map)
       });
@@ -235,39 +214,49 @@ export default {
     /**
      * Overlay layer interactions
      */
-    addInteractions() {
-      this.mapHoverListenerKey = this.map.on("pointermove", evt => {
-        let features = this.map.getFeaturesAtPixel(evt.pixel, {
-          layerFilter: candidate => {
-            if (candidate.get("name") === "mapillaryBaseOverlay") {
-              return true;
+    async addInteractions() {
+      this.mapHoverListenerKey = this.map.on(
+        "pointermove",
+        debounce(async evt => {
+          let features = this.map.getFeaturesAtPixel(evt.pixel, {
+            layerFilter: candidate => {
+              if (candidate.get("name") === "mapillaryBaseOverlay") {
+                return true;
+              }
+              return false;
             }
-            return false;
-          }
-        });
-        this.hoverHighlightLayer.getSource().clear();
-        if (
-          features.length > 0 &&
-          features[0].getProperties().layer === "mapillary-images"
-        ) {
-          this.previewImageUrl = `https://images.mapillary.com/${features[0].get(
-            "key"
-          )}/thumb-320.jpg`;
-          this.imagePreviewOverlay.setPosition(
-            features[0].getFlatCoordinates()
-          );
-          const feature = new OlFeature({
-            geometry: new OlPoint(features[0].getFlatCoordinates())
           });
-          feature.setProperties(features[0].getProperties());
-          this.hoverHighlightLayer.getSource().addFeature(feature);
-          this.map.getTarget().style.cursor = "pointer";
-        } else {
-          this.previewImageUrl = "";
-          this.imagePreviewOverlay.setPosition(undefined);
-          this.map.getTarget().style.cursor = "";
-        }
-      });
+          features = features.filter(feature => {
+            return feature.get("layer") === "image";
+          });
+          this.hoverHighlightLayer.getSource().clear();
+          if (features.length > 0 && features[0].get("id")) {
+            this.imagePreviewOverlay.setPosition(
+              features[0].getFlatCoordinates()
+            );
+            const feature = new OlFeature({
+              geometry: new OlPoint(features[0].getFlatCoordinates())
+            });
+            feature.setProperties(features[0].getProperties());
+            this.hoverHighlightLayer.getSource().addFeature(feature);
+            this.map.getTarget().style.cursor = "pointer";
+            const imageRequestUrl = `https://graph.mapillary.com/${features[0].get(
+              "id"
+            )}?fields=id,captured_at,compass_angle,sequence,geometry,thumb_256_url`;
+            fetch(imageRequestUrl, {
+              headers: { Authorization: "OAuth " + this.accessToken }
+            })
+              .then(response => response.json())
+              .then(response => {
+                this.previewImageUrl = response.thumb_256_url;
+              });
+          } else {
+            this.previewImageUrl = "";
+            this.imagePreviewOverlay.setPosition(undefined);
+            this.map.getTarget().style.cursor = "";
+          }
+        }, 50)
+      );
     },
 
     /**
@@ -289,15 +278,15 @@ export default {
       );
 
       if (feature) {
-        if (feature.get("layer") === "mapillary-sequences") {
+        if (feature.get("layer") === "sequence") {
           return;
         }
-        var bearing = feature.get("ca");
-        this.mapillary.moveToKey(feature.get("key"));
+        var bearing = feature.get("compass_angle");
+        this.mapillary.moveTo(feature.get("id"));
         this.featureOverlay.setStyle(
           mapillaryStyleDefs.updateBearingStyle(bearing)
         );
-        mapillaryStyleDefs.activeSequence = feature.get("skey");
+        mapillaryStyleDefs.activeSequence = feature.get("sequence_id");
       } else {
         return;
       }
@@ -308,14 +297,12 @@ export default {
     /**
      * Mapillary changed event handler
      */
-    mapillaryChanged(node) {
+    mapillaryChanged(evt) {
       if (this.featureOverlay.getVisible()) {
         this.featureOverlay.setVisible(false);
       }
-      const lonLat = new fromLonLat([
-        node.originalLatLon.lon,
-        node.originalLatLon.lat
-      ]);
+      const image = evt.image;
+      const lonLat = new fromLonLat([image.lngLat.lng, image.lngLat.lat]);
       this.map.getView().animate({
         center: lonLat,
         duration: 400
@@ -326,7 +313,7 @@ export default {
         this.pointFeature.getGeometry().setCoordinates(lonLat);
       }
       this.pointFeature.setStyle(
-        mapillaryStyleDefs.updateBearingStyle(node.ca)
+        mapillaryStyleDefs.updateBearingStyle(image.compassAngle)
       );
     },
 
@@ -351,7 +338,7 @@ export default {
     this.map.removeLayer(this.hoverHighlightLayer);
     this.map.removeOverlay(this.imagePreviewOverlay);
     window.removeEventListener("resize", this.resize());
-    this.mapillary.off(Viewer.nodechanged, this.mapillaryChanged);
+    this.mapillary.off("position", this.mapillaryChanged);
     this.mapillary.getComponent("sequence").stop();
   }
 };

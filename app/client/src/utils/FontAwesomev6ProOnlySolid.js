@@ -518,7 +518,7 @@ export const solidFontAwesomeProDefs = {
     category_label: "Transportation"
   },
   "fas fa-cable-car": {
-    unicode: "",
+    unicode: "",
     label: "Cable Car",
     style: "solid",
     category_id: "transportation",
@@ -3612,7 +3612,7 @@ export const solidFontAwesomeProDefs = {
     category_label: "Transportation"
   },
   "fas fa-train-tram": {
-    unicode: "",
+    unicode: "",
     label: "Train tram",
     style: "solid",
     category_id: "transportation",

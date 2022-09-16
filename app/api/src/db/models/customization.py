@@ -48,6 +48,7 @@ class UserCustomization(SQLModel, table=True):
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     user_id: int = Field(
+        default=None,
         sa_column=Column(
             Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
         )

@@ -65,13 +65,37 @@
           :items="tableData"
           class="elevation-0 subtitle-1 mt-6"
           hide-default-footer
+          hide-default-header
           light
         >
+          <template v-slot:header="{ props: { headers } }">
+            <thead>
+              <tr>
+                <th style="font-size:13px;" :key="h.value" v-for="h in headers">
+                  <span>{{ h.text }}</span>
+                </th>
+              </tr>
+            </thead>
+          </template>
           <template v-slot:item.category="{ item }">
-            <p class="mb-0 pb-0">{{ item.category }}</p>
-            <p class="mb-0 sub-header" style="font-size:12px;">
-              {{ item.group }}
-            </p>
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <p v-on="on" class="mb-0 pb-0 truncate">{{ item.category }}</p>
+              </template>
+              <span>{{ item.category }}</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <p
+                  v-on="on"
+                  class="mb-0 sub-header truncate"
+                  style="font-size:12px;"
+                >
+                  {{ item.group }}
+                </p>
+              </template>
+              <span>{{ item.group }}</span>
+            </v-tooltip>
           </template>
           <template v-slot:items="props">
             <td>{{ props.item.date }}</td>
@@ -100,6 +124,28 @@
           </template>
         </v-data-table>
         <v-divider></v-divider>
+        <v-row style="width: 100%;" class="mt-2">
+          <!-- add link to file -->
+          <v-spacer></v-spacer>
+          <a
+            class="caption"
+            style="text-decoration: none !important;"
+            href="./static/template.geojson"
+            download="template.geojson"
+            >{{ $t("appBar.dataUpload.geojsonTemplate") }}</a
+          >
+        </v-row>
+        <v-row style="width: 100%;" class="mt-1">
+          <!-- add link to file -->
+          <v-spacer></v-spacer>
+          <a
+            class="caption"
+            style="text-decoration: none !important;"
+            href="./static/template_shapefile.zip"
+            download="template_shapefile.zip"
+            >{{ $t("appBar.dataUpload.shapefileTemplate") }}</a
+          >
+        </v-row>
       </v-card>
     </v-card>
     <user-data-upload
@@ -113,6 +159,7 @@
 <script>
 import { mapGetters } from "vuex";
 import ApiService from "../../services/api.service";
+// import {saveAs} from 'file-saver';
 import {
   GET_APP_CONFIG,
   GET_POIS_AOIS,
@@ -252,3 +299,11 @@ export default {
   }
 };
 </script>
+<style lang="css" scoped>
+.truncate {
+  max-width: 65px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

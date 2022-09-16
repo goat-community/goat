@@ -26,8 +26,14 @@ const state = {
     values: ["default", "scenario", "comparison"],
     active: "default"
   },
-  isRecomputingHeatmap: false,
-  scenarioLayerEditModeColor: "#283648"
+  isRecomputingIndicator: false,
+  scenarioLayerEditModeColor: "#283648",
+  healthZCancelToken: null,
+  timeIndicators: {
+    startTime: 25200,
+    endTime: 32400,
+    weekday: 1 // Monday
+  }
 };
 
 const getters = {
@@ -148,7 +154,7 @@ const getters = {
     });
     return unCalculatedDataUploadIds;
   },
-  isRecomputingHeatmap: state => state.isRecomputingHeatmap,
+  isRecomputingIndicator: state => state.isRecomputingIndicator,
   // eslint-disable-next-line no-unused-vars
   occupiedStoragePercentage: (state, getters, rootState, rootGetters) => {
     const totalStorage = rootState.auth.user.storage;

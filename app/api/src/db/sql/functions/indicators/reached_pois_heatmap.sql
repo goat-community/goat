@@ -34,7 +34,13 @@ BEGIN
 		DROP TABLE IF EXISTS pois_edges_full;
 		CREATE TEMP TABLE pois_edges_full AS 
 		SELECT p.uid AS poi_uid, f.fraction, f.edge_id, NULL AS scenario_id, NULL AS data_upload_id  
-		FROM basic.poi p 
+		FROM (
+			SELECT p.* 
+			FROM basic.poi p
+			LEFT JOIN customer.reached_poi_heatmap r 
+			ON r.poi_uid = p.uid
+			WHERE r.poi_uid IS NULL
+		) p  
 		CROSS JOIN LATERAL 
 		(
 			SELECT ST_LineLocatePoint(e.geom,p.geom) fraction, e.edge_id
@@ -49,7 +55,14 @@ BEGIN
 		DROP TABLE IF EXISTS pois_edges_full;
 		CREATE TEMP TABLE pois_edges_full AS 
 		SELECT p.uid AS poi_uid, f.fraction, f.edge_id, NULL AS scenario_id, p.data_upload_id 
-		FROM customer.poi_user p 
+		FROM 
+		(
+			SELECT p.* 
+			FROM customer.poi_user p
+			LEFT JOIN customer.reached_poi_heatmap r 
+			ON r.poi_uid = p.uid
+			WHERE r.poi_uid IS NULL
+		) p 
 		CROSS JOIN LATERAL 
 		(
 			SELECT ST_LineLocatePoint(e.geom,p.geom) fraction, e.edge_id
@@ -64,7 +77,12 @@ BEGIN
 		DROP TABLE IF EXISTS pois_edges_full;
 		CREATE TEMP TABLE pois_edges_full AS 
 		SELECT p.uid AS poi_uid, f.fraction, f.edge_id, scenario_id_input AS scenario_id, p.data_upload_id  
-		FROM (SELECT * FROM customer.poi_modified x WHERE x.uid = poi_modified_uid AND x.scenario_id = scenario_id_input) p
+		FROM (
+			SELECT p.* 
+			FROM customer.poi_modified p 
+			WHERE p.uid = poi_modified_uid 
+			AND p.scenario_id = scenario_id_input
+		) p
 		CROSS JOIN LATERAL 
 		(
 			SELECT ST_LineLocatePoint(e.geom,p.geom) fraction, e.edge_id

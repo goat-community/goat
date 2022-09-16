@@ -7,7 +7,11 @@ DECLARE
 BEGIN 
 
 	UPDATE customer.building_modified b
-	SET area = ST_AREA(geom::geography), population = (b.building_levels_residential * ST_AREA(b.geom::geography) / average_gross_living_area) 
+	SET area = ST_AREA(geom::geography), 
+	population = (
+		CASE WHEN population IS NULL THEN (b.building_levels_residential * ST_AREA(b.geom::geography) / average_gross_living_area) 
+		ELSE population END
+	)
 	WHERE scenario_id = scenario_id_input; 
 	
 	WITH count_pop AS (

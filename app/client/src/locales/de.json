@@ -8,15 +8,56 @@
   "login": {
     "title": "Login",
     "signIn": "Anmelden",
+    "signUp": "Registrieren für Demo",
     "toSignUpContactUs": "Kontaktieren Sie uns gerne",
     "noAccount": "Noch keinen Zugang?",
     "passwordRequired": "Passwort is required",
     "passwordForgotten": "Passwort vergessen?",
     "maxFourChar": "Mindestens 4 Zeichen für das Passwort notwending.",
     "mailRequired": "E-Mail ist erforderlich",
+    "fieldRequired": "Dieses Feld ist erforderlich",
     "mailValid": "E-mail ist ungültig",
-    "password": "Passwort"
+    "password": "Passwort",
+    "agreeTerms": "Ich stimme den",
+    "termsAndConditions": "Nutzungsbedingungen",
+    "newsletter": "Ich möchte den Newsletter abonnieren",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "profession": "Berufsstand",
+    "domain": "Branche",
+    "backToLogin": "Zurück zum Login",
+    "activateAccount": "Konto erfolgreich erstellt. Bitte aktivieren Sie Ihr Konto, indem Sie auf den Link in Ihrer E-Mail klicken.",
+    "accountActivated": "Konto erfolgreich aktiviert",
+    "register": "Registrieren",
+    "professionList": {
+      "student": "Student:in",
+      "employee": "Angestellte:r",
+      "self-employed": "Selbstständig",
+      "other": "Andere"
+    },
+    "domainList": {
+      "transport_planning": "Verkehrsplanung",
+      "urban_planning": "Stadtplanung",
+      "gis": "GIS",
+      "architecture": "Architektur",
+      "location_planning": "Standortplanung",
+      "civil_engineer": "Bauingenieurwesen",
+      "political_decision_maker": "Politik",
+      "other": "Andere"
+    }
   },
+  "weekday": "Wochentag",
+  "daysOfWeek": {
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag",
+    "sunday": "Sonntag"
+  },
+  "fromTime": "Von",
+  "toTime": "Bis",
   "appBar": {
     "buttons": {
       "login": "Login",
@@ -31,7 +72,8 @@
       "about": "About",
       "isochrones": "Isochronen",
       "heatmaps": "Heatmaps",
-      "staticLayers": "Other Layers",
+      "indicators": "Indikatoren",
+      "staticLayers": "Weitere Layer",
       "allLayers": "Alle Layer",
       "activeLayers": "Aktive Layer"
     },
@@ -161,7 +203,9 @@
         "customCategory": "Eigene Kategorie",
         "browseYourFiles": "Datei auswählen",
         "invalidCategory": "Kategorie existiert bereits. Bitte wähle einen anderen Namen."
-      }
+      },
+      "geojsonTemplate": "GeoJSON-Template",
+      "shapefileTemplate": "Shapefile-Template"
     },
     "filter": {
       "title": "Filter Thematische Daten",
@@ -181,7 +225,7 @@
       "title": "Szenarien entwickeln",
       "scenarioLimitReached": "Maximale Anzahl an Szenarien erreicht",
       "createScenario": "Szenario erstellen",
-      "editScenarioName": "Szenarioname bearbeiten",
+      "ScenarioName": "Szenario-Name bearbeiten",
       "scenario": "Szenario",
       "scenarioImportExport": "Szenario Import/Export",
       "noSelection": "Keine Auswahl",
@@ -229,6 +273,7 @@
         "NotUploaded": "Nicht hochgeladen"
       },
       "activateLayerToDrawScenario": "Bitte aktivieren Sie den Layer, um Objekte wählen zu können.",
+      "editScenarioName": "Szenario bearbeiten",
       "dataTypeInfo": "Benötigter Datei Typ",
       "geometryTypeInfo": "Benötigter Geometrie Typ",
       "requiredFields": "Erforderliche Attribute",
@@ -266,6 +311,19 @@
         "source": "Quelle",
         "yearTimestamp": "Referenzjahr/Zeitstempel"
       }
+    },
+    "documentation": {
+      "title": "Dokumentation",
+      "openInNewTab": "In neuem Tab öffnen"
+    },
+    "stylePanel": {
+      "selectAttribute": "Attribut auswählen",
+      "fillColor": "Fülleffekt",
+      "iconSize": "Icon Größe",
+      "changeIcon": "Icon ändern",
+      "urlIcon": "URL Upload",
+      "importIcon": "Mein PC",
+      "outlineColorAndWidth": "Formkontur & Stärke"
     }
   },
   "isochrones": {
@@ -303,7 +361,7 @@
       "title": "Optionen",
       "subOptions": "Einstellungen Isochronen",
       "speed": "Geschwindigkeit",
-      "time": "Travel time",
+      "time": "Reisezeit",
       "nr": "Isochronen",
       "calcType": "Detaillierungsgrad Isochronen",
       "calcModus": "Berechnungsmodus",
@@ -319,7 +377,12 @@
       "walking_elderly": "Senior",
       "walking_wheelchair": "Rollstuhl",
       "cycling_standard": "Standard",
-      "cycling_pedelec": "Pedelec"
+      "cycling_pedelec": "Pedelec",
+      "transit": "Transit",
+      "walk": "Walk",
+      "bicycle": "Bicycle",
+      "car": "Car",
+      "car_park": "Car park"
     },
     "results": {
       "title": "Ergebnisse",
@@ -356,7 +419,10 @@
         "population": "Bevölkerung",
         "reachedPopulation": "Erreichbare Bevölkerung",
         "shared": "Anteil"
-      }
+      },
+      "amenityCount": "Amenity Count",
+      "populationCount": "Population Count",
+      "aoisArea": "AOIs Area"
     },
     "isochrones": "Isochronen",
     "deleteTitle": "Löschen",
@@ -377,31 +443,42 @@
       "title": "Farbe der Isochrone"
     }
   },
-  "heatmaps": {
-    "title": "Heatmaps",
-    "recomputeHeatmap": "Neuberechnung",
-    "recomputingHeatmaps": "Neuberechnung von Heatmaps",
-    "heatmapComputedSuccessfully": "Heatmap erfolgreich berechnet",
-    "heatmapComputationFailed": "Heatmap-Berechnung fehlgeschlagen"
+  "indicators": {
+    "title": "Indikatoren",
+    "recomputeIndicators": "Neuberechnung",
+    "recomputingIndicators": "Neuberechnung der Indikatoren",
+    "indicatorsComputedSuccessfully": "Indikatoren erfolgreich neu berechnet",
+    "indicatorsComputationFailed": "Indikatorenberechnung fehlgeschlagen",
+    "indicatorTimePicker": "Indikatoren Zeitauswahl",
+    "timePickerErrorMessage": "Endzeit muss nach Startzeit liegen"
   },
   "poisFilter": {
     "showTimeFilter": "Zeitlichen Filter hinzufügen",
     "selectHourLabel": "Uhrzeit wählen",
-    "selectDayLabel": "Tag wählen",
-    "daysOfWeek": {
-      "monday": "Montag",
-      "tuesday": "Dienstag",
-      "wednesday": "Mittwoch",
-      "thursday": "Donnerstag",
-      "friday": "Freitag",
-      "saturday": "Samstag",
-      "sunday": "Sonntag"
-    }
+    "selectDayLabel": "Tag wählen"
   },
   "layerTree": {
     "title": "Layer",
     "settings": {
       "transparency": "Transparenz"
+    }
+  },
+  "externalGeoportals": {
+    "selectGeoportal": "Wähle Geoportal",
+    "externalGeoportal": "Externes Geoportal",
+    "builtInGeoportals": {
+      "title": "Vordefinierte Geoportale"
+    },
+    "ownGeoportals": {
+      "title": "Füge eigenes Geoportal hinzu",
+      "getLayersFrom": "Importiere Layer von",
+      "results": "Ergebnisse",
+      "seeMore": "mehr..."
+    },
+    "popups": {
+      "info": "Es wurde eine Fehler bei dem externen Service festgestellt, der das Geoportal betreibt. Bitte wählen Sie einen anderen Layer.",
+      "errorMessage": "Dieser Layer ist nicht teil Ihres Untersuchungsgebietes. Bitte wählen Sie einen anderen Layer.",
+      "agreement": "Ich verstehe"
     }
   },
   "map": {
@@ -423,9 +500,8 @@
       "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
       "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!",
       "zoomInToShowFeatures": "Zoome um Objekte der folgenden Layer zu sehen",
-      "heatmapIsBusy": "Die Neuberechung der Heatmap dauert etwas. Bitte bleiben Sie geduldig!",
       "calculationCancelled": "Berechnung abgebrochen!",
-      "scenarioEditMode": "Szenario Modus"
+      "scenarioEditMode": "Bearbeitungsmodus"
     },
     "layerGroup": {
       "buildings_landuse": "Gebäude und Flächennutzung",
@@ -433,6 +509,7 @@
       "environmental_quality": "Umweltdaten",
       "perceivedQuality": "Empfundene Qualität",
       "additional_data": "Weitere Daten",
+      "external_layers": "Externe Layer",
       "heatmap": "Heatmaps",
       "basemap": "Hintergrundkarten"
     },
@@ -446,7 +523,8 @@
       "pois_aois_layer": "Point of Interest",
       "freiburg_heatmap_radverkehr": "Heatmap Radverkehr",
       "bayern_biotop_kartierung": "Bayern Biotop Kartierung",
-      "bayern_laerm_hauptverkehrsstrassen": "Lärm Hauptverkehrsstraßen",
+      "bayern_laerm_ballungszentren_strassen_tag": "Lärm Hauptverkehrsstraßen (Tag)",
+      "bayern_laerm_ballungszentren_strassen_nacht": "Lärm Hauptverkehrsstraßen (Nacht)",
       "bayern_oekoflaechenkataster": "Bayern Ökoflaechenkataster",
       "bayern_schutzgebiete_naturschutz": "Bayern Schutzgebiete Naturschutz",
       "pois": "Point of Interest",
@@ -471,7 +549,7 @@
       "dikes": "Deiche",
       "protectedLandscape": "Landschaftsschutzgebiete",
       "freiburg_streetmap": "Freiburg Streetmap",
-      "landuse": "Flächennutzung (ATKIS)",
+      "landuse_atkis": "Flächennutzung (ATKIS)",
       "landuse_osm": "Flächennutzung (OSM)",
       "zoningPlan": "Flächennutzungsplan (FNP)",
       "footpath_width": "Fußwegbreite",
@@ -503,6 +581,9 @@
       "heatmap_accessibility_population": "Vergleich von Erreichbarkeit und Bevölkerungsdichte",
       "heatmap_population": "Bevölkerungsdichte",
       "heatmap_local_accessibility": "Lokale Erreichbarkeit",
+      "pt_station_count": "Durchschnittliche Anzahl Abfahrten Öffentlicher Verkehr (pro Stunde)",
+      "pt_oev_gueteklasse": "ÖV Güteklassen",
+      "public_transport": "Öffentlicher Verkehr",
       "primary_school_streams": "Fußgängerpotentialströme zu Grundschulen",
       "studyArea": "Untersuchungsgebiet",
       "ways": "Wege",
@@ -512,7 +593,7 @@
       "osm_dark": "OSM Dark",
       "open_topo_map": "Open Topo Map",
       "mapbox_streets": "Mapbox",
-      "public_transport": "Öffentlicher Verkehr",
+      "transit": "Öffentlicher Verkehr",
       "bing_aerial": "Bing Aerial",
       "indicators": "Indikatoren",
       "walking_trip_rate": "Zu Fuß zurückgelegte Wege pro Person",
@@ -527,7 +608,7 @@
       "pt_trips_rate": "Mit dem ÖV zurückgelegte Wege pro Person",
       "strata": "sozio-ökonomische Schichten",
       "study_area_crop": "Untersuchungsgebiet",
-      "study_area": "Ortsteile",
+      "study_area": "Grenzen",
       "ways_Project_Sidewalk": "Project Sidewalk Score"
     },
     "tooltips": {
@@ -602,7 +683,12 @@
       "deleteFeature": "Objekt löschen",
       "uploadFeature": "Objekt hochladen",
       "restoreFeature": "Objekt zurücksetzen",
-      "notAvailable": "Nicht verfügbar"
+      "notAvailable": "Nicht verfügbar",
+      "openFullScreen": "Vollbildmodus öffnen",
+      "search": "Suche",
+      "measure": "Messen",
+      "exitFullScreen": "Vollbildmodus schließen",
+      "toggleStreetView": "Mapillary"
     },
     "popup": {
       "attributes": "Attribute",
@@ -733,6 +819,9 @@
     "nursery": "Krippe",
     "kindergarten": "Kindergarten",
     "primary_school": "Grundschule",
+    "elementary_school": "Grundschule",
+    "middle_school": "Middle School",
+    "high_school": "High School",
     "secondary_school": "Weiterführende Schule",
     "grundschule": "Grundschule",
     "gymnasium": "Gymnasium",
@@ -876,6 +965,7 @@
       },
       "building": {
         "building": "Gebäudetyp",
+        "building_type": "Gebäudetyp",
         "building_levels": "Anzahl Geschosse",
         "building_levels_residential": "Anzahl Geschosse Wohnen",
         "population": "Einwohneranzahl (optional)",
@@ -944,5 +1034,82 @@
       "cnt_toilets": "Anzahl der Toiletten",
       "cnt_fountains": "Anzahl der Brunnen"
     }
+  },
+  "fa6Categories": {
+    "new-in-v6": "New in v6",
+    "photos-images": "Photos + Images",
+    "_other_": "Other",
+    "alphabet": "Alphabet",
+    "mathematics": "Mathematics",
+    "nature": "Natur",
+    "users-people": "Users + People",
+    "travel-hotel": "Travel + Hotel",
+    "music-audio": "Music + Audio",
+    "alert": "Alert",
+    "time": "Time",
+    "animals": "Tiere",
+    "astronomy": "Astronomy",
+    "science-fiction": "Science Fiction",
+    "text-formatting": "Text Formatting",
+    "maps": "Karten",
+    "construction": "Construction",
+    "arrows": "Arrows",
+    "religion": "Religion",
+    "fruits-vegetables": "Fruits + Vegetables",
+    "education": "Bildung",
+    "social": "Social",
+    "editing": "Editing",
+    "spinners": "Spinners",
+    "communication": "Communication",
+    "accessibility": "Accessibility",
+    "money": "Money",
+    "gaming": "Gaming",
+    "media-playback": "Media Playback",
+    "food-beverage": "Food + Beverage",
+    "medical-health": "Medical + Health",
+    "shopping": "Einkaufen",
+    "security": "Security",
+    "childhood": "Childhood",
+    "political": "Political",
+    "buildings": "Gebäude",
+    "logistics": "Logistics",
+    "business": "Business",
+    "energy": "Energy",
+    "household": "Household",
+    "design": "Design",
+    "transportation": "Transportation",
+    "moving": "Moving",
+    "devices-hardware": "Devices + Hardware",
+    "writing": "Writing",
+    "connectivity": "Connectivity",
+    "charity": "Charity",
+    "shapes": "Shapes",
+    "clothing-fashion": "Clothing + Fashion",
+    "sports-fitness": "Sports + Fitness",
+    "files": "Files",
+    "coding": "Coding",
+    "automotive": "Automotive",
+    "halloween": "Halloween",
+    "toggle": "Toggle",
+    "marketing": "Marketing",
+    "film-video": "Film + Video",
+    "holidays": "Holidays",
+    "science": "Science",
+    "weather": "Weather",
+    "emoji": "Emoji",
+    "camping": "Camping",
+    "gender": "Genders",
+    "hands": "Hands",
+    "all": "Alle",
+    "custom(p4b)": "Spezielle Icons",
+    "communication & devices": "Kommunikation",
+    "others": "Weitere",
+    "food & drinks": "Essen & Trinken",
+    "health": "Gesundheit",
+    "items": "Objekte",
+    "people & clothing": "Menschen & Kleidung",
+    "sign & symbols": "Zeichen & Symbole",
+    "sport": "Sport",
+    "tourism & holidays": "Tourismus & Urlaub"
   }
 }

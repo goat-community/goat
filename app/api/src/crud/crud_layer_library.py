@@ -1,11 +1,27 @@
-from src.crud.base import CRUDBase
+from typing import Any, List, Optional
+
+from sqlalchemy.future import select
+from sqlalchemy.orm import Session
+
+from src.crud.base import CRUDBase, ModelType
 from src.db import models
-from src.db.models import layer_library
-from src.schemas.organization import OrganizationCreate, OrganizationUpdate
 
 
 class CRUDLayerLibrary(CRUDBase[models.LayerLibrary, models.LayerLibrary, models.LayerLibrary]):
-    pass
+    
+    # Used Session in order to use in validator
+    def get_all_layer_names(self, db: Session) -> List[str]:
+        statement = select(self.model.name)
+        layers = db.execute(statement)
+        layers = layers.scalars().all()
+        return layers
 
 
 layer_library = CRUDLayerLibrary(models.LayerLibrary)
+
+
+class CRUDStyleLibrary(CRUDBase[models.StyleLibrary, models.StyleLibrary, models.StyleLibrary]):
+    pass
+
+
+style_library = CRUDStyleLibrary(models.StyleLibrary)

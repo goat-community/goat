@@ -1,13 +1,43 @@
 <template>
   <div id="ol-map-container">
     <!-- Map Controls -->
-    <zoom-control
-      v-show="!miniViewOlMap"
-      :map="map"
-      :color="appColor.primary"
-    />
-    <full-screen v-show="!miniViewOlMap" :color="appColor.primary" />
-    <measure v-show="!miniViewOlMap" :color="appColor.primary" />
+    <div style="position:absolute;left:20px;top:10px;">
+      <search-map
+        :viewbox="
+          transformExtent(studyArea[0].get('bounds'), 'EPSG:3857', 'EPSG:4326')
+        "
+        class="mb-2"
+        :map="map"
+        v-show="!miniViewOlMap"
+        :color="appColor.primary"
+      />
+      <full-screen
+        class="mb-2"
+        v-show="!miniViewOlMap"
+        :color="appColor.primary"
+      />
+      <measure class="mb-2" v-show="!miniViewOlMap" :color="appColor.primary" />
+      <!-- toggle-streetview -->
+      <v-tooltip right>
+        <template v-slot:activator="{ on }">
+          <v-btn
+            style="z-index: 1;"
+            fab
+            dark
+            x-small
+            v-show="!miniViewOlMap"
+            :color="appColor.primary"
+            @click="showMiniViewer"
+            :loading="isMapillaryBtnDisabled"
+            v-on="on"
+          >
+            <v-icon dark>streetview</v-icon>
+          </v-btn>
+        </template>
+        <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
+      </v-tooltip>
+    </div>
+
     <progress-status />
     <background-switcher v-show="!miniViewOlMap" />
     <!-- Popup overlay  -->
@@ -86,6 +116,38 @@
         </div>
       </template>
     </overlay-popup>
+    <!-- Popup For WMS/WMTS Layer -->
+    <overlay-popup
+      :color="appColor.primary"
+      :title="wmsPopup.title"
+      v-show="wmsPopup.isVisible"
+      ref="wmsPopup"
+    >
+      <v-btn icon>
+        <v-icon>close</v-icon>
+      </v-btn>
+      <template v-slot:close>
+        <v-btn @click="closeWmsPopup()" icon>
+          <v-icon>close</v-icon>
+        </v-btn>
+      </template>
+      <template v-slot:body>
+        <div style="max-height:800px;overflow:hidden;" v-if="wmsPopup.content">
+          <vue-scroll>
+            <v-simple-table dense class="pr-2">
+              <template v-slot:default>
+                <tbody>
+                  <tr v-for="item in wmsPopup.content" :key="item.property">
+                    <td>{{ item.property }}</td>
+                    <td>{{ item.value }}</td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
+          </vue-scroll>
+        </div>
+      </template>
+    </overlay-popup>
     <!-- Info Snackbar for not visible layers. -->
     <v-snackbar
       :color="appColor.primary"
@@ -104,48 +166,77 @@
 
     <!-- Info snackbar when editing a layer -->
     <v-snackbar
-      :color="scenarioLayerEditModeColor"
-      v-if="selectedEditLayer"
+      :color="selectedEditLayer ? scenarioLayerEditModeColor : appColor.primary"
+      v-if="activeScenario"
       :timeout="0"
       style="font-size:16px;"
-      :value="selectedEditLayer ? true : false"
+      :value="activeScenario ? true : false"
     >
-      <span class="h2"
+      <v-select
+        :style="
+          selectedEditLayer
+            ? `border-right: 1px solid grey;width: 200px;`
+            : 'width: 150px;'
+        "
+        dark
+        hide-details
+        :class="{
+          'mx-3 mt-0 pt-0': true,
+          'pr-4': !!selectedEditLayer
+        }"
+        :items="calculationMode.values"
+        v-model="calculationMode.active"
+      >
+        <template slot="selection" slot-scope="{ item }">
+          {{
+            $te(`isochrones.options.${item}`)
+              ? $t(`isochrones.options.${item}`).toUpperCase()
+              : item.toUpperCase()
+          }}
+        </template>
+        <template slot="item" slot-scope="{ item }">
+          {{
+            $te(`isochrones.options.${item}`)
+              ? $t(`isochrones.options.${item}`).toUpperCase()
+              : item.toUpperCase()
+          }}
+        </template>
+      </v-select>
+      <span v-if="selectedEditLayer" class="h2"
         >{{
           $te(`map.snackbarMessages.scenarioEditMode`)
-            ? $t(`map.snackbarMessages.scenarioEditMode`) + ": "
-            : $t(`map.snackbarMessages.scenarioEditMode`)
+            ? $t(`map.snackbarMessages.scenarioEditMode`).toUpperCase()
+            : "EDIT MODE"
         }}
-        <span class="ml-2"
-          ><b>{{
-            $te(`map.layerName.${selectedEditLayer["name"]}`)
-              ? $t(`map.layerName.${selectedEditLayer["name"]}`)
-              : selectedEditLayer["name"]
-          }}</b></span
-        >
       </span>
-      <v-btn color="error" text @click="selectedEditLayer = null">
+      <v-btn
+        v-if="selectedEditLayer"
+        color="error"
+        text
+        @click="selectedEditLayer = null"
+      >
         {{ $te(`buttonLabels.exit`) ? $t(`buttonLabels.exit`) : "Exit" }}
       </v-btn>
     </v-snackbar>
     <v-snackbar
       :color="appColor.primary"
-      v-if="isRecomputingHeatmap"
+      v-if="isRecomputingIndicator"
       :timeout="0"
       top
       center
       style="font-size:14px;"
-      :value="isRecomputingHeatmap"
+      :value="isRecomputingIndicator"
     >
       <span
         >{{
-          $te(`heatmap.recomputingHeatmaps`)
-            ? $t(`heatmap.recomputingHeatmaps`)
-            : "Recomputing Heatmaps... "
+          $te(`indicators.recomputingIndicators`)
+            ? $t(`indicators.recomputingIndicators`)
+            : "Recomputing Indicators... "
         }}
       </span>
       <v-progress-circular indeterminate color="white"></v-progress-circular>
     </v-snackbar>
+    <div id="isochrone-hover-info"></div>
   </div>
 </template>
 
@@ -161,6 +252,7 @@ import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
 import LineString from "ol/geom/LineString";
+import { transformExtent } from "ol/proj";
 
 // style imports
 import {
@@ -186,9 +278,9 @@ import { mapFields } from "vuex-map-fields";
 import OverlayPopup from "./controls/Overlay";
 import MapLoadingProgressStatus from "./controls/MapLoadingProgressStatus";
 import BackgroundSwitcher from "./controls/BackgroundSwitcher";
-import ZoomControl from "./controls/ZoomControl";
 import FullScreen from "./controls/Fullscreen";
 import Measure from "./controls/Measure";
+import Search from "./controls/Search.vue";
 import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
 
 import { defaults as defaultControls, Attribution } from "ol/control";
@@ -208,9 +300,9 @@ export default {
     "overlay-popup": OverlayPopup,
     "progress-status": MapLoadingProgressStatus,
     "background-switcher": BackgroundSwitcher,
-    "zoom-control": ZoomControl,
     "full-screen": FullScreen,
     "indicators-chart": IndicatorsChart,
+    "search-map": Search,
     measure: Measure
   },
   name: "app-ol-map",
@@ -226,6 +318,11 @@ export default {
         title: "info",
         isVisible: false,
         currentLayerIndex: 0
+      },
+      wmsPopup: {
+        isVisible: false,
+        title: null,
+        content: []
       },
       getInfoResult: [],
       limitedVisibilityLayers: [],
@@ -255,6 +352,7 @@ export default {
       me.setupMapClick();
       me.setupMapPointerMove();
       me.createPopupOverlay();
+      me.createWmsWmtsPopup();
       EventBus.$on("toggleLayerVisiblity", this.showNonVisibleLayersInfo);
     }, 200);
   },
@@ -287,7 +385,6 @@ export default {
         maxZoom: me.appConfig.map.maxZoom || 19
       })
     });
-
     // Get study area
     me.createStudyAreaLayer();
     // Create poisaoisLayer
@@ -360,7 +457,9 @@ export default {
       });
       const vector = new VectorImageLayer({
         name: "study_area",
-        displayInLayerList: false,
+        displayInLayerList: true,
+        type: "VECTOR",
+        group: "buildings_landuse",
         zIndex: 100,
         source: source,
         style: studyAreaStyle
@@ -509,6 +608,20 @@ export default {
       me.map.addOverlay(me.popupOverlay);
     },
 
+    createWmsWmtsPopup() {
+      this.wmsPopupOverlay = new Overlay({
+        element: this.$refs.wmsPopup.$el,
+        autoPan: false,
+        autoPanMargin: 40,
+        positioning: "bottom-left",
+        autoPanAnimation: {
+          duration: 250
+        }
+      });
+
+      this.map.addOverlay(this.wmsPopupOverlay);
+    },
+
     /**
      * Closes the popup if user click X button.
      */
@@ -523,6 +636,12 @@ export default {
       if (me.getInfoLayerSource) {
         me.getInfoLayerSource.clear();
       }
+    },
+    closeWmsPopup() {
+      this.wmsPopupOverlay.isVisible = false;
+      this.wmsPopupOverlay.setPosition(undefined);
+      this.wmsPopup.title = null;
+      this.wmsPopup.content = [];
     },
 
     /**
@@ -658,6 +777,10 @@ export default {
           return;
         }
 
+        const coordinate = evt.coordinate;
+        const projection = me.map.getView().getProjection();
+        const resolution = me.map.getView().getResolution();
+
         me.queryableLayers = getAllChildLayers(me.map).filter(
           layer =>
             layer.get("queryable") === true && layer.getVisible() === true
@@ -711,14 +834,74 @@ export default {
               }
               break;
             }
+            case "WMS":
+            case "WMTS": {
+              if (layer.get("queryable")) {
+                let url = layer
+                  .getSource()
+                  .getFeatureInfoUrl(coordinate, resolution, projection, {
+                    INFO_FORMAT: "text/html",
+                    QUERY_LAYERS: [
+                      layer
+                        .getSource()
+                        .url_.split("?")[0]
+                        .split("/")
+                        .pop()
+                    ]
+                  });
+                fetch(url)
+                  .then(response => response.text())
+                  .then(htmlData => {
+                    let parser = new DOMParser();
+                    let doc = parser.parseFromString(htmlData, "text/html");
+
+                    let gatheredData = {
+                      name: "",
+                      content: []
+                    };
+                    let table = doc.getElementsByTagName("tbody")[0];
+                    if (table) {
+                      let tableRows = table.getElementsByTagName("tr");
+
+                      [...tableRows].forEach((tableRow, idx) => {
+                        if (idx === 0) {
+                          gatheredData.name = tableRow
+                            .querySelector(".tablerowheader")
+                            .getElementsByTagName("b")[0].innerHTML;
+                        } else {
+                          if (!tableRow.querySelector(".tablerownotice")) {
+                            let rowTitle = tableRow.querySelector(
+                              ".tablerowleft"
+                            ).innerHTML;
+                            let rowContent = tableRow.querySelector(
+                              ".tablerowright"
+                            ).innerHTML;
+                            let newObject = {
+                              property: rowTitle,
+                              value: rowContent
+                            };
+                            gatheredData.content.push(newObject);
+                          }
+                        }
+                      });
+                    }
+                    if (gatheredData.name != "" && gatheredData.content) {
+                      this.wmsPopup.title = gatheredData.name;
+                      this.wmsPopup.content = gatheredData.content;
+                      this.wmsPopupOverlay.setPosition(undefined);
+                      this.wmsPopupOverlay.setPosition(evt.coordinate);
+                      this.wmsPopup.isVisible = true;
+                    }
+                  });
+              }
+              break;
+            }
             default:
               break;
           }
         });
         if (promiseArray.length > 0) {
-          console.log(promiseArray);
           axios.all(promiseArray).then(function(results) {
-            console.log(results);
             results.forEach(response => {
               if (response && response.data && response.data.features) {
                 const features = response.data.features;
@@ -738,6 +921,7 @@ export default {
           });
         } else {
           //Only for WFS layer
+
           if (me.getInfoResult.length > 0) {
             me.showPopup(evt.coordinate);
           }
@@ -822,17 +1006,26 @@ export default {
     getPopupTitle() {
       if (this.getInfoResult[this.popup.currentLayerIndex]) {
         const layer = this.getInfoResult[this.popup.currentLayerIndex];
-        const canTranslate = this.$te(
-          `map.layerName.${layer.get("layerName")}`
-        );
-        if (canTranslate) {
-          return this.$t(`map.layerName.${layer.get("layerName")}`);
+        if (layer.get("name")) {
+          const canTranslate = this.$te(
+            `map.layerName.${layer.get("layerName")}`
+          );
+          if (canTranslate) {
+            return this.$t(`map.layerName.${layer.get("layerName")}`);
+          } else {
+            return layer.get("layerName");
+          }
         } else {
-          return layer.get("layerName");
+          return layer.name;
         }
       } else {
         return "";
       }
+    },
+    transformExtent,
+    showMiniViewer() {
+      this.miniViewerVisible = true;
+      this.isMapillaryBtnDisabled = true;
     },
     ...mapMutations("map", {
       setContextMenu: "SET_CONTEXTMENU",
@@ -846,7 +1039,9 @@ export default {
   computed: {
     ...mapFields("map", {
       subStudyAreaLayer: "subStudyAreaLayer",
-      selectedEditLayer: "selectedEditLayer"
+      selectedEditLayer: "selectedEditLayer",
+      isMapillaryBtnDisabled: "isMapillaryBtnDisabled",
+      miniViewerVisible: "miniViewerVisible"
     }),
     ...mapFields("poisaois", {
       poisAoisLayer: "poisAoisLayer",
@@ -864,11 +1059,15 @@ export default {
       appColor: "appColor",
       appConfig: "appConfig",
       scenarioLayerEditModeColor: "scenarioLayerEditModeColor",
-      isRecomputingHeatmap: "isRecomputingHeatmap"
+      isRecomputingIndicator: "isRecomputingIndicator",
+      calculationMode: "calculationMode"
     }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
       options: "options"
+    }),
+    ...mapGetters("scenarios", {
+      activeScenario: "activeScenario"
     }),
     ...mapGetters("loader", { isNetworkBusy: "isNetworkBusy" }),
     currentInfo() {

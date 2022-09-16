@@ -25,31 +25,31 @@ spec:
         app: goat-api
     spec:
       containers:
-      - image: ${DOCKER_IMAGE}
-        imagePullPolicy: Always
-        name: goat-api
-        envFrom:
-          - configMapRef:
-              name: api-config
-        ports:
-        - containerPort: 5000
-        readinessProbe:
-          httpGet:
-            path: /api/healthz
-            port: 5000
-          initialDelaySeconds: 10
-          timeoutSeconds: 1
-          periodSeconds: 5
-          failureThreshold: 3
-          successThreshold: 1
-        livenessProbe:
-          httpGet:
-            path: /api/healthz
-            port: 5000
-          initialDelaySeconds: 20
-          timeoutSeconds: 1
-          periodSeconds: 5
-          failureThreshold: 3
+        - image: ${DOCKER_IMAGE}
+          imagePullPolicy: Always
+          name: goat-api
+          envFrom:
+            - configMapRef:
+                name: api-config
+          ports:
+            - containerPort: 5000
+          readinessProbe:
+            httpGet:
+              path: /api/healthz
+              port: 5000
+            initialDelaySeconds: 10
+            timeoutSeconds: 60
+            periodSeconds: 120
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /api/healthz
+              port: 5000
+            initialDelaySeconds: 20
+            timeoutSeconds: 60
+            periodSeconds: 120
+            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
@@ -81,10 +81,19 @@ data:
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   SENTRY_DSN: ${SENTRY_DSN}
   NAMESPACE: ${NAMESPACE}
+  FIRST_ORGANIZATION: ${FIRST_ORGANIZATION}
+  FIRST_SUPERUSER_NAME: ${FIRST_SUPERUSER_NAME}
+  FIRST_SUPERUSER_SURNAME: ${FIRST_SUPERUSER_SURNAME}
+  FIRST_SUPERUSER_EMAIL: ${FIRST_SUPERUSER_EMAIL}
   FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+  EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+  SMTP_USER: ${EMAILS_FROM_EMAIL}
+  SMTP_PASSWORD: ${SMTP_PASSWORD}
   API_SECRET_KEY: ${API_SECRET_KEY}
+  R5_HOST: ${R5_HOST}
 
   # ---
+
 # apiVersion: batch/v1
 # kind: Job
 # metadata:
