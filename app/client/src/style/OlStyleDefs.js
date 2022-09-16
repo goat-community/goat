@@ -12,7 +12,7 @@ import isochroneStore from "../store/modules/isochrones";
 import mapStore from "../store/modules/map";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
-import { getIconUnicode, publicTransportStations } from "../utils/Helpers";
+import { getIconUnicode } from "../utils/Helpers";
 import Point from "ol/geom/Point";
 import { getArea } from "ol/sphere.js";
 import i18n from "../../src/plugins/i18n";
@@ -1033,30 +1033,23 @@ export function ptStationCountStyle(feature, resolution) {
     });
   } else {
     const transportTypes = appStore.state.appConfig.routing[3].transit_modes;
-
-    const result = transportTypes.map(transport =>
-      publicTransportStations(transport.icon, transport.color)
-    );
+    const publicTransportServiceTypes = {
+      "0": {
+        color: transportTypes[1].color
+      },
+      "1": {
+        color: transportTypes[2].color
+      },
+      "2": {
+        color: transportTypes[3].color
+      },
+      "3": {
+        color: transportTypes[0].color
+      }
+    };
 
     const colors = Object.keys(tripCnt).map(key => {
-      let modifiedResults = [];
-      result.forEach(res => {
-        // console.log(parseInt(key), res.number);
-        if (res.number === parseInt(key)) {
-          let hexColor = res.color
-            .split("(")[1]
-            .split(")")[0]
-            .split(", ");
-          modifiedResults.push(
-            rgbToHex(
-              parseInt(hexColor[0]),
-              parseInt(hexColor[1]),
-              parseInt(hexColor[2])
-            )
-          );
-        }
-      });
-      return modifiedResults[0];
+      return publicTransportServiceTypes[key].color;
     });
 
     const data = Object.values(tripCnt).map(val => val / time);
@@ -1074,10 +1067,6 @@ export function ptStationCountStyle(feature, resolution) {
 export const modifiedStyle = style => {
   console.log(style);
 };
-
-function rgbToHex(r, g, b) {
-  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-}
 
 export const stylesRef = {
   poisAoisStyle: poisAoisStyle,
