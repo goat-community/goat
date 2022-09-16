@@ -46,6 +46,18 @@
       "other": "Andere"
     }
   },
+  "weekday": "Wochentag",
+  "daysOfWeek": {
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag",
+    "sunday": "Sonntag"
+  },
+  "fromTime": "Von",
+  "toTime": "Bis",
   "appBar": {
     "buttons": {
       "login": "Login",
@@ -60,6 +72,7 @@
       "about": "About",
       "isochrones": "Isochronen",
       "heatmaps": "Heatmaps",
+      "indicators": "Indikatoren",
       "staticLayers": "Weitere Layer",
       "allLayers": "Alle Layer",
       "activeLayers": "Aktive Layer"
@@ -298,6 +311,19 @@
         "source": "Quelle",
         "yearTimestamp": "Referenzjahr/Zeitstempel"
       }
+    },
+    "documentation": {
+      "title": "Dokumentation",
+      "openInNewTab": "In neuem Tab öffnen"
+    },
+    "stylePanel": {
+      "selectAttribute": "Attribut auswählen",
+      "fillColor": "Fülleffekt",
+      "iconSize": "Icon Größe",
+      "changeIcon": "Icon ändern",
+      "urlIcon": "URL Upload",
+      "importIcon": "Mein PC",
+      "outlineColorAndWidth": "Formkontur & Stärke"
     }
   },
   "isochrones": {
@@ -335,7 +361,7 @@
       "title": "Optionen",
       "subOptions": "Einstellungen Isochronen",
       "speed": "Geschwindigkeit",
-      "time": "Travel time",
+      "time": "Reisezeit",
       "nr": "Isochronen",
       "calcType": "Detaillierungsgrad Isochronen",
       "calcModus": "Berechnungsmodus",
@@ -351,7 +377,12 @@
       "walking_elderly": "Senior",
       "walking_wheelchair": "Rollstuhl",
       "cycling_standard": "Standard",
-      "cycling_pedelec": "Pedelec"
+      "cycling_pedelec": "Pedelec",
+      "transit": "Transit",
+      "walk": "Walk",
+      "bicycle": "Bicycle",
+      "car": "Car",
+      "car_park": "Car park"
     },
     "results": {
       "title": "Ergebnisse",
@@ -388,7 +419,10 @@
         "population": "Bevölkerung",
         "reachedPopulation": "Erreichbare Bevölkerung",
         "shared": "Anteil"
-      }
+      },
+      "amenityCount": "Amenity Count",
+      "populationCount": "Population Count",
+      "aoisArea": "AOIs Area"
     },
     "isochrones": "Isochronen",
     "deleteTitle": "Löschen",
@@ -409,31 +443,42 @@
       "title": "Farbe der Isochrone"
     }
   },
-  "heatmaps": {
-    "title": "Heatmaps",
-    "recomputeHeatmap": "Neuberechnung",
-    "recomputingHeatmaps": "Neuberechnung von Heatmaps",
-    "heatmapComputedSuccessfully": "Heatmap erfolgreich berechnet",
-    "heatmapComputationFailed": "Heatmap-Berechnung fehlgeschlagen"
+  "indicators": {
+    "title": "Indikatoren",
+    "recomputeIndicators": "Neuberechnung",
+    "recomputingIndicators": "Neuberechnung der Indikatoren",
+    "indicatorsComputedSuccessfully": "Indikatoren erfolgreich neu berechnet",
+    "indicatorsComputationFailed": "Indikatorenberechnung fehlgeschlagen",
+    "indicatorTimePicker": "Indikatoren Zeitauswahl",
+    "timePickerErrorMessage": "Endzeit muss nach Startzeit liegen"
   },
   "poisFilter": {
     "showTimeFilter": "Zeitlichen Filter hinzufügen",
     "selectHourLabel": "Uhrzeit wählen",
-    "selectDayLabel": "Tag wählen",
-    "daysOfWeek": {
-      "monday": "Montag",
-      "tuesday": "Dienstag",
-      "wednesday": "Mittwoch",
-      "thursday": "Donnerstag",
-      "friday": "Freitag",
-      "saturday": "Samstag",
-      "sunday": "Sonntag"
-    }
+    "selectDayLabel": "Tag wählen"
   },
   "layerTree": {
     "title": "Layer",
     "settings": {
       "transparency": "Transparenz"
+    }
+  },
+  "externalGeoportals": {
+    "selectGeoportal": "Wähle Geoportal",
+    "externalGeoportal": "Externes Geoportal",
+    "builtInGeoportals": {
+      "title": "Vordefinierte Geoportale"
+    },
+    "ownGeoportals": {
+      "title": "Füge eigenes Geoportal hinzu",
+      "getLayersFrom": "Importiere Layer von",
+      "results": "Ergebnisse",
+      "seeMore": "mehr..."
+    },
+    "popups": {
+      "info": "Es wurde eine Fehler bei dem externen Service festgestellt, der das Geoportal betreibt. Bitte wählen Sie einen anderen Layer.",
+      "errorMessage": "Dieser Layer ist nicht teil Ihres Untersuchungsgebietes. Bitte wählen Sie einen anderen Layer.",
+      "agreement": "Ich verstehe"
     }
   },
   "map": {
@@ -455,7 +500,6 @@
       "cantPrintBaseLayer": "Diese Basiskarte kann nicht gedruckt werden.",
       "cantExportScenario": "Ein Fehler ist aufgetreten. Szenario kann nicht exportiert werden!",
       "zoomInToShowFeatures": "Zoome um Objekte der folgenden Layer zu sehen",
-      "heatmapIsBusy": "Die Neuberechung der Heatmap dauert etwas. Bitte bleiben Sie geduldig!",
       "calculationCancelled": "Berechnung abgebrochen!",
       "scenarioEditMode": "Bearbeitungsmodus"
     },
@@ -465,6 +509,7 @@
       "environmental_quality": "Umweltdaten",
       "perceivedQuality": "Empfundene Qualität",
       "additional_data": "Weitere Daten",
+      "external_layers": "Externe Layer",
       "heatmap": "Heatmaps",
       "basemap": "Hintergrundkarten"
     },
@@ -536,6 +581,9 @@
       "heatmap_accessibility_population": "Vergleich von Erreichbarkeit und Bevölkerungsdichte",
       "heatmap_population": "Bevölkerungsdichte",
       "heatmap_local_accessibility": "Lokale Erreichbarkeit",
+      "pt_station_count": "Durchschnittliche Anzahl Abfahrten Öffentlicher Verkehr (pro Stunde)",
+      "pt_oev_gueteklasse": "ÖV Güteklassen",
+      "public_transport": "Öffentlicher Verkehr",
       "primary_school_streams": "Fußgängerpotentialströme zu Grundschulen",
       "studyArea": "Untersuchungsgebiet",
       "ways": "Wege",
@@ -545,7 +593,7 @@
       "osm_dark": "OSM Dark",
       "open_topo_map": "Open Topo Map",
       "mapbox_streets": "Mapbox",
-      "public_transport": "Öffentlicher Verkehr",
+      "transit": "Öffentlicher Verkehr",
       "bing_aerial": "Bing Aerial",
       "indicators": "Indikatoren",
       "walking_trip_rate": "Zu Fuß zurückgelegte Wege pro Person",
@@ -986,5 +1034,82 @@
       "cnt_toilets": "Anzahl der Toiletten",
       "cnt_fountains": "Anzahl der Brunnen"
     }
+  },
+  "fa6Categories": {
+    "new-in-v6": "New in v6",
+    "photos-images": "Photos + Images",
+    "_other_": "Other",
+    "alphabet": "Alphabet",
+    "mathematics": "Mathematics",
+    "nature": "Natur",
+    "users-people": "Users + People",
+    "travel-hotel": "Travel + Hotel",
+    "music-audio": "Music + Audio",
+    "alert": "Alert",
+    "time": "Time",
+    "animals": "Tiere",
+    "astronomy": "Astronomy",
+    "science-fiction": "Science Fiction",
+    "text-formatting": "Text Formatting",
+    "maps": "Karten",
+    "construction": "Construction",
+    "arrows": "Arrows",
+    "religion": "Religion",
+    "fruits-vegetables": "Fruits + Vegetables",
+    "education": "Bildung",
+    "social": "Social",
+    "editing": "Editing",
+    "spinners": "Spinners",
+    "communication": "Communication",
+    "accessibility": "Accessibility",
+    "money": "Money",
+    "gaming": "Gaming",
+    "media-playback": "Media Playback",
+    "food-beverage": "Food + Beverage",
+    "medical-health": "Medical + Health",
+    "shopping": "Einkaufen",
+    "security": "Security",
+    "childhood": "Childhood",
+    "political": "Political",
+    "buildings": "Gebäude",
+    "logistics": "Logistics",
+    "business": "Business",
+    "energy": "Energy",
+    "household": "Household",
+    "design": "Design",
+    "transportation": "Transportation",
+    "moving": "Moving",
+    "devices-hardware": "Devices + Hardware",
+    "writing": "Writing",
+    "connectivity": "Connectivity",
+    "charity": "Charity",
+    "shapes": "Shapes",
+    "clothing-fashion": "Clothing + Fashion",
+    "sports-fitness": "Sports + Fitness",
+    "files": "Files",
+    "coding": "Coding",
+    "automotive": "Automotive",
+    "halloween": "Halloween",
+    "toggle": "Toggle",
+    "marketing": "Marketing",
+    "film-video": "Film + Video",
+    "holidays": "Holidays",
+    "science": "Science",
+    "weather": "Weather",
+    "emoji": "Emoji",
+    "camping": "Camping",
+    "gender": "Genders",
+    "hands": "Hands",
+    "all": "Alle",
+    "custom(p4b)": "Spezielle Icons",
+    "communication & devices": "Kommunikation",
+    "others": "Weitere",
+    "food & drinks": "Essen & Trinken",
+    "health": "Gesundheit",
+    "items": "Objekte",
+    "people & clothing": "Menschen & Kleidung",
+    "sign & symbols": "Zeichen & Symbole",
+    "sport": "Sport",
+    "tourism & holidays": "Tourismus & Urlaub"
   }
 }

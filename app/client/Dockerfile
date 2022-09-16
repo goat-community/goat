@@ -14,7 +14,7 @@ RUN if [[ -n "$FONTAWESOME_NPM_AUTH_TOKEN" ]] ; then \
   npm config set "//npm.fontawesome.com/:_authToken" $FONTAWESOME_NPM_AUTH_TOKEN && \
   echo "//registry.npmjs.org/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}" > /app/.npmrc  && \
   npm install --save @fortawesome/fontawesome-pro ; \
-  else rm -f /app/.npmrc ; fi
+  else rm -f /app/.npmrc && npm uninstall @fortawesome/fontawesome-pro && npm install @fortawesome/fontawesome-free;  fi
 
 ENV VUE_APP_I18N_LOCALE=$VUE_APP_I18N_LOCALE
 ENV VUE_APP_I18N_FALLBACK_LOCALE=$VUE_APP_I18N_FALLBACK_LOCALE

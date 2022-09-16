@@ -53,7 +53,9 @@
             getLegendStyle() + `max-height:${this.getLegendMaxHeight()}mm;`
           "
         >
-          <div class=".subtitle-1">LEGEND</div>
+          <div class=".subtitle-1">
+            {{ $t("appBar.printMap.form.legend").toUpperCase() }}
+          </div>
 
           <print-legend v-if="print.active === true"></print-legend>
         </div>

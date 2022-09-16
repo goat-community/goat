@@ -58,6 +58,7 @@ jobs:
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      R5_HOST: ${{ secrets.R5_HOST }}
       API_SECRET_KEY: ${{ secrets.API_SECRET_KEY }}
       SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
       EMAILS_FROM_EMAIL: ${{ secrets.EMAILS_FROM_EMAIL }}
@@ -67,6 +68,7 @@ jobs:
       FIRST_SUPERUSER_NAME: ${{ secrets.FIRST_SUPERUSER_NAME }}
       FIRST_SUPERUSER_SURNAME: ${{ secrets.FIRST_SUPERUSER_SURNAME }}
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      BACKEND_CORS_ORIGIN: ${{ secrets.BACKEND_CORS_ORIGIN }}
     steps:
       - uses: actions/checkout@v2
       - uses: azure/setup-kubectl@v2.0

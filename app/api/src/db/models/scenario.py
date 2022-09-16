@@ -12,7 +12,7 @@ from sqlmodel import (
     SQLModel,
     Text,
     text,
-    Index
+    Index,
 )
 
 from src.db.models import data_upload, study_area
@@ -40,13 +40,14 @@ class Scenario(SQLModel, table=True):
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
     user_id: int = Field(
+        default=None,
         sa_column=Column(
             Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
         ),
     )
     data_upload_ids: Optional[List[int]] = Field(
         sa_column=Column(ARRAY(Integer()), server_default=text("'{}'::int[]"))
-    ) 
+    )
     study_area_id: int = Field(
         sa_column=Column(Integer, ForeignKey("basic.study_area.id"), nullable=False)
     )
@@ -61,6 +62,5 @@ class Scenario(SQLModel, table=True):
     ways_modified: List["WayModified"] = Relationship(back_populates="scenario")
     nodes: List["Node"] = Relationship(back_populates="scenario")
 
-        
+
 Index("idx_scenario_data_upload_ids", Scenario.__table__.c.data_upload_ids, postgresql_using="gin")
-    

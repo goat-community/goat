@@ -313,8 +313,7 @@ export default {
     });
     this.scaleLineControl = new olScaleLine({
       steps: 2,
-      bar: true,
-      text: true
+      bar: true
     });
     this.map
       .getControls()

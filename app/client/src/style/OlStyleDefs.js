@@ -8,6 +8,7 @@ import OlFontSymbol from "../utils/FontSymbol";
 import OlShadow from "../utils/Shadow";
 
 import poisAoisStore from "../store/modules/poisaois";
+import isochroneStore from "../store/modules/isochrones";
 import mapStore from "../store/modules/map";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
@@ -189,10 +190,8 @@ export function getIsochroneStyle() {
     // Style array
     let styles = [];
     // Get the incomeLevel and modus from the feature properties
-    let modus = feature.get("modus");
     let isVisible = feature.get("isVisible");
     let geomType = feature.getGeometry().getType();
-    const highlightFeature = feature.get("highlightFeature");
 
     /**
      * Creates styles for isochrone polygon geometry type and isochrone
@@ -207,58 +206,20 @@ export function getIsochroneStyle() {
       if (isVisible === false) {
         return;
       }
-
-      //Fallback isochrone style
-      if (!modus) {
-        let genericIsochroneStyle = new OlStyle({
+      const calculationColors = isochroneStore.state.calculationColors;
+      const selectedCalculations = isochroneStore.state.selectedCalculations;
+      const calculationNumber = feature.get("calculationNumber");
+      const calculationIndex = selectedCalculations.findIndex(calculation => {
+        return calculation.id === calculationNumber;
+      });
+      styles.push(
+        new OlStyle({
           fill: new OlFill({
-            color: [0, 0, 0, 0]
-          }),
-          stroke: new OlStroke({
-            color: "#0d0d0d",
-            width: 7
+            color: calculationColors[calculationIndex]
           })
-        });
+        })
+      );
 
-        styles.push(genericIsochroneStyle);
-      }
-      //highlight color
-      if (highlightFeature !== false) {
-        styles.push(
-          new OlStyle({
-            stroke: new OlStroke({
-              color: "#FFFFFF",
-              width: 8
-            })
-          })
-        );
-      }
-      // If the modus is 1 it is a default isochrone
-      if (modus === "default" || modus === "comparison") {
-        let style = new OlStyle({
-          fill: new OlFill({
-            color: [0, 0, 0, 0]
-          }),
-          stroke: new OlStroke({
-            color: feature.get("color"),
-            width: 5
-          })
-        });
-
-        styles.push(style);
-      } else {
-        let style = new OlStyle({
-          fill: new OlFill({
-            color: [0, 0, 0, 0]
-          }),
-          stroke: new OlStroke({
-            color: feature.get("color"),
-            width: 5
-          })
-        });
-
-        styles.push(style);
-      }
       if (feature.get("showLabel")) {
         if (geomType !== ["Polygon", "LineString"]) {
           styles.push(
@@ -280,7 +241,7 @@ export function getIsochroneStyle() {
                 return new Point(center);
               },
               text: new OlText({
-                text: Math.round(feature.get("step") / 60) + " min",
+                text: isochroneStore.state.isochroneRange + " min",
                 font: "bold 16px Arial",
                 placement: "point",
                 fill: new OlFill({
@@ -288,7 +249,7 @@ export function getIsochroneStyle() {
                 }),
                 maxAngle: 0,
                 backgroundFill: new OlFill({
-                  color: feature.get("color")
+                  color: calculationColors[calculationIndex]
                 }),
                 padding: [2, 2, 2, 2]
               })
@@ -298,11 +259,11 @@ export function getIsochroneStyle() {
           styles.push(
             new OlStyle({
               text: new OlText({
-                text: Math.round(feature.get("step") / 60) + " min",
+                text: isochroneStore.state.isochroneRange + " min",
                 font: "bold 16px Arial",
                 placement: "line",
                 fill: new OlFill({
-                  color: feature.get("color")
+                  color: calculationColors[calculationIndex]
                 }),
                 maxAngle: 0
               })
@@ -832,7 +793,6 @@ export const mapillaryStyleDefs = {
   activeSequence: "",
   baseOverlayStyle: map => {
     const styleFunction = feature => {
-      // console.log(feature);
       let color = "rgba(53, 175, 109,0.7)";
       if (
         [
@@ -1025,8 +985,70 @@ export function poisAoisStyle(feature) {
   return st;
 }
 
+import Chart from "ol-ext/style/Chart";
+
+// PT Station count layer style
+// feature:
+// "properties": {
+//   "stop_id": "de:09162:1",
+//   "stop_name": "Karlsplatz (Stachus)",
+//   "trip_cnt": {
+//     "1": 14,
+//     "2": 31
+//   }
+// }
+export function ptStationCountStyle(feature) {
+  let time =
+    (appStore.state.timeIndicators.endTime -
+      appStore.state.timeIndicators.startTime) /
+    3600;
+  const tripCnt = feature.get("trip_cnt");
+
+  const tripCntSum = Object.values(tripCnt).reduce((a, b) => a + b, 0) / time;
+  let radius = 3;
+  if (tripCntSum <= 5 && tripCntSum > 0) {
+    radius = 5;
+  } else if (tripCntSum <= 10 && tripCntSum > 5) {
+    radius = 7;
+  } else if (tripCntSum <= 20 && tripCntSum > 10) {
+    radius = 9;
+  } else if (tripCntSum <= 30 && tripCntSum > 20) {
+    radius = 11;
+  } else if (tripCntSum <= 40 && tripCntSum > 30) {
+    radius = 13;
+  } else if (tripCntSum <= 80 && tripCntSum > 40) {
+    radius = 16;
+  } else if (tripCntSum > 80) {
+    radius = 19;
+  }
+
+  const colorMapping = {
+    0: "#D31E20",
+    1: "#004D89",
+    2: "#338FB4",
+    3: "#005567",
+    4: "#BEB8EB",
+    5: "#1A3A3A",
+    6: "#C57B57",
+    7: "#457B9D",
+    11: "#6A3E37",
+    12: "#34344A"
+  };
+  const colors = Object.keys(tripCnt).map(key => colorMapping[key]);
+  const data = Object.values(tripCnt).map(val => val / time);
+  return new OlStyle({
+    image: new Chart({
+      type: "pie",
+      radius: radius,
+      colors,
+      data
+    })
+  });
+}
+
 export const stylesRef = {
   poisAoisStyle: poisAoisStyle,
   study_area_crop: baseStyleDefs.boundaryStyle,
-  sub_study_area: baseStyleDefs.subStudyAreaStyle
+  sub_study_area: baseStyleDefs.subStudyAreaStyle,
+  pt_station_count: ptStationCountStyle
 };

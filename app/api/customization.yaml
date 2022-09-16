@@ -5,7 +5,7 @@ superuser:
     categories_no_foot: ["use_sidepath", "no"]
     excluded_class_id_cycling:
         [0, 101, 102, 103, 104, 105, 106, 107, 501, 502, 503, 504, 701, 801]
-    categories_no_bicycle: ["use_sidepath", "no"]
+    categories_no_bicycle: ["use_sidepath"]
     #categories_sidewalk_no_foot: ["separate"] #Used for visualization purpose only
     cycling_crossings_delay:
         delay_1: 15 #seconds
@@ -30,7 +30,7 @@ superuser:
                 environmental_quality: "fas fa-leaf"
                 additional_data: "more"
                 basemap: "fas fa-globe"
-                heatmap: "hexagon"
+                indicator: "hexagon"
     # Map settings
     map:
         projection_code: "EPSG:3857"
@@ -39,28 +39,61 @@ superuser:
         zoom: 13
     # Routing settings
     routing:
-        - type: "walking_standard"
-          speed: 5
-          icon: "fas fa-walking"
-        - type: "walking_elderly"
-          speed: 3
-          icon: "fas fa-walking"
-        - type: "walking_wheelchair"
-          speed: 2
-          icon: "fas fa-wheelchair"
-        - type: "cycling_standard"
-          speed: 15
-          icon: "fas fa-bicycle"
-        - type: "cycling_pedelec"
-          speed: 23
-          icon: "fas fa-bicycle"
+    - icon: fas fa-walking
+    type: walking_standard
+    speed: 5
+    - icon: fas fa-bicycle
+    type: cycling_standard
+    speed: 15
+    - icon: fas fa-bicycle
+    type: cycling_pedelec
+    speed: 23
+    - icon: fas fa-bus
+    type: transit
+    to_time: 32400
+    from_time: 25200
+    walk_speed: 5
+    access_modes:
+    - icon: fas fa-walking
+        type: walk
+    - icon: fas fa-bicycle
+        type: bicycle
+    egress_modes:
+    - icon: fas fa-walking
+        type: walk
+    - icon: fas fa-bicycle
+        type: bicycle
+    max_walk_time: 20
+    transit_modes:
+    - icon: fak fa-1bus
+        type: bus
+        color: rgb(0, 82, 100)
+        poi_category: bus_stop
+    - icon: fak fa-tram1
+        type: tram
+        color: rgb(228, 0, 15)
+        poi_category: tram_stop
+    - icon: fak fa-u-bahn
+        type: subway
+        color: rgb(0, 77, 137)
+        poi_category: subway_entrance
+    - icon: fa-solid fa-train
+        type: rail
+        color: rgb(45, 45, 45)
+        poi_category: rail_station
+    decay_function:
+    - step
+    - logistic
+    - exponential
+    - linear
+    standard_deviation: 12
 
     layer_groups:
         - buildings_landuse: ["sub_study_area", "building"]
         - environmental_quality: []
         - street_level_quality: []
         - additional_data: ["accidents_pedestrians", "accidents_cyclists"]
-        - heatmap:
+        - indicator:
               [
                   "heatmap_connectivity",
                   "heatmap_local_accessibility",
@@ -76,7 +109,6 @@ superuser:
                   "open_topo_map",
                   "public_transport",
               ]
-
     extras:
 
 user:

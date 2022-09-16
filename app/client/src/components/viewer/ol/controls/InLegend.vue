@@ -15,6 +15,7 @@
             style="max-width:100%; padding-left:50px;"
             :src="legendUrl"
             class="white--text mt-0 pt-0"
+            alt="Legend is loading"
           />
         </div>
       </template>
@@ -24,7 +25,7 @@
         <div
           v-if="
             vectorTileStyles[layer.get('name')] &&
-              ['VECTOR', 'GEOBUF', 'MVT'].includes(
+              ['VECTOR', 'GEOBUF', 'MVT', 'WMS', 'WMTS'].includes(
                 layer.get('type').toUpperCase()
               )
           "

@@ -75,18 +75,19 @@ async def test_get_user_superuser(
     assert existing_user[0].email == api_user["email"]
 
 
-async def test_delete_user_superuser(
+async def test_delete_users_superuser(
     client: AsyncClient, superuser_token_headers: dict, db: AsyncSession
 ) -> None:
-    user_in = await create_random_user(db=db)
-    user_id = user_in.id
+    users = [await create_random_user(db=db) for i in range(2)]
+    user_ids = [user.id for user in users]
     r = await client.delete(
-        f"{settings.API_V1_STR}/users/{user_id}",
-        headers=superuser_token_headers,
+        f"{settings.API_V1_STR}/users/", headers=superuser_token_headers, params={"id": user_ids}
     )
     assert 200 <= r.status_code < 300
-    existing_user = await crud.user.get_by_key(db, key="email", value=user_in.email)
-    assert len(existing_user) == 0
+
+    for user_in in users:
+        existing_user = await crud.user.get_by_key(db, key="email", value=user_in.email)
+        assert len(existing_user) == 0
 
 
 async def test_update_user_superuser(

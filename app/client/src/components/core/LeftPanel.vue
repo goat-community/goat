@@ -66,7 +66,7 @@
             {{ $t("appBar.buttons.isochrones") }}
           </v-tab>
           <v-tab class="px-0">
-            {{ $t("appBar.buttons.heatmaps") }}
+            {{ $t("appBar.buttons.indicators") }}
           </v-tab>
           <v-tab class="px-0">
             {{ $t("appBar.buttons.staticLayers") }}
@@ -111,7 +111,7 @@
 <script>
 // Utilities
 import IsochronesComponent from "../isochrones/Isochrones";
-import HeatmapsComponent from "../heatmaps/Heatmaps";
+import IndicatorsComponent from "../indicators/Indicators";
 import LayerTree from "../layers/layerTree/LayerTree";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
@@ -120,7 +120,7 @@ import { Isochrones } from "../../mixins/Isochrones";
 export default {
   components: {
     "map-isochrones": IsochronesComponent,
-    "map-heatmaps": HeatmapsComponent,
+    "map-indicators": IndicatorsComponent,
     "map-layertree": LayerTree
   },
   mixins: [Isochrones],
@@ -132,7 +132,7 @@ export default {
     mini: false,
     responsive: false,
     topTabIndex: 0,
-    componentNames: ["map-isochrones", "map-heatmaps", "map-layertree"],
+    componentNames: ["map-isochrones", "map-indicators", "map-layertree"],
     tabKey: 0
   }),
   computed: {
@@ -140,7 +140,7 @@ export default {
       return this.mini === true ? this.appColor.primary : "";
     },
     ...mapGetters("isochrones", {
-      selectedThematicData: "selectedThematicData",
+      selectedCalculations: "selectedCalculations",
       calculations: "calculations"
     }),
     ...mapGetters("app", {
@@ -153,7 +153,7 @@ export default {
     })
   },
   watch: {
-    selectedThematicData(calculation) {
+    selectedCalculations(calculation) {
       if (calculation) {
         this.calculations.forEach(value => {
           if (value.id !== calculation.calculationId) {
