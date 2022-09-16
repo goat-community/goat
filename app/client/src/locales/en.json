@@ -64,6 +64,18 @@
     "smallerThanThousand": "Value should be smaller than 1000",
     "onlyTwoDecimalPlaces": "Only 2 decimal places are allowed"
   },
+  "weekday": "Weekday",
+  "daysOfWeek": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "fromTime": "From",
+  "toTime": "To",
   "appBar": {
     "buttons": {
       "login": "Login",
@@ -78,6 +90,7 @@
       "about": "About",
       "isochrones": "Isochrones",
       "heatmaps": "Heatmaps",
+      "indicators": "Indicators",
       "staticLayers": "Other Layers",
       "allLayers": "All Layer",
       "activeLayers": "Active Layer"
@@ -297,6 +310,10 @@
     "stylePanel": {
       "selectAttribute": "Select Attribute",
       "fillColor": "Fill Color",
+      "iconSize": "Icon Size",
+      "changeIcon": "Change Icon",
+      "urlIcon": "Url Upload",
+      "importIcon": "Local Upload",
       "outlineColorAndWidth": "Outline color & width"
     }
   },
@@ -311,6 +328,7 @@
       "scenario": "Scenario"
     },
     "single": {
+      "singleIsochrone": "Isochrone Single",
       "title": "Starting Point",
       "type": "Single",
       "searchBox": "Search Starting Point",
@@ -338,6 +356,10 @@
       "speed": "Speed",
       "time": "Travel time",
       "nr": "Isochrones",
+      "from_time": "From Time",
+      "access_mode": "Access Mode",
+      "egress_mode": "Egress Mode",
+      "to_time": "To Time",
       "calcType": "Level of detail isochrones",
       "calcModus": "Calculation Mode",
       "alphaShapeMode": "Level of detail isochrones",
@@ -345,6 +367,7 @@
       "scenario": "Scenario",
       "comparison": "Comparison",
       "routingProfile": "Routing Profile",
+      "routing": "Routing",
       "walking_standard": "Standard",
       "walking_elderly": "Elderly",
       "walking_safe_night": "Safe night",
@@ -352,7 +375,13 @@
       "walking_wheelchair_standard": "Standard",
       "walking_wheelchair_electric": "Electric",
       "cycling_standard": "Standard",
-      "cycling_pedelec": "Pedelec"
+      "cycling_pedelec": "Pedelec",
+      "transitModes": "Transit Modes",
+      "transit": "Transit",
+      "walk": "Walk",
+      "bicycle": "Bicycle",
+      "car": "Car",
+      "car_park": "Car park"
     },
     "results": {
       "title": "Results",
@@ -392,7 +421,11 @@
         "population": "Population",
         "reachedPopulation": "Reached Population",
         "shared": "Share"
-      }
+      },
+      "travelTime": "Traveltime (minutes)",
+      "amenityCount": "Amenity Count",
+      "populationCount": "Population Count",
+      "aoisArea": "AOIs Area"
     },
     "isochrones": "Isochrones",
     "deleteTitle": "Delete",
@@ -414,31 +447,62 @@
       "title": "Isochrone Color"
     }
   },
-  "heatmaps": {
-    "title": "Heatmaps",
-    "recomputeHeatmap": "Recompute",
-    "recomputingHeatmaps": "Recomputing Heatmaps",
-    "heatmapComputedSuccessfully": "Heatmap computed successfully",
-    "heatmapComputationFailed": "Heatmap computation failed"
+  "indicators": {
+    "title": "Indicators",
+    "recomputeIndicators": "Recompute",
+    "recomputingIndicators": "Recomputing Indicators",
+    "indicatorsComputedSuccessfully": "Indicators computed successfully",
+    "indicatorsComputationFailed": "Indicators computation failed",
+    "indicatorTimePicker": "Indicator Time Picker",
+    "timePickerErrorMessage": "Start time must be before end time",
+    "pt_route_types": {
+      "0": "Tram",
+      "1": "Subway",
+      "2": "Rail",
+      "3": "Bus",
+      "4": "Ferry",
+      "5": "Cable Car",
+      "6": "Aerial Lift",
+      "7": "Funicular",
+      "11": "Trolleybus",
+      "12": "Monorail"
+    },
+    "gutteklassenRating": {
+      "A": "High quality accessibility to Public transport",
+      "B": "Good quality accessibility to Public Transport",
+      "C": "Average quality accessibility to Public Transport",
+      "D": "Not so good accessibility to Public Transport",
+      "E": "Bad accessibility Public Transport",
+      "F": "Worst accessibility to Public Transport"
+    }
   },
   "poisFilter": {
     "showTimeFilter": "Add time filter",
     "selectHourLabel": "Select open time to filter",
-    "selectDayLabel": "Select day",
-    "daysOfWeek": {
-      "monday": "Monday",
-      "tuesday": "Tuesday",
-      "wednesday": "Wednesday",
-      "thursday": "Thursday",
-      "friday": "Friday",
-      "saturday": "Saturday",
-      "sunday": "Sunday"
-    }
+    "selectDayLabel": "Select day"
   },
   "layerTree": {
     "title": "Layers",
     "settings": {
       "transparency": "Transparency"
+    }
+  },
+  "externalGeoportals": {
+    "selectGeoportal": "Choose Geoportal",
+    "externalGeoportal": "External Geoportal",
+    "builtInGeoportals": {
+      "title": "Built-in Geoportals"
+    },
+    "ownGeoportals": {
+      "title": "Add own Geoportal",
+      "getLayersFrom": "Import layer from",
+      "results": "results",
+      "seeMore": "see more..."
+    },
+    "popups": {
+      "info": "There has been a problem with the external service running the geoportal. Please try to select another layer.",
+      "errorMessage": "This layer is not part of the study area, please select another layer!",
+      "agreement": "I understand"    
     }
   },
   "map": {
@@ -463,17 +527,18 @@
       "featuresAlreadyUploaded": "Features already exists",
       "cantExportScenario": "An error happened. Scenario can't be exported!",
       "zoomInToShowFeatures": "Zoom in to show features for",
-      "heatmapIsBusy": "Recomputing for heatmap layer might take some time. Please be patient!",
       "calculationCancelled": "Calculation Cancelled!",
       "scenarioEditMode": "Edit Mode"
     },
     "layerGroup": {
-      "buildings_landuse": "Buildings and Land Use",
-      "streetlevelqualityLayers": "Street Level Quality",
+      "buildings_landuse": "Buildings and land use",
+      "streetlevelqualityLayers": "Street level quality",
       "environmental_quality": "Environmental data",
       "additional_data": "Additional data",
+      "publicTransportation": "Public Transportation",
+      "external_layers": "External layers",
       "accessbilityBasemaps": "Heatmaps",
-      "basemap": "Background Layers",
+      "basemap": "Background layers",
       "heatmap": "Heatmaps"
     },
     "layerName": {
@@ -544,7 +609,7 @@
       "osm_dark": "OSM Dark",
       "open_topo_map": "Open Topo Map",
       "mapbox_streets": "Mapbox",
-      "public_transport": "Public Transport",
+      "transit": "Public Transport",
       "bing_aerial": "Bing Aerial",
       "walking_trip_rate": "Walking trips per person",
       "walkingShare": "Share of walking trips",
@@ -564,7 +629,10 @@
       "heatmap_connectivity": "Connectivity",
       "heatmap_local_accessibility": "Local Accessibility",
       "heatmap_accessibility_population": "Accessibility and Population Density",
-      "heatmap_population": "Population Density"
+      "heatmap_population": "Population Density",
+      "pt_station_count": "Average count of departures public transport (per hour)",
+      "pt_oev_gueteklasse": "ÖV Güteklassen (Public transport benchmark)",
+      "public_transport": "Public Transport"
     },
     "tooltips": {
       "clickForIsochroneCalculation": "Click for isochrone calculation. Press ESC to exit",
@@ -789,6 +857,7 @@
     "middle_school": "Middle school",
     "high_school": "High school",
     "realschule": "Realschule",
+    "hauptschule": "Hauptschule",
     "hauptschule_mittelschule": "Haupt-/Mittelschule",
     "werkrealschule": "Werkrealschule",
     "school": "School",
@@ -912,6 +981,10 @@
     },
     "calendar": {
       "moreEvents": "{0} more"
+    },
+    "timePicker": {
+      "am": "AM",
+      "pm": "PM"
     }
   },
   "common": {
@@ -988,9 +1061,7 @@
       "liveliness": "Walking environment",
       "data_quality": "Data Quality",
       "comfort": "Comfort",
-      "walkability": [
-        "TOTAL WALKABILITY SCORE"
-      ],
+      "walkability": ["TOTAL WALKABILITY SCORE"],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
       "sidewalk": "Sidewalk availability",
@@ -1079,6 +1150,17 @@
     "emoji": "Emoji",
     "camping": "Camping",
     "gender": "Genders",
-    "hands": "Hands"
+    "hands": "Hands",
+    "all": "All",
+    "custom(p4b)": "Custom Icons",
+    "communication & devices": "Communication & Devices",
+    "others": "Others",
+    "food & drinks": "Food & Drinks",
+    "health": "Health",
+    "items": "Items",
+    "people & clothing": "People & Clothing",
+    "sign & symbols": "Sign & Symbols",
+    "sport": "Sport",
+    "tourism & holidays": "Tourism & Holiday"
   }
 }

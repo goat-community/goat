@@ -82,7 +82,6 @@ export default {
           .getSource()
           .getFeatureById(obj.id);
         if (this.selectedMode == isochroneFeature.get("modus")) {
-          console.log(this.selectedMode);
           const step = isochroneFeature.get("step");
           const interpolatedColor = IsochroneUtils.getInterpolatedColor(
             1,

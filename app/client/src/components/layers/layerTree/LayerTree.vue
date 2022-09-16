@@ -6,8 +6,8 @@
         <v-tab-item :eager="true">
           <v-expansion-panels accordion multiple>
             <v-expansion-panel
-              v-for="(layerGroupValue, layerGroupKey) in layerGroups"
-              :key="layerGroupKey"
+              v-for="(layerGroup, i) in layerGroupsArr"
+              :key="i"
               expand
             >
               <v-expansion-panel-header
@@ -15,16 +15,24 @@
                 expand-icon=""
                 v-slot="{ open }"
               >
-                <v-layout row wrap align-center>
+                <v-layout row wrap align-center justify-space-between>
                   <v-flex xs1>
                     <v-icon small>{{
-                      getLayerGroupIcon(layerGroupKey)
+                      getLayerGroupIcon(layerGroup.name)
                     }}</v-icon>
                   </v-flex>
-                  <v-flex xs10 class="light-text" style="font-size:medium;">
+                  <v-flex xs8 class="light-text" style="font-size:medium;">
                     <div>
-                      <b>{{ translate("layerGroup", layerGroupKey) }}</b>
+                      <b>{{ translate("layerGroup", layerGroup.name) }}</b>
                     </div>
+                  </v-flex>
+                  <v-flex>
+                    <ImportExternalLayers
+                      @getLayerInfo="layerInfoSubmited"
+                      @changeErrPopup="ImportinglayerError = false"
+                      :ImportinglayerError="ImportinglayerError"
+                      v-if="layerGroup.name === 'external_layers'"
+                    />
                   </v-flex>
                   <v-flex xs1>
                     <v-icon v-html="open ? 'remove' : 'add'"></v-icon>
@@ -35,7 +43,7 @@
                 <!-- LAYERS -->
                 <v-expansion-panels readonly>
                   <v-expansion-panel
-                    v-for="(layer, i) in layerGroupValue"
+                    v-for="(layer, i) in layerGroup.children"
                     :key="i"
                     class="layer-row"
                     :class="{
@@ -50,14 +58,25 @@
                             :color="appColor.secondary"
                             :value="layer.getVisible()"
                             @input="
-                              toggleLayerVisibility(layer, layerGroupValue)
+                              toggleLayerVisibility(layer, layerGroup.children)
                             "
                           ></v-simple-checkbox>
                         </v-flex>
                         <v-flex xs10 class="light-text">
-                          <h4 class="pl-2">
-                            {{ translate("layerName", layer.get("name")) }}
-                          </h4>
+                          <v-layout justify-space-between>
+                            <h4 class="pl-2">
+                              {{ translate("layerName", layer.get("name")) }}
+                            </h4>
+
+                            <v-icon
+                              class="mr-2"
+                              style="float: right; cursor: pointer;"
+                              small
+                              @click="deleteExternalLayer(layer)"
+                              v-if="layer.get('group') === 'external_layers'"
+                              >fas fa-trash-can</v-icon
+                            >
+                          </v-layout>
                         </v-flex>
                         <v-flex xs1>
                           <v-icon
@@ -98,9 +117,14 @@
                           class="xs2"
                           style="text-align:center;"
                           v-if="
-                            ['VECTORTILE', 'VECTOR', 'MVT', 'GEOBUF'].includes(
-                              layer.get('type').toUpperCase()
-                            )
+                            [
+                              'VECTORTILE',
+                              'VECTOR',
+                              'MVT',
+                              'GEOBUF',
+                              'WMTS',
+                              'WMS'
+                            ].includes(layer.get('type').toUpperCase())
                           "
                         >
                           <v-icon
@@ -119,7 +143,9 @@
                                 'VECTORTILE',
                                 'VECTOR',
                                 'MVT',
-                                'GEOBUF'
+                                'GEOBUF',
+                                'WMTS',
+                                'WMS'
                               ].includes(layer.get('type').toUpperCase()) ==
                               true,
                             xs12: false
@@ -151,12 +177,14 @@
             :translate="translate"
             :toggleLayerOptions="toggleLayerOptions"
             :changeLayerOpacity="changeLayerOpacity"
+            :layerGroupsArr="layerGroupsArr"
           ></layer-order>
         </v-tab-item>
       </v-tabs-items>
     </vue-scroll>
     <span v-if="styleDialogStatus">
       <style-dialog
+        @closeTheDialog="styleDialogStatus = false"
         :item="currentItem"
         :translate="translate"
         :key="styleDialogKey"
@@ -168,27 +196,35 @@
 </template>
 
 <script>
+//map and state imports
 import { Mapable } from "../../../mixins/Mapable";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
-
 import { EventBus } from "../../../EventBus";
-import Legend from "../../viewer/ol/controls/Legend";
+
+//component imports
 import InLegend from "../../viewer/ol/controls/InLegend";
 import LayerOrder from "../layerOrder/LayerOrder";
 import StyleDialog from "../changeStyle/StyleDialog";
+import Legend from "../../viewer/ol/controls/Legend";
+import ImportExternalLayers from "../importLayers/ImportExternalLayers.vue";
+
+//Openlayer imports
+import TileLayer from "ol/layer/Tile";
+import TileWMS from "ol/source/TileWMS";
+import { fromLonLat } from "ol/proj";
+// import { containsExtent } from "ol/extent";
+
 export default {
   mixins: [Mapable, Legend],
-  data: () => ({
-    layerGroups: {},
-    currentItem: null,
-    styleDialogKey: 0,
-    styleDialogStatus: false
-  }),
-  components: {
-    LayerOrder,
-    InLegend,
-    StyleDialog
+  data() {
+    return {
+      layerGroupsArr: [],
+      currentItem: null,
+      styleDialogKey: 0,
+      ImportinglayerError: false,
+      styleDialogStatus: false
+    };
   },
   computed: {
     ...mapGetters("app", {
@@ -197,37 +233,233 @@ export default {
     }),
     ...mapFields("app", {
       layerTabIndex: "layerTabIndex"
+    }),
+    ...mapGetters("map", {
+      studyArea: "studyArea"
     })
   },
-  mounted() {
-    EventBus.$on("updateStyleDialogStatusForLayerTree", value => {
-      this.styleDialogStatus = value;
-    });
-  },
+  components: { LayerOrder, InLegend, StyleDialog, ImportExternalLayers },
   methods: {
-    /**
-     * This function is executed, after the map is bound (see mixins/Mapable)
-     * and registers the current map layers.
-     */
-    onMapBound() {
+    // Layer Import feature
+    createExternalLayerGroup() {
+      let currentConfig = this.appConfig;
+      let imports = {
+        external_layers: {
+          children: [],
+          icon: "fas fa-upload"
+        }
+      };
+      currentConfig.layer_groups.push(imports);
+      this.$store.commit("app/setAppConfig", currentConfig);
+    },
+    layerInfoSubmited({ data, currentHoveredLayer }) {
+      if (currentHoveredLayer) {
+        this.map.removeLayer(currentHoveredLayer);
+      }
+      let resultsfromThis = this.appConfig.layer_groups.map(lay => {
+        return Object.keys(lay)[0];
+      });
+      if (!resultsfromThis.includes("external_layers")) {
+        this.createExternalLayerGroup();
+      }
+
+      let newLayer = new TileLayer({
+        source: new TileWMS({
+          url: data.url,
+          params: {
+            layers: data.name
+          },
+          attribution: data.title
+        }),
+        group: "external_layers",
+        name: data.title,
+        visible: true,
+        opacity: 1,
+        type: "wmts",
+        legendGraphicUrls: data.legendUrl,
+        showOptions: true
+      });
+
+      //checking if layer is in studyarea
+      const mapExtent = this.studyArea[0].values_.bounds;
+      let layerExtent = data.extend;
+      let firstHalf = fromLonLat([layerExtent[0], layerExtent[1]], "EPSG:3857");
+      let secondHalf = fromLonLat(
+        [layerExtent[2], layerExtent[3]],
+        "EPSG:3857"
+      );
+      layerExtent = [...firstHalf, ...secondHalf];
+
+      if (
+        layerExtent[0] >= mapExtent[0] &&
+        layerExtent[0] <= mapExtent[2] &&
+        layerExtent[1] >= mapExtent[1] &&
+        layerExtent[1] <= mapExtent[3]
+      ) {
+        if (this.layerGroupsArr.length >= 5) {
+          this.layerGroupsArr.forEach(layerGroup => {
+            if (layerGroup.name === "external_layers") {
+              let hasLayer = layerGroup.children.filter(
+                layer => layer.get("name") === newLayer.get("name")
+              );
+              if (hasLayer.length === 0) {
+                this.map.addLayer(newLayer);
+                this.updateLayerArray();
+              }
+            }
+          });
+        } else {
+          this.map.addLayer(newLayer);
+
+          this.updateLayerArray();
+        }
+      } else if (
+        layerExtent[2] >= mapExtent[0] &&
+        layerExtent[2] <= mapExtent[2] &&
+        layerExtent[3] >= mapExtent[1] &&
+        layerExtent[3] <= mapExtent[3]
+      ) {
+        if (this.layerGroupsArr.length >= 5) {
+          this.layerGroupsArr.forEach(layerGroup => {
+            if (layerGroup.name === "external_layers") {
+              let hasLayer = layerGroup.children.filter(
+                layer => layer.get("name") === newLayer.get("name")
+              );
+              if (hasLayer.length === 0) {
+                this.map.addLayer(newLayer);
+                this.updateLayerArray();
+              }
+            }
+          });
+        } else {
+          this.map.addLayer(newLayer);
+
+          this.updateLayerArray();
+        }
+      } else if (
+        mapExtent[0] >= layerExtent[0] &&
+        mapExtent[0] <= layerExtent[2] &&
+        mapExtent[1] >= layerExtent[1] &&
+        mapExtent[1] <= layerExtent[3]
+      ) {
+        if (this.layerGroupsArr.length >= 5) {
+          this.layerGroupsArr.forEach(layerGroup => {
+            if (layerGroup.name === "external_layers") {
+              let hasLayer = layerGroup.children.filter(
+                layer => layer.get("name") === newLayer.get("name")
+              );
+              if (hasLayer.length === 0) {
+                this.map.addLayer(newLayer);
+                this.updateLayerArray();
+              }
+            }
+          });
+        } else {
+          this.map.addLayer(newLayer);
+
+          this.updateLayerArray();
+        }
+      } else if (
+        mapExtent[2] >= layerExtent[0] &&
+        mapExtent[2] <= layerExtent[2] &&
+        mapExtent[3] >= layerExtent[1] &&
+        mapExtent[3] <= layerExtent[3]
+      ) {
+        if (this.layerGroupsArr.length >= 5) {
+          this.layerGroupsArr.forEach(layerGroup => {
+            if (layerGroup.name === "external_layers") {
+              let hasLayer = layerGroup.children.filter(
+                layer => layer.get("name") === newLayer.get("name")
+              );
+              if (hasLayer.length === 0) {
+                this.map.addLayer(newLayer);
+                this.updateLayerArray();
+              }
+            }
+          });
+        } else {
+          this.map.addLayer(newLayer);
+
+          this.updateLayerArray();
+        }
+      } else {
+        this.ImportinglayerError = true;
+      }
+    },
+
+    //updating the sidebar layers
+    updateLayerGroups() {
       const layerGroups = this.appConfig.layer_groups;
-      layerGroups.reverse().forEach(lg => {
+
+      let externalGroup = layerGroups.filter(
+        layer => Object.keys(layer)[0] === "external_layers"
+      );
+      if (externalGroup.length === 0) {
+        this.createExternalLayerGroup();
+      }
+
+      layerGroups.forEach(lg => {
         const layerGroupName = Object.keys(lg)[0];
-        if (layerGroupName !== "heatmap") {
-          this.layerGroups[layerGroupName] = [];
+        if (layerGroupName !== "indicator") {
+          let newObject = {
+            name: layerGroupName,
+            children: []
+          };
+          this.layerGroupsArr.push(newObject);
         }
       });
+
       this.map
         .getLayers()
         .getArray()
         .forEach(layer => {
-          if (layer.get("group") && layer.get("group") !== "heatmap") {
-            if (!this.layerGroups[layer.get("group")]) {
-              this.layerGroups[layer.get("group")] = [];
-            }
-            this.layerGroups[layer.get("group")].push(layer);
+          if (layer.get("group") && layer.get("group") !== "indicator") {
+            this.layerGroupsArr.forEach((lay, idx) => {
+              if (lay.name === layer.get("group")) {
+                this.layerGroupsArr[idx].children.push(layer);
+              }
+            });
           }
         });
+    },
+    /*
+     * This function is executed, after the map is bound (see mixins/Mapable)
+     * and registers the current map layers.
+     */
+    onMapBound() {
+      this.updateLayerGroups();
+    },
+    getLayerGroupIcon(group) {
+      const layerGroupConf = this.appConfig.layer_groups.filter(g => g[group]);
+      return layerGroupConf[0][group].icon || "fas fa-layer-group";
+    },
+    translate(type, key) {
+      //Checks if key exists and translates it othewise return the input value
+      const canTranslate = this.$te(`map.${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`map.${type}.${key}`);
+      } else {
+        return key;
+      }
+    },
+    toggleLayerVisibility(layer, group) {
+      const currentState = layer.getVisible();
+      //Turn off other layers if layer group is background layers.
+      if (layer.get("group") === "basemap") {
+        group.forEach(layer => {
+          layer.setVisible(false);
+        });
+      }
+      layer.setVisible(!currentState);
+      if (layer.getVisible() === false) {
+        layer.set("showOptions", false);
+      } else {
+        layer.set("showOptions", true);
+      }
+      EventBus.$emit("toggleLayerVisiblity", layer);
+    },
+    toggleLayerOptions(layer) {
+      layer.set("showOptions", !layer.get("showOptions"));
     },
     openStyleDialog(item) {
       //This function is used for opening Style Setting dialog component for a layer
@@ -251,45 +483,40 @@ export default {
       }
       this.currentItem = item;
     },
-    toggleLayerVisibility(layer, group) {
-      const currentState = layer.getVisible();
-      //Turn off other layers if layer group is background layers.
-      if (layer.get("group") === "basemap") {
-        group.forEach(layer => {
-          layer.setVisible(false);
-        });
-      }
-      layer.setVisible(!currentState);
-      if (layer.getVisible() === false) {
-        layer.set("showOptions", false);
-      } else {
-        layer.set("showOptions", true);
-      }
-      EventBus.$emit("toggleLayerVisiblity", layer);
-    },
-    toggleLayerOptions(layer) {
-      layer.set("showOptions", !layer.get("showOptions"));
-    },
     changeLayerOpacity(value, layer) {
       layer.setOpacity(value);
     },
-    getLayerGroupIcon(group) {
-      const layerGroupConf = this.appConfig.layer_groups.filter(g => g[group]);
-      return layerGroupConf[0][group].icon || "fas fa-layer-group";
-    },
-    translate(type, key) {
-      //type = {layerGroup || layerName}
-      //Checks if key exists and translates it othewise return the input value
-      const canTranslate = this.$te(`map.${type}.${key}`);
-      if (canTranslate) {
-        return this.$t(`map.${type}.${key}`);
+    // Importing built in layers from a local js file
+    preventDuplication(newlayer) {
+      if (this.layerGroupsArr.length === 5) {
+        this.layerGroupsArr.forEach(layerGroup => {
+          if (layerGroup.name === "external_layers") {
+            let hasLayer = layerGroup.children.filter(
+              layer => layer.get("name") === newlayer.get("name")
+            );
+            if (hasLayer.length === 0) {
+              this.map.addLayer(newlayer);
+              this.updateLayerArray();
+            }
+          }
+        });
       } else {
-        return key;
+        this.map.addLayer(newlayer);
+        this.updateLayerArray();
       }
+    },
+    deleteExternalLayer(layer) {
+      this.map.removeLayer(layer);
+      this.updateLayerArray();
+    },
+    updateLayerArray() {
+      this.layerGroupsArr = [];
+      this.updateLayerGroups();
     }
   }
 };
 </script>
+
 <style lang="css" scoped>
 .v-expansion-panel__header {
   cursor: default;

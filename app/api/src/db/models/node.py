@@ -24,13 +24,6 @@ class Node(SQLModel, table=True):
 
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True))
     osm_id: Optional[int] = Field(sa_column=Column(BigInteger()))
-    cnt: Optional[int]
-    class_ids: Optional[List[int]] = Field(sa_column=Column(ARRAY(Integer)))
-    foot: Optional[str] = Field(sa_column=Column(ARRAY(Text())))
-    bicycle: Optional[str] = Field(sa_column=Column(ARRAY(Text())))
-    lit_classified: Optional[str] = Field(sa_column=Column(ARRAY(Text())))
-    wheelchair_classified: Optional[str] = Field(sa_column=Column(ARRAY(Text())))
-    death_end: Optional[bool] = Field(index=True)
     geom: str = Field(
         sa_column=Column(
             Geometry(geometry_type="Point", srid="4326", spatial_index=False),

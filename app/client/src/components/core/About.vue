@@ -92,8 +92,10 @@
 
 <script>
 import { humanize } from "../../utils/Helpers";
+import { Mapable } from "../../mixins/Mapable";
 import { mapGetters } from "vuex";
 export default {
+  mixins: [Mapable],
   props: ["visible"],
   computed: {
     show: {

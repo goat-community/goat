@@ -3,8 +3,6 @@ from __future__ import with_statement
 import asyncio
 import os
 from logging.config import fileConfig
-
-from alembic_utils.replaceable_entity import register_entities
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlmodel import SQLModel
@@ -12,11 +10,6 @@ from sqlmodel import SQLModel
 from alembic import context
 from src.core.config import settings
 from src.db.models import *
-from src.db.sql.init_sql import (
-    sql_function_entities,
-    sql_trigger_entities,
-    sql_view_entities,
-)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -34,23 +27,16 @@ target_metadata = SQLModel.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-
-# run migration for database custom functions, views, triggers
-sql_entities = sql_function_entities() + sql_view_entities() + sql_trigger_entities()
-register_entities(sql_entities)
-
-
 def include_object(object, name, type_, reflected, compare_to):
     print(type_)
     if (
-        type_ in ["table", "function", "extension", "trigger", "view"]
+        type_ in ["table"]
         and reflected
         and compare_to is None
     ):
         return False
     else:
         return True
-
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.

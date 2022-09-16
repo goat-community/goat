@@ -39,14 +39,18 @@ BEGIN
 
 	sql_cost = jsonb_build_object(
 	'cycling','CASE WHEN crossing IS NOT NULL THEN (''%2$s''::jsonb ->> (''delay_'' || crossing_delay_category))::integer + ((length_m*(1+COALESCE(s_imp,0)+COALESCE(impedance_surface,0))::float)/%1$s) 
-			   ELSE (length_m*(1+COALESCE(s_imp,0)+COALESCE(impedance_surface,0))::float)/%1$s END AS cost,
+			   ELSE (length_m*(1+COALESCE(s_imp,0)+COALESCE(impedance_surface,0))::float)/
+			   CASE WHEN bicycle IN (''no'', ''dismount'') THEN 1.33 ELSE %1$s END END AS cost,
 			   CASE WHEN crossing IS NOT NULL THEN (	''%2$s''::jsonb ->> (''delay_'' || crossing_delay_category))::integer + ((length_m*(1+COALESCE(rs_imp,0)+COALESCE(impedance_surface,0))::float)/%1$s) 
-			   ELSE (length_m*(1+COALESCE(rs_imp,0)+COALESCE(impedance_surface,0))::float)/%1$s END AS reverse_cost',
+			   ELSE (length_m*(1+COALESCE(rs_imp,0)+COALESCE(impedance_surface,0))::float)/
+			   CASE WHEN bicycle IN (''no'', ''dismount'') THEN 1.33 ELSE %1$s END END AS reverse_cost',
 	'walking', 'length_m/%1$s as cost, length_m/%1$s as reverse_cost',
 	'ebike', 'CASE WHEN crossing IS NOT NULL THEN (''%2$s''::jsonb ->> (''delay_'' || crossing_delay_category))::integer + ((length_m*(1+-greatest(-COALESCE(s_imp,0),0)+COALESCE(impedance_surface,0))::float)/%1$s) 
-			   ELSE (length_m*(1+COALESCE(impedance_surface,0))::float)/%1$s END AS cost,
+			   ELSE (length_m*(1+COALESCE(impedance_surface,0))::float)/
+			   CASE WHEN bicycle IN (''no'', ''dismount'') THEN 1.33 ELSE %1$s END END AS cost,
 			   CASE WHEN crossing IS NOT NULL THEN (''%2$s''::jsonb ->> (''delay_'' || crossing_delay_category))::integer + ((length_m*(1+-greatest(-COALESCE(rs_imp,0),0)+COALESCE(impedance_surface,0))::float)/%1$s)
-			   ELSE (length_m*(1+COALESCE(impedance_surface,0))::float)/%1$s END AS reverse_cost'
+			   ELSE (length_m*(1+COALESCE(impedance_surface,0))::float)/
+               CASE WHEN bicycle IN (''no'', ''dismount'') THEN 1.33 ELSE %1$s END END AS reverse_cost'
 	) ->> cost_function;
 
 	sql_cost = format(sql_cost, speed_input, time_loss_intersections::text);
@@ -85,3 +89,4 @@ $function$;
 /*
 SELECT basic.query_edges_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.543274,48.195524),0.0018)),'default',0,1.33,'walking_standard',true)
 */
+
