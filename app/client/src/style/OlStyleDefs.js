@@ -12,7 +12,7 @@ import isochroneStore from "../store/modules/isochrones";
 import mapStore from "../store/modules/map";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
-import { getIconUnicode } from "../utils/Helpers";
+import { getIconUnicode, publicTransportStations } from "../utils/Helpers";
 import Point from "ol/geom/Point";
 import { getArea } from "ol/sphere.js";
 import i18n from "../../src/plugins/i18n";
@@ -259,7 +259,7 @@ export function getIsochroneStyle() {
           styles.push(
             new OlStyle({
               text: new OlText({
-                text: isochroneStore.state.isochroneRange,
+                text: isochroneStore.state.isochroneRange + " min",
                 font: "bold 16px Arial",
                 placement: "line",
                 fill: new OlFill({
@@ -986,7 +986,6 @@ export function poisAoisStyle(feature) {
 }
 
 import Chart from "ol-ext/style/Chart";
-import { publicTransportStations } from "../utils/Helpers";
 
 // PT Station count layer style
 // feature:
@@ -998,6 +997,7 @@ import { publicTransportStations } from "../utils/Helpers";
 //     "2": 31
 //   }
 // }
+
 export function ptStationCountStyle(feature, resolution) {
   let time =
     (appStore.state.timeIndicators.endTime -
