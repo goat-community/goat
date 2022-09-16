@@ -241,7 +241,7 @@ export function getIsochroneStyle() {
                 return new Point(center);
               },
               text: new OlText({
-                text: Math.round(feature.get("step") / 60) + " min",
+                text: isochroneStore.state.isochroneRange + " min",
                 font: "bold 16px Arial",
                 placement: "point",
                 fill: new OlFill({
@@ -249,7 +249,7 @@ export function getIsochroneStyle() {
                 }),
                 maxAngle: 0,
                 backgroundFill: new OlFill({
-                  color: feature.get("color")
+                  color: calculationColors[calculationIndex]
                 }),
                 padding: [2, 2, 2, 2]
               })
@@ -259,11 +259,11 @@ export function getIsochroneStyle() {
           styles.push(
             new OlStyle({
               text: new OlText({
-                text: Math.round(feature.get("step") / 60) + " min",
+                text: isochroneStore.state.isochroneRange,
                 font: "bold 16px Arial",
                 placement: "line",
                 fill: new OlFill({
-                  color: feature.get("color")
+                  color: calculationColors[calculationIndex]
                 }),
                 maxAngle: 0
               })

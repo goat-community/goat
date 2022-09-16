@@ -594,6 +594,7 @@
             <v-spacer></v-spacer>
             <v-hover v-slot="{ hover }">
               <v-btn
+                :disabled="isIsochroneBusy"
                 small
                 v-show="isResultsElVisible === true && calculations.length > 1"
                 class="white--text mr-2"
@@ -696,6 +697,7 @@
                         <v-tooltip top>
                           <template v-slot:activator="{ on }">
                             <v-icon
+                              :disabled="isIsochroneBusy"
                               @click="deleteCalculation(calculation)"
                               small
                               v-on="on"
@@ -720,6 +722,7 @@
                     class="clickable subheader mt-1 pb-1"
                   >
                     <v-simple-checkbox
+                      :disabled="isIsochroneBusy"
                       :ripple="false"
                       @input="toggleCalculation(calculation)"
                       :value="isCalculationActive(calculation)"
@@ -774,21 +777,17 @@ import { Mapable } from "../../mixins/Mapable";
 import { toPixel } from "../../utils/MapUtils";
 import { Isochrones } from "../../mixins/Isochrones";
 import { KeyShortcuts } from "../../mixins/KeyShortcuts";
-
 import {
   getIsochroneStyle,
   getIsochroneNetworkStyle,
   isochroneOverlayStyle,
   studyAreaASelectStyle
 } from "../../style/OlStyleDefs";
-
 //Store imports
 import { mapGetters, mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
-
 //Helpers
 import { secondsToHoursAndMins } from "../../utils/Helpers";
-
 //Ol imports
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
@@ -796,7 +795,7 @@ import VectorImageLayer from "ol/layer/VectorImage";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import Overlay from "ol/Overlay";
-
+import Translate from "ol/interaction/Translate";
 import {
   geojsonToFeature,
   geometryToWKT,
@@ -812,9 +811,8 @@ import ApiService from "../../services/api.service";
 import axios from "axios";
 import { parseTimesData } from "../../utils/ParseTimeData";
 import { jsolines } from "../../utils/Jsolines";
-import { toLonLat } from "ol/proj";
+import { toLonLat, fromLonLat } from "ol/proj";
 // import { isochroneHeatmap } from "../../utils/IsochroneHeatmap";
-
 export default {
   mixins: [Mapable, Isochrones, KeyShortcuts],
   data: () => ({
@@ -862,7 +860,8 @@ export default {
       { text: "friday", value: 4 },
       { text: "saturday", value: 5 },
       { text: "sunday", value: 6 }
-    ]
+    ],
+    locationIQ: "https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4"
   }),
   computed: {
     ...mapGetters("scenarios", {
@@ -953,6 +952,7 @@ export default {
       this.createIsochroneOverlayLayer();
       this.createMultiIsochroneSelectionLayer();
       this.setupMapPointerMove();
+      this.setupMarkerDrag();
       this.createIsochroneHoverOverlay();
     },
     /**
@@ -1017,7 +1017,6 @@ export default {
       });
       this.map.addOverlay(this.isochroneHoverOverlay);
     },
-
     /**
      * Create multi isochrone selection layer
      */
@@ -1034,7 +1033,6 @@ export default {
       this.map.addLayer(selectionLayer);
       this.multiIsochroneSelectionLayer = selectionLayer;
     },
-
     /**
      * Register map click listener to calculate single isochrone.
      */
@@ -1049,7 +1047,6 @@ export default {
       } else {
         this.mapClickListener = this.map.on("singleclick", this.onMapClick);
       }
-
       if (this.map.getTarget().style) {
         this.map.getTarget().style.cursor = "pointer";
       }
@@ -1057,7 +1054,6 @@ export default {
         this.addKeyupListener();
       }
     },
-
     /**
      * Activate multi isochrone method.
      */
@@ -1072,7 +1068,6 @@ export default {
       if (this.addKeyupListener) {
         this.addKeyupListener();
       }
-
       if (this.multiIsochroneMethod === "study_area") {
         this.toggleSnackbar({
           type: this.appColor.primary,
@@ -1095,7 +1090,6 @@ export default {
           this.stop();
           return;
         }
-
         this.subStudyAreaLayer.setVisible(true);
         this.registerMapClick();
         this.startHelpTooltip(this.$t("map.tooltips.clickToSelectStudyArea"));
@@ -1127,7 +1121,6 @@ export default {
       this.multiIsochroneSelectionLayer.getSource().clear();
       this.startHelpTooltip(this.$t("map.tooltips.clickToContinueDrawing"));
     },
-
     /**
      * Draw interaction end event handler
      */
@@ -1261,7 +1254,6 @@ export default {
           console.log(error);
         });
     },
-
     //=============================================================
     /**
      * Handler for 'singleclick' on the map.
@@ -1308,14 +1300,19 @@ export default {
           x: coordinateWgs84[0],
           y: coordinateWgs84[1]
         };
-        const calculationNumber = this.calculations.length + 1;
-        const isochroneMarkerFeature = new Feature({
-          geometry: new Point(evt.coordinate),
-          calculationNumber: calculationNumber
+        const calculationNumbers = [this.calculations.length + 1];
+        if (this.calculationMode.active === "comparison") {
+          calculationNumbers.push(this.calculations.length + 2);
+        }
+        calculationNumbers.forEach(calculationNumber => {
+          const isochroneMarkerFeature = new Feature({
+            geometry: new Point(evt.coordinate),
+            calculationNumber: calculationNumber
+          });
+          isochroneMarkerFeature.setId("isochrone_marker_" + calculationNumber);
+          isochroneMarkerFeature.set("showLabel", false);
+          this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
         });
-        isochroneMarkerFeature.setId("isochrone_marker_" + calculationNumber);
-        isochroneMarkerFeature.set("showLabel", false);
-        this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
         this.calculateIsochrone(startPoint);
         this.clear();
       }
@@ -1372,7 +1369,6 @@ export default {
           monte_carlo_draws: 200
         };
       }
-
       //-- STARTING_POINT --//
       let starting_point = {
         input: []
@@ -1416,15 +1412,13 @@ export default {
           this.calculationMode.active === "scenario" ? this.activeScenario : 0,
         modus: this.calculationMode.active
       };
-
       //-- OUTPUT --//
       let output = {
         type: "grid",
         resolution: ["car", "transit"].includes(routing) ? 9 : 12
       };
       const payloads = [];
-
-      // If modus is "comparision" do two requests one for default and one for scenario
+      // If modus is "comparison" do two requests one for default and one for scenario
       if (
         this.calculationMode.active === "comparison" &&
         (routing.includes("walking") || routing.includes("cycling"))
@@ -1524,17 +1518,7 @@ export default {
                 dataProjection: "EPSG:4326",
                 featureProjection: "EPSG:3857"
               });
-
-              const calculationNumber = this.calculations.length + 1;
-              const isochroneCalculationUid =
-                olFeatures[0].get("isochrone_calculation_id") ||
-                calculationNumber;
-              olFeatures[0].setId(
-                "isochrone_feature_" + isochroneCalculationUid
-              );
-              olFeatures[0].set("calculationNumber", calculationNumber);
               let calculation = {
-                id: calculationNumber,
                 type: _type,
                 routing: _routing,
                 config: payload,
@@ -1542,14 +1526,13 @@ export default {
                 surfaceData: singleValuedSurface,
                 feature: olFeatures[0]
               };
-
               if (_type == "single") {
                 //Geocode
                 const axiosInstance = axios.create();
                 delete axiosInstance.defaults.headers.common["Authorization"];
                 axiosInstance
                   .get(
-                    `https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
+                    `${this.locationIQ}&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
                   )
                   .then(response => {
                     if (response.status === 200 && response.data.display_name) {
@@ -1563,6 +1546,15 @@ export default {
                   .finally(() => {
                     this.isMapBusy = false;
                     this.isIsochroneBusy = false;
+                    const calculationNumber = this.calculations.length + 1;
+                    calculation.id = calculationNumber;
+                    const isochroneCalculationUid =
+                      olFeatures[0].get("isochrone_calculation_id") ||
+                      calculationNumber;
+                    olFeatures[0].setId(
+                      "isochrone_feature_" + isochroneCalculationUid
+                    );
+                    olFeatures[0].set("calculationNumber", calculationNumber);
                     if (this.selectedCalculations.length === 2) {
                       // Remove first calculation if length is already 2
                       this.selectedCalculations.shift();
@@ -1573,6 +1565,15 @@ export default {
                     this.isOptionsElVisible = false;
                   });
               } else {
+                const calculationNumber = this.calculations.length + 1;
+                calculation.id = calculationNumber;
+                const isochroneCalculationUid =
+                  olFeatures[0].get("isochrone_calculation_id") ||
+                  calculationNumber;
+                olFeatures[0].setId(
+                  "isochrone_feature_" + isochroneCalculationUid
+                );
+                olFeatures[0].set("calculationNumber", calculationNumber);
                 calculation.position = "multiIsochroneCalculation";
                 this.calculations.unshift(calculation);
                 this.selectedCalculations = [];
@@ -1650,7 +1651,9 @@ export default {
               time = [calculation.rawData.get(x, y, depthIndex)];
             }
             if (time) {
-              overlayerInnerHtml += `<div>${calculationId}- Time: ${time} min</div>`;
+              overlayerInnerHtml += `<div>#${calculationId} ${this.$t(
+                "isochrones.options.time"
+              )}: ${time} min</div>`;
             }
             if (features.length === 2 && index == 0) {
               overlayerInnerHtml += `<br>`;
@@ -1660,6 +1663,139 @@ export default {
           this.isochroneHoverOverlay.setPosition(evt.coordinate);
         }
       });
+    },
+    /**
+     * Setup marker drag
+     */
+    setupMarkerDrag() {
+      const translateInteraction = new Translate({
+        layers: [this.isochroneLayer],
+        filter: feature => {
+          return (
+            feature.get("calculationNumber") &&
+            feature.getGeometry().getType() === "Point" &&
+            this.isIsochroneBusy === false
+          );
+        }
+      });
+      translateInteraction.on("translateend", evt => {
+        const feature = evt.features.getArray()[0];
+        if (feature) {
+          const calculationNumber = feature.get("calculationNumber");
+          console.log(calculationNumber);
+          const calculation = this.selectedCalculations.filter(
+            calculation => calculation.id === calculationNumber
+          );
+          const axiosInstance = axios.create();
+          const CancelToken = axios.CancelToken;
+          // Cancel previous request
+          this.cancelRequestTokens.forEach(cancelRequestToken => {
+            if (cancelRequestToken instanceof Function) {
+              cancelRequestToken("cancelled");
+            }
+          });
+          if (calculation.length === 0) return;
+          const coordinate = feature.getGeometry().getCoordinates();
+          const lonLatCoordinate = toLonLat(coordinate);
+          const oldLon = calculation[0].config.starting_point.input[0].lon;
+          const oldLat = calculation[0].config.starting_point.input[0].lat;
+          const payload = calculation[0].config;
+          payload.starting_point.input[0].lon = lonLatCoordinate[0];
+          payload.starting_point.input[0].lat = lonLatCoordinate[1];
+          this.isMapBusy = true;
+          this.isIsochroneBusy = true;
+          axiosInstance
+            .post(`./isochrones`, payload, {
+              responseType: "arraybuffer",
+              cancelToken: new CancelToken(c => {
+                // An executor function receives a cancel function as a parameter
+                this.cancelRequestTokens.push(c);
+              })
+            })
+            .then(response => {
+              const isochroneSurface = parseTimesData(response.data);
+              let singleValuedSurface = {};
+              if (isochroneSurface.depth === 1) {
+                singleValuedSurface = isochroneSurface;
+                singleValuedSurface["surface"] = isochroneSurface.data;
+              } else {
+                singleValuedSurface = computeSingleValuedSurface(
+                  isochroneSurface,
+                  50
+                );
+              }
+              const {
+                surface,
+                width,
+                height,
+                west,
+                north,
+                zoom
+                // eslint-disable-next-line no-undef
+              } = singleValuedSurface;
+              const isochronePolygon = jsolines({
+                surface,
+                width,
+                height,
+                cutoff: this.isochroneRange,
+                project: ([x, y]) => {
+                  const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+                  return [ll.lon, ll.lat];
+                }
+              });
+              let olFeatures = geojsonToFeature(isochronePolygon, {
+                dataProjection: "EPSG:4326",
+                featureProjection: "EPSG:3857"
+              });
+              calculation[0].rawData = isochroneSurface;
+              calculation[0].surfaceData = singleValuedSurface;
+              delete axiosInstance.defaults.headers.common["Authorization"];
+              axiosInstance
+                .get(
+                  `${this.locationIQ}&lat=${lonLatCoordinate[1]}&lon=${lonLatCoordinate[0]}&format=json`
+                )
+                .then(response => {
+                  if (response.status === 200 && response.data.display_name) {
+                    const address = response.data.display_name;
+                    calculation[0].position = address;
+                  }
+                })
+                .catch(() => {
+                  calculation[0].position = "Unknown";
+                })
+                .finally(() => {
+                  this.isMapBusy = false;
+                  this.isIsochroneBusy = false;
+                  calculation[0].feature.setGeometry(
+                    olFeatures[0].getGeometry()
+                  );
+                });
+            })
+            .catch(e => {
+              // revert
+              payload.starting_point.input[0].lon = oldLon;
+              payload.starting_point.input[0].lat = oldLat;
+              feature
+                .getGeometry()
+                .setCoordinates(fromLonLat([oldLon, oldLat]));
+              this.toggleSnackbar({
+                type: "error",
+                message: this.$t(
+                  `map.snackbarMessages.${
+                    e.message === "cancelled"
+                      ? "calculateIsochroneCancelled"
+                      : "calculateIsochroneError"
+                  }`
+                ),
+                state: true,
+                timeout: 2500
+              });
+              this.isMapBusy = false;
+              this.isIsochroneBusy = false;
+            });
+        }
+      });
+      this.map.addInteraction(translateInteraction);
     },
     isCalculationActive(calculation) {
       let isActive = false;
@@ -1720,7 +1856,6 @@ export default {
       this.selectedCalculations = this.selectedCalculations.filter(
         selectedCalculation => selectedCalculation.id !== id
       );
-
       this.calculations = this.calculations.map(calculation => {
         if (calculation.id > id) {
           calculation.id = calculation.id - 1;
@@ -1818,46 +1953,23 @@ export default {
       }
     },
     selectedCalculations() {
-      this.isochroneLayer
-        .getSource()
-        .getFeatures()
-        .forEach(feature => {
-          if (feature.getGeometry().getType() !== "Point") {
-            this.isochroneLayer.getSource().removeFeature(feature);
-          }
-        });
+      this.isochroneLayer.getSource().clear();
       this.selectedCalculations.forEach(calculation => {
+        if (calculation.type === "single") {
+          const startPoint = calculation.config.starting_point.input[0];
+          const isochroneMarkerFeature = new Feature({
+            geometry: new Point(fromLonLat([startPoint.lon, startPoint.lat])),
+            calculationNumber: calculation.id
+          });
+          isochroneMarkerFeature.setId("isochrone_marker_" + calculation.id);
+          isochroneMarkerFeature.set("showLabel", false);
+          this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
+        }
         this.isochroneLayer.getSource().addFeatures([calculation.feature]);
       });
       if (this.selectedCalculations.length === 0) {
-        this.isochroneRange = 10;
         // Reset features to 10 minutes.
-        this.calculations.forEach(calculation => {
-          const {
-            surface,
-            width,
-            height,
-            west,
-            north,
-            zoom
-            // eslint-disable-next-line no-undef
-          } = calculation.surfaceData;
-          const isochronePolygon = jsolines({
-            surface,
-            width,
-            height,
-            cutoff: this.isochroneRange,
-            project: ([x, y]) => {
-              const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-              return [ll.lon, ll.lat];
-            }
-          });
-          let olFeatures = geojsonToFeature(isochronePolygon, {
-            dataProjection: "EPSG:4326",
-            featureProjection: "EPSG:3857"
-          });
-          calculation.feature.setGeometry(olFeatures[0].getGeometry());
-        });
+        this.isochroneRange = 10;
         this.isochroneResultWindow = false;
       }
     }
@@ -1869,7 +1981,6 @@ export default {
     if (defaultRouting.speed) {
       this.speed = defaultRouting.speed;
     }
-
     // Set default values for public transport routing
     if (this.routingProfiles.transit) {
       this.publicTransport.accessMode = this.routingProfiles.transit.access_modes[0].type;
@@ -1879,7 +1990,6 @@ export default {
       this.publicTransport.fromTime = fromTimeDate
         .toISOString()
         .substring(11, 16);
-
       const toTimeDate = new Date(0);
       toTimeDate.setSeconds(this.routingProfiles.transit.to_time);
       this.publicTransport.toTime = toTimeDate.toISOString().substring(11, 16);
@@ -1916,14 +2026,12 @@ export default {
   border-radius: 4px;
   width: 40px;
 }
-
 .colorPalettePicker {
   height: 20px;
   border-radius: 4px;
   width: 50px;
   cursor: pointer;
 }
-
 .activeIcon {
   color: #30c2ff;
 }
@@ -1931,24 +2039,19 @@ export default {
   margin-top: 0px;
   padding-top: 0px;
 }
-
 .subheader {
   height: 25px;
 }
-
 .v-chip--label {
   border-radius: 0px 8px 8px 0px !important;
 }
-
 .result-title {
   display: inline-block;
   width: 265px;
-
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .chip-label-custom {
   display: block;
   width: 66px;
@@ -1957,7 +2060,6 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .hover-info {
   position: absolute;
   height: 1px;

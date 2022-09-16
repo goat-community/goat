@@ -276,32 +276,35 @@ export default {
       }
       return string;
     },
-    udpateIsochroneSurface: debounce(function(cutoff) {
+    updateIsochroneSurface(calculation) {
+      const {
+        surface,
+        width,
+        height,
+        west,
+        north,
+        zoom
+        // eslint-disable-next-line no-undef
+      } = calculation.surfaceData;
+      const isochronePolygon = jsolines({
+        surface,
+        width,
+        height,
+        cutoff: this.isochroneRange,
+        project: ([x, y]) => {
+          const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+          return [ll.lon, ll.lat];
+        }
+      });
+      let olFeatures = geojsonToFeature(isochronePolygon, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857"
+      });
+      calculation.feature.setGeometry(olFeatures[0].getGeometry());
+    },
+    udpateIsochroneSurface: debounce(function() {
       this.selectedCalculations.forEach(calculation => {
-        const {
-          surface,
-          width,
-          height,
-          west,
-          north,
-          zoom
-          // eslint-disable-next-line no-undef
-        } = calculation.surfaceData;
-        const isochronePolygon = jsolines({
-          surface,
-          width,
-          height,
-          cutoff: cutoff,
-          project: ([x, y]) => {
-            const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-            return [ll.lon, ll.lat];
-          }
-        });
-        let olFeatures = geojsonToFeature(isochronePolygon, {
-          dataProjection: "EPSG:4326",
-          featureProjection: "EPSG:3857"
-        });
-        calculation.feature.setGeometry(olFeatures[0].getGeometry());
+        this.updateIsochroneSurface(calculation);
       });
     }, 30),
     downloadIsochrone(type) {
@@ -398,7 +401,7 @@ export default {
           const id = calculation.id;
           // const modus = calculation.config.scenario.modus;
           headers.push({
-            text: `Isochrone - ${id}`,
+            text: `Isochrone #${id}`,
             value: `isochrone-${id}`,
             sortable: false
           });
@@ -596,6 +599,15 @@ export default {
       ) {
         this.chartDatasetType = 0;
         this.resultViewType = 1;
+      }
+    },
+    selectedCalculations(newSelection, oldSelection) {
+      if (
+        newSelection.length > 0 &&
+        newSelection.length >= oldSelection.length
+      ) {
+        // Update new calculation
+        this.updateIsochroneSurface(newSelection[newSelection.length - 1]);
       }
     }
   },
