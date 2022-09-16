@@ -250,3 +250,37 @@ export const secondsToHoursAndMins = seconds => {
   fromTimeDate.setSeconds(seconds);
   return fromTimeDate.toISOString().substring(11, 16);
 };
+
+export const publicTransportStations = (iconName, iconColor) => {
+  let colors = {
+    tram: {
+      color: "#D31E20",
+      number: 0
+    },
+    bahn: {
+      color: "#004D89",
+      number: 1
+    },
+    train: {
+      color: "#338FB4",
+      number: 2
+    },
+    bus: {
+      color: "#005567",
+      number: 3
+    }
+    // 4: "#BEB8EB",
+    // 5: "#1A3A3A",
+    // 6: "#C57B57",
+    // 7: "#457B9D",
+    // 11: "#6A3E37",
+    // 12: "#34344A"
+  };
+
+  for (const color of Object.keys(colors)) {
+    if (iconName.includes(color)) {
+      colors[color].color = iconColor;
+      return colors[color];
+    }
+  }
+};

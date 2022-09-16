@@ -23,11 +23,29 @@
     <div v-else>
       <div :key="legendRerenderOnActiveMode">
         <div
+          style=" padding: 20px;"
+          v-if="layer.get('name') === 'pt_station_count'"
+        >
+          <div
+            v-for="(legendrow, indx) in layerHTMLStaticLegends()"
+            :key="indx"
+            style="display: flex;"
+          >
+            <div
+              :style="
+                `width: 45px; height: 23px; background-color: ${legendrow.color}; margin-right: 10px;`
+              "
+            ></div>
+            <p>{{ $t(`indicators.pt_route_types.${legendrow.number}`) }}</p>
+          </div>
+        </div>
+        <div
           v-if="
             vectorTileStyles[layer.get('name')] &&
               ['VECTOR', 'GEOBUF', 'MVT', 'WMS', 'WMTS'].includes(
                 layer.get('type').toUpperCase()
-              )
+              ) &&
+              layer.get('name') !== 'pt_station_count'
           "
           style="text-align: center; padding: 20px;"
           :key="layer.get('layerTreeKey')"
@@ -88,6 +106,7 @@ import Legend from "../controls/Legend";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
 import { EventBus } from "../../../../EventBus";
+import { publicTransportStations } from "../../../../utils/Helpers";
 
 export default {
   props: ["layer"],
@@ -102,6 +121,15 @@ export default {
     }
   },
   methods: {
+    layerHTMLStaticLegends() {
+      const transportTypes = this.appConfig.routing[3].transit_modes;
+
+      const result = transportTypes.map(transport =>
+        publicTransportStations(transport.icon, transport.color)
+      );
+
+      return result;
+    },
     isLayerAttributeVisible(layer, ith) {
       //Checkbox will be checked or unchecked based on layer attribute visibility.
       const name = layer.get("name");

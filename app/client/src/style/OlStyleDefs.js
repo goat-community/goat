@@ -986,6 +986,7 @@ export function poisAoisStyle(feature) {
 }
 
 import Chart from "ol-ext/style/Chart";
+import { publicTransportStations } from "../utils/Helpers";
 
 // PT Station count layer style
 // feature:
@@ -1031,19 +1032,33 @@ export function ptStationCountStyle(feature, resolution) {
       })
     });
   } else {
-    const colorMapping = {
-      0: "#D31E20",
-      1: "#004D89",
-      2: "#338FB4",
-      3: "#005567",
-      4: "#BEB8EB",
-      5: "#1A3A3A",
-      6: "#C57B57",
-      7: "#457B9D",
-      11: "#6A3E37",
-      12: "#34344A"
-    };
-    const colors = Object.keys(tripCnt).map(key => colorMapping[key]);
+    const transportTypes = appStore.state.appConfig.routing[3].transit_modes;
+
+    const result = transportTypes.map(transport =>
+      publicTransportStations(transport.icon, transport.color)
+    );
+
+    const colors = Object.keys(tripCnt).map(key => {
+      let modifiedResults = [];
+      result.forEach(res => {
+        // console.log(parseInt(key), res.number);
+        if (res.number === parseInt(key)) {
+          let hexColor = res.color
+            .split("(")[1]
+            .split(")")[0]
+            .split(", ");
+          modifiedResults.push(
+            rgbToHex(
+              parseInt(hexColor[0]),
+              parseInt(hexColor[1]),
+              parseInt(hexColor[2])
+            )
+          );
+        }
+      });
+      return modifiedResults[0];
+    });
+
     const data = Object.values(tripCnt).map(val => val / time);
     return new OlStyle({
       image: new Chart({
@@ -1054,6 +1069,14 @@ export function ptStationCountStyle(feature, resolution) {
       })
     });
   }
+}
+
+export const modifiedStyle = style => {
+  console.log(style);
+};
+
+function rgbToHex(r, g, b) {
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
 export const stylesRef = {

@@ -149,14 +149,20 @@
         </v-btn>
       </template>
       <template v-slot:body>
-        <p
+        <div
           v-for="(transportMean, tranportKey) in indicatorPopupInfo.description"
           :key="tranportKey"
+          style="display: flex; align-items: center; margin: 5px 0;"
         >
-          <!-- {{ translatePT("pt_route_types", tranportKey.toString()) }} -
-          {{ transportMean }} -->
-          {{ transportMean }}
-        </p>
+          <div
+            v-if="transportMean.color"
+            class="polygonPopup"
+            :style="`background-color: ${transportMean.color};`"
+          ></div>
+          <p style="margin: 0">
+            {{ transportMean.data }}
+          </p>
+        </div>
         <p></p>
       </template>
     </overlay-popup>
@@ -177,6 +183,7 @@ import ApiService from "../../services/api.service";
 import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
 import OverlayPopup from "../viewer/ol/controls/Overlay.vue";
 import Overlay from "ol/Overlay";
+import { publicTransportStations } from "../../utils/Helpers";
 export default {
   mixins: [Mapable, Legend, LayerTree],
   components: {
@@ -270,29 +277,52 @@ export default {
     showPopup() {
       this.map.on("click", e => {
         this.popupOverlay.setPosition(undefined);
-        this.map.forEachFeatureAtPixel(e.pixel, feature => {
-          this.indicatorPopupInfo.description = [];
-          let clickedCoordinate = e.coordinate;
-          if (!feature.get("stop_name")) {
-            this.indicatorPopupInfo.name = `Class ${feature.get("class")}`;
-            this.indicatorPopupInfo.description = [
-              this.translatePT("gutteklassenRating", feature.get("class"))
-            ];
-          } else {
-            let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
-            this.indicatorPopupInfo.name = feature.get("stop_name");
-            for (let element in clickedFeatureAdditionalInfo) {
-              this.indicatorPopupInfo.description.push(
-                `${this.translatePT("pt_route_types", element)} - ${
-                  clickedFeatureAdditionalInfo[element]
-                }`
-              );
+        this.map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
+          if (layer.get("group") === "indicator") {
+            console.log(feature);
+            this.indicatorPopupInfo.description = [];
+            let clickedCoordinate = e.coordinate;
+            if (!feature.get("stop_name")) {
+              this.indicatorPopupInfo.name = `Class ${feature.get("class")}`;
+              this.indicatorPopupInfo.description = [
+                {
+                  data: this.translatePT(
+                    "gutteklassenRating",
+                    feature.get("class")
+                  )
+                }
+              ];
+            } else {
+              clickedCoordinate = feature.get("geometry").getCoordinates();
+              let allPTColors = this.layerHTMLStaticLegends();
+              let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
+              this.indicatorPopupInfo.name = feature.get("stop_name");
+              for (let element in clickedFeatureAdditionalInfo) {
+                let foundColor = allPTColors.filter(
+                  transport => transport.number === parseInt(element)
+                );
+                this.indicatorPopupInfo.description.push({
+                  data: `${this.translatePT("pt_route_types", element)} - ${
+                    clickedFeatureAdditionalInfo[element]
+                  }`,
+                  color: foundColor[0].color
+                });
+              }
             }
+            this.popupOverlay.setPosition(clickedCoordinate);
+            this.popup.isVisible = true;
           }
-          this.popupOverlay.setPosition(clickedCoordinate);
-          this.popup.isVisible = true;
         });
       });
+    },
+    layerHTMLStaticLegends() {
+      const transportTypes = this.appConfig.routing[3].transit_modes;
+
+      const result = transportTypes.map(transport =>
+        publicTransportStations(transport.icon, transport.color)
+      );
+
+      return result;
     },
     onMapBound() {
       this.map
@@ -515,5 +545,10 @@ export default {
 }
 .layer-row >>> .v-expansion-panel-header {
   cursor: auto;
+}
+.polygonPopup {
+  width: 40px;
+  height: 30px;
+  margin-right: 20px;
 }
 </style>
