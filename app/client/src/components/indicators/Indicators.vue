@@ -278,7 +278,12 @@ export default {
       this.map.on("click", e => {
         this.popupOverlay.setPosition(undefined);
         this.map.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
-          if (layer.get("group") === "indicator") {
+          console.log(layer);
+          if (
+            layer.get("group") === "indicator" &&
+            (layer.get("name") === "pt_oev_gueteklasse" ||
+              layer.get("name") === "pt_station_count")
+          ) {
             console.log(feature);
             this.indicatorPopupInfo.description = [];
             let clickedCoordinate = e.coordinate;

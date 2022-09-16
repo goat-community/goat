@@ -284,3 +284,14 @@ export const publicTransportStations = (iconName, iconColor) => {
     }
   }
 };
+
+import i18n from "@/plugins/i18n";
+
+export const numberSeparator = number => {
+  console.log(i18n.locale);
+  if (i18n.locale === "en") {
+    return number.toLocaleString("en-US");
+  } else if (i18n.locale === "de") {
+    return number.toLocaleString("de-DE");
+  }
+};

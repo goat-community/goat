@@ -218,7 +218,7 @@ import IsochroneAmenitiesLineChart from "../other/IsochroneAmenitiesLineChart.vu
 import IsochroneAmenitiesPieChart from "../other/IsochroneAmenitiesPieChart.vue";
 import IsochroneAmenitiesRadarChartVue from "../other/IsochroneAmenitiesRadarChart.vue";
 import { saveAs } from "file-saver";
-import { debounce } from "../../utils/Helpers";
+import { debounce, numberSeparator } from "../../utils/Helpers";
 import ApiService from "../../services/api.service";
 import JSZip from "jszip";
 export default {
@@ -458,7 +458,10 @@ export default {
                   let obj = {
                     pois: amenity ? this.$t(`pois.${amenity}`) : amenity
                   };
-                  let value = this.getString(parseInt(sumPois[amenity]));
+                  let value = numberSeparator(
+                    this.getString(parseInt(sumPois[amenity]))
+                  );
+                  // console.log(value);
                   obj[`isochrone-${calculation.id}`] = value || "-";
                   if (poisObj[amenity]) {
                     poisObj[amenity] = { ...poisObj[amenity], ...obj };
