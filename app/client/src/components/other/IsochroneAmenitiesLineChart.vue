@@ -123,6 +123,20 @@ export default {
                 value: this.isochroneRange
               }
             ]
+          },
+          legend: {
+            labels: {
+              filter: function(legendItem) {
+                if (
+                  legendItem &&
+                  legendItem.lineDash[0] !== 0 &&
+                  legendItem.lineDash[1] !== 0
+                ) {
+                  return false;
+                }
+                return true;
+              }
+            }
           }
         }
       );
