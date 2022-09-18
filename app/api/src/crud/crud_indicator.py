@@ -676,7 +676,7 @@ class CRUDIndicator:
                 "11": "B",
                 "12": "B",
             },
-            "time_frequency": [0, 4, 10, 19, 39, 60],
+            "time_frequency": [0, 4, 10, 19, 39, 60, 120],
             "categories": [
                 {
                     "A": 1,  # i.e. types of transports in category A are in transport stop category I
@@ -687,19 +687,15 @@ class CRUDIndicator:
                 {"A": 2, "B": 3, "C": 4},
                 {"A": 3, "B": 4, "C": 5},
                 {"A": 4, "B": 5, "C": 6},
-                {"B": 7, "C": 7},
+                {"A": 5, "B": 6, "C": 6},
             ],
             "classification": {
                 "1": {300: "A", 500: "A", 750: "B", 1000: "C"},
                 "2": {300: "A", 500: "B", 750: "C", 1000: "D"},
-                "3": {
-                    300: "B",
-                    500: "C",
-                    750: "D",
-                },
-                "4": {300: "C", 500: "D"},
-                "5": {300: "D"},
-                "6": {300: "E"},
+                "3": {300: "B", 500: "C", 750: "D", 1000: "E"},
+                "4": {300: "C", 500: "D", 750: "E", 1000: "F"},
+                "5": {300: "D", 500: "E", 750: "F"},
+                "6": {300: "E", 500: "F"},
                 "7": {300: "F"},
             },
         }
@@ -740,7 +736,7 @@ class CRUDIndicator:
             station_group_trip_count = acc_trips[station_group]
             if station_group_trip_count == 0:
                 continue
-            station_group_trip_time_frequency = time_window / station_group_trip_count
+            station_group_trip_time_frequency = time_window / (station_group_trip_count / 2)
             # - find station category based on time frequency and group
             time_interval = bisect.bisect_left(
                 station_config["time_frequency"], station_group_trip_time_frequency
@@ -775,7 +771,7 @@ class CRUDIndicator:
             )
             if feature.geometry is not None:
                 features.append(feature)
-           
+
         return FeatureCollection(features)
 
 
