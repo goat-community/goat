@@ -48,6 +48,7 @@ class LayerLibraryBase(SQLModel):
     style_library_name: Optional[str]
     max_resolution: Optional[str] = Field(sa_column=Column(Text, nullable=True))
     min_resolution: Optional[str] = Field(sa_column=Column(Text, nullable=True))
+    doc_url: Optional[str] = Field(sa_column=Column(Text, nullable=True))
 
 
 class LayerLibrary(LayerLibraryBase, table=True):
