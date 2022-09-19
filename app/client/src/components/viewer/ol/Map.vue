@@ -53,7 +53,7 @@
       </v-btn>
       <template v-slot:close>
         <template v-if="getInfoResult.length > 1">
-          <span
+          <span style="white-space: nowrap;"
             >({{ popup.currentLayerIndex + 1 }} of
             {{ getInfoResult.length }})</span
           >
@@ -75,6 +75,7 @@
         </v-btn>
       </template>
       <template v-slot:body>
+        <!-- INDICATOR: STATION COUNT -->
         <template
           v-if="currentInfoFeature && currentInfoFeature.get('trip_cnt')"
         >
@@ -100,8 +101,26 @@
             </p>
           </div>
         </template>
-
-        <div v-else>
+        <!-- INDICATOR: ÖV-Güteklassen -->
+        <template
+          v-else-if="
+            currentInfoFeature &&
+              currentInfoFeature.get('layerName') === 'pt_oev_gueteklasse'
+          "
+        >
+          <div>
+            {{ $t(`indicators.class`) }}
+            {{ currentInfoFeature.get("class") }} :
+            {{
+              $t(
+                `indicators.gutteklassenRating.${currentInfoFeature.get(
+                  "class"
+                )}`
+              )
+            }}
+          </div>
+        </template>
+        <template v-else>
           <a
             v-if="currentInfoFeature && currentInfoFeature.get('osm_id')"
             style="text-decoration:none;"
@@ -128,7 +147,7 @@
               </v-simple-table>
             </vue-scroll>
           </div>
-        </div>
+        </template>
       </template>
     </overlay-popup>
     <!-- Popup For WMS/WMTS Layer -->

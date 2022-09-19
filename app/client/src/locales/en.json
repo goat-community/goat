@@ -467,6 +467,7 @@
       "trolleybus": "Trolleybus",
       "monorail": "Monorail"
     },
+    "class": "Class",
     "gutteklassenRating": {
       "A": "High quality accessibility to Public transport",
       "B": "Good quality accessibility to Public Transport",

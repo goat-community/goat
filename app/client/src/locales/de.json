@@ -471,6 +471,15 @@
       "funicular": "Standseilbahn",
       "trolleybus": "Straßenbahn",
       "monorail": "Monorail"
+    },
+    "class": "Klasse",
+    "gutteklassenRating": {
+      "A": "High quality accessibility to Public transport",
+      "B": "Good quality accessibility to Public Transport",
+      "C": "Average quality accessibility to Public Transport",
+      "D": "Not so good accessibility to Public Transport",
+      "E": "Bad accessibility Public Transport",
+      "F": "Worst accessibility to Public Transport"
     }
   },
   "poisFilter": {
