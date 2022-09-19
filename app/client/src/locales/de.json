@@ -459,7 +459,19 @@
     "indicatorsComputedSuccessfully": "Indikatoren erfolgreich neu berechnet",
     "indicatorsComputationFailed": "Indikatorenberechnung fehlgeschlagen",
     "indicatorTimePicker": "Indikatoren Zeitauswahl",
-    "timePickerErrorMessage": "Endzeit muss nach Startzeit liegen"
+    "timePickerErrorMessage": "Endzeit muss nach Startzeit liegen",
+    "ptRouteTypes": {
+      "tram": "Straßenbahn",
+      "subway": "U-Bahn",
+      "rail": "Zug",
+      "bus": "Bus",
+      "ferry": "Fähre",
+      "cable_car": "Seilbahn",
+      "gondola": "Gondelbahn",
+      "funicular": "Standseilbahn",
+      "trolleybus": "Straßenbahn",
+      "monorail": "Monorail"
+    }
   },
   "poisFilter": {
     "showTimeFilter": "Zeitlichen Filter hinzufügen",

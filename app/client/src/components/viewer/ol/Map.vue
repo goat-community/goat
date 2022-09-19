@@ -75,32 +75,59 @@
         </v-btn>
       </template>
       <template v-slot:body>
-        <a
-          v-if="currentInfoFeature && currentInfoFeature.get('osm_id')"
-          style="text-decoration:none;"
-          :href="getOsmHrefLink()"
-          target="_blank"
-          title=""
+        <template
+          v-if="currentInfoFeature && currentInfoFeature.get('trip_cnt')"
         >
-          <i class="fa fa-edit"></i> {{ $t("map.popup.editWithOsm") }}</a
-        >
+          <div
+            v-for="(tripCnt, routeType, idx) in currentInfoFeature.get(
+              'trip_cnt'
+            )"
+            :key="idx"
+            style="display: flex; align-items: center; margin: 5px 0;"
+          >
+            <div
+              v-if="transitRouteTypesByNr[routeType].color"
+              :style="
+                `width:45px;height:23px;margin-right: 20px;background-color: ${transitRouteTypesByNr[routeType].color};`
+              "
+            ></div>
+            <p style="margin: 0">
+              {{
+                $t(
+                  `indicators.ptRouteTypes.${transitRouteTypesByNr[routeType].name}`
+                )
+              }}: {{ tripCnt }}
+            </p>
+          </div>
+        </template>
 
-        <div
-          style="max-height:800px;overflow:hidden;"
-          v-if="getInfoResult[popup.currentLayerIndex]"
-        >
-          <vue-scroll>
-            <v-simple-table dense class="pr-2">
-              <template v-slot:default>
-                <tbody>
-                  <tr v-for="item in currentInfo" :key="item.property">
-                    <td>{{ item.property }}</td>
-                    <td>{{ item.value }}</td>
-                  </tr>
-                </tbody>
-              </template>
-            </v-simple-table>
-          </vue-scroll>
+        <div v-else>
+          <a
+            v-if="currentInfoFeature && currentInfoFeature.get('osm_id')"
+            style="text-decoration:none;"
+            :href="getOsmHrefLink()"
+            target="_blank"
+            title=""
+          >
+            <i class="fa fa-edit"></i> {{ $t("map.popup.editWithOsm") }}</a
+          >
+          <div
+            style="max-height:800px;overflow:hidden;"
+            v-if="getInfoResult[popup.currentLayerIndex]"
+          >
+            <vue-scroll>
+              <v-simple-table dense class="pr-2">
+                <template v-slot:default>
+                  <tbody>
+                    <tr v-for="item in currentInfo" :key="item.property">
+                      <td>{{ item.property }}</td>
+                      <td>{{ item.value }}</td>
+                    </tr>
+                  </tbody>
+                </template>
+              </v-simple-table>
+            </vue-scroll>
+          </div>
         </div>
       </template>
     </overlay-popup>
@@ -655,7 +682,9 @@ export default {
         center: position,
         duration: 400
       });
-      this.popupOverlay.setPosition(position);
+      if (position) {
+        this.popupOverlay.setPosition(position);
+      }
       this.popup.isVisible = true;
       this.popup.title = `info`;
     },
@@ -969,6 +998,9 @@ export default {
       return link;
     },
     getPopupTitle() {
+      if (this.currentInfoFeature && this.currentInfoFeature.get("stop_name")) {
+        return this.currentInfoFeature.get("stop_name");
+      }
       if (this.getInfoResult[this.popup.currentLayerIndex]) {
         const layer = this.getInfoResult[this.popup.currentLayerIndex];
         if (layer.get("layerName")) {
@@ -1027,7 +1059,8 @@ export default {
     }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
-      options: "options"
+      options: "options",
+      transitRouteTypesByNr: "transitRouteTypesByNr"
     }),
     ...mapGetters("scenarios", {
       activeScenario: "activeScenario"

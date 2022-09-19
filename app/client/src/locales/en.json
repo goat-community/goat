@@ -455,17 +455,17 @@
     "indicatorsComputationFailed": "Indicators computation failed",
     "indicatorTimePicker": "Indicator Time Picker",
     "timePickerErrorMessage": "Start time must be before end time",
-    "pt_route_types": {
-      "0": "Tram",
-      "1": "Subway",
-      "2": "Rail",
-      "3": "Bus",
-      "4": "Ferry",
-      "5": "Cable Car",
-      "6": "Aerial Lift",
-      "7": "Funicular",
-      "11": "Trolleybus",
-      "12": "Monorail"
+    "ptRouteTypes": {
+      "tram": "Tram",
+      "subway": "Subway",
+      "rail": "Rail",
+      "bus": "Bus",
+      "ferry": "Ferry",
+      "cable_car": "Cable Car",
+      "gondola": "Gondola",
+      "funicular": "Funicular",
+      "trolleybus": "Trolleybus",
+      "monorail": "Monorail"
     },
     "gutteklassenRating": {
       "A": "High quality accessibility to Public transport",
