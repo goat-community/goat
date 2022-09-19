@@ -676,7 +676,7 @@ class CRUDIndicator:
                 "11": "B",
                 "12": "B",
             },
-            "time_frequency": [0, 4, 10, 19, 39, 60, 120],
+            "time_frequency": [0, 4, 10, 19, 39, 60, 119],
             "categories": [
                 {
                     "A": 1,  # i.e. types of transports in category A are in transport stop category I
@@ -741,7 +741,10 @@ class CRUDIndicator:
             time_interval = bisect.bisect_left(
                 station_config["time_frequency"], station_group_trip_time_frequency
             )
+            if time_interval == len(station_config["time_frequency"]):
+                continue    # no category found
             station_category = station_config["categories"][time_interval - 1].get(station_group)
+     
             if not station_category:
                 continue
             # - find station classification based on category
