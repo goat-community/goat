@@ -45,6 +45,7 @@
       :color="appColor.primary"
       :title="getPopupTitle()"
       v-show="popup.isVisible && miniViewOlMap === false"
+      style="max-width: 300px;"
       ref="popup"
     >
       <v-btn icon>
@@ -89,14 +90,7 @@
           v-if="getInfoResult[popup.currentLayerIndex]"
         >
           <vue-scroll>
-            <v-simple-table
-              v-if="
-                getInfoResult[popup.currentLayerIndex].get('layerName') !==
-                  'footpath_visualization'
-              "
-              dense
-              class="pr-2"
-            >
+            <v-simple-table dense class="pr-2">
               <template v-slot:default>
                 <tbody>
                   <tr v-for="item in currentInfo" :key="item.property">
@@ -106,12 +100,6 @@
                 </tbody>
               </template>
             </v-simple-table>
-            <div v-else>
-              <indicators-chart
-                class="mr-4"
-                :feature="getInfoResult[popup.currentLayerIndex]"
-              ></indicators-chart>
-            </div>
           </vue-scroll>
         </div>
       </template>
@@ -292,7 +280,6 @@ import ContextMenu from "ol-contextmenu/dist/ol-contextmenu";
 import "ol-contextmenu/dist/ol-contextmenu.min.css";
 
 // Indicators Chart
-import IndicatorsChart from "../../other/IndicatorsChart";
 import { GET_POIS_AOIS } from "../../../store/actions.type";
 
 export default {
@@ -301,7 +288,6 @@ export default {
     "progress-status": MapLoadingProgressStatus,
     "background-switcher": BackgroundSwitcher,
     "full-screen": FullScreen,
-    "indicators-chart": IndicatorsChart,
     "search-map": Search,
     measure: Measure
   },
@@ -651,9 +637,13 @@ export default {
       // Clear highligh feature
       this.getInfoLayerSource.clear();
       const infoFeature = this.getInfoResult[this.popup.currentLayerIndex];
-      let position = infoFeature.getGeometry()
-        ? infoFeature.getGeometry().getCoordinates()
-        : coordinate;
+      const geometry = infoFeature.getGeometry();
+      let position = coordinate;
+      if (["LineString", "MultiLineString"].includes(geometry.getType())) {
+        position = geometry.getClosestPoint(coordinate);
+      } else if (["Point"].includes(geometry.getType())) {
+        position = geometry.getCoordinates();
+      }
       // Add highlight feature
       this.getInfoLayerSource.addFeature(
         this.getInfoResult[this.popup.currentLayerIndex]
@@ -750,40 +740,15 @@ export default {
           return;
         }
 
-        //Check for isochrone features
-        const isochroneFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
-          layerFilter: candidate => {
-            if (candidate.get("name") === "isochrone_layer") {
-              return true;
-            }
-            return false;
-          }
-        });
-        const otherFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
-          layerFilter: candidate => {
-            if (candidate.get("name") !== "isochrone_layer") {
-              return true;
-            }
-            return false;
-          }
-        });
-        if (isochroneFeatures.length > 0 && otherFeatures.length === 0) {
-          // Toggle thematic data for isochrone window
-          const isochroneFeature = isochroneFeatures[0];
-          EventBus.$emit(
-            "show-isochrone-window",
-            isochroneFeature.get("calculationNumber")
-          );
-          return;
-        }
-
         const coordinate = evt.coordinate;
         const projection = me.map.getView().getProjection();
         const resolution = me.map.getView().getResolution();
 
         me.queryableLayers = getAllChildLayers(me.map).filter(
           layer =>
-            layer.get("queryable") === true && layer.getVisible() === true
+            (layer.get("queryable") === true ||
+              layer.get("group") === "indicator") &&
+            layer.getVisible() === true
         );
 
         //WMS Requests
@@ -1006,7 +971,7 @@ export default {
     getPopupTitle() {
       if (this.getInfoResult[this.popup.currentLayerIndex]) {
         const layer = this.getInfoResult[this.popup.currentLayerIndex];
-        if (layer.get("name")) {
+        if (layer.get("layerName")) {
           const canTranslate = this.$te(
             `map.layerName.${layer.get("layerName")}`
           );
@@ -1015,11 +980,9 @@ export default {
           } else {
             return layer.get("layerName");
           }
-        } else {
-          return layer.name;
         }
       } else {
-        return "";
+        return "info";
       }
     },
     transformExtent,
