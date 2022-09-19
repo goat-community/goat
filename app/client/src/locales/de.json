@@ -107,6 +107,10 @@
           "speed": "km/h",
           "time": "Min",
           "nr": "Isochronen",
+          "from_time": "Von",
+          "access_mode": "Zugang",
+          "egress_mode": "Abgang",
+          "to_time": "Bis",
           "calcType": "Detaillierungsgrad Isochronen",
           "calcModus": "Berechnungsmodus",
           "alphaShapeMode": "Detaillierungsgrad Isochronen",
@@ -382,11 +386,12 @@
       "walking_wheelchair": "Rollstuhl",
       "cycling_standard": "Standard",
       "cycling_pedelec": "Pedelec",
-      "transit": "Transit",
-      "walk": "Walk",
-      "bicycle": "Bicycle",
-      "car": "Car",
-      "car_park": "Car park"
+      "transitModes": "ÖPNV Verkehrsmittel",
+      "transit": "ÖPNV",
+      "walk": "Fuß",
+      "bicycle": "Fahrrad",
+      "car": "Auto",
+      "car_park": "Parkplatz"
     },
     "results": {
       "title": "Ergebnisse",

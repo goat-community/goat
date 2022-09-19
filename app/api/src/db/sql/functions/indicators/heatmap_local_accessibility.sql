@@ -16,7 +16,12 @@ BEGIN
 	)
 	SELECT g.id AS grid_visualization_id, 
 	COALESCE(h.percentile_accessibility,0) AS percentile_accessibility, COALESCE(h.accessibility_index, 0)::bigint AS accessibility_index, 'default' AS modus, g.geom  
-	FROM basic.grid_visualization g
+	FROM (
+		SELECT g.*
+		FROM basic.grid_visualization g, basic.study_area_grid_visualization s 
+		WHERE g.id = s.grid_visualization_id
+		AND s.study_area_id = active_study_area_id
+	) g 
 	LEFT JOIN (
 		SELECT h.grid_visualization_id, ntile(5) over (order by h.accessibility_index) AS percentile_accessibility, h.accessibility_index 
 		FROM grouped h
@@ -47,7 +52,12 @@ BEGIN
 		with_geom AS
 		(
 			SELECT g.id AS grid_visualization_id, COALESCE(h.accessibility_index, 0) AS accessibility_index, 'scenario' AS modus, g.geom  
-			FROM basic.grid_visualization g
+			FROM (
+				SELECT g.*
+				FROM basic.grid_visualization g, basic.study_area_grid_visualization s 
+				WHERE g.id = s.grid_visualization_id
+				AND s.study_area_id = active_study_area_id
+			) g 
 			LEFT JOIN grouped h 
 			ON g.id = h.grid_visualization_id
 		)		
