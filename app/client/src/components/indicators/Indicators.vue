@@ -137,29 +137,6 @@
         @updateTimeIndicators="refreshVisibleIndicators(updateIndicators.time)"
       ></TimePicker>
     </span>
-    <overlay-popup
-      :color="appColor.primary"
-      :title="indicatorPopupInfo.name || 'No Title fetched'"
-      v-show="popup.isVisible"
-      ref="indicatorPopup"
-    >
-      <template v-slot:close>
-        <v-btn @click="closePopup()" icon>
-          <v-icon>close</v-icon>
-        </v-btn>
-      </template>
-      <template v-slot:body>
-        <p
-          v-for="(transportMean, tranportKey) in indicatorPopupInfo.description"
-          :key="tranportKey"
-        >
-          <!-- {{ translatePT("pt_route_types", tranportKey.toString()) }} -
-          {{ transportMean }} -->
-          {{ transportMean }}
-        </p>
-        <p></p>
-      </template>
-    </overlay-popup>
   </v-flex>
 </template>
 
@@ -175,23 +152,14 @@ import TimePicker from "./TimePicker.vue";
 import InLegend from "../viewer/ol/controls/InLegend.vue";
 import ApiService from "../../services/api.service";
 import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
-import OverlayPopup from "../viewer/ol/controls/Overlay.vue";
-import Overlay from "ol/Overlay";
 export default {
   mixins: [Mapable, Legend, LayerTree],
   components: {
     InLegend,
     StyleDialog,
-    TimePicker,
-    "overlay-popup": OverlayPopup
+    TimePicker
   },
   data: () => ({
-    popup: {
-      rawHtml: null,
-      title: "info",
-      isVisible: false,
-      currentLayerIndex: 0
-    },
     indicatorLayers: [],
     interactionType: "indicator-interaction",
     indicatorsWithAmenities: [
@@ -206,20 +174,12 @@ export default {
     currentItem: null,
     styleDialogKey: 0,
     styleDialogStatus: false,
-    timePickerDialogStatus: false,
-    indicatorPopupInfo: {
-      name: "",
-      description: []
-    }
+    timePickerDialogStatus: false
   }),
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
       this.styleDialogStatus = value;
     });
-    window.setTimeout(() => {
-      this.createPopupOverlay();
-      this.showPopup();
-    }, 200);
   },
   computed: {
     ...mapGetters("app", {
@@ -245,54 +205,14 @@ export default {
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     }),
-    closePopup() {
-      this.popup.isVisible = false;
-    },
     changeTimePickerDialogStatus() {
       this.indicatorLayers.forEach(layer => {
         if (this.updateIndicators.time.includes(layer.get("name")))
-          layer.setVisible(false);
+          if (layer.getVisible() === true) {
+            this.toggleLayerVisibility(layer);
+          }
       });
       this.timePickerDialogStatus = false;
-    },
-    createPopupOverlay() {
-      this.popupOverlay = new Overlay({
-        element: this.$refs.indicatorPopup.$el,
-        autoPan: false,
-        autoPanMargin: 40,
-        positioning: "bottom-left",
-        autoPanAnimation: {
-          duration: 250
-        }
-      });
-      this.map.addOverlay(this.popupOverlay);
-    },
-    showPopup() {
-      this.map.on("click", e => {
-        this.popupOverlay.setPosition(undefined);
-        this.map.forEachFeatureAtPixel(e.pixel, feature => {
-          this.indicatorPopupInfo.description = [];
-          let clickedCoordinate = e.coordinate;
-          if (!feature.get("stop_name")) {
-            this.indicatorPopupInfo.name = `Class ${feature.get("class")}`;
-            this.indicatorPopupInfo.description = [
-              this.translatePT("gutteklassenRating", feature.get("class"))
-            ];
-          } else {
-            let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
-            this.indicatorPopupInfo.name = feature.get("stop_name");
-            for (let element in clickedFeatureAdditionalInfo) {
-              this.indicatorPopupInfo.description.push(
-                `${this.translatePT("pt_route_types", element)} - ${
-                  clickedFeatureAdditionalInfo[element]
-                }`
-              );
-            }
-          }
-          this.popupOverlay.setPosition(clickedCoordinate);
-          this.popup.isVisible = true;
-        });
-      });
     },
     onMapBound() {
       this.map
@@ -315,14 +235,6 @@ export default {
       const canTranslate = this.$te(`map.${type}.${key}`);
       if (canTranslate) {
         return this.$t(`map.${type}.${key}`);
-      } else {
-        return key;
-      }
-    },
-    translatePT(type, key) {
-      const canTranslate = this.$te(`indicators.${type}.${key}`);
-      if (canTranslate) {
-        return this.$t(`indicators.${type}.${key}`);
       } else {
         return key;
       }
