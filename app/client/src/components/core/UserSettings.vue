@@ -129,11 +129,6 @@ export default {
     search: "",
     isLoading: false
   }),
-  watch: {
-    search(value) {
-      console.log(value);
-    }
-  },
   computed: {
     ...mapGetters("auth", { user: "currentUser" }),
     ...mapGetters("app", {

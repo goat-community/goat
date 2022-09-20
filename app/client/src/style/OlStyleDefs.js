@@ -916,7 +916,7 @@ const poisShadowStyle = new OlStyle({
   })
 });
 
-export function poisAoisStyle(feature) {
+export function poisAoisStyle(feature, resolution) {
   const category = feature.get("category");
   if (!poisAoisStore.state.poisAois[category]) {
     return [];
@@ -949,39 +949,52 @@ export function poisAoisStyle(feature) {
     return [];
   }
   const icon = poiIconConf.icon;
-  if (!poisAoisStyleCache[icon + color]) {
-    // Font style
-    poisAoisStyleCache[icon + color] = new OlStyle({
-      image: new OlFontSymbol({
-        form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
-        gradient: false,
-        glyph: icon,
-        text: "", // text to use if no glyph is defined
-        font: "sans-serif",
-        fontSize: 0.7,
-        fontStyle: "900",
-        radius: 20,
-        rotation: 0,
-        rotateWithView: false,
-        offsetY: -20,
-        color: color, // icon color
-        fill: new OlFill({
-          color: "#fff" // marker color
-        }),
-        stroke: new OlStroke({
-          color: color,
-          width: 2
-        })
+  // if (!poisAoisStyleCache[icon + color]) {
+  let radiusBasedOnZoom = 20;
+  poisShadowStyle.getImage().setScale(1);
+
+  if (resolution > 20) {
+    radiusBasedOnZoom = 10;
+    poisShadowStyle.getImage().setScale(0.5);
+  } else if (resolution > 15 && resolution <= 20) {
+    radiusBasedOnZoom = 14;
+    poisShadowStyle.getImage().setScale(0.75);
+  } else if (resolution > 10 && resolution <= 15) {
+    radiusBasedOnZoom = 18;
+    poisShadowStyle.getImage().setScale(0.95);
+  }
+  // Font style
+  poisAoisStyleCache[icon + color] = new OlStyle({
+    image: new OlFontSymbol({
+      form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
+      gradient: false,
+      glyph: icon,
+      text: "", // text to use if no glyph is defined
+      font: "sans-serif",
+      fontSize: 0.7,
+      fontStyle: "900",
+      radius: radiusBasedOnZoom,
+      rotation: 0,
+      rotateWithView: false,
+      offsetY: -20,
+      color: color, // icon color
+      fill: new OlFill({
+        color: "#fff" // marker color
       }),
       stroke: new OlStroke({
-        width: 2,
-        color: "#f80"
-      }),
-      fill: new OlFill({
-        color: [255, 136, 0, 0.6]
+        color: color,
+        width: 2
       })
-    });
-  }
+    }),
+    stroke: new OlStroke({
+      width: 2,
+      color: "#f80"
+    }),
+    fill: new OlFill({
+      color: [255, 136, 0, 0.6]
+    })
+  });
+  // }
   st.push(poisAoisStyleCache[icon + color]);
   return st;
 }
