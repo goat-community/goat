@@ -881,7 +881,6 @@ export default {
       appColor: "appColor",
       appConfig: "appConfig",
       poisConfig: "poisConfig",
-      routingProfiles: "routingProfiles",
       calculationMode: "calculationMode"
     }),
     ...mapGetters("poisaois", {
@@ -908,6 +907,9 @@ export default {
       publicTransport: "publicTransport",
       isochroneRange: "isochroneRange",
       isochroneResultWindow: "isochroneResultWindow"
+    }),
+    ...mapGetters("isochrones", {
+      routingProfiles: "routingProfiles"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"

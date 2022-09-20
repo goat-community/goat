@@ -95,7 +95,19 @@ const state = {
   calculationColors: ["rgba(40, 54, 72, 0.4)", "rgba(235, 57, 21, 0.4)"], // [0]: default, [1]: scenario or compare
   // Cancel Request
   cancelReq: undefined,
-  isochroneResultWindow: false
+  isochroneResultWindow: false,
+  transitRouteTypes: {
+    tram: 0,
+    subway: 1,
+    rail: 2,
+    bus: 3,
+    ferry: 4,
+    cable_tram: 5,
+    aerial_lift: 6,
+    funicular: 7,
+    trolleybus: 11,
+    monorail: 12
+  }
 };
 
 const getters = {
@@ -108,6 +120,48 @@ const getters = {
   calculationColors: state => state.calculationColors,
   chartDatasetType: state => state.chartDatasetType,
   isochroneResultWindow: state => state.isochroneResultWindow,
+  // eslint-disable-next-line no-unused-vars
+  routingProfiles: (state, getters, rootState, rootGetters) => {
+    let routingProfiles = {};
+    const routing = rootState.app.appConfig.routing;
+    routing.forEach(r => {
+      routingProfiles[r.type] = r;
+    });
+    return routingProfiles;
+  },
+  transitRouteTypes: state => state.transitRouteTypes,
+  // eslint-disable-next-line no-unused-vars
+  transitRouteTypesByNr: (state, getters, rootState, rootGetters) => {
+    let obj = {};
+    const routing = rootState.app.appConfig.routing.filter(
+      r => r.type === "transit"
+    );
+    if (routing.length > 0) {
+      const transitModes = routing[0].transit_modes;
+      transitModes.forEach(t => {
+        const typeNr = state.transitRouteTypes[t.type];
+        obj[typeNr] = {
+          name: t.type,
+          color: t.color,
+          icon: t.icon
+        };
+      });
+    }
+    return obj;
+  },
+  transitRouteTypesByName: (state, getters) => {
+    const transitRouteTypesByNr = getters.transitRouteTypesByNr;
+    let obj = {};
+    Object.keys(transitRouteTypesByNr).forEach(nr => {
+      const type = transitRouteTypesByNr[nr];
+      obj[type.name] = {
+        id: nr,
+        color: type.color,
+        icon: type.icon
+      };
+    });
+    return obj;
+  },
   getField
 };
 

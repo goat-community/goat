@@ -1,7 +1,7 @@
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
-from sqlalchemy import delete
+from sqlalchemy import delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import RelationshipProperty, selectinload
@@ -87,7 +87,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db_obj: ModelType,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
-        
+
         if isinstance(obj_in, dict):
             update_data = obj_in
             fields = obj_in.keys()
@@ -134,3 +134,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         statement = select(self.model).limit(n)
         result = await db.execute(statement)
         return result.scalars().all()
+
+    async def count(self, db: AsyncSession) -> int:
+        """
+        Count the number of rows in the table.
+        """
+        statement = select(func.count(self.model.id))
+        result = await db.execute(statement)
+        return result.scalar_one()
