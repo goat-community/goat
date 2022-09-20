@@ -19,8 +19,30 @@
                 layer.get('showOptions') === true
             }"
           >
-            <v-expansion-panel-header expand-icon="" v-slot="{}">
-              <v-layout row class="pl-1" wrap align-center>
+            <v-expansion-panel-header
+              expand-icon=""
+              v-slot="{}"
+              class="pl-0 ml-0"
+            >
+              <v-layout row class="pl-0 ml-0" wrap align-center>
+                <v-flex class="checkbox" xs1>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-btn
+                        v-on="on"
+                        @click.stop="openDocumentation(layer)"
+                        v-show="layer.get('docUrl')"
+                        class="ma-0 pb-0"
+                        small
+                        text
+                        icon
+                      >
+                        <i class="fas fa-info"></i>
+                      </v-btn>
+                    </template>
+                    <span>{{ $t(`map.tooltips.openDocumentation`) }}</span>
+                  </v-tooltip>
+                </v-flex>
                 <v-flex class="checkbox" xs1>
                   <v-checkbox
                     :color="appColor.secondary"
@@ -28,7 +50,7 @@
                     @change="toggleLayerVisibility(layer)"
                   ></v-checkbox>
                 </v-flex>
-                <v-flex xs10 class="light-text">
+                <v-flex xs9 class="light-text">
                   <h4 class="pl-2">
                     {{ translate("layerName", layer.get("name")) }}
                   </h4>
@@ -129,6 +151,12 @@
         :styleDialogStatus="styleDialogStatus"
       ></StyleDialog>
     </span>
+    <documentation-dialog
+      :color="appColor.primary"
+      :visible="showDocumentationDialog"
+      :item="selectedDocumentationLayer"
+      @close="showDocumentationDialog = false"
+    ></documentation-dialog>
     <span v-if="timePickerDialogStatus">
       <TimePicker
         :status="timePickerDialogStatus"
@@ -152,12 +180,14 @@ import TimePicker from "./TimePicker.vue";
 import InLegend from "../viewer/ol/controls/InLegend.vue";
 import ApiService from "../../services/api.service";
 import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
+import DocumentationDialog from "../other/DocumentationDialog.vue";
 export default {
   mixins: [Mapable, Legend, LayerTree],
   components: {
     InLegend,
     StyleDialog,
-    TimePicker
+    TimePicker,
+    DocumentationDialog
   },
   data: () => ({
     indicatorLayers: [],
@@ -174,7 +204,9 @@ export default {
     currentItem: null,
     styleDialogKey: 0,
     styleDialogStatus: false,
-    timePickerDialogStatus: false
+    timePickerDialogStatus: false,
+    showDocumentationDialog: false,
+    selectedDocumentationLayer: null
   }),
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
@@ -391,6 +423,10 @@ export default {
       } else {
         return false;
       }
+    },
+    openDocumentation(layer) {
+      this.showDocumentationDialog = true;
+      this.selectedDocumentationLayer = layer;
     }
   },
   watch: {

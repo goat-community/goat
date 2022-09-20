@@ -32,7 +32,7 @@
               <iframe
                 @load="isLoading = false"
                 scrolling="yes"
-                :src="item.mapLayer.get('docUrl')"
+                :src="getDocUrl"
               >
               </iframe></div
           ></vue-scroll>
@@ -62,12 +62,23 @@ export default {
           this.$emit("close");
         }
       }
+    },
+    getDocUrl() {
+      //DE:  plan4better.de/docs/heatmap-connectivity
+      //EN:  plan4better.de/en/docs/heatmap-connectivity
+      let docUrl = this.item.get("docUrl");
+      if (docUrl.includes("/en/docs") && this.$i18n.locale === "de") {
+        docUrl = docUrl.replace("/en/docs", "/docs");
+      } else if (!docUrl.includes("/en/docs") && this.$i18n.locale === "en") {
+        docUrl = docUrl.replace("/docs", "/en/docs");
+      }
+      return docUrl;
     }
   },
   methods: {
     openDocInNetTab() {
       if (!this.item) return;
-      const url = this.item.mapLayer.get("docUrl");
+      const url = this.getDocUrl;
       if (url) {
         window.open(url, "_blank");
       }
@@ -83,6 +94,7 @@ export default {
   overflow: hidden;
   margin: 15px auto;
   max-width: 800px;
+  height: 530px;
 }
 
 iframe {
