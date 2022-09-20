@@ -252,8 +252,7 @@ export default {
 
   computed: {
     ...mapGetters("app", {
-      calculationMode: "calculationMode",
-      routingProfiles: "routingProfiles"
+      calculationMode: "calculationMode"
     }),
     ...mapFields("map", {
       vectorTileStyles: "vectorTileStyles"
@@ -263,6 +262,9 @@ export default {
     }),
     ...mapFields("isochrones", {
       calculations: "calculations"
+    }),
+    ...mapGetters("isochrones", {
+      routingProfiles: "routingProfiles"
     })
   },
   watch: {

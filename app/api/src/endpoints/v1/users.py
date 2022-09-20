@@ -2,7 +2,7 @@ import datetime
 import json
 from typing import Any, List, Union
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
 from pydantic.networks import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +21,7 @@ router = APIRouter()
 
 @router.get("", response_model=List[models.User], response_model_exclude={"hashed_password"})
 async def read_users(
+    response: Response,
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
@@ -30,6 +31,8 @@ async def read_users(
     Retrieve users.
     """
     is_superuser = crud.user.is_superuser(current_user)
+    total_count = await crud.user.count(db)
+    response.headers["X-Total-Count"] = str(total_count)
     if not is_superuser:
         raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 

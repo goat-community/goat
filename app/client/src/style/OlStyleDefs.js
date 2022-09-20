@@ -9,6 +9,7 @@ import OlShadow from "../utils/Shadow";
 
 import poisAoisStore from "../store/modules/poisaois";
 import isochroneStore from "../store/modules/isochrones";
+import store from "../store/index";
 import mapStore from "../store/modules/map";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
@@ -987,16 +988,6 @@ export function poisAoisStyle(feature) {
 
 import Chart from "ol-ext/style/Chart";
 
-// PT Station count layer style
-// feature:
-// "properties": {
-//   "stop_id": "de:09162:1",
-//   "stop_name": "Karlsplatz (Stachus)",
-//   "trip_cnt": {
-//     "1": 14,
-//     "2": 31
-//   }
-// }
 export function ptStationCountStyle(feature) {
   let time =
     (appStore.state.timeIndicators.endTime -
@@ -1021,20 +1012,8 @@ export function ptStationCountStyle(feature) {
   } else if (tripCntSum > 80) {
     radius = 19;
   }
-
-  const colorMapping = {
-    0: "#D31E20",
-    1: "#004D89",
-    2: "#338FB4",
-    3: "#005567",
-    4: "#BEB8EB",
-    5: "#1A3A3A",
-    6: "#C57B57",
-    7: "#457B9D",
-    11: "#6A3E37",
-    12: "#34344A"
-  };
-  const colors = Object.keys(tripCnt).map(key => colorMapping[key]);
+  const routeTypes = store.getters["isochrones/transitRouteTypesByNr"];
+  const colors = Object.keys(tripCnt).map(key => routeTypes[key].color);
   const data = Object.values(tripCnt).map(val => val / time);
   return new OlStyle({
     image: new Chart({

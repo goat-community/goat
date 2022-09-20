@@ -250,3 +250,11 @@ export const secondsToHoursAndMins = seconds => {
   fromTimeDate.setSeconds(seconds);
   return fromTimeDate.toISOString().substring(11, 16);
 };
+
+export const numberSeparator = (number, locale) => {
+  if (locale === "en") {
+    return number.toLocaleString("en-US");
+  } else if (locale === "de") {
+    return number.toLocaleString("de-DE");
+  }
+};
