@@ -28,7 +28,7 @@
       </v-row>
 
       <v-divider></v-divider>
-      <v-select
+      <!-- <v-select
         class="mt-8"
         v-model="studyAreaId"
         :items="studyAreaList"
@@ -36,8 +36,22 @@
         item-text="name"
         :label="$t('userSettings.changeStudyAreaTitle')"
         @change="changeStudyArea"
-      >
-      </v-select>
+      > -->
+      <v-autocomplete
+        v-model="studyAreaId"
+        class="mt-8"
+        :items="studyAreaList"
+        item-value="id"
+        item-text="name"
+        :loading="isLoading"
+        :search-input.sync="search"
+        hide-no-data
+        hide-selected
+        :label="$t('userSettings.changeStudyAreaTitle')"
+        placeholder="Start typing to Search"
+        return-object
+        @change="changeStudyArea"
+      ></v-autocomplete>
       <v-divider></v-divider>
       <v-select
         class="mt-2"
@@ -120,8 +134,15 @@ export default {
     ],
     interactionType: "languageChange",
     studyAreaId: null,
-    userCopy: {}
+    userCopy: {},
+    search: "",
+    isLoading: false
   }),
+  watch: {
+    search(value) {
+      console.log(value);
+    }
+  },
   computed: {
     ...mapGetters("auth", { user: "currentUser" }),
     ...mapGetters("app", {
@@ -164,7 +185,7 @@ export default {
       }
     },
     changeStudyArea(newStudyArea) {
-      if (newStudyArea === this.user.active_study_area_id) {
+      if (newStudyArea.id === this.user.active_study_area_id) {
         return;
       }
       if (this.calculations.length > 0) {
@@ -177,7 +198,7 @@ export default {
           .then(confirm => {
             if (confirm) {
               ApiService.put("/users/me/preference", {
-                active_study_area_id: newStudyArea
+                active_study_area_id: newStudyArea.id
               }).then(() => {
                 window.location.reload();
               });
@@ -187,7 +208,7 @@ export default {
           });
       } else {
         ApiService.put("/users/me/preference", {
-          active_study_area_id: newStudyArea
+          active_study_area_id: newStudyArea.id
         }).then(() => {
           window.location.reload();
         });
