@@ -462,7 +462,8 @@ export default {
                     pois: amenity ? this.$t(`pois.${amenity}`) : amenity
                   };
                   let value = numberSeparator(
-                    this.getString(parseInt(sumPois[amenity]))
+                    this.getString(parseInt(sumPois[amenity])),
+                    this.$i18n.locale
                   );
                   obj[`isochrone-${calculation.id}`] = value || "-";
                   if (poisObj[amenity]) {

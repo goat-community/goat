@@ -54,6 +54,7 @@ class CRUDDynamicCustomization:
             "access_token",
             "max_resolution",
             "max_resolution",
+            "doc_url"
         ]:
             if getattr(layer, key) is not None:
                 layer_attributes[key] = getattr(layer, key)

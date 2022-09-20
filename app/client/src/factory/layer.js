@@ -57,7 +57,8 @@ export const LayerFactory = {
       layerOrderKey: 1,
       queryable: lConf.queryable,
       displayInLayerList: lConf.display_in_layer_list || true,
-      legendGraphicUrls: lConf.legend_urls || null
+      legendGraphicUrls: lConf.legend_urls || null,
+      docUrl: lConf.doc_url || null
     };
     if (lConf.min_resolution) {
       lOpts.minResolution = lConf.min_resolution;
