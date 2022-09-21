@@ -691,6 +691,18 @@
                           >
                         </v-card-text>
                       </v-layout>
+                      <v-layout row>
+                        <div
+                          v-if="isCalculationActive(calculation)"
+                          :style="
+                            `width: 30px; height: 10px; background-color: ${
+                              calculationColors[
+                                selectedCalculations.indexOf(calculation)
+                              ]
+                            }`
+                          "
+                        ></div>
+                      </v-layout>
 
                       <v-layout row>
                         <v-spacer></v-spacer>
@@ -909,7 +921,9 @@ export default {
       isochroneResultWindow: "isochroneResultWindow"
     }),
     ...mapGetters("isochrones", {
-      routingProfiles: "routingProfiles"
+      routingProfiles: "routingProfiles",
+      calculationColors: "calculationColors",
+      selectedCalculations: "selectedCalculations"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
@@ -1048,7 +1062,9 @@ export default {
      */
     registerMapClick() {
       //Close other interactions.
+
       EventBus.$emit("ol-interaction-activated", this.interactionType);
+
       if (this.type === "single") {
         this.mapClickListener = this.map.once("singleclick", this.onMapClick);
         this.startHelpTooltip(
@@ -1837,6 +1853,7 @@ export default {
           }
         );
       } else {
+        this.lastActivatedIsochrone = calculation.id;
         if (this.selectedCalculations.length === 2) {
           // Remove first calculation if length is already 2
           this.selectedCalculations.shift();
@@ -1963,6 +1980,9 @@ export default {
       if (this.routing === "transit") {
         this.type = "single";
       }
+    },
+    calculationColors(value) {
+      console.log(value);
     },
     selectedPois() {
       if (this.multiIsochroneMethod) {
