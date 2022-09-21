@@ -989,12 +989,8 @@ export function poisAoisStyle(feature) {
 import Chart from "ol-ext/style/Chart";
 
 export function ptStationCountStyle(feature) {
-  let time =
-    (appStore.state.timeIndicators.endTime -
-      appStore.state.timeIndicators.startTime) /
-    3600;
   const tripCnt = feature.get("trip_cnt");
-
+  const time = store.getters["isochrones/timeDelta"]; // number of hours
   const tripCntSum = Object.values(tripCnt).reduce((a, b) => a + b, 0) / time;
   let radius = 3;
   if (tripCntSum <= 5 && tripCntSum > 0) {

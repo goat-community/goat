@@ -51,6 +51,7 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Total-Count"],
     )
 
 
@@ -64,7 +65,7 @@ async def startup_event():
     async with async_session() as db:
         table_index = await crud.layer.table_index(db)
         app.state.table_catalog = table_index
-
+        
     if not os.environ.get("DISABLE_NUMBA_STARTUP_CALL") == "True":
         await run_time_method_calls.call_isochrones_startup(app=app)
 
