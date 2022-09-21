@@ -121,6 +121,14 @@ const getters = {
   chartDatasetType: state => state.chartDatasetType,
   isochroneResultWindow: state => state.isochroneResultWindow,
   // eslint-disable-next-line no-unused-vars
+  timeDelta: (state, getters, rootState) => {
+    let time =
+      (rootState.app.timeIndicators.endTime -
+        rootState.app.timeIndicators.startTime) /
+      3600;
+    return time;
+  },
+  // eslint-disable-next-line no-unused-vars
   routingProfiles: (state, getters, rootState, rootGetters) => {
     let routingProfiles = {};
     const routing = rootState.app.appConfig.routing;

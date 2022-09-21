@@ -97,7 +97,10 @@
                 $t(
                   `indicators.ptRouteTypes.${transitRouteTypesByNr[routeType].name}`
                 )
-              }}: {{ tripCnt }}
+              }}:
+              {{
+                tripCnt && timeDelta > 0 ? Math.round(tripCnt / timeDelta) : 0
+              }}
             </p>
           </div>
         </template>
@@ -1079,7 +1082,8 @@ export default {
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
       options: "options",
-      transitRouteTypesByNr: "transitRouteTypesByNr"
+      transitRouteTypesByNr: "transitRouteTypesByNr",
+      timeDelta: "timeDelta"
     }),
     ...mapGetters("scenarios", {
       activeScenario: "activeScenario"
