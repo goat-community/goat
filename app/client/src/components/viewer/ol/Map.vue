@@ -45,6 +45,7 @@
       :color="appColor.primary"
       :title="getPopupTitle()"
       v-show="popup.isVisible && miniViewOlMap === false"
+      style="max-width: 300px;"
       ref="popup"
     >
       <v-btn icon>
@@ -52,7 +53,7 @@
       </v-btn>
       <template v-slot:close>
         <template v-if="getInfoResult.length > 1">
-          <span
+          <span style="white-space: nowrap;"
             >({{ popup.currentLayerIndex + 1 }} of
             {{ getInfoResult.length }})</span
           >
@@ -74,44 +75,112 @@
         </v-btn>
       </template>
       <template v-slot:body>
-        <a
-          v-if="currentInfoFeature && currentInfoFeature.get('osm_id')"
-          style="text-decoration:none;"
-          :href="getOsmHrefLink()"
-          target="_blank"
-          title=""
+        <!-- INDICATOR: STATION COUNT -->
+        <template
+          v-if="currentInfoFeature && currentInfoFeature.get('trip_cnt')"
         >
-          <i class="fa fa-edit"></i> {{ $t("map.popup.editWithOsm") }}</a
-        >
-
-        <div
-          style="max-height:800px;overflow:hidden;"
-          v-if="getInfoResult[popup.currentLayerIndex]"
-        >
-          <vue-scroll>
-            <v-simple-table
-              v-if="
-                getInfoResult[popup.currentLayerIndex].get('layerName') !==
-                  'footpath_visualization'
+          <div
+            v-for="(tripCnt, routeType, idx) in currentInfoFeature.get(
+              'trip_cnt'
+            )"
+            :key="idx"
+            style="display: flex; align-items: center; margin: 5px 0;"
+          >
+            <div
+              v-if="transitRouteTypesByNr[routeType].color"
+              :style="
+                `width:45px;height:23px;margin-right: 20px;background-color: ${transitRouteTypesByNr[routeType].color};`
               "
-              dense
-              class="pr-2"
-            >
+            ></div>
+            <p style="margin: 0">
+              {{
+                $t(
+                  `indicators.ptRouteTypes.${transitRouteTypesByNr[routeType].name}`
+                )
+              }}:
+              {{
+                tripCnt && timeDelta > 0 ? Math.round(tripCnt / timeDelta) : 0
+              }}
+            </p>
+          </div>
+        </template>
+        <!-- INDICATOR: ÖV-Güteklassen -->
+        <template
+          v-else-if="
+            currentInfoFeature &&
+              currentInfoFeature.get('layerName') === 'pt_oev_gueteklasse'
+          "
+        >
+          <div>
+            {{ $t(`indicators.class`) }}
+            {{ currentInfoFeature.get("class") }} :
+            {{
+              $t(
+                `indicators.gutteklassenRating.${currentInfoFeature.get(
+                  "class"
+                )}`
+              )
+            }}
+          </div>
+        </template>
+        <template v-else>
+          <a
+            v-if="currentInfoFeature && currentInfoFeature.get('osm_id')"
+            style="text-decoration:none;"
+            :href="getOsmHrefLink()"
+            target="_blank"
+            title=""
+          >
+            <i class="fa fa-edit"></i> {{ $t("map.popup.editWithOsm") }}</a
+          >
+          <div
+            style="max-height:800px;overflow:hidden;"
+            v-if="getInfoResult[popup.currentLayerIndex]"
+          >
+            <vue-scroll>
+              <v-simple-table dense class="pr-2">
+                <template v-slot:default>
+                  <tbody>
+                    <tr v-for="item in currentInfo" :key="item.property">
+                      <td>{{ item.property }}</td>
+                      <td>{{ item.value }}</td>
+                    </tr>
+                  </tbody>
+                </template>
+              </v-simple-table>
+            </vue-scroll>
+          </div>
+        </template>
+      </template>
+    </overlay-popup>
+    <!-- Popup For WMS/WMTS Layer -->
+    <overlay-popup
+      :color="appColor.primary"
+      :title="wmsPopup.title"
+      v-show="wmsPopup.isVisible"
+      ref="wmsPopup"
+    >
+      <v-btn icon>
+        <v-icon>close</v-icon>
+      </v-btn>
+      <template v-slot:close>
+        <v-btn @click="closeWmsPopup()" icon>
+          <v-icon>close</v-icon>
+        </v-btn>
+      </template>
+      <template v-slot:body>
+        <div style="max-height:800px;overflow:hidden;" v-if="wmsPopup.content">
+          <vue-scroll>
+            <v-simple-table dense class="pr-2">
               <template v-slot:default>
                 <tbody>
-                  <tr v-for="item in currentInfo" :key="item.property">
+                  <tr v-for="item in wmsPopup.content" :key="item.property">
                     <td>{{ item.property }}</td>
                     <td>{{ item.value }}</td>
                   </tr>
                 </tbody>
               </template>
             </v-simple-table>
-            <div v-else>
-              <indicators-chart
-                class="mr-4"
-                :feature="getInfoResult[popup.currentLayerIndex]"
-              ></indicators-chart>
-            </div>
           </vue-scroll>
         </div>
       </template>
@@ -188,22 +257,23 @@
     </v-snackbar>
     <v-snackbar
       :color="appColor.primary"
-      v-if="isRecomputingHeatmap"
+      v-if="isRecomputingIndicator"
       :timeout="0"
       top
       center
       style="font-size:14px;"
-      :value="isRecomputingHeatmap"
+      :value="isRecomputingIndicator"
     >
       <span
         >{{
-          $te(`heatmap.recomputingHeatmaps`)
-            ? $t(`heatmap.recomputingHeatmaps`)
-            : "Recomputing Heatmaps... "
+          $te(`indicators.recomputingIndicators`)
+            ? $t(`indicators.recomputingIndicators`)
+            : "Recomputing Indicators... "
         }}
       </span>
       <v-progress-circular indeterminate color="white"></v-progress-circular>
     </v-snackbar>
+    <div id="isochrone-hover-info"></div>
   </div>
 </template>
 
@@ -259,7 +329,6 @@ import ContextMenu from "ol-contextmenu/dist/ol-contextmenu";
 import "ol-contextmenu/dist/ol-contextmenu.min.css";
 
 // Indicators Chart
-import IndicatorsChart from "../../other/IndicatorsChart";
 import { GET_POIS_AOIS } from "../../../store/actions.type";
 
 export default {
@@ -268,7 +337,6 @@ export default {
     "progress-status": MapLoadingProgressStatus,
     "background-switcher": BackgroundSwitcher,
     "full-screen": FullScreen,
-    "indicators-chart": IndicatorsChart,
     "search-map": Search,
     measure: Measure
   },
@@ -285,6 +353,11 @@ export default {
         title: "info",
         isVisible: false,
         currentLayerIndex: 0
+      },
+      wmsPopup: {
+        isVisible: false,
+        title: null,
+        content: []
       },
       getInfoResult: [],
       limitedVisibilityLayers: [],
@@ -314,6 +387,7 @@ export default {
       me.setupMapClick();
       me.setupMapPointerMove();
       me.createPopupOverlay();
+      me.createWmsWmtsPopup();
       EventBus.$on("toggleLayerVisiblity", this.showNonVisibleLayersInfo);
     }, 200);
   },
@@ -569,6 +643,20 @@ export default {
       me.map.addOverlay(me.popupOverlay);
     },
 
+    createWmsWmtsPopup() {
+      this.wmsPopupOverlay = new Overlay({
+        element: this.$refs.wmsPopup.$el,
+        autoPan: false,
+        autoPanMargin: 40,
+        positioning: "bottom-left",
+        autoPanAnimation: {
+          duration: 250
+        }
+      });
+
+      this.map.addOverlay(this.wmsPopupOverlay);
+    },
+
     /**
      * Closes the popup if user click X button.
      */
@@ -584,6 +672,12 @@ export default {
         me.getInfoLayerSource.clear();
       }
     },
+    closeWmsPopup() {
+      this.wmsPopupOverlay.isVisible = false;
+      this.wmsPopupOverlay.setPosition(undefined);
+      this.wmsPopup.title = null;
+      this.wmsPopup.content = [];
+    },
 
     /**
      * Show getInfo popup.
@@ -592,9 +686,13 @@ export default {
       // Clear highligh feature
       this.getInfoLayerSource.clear();
       const infoFeature = this.getInfoResult[this.popup.currentLayerIndex];
-      let position = infoFeature.getGeometry()
-        ? infoFeature.getGeometry().getCoordinates()
-        : coordinate;
+      const geometry = infoFeature.getGeometry();
+      let position = coordinate;
+      if (["LineString", "MultiLineString"].includes(geometry.getType())) {
+        position = geometry.getClosestPoint(coordinate);
+      } else if (["Point"].includes(geometry.getType())) {
+        position = geometry.getCoordinates();
+      }
       // Add highlight feature
       this.getInfoLayerSource.addFeature(
         this.getInfoResult[this.popup.currentLayerIndex]
@@ -606,7 +704,9 @@ export default {
         center: position,
         duration: 400
       });
-      this.popupOverlay.setPosition(position);
+      if (position) {
+        this.popupOverlay.setPosition(position);
+      }
       this.popup.isVisible = true;
       this.popup.title = `info`;
     },
@@ -691,36 +791,15 @@ export default {
           return;
         }
 
-        //Check for isochrone features
-        const isochroneFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
-          layerFilter: candidate => {
-            if (candidate.get("name") === "isochrone_layer") {
-              return true;
-            }
-            return false;
-          }
-        });
-        const otherFeatures = me.map.getFeaturesAtPixel(evt.pixel, {
-          layerFilter: candidate => {
-            if (candidate.get("name") !== "isochrone_layer") {
-              return true;
-            }
-            return false;
-          }
-        });
-        if (isochroneFeatures.length > 0 && otherFeatures.length === 0) {
-          // Toggle thematic data for isochrone window
-          const isochroneFeature = isochroneFeatures[0];
-          EventBus.$emit(
-            "show-isochrone-window",
-            isochroneFeature.get("calculationNumber")
-          );
-          return;
-        }
+        const coordinate = evt.coordinate;
+        const projection = me.map.getView().getProjection();
+        const resolution = me.map.getView().getResolution();
 
         me.queryableLayers = getAllChildLayers(me.map).filter(
           layer =>
-            layer.get("queryable") === true && layer.getVisible() === true
+            (layer.get("queryable") === true ||
+              layer.get("group") === "indicator") &&
+            layer.getVisible() === true
         );
 
         //WMS Requests
@@ -771,14 +850,74 @@ export default {
               }
               break;
             }
+            case "WMS":
+            case "WMTS": {
+              if (layer.get("queryable")) {
+                let url = layer
+                  .getSource()
+                  .getFeatureInfoUrl(coordinate, resolution, projection, {
+                    INFO_FORMAT: "text/html",
+                    QUERY_LAYERS: [
+                      layer
+                        .getSource()
+                        .url_.split("?")[0]
+                        .split("/")
+                        .pop()
+                    ]
+                  });
+                fetch(url)
+                  .then(response => response.text())
+                  .then(htmlData => {
+                    let parser = new DOMParser();
+                    let doc = parser.parseFromString(htmlData, "text/html");
+
+                    let gatheredData = {
+                      name: "",
+                      content: []
+                    };
+                    let table = doc.getElementsByTagName("tbody")[0];
+                    if (table) {
+                      let tableRows = table.getElementsByTagName("tr");
+
+                      [...tableRows].forEach((tableRow, idx) => {
+                        if (idx === 0) {
+                          gatheredData.name = tableRow
+                            .querySelector(".tablerowheader")
+                            .getElementsByTagName("b")[0].innerHTML;
+                        } else {
+                          if (!tableRow.querySelector(".tablerownotice")) {
+                            let rowTitle = tableRow.querySelector(
+                              ".tablerowleft"
+                            ).innerHTML;
+                            let rowContent = tableRow.querySelector(
+                              ".tablerowright"
+                            ).innerHTML;
+                            let newObject = {
+                              property: rowTitle,
+                              value: rowContent
+                            };
+                            gatheredData.content.push(newObject);
+                          }
+                        }
+                      });
+                    }
+                    if (gatheredData.name != "" && gatheredData.content) {
+                      this.wmsPopup.title = gatheredData.name;
+                      this.wmsPopup.content = gatheredData.content;
+                      this.wmsPopupOverlay.setPosition(undefined);
+                      this.wmsPopupOverlay.setPosition(evt.coordinate);
+                      this.wmsPopup.isVisible = true;
+                    }
+                  });
+              }
+              break;
+            }
             default:
               break;
           }
         });
         if (promiseArray.length > 0) {
-          console.log(promiseArray);
           axios.all(promiseArray).then(function(results) {
-            console.log(results);
             results.forEach(response => {
               if (response && response.data && response.data.features) {
                 const features = response.data.features;
@@ -798,6 +937,7 @@ export default {
           });
         } else {
           //Only for WFS layer
+
           if (me.getInfoResult.length > 0) {
             me.showPopup(evt.coordinate);
           }
@@ -880,18 +1020,23 @@ export default {
       return link;
     },
     getPopupTitle() {
+      if (this.currentInfoFeature && this.currentInfoFeature.get("stop_name")) {
+        return this.currentInfoFeature.get("stop_name");
+      }
       if (this.getInfoResult[this.popup.currentLayerIndex]) {
         const layer = this.getInfoResult[this.popup.currentLayerIndex];
-        const canTranslate = this.$te(
-          `map.layerName.${layer.get("layerName")}`
-        );
-        if (canTranslate) {
-          return this.$t(`map.layerName.${layer.get("layerName")}`);
-        } else {
-          return layer.get("layerName");
+        if (layer.get("layerName")) {
+          const canTranslate = this.$te(
+            `map.layerName.${layer.get("layerName")}`
+          );
+          if (canTranslate) {
+            return this.$t(`map.layerName.${layer.get("layerName")}`);
+          } else {
+            return layer.get("layerName");
+          }
         }
       } else {
-        return "";
+        return "info";
       }
     },
     transformExtent,
@@ -931,12 +1076,14 @@ export default {
       appColor: "appColor",
       appConfig: "appConfig",
       scenarioLayerEditModeColor: "scenarioLayerEditModeColor",
-      isRecomputingHeatmap: "isRecomputingHeatmap",
+      isRecomputingIndicator: "isRecomputingIndicator",
       calculationMode: "calculationMode"
     }),
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
-      options: "options"
+      options: "options",
+      transitRouteTypesByNr: "transitRouteTypesByNr",
+      timeDelta: "timeDelta"
     }),
     ...mapGetters("scenarios", {
       activeScenario: "activeScenario"

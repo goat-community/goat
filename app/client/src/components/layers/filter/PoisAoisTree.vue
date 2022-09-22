@@ -14,8 +14,8 @@
           <v-icon dark>add</v-icon>
         </v-btn>
       </template>
-      <span>Upload POI Dataset</span></v-tooltip
-    >
+      <span>Upload POI Dataset</span>
+    </v-tooltip>
 
     <v-treeview
       :key="treeViewKey"
@@ -92,7 +92,7 @@
           <v-tooltip top>
             <template v-slot:activator="{ on }">
               <v-icon
-                @click="toggleHeatmapDialog(item)"
+                @click="toggleIndicatorDialog(item)"
                 small
                 v-on="on"
                 class="arrow-icons mr-1"
@@ -105,11 +105,11 @@
         </template>
       </template>
     </v-treeview>
-    <heatmap-options
+    <indicator-options
       :color="appColor.primary"
-      :visible="showHeatmapOptionsDialog"
+      :visible="showIndicatorOptionsDialog"
       :selectedAmenity="selectedAmenity"
-      @close="showHeatmapOptionsDialog = false"
+      @close="showIndicatorOptionsDialog = false"
     />
     <icon-picker
       :color="appColor.primary"
@@ -131,7 +131,7 @@ import { mapGetters } from "vuex";
 import { mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
 // Child components
-import HeatmapOptions from "./HeatmapOptions";
+import IndicatorOptions from "./IndicatorOptions";
 import IconPicker from "../../other/IconPicker";
 import UserDataUploadDialog from "../../core/UserDataUploadDialog.vue";
 
@@ -140,25 +140,24 @@ import UserDataUploadDialog from "../../core/UserDataUploadDialog.vue";
 export default {
   mixins: [Mapable],
   components: {
-    "heatmap-options": HeatmapOptions,
+    "indicator-options": IndicatorOptions,
     "icon-picker": IconPicker,
     "user-data-upload": UserDataUploadDialog
   },
   data() {
     return {
       open: [],
-      showHeatmapOptionsDialog: false,
+      showIndicatorOptionsDialog: false,
       showDataUploadDialog: false,
       showIconPickerDialog: false,
       selectedIcon: {},
       selectedAmenity: {}
     };
   },
-
   methods: {
-    toggleHeatmapDialog(amenity) {
+    toggleIndicatorDialog(amenity) {
       this.selectedAmenity = amenity;
-      this.showHeatmapOptionsDialog = true;
+      this.showIndicatorOptionsDialog = true;
     },
     toggleIconPickerDialog(icon) {
       // Disable icon style change for groups and aois
@@ -219,6 +218,7 @@ export default {
     ...mapGetters("app", {
       appColor: "appColor",
       poisAoisTree: "poisAoisTree",
+      poiIcons: "poiIcons",
       uploadedData: "uploadedData",
       aoisConfig: "aoisConfig"
     }),

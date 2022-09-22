@@ -15,6 +15,7 @@
             style="max-width:100%; padding-left:50px;"
             :src="legendUrl"
             class="white--text mt-0 pt-0"
+            alt="Legend is loading"
           />
         </div>
       </template>
@@ -22,9 +23,26 @@
     <div v-else>
       <div :key="legendRerenderOnActiveMode">
         <div
-          v-if="
+          style=" padding: 20px;"
+          v-if="layer.get('name') === 'pt_station_count'"
+        >
+          <div
+            v-for="(value, name, idx) in transitRouteTypesByName"
+            :key="idx"
+            style="display: flex;"
+          >
+            <div
+              :style="
+                `width: 45px; height: 23px; background-color: ${value.color}; margin-right: 10px;`
+              "
+            ></div>
+            <p>{{ $t(`indicators.ptRouteTypes.${name}`) }}</p>
+          </div>
+        </div>
+        <div
+          v-else-if="
             vectorTileStyles[layer.get('name')] &&
-              ['VECTOR', 'GEOBUF', 'MVT'].includes(
+              ['VECTOR', 'GEOBUF', 'MVT', 'WMS', 'WMTS'].includes(
                 layer.get('type').toUpperCase()
               )
           "
@@ -184,6 +202,10 @@ export default {
       appColor: "appColor",
       appConfig: "appConfig",
       calculationMode: "calculationMode"
+    }),
+    ...mapGetters("isochrones", {
+      transitRouteTypes: "transitRouteTypes",
+      transitRouteTypesByName: "transitRouteTypesByName"
     }),
     ...mapFields("map", {
       vectorTileStyles: "vectorTileStyles",

@@ -7,7 +7,6 @@ from fastapi import HTTPException
 from src.core.config import settings
 from src.schemas.layer import VectorTileFunction, VectorTileTable
 from src.db import models 
-from src.resources.enums import AllowedVectorTables, SQLReturnTypes
 
 class CRUDLayer:
     # === FETCH TABLES AND FUNCTIONS ===#
@@ -206,28 +205,6 @@ class CRUDLayer:
             await transaction.rollback()
 
         return content
-
-    async def static_vector_layer(self, db: AsyncSession, current_user: models.User, layer_name: str, return_type: str = 'geojson') -> Any:
-        """Get Static Layer Data."""
-        
-        if layer_name in AllowedVectorTables._member_names_:
-            layer_sql = AllowedVectorTables[layer_name].value 
-        else:
-            raise HTTPException(status_code=400, detail="This layer is not allowed")
-        
-        if return_type in SQLReturnTypes._member_names_:
-            template_sql = SQLReturnTypes[return_type].value
-        else:
-            raise HTTPException(status_code=400, detail="This return type is not supported")
-
-        sql_query = text(template_sql % 
-            f"""
-            SELECT * FROM {layer_sql} WHERE study_area_id = :study_area_id
-            """
-        ) 
-        
-        result = await db.execute(sql_query, {"study_area_id": current_user.active_study_area_id})
-        return result.fetchall()[0][0] 
 
 
 layer = CRUDLayer()

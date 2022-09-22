@@ -23,7 +23,10 @@ class Settings(BaseSettings):
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000", \
     # "http://localhost:8080", "http://local.dockertoolbox.tiangolo.com"]'
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = [
+        "https://dashboard.plan4better.de",
+        "https://dashboard-dev.plan4better.de",
+    ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
@@ -46,6 +49,12 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+    POSTGRES_DATABASE_URI: str = None
+
+    @validator("POSTGRES_DATABASE_URI", pre=True)
+    def postgres_database_uri_(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        return f'postgresql://{values.get("POSTGRES_USER")}:{values.get("POSTGRES_PASSWORD")}@{values.get("POSTGRES_SERVER")}:5432/{values.get("POSTGRES_DB")}'
+
     ASYNC_SQLALCHEMY_DATABASE_URI: Optional[AsyncPostgresDsn] = None
 
     @validator("ASYNC_SQLALCHEMY_DATABASE_URI", pre=True)
@@ -99,9 +108,9 @@ class Settings(BaseSettings):
             values.get("SMTP_HOST") and values.get("SMTP_PORT") and values.get("EMAILS_FROM_EMAIL")
         )
 
-    FIRST_ORGANIZATION: str 
-    FIRST_SUPERUSER_NAME: str 
-    FIRST_SUPERUSER_SURNAME: str 
+    FIRST_ORGANIZATION: str
+    FIRST_SUPERUSER_NAME: str
+    FIRST_SUPERUSER_SURNAME: str
     FIRST_SUPERUSER_PASSWORD: str
     FIRST_SUPERUSER_EMAIL: Optional[str] = "administrator@plan4better.de"
     FIRST_SUPERUSER_STORAGE: Optional[int] = 500000  # In kilobytes
@@ -116,6 +125,8 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD_STAGING: Optional[str] = "secret"
     POSTGRES_OUTER_PORT_STAGING: Optional[int] = 5432
 
+    POSTGRES_FUNCTIONS_SCHEMA: Optional[str] = "basic"
+
     DEMO_USER_STUDY_AREA_ID: Optional[int] = 91620000  # Munich
     DEMO_USER_SCENARIO_LIMIT: Optional[int] = 5
     DEMO_USER_STORAGE: Optional[int] = 0  # In kilobytes
@@ -127,6 +138,21 @@ class Settings(BaseSettings):
     MAX_FEATURES_PER_TILE: int = 10000
     DEFAULT_MINZOOM: int = 0
     DEFAULT_MAXZOOM: int = 22
+
+    # R5 config
+    R5_HOST: str = None
+    R5_MONGO_DB_URL: Optional[str] = None
+
+    @validator("R5_MONGO_DB_URL", pre=True)
+    def r5_mongodb_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        # mongodb://172.17.0.1:27017/analysis
+        return f'mongodb://{values.get("R5_HOST")}:27017/analysis'
+
+    R5_API_URL: Optional[str] = None
+
+    @validator("R5_API_URL", pre=True)
+    def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        return f'http://{values.get("R5_HOST")}:7070/api'
 
     class Config:
         case_sensitive = True

@@ -13,12 +13,12 @@ const state = {
 };
 
 const getters = {
-  dynamicHeatmapTravelTimes: () => {
-    const dynamicHeatmapTravelTimes = [];
+  dynamicIndicatorTravelTimes: () => {
+    const dynamicIndicatorTravelTimes = [];
     for (let i = 0; i <= 120; i++) {
-      dynamicHeatmapTravelTimes.push(i * 10);
+      dynamicIndicatorTravelTimes.push(i * 10);
     }
-    return dynamicHeatmapTravelTimes;
+    return dynamicIndicatorTravelTimes;
   },
   poisAois: state => state.poisAois,
   poisAoisLayer: state => state.poisAoisLayer,
@@ -67,7 +67,7 @@ const getters = {
 const actions = {
   [GET_POIS_AOIS](context) {
     return new Promise((resolve, reject) => {
-      ApiService.get_(`/pois-aois/visualization?return_type=db_geobuf`, {
+      ApiService.get_(`/pois-aois/visualization?return_type=geobuf`, {
         responseType: "arraybuffer",
         headers: {
           Accept: "application/pdf"

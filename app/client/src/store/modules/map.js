@@ -35,7 +35,7 @@ const state = {
   bldEntranceLayer: null,
   editLayer: null,
   selectedEditLayer: null,
-  heatmapCancelToken: null,
+  indicatorCancelToken: null,
   isMapillaryBtnDisabled: false,
   miniViewerVisible: false,
   vectorTileStyles: {},
@@ -142,7 +142,7 @@ const getters = {
   miniViewerVisible: state => state.miniViewerVisible,
   print: state => state.print,
   isMapBusy: state => state.isMapBusy,
-  heatmapCancelToken: state => state.heatmapCancelToken,
+  indicatorCancelToken: state => state.indicatorCancelToken,
   getField
 };
 

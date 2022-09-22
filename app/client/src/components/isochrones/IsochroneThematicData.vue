@@ -1,11 +1,12 @@
 <template>
   <v-card
-    v-if="selectedThematicData"
+    v-if="isochroneResultWindow === true"
     v-draggable="draggableValue"
     class="thematic-data elevation-4"
     id="isochroneWindowId"
-    :style="[isExpanded ? { height: '400px' } : { height: '50px' }]"
-    style="position:fixed;top:10px;left:400px;z-index:2;max-width:440px;min-width:370px;height:450px;overflow:hidden;"
+    :style="[isExpanded ? { height: '520px' } : { height: '50px' }]"
+    style="position:fixed;top:10px;left:400px;z-index:2;max-width:600px;min-width:370px;height:450px;overflow:hidden;"
+    ondragstart="return false;"
   >
     <v-layout justify-space-between column fill-height>
       <v-app-bar
@@ -28,77 +29,204 @@
       </v-app-bar>
 
       <vue-scroll>
-        <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
-          <v-card-text class="ma-0 py-0 pt-0 pb-2">
-            <v-layout row wrap justify-end>
-              <v-alert
-                v-if="
-                  selectedPois.length === 0 &&
-                    selectedThematicData.calculationType === 'single'
-                "
-                border="left"
-                colored-border
-                class="mb-1 mt-2 elevation-2"
-                icon="info"
-                :color="appColor.primary"
-                dense
-              >
-                <span
-                  v-html="$t('isochrones.tableData.selectAmenitiesMsg')"
-                ></span>
-              </v-alert>
-              <v-flex shrink>
-                <v-chip class="mt-1 mb-0">
-                  {{
-                    `${$t("isochrones.calculation")} - ${
-                      selectedThematicData.calculationId
-                    }`
-                  }}
-                </v-chip></v-flex
-              ></v-layout
-            >
-          </v-card-text>
-          <v-select
-            v-if="selectedThematicData.calculationType === 'single'"
-            :items="isochroneSteps"
-            item-text="display"
-            item-value="value"
-            :label="$t('isochrones.tableData.timeFilter')"
-            v-model="selectedTime"
-          ></v-select>
+        <div>
+          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
+            <v-card-text class="ma-0 py-0 pt-0 pb-2">
+              <v-layout row wrap justify-end> </v-layout>
+            </v-card-text>
+            <v-card-text class="ma-0 pa-0" row>
+              <v-row justify="center" align="center" class="mx-1">
+                <v-menu offset-y>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      fab
+                      icon
+                      class="elevation-0"
+                      v-on="on"
+                      v-bind="attrs"
+                      small
+                    >
+                      <v-icon small>fa-solid fa-download</v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item
+                      v-for="(type, index) in isochroneDownloadTypes"
+                      @click="downloadIsochrone(type)"
+                      :key="index"
+                    >
+                      <v-list-item-title>{{ type }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+                <v-spacer></v-spacer>
+                <template
+                  v-if="
+                    selectedCalculations.length > 1 &&
+                      ![0, 2].includes(resultViewType)
+                  "
+                >
+                  <div
+                    class="mx-2 colorPalettePicker"
+                    :style="`border-bottom:4px solid ${calculationColors[0]};`"
+                  ></div>
+                  <span>Isochrone {{ selectedCalculations[0].id }}</span>
+                  <div
+                    class="ml-6 mr-2 colorPalettePicker"
+                    :style="`border-bottom:4px dashed ${calculationColors[1]};`"
+                  ></div>
+                  <span>Isochrone {{ selectedCalculations[1].id }}</span>
+                </template>
+                <v-spacer></v-spacer>
+                <v-btn-toggle
+                  v-model="resultViewType"
+                  v-if="selectedCalculations[0].type !== 'multiple'"
+                  mandatory
+                >
+                  <v-btn small>
+                    <v-icon small>fa-solid fa-table</v-icon>
+                  </v-btn>
+                  <v-btn small>
+                    <v-icon small>fa-solid fa-chart-line</v-icon>
+                  </v-btn>
+                  <v-btn
+                    small
+                    :disabled="
+                      (selectedPoisOnlyKeys.length < 2 &&
+                        selectedAoisOnlyKeys.length < 2 &&
+                        selectedCalculations.length === 1) ||
+                        (selectedPoisOnlyKeys.length < 3 &&
+                          selectedAoisOnlyKeys.length < 3 &&
+                          selectedCalculations.length === 2)
+                    "
+                  >
+                    <v-icon small>fa-solid fa-chart-pie</v-icon>
+                  </v-btn>
+                </v-btn-toggle>
+              </v-row>
+              <v-row class="ml-1 mr-0">
+                <v-col cols="12" class="pr-0 pb-0 mr-0">
+                  <v-slider
+                    @mousedown.native.stop
+                    @mouseup.native.stop
+                    @click.native.stop
+                    class="pt-4"
+                    prepend-icon="schedule"
+                    :track-color="appColor.secondary"
+                    :color="appColor.secondary"
+                    v-model="isochroneRange"
+                    :min="1"
+                    :max="getMaxIsochroneRange"
+                    thumb-label="always"
+                    thumb-size="25"
+                    @input="udpateIsochroneSurface"
+                  >
+                    <template v-slot:thumb-label="{ value }">
+                      {{ value }}
+                    </template>
+                  </v-slider>
+                </v-col>
+              </v-row>
+            </v-card-text>
+            <isochrone-amenities-line-chart
+              :width="550"
+              :height="300"
+              v-if="selectedCalculations && resultViewType === 1"
+            />
 
-          <v-data-table
-            :headers="tableHeaders"
-            :items="tableItems"
-            class="elevation-1 mb-2"
-            :search="search"
-            hide-default-footer
-            :no-data-text="
-              selectedTime === null
-                ? $t('isochrones.tableData.selectTimeMsg')
-                : $t('isochrones.tableData.noDataMsg')
-            "
-            :items-per-page="-1"
-          >
-            <template v-slot:items="props">
-              <td v-for="(header, index) in tableHeaders" :key="index">
-                {{ props.item[header.value] }}
-              </td>
-            </template>
-          </v-data-table>
-        </v-flex>
+            <isochrone-amenities-pie-chart
+              :calculationIndex="0"
+              :height="300"
+              v-if="
+                selectedCalculations &&
+                  selectedCalculations.length === 1 &&
+                  resultViewType === 2 &&
+                  (selectedPoisOnlyKeys.length > 1 ||
+                    selectedAoisOnlyKeys.length > 1)
+              "
+            />
+            <isochrone-amenities-radar-chart-vue
+              :height="300"
+              v-if="
+                selectedCalculations &&
+                  selectedCalculations.length === 2 &&
+                  resultViewType === 2 &&
+                  (selectedPoisOnlyKeys.length > 2 ||
+                    selectedAoisOnlyKeys.length > 2)
+              "
+            ></isochrone-amenities-radar-chart-vue>
+            <v-btn-toggle
+              v-if="resultViewType !== 0"
+              v-model="chartDatasetType"
+              mandatory
+            >
+              <v-btn :disabled="resultViewType !== 1" small>
+                <i
+                  class="v-icon notranslate fa-solid fa-people-group theme--light"
+                  style="font-size: 16px;"
+                ></i>
+              </v-btn>
+              <v-btn small :disabled="selectedPoisOnlyKeys.length < 1">
+                <v-icon small>fa-solid fa-location-dot</v-icon>
+              </v-btn>
+              <v-btn small :disabled="selectedAoisOnlyKeys.length < 1">
+                <i
+                  class="v-icon notranslate fa-brands fa-square-pied-piper theme--light"
+                  style="font-size: 16px;"
+                ></i>
+              </v-btn>
+            </v-btn-toggle>
+            <v-data-table
+              v-if="resultViewType === 0"
+              :headers="tableHeaders"
+              :items="tableItems"
+              class="elevation-1 mb-2"
+              :search="search"
+              hide-default-footer
+              :no-data-text="
+                selectedTime === null
+                  ? $t('isochrones.tableData.selectTimeMsg')
+                  : $t('isochrones.tableData.noDataMsg')
+              "
+              :items-per-page="-1"
+            >
+              <template v-slot:items="props">
+                <td v-for="(header, index) in tableHeaders" :key="index">
+                  {{ props.item[header.value] }}
+                </td>
+              </template>
+            </v-data-table>
+          </v-flex>
+        </div>
       </vue-scroll>
     </v-layout>
   </v-card>
 </template>
 
 <script>
-import { mapGetters } from "vuex";
-import IsochroneUtils from "../../utils/IsochroneUtils";
+import { mapGetters, mapMutations } from "vuex";
+// import IsochroneUtils from "../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
 import { mapFields } from "vuex-map-fields";
-
+import {
+  featuresToGeojson,
+  fromPixel,
+  geojsonToFeature
+} from "../../utils/MapUtils";
+import { jsolines } from "../../utils/Jsolines";
+import IsochroneAmenitiesLineChart from "../other/IsochroneAmenitiesLineChart.vue";
+import IsochroneAmenitiesPieChart from "../other/IsochroneAmenitiesPieChart.vue";
+import IsochroneAmenitiesRadarChartVue from "../other/IsochroneAmenitiesRadarChart.vue";
+import { saveAs } from "file-saver";
+import { debounce, numberSeparator } from "../../utils/Helpers";
+import ApiService from "../../services/api.service";
+import JSZip from "jszip";
 export default {
+  components: {
+    IsochroneAmenitiesLineChart,
+    IsochroneAmenitiesPieChart,
+    IsochroneAmenitiesRadarChartVue
+  },
   directives: {
     Draggable
   },
@@ -106,6 +234,7 @@ export default {
     isochroneSteps: [],
     selectedTime: null,
     search: "",
+    resultViewType: 0,
     isExpanded: true,
     //Vue windows\ draggable
     handleId: "handle-id",
@@ -113,9 +242,15 @@ export default {
       handle: undefined,
       boundingElement: undefined,
       resetInitialPos: undefined
-    }
+    },
+    downloadDialogState: false,
+    selectedCalculationForDownload: null,
+    isochroneDownloadTypes: ["GeoJSON", "ESRI Shapefile", "XLSX"]
   }),
   methods: {
+    ...mapMutations("map", {
+      toggleSnackbar: "TOGGLE_SNACKBAR"
+    }),
     expand() {
       this.isExpanded = !this.isExpanded;
     },
@@ -126,7 +261,10 @@ export default {
         .forEach(f => {
           f.set("highlightFeature", false);
         });
-      this.selectedThematicData = null;
+      this.isochroneResultWindow = false;
+    },
+    stopPropagation(e) {
+      e.stopPropagation();
     },
     getString(val) {
       let string = "";
@@ -137,13 +275,121 @@ export default {
         string = val;
       }
       return string;
+    },
+    updateIsochroneSurface(calculation) {
+      const {
+        surface,
+        width,
+        height,
+        west,
+        north,
+        zoom
+        // eslint-disable-next-line no-undef
+      } = calculation.surfaceData;
+      const isochronePolygon = jsolines({
+        surface,
+        width,
+        height,
+        cutoff: this.isochroneRange,
+        project: ([x, y]) => {
+          const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+          return [ll.lon, ll.lat];
+        }
+      });
+      let olFeatures = geojsonToFeature(isochronePolygon, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857"
+      });
+      calculation.feature.setGeometry(olFeatures[0].getGeometry());
+    },
+    udpateIsochroneSurface: debounce(function() {
+      this.selectedCalculations.forEach(calculation => {
+        this.updateIsochroneSurface(calculation);
+      });
+    }, 30),
+    downloadIsochrone(type) {
+      const promiseArray = [];
+      this.selectedCalculations.forEach(calculation => {
+        const feature = calculation.feature.clone();
+        const reached_opportunities = {};
+        const accessibility = calculation.surfaceData.accessibility;
+        if (calculation.type === "single") {
+          Object.keys(accessibility).forEach(category => {
+            reached_opportunities[category] =
+              accessibility[category][this.isochroneRange - 1];
+          });
+        } else {
+          Object.keys(accessibility).forEach(studyAreaId => {
+            reached_opportunities[studyAreaId] = {
+              reached_population:
+                accessibility[studyAreaId]["reached_population"][
+                  this.isochroneRange - 1
+                ],
+              total_population: accessibility[studyAreaId]["total_population"]
+            };
+          });
+        }
+        const properties = {
+          isochrone_calculation_id: calculation.id,
+          traveltime: this.isochroneRange,
+          modus: calculation.config.scenario.modus,
+          routing_profile: calculation.routing,
+          reached_opportunities
+        };
+        feature.setProperties(properties);
+        const geojsonPayload = featuresToGeojson(
+          [feature],
+          "EPSG:3857",
+          "EPSG:4326"
+        );
+        promiseArray.push(
+          ApiService.post(
+            `/isochrones/export?return_type=${type}`,
+            geojsonPayload,
+            {
+              responseType: "blob",
+              headers: {
+                "Content-Type": "application/json"
+              }
+            }
+          )
+        );
+      });
+      Promise.all(promiseArray)
+        .then(responses => {
+          const zip = new JSZip();
+          responses.forEach((response, index) => {
+            const exportName = `isochrone-export_${index}_${this.isochroneRange}-min.zip`;
+            if (responses.length === 1) {
+              saveAs(response.data, exportName);
+            }
+            zip.file(exportName, response.data, { blob: true });
+          });
+          if (responses.length > 1) {
+            zip.generateAsync({ type: "blob" }).then(function(content) {
+              saveAs(content, "isochrone-export.zip");
+            });
+          }
+        })
+        .catch(e => {
+          console.log(e);
+          this.toggleSnackbar({
+            type: "error",
+            message: "Error downloading isochrones",
+            state: true,
+            timeout: 10000
+          });
+        });
     }
   },
   computed: {
     tableHeaders() {
       let headers;
-      if (this.selectedThematicData.calculationType === "single") {
-        let pois = this.selectedThematicData.pois;
+      // Single Isochrone calculation table header
+      if (
+        this.selectedCalculations.length > 0 &&
+        this.selectedCalculations[0].type === "single"
+      ) {
         headers = [
           {
             text: this.$t("isochrones.tableData.table.pois"),
@@ -151,41 +397,34 @@ export default {
             sortable: false
           }
         ];
-
-        const keys = Object.keys(pois);
-
-        for (const key of keys) {
+        this.selectedCalculations.forEach(calculation => {
+          const id = calculation.id;
+          // const modus = calculation.config.scenario.modus;
           headers.push({
-            text: IsochroneUtils.getIsochroneAliasFromKey(key),
-            value: key,
+            text: `Isochrone #${id}`,
+            value: `isochrone-${id}`,
             sortable: false
           });
-        }
+        });
       } else {
         headers = [
-          {
-            text: this.$t("isochrones.tableData.table.isochrone"),
-            value: "isochrone",
-            sortable: false,
-            width: "25%"
-          },
           {
             text: this.$t("isochrones.tableData.table.studyArea"),
             value: "studyArea",
             sortable: false,
-            width: "15%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.population"),
             value: "population",
             sortable: false,
-            width: "20%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.reachedPopulation"),
             value: "reachPopulation",
             sortable: false,
-            width: "20%"
+            width: "25%"
           },
           {
             text: this.$t("isochrones.tableData.table.shared"),
@@ -198,59 +437,63 @@ export default {
       return headers;
     },
     tableItems() {
-      let me = this;
       let items = [];
-      if (me.selectedThematicData.calculationType === "single") {
-        let pois = me.selectedThematicData.pois;
-        let selectedTime = me.selectedTime;
-        let keys = Object.keys(pois);
-        if (keys.length > 0) {
-          let sumPois = pois[keys[0]][selectedTime];
-          let amenityNames = Object.keys(pois[keys[0]][selectedTime]);
-          // Only if double-calculation
-          if (keys.length === 2) {
-            const inputAmenityNames = Object.keys(pois[keys[1]][selectedTime]);
-            if (Array.isArray(inputAmenityNames)) {
-              amenityNames = [
-                ...new Set([...amenityNames, ...inputAmenityNames])
-              ];
+      let poisObj = {};
+      this.selectedCalculations.forEach(calculation => {
+        // Single isochrone calculation
+        let pois = calculation.surfaceData.accessibility;
+        let selectedTime = this.isochroneRange;
+        if (calculation.type === "single") {
+          let keys = Object.keys(pois);
+          if (keys.length > 0) {
+            let sumPois = {};
+            keys.forEach(poiKey => {
+              sumPois[poiKey] = pois[poiKey][selectedTime - 1];
+            });
+            if (sumPois) {
+              //Loop through  amenities
+              keys.forEach(amenity => {
+                let isAmenitySelected = this.poisAois[amenity];
+                if (amenity === "population") {
+                  isAmenitySelected = true;
+                }
+                if (isAmenitySelected) {
+                  let obj = {
+                    pois: amenity ? this.$t(`pois.${amenity}`) : amenity
+                  };
+                  let value = numberSeparator(
+                    this.getString(parseInt(sumPois[amenity])),
+                    this.$i18n.locale
+                  );
+                  obj[`isochrone-${calculation.id}`] = value || "-";
+                  if (poisObj[amenity]) {
+                    poisObj[amenity] = { ...poisObj[amenity], ...obj };
+                  } else {
+                    poisObj[amenity] = obj;
+                  }
+                }
+              });
             }
           }
-          if (sumPois) {
-            //Loop through  amenities
-            amenityNames.forEach(amenity => {
-              let isAmenitySelected = this.poisAois[amenity];
-              if (amenity === "population") {
-                isAmenitySelected = true;
-              }
-              if (isAmenitySelected) {
-                let obj = {
-                  pois: amenity ? this.$t(`pois.${amenity}`) : amenity
-                };
-                //Default or input calculation
-                let valueDefault = this.getString(sumPois[amenity]);
-
-                obj[keys[0]] = valueDefault || "-";
-                //Double calculation
-                if (pois[keys[1]]) {
-                  let valueDouble = this.getString(
-                    pois[keys[1]][selectedTime][amenity]
-                  );
-                  obj[keys[1]] = valueDouble || "-";
-                }
-                items.push(obj);
-              }
+        } else {
+          Object.keys(pois).forEach(studyArea => {
+            const reachedPopulation =
+              pois[studyArea].reached_population[selectedTime - 1];
+            items.push({
+              studyArea: studyArea,
+              population: parseInt(pois[studyArea].total_population),
+              reachPopulation: parseInt(reachedPopulation),
+              shared: `${(
+                (reachedPopulation / pois[studyArea].total_population) *
+                100
+              ).toFixed(1)}%`
             });
-          }
+          });
         }
-      } else {
-        if (me.selectedThematicData.multiIsochroneTableData) {
-          items = me.selectedThematicData.multiIsochroneTableData;
-        }
-      }
-
+      });
       //Sort table rows based on number of amenties || alphabeticaly (only on single calculations)
-      if (this.selectedThematicData.calculationType === "single") {
+      if (this.calculations[0].type === "single") {
+        items = Object.values(poisObj);
         items.sort((a, b) => {
           const b_Value = b[Object.keys(b)[0]];
           const a_Value = a[Object.keys(a)[0]];
@@ -260,45 +503,111 @@ export default {
           return b_Value - a_Value;
         });
       }
-
       return items;
+    },
+    getMaxIsochroneRange() {
+      let maxIsochroneRange = 60;
+      const walkingCyclingCalculations = this.selectedCalculations.filter(
+        c => !["transit", "car"].includes(c.routing)
+      );
+      if (walkingCyclingCalculations.length > 0) {
+        maxIsochroneRange = 20;
+      }
+      return maxIsochroneRange;
     },
 
     ...mapGetters("isochrones", {
-      selectedThematicData: "selectedThematicData",
-      isochroneLayer: "isochroneLayer"
+      isochroneLayer: "isochroneLayer",
+      calculationColors: "calculationColors"
     }),
     ...mapGetters("poisaois", {
       poisAois: "poisAois",
-      selectedPois: "selectedPois"
+      selectedPois: "selectedPois",
+      selectedPoisOnlyKeys: "selectedPoisOnlyKeys",
+      selectedAoisOnlyKeys: "selectedAoisOnlyKeys"
     }),
     ...mapGetters("app", {
       appColor: "appColor"
     }),
     ...mapFields("isochrones", {
-      selectedThematicData: "selectedThematicData"
+      calculations: "calculations",
+      selectedCalculations: "selectedCalculations",
+      chartDatasetType: "chartDatasetType",
+      isochroneRange: "isochroneRange",
+      isochroneResultWindow: "isochroneResultWindow"
     })
   },
   watch: {
-    selectedThematicData(value) {
-      this.isochroneSteps = [];
-      if (!value) return;
-      let pois = value.pois;
-      if (pois) {
-        for (const key in pois) {
-          let obj = pois[key];
-          for (const prop in obj) {
-            this.isochroneSteps.push({
-              display: `${Math.round(prop / 60)} min`,
-              value: `${prop}`
-            });
-          }
-          break;
+    resultViewType(value) {
+      if (value === 2 && this.chartDatasetType === 0) {
+        if (this.selectedPoisOnlyKeys.length > 0) {
+          this.chartDatasetType = 1;
+        } else {
+          this.chartDatasetType = 2;
         }
-        this.selectedTime =
-          this.isochroneSteps.length > 0
-            ? this.isochroneSteps[this.isochroneSteps.length - 1].value
-            : [];
+      }
+    },
+    selectedPoisOnlyKeys(value) {
+      if (this.chartDatasetType === 1 && value.length < 2) {
+        if (this.selectedAoisOnlyKeys.length >= 1) {
+          this.chartDatasetType = 2;
+        } else {
+          this.chartDatasetType = 0;
+          this.resultViewType = 1;
+        }
+      }
+      if (
+        value.length < 2 &&
+        this.resultViewType === 2 &&
+        this.selectedCalculations.length === 1 &&
+        this.chartDatasetType === 1
+      ) {
+        this.resultViewType = 1;
+      }
+      if (
+        this.selectedCalculations.length === 2 &&
+        value.length < 3 &&
+        this.resultViewType === 2 &&
+        this.chartDatasetType === 1
+      ) {
+        this.chartDatasetType = 0;
+        this.resultViewType = 1;
+      }
+    },
+    selectedAoisOnlyKeys(value) {
+      if (this.chartDatasetType === 2 && value.length < 2) {
+        if (this.selectedPoisOnlyKeys.length >= 1) {
+          this.chartDatasetType = 1;
+        } else {
+          this.chartDatasetType = 0;
+          this.resultViewType = 1;
+        }
+      }
+      if (
+        value.length < 2 &&
+        this.resultViewType === 2 &&
+        this.selectedCalculations.length === 1 &&
+        this.chartDatasetType === 2
+      ) {
+        this.resultViewType = 1;
+      }
+      if (
+        this.selectedCalculations.length === 2 &&
+        value.length < 3 &&
+        this.resultViewType === 2 &&
+        this.chartDatasetType === 2
+      ) {
+        this.chartDatasetType = 0;
+        this.resultViewType = 1;
+      }
+    },
+    selectedCalculations(newSelection, oldSelection) {
+      if (
+        newSelection.length > 0 &&
+        newSelection.length >= oldSelection.length
+      ) {
+        // Update new calculation
+        this.updateIsochroneSurface(newSelection[newSelection.length - 1]);
       }
     }
   },
@@ -316,5 +625,10 @@ export default {
 }
 .thematic-data {
   transition: height 0.1s linear;
+}
+.colorPalettePicker {
+  width: 50px;
+  border-radius: 0px;
+  margin-bottom: 16px;
 }
 </style>

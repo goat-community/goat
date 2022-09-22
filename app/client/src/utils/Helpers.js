@@ -244,3 +244,17 @@ export const LinearColorInterpolator = {
     return new ColorObj(newColor);
   }
 };
+
+export const secondsToHoursAndMins = seconds => {
+  const fromTimeDate = new Date(0);
+  fromTimeDate.setSeconds(seconds);
+  return fromTimeDate.toISOString().substring(11, 16);
+};
+
+export const numberSeparator = (number, locale) => {
+  if (locale === "en") {
+    return number.toLocaleString("en-US");
+  } else if (locale === "de") {
+    return number.toLocaleString("de-DE");
+  }
+};

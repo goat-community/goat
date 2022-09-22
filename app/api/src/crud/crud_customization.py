@@ -7,10 +7,11 @@ from sqlalchemy.sql import and_, func
 from src import crud
 from src.crud.base import CRUDBase
 from src.db import models
+from src.db.models import study_area
 from src.db.models.config_validation import *
 from src.db.models.customization import Customization
 from sqlalchemy.sql import delete, select
-
+from fastapi.encoders import jsonable_encoder
 
 class CRUDCustomization(
     CRUDBase[models.Customization, models.Customization, models.Customization]
@@ -53,6 +54,7 @@ class CRUDDynamicCustomization:
             "access_token",
             "max_resolution",
             "max_resolution",
+            "doc_url"
         ]:
             if getattr(layer, key) is not None:
                 layer_attributes[key] = getattr(layer, key)
@@ -232,6 +234,36 @@ class CRUDDynamicCustomization:
         combined_settings["aoi_groups"] = combined_aoi_settings[0]
         combined_settings["poi_groups"] = combined_poi_settings[0]
         
+        # Added geostores to settings
+        study_area_obj = await crud.study_area.get(db, id=current_user.active_study_area_id, extra_fields=[models.StudyArea.geostores])
+        combined_settings["geostores"] = jsonable_encoder(study_area_obj.geostores)
+        
+        # Remove transit modes that are not operating in study area from settings
+        transit = {}
+        for index_mode, mode in enumerate(combined_settings["routing"]):
+            if mode["type"] == 'transit':
+                transit = mode
+                index_transit = index_mode
+                break
+        
+        if transit != {}:
+            filtered_transit_modes = []
+            for public_transport_type in transit["transit_modes"]:
+                # Check if station type is in study area
+                statement = select(models.Poi).where(
+                    and_(
+                        models.Poi.geom.ST_Intersects(study_area_obj.geom),
+                        models.Poi.category == public_transport_type["poi_category"],
+                    )
+                ).limit(1)
+                result = await db.execute(statement)
+                result = result.first()
+
+                if result is not None:
+                    filtered_transit_modes.append(public_transport_type)
+        
+            combined_settings["routing"][index_transit]["transit_modes"] = filtered_transit_modes
+
         return combined_settings
 
     async def insert_opportunity_setting(
@@ -252,8 +284,13 @@ class CRUDDynamicCustomization:
             default_setting = await crud.opportunity_default_config.get_by_key(
                 db=db, key="category", value=category
             )
+            study_area_setting = await crud.opportunity_study_area_config.get_by_multi_keys(
+                db=db, keys={"category": category, "study_area_id": current_user.active_study_area_id}
+            )
             if default_setting != []:
                 opportunity_group_id = default_setting[0].opportunity_group_id
+            elif study_area_setting != []:
+                opportunity_group_id = study_area_setting[0].opportunity_group_id
             else:
                 opportunity_group_id = await crud.opportunity_group.get_by_key(
                     db=db, key="group", value="other"

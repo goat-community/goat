@@ -1,7 +1,7 @@
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
+from sqlalchemy import delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import RelationshipProperty, selectinload
@@ -41,9 +41,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         result = await db.execute(statement)
         return result.scalars().first()
 
-    async def get_all(
-        self, db: AsyncSession, *, extra_fields: List[Any] = []
-    ) -> List[ModelType]:
+    async def get_all(self, db: AsyncSession, *, extra_fields: List[Any] = []) -> List[ModelType]:
         statement = select(self.model)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         result = await db.execute(statement)
@@ -89,12 +87,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db_obj: ModelType,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
-        obj_data = jsonable_encoder(db_obj)
+
         if isinstance(obj_in, dict):
             update_data = obj_in
+            fields = obj_in.keys()
         else:
             update_data = obj_in.dict(exclude_unset=True)
-        for field in obj_data:
+            fields = obj_in.__fields__.keys()
+        for field in fields:
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
         db.add(db_obj)
@@ -108,7 +108,37 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await db.commit()
         return obj
 
+    async def remove_multi(self, db: AsyncSession, *, ids: Union[int, List[int]]) -> ModelType:
+        if type(ids) == int:
+            ids = [ids]
+        statement = delete(self.model).where(self.model.id.in_(ids))
+        await db.execute(statement)
+        await db.commit()
+
+        # Return empty string at the moment
+        # TODO: add removed items instead.
+        return ""
+
+    async def remove_multi_by_key(self, db: AsyncSession, *, key: str, values: Any) -> ModelType:
+        if not type(values) == list:
+            values = [values]
+        statement = delete(self.model).where(getattr(self.model, key).in_(values))
+        await db.execute(statement)
+        await db.commit()
+
+        # Return empty string at the moment
+        # TODO: add removed items instead.
+        return ""
+
     async def get_n_rows(self, db: AsyncSession, *, n: int) -> ModelType:
         statement = select(self.model).limit(n)
         result = await db.execute(statement)
         return result.scalars().all()
+
+    async def count(self, db: AsyncSession) -> int:
+        """
+        Count the number of rows in the table.
+        """
+        statement = select(func.count(self.model.id))
+        result = await db.execute(statement)
+        return result.scalar_one()

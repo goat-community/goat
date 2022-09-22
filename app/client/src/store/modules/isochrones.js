@@ -80,17 +80,96 @@ const state = {
   multiIsochroneSelectionLayer: null,
   calculations: [],
   isochroneOverlayLayer: null,
-  selectedThematicData: null,
+  selectedCalculations: [], // Array of selected isochrones
+  // Public transport options
+  publicTransport: {
+    accessMode: "walking",
+    weekday: 0,
+    egressMode: "walking",
+    fromTime: "07:00",
+    toTime: "08:00",
+    transitModes: []
+  },
+  chartDatasetType: 0, // 0: population, 1: pois, 2: aois
+  isochroneRange: 10, // in minutes
+  calculationColors: ["rgba(40, 54, 72, 0.4)", "rgba(235, 57, 21, 0.4)"], // [0]: default, [1]: scenario or compare
   // Cancel Request
-  cancelReq: undefined
+  cancelReq: undefined,
+  isochroneResultWindow: false,
+  transitRouteTypes: {
+    tram: 0,
+    subway: 1,
+    rail: 2,
+    bus: 3,
+    ferry: 4,
+    cable_tram: 5,
+    aerial_lift: 6,
+    funicular: 7,
+    trolleybus: 11,
+    monorail: 12
+  }
 };
 
 const getters = {
   colors: state => state.colors,
   type: state => state.type,
   isochroneLayer: state => state.isochroneLayer,
-  selectedThematicData: state => state.selectedThematicData,
+  selectedCalculations: state => state.selectedCalculations,
+  isochroneRange: state => state.isochroneRange,
   calculations: state => state.calculations,
+  calculationColors: state => state.calculationColors,
+  chartDatasetType: state => state.chartDatasetType,
+  isochroneResultWindow: state => state.isochroneResultWindow,
+  // eslint-disable-next-line no-unused-vars
+  timeDelta: (state, getters, rootState) => {
+    let time =
+      (rootState.app.timeIndicators.endTime -
+        rootState.app.timeIndicators.startTime) /
+      3600;
+    return time;
+  },
+  // eslint-disable-next-line no-unused-vars
+  routingProfiles: (state, getters, rootState, rootGetters) => {
+    let routingProfiles = {};
+    const routing = rootState.app.appConfig.routing;
+    routing.forEach(r => {
+      routingProfiles[r.type] = r;
+    });
+    return routingProfiles;
+  },
+  transitRouteTypes: state => state.transitRouteTypes,
+  // eslint-disable-next-line no-unused-vars
+  transitRouteTypesByNr: (state, getters, rootState, rootGetters) => {
+    let obj = {};
+    const routing = rootState.app.appConfig.routing.filter(
+      r => r.type === "transit"
+    );
+    if (routing.length > 0) {
+      const transitModes = routing[0].transit_modes;
+      transitModes.forEach(t => {
+        const typeNr = state.transitRouteTypes[t.type];
+        obj[typeNr] = {
+          name: t.type,
+          color: t.color,
+          icon: t.icon
+        };
+      });
+    }
+    return obj;
+  },
+  transitRouteTypesByName: (state, getters) => {
+    const transitRouteTypesByNr = getters.transitRouteTypesByNr;
+    let obj = {};
+    Object.keys(transitRouteTypesByNr).forEach(nr => {
+      const type = transitRouteTypesByNr[nr];
+      obj[type.name] = {
+        id: nr,
+        color: type.color,
+        icon: type.icon
+      };
+    });
+    return obj;
+  },
   getField
 };
 

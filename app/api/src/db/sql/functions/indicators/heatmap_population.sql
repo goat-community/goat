@@ -29,17 +29,18 @@ BEGIN
 		SELECT p.grid_visualization_id, p.population, 
 		CASE 
 		WHEN p.population = 0 THEN 0
-		WHEN p.population < -400 THEN -5 
-		WHEN p.population BETWEEN -400 AND -200 THEN -4 
-		WHEN p.population BETWEEN -200 AND -80 THEN -3 
-		WHEN p.population BETWEEN -80 AND -20 THEN -2 
-		WHEN p.population BETWEEN -20 AND -1 THEN -1 
-		WHEN p.population BETWEEN 1 AND 20 THEN 1 
-		WHEN p.population BETWEEN 20 AND 80 THEN 2
-		WHEN p.population BETWEEN 80 AND 200 THEN 3 
-		WHEN p.population BETWEEN 200 AND 400 THEN 4 
-		WHEN p.population  > 400 THEN 5 END AS percentile_population, p.geom 
+		WHEN p.population < -1000 THEN -5 
+		WHEN p.population BETWEEN -1000 AND -500 THEN -4 
+		WHEN p.population BETWEEN -500 AND -200 THEN -3 
+		WHEN p.population BETWEEN -200 AND -80 THEN -2 
+		WHEN p.population BETWEEN -80 AND -1 THEN -1 
+		WHEN p.population BETWEEN 1 AND 80 THEN 1 
+		WHEN p.population BETWEEN 80 AND 200 THEN 2
+		WHEN p.population BETWEEN 200 AND 500 THEN 3 
+		WHEN p.population BETWEEN 500 AND 1000 THEN 4 
+		WHEN p.population  > 1000 THEN 5 END AS percentile_population, p.geom 
 		FROM pop_difference p;
+
 	END IF; 
 		
 	IF modus_input = 'default' THEN 

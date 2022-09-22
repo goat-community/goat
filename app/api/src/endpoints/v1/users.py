@@ -1,8 +1,8 @@
 import datetime
 import json
-from typing import Any, List
+from typing import Any, List, Union
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
 from pydantic.networks import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +21,7 @@ router = APIRouter()
 
 @router.get("", response_model=List[models.User], response_model_exclude={"hashed_password"})
 async def read_users(
+    response: Response,
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
@@ -30,6 +31,8 @@ async def read_users(
     Retrieve users.
     """
     is_superuser = crud.user.is_superuser(current_user)
+    total_count = await crud.user.count(db)
+    response.headers["X-Total-Count"] = str(total_count)
     if not is_superuser:
         raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 
@@ -296,30 +299,18 @@ async def read_user_by_id(
     return user
 
 
-@router.delete(
-    "/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"}
-)
-async def delete_user(
+@router.delete("/")
+async def delete_users(
     *,
+    id: List[int] = Query(default=None, gt=0),
     db: AsyncSession = Depends(deps.get_db),
-    user_id: int,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
-    Delete a user.
+    Delete users.
     """
-    is_superuser = crud.user.is_superuser(current_user)
-    if not is_superuser:
-        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 
-    user = await crud.user.get(db, id=user_id)
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system",
-        )
-    user = await crud.user.remove(db, id=user_id)
-    return user
+    return await crud.user.remove_multi(db, ids=id)
 
 
 @router.put("/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"})
