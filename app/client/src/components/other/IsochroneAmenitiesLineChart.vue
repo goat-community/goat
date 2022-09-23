@@ -29,6 +29,7 @@ export default {
         const calculationData = calculation.surfaceData.accessibility;
         if (this.chartDatasetType === 0) {
           // add only population data
+          console.log(calculationData);
           datasets.push({
             data: calculationData["population"],
             label: this.$te(`pois.population`)
