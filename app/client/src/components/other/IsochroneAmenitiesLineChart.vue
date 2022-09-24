@@ -29,6 +29,7 @@ export default {
         const calculationData = calculation.surfaceData.accessibility;
         if (this.chartDatasetType === 0) {
           // add only population data
+          console.log(calculationData);
           datasets.push({
             data: calculationData["population"],
             label: this.$te(`pois.population`)
@@ -37,7 +38,8 @@ export default {
             fill: false,
             borderColor: this.calculationColors[index],
             borderDash: index === 0 ? [0, 0] : [10, 5],
-            pointRadius: 1
+            pointRadius: 1,
+            tension: 0
           });
         } else {
           let keys = [];
@@ -58,6 +60,7 @@ export default {
                   ? this.$t(`pois.${amenity}`)
                   : amenity,
                 fill: false,
+                tension: 0,
                 borderColor: config[amenity].color[0] || "rgb(54, 162, 235)",
                 borderDash: index === 0 ? [0, 0] : [10, 5],
                 pointRadius: 1
