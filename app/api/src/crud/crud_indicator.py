@@ -708,7 +708,7 @@ class CRUDIndicator:
                 station_config["time_frequency"], station_group_trip_time_frequency
             )
             if time_interval == len(station_config["time_frequency"]):
-                continue    # no category found
+                continue  # no category found
             station_category = station_config["categories"][time_interval - 1].get(station_group)
 
             if not station_category:
@@ -717,7 +717,7 @@ class CRUDIndicator:
             station_classification = station_config["classification"][str(station_category)]
             for buffer_dist, classification in station_classification.items():
 
-                buffer_geom = station_geom.buffer(buffer_dist)
+                buffer_geom = station_geom.buffer(int(buffer_dist))
                 # add geom in classfication_shapes
                 if classification not in classificiation_buffers:
                     classificiation_buffers[classification] = [buffer_geom]
