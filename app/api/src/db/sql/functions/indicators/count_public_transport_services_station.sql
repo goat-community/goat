@@ -1,9 +1,12 @@
-CREATE OR REPLACE FUNCTION basic.count_public_transport_services_station(study_area_id integer, start_time interval, end_time interval, weekday integer)
+CREATE OR REPLACE FUNCTION basic.count_public_transport_services_station(study_area_id integer, start_time interval, end_time interval, weekday integer, buffer_distance integer DEFAULT 0)
  RETURNS TABLE(stop_id text, stop_name text, trip_cnt jsonb, geom geometry)
  LANGUAGE plpgsql
 AS $function$ 
-
+DECLARE
+	buffer_geom geometry; 
 BEGIN
+	buffer_geom = (SELECT ST_BUFFER(s.geom::geography, buffer_distance)::geometry FROM basic.study_area s WHERE s.id = study_area_id);
+	
 	RETURN query 
 	WITH 
 	g AS 
@@ -11,10 +14,10 @@ BEGIN
 		WITH parent_stations AS 
 		(	
 			SELECT count(*) cnt_children, st.parent_station 
-			FROM gtfs.stops st, basic.study_area s
-			WHERE ST_Intersects(st.stop_loc, s.geom)
+			FROM gtfs.stops st
+			WHERE ST_Intersects(st.stop_loc, buffer_geom)
 			AND st.location_type IS NULL 
-			AND s.id = study_area_id
+			AND st.stop_loc && buffer_geom
 			GROUP BY st.parent_station 
 		)
 		SELECT c.parent_station, j.route_type, cnt AS cnt

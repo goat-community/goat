@@ -13,6 +13,7 @@ from rich import print
 from shapely import wkb
 from shapely.geometry import Polygon
 from shapely.ops import transform, unary_union
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
@@ -657,65 +658,41 @@ class CRUDIndicator:
         start_time,
         end_time,
         weekday,
-        study_area_id,
+        study_area_ids,
+        station_config,
     ) -> FeatureCollection:
         """
         Calculate the OEV-Gueteklassen for a given time period and weekday.
         """
         # TODO: Use isochrone calculation instead of buffer
-        station_config = {
-            "groups": {
-                "0": "B",  # route_type: category of public transport route
-                "1": "A",
-                "2": "A",
-                "3": "C",
-                "4": "B",
-                "5": "B",
-                "6": "B",
-                "7": "B",
-                "11": "B",
-                "12": "B",
-            },
-            "time_frequency": [0, 4, 10, 19, 39, 60, 119],
-            "categories": [
-                {
-                    "A": 1,  # i.e. types of transports in category A are in transport stop category I
-                    "B": 1,
-                    "C": 2,
-                },
-                {"A": 1, "B": 2, "C": 3},
-                {"A": 2, "B": 3, "C": 4},
-                {"A": 3, "B": 4, "C": 5},
-                {"A": 4, "B": 5, "C": 6},
-                {"A": 5, "B": 6, "C": 6},
-            ],
-            "classification": {
-                "1": {300: "A", 500: "A", 750: "B", 1000: "C"},
-                "2": {300: "A", 500: "B", 750: "C", 1000: "D"},
-                "3": {300: "B", 500: "C", 750: "D", 1000: "E"},
-                "4": {300: "C", 500: "D", 750: "E", 1000: "F"},
-                "5": {300: "D", 500: "E", 750: "F"},
-                "6": {300: "E", 500: "F"},
-                "7": {300: "F"},
-            },
-        }
 
         time_window = (end_time - start_time) / 60
-        stations = await db.execute(
-            text(
-                """
-                SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom 
-                FROM basic.count_public_transport_services_station(:study_area_id, :start_time, :end_time, :weekday)
-                """
-            ),
-            {
-                "study_area_id": study_area_id,
-                "start_time": timedelta(seconds=start_time),
-                "end_time": timedelta(seconds=end_time),
-                "weekday": weekday,
-            },
-        )
-        stations = stations.fetchall()
+        
+        # Get max buffer size from config to find buffer size for study area
+        buffer_distances = []
+        for cls in station_config['classification'].items():
+            buffer_distances = buffer_distances + list(cls[1].keys())
+        max_buffer_distance = max(map(int, buffer_distances))
+
+        stations = []
+        for study_area_id in study_area_ids:
+            fetched_stations = await db.execute(
+                text(
+                    """
+                    SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom 
+                    FROM basic.count_public_transport_services_station(:study_area_id, :start_time, :end_time, :weekday, :max_buffer_distance)
+                    """
+                ),
+                {
+                    "study_area_id": study_area_id,
+                    "start_time": timedelta(seconds=start_time),
+                    "end_time": timedelta(seconds=end_time),
+                    "weekday": weekday,
+                    "max_buffer_distance": max_buffer_distance,
+                },
+            )
+            fetched_stations = fetched_stations.fetchall()
+            stations = stations + fetched_stations
 
         project = pyproj.Transformer.from_crs(
             pyproj.CRS("EPSG:3857"), pyproj.CRS("EPSG:4326"), always_xy=True
@@ -742,16 +719,16 @@ class CRUDIndicator:
                 station_config["time_frequency"], station_group_trip_time_frequency
             )
             if time_interval == len(station_config["time_frequency"]):
-                continue    # no category found
+                continue  # no category found
             station_category = station_config["categories"][time_interval - 1].get(station_group)
-     
+
             if not station_category:
                 continue
             # - find station classification based on category
             station_classification = station_config["classification"][str(station_category)]
             for buffer_dist, classification in station_classification.items():
 
-                buffer_geom = station_geom.buffer(buffer_dist)
+                buffer_geom = station_geom.buffer(int(buffer_dist))
                 # add geom in classfication_shapes
                 if classification not in classificiation_buffers:
                     classificiation_buffers[classification] = [buffer_geom]
