@@ -207,16 +207,18 @@ export function getIsochroneStyle() {
       if (isVisible === false) {
         return;
       }
-      const calculationColors = isochroneStore.state.calculationColors;
-      const selectedCalculations = isochroneStore.state.selectedCalculations;
-      const calculationNumber = feature.get("calculationNumber");
-      const calculationIndex = selectedCalculations.findIndex(calculation => {
-        return calculation.id === calculationNumber;
-      });
+      let calculationColors = isochroneStore.state.calculationColors;
+      // const selectedCalculations = isochroneStore.state.selectedCalculations;
+      let calculationNumber = feature.get("calculationNumber");
+      if (calculationNumber > 20) {
+        let division = calculationNumber / 20;
+        let remaining = division - parseInt(division);
+        calculationNumber = Math.round(remaining * 20);
+      }
       styles.push(
         new OlStyle({
           fill: new OlFill({
-            color: calculationColors[calculationIndex]
+            color: calculationColors[calculationNumber - 1]
           })
         })
       );
@@ -250,7 +252,7 @@ export function getIsochroneStyle() {
                 }),
                 maxAngle: 0,
                 backgroundFill: new OlFill({
-                  color: calculationColors[calculationIndex]
+                  color: calculationColors[calculationNumber]
                 }),
                 padding: [2, 2, 2, 2]
               })
@@ -264,7 +266,7 @@ export function getIsochroneStyle() {
                 font: "bold 16px Arial",
                 placement: "line",
                 fill: new OlFill({
-                  color: calculationColors[calculationIndex]
+                  color: calculationColors[calculationNumber]
                 }),
                 maxAngle: 0
               })
@@ -955,10 +957,10 @@ export function poisAoisStyle(feature, resolution) {
 
   if (resolution > 20) {
     radiusBasedOnZoom = 10;
-    poisShadowStyle.getImage().setScale(0.5);
+    poisShadowStyle.getImage().setScale(0);
   } else if (resolution > 15 && resolution <= 20) {
     radiusBasedOnZoom = 14;
-    poisShadowStyle.getImage().setScale(0.75);
+    poisShadowStyle.getImage().setScale(0);
   } else if (resolution > 10 && resolution <= 15) {
     radiusBasedOnZoom = 18;
     poisShadowStyle.getImage().setScale(0.95);

@@ -518,7 +518,8 @@ export default {
 
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
-      calculationColors: "calculationColors"
+      calculationColors: "calculationColors",
+      selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("poisaois", {
       poisAois: "poisAois",
@@ -538,6 +539,9 @@ export default {
     })
   },
   watch: {
+    calculationColors() {
+      this.updateIsochroneSurface(this.selectedCalculationChangeColor);
+    },
     resultViewType(value) {
       if (value === 2 && this.chartDatasetType === 0) {
         if (this.selectedPoisOnlyKeys.length > 0) {
