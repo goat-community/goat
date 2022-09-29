@@ -658,7 +658,7 @@ class CRUDIndicator:
         start_time,
         end_time,
         weekday,
-        study_area_id,
+        study_area_ids,
         station_config,
     ) -> FeatureCollection:
         """
@@ -667,21 +667,32 @@ class CRUDIndicator:
         # TODO: Use isochrone calculation instead of buffer
 
         time_window = (end_time - start_time) / 60
-        stations = await db.execute(
-            text(
-                """
-                SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom 
-                FROM basic.count_public_transport_services_station(:study_area_id, :start_time, :end_time, :weekday)
-                """
-            ),
-            {
-                "study_area_id": study_area_id,
-                "start_time": timedelta(seconds=start_time),
-                "end_time": timedelta(seconds=end_time),
-                "weekday": weekday,
-            },
-        )
-        stations = stations.fetchall()
+        
+        # Get max buffer size from config to find buffer size for study area
+        buffer_distances = []
+        for cls in station_config['classification'].items():
+            buffer_distances = buffer_distances + list(cls[1].keys())
+        max_buffer_distance = max(map(int, buffer_distances))
+
+        stations = []
+        for study_area_id in study_area_ids:
+            fetched_stations = await db.execute(
+                text(
+                    """
+                    SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom 
+                    FROM basic.count_public_transport_services_station(:study_area_id, :start_time, :end_time, :weekday, :max_buffer_distance)
+                    """
+                ),
+                {
+                    "study_area_id": study_area_id,
+                    "start_time": timedelta(seconds=start_time),
+                    "end_time": timedelta(seconds=end_time),
+                    "weekday": weekday,
+                    "max_buffer_distance": max_buffer_distance,
+                },
+            )
+            fetched_stations = fetched_stations.fetchall()
+            stations = stations + fetched_stations
 
         project = pyproj.Transformer.from_crs(
             pyproj.CRS("EPSG:3857"), pyproj.CRS("EPSG:4326"), always_xy=True

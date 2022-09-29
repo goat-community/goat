@@ -255,24 +255,23 @@ async def calculate_oev_gueteklassen(
         raise HTTPException(status_code=422, detail="Start time must be before end time")
 
     is_superuser = crud.user.is_superuser(current_user)
-    if params.study_area_id is not None and not is_superuser:
-        owns_study_area = await CRUDBase(models.UserStudyArea).get_by_multi_keys(
-            db, keys={"user_id": current_user.id, "study_area_id": params.study_area_id}
+
+    if is_superuser and params.study_area_ids is not None:
+        study_area_ids = params.study_area_ids
+    elif not is_superuser and len(study_area_ids) > 0:
+        return HTTPException(
+            status_code=400,
+            detail="The user doesn't have enough privileges to calculate the indicator for other study areas",
         )
-        if owns_study_area == []:
-            raise HTTPException(
-                status_code=400,
-                detail="The user doesn't own the study area or user doesn't have enough privileges",
-            )
-    else:
-        study_area_id = params.study_area_id or current_user.active_study_area_id
+    else: 
+        study_area_ids = [current_user.active_study_area_id]
 
     oev_gueteklassen_features = await crud.indicator.compute_oev_gueteklassen(
         db=db,
         start_time=params.start_time,
         end_time=params.end_time,
         weekday=params.weekday,
-        study_area_id=study_area_id,
+        study_area_ids=study_area_ids,
         station_config=params.station_config,
     )
     if params.return_type.value == ReturnType.geojson.value:

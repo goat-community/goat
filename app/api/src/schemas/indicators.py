@@ -1,5 +1,5 @@
 from multiprocessing.sharedctypes import Value
-from typing import Optional
+from typing import Any, Optional, List
 from pydantic import BaseModel, Field, root_validator, validator
 from src.resources.enums import ReturnType
 
@@ -45,7 +45,7 @@ class CalculateOevGueteklassenParameters(BaseModel):
     start_time: int = 25200
     end_time: int = 32400
     weekday: int = 1
-    study_area_id: Optional[int]
+    study_area_ids: Optional[List[int]]
     return_type: ReturnType = ReturnType.geojson
     station_config: dict
 
@@ -68,4 +68,5 @@ request_example = {
     "weekday": 1,
     "return_type": ReturnType.geojson,
     "station_config": station_config_example,
+    "study_area_ids": [9161, 9184],
 }
