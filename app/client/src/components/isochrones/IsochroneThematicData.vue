@@ -68,12 +68,20 @@
                 >
                   <div
                     class="mx-2 colorPalettePicker"
-                    :style="`border-bottom:4px solid ${calculationColors[0]};`"
+                    :style="
+                      `border-bottom:4px solid ${
+                        calculationColors[selectedCalculations[0].id - 1]
+                      };`
+                    "
                   ></div>
                   <span>Isochrone {{ selectedCalculations[0].id }}</span>
                   <div
                     class="ml-6 mr-2 colorPalettePicker"
-                    :style="`border-bottom:4px dashed ${calculationColors[1]};`"
+                    :style="
+                      `border-bottom:4px dashed ${
+                        calculationColors[selectedCalculations[1].id - 1]
+                      };`
+                    "
                   ></div>
                   <span>Isochrone {{ selectedCalculations[1].id }}</span>
                 </template>
