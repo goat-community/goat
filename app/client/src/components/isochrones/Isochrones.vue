@@ -693,7 +693,6 @@
                       </v-layout>
                       <v-layout row>
                         <div
-                          v-if="isCalculationActive(calculation)"
                           :style="
                             `background-color: ${
                               calculationColors[findColor(calculation.id) - 1]
@@ -926,8 +925,7 @@ export default {
     ...mapGetters("isochrones", {
       routingProfiles: "routingProfiles",
       calculationColors: "calculationColors",
-      colors: "colors",
-      selectedCalculations: "selectedCalculations"
+      colors: "colors"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
@@ -2143,7 +2141,7 @@ export default {
   width: 35px;
   height: 15px;
   margin-bottom: 3px;
-  border: 1px solid rgb(45, 45, 45);
+  border-radius: 3px;
   cursor: pointer;
 }
 </style>
