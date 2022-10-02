@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION basic.count_public_transport_services_station(study_area_id integer, start_time interval, end_time interval, weekday integer, buffer_distance integer DEFAULT 0)
+CREATE OR REPLACE FUNCTION basic.count_public_transport_services_station(study_area_id integer, start_time interval, end_time interval, weekday integer, 
+buffer_distance integer DEFAULT 0, route_types text[] DEFAULT ARRAY['0','1','2','3','101','102','105','200']::TEXT[])
  RETURNS TABLE(stop_id text, stop_name text, trip_cnt jsonb, geom geometry)
  LANGUAGE plpgsql
 AS $function$ 
@@ -29,6 +30,7 @@ BEGIN
 			WHERE t.stop_id = s.stop_id
 			AND s.parent_station = c.parent_station
 			AND t.arrival_time BETWEEN start_time AND end_time
+			AND t.route_type::text IN (SELECT UNNEST(route_types))
 			GROUP BY t.route_type 
 		) j		
 	),
