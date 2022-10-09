@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pyproj
+import asyncio
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from geojson import Feature, FeatureCollection
@@ -24,7 +25,17 @@ from src.db import models
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
 from src.resources.enums import SQLReturnTypes
-
+from src.schemas.isochrone import (
+    IsochroneDTO,
+    IsochroneScenario,
+    IsochroneSettings,
+    IsochroneStartingPointCoord,
+    IsochroneAccessMode,
+    IsochroneStartingPoint,
+    IsochroneMode,
+    IsochroneOutput,
+    IsochroneOutputType
+)
 
 class CRUDGridCalculation(
     CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
@@ -78,13 +89,21 @@ class CRUDIndicator:
         query = text(
             """
             CREATE TABLE temporal.heatmap_grid_helper AS 
-            WITH cnt AS 
+            WITH relevant_study_area_ids AS 
+            (
+                SELECT id FROM basic.study_area WHERE id IN (83110000, 91620000)
+            ),
+            cnt AS 
             (
                 SELECT count(*) cnt 
-                FROM basic.grid_visualization g 
-            )
-            SELECT ST_ClusterKMeans(geom, (cnt / 50)::integer) OVER() AS cid, id, geom, False as already_processed  
-            FROM basic.grid_visualization g, cnt; 
+                FROM basic.grid_visualization g, basic.study_area_grid_visualization s
+                WHERE s.study_area_id IN (SELECT * FROM relevant_study_area_ids) 
+                AND g.id = s.grid_visualization_id 
+            ) 
+            SELECT ST_ClusterKMeans(g.geom, (cnt / 50)::integer) OVER() AS cid, g.id, g.geom, False as already_processed  
+            FROM basic.grid_visualization g, basic.study_area_grid_visualization s, cnt 
+            WHERE s.study_area_id IN (SELECT * FROM relevant_study_area_ids) 
+            AND g.id = s.grid_visualization_id 
             """
         )
         await db.execute(query)
@@ -182,34 +201,46 @@ class CRUDIndicator:
             starting_points = starting_points.fetchall()
             starting_id = [i[0] for i in starting_points]
             grid_ids = [i[1] for i in starting_points]
-            x = [i[2] for i in starting_points]
-            y = [i[3] for i in starting_points]
             dict_starting_ids = dict(zip(starting_id, grid_ids))
 
-            obj_multi_isochrones = schemas.IsochroneMulti(
-                user_id=current_user.id,
-                scenario_id=0,
-                speed=1.333,
-                modus="default",
-                n=1,
-                minutes=20,
-                routing_profile="walking_standard",
-                active_upload_ids=[],
-                x=x,
-                y=y,
+            starting_points_dto_arr = []
+            for i in starting_points:
+                starting_points_dto_arr.append(IsochroneStartingPointCoord(lat=i[3], lon=i[2]))
+            
+            # Create Isochrone DTO for heatmap calculation
+            #TODO: Adjust DTO to properly work with heatmap
+            obj_multi_isochrones = IsochroneDTO(
+                mode="walking",
+                settings=IsochroneSettings(
+                    travel_time=20,
+                    speed=5,
+                    walking_profile="standard",
+                ),
+                starting_point=IsochroneStartingPoint(
+                    input=starting_points_dto_arr,
+                    region_type='study_area', #Dummy to avoid validation error
+                    region=[1,2,3],#Dummy to avoid validation error
+                ),
+                output=IsochroneOutput(
+                    format=IsochroneOutputType.GRID
+                ),
+                scenario=IsochroneScenario(
+                    id=1,
+                    name="Default",
+                )
             )
             # Read network
             starting_time_network = datetime.now()
             network = await crud.isochrone.read_network(
-                db,
-                schemas.isochrone.IsochroneTypeEnum.heatmap.value,
-                obj_multi_isochrones,
-                jsonable_encoder(obj_multi_isochrones),
+                db=db,
+                obj_in=obj_multi_isochrones,
+                current_user=current_user,
+                isochrone_type=schemas.isochrone.IsochroneTypeEnum.heatmap.value,
             )
 
             edges_network = network[0]
             network_ids = network[1]
-            distance_limits = network[2]
+            distance_limits = [1200]
             reading_time_network = (datetime.now() - starting_time_network).total_seconds()
 
             # Compute isochrones for connectivity heatmap
@@ -780,23 +811,22 @@ class CRUDIndicator:
 
 indicator = CRUDIndicator()
 
-# def main():
+#from src.db.session import async_session, sync_session
 
-#     from src.db.session import async_session, sync_session
-#     test_user = models.User(id=15, active_study_area_id=83110000)
-#     asyncio.get_event_loop().run_until_complete(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
-
-
-# main()
-# db = async_session()
-# db_sync = sync_session()
-# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().prepare_starting_points(db=db, current_user=test_user))
-# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().clean_tables(db=db))
-# asyncio.get_event_loop().run_until_complete(
-#          CRUDHeatmap().compute_traveltime(db=db, db_sync=db_sync, current_user=test_user)
-# )
-# asyncio.get_event_loop().run_until_complete(
-#          CRUDHeatmap().finalize_connectivity_heatmap(db=db)
-# )
-# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
-# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().compute_population_heatmap(db=async_session()))
+#test_user = models.User(id=15, active_study_area_id=83110000)
+#db = async_session()
+#db_sync = sync_session()
+#asyncio.get_event_loop().run_until_complete(
+#    CRUDIndicator().prepare_starting_points(db=db, current_user=test_user)
+#)
+#asyncio.get_event_loop().run_until_complete(CRUDIndicator().clean_tables(db=db))
+#asyncio.get_event_loop().run_until_complete(
+#    CRUDIndicator().compute_traveltime(db=db, db_sync=db_sync, current_user=test_user)
+#)
+#asyncio.get_event_loop().run_until_complete(CRUDIndicator().finalize_connectivity_heatmap(db=db))
+#asyncio.get_event_loop().run_until_complete(
+#    CRUDIndicator().bulk_compute_reached_pois(db=async_session(), current_user=test_user)
+#)
+#asyncio.get_event_loop().run_until_complete(
+#    CRUDIndicator().compute_population_heatmap(db=async_session())
+#)
