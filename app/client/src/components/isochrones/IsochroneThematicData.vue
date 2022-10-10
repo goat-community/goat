@@ -2,12 +2,12 @@
   <v-card
     v-if="isochroneResultWindow === true"
     v-draggable="draggableValue"
-    class="thematic-data elevation-4 isochrone-result"
+    class="thematic-data isochrone-result"
     id="isochroneWindowId"
     :style="[isExpanded ? { height: '520px' } : { height: '50px' }]"
     ondragstart="return false;"
   >
-    <v-layout justify-space-between column fill-height>
+    <v-layout justify-space-between column>
       <v-app-bar
         :ref="handleId"
         :color="appColor.primary"
@@ -638,7 +638,6 @@ export default {
   left: calc(360px + 70px);
   max-width: 600px;
   min-width: 370px;
-  height: 450px;
-  overflow: hidden;
+  height: fit-content;
 }
 </style>
