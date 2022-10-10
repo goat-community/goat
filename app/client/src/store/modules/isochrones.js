@@ -93,27 +93,17 @@ const state = {
   chartDatasetType: 0, // 0: population, 1: pois, 2: aois
   isochroneRange: 10, // in minutes
   calculationColors: [
-    "#48a9cd80",
-    "#1f72f680",
-    "#8052e080",
-    "#a73c8180",
-    "#22ac2e80",
-    "#91dd6780",
-    "#81bcb480",
-    "#887ec280",
-    "#42cf6080",
-    "#e257d680",
-    "#428aad80",
-    "#cf348180",
-    "#471a7780",
-    "#7a596d80",
-    "#4e955e80",
-    "#b937d380",
-    "#47a45180",
-    "#0328d080",
-    "#c4330c80",
-    "#9137e580"
-  ], // 20 different colors
+    "#28364880",
+    "#eb391580",
+    "#8B939E80",
+    "#71BE8E80",
+    "#37BCC980",
+    "#af838380",
+    "#D8812280",
+    "#393d7980",
+    "#39787980",
+    "#97954e80"
+  ], // 10 different colors
   // Cancel Request
   cancelReq: undefined,
   selectedCalculationChangeColor: null,

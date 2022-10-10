@@ -1191,10 +1191,10 @@ export default {
     },
     findColor(calc) {
       let defaultVal = calc;
-      if (calc > 20) {
-        let division = calc / 20;
+      if (calc > 10) {
+        let division = calc / 10;
         let remaining = division - parseInt(division);
-        defaultVal = Math.round(remaining * 20);
+        defaultVal = Math.round(remaining * 10);
       }
       return defaultVal;
     },

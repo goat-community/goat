@@ -210,10 +210,10 @@ export function getIsochroneStyle() {
       let calculationColors = isochroneStore.state.calculationColors;
       // const selectedCalculations = isochroneStore.state.selectedCalculations;
       let calculationNumber = feature.get("calculationNumber");
-      if (calculationNumber > 20) {
-        let division = calculationNumber / 20;
+      if (calculationNumber > 10) {
+        let division = calculationNumber / 10;
         let remaining = division - parseInt(division);
-        calculationNumber = Math.round(remaining * 20);
+        calculationNumber = Math.round(remaining * 10);
       }
       styles.push(
         new OlStyle({
