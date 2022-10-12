@@ -92,9 +92,21 @@ const state = {
   },
   chartDatasetType: 0, // 0: population, 1: pois, 2: aois
   isochroneRange: 10, // in minutes
-  calculationColors: ["rgba(40, 54, 72, 0.4)", "rgba(235, 57, 21, 0.4)"], // [0]: default, [1]: scenario or compare
+  calculationColors: [
+    "#28364880",
+    "#eb391580",
+    "#8B939E80",
+    "#71BE8E80",
+    "#37BCC980",
+    "#af838380",
+    "#D8812280",
+    "#393d7980",
+    "#39787980",
+    "#97954e80"
+  ], // 10 different colors
   // Cancel Request
   cancelReq: undefined,
+  selectedCalculationChangeColor: null,
   isochroneResultWindow: false,
   transitRouteTypes: {
     tram: 0,
@@ -118,6 +130,7 @@ const getters = {
   isochroneRange: state => state.isochroneRange,
   calculations: state => state.calculations,
   calculationColors: state => state.calculationColors,
+  selectedCalculationChangeColor: state => state.selectedCalculationChangeColor,
   chartDatasetType: state => state.chartDatasetType,
   isochroneResultWindow: state => state.isochroneResultWindow,
   // eslint-disable-next-line no-unused-vars

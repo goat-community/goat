@@ -68,12 +68,20 @@
                 >
                   <div
                     class="mx-2 colorPalettePicker"
-                    :style="`border-bottom:4px solid ${calculationColors[0]};`"
+                    :style="
+                      `border-bottom:4px solid ${
+                        calculationColors[selectedCalculations[0].id - 1]
+                      };`
+                    "
                   ></div>
                   <span>Isochrone {{ selectedCalculations[0].id }}</span>
                   <div
                     class="ml-6 mr-2 colorPalettePicker"
-                    :style="`border-bottom:4px dashed ${calculationColors[1]};`"
+                    :style="
+                      `border-bottom:4px dashed ${
+                        calculationColors[selectedCalculations[1].id - 1]
+                      };`
+                    "
                   ></div>
                   <span>Isochrone {{ selectedCalculations[1].id }}</span>
                 </template>
@@ -518,7 +526,8 @@ export default {
 
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
-      calculationColors: "calculationColors"
+      calculationColors: "calculationColors",
+      selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("poisaois", {
       poisAois: "poisAois",
@@ -538,6 +547,9 @@ export default {
     })
   },
   watch: {
+    calculationColors() {
+      this.updateIsochroneSurface(this.selectedCalculationChangeColor);
+    },
     resultViewType(value) {
       if (value === 2 && this.chartDatasetType === 0) {
         if (this.selectedPoisOnlyKeys.length > 0) {

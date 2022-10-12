@@ -27,7 +27,7 @@ export default {
       }
       const datasets = [];
 
-      this.selectedCalculations.forEach((calculation, index) => {
+      this.selectedCalculations.forEach(calculation => {
         const calculationData = calculation.surfaceData.accessibility;
         // add only amenities
         const data = [];
@@ -45,7 +45,8 @@ export default {
         datasets.push({
           data,
           label: `Isochrone - ${calculation.id}`,
-          backgroundColor: this.calculationColors[index] || "rgb(54, 162, 235)"
+          backgroundColor:
+            this.calculationColors[calculation.id - 1] || "rgb(54, 162, 235)"
         });
       });
 
