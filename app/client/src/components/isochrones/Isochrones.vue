@@ -626,7 +626,7 @@
                     style="background-color:#EEEEEE;"
                     class="pb-0 mt-0 pt-0 mb-0"
                   >
-                    <v-layout row wrap class="py-1">
+                    <v-layout row wrap class="py-1" align-center>
                       <v-layout align-start justify-start>
                         <v-card-text class="pa-0 ma-0 ml-2">
                           <v-icon small class="text-xs-center">{{
@@ -690,6 +690,19 @@
                             }}</span
                           >
                         </v-card-text>
+                      </v-layout>
+                      <v-layout row>
+                        <div
+                          v-if="isCalculationActive(calculation)"
+                          :style="
+                            `background-color: ${
+                              calculationColors[
+                                selectedCalculations.indexOf(calculation)
+                              ]
+                            }`
+                          "
+                          class="isochroneColor"
+                        ></div>
                       </v-layout>
 
                       <v-layout row>
@@ -909,7 +922,9 @@ export default {
       isochroneResultWindow: "isochroneResultWindow"
     }),
     ...mapGetters("isochrones", {
-      routingProfiles: "routingProfiles"
+      routingProfiles: "routingProfiles",
+      calculationColors: "calculationColors",
+      selectedCalculations: "selectedCalculations"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
@@ -1048,7 +1063,9 @@ export default {
      */
     registerMapClick() {
       //Close other interactions.
+
       EventBus.$emit("ol-interaction-activated", this.interactionType);
+
       if (this.type === "single") {
         this.mapClickListener = this.map.once("singleclick", this.onMapClick);
         this.startHelpTooltip(
@@ -1837,6 +1854,7 @@ export default {
           }
         );
       } else {
+        this.lastActivatedIsochrone = calculation.id;
         if (this.selectedCalculations.length === 2) {
           // Remove first calculation if length is already 2
           this.selectedCalculations.shift();
@@ -1963,6 +1981,9 @@ export default {
       if (this.routing === "transit") {
         this.type = "single";
       }
+    },
+    calculationColors(value) {
+      console.log(value);
     },
     selectedPois() {
       if (this.multiIsochroneMethod) {
@@ -2106,5 +2127,11 @@ export default {
 }
 .tooltip-inner {
   border: 2px solid white;
+}
+.isochroneColor {
+  width: 35px;
+  height: 15px;
+  margin-bottom: 3px;
+  border: 1px solid rgb(45, 45, 45);
 }
 </style>
