@@ -276,7 +276,7 @@ class CRUDIsochrone:
             grid_decoded["height"],
             grid_decoded["depth"],
             grid_decoded["data"],
-            50,
+            25,
         )
         grid_decoded["surface"] = single_value_surface
         isochrone_multipolygon_coordinates = jsolines(
