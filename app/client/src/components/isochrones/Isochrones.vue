@@ -693,18 +693,19 @@
                       </v-layout>
                       <v-layout row>
                         <div
-                          v-if="isCalculationActive(calculation)"
                           :style="
                             `background-color: ${
-                              calculationColors[
-                                selectedCalculations.indexOf(calculation)
-                              ]
+                              calculationColors[findColor(calculation.id) - 1]
                             }`
                           "
                           class="isochroneColor"
+                          @click="
+                            () => {
+                              openIsochroneColorPicker(calculation);
+                            }
+                          "
                         ></div>
                       </v-layout>
-
                       <v-layout row>
                         <v-spacer></v-spacer>
                         <v-tooltip top>
@@ -913,18 +914,18 @@ export default {
       isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer",
       multiIsochroneSelectionLayer: "multiIsochroneSelectionLayer",
       multiIsochroneMethod: "multiIsochroneMethod",
-      colors: "colors",
       defaultIsochroneColor: "defaultIsochroneColor",
       scenarioIsochroneColor: "scenarioIsochroneColor",
       selectedCalculations: "selectedCalculations",
       publicTransport: "publicTransport",
       isochroneRange: "isochroneRange",
-      isochroneResultWindow: "isochroneResultWindow"
+      isochroneResultWindow: "isochroneResultWindow",
+      selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("isochrones", {
       routingProfiles: "routingProfiles",
       calculationColors: "calculationColors",
-      selectedCalculations: "selectedCalculations"
+      colors: "colors"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
@@ -969,6 +970,9 @@ export default {
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
+    openIsochroneColorPicker(selectedCalculation) {
+      this.selectedCalculationChangeColor = selectedCalculation;
+    },
     onMapBound() {
       this.createIsochroneLayer();
       this.createIsochroneRoadNetworkLayer();
@@ -1184,6 +1188,15 @@ export default {
         timeout: 0
       });
       this.startHelpTooltip(this.$t("map.tooltips.clickToStartDrawing"));
+    },
+    findColor(calc) {
+      let defaultVal = calc;
+      if (calc > 10) {
+        let division = calc / 10;
+        let remaining = division - parseInt(division);
+        defaultVal = Math.round(remaining * 10);
+      }
+      return defaultVal;
     },
     /**
      * Event for updating the edit help tooltip
@@ -1719,7 +1732,6 @@ export default {
         const feature = evt.features.getArray()[0];
         if (feature) {
           const calculationNumber = feature.get("calculationNumber");
-          console.log(calculationNumber);
           const calculation = this.selectedCalculations.filter(
             calculation => calculation.id === calculationNumber
           );
@@ -1982,9 +1994,6 @@ export default {
         this.type = "single";
       }
     },
-    calculationColors(value) {
-      console.log(value);
-    },
     selectedPois() {
       if (this.multiIsochroneMethod) {
         this.countPois();
@@ -2132,6 +2141,7 @@ export default {
   width: 35px;
   height: 15px;
   margin-bottom: 3px;
-  border: 1px solid rgb(45, 45, 45);
+  border-radius: 3px;
+  cursor: pointer;
 }
 </style>

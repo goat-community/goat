@@ -7,12 +7,22 @@ import poisaois from "./modules/poisaois";
 import app from "./modules/app";
 import auth from "./modules/auth";
 import scenarios from "./modules/scenarios";
+import indicators from "./modules/indicators";
 
 Vue.use(Vuex);
 
 // Create a new store
 const store = new Vuex.Store({
-  modules: { isochrones, map, loader, poisaois, scenarios, app, auth }
+  modules: {
+    isochrones,
+    map,
+    loader,
+    poisaois,
+    scenarios,
+    app,
+    auth,
+    indicators
+  }
 });
 
 export default store;
