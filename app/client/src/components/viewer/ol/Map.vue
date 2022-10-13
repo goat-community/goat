@@ -422,12 +422,21 @@ export default {
     });
     // Get study area
     me.createStudyAreaLayer();
-    // Create poisaoisLayer
-    me.createPoisAoisLayer();
+
     // Create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
     me.createGetInfoLayer();
+
+    // check if map is loaded
+    me.map.once(
+      "rendercomplete",
+      () => {
+        // Create poisaoisLayer
+        me.createPoisAoisLayer();
+      },
+      { once: true }
+    );
 
     // Setup context menu (right-click)
     me.setupContentMenu();
@@ -518,6 +527,7 @@ export default {
         style: poisAoisStyle
       });
       this.map.addLayer(vector);
+      console.log(new VectorSource());
       this.poisAoisLayer = vector;
       this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
     },
