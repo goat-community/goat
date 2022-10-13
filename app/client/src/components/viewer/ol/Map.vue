@@ -527,7 +527,6 @@ export default {
         style: poisAoisStyle
       });
       this.map.addLayer(vector);
-      console.log(new VectorSource());
       this.poisAoisLayer = vector;
       this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
     },
