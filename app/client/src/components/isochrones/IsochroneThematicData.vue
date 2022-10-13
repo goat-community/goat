@@ -2,13 +2,12 @@
   <v-card
     v-if="isochroneResultWindow === true"
     v-draggable="draggableValue"
-    class="thematic-data elevation-4"
+    class="thematic-data isochrone-result"
     id="isochroneWindowId"
     :style="[isExpanded ? { height: '520px' } : { height: '50px' }]"
-    style="position:fixed;top:10px;left:400px;z-index:2;max-width:600px;min-width:370px;height:450px;overflow:hidden;"
     ondragstart="return false;"
   >
-    <v-layout justify-space-between column fill-height>
+    <v-layout justify-space-between column>
       <v-app-bar
         :ref="handleId"
         :color="appColor.primary"
@@ -523,7 +522,6 @@ export default {
       }
       return maxIsochroneRange;
     },
-
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
       calculationColors: "calculationColors",
@@ -642,5 +640,16 @@ export default {
   width: 50px;
   border-radius: 0px;
   margin-bottom: 16px;
+}
+
+.isochrone-result {
+  position: fixed;
+  z-index: 2;
+  top: 20px;
+  /** Drawer width + 70px margin */
+  left: calc(360px + 70px);
+  max-width: 600px;
+  min-width: 370px;
+  height: fit-content;
 }
 </style>

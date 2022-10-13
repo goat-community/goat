@@ -74,7 +74,7 @@ isochrone_calculation = CRUDIsochroneCalculation(models.IsochroneCalculation)
 
 class CRUDIsochrone:
     async def read_network(self, db, obj_in: IsochroneDTO, current_user, isochrone_type) -> Any:
-
+        
         sql_text = ""
         if isochrone_type == IsochroneTypeEnum.single.value:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
@@ -84,10 +84,10 @@ class CRUDIsochrone:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
             FROM basic.fetch_network_routing_multi(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
             """
-        # elif calculation_type == IsochroneTypeEnum.heatmap:
-        #     sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
-        #     FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
-        #     """
+        elif isochrone_type == IsochroneTypeEnum.heatmap.value:
+            sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+            FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+            """
 
         read_network_sql = text(sql_text)
         routing_profile = None
@@ -98,10 +98,10 @@ class CRUDIsochrone:
             routing_profile = obj_in.mode.value + "_" + obj_in.settings.cycling_profile.value
 
         x = y = None
-        if isochrone_type == IsochroneTypeEnum.multi.value:
+        if isochrone_type == IsochroneTypeEnum.multi.value or isochrone_type == IsochroneTypeEnum.heatmap.value:
             if isinstance(obj_in.starting_point.input[0], IsochroneStartingPointCoord):
-                x = [point.lon for point in obj_in.startiong_point.input]
-                y = [point.lat for point in obj_in.startiong_point.input]
+                x = [point.lon for point in obj_in.starting_point.input]
+                y = [point.lat for point in obj_in.starting_point.input]
             else:
                 starting_points = await self.starting_points_opportunities(
                     current_user, db, obj_in
@@ -143,19 +143,21 @@ class CRUDIsochrone:
             starting_point_geom = str(edges_network["starting_geoms"].iloc[0])
 
         edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis=1)
-        obj_starting_point = models.IsochroneCalculation(
-            calculation_type=isochrone_type,
-            user_id=current_user.id,
-            scenario_id=None if obj_in.scenario.id == 0 else obj_in.scenario.id,
-            starting_point=starting_point_geom,
-            routing_profile=routing_profile,
-            speed=obj_in.settings.speed * 3.6,  # in km/h
-            modus=obj_in.scenario.modus.value,
-            parent_id=None,
-        )
 
-        db.add(obj_starting_point)
-        await db.commit()
+        if isochrone_type == IsochroneTypeEnum.single.value or isochrone_type == IsochroneTypeEnum.multi.value:
+            obj_starting_point = models.IsochroneCalculation(
+                calculation_type=isochrone_type,
+                user_id=current_user.id,
+                scenario_id=None if obj_in.scenario.id == 0 else obj_in.scenario.id,
+                starting_point=starting_point_geom,
+                routing_profile=routing_profile,
+                speed=obj_in.settings.speed * 3.6,  # in km/h
+                modus=obj_in.scenario.modus.value,
+                parent_id=None,
+            )
+
+            db.add(obj_starting_point)
+            await db.commit()
 
         # return edges_network and obj_starting_point
         edges_network.astype(
@@ -274,7 +276,7 @@ class CRUDIsochrone:
             grid_decoded["height"],
             grid_decoded["depth"],
             grid_decoded["data"],
-            50,
+            25,
         )
         grid_decoded["surface"] = single_value_surface
         isochrone_multipolygon_coordinates = jsolines(
@@ -634,13 +636,13 @@ class CRUDIsochrone:
             # TODO: get the mapping dynamically from the database based on the study area
             weekday = obj_in.settings.weekday
             available_dates = {
-                0: "2022-05-16",
-                1: "2022-05-17",
-                2: "2022-05-18",
-                3: "2022-05-19",
-                4: "2022-05-20",
-                5: "2022-05-21",
-                6: "2022-05-22",
+                0: "2022-02-07",
+                1: "2022-02-08",
+                2: "2022-02-09",
+                3: "2022-02-10",
+                4: "2022-02-11",
+                5: "2022-02-12",
+                6: "2022-02-13",
             }
 
             payload = {

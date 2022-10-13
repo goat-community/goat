@@ -20,6 +20,7 @@ import { geobufToFeatures } from "../utils/MapUtils";
 import appStore from "../store/modules/app";
 import scenarioStore from "../store/modules/scenarios";
 import poisAoisStore from "../store/modules/poisaois";
+import indicatorsStore from "../store/modules/indicators";
 import mapStore from "../store/modules/map";
 import axios from "axios";
 
@@ -310,12 +311,15 @@ export const LayerFactory = {
               amenityConfiguration
             )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
             pt_station_count: `${baseUrl_}/pt-station-count?start_time=${startTime}&end_time=${endTime}&weekday=${weekday}&return_type=${returnType}`,
-            pt_oev_gueteklasse: `${baseUrl_}/pt-oev-gueteklassen?start_time=${startTime}&end_time=${endTime}&weekday=${weekday}&return_type=${returnType}`
+            pt_oev_gueteklasse: `${baseUrl_}/pt-oev-gueteklassen`
           };
           const url = indicatorParams[lConf.name];
+
+          // POST request
+          let promise;
           mapStore.state.isMapBusy = true;
           const CancelToken = axios.CancelToken;
-          ApiService.get_(url, {
+          const promiseConfig = {
             responseType: "arraybuffer",
             headers: {
               Accept: "application/pdf"
@@ -324,7 +328,21 @@ export const LayerFactory = {
               // An executor function receives a cancel function as a parameter
               mapStore.state.indicatorCancelToken = c;
             })
-          })
+          };
+          if (lConf.name === "pt_oev_gueteklasse") {
+            const payload = {
+              start_time: startTime,
+              end_time: endTime,
+              weekday: weekday,
+              return_type: returnType,
+              station_config: indicatorsStore.state.pt_oev_gueteklasse.config
+            };
+            promise = ApiService.post_(url, payload, promiseConfig);
+          } else {
+            promise = ApiService.get_(url, promiseConfig);
+          }
+
+          promise
             .then(response => {
               if (response.data) {
                 const olFeatures = geobufToFeatures(response.data, {
