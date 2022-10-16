@@ -125,6 +125,12 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD_STAGING: Optional[str] = "secret"
     POSTGRES_OUTER_PORT_STAGING: Optional[int] = 5432
 
+    POSTGRES_DB_RAW: Optional[str] = "goat"
+    POSTGRES_SERVER_RAW: Optional[str] = "localhost"
+    POSTGRES_USER_RAW: Optional[str] = "postgres"
+    POSTGRES_PASSWORD_RAW: Optional[str] = "secret"
+    POSTGRES_OUTER_PORT_RAW: Optional[int] = 5432
+
     POSTGRES_FUNCTIONS_SCHEMA: Optional[str] = "basic"
 
     DEMO_USER_STUDY_AREA_ID: Optional[int] = 91620000  # Munich
