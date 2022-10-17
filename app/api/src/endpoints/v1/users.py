@@ -118,7 +118,7 @@ async def create_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
     user_in: schemas.UserCreate = Body(..., example=request_examples["create"]),
-    current_user: models.User = Depends(deps.get_current_active_super_user),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Create new user.
