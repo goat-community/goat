@@ -30,8 +30,7 @@
           <vue-scroll>
             <div class="documentation-wrapper">
               <iframe
-                height="1000"
-                ref="iframe"
+                height="1100"
                 @load="isLoading = false"
                 scrolling="yes"
                 :src="getDocUrl"
