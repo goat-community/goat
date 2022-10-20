@@ -69,7 +69,7 @@ class GridCalculation(SQLModel, table=True):
         )
     )
     grid_visualization: "GridVisualization" = Relationship(back_populates="grid_calculations")
-    traveltime_matrix_walking: "TravelTimeMatrixWalking" = Relationship(back_populates="grid_calculation")
+    #traveltime_matrix_walking: "TravelTimeMatrixWalking" = Relationship(back_populates="grid_calculation")
 
 
 Index("idx_grid_caclulation_geom", GridCalculation.__table__.c.geom, postgresql_using="gist")

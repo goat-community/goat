@@ -33,7 +33,8 @@ class TravelTimeMatrixBase(SQLModel):
             unique=True,
         )
     )
-    northwest: Optional[List[int]] = Field(sa_column=Column(ARRAY(Integer())), nullable=False)
+    north: Optional[int] = Field(sa_column=Column(Integer), nullable=False)
+    west: Optional[int] = Field(sa_column=Column(Integer), nullable=False)
     heigth: Optional[int] = Field(sa_column=Column(SmallInteger), nullable=False)
     width: Optional[int] = Field(sa_column=Column(SmallInteger), nullable=False)
     costs: Optional[bytes] = Field(sa_column=Column(LargeBinary), nullable=False)
@@ -44,4 +45,4 @@ class TravelTimeMatrixWalking(TravelTimeMatrixBase, table=True):
     __table_args__ = {"schema": "customer"}
 
 
-    grid_calculation: "GridCalculation" = Relationship(back_populates="traveltime_matrix_walking")
+    #grid_calculation: "GridCalculation" = Relationship(back_populates="traveltime_matrix_walking")
