@@ -3,7 +3,10 @@
     <template v-for="(item, index) in layers">
       <div
         :key="index"
-        v-if="layerVisibility(item)"
+        v-if="
+          layerVisibility(item) &&
+            !['sub_study_area', 'study_area'].includes(item.get('name'))
+        "
         style="padding-right:10px;"
       >
         <v-divider></v-divider>

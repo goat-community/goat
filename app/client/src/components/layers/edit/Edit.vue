@@ -1472,6 +1472,7 @@ export default {
             const feature = geojsonToFeature(response.data);
             if (feature[0] && feature[0].get("id")) {
               bldEntranceFeature.setId(feature[0].get("id"));
+              this.refreshIndicator();
             }
           }
         });
@@ -1522,6 +1523,7 @@ export default {
             this.editLayer.getSource().changed();
             if (feature[0] && feature[0].get("id")) {
               bldEntranceFeature.setId(feature[0].get("id"));
+              this.refreshIndicator();
             }
           }
         });
@@ -2223,13 +2225,7 @@ export default {
         });
     },
     refreshIndicator() {
-      if (this.selectedLayer["name"]) {
-        EventBus.$emit("update-indicator", "poi");
-      }
-      if (this.selectedLayer["building"]) {
-        // TODO: Update only when building population is added
-        EventBus.$emit("update-indicator", "population");
-      }
+      EventBus.$emit("update-indicator", ["poi", "population"]);
     },
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR",

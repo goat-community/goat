@@ -73,6 +73,23 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         result = await db.execute(statement)
         return result.scalars().all()
 
+    async def get_multi_by_key(
+        self,
+        db: AsyncSession,
+        *,
+        key: str,
+        value: Any,
+        skip: int = 0,
+        limit: int = 100,
+        extra_fields: List[Any] = [],
+    ) -> List[ModelType]:
+        statement = (
+            select(self.model).offset(skip).limit(limit).where(getattr(self.model, key) == value)
+        )
+        statement = self.extend_statement(statement, extra_fields=extra_fields)
+        result = await db.execute(statement)
+        return result.scalars().all()
+
     async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:
         db_obj = self.model.from_orm(obj_in)
         db.add(db_obj)

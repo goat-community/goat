@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pyproj
+import asyncio
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from geojson import Feature, FeatureCollection
@@ -13,6 +14,7 @@ from rich import print
 from shapely import wkb
 from shapely.geometry import Polygon
 from shapely.ops import transform, unary_union
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
@@ -21,9 +23,21 @@ from sqlalchemy.sql import delete, text
 from src import crud, schemas
 from src.crud.base import CRUDBase
 from src.db import models
+from src.db.models import data_upload
 from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
 from src.resources.enums import SQLReturnTypes
+from src.schemas.isochrone import (
+    IsochroneDTO,
+    IsochroneScenario,
+    IsochroneSettings,
+    IsochroneStartingPointCoord,
+    IsochroneAccessMode,
+    IsochroneStartingPoint,
+    IsochroneMode,
+    IsochroneOutput,
+    IsochroneOutputType,
+)
 
 
 class CRUDGridCalculation(
@@ -78,13 +92,21 @@ class CRUDIndicator:
         query = text(
             """
             CREATE TABLE temporal.heatmap_grid_helper AS 
-            WITH cnt AS 
+            WITH relevant_study_area_ids AS 
+            (
+                SELECT id FROM basic.study_area WHERE id IN (281460, 44021, 83110000, 91620000, 9564, 9188, 9174, 9178, 9177, 9175, 9184, 9188, 9179, 9564)
+            ),
+            cnt AS 
             (
                 SELECT count(*) cnt 
-                FROM basic.grid_visualization g 
-            )
-            SELECT ST_ClusterKMeans(geom, (cnt / 50)::integer) OVER() AS cid, id, geom, False as already_processed  
-            FROM basic.grid_visualization g, cnt; 
+                FROM basic.grid_visualization g, basic.study_area_grid_visualization s
+                WHERE s.study_area_id IN (SELECT * FROM relevant_study_area_ids) 
+                AND g.id = s.grid_visualization_id 
+            ) 
+            SELECT ST_ClusterKMeans(g.geom, (cnt / 50)::integer) OVER() AS cid, g.id, g.geom, False as already_processed  
+            FROM basic.grid_visualization g, basic.study_area_grid_visualization s, cnt 
+            WHERE s.study_area_id IN (SELECT * FROM relevant_study_area_ids) 
+            AND g.id = s.grid_visualization_id 
             """
         )
         await db.execute(query)
@@ -181,35 +203,50 @@ class CRUDIndicator:
 
             starting_points = starting_points.fetchall()
             starting_id = [i[0] for i in starting_points]
+
+            # Check if there are no starting points
+            if len(starting_id) == 0:
+                continue
+
             grid_ids = [i[1] for i in starting_points]
-            x = [i[2] for i in starting_points]
-            y = [i[3] for i in starting_points]
             dict_starting_ids = dict(zip(starting_id, grid_ids))
 
-            obj_multi_isochrones = schemas.IsochroneMulti(
-                user_id=current_user.id,
-                scenario_id=0,
-                speed=1.333,
-                modus="default",
-                n=1,
-                minutes=20,
-                routing_profile="walking_standard",
-                active_upload_ids=[],
-                x=x,
-                y=y,
+            starting_points_dto_arr = []
+            for i in starting_points:
+                starting_points_dto_arr.append(IsochroneStartingPointCoord(lat=i[3], lon=i[2]))
+
+            # Create Isochrone DTO for heatmap calculation
+            # TODO: Adjust DTO to properly work with heatmap
+            obj_multi_isochrones = IsochroneDTO(
+                mode="walking",
+                settings=IsochroneSettings(
+                    travel_time=20,
+                    speed=5,
+                    walking_profile="standard",
+                ),
+                starting_point=IsochroneStartingPoint(
+                    input=starting_points_dto_arr,
+                    region_type="study_area",  # Dummy to avoid validation error
+                    region=[1, 2, 3],  # Dummy to avoid validation error
+                ),
+                output=IsochroneOutput(format=IsochroneOutputType.GRID),
+                scenario=IsochroneScenario(
+                    id=1,
+                    name="Default",
+                ),
             )
             # Read network
             starting_time_network = datetime.now()
             network = await crud.isochrone.read_network(
-                db,
-                schemas.isochrone.IsochroneTypeEnum.heatmap.value,
-                obj_multi_isochrones,
-                jsonable_encoder(obj_multi_isochrones),
+                db=db,
+                obj_in=obj_multi_isochrones,
+                current_user=current_user,
+                isochrone_type=schemas.isochrone.IsochroneTypeEnum.heatmap.value,
             )
 
             edges_network = network[0]
             network_ids = network[1]
-            distance_limits = network[2]
+            distance_limits = [1200]
             reading_time_network = (datetime.now() - starting_time_network).total_seconds()
 
             # Compute isochrones for connectivity heatmap
@@ -511,6 +548,47 @@ class CRUDIndicator:
         db.add(data_upload_obj)
         await db.commit()
 
+    async def bulk_recompute_poi_user(self, db: AsyncSession):
+        """Recomputes the heatmap for all POI that were uploaded by the user"""
+
+        users = await CRUDBase(models.User).get_all(db=db)
+        for user in users:
+            data_upload_ids = await CRUDBase(models.DataUpload).get_by_key(
+                db=db, key="user_id", value=user.id
+            )
+            for data_upload_id in data_upload_ids:
+                await self.compute_reached_pois_user(
+                    db=db, current_user=user, data_upload_id=data_upload_id.id
+                )
+
+            print(f"INFO: Recomputed data uploads for user with the following id: [bold magenta]{user.id}[/bold magenta].")
+
+    async def bulk_recompute_scenario(self, db: AsyncSession):
+        """Recomputes the heatmap for all scenarios"""
+
+        scenarios = await CRUDBase(models.Scenario).get_all(db=db)
+        for scenario in scenarios:
+            await db.execute(
+                text(
+                """
+                    SELECT basic.reached_pois_heatmap(
+                        'poi_modified'::text, 
+                        geom, 
+                        :user_id, 
+                        scenario_id, 
+                        ARRAY[0]::integer[], 
+                        uid
+                    )
+                    FROM customer.poi_modified 
+                    WHERE scenario_id = :scenario_id;
+                """
+                ),
+                {"user_id": scenario.user_id, "scenario_id": scenario.id}
+            )
+            await db.commit()
+   
+            print(f"INFO: Recomputed scenario with the following id: [bold magenta]{scenario.id}[/bold magenta].")
+
     async def bulk_compute_reached_pois(self, db: AsyncSession, current_user: models.User):
         # Reset reached_pois_heatmap table
         await db.execute(text("TRUNCATE customer.reached_poi_heatmap;"))
@@ -539,24 +617,46 @@ class CRUDIndicator:
             starting_time_section = datetime.now()
             cnt += 1
             calculation_geom = await db.execute(
-                "SELECT ST_ASTEXT(ST_UNION(geom)) AS geom FROM temporal.heatmap_grid_helper WHERE cid = :cid",
+                """WITH union_grid AS 
+                (
+                    SELECT ST_UNION(h.geom) AS geom 
+                    FROM temporal.heatmap_grid_helper h  
+                    WHERE cid = :cid
+                )
+                SELECT s.id, ST_ASTEXT(ST_INTERSECTION(s.geom, u.geom)) AS geom
+                FROM union_grid u, basic.study_area s 
+                WHERE ST_Intersects(u.geom, s.geom)""",
                 {"cid": kmeans_class},
             )
-            calculation_geom = calculation_geom.fetchall()[0][0]
-            await db.execute(
-                text(
-                    """SELECT basic.reached_pois_heatmap(
-                    :table_name, ST_SETSRID(ST_GEOMFROMTEXT(:calculation_geom), 4326), 
-                    :user_id_input, :scenario_id_input)"""
-                ),
-                {
-                    "table_name": "poi",
-                    "calculation_geom": calculation_geom,
-                    "user_id_input": current_user.id,
-                    "scenario_id_input": 0,
-                },
-            )
-            await db.commit()
+            calculation_geom = calculation_geom.fetchall()
+
+            for study_area_id, geom in calculation_geom:
+                #TODO: Use models here. It was not used due to some problems that could not be fixed quickly
+                await db.execute(
+                    text(
+                        """
+                        UPDATE customer.user 
+                        SET active_study_area_id = :study_area_id
+                        WHERE id = :user_id
+                        """
+                    ),
+                    {"study_area_id": study_area_id, "user_id": current_user.id},
+                )
+
+                await db.execute(
+                    text(
+                        """SELECT basic.reached_pois_heatmap(
+                        :table_name, ST_SETSRID(ST_GEOMFROMTEXT(:calculation_geom), 4326), 
+                        :user_id_input, :scenario_id_input)"""
+                    ),
+                    {
+                        "table_name": "poi",
+                        "calculation_geom": geom,
+                        "user_id_input": current_user.id,
+                        "scenario_id_input": 0,
+                    },
+                )
+                await db.commit()
 
             print(
                 "#################################################################################################################"
@@ -632,7 +732,6 @@ class CRUDIndicator:
         self, db: AsyncSession, start_time, end_time, weekday, study_area_id, return_type
     ) -> Any:
         """Get count of public transport stations for every service."""
-
         template_sql = SQLReturnTypes[return_type.value].value
         stations_count = await db.execute(
             text(
@@ -645,7 +744,7 @@ class CRUDIndicator:
                 "study_area_id": study_area_id,
                 "start_time": timedelta(seconds=start_time),
                 "end_time": timedelta(seconds=end_time),
-                "weekday": weekday,
+                "weekday": weekday
             },
         )
         stations_count = stations_count.fetchall()[0][0]
@@ -657,65 +756,42 @@ class CRUDIndicator:
         start_time,
         end_time,
         weekday,
-        study_area_id,
+        study_area_ids,
+        station_config,
     ) -> FeatureCollection:
         """
         Calculate the OEV-Gueteklassen for a given time period and weekday.
         """
         # TODO: Use isochrone calculation instead of buffer
-        station_config = {
-            "groups": {
-                "0": "B",  # route_type: category of public transport route
-                "1": "A",
-                "2": "A",
-                "3": "C",
-                "4": "B",
-                "5": "B",
-                "6": "B",
-                "7": "B",
-                "11": "B",
-                "12": "B",
-            },
-            "time_frequency": [0, 4, 10, 19, 39, 60, 119],
-            "categories": [
-                {
-                    "A": 1,  # i.e. types of transports in category A are in transport stop category I
-                    "B": 1,
-                    "C": 2,
-                },
-                {"A": 1, "B": 2, "C": 3},
-                {"A": 2, "B": 3, "C": 4},
-                {"A": 3, "B": 4, "C": 5},
-                {"A": 4, "B": 5, "C": 6},
-                {"A": 5, "B": 6, "C": 6},
-            ],
-            "classification": {
-                "1": {300: "A", 500: "A", 750: "B", 1000: "C"},
-                "2": {300: "A", 500: "B", 750: "C", 1000: "D"},
-                "3": {300: "B", 500: "C", 750: "D", 1000: "E"},
-                "4": {300: "C", 500: "D", 750: "E", 1000: "F"},
-                "5": {300: "D", 500: "E", 750: "F"},
-                "6": {300: "E", 500: "F"},
-                "7": {300: "F"},
-            },
-        }
 
         time_window = (end_time - start_time) / 60
-        stations = await db.execute(
-            text(
-                """
-                SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom 
-                FROM basic.count_public_transport_services_station(:study_area_id, :start_time, :end_time, :weekday)
-                """
-            ),
-            {
-                "study_area_id": study_area_id,
-                "start_time": timedelta(seconds=start_time),
-                "end_time": timedelta(seconds=end_time),
-                "weekday": weekday,
-            },
-        )
-        stations = stations.fetchall()
+        
+        # Get max buffer size from config to find buffer size for study area
+        buffer_distances = []
+        for cls in station_config['classification'].items():
+            buffer_distances = buffer_distances + list(cls[1].keys())
+        max_buffer_distance = max(map(int, buffer_distances))
+
+        stations = []
+        for study_area_id in study_area_ids:
+            fetched_stations = await db.execute(
+                text(
+                    """
+                    SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom 
+                    FROM basic.count_public_transport_services_station(:study_area_id, :start_time, :end_time, :weekday, :max_buffer_distance, :route_types)
+                    """
+                ),
+                {
+                    "study_area_id": study_area_id,
+                    "start_time": timedelta(seconds=start_time),
+                    "end_time": timedelta(seconds=end_time),
+                    "weekday": weekday,
+                    "max_buffer_distance": max_buffer_distance,
+                    "route_types": list(station_config["groups"].keys())
+                },
+            )
+            fetched_stations = fetched_stations.fetchall()
+            stations = stations + fetched_stations
 
         project = pyproj.Transformer.from_crs(
             pyproj.CRS("EPSG:3857"), pyproj.CRS("EPSG:4326"), always_xy=True
@@ -726,14 +802,14 @@ class CRUDIndicator:
             trip_cnt = station["trip_cnt"]
             # - find station group
             station_groups = []  # list of station groups e.g [A, B, C]
-            acc_trips = {}  # accumulated trips per station group
+            station_group_trip_count = 0  # accumulated trips per station group
             for route_type, trip_count in trip_cnt.items():
                 station_group = station_config["groups"].get(str(route_type))
                 if station_group:
                     station_groups.append(station_group)
-                    acc_trips[station_group] = acc_trips.get(station_group, 0) + trip_count
+                    station_group_trip_count += trip_count
+                    
             station_group = min(station_groups)  # the highest priority (e.g A )
-            station_group_trip_count = acc_trips[station_group]
             if station_group_trip_count == 0:
                 continue
             station_group_trip_time_frequency = time_window / (station_group_trip_count / 2)
@@ -742,16 +818,16 @@ class CRUDIndicator:
                 station_config["time_frequency"], station_group_trip_time_frequency
             )
             if time_interval == len(station_config["time_frequency"]):
-                continue    # no category found
+                continue  # no category found
             station_category = station_config["categories"][time_interval - 1].get(station_group)
-     
+
             if not station_category:
                 continue
             # - find station classification based on category
             station_classification = station_config["classification"][str(station_category)]
             for buffer_dist, classification in station_classification.items():
 
-                buffer_geom = station_geom.buffer(buffer_dist)
+                buffer_geom = station_geom.buffer(int(buffer_dist))
                 # add geom in classfication_shapes
                 if classification not in classificiation_buffers:
                     classificiation_buffers[classification] = [buffer_geom]
@@ -789,23 +865,36 @@ class CRUDIndicator:
 
 indicator = CRUDIndicator()
 
-# def main():
 
-#     from src.db.session import async_session, sync_session
-#     test_user = models.User(id=15, active_study_area_id=83110000)
-#     asyncio.get_event_loop().run_until_complete(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
+def main():
+    from src.db.session import async_session, sync_session
+    db = async_session()
+    db_sync = sync_session()
+    superuser = asyncio.get_event_loop().run_until_complete(CRUDBase(models.User).get_by_key(db, key='id', value=15))
+    superuser = superuser[0]
+    asyncio.get_event_loop().run_until_complete(
+    CRUDIndicator().prepare_starting_points(db=db, current_user=superuser)
+    )
+    asyncio.get_event_loop().run_until_complete(CRUDIndicator().clean_tables(db=db))
+    asyncio.get_event_loop().run_until_complete(
+    CRUDIndicator().compute_traveltime(db=db, db_sync=db_sync, current_user=superuser)
+    )
+    asyncio.get_event_loop().run_until_complete(CRUDIndicator().finalize_connectivity_heatmap(db=db))
+    asyncio.get_event_loop().run_until_complete(
+        CRUDIndicator().bulk_compute_reached_pois(db=async_session(), current_user=superuser)
+    )
+    asyncio.get_event_loop().run_until_complete(
+    CRUDIndicator().compute_population_heatmap(db=async_session())
+    )
+    asyncio.get_event_loop().run_until_complete(
+        CRUDIndicator().bulk_recompute_scenario(db=db)
+    )
+    asyncio.get_event_loop().run_until_complete(
+        CRUDIndicator().bulk_recompute_poi_user(db=db)
+    )
+
+    print("Heatmap is finished. Press Ctrl+C to exit.")
+    input()
 
 
-# main()
-# db = async_session()
-# db_sync = sync_session()
-# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().prepare_starting_points(db=db, current_user=test_user))
-# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().clean_tables(db=db))
-# asyncio.get_event_loop().run_until_complete(
-#          CRUDHeatmap().compute_traveltime(db=db, db_sync=db_sync, current_user=test_user)
-# )
-# asyncio.get_event_loop().run_until_complete(
-#          CRUDHeatmap().finalize_connectivity_heatmap(db=db)
-# )
-# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=test_user))
-# asyncio.get_event_loop().run_until_complete(CRUDHeatmap().compute_population_heatmap(db=async_session()))
+#main()
