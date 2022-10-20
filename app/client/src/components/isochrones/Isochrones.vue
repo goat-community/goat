@@ -626,7 +626,7 @@
                     style="background-color:#EEEEEE;"
                     class="pb-0 mt-0 pt-0 mb-0"
                   >
-                    <v-layout row wrap class="py-1">
+                    <v-layout row wrap class="py-1" align-center>
                       <v-layout align-start justify-start>
                         <v-card-text class="pa-0 ma-0 ml-2">
                           <v-icon small class="text-xs-center">{{
@@ -691,7 +691,21 @@
                           >
                         </v-card-text>
                       </v-layout>
-
+                      <v-layout row>
+                        <div
+                          :style="
+                            `background-color: ${
+                              calculationColors[findColor(calculation.id) - 1]
+                            }`
+                          "
+                          class="isochroneColor"
+                          @click="
+                            () => {
+                              openIsochroneColorPicker(calculation);
+                            }
+                          "
+                        ></div>
+                      </v-layout>
                       <v-layout row>
                         <v-spacer></v-spacer>
                         <v-tooltip top>
@@ -900,16 +914,18 @@ export default {
       isochroneRoadNetworkLayer: "isochroneRoadNetworkLayer",
       multiIsochroneSelectionLayer: "multiIsochroneSelectionLayer",
       multiIsochroneMethod: "multiIsochroneMethod",
-      colors: "colors",
       defaultIsochroneColor: "defaultIsochroneColor",
       scenarioIsochroneColor: "scenarioIsochroneColor",
       selectedCalculations: "selectedCalculations",
       publicTransport: "publicTransport",
       isochroneRange: "isochroneRange",
-      isochroneResultWindow: "isochroneResultWindow"
+      isochroneResultWindow: "isochroneResultWindow",
+      selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("isochrones", {
-      routingProfiles: "routingProfiles"
+      routingProfiles: "routingProfiles",
+      calculationColors: "calculationColors",
+      colors: "colors"
     }),
     ...mapFields("map", {
       isMapBusy: "isMapBusy"
@@ -954,6 +970,9 @@ export default {
     /**
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
+    openIsochroneColorPicker(selectedCalculation) {
+      this.selectedCalculationChangeColor = selectedCalculation;
+    },
     onMapBound() {
       this.createIsochroneLayer();
       this.createIsochroneRoadNetworkLayer();
@@ -1048,7 +1067,9 @@ export default {
      */
     registerMapClick() {
       //Close other interactions.
+
       EventBus.$emit("ol-interaction-activated", this.interactionType);
+
       if (this.type === "single") {
         this.mapClickListener = this.map.once("singleclick", this.onMapClick);
         this.startHelpTooltip(
@@ -1167,6 +1188,15 @@ export default {
         timeout: 0
       });
       this.startHelpTooltip(this.$t("map.tooltips.clickToStartDrawing"));
+    },
+    findColor(calc) {
+      let defaultVal = calc;
+      if (calc > 10) {
+        let division = calc / 10;
+        let remaining = division - parseInt(division);
+        defaultVal = Math.round(remaining * 10);
+      }
+      return defaultVal;
     },
     /**
      * Event for updating the edit help tooltip
@@ -1511,7 +1541,7 @@ export default {
               } else {
                 singleValuedSurface = computeSingleValuedSurface(
                   isochroneSurface,
-                  50
+                  25
                 );
               }
               const {
@@ -1702,7 +1732,6 @@ export default {
         const feature = evt.features.getArray()[0];
         if (feature) {
           const calculationNumber = feature.get("calculationNumber");
-          console.log(calculationNumber);
           const calculation = this.selectedCalculations.filter(
             calculation => calculation.id === calculationNumber
           );
@@ -1741,7 +1770,7 @@ export default {
               } else {
                 singleValuedSurface = computeSingleValuedSurface(
                   isochroneSurface,
-                  50
+                  25
                 );
               }
               const {
@@ -1837,6 +1866,7 @@ export default {
           }
         );
       } else {
+        this.lastActivatedIsochrone = calculation.id;
         if (this.selectedCalculations.length === 2) {
           // Remove first calculation if length is already 2
           this.selectedCalculations.shift();
@@ -2106,5 +2136,12 @@ export default {
 }
 .tooltip-inner {
   border: 2px solid white;
+}
+.isochroneColor {
+  width: 35px;
+  height: 15px;
+  margin-bottom: 3px;
+  border-radius: 3px;
+  cursor: pointer;
 }
 </style>

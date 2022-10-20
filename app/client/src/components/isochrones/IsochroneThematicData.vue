@@ -2,13 +2,12 @@
   <v-card
     v-if="isochroneResultWindow === true"
     v-draggable="draggableValue"
-    class="thematic-data elevation-4"
+    class="thematic-data isochrone-result"
     id="isochroneWindowId"
     :style="[isExpanded ? { height: '520px' } : { height: '50px' }]"
-    style="position:fixed;top:10px;left:400px;z-index:2;max-width:600px;min-width:370px;height:450px;overflow:hidden;"
     ondragstart="return false;"
   >
-    <v-layout justify-space-between column fill-height>
+    <v-layout justify-space-between column>
       <v-app-bar
         :ref="handleId"
         :color="appColor.primary"
@@ -68,12 +67,20 @@
                 >
                   <div
                     class="mx-2 colorPalettePicker"
-                    :style="`border-bottom:4px solid ${calculationColors[0]};`"
+                    :style="
+                      `border-bottom:4px solid ${
+                        calculationColors[selectedCalculations[0].id - 1]
+                      };`
+                    "
                   ></div>
                   <span>Isochrone {{ selectedCalculations[0].id }}</span>
                   <div
                     class="ml-6 mr-2 colorPalettePicker"
-                    :style="`border-bottom:4px dashed ${calculationColors[1]};`"
+                    :style="
+                      `border-bottom:4px dashed ${
+                        calculationColors[selectedCalculations[1].id - 1]
+                      };`
+                    "
                   ></div>
                   <span>Isochrone {{ selectedCalculations[1].id }}</span>
                 </template>
@@ -180,7 +187,7 @@
               v-if="resultViewType === 0"
               :headers="tableHeaders"
               :items="tableItems"
-              class="elevation-1 mb-2"
+              class="elevation-1 mb-2 data-table"
               :search="search"
               hide-default-footer
               :no-data-text="
@@ -515,10 +522,10 @@ export default {
       }
       return maxIsochroneRange;
     },
-
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
-      calculationColors: "calculationColors"
+      calculationColors: "calculationColors",
+      selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("poisaois", {
       poisAois: "poisAois",
@@ -538,6 +545,9 @@ export default {
     })
   },
   watch: {
+    calculationColors() {
+      this.updateIsochroneSurface(this.selectedCalculationChangeColor);
+    },
     resultViewType(value) {
       if (value === 2 && this.chartDatasetType === 0) {
         if (this.selectedPoisOnlyKeys.length > 0) {
@@ -630,5 +640,21 @@ export default {
   width: 50px;
   border-radius: 0px;
   margin-bottom: 16px;
+}
+
+.isochrone-result {
+  position: fixed;
+  z-index: 2;
+  top: 20px;
+  /** Drawer width + 70px margin */
+  left: calc(360px + 70px);
+  max-width: 600px;
+  min-width: 370px;
+  height: 400px;
+}
+
+.data-table {
+  max-height: 330px;
+  overflow-y: scroll;
 }
 </style>

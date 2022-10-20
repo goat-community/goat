@@ -1,7 +1,7 @@
 import json
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import func, text
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -19,6 +19,7 @@ from src.resources.enums import (
     SQLReturnTypes,
 )
 from src.schemas.heatmap import request_examples
+from src.schemas.indicators import CalculateOevGueteklassenParameters, request_example
 from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()
@@ -238,64 +239,44 @@ async def count_pt_service_stations(
     return return_geojson_or_geobuf(stations_count, return_type.value)
 
 
-@router.get("/pt-oev-gueteklassen")
+@router.post("/pt-oev-gueteklassen")
 async def calculate_oev_gueteklassen(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    start_time: Optional[int] = Query(
-        description="Start time in seconds since midnight (Default: 07:00)",
-        default=25200,
-        ge=0,
-        le=86400,
-    ),
-    end_time: Optional[int] = Query(
-        description="End time in seconds since midnight (Default: 09:00)",
-        default=32400,
-        ge=0,
-        le=86400,
-    ),
-    weekday: Optional[int] = Query(
-        description="Weekday (1 = Monday, 7 = Sunday) (Default: Monday)", default=1, ge=1, le=7
-    ),
-    study_area_id: Optional[int] = Query(
-        default=None, description="Study area id (Default: User active study area)"
-    ),
-    return_type: ReturnType = Query(
-        default=ReturnType.geojson, description="Return type of the response"
-    ),
+    params: CalculateOevGueteklassenParameters = Body(..., example=request_example),
 ):
     """
     ÖV-Güteklassen (The public transport quality classes) is an indicator for access to public transport.
     The indicator makes it possible to identify locations which, thanks to their good access to public transport, have great potential as focal points for development.
     The calculation in an automated process from the data in the electronic timetable (GTFS).
     """
-    if start_time >= end_time:
+    if params.start_time >= params.end_time:
         raise HTTPException(status_code=422, detail="Start time must be before end time")
 
     is_superuser = crud.user.is_superuser(current_user)
-    if study_area_id is not None and not is_superuser:
-        owns_study_area = await CRUDBase(models.UserStudyArea).get_by_multi_keys(
-            db, keys={"user_id": current_user.id, "study_area_id": study_area_id}
+
+    if is_superuser and params.study_area_ids is not None:
+        study_area_ids = params.study_area_ids
+    elif not is_superuser and len(study_area_ids) > 0:
+        return HTTPException(
+            status_code=400,
+            detail="The user doesn't have enough privileges to calculate the indicator for other study areas",
         )
-        if owns_study_area == []:
-            raise HTTPException(
-                status_code=400,
-                detail="The user doesn't own the study area or user doesn't have enough privileges",
-            )
-    else:
-        study_area_id = study_area_id or current_user.active_study_area_id
+    else: 
+        study_area_ids = [current_user.active_study_area_id]
 
     oev_gueteklassen_features = await crud.indicator.compute_oev_gueteklassen(
         db=db,
-        start_time=start_time,
-        end_time=end_time,
-        weekday=weekday,
-        study_area_id=study_area_id,
+        start_time=params.start_time,
+        end_time=params.end_time,
+        weekday=params.weekday,
+        study_area_ids=study_area_ids,
+        station_config=params.station_config,
     )
-    if return_type.value == ReturnType.geojson.value:
+    if params.return_type.value == ReturnType.geojson.value:
         oev_gueteklassen_features = jsonable_encoder(oev_gueteklassen_features)
-    return return_geojson_or_geobuf(oev_gueteklassen_features, return_type.value)
+    return return_geojson_or_geobuf(oev_gueteklassen_features, params.return_type.value)
 
 
 @router.get("/ptal")
