@@ -187,7 +187,7 @@
               v-if="resultViewType === 0"
               :headers="tableHeaders"
               :items="tableItems"
-              class="elevation-1 mb-2"
+              class="elevation-1 mb-2 data-table"
               :search="search"
               hide-default-footer
               :no-data-text="
@@ -650,6 +650,11 @@ export default {
   left: calc(360px + 70px);
   max-width: 600px;
   min-width: 370px;
-  height: fit-content;
+  height: 400px;
+}
+
+.data-table {
+  max-height: 330px;
+  overflow-y: scroll;
 }
 </style>
