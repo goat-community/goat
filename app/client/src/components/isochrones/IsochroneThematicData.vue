@@ -113,25 +113,35 @@
               </v-row>
               <v-row class="ml-1 mr-0">
                 <v-col cols="12" class="pr-0 pb-0 mr-0">
-                  <v-slider
-                    @mousedown.native.stop
-                    @mouseup.native.stop
-                    @click.native.stop
-                    class="pt-4"
-                    prepend-icon="schedule"
-                    :track-color="appColor.secondary"
-                    :color="appColor.secondary"
-                    v-model="isochroneRange"
-                    :min="1"
-                    :max="getMaxIsochroneRange"
-                    thumb-label="always"
-                    thumb-size="25"
-                    @input="udpateIsochroneSurface"
-                  >
-                    <template v-slot:thumb-label="{ value }">
-                      {{ value }}
-                    </template>
-                  </v-slider>
+                  <v-row class="align-center">
+                    <v-col md="2" sm="2" style="padding: 0;">
+                      <p
+                        style="font-size: 10px; font-weight: bold;  margin-bottom: 0;"
+                      >
+                        Traveltime<br />(minutes)
+                      </p>
+                    </v-col>
+                    <v-col md="10" sm="10" style="padding: 0;">
+                      <v-slider
+                        @mousedown.native.stop
+                        @mouseup.native.stop
+                        @click.native.stop
+                        style="padding-top: 15px;"
+                        :track-color="appColor.secondary"
+                        :color="appColor.secondary"
+                        v-model="isochroneRange"
+                        :min="1"
+                        :max="getMaxIsochroneRange"
+                        thumb-label="always"
+                        thumb-size="25"
+                        @input="udpateIsochroneSurface"
+                      >
+                        <template v-slot:thumb-label="{ value }">
+                          {{ value }}
+                        </template>
+                      </v-slider>
+                    </v-col>
+                  </v-row>
                 </v-col>
               </v-row>
             </v-card-text>

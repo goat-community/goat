@@ -100,9 +100,9 @@ const state = {
     "#37BCC980",
     "#af838380",
     "#D8812280",
-    "#393d7980",
-    "#39787980",
-    "#97954e80"
+    "#998ec380",
+    "#2c7fb880",
+    "#5E191680"
   ], // 10 different colors
   // Cancel Request
   cancelReq: undefined,

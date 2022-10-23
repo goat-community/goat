@@ -74,7 +74,7 @@ isochrone_calculation = CRUDIsochroneCalculation(models.IsochroneCalculation)
 
 class CRUDIsochrone:
     async def read_network(self, db, obj_in: IsochroneDTO, current_user, isochrone_type) -> Any:
-        
+
         sql_text = ""
         if isochrone_type == IsochroneTypeEnum.single.value:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
@@ -98,7 +98,10 @@ class CRUDIsochrone:
             routing_profile = obj_in.mode.value + "_" + obj_in.settings.cycling_profile.value
 
         x = y = None
-        if isochrone_type == IsochroneTypeEnum.multi.value or isochrone_type == IsochroneTypeEnum.heatmap.value:
+        if (
+            isochrone_type == IsochroneTypeEnum.multi.value
+            or isochrone_type == IsochroneTypeEnum.heatmap.value
+        ):
             if isinstance(obj_in.starting_point.input[0], IsochroneStartingPointCoord):
                 x = [point.lon for point in obj_in.starting_point.input]
                 y = [point.lat for point in obj_in.starting_point.input]
@@ -144,7 +147,10 @@ class CRUDIsochrone:
 
         edges_network = edges_network.drop(["starting_ids", "starting_geoms"], axis=1)
 
-        if isochrone_type == IsochroneTypeEnum.single.value or isochrone_type == IsochroneTypeEnum.multi.value:
+        if (
+            isochrone_type == IsochroneTypeEnum.single.value
+            or isochrone_type == IsochroneTypeEnum.multi.value
+        ):
             obj_starting_point = models.IsochroneCalculation(
                 calculation_type=isochrone_type,
                 user_id=current_user.id,
@@ -636,13 +642,13 @@ class CRUDIsochrone:
             # TODO: get the mapping dynamically from the database based on the study area
             weekday = obj_in.settings.weekday
             available_dates = {
-                0: "2022-02-07",
-                1: "2022-02-08",
-                2: "2022-02-09",
-                3: "2022-02-10",
-                4: "2022-02-11",
-                5: "2022-02-12",
-                6: "2022-02-13",
+                0: "2022-05-16",
+                1: "2022-05-17",
+                2: "2022-05-18",
+                3: "2022-05-19",
+                4: "2022-05-20",
+                5: "2022-05-21",
+                6: "2022-05-22",
             }
 
             payload = {

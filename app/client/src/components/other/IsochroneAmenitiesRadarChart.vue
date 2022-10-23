@@ -21,7 +21,6 @@ export default {
       } else if (this.chartDatasetType === 2) {
         labels = this.selectedAoisOnlyKeys.map(key => this.translatePOI(key));
       }
-      console.log(labels);
       if (this.chartDatasetType === 2) {
         labels = this.selectedAoisOnlyKeys;
       }
