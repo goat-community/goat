@@ -4,7 +4,6 @@
     v-draggable="draggableValue"
     class="thematic-data isochrone-result"
     id="isochroneWindowId"
-    :style="[isExpanded ? { height: '520px' } : { height: '50px' }]"
     ondragstart="return false;"
   >
     <v-layout justify-space-between column>
@@ -29,10 +28,8 @@
 
       <vue-scroll>
         <div>
-          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
-            <v-card-text class="ma-0 py-0 pt-0 pb-2">
-              <v-layout row wrap justify-end> </v-layout>
-            </v-card-text>
+          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1"
+            >t>
             <v-card-text class="ma-0 pa-0" row>
               <v-row justify="center" align="center" class="mx-1">
                 <v-menu offset-y>
@@ -121,7 +118,7 @@
                         Traveltime<br />(minutes)
                       </p>
                     </v-col>
-                    <v-col md="10" sm="10" style="padding: 0;">
+                    <v-col md="9" sm="9" style="padding: 0;">
                       <v-slider
                         @mousedown.native.stop
                         @mouseup.native.stop
@@ -197,7 +194,8 @@
               v-if="resultViewType === 0"
               :headers="tableHeaders"
               :items="tableItems"
-              class="elevation-1 mb-2"
+              class="mb-2"
+              style="max-height: 250px;"
               :search="search"
               hide-default-footer
               :no-data-text="
