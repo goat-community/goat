@@ -423,6 +423,7 @@
         "shared": "Share"
       },
       "travelTime": "Traveltime (minutes)",
+      "travelTimeSlider": "Traveltime<br />(minutes)",
       "amenityCount": "Amenity Count",
       "populationCount": "Population Count",
       "aoisArea": "AOIs Area"
