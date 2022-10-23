@@ -416,8 +416,8 @@ export default {
         extent: me.studyArea[0].get("bounds"),
         center: me.appConfig.map.center || [0, 0],
         zoom: me.appConfig.map.zoom,
-        minZoom: me.appConfig.map.minZoom,
-        maxZoom: me.appConfig.map.maxZoom || 19
+        minZoom: me.appConfig.map.min_zoom,
+        maxZoom: me.appConfig.map.max_zoom || 19
       })
     });
     // Get study area
