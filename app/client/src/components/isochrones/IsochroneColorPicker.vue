@@ -10,7 +10,7 @@
   >
     <v-card
       :style="[isExpanded ? { height: 'auto' } : { height: '50px' }]"
-      style="position:fixed;top:10px;left:360px;z-index:2;min-width:350px;max-width:450px;height:450px;overflow:hidden;"
+      class="isochrone-color-picker"
       v-draggable="draggableValue"
     >
       <v-app-bar
@@ -32,8 +32,17 @@
           ><v-icon>close</v-icon></v-app-bar-nav-icon
         >
       </v-app-bar>
-      <vue-scroll style="margin-top: 30px;">
+      <vue-scroll
+        class="color-wrapper"
+        :style="[isExpanded ? {} : { visibility: 'hidden' }]"
+      >
         <v-color-picker
+          @mousedown.native.stop
+          @mouseup.native.stop
+          @click.native.stop
+          hide-canvas
+          show-swatches
+          swatches-max-height="100"
           class="elevation-0"
           canvas-height="100"
           width="400"
@@ -237,5 +246,20 @@ export default {
   height: 20px;
   border-radius: 5px;
   width: 265px;
+}
+
+.isochrone-color-picker {
+  position: fixed;
+  z-index: 1;
+  top: 20px;
+  /** Drawer width + 70px margin */
+  left: calc(360px + 70px);
+  max-width: 450px;
+  min-width: 370px;
+  height: fit-content;
+}
+
+.color-wrapper {
+  margin-top: 20px;
 }
 </style>
