@@ -28,8 +28,7 @@
 
       <vue-scroll>
         <div>
-          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1"
-            >t>
+          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
             <v-card-text class="ma-0 pa-0" row>
               <v-row justify="center" align="center" class="mx-1">
                 <v-menu offset-y>
@@ -115,7 +114,7 @@
                       <p
                         style="font-size: 10px; font-weight: bold;  margin-bottom: 0;"
                       >
-                        Traveltime<br />(minutes)
+                        {{ $t("isochrones.tableData.travelTimeSlider") }}
                       </p>
                     </v-col>
                     <v-col md="9" sm="9" style="padding: 0;">
