@@ -423,7 +423,7 @@
         "shared": "Share"
       },
       "travelTime": "Traveltime (minutes)",
-      "travelTimeSlider": "Traveltime<br />(minutes)",
+      "travelTimeSlider": "Traveltime (minutes)",
       "amenityCount": "Amenity Count",
       "populationCount": "Population Count",
       "aoisArea": "AOIs Area"
@@ -504,7 +504,7 @@
     "popups": {
       "info": "There has been a problem with the external service running the geoportal. Please try to select another layer.",
       "errorMessage": "This layer is not part of the study area, please select another layer!",
-      "agreement": "I understand"    
+      "agreement": "I understand"
     }
   },
   "map": {
