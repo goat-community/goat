@@ -28,7 +28,7 @@
 
       <vue-scroll>
         <div>
-          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
+          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1 mb-1">
             <v-card-text class="ma-0 pa-0" row>
               <v-row justify="center" align="center" class="mx-1">
                 <v-menu offset-y>
