@@ -1,8 +1,8 @@
-from operator import or_
+from operator import contains
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
-from sqlalchemy import delete, func
+from sqlalchemy import any_, delete, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import RelationshipProperty, selectinload
@@ -43,11 +43,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def search(self, statement: select, query: str):
         if not hasattr(self.model.Config, "search_fields") or not query:
             return statement
-        search_objects = set()
+        search_objects = list()
         for field in self.model.Config.search_fields:
             column = getattr(self.model, field)
             containes = column.ilike(query.lower())
-            search_objects.add(containes)
+            search_objects.append(containes)
         statement = statement.filter(or_(*search_objects))
         return statement
 
