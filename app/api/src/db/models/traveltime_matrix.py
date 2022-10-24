@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class TravelTimeMatrixBase(SQLModel):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
-    grid_calculation_id: int = Field(foreign_key="basic.grid_calculation.id", nullable=False)
+    grid_calculation_id: int = Field(foreign_key="basic.grid_calculation.id", nullable=False, index=True)
     north: Optional[int] = Field(sa_column=Column(Integer), nullable=False)
     west: Optional[int] = Field(sa_column=Column(Integer), nullable=False)
     heigth: Optional[int] = Field(sa_column=Column(SmallInteger), nullable=False)
