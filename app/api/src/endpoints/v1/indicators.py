@@ -45,14 +45,24 @@ async def read_connectivity_heatmap(
         text(
             template_sql
             % """
-            SELECT g.id AS grid_visualization_id, g.percentile_area_isochrone, g.area_isochrone, 'default' AS modus, g.geom  
+            SELECT g.id AS grid_visualization_id, ntile(5) over (order by g.area_isochrone) AS percentile_area_isochrone, 
+            g.area_isochrone, 'default' AS modus, g.geom  
             FROM basic.grid_visualization g, basic.study_area_grid_visualization s 
             WHERE g.id = s.grid_visualization_id
             AND s.study_area_id = :active_study_area_id
+            AND g.area_isochrone IS NOT NULL
+            UNION ALL
+            SELECT g.id AS grid_visualization_id, 0 AS percentile_area_isochrone,
+            g.area_isochrone, 'default' AS modus, g.geom  
+            FROM basic.grid_visualization g, basic.study_area_grid_visualization s 
+            WHERE g.id = s.grid_visualization_id
+            AND s.study_area_id = :active_study_area_id
+            AND g.area_isochrone IS NULL
             """
         ),
         {"active_study_area_id": current_user.active_study_area_id},
     )
+
     heatmap = heatmap.fetchall()[0][0]
     return return_geojson_or_geobuf(heatmap, _return_type)
 
