@@ -23,13 +23,15 @@ async def list_opportunity_study_area_configs(
     return opportunities
 
 
-@router.get("/{id:int}", response_model=models.OpportunityStudyAreaConfig)
+@router.get("/{id:int}", response_model=List[models.OpportunityStudyAreaConfig])
 async def read_opportunity_study_area_config_by_id(
     id: int,
     db: AsyncSession = Depends(deps.get_db),
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    opportunity = await crud.opportunity_study_area_config.get(db, id=id)
+    opportunity = await crud.opportunity_study_area_config.get_multi_by_key(
+        db, key="study_area_id", value=id
+    )
     if not opportunity:
         raise HTTPException(status_code=404, detail="opportunity not found.")
     return opportunity

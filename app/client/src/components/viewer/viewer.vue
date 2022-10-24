@@ -3,6 +3,7 @@
     <div v-show="print.active === false">
       <!-- isochrone-thematic-data -->
       <isochrone-thematic-data v-show="!miniViewOlMap" />
+      <isochrone-color-picker v-if="selectedCalculationChangeColor" />
 
       <!-- mapillary-->
       <div
@@ -61,6 +62,7 @@
 import appMap from "./ol/Map";
 import appMapillary from "./mapillary/Mapillary";
 import IsochronThematicData from "../isochrones/IsochroneThematicData.vue";
+import IsochroneColorPicker from "../isochrones/IsochroneColorPicker.vue";
 import PrintViewer from "./print/PrintViewer";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
@@ -71,7 +73,8 @@ export default {
     "app-ol-map": appMap,
     "app-mapillary": appMapillary,
     "isochrone-thematic-data": IsochronThematicData,
-    "print-viewer": PrintViewer
+    "print-viewer": PrintViewer,
+    "isochrone-color-picker": IsochroneColorPicker
   },
   data() {
     return {
@@ -87,6 +90,9 @@ export default {
     ...mapGetters("map", {
       print: "print",
       studyArea: "studyArea"
+    }),
+    ...mapGetters("isochrones", {
+      selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapFields("map", {
       isMapillaryBtnDisabled: "isMapillaryBtnDisabled",

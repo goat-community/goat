@@ -1,7 +1,8 @@
+from operator import contains
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
-from sqlalchemy import delete, func
+from sqlalchemy import any_, delete, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import RelationshipProperty, selectinload
@@ -22,6 +23,33 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         * `schema`: A Pydantic model (schema) class
         """
         self.model = model
+
+    def order_by(self, statement: select, ordering: str):
+        if not ordering:
+            return statement
+        orders = ordering.split(",")
+        for order in orders:
+            order_ = order
+            if order.startswith("-"):
+                order_ = order[1:]
+            if hasattr(self.model, order_):
+                attribute_order = getattr(self.model, order_)
+                if order.startswith("-"):
+                    attribute_order = attribute_order.desc()
+                statement = statement.order_by(attribute_order)
+
+        return statement
+
+    def search(self, statement: select, query: str):
+        if not hasattr(self.model.Config, "search_fields") or not query:
+            return statement
+        search_objects = list()
+        for field in self.model.Config.search_fields:
+            column = getattr(self.model, field)
+            containes = column.ilike(query.lower())
+            search_objects.append(containes)
+        statement = statement.filter(or_(*search_objects))
+        return statement
 
     def extend_statement(self, statement: select, *, extra_fields: List[Any] = []) -> select:
         for field in extra_fields:
@@ -66,9 +94,35 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return result.scalars().all()
 
     async def get_multi(
-        self, db: AsyncSession, *, skip: int = 0, limit: int = 100, extra_fields: List[Any] = []
+        self,
+        db: AsyncSession,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        extra_fields: List[Any] = [],
+        ordering: str = None,
+        query: str = None,
     ) -> List[ModelType]:
         statement = select(self.model).offset(skip).limit(limit)
+        statement = self.extend_statement(statement, extra_fields=extra_fields)
+        statement = self.order_by(statement, ordering)
+        statement = self.search(statement, query)
+        result = await db.execute(statement)
+        return result.scalars().all()
+
+    async def get_multi_by_key(
+        self,
+        db: AsyncSession,
+        *,
+        key: str,
+        value: Any,
+        skip: int = 0,
+        limit: int = 100,
+        extra_fields: List[Any] = [],
+    ) -> List[ModelType]:
+        statement = (
+            select(self.model).offset(skip).limit(limit).where(getattr(self.model, key) == value)
+        )
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         result = await db.execute(statement)
         return result.scalars().all()

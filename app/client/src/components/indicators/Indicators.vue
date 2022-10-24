@@ -343,25 +343,27 @@ export default {
         }
       });
     },
-    refreshIndicator(update) {
+    refreshIndicator(groups) {
       if (this.indicatorCancelToken instanceof Function) {
         this.indicatorCancelToken("cancelled");
         this.indicatorCancelToken = null;
       }
-      if (this.updateIndicators[update]) {
-        this.updateIndicators[update].forEach(indicatorName => {
-          this.indicatorLayers.forEach(layer => {
-            if (layer.get("name") === indicatorName && layer.getVisible()) {
-              this.checkIfIndicatorNeedsPois(layer);
-              if (this.indicatorCancelToken instanceof Function) {
-                this.indicatorCancelToken("cancelled");
-                this.indicatorCancelToken = null;
+      groups.forEach(group => {
+        if (this.updateIndicators[group]) {
+          this.updateIndicators[group].forEach(indicatorName => {
+            this.indicatorLayers.forEach(layer => {
+              if (layer.get("name") === indicatorName && layer.getVisible()) {
+                this.checkIfIndicatorNeedsPois(layer);
+                if (this.indicatorCancelToken instanceof Function) {
+                  this.indicatorCancelToken("cancelled");
+                  this.indicatorCancelToken = null;
+                }
+                layer.getSource().refresh();
               }
-              layer.getSource().refresh();
-            }
+            });
           });
-        });
-      }
+        }
+      });
     },
     recomputeIndicators() {
       this.isRecomputingIndicator = true;
