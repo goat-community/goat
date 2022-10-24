@@ -642,13 +642,13 @@ class CRUDIsochrone:
             # TODO: get the mapping dynamically from the database based on the study area
             weekday = obj_in.settings.weekday
             available_dates = {
-                0: "2022-05-16",
-                1: "2022-05-17",
-                2: "2022-05-18",
-                3: "2022-05-19",
-                4: "2022-05-20",
-                5: "2022-05-21",
-                6: "2022-05-22",
+                0: "2022-01-10",
+                1: "2022-01-11",
+                2: "2022-01-12",
+                3: "2022-01-13",
+                4: "2022-01-14",
+                5: "2022-01-15",
+                6: "2022-01-16"
             }
 
             payload = {
