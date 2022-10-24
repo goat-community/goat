@@ -23,6 +23,22 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
+    def order_by(self, statement: select, ordering: str):
+        if not ordering:
+            return statement
+        orders = ordering.split(",")
+        for order in orders:
+            order_ = order
+            if order.startswith("-"):
+                order_ = order[1:]
+            if hasattr(self.model, order_):
+                attribute_order = getattr(self.model, order_)
+                if order.startswith("-"):
+                    attribute_order = attribute_order.desc()
+                statement = statement.order_by(attribute_order)
+
+        return statement
+
     def extend_statement(self, statement: select, *, extra_fields: List[Any] = []) -> select:
         for field in extra_fields:
             if (
@@ -66,10 +82,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return result.scalars().all()
 
     async def get_multi(
-        self, db: AsyncSession, *, skip: int = 0, limit: int = 100, extra_fields: List[Any] = []
+        self,
+        db: AsyncSession,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        extra_fields: List[Any] = [],
+        ordering: str = None,
     ) -> List[ModelType]:
         statement = select(self.model).offset(skip).limit(limit)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
+        statement = self.order_by(statement, ordering)
         result = await db.execute(statement)
         return result.scalars().all()
 
