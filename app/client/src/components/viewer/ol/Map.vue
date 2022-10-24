@@ -290,7 +290,6 @@ import VectorLayer from "ol/layer/Vector";
 import VectorImageLayer from "ol/layer/VectorImage";
 import LineString from "ol/geom/LineString";
 import { transformExtent } from "ol/proj";
-
 // style imports
 import {
   getInfoStyle,
@@ -414,20 +413,27 @@ export default {
       }).extend([attribution]),
       view: new View({
         extent: me.studyArea[0].get("bounds"),
-        center: me.appConfig.map.center || [0, 0],
-        zoom: me.appConfig.map.zoom,
-        minZoom: me.appConfig.map.minZoom,
-        maxZoom: me.appConfig.map.maxZoom || 19
+        showFullExtent: true,
+        maxZoom: me.appConfig.map.max_zoom || 19
       })
     });
+
     // Get study area
     me.createStudyAreaLayer();
-    // Create poisaoisLayer
-    me.createPoisAoisLayer();
+
     // Create layers from config and add them to map
     const layers = me.createLayers();
     me.map.getLayers().extend(layers);
     me.createGetInfoLayer();
+    // check if map is loaded
+    me.map.once(
+      "rendercomplete",
+      () => {
+        // Create poisaoisLayer
+        me.createPoisAoisLayer();
+      },
+      { once: true }
+    );
 
     // Setup context menu (right-click)
     me.setupContentMenu();

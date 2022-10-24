@@ -36,6 +36,11 @@ const ApiService = {
       throw new Error(`[GOAT] ApiService ${error}`);
     });
   },
+  post_(resource, params, config = {}) {
+    return Vue.axios.post(`${resource}`, params, config).catch(error => {
+      throw new Error(`[GOAT] ApiService ${error}`);
+    });
+  },
 
   post(resource, params, config = {}) {
     return Vue.axios.post(`${resource}`, params, config);

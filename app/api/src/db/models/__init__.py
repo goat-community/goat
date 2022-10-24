@@ -32,3 +32,4 @@ from .layer_library import LayerLibrary, StyleLibrary, LayerSource
 from .opportunity_config import OpportunityDefaultConfig, OpportunityGroup, OpportunityStudyAreaConfig, OpportunityUserConfig
 from .geostore import Geostore
 from .system import System
+from .traveltime_matrix import TravelTimeMatrixWalking

@@ -429,8 +429,10 @@
         "reachedPopulation": "Erreichbare Bevölkerung",
         "shared": "Anteil"
       },
+      "travelTime": "Reisezeit",
+      "travelTimeSlider": "Reisezeit (Minuten)",
       "amenityCount": "Amenity Count",
-      "populationCount": "Population Count",
+      "populationCount": "Bevölkerungszahl",
       "aoisArea": "AOIs Area"
     },
     "isochrones": "Isochronen",

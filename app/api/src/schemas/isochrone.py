@@ -123,6 +123,7 @@ class IsochroneWalkingProfile(Enum):
 
 class IsochroneCyclingProfile(Enum):
     STANDARD = "standard"
+    PEDELEC = "pedelec"
 
 
 class IsochroneAccessMode(Enum):

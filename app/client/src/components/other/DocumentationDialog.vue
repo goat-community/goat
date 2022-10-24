@@ -30,6 +30,7 @@
           <vue-scroll>
             <div class="documentation-wrapper">
               <iframe
+                height="1100"
                 @load="isLoading = false"
                 scrolling="yes"
                 :src="getDocUrl"
@@ -100,7 +101,6 @@ export default {
 iframe {
   border: 0px none;
   margin-left: -510px;
-  height: 1500px;
   margin-bottom: -560px;
   margin-top: -120px;
   width: 1400px;

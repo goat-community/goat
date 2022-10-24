@@ -73,7 +73,7 @@ export default {
   },
   methods: {
     updateIndicator() {
-      EventBus.$emit("update-indicator", "poi");
+      EventBus.$emit("update-indicator", ["poi"]);
     },
     getDisplayName(item) {
       let value;

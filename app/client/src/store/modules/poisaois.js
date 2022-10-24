@@ -95,8 +95,15 @@ const mutations = {
   updateField,
   [SET_POIS_AOIS](state, poisAois) {
     if (state.poisAoisLayer) {
+      let chunkedArrs = poisAois.chunk(1000);
+
       state.poisAoisLayer.getSource().clear();
-      state.poisAoisLayer.getSource().addFeatures(poisAois);
+
+      chunkedArrs.forEach(chunk => {
+        setTimeout(() => {
+          state.poisAoisLayer.getSource().addFeatures(chunk);
+        }, 50);
+      });
 
       state.selectedPoisAois = JSON.parse(
         JSON.stringify(state.selectedPoisAois)
