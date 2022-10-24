@@ -1,3 +1,4 @@
+from operator import or_
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
@@ -37,6 +38,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                     attribute_order = attribute_order.desc()
                 statement = statement.order_by(attribute_order)
 
+        return statement
+
+    def search(self, statement: select, query: str):
+        if not hasattr(self.model.Config, "search_fields") or not query:
+            return statement
+        search_objects = set()
+        for field in self.model.Config.search_fields:
+            column = getattr(self.model, field)
+            containes = column.ilike(query.lower())
+            search_objects.add(containes)
+        statement = statement.filter(or_(*search_objects))
         return statement
 
     def extend_statement(self, statement: select, *, extra_fields: List[Any] = []) -> select:
@@ -89,10 +101,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         limit: int = 100,
         extra_fields: List[Any] = [],
         ordering: str = None,
+        query: str = None,
     ) -> List[ModelType]:
         statement = select(self.model).offset(skip).limit(limit)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         statement = self.order_by(statement, ordering)
+        statement = self.search(statement, query)
         result = await db.execute(statement)
         return result.scalars().all()
 
