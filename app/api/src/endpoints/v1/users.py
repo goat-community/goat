@@ -25,6 +25,7 @@ async def read_users(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    ordering: str = None,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -36,7 +37,7 @@ async def read_users(
     if not is_superuser:
         raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 
-    users = await crud.user.get_multi(db, skip=skip, limit=limit)
+    users = await crud.user.get_multi(db, skip=skip, limit=limit, ordering=ordering)
     return users
 
 
