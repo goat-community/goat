@@ -116,7 +116,7 @@ async def update_user_preference(
     return user
 
 
-@router.post("", response_model=models.User, response_model_exclude={"hashed_password"})
+@router.post("")
 async def create_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -137,7 +137,13 @@ async def create_user(
             detail="The user with this email already exists in the system.",
         )
     user = await crud.user.create(db, obj_in=user_in)
-    return user
+    user = await crud.user.get(
+        db, id=user.id, extra_fields=[models.User.roles, models.User.study_areas]
+    )
+    user_json = jsonable_encoder(user)
+    user_json["roles"] = [json.loads(role.json()) for role in user.roles]
+    user_json["study_areas"] = [study_area.id for study_area in user.study_areas]
+    return user_json
 
 
 @router.post("/demo", response_model=models.User, response_model_exclude={"hashed_password"})
