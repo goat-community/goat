@@ -29,6 +29,9 @@ class StyleLibrary(SQLModel, table=True):
     translation: Optional[dict] = Field(sa_column=Column(JSONB))
     layer_libraries: "LayerLibrary" = Relationship(back_populates="style_library")
 
+    class Config:
+        search_fields = ["name"]
+
 
 UniqueConstraint(StyleLibrary.__table__.c.name)
 
@@ -49,6 +52,18 @@ class LayerLibraryBase(SQLModel):
     max_resolution: Optional[str] = Field(sa_column=Column(Text, nullable=True))
     min_resolution: Optional[str] = Field(sa_column=Column(Text, nullable=True))
     doc_url: Optional[str] = Field(sa_column=Column(Text, nullable=True))
+
+    class Config:
+        search_fields = [
+            "name",
+            "url",
+            "access_token",
+            "map_attribution",
+            "type",
+            "source",
+            "source_1",
+            "style_library_name",
+        ]
 
 
 class LayerLibrary(LayerLibraryBase, table=True):

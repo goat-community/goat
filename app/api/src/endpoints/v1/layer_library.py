@@ -16,9 +16,13 @@ async def list_layer_libraries(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    order_by: str = None,
+    q: str = None,
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    layers = await crud.layer_library.get_multi(db, skip=skip, limit=limit)
+    layers = await crud.layer_library.get_multi(
+        db, skip=skip, limit=limit, query=q, order_by=order_by
+    )
     if not layers:
         raise HTTPException(status_code=404, detail="there is no (more) layer libraries.")
     return layers
@@ -81,9 +85,13 @@ async def list_styles(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    order_by: str = None,
+    q: str = None,
     current_user: models.User = Depends(deps.get_current_active_user),
 ):
-    styles = await crud.style_library.get_multi(db, skip=skip, limit=limit)
+    styles = await crud.style_library.get_multi(
+        db, skip=skip, limit=limit, query=q, order_by=order_by
+    )
     if not styles:
         raise HTTPException(status_code=404, detail="there is no (more) style libraries.")
     return styles

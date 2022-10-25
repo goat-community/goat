@@ -5,7 +5,15 @@ from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
     from .study_area import StudyArea
 
-from sqlmodel import Column, Field, Integer, Relationship, SQLModel, Text, UniqueConstraint
+from sqlmodel import (
+    Column,
+    Field,
+    Integer,
+    Relationship,
+    SQLModel,
+    Text,
+    UniqueConstraint,
+)
 
 from src.resources.enums import GeostoreType
 
@@ -24,9 +32,11 @@ class Geostore(SQLModel, table=True):
     attribution: str = Field(sa_column=Column(Text), nullable=False)
     thumbnail_url: str = Field(sa_column=Column(Text), nullable=False)
     study_areas: List["StudyArea"] = Relationship(
-        back_populates="geostores",
-        link_model=StudyAreaGeostore
+        back_populates="geostores", link_model=StudyAreaGeostore
     )
+
+    class Config:
+        search_fields = ["name", "type", "url", "attribution"]
 
 
 UniqueConstraint(Geostore.__table__.c.name)

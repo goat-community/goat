@@ -64,9 +64,13 @@ async def list_static_layers(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    order_by: str = None,
+    q: str = None,
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    static_layers = await crud.static_layer.get_multi(db, skip=skip, limit=limit)
+    static_layers = await crud.static_layer.get_multi(
+        db, skip=skip, limit=limit, query=q, order_by=order_by
+    )
     if not static_layers:
         raise HTTPException(status_code=404, detail="there is no (more) static layers.")
     return static_layers

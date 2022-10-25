@@ -35,7 +35,7 @@ class StaticLayer(SQLModel, table=True):
         default=None,
         sa_column=Column(
             Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
-        )
+        ),
     )
     table_name: str = Field(sa_column=Column(String(63), nullable=False, unique=True))
 
@@ -52,3 +52,6 @@ class StaticLayer(SQLModel, table=True):
             dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
         )
         return str(raw_query)
+
+    class Config:
+        search_fields = ["table_name"]

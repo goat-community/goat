@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING, List, Optional
 
 from sqlmodel import (
+    ARRAY,
+    Boolean,
     Column,
     Field,
     ForeignKey,
@@ -8,14 +10,12 @@ from sqlmodel import (
     Relationship,
     SQLModel,
     Text,
-    ARRAY,
     UniqueConstraint,
-    Boolean,
 )
 
 if TYPE_CHECKING:
-    from .user import User
     from .study_area import StudyArea
+    from .user import User
 
 
 class OpportunityGroup(SQLModel, table=True):
@@ -49,6 +49,9 @@ class OpportunityConfigBase(SQLModel):
     color: List[str] = Field(sa_column=Column(ARRAY(Text()), nullable=False))
     sensitivity: Optional[int] = Field(sa_column=Column(Integer))
     multiple_entrance: Optional[bool] = Field(sa_column=Column(Boolean))
+
+    class Config:
+        search_fields = ["category", "icon"]
 
 
 class OpportunityDefaultConfig(OpportunityConfigBase, table=True):
@@ -99,8 +102,7 @@ class OpportunityUserConfig(OpportunityConfigBase, table=True):
     )
     study_area_id: int = Field(sa_column=Column(Integer, ForeignKey("basic.study_area.id")))
     user_id: int = Field(
-        default=None,
-        sa_column=Column(Integer, ForeignKey("customer.user.id", ondelete="CASCADE"))
+        default=None, sa_column=Column(Integer, ForeignKey("customer.user.id", ondelete="CASCADE"))
     )
     data_upload_id: Optional[int] = Field(
         sa_column=Column(Integer, ForeignKey("customer.data_upload.id", ondelete="CASCADE"))
