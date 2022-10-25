@@ -971,7 +971,9 @@ export default {
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
     openIsochroneColorPicker(selectedCalculation) {
-      this.selectedCalculationChangeColor = selectedCalculation;
+      if (!this.selectedCalculationChangeColor) {
+        this.selectedCalculationChangeColor = selectedCalculation;
+      }
     },
     onMapBound() {
       this.createIsochroneLayer();
