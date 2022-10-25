@@ -268,7 +268,7 @@ async def calculate_oev_gueteklassen(
 
     if is_superuser and params.study_area_ids is not None:
         study_area_ids = params.study_area_ids
-    elif not is_superuser and len(study_area_ids) > 0:
+    elif not is_superuser and params.study_area_ids and len(params.study_area_ids) > 0:
         return HTTPException(
             status_code=400,
             detail="The user doesn't have enough privileges to calculate the indicator for other study areas",
