@@ -24,10 +24,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
-    def order_by(self, statement: select, ordering: str):
-        if not ordering:
+    def order_statement(self, statement: select, order_by: str):
+        if not order_by:
             return statement
-        orders = ordering.split(",")
+        orders = order_by.split(",")
         for order in orders:
             order_ = order
             if order.startswith("-"):
@@ -100,12 +100,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         skip: int = 0,
         limit: int = 100,
         extra_fields: List[Any] = [],
-        ordering: str = None,
+        order_by: str = None,
         query: str = None,
     ) -> List[ModelType]:
         statement = select(self.model).offset(skip).limit(limit)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
-        statement = self.order_by(statement, ordering)
+        statement = self.order_statement(statement, order_by)
         statement = self.search(statement, query)
         result = await db.execute(statement)
         return result.scalars().all()
