@@ -142,6 +142,7 @@ async def create_user(
     user_json = jsonable_encoder(user)
     user_json["roles"] = [json.loads(role.json()) for role in user.roles]
     user_json["study_areas"] = [study_area.id for study_area in user.study_areas]
+    del user_json["hashed_password"]
     return user_json
 
 
