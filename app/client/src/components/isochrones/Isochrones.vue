@@ -1902,6 +1902,7 @@ export default {
         });
     },
     removeCalculation(calculation) {
+      console.log(calculation);
       let id = calculation.id;
       this.calculations = this.calculations.filter(
         calculation => calculation.id !== id
