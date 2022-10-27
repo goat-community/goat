@@ -1902,8 +1902,15 @@ export default {
         });
     },
     removeCalculation(calculation) {
-      console.log(calculation);
       let id = calculation.id;
+      this.calculations = this.calculations.map(calculation => {
+        if (calculation.id === id) {
+          return "deleted";
+        } else {
+          return calculation;
+        }
+      });
+      console.log("Deleted => ", this.calculations);
       this.calculations = this.calculations.filter(
         calculation => calculation.id !== id
       );
