@@ -285,7 +285,6 @@ export function getIsochroneStyle() {
           calcNumber = calculateCalculationsLength() - idx;
         }
       });
-      console.log(calculateRealCalculations());
       let path = `img/markers/marker-${calcNumber}.png`;
       let markerStyle = new OlStyle({
         image: new OlIcon({
