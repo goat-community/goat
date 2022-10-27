@@ -39,14 +39,10 @@ def upgrade_foreign_server():
     )
     values = {
         "host": settings.POSTGRES_SERVER_RAW,
-        "port": settings.POSTGRES_OUTER_PORT_RAW,
+        "port": str(settings.POSTGRES_OUTER_PORT_RAW),
         "dbname": settings.POSTGRES_DB_RAW,
     }
-    try:
-        legacy_engine.execute(create_foreign_server, values)
-    except ProgrammingError as exception:
-        if exception.orig.pgcode == "42710":
-            print(exception.orig)
+    legacy_engine.execute(create_foreign_server, values)
 
 
 def downgrade_foreign_server():
@@ -69,11 +65,7 @@ def upgrade_mapping_user():
         "server_user": settings.POSTGRES_USER,
         "password": settings.POSTGRES_PASSWORD_RAW,
     }
-    try:
-        legacy_engine.execute(create_mapping_user, values)
-    except ProgrammingError as exception:
-        if exception.orig.pgcode == "42710":
-            print(exception.orig)
+    legacy_engine.execute(create_mapping_user, values)
 
 
 # TODO: the mapping_user and foreign_server should get dynamicly passed.
@@ -97,7 +89,9 @@ def downgrade_schema(schema_name: str):
     legacy_engine.execute(text(drop_foreign_schema))
 
 
-def upgrade_foreign_tables(foreign_tables: list[str], foreign_schema):
+def upgrade_foreign_tables(foreign_tables: Union[str, list[str]], foreign_schema):
+    if type(foreign_tables) == str:
+        foreign_tables = [foreign_tables]
     mapping_schema_name = "foreign_" + foreign_schema
     upgrade_schema(mapping_schema_name)
     create_foreign_table = f"""IMPORT FOREIGN SCHEMA {foreign_schema} LIMIT TO ({','.join(foreign_tables)})
@@ -105,7 +99,7 @@ def upgrade_foreign_tables(foreign_tables: list[str], foreign_schema):
     legacy_engine.execute(text(create_foreign_table))
 
 
-def downgrade_foreign_table(table_name: Union[str, list[str]], foreign_schema):
+def downgrade_foreign_table(table_name: Union[str, list[str]], foreign_schema: str):
     if type(table_name) == str:
         table_names = [table_name]
     else:
@@ -119,5 +113,6 @@ def downgrade_foreign_table(table_name: Union[str, list[str]], foreign_schema):
 
 
 if __name__ == "__main__":
-    # downgrade_foreign_table(["node", "study_area"], "basic")
-    downgrade_schema("foreign_basic")
+    upgrade_foreign_server()
+    upgrade_mapping_user()
+    upgrade_foreign_tables(["edge", "poi"], "basic")
