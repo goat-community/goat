@@ -8,6 +8,8 @@ from src.db.session import legacy_engine
 
 # postgres_fdw_sql = "CREATE EXTENSION postgres_fdw"
 
+FOREIGN_SERVER = "foreign_server"
+
 
 def upgrade_postgres_fdw():
     postgres_fdw = PGExtension(schema="public", signature="postgres_fdw")
@@ -26,17 +28,18 @@ def downgrade_postgres_fdw():
 
 
 def upgrade_foreign_server():
-    create_foreign_server = """
-        CREATE SERVER foreign_server
+    create_foreign_server = text(
+        f"""
+        CREATE SERVER {FOREIGN_SERVER}
         FOREIGN DATA WRAPPER postgres_fdw
         OPTIONS (host :host, port :port, dbname :dbname);
         """
+    )
     values = {
         "host": settings.POSTGRES_SERVER_RAW,
-        "port": "5432",
+        "port": settings.POSTGRES_OUTER_PORT_RAW,
         "dbname": settings.POSTGRES_DB_RAW,
     }
-    create_foreign_server = text(create_foreign_server)
     try:
         legacy_engine.execute(create_foreign_server, values)
     except ProgrammingError as exception:
@@ -45,7 +48,7 @@ def upgrade_foreign_server():
 
 
 def downgrade_foreign_server():
-    drop_foreign_server = text("DROP SERVER IF EXISTS :foreign_server;")
+    drop_foreign_server = text(f"DROP SERVER IF EXISTS {FOREIGN_SERVER};")
     values = {"foreign_server": "foreign_server"}
     legacy_engine.execute(drop_foreign_server, values)
 
@@ -55,14 +58,13 @@ def downgrade_foreign_server():
 
 
 def upgrade_mapping_user():
-    create_mapping_user = """CREATE USER MAPPING FOR postgres
-                            SERVER foreign_server
-                            OPTIONS (user :mapping_user, password :password);"""
-    create_mapping_user = text(create_mapping_user)
+    create_mapping_user = text(
+        f"""CREATE USER MAPPING FOR {settings.POSTGRES_USER}
+                            SERVER {FOREIGN_SERVER}
+                            OPTIONS (user :server_user, password :password);"""
+    )
     values = {
-        "local_user": settings.POSTGRES_USER,
-        "foreign_server": "foreign_server",
-        "mapping_user": "mapping_user",
+        "server_user": settings.POSTGRES_USER,
         "password": settings.POSTGRES_PASSWORD_RAW,
     }
     try:
@@ -77,6 +79,35 @@ def upgrade_mapping_user():
 
 
 def downgrade_mapping_user():
-    drop_mapping_user = text("DROP USER MAPPING IF EXISTS FOR mapping_user SERVER foreign_server;")
-    values = {"mapping_user": "mapping_user", "foreign_server": "foreign_server"}
-    legacy_engine.execute(drop_mapping_user, values)
+    drop_mapping_user = text(
+        f"DROP USER MAPPING IF EXISTS FOR {settings.POSTGRES_USER} SERVER {FOREIGN_SERVER};"
+    )
+    legacy_engine.execute(drop_mapping_user)
+
+
+def upgrade_foreign_schema(schema_name: str):
+    create_foreign_schema = f"CREATE SCHEMA IF NOT EXISTS {schema_name};"
+    legacy_engine.execute(text(create_foreign_schema))
+
+
+def downgrade_foreign_schema(schema_name: str):
+    drop_foreign_schema = f"DROP SCHEMA IF NOT EXISTS {schema_name};"
+    legacy_engine.execute(text(drop_foreign_schema))
+
+
+def upgrade_foreign_tables(foreign_tables: list[str], foreign_schema):
+    mapping_schema_name = "foreign_" + foreign_schema
+    upgrade_foreign_schema(mapping_schema_name)
+    create_foreign_table = f"""IMPORT FOREIGN SCHEMA {foreign_schema} LIMIT TO ({','.join(foreign_tables)})
+    FROM SERVER {FOREIGN_SERVER} INTO {mapping_schema_name};"""
+    legacy_engine.execute(text(create_foreign_table))
+
+
+def downgrade_foreign_table(table_name: str):
+    drop_foreign_table = """DROP FOREIGN TABLE IF EXISTS :foreign_table;"""
+    values = {"foreign_table": table_name}
+    legacy_engine.execute(drop_foreign_table, values)
+
+
+if __name__ == "__main__":
+    upgrade_foreign_tables(foreign_schema="basic", foreign_tables=["edge"])
