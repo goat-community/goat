@@ -40,6 +40,7 @@ GROUP_ORDER = [
     "additional_data",
     "basemap",
     "heatmap",
+    "indicator",
 ]
 
 # Used for output, Doesn't fetch database
@@ -50,6 +51,7 @@ class LayerGroupBase(BaseModel):
     additional_data: Optional[List[str]] = []
     basemap: Optional[List[str]] = []
     heatmap: Optional[List[str]] = []
+    indicator: Optional[List[str]] = []
 
     def listify_config(self) -> Dict:
         """
