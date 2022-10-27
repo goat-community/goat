@@ -1,3 +1,5 @@
+from typing import Union
+
 from alembic_utils.pg_extension import PGExtension
 from psycopg2.errors import DuplicateObject
 from sqlalchemy import text
@@ -85,29 +87,37 @@ def downgrade_mapping_user():
     legacy_engine.execute(drop_mapping_user)
 
 
-def upgrade_foreign_schema(schema_name: str):
+def upgrade_schema(schema_name: str):
     create_foreign_schema = f"CREATE SCHEMA IF NOT EXISTS {schema_name};"
     legacy_engine.execute(text(create_foreign_schema))
 
 
-def downgrade_foreign_schema(schema_name: str):
-    drop_foreign_schema = f"DROP SCHEMA IF NOT EXISTS {schema_name};"
+def downgrade_schema(schema_name: str):
+    drop_foreign_schema = f"DROP SCHEMA IF EXISTS {schema_name};"
     legacy_engine.execute(text(drop_foreign_schema))
 
 
 def upgrade_foreign_tables(foreign_tables: list[str], foreign_schema):
     mapping_schema_name = "foreign_" + foreign_schema
-    upgrade_foreign_schema(mapping_schema_name)
+    upgrade_schema(mapping_schema_name)
     create_foreign_table = f"""IMPORT FOREIGN SCHEMA {foreign_schema} LIMIT TO ({','.join(foreign_tables)})
     FROM SERVER {FOREIGN_SERVER} INTO {mapping_schema_name};"""
     legacy_engine.execute(text(create_foreign_table))
 
 
-def downgrade_foreign_table(table_name: str):
-    drop_foreign_table = """DROP FOREIGN TABLE IF EXISTS :foreign_table;"""
-    values = {"foreign_table": table_name}
-    legacy_engine.execute(drop_foreign_table, values)
+def downgrade_foreign_table(table_name: Union[str, list[str]], foreign_schema):
+    if type(table_name) == str:
+        table_names = [table_name]
+    else:
+        table_names = table_name
+    for table_name in table_names:
+        mapping_schema_name = "foreign_" + foreign_schema
+        full_table_name = f"{mapping_schema_name}.{table_name}"
+        drop_foreign_table = text(f"""DROP FOREIGN TABLE IF EXISTS {full_table_name};""")
+
+        legacy_engine.execute(drop_foreign_table)
 
 
 if __name__ == "__main__":
-    upgrade_foreign_tables(foreign_schema="basic", foreign_tables=["edge"])
+    # downgrade_foreign_table(["node", "study_area"], "basic")
+    downgrade_schema("foreign_basic")
