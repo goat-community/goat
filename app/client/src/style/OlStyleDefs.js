@@ -17,6 +17,10 @@ import { getIconUnicode } from "../utils/Helpers";
 import Point from "ol/geom/Point";
 import { getArea } from "ol/sphere.js";
 import i18n from "../../src/plugins/i18n";
+import {
+  calculateRealCalculations,
+  calculateCalculationsLength
+} from "../utils/Helpers";
 
 OlFontSymbol.addDefs(
   {
@@ -275,7 +279,14 @@ export function getIsochroneStyle() {
         }
       }
     } else {
-      let path = `img/markers/marker-${feature.get("calculationNumber")}.png`;
+      let calcNumber;
+      calculateRealCalculations().forEach((calc, idx) => {
+        if (calc.id === parseInt(feature.get("calculationNumber"))) {
+          calcNumber = calculateCalculationsLength() - idx;
+        }
+      });
+      console.log(calculateRealCalculations());
+      let path = `img/markers/marker-${calcNumber}.png`;
       let markerStyle = new OlStyle({
         image: new OlIcon({
           anchor: [0.5, 0.96],

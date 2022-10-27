@@ -183,11 +183,6 @@ export default {
       this.calculationColors = newColors;
     },
     resetStyle(calculation) {
-      console.log(
-        calculation.id,
-        " - ",
-        this.temporaryColors[calculation.id - 1]
-      );
       let tempArray = this.calculationColors;
       tempArray[calculation.id - 1] = this.temporaryColors[calculation.id - 1];
       this.calculationColors = [...tempArray];
