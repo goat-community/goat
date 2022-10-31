@@ -29,18 +29,21 @@ def downgrade_postgres_fdw():
     legacy_engine.execute(text(statement.text))
 
 
-def upgrade_foreign_server():
+def upgrade_foreign_server(foreign_server: str = settings.POSTGRES_DB_RAW,
+                           host: str = settings.POSTGRES_SERVER_RAW,
+                           port: Union[str,int] = settings.POSTGRES_OUTER_PORT_RAW,
+                           dbname: str = settings.POSTGRES_DB_RAW):
     create_foreign_server = text(
         f"""
-        CREATE SERVER {FOREIGN_SERVER}
+        CREATE SERVER {foreign_server}
         FOREIGN DATA WRAPPER postgres_fdw
         OPTIONS (host :host, port :port, dbname :dbname);
         """
     )
     values = {
-        "host": settings.POSTGRES_SERVER_RAW,
-        "port": str(settings.POSTGRES_OUTER_PORT_RAW),
-        "dbname": settings.POSTGRES_DB_RAW,
+        "host": host,
+        "port": str(port),
+        "dbname": dbname,
     }
     legacy_engine.execute(create_foreign_server, values)
 
@@ -55,14 +58,14 @@ def downgrade_foreign_server():
 # But the execute method adds quotes around them which should not for postgreSQL.
 
 
-def upgrade_mapping_user():
+def upgrade_mapping_user(foreign_server: str = settings.POSTGRES_DB_RAW):
     create_mapping_user = text(
-        f"""CREATE USER MAPPING FOR {settings.POSTGRES_USER}
-                            SERVER {FOREIGN_SERVER}
+        f"""CREATE USER MAPPING FOR {settings.POSTGRES_USER_RAW}
+                            SERVER {foreign_server}
                             OPTIONS (user :server_user, password :password);"""
     )
     values = {
-        "server_user": settings.POSTGRES_USER,
+        "server_user": settings.POSTGRES_USER_RAW,
         "password": settings.POSTGRES_PASSWORD_RAW,
     }
     legacy_engine.execute(create_mapping_user, values)
@@ -79,6 +82,10 @@ def downgrade_mapping_user():
     legacy_engine.execute(drop_mapping_user)
 
 
+def mapping_schema_name_generator(foreign_schema: str, foreign_server: str):
+    return "foreign_" + foreign_schema + "_" + foreign_server
+
+
 def upgrade_schema(schema_name: str):
     create_foreign_schema = f"CREATE SCHEMA IF NOT EXISTS {schema_name};"
     legacy_engine.execute(text(create_foreign_schema))
@@ -89,17 +96,21 @@ def downgrade_schema(schema_name: str):
     legacy_engine.execute(text(drop_foreign_schema))
 
 
-def upgrade_foreign_tables(foreign_tables: Union[str, list[str]], foreign_schema):
+def upgrade_foreign_tables(
+    foreign_tables: Union[str, list[str]],
+    foreign_schema,
+    foreign_server: str = settings.POSTGRES_DB_RAW,
+):
     if type(foreign_tables) == str:
         foreign_tables = [foreign_tables]
-    mapping_schema_name = "foreign_" + foreign_schema
+    mapping_schema_name = mapping_schema_name_generator(foreign_schema, foreign_server)
     upgrade_schema(mapping_schema_name)
     create_foreign_table = f"""IMPORT FOREIGN SCHEMA {foreign_schema} LIMIT TO ({','.join(foreign_tables)})
-    FROM SERVER {FOREIGN_SERVER} INTO {mapping_schema_name};"""
+    FROM SERVER {foreign_server} INTO {mapping_schema_name};"""
     legacy_engine.execute(text(create_foreign_table))
 
 
-def downgrade_foreign_table(table_name: Union[str, list[str]], foreign_schema: str):
+def downgrade_foreign_tables(table_name: Union[str, list[str]], foreign_schema: str):
     if type(table_name) == str:
         table_names = [table_name]
     else:
@@ -115,4 +126,6 @@ def downgrade_foreign_table(table_name: Union[str, list[str]], foreign_schema: s
 if __name__ == "__main__":
     upgrade_foreign_server()
     upgrade_mapping_user()
-    upgrade_foreign_tables(["edge", "poi"], "basic")
+    upgrade_foreign_tables(
+        foreign_tables=["grid_calculation", "grid_visualization"], foreign_schema="public"
+    )
