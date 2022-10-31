@@ -853,16 +853,6 @@ class CRUDIndicator:
 
         return FeatureCollection(features)
     
-    # def 15 min score
-    # wahrscheinlich kein ORM, sondern String wie bei Güteklasse
-    # request wie bei Güteklassen -> Loop -> evtl. optmierbar über Multiprocessing/ mehere Requests
-    async def aggregate_heatmaps(
-
-
-
-    )
-
-
 indicator = CRUDIndicator()
 
 
