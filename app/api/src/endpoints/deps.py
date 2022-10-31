@@ -76,6 +76,17 @@ async def check_user_owns_scenario(
     return scenario[0].id
 
 
+async def check_user_owns_study_area(
+    db: AsyncSession, 
+    study_area_id: int, 
+    current_user: models.User
+) -> int:
+
+    #TODO: Write generic function to check user owns study area 
+
+    return study_area_id
+
+
 def check_user_owns_data_uploads(
     data_upload_ids: list[int], current_user: models.User
 ) -> list[int]:

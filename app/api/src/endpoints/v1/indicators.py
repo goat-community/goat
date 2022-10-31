@@ -19,7 +19,13 @@ from src.resources.enums import (
     SQLReturnTypes,
 )
 from src.schemas.heatmap import request_examples
-from src.schemas.indicators import CalculateOevGueteklassenParameters, request_example
+from src.schemas.indicators import (
+    CalculateOevGueteklassenParameters,
+    CalculateLocalAccessibilityAggregated,
+    oev_gueteklasse_config_example,
+    local_accessibility_aggregated_example,
+)
+
 from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()
@@ -45,14 +51,24 @@ async def read_connectivity_heatmap(
         text(
             template_sql
             % """
-            SELECT g.id AS grid_visualization_id, g.percentile_area_isochrone, g.area_isochrone, 'default' AS modus, g.geom  
+            SELECT g.id AS grid_visualization_id, ntile(5) over (order by g.area_isochrone) AS percentile_area_isochrone, 
+            g.area_isochrone, 'default' AS modus, g.geom  
             FROM basic.grid_visualization g, basic.study_area_grid_visualization s 
             WHERE g.id = s.grid_visualization_id
             AND s.study_area_id = :active_study_area_id
+            AND g.area_isochrone IS NOT NULL
+            UNION ALL
+            SELECT g.id AS grid_visualization_id, 0 AS percentile_area_isochrone,
+            g.area_isochrone, 'default' AS modus, g.geom  
+            FROM basic.grid_visualization g, basic.study_area_grid_visualization s 
+            WHERE g.id = s.grid_visualization_id
+            AND s.study_area_id = :active_study_area_id
+            AND g.area_isochrone IS NULL
             """
         ),
         {"active_study_area_id": current_user.active_study_area_id},
     )
+
     heatmap = heatmap.fetchall()[0][0]
     return return_geojson_or_geobuf(heatmap, _return_type)
 
@@ -244,7 +260,7 @@ async def calculate_oev_gueteklassen(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    params: CalculateOevGueteklassenParameters = Body(..., example=request_example),
+    params: CalculateOevGueteklassenParameters = Body(..., example=oev_gueteklasse_config_example),
 ):
     """
     ÖV-Güteklassen (The public transport quality classes) is an indicator for access to public transport.
@@ -258,12 +274,12 @@ async def calculate_oev_gueteklassen(
 
     if is_superuser and params.study_area_ids is not None:
         study_area_ids = params.study_area_ids
-    elif not is_superuser and len(study_area_ids) > 0:
+    elif not is_superuser and params.study_area_ids and len(params.study_area_ids) > 0:
         return HTTPException(
             status_code=400,
             detail="The user doesn't have enough privileges to calculate the indicator for other study areas",
         )
-    else: 
+    else:
         study_area_ids = [current_user.active_study_area_id]
 
     oev_gueteklassen_features = await crud.indicator.compute_oev_gueteklassen(
@@ -277,6 +293,28 @@ async def calculate_oev_gueteklassen(
     if params.return_type.value == ReturnType.geojson.value:
         oev_gueteklassen_features = jsonable_encoder(oev_gueteklassen_features)
     return return_geojson_or_geobuf(oev_gueteklassen_features, params.return_type.value)
+
+
+@router.post("/local-accessibility-aggregated")
+async def calculate_local_accessibility_aggregated(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    params: CalculateLocalAccessibilityAggregated = Body(..., example=local_accessibility_aggregated_example),
+):
+    """
+    Local accessibility aggregated is an indicator.
+    """
+    #TODO: Check if user owns study area 
+    
+    # local_accessibility_features = await crud.indicator.compute_local_accessibility_aggregated(
+    #     db=db,
+    #     study_area_id=study_area_id,
+    #     indicator_config=indicator_config
+    # ) 
+
+    
+    return {"Test": "Test"}
 
 
 @router.get("/ptal")

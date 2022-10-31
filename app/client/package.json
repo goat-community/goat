@@ -34,7 +34,7 @@
     "mapillary-js": "^4.1.0",
     "ol": "^6.5.0",
     "ol-contextmenu": "^4.0.0",
-    "ol-ext": "^3.1.8",
+    "ol-ext": "^4.0.2",
     "vue": "^2.6.6",
     "vue-axios": "^3.4.1",
     "vue-chartjs": "^3.5.1",

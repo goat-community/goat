@@ -38,6 +38,7 @@ BEGIN
 	(
 		SELECT g.parent_station, jsonb_object_agg(route_type, cnt) AS trip_cnt 
 		FROM g 
+		WHERE cnt <> 0
 		GROUP BY parent_station
 	)
 	SELECT s.stop_id, s.stop_name, o.trip_cnt, s.stop_loc 
