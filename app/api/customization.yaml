@@ -10,7 +10,7 @@ superuser:
     cycling_crossings_delay:
         delay_1: 15 #seconds
         delay_2: 30 #seconds
-    snap_distance_network: 200 #meters
+    snap_distance_network: 100 #meters
     snap_distance_poi_heatmap: 100 #meters
     average_gross_living_area: 50 #square meters
     one_meter_degree: "0.000009"

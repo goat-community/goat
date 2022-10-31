@@ -23,6 +23,7 @@ class RequestExamples:
             "style_library_name": None,
             "max_resolution": "0",
             "min_resolution": "0",
+            "doc_url": "https://www.plan4better.de",
             "name": random_lower_string(),
             "type": "BING",
         }

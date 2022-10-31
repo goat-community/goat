@@ -1024,8 +1024,16 @@ export function ptStationCountStyle(feature) {
     radius = 19;
   }
   const routeTypes = store.getters["isochrones/transitRouteTypesByNr"];
-  const colors = Object.keys(tripCnt).map(key => routeTypes[key].color);
-  const data = Object.values(tripCnt).map(val => val / time);
+  // Filter out the route types that don't exist in config
+  const filteredTripCnt = Object.keys(routeTypes).reduce((obj, key) => {
+    const value = tripCnt[key];
+    if (value) {
+      obj[key] = value;
+    }
+    return obj;
+  }, {});
+  const colors = Object.keys(filteredTripCnt).map(key => routeTypes[key].color);
+  const data = Object.values(filteredTripCnt).map(val => val / time);
   return new OlStyle({
     image: new Chart({
       type: "pie",

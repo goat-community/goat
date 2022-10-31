@@ -282,7 +282,7 @@ class CRUDIsochrone:
             grid_decoded["height"],
             grid_decoded["depth"],
             grid_decoded["data"],
-            25,
+            5,
         )
         grid_decoded["surface"] = single_value_surface
         isochrone_multipolygon_coordinates = jsolines(
@@ -648,7 +648,7 @@ class CRUDIsochrone:
                 3: "2022-05-19",
                 4: "2022-05-20",
                 5: "2022-05-21",
-                6: "2022-05-22",
+                6: "2022-05-22"
             }
 
             payload = {

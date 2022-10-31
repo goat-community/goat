@@ -3,7 +3,7 @@
     <div v-show="print.active === false">
       <!-- isochrone-thematic-data -->
       <isochrone-thematic-data v-show="!miniViewOlMap" />
-      <isochrone-color-picker />
+      <isochrone-color-picker v-if="selectedCalculationChangeColor" />
 
       <!-- mapillary-->
       <div
@@ -90,6 +90,9 @@ export default {
     ...mapGetters("map", {
       print: "print",
       studyArea: "studyArea"
+    }),
+    ...mapGetters("isochrones", {
+      selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapFields("map", {
       isMapillaryBtnDisabled: "isMapillaryBtnDisabled",

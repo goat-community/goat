@@ -4,7 +4,6 @@
     v-draggable="draggableValue"
     class="thematic-data isochrone-result"
     id="isochroneWindowId"
-    :style="[isExpanded ? { height: '520px' } : { height: '50px' }]"
     ondragstart="return false;"
   >
     <v-layout justify-space-between column>
@@ -29,10 +28,7 @@
 
       <vue-scroll>
         <div>
-          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
-            <v-card-text class="ma-0 py-0 pt-0 pb-2">
-              <v-layout row wrap justify-end> </v-layout>
-            </v-card-text>
+          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1 mb-1">
             <v-card-text class="ma-0 pa-0" row>
               <v-row justify="center" align="center" class="mx-1">
                 <v-menu offset-y>
@@ -113,25 +109,35 @@
               </v-row>
               <v-row class="ml-1 mr-0">
                 <v-col cols="12" class="pr-0 pb-0 mr-0">
-                  <v-slider
-                    @mousedown.native.stop
-                    @mouseup.native.stop
-                    @click.native.stop
-                    class="pt-4"
-                    prepend-icon="schedule"
-                    :track-color="appColor.secondary"
-                    :color="appColor.secondary"
-                    v-model="isochroneRange"
-                    :min="1"
-                    :max="getMaxIsochroneRange"
-                    thumb-label="always"
-                    thumb-size="25"
-                    @input="udpateIsochroneSurface"
-                  >
-                    <template v-slot:thumb-label="{ value }">
-                      {{ value }}
-                    </template>
-                  </v-slider>
+                  <v-row class="align-center">
+                    <v-col md="2" sm="2" style="padding: 0;">
+                      <p
+                        style="font-size: 10px; font-weight: bold;  margin-bottom: 0;"
+                      >
+                        {{ $t("isochrones.tableData.travelTimeSlider") }}
+                      </p>
+                    </v-col>
+                    <v-col md="9" sm="9" style="padding: 0;">
+                      <v-slider
+                        @mousedown.native.stop
+                        @mouseup.native.stop
+                        @click.native.stop
+                        style="padding-top: 15px;"
+                        :track-color="appColor.secondary"
+                        :color="appColor.secondary"
+                        v-model="isochroneRange"
+                        :min="1"
+                        :max="getMaxIsochroneRange"
+                        thumb-label="always"
+                        thumb-size="25"
+                        @input="udpateIsochroneSurface"
+                      >
+                        <template v-slot:thumb-label="{ value }">
+                          {{ value }}
+                        </template>
+                      </v-slider>
+                    </v-col>
+                  </v-row>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -187,7 +193,8 @@
               v-if="resultViewType === 0"
               :headers="tableHeaders"
               :items="tableItems"
-              class="elevation-1 mb-2 data-table"
+              class="mb-2"
+              style="max-height: 250px;"
               :search="search"
               hide-default-footer
               :no-data-text="
@@ -650,11 +657,6 @@ export default {
   left: calc(360px + 70px);
   max-width: 600px;
   min-width: 370px;
-  height: 400px;
-}
-
-.data-table {
-  max-height: 330px;
-  overflow-y: scroll;
+  height: fit-content;
 }
 </style>

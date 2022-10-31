@@ -1541,7 +1541,7 @@ export default {
               } else {
                 singleValuedSurface = computeSingleValuedSurface(
                   isochroneSurface,
-                  25
+                  5
                 );
               }
               const {
@@ -1770,7 +1770,7 @@ export default {
               } else {
                 singleValuedSurface = computeSingleValuedSurface(
                   isochroneSurface,
-                  25
+                  5
                 );
               }
               const {
