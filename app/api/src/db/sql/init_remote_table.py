@@ -1,14 +1,12 @@
+import time
 from typing import Union
 
 from alembic_utils.pg_extension import PGExtension
-from psycopg2.errors import DuplicateObject
 from sqlalchemy import text
 from sqlalchemy.exc import ProgrammingError
 
 from src.core.config import settings
 from src.db.session import legacy_engine
-
-# postgres_fdw_sql = "CREATE EXTENSION postgres_fdw"
 
 FOREIGN_SERVER = "foreign_server"
 
@@ -29,10 +27,12 @@ def downgrade_postgres_fdw():
     legacy_engine.execute(text(statement.text))
 
 
-def upgrade_foreign_server(foreign_server: str = settings.POSTGRES_DB_RAW,
-                           host: str = settings.POSTGRES_SERVER_RAW,
-                           port: Union[str,int] = settings.POSTGRES_OUTER_PORT_RAW,
-                           dbname: str = settings.POSTGRES_DB_RAW):
+def upgrade_foreign_server(
+    foreign_server: str = settings.POSTGRES_DB_RAW,
+    host: str = settings.POSTGRES_SERVER_RAW,
+    port: Union[str, int] = settings.POSTGRES_OUTER_PORT_RAW,
+    dbname: str = settings.POSTGRES_DB_RAW,
+):
     create_foreign_server = text(
         f"""
         CREATE SERVER {foreign_server}
@@ -58,16 +58,18 @@ def downgrade_foreign_server():
 # But the execute method adds quotes around them which should not for postgreSQL.
 
 
-def upgrade_mapping_user(foreign_server: str = settings.POSTGRES_DB_RAW):
+def upgrade_mapping_user(
+    foreign_server: str = settings.POSTGRES_DB_RAW,
+    local_user: str = settings.POSTGRES_USER,
+    server_user: str = settings.POSTGRES_USER_RAW,
+    password: str = settings.POSTGRES_PASSWORD_RAW,
+):
     create_mapping_user = text(
-        f"""CREATE USER MAPPING FOR {settings.POSTGRES_USER_RAW}
+        f"""CREATE USER MAPPING FOR {local_user}
                             SERVER {foreign_server}
                             OPTIONS (user :server_user, password :password);"""
     )
-    values = {
-        "server_user": settings.POSTGRES_USER_RAW,
-        "password": settings.POSTGRES_PASSWORD_RAW,
-    }
+    values = {"server_user": server_user, "password": password}
     legacy_engine.execute(create_mapping_user, values)
 
 
@@ -123,9 +125,30 @@ def downgrade_foreign_tables(table_name: Union[str, list[str]], foreign_schema: 
         legacy_engine.execute(drop_foreign_table)
 
 
+def insert_new_data_from_to_table_from_schema1_to_schema2(
+    table_name: str, schema_from: str, schema_to: str
+):
+    table_from = f"{schema_from}.{table_name}"
+    table_to = f"{schema_to}.{table_name}"
+    stmt = text(
+        f"""insert into {table_to} select table_from.* from {table_from} table_from 
+				left join {table_to} table_to
+				on table_from.id = table_to.id 
+                where table_to.id is null;
+    """
+    )
+    start_time = time.time()
+    legacy_engine.execute(stmt)
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+
 if __name__ == "__main__":
-    upgrade_foreign_server()
-    upgrade_mapping_user()
-    upgrade_foreign_tables(
-        foreign_tables=["grid_calculation", "grid_visualization"], foreign_schema="public"
+    schema_from = mapping_schema_name_generator(
+        foreign_schema="public", foreign_server="datastore_server"
+    )
+    schema_to = "basic"
+    table_name = "grid_calculation"
+    # table_name = "grid_visualization"
+    insert_new_data_from_to_table_from_schema1_to_schema2(
+        table_name=table_name, schema_from=schema_from, schema_to=schema_to
     )
