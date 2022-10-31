@@ -619,7 +619,7 @@
           </v-subheader>
           <v-layout>
             <v-flex xs12 class="mx-3" v-show="isResultsElVisible">
-              <template v-for="(calculation, indx) in calculations">
+              <template v-for="calculation in calculations">
                 <v-card
                   v-if="calculation !== 'deleted'"
                   style="width: 330px"
@@ -758,7 +758,10 @@
                         style="font-size: 12px"
                         class="white--text fa-stack-1x mb-1"
                       >
-                        {{ calculateCalculationsLength() - indx }}
+                        {{
+                          calculateCalculationsLength() -
+                            calculateCurrentIndex(calculation)
+                        }}
                       </strong>
                     </span>
                     <v-tooltip
@@ -2005,6 +2008,12 @@ export default {
         calculation => calculation !== "deleted"
       );
       return realArr.length;
+    },
+    calculateCurrentIndex(calc) {
+      let realArr = this.calculations.filter(
+        calculation => calculation !== "deleted"
+      );
+      return realArr.indexOf(calc);
     }
   },
   watch: {
