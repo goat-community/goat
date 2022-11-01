@@ -19,7 +19,7 @@ async def status_check(
 ):
     results = await crud.system.get_by_key(db, key="type", value="status")
     system = results[0]
-    system.setting = status_in.status
+    system.setting = status_in.dict()
     system = await crud.system.update(db, db_obj=system, obj_in=system)
 
-    return SystemStatusModel(status=system.setting)
+    return system.setting
