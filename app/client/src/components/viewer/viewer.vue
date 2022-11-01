@@ -3,7 +3,10 @@
     <div v-show="print.active === false">
       <!-- isochrone-thematic-data -->
       <isochrone-thematic-data v-show="!miniViewOlMap" />
-      <isochrone-color-picker v-if="selectedCalculationChangeColor" />
+      <isochrone-color-picker
+        :temporaryColors="temporaryColors"
+        v-if="selectedCalculationChangeColor"
+      />
 
       <!-- mapillary-->
       <div
@@ -79,9 +82,13 @@ export default {
   data() {
     return {
       miniViewOlMap: false,
+      temporaryColors: null,
       mapillaryAccessToken:
         "MLY|4945732362162775|a3872ee8a2b737be51db110cdcdea3d4"
     };
+  },
+  mounted() {
+    this.temporaryColors = this.calculationColors;
   },
   computed: {
     ...mapGetters("app", {
@@ -92,7 +99,8 @@ export default {
       studyArea: "studyArea"
     }),
     ...mapGetters("isochrones", {
-      selectedCalculationChangeColor: "selectedCalculationChangeColor"
+      selectedCalculationChangeColor: "selectedCalculationChangeColor",
+      calculationColors: "calculationColors"
     }),
     ...mapFields("map", {
       isMapillaryBtnDisabled: "isMapillaryBtnDisabled",

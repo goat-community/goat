@@ -1,4 +1,5 @@
 import jwt_decode from "jwt-decode";
+import store from "../store";
 
 export function humanize(str) {
   if (!str) return "";
@@ -258,3 +259,17 @@ export const numberSeparator = (number, locale) => {
     return number.toLocaleString("de-DE");
   }
 };
+
+//! Clculate the real length of the calculations array
+export function calculateCalculationsLength() {
+  let realArr = store.state.isochrones.calculations.filter(
+    calculation => calculation !== "deleted"
+  );
+  return realArr.length;
+}
+export function calculateRealCalculations() {
+  let realArr = store.state.isochrones.calculations.filter(
+    calculation => calculation !== "deleted"
+  );
+  return realArr;
+}

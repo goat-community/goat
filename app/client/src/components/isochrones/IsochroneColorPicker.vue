@@ -62,45 +62,6 @@
         </v-btn>
       </vue-scroll>
     </v-card>
-    <!-- <v-card
-      :style="[isExpanded ? { height: 'auto' } : { height: '50px' }]"
-      style="position:fixed;top:10px;left:360px;z-index:2;min-width:350px;max-width:450px;height:450px;overflow:hidden;"
-      v-draggable="draggableValue"
-      ondragstart="return false;"
-    >
-      <v-layout justify-space-between column fill-height>
-        <v-app-bar
-          style="cursor:grab;"
-          height="50"
-          :color="appColor.primary"
-          dark
-        >
-          <v-app-bar-nav-icon
-            ><v-icon>fas fa-palette</v-icon></v-app-bar-nav-icon
-          >
-          <v-toolbar-title>{{
-            $t("isochrones.pickColor.title")
-          }}</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-icon @click="expand" class="toolbar-icons mr-2">
-            {{ isExpanded ? "fas fa-chevron-up" : "fas fa-chevron-down" }}
-          </v-icon>
-          <v-app-bar-nav-icon @click.stop="closeDialog"
-            ><v-icon>close</v-icon></v-app-bar-nav-icon
-          >
-        </v-app-bar>
-        <vue-scroll>
-          <v-btn
-            color="warning"
-            dark
-            @click="resetStyle(selectedCalculationChangeColor)"
-            style="width:100%;background-color: #2bb381 !important;"
-          >
-            Reset Style
-          </v-btn>
-        </vue-scroll>
-      </v-layout>
-    </v-card> -->
   </v-dialog>
 </template>
 
@@ -112,6 +73,7 @@ import { Draggable } from "draggable-vue-directive";
 
 //!Right way
 export default {
+  props: ["temporaryColors"],
   watch: {
     selectedCalculationChangeColor(value) {
       if (value) {
@@ -132,15 +94,13 @@ export default {
       handle: undefined,
       boundingElement: undefined,
       resetInitialPos: undefined
-    },
-    temporaryColors: null
+    }
   }),
   mounted() {
     const element = document.getElementById("ol-map-container");
     this.draggableValue.resetInitialPos = false;
     this.draggableValue.boundingElement = element;
     this.draggableValue.handle = this.$refs[this.handleId];
-    this.temporaryColors = this.calculationColors;
   },
   created() {
     let colorHex = this.calculationColors[
@@ -176,12 +136,25 @@ export default {
   },
   methods: {
     onFillColorChange(value) {
-      let newColors = [
-        ...this.calculationColors.map((elem, idx) =>
-          this.selectedCalculationChangeColor.id - 1 === idx ? value : elem
-        )
-      ];
-      this.calculationColors = newColors;
+      if (value[7] === "F" && value[8] === "F") {
+        let newModColor = value.slice(0, -2) + "80";
+        this.fillColor = newModColor;
+        let newColors = [
+          ...this.calculationColors.map((elem, idx) =>
+            this.selectedCalculationChangeColor.id - 1 === idx
+              ? newModColor
+              : elem
+          )
+        ];
+        this.calculationColors = newColors;
+      } else {
+        let newColors = [
+          ...this.calculationColors.map((elem, idx) =>
+            this.selectedCalculationChangeColor.id - 1 === idx ? value : elem
+          )
+        ];
+        this.calculationColors = newColors;
+      }
     },
     resetStyle(calculation) {
       let tempArray = this.calculationColors;
