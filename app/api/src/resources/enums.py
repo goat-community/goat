@@ -181,3 +181,8 @@ class LayerGroupsEnum(str, Enum):
 class GeostoreType(str, Enum):
     geoadmin = "geoadmin"
     other = "other"
+
+
+class SystemStatus(str, Enum):
+    maintenance = "maintenance"
+    running = "running"
