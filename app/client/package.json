@@ -16,7 +16,7 @@
     "@turf/boolean-point-in-polygon": "^6.5.0",
     "@turf/buffer": "^6.5.0",
     "@turf/helpers": "^6.5.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "chart.js": "^2.9.4",
     "chartjs-plugin-annotation": "^0.5.7",
     "chartjs-plugin-zoom": "^0.7.7",
