@@ -19,7 +19,13 @@ from src.resources.enums import (
     SQLReturnTypes,
 )
 from src.schemas.heatmap import request_examples
-from src.schemas.indicators import CalculateOevGueteklassenParameters, request_example
+from src.schemas.indicators import (
+    CalculateOevGueteklassenParameters,
+    CalculateLocalAccessibilityAggregated,
+    oev_gueteklasse_config_example,
+    local_accessibility_aggregated_example,
+)
+
 from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()
@@ -254,7 +260,7 @@ async def calculate_oev_gueteklassen(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    params: CalculateOevGueteklassenParameters = Body(..., example=request_example),
+    params: CalculateOevGueteklassenParameters = Body(..., example=oev_gueteklasse_config_example),
 ):
     """
     ÖV-Güteklassen (The public transport quality classes) is an indicator for access to public transport.
@@ -273,7 +279,7 @@ async def calculate_oev_gueteklassen(
             status_code=400,
             detail="The user doesn't have enough privileges to calculate the indicator for other study areas",
         )
-    else: 
+    else:
         study_area_ids = [current_user.active_study_area_id]
 
     oev_gueteklassen_features = await crud.indicator.compute_oev_gueteklassen(
@@ -287,6 +293,28 @@ async def calculate_oev_gueteklassen(
     if params.return_type.value == ReturnType.geojson.value:
         oev_gueteklassen_features = jsonable_encoder(oev_gueteklassen_features)
     return return_geojson_or_geobuf(oev_gueteklassen_features, params.return_type.value)
+
+
+@router.post("/local-accessibility-aggregated")
+async def calculate_local_accessibility_aggregated(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    params: CalculateLocalAccessibilityAggregated = Body(..., example=local_accessibility_aggregated_example),
+):
+    """
+    Local accessibility aggregated is an indicator.
+    """
+    #TODO: Check if user owns study area 
+    
+    # local_accessibility_features = await crud.indicator.compute_local_accessibility_aggregated(
+    #     db=db,
+    #     study_area_id=study_area_id,
+    #     indicator_config=indicator_config
+    # ) 
+
+    
+    return {"Test": "Test"}
 
 
 @router.get("/ptal")

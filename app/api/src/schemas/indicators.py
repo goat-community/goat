@@ -62,7 +62,7 @@ class CalculateOevGueteklassenParameters(BaseModel):
         return v
 
 
-request_example = {
+oev_gueteklasse_config_example = {
     "start_time": 25200,
     "end_time": 32400,
     "weekday": 1,
@@ -70,3 +70,12 @@ request_example = {
     "station_config": station_config_example,
     "study_area_ids": [9161, 9184],
 }
+
+
+class CalculateLocalAccessibilityAggregated(BaseModel):
+    poi_category: str
+
+local_accessibility_aggregated_example = {
+    "poi_category": "restaurant",
+}
+
