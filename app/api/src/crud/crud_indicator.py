@@ -854,6 +854,16 @@ class CRUDIndicator:
         return FeatureCollection(features)
 
 
+    async def compute_local_accessibility_aggregated(
+        self,
+        db: AsyncSession,
+        study_area_id,
+        indicator_config
+    ) -> FeatureCollection:
+        
+        #TODO: Compute indicator for each POI Category 
+        print(indicator_config)
+
 indicator = CRUDIndicator()
 
 
