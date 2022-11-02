@@ -37,8 +37,6 @@
         :style="[isExpanded ? {} : { visibility: 'hidden' }]"
       >
         <v-color-picker
-          show-swatches
-          swatches-max-height="100"
           class="elevation-0"
           canvas-height="100"
           width="400"
@@ -99,8 +97,9 @@ export default {
     this.draggableValue.handle = this.$refs[this.handleId];
   },
   created() {
-    let colorHex =
-      this.calculationColors[this.selectedCalculationChangeColor.id - 1];
+    let colorHex = this.calculationColors[
+      this.selectedCalculationChangeColor.id - 1
+    ];
 
     this.fillColor = colorHex;
   },
@@ -168,10 +167,11 @@ export default {
       return Object.values(color).toString();
     },
     colorChanged() {
-      const color =
-        this.colors[this.calculation[`${this.selectedMode}ColorPalette`]];
+      const color = this.colors[
+        this.calculation[`${this.selectedMode}ColorPalette`]
+      ];
       // Update isochrone color
-      this.calculation.data.forEach((obj) => {
+      this.calculation.data.forEach(obj => {
         const isochroneFeature = this.isochroneLayer
           .getSource()
           .getFeatureById(obj.id);
@@ -191,7 +191,7 @@ export default {
       // Update network color
       if (!this.calculation.additionalData[this.selectedMode]) return;
       this.calculation.additionalData[this.selectedMode].features.forEach(
-        (feature) => {
+        feature => {
           const cost = feature.get("cost");
           const lowestCostValue = 0; // TODO: Find lowest and highest based on response data
           const highestCostValue = 1200;
