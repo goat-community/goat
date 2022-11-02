@@ -15,7 +15,7 @@
     >
       <v-app-bar
         :ref="handleId"
-        style="cursor:grab;"
+        style="cursor: grab"
         height="50"
         :color="appColor.primary"
         dark
@@ -37,16 +37,12 @@
         :style="[isExpanded ? {} : { visibility: 'hidden' }]"
       >
         <v-color-picker
-          @mousedown.native.stop
-          @mouseup.native.stop
-          @click.native.stop
-          hide-canvas
           show-swatches
           swatches-max-height="100"
           class="elevation-0"
           canvas-height="100"
           width="400"
-          style="margin:auto; margin-bottom: 20px;"
+          style="margin: auto; margin-bottom: 20px"
           :mode.sync="hexa"
           v-model="fillColor"
           @input="onFillColorChange($event)"
@@ -56,7 +52,7 @@
           color="warning"
           dark
           @click="resetStyle(selectedCalculationChangeColor)"
-          style="width:100%;background-color: #2bb381 !important;"
+          style="width: 100%; background-color: #2bb381 !important"
         >
           Reset Style
         </v-btn>
@@ -103,9 +99,8 @@ export default {
     this.draggableValue.handle = this.$refs[this.handleId];
   },
   created() {
-    let colorHex = this.calculationColors[
-      this.selectedCalculationChangeColor.id - 1
-    ];
+    let colorHex =
+      this.calculationColors[this.selectedCalculationChangeColor.id - 1];
 
     this.fillColor = colorHex;
   },
@@ -173,11 +168,10 @@ export default {
       return Object.values(color).toString();
     },
     colorChanged() {
-      const color = this.colors[
-        this.calculation[`${this.selectedMode}ColorPalette`]
-      ];
+      const color =
+        this.colors[this.calculation[`${this.selectedMode}ColorPalette`]];
       // Update isochrone color
-      this.calculation.data.forEach(obj => {
+      this.calculation.data.forEach((obj) => {
         const isochroneFeature = this.isochroneLayer
           .getSource()
           .getFeatureById(obj.id);
@@ -197,7 +191,7 @@ export default {
       // Update network color
       if (!this.calculation.additionalData[this.selectedMode]) return;
       this.calculation.additionalData[this.selectedMode].features.forEach(
-        feature => {
+        (feature) => {
           const cost = feature.get("cost");
           const lowestCostValue = 0; // TODO: Find lowest and highest based on response data
           const highestCostValue = 1200;
