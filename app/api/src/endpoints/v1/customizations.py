@@ -245,7 +245,7 @@ async def create_base_customization(
 
 
 @router.put("/base/{id}", response_class=JSONResponse)
-async def create_base_customization(
+async def update_base_customization(
     *,
     db: AsyncSession = Depends(deps.get_db),
     id: int,
