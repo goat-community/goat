@@ -1,10 +1,16 @@
 from ._base_class import Base
-from ._link_model import StudyAreaGridVisualization, UserRole, UserStudyArea, StudyAreaGeostore
+from ._link_model import (
+    StudyAreaGeostore,
+    StudyAreaGridVisualization,
+    UserRole,
+    UserStudyArea,
+)
 from .aoi import Aoi, AoiBase, AoiModified, AoiUser
 from .building import Building, BuildingBase, BuildingModified
-from .customization import Customization, UserCustomization
+from .customization import Customization, CustomizationBase, UserCustomization
 from .data_upload import DataUpload
 from .edge import Edge, EdgeBase, WayModified
+from .geostore import Geostore
 from .grid import GridCalculation, GridVisualization
 from .heatmap import (
     ReachedEdgeFullHeatmap,
@@ -27,9 +33,6 @@ from .role import Role
 from .scenario import Scenario
 from .static_layer import StaticLayer
 from .study_area import StudyArea, SubStudyArea
-from .user import User, UserBase
-from .layer_library import LayerLibrary, StyleLibrary, LayerSource
-from .opportunity_config import OpportunityDefaultConfig, OpportunityGroup, OpportunityStudyAreaConfig, OpportunityUserConfig
-from .geostore import Geostore
 from .system import System
 from .traveltime_matrix import TravelTimeMatrixWalking
+from .user import User, UserBase
