@@ -273,3 +273,9 @@ export function calculateRealCalculations() {
   );
   return realArr;
 }
+export function calculateCurrentIndex(calc) {
+  let realArr = store.state.isochrones.calculations.filter(
+    calculation => calculation !== "deleted"
+  );
+  return realArr.indexOf(calc);
+}
