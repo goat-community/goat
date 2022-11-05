@@ -69,7 +69,12 @@
                       };`
                     "
                   ></div>
-                  <span>Isochrone {{ selectedCalculations[0].id }}</span>
+                  <span
+                    >Isochrone
+                    {{
+                      getCurrentIsochroneNumber(selectedCalculations[0])
+                    }}</span
+                  >
                   <div
                     class="ml-6 mr-2 colorPalettePicker"
                     :style="
@@ -78,7 +83,12 @@
                       };`
                     "
                   ></div>
-                  <span>Isochrone {{ selectedCalculations[1].id }}</span>
+                  <span
+                    >Isochrone
+                    {{
+                      getCurrentIsochroneNumber(selectedCalculations[1])
+                    }}</span
+                  >
                 </template>
                 <v-spacer></v-spacer>
                 <v-btn-toggle
@@ -235,6 +245,10 @@ import { saveAs } from "file-saver";
 import { debounce, numberSeparator } from "../../utils/Helpers";
 import ApiService from "../../services/api.service";
 import JSZip from "jszip";
+import {
+  calculateCalculationsLength,
+  calculateCurrentIndex
+} from "../../utils/Helpers";
 export default {
   components: {
     IsochroneAmenitiesLineChart,
@@ -394,6 +408,9 @@ export default {
             timeout: 10000
           });
         });
+    },
+    getCurrentIsochroneNumber(calc) {
+      return calculateCalculationsLength() - calculateCurrentIndex(calc);
     }
   },
   computed: {
