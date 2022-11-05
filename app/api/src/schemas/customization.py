@@ -1,17 +1,3 @@
-from sqlmodel import SQLModel
-
-
-class CustomizationBase(SQLModel):
-    setting: str
-
-
-class CustomizationCreate(CustomizationBase):
-    pass
-
-
-class CustomizationUpdate(CustomizationBase):
-    pass
-
 
 """
 Body of the request
@@ -23,13 +9,8 @@ request_examples = {
     "user_customization_insert": {
         "poi": {
             "summary": "Update POI setting",
-            "value": {"nursery": {"icon": "fa-solid fa-dumbbell", "color": ["#ff0000"]}}
+            "value": {"nursery": {"icon": "fa-solid fa-dumbbell", "color": ["#ff0000"]}},
         }
     },
-    "user_customization_delete": {
-        "poi": {
-            "summary": "Delete POI setting",
-            "value": "nursery"
-        }
-    }
+    "user_customization_delete": {"poi": {"summary": "Delete POI setting", "value": "nursery"}},
 }
