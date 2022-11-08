@@ -92,7 +92,7 @@ const state = {
   },
   chartDatasetType: 0, // 0: population, 1: pois, 2: aois
   isochroneRange: 10, // in minutes
-  calculationColors: [
+  preDefCalculationColors: [
     "#28364880",
     "#eb391580",
     "#8B939E80",
@@ -104,6 +104,8 @@ const state = {
     "#2c7fb880",
     "#5E191680"
   ], // 10 different colors
+  calculationColors: [],
+  calculationSrokeObjects: [],
   // Cancel Request
   cancelReq: undefined,
   selectedCalculationChangeColor: null,
@@ -130,6 +132,8 @@ const getters = {
   isochroneRange: state => state.isochroneRange,
   calculations: state => state.calculations,
   calculationColors: state => state.calculationColors,
+  preDefCalculationColors: state => state.preDefCalculationColors,
+  calculationSrokeObjects: state => state.calculationSrokeObjects,
   selectedCalculationChangeColor: state => state.selectedCalculationChangeColor,
   chartDatasetType: state => state.chartDatasetType,
   isochroneResultWindow: state => state.isochroneResultWindow,

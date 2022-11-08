@@ -65,7 +65,7 @@
                     class="mx-2 colorPalettePicker"
                     :style="
                       `border-bottom:4px solid ${
-                        calculationColors[selectedCalculations[0].id - 1]
+                        preDefCalculationColors[selectedCalculations[0].id - 1]
                       };`
                     "
                   ></div>
@@ -79,7 +79,7 @@
                     class="ml-6 mr-2 colorPalettePicker"
                     :style="
                       `border-bottom:4px dashed ${
-                        calculationColors[selectedCalculations[1].id - 1]
+                        preDefCalculationColors[selectedCalculations[1].id - 1]
                       };`
                     "
                   ></div>
@@ -549,6 +549,7 @@ export default {
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
       calculationColors: "calculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects",
       selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("poisaois", {
@@ -570,6 +571,9 @@ export default {
   },
   watch: {
     calculationColors() {
+      this.updateIsochroneSurface(this.selectedCalculationChangeColor);
+    },
+    calculationSrokeObjects() {
       this.updateIsochroneSurface(this.selectedCalculationChangeColor);
     },
     resultViewType(value) {

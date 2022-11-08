@@ -35,7 +35,7 @@ export default {
               ? this.$t(`pois.population`)
               : "population",
             fill: false,
-            borderColor: this.calculationColors[calculation.id - 1],
+            borderColor: this.preDefCalculationColors[calculation.id - 1],
             borderDash: index === 0 ? [0, 0] : [10, 5],
             pointRadius: 1,
             tension: 0
@@ -172,7 +172,7 @@ export default {
       selectedCalculations: "selectedCalculations",
       isochroneRange: "isochroneRange",
       chartDatasetType: "chartDatasetType",
-      calculationColors: "calculationColors"
+      preDefCalculationColors: "preDefCalculationColors"
     }),
     ...mapGetters("poisaois", {
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys",

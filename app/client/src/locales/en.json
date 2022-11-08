@@ -322,6 +322,10 @@
     "calculation": "Calculation",
     "calculationTitle": "Isochrone Calculation",
     "stopIsochroneCalc": "Stop Calculation",
+    "styling": {
+      "fillColor": "Fill Color",
+      "StrokeColor": "Stroke"
+    },
     "mode": {
       "default": "Default",
       "input": "Input",

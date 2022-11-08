@@ -703,7 +703,7 @@
                         <div
                           :style="
                             `background-color: ${
-                              calculationColors[findColor(calculation.id) - 1]
+                              calculationColors[calculation.id - 1]
                             }`
                           "
                           class="isochroneColor"
@@ -929,6 +929,9 @@ export default {
       defaultIsochroneColor: "defaultIsochroneColor",
       scenarioIsochroneColor: "scenarioIsochroneColor",
       selectedCalculations: "selectedCalculations",
+      preDefCalculationColors: "preDefCalculationColors",
+      calculationColors: "calculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects",
       publicTransport: "publicTransport",
       isochroneRange: "isochroneRange",
       isochroneResultWindow: "isochroneResultWindow",
@@ -936,7 +939,7 @@ export default {
     }),
     ...mapGetters("isochrones", {
       routingProfiles: "routingProfiles",
-      calculationColors: "calculationColors",
+      preDefCalculationColors: "preDefCalculationColors",
       colors: "colors"
     }),
     ...mapFields("map", {
@@ -1587,7 +1590,11 @@ export default {
                 config: payload,
                 rawData: isochroneSurface,
                 surfaceData: singleValuedSurface,
-                feature: olFeatures[0]
+                feature: olFeatures[0],
+                stroke: {
+                  color: "#000000",
+                  width: 2
+                }
               };
 
               if (_type == "single") {
@@ -1619,6 +1626,17 @@ export default {
                       "isochrone_feature_" + isochroneCalculationUid
                     );
                     olFeatures[0].set("calculationNumber", calculationNumber);
+                    this.calculationColors.push(
+                      this.preDefCalculationColors[
+                        this.findColor(calculationNumber) - 1
+                      ]
+                    );
+                    this.calculationSrokeObjects.push({
+                      color: "#00000000",
+                      width: 2,
+                      dashWidth: 0,
+                      dashSpace: 0
+                    });
                     if (this.selectedCalculations.length === 2) {
                       // Remove first calculation if length is already 2
                       this.selectedCalculations.shift();
@@ -1922,37 +1940,10 @@ export default {
           return calculation;
         }
       });
-      // this.calculations = this.calculations.filter(
-      //   calculation => calculation.id !== id
-      // );
+
       this.selectedCalculations = this.selectedCalculations.filter(
         selectedCalculation => selectedCalculation.id !== id
       );
-
-      // this.calculations = this.calculations.map(calculation => {
-      //   if (calculation.id > id) {
-      //     calculation.id = calculation.id - 1;
-      //   }
-      //   return calculation;
-      // });
-      // const isochroneSource = this.isochroneLayer.getSource();
-      // isochroneSource.getFeatures().forEach(isochroneFeature => {
-      //   const isochroneCalculationNr = isochroneFeature.get(
-      //     "calculationNumber"
-      //   );
-      //   if (isochroneCalculationNr === id) {
-      //     isochroneSource.removeFeature(isochroneFeature);
-      //   }
-      //   if (isochroneCalculationNr > id) {
-      //     const updatedNr = isochroneCalculationNr - 1;
-      //     if (isochroneFeature.getGeometry().getType() === "Point") {
-      //       isochroneFeature.setId("isochrone_marker_" + updatedNr);
-      //       isochroneFeature.set("calculationNumber", updatedNr);
-      //     } else {
-      //       isochroneFeature.set("calculationNumber", updatedNr);
-      //     }
-      //   }
-      // });
     },
     /**
      * Clears the map and ol interaction activity
