@@ -42,7 +42,7 @@
               <b>{{ $t("isochrones.styling.fillColor") }}</b>
             </v-badge>
           </v-tab>
-          <v-tab :key="2">
+          <v-tab :disabled="!strokeStatus" :key="2">
             <v-badge>
               <b>{{ $t("isochrones.styling.StrokeColor") }}</b>
             </v-badge>
@@ -60,6 +60,10 @@
               @input="onFillColorChange($event)"
             >
             </v-color-picker>
+            <div style="width: 400px; margin: auto;">
+              <p>Stroke Setting</p>
+              <v-checkbox v-model="strokeStatus" label="Stroke"></v-checkbox>
+            </div>
             <v-btn
               color="warning"
               dark
@@ -144,6 +148,14 @@ import { Draggable } from "draggable-vue-directive";
 export default {
   props: ["temporaryColors"],
   watch: {
+    strokeStatus(value) {
+      if (value) {
+        this.tab = 1;
+        this.strokeColor = "#000000ff";
+      } else {
+        this.strokeColor = "#ffffff00";
+      }
+    },
     strokeStyle(value) {
       if (value === "solid") {
         let newObj = {
@@ -211,6 +223,7 @@ export default {
     hexa: "hexa",
     tab: null,
     strokeStyle: "solid",
+    strokeStatus: false,
     draggableValue: {
       handle: undefined,
       boundingElement: undefined,
