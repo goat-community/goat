@@ -144,7 +144,7 @@ class Settings(BaseSettings):
 
     # R5 config
     R5_HOST: str = None
-    R5_AUTHORIZATION: str = None
+
     R5_MONGO_DB_URL: Optional[str] = None
 
     @validator("R5_MONGO_DB_URL", pre=True)
@@ -157,6 +157,8 @@ class Settings(BaseSettings):
     @validator("R5_API_URL", pre=True)
     def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         return f'http://{values.get("R5_HOST")}/api'
+
+    R5_AUTHORIZATION: str = None
 
     @validator("R5_AUTHORIZATION", pre=True)
     def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
