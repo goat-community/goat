@@ -106,6 +106,7 @@ const state = {
   ], // 10 different colors
   calculationColors: [],
   calculationSrokeObjects: [],
+  calculationTravelTime: [],
   // Cancel Request
   cancelReq: undefined,
   selectedCalculationChangeColor: null,
@@ -134,6 +135,7 @@ const getters = {
   calculationColors: state => state.calculationColors,
   preDefCalculationColors: state => state.preDefCalculationColors,
   calculationSrokeObjects: state => state.calculationSrokeObjects,
+  calculationTravelTime: state => state.calculationTravelTime,
   selectedCalculationChangeColor: state => state.selectedCalculationChangeColor,
   chartDatasetType: state => state.chartDatasetType,
   isochroneResultWindow: state => state.isochroneResultWindow,

@@ -781,6 +781,27 @@
                       <span>{{ calculation.position }}</span></v-tooltip
                     >
                   </v-subheader>
+                  <v-subheader row>
+                    <v-slider
+                      v-model="calculationTravelTime[calculation.id - 1]"
+                      @mousedown.native.stop
+                      @mouseup.native.stop
+                      @click.native.stop
+                      style="padding-top: 15px;"
+                      :track-color="appColor.secondary"
+                      :color="appColor.secondary"
+                      :min="1"
+                      :max="getMaxIsochroneRange"
+                      thumb-label
+                      @input="
+                        updateSurface(
+                          calculation,
+                          calculationTravelTime[calculation.id - 1]
+                        )
+                      "
+                      thumb-size="25"
+                    ></v-slider>
+                  </v-subheader>
                 </v-card>
               </template>
             </v-flex>
@@ -799,7 +820,7 @@ import { Mapable } from "../../mixins/Mapable";
 import { toPixel } from "../../utils/MapUtils";
 import { Isochrones } from "../../mixins/Isochrones";
 import { KeyShortcuts } from "../../mixins/KeyShortcuts";
-
+import IsochroneUtils from "../../utils/IsochroneUtils";
 import {
   getIsochroneStyle,
   getIsochroneNetworkStyle,
@@ -896,6 +917,16 @@ export default {
     locationIQ: "https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4"
   }),
   computed: {
+    getMaxIsochroneRange() {
+      let maxIsochroneRange = 60;
+      const walkingCyclingCalculations = this.selectedCalculations.filter(
+        c => !["transit", "car"].includes(c.routing)
+      );
+      if (walkingCyclingCalculations.length > 0) {
+        maxIsochroneRange = 20;
+      }
+      return maxIsochroneRange;
+    },
     ...mapGetters("scenarios", {
       activeScenario: "activeScenario"
     }),
@@ -932,6 +963,7 @@ export default {
       preDefCalculationColors: "preDefCalculationColors",
       calculationColors: "calculationColors",
       calculationSrokeObjects: "calculationSrokeObjects",
+      calculationTravelTime: "calculationTravelTime",
       publicTransport: "publicTransport",
       isochroneRange: "isochroneRange",
       isochroneResultWindow: "isochroneResultWindow",
@@ -940,6 +972,7 @@ export default {
     ...mapGetters("isochrones", {
       routingProfiles: "routingProfiles",
       preDefCalculationColors: "preDefCalculationColors",
+      calculationTravelTime: "calculationTravelTime",
       colors: "colors"
     }),
     ...mapFields("map", {
@@ -976,6 +1009,13 @@ export default {
     }
   },
   methods: {
+    /*
+      Modify the isochrone whenever it changes size
+    */
+    updateSurface(calculation, timeRange) {
+      IsochroneUtils.updateIsochroneSurface(calculation, timeRange);
+    },
+
     secondsToHoursAndMins,
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR",
@@ -1637,6 +1677,7 @@ export default {
                       dashWidth: 0,
                       dashSpace: 0
                     });
+                    this.calculationTravelTime.push(10);
                     if (this.selectedCalculations.length === 2) {
                       // Remove first calculation if length is already 2
                       this.selectedCalculations.shift();

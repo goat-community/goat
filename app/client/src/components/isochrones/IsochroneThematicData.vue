@@ -127,26 +127,6 @@
                         {{ $t("isochrones.tableData.travelTimeSlider") }}
                       </p>
                     </v-col>
-                    <v-col md="9" sm="9" style="padding: 0;">
-                      <v-slider
-                        @mousedown.native.stop
-                        @mouseup.native.stop
-                        @click.native.stop
-                        style="padding-top: 15px;"
-                        :track-color="appColor.secondary"
-                        :color="appColor.secondary"
-                        v-model="isochroneRange"
-                        :min="1"
-                        :max="getMaxIsochroneRange"
-                        thumb-label="always"
-                        thumb-size="25"
-                        @input="udpateIsochroneSurface"
-                      >
-                        <template v-slot:thumb-label="{ value }">
-                          {{ value }}
-                        </template>
-                      </v-slider>
-                    </v-col>
                   </v-row>
                 </v-col>
               </v-row>
@@ -229,15 +209,10 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-// import IsochroneUtils from "../../utils/IsochroneUtils";
+import IsochroneUtils from "../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
 import { mapFields } from "vuex-map-fields";
-import {
-  featuresToGeojson,
-  fromPixel,
-  geojsonToFeature
-} from "../../utils/MapUtils";
-import { jsolines } from "../../utils/Jsolines";
+import { featuresToGeojson } from "../../utils/MapUtils";
 import IsochroneAmenitiesLineChart from "../other/IsochroneAmenitiesLineChart.vue";
 import IsochroneAmenitiesPieChart from "../other/IsochroneAmenitiesPieChart.vue";
 import IsochroneAmenitiesRadarChartVue from "../other/IsochroneAmenitiesRadarChart.vue";
@@ -304,35 +279,12 @@ export default {
       }
       return string;
     },
-    updateIsochroneSurface(calculation) {
-      const {
-        surface,
-        width,
-        height,
-        west,
-        north,
-        zoom
-        // eslint-disable-next-line no-undef
-      } = calculation.surfaceData;
-      const isochronePolygon = jsolines({
-        surface,
-        width,
-        height,
-        cutoff: this.isochroneRange,
-        project: ([x, y]) => {
-          const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-          return [ll.lon, ll.lat];
-        }
-      });
-      let olFeatures = geojsonToFeature(isochronePolygon, {
-        dataProjection: "EPSG:4326",
-        featureProjection: "EPSG:3857"
-      });
-      calculation.feature.setGeometry(olFeatures[0].getGeometry());
-    },
-    udpateIsochroneSurface: debounce(function() {
+    updateIsochroneSurface: debounce(function() {
       this.selectedCalculations.forEach(calculation => {
-        this.updateIsochroneSurface(calculation);
+        IsochroneUtils.updateIsochroneSurface(
+          calculation,
+          this.calculationTravelTime[calculation.id - 1]
+        );
       });
     }, 30),
     downloadIsochrone(type) {
@@ -549,7 +501,9 @@ export default {
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
       calculationColors: "calculationColors",
+      preDefCalculationColors: "preDefCalculationColors",
       calculationSrokeObjects: "calculationSrokeObjects",
+      calculationTravelTime: "calculationTravelTime",
       selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("poisaois", {
