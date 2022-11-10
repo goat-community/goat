@@ -40,4 +40,6 @@ Pajares, E.; Muñoz Nieto, R.; Meng, L.; Wulfhorst, G. Population Disaggregation
 
 Pajares, E., Jehle, U., 2021. GOAT: Ein interaktives Erreichbarkeitsinstrument zur Planung der 15-Minuten-Stadt, in: Flächennutzungsmonitoring XIII: Flächenpolitik - Konzepte - Analysen - Tools, IÖR Schriften. Rhombos-Verlag, Berlin, pp. 265–273. https://doi.org/10.26084/13dfns-p024
 
+Pajares, E., Jehle, U., Hall, J., Miramontes, M., Wulfhorst, G., 2022. Assessment of the usefulness of the accessibility instrument GOAT for the planning practice. Journal of Urban Mobility 2, 100033. https://doi.org/10.1016/j.urbmob.2022.100033
+
 Jehle, U., Pajares, E., Analyse der Fußwegequalitäten zu Schulen – Entwicklung von Indikatoren auf Basis von OpenData. In: Meinel, G.; Krüger, T.; Behnisch, M.; Ehrhardt, D. (Hrsg.): Flächennutzungsmonitoring XIII: Flächenpolitik - Konzepte - Analysen - Tools. Berlin: Rhombos-Verlag, 2021, (IÖR-Schriften Band 79), S.221-232, https://doi.org/10.26084/13dfns-p020
