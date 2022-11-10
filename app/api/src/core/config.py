@@ -158,6 +158,10 @@ class Settings(BaseSettings):
     def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         return f'http://{values.get("R5_HOST")}/api'
 
+    @validator("R5_AUTHORIZATION", pre=True)
+    def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        return f"Basic {v}="
+
     class Config:
         case_sensitive = True
 
