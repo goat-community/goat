@@ -758,10 +758,7 @@
                         style="font-size: 12px"
                         class="white--text fa-stack-1x mb-1"
                       >
-                        {{
-                          calculateCalculationsLength() -
-                            calculateCurrentIndex(calculation)
-                        }}
+                        {{ getCurrentIsochroneNumber(calculation) }}
                       </strong>
                     </span>
                     <v-tooltip
@@ -815,7 +812,11 @@ import { mapGetters, mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
 
 //Helpers
-import { secondsToHoursAndMins } from "../../utils/Helpers";
+import {
+  secondsToHoursAndMins,
+  calculateCalculationsLength,
+  calculateCurrentIndex
+} from "../../utils/Helpers";
 
 //Ol imports
 import VectorSource from "ol/source/Vector";
@@ -1714,9 +1715,9 @@ export default {
               time = [calculation.rawData.get(x, y, depthIndex)];
             }
             if (time) {
-              overlayerInnerHtml += `<div>#${calculationId} ${this.$t(
-                "isochrones.options.time"
-              )}: ${time} min</div>`;
+              overlayerInnerHtml += `<div>#${this.getCurrentIsochroneNumber(
+                calculation
+              )} ${this.$t("isochrones.options.time")}: ${time} min</div>`;
             }
             if (features.length === 2 && index == 0) {
               overlayerInnerHtml += `<br>`;
@@ -2003,17 +2004,8 @@ export default {
       this.clear();
     },
     //! Clculate the real length of the calculations array
-    calculateCalculationsLength() {
-      let realArr = this.calculations.filter(
-        calculation => calculation !== "deleted"
-      );
-      return realArr.length;
-    },
-    calculateCurrentIndex(calc) {
-      let realArr = this.calculations.filter(
-        calculation => calculation !== "deleted"
-      );
-      return realArr.indexOf(calc);
+    getCurrentIsochroneNumber(calc) {
+      return calculateCalculationsLength() - calculateCurrentIndex(calc);
     }
   },
   watch: {
