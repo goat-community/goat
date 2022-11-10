@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000", \
     # "http://localhost:8080", "http://local.dockertoolbox.tiangolo.com"]'
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = [
+        "http://localhost",
+        "http://localhost:8000",
+        "http://localhost:1024",
         "https://dashboard.plan4better.de",
         "https://dashboard-dev.plan4better.de",
     ]
@@ -141,6 +144,7 @@ class Settings(BaseSettings):
 
     # R5 config
     R5_HOST: str = None
+    R5_AUTHORIZATION: str = None
     R5_MONGO_DB_URL: Optional[str] = None
 
     @validator("R5_MONGO_DB_URL", pre=True)
@@ -152,7 +156,7 @@ class Settings(BaseSettings):
 
     @validator("R5_API_URL", pre=True)
     def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        return f'http://{values.get("R5_HOST")}:7070/api'
+        return f'http://{values.get("R5_HOST")}/api'
 
     class Config:
         case_sensitive = True
