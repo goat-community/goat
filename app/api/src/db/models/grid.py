@@ -13,6 +13,7 @@ from sqlmodel import (
     Relationship,
     SQLModel,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 
 if TYPE_CHECKING:
     from .heatmap import ReachedEdgeHeatmapGridCalculation
@@ -39,7 +40,7 @@ class GridVisualization(SQLModel, table=True):
             nullable=False,
         )
     )
-
+    demography: Optional[dict] = Field(sa_column=Column(JSONB))
     study_areas: List["StudyArea"] = Relationship(
         back_populates="grid_visualizations", link_model=StudyAreaGridVisualization
     )
