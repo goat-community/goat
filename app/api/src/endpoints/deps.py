@@ -77,12 +77,10 @@ async def check_user_owns_scenario(
 
 
 async def check_user_owns_study_area(
-    db: AsyncSession, 
-    study_area_id: int, 
-    current_user: models.User
+    db: AsyncSession, study_area_id: int, current_user: models.User
 ) -> int:
 
-    #TODO: Write generic function to check user owns study area 
+    # TODO: Write generic function to check user owns study area
 
     return study_area_id
 

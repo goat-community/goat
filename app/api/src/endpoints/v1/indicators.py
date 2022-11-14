@@ -23,7 +23,7 @@ from src.schemas.indicators import (
     CalculateOevGueteklassenParameters,
     CalculateLocalAccessibilityAggregated,
     oev_gueteklasse_config_example,
-    local_accessibility_aggregated_example,
+    local_accessibility_aggregated_calculation_config_example
 )
 
 from src.utils import return_geojson_or_geobuf
@@ -300,21 +300,25 @@ async def calculate_local_accessibility_aggregated(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    params: CalculateLocalAccessibilityAggregated = Body(..., example=local_accessibility_aggregated_example),
+    params: CalculateLocalAccessibilityAggregated = Body(..., example=local_accessibility_aggregated_calculation_config_example),
 ):
     """
     Local accessibility aggregated is an indicator.
     """
     #TODO: Check if user owns study area 
     
-    # local_accessibility_features = await crud.indicator.compute_local_accessibility_aggregated(
-    #     db=db,
-    #     study_area_id=study_area_id,
-    #     indicator_config=indicator_config
-    # ) 
+    local_accessibility_features = await crud.indicator.compute_local_accessibility_aggregated(
+        db=db,
+        current_user=current_user,
+        indicator_config=params.local_accessibility_aggregated_indicator_config
+    ) 
 
+    # return local_accessibility_features
+
+    # if params.return_type.value == ReturnType.geojson.value:
+    #     local_accessibility_features = jsonable_encoder(local_accessibility_features)
     
-    return {"Test": "Test"}
+    return return_geojson_or_geobuf(local_accessibility_features, params.return_type.value)
 
 
 @router.get("/ptal")

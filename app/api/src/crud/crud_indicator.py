@@ -1,11 +1,15 @@
+import asyncio
 import bisect
+import json
+import statistics
 from datetime import datetime, timedelta
 from typing import Any
 
+import dask.dataframe as dd
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import pyproj
-import asyncio
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from geojson import Feature, FeatureCollection
@@ -28,17 +32,18 @@ from src.db.session import legacy_engine
 from src.exts.cpp.bind import isochrone as isochrone_cpp
 from src.resources.enums import SQLReturnTypes
 from src.schemas.isochrone import (
-    IsochroneDTO,
-    IsochroneScenario,
-    IsochroneSettings,
-    IsochroneStartingPointCoord,
     IsochroneAccessMode,
-    IsochroneStartingPoint,
+    IsochroneDTO,
     IsochroneMode,
     IsochroneOutput,
     IsochroneOutputType,
+    IsochroneScenario,
+    IsochroneSettings,
+    IsochroneStartingPoint,
+    IsochroneStartingPointCoord,
 )
 
+from src.utils import return_geojson_or_geobuf
 
 class CRUDGridCalculation(
     CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
@@ -561,7 +566,9 @@ class CRUDIndicator:
                     db=db, current_user=user, data_upload_id=data_upload_id.id
                 )
 
-            print(f"INFO: Recomputed data uploads for user with the following id: [bold magenta]{user.id}[/bold magenta].")
+            print(
+                f"INFO: Recomputed data uploads for user with the following id: [bold magenta]{user.id}[/bold magenta]."
+            )
 
     async def bulk_recompute_scenario(self, db: AsyncSession):
         """Recomputes the heatmap for all scenarios"""
@@ -570,7 +577,7 @@ class CRUDIndicator:
         for scenario in scenarios:
             await db.execute(
                 text(
-                """
+                    """
                     SELECT basic.reached_pois_heatmap(
                         'poi_modified'::text, 
                         geom, 
@@ -583,11 +590,13 @@ class CRUDIndicator:
                     WHERE scenario_id = :scenario_id;
                 """
                 ),
-                {"user_id": scenario.user_id, "scenario_id": scenario.id}
+                {"user_id": scenario.user_id, "scenario_id": scenario.id},
             )
             await db.commit()
-   
-            print(f"INFO: Recomputed scenario with the following id: [bold magenta]{scenario.id}[/bold magenta].")
+
+            print(
+                f"INFO: Recomputed scenario with the following id: [bold magenta]{scenario.id}[/bold magenta]."
+            )
 
     async def bulk_compute_reached_pois(self, db: AsyncSession, current_user: models.User):
         # Reset reached_pois_heatmap table
@@ -631,7 +640,7 @@ class CRUDIndicator:
             calculation_geom = calculation_geom.fetchall()
 
             for study_area_id, geom in calculation_geom:
-                #TODO: Use models here. It was not used due to some problems that could not be fixed quickly
+                # TODO: Use models here. It was not used due to some problems that could not be fixed quickly
                 await db.execute(
                     text(
                         """
@@ -744,7 +753,7 @@ class CRUDIndicator:
                 "study_area_id": study_area_id,
                 "start_time": timedelta(seconds=start_time),
                 "end_time": timedelta(seconds=end_time),
-                "weekday": weekday
+                "weekday": weekday,
             },
         )
         stations_count = stations_count.fetchall()[0][0]
@@ -765,10 +774,10 @@ class CRUDIndicator:
         # TODO: Use isochrone calculation instead of buffer
 
         time_window = (end_time - start_time) / 60
-        
+
         # Get max buffer size from config to find buffer size for study area
         buffer_distances = []
-        for cls in station_config['classification'].items():
+        for cls in station_config["classification"].items():
             buffer_distances = buffer_distances + list(cls[1].keys())
         max_buffer_distance = max(map(int, buffer_distances))
 
@@ -787,7 +796,7 @@ class CRUDIndicator:
                     "end_time": timedelta(seconds=end_time),
                     "weekday": weekday,
                     "max_buffer_distance": max_buffer_distance,
-                    "route_types": list(station_config["groups"].keys())
+                    "route_types": list(station_config["groups"].keys()),
                 },
             )
             fetched_stations = fetched_stations.fetchall()
@@ -808,7 +817,7 @@ class CRUDIndicator:
                 if station_group:
                     station_groups.append(station_group)
                     station_group_trip_count += trip_count
-                    
+
             station_group = min(station_groups)  # the highest priority (e.g A )
             if station_group_trip_count == 0:
                 continue
@@ -853,49 +862,279 @@ class CRUDIndicator:
 
         return FeatureCollection(features)
 
-
     async def compute_local_accessibility_aggregated(
         self,
         db: AsyncSession,
-        study_area_id,
-        indicator_config
+        indicator_config: dict,
+        current_user: models.User,  # user_id_input = current_user.id, current_user.active_study_area_id)
+        # modus_input:str = 'default', # needed?
+        # scenario_id_input:int = 0, # needed?
+        # data_upload_ids:list = ['{}'] # needed?
     ) -> FeatureCollection:
+
+        # TODO: Compute indicator for each POI Category
+        # print(indicator_config)
+
+        # input accessibility_config:dict, user_id:int, active_study_area_id:int, modus_input:str = 'default', scenario_id_input:int = 0, data_upload_ids:list = ['{}']:
+
+        # basic.prepare_heatmap_local_accessibility('{"supermarket":{"sensitivity":250000,"weight":1}}'::jsonb, 4, 91620000)
+
+        # basic.prepare_heatmap_local_accessibility(amenities_json jsonb, user_id_input integer, active_study_area_id integer, modus_input text DEFAULT 'default'::text,
+        # scenario_id_input integer DEFAULT 0, data_upload_ids integer[] DEFAULT '{}'::integer[])
+
+   
+        ######
+
+        # key = subscore of the final aggregated score e.g. "education"
+        # value = set of dictionary strings (e.g. '{"kindergarten": {"sensitivity": 300000, "weight": 1}}') with the different amenities of the key
+        before = datetime.now()
         
-        #TODO: Compute indicator for each POI Category 
-        print(indicator_config)
+        # idea return a list of dataframes a list of coroutines
+        
+        calculated_local_accessibilities = [
+            db.execute(
+                text(
+                    """
+                    SELECT grid_visualization_id, sum(accessibility_index) AS accessibility_index
+                    FROM basic.prepare_heatmap_local_accessibility(:amenities_json, :user_id_input, :active_study_area_id)
+                    GROUP BY grid_visualization_id
+                    """
+                ), #,:modus_input, :scenario_id_input, :data_upload_ids could be added within the basic.prepare_heatmap_local_accessibility function                          
+                {
+                    "amenities_json": amenity,
+                    "user_id_input": current_user.id,
+                    "active_study_area_id": current_user.active_study_area_id,
+                    # "modus_input": modus_input,
+                    # "scenario_id_input": scenario_id_input,
+                    # "data_upload_ids": data_upload_ids,
+                },
+            )
+            for amenity in [x for y in indicator_config.values() for x in y]
+        ]  # concating of the sublists needs to be coded nicer
+
+
+        # calculated_local_accessibilities_subscores = await asyncio.gather(*calculated_local_accessibilities_subscore)
+        
+        amenity_names = []
+        for subscore in indicator_config.values():
+            amenity_names.extend([list(json.loads(amenity).keys())[0] for amenity in subscore])
+
+        # create dataframe with all heatmap reults
+        standardized_local_accessibilies_df = None
+
+        calculated_local_accessibilities = await asyncio.gather(*calculated_local_accessibilities)
+        
+        print("One call SQL took: ", (datetime.now() - before).total_seconds())
+
+        for counter, calculated_local_accessibility in enumerate(calculated_local_accessibilities):
+            # form df from corutine results
+            calculated_local_accessibility_df  = pd.DataFrame(calculated_local_accessibility, columns=['grid_visualization_id', f'accessibility_index_{amenity_names[counter]}'])
+            # standardize the accessibility index
+            if calculated_local_accessibility_df.empty:
+                continue
+                
+            elif standardized_local_accessibilies_df is None:
+                
+                calculated_local_accessibility_df[f'accessibility_index_{amenity_names[counter]}'] = ( calculated_local_accessibility_df[f'accessibility_index_{amenity_names[counter]}'] - \
+                    statistics.mean(calculated_local_accessibility_df[f'accessibility_index_{amenity_names[counter]}']) ) / statistics.stdev(calculated_local_accessibility_df[f'accessibility_index_{amenity_names[counter]}'])
+                standardized_local_accessibilies_df = calculated_local_accessibility_df
+
+            else:    
+
+                calculated_local_accessibility_df[f'accessibility_index_{amenity_names[counter]}'] = ( calculated_local_accessibility_df[f'accessibility_index_{amenity_names[counter]}'] - \
+                    statistics.mean(calculated_local_accessibility_df[f'accessibility_index_{amenity_names[counter]}']) ) / statistics.stdev(calculated_local_accessibility_df[f'accessibility_index_{amenity_names[counter]}'])
+               
+                standardized_local_accessibilies_df = standardized_local_accessibilies_df.merge(
+                    calculated_local_accessibility_df,
+                    how='outer',
+                    on='grid_visualization_id',
+                )
+        
+        standardized_local_accessibilies_df = standardized_local_accessibilies_df.set_index('grid_visualization_id')
+        
+        # calculate subscores
+        counter = 0
+        for key, value in indicator_config.items():
+            # calculate the subscore
+            standardized_local_accessibilies_df[f'subscore_{key}'] = standardized_local_accessibilies_df.iloc[:, counter:counter+len(value)-1].sum(axis = 1, skipna = True)
+            #standardize the subscore
+            standardized_local_accessibilies_df[f'subscore_{key}'] =( standardized_local_accessibilies_df[f'subscore_{key}'] - statistics.mean(standardized_local_accessibilies_df[f'subscore_{key}']) ) / statistics.stdev(standardized_local_accessibilies_df[f'subscore_{key}'])
+            counter = counter+len(value)-1
+        
+        # calculate score
+        standardized_local_accessibilies_df['score'] = standardized_local_accessibilies_df.filter(regex='subscore').sum(axis = 1, skipna = True)
+        standardized_local_accessibilies_df['score'] = ( standardized_local_accessibilies_df['score'] - statistics.mean(standardized_local_accessibilies_df['score']) ) / statistics.stdev(standardized_local_accessibilies_df['score'])
+        
+        # drop accessibility indices for amanities, but keep scores
+        standardized_local_accessibilies_df = standardized_local_accessibilies_df[standardized_local_accessibilies_df.columns.drop(list(standardized_local_accessibilies_df.filter(regex='accessibility_index_')))]
+    
+        # heatmap_geometries = gpd.GeoDataFrame(await db.execute(
+        #     text(
+        #         """
+        #         SELECT v.id, v.geom
+        #         FROM basic.grid_visualization v, basic.study_area_grid_visualization s
+        #         WHERE s.grid_visualization_id = v.id
+        #         AND s.study_area_id = :active_study_area_id
+        #         """
+        #     ),
+        #     {
+        #         "active_study_area_id": current_user.active_study_area_id,
+        #     }
+            
+        # ), geometry='geom', crs='EPSG:4326').rename(columns={'id': 'grid_visualization_id'})
+        
+        test = await db.execute(
+            text(
+                """
+                SELECT v.id, v.geom
+                FROM basic.grid_visualization v, basic.study_area_grid_visualization s
+                WHERE s.grid_visualization_id = v.id
+                AND s.study_area_id = :active_study_area_id
+                """
+            ),
+            {
+                "active_study_area_id": current_user.active_study_area_id,
+            }
+            
+        )
+        
+        test = test.fetchall()
+        
+        heatmap_geometries = gpd.GeoSeries.from_wkb(data=[x[1] for x in test], index=[x[0] for x in test], crs='EPSG:4326')
+        # standardized_local_accessibilies_gdf = gpd.GeoDataFrame(pd.concat([standardized_local_accessibilies_df, heatmap_geometries]))
+        standardized_local_accessibilies_gdf = gpd.GeoDataFrame(pd.concat([standardized_local_accessibilies_df, heatmap_geometries], axis=1).rename(columns={0: 'geom'}), geometry='geom', crs='EPSG:4326')
+        
+        
+        # standardized_local_accessibilies_gdf = standardized_local_accessibilies_df.merge(heatmap_geometries, how='left', on='grid_visualization_id')
+        # standardized_local_accessibilies_gdf = gpd.GeoDataFrame(standardized_local_accessibilies_gdf, geometry='geom', crs = 'EPSG:4326')
+
+        print("One call took: ", (datetime.now() - before).total_seconds())
+        
+        test = 1+1
+
+        # test_geojson = standardized_local_accessibilies_gdf.to_crs(epsg=4326).to_json()
+
+        return standardized_local_accessibilies_gdf.to_json()
+
+        # visualize
+        
+
+        
+        # test2 = await asyncio.gather(*calculated_local_accessibilities_subscore)
+        
+        # is it possible to await a dataframe?
+        
+        # test3 = [pd.DataFrame(coroutine) for coroutine in await asyncio.gather(*calculated_local_accessibilities_subscore)]
+        
+        
+        # basic.grid_visualization_id (grid geometry)
+        # reicht wenn wir subscores und scores für die visualisierung
+        
+        # evtl. als geobuff ziehen -> dann umwandeln in geojson und die scores dranhängen 
+        # in template_sql den return_type spezifizieren
+        
+
+        
+    # query unten liefert mir alle geometrien und für die study area als geojson or geobuf
+        # -> meine Ergebnisse muss ich mit dem mergen -> speichern -> anschauen
+         
+# @router.get("/connectivity", response_class=JSONResponse)
+# async def read_connectivity_heatmap(
+#     *,
+#     db: AsyncSession = Depends(deps.get_db),
+#     current_user: models.User = Depends(deps.get_current_active_user),
+#     return_type: ReturnType = Query(
+#         description="Return type of the response", default=ReturnType.geojson
+#     ),
+# ) -> Any:
+#     """
+#     Retrieve the connectivity heatmap.
+#     """
+#     _return_type = return_type.value
+#     if return_type == ReturnType.geobuf.value:
+#         _return_type = "db_geobuf"  # workaround for the db_geobuf return type
+#     template_sql = SQLReturnTypes[_return_type].value
+#     heatmap = await db.execute(
+#         text(
+#             template_sql
+#             % """
+#             SELECT g.id AS grid_visualization_id, ntile(5) over (order by g.area_isochrone) AS percentile_area_isochrone, 
+#             g.area_isochrone, 'default' AS modus, g.geom  
+#             FROM basic.grid_visualization g, basic.study_area_grid_visualization s 
+#             WHERE g.id = s.grid_visualization_id
+#             AND s.study_area_id = :active_study_area_id
+#             AND g.area_isochrone IS NOT NULL
+#             UNION ALL
+#             SELECT g.id AS grid_visualization_id, 0 AS percentile_area_isochrone,
+#             g.area_isochrone, 'default' AS modus, g.geom  
+#             FROM basic.grid_visualization g, basic.study_area_grid_visualization s 
+#             WHERE g.id = s.grid_visualization_id
+#             AND s.study_area_id = :active_study_area_id
+#             AND g.area_isochrone IS NULL
+#             """
+#         ),
+#         {"active_study_area_id": current_user.active_study_area_id},
+#     )
+
+#     heatmap = heatmap.fetchall()[0][0]
+#     return return_geojson_or_geobuf(heatmap, _return_type)
+        
+
+            
+        print("One call took: ", (datetime.now() - before).total_seconds())
+
+        # df = df.fillna(0)
+        test = 1+1
+
+        # Vermutung -> SQL Funktion returned "rote Hexagone nicht" -> mergen und nans mit 0 füllen -> kann ich hexagone mergen, wenn die id davor noch nicht da war? vermutlich brauchen wir einen outer join
+
+        # hier das await statement -> iwie sublisten anlegen -> dann subscores parallel berechnen -> dann score berechnen
+
+        #         print(calculated_local_accessibilities_subscore) -> returns a list of tuples (grid_visualization_id, accessibility_index)
+
+        # print(calculated_local_accessibilities_subscore)
+
+        # # Test
+        # return calculated_local_accessibilities_subscore
+
+        # hier brauche ich eine Logik, die den subscore berechnet
+
+        # hier brauche ich eine Logik, die den score berechnet
+
 
 indicator = CRUDIndicator()
 
 
 def main():
     from src.db.session import async_session, sync_session
+
     db = async_session()
     db_sync = sync_session()
-    superuser = asyncio.get_event_loop().run_until_complete(CRUDBase(models.User).get_by_key(db, key='id', value=15))
+    superuser = asyncio.get_event_loop().run_until_complete(
+        CRUDBase(models.User).get_by_key(db, key="id", value=15)
+    )
     superuser = superuser[0]
     asyncio.get_event_loop().run_until_complete(
-    CRUDIndicator().prepare_starting_points(db=db, current_user=superuser)
+        CRUDIndicator().prepare_starting_points(db=db, current_user=superuser)
     )
     asyncio.get_event_loop().run_until_complete(CRUDIndicator().clean_tables(db=db))
     asyncio.get_event_loop().run_until_complete(
-    CRUDIndicator().compute_traveltime(db=db, db_sync=db_sync, current_user=superuser)
+        CRUDIndicator().compute_traveltime(db=db, db_sync=db_sync, current_user=superuser)
     )
-    asyncio.get_event_loop().run_until_complete(CRUDIndicator().finalize_connectivity_heatmap(db=db))
+    asyncio.get_event_loop().run_until_complete(
+        CRUDIndicator().finalize_connectivity_heatmap(db=db)
+    )
     asyncio.get_event_loop().run_until_complete(
         CRUDIndicator().bulk_compute_reached_pois(db=async_session(), current_user=superuser)
     )
     asyncio.get_event_loop().run_until_complete(
-    CRUDIndicator().compute_population_heatmap(db=async_session())
+        CRUDIndicator().compute_population_heatmap(db=async_session())
     )
-    asyncio.get_event_loop().run_until_complete(
-        CRUDIndicator().bulk_recompute_scenario(db=db)
-    )
-    asyncio.get_event_loop().run_until_complete(
-        CRUDIndicator().bulk_recompute_poi_user(db=db)
-    )
+    asyncio.get_event_loop().run_until_complete(CRUDIndicator().bulk_recompute_scenario(db=db))
+    asyncio.get_event_loop().run_until_complete(CRUDIndicator().bulk_recompute_poi_user(db=db))
 
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
 
 
-#main()
+# main()
