@@ -631,7 +631,7 @@
                   }"
                 >
                   <v-card-title
-                    style="background-color: #eeeeee"
+                    style="background-color: #eeeeee; border-bottom: 0.5px solid #ddd;"
                     class="pb-0 mt-0 pt-0 mb-0"
                   >
                     <v-layout row wrap class="py-1" align-center>
@@ -741,7 +741,8 @@
                   <v-subheader
                     justify-center
                     align-center
-                    class="clickable subheader mt-1 pb-1"
+                    class="clickable subheader pt-1 pb-1"
+                    style="background-color: #eeeeee"
                   >
                     <v-simple-checkbox
                       :disabled="isIsochroneBusy"
@@ -781,26 +782,37 @@
                       <span>{{ calculation.position }}</span></v-tooltip
                     >
                   </v-subheader>
-                  <v-subheader row>
-                    <v-slider
-                      v-model="calculationTravelTime[calculation.id - 1]"
-                      @mousedown.native.stop
-                      @mouseup.native.stop
-                      @click.native.stop
-                      style="padding-top: 15px;"
-                      :track-color="appColor.secondary"
-                      :color="appColor.secondary"
-                      :min="1"
-                      :max="getMaxIsochroneRange"
-                      thumb-label
-                      @input="
-                        updateSurface(
-                          calculation,
-                          calculationTravelTime[calculation.id - 1]
-                        )
-                      "
-                      thumb-size="25"
-                    ></v-slider>
+                  <v-subheader v-if="isCalculationActive(calculation)" row>
+                    <v-row>
+                      <v-col cols="3" style="padding-right: 0;">
+                        <p
+                          style="font-size: 10px; font-weight: bold;  margin-bottom: 0; padding-top: 15px;"
+                        >
+                          {{ $t("isochrones.tableData.travelTimeSlider") }}
+                        </p>
+                      </v-col>
+                      <v-col cols="9" style="padding-left: 0;">
+                        <v-slider
+                          v-model="calculationTravelTime[calculation.id - 1]"
+                          @mousedown.native.stop
+                          @mouseup.native.stop
+                          @click.native.stop
+                          style="padding-top: 15px;"
+                          :track-color="appColor.secondary"
+                          :color="appColor.secondary"
+                          :min="1"
+                          :max="getMaxIsochroneRange"
+                          thumb-label
+                          @input="
+                            updateSurface(
+                              calculation,
+                              calculationTravelTime[calculation.id - 1]
+                            )
+                          "
+                          thumb-size="25"
+                        ></v-slider>
+                      </v-col>
+                    </v-row>
                   </v-subheader>
                 </v-card>
               </template>
@@ -1675,7 +1687,8 @@ export default {
                       color: "#00000000",
                       width: 2,
                       dashWidth: 0,
-                      dashSpace: 0
+                      dashSpace: 0,
+                      status: false
                     });
                     this.calculationTravelTime.push(10);
                     if (this.selectedCalculations.length === 2) {

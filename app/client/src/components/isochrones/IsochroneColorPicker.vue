@@ -1,141 +1,100 @@
 <template>
-  <v-dialog
-    width="300"
-    overlay-opacity="0"
-    persistent
-    no-click-animation
-    hide-overlay
-    v-model="dialog"
-    content-class="v-dialog"
-  >
-    <v-card
-      :style="[isExpanded ? { height: 'auto' } : { height: '50px' }]"
-      class="isochrone-color-picker"
-      v-draggable="draggableValue"
-    >
-      <v-app-bar
-        :ref="handleId"
-        style="cursor: grab"
-        height="50"
-        :color="appColor.primary"
-        dark
-      >
-        <v-app-bar-nav-icon><v-icon>fas fa-palette</v-icon></v-app-bar-nav-icon>
-        <v-toolbar-title>{{
+  <!-- <v-toolbar-title>{{
           $t("isochrones.pickColor.title")
-        }}</v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-icon @click="expand" class="toolbar-icons mr-2">
-          {{ isExpanded ? "fas fa-chevron-up" : "fas fa-chevron-down" }}
-        </v-icon>
-        <v-app-bar-nav-icon @click.stop="closeDialog"
-          ><v-icon>close</v-icon></v-app-bar-nav-icon
+        }}</v-toolbar-title> -->
+  <div>
+    <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
+      <v-tab :key="1">
+        <v-badge>
+          <b>{{ $t("isochrones.styling.fillColor") }}</b>
+        </v-badge>
+      </v-tab>
+      <v-tab :key="2">
+        <v-badge>
+          <b>{{ $t("isochrones.styling.StrokeColor") }}</b>
+        </v-badge>
+      </v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="tab">
+      <v-tab-item :key="1">
+        <v-color-picker
+          class="elevation-0"
+          canvas-height="100"
+          width="400"
+          style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
+          :mode.sync="hexa"
+          v-model="fillColor"
+          @input="onFillColorChange($event)"
         >
-      </v-app-bar>
-      <vue-scroll
-        class="color-wrapper"
-        :style="[isExpanded ? {} : { visibility: 'hidden' }]"
-      >
-        <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
-          <v-tab :key="1">
-            <v-badge>
-              <b>{{ $t("isochrones.styling.fillColor") }}</b>
-            </v-badge>
-          </v-tab>
-          <v-tab :disabled="!strokeStatus" :key="2">
-            <v-badge>
-              <b>{{ $t("isochrones.styling.StrokeColor") }}</b>
-            </v-badge>
-          </v-tab>
-        </v-tabs>
-        <v-tabs-items v-model="tab">
-          <v-tab-item :key="1">
-            <v-color-picker
-              class="elevation-0"
-              canvas-height="100"
-              width="400"
-              style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
-              :mode.sync="hexa"
-              v-model="fillColor"
-              @input="onFillColorChange($event)"
-            >
-            </v-color-picker>
-            <div style="width: 400px; margin: auto;">
-              <p>Stroke Setting</p>
-              <v-checkbox v-model="strokeStatus" label="Stroke"></v-checkbox>
-            </div>
-            <v-btn
-              color="warning"
-              dark
-              @click="resetStyle(selectedCalculationChangeColor)"
-              style="width: 100%; background-color: #2bb381 !important"
-            >
-              Reset Style
-            </v-btn>
-          </v-tab-item>
-          <v-tab-item>
-            <v-text-field
-              label="Stroke Width"
-              :rules="rules"
-              v-model="strokeWidth"
-              @input="changeWidth"
-              type="number"
-              style="margin: auto; margin-bottom: 10px; margin-top: 10px; width:400px;"
-            ></v-text-field>
-            <v-radio-group
-              style="margin: auto; width:400px;"
-              v-model="strokeStyle"
-              column
-            >
-              <p>Stroke Style</p>
-              <v-radio label="Solid" value="solid"></v-radio>
-              <v-radio label="Dashed" value="dashed"></v-radio>
-            </v-radio-group>
-            <div v-if="strokeStyle === 'dashed'">
-              <v-row style="margin: -5px auto; width:400px;">
-                <v-col
-                  style="padding: 0; padding-right: 12px;"
-                  cols="12"
-                  sm="6"
-                >
-                  <v-text-field
-                    label="Dash Width"
-                    :rules="rules"
-                    v-model="dashWidth"
-                    @input="changeDash"
-                    type="number"
-                  ></v-text-field>
-                </v-col>
-                <v-col
-                  style="padding: 0; padding-right: 12px;"
-                  cols="12"
-                  sm="6"
-                >
-                  <v-text-field
-                    label="Spacing"
-                    :rules="rules"
-                    v-model="dashSpacing"
-                    @input="changeDash"
-                    type="number"
-                  ></v-text-field>
-                </v-col>
-              </v-row>
-            </div>
-            <v-color-picker
-              class="elevation-0"
-              canvas-height="100"
-              width="400"
-              style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
-              :mode.sync="hexa"
-              v-model="strokeColor"
-              @input="onStrokeColorChange($event)"
-            >
-            </v-color-picker>
-          </v-tab-item>
-        </v-tabs-items>
-      </vue-scroll>
-    </v-card>
-  </v-dialog>
+        </v-color-picker>
+        <v-btn
+          color="warning"
+          dark
+          @click="resetStyle(selectedCalculationChangeColor)"
+          style="width: 100%; background-color: #2bb381 !important"
+        >
+          Reset Style
+        </v-btn>
+      </v-tab-item>
+      <v-tab-item>
+        <div style="width: 400px; margin: auto;">
+          <p>Stroke Setting</p>
+          <v-checkbox v-model="strokeStatus" label="Stroke"></v-checkbox>
+        </div>
+        <div v-if="strokeStatus">
+          <v-text-field
+            label="Stroke Width"
+            :rules="rules"
+            v-model="strokeWidth"
+            @input="changeWidth"
+            type="number"
+            style="margin: auto; margin-bottom: 10px; margin-top: 10px; width:400px;"
+          ></v-text-field>
+          <v-radio-group
+            style="margin: auto; width:400px;"
+            v-model="strokeStyle"
+            column
+          >
+            <p>Stroke Style</p>
+            <v-radio label="Solid" value="solid"></v-radio>
+            <v-radio label="Dashed" value="dashed"></v-radio>
+          </v-radio-group>
+          <div v-if="strokeStyle === 'dashed'">
+            <v-row style="margin: -5px auto; width:400px;">
+              <v-col style="padding: 0; padding-right: 12px;" cols="12" sm="6">
+                <v-text-field
+                  label="Dash Width"
+                  :rules="rules"
+                  v-model="dashWidth"
+                  @input="changeDash"
+                  type="number"
+                ></v-text-field>
+              </v-col>
+              <v-col style="padding: 0; padding-right: 12px;" cols="12" sm="6">
+                <v-text-field
+                  label="Spacing"
+                  :rules="rules"
+                  v-model="dashSpacing"
+                  @input="changeDash"
+                  type="number"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </div>
+          <v-color-picker
+            class="elevation-0"
+            canvas-height="100"
+            width="400"
+            style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
+            :mode.sync="hexa"
+            v-model="strokeColor"
+            @input="onStrokeColorChange($event)"
+          >
+          </v-color-picker>
+        </div>
+      </v-tab-item>
+    </v-tabs-items>
+  </div>
 </template>
 
 <script>
@@ -154,6 +113,19 @@ export default {
         this.strokeColor = "#000000ff";
       } else {
         this.strokeColor = "#ffffff00";
+        let newObj = {
+          color: "#ffffff00",
+          width: this.calculationSrokeObjects[
+            this.selectedCalculationChangeColor.id - 1
+          ].width,
+          dashWidth: this.calculationSrokeObjects[
+            this.selectedCalculationChangeColor.id - 1
+          ].dashWidth,
+          dashSpace: this.calculationSrokeObjects[
+            this.selectedCalculationChangeColor.id - 1
+          ].dashSdashSpacepacing
+        };
+        this.updateStrokeStyling(newObj);
       }
     },
     strokeStyle(value) {
@@ -312,6 +284,7 @@ export default {
       this.calculationSrokeObjects = newStrokes;
     },
     changeDash() {
+      console.log("change");
       let newObj = {
         color: this.calculationSrokeObjects[
           this.selectedCalculationChangeColor.id - 1

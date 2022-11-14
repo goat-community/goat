@@ -117,19 +117,6 @@
                   </v-btn>
                 </v-btn-toggle>
               </v-row>
-              <v-row class="ml-1 mr-0">
-                <v-col cols="12" class="pr-0 pb-0 mr-0">
-                  <v-row class="align-center">
-                    <v-col md="2" sm="2" style="padding: 0;">
-                      <p
-                        style="font-size: 10px; font-weight: bold;  margin-bottom: 0;"
-                      >
-                        {{ $t("isochrones.tableData.travelTimeSlider") }}
-                      </p>
-                    </v-col>
-                  </v-row>
-                </v-col>
-              </v-row>
             </v-card-text>
             <isochrone-amenities-line-chart
               :width="550"
