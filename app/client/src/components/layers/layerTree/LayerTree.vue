@@ -186,9 +186,8 @@
       <style-dialog
         @closeTheDialog="styleDialogStatus = false"
         :item="currentItem"
+        type="layer"
         :translate="translate"
-        :key="styleDialogKey"
-        :styleDialogStatus="styleDialogStatus"
       >
       </style-dialog>
     </span>
@@ -205,7 +204,7 @@ import { EventBus } from "../../../EventBus";
 //component imports
 import InLegend from "../../viewer/ol/controls/InLegend";
 import LayerOrder from "../layerOrder/LayerOrder";
-import StyleDialog from "../changeStyle/StyleDialog";
+import StyleDialog from "../../styling/StyleDialog";
 import Legend from "../../viewer/ol/controls/Legend";
 import ImportExternalLayers from "../importLayers/ImportExternalLayers.vue";
 

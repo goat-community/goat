@@ -631,7 +631,7 @@
                   }"
                 >
                   <v-card-title
-                    style="background-color: #eeeeee"
+                    style="background-color: #eeeeee; border-bottom: 0.5px solid #e0e0e0;"
                     class="pb-0 mt-0 pt-0 mb-0"
                   >
                     <v-layout row wrap class="py-1" align-center>
@@ -703,7 +703,7 @@
                         <div
                           :style="
                             `background-color: ${
-                              calculationColors[findColor(calculation.id) - 1]
+                              calculationColors[calculation.id - 1]
                             }`
                           "
                           class="isochroneColor"
@@ -741,7 +741,8 @@
                   <v-subheader
                     justify-center
                     align-center
-                    class="clickable subheader mt-1 pb-1"
+                    class="clickable subheader "
+                    style="background-color: #eeeeee; padding-top: 16px; padding-bottom: 16px;"
                   >
                     <v-simple-checkbox
                       :disabled="isIsochroneBusy"
@@ -781,6 +782,50 @@
                       <span>{{ calculation.position }}</span></v-tooltip
                     >
                   </v-subheader>
+                  <v-subheader v-if="isCalculationActive(calculation)" row>
+                    <v-row>
+                      <v-col cols="3" style="padding-right: 0;">
+                        <div>
+                          <p
+                            style="font-size: 12px; font-weight: 400; margin-bottom: 0; padding-top: 15px; width: fit-content; text-align: center;"
+                          >
+                            {{
+                              $t("isochrones.tableData.travelTimeSlider").split(
+                                " "
+                              )[0]
+                            }}
+                            <br />
+                            {{
+                              $t("isochrones.tableData.travelTimeSlider").split(
+                                " "
+                              )[1]
+                            }}
+                          </p>
+                        </div>
+                      </v-col>
+                      <v-col cols="9" style="padding-left: 0;">
+                        <v-slider
+                          v-model="calculationTravelTime[calculation.id - 1]"
+                          @mousedown.native.stop
+                          @mouseup.native.stop
+                          @click.native.stop
+                          style="padding-top: 15px;"
+                          track-color="#bac5d6"
+                          :color="appColor.secondary"
+                          :min="1"
+                          :max="getMaxIsochroneRange"
+                          thumb-label
+                          @input="
+                            updateSurface(
+                              calculation,
+                              calculationTravelTime[calculation.id - 1]
+                            )
+                          "
+                          thumb-size="25"
+                        ></v-slider>
+                      </v-col>
+                    </v-row>
+                  </v-subheader>
                 </v-card>
               </template>
             </v-flex>
@@ -799,7 +844,7 @@ import { Mapable } from "../../mixins/Mapable";
 import { toPixel } from "../../utils/MapUtils";
 import { Isochrones } from "../../mixins/Isochrones";
 import { KeyShortcuts } from "../../mixins/KeyShortcuts";
-
+import IsochroneUtils from "../../utils/IsochroneUtils";
 import {
   getIsochroneStyle,
   getIsochroneNetworkStyle,
@@ -896,6 +941,16 @@ export default {
     locationIQ: "https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4"
   }),
   computed: {
+    getMaxIsochroneRange() {
+      let maxIsochroneRange = 60;
+      const walkingCyclingCalculations = this.selectedCalculations.filter(
+        c => !["transit", "car"].includes(c.routing)
+      );
+      if (walkingCyclingCalculations.length > 0) {
+        maxIsochroneRange = 20;
+      }
+      return maxIsochroneRange;
+    },
     ...mapGetters("scenarios", {
       activeScenario: "activeScenario"
     }),
@@ -929,6 +984,10 @@ export default {
       defaultIsochroneColor: "defaultIsochroneColor",
       scenarioIsochroneColor: "scenarioIsochroneColor",
       selectedCalculations: "selectedCalculations",
+      preDefCalculationColors: "preDefCalculationColors",
+      calculationColors: "calculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects",
+      calculationTravelTime: "calculationTravelTime",
       publicTransport: "publicTransport",
       isochroneRange: "isochroneRange",
       isochroneResultWindow: "isochroneResultWindow",
@@ -936,7 +995,8 @@ export default {
     }),
     ...mapGetters("isochrones", {
       routingProfiles: "routingProfiles",
-      calculationColors: "calculationColors",
+      preDefCalculationColors: "preDefCalculationColors",
+      calculationTravelTime: "calculationTravelTime",
       colors: "colors"
     }),
     ...mapFields("map", {
@@ -973,6 +1033,13 @@ export default {
     }
   },
   methods: {
+    /*
+      Modify the isochrone whenever it changes size
+    */
+    updateSurface(calculation, timeRange) {
+      IsochroneUtils.updateIsochroneSurface(calculation, timeRange);
+    },
+
     secondsToHoursAndMins,
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR",
@@ -1587,7 +1654,11 @@ export default {
                 config: payload,
                 rawData: isochroneSurface,
                 surfaceData: singleValuedSurface,
-                feature: olFeatures[0]
+                feature: olFeatures[0],
+                stroke: {
+                  color: "#000000",
+                  width: 2
+                }
               };
 
               if (_type == "single") {
@@ -1619,6 +1690,19 @@ export default {
                       "isochrone_feature_" + isochroneCalculationUid
                     );
                     olFeatures[0].set("calculationNumber", calculationNumber);
+                    this.calculationColors.push(
+                      this.preDefCalculationColors[
+                        this.findColor(calculationNumber) - 1
+                      ]
+                    );
+                    this.calculationSrokeObjects.push({
+                      color: "#00000000",
+                      width: 2,
+                      dashWidth: 0,
+                      dashSpace: 0,
+                      status: false
+                    });
+                    this.calculationTravelTime.push(10);
                     if (this.selectedCalculations.length === 2) {
                       // Remove first calculation if length is already 2
                       this.selectedCalculations.shift();
@@ -1639,6 +1723,19 @@ export default {
                 );
                 olFeatures[0].set("calculationNumber", calculationNumber);
                 calculation.position = "multiIsochroneCalculation";
+                this.calculationColors.push(
+                  this.preDefCalculationColors[
+                    this.findColor(calculationNumber) - 1
+                  ]
+                );
+                this.calculationSrokeObjects.push({
+                  color: "#00000000",
+                  width: 2,
+                  dashWidth: 0,
+                  dashSpace: 0,
+                  status: false
+                });
+                this.calculationTravelTime.push(10);
                 this.calculations.unshift(calculation);
                 this.selectedCalculations = [];
                 this.selectedCalculations.push(calculation);
@@ -1800,7 +1897,7 @@ export default {
                 surface,
                 width,
                 height,
-                cutoff: this.isochroneRange,
+                cutoff: this.calculationTravelTime[calculation[0].id - 1],
                 project: ([x, y]) => {
                   const ll = fromPixel({ x: x + west, y: y + north }, zoom);
                   return [ll.lon, ll.lat];
@@ -1922,37 +2019,10 @@ export default {
           return calculation;
         }
       });
-      // this.calculations = this.calculations.filter(
-      //   calculation => calculation.id !== id
-      // );
+
       this.selectedCalculations = this.selectedCalculations.filter(
         selectedCalculation => selectedCalculation.id !== id
       );
-
-      // this.calculations = this.calculations.map(calculation => {
-      //   if (calculation.id > id) {
-      //     calculation.id = calculation.id - 1;
-      //   }
-      //   return calculation;
-      // });
-      // const isochroneSource = this.isochroneLayer.getSource();
-      // isochroneSource.getFeatures().forEach(isochroneFeature => {
-      //   const isochroneCalculationNr = isochroneFeature.get(
-      //     "calculationNumber"
-      //   );
-      //   if (isochroneCalculationNr === id) {
-      //     isochroneSource.removeFeature(isochroneFeature);
-      //   }
-      //   if (isochroneCalculationNr > id) {
-      //     const updatedNr = isochroneCalculationNr - 1;
-      //     if (isochroneFeature.getGeometry().getType() === "Point") {
-      //       isochroneFeature.setId("isochrone_marker_" + updatedNr);
-      //       isochroneFeature.set("calculationNumber", updatedNr);
-      //     } else {
-      //       isochroneFeature.set("calculationNumber", updatedNr);
-      //     }
-      //   }
-      // });
     },
     /**
      * Clears the map and ol interaction activity
@@ -2168,5 +2238,14 @@ export default {
   margin-bottom: 3px;
   border-radius: 3px;
   cursor: pointer;
+}
+
+.v-slider--horizontal .v-slider__track-container {
+  height: 5px;
+  border-radius: 10px;
+}
+.v-slider__thumb {
+  height: 14px;
+  width: 14px;
 }
 </style>

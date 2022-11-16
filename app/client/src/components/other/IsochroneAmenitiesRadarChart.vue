@@ -45,7 +45,8 @@ export default {
           data,
           label: `Isochrone - ${calculation.id}`,
           backgroundColor:
-            this.calculationColors[calculation.id - 1] || "rgb(54, 162, 235)"
+            this.preDefCalculationColors[calculation.id - 1] ||
+            "rgb(54, 162, 235)"
         });
       });
 
@@ -100,7 +101,7 @@ export default {
       selectedCalculations: "selectedCalculations",
       isochroneRange: "isochroneRange",
       chartDatasetType: "chartDatasetType",
-      calculationColors: "calculationColors"
+      preDefCalculationColors: "preDefCalculationColors"
     }),
     ...mapGetters("poisaois", {
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys",

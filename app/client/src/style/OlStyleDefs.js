@@ -11,6 +11,7 @@ import poisAoisStore from "../store/modules/poisaois";
 import isochroneStore from "../store/modules/isochrones";
 import store from "../store/index";
 import mapStore from "../store/modules/map";
+import Stroke from "ol/style/Stroke";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
 import { getIconUnicode } from "../utils/Helpers";
@@ -212,7 +213,8 @@ export function getIsochroneStyle() {
         return;
       }
       let calculationColors = isochroneStore.state.calculationColors;
-      // const selectedCalculations = isochroneStore.state.selectedCalculations;
+      let calculationStroke = isochroneStore.state.calculationSrokeObjects;
+
       let calculationNumber = feature.get("calculationNumber");
       if (calculationNumber > 10) {
         let division = calculationNumber / 10;
@@ -223,6 +225,14 @@ export function getIsochroneStyle() {
         new OlStyle({
           fill: new OlFill({
             color: calculationColors[calculationNumber - 1]
+          }),
+          stroke: new Stroke({
+            color: calculationStroke[calculationNumber - 1].color,
+            width: calculationStroke[calculationNumber - 1].width,
+            lineDash: [
+              calculationStroke[calculationNumber - 1].dashWidth,
+              calculationStroke[calculationNumber - 1].dashSpace
+            ]
           })
         })
       );

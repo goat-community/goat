@@ -65,7 +65,7 @@
                     class="mx-2 colorPalettePicker"
                     :style="
                       `border-bottom:4px solid ${
-                        calculationColors[selectedCalculations[0].id - 1]
+                        preDefCalculationColors[selectedCalculations[0].id - 1]
                       };`
                     "
                   ></div>
@@ -79,7 +79,7 @@
                     class="ml-6 mr-2 colorPalettePicker"
                     :style="
                       `border-bottom:4px dashed ${
-                        calculationColors[selectedCalculations[1].id - 1]
+                        preDefCalculationColors[selectedCalculations[1].id - 1]
                       };`
                     "
                   ></div>
@@ -116,39 +116,6 @@
                     <v-icon small>fa-solid fa-chart-pie</v-icon>
                   </v-btn>
                 </v-btn-toggle>
-              </v-row>
-              <v-row class="ml-1 mr-0">
-                <v-col cols="12" class="pr-0 pb-0 mr-0">
-                  <v-row class="align-center">
-                    <v-col md="2" sm="2" style="padding: 0;">
-                      <p
-                        style="font-size: 10px; font-weight: bold;  margin-bottom: 0;"
-                      >
-                        {{ $t("isochrones.tableData.travelTimeSlider") }}
-                      </p>
-                    </v-col>
-                    <v-col md="9" sm="9" style="padding: 0;">
-                      <v-slider
-                        @mousedown.native.stop
-                        @mouseup.native.stop
-                        @click.native.stop
-                        style="padding-top: 15px;"
-                        :track-color="appColor.secondary"
-                        :color="appColor.secondary"
-                        v-model="isochroneRange"
-                        :min="1"
-                        :max="getMaxIsochroneRange"
-                        thumb-label="always"
-                        thumb-size="25"
-                        @input="udpateIsochroneSurface"
-                      >
-                        <template v-slot:thumb-label="{ value }">
-                          {{ value }}
-                        </template>
-                      </v-slider>
-                    </v-col>
-                  </v-row>
-                </v-col>
               </v-row>
             </v-card-text>
             <isochrone-amenities-line-chart
@@ -229,15 +196,10 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-// import IsochroneUtils from "../../utils/IsochroneUtils";
+import IsochroneUtils from "../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
 import { mapFields } from "vuex-map-fields";
-import {
-  featuresToGeojson,
-  fromPixel,
-  geojsonToFeature
-} from "../../utils/MapUtils";
-import { jsolines } from "../../utils/Jsolines";
+import { featuresToGeojson } from "../../utils/MapUtils";
 import IsochroneAmenitiesLineChart from "../other/IsochroneAmenitiesLineChart.vue";
 import IsochroneAmenitiesPieChart from "../other/IsochroneAmenitiesPieChart.vue";
 import IsochroneAmenitiesRadarChartVue from "../other/IsochroneAmenitiesRadarChart.vue";
@@ -304,35 +266,12 @@ export default {
       }
       return string;
     },
-    updateIsochroneSurface(calculation) {
-      const {
-        surface,
-        width,
-        height,
-        west,
-        north,
-        zoom
-        // eslint-disable-next-line no-undef
-      } = calculation.surfaceData;
-      const isochronePolygon = jsolines({
-        surface,
-        width,
-        height,
-        cutoff: this.isochroneRange,
-        project: ([x, y]) => {
-          const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-          return [ll.lon, ll.lat];
-        }
-      });
-      let olFeatures = geojsonToFeature(isochronePolygon, {
-        dataProjection: "EPSG:4326",
-        featureProjection: "EPSG:3857"
-      });
-      calculation.feature.setGeometry(olFeatures[0].getGeometry());
-    },
-    udpateIsochroneSurface: debounce(function() {
+    updateIsochroneSurface: debounce(function() {
       this.selectedCalculations.forEach(calculation => {
-        this.updateIsochroneSurface(calculation);
+        IsochroneUtils.updateIsochroneSurface(
+          calculation,
+          this.calculationTravelTime[calculation.id - 1]
+        );
       });
     }, 30),
     downloadIsochrone(type) {
@@ -549,6 +488,9 @@ export default {
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
       calculationColors: "calculationColors",
+      preDefCalculationColors: "preDefCalculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects",
+      calculationTravelTime: "calculationTravelTime",
       selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("poisaois", {
@@ -570,6 +512,9 @@ export default {
   },
   watch: {
     calculationColors() {
+      this.updateIsochroneSurface(this.selectedCalculationChangeColor);
+    },
+    calculationSrokeObjects() {
       this.updateIsochroneSurface(this.selectedCalculationChangeColor);
     },
     resultViewType(value) {

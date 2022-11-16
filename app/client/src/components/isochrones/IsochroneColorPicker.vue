@@ -1,46 +1,27 @@
 <template>
-  <v-dialog
-    width="300"
-    overlay-opacity="0"
-    persistent
-    no-click-animation
-    hide-overlay
-    v-model="dialog"
-    content-class="v-dialog"
-  >
-    <v-card
-      :style="[isExpanded ? { height: 'auto' } : { height: '50px' }]"
-      class="isochrone-color-picker"
-      v-draggable="draggableValue"
-    >
-      <v-app-bar
-        :ref="handleId"
-        style="cursor: grab"
-        height="50"
-        :color="appColor.primary"
-        dark
-      >
-        <v-app-bar-nav-icon><v-icon>fas fa-palette</v-icon></v-app-bar-nav-icon>
-        <v-toolbar-title>{{
+  <!-- <v-toolbar-title>{{
           $t("isochrones.pickColor.title")
-        }}</v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-icon @click="expand" class="toolbar-icons mr-2">
-          {{ isExpanded ? "fas fa-chevron-up" : "fas fa-chevron-down" }}
-        </v-icon>
-        <v-app-bar-nav-icon @click.stop="closeDialog"
-          ><v-icon>close</v-icon></v-app-bar-nav-icon
-        >
-      </v-app-bar>
-      <vue-scroll
-        class="color-wrapper"
-        :style="[isExpanded ? {} : { visibility: 'hidden' }]"
-      >
+        }}</v-toolbar-title> -->
+  <div>
+    <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
+      <v-tab :key="1">
+        <v-badge>
+          <b>{{ $t("isochrones.styling.fillColor") }}</b>
+        </v-badge>
+      </v-tab>
+      <v-tab :key="2">
+        <v-badge>
+          <b>{{ $t("isochrones.styling.StrokeColor") }}</b>
+        </v-badge>
+      </v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="tab">
+      <v-tab-item :key="1">
         <v-color-picker
           class="elevation-0"
           canvas-height="100"
           width="400"
-          style="margin: auto; margin-bottom: 20px"
+          style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
           :mode.sync="hexa"
           v-model="fillColor"
           @input="onFillColorChange($event)"
@@ -54,9 +35,71 @@
         >
           Reset Style
         </v-btn>
-      </vue-scroll>
-    </v-card>
-  </v-dialog>
+      </v-tab-item>
+      <v-tab-item>
+        <div>
+          <v-row style="width: 424px; margin: auto;" align="center">
+            <v-col cols="6" class="py-0">
+              <v-text-field
+                outlined
+                dense
+                label="Stroke Width"
+                v-model="strokeWidth"
+                @input="changeWidth"
+                style="margin: auto; margin-bottom: 10px; margin-top: 10px; width:400px;"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6" class="py-0">
+              <v-select
+                v-model="strokeStyle"
+                :items="strokeStyles"
+                label="Stroke style"
+                dense
+                outlined
+              ></v-select>
+            </v-col>
+          </v-row>
+          <!-- <v-row style="width: 424px; margin: auto;" align="center">
+            <v-col cols="6" class="py-0">
+              <v-text-field
+                outlined
+                dense
+                v-if="strokeStyle === 'dashed'"
+                label="Dash Width"
+                :rules="rules"
+                v-model="dashWidth"
+                @input="changeDash"
+                type="number"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6" class="py-0">
+              <v-text-field
+                outlined
+                dense
+                v-if="strokeStyle === 'dashed'"
+                label="Spacing"
+                :rules="rules"
+                v-model="dashSpacing"
+                @input="changeDash"
+                type="number"
+              ></v-text-field>
+            </v-col>
+          </v-row> -->
+          <v-color-picker
+            class="elevation-0"
+            canvas-height="100"
+            width="400"
+            style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
+            :mode.sync="hexa"
+            v-model="strokeColor"
+            @input="onStrokeColorChange($event)"
+            @change="onStrokeColorChange($event)"
+          >
+          </v-color-picker>
+        </div>
+      </v-tab-item>
+    </v-tabs-items>
+  </div>
 </template>
 
 <script>
@@ -69,6 +112,47 @@ import { Draggable } from "draggable-vue-directive";
 export default {
   props: ["temporaryColors"],
   watch: {
+    strokeColor(value) {
+      let { width, dashWidth, dashSpace } = this.calculationSrokeObjects[
+        this.selectedCalculationChangeColor.id - 1
+      ];
+      this.newObjectCreation(value, width, dashWidth, dashSpace);
+    },
+    strokeStyle(value) {
+      if (value === "Solid") {
+        if (this.strokeColor[7] === "0" && this.strokeColor[8] === "0") {
+          this.turnOnStroke();
+        }
+        let { color, width } = this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ];
+        this.newObjectCreation(color, width, 0, 0);
+        this.dashWidth = 0;
+        this.dashSpacing = 0;
+      } else if (value === "Dashed") {
+        if (this.strokeColor[7] === "0" && this.strokeColor[8] === "0") {
+          this.turnOnStroke();
+        }
+        let {
+          color,
+          width,
+          dashWidth,
+          dashSpace
+        } = this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ];
+        this.newObjectCreation(
+          color,
+          width,
+          dashWidth === 0 ? 10 : dashWidth,
+          dashSpace === 0 ? 10 : dashSpace
+        );
+        this.dashWidth = dashWidth === 0 ? 10 : dashWidth;
+        this.dashSpacing = dashSpace === 0 ? 10 : dashSpace;
+      } else {
+        this.turnOffStroke();
+      }
+    },
     selectedCalculationChangeColor(value) {
       if (value) {
         this.dialog = true;
@@ -80,10 +164,18 @@ export default {
   },
   data: () => ({
     isExpanded: true,
+    strokeWidth: null,
     dialog: true,
+    dashWidth: null,
+    dashSpacing: null,
     fillColor: null,
+    strokeColor: "#ffffff00",
     handleId: "handle",
     hexa: "hexa",
+    tab: null,
+    strokeStyle: "No Stroke",
+    strokeStyles: ["No Stroke", "Solid", "Dashed"],
+    strokeStatus: false,
     draggableValue: {
       handle: undefined,
       boundingElement: undefined,
@@ -101,6 +193,35 @@ export default {
       this.selectedCalculationChangeColor.id - 1
     ];
 
+    this.strokeWidth = this.calculationSrokeObjects[
+      this.selectedCalculationChangeColor.id - 1
+    ].width.toString();
+
+    this.strokeColor = this.calculationSrokeObjects[
+      this.selectedCalculationChangeColor.id - 1
+    ].color;
+
+    if (
+      this.calculationSrokeObjects[this.selectedCalculationChangeColor.id - 1]
+        .dashWidth &&
+      this.calculationSrokeObjects[this.selectedCalculationChangeColor.id - 1]
+        .dashSpace
+    ) {
+      this.strokeStyle = "Dashed";
+    } else if (this.strokeColor[7] === "0" && this.strokeColor[8] === "0") {
+      this.strokeStyle = "No Stroke";
+    } else {
+      this.strokeStyle = "Solid";
+    }
+
+    this.dashWidth = this.calculationSrokeObjects[
+      this.selectedCalculationChangeColor.id - 1
+    ].dashWidth;
+
+    this.dashSpacing = this.calculationSrokeObjects[
+      this.selectedCalculationChangeColor.id - 1
+    ].dashSpace;
+
     this.fillColor = colorHex;
   },
   computed: {
@@ -116,12 +237,17 @@ export default {
     },
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
-      calculationColors: "calculationColors",
+      preDefCalculationColors: "preDefCalculationColors",
       colors: "colors",
+      calculationColors: "calculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects",
       selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapFields("isochrones", {
+      preDefCalculationColors: "preDefCalculationColors",
+      calculations: "calculations",
       calculationColors: "calculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects",
       selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("app", {
@@ -129,6 +255,45 @@ export default {
     })
   },
   methods: {
+    newObjectCreation(color, width, dashWidth, dashSpace) {
+      let newObj = {
+        color: color,
+        width: width,
+        dashWidth: dashWidth,
+        dashSpace: dashSpace
+      };
+      this.updateStrokeStyling(newObj);
+    },
+    updateStrokeStyling(stylingObject) {
+      let newStrokes = [
+        ...this.calculationSrokeObjects.map((elem, idx) => {
+          if (idx === this.selectedCalculationChangeColor.id - 1) {
+            return stylingObject;
+          } else {
+            return elem;
+          }
+        })
+      ];
+      this.calculationSrokeObjects = newStrokes;
+    },
+    // changeDash() {
+    //   let { color } = this.calculationSrokeObjects[
+    //     this.selectedCalculationChangeColor.id - 1
+    //   ];
+    //   this.newObjectCreation(
+    //     color,
+    //     this.strokeWidth,
+    //     this.dashWidth,
+    //     this.dashSpacing
+    //   );
+    // },
+    changeWidth() {
+      let newWidth = parseInt(this.strokeWidth);
+      let { color, dashWidth, dashSpace } = this.calculationSrokeObjects[
+        this.selectedCalculationChangeColor.id - 1
+      ];
+      this.newObjectCreation(color, newWidth, dashWidth, dashSpace);
+    },
     onFillColorChange(value) {
       if (value[7] === "F" && value[8] === "F") {
         let newModColor = value.slice(0, -2) + "80";
@@ -149,6 +314,18 @@ export default {
         ];
         this.calculationColors = newColors;
       }
+    },
+    onStrokeColorChange(value) {
+      let { dashWidth, dashSpace } = this.calculationSrokeObjects[
+        this.selectedCalculationChangeColor.id - 1
+      ];
+      this.newObjectCreation(
+        value,
+        parseInt(this.strokeWidth),
+        dashWidth,
+        dashSpace
+      );
+      this.strokeColor = value;
     },
     resetStyle(calculation) {
       let tempArray = this.calculationColors;
@@ -204,6 +381,22 @@ export default {
           feature.set("color", interpolatedColor);
         }
       );
+    },
+    turnOnStroke() {
+      this.strokeColor =
+        this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ].color
+          .slice(0, -1)
+          .slice(0, -1) + "ff";
+    },
+    turnOffStroke() {
+      this.strokeColor =
+        this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ].color
+          .slice(0, -1)
+          .slice(0, -1) + "00";
     }
   }
 };
