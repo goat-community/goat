@@ -28,8 +28,14 @@
             </v-icon>
           </v-app-bar-nav-icon>
           <v-toolbar-title>
-            <b>title snippet</b>
-            <!-- <b>{{ translate("layerName", item.get("name")) }}</b> -->
+            <div v-if="type === 'layer'">
+              <b>{{ translate("layerName", item.get("name")) }}</b>
+            </div>
+            <div v-else>
+              <v-toolbar-title>{{
+                $t("isochrones.pickColor.title")
+              }}</v-toolbar-title>
+            </div>
           </v-toolbar-title>
           <v-spacer></v-spacer>
           <v-icon @click="expand" class="toolbar-icons mr-2">

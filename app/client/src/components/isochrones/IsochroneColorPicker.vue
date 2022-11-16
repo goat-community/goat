@@ -37,50 +37,54 @@
         </v-btn>
       </v-tab-item>
       <v-tab-item>
-        <div style="width: 400px; margin: auto;">
-          <p>Stroke Setting</p>
-          <v-checkbox v-model="strokeStatus" label="Stroke"></v-checkbox>
-        </div>
-        <div v-if="strokeStatus">
-          <v-text-field
-            label="Stroke Width"
-            :rules="rules"
-            v-model="strokeWidth"
-            @input="changeWidth"
-            type="number"
-            style="margin: auto; margin-bottom: 10px; margin-top: 10px; width:400px;"
-          ></v-text-field>
-          <v-radio-group
-            style="margin: auto; width:400px;"
-            v-model="strokeStyle"
-            column
-          >
-            <p>Stroke Style</p>
-            <v-radio label="Solid" value="solid"></v-radio>
-            <v-radio label="Dashed" value="dashed"></v-radio>
-          </v-radio-group>
-          <div v-if="strokeStyle === 'dashed'">
-            <v-row style="margin: -5px auto; width:400px;">
-              <v-col style="padding: 0; padding-right: 12px;" cols="12" sm="6">
-                <v-text-field
-                  label="Dash Width"
-                  :rules="rules"
-                  v-model="dashWidth"
-                  @input="changeDash"
-                  type="number"
-                ></v-text-field>
-              </v-col>
-              <v-col style="padding: 0; padding-right: 12px;" cols="12" sm="6">
-                <v-text-field
-                  label="Spacing"
-                  :rules="rules"
-                  v-model="dashSpacing"
-                  @input="changeDash"
-                  type="number"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-          </div>
+        <div>
+          <v-row style="width: 424px; margin: auto;" align="center">
+            <v-col cols="6" class="py-0">
+              <v-text-field
+                outlined
+                dense
+                label="Stroke Width"
+                v-model="strokeWidth"
+                @input="changeWidth"
+                style="margin: auto; margin-bottom: 10px; margin-top: 10px; width:400px;"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6" class="py-0">
+              <v-select
+                v-model="strokeStyle"
+                :items="strokeStyles"
+                label="Stroke style"
+                dense
+                outlined
+              ></v-select>
+            </v-col>
+          </v-row>
+          <!-- <v-row style="width: 424px; margin: auto;" align="center">
+            <v-col cols="6" class="py-0">
+              <v-text-field
+                outlined
+                dense
+                v-if="strokeStyle === 'dashed'"
+                label="Dash Width"
+                :rules="rules"
+                v-model="dashWidth"
+                @input="changeDash"
+                type="number"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6" class="py-0">
+              <v-text-field
+                outlined
+                dense
+                v-if="strokeStyle === 'dashed'"
+                label="Spacing"
+                :rules="rules"
+                v-model="dashSpacing"
+                @input="changeDash"
+                type="number"
+              ></v-text-field>
+            </v-col>
+          </v-row> -->
           <v-color-picker
             class="elevation-0"
             canvas-height="100"
@@ -89,6 +93,7 @@
             :mode.sync="hexa"
             v-model="strokeColor"
             @input="onStrokeColorChange($event)"
+            @change="onStrokeColorChange($event)"
           >
           </v-color-picker>
         </div>
@@ -107,70 +112,45 @@ import { Draggable } from "draggable-vue-directive";
 export default {
   props: ["temporaryColors"],
   watch: {
-    strokeStatus(value) {
-      if (value) {
-        this.tab = 1;
-        this.strokeColor = "#000000ff";
-      } else {
-        this.strokeColor = "#ffffff00";
-        let newObj = {
-          color: "#ffffff00",
-          width: this.calculationSrokeObjects[
-            this.selectedCalculationChangeColor.id - 1
-          ].width,
-          dashWidth: this.calculationSrokeObjects[
-            this.selectedCalculationChangeColor.id - 1
-          ].dashWidth,
-          dashSpace: this.calculationSrokeObjects[
-            this.selectedCalculationChangeColor.id - 1
-          ].dashSdashSpacepacing
-        };
-        this.updateStrokeStyling(newObj);
-      }
+    strokeColor(value) {
+      let { width, dashWidth, dashSpace } = this.calculationSrokeObjects[
+        this.selectedCalculationChangeColor.id - 1
+      ];
+      this.newObjectCreation(value, width, dashWidth, dashSpace);
     },
     strokeStyle(value) {
-      if (value === "solid") {
-        let newObj = {
-          color: this.calculationSrokeObjects[
-            this.selectedCalculationChangeColor.id - 1
-          ].color,
-          width: this.calculationSrokeObjects[
-            this.selectedCalculationChangeColor.id - 1
-          ].width,
-          dashWidth: 0,
-          dashSpace: 0
-        };
-        this.updateStrokeStyling(newObj);
+      if (value === "Solid") {
+        if (this.strokeColor[7] === "0" && this.strokeColor[8] === "0") {
+          this.turnOnStroke();
+        }
+        let { color, width } = this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ];
+        this.newObjectCreation(color, width, 0, 0);
         this.dashWidth = 0;
         this.dashSpacing = 0;
+      } else if (value === "Dashed") {
+        if (this.strokeColor[7] === "0" && this.strokeColor[8] === "0") {
+          this.turnOnStroke();
+        }
+        let {
+          color,
+          width,
+          dashWidth,
+          dashSpace
+        } = this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ];
+        this.newObjectCreation(
+          color,
+          width,
+          dashWidth === 0 ? 10 : dashWidth,
+          dashSpace === 0 ? 10 : dashSpace
+        );
+        this.dashWidth = dashWidth === 0 ? 10 : dashWidth;
+        this.dashSpacing = dashSpace === 0 ? 10 : dashSpace;
       } else {
-        let newObj = {
-          color: this.calculationSrokeObjects[
-            this.selectedCalculationChangeColor.id - 1
-          ].color,
-          width: this.calculationSrokeObjects[
-            this.selectedCalculationChangeColor.id - 1
-          ].width,
-          dashWidth:
-            this.calculationSrokeObjects[
-              this.selectedCalculationChangeColor.id - 1
-            ].dashWidth === 0
-              ? 10
-              : this.calculationSrokeObjects[
-                  this.selectedCalculationChangeColor.id - 1
-                ].dashWidth,
-          dashSpace:
-            this.calculationSrokeObjects[
-              this.selectedCalculationChangeColor.id - 1
-            ].dashSpace === 0
-              ? 10
-              : this.calculationSrokeObjects[
-                  this.selectedCalculationChangeColor.id - 1
-                ].dashSpace
-        };
-        this.updateStrokeStyling(newObj);
-        this.dashWidth = newObj.dashWidth;
-        this.dashSpacing = newObj.dashSpace;
+        this.turnOffStroke();
       }
     },
     selectedCalculationChangeColor(value) {
@@ -183,18 +163,18 @@ export default {
     Draggable
   },
   data: () => ({
-    rules: [value => !!value || "Required."],
     isExpanded: true,
-    strokeWidth: 0,
+    strokeWidth: null,
     dialog: true,
-    dashWidth: 0,
-    dashSpacing: 0,
+    dashWidth: null,
+    dashSpacing: null,
     fillColor: null,
     strokeColor: "#ffffff00",
     handleId: "handle",
     hexa: "hexa",
     tab: null,
-    strokeStyle: "solid",
+    strokeStyle: "No Stroke",
+    strokeStyles: ["No Stroke", "Solid", "Dashed"],
     strokeStatus: false,
     draggableValue: {
       handle: undefined,
@@ -215,7 +195,7 @@ export default {
 
     this.strokeWidth = this.calculationSrokeObjects[
       this.selectedCalculationChangeColor.id - 1
-    ].width;
+    ].width.toString();
 
     this.strokeColor = this.calculationSrokeObjects[
       this.selectedCalculationChangeColor.id - 1
@@ -227,7 +207,11 @@ export default {
       this.calculationSrokeObjects[this.selectedCalculationChangeColor.id - 1]
         .dashSpace
     ) {
-      this.strokeStyle = "dashed";
+      this.strokeStyle = "Dashed";
+    } else if (this.strokeColor[7] === "0" && this.strokeColor[8] === "0") {
+      this.strokeStyle = "No Stroke";
+    } else {
+      this.strokeStyle = "Solid";
     }
 
     this.dashWidth = this.calculationSrokeObjects[
@@ -271,6 +255,15 @@ export default {
     })
   },
   methods: {
+    newObjectCreation(color, width, dashWidth, dashSpace) {
+      let newObj = {
+        color: color,
+        width: width,
+        dashWidth: dashWidth,
+        dashSpace: dashSpace
+      };
+      this.updateStrokeStyling(newObj);
+    },
     updateStrokeStyling(stylingObject) {
       let newStrokes = [
         ...this.calculationSrokeObjects.map((elem, idx) => {
@@ -283,32 +276,23 @@ export default {
       ];
       this.calculationSrokeObjects = newStrokes;
     },
-    changeDash() {
-      console.log("change");
-      let newObj = {
-        color: this.calculationSrokeObjects[
-          this.selectedCalculationChangeColor.id - 1
-        ].color,
-        width: this.strokeWidth,
-        dashWidth: this.dashWidth,
-        dashSpace: this.dashSpacing
-      };
-      this.updateStrokeStyling(newObj);
-    },
+    // changeDash() {
+    //   let { color } = this.calculationSrokeObjects[
+    //     this.selectedCalculationChangeColor.id - 1
+    //   ];
+    //   this.newObjectCreation(
+    //     color,
+    //     this.strokeWidth,
+    //     this.dashWidth,
+    //     this.dashSpacing
+    //   );
+    // },
     changeWidth() {
-      let newObj = {
-        color: this.calculationSrokeObjects[
-          this.selectedCalculationChangeColor.id - 1
-        ].color,
-        width: this.strokeWidth,
-        dashWidth: this.calculationSrokeObjects[
-          this.selectedCalculationChangeColor.id - 1
-        ].dashWidth,
-        dashSpace: this.calculationSrokeObjects[
-          this.selectedCalculationChangeColor.id - 1
-        ].dashSpace
-      };
-      this.updateStrokeStyling(newObj);
+      let newWidth = parseInt(this.strokeWidth);
+      let { color, dashWidth, dashSpace } = this.calculationSrokeObjects[
+        this.selectedCalculationChangeColor.id - 1
+      ];
+      this.newObjectCreation(color, newWidth, dashWidth, dashSpace);
     },
     onFillColorChange(value) {
       if (value[7] === "F" && value[8] === "F") {
@@ -332,17 +316,15 @@ export default {
       }
     },
     onStrokeColorChange(value) {
-      let newObj = {
-        color: value,
-        width: this.strokeWidth,
-        dashWidth: this.calculationSrokeObjects[
-          this.selectedCalculationChangeColor.id - 1
-        ].dashWidth,
-        dashSpace: this.calculationSrokeObjects[
-          this.selectedCalculationChangeColor.id - 1
-        ].dashSpace
-      };
-      this.updateStrokeStyling(newObj);
+      let { dashWidth, dashSpace } = this.calculationSrokeObjects[
+        this.selectedCalculationChangeColor.id - 1
+      ];
+      this.newObjectCreation(
+        value,
+        parseInt(this.strokeWidth),
+        dashWidth,
+        dashSpace
+      );
       this.strokeColor = value;
     },
     resetStyle(calculation) {
@@ -399,6 +381,22 @@ export default {
           feature.set("color", interpolatedColor);
         }
       );
+    },
+    turnOnStroke() {
+      this.strokeColor =
+        this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ].color
+          .slice(0, -1)
+          .slice(0, -1) + "ff";
+    },
+    turnOffStroke() {
+      this.strokeColor =
+        this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ].color
+          .slice(0, -1)
+          .slice(0, -1) + "00";
     }
   }
 };

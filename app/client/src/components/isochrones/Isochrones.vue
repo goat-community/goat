@@ -631,7 +631,7 @@
                   }"
                 >
                   <v-card-title
-                    style="background-color: #eeeeee; border-bottom: 0.5px solid #ddd;"
+                    style="background-color: #eeeeee; border-bottom: 0.5px solid #e0e0e0;"
                     class="pb-0 mt-0 pt-0 mb-0"
                   >
                     <v-layout row wrap class="py-1" align-center>
@@ -741,8 +741,8 @@
                   <v-subheader
                     justify-center
                     align-center
-                    class="clickable subheader pt-1 pb-1"
-                    style="background-color: #eeeeee"
+                    class="clickable subheader "
+                    style="background-color: #eeeeee; padding-top: 16px; padding-bottom: 16px;"
                   >
                     <v-simple-checkbox
                       :disabled="isIsochroneBusy"
@@ -785,11 +785,23 @@
                   <v-subheader v-if="isCalculationActive(calculation)" row>
                     <v-row>
                       <v-col cols="3" style="padding-right: 0;">
-                        <p
-                          style="font-size: 10px; font-weight: bold;  margin-bottom: 0; padding-top: 15px;"
-                        >
-                          {{ $t("isochrones.tableData.travelTimeSlider") }}
-                        </p>
+                        <div>
+                          <p
+                            style="font-size: 12px; font-weight: 400; margin-bottom: 0; padding-top: 15px; width: fit-content; text-align: center;"
+                          >
+                            {{
+                              $t("isochrones.tableData.travelTimeSlider").split(
+                                " "
+                              )[0]
+                            }}
+                            <br />
+                            {{
+                              $t("isochrones.tableData.travelTimeSlider").split(
+                                " "
+                              )[1]
+                            }}
+                          </p>
+                        </div>
                       </v-col>
                       <v-col cols="9" style="padding-left: 0;">
                         <v-slider
@@ -798,7 +810,7 @@
                           @mouseup.native.stop
                           @click.native.stop
                           style="padding-top: 15px;"
-                          :track-color="appColor.secondary"
+                          track-color="#bac5d6"
                           :color="appColor.secondary"
                           :min="1"
                           :max="getMaxIsochroneRange"
@@ -1711,6 +1723,19 @@ export default {
                 );
                 olFeatures[0].set("calculationNumber", calculationNumber);
                 calculation.position = "multiIsochroneCalculation";
+                this.calculationColors.push(
+                  this.preDefCalculationColors[
+                    this.findColor(calculationNumber) - 1
+                  ]
+                );
+                this.calculationSrokeObjects.push({
+                  color: "#00000000",
+                  width: 2,
+                  dashWidth: 0,
+                  dashSpace: 0,
+                  status: false
+                });
+                this.calculationTravelTime.push(10);
                 this.calculations.unshift(calculation);
                 this.selectedCalculations = [];
                 this.selectedCalculations.push(calculation);
@@ -2213,5 +2238,14 @@ export default {
   margin-bottom: 3px;
   border-radius: 3px;
   cursor: pointer;
+}
+
+.v-slider--horizontal .v-slider__track-container {
+  height: 5px;
+  border-radius: 10px;
+}
+.v-slider__thumb {
+  height: 14px;
+  width: 14px;
 }
 </style>
