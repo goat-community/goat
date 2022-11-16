@@ -1897,7 +1897,7 @@ export default {
                 surface,
                 width,
                 height,
-                cutoff: this.isochroneRange,
+                cutoff: this.calculationTravelTime[calculation[0].id - 1],
                 project: ([x, y]) => {
                   const ll = fromPixel({ x: x + west, y: y + north }, zoom);
                   return [ll.lon, ll.lat];
