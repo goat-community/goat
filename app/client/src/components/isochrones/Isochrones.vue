@@ -1284,7 +1284,7 @@ export default {
       ApiService.post(`/isochrones/multi/count-pois`, {
         region_type: this.multiIsochroneMethod,
         region,
-        scenario_id: 0, //TODO: Get scenario id
+        scenario_id: this.activeScenario || 0, //TODO: Get scenario id
         modus: this.calculationMode.active,
         routing_profile: this.routing,
         minutes: this.time,
@@ -2048,6 +2048,11 @@ export default {
         // Reset features to 10 minutes.
         this.isochroneRange = 10;
         this.isochroneResultWindow = false;
+      }
+    },
+    activeScenario() {
+      if (this.multiIsochroneMethod) {
+        this.countPois();
       }
     }
   },
