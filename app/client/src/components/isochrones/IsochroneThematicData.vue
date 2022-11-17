@@ -412,7 +412,7 @@ export default {
       this.selectedCalculations.forEach(calculation => {
         // Single isochrone calculation
         let pois = calculation.surfaceData.accessibility;
-        let selectedTime = this.isochroneRange;
+        let selectedTime = this.calculationTravelTime[calculation.id - 1];
         if (calculation.type === "single") {
           let keys = Object.keys(pois);
           if (keys.length > 0) {
