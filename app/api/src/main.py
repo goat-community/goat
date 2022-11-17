@@ -65,7 +65,7 @@ async def startup_event():
     async with async_session() as db:
         table_index = await crud.layer.table_index(db)
         app.state.table_catalog = table_index
-        
+
     if not os.environ.get("DISABLE_NUMBA_STARTUP_CALL") == "True":
         await run_time_method_calls.call_isochrones_startup(app=app)
 
@@ -99,7 +99,7 @@ async def status_check(db: AsyncSession = Depends(deps.get_db)):
     except Exception as e:
         return JSONResponse(status_code=503, content={"message": "Service Unavailable"})
 
-    if results.setting["status"] == "maintenance":
+    if results.setting.get("status") == "maintenance":
         return JSONResponse(status_code=503, content={"message": "Service Unavailable"})
     else:
         return {"status": "ok"}

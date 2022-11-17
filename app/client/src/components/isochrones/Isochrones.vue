@@ -270,7 +270,14 @@
                       </v-col>
                       <!-- TRANSIT  -->
                       <v-col
-                        class="d-flex mb-0 mt-2 pb-0 justify-center align-center"
+                        class="
+                          d-flex
+                          mb-0
+                          mt-2
+                          pb-0
+                          justify-center
+                          align-center
+                        "
                         cols="12"
                         sm="12"
                       >
@@ -578,7 +585,7 @@
               :style="
                 isResultsElVisible === true ? { color: appColor.secondary } : {}
               "
-              style="margin-right: 2px;"
+              style="margin-right: 2px"
               small
               >far fa-list-alt</v-icon
             >
@@ -614,8 +621,9 @@
             <v-flex xs12 class="mx-3" v-show="isResultsElVisible">
               <template v-for="calculation in calculations">
                 <v-card
-                  style="width: 330px;"
-                  class="mb-3 "
+                  v-if="calculation !== 'deleted'"
+                  style="width: 330px"
+                  class="mb-3"
                   :id="`result-${calculation.id}`"
                   :key="calculation.id"
                   :class="{
@@ -623,7 +631,7 @@
                   }"
                 >
                   <v-card-title
-                    style="background-color:#EEEEEE;"
+                    style="background-color: #eeeeee"
                     class="pb-0 mt-0 pt-0 mb-0"
                   >
                     <v-layout row wrap class="py-1" align-center>
@@ -678,7 +686,7 @@
 
                           <span
                             class="pl-2 ml-2 text-xs-center"
-                            style="border-left: 1px solid #424242;"
+                            style="border-left: 1px solid #424242"
                             >{{
                               $te(
                                 `isochrones.options.${calculation.config.scenario.modus}`
@@ -742,15 +750,15 @@
                       :value="isCalculationActive(calculation)"
                       :color="appColor.secondary"
                     ></v-simple-checkbox>
-                    <span class="fa-stack fa-xs mr-1" style="color:#800000;">
+                    <span class="fa-stack fa-xs mr-1" style="color: #800000">
                       <span
                         class="fa fa-solid fa-location-pin fa-stack-2x"
                       ></span>
                       <strong
-                        style="font-size:12px;"
+                        style="font-size: 12px"
                         class="white--text fa-stack-1x mb-1"
                       >
-                        {{ calculation.id }}
+                        {{ getCurrentIsochroneNumber(calculation) }}
                       </strong>
                     </span>
                     <v-tooltip
@@ -804,7 +812,11 @@ import { mapGetters, mapMutations } from "vuex";
 import { mapFields } from "vuex-map-fields";
 
 //Helpers
-import { secondsToHoursAndMins } from "../../utils/Helpers";
+import {
+  secondsToHoursAndMins,
+  calculateCalculationsLength,
+  calculateCurrentIndex
+} from "../../utils/Helpers";
 
 //Ol imports
 import VectorSource from "ol/source/Vector";
@@ -971,7 +983,9 @@ export default {
      * This function is executed, after the map is bound (see mixins/Mapable)
      */
     openIsochroneColorPicker(selectedCalculation) {
-      this.selectedCalculationChangeColor = selectedCalculation;
+      if (!this.selectedCalculationChangeColor) {
+        this.selectedCalculationChangeColor = selectedCalculation;
+      }
     },
     onMapBound() {
       this.createIsochroneLayer();
@@ -1270,7 +1284,7 @@ export default {
       ApiService.post(`/isochrones/multi/count-pois`, {
         region_type: this.multiIsochroneMethod,
         region,
-        scenario_id: 0, //TODO: Get scenario id
+        scenario_id: this.activeScenario || 0, //TODO: Get scenario id
         modus: this.calculationMode.active,
         routing_profile: this.routing,
         minutes: this.time,
@@ -1701,9 +1715,9 @@ export default {
               time = [calculation.rawData.get(x, y, depthIndex)];
             }
             if (time) {
-              overlayerInnerHtml += `<div>#${calculationId} ${this.$t(
-                "isochrones.options.time"
-              )}: ${time} min</div>`;
+              overlayerInnerHtml += `<div>#${this.getCurrentIsochroneNumber(
+                calculation
+              )} ${this.$t("isochrones.options.time")}: ${time} min</div>`;
             }
             if (features.length === 2 && index == 0) {
               overlayerInnerHtml += `<br>`;
@@ -1901,37 +1915,44 @@ export default {
     },
     removeCalculation(calculation) {
       let id = calculation.id;
-      this.calculations = this.calculations.filter(
-        calculation => calculation.id !== id
-      );
+      this.calculations = this.calculations.map(calculation => {
+        if (calculation.id === id) {
+          return "deleted";
+        } else {
+          return calculation;
+        }
+      });
+      // this.calculations = this.calculations.filter(
+      //   calculation => calculation.id !== id
+      // );
       this.selectedCalculations = this.selectedCalculations.filter(
         selectedCalculation => selectedCalculation.id !== id
       );
 
-      this.calculations = this.calculations.map(calculation => {
-        if (calculation.id > id) {
-          calculation.id = calculation.id - 1;
-        }
-        return calculation;
-      });
-      const isochroneSource = this.isochroneLayer.getSource();
-      isochroneSource.getFeatures().forEach(isochroneFeature => {
-        const isochroneCalculationNr = isochroneFeature.get(
-          "calculationNumber"
-        );
-        if (isochroneCalculationNr === id) {
-          isochroneSource.removeFeature(isochroneFeature);
-        }
-        if (isochroneCalculationNr > id) {
-          const updatedNr = isochroneCalculationNr - 1;
-          if (isochroneFeature.getGeometry().getType() === "Point") {
-            isochroneFeature.setId("isochrone_marker_" + updatedNr);
-            isochroneFeature.set("calculationNumber", updatedNr);
-          } else {
-            isochroneFeature.set("calculationNumber", updatedNr);
-          }
-        }
-      });
+      // this.calculations = this.calculations.map(calculation => {
+      //   if (calculation.id > id) {
+      //     calculation.id = calculation.id - 1;
+      //   }
+      //   return calculation;
+      // });
+      // const isochroneSource = this.isochroneLayer.getSource();
+      // isochroneSource.getFeatures().forEach(isochroneFeature => {
+      //   const isochroneCalculationNr = isochroneFeature.get(
+      //     "calculationNumber"
+      //   );
+      //   if (isochroneCalculationNr === id) {
+      //     isochroneSource.removeFeature(isochroneFeature);
+      //   }
+      //   if (isochroneCalculationNr > id) {
+      //     const updatedNr = isochroneCalculationNr - 1;
+      //     if (isochroneFeature.getGeometry().getType() === "Point") {
+      //       isochroneFeature.setId("isochrone_marker_" + updatedNr);
+      //       isochroneFeature.set("calculationNumber", updatedNr);
+      //     } else {
+      //       isochroneFeature.set("calculationNumber", updatedNr);
+      //     }
+      //   }
+      // });
     },
     /**
      * Clears the map and ol interaction activity
@@ -1981,6 +2002,10 @@ export default {
         this.cancelRequestToken("cancelled");
       }
       this.clear();
+    },
+    //! Clculate the real length of the calculations array
+    getCurrentIsochroneNumber(calc) {
+      return calculateCalculationsLength() - calculateCurrentIndex(calc);
     }
   },
   watch: {
@@ -2023,6 +2048,11 @@ export default {
         // Reset features to 10 minutes.
         this.isochroneRange = 10;
         this.isochroneResultWindow = false;
+      }
+    },
+    activeScenario() {
+      if (this.multiIsochroneMethod) {
+        this.countPois();
       }
     }
   },

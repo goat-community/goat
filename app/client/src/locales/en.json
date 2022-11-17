@@ -470,12 +470,12 @@
     },
     "class": "Class",
     "gutteklassenRating": {
-      "A": "High quality accessibility to Public transport",
-      "B": "Good quality accessibility to Public Transport",
-      "C": "Average quality accessibility to Public Transport",
-      "D": "Not so good accessibility to Public Transport",
-      "E": "Bad accessibility Public Transport",
-      "F": "Worst accessibility to Public Transport"
+      "A": "Best accessibility to Public transport",
+      "B": "High accessibility to Public Transport",
+      "C": "Very Good accessibility to Public Transport",
+      "D": "Good accessibility to Public Transport",
+      "E": "Good basic accessibility to Public Transport",
+      "F": "Basic accessibility to Public Transport"
     }
   },
   "poisFilter": {

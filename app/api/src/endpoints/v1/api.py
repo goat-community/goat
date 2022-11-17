@@ -18,6 +18,7 @@ from src.endpoints.v1 import (
     static_layers,
     static_layers_extra,
     study_area,
+    system,
     upload,
     users,
     utils,
@@ -25,6 +26,7 @@ from src.endpoints.v1 import (
 
 api_router = APIRouter()
 api_router.include_router(login.router, tags=["Login"])
+api_router.include_router(system.router, prefix="", tags=["Health Check"])
 
 api_router.include_router(organizations.router, prefix="/organizations", tags=["Organizations"])
 api_router.include_router(roles.router, prefix="/roles", tags=["Roles"])

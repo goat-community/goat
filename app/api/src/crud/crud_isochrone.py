@@ -384,17 +384,23 @@ class CRUDIsochrone:
         # Bring into correct format for client
         if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
             for idx, sub_study_area in get_reachable_population.iterrows():
+                total_population = sub_study_area["population"]
+                reached_population = population_grid_count[idx]
+                reached_population[reached_population > total_population] = total_population
+                
                 population_count[sub_study_area["name"]] = {
-                    "total_population": sub_study_area["population"],
-                    "reached_population": population_grid_count[idx].astype(int).tolist(),
+                    "total_population": total_population,
+                    "reached_population": reached_population.astype(int).tolist(),
                 }
         elif obj_in.starting_point.region_type == IsochroneMultiRegionType.DRAW:
             reached_population = np.zeros(max_time)
             for idx, sub_study_area_id in enumerate(sub_study_area_ids):
                 reached_population += population_grid_count[idx]
+            total_population = int(get_reachable_population["population"][0])
+            reached_population[reached_population > total_population] = total_population
 
             population_count["polygon"] = {
-                "total_population": int(get_reachable_population["population"][0]),
+                "total_population": total_population,
                 "reached_population": reached_population.astype(int).tolist(),
             }
 
@@ -642,13 +648,13 @@ class CRUDIsochrone:
             # TODO: get the mapping dynamically from the database based on the study area
             weekday = obj_in.settings.weekday
             available_dates = {
-                0: "2022-01-10",
-                1: "2022-01-11",
-                2: "2022-01-12",
-                3: "2022-01-13",
-                4: "2022-01-14",
-                5: "2022-01-15",
-                6: "2022-01-16"
+                0: "2022-05-16",
+                1: "2022-05-17",
+                2: "2022-05-18",
+                3: "2022-05-19",
+                4: "2022-05-20",
+                5: "2022-05-21",
+                6: "2022-05-22"
             }
 
             payload = {
