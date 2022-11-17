@@ -368,7 +368,7 @@ export default {
           }
         ];
         this.selectedCalculations.forEach(calculation => {
-          const id = calculation.id;
+          const id = this.getCurrentIsochroneNumber(calculation);
           // const modus = calculation.config.scenario.modus;
           headers.push({
             text: `Isochrone #${id}`,
