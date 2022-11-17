@@ -2073,7 +2073,7 @@ export default {
       }
       this.clear();
     },
-    //! Clculate the real length of the calculations array
+    //! Calculate the real length of the calculations array
     getCurrentIsochroneNumber(calc) {
       return calculateCalculationsLength() - calculateCurrentIndex(calc);
     }
