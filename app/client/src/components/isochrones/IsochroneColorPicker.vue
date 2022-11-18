@@ -348,10 +348,8 @@ export default {
       this.strokeColor = value;
     },
     resetStyle(calculation) {
-      console.log("changes");
       this.strokeStyle = "No Stroke";
       let tempArray = this.calculationColors;
-      console.log(tempArray, this.temporaryColors);
       tempArray[calculation.id - 1] = this.temporaryColors[
         this.findTheRightPreDefIndex(calculation) - 1
       ];
