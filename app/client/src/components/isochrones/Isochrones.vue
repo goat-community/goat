@@ -1699,8 +1699,7 @@ export default {
                       color: "#00000000",
                       width: 2,
                       dashWidth: 0,
-                      dashSpace: 0,
-                      status: false
+                      dashSpace: 0
                     });
                     this.calculationTravelTime.push(10);
                     if (this.selectedCalculations.length === 2) {

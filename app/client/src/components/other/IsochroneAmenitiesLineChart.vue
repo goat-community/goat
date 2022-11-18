@@ -35,7 +35,7 @@ export default {
               ? this.$t(`pois.population`)
               : "population",
             fill: false,
-            borderColor: this.preDefCalculationColors[calculation.id - 1],
+            borderColor: this.calculationColors[calculation.id - 1],
             borderDash: index === 0 ? [0, 0] : [10, 5],
             pointRadius: 1,
             tension: 0
@@ -122,6 +122,7 @@ export default {
                   type: "line",
                   mode: "vertical",
                   scaleID: "x-axis-0",
+                  borderWidth: 3,
                   borderColor: this.calculationColors[calc.id - 1],
                   value: this.calculationTravelTime[calc.id - 1]
                 };
@@ -147,6 +148,9 @@ export default {
     }
   },
   watch: {
+    calculationColors() {
+      this.renderLineChart();
+    },
     selectedPoisOnlyKeys: {
       handler: function() {
         this.renderLineChart();

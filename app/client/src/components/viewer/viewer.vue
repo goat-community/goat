@@ -89,7 +89,7 @@ export default {
     };
   },
   mounted() {
-    this.temporaryColors = this.calculationColors;
+    this.temporaryColors = this.preDefCalculationColors;
   },
   computed: {
     ...mapGetters("app", {
@@ -101,7 +101,8 @@ export default {
     }),
     ...mapGetters("isochrones", {
       selectedCalculationChangeColor: "selectedCalculationChangeColor",
-      calculationColors: "calculationColors"
+      calculationColors: "calculationColors",
+      preDefCalculationColors: "preDefCalculationColors"
     }),
     ...mapFields("map", {
       isMapillaryBtnDisabled: "isMapillaryBtnDisabled",

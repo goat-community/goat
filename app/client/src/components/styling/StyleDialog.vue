@@ -76,7 +76,11 @@
               ></IconVectorStyle>
             </span>
           </div>
-          <IsochroneColorPicker style="margin-top: 15px" v-else />
+          <IsochroneColorPicker
+            style="margin-top: 15px"
+            :temporaryColors="temporaryColors"
+            v-else
+          />
         </vue-scroll>
       </v-layout>
     </v-card>
