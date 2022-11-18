@@ -6,12 +6,12 @@
     <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
       <v-tab :key="1">
         <v-badge>
-          <b>{{ $t("isochrones.styling.fillColor") }}</b>
+          <b>{{ $t("appBar.stylePanel.fillColor") }}</b>
         </v-badge>
       </v-tab>
       <v-tab :key="2">
         <v-badge>
-          <b>{{ $t("isochrones.styling.StrokeColor") }}</b>
+          <b>{{ $t("appBar.stylePanel.outlineColorAndWidth") }}</b>
         </v-badge>
       </v-tab>
     </v-tabs>
