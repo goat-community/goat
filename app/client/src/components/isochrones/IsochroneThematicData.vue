@@ -65,7 +65,7 @@
                     class="mx-2 colorPalettePicker"
                     :style="
                       `border-bottom:4px solid ${
-                        preDefCalculationColors[selectedCalculations[0].id - 1]
+                        calculationColors[selectedCalculations[0].id - 1]
                       };`
                     "
                   ></div>
@@ -79,7 +79,7 @@
                     class="ml-6 mr-2 colorPalettePicker"
                     :style="
                       `border-bottom:4px dashed ${
-                        preDefCalculationColors[selectedCalculations[1].id - 1]
+                        calculationColors[selectedCalculations[1].id - 1]
                       };`
                     "
                   ></div>

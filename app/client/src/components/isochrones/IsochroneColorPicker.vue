@@ -31,7 +31,9 @@
           color="warning"
           dark
           @click="resetStyle(selectedCalculationChangeColor)"
-          style="width: 100%; background-color: #2bb381 !important"
+          :style="
+            `width: 100%; background-color: ${appColor.primary} !important`
+          "
         >
           Reset Style
         </v-btn>
@@ -96,6 +98,16 @@
             @change="onStrokeColorChange($event)"
           >
           </v-color-picker>
+          <v-btn
+            color="warning"
+            dark
+            @click="resetStyle(selectedCalculationChangeColor)"
+            :style="
+              `width: 100%; background-color: ${appColor.primary} !important`
+            "
+          >
+            Reset Style
+          </v-btn>
         </div>
       </v-tab-item>
     </v-tabs-items>
@@ -276,6 +288,14 @@ export default {
       ];
       this.calculationSrokeObjects = newStrokes;
     },
+    findTheRightPreDefIndex(calc) {
+      if (calc.id <= 10) {
+        return calc.id;
+      } else {
+        let remain = calc.id % 10;
+        return remain;
+      }
+    },
     // changeDash() {
     //   let { color } = this.calculationSrokeObjects[
     //     this.selectedCalculationChangeColor.id - 1
@@ -328,10 +348,14 @@ export default {
       this.strokeColor = value;
     },
     resetStyle(calculation) {
+      this.strokeStyle = "No Stroke";
       let tempArray = this.calculationColors;
-      tempArray[calculation.id - 1] = this.temporaryColors[calculation.id - 1];
+      tempArray[calculation.id - 1] = this.temporaryColors[
+        this.findTheRightPreDefIndex(calculation) - 1
+      ];
       this.calculationColors = [...tempArray];
       this.fillColor = this.temporaryColors[calculation.id - 1];
+      this.newObjectCreation("#00000000", 2, 0, 0);
     },
     closeDialog() {
       this.selectedCalculationChangeColor = null;
