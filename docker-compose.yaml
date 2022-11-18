@@ -73,14 +73,14 @@ services:
       - SERVER_HOST=http://${DOMAIN_NAME}
     volumes:
       - ./app/api:/app
-    # command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
+    command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.${COMPOSE_PROJECT_NAME}_api.loadbalancer.server.port=5000"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.entrypoints=web"
     ports:
-      - "5000:5000"
+      - "5001:5000"
     networks:
       proxy:
 
