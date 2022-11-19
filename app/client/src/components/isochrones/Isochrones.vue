@@ -814,7 +814,7 @@
                           :color="appColor.secondary"
                           :min="1"
                           :max="getMaxIsochroneRange"
-                          thumb-label
+                          :label="calculationTravelTime[calculation.id - 1]"
                           @input="
                             updateSurface(
                               calculation,
