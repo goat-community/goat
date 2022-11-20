@@ -975,7 +975,7 @@ export function poisAoisStyle(feature, resolution) {
   let max_zoom = feature.get("max_zoom");
 
   if (min_zoom || max_zoom) {
-    if (min_zoom <= resolution || max_zoom >= resolution) {
+    if (min_zoom >= resolution || max_zoom <= resolution) {
       st.push(poisShadowStyle);
       if (!poiIconConf || !poiIconConf.icon) {
         return [];
