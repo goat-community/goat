@@ -787,7 +787,7 @@
                       <v-col cols="3" style="padding-right: 0;">
                         <div>
                           <p
-                            style="font-size: 12px; font-weight: 400; margin-bottom: 0; padding-top: 15px; width: fit-content; text-align: center;"
+                            style="font-size: 12px; font-weight: 400; margin-bottom: 0; padding-top: 25px; width: fit-content; text-align: center; line-height: 115%;"
                           >
                             {{
                               $t("isochrones.tableData.travelTimeSlider").split(
@@ -809,12 +809,16 @@
                           @mousedown.native.stop
                           @mouseup.native.stop
                           @click.native.stop
-                          style="padding-top: 15px;"
+                          style="padding-top: 23px; font-size: 10px;"
                           track-color="#bac5d6"
                           :color="appColor.secondary"
                           :min="1"
                           :max="getMaxIsochroneRange"
-                          :label="calculationTravelTime[calculation.id - 1]"
+                          :label="
+                            traveltimeLabel(
+                              calculationTravelTime[calculation.id - 1]
+                            )
+                          "
                           @input="
                             updateSurface(
                               calculation,
@@ -1033,6 +1037,13 @@ export default {
     }
   },
   methods: {
+    traveltimeLabel(time) {
+      if (time < 10) {
+        return "0" + time;
+      } else {
+        return time;
+      }
+    },
     /*
       Modify the isochrone whenever it changes size
     */
