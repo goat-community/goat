@@ -145,6 +145,7 @@
     </vue-scroll>
     <span v-if="styleDialogStatus">
       <StyleDialog
+        type="layer"
         :item="currentItem"
         :translate="translate"
         :key="styleDialogKey"
@@ -175,7 +176,7 @@ import { Mapable } from "../../mixins/Mapable";
 import { mapFields } from "vuex-map-fields";
 import Legend from "../viewer/ol/controls/Legend";
 import LayerTree from "../layers/layerTree/LayerTree";
-import StyleDialog from "../layers/changeStyle/StyleDialog.vue";
+import StyleDialog from "../styling/StyleDialog.vue";
 import TimePicker from "./TimePicker.vue";
 import InLegend from "../viewer/ol/controls/InLegend.vue";
 import ApiService from "../../services/api.service";

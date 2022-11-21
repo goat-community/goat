@@ -78,7 +78,7 @@
                   v-ripple
                   style="color: #b0b0b0; margin-top: 3px; cursor: pointer"
                   dark
-                  @click="openStyleDialog(item)"
+                  @click="openStyleDialog(layer)"
                 >
                   fas fa-cog
                 </v-icon>
@@ -157,7 +157,7 @@
                   v-ripple
                   style="color: #b0b0b0; margin-top: 3px; cursor: pointer"
                   dark
-                  @click="openStyleDialog(item)"
+                  @click="openStyleDialog(layer)"
                 >
                   fas fa-cog
                 </v-icon>
@@ -187,11 +187,11 @@
     </v-expansion-panels>
     <span v-if="styleDialogStatus">
       <StyleDialog
+        type="layer"
         :item="currentItem"
         :translate="translate"
         :key="styleDialogKey"
         :styleDialogStatus="styleDialogStatus"
-        @styleDialogStatus="styleDialogStatus = $event"
       >
       </StyleDialog>
     </span>
@@ -201,7 +201,7 @@
 <script>
 import draggable from "vuedraggable";
 import InLegend from "../../viewer/ol/controls/InLegend";
-import StyleDialog from "../changeStyle/StyleDialog.vue";
+import StyleDialog from "../../styling/StyleDialog.vue";
 import { EventBus } from "../../../EventBus";
 import { mapGetters } from "vuex";
 
@@ -215,10 +215,7 @@ export default {
   ],
   data: () => ({
     allLayers: [],
-    currentItem: {
-      showOptions: false,
-      name: ""
-    },
+    currentItem: null,
     styleDialogKey: 0,
     styleDialogStatus: false,
     ActivePois: null,
