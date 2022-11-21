@@ -2,17 +2,17 @@ import time
 from typing import Union
 
 from alembic_utils.pg_extension import PGExtension
+from engines import chapar_engine, chapar_uri
 from sqlalchemy import text
 from sqlalchemy.engine import create_engine
 from sqlalchemy.exc import ProgrammingError
 
 from src.core.config import settings
-from src.db.session import legacy_engine
 
 FOREIGN_SERVER = "foreign_server"
 
 
-def upgrade_extension(extenstion_name:str, db_uri:str):
+def upgrade_extension(extenstion_name:str, db_uri:str=chapar_uri):
     if db_uri:
         legacy_engine = create_engine(db_uri,future=False)
     extension = PGExtension(schema="public", signature=extenstion_name)
@@ -24,14 +24,14 @@ def upgrade_extension(extenstion_name:str, db_uri:str):
             print(f"{extenstion_name} Extension already exists on database.")
     
 
-def upgrade_postgres_fdw(db_uri:str = None):
+def upgrade_postgres_fdw(db_uri:str = chapar_uri):
     upgrade_extension('postgres_fdw',db_uri)
 
 
 def downgrade_postgres_fdw():
     postgres_fdw = PGExtension(schema="public", signature="postgres_fdw")
     statement = postgres_fdw.to_sql_statement_drop()
-    legacy_engine.execute(text(statement.text))
+    chapar_engine.execute(text(statement.text))
 
 
 def upgrade_foreign_server(
@@ -39,10 +39,8 @@ def upgrade_foreign_server(
     host: str = settings.POSTGRES_SERVER_RAW,
     port: Union[str, int] = settings.POSTGRES_OUTER_PORT_RAW,
     dbname: str = settings.POSTGRES_DB_RAW,
-    db_uri: str = None,
+    db_uri: str = chapar_uri,
 ):
-    if db_uri:
-        legacy_engine = create_engine(db_uri,future=False)
     create_foreign_server = text(
         f"""
         CREATE SERVER {foreign_server}
@@ -55,13 +53,13 @@ def upgrade_foreign_server(
         "port": str(port),
         "dbname": dbname,
     }
-    legacy_engine.execute(create_foreign_server, values)
+    chapar_engine.execute(create_foreign_server, values)
 
 
 def downgrade_foreign_server():
     drop_foreign_server = text(f"DROP SERVER IF EXISTS {FOREIGN_SERVER};")
     values = {"foreign_server": "foreign_server"}
-    legacy_engine.execute(drop_foreign_server, values)
+    chapar_engine.execute(drop_foreign_server, values)
 
 
 # TODO local_user and foreign_server should pass dynamicly.
@@ -73,7 +71,7 @@ def upgrade_mapping_user(
     local_user: str = settings.POSTGRES_USER,
     server_user: str = settings.POSTGRES_USER_RAW,
     password: str = settings.POSTGRES_PASSWORD_RAW,
-    db_uri: str = None,
+    db_uri: str = chapar_uri,
 ):
     if db_uri:
         legacy_engine = create_engine(db_uri, future=False)
@@ -94,7 +92,7 @@ def downgrade_mapping_user():
     drop_mapping_user = text(
         f"DROP USER MAPPING IF EXISTS FOR {settings.POSTGRES_USER} SERVER {FOREIGN_SERVER};"
     )
-    legacy_engine.execute(drop_mapping_user)
+    chapar_engine.execute(drop_mapping_user)
 
 
 def mapping_schema_name_generator(foreign_schema: str, foreign_server: str):
@@ -106,7 +104,7 @@ def upgrade_schema(schema_name: str,
     if db_uri:
         legacy_engine = create_engine(db_uri,future=False)
     create_foreign_schema = f"CREATE SCHEMA IF NOT EXISTS {schema_name};"
-    legacy_engine.execute(text(create_foreign_schema))
+    chapar_engine.execute(text(create_foreign_schema))
 
 
 def downgrade_schema(schema_name: str = None,
@@ -165,7 +163,7 @@ def insert_new_data_from_to_table_from_schema1_to_schema2(
     """
     )
     start_time = time.time()
-    legacy_engine.execute(stmt)
+    chapar_engine.execute(stmt)
     print("--- %s seconds ---" % (time.time() - start_time))
 
 

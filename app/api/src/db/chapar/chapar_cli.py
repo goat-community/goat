@@ -6,6 +6,7 @@ import click
 import inquirer
 import sqlalchemy_utils as sqlutils
 from alembic_utils.pg_extension import PGExtension
+from engines import chapar_engine, chapar_uri
 from rich.console import Console
 from rich.table import Table
 from sqlalchemy import create_engine, select, text
@@ -14,14 +15,15 @@ from sqlalchemy.orm import sessionmaker
 from alembic import command
 from alembic.config import Config
 from src.core.config import SyncPostgresDsn, settings
+from src.db.chapar import init_remote_table as remote_table
+from src.db.chapar.init_remote_table import upgrade_foreign_server, upgrade_mapping_user
 from src.db.chapar.projects import projects
 from src.db.models import StudyArea
 from src.db.session import legacy_engine
-from src.db.sql import init_remote_table as remote_table
-from src.db.sql.init_remote_table import upgrade_foreign_server, upgrade_mapping_user
 
 DUMP_FILE_NAME = 'staging_schema_backup.tar'
 CHAPAR_DBNAME = 'chapar'
+STAGING_DBNAME = 'staging'
 
 @click.group()
 def cli():
@@ -179,7 +181,10 @@ def create_database(dbname):
     else:
         print(f'Database {dbname} already exists. skip.')
 
-def create_staging_database(dbname=CHAPAR_DBNAME):
+def create_staging_database():
+    duplicate_server_with_template(dbname=STAGING_DBNAME)
+
+def create_chapar_database(dbname=CHAPAR_DBNAME):
     db_uri = get_db_uri(dbname)
     if not sqlutils.database_exists(db_uri):
         
@@ -193,7 +198,7 @@ def create_staging_database(dbname=CHAPAR_DBNAME):
         print(f'Database {dbname} already exists!')
 
 
-def create_staging_database_alembic(dbname=CHAPAR_DBNAME):
+def create_chapar_database_alembic(dbname=CHAPAR_DBNAME):
     db_uri = get_db_uri(dbname)
     if not sqlutils.database_exists(db_uri):
         sqlutils.create_database(db_uri)
@@ -225,13 +230,22 @@ def create_chapar_database():
     dump_schema()
     restore_schema()
 
-def create_foreign_server():
-    remote_table.upgrade_postgres_fdw(db_uri=get_db_uri('chapar'))
-    remote_table.upgrade_foreign_server(db_uri=get_db_uri('chapar'))
-    remote_table.upgrade_mapping_user(db_uri=get_db_uri('chapar'))
-    
+def create_foreign_server(dbname:str):
+    remote_table.upgrade_postgres_fdw(db_uri=chapar_uri)
+    remote_table.upgrade_foreign_server(db_uri=chapar_uri, dbname=dbname)
+    remote_table.upgrade_mapping_user(db_uri=chapar_uri, foreign_server=dbname)
 
-def create_foreign_tables(project_name:str):
+def create_foreign_tables_for_staging():
+    remote_table.upgrade_foreign_tables(
+        foreign_schema='basic',
+        db_uri=get_db_uri('chapar')
+    )
+    remote_table.upgrade_foreign_tables(
+        foreign_schema='customer',
+        db_uri=get_db_uri('chapar')
+    )
+
+def create_foreign_tables_for_project(project_name:str):
     remote_table.upgrade_foreign_tables(
         foreign_tables=projects[project_name]['tables'],
         foreign_schema=projects[project_name]['raw_db_schema'],
@@ -247,25 +261,25 @@ def remove_foreign_tables(project_name:str):
 
 def reset_foreign_tables(project_name:str):
     remove_foreign_tables(project_name)
-    create_foreign_tables(project_name)
+    create_foreign_tables_for_project(project_name)
 
 
 def get_last_study_area_id():
-    legacy_engine = create_engine(get_db_uri('chapar'),future=False)
     query = select(StudyArea.id).order_by(StudyArea.id.desc())
-    study_area = legacy_engine.execute(query).first()
+    study_area = chapar_engine.execute(query).first()
     return study_area.id
 
-def import_study_area(db_uri:str, foreign_server:str, foreign_schema:str, study_area_id:int):
+def import_study_area(foreign_server:str, foreign_schema:str, study_area_id:int):
     foreign_schema_name = remote_table.mapping_schema_name_generator(foreign_schema, foreign_server)
-    legacy_engine = create_engine(db_uri, future=False)
     query = text(f'''
-                INSERT INTO basic.study_area   (name,
+                INSERT INTO basic.study_area   (id,
+                                                name,
                                                 geom,
                                                 population,
                                                 setting,
                                                 buffer_geom_heatmap)
-                SELECT  name,
+                SELECT  id,
+                        name,
                         geom,
                         population,
                         setting,
@@ -273,14 +287,12 @@ def import_study_area(db_uri:str, foreign_server:str, foreign_schema:str, study_
                 FROM {foreign_schema_name}.study_area s
                 WHERE s.id = {study_area_id}
                  ''')
-    legacy_engine.execute(query)
+    chapar_engine.execute(query)
 
 
     
 
-def import_sub_study_area(db_uri:str, foreign_server:str, foreign_schema:str, foreign_study_area_id:int, local_study_area_id:int=None):
-    if not local_study_area_id:
-        local_study_area_id = get_last_study_area_id()
+def import_sub_study_area(foreign_server:str, foreign_schema:str, study_area_id:int):
     foreign_schema_name = remote_table.mapping_schema_name_generator(foreign_schema, foreign_server)
     query = text(f'''
                     INSERT INTO basic.sub_study_area (
@@ -299,22 +311,85 @@ def import_sub_study_area(db_uri:str, foreign_server:str, foreign_schema:str, fo
                             s.area,
                             s.geom,
                             s.population,
-                            {local_study_area_id}
+                            s.study_area_id
                     FROM {foreign_schema_name}.sub_study_area s
-                    WHERE s.study_area_id = {foreign_study_area_id}
+                    WHERE s.study_area_id = {study_area_id}
                  ''')
-    legacy_engine = create_engine(db_uri, future=False)
-    legacy_engine.execute(query)
-    
+    chapar_engine.execute(query)
+
+def import_grid_visualization(foreign_server:str, foreign_schema:str, study_area_id:int):
+    foreign_schema_name = remote_table.mapping_schema_name_generator(foreign_schema, foreign_server)
+    query = text(f'''
+                    INSERT INTO basic.grid_visualization (  id,
+                                                            geom,
+                                                            area_isochrone,
+                                                            percentile_area_isochrone,
+                                                            percentile_population,
+                                                            population)
+                    SELECT  g.id,
+                            g.geom,
+                            g.area_isochrone,
+                            g.percentile_area_isochrone,
+                            g.percentile_population,
+                            g.population
+                    FROM
+                    (
+                        SELECT  id,
+                                geom,
+                                area_isochrone,
+                                percentile_area_isochrone,
+                                percentile_population,
+                                population
+                        {foreign_schema_name}.grid_visualization g1, {foreign_schema_name}.study_area s 
+                        WHERE ST_Intersects(ST_Centroid(g1.geom), s.geom)
+                        AND g1.geom && s.geom 
+                    )  g1 
+                    LEFT JOIN basic.grid_visualiation g2
+                    ON g1.id = g2.id
+                    WHERE g2.id IS NULL
+                 ''')
+    chapar_engine.execute(query)
+
+def import_grid_calculations(foreign_server:str, foreign_schema:str, study_area_id:int):
+    foreign_schema_name = remote_table.mapping_schema_name_generator(foreign_schema, foreign_server)
+    query = text(f'''
+                    WITH new_grid_cs as 
+                    (
+                        SELECT gc.*
+                        FROM {foreign_schema_name}.grid_calculation gc,
+                        basic.grid_visualization gv 
+                        WHERE gv.id = gc.grid_visualization_id 
+                    )
+                    SELECT new_grid_cs.*
+                    FROM new_grid_cs
+                    LEFT JOIN basic.grid_calculation p
+                    ON new_grid_cs.id = p.id 
+                    WHERE p.id IS NULL
+                 ''')
+    chapar_engine.execute(query)
+
+
+def prepare_dbs():
+    # 1. Duplicate main database as STAGING
+    create_staging_database()
+    # 2. Duplicate main database structure as CHAPAR
+    create_chapar_database()
+    # 3. Create foregin server to STAGING in CHAPAR
+    create_foreign_server(dbname=STAGING_DBNAME)
+    # 4. Import foreign tables for STAGING in CHAPAR
+    create_foreign_tables_for_staging()
+    # 5. Create foreign server to Geonode in CHAPAR
+    create_foreign_server(dbname=CHAPAR_DBNAME)
 
 
 if __name__ == '__main__':
-    import_sub_study_area(
-        db_uri=get_db_uri('chapar'),
-        foreign_server=settings.POSTGRES_DB_RAW,
-        foreign_schema='public',
-        foreign_study_area_id=9376
-    )
+    # drop_database()
+    # import_sub_study_area(
+    #     db_uri=get_db_uri('chapar'),
+    #     foreign_server=settings.POSTGRES_DB_RAW,
+    #     foreign_schema='public',
+    #     foreign_study_area_id=9376
+    # )
     # reset_foreign_tables('green')
     # import_study_area(
     #     db_uri=get_db_uri('chapar'),
@@ -322,3 +397,4 @@ if __name__ == '__main__':
     #     foreign_schema='public',
     #     study_area_id=9376
     # )
+    pass
