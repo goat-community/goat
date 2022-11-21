@@ -45,6 +45,7 @@
             fas fa-times
           </v-icon>
         </v-app-bar>
+
         <vue-scroll>
           <div v-if="type === 'layer'">
             <v-select
@@ -76,11 +77,12 @@
               ></IconVectorStyle>
             </span>
           </div>
-          <IsochroneColorPicker
-            style="margin-top: 15px"
-            :temporaryColors="temporaryColors"
-            v-else
-          />
+          <div v-else>
+            <IsochroneColorPicker
+              style="margin-top: 15px"
+              :temporaryColors="temporaryColors"
+            />
+          </div>
         </vue-scroll>
       </v-layout>
     </v-card>
@@ -131,6 +133,8 @@ export default {
     this.draggableValue.resetInitialPos = false;
     this.draggableValue.boundingElement = element;
     this.draggableValue.handle = this.$refs[this.handleId];
+    this.isExpanded = false;
+    this.isExpanded = true;
   },
   computed: {
     ...mapGetters("app", {

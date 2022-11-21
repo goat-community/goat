@@ -7,7 +7,7 @@
         :temporaryColors="temporaryColors"
         type="isochrone"
         v-if="selectedCalculationChangeColor"
-      />
+      ></style-dialog>
 
       <!-- mapillary-->
       <div
