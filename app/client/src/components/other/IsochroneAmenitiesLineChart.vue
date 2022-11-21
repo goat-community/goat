@@ -116,14 +116,17 @@ export default {
           },
           annotation: {
             annotations: [
-              {
-                id: "current-time-annotation",
-                type: "line",
-                mode: "vertical",
-                scaleID: "x-axis-0",
-                borderColor: "red",
-                value: this.isochroneRange
-              }
+              ...this.selectedCalculations.map(calc => {
+                return {
+                  id: `current-time-annotation-${calc.id}`,
+                  type: "line",
+                  mode: "vertical",
+                  scaleID: "x-axis-0",
+                  borderWidth: 3,
+                  borderColor: this.calculationColors[calc.id - 1],
+                  value: this.calculationTravelTime[calc.id - 1]
+                };
+              })
             ]
           },
           legend: {
@@ -145,6 +148,9 @@ export default {
     }
   },
   watch: {
+    calculationColors() {
+      this.renderLineChart();
+    },
     selectedPoisOnlyKeys: {
       handler: function() {
         this.renderLineChart();
@@ -157,7 +163,7 @@ export default {
       },
       deep: true
     },
-    isochroneRange: function() {
+    calculationTravelTime: function() {
       this.renderLineChart();
     },
     chartDatasetType: function() {
@@ -172,6 +178,8 @@ export default {
       selectedCalculations: "selectedCalculations",
       isochroneRange: "isochroneRange",
       chartDatasetType: "chartDatasetType",
+      preDefCalculationColors: "preDefCalculationColors",
+      calculationTravelTime: "calculationTravelTime",
       calculationColors: "calculationColors"
     }),
     ...mapGetters("poisaois", {
