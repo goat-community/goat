@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from fastapi import APIRouter, Body, Depends, Query
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
@@ -12,8 +13,10 @@ from src.resources.enums import IsochroneExportType
 from src.schemas.isochrone import (
     IsochroneDTO,
     IsochroneMultiCountPois,
+    IsochroneOutputType,
     request_examples,
 )
+from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()
 
@@ -31,6 +34,8 @@ async def calculate_isochrone(
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
     result = await crud.isochrone.calculate(db, isochrone_in, current_user)
+    if isochrone_in.output.type.value == IsochroneOutputType.NETWORK.value:
+        result = return_geojson_or_geobuf(result, "geojson")
     return result
 
 
