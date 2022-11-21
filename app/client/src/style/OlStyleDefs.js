@@ -980,7 +980,7 @@ export function poisAoisStyle(feature, resolution) {
       if (!poiIconConf || !poiIconConf.icon) {
         return [];
       }
-      let radiusBasedOnZoom = 20;
+      let radiusBasedOnZoom = 18;
       poisShadowStyle.getImage().setScale(1);
 
       if (resolution > 20) {
@@ -990,7 +990,7 @@ export function poisAoisStyle(feature, resolution) {
         radiusBasedOnZoom = 14;
         poisShadowStyle.getImage().setScale(0);
       } else if (resolution > 10 && resolution <= 15) {
-        radiusBasedOnZoom = 18;
+        radiusBasedOnZoom = 16;
         poisShadowStyle.getImage().setScale(0.95);
       }
       poisAoisStyleCache[icon + color] = new OlStyle({
