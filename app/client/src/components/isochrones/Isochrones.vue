@@ -702,9 +702,9 @@
                       <v-layout row>
                         <div
                           :style="
-                            `background-color: ${
-                              calculationColors[calculation.id - 1]
-                            }`
+                            `background: ${returnTheCalculationColor(
+                              calculation.id
+                            )}`
                           "
                           class="isochroneColor"
                           @click="
@@ -1000,6 +1000,7 @@ export default {
     ...mapGetters("isochrones", {
       routingProfiles: "routingProfiles",
       preDefCalculationColors: "preDefCalculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects",
       calculationTravelTime: "calculationTravelTime",
       colors: "colors"
     }),
@@ -2086,6 +2087,39 @@ export default {
     //! Calculate the real length of the calculations array
     getCurrentIsochroneNumber(calc) {
       return calculateCalculationsLength() - calculateCurrentIndex(calc);
+    },
+    // check for the opacity of the isochrone
+    returnTheCalculationColor(id) {
+      let styling = "";
+      if (
+        this.calculationColors[id - 1][7] === "0" &&
+        this.calculationColors[id - 1][8] === "0"
+      ) {
+        styling =
+          "url('img/styling/transparent.png'); background-size: cover; background-position: center; border: 2px solid #D0342C;";
+      } else {
+        styling = this.calculationColors[id - 1] + ";";
+      }
+
+      if (
+        this.calculationSrokeObjects[id - 1].color[7] !== "0" &&
+        this.calculationSrokeObjects[id - 1].color[7] !== "0"
+      ) {
+        if (
+          this.calculationSrokeObjects[id - 1].dashWidth !== 0 &&
+          this.calculationSrokeObjects[id - 1].dashSpace !== 0
+        ) {
+          styling += ` border: 3px dashed ${
+            this.calculationSrokeObjects[id - 1].color
+          };`;
+        } else {
+          styling += ` border: 3px solid ${
+            this.calculationSrokeObjects[id - 1].color
+          };`;
+        }
+      }
+
+      return styling;
     }
   },
   watch: {
