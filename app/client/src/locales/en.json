@@ -324,7 +324,9 @@
     "stopIsochroneCalc": "Stop Calculation",
     "styling": {
       "fillColor": "Fill Color",
-      "StrokeColor": "Stroke"
+      "StrokeColor": "Stroke",
+      "strokeWidth": "Stroke Width",
+      "strokeStyle": "Stroke Style"
     },
     "mode": {
       "default": "Default",
