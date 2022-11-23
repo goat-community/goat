@@ -43,7 +43,7 @@ def upgrade_foreign_server(
 ):
     create_foreign_server = text(
         f"""
-        CREATE SERVER {foreign_server}
+        CREATE SERVER {dbname}
         FOREIGN DATA WRAPPER postgres_fdw
         OPTIONS (host :host, port :port, dbname :dbname);
         """
@@ -53,8 +53,11 @@ def upgrade_foreign_server(
         "port": str(port),
         "dbname": dbname,
     }
-    chapar_engine.execute(create_foreign_server, values)
-
+    try:
+        chapar_engine.execute(create_foreign_server, values)
+    except ProgrammingError as exception:
+        if exception.orig.pgcode == "42710":
+            print(f"Foreign server for {dbname} already exists on database.")
 
 def downgrade_foreign_server():
     drop_foreign_server = text(f"DROP SERVER IF EXISTS {FOREIGN_SERVER};")
@@ -81,7 +84,12 @@ def upgrade_mapping_user(
                             OPTIONS (user :server_user, password :password);"""
     )
     values = {"server_user": server_user, "password": password}
-    legacy_engine.execute(create_mapping_user, values)
+    try:
+        legacy_engine.execute(create_mapping_user, values)
+    except ProgrammingError as exception:
+        if exception.orig.pgcode == "42710":
+            print(f"Mapping user for {foreign_server} already exists on database.")
+    
 
 
 # TODO: the mapping_user and foreign_server should get dynamicly passed.
@@ -116,7 +124,7 @@ def downgrade_schema(schema_name: str = None,
 
 
 def upgrade_foreign_tables(
-    foreign_tables: Union[str, list[str]]=None,
+    foreign_tables: Union[str, list[str]]=[],
     foreign_schema: str = None,
     foreign_server: str = settings.POSTGRES_DB_RAW,
     db_uri: str = None

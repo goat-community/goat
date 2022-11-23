@@ -24,6 +24,7 @@ from src.db.session import legacy_engine
 DUMP_FILE_NAME = 'staging_schema_backup.tar'
 CHAPAR_DBNAME = 'chapar'
 STAGING_DBNAME = 'staging'
+GEONODE_DBNAME = 'geonode_data'
 
 @click.group()
 def cli():
@@ -161,6 +162,7 @@ def restore_schema():
     restore_schema_command = f'PGPASSWORD="{settings.POSTGRES_PASSWORD}" pg_restore -d {CHAPAR_DBNAME} -U {settings.POSTGRES_USER} -h {settings.POSTGRES_SERVER} -v {dump_address}'
     os.system(restore_schema_command)
     print(f'Dump successfully restored!')
+    return 0
 
 @click.command()
 @click.option('--dbname',prompt='Enter dbname')
@@ -224,7 +226,6 @@ def enable_postgis(db_uri):
         
     
 
-@click.command()
 def create_chapar_database():
     create_database('chapar')
     dump_schema()
@@ -232,16 +233,18 @@ def create_chapar_database():
 
 def create_foreign_server(dbname:str):
     remote_table.upgrade_postgres_fdw(db_uri=chapar_uri)
-    remote_table.upgrade_foreign_server(db_uri=chapar_uri, dbname=dbname)
-    remote_table.upgrade_mapping_user(db_uri=chapar_uri, foreign_server=dbname)
+    remote_table.upgrade_foreign_server(dbname=dbname, host=settings.POSTGRES_SERVER, port=5432)
+    remote_table.upgrade_mapping_user(db_uri=chapar_uri, foreign_server=dbname, server_user=settings.POSTGRES_USER, password=settings.POSTGRES_PASSWORD)
 
 def create_foreign_tables_for_staging():
     remote_table.upgrade_foreign_tables(
         foreign_schema='basic',
+        foreign_server=STAGING_DBNAME,
         db_uri=get_db_uri('chapar')
     )
     remote_table.upgrade_foreign_tables(
         foreign_schema='customer',
+        foreign_server=STAGING_DBNAME,
         db_uri=get_db_uri('chapar')
     )
 
@@ -270,9 +273,10 @@ def get_last_study_area_id():
     return study_area.id
 
 def import_study_area(foreign_server:str, foreign_schema:str, study_area_id:int):
-    foreign_schema_name = remote_table.mapping_schema_name_generator(foreign_schema, foreign_server)
+    staging_schema_name=remote_table.mapping_schema_name_generator('basic', STAGING_DBNAME)
+    geonode_schema_name = remote_table.mapping_schema_name_generator('public', settings.POSTGRES_DB_RAW)
     query = text(f'''
-                INSERT INTO basic.study_area   (id,
+                INSERT INTO {staging_schema_name}.study_area   (id,
                                                 name,
                                                 geom,
                                                 population,
@@ -284,7 +288,7 @@ def import_study_area(foreign_server:str, foreign_schema:str, study_area_id:int)
                         population,
                         setting,
                         buffer_geom_heatmap
-                FROM {foreign_schema_name}.study_area s
+                FROM {geonode_schema_name}.study_area s
                 WHERE s.id = {study_area_id}
                  ''')
     chapar_engine.execute(query)
@@ -371,7 +375,7 @@ def import_grid_calculations(foreign_server:str, foreign_schema:str, study_area_
 
 def prepare_dbs():
     # 1. Duplicate main database as STAGING
-    create_staging_database()
+    # create_staging_database()
     # 2. Duplicate main database structure as CHAPAR
     create_chapar_database()
     # 3. Create foregin server to STAGING in CHAPAR
@@ -379,11 +383,17 @@ def prepare_dbs():
     # 4. Import foreign tables for STAGING in CHAPAR
     create_foreign_tables_for_staging()
     # 5. Create foreign server to Geonode in CHAPAR
-    create_foreign_server(dbname=CHAPAR_DBNAME)
+    remote_table.upgrade_foreign_server(dbname=settings.POSTGRES_DB_RAW, host=settings.POSTGRES_SERVER_RAW, port=settings.POSTGRES_OUTER_PORT_RAW)
+    remote_table.upgrade_mapping_user(db_uri=chapar_uri, foreign_server=settings.POSTGRES_DB_RAW, server_user=settings.POSTGRES_USER_RAW, password=settings.POSTGRES_PASSWORD_RAW)
+    
 
 
 if __name__ == '__main__':
+    
     # drop_database()
+    prepare_dbs()
+    # create_foreign_server(dbname=GEONODE_DBNAME)
+    create_foreign_tables_for_project('green')
     # import_sub_study_area(
     #     db_uri=get_db_uri('chapar'),
     #     foreign_server=settings.POSTGRES_DB_RAW,
