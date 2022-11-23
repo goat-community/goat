@@ -42,7 +42,7 @@
               <v-text-field
                 outlined
                 dense
-                :label="t('isochrones.styling.strokeWidth')"
+                :label="$t('isochrones.styling.strokeWidth')"
                 v-model="strokeWidth"
                 @input="changeWidth"
                 style="margin: auto; margin-bottom: 10px; margin-top: 10px; width:400px;"
@@ -52,7 +52,7 @@
               <v-select
                 v-model="strokeStyle"
                 :items="strokeStyles"
-                :label="t('isochrones.styling.strokeStyle')"
+                :label="$t('isochrones.styling.strokeStyle')"
                 dense
                 outlined
               ></v-select>
