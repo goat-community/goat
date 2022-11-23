@@ -1556,7 +1556,7 @@ export default {
       //-- OUTPUT --//
       let output = {
         type: "grid",
-        resolution: ["car", "transit"].includes(routing) ? 9 : 12
+        resolution: ["car", "transit"].includes(routing) ? 9 : 13
       };
       const payloads = [];
 
