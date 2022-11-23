@@ -435,6 +435,19 @@ export default {
                     this.getString(parseInt(sumPois[amenity])),
                     this.$i18n.locale
                   );
+
+                  // Check if the amenity is AOI
+                  let aoiCheck = this.selectedAois.filter(
+                    aoi => aoi.value === amenity
+                  );
+                  if (aoiCheck.length) {
+                    value =
+                      numberSeparator(
+                        this.getString(parseInt(sumPois[amenity])),
+                        this.$i18n.locale
+                      ) + " m²";
+                  }
+
                   obj[`isochrone-${calculation.id}`] = value || "-";
                   if (poisObj[amenity]) {
                     poisObj[amenity] = { ...poisObj[amenity], ...obj };
@@ -496,6 +509,7 @@ export default {
     ...mapGetters("poisaois", {
       poisAois: "poisAois",
       selectedPois: "selectedPois",
+      selectedAois: "selectedAois",
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys",
       selectedAoisOnlyKeys: "selectedAoisOnlyKeys"
     }),
