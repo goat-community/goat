@@ -980,13 +980,17 @@ export function poisAoisStyle(feature, resolution) {
       if (!poiIconConf || !poiIconConf.icon) {
         return [];
       }
-      let radiusBasedOnZoom = 18;
+      
+      let radiusBasedOnZoom = 20;
+      let offsetInYDir = -20;
       poisShadowStyle.getImage().setScale(1);
 
       if (resolution > 20) {
+        offsetInYDir = 0;
         radiusBasedOnZoom = 10;
         poisShadowStyle.getImage().setScale(0);
       } else if (resolution > 15 && resolution <= 20) {
+        offsetInYDir = 0;
         radiusBasedOnZoom = 14;
         poisShadowStyle.getImage().setScale(0);
       } else if (resolution > 10 && resolution <= 15) {
@@ -1005,7 +1009,7 @@ export function poisAoisStyle(feature, resolution) {
           radius: radiusBasedOnZoom,
           rotation: 0,
           rotateWithView: false,
-          offsetY: -20,
+          offsetY: offsetInYDir,
           color: color, // icon color
           fill: new OlFill({
             color: "#fff" // marker color
@@ -1032,16 +1036,20 @@ export function poisAoisStyle(feature, resolution) {
       return [];
     }
     let radiusBasedOnZoom = 20;
+    let offsetInYDir = -20;
     poisShadowStyle.getImage().setScale(1);
 
     if (resolution > 20) {
+      offsetInYDir = -10;
       radiusBasedOnZoom = 10;
       poisShadowStyle.getImage().setScale(0);
     } else if (resolution > 15 && resolution <= 20) {
+      offsetInYDir = -14;
       radiusBasedOnZoom = 14;
       poisShadowStyle.getImage().setScale(0);
     } else if (resolution > 10 && resolution <= 15) {
       radiusBasedOnZoom = 18;
+      offsetInYDir = -18;
       poisShadowStyle.getImage().setScale(0.95);
     }
     poisAoisStyleCache[icon + color] = new OlStyle({
@@ -1056,7 +1064,7 @@ export function poisAoisStyle(feature, resolution) {
         radius: radiusBasedOnZoom,
         rotation: 0,
         rotateWithView: false,
-        offsetY: -20,
+        offsetY: offsetInYDir,
         color: color, // icon color
         fill: new OlFill({
           color: "#fff" // marker color
