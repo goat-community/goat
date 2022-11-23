@@ -1,12 +1,14 @@
 import asyncio
 import heapq
 import math
-
 import numpy as np
 from numba import njit
 from numba.pycc import CC
 from numba.typed import List
 from scipy.interpolate import LinearNDInterpolator
+from scipy import spatial
+
+import time 
 
 from src.utils import (
     coordinate_to_pixel,
@@ -269,6 +271,7 @@ def get_single_depth_grid_(zoom, west, north, data):
     return grid_data
 
 
+
 def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     """
     Build grid interpolate
@@ -282,9 +285,24 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     X = np.arange(start=extent[0], stop=extent[2], step=step_x)
     Y = np.arange(start=extent[1], stop=extent[3], step=step_y)
     X, Y = np.meshgrid(X, Y)  # 2D grid for interpolation
-    interpolate_function = LinearNDInterpolator(points, costs)
 
-    Z = interpolate_function(X, Y)
+    tree=spatial.KDTree(points)
+    grid_points = np.stack((X.flatten(), Y.flatten()), axis=1)
+    distances, indices = tree.query(grid_points, k=3, distance_upper_bound=100, workers=-1)
+    distances[distances == np.inf] = 0 
+    indices_flatten = indices.flatten()
+   
+
+    unvalid_indices = np.asarray(indices_flatten == len(costs)).nonzero()[0]
+    mapped_costs = np.take(costs, indices_flatten, mode='clip')
+    np.put(mapped_costs, unvalid_indices, 0)
+    mapped_costs = mapped_costs.reshape(int(len(mapped_costs)/3), 3)
+
+    to_divide = np.ndarray.sum(distances * mapped_costs, axis=1)
+    to_divide[to_divide == 0] = np.NaN
+    Z = to_divide / np.ndarray.sum(distances, axis=1)
+    Z = Z.reshape(len(X), len(X[0]))
+
     return np.flip(Z, 0)
 
 

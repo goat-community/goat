@@ -5,6 +5,7 @@ import os
 import shutil
 import time
 import uuid
+import pyproj
 from errno import ELOOP
 from typing import Any
 from unicodedata import category
@@ -58,6 +59,7 @@ from src.utils import (
     group_opportunities_single_isochrone,
     web_mercator_to_wgs84,
     wgs84_to_web_mercator,
+    is_inside_sm_parallel,
 )
 
 web_mercator_proj = pyproj.Proj("EPSG:3857")
@@ -273,7 +275,7 @@ class CRUDIsochrone:
         )
         return response
 
-    async def get_max_isochrone_shape(self, grid_decoded, max_time):
+    async def get_max_isochrone_shape(self, grid_decoded, max_time, return_type = "shapely"):
         """
         Gets the isochrone with the highest travel time for opportunity intersect.
         """
@@ -294,9 +296,15 @@ class CRUDIsochrone:
             grid_decoded["zoom"],
             max_time,
         )
-        multipolygon_shape = shape(
-            {"type": "MultiPolygon", "coordinates": isochrone_multipolygon_coordinates}
-        )
+        if return_type == "shapely":
+            multipolygon_shape = shape(
+                {"type": "MultiPolygon", "coordinates": isochrone_multipolygon_coordinates}
+            )
+        elif return_type == "coordinates":
+            multipolygon_shape = isochrone_multipolygon_coordinates
+        else:
+            raise ValueError("Return type not supported")
+        
         return multipolygon_shape
 
     async def get_opportunities_multi_isochrone(self, grid_decoded, obj_in, current_user) -> Any:
@@ -447,6 +455,17 @@ class CRUDIsochrone:
             )
         """
 
+        # get_poi_one_entrance_3857_query = f"""
+        #     SELECT * 
+        #     FROM basic.get_poi_one_entrance_3857(
+        #         {current_user.id}, 
+        #         '{modus}', 
+        #         ST_GeomFromText('{max_isochrone_wkt}', 4326), 
+        #         {scenario_id},
+        #         ARRAY{active_data_upload_ids}::integer[]
+        #     )
+        # """
+
         get_population_sum = read_sql(
             get_population_sum_query,
             legacy_engine,
@@ -459,6 +478,32 @@ class CRUDIsochrone:
             get_poi_more_entrance_sum_query,
             legacy_engine,
         )
+        # get_poi_one_entrance_3857 = read_sql(
+        #     get_poi_one_entrance_3857_query,
+        #     legacy_engine,
+        # )
+
+
+        # begin = time.time()
+        # transformer = pyproj.Transformer.from_crs("epsg:4326", "epsg:3857")
+        # isochrones_3857 = []
+        # for current_time in range(max_time):
+            
+        #     isochrone_shape = await self.get_max_isochrone_shape(
+        #         grid_decoded, current_time + 1, return_type="coordinates"
+        #     )
+        #     if obj_in.mode.value not in [IsochroneMode.TRANSIT.value, IsochroneMode.CAR.value]:
+        #         isochrone_shape = [shape[0] for shape in isochrone_shape]
+        #         for shape in isochrone_shape:
+        #             coords_3857 = []
+        #             for coords in shape: 
+        #                 coords_3857.append(list(transformer.transform(coords[1], coords[0]))) 
+        #     isochrones_3857.append(coords_3857)
+        #         #y,x = transformer.transform(isochrone_shape[0][0][0][1], isochrone_shape[0][0][0][0])
+        #     #isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
+        # for shape in isochrones_3857:
+        #     is_inside_sm_parallel(np.array(get_poi_one_entrance_3857["coords"].tolist()), np.array(shape))
+        # print("Calculation took: ", time.time() - begin)
 
         ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
         get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
