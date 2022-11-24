@@ -336,6 +336,13 @@
     "title": "Isochronen",
     "calculation": "Berechnung",
     "calculationTitle": "Isochronenberechnung",
+    "stopIsochroneCalc": "Berechnung stoppen",
+    "styling": {
+      "fillColor": "Fülleffekt",
+      "StrokeColor": "Formkontur",
+      "strokeWidth": "Stärke",
+      "strokeStyle": "Art"
+    },
     "mode": {
       "default": "Standard",
       "input": "Szenario",
@@ -454,7 +461,7 @@
       "startingPoints": "Startpunkte"
     },
     "pickColor": {
-      "title": "Farbe der Isochrone"
+      "title": "Isochrone Style"
     }
   },
   "indicators": {
