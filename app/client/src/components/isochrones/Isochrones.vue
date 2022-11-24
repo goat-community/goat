@@ -2275,6 +2275,17 @@ export default {
           this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
         }
         this.isochroneLayer.getSource().addFeatures([calculation.feature]);
+        // add network features if state is true
+        if (
+          calculation.additionalData &&
+          calculation.additionalData.network &&
+          calculation.additionalData.network.data &&
+          calculation.additionalData.network.state === true
+        ) {
+          this.isochroneLayer
+            .getSource()
+            .addFeatures(calculation.additionalData.network.data);
+        }
       });
       if (this.selectedCalculations.length === 0) {
         // Reset features to 10 minutes.
