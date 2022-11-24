@@ -448,7 +448,9 @@ export default {
                       ) + " m²";
                   }
 
-                  obj[`isochrone-${calculation.id}`] = value || "-";
+                  obj[
+                    `isochrone-${this.getCurrentIsochroneNumber(calculation)}`
+                  ] = value || "-";
                   if (poisObj[amenity]) {
                     poisObj[amenity] = { ...poisObj[amenity], ...obj };
                   } else {
@@ -486,6 +488,7 @@ export default {
           return b_Value - a_Value;
         });
       }
+      console.log(items);
       return items;
     },
     getMaxIsochroneRange() {
