@@ -1010,7 +1010,7 @@ export function poisAoisStyle(feature, resolution) {
       if (!poiIconConf || !poiIconConf.icon) {
         return [];
       }
-      
+
       let radiusBasedOnZoom = 20;
       let offsetInYDir = -20;
       poisShadowStyle.getImage().setScale(1);
