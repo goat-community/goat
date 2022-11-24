@@ -237,7 +237,12 @@ export default {
       studyArea: "studyArea"
     })
   },
-  components: { LayerOrder, InLegend, StyleDialog, ImportExternalLayers },
+  components: {
+    LayerOrder,
+    InLegend,
+    "style-dialog": StyleDialog,
+    ImportExternalLayers
+  },
   methods: {
     // Layer Import feature
     createExternalLayerGroup() {
