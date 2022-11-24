@@ -1,6 +1,7 @@
 
 import asyncio
 import bz2
+import time
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -164,29 +165,36 @@ class CRUDHeatmap:
 
             # TODO:
             # Compute isochrone using new function
+            cluster_time = time.time()
+            print(starting_ids, network)
     
-            for indx, starting_id in starting_ids:
+            for indx, starting_id in enumerate(starting_ids):
+                
+                starting_point_time = time.time()
                 
                 grid = compute_isochrone(
                     network,
-                    starting_id, #It requests an array here, are you sure that we need to loop through starting_ids
+                    [starting_id],
                     obj_multi_isochrones.settings.travel_time,
                     obj_multi_isochrones.output.resolution,
                 )
                 
-                costs = bz2.compress(grid)
+                costs = bz2.compress(grid['data'])
+                
+                print("Starting Point Time: " + str(time.time() - starting_point_time))
                 
                 traveltimeobj = models.TravelTimeMatrixWalking(
                     grid_calculation_id=grid_ids[indx],
-                    north=1000,
-                    west=1000,
-                    heigth=2000,
-                    width=2000,
+                    north=grid['north'],
+                    west=grid['west'],
+                    heigth=grid['height'],
+                    width=grid['width'],
                     costs=costs
                 )
                 
-                geostore = await crud.traveltime_matrix_walking.create(db, obj_in=traveltimeobj)
-                
+                # travelTimeMatrix = await crud.traveltime_matrix_walking.create(db, obj_in=traveltimeobj)
+            print("Cluster Time: "+(time.time() - cluster_time))
+    
 
             # FOR LOOP through starting points that compute individual isochrones
             # Use core.isochrone
