@@ -720,6 +720,22 @@
                           <template v-slot:activator="{ on }">
                             <v-icon
                               :disabled="isIsochroneBusy"
+                              @click="openAdditionalData(calculation)"
+                              small
+                              v-on="on"
+                              class="result-icons mr-2"
+                            >
+                              fas fa-layer-group</v-icon
+                            >
+                          </template>
+                          <span>{{
+                            $t("isochrones.results.showAdditionalData")
+                          }}</span>
+                        </v-tooltip>
+                        <v-tooltip top>
+                          <template v-slot:activator="{ on }">
+                            <v-icon
+                              :disabled="isIsochroneBusy"
                               @click="deleteCalculation(calculation)"
                               small
                               v-on="on"
@@ -840,6 +856,12 @@
       <!-- -- -->
     </v-card>
     <confirm ref="confirm"></confirm>
+    <isochrone-additional-data
+      :calculation="additionalDataForCalculation"
+      :visible="additionalDataForCalculationDialog"
+      @close="additionalDataForCalculationDialog = false"
+      @toggleIsochroneAdditionalData="toggleIsochroneAdditionalData"
+    ></isochrone-additional-data>
   </v-flex>
 </template>
 
@@ -849,6 +871,7 @@ import { toPixel } from "../../utils/MapUtils";
 import { Isochrones } from "../../mixins/Isochrones";
 import { KeyShortcuts } from "../../mixins/KeyShortcuts";
 import IsochroneUtils from "../../utils/IsochroneUtils";
+import IsochroneAdditionalData from "./IsochroneAdditionalData.vue";
 import {
   getIsochroneStyle,
   getIsochroneNetworkStyle,
@@ -896,6 +919,9 @@ import { toLonLat, fromLonLat } from "ol/proj";
 
 export default {
   mixins: [Mapable, Isochrones, KeyShortcuts],
+  components: {
+    IsochroneAdditionalData
+  },
   data: () => ({
     interactionType: "isochrone-interaction",
     isOptionsElVisible: true,
@@ -914,9 +940,10 @@ export default {
     isIsochroneCalculationTypeElVisible: true,
     isIsochroneStartElVisible: true,
     isResultsElVisible: true,
-    isochroneColorPickerState: false,
     activeCalculation: null, // for color palette selection
     activeCalculationMode: null, // for color palette selection,
+    additionalDataForCalculation: null,
+    additionalDataForCalculationDialog: false,
     //Single Isochrone
     mapClickListener: null,
     // Multiisochrone
@@ -1066,6 +1093,96 @@ export default {
         this.selectedCalculationChangeColor = selectedCalculation;
       }
     },
+    toggleIsochroneAdditionalData(type, calculation) {
+      let selectedCalculation =
+        this.additionalDataForCalculation || calculation;
+      if (Array.isArray(selectedCalculation) && calculation) {
+        selectedCalculation = calculation[0];
+      }
+
+      // Add network to isochrone layer
+      if (
+        calculation &&
+        selectedCalculation.additionalData &&
+        selectedCalculation.additionalData[type] &&
+        selectedCalculation.additionalData[type].data
+      ) {
+        // Invoked from isochrone drag event
+        selectedCalculation.additionalData[type].data.forEach(feature => {
+          if (this.isochroneLayer.getSource().hasFeature(feature)) {
+            this.isochroneLayer.getSource().removeFeature(feature);
+          }
+        });
+        selectedCalculation.additionalData[type].data = null;
+      }
+      if (
+        selectedCalculation.additionalData &&
+        selectedCalculation.additionalData[type] &&
+        selectedCalculation.additionalData[type].state === true
+      ) {
+        if (!selectedCalculation.additionalData[type].data) {
+          // Fetch network layer.
+          const axiosInstance = axios.create();
+          const CancelToken = axios.CancelToken;
+          // Cancel previous request
+          this.cancelRequestTokens.forEach(cancelRequestToken => {
+            if (cancelRequestToken instanceof Function) {
+              cancelRequestToken("cancelled");
+            }
+          });
+          const payload = selectedCalculation.config;
+          let _payload = JSON.parse(JSON.stringify(payload));
+          _payload.output.type = type;
+          this.isMapBusy = true;
+          this.isIsochroneBusy = true;
+          axiosInstance
+            .post(`./isochrones`, _payload, {
+              cancelToken: new CancelToken(c => {
+                // An executor function receives a cancel function as a parameter
+                this.cancelRequestTokens.push(c);
+              })
+            })
+            .then(response => {
+              console.log(response);
+              let olFeatures = geojsonToFeature(response.data, {
+                dataProjection: "EPSG:3857",
+                featureProjection: "EPSG:3857"
+              });
+              olFeatures.forEach(feature => {
+                feature.set("calculationNumber", selectedCalculation.id);
+              });
+              selectedCalculation.additionalData[type].data = olFeatures;
+              this.isochroneLayer.getSource().addFeatures(olFeatures);
+            })
+            .catch(error => {
+              console.log(error);
+            })
+            .finally(() => {
+              this.isMapBusy = false;
+              this.isIsochroneBusy = false;
+            });
+        } else {
+          this.isochroneLayer
+            .getSource()
+            .addFeatures(selectedCalculation.additionalData[type].data);
+        }
+      }
+      if (
+        selectedCalculation.additionalData &&
+        selectedCalculation.additionalData[type] &&
+        selectedCalculation.additionalData[type].state === false &&
+        selectedCalculation.additionalData[type].data
+      ) {
+        // Remove network from isochrone layer
+        selectedCalculation.additionalData[type].data.forEach(feature => {
+          this.isochroneLayer.getSource().removeFeature(feature);
+        });
+      }
+    },
+    openAdditionalData(selectedCalculation) {
+      this.additionalDataForCalculationDialog = true;
+      this.additionalDataForCalculation = selectedCalculation;
+    },
     onMapBound() {
       this.createIsochroneLayer();
       this.createIsochroneRoadNetworkLayer();
@@ -1081,7 +1198,7 @@ export default {
      */
     createIsochroneLayer() {
       const style = getIsochroneStyle();
-      const vector = new VectorLayer({
+      const vector = new VectorImageLayer({
         name: "isochrone_layer",
         displayInLegend: false,
         zIndex: 6,
@@ -1875,6 +1992,7 @@ export default {
           payload.starting_point.input[0].lat = lonLatCoordinate[1];
           this.isMapBusy = true;
           this.isIsochroneBusy = true;
+          this.toggleIsochroneAdditionalData("network", calculation);
           axiosInstance
             .post(`./isochrones`, payload, {
               responseType: "arraybuffer",
