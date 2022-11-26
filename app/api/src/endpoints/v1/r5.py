@@ -35,6 +35,10 @@ router = APIRouter()
 # ----------------------ACTIVITY ENDPOINTS------------------------
 # ----------------------------------------------------------------
 
+headers = {}
+if settings.R5_AUTHORIZATION:
+    headers["Authorization"] = settings.R5_AUTHORIZATION
+
 
 @router.get("/activity")
 async def get_activity(
@@ -43,7 +47,7 @@ async def get_activity(
     """
     Get all activities.
     """
-    response = requests.delete(settings.R5_API_URL + "/activity")
+    response = requests.delete(settings.R5_API_URL + "/activity", headers=headers)
     return response.json()
 
 
@@ -96,7 +100,8 @@ async def get_projects_for_region(
 async def region_create(
     *,
     db: AsyncSession = Depends(deps.get_r5_mongo_db),
-    region_in: R5RegionCreateDTO = Body(..., example=request_examples["region"]["create"]),
+    region_in: R5RegionCreateDTO = Body(...,
+                                        example=request_examples["region"]["create"]),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
 
@@ -164,7 +169,8 @@ async def get_project(
 async def project_create(
     *,
     db: AsyncSession = Depends(deps.get_r5_mongo_db),
-    project_in: R5ProjectCreateDTO = Body(..., example=request_examples["project"]["create"]),
+    project_in: R5ProjectCreateDTO = Body(...,
+                                          example=request_examples["project"]["create"]),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
@@ -178,7 +184,8 @@ async def project_create(
 async def project_update(
     *,
     db: AsyncSession = Depends(deps.get_r5_mongo_db),
-    project_in: R5ProjectUpdateDTO = Body(..., example=request_examples["project"]["update"]),
+    project_in: R5ProjectUpdateDTO = Body(...,
+                                          example=request_examples["project"]["update"]),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
@@ -213,7 +220,7 @@ async def get_bundles(
     """
     Get all bundles.
     """
-    result = requests.get(settings.R5_API_URL + "/bundle")
+    result = requests.get(settings.R5_API_URL + "/bundle", headers=headers)
     return result.json()
 
 
@@ -226,7 +233,7 @@ async def get_bundle(
     """
     Get bundle.
     """
-    result = requests.get(settings.R5_API_URL + "/bundle/" + bundle_id)
+    result = requests.get(settings.R5_API_URL + "/bundle/" + bundle_id, headers=headers)
     return result.json()
 
 
@@ -250,6 +257,7 @@ async def create_bundle(
             "feedGroup": feed_group.file,
             "regionId": region_id,
         },
+        headers=headers
     )
     return response.json()
 
@@ -263,5 +271,6 @@ async def delete_bundle(
     """
     Delete bundle.
     """
-    response = requests.delete(settings.R5_API_URL + "/bundle/" + bundle_id)
+    response = requests.delete(settings.R5_API_URL +
+                               "/bundle/" + bundle_id, headers=headers)
     return response.json()

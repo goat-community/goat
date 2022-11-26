@@ -687,9 +687,13 @@ class CRUDIsochrone:
                 "west": study_area_bounds[0],
                 "east": study_area_bounds[2],
             }
+            headers = {}
+            if settings.R5_AUTHORIZATION:
+                headers["Authorization"] = settings.R5_AUTHORIZATION
             response = requests.post(
                 settings.R5_API_URL + "/analysis",
                 json=payload,
+                headers=headers
             )
             grid = decode_r5_grid(response.content)
 

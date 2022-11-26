@@ -9,6 +9,7 @@ ubuntu-bionic-18.04-cloudimg-console.log
 /app/database/backups
 /app/database/data_preparation/Python/__pycache__
 /app/database/scripts/__pycache__
+/app/api/src/exts/cpp/src/isochrone.cpython-39-x86_64-linux-gnu.so
 node_modules
 .env
 /.vscode
