@@ -328,6 +328,8 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
         len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
     )
 
+    print(unordered_map)
+
     # run dijkstra
     start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
     distances = dijkstra_(start_vertices_ids, adj_list, travel_time)

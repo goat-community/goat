@@ -1,7 +1,6 @@
 from .crud_check_data import check_data
 from .crud_customization import customization, dynamic_customization, user_customization
 from .crud_geostore import geostore
-from .crud_isochrone import isochrone, isochrone_calculation
 from .crud_indicator import indicator
 from .crud_isochrone import isochrone, isochrone_calculation
 from .crud_layer import layer
@@ -20,6 +19,7 @@ from .crud_scenario import scenario
 from .crud_static_layer import static_layer
 from .crud_study_area import study_area
 from .crud_study_area_geostore import study_area_geostore
+from .crud_system import system
+from .crud_traveltime_matrix import traveltime_matrix_walking
 from .crud_upload import data_upload, upload
 from .crud_user import user
-from .crud_system import system

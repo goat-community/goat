@@ -1,4 +1,7 @@
+
 import asyncio
+import bz2
+import time
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -51,7 +54,7 @@ class CRUDHeatmap:
             CREATE TABLE temporal.heatmap_grid_helper AS 
             WITH relevant_study_area_ids AS 
             (
-                SELECT id FROM basic.study_area WHERE id IN (281460, 44021, 83110000, 91620000, 9564, 9188, 9174, 9178, 9177, 9175, 9184, 9188, 9179, 9564)
+                SELECT id FROM basic.study_area WHERE id IN (281460)
             ),
             cnt AS 
             (
@@ -162,15 +165,39 @@ class CRUDHeatmap:
 
             # TODO:
             # Compute isochrone using new function
-
-            for starting_id in starting_ids:
-                grid = compute_isochrone(
-                    network,
-                    starting_id,
-                    obj_multi_isochrones.settings.travel_time,
-                    obj_multi_isochrones.output.resolution,
-                )
-                print("Finished")
+            cluster_time = time.time()
+            print(starting_ids, network)
+    
+            for indx, starting_id in enumerate(starting_ids):
+                
+                starting_point_time = time.time()
+                try:
+                    grid = compute_isochrone(
+                        network,
+                        [starting_id],
+                        obj_multi_isochrones.settings.travel_time,
+                        obj_multi_isochrones.output.resolution,
+                    )
+                    
+                    costs = bz2.compress(grid['data'])
+                    
+                    print("Starting Point Time: " + str(time.time() - starting_point_time))
+                    
+                    traveltimeobj = models.TravelTimeMatrixWalking(
+                        grid_calculation_id=grid_ids[indx],
+                        north=grid['north'],
+                        west=grid['west'],
+                        heigth=grid['height'],
+                        width=grid['width'],
+                        costs=costs
+                    )
+                
+                except:
+                    print(starting_id)
+                    
+                # travelTimeMatrix = await crud.traveltime_matrix_walking.create(db, obj_in=traveltimeobj)
+            print("Cluster Time: "+(time.time() - cluster_time))
+    
 
             # FOR LOOP through starting points that compute individual isochrones
             # Use core.isochrone
