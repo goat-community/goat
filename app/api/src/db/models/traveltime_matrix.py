@@ -19,12 +19,12 @@ if TYPE_CHECKING:
 
 class TravelTimeMatrixBase(SQLModel):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
-    grid_calculation_id: int = Field(foreign_key="basic.grid_calculation.id", nullable=False, index=True)
-    north: Optional[int] = Field(sa_column=Column(Integer), nullable=False)
-    west: Optional[int] = Field(sa_column=Column(Integer), nullable=False)
-    heigth: Optional[int] = Field(sa_column=Column(SmallInteger), nullable=False)
-    width: Optional[int] = Field(sa_column=Column(SmallInteger), nullable=False)
-    costs: Optional[bytes] = Field(sa_column=Column(LargeBinary), nullable=False)
+    grid_calculation_id: int = Field(BigInteger, foreign_key="basic.grid_calculation.id", nullable=False, index=True)
+    north: int = Field(sa_column=Column(Integer), nullable=False)
+    west: int = Field(sa_column=Column(Integer), nullable=False)
+    heigth: int = Field(sa_column=Column(SmallInteger), nullable=False)
+    width: int = Field(sa_column=Column(SmallInteger), nullable=False)
+    costs: bytes = Field(sa_column=Column(LargeBinary), nullable=False)
 
 
 class TravelTimeMatrixWalking(TravelTimeMatrixBase, table=True):

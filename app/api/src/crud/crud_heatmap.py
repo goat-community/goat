@@ -28,7 +28,7 @@ from src.schemas.isochrone import (
     IsochroneStartingPoint,
     IsochroneStartingPointCoord,
 )
-
+from src.utils import print_hashtags, print_warning, print_info
 
 class CRUDGridCalculation(
     CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
@@ -54,7 +54,7 @@ class CRUDHeatmap:
             CREATE TABLE temporal.heatmap_grid_helper AS 
             WITH relevant_study_area_ids AS 
             (
-                SELECT id FROM basic.study_area WHERE id IN (281460)
+                SELECT id FROM basic.study_area WHERE id IN (83110000)
             ),
             cnt AS 
             (
@@ -90,7 +90,7 @@ class CRUDHeatmap:
 
         cnt = 0
         cnt_sections = len(kmeans_classes)
-
+        
         for kmeans_class in kmeans_classes:
             cnt += 1
             starting_time_section = datetime.now()
@@ -110,15 +110,14 @@ class CRUDHeatmap:
             )
 
             starting_points = starting_points.fetchall()
-            starting_id = [i[0] for i in starting_points]
 
             # Check if there are no starting points
-            if len(starting_id) == 0:
+            if len(starting_points) == 0:
                 continue
 
             grid_ids = [i[1] for i in starting_points]
-            dict_starting_ids = dict(zip(starting_id, grid_ids))
 
+            # Create a list of DTOs for starting points
             starting_points_dto_arr = []
             for i in starting_points:
                 starting_points_dto_arr.append(IsochroneStartingPointCoord(lat=i[3], lon=i[2]))
@@ -151,7 +150,7 @@ class CRUDHeatmap:
                 current_user=current_user,
                 isochrone_type=schemas.isochrone.IsochroneTypeEnum.heatmap.value,
             )
-
+            network = network.iloc[1:, :]
             # # Compute isochrones for connectivity heatmap
             # await self.compute_connectivity_heatmap(
             #     db_sync, edges_network, dict_starting_ids, network_ids, distance_limits
@@ -165,38 +164,34 @@ class CRUDHeatmap:
 
             # TODO:
             # Compute isochrone using new function
-            cluster_time = time.time()
-            print(starting_ids, network)
-    
+            begin_cluster = time.time()
+
             for indx, starting_id in enumerate(starting_ids):
                 
                 starting_point_time = time.time()
-                try:
-                    grid = compute_isochrone(
-                        network,
-                        [starting_id],
-                        obj_multi_isochrones.settings.travel_time,
-                        obj_multi_isochrones.output.resolution,
-                    )
-                    
-                    costs = bz2.compress(grid['data'])
-                    
-                    print("Starting Point Time: " + str(time.time() - starting_point_time))
-                    
-                    traveltimeobj = models.TravelTimeMatrixWalking(
-                        grid_calculation_id=grid_ids[indx],
-                        north=grid['north'],
-                        west=grid['west'],
-                        heigth=grid['height'],
-                        width=grid['width'],
-                        costs=costs
-                    )
+         
+                grid = compute_isochrone(
+                    network,
+                    [starting_id],
+                    obj_multi_isochrones.settings.travel_time,
+                    obj_multi_isochrones.output.resolution,
+                )
                 
-                except:
-                    print(starting_id)
-                    
+                costs = bz2.compress(grid['data'])
+                traveltimeobj = models.TravelTimeMatrixWalking(
+                    grid_calculation_id=grid_ids[indx],
+                    north=grid['north'],
+                    west=grid['west'],
+                    heigth=grid['height'],
+                    width=grid['width'],
+                    costs=costs
+                )
+                db.add(traveltimeobj)
+    
+                await db.commit() 
                 # travelTimeMatrix = await crud.traveltime_matrix_walking.create(db, obj_in=traveltimeobj)
-            print("Cluster Time: "+(time.time() - cluster_time))
+            end_cluster = time.time()
+            print_info("Cluster Time: " + str(end_cluster - begin_cluster))
     
 
             # FOR LOOP through starting points that compute individual isochrones

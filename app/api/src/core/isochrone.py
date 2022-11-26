@@ -1,7 +1,7 @@
 import asyncio
 import heapq
 import math
-
+import time
 import numpy as np
 from numba import njit
 from numba.pycc import CC
@@ -288,7 +288,7 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     return np.flip(Z, 0)
 
 
-def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10):
+def compute_isochrone(edge_network_input, start_vertices, travel_time, zoom: int = 10):
     """
     Compute isochrone for a given start vertices
 
@@ -297,7 +297,8 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     :param travel_time: Travel time in minutes
     :return: R5 Grid
     """
-    edge_network = edge_network.iloc[1:, :]  # TODO: Fix this
+
+    edge_network = edge_network_input.copy()
     edge_network.astype(
         {
             "id": np.int64,
@@ -327,8 +328,6 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     adj_list = construct_adjacency_list_(
         len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
     )
-
-    print(unordered_map)
 
     # run dijkstra
     start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
@@ -411,6 +410,7 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
 
 async def main():
     edges_network, starting_ids, obj_in = await get_sample_network(minutes=5)
+    edge_network = edge_network.iloc[1:, :]
     grid_data = compute_isochrone(
         edges_network,
         starting_ids,

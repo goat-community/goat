@@ -634,6 +634,7 @@ class CRUDIsochrone:
             network, starting_ids = await self.read_network(
                 db, obj_in, current_user, isochrone_type
             )
+            network = network.iloc[1:, :]
             grid = compute_isochrone(
                 network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
             )
