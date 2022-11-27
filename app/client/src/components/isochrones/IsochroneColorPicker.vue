@@ -42,7 +42,7 @@
               <v-text-field
                 outlined
                 dense
-                label="Stroke Width"
+                :label="$t('isochrones.styling.strokeWidth')"
                 v-model="strokeWidth"
                 @input="changeWidth"
                 style="margin: auto; margin-bottom: 10px; margin-top: 10px; width:400px;"
@@ -52,7 +52,7 @@
               <v-select
                 v-model="strokeStyle"
                 :items="strokeStyles"
-                label="Stroke style"
+                :label="$t('isochrones.styling.strokeStyle')"
                 dense
                 outlined
               ></v-select>
@@ -83,90 +83,6 @@
         </div>
       </v-tab-item>
     </v-tabs-items>
-    <!-- <vue-scroll>
-    <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
-      <v-tab :key="1">
-        <v-badge>
-          <b>{{ $t("appBar.stylePanel.fillColor") }}</b>
-        </v-badge>
-      </v-tab>
-      <v-tab :key="2">
-        <v-badge>
-          <b>{{ $t("appBar.stylePanel.outlineColorAndWidth") }}</b>
-        </v-badge>
-      </v-tab>
-    </v-tabs>
-    <v-tabs-items v-model="tab">
-      <v-tab-item :key="1">
-        <v-color-picker
-          class="elevation-0"
-          canvas-height="100"
-          width="400"
-          style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
-          :mode.sync="hexa"
-          v-model="fillColor"
-          @input="onFillColorChange($event)"
-        >
-        </v-color-picker>
-        <v-btn
-          color="warning"
-          dark
-          @click="resetStyle(selectedCalculationChangeColor)"
-          :style="
-            `width: 100%; background-color: ${appColor.primary} !important`
-          "
-        >
-          Reset Style
-        </v-btn>
-      </v-tab-item>
-      <v-tab-item>
-        <div>
-          <v-row style="width: 424px; margin: auto;" align="center">
-            <v-col cols="6" class="py-0">
-              <v-text-field
-                outlined
-                dense
-                label="Stroke Width"
-                v-model="strokeWidth"
-                @input="changeWidth"
-                style="margin: auto; margin-bottom: 10px; margin-top: 10px; width:400px;"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="6" class="py-0">
-              <v-select
-                v-model="strokeStyle"
-                :items="strokeStyles"
-                label="Stroke style"
-                dense
-                outlined
-              ></v-select>
-            </v-col>
-          </v-row>
-          
-          <v-color-picker
-            class="elevation-0"
-            canvas-height="100"
-            width="400"
-            style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
-            :mode.sync="hexa"
-            v-model="strokeColor"
-            @input="onStrokeColorChange($event)"
-            @change="onStrokeColorChange($event)"
-          >
-          </v-color-picker>
-          <v-btn
-            color="warning"
-            dark
-            @click="resetStyle(selectedCalculationChangeColor)"
-            :style="
-              `width: 100%; background-color: ${appColor.primary} !important`
-            "
-          >
-            Reset Style
-          </v-btn>
-        </div>
-      </v-tab-item>
-    </v-tabs-items>-->
   </vue-scroll>
 </template>
 

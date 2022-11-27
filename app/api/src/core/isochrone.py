@@ -1,5 +1,6 @@
 import asyncio
 import heapq
+import json
 import math
 import time
 import numpy as np
@@ -379,18 +380,19 @@ def compute_isochrone(edge_network_input, start_vertices, travel_time, zoom: int
         node_coords_list, node_costs_list, zoom, width_pixel, xy_bottom_left[0], xy_top_right[1]
     )
 
-    # geojson = {
-    #     "type": "FeatureCollection",
-    #     "features": [
-    #         {
-    #             "type": "Feature",
-    #             "geometry": {"type": "Point", "coordinates": node_coords_list[idx]},
-    #             "properties": {"cost": node_costs_list[idx]},
-    #         }
-    #         for idx in range(len(node_coords_list))
-    #     ],
-    # }
-    # # write geojson
+    edges_length = range(len(edges_source))
+    network = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {"type": "LineString", "coordinates": edges_geom[idx]},
+                "properties": {"cost": distances[edges_target[idx]]},
+            }
+            for idx in edges_length if distances[edges_target[idx]] != np.inf
+        ],
+    }
+    # write geojson
     # with open("isochrone.geojson", "w") as f:
     #     json.dump(geojson, f)
 
@@ -405,7 +407,7 @@ def compute_isochrone(edge_network_input, start_vertices, travel_time, zoom: int
 
     # build grid data (single depth)
     grid_data = get_single_depth_grid_(zoom, xy_bottom_left[0], xy_top_right[1], Z)
-    return grid_data
+    return grid_data, network
 
 
 async def main():

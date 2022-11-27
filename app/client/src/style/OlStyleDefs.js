@@ -14,7 +14,11 @@ import mapStore from "../store/modules/map";
 import Stroke from "ol/style/Stroke";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
-import { getIconUnicode } from "../utils/Helpers";
+import {
+  getIconUnicode,
+  interpolateColor,
+  LinearColorInterpolator
+} from "../utils/Helpers";
 import Point from "ol/geom/Point";
 import { getArea } from "ol/sphere.js";
 import i18n from "../../src/plugins/i18n";
@@ -203,89 +207,115 @@ export function getIsochroneStyle() {
      * Creates styles for isochrone polygon geometry type and isochrone
      * center marker.
      */
-    if (
-      geomType === "Polygon" ||
-      geomType === "MultiPolygon" ||
-      geomType === "LineString"
-    ) {
+    if (["Polygon", "MultiPolygon", "LineString"].includes(geomType)) {
       //Check feature isVisible Property
       if (isVisible === false) {
         return;
       }
       let calculationColors = isochroneStore.state.calculationColors;
       let calculationStroke = isochroneStore.state.calculationSrokeObjects;
-
       let calculationNumber = feature.get("calculationNumber");
-      if (calculationNumber > 10) {
+      if (calculationNumber && calculationNumber > 10) {
         let division = calculationNumber / 10;
         let remaining = division - parseInt(division);
         calculationNumber = Math.round(remaining * 10);
       }
-      styles.push(
-        new OlStyle({
-          fill: new OlFill({
-            color: calculationColors[calculationNumber - 1]
-          }),
-          stroke: new Stroke({
-            color: calculationStroke[calculationNumber - 1].color,
-            width: calculationStroke[calculationNumber - 1].width,
-            lineDash: [
-              calculationStroke[calculationNumber - 1].dashWidth,
-              calculationStroke[calculationNumber - 1].dashSpace
-            ]
+      // Network visualization
+      if (geomType === "LineString") {
+        const time =
+          isochroneStore.state.calculationTravelTime[calculationNumber - 1];
+        if (time && feature.get("cost") > time) {
+          return;
+        }
+        let factor = feature.get("cost") / time;
+        if (factor > 1) {
+          factor = 1;
+        }
+        const rgbColor = LinearColorInterpolator.convertHexToRgb(
+          calculationColors[calculationNumber - 1].slice(0, -2)
+        );
+        const color = interpolateColor(
+          "rgb(255,255,255)",
+          `rgb(${rgbColor.r},${rgbColor.g},${rgbColor.b})`,
+          factor
+        );
+        styles.push(
+          new OlStyle({
+            stroke: new Stroke({
+              color: color,
+              width: 2
+            })
           })
-        })
-      );
+        );
+      } else {
+        // Isochrone visualization
 
-      if (feature.get("showLabel")) {
-        if (geomType !== ["Polygon", "LineString"]) {
-          styles.push(
-            new OlStyle({
-              geometry: feature => {
-                const coordinates = feature
-                  .getGeometry()
-                  .getCoordinates()[0][0];
-                let maxY = null;
-                let index = null;
-                // Find max coordinate Y
-                coordinates.forEach(coordinate => {
-                  if (maxY === null || coordinate[1] > maxY) {
-                    maxY = coordinate[1];
-                    index = coordinates.indexOf(coordinate);
-                  }
-                });
-                const center = coordinates[index];
-                return new Point(center);
-              },
-              text: new OlText({
-                text: isochroneStore.state.isochroneRange + " min",
-                font: "bold 16px Arial",
-                placement: "point",
-                fill: new OlFill({
-                  color: "white"
-                }),
-                maxAngle: 0,
-                backgroundFill: new OlFill({
-                  color: calculationColors[calculationNumber]
-                }),
-                padding: [2, 2, 2, 2]
-              })
+        styles.push(
+          new OlStyle({
+            fill: new OlFill({
+              color: calculationColors[calculationNumber - 1]
+            }),
+            stroke: new Stroke({
+              color: calculationStroke[calculationNumber - 1].color,
+              width: calculationStroke[calculationNumber - 1].width,
+              lineDash: [
+                calculationStroke[calculationNumber - 1].dashWidth,
+                calculationStroke[calculationNumber - 1].dashSpace
+              ]
             })
-          );
-        } else {
-          styles.push(
-            new OlStyle({
-              text: new OlText({
-                text: isochroneStore.state.isochroneRange + " min",
-                font: "bold 16px Arial",
-                placement: "line",
-                fill: new OlFill({
-                  color: calculationColors[calculationNumber]
-                }),
-                maxAngle: 0
+          })
+        );
+
+        if (feature.get("showLabel")) {
+          if (geomType !== ["Polygon", "LineString"]) {
+            styles.push(
+              new OlStyle({
+                geometry: feature => {
+                  const coordinates = feature
+                    .getGeometry()
+                    .getCoordinates()[0][0];
+                  let maxY = null;
+                  let index = null;
+                  // Find max coordinate Y
+                  coordinates.forEach(coordinate => {
+                    if (maxY === null || coordinate[1] > maxY) {
+                      maxY = coordinate[1];
+                      index = coordinates.indexOf(coordinate);
+                    }
+                  });
+                  const center = coordinates[index];
+                  return new Point(center);
+                },
+                text: new OlText({
+                  text: isochroneStore.state.isochroneRange + " min",
+                  font: "bold 16px Arial",
+                  placement: "point",
+                  fill: new OlFill({
+                    color: "white"
+                  }),
+                  maxAngle: 0,
+                  backgroundFill: new OlFill({
+                    color: calculationColors[calculationNumber]
+                  }),
+                  padding: [2, 2, 2, 2]
+                })
               })
-            })
-          );
+            );
+          } else {
+            styles.push(
+              new OlStyle({
+                text: new OlText({
+                  text: isochroneStore.state.isochroneRange + " min",
+                  font: "bold 16px Arial",
+                  placement: "line",
+                  fill: new OlFill({
+                    color: calculationColors[calculationNumber]
+                  }),
+                  maxAngle: 0
+                })
+              })
+            );
+          }
         }
       }
     } else {
@@ -980,7 +1010,7 @@ export function poisAoisStyle(feature, resolution) {
       if (!poiIconConf || !poiIconConf.icon) {
         return [];
       }
-      
+
       let radiusBasedOnZoom = 20;
       let offsetInYDir = -20;
       poisShadowStyle.getImage().setScale(1);
