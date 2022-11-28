@@ -1,16 +1,17 @@
 import asyncio
+import bz2
 import heapq
 import json
 import math
 import time
+
 import numpy as np
 from numba import njit
 from numba.pycc import CC
 from numba.typed import List
 from scipy import spatial
-import bz2
-from src.db.models import TravelTimeMatrixWalking
 
+from src.db.models import TravelTimeMatrixWalking
 from src.utils import (
     coordinate_to_pixel,
     web_mercator_x_to_pixel_x,
@@ -533,15 +534,21 @@ def compute_isochrone_heatmap(
     return traveltimeobjs
 
 
-from multiprocessing.pool import Pool
+from concurrent.futures import ProcessPoolExecutor as Pool
+from concurrent.futures.process import _chain_from_iterable_of_lists as iterable
+
+
 def heatmap_multiprocessing(zip_object):
-    pool = Pool()
-    total_inserts = pool.map(
-        compute_isochrone_heatmap,
-        zip_object,
-    )
-    pool.close()
-    pool.join()
+    start = time.perf_counter()
+    with Pool() as executor: 
+        total_inserts = executor.map(
+            compute_isochrone_heatmap,
+            zip_object,
+        )
+        for result in total_inserts:
+            print(result)
+    end = time.perf_counter()
+    print(f'Time taken for a kmeans: {end - start} secs')
 
 
     
