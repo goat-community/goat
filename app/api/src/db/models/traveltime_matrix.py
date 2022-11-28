@@ -19,7 +19,6 @@ if TYPE_CHECKING:
 
 class TravelTimeMatrixBase(SQLModel):
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
-    grid_calculation_id: int = Field(BigInteger, foreign_key="basic.grid_calculation.id", nullable=False, index=True)
     north: int = Field(sa_column=Column(Integer), nullable=False)
     west: int = Field(sa_column=Column(Integer), nullable=False)
     heigth: int = Field(sa_column=Column(SmallInteger), nullable=False)
@@ -30,5 +29,12 @@ class TravelTimeMatrixBase(SQLModel):
 class TravelTimeMatrixWalking(TravelTimeMatrixBase, table=True):
     __tablename__ = "traveltime_matrix_walking"
     __table_args__ = {"schema": "customer"}
-
+    grid_calculation_id: int = Field(
+        sa_column=Column(
+            BigInteger,
+            ForeignKey("basic.grid_calculation.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        )
+    )
     grid_calculation: "GridCalculation" = Relationship(back_populates="traveltime_matrix_walking")
