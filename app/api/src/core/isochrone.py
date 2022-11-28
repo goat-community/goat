@@ -7,10 +7,9 @@ import numpy as np
 from numba import njit
 from numba.pycc import CC
 from numba.typed import List
-from scipy.interpolate import LinearNDInterpolator
 from scipy import spatial
-
-import time 
+import bz2
+from src.db.models import TravelTimeMatrixWalking
 
 from src.utils import (
     coordinate_to_pixel,
@@ -273,7 +272,6 @@ def get_single_depth_grid_(zoom, west, north, data):
     return grid_data
 
 
-
 def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     """
     Build grid interpolate
@@ -288,17 +286,16 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     Y = np.arange(start=extent[1], stop=extent[3], step=step_y)
     X, Y = np.meshgrid(X, Y)  # 2D grid for interpolation
 
-    tree=spatial.KDTree(points)
+    tree = spatial.KDTree(points)
     grid_points = np.stack((X.flatten(), Y.flatten()), axis=1)
     distances, indices = tree.query(grid_points, k=3, distance_upper_bound=100, workers=-1)
-    distances[distances == np.inf] = 0 
+    distances[distances == np.inf] = 0
     indices_flatten = indices.flatten()
-   
 
     unvalid_indices = np.asarray(indices_flatten == len(costs)).nonzero()[0]
-    mapped_costs = np.take(costs, indices_flatten, mode='clip')
+    mapped_costs = np.take(costs, indices_flatten, mode="clip")
     np.put(mapped_costs, unvalid_indices, 0)
-    mapped_costs = mapped_costs.reshape(int(len(mapped_costs)/3), 3)
+    mapped_costs = mapped_costs.reshape(int(len(mapped_costs) / 3), 3)
 
     to_divide = np.ndarray.sum(distances * mapped_costs, axis=1)
     to_divide[to_divide == 0] = np.NaN
@@ -308,16 +305,7 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
     return np.flip(Z, 0)
 
 
-def compute_isochrone(edge_network_input, start_vertices, travel_time, zoom: int = 10):
-    """
-    Compute isochrone for a given start vertices
-
-    :param edge_network: Edge Network DataFrame
-    :param start_vertices: List of start vertices
-    :param travel_time: Travel time in minutes
-    :return: R5 Grid
-    """
-
+def prepare_network_isochrone(edge_network_input):
     edge_network = edge_network_input.copy()
     edge_network.astype(
         {
@@ -337,27 +325,36 @@ def compute_isochrone(edge_network_input, start_vertices, travel_time, zoom: int
     edges_geom = np.array(edge_network["geom"])
     edges_length = np.array(edge_network["length"])
     unordered_map, node_coords, extent = remap_edges(edges_source, edges_target, edges_geom)
-
+    
+    # construct adjacency list
+    adj_list = construct_adjacency_list_(
+        len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
+    )
     # add buffer of 200 meters to extent
     extent[0] -= 200
     extent[1] -= 200
     extent[2] += 200
     extent[3] += 200
-
-    # construct adjacency list
-    adj_list = construct_adjacency_list_(
-        len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
+    return (
+        adj_list,
+        edges_source,
+        edges_target,
+        edges_cost,
+        edges_reverse_cost,
+        edges_geom,
+        edges_length,
+        unordered_map,
+        node_coords,
+        extent,
     )
 
-    # run dijkstra
-    start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
-    distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
 
+def network_to_grid(
+    extent, zoom, edges_source, edges_target, edges_length, edges_geom, distances, node_coords
+):
     # minx, miny, maxx, maxy
     width_meter = extent[2] - extent[0]
     height_meter = extent[3] - extent[1]
-
-    # get corners in pixel
     # Pixel coordinates origin is at the top left corner of the image. (y of top right/left corner is smaller than y of bottom right/left corner)
     xy_bottom_left = [
         math.floor(x)
@@ -398,24 +395,6 @@ def compute_isochrone(edge_network_input, start_vertices, travel_time, zoom: int
     node_coords_list, node_costs_list = filter_nodes(
         node_coords_list, node_costs_list, zoom, width_pixel, xy_bottom_left[0], xy_top_right[1]
     )
-
-    edges_length = range(len(edges_source))
-    network = {
-        "type": "FeatureCollection",
-        "features": [
-            {
-                "type": "Feature",
-                "geometry": {"type": "LineString", "coordinates": edges_geom[idx]},
-                "properties": {"cost": distances[edges_target[idx]]},
-            }
-            for idx in edges_length if distances[edges_target[idx]] != np.inf
-        ],
-    }
-    # write geojson
-    # with open("isochrone.geojson", "w") as f:
-    #     json.dump(geojson, f)
-
-    # build grid
     Z = build_grid_interpolate_(
         node_coords_list,
         node_costs_list,
@@ -423,12 +402,150 @@ def compute_isochrone(edge_network_input, start_vertices, travel_time, zoom: int
         step_x=web_mercator_x_step,
         step_y=web_mercator_y_step,
     )
-
     # build grid data (single depth)
     grid_data = get_single_depth_grid_(zoom, xy_bottom_left[0], xy_top_right[1], Z)
+    return grid_data
+
+
+def compute_isochrone(
+    edge_network_input, start_vertices, travel_time, zoom: int = 10, return_network: bool = True
+):
+    """
+    Compute isochrone for a given start vertices
+
+    :param edge_network: Edge Network DataFrame
+    :param start_vertices: List of start vertices
+    :param travel_time: Travel time in minutes
+    :return: R5 Grid
+    """
+    (
+        edges_source,
+        edges_target,
+        edges_cost,
+        edges_reverse_cost,
+        edges_geom,
+        edges_length,
+        unordered_map,
+        node_coords,
+        extent,
+    ) = prepare_network_isochrone(edge_network_input=edge_network_input)
+
+    # add buffer of 200 meters to extent
+    extent[0] -= 200
+    extent[1] -= 200
+    extent[2] += 200
+    extent[3] += 200
+
+    # construct adjacency list
+    adj_list = construct_adjacency_list_(
+        len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
+    )
+
+    # run dijkstra
+    start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
+    distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
+
+    # convert restuls to grid
+    grid_data = network_to_grid(
+        extent, zoom, edges_source, edges_target, edges_length, edges_geom, distances, node_coords
+    )
+
+    if return_network == True:
+        edges_length = range(len(edges_source))
+        network = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "LineString", "coordinates": edges_geom[idx]},
+                    "properties": {"cost": distances[edges_target[idx]]},
+                }
+                for idx in edges_length
+                if distances[edges_target[idx]] != np.inf
+            ],
+        }
+    else:
+        network = None
+    # write geojson
+    # with open("isochrone.geojson", "w") as f:
+    #     json.dump(geojson, f)
+
+    # build grid
+
     return grid_data, network
 
+def compute_isochrone_heatmap(
+    adj_list,
+    edges_source,
+    edges_target,
+    edges_geom,
+    edges_length,
+    unordered_map,
+    node_coords,
+    extent,
+    start_vertices,
+    grid_ids,
+    travel_time,
+    zoom: int = 10,
+):
+    """_summary_
 
+    Args:
+        edges_source (_type_): _description_
+        edges_target (_type_): _description_
+        edges_cost (_type_): _description_
+        edges_reverse_cost (_type_): _description_
+        edges_geom (_type_): _description_
+        edges_length (_type_): _description_
+        unordered_map (_type_): _description_
+        node_coords (_type_): _description_
+        extent (_type_): _description_
+        start_vertices (_type_): _description_
+        travel_time (_type_): _description_
+        zoom (int, optional): _description_. Defaults to 10.
+
+    Returns:
+        _type_: _description_
+    """    
+
+    # run dijkstra
+    traveltimeobjs = []
+    for idx, start_vertex in enumerate(start_vertices):
+        start_vertices_ids = start_vertices_ids = np.array([unordered_map[v] for v in [start_vertex]])
+        distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
+
+        # convert restuls to grid
+        grid = network_to_grid(
+            extent[idx], zoom, edges_source, edges_target, edges_length, edges_geom, distances, node_coords
+        )
+
+        costs = bz2.compress(grid["data"])
+        traveltimeobj = models.TravelTimeMatrixWalking(
+            grid_calculation_id=grid_ids[idx],
+            north=grid["north"],
+            west=grid["west"],
+            heigth=grid["height"],
+            width=grid["width"],
+            costs=costs,
+        )
+        traveltimeobjs.append(traveltimeobj)
+
+    return traveltimeobjs
+
+
+from multiprocessing.pool import Pool
+def heatmap_multiprocessing(zip_object):
+    pool = Pool()
+    total_inserts = pool.map(
+        compute_isochrone_heatmap,
+        zip_object,
+    )
+    pool.close()
+    pool.join()
+
+
+    
+    
 async def main():
     edges_network, starting_ids, obj_in = await get_sample_network(minutes=5)
     edge_network = edge_network.iloc[1:, :]
