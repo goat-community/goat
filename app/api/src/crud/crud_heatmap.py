@@ -13,7 +13,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import delete, text
 
 from src import crud, schemas
-from src.core.isochrone import prepare_network_isochrone, network_to_grid, dijkstra_, heatmap_multiprocessing, compute_traveltime as compute_traveltime_test
+from src.core.isochrone import (
+    prepare_network_isochrone,
+    heatmap_multiprocessing,
+    compute_isochrone_heatmap,
+)
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
@@ -28,6 +32,7 @@ from src.schemas.isochrone import (
 )
 
 from multiprocessing.pool import Pool
+
 # from multiprocessing.pool import ThreadPool as Pool
 # from concurrent.futures import ProcessPoolExecutor as Pool
 # from loky import get_reusable_executor
@@ -50,8 +55,6 @@ class CRUDGridCalculation(
 # Alternative to_sql() *method* for DBs that support COPY FROM
 import csv
 from io import StringIO
-
-
 
 
 class CRUDHeatmap:
@@ -206,70 +209,49 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
             node_coords,
             total_extent,
         ) = prepare_network_isochrone(edge_network_input=network)
-
+        # WORKS
         total_inserts = []
-        # for idx, batch_starting_ids in enumerate(starting_ids):
+        for idx, batch_starting_ids in enumerate(starting_ids):
 
-        #     batch_insert = compute_isochrone_heatmap(
-        #         adj_list,
-        #         edges_source,
-        #         edges_target,
-        #         edges_geom,
-        #         edges_length,
-        #         unordered_map,
-        #         node_coords,
-        #         extents[idx],
-        #         batch_starting_ids,
-        #         grid_ids[idx],
-        #         obj_multi_isochrones.settings.travel_time,
-        #         obj_multi_isochrones.output.resolution,
-        #     )
-        #     total_inserts.extend(batch_insert)
+            batch_insert = compute_isochrone_heatmap(
+                adj_list,
+                edges_source,
+                edges_target,
+                edges_geom,
+                edges_length,
+                unordered_map,
+                node_coords,
+                extents[idx],
+                batch_starting_ids,
+                grid_ids[idx],
+                obj_multi_isochrones.settings.travel_time,
+                obj_multi_isochrones.output.resolution,
+            )
+            total_inserts.extend(batch_insert)
 
         # Compute isochrones
-        zip_object = zip(
-            repeat(adj_list),
-            repeat(edges_source),
-            repeat(edges_target),
-            repeat(edges_geom),
-            repeat(edges_length),
-            repeat(unordered_map),
-            repeat(node_coords),
-            extents,
-            starting_ids,
-            grid_ids,
-            repeat(obj_multi_isochrones.settings.travel_time),
-            repeat(obj_multi_isochrones.output.resolution),
-        )
-        heatmap_multiprocessing(zip_object)
-
-        # pool = Pool()
-        # total_inserts = pool.map(
-        #     compute_isochrone_heatmap,
-        #     zip(
-        #         repeat(adj_list),
-        #         repeat(edges_source),
-        #         repeat(edges_target),
-        #         repeat(edges_geom),
-        #         repeat(edges_length),
-        #         repeat(unordered_map),
-        #         repeat(node_coords),
-        #         extents,
-        #         starting_ids,
-        #         grid_ids,
-        #         repeat(obj_multi_isochrones.settings.travel_time),
-        #         repeat(obj_multi_isochrones.output.resolution),
-        #     ),
+        # DOES NOT WORK WITH MULTIPROCESSING
+        # TODO: Fix multiprocessing
+        # zip_object = zip(
+        #     repeat(adj_list),
+        #     repeat(edges_source),
+        #     repeat(edges_target),
+        #     repeat(edges_geom),
+        #     repeat(edges_length),
+        #     repeat(unordered_map),
+        #     repeat(node_coords),
+        #     extents,
+        #     starting_ids,
+        #     grid_ids,
+        #     repeat(obj_multi_isochrones.settings.travel_time),
+        #     repeat(obj_multi_isochrones.output.resolution),
         # )
-        # pool.close()
-        # pool.join()
+        # heatmap_multiprocessing(zip_object)
 
         beginning_time_bulk_insert = time.time()
-
         db.add_all(total_inserts)
         await db.commit()
         end_time_bulk_insert = time.time()
-        print_info(f"Bulk insert took {end_time_bulk_insert-beginning_time_bulk_insert}")
 
         end_time_section = time.time()
 
@@ -286,6 +268,7 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
         print_info(
             f"Network preparation took [bold magenta]{(end_time_network_preparation - starting_time_network_preparation)}[/bold magenta] seconds"
         )
+        print_info(f"Bulk insert took [bold magenta]{end_time_bulk_insert-beginning_time_bulk_insert}[/bold magenta]")
         print_hashtags()
 
     end_time = time.time()
@@ -309,7 +292,7 @@ def main():
         CRUDHeatmap().prepare_starting_points(db=db, current_user=superuser)
     )
     asyncio.get_event_loop().run_until_complete(
-        compute_traveltime_test(db=db, db_sync=db_sync, current_user=superuser)
+        compute_traveltime(db=db, db_sync=db_sync, current_user=superuser)
     )
     # asyncio.get_event_loop().run_until_complete(CRUDHeatmap().finalize_connectivity_heatmap(db=db))
     # asyncio.get_event_loop().run_until_complete(

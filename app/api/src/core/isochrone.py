@@ -520,7 +520,7 @@ def compute_isochrone_heatmap(
         )
 
         costs = bz2.compress(grid["data"])
-        traveltimeobj = models.TravelTimeMatrixWalking(
+        traveltimeobj = TravelTimeMatrixWalking(
             grid_calculation_id=grid_ids[idx],
             north=grid["north"],
             west=grid["west"],
