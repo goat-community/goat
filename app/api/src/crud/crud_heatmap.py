@@ -1,10 +1,13 @@
 import asyncio
 import bz2
-import time
 import os
-import numpy as np
+import time
 from datetime import datetime, timedelta
+from functools import partial
+from itertools import repeat
+from multiprocessing.pool import Pool
 
+import numpy as np
 import pandas as pd
 from rich import print
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -14,9 +17,9 @@ from sqlalchemy.sql import delete, text
 
 from src import crud, schemas
 from src.core.isochrone import (
-    prepare_network_isochrone,
-    heatmap_multiprocessing,
     compute_isochrone_heatmap,
+    heatmap_multiprocessing,
+    prepare_network_isochrone,
 )
 from src.crud.base import CRUDBase
 from src.db import models
@@ -30,8 +33,7 @@ from src.schemas.isochrone import (
     IsochroneStartingPoint,
     IsochroneStartingPointCoord,
 )
-
-from multiprocessing.pool import Pool
+from src.utils import print_hashtags, print_info, print_warning
 
 # from multiprocessing.pool import ThreadPool as Pool
 # from concurrent.futures import ProcessPoolExecutor as Pool
@@ -41,9 +43,6 @@ from multiprocessing.pool import Pool
 # from pathos.pools import ProcessPool as Pool
 
 
-from src.utils import print_hashtags, print_warning, print_info
-from functools import partial
-from itertools import repeat
 
 
 class CRUDGridCalculation(
@@ -66,7 +65,7 @@ class CRUDHeatmap:
         await db.execute(text("DROP TABLE IF EXISTS temporal.heatmap_grid_helper;"))
         await db.commit()
         query = text(
-            """
+           """
             CREATE TABLE temporal.heatmap_grid_helper AS 
             WITH relevant_study_area_ids AS 
             (
@@ -210,10 +209,34 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
             total_extent,
         ) = prepare_network_isochrone(edge_network_input=network)
         # WORKS
-        total_inserts = []
-        for idx, batch_starting_ids in enumerate(starting_ids):
+        # total_inserts = []
+        # for idx, batch_starting_ids in enumerate(starting_ids):
 
-            batch_insert = compute_isochrone_heatmap(
+        #     batch_insert = compute_isochrone_heatmap(
+        #         adj_list,
+        #         edges_source,
+        #         edges_target,
+        #         edges_geom,
+        #         edges_length,
+        #         unordered_map,
+        #         node_coords,
+        #         extents[idx],
+        #         batch_starting_ids,
+        #         grid_ids[idx],
+        #         obj_multi_isochrones.settings.travel_time,
+        #         obj_multi_isochrones.output.resolution,
+        #     )
+        #     total_inserts.extend(batch_insert)
+
+        # Compute isochrones
+        # DOES NOT WORK WITH MULTIPROCESSING
+        # TODO: Fix multiprocessing
+        
+        heatmapObject = [];
+        
+        for indx, starting_id in enumerate(starting_ids):
+            # print(unordered_map)
+            singleHeatmapIsochrone = [
                 adj_list,
                 edges_source,
                 edges_target,
@@ -221,37 +244,36 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
                 edges_length,
                 unordered_map,
                 node_coords,
-                extents[idx],
-                batch_starting_ids,
-                grid_ids[idx],
+                extents[indx],
+                starting_id,
+                grid_ids[indx],
                 obj_multi_isochrones.settings.travel_time,
-                obj_multi_isochrones.output.resolution,
-            )
-            total_inserts.extend(batch_insert)
-
-        # Compute isochrones
-        # DOES NOT WORK WITH MULTIPROCESSING
-        # TODO: Fix multiprocessing
+                obj_multi_isochrones.output.resolution
+            ]
+            
+            heatmapObject.append(singleHeatmapIsochrone)
+        print(len(heatmapObject))
         # zip_object = zip(
-        #     repeat(adj_list),
-        #     repeat(edges_source),
-        #     repeat(edges_target),
-        #     repeat(edges_geom),
-        #     repeat(edges_length),
-        #     repeat(unordered_map),
-        #     repeat(node_coords),
+        #     list(repeat(adj_list, len(starting_ids))),
+        #     list(repeat(edges_source, len(starting_ids))),
+        #     list(repeat(edges_target, len(starting_ids))),
+        #     list(repeat(edges_geom, len(starting_ids))),
+        #     list(repeat(edges_length, len(starting_ids))),
+        #     list(repeat(unordered_map, len(starting_ids))),
+        #     list(repeat(node_coords, len(starting_ids))),
         #     extents,
         #     starting_ids,
         #     grid_ids,
-        #     repeat(obj_multi_isochrones.settings.travel_time),
-        #     repeat(obj_multi_isochrones.output.resolution),
+        #     list(repeat(obj_multi_isochrones.settings.travel_time, len(starting_ids))),
+        #     list(repeat(obj_multi_isochrones.output.resolution, len(starting_ids))),
         # )
-        # heatmap_multiprocessing(zip_object)
+        heatmap_multiprocessing(heatmapObject)
 
-        beginning_time_bulk_insert = time.time()
-        db.add_all(total_inserts)
-        await db.commit()
-        end_time_bulk_insert = time.time()
+        # TURNED OFF TABLE ISERTION TO NOT CAUSE PROBLEMS ##################################################
+        # beginning_time_bulk_insert = time.time()
+        # db.add_all(total_inserts)
+        # await db.commit()
+        # end_time_bulk_insert = time.time()
 
         end_time_section = time.time()
 
@@ -268,7 +290,7 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
         print_info(
             f"Network preparation took [bold magenta]{(end_time_network_preparation - starting_time_network_preparation)}[/bold magenta] seconds"
         )
-        print_info(f"Bulk insert took [bold magenta]{end_time_bulk_insert-beginning_time_bulk_insert}[/bold magenta]")
+        # print_info(f"Bulk insert took [bold magenta]{end_time_bulk_insert-beginning_time_bulk_insert}[/bold magenta]")
         print_hashtags()
 
     end_time = time.time()
@@ -311,5 +333,6 @@ def main():
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
 
+print("main")
 
 main()
