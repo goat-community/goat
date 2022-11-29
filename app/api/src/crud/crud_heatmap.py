@@ -231,21 +231,43 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
         # Compute isochrones
         # DOES NOT WORK WITH MULTIPROCESSING
         # TODO: Fix multiprocessing
-        zip_object = zip(
-            repeat(adj_list),
-            repeat(edges_source),
-            repeat(edges_target),
-            repeat(edges_geom),
-            repeat(edges_length),
-            repeat(unordered_map),
-            repeat(node_coords),
-            extents,
-            starting_ids,
-            grid_ids,
-            repeat(obj_multi_isochrones.settings.travel_time),
-            repeat(obj_multi_isochrones.output.resolution),
-        )
-        heatmap_multiprocessing(zip_object)
+        
+        heatmapObject = [];
+        
+        for indx, starting_id in enumerate(starting_ids):
+            # print(unordered_map)
+            singleHeatmapIsochrone = [
+                adj_list,
+                edges_source,
+                edges_target,
+                edges_geom,
+                edges_length,
+                unordered_map,
+                node_coords,
+                extents[indx],
+                starting_id,
+                grid_ids[indx],
+                obj_multi_isochrones.settings.travel_time,
+                obj_multi_isochrones.output.resolution
+            ]
+            
+            heatmapObject.append(singleHeatmapIsochrone)
+        print(len(heatmapObject))
+        # zip_object = zip(
+        #     list(repeat(adj_list, len(starting_ids))),
+        #     list(repeat(edges_source, len(starting_ids))),
+        #     list(repeat(edges_target, len(starting_ids))),
+        #     list(repeat(edges_geom, len(starting_ids))),
+        #     list(repeat(edges_length, len(starting_ids))),
+        #     list(repeat(unordered_map, len(starting_ids))),
+        #     list(repeat(node_coords, len(starting_ids))),
+        #     extents,
+        #     starting_ids,
+        #     grid_ids,
+        #     list(repeat(obj_multi_isochrones.settings.travel_time, len(starting_ids))),
+        #     list(repeat(obj_multi_isochrones.output.resolution, len(starting_ids))),
+        # )
+        heatmap_multiprocessing(heatmapObject)
 
         # TURNED OFF TABLE ISERTION TO NOT CAUSE PROBLEMS ##################################################
         # beginning_time_bulk_insert = time.time()
@@ -311,5 +333,6 @@ def main():
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
 
+print("main")
 
 main()

@@ -534,19 +534,33 @@ def compute_isochrone_heatmap(
     return traveltimeobjs
 
 
+import concurrent.futures as cf
 from concurrent.futures import ProcessPoolExecutor as Pool
-from concurrent.futures.process import _chain_from_iterable_of_lists as iterable
+from concurrent.futures.process import _chain_from_iterable_of_lists
 
 
 def heatmap_multiprocessing(zip_object):
+    # start = time.perf_counter()
+    # with Pool() as executor: 
+    #     total_inserts = executor.map(
+    #         compute_isochrone_heatmap,
+    #         list(zip_object),
+    #     )
+    #     print(total_inserts)
+    # end = time.perf_counter()
+    # print(f'Time taken for a kmeans: {end - start} secs')
+    
+    
     start = time.perf_counter()
     with Pool() as executor: 
         total_inserts = executor.map(
             compute_isochrone_heatmap,
             zip_object,
         )
+        
         for result in total_inserts:
             print(result)
+            
     end = time.perf_counter()
     print(f'Time taken for a kmeans: {end - start} secs')
 
