@@ -17,7 +17,7 @@ from alembic.config import Config
 from src.core.config import SyncPostgresDsn, settings
 from src.db.chapar import init_remote_table as remote_table
 from src.db.chapar.init_remote_table import upgrade_foreign_server, upgrade_mapping_user
-from src.db.chapar.projects import projects
+from src.db.chapar.projects import get_schema, projects
 from src.db.models import StudyArea
 from src.db.session import legacy_engine
 
@@ -273,11 +273,13 @@ def get_last_study_area_id():
     study_area = chapar_engine.execute(query).first()
     return study_area.id
 
-def import_study_area(foreign_server:str, foreign_schema:str, study_area_id:int):
-    staging_schema_name=remote_table.mapping_schema_name_generator('basic', STAGING_DBNAME)
-    geonode_schema_name = remote_table.mapping_schema_name_generator('public', settings.POSTGRES_DB_RAW)
+def import_study_area(study_area_id:int, foreign_server:str=settings.POSTGRES_DB_RAW):
+    # staging_schema_name=remote_table.mapping_schema_name_generator('basic', STAGING_DBNAME)
+    foreign_schema = get_schema('study_area')
+    geonode_schema_name = remote_table.mapping_schema_name_generator(foreign_schema, foreign_server)
+    # TODO: setting is hard coded.
     query = text(f'''
-                INSERT INTO {staging_schema_name}.study_area   (id,
+                INSERT INTO basic.study_area   (id,
                                                 name,
                                                 geom,
                                                 population,
@@ -285,10 +287,10 @@ def import_study_area(foreign_server:str, foreign_schema:str, study_area_id:int)
                                                 buffer_geom_heatmap)
                 SELECT  id,
                         name,
-                        geom,
+                        St_astext(geom),
                         population,
-                        setting,
-                        buffer_geom_heatmap
+                        '{'{}'}'::jsonb,
+                        ST_Multi(buffer_geom_heatmap)
                 FROM {geonode_schema_name}.study_area s
                 WHERE s.id = {study_area_id}
                  ''')
@@ -297,8 +299,10 @@ def import_study_area(foreign_server:str, foreign_schema:str, study_area_id:int)
 
     
 
-def import_sub_study_area(foreign_server:str, foreign_schema:str, study_area_id:int):
+def import_sub_study_area(study_area_id:int, foreign_server:str=settings.POSTGRES_DB_RAW):
+    foreign_schema = get_schema('sub_study_area')
     foreign_schema_name = remote_table.mapping_schema_name_generator(foreign_schema, foreign_server)
+    # TODO: s.area is hard coded
     query = text(f'''
                     INSERT INTO basic.sub_study_area (
                         name,
@@ -313,7 +317,7 @@ def import_sub_study_area(foreign_server:str, foreign_schema:str, study_area_id:
                             s.name,
                             s.default_building_levels,
                             s.default_roof_levels,
-                            s.area,
+                            0,
                             s.geom,
                             s.population,
                             s.study_area_id
@@ -322,7 +326,8 @@ def import_sub_study_area(foreign_server:str, foreign_schema:str, study_area_id:
                  ''')
     chapar_engine.execute(query)
 
-def import_grid_visualization(foreign_server:str, foreign_schema:str, study_area_id:int):
+def import_grid_visualization(study_area_id:int, foreign_server:str=settings.POSTGRES_DB_RAW):
+    foreign_schema = get_schema('grid_visualization')
     foreign_schema_name = remote_table.mapping_schema_name_generator(foreign_schema, foreign_server)
     query = text(f'''
                     INSERT INTO basic.grid_visualization (  id,
@@ -331,41 +336,54 @@ def import_grid_visualization(foreign_server:str, foreign_schema:str, study_area
                                                             percentile_area_isochrone,
                                                             percentile_population,
                                                             population)
-                    SELECT  g.id,
-                            g.geom,
-                            g.area_isochrone,
-                            g.percentile_area_isochrone,
-                            g.percentile_population,
-                            g.population
+                    SELECT  g1.id,
+                            g1.geom,
+                            g1.area_isochrone,
+                            g1.percentile_area_isochrone,
+                            g1.percentile_population,
+                            g1.population
                     FROM
                     (
-                        SELECT  id,
-                                geom,
-                                area_isochrone,
-                                percentile_area_isochrone,
-                                percentile_population,
-                                population
-                        {foreign_schema_name}.grid_visualization g1, {foreign_schema_name}.study_area s 
-                        WHERE ST_Intersects(ST_Centroid(g1.geom), s.geom)
-                        AND g1.geom && s.geom 
+                        SELECT  g.id,
+                                g.geom,
+                                g.area_isochrone,
+                                g.percentile_area_isochrone,
+                                g.percentile_population,
+                                g.population
+                        from {foreign_schema_name}.grid_visualization g, {foreign_schema_name}.study_area s 
+                        WHERE ST_Intersects(ST_Centroid(g.geom), s.geom)
+                        AND s.id = {study_area_id}
+                        AND g.geom && s.geom 
                     )  g1 
-                    LEFT JOIN basic.grid_visualiation g2
+                    LEFT JOIN basic.grid_visualization g2
                     ON g1.id = g2.id
                     WHERE g2.id IS NULL
                  ''')
     chapar_engine.execute(query)
 
-def import_grid_calculations(foreign_server:str, foreign_schema:str, study_area_id:int):
+def import_grid_calculations(study_area_id:int,foreign_server:str=settings.POSTGRES_DB_RAW):
+    foreign_schema = get_schema('grid_calculation')
     foreign_schema_name = remote_table.mapping_schema_name_generator(foreign_schema, foreign_server)
     query = text(f'''
                     WITH new_grid_cs as 
                     (
                         SELECT gc.*
                         FROM {foreign_schema_name}.grid_calculation gc,
-                        basic.grid_visualization gv 
-                        WHERE gv.id = gc.grid_visualization_id 
+                        basic.grid_visualization gv, {foreign_schema_name}.study_area s 
+                        WHERE ST_Intersects(ST_Centroid(gv.geom), s.geom)
+                        AND
+                        s.id = {study_area_id}
+                        AND
+                        gv.id = gc.grid_visualization_id 
                     )
-                    SELECT new_grid_cs.*
+                    INSERT into basic.grid_calculation (
+                        id,
+                        geom,
+                        grid_visualization_id
+                    )
+                    SELECT  new_grid_cs.id,
+                            new_grid_cs.geom,
+                            new_grid_cs.grid_visualization_id
                     FROM new_grid_cs
                     LEFT JOIN basic.grid_calculation p
                     ON new_grid_cs.id = p.id 
@@ -386,6 +404,21 @@ def prepare_dbs():
     # 5. Create foreign server to Geonode in CHAPAR
     remote_table.upgrade_foreign_server(dbname=settings.POSTGRES_DB_RAW, host=settings.POSTGRES_SERVER_RAW, port=settings.POSTGRES_OUTER_PORT_RAW)
     remote_table.upgrade_mapping_user(db_uri=chapar_uri, foreign_server=settings.POSTGRES_DB_RAW, server_user=settings.POSTGRES_USER_RAW, password=settings.POSTGRES_PASSWORD_RAW)
+
+
+def import_project_green(study_area_id:int):
+    import_study_area(
+        study_area_id=study_area_id
+    )
+    import_sub_study_area(
+        study_area_id=study_area_id
+    )
+    import_grid_visualization(
+        study_area_id=study_area_id
+    )
+    import_grid_calculations(
+        study_area_id=study_area_id
+    )
     
 
 
@@ -394,18 +427,16 @@ if __name__ == '__main__':
     # drop_database()
     # prepare_dbs()
     # create_foreign_server(dbname=GEONODE_DBNAME)
-    create_foreign_tables_for_project('green')
+    # create_foreign_tables_for_project('green')
     # import_sub_study_area(
-    #     db_uri=get_db_uri('chapar'),
-    #     foreign_server=settings.POSTGRES_DB_RAW,
-    #     foreign_schema='public',
-    #     foreign_study_area_id=9376
+    #     study_area_id=9177
     # )
     # reset_foreign_tables('green')
     # import_study_area(
-    #     db_uri=get_db_uri('chapar'),
-    #     foreign_server=settings.POSTGRES_DB_RAW,
-    #     foreign_schema='public',
-    #     study_area_id=9376
+    #     study_area_id=9177
     # )
+    # import_grid_calculations(
+    #     study_area_id=9177
+    # )
+    
     pass
