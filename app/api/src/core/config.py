@@ -29,6 +29,7 @@ class Settings(BaseSettings):
         "http://localhost:1024",
         "https://dashboard.plan4better.de",
         "https://dashboard-dev.plan4better.de",
+        "https://citizens.plan4better.de"
     ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
