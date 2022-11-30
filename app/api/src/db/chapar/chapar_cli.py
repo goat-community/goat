@@ -249,11 +249,12 @@ def create_foreign_tables_for_staging():
     )
 
 def create_foreign_tables_for_project(project_name:str):
-    remote_table.upgrade_foreign_tables(
-        foreign_tables=projects[project_name]['tables'],
-        foreign_schema=projects[project_name]['raw_db_schema'],
-        db_uri=get_db_uri('chapar')
-    )
+    for part in projects[project_name]:
+        remote_table.upgrade_foreign_tables(
+            foreign_tables=part['tables'],
+            foreign_schema=part['raw_db_schema'],
+            db_uri=get_db_uri('chapar')
+        )
 
 def remove_foreign_tables(project_name:str):
     remote_table.downgrade_foreign_tables(
@@ -391,7 +392,7 @@ def prepare_dbs():
 if __name__ == '__main__':
     
     # drop_database()
-    prepare_dbs()
+    # prepare_dbs()
     # create_foreign_server(dbname=GEONODE_DBNAME)
     create_foreign_tables_for_project('green')
     # import_sub_study_area(
