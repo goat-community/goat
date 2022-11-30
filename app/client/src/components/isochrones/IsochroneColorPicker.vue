@@ -1,46 +1,24 @@
 <template>
-  <v-dialog
-    width="300"
-    overlay-opacity="0"
-    persistent
-    no-click-animation
-    hide-overlay
-    v-model="dialog"
-    content-class="v-dialog"
-  >
-    <v-card
-      :style="[isExpanded ? { height: 'auto' } : { height: '50px' }]"
-      class="isochrone-color-picker"
-      v-draggable="draggableValue"
-    >
-      <v-app-bar
-        :ref="handleId"
-        style="cursor: grab"
-        height="50"
-        :color="appColor.primary"
-        dark
-      >
-        <v-app-bar-nav-icon><v-icon>fas fa-palette</v-icon></v-app-bar-nav-icon>
-        <v-toolbar-title>{{
-          $t("isochrones.pickColor.title")
-        }}</v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-icon @click="expand" class="toolbar-icons mr-2">
-          {{ isExpanded ? "fas fa-chevron-up" : "fas fa-chevron-down" }}
-        </v-icon>
-        <v-app-bar-nav-icon @click.stop="closeDialog"
-          ><v-icon>close</v-icon></v-app-bar-nav-icon
-        >
-      </v-app-bar>
-      <vue-scroll
-        class="color-wrapper"
-        :style="[isExpanded ? {} : { visibility: 'hidden' }]"
-      >
+  <vue-scroll>
+    <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
+      <v-tab :key="1">
+        <v-badge>
+          <b>{{ $t("appBar.stylePanel.fillColor") }}</b>
+        </v-badge>
+      </v-tab>
+      <v-tab :key="2">
+        <v-badge>
+          <b>{{ $t("appBar.stylePanel.outlineColorAndWidth") }}</b>
+        </v-badge>
+      </v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="tab">
+      <v-tab-item :key="1">
         <v-color-picker
           class="elevation-0"
           canvas-height="100"
           width="400"
-          style="margin: auto; margin-bottom: 20px"
+          style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
           :mode.sync="hexa"
           v-model="fillColor"
           @input="onFillColorChange($event)"
@@ -50,56 +28,250 @@
           color="warning"
           dark
           @click="resetStyle(selectedCalculationChangeColor)"
-          style="width: 100%; background-color: #2bb381 !important"
+          :style="
+            `width: 100%; background-color: ${appColor.primary} !important`
+          "
         >
           Reset Style
         </v-btn>
-      </vue-scroll>
-    </v-card>
-  </v-dialog>
+      </v-tab-item>
+      <v-tab-item :key="2">
+        <div>
+          <v-row style="width: 424px; margin: auto;" align="center">
+            <v-col cols="6" class="py-0">
+              <v-text-field
+                outlined
+                dense
+                label="Stroke Width"
+                v-model="strokeWidth"
+                @input="changeWidth"
+                style="margin: auto; margin-bottom: 10px; margin-top: 10px; width:400px;"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6" class="py-0">
+              <v-select
+                v-model="strokeStyle"
+                :items="strokeStyles"
+                label="Stroke style"
+                dense
+                outlined
+              ></v-select>
+            </v-col>
+          </v-row>
+
+          <v-color-picker
+            class="elevation-0"
+            canvas-height="100"
+            width="400"
+            style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
+            :mode.sync="hexa"
+            v-model="strokeColor"
+            @input="onStrokeColorChange($event)"
+            @change="onStrokeColorChange($event)"
+          >
+          </v-color-picker>
+          <v-btn
+            color="warning"
+            dark
+            @click="resetStyle(selectedCalculationChangeColor)"
+            :style="
+              `width: 100%; background-color: ${appColor.primary} !important`
+            "
+          >
+            Reset Style
+          </v-btn>
+        </div>
+      </v-tab-item>
+    </v-tabs-items>
+    <!-- <vue-scroll>
+    <v-tabs grow v-model="tab" style="width: 400px; margin:auto;">
+      <v-tab :key="1">
+        <v-badge>
+          <b>{{ $t("appBar.stylePanel.fillColor") }}</b>
+        </v-badge>
+      </v-tab>
+      <v-tab :key="2">
+        <v-badge>
+          <b>{{ $t("appBar.stylePanel.outlineColorAndWidth") }}</b>
+        </v-badge>
+      </v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="tab">
+      <v-tab-item :key="1">
+        <v-color-picker
+          class="elevation-0"
+          canvas-height="100"
+          width="400"
+          style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
+          :mode.sync="hexa"
+          v-model="fillColor"
+          @input="onFillColorChange($event)"
+        >
+        </v-color-picker>
+        <v-btn
+          color="warning"
+          dark
+          @click="resetStyle(selectedCalculationChangeColor)"
+          :style="
+            `width: 100%; background-color: ${appColor.primary} !important`
+          "
+        >
+          Reset Style
+        </v-btn>
+      </v-tab-item>
+      <v-tab-item>
+        <div>
+          <v-row style="width: 424px; margin: auto;" align="center">
+            <v-col cols="6" class="py-0">
+              <v-text-field
+                outlined
+                dense
+                label="Stroke Width"
+                v-model="strokeWidth"
+                @input="changeWidth"
+                style="margin: auto; margin-bottom: 10px; margin-top: 10px; width:400px;"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="6" class="py-0">
+              <v-select
+                v-model="strokeStyle"
+                :items="strokeStyles"
+                label="Stroke style"
+                dense
+                outlined
+              ></v-select>
+            </v-col>
+          </v-row>
+          
+          <v-color-picker
+            class="elevation-0"
+            canvas-height="100"
+            width="400"
+            style="margin: auto; margin-bottom: 20px; margin-top: 10px;"
+            :mode.sync="hexa"
+            v-model="strokeColor"
+            @input="onStrokeColorChange($event)"
+            @change="onStrokeColorChange($event)"
+          >
+          </v-color-picker>
+          <v-btn
+            color="warning"
+            dark
+            @click="resetStyle(selectedCalculationChangeColor)"
+            :style="
+              `width: 100%; background-color: ${appColor.primary} !important`
+            "
+          >
+            Reset Style
+          </v-btn>
+        </div>
+      </v-tab-item>
+    </v-tabs-items>-->
+  </vue-scroll>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
-import IsochroneUtils from "../../utils/IsochroneUtils";
-import { Draggable } from "draggable-vue-directive";
+// import IsochroneUtils from "../../utils/IsochroneUtils";
 
-//!Right way
 export default {
   props: ["temporaryColors"],
   watch: {
+    strokeColor(value) {
+      let { width, dashWidth, dashSpace } = this.calculationSrokeObjects[
+        this.selectedCalculationChangeColor.id - 1
+      ];
+      this.newObjectCreation(value, width, dashWidth, dashSpace);
+    },
+    strokeStyle(value) {
+      if (value === "Solid") {
+        if (this.strokeColor[7] === "0" && this.strokeColor[8] === "0") {
+          this.turnOnStroke();
+        }
+        let { color, width } = this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ];
+        this.newObjectCreation(color, width, 0, 0);
+        this.dashWidth = 0;
+        this.dashSpacing = 0;
+      } else if (value === "Dashed") {
+        if (this.strokeColor[7] === "0" && this.strokeColor[8] === "0") {
+          this.turnOnStroke();
+        }
+        let {
+          color,
+          width,
+          dashWidth,
+          dashSpace
+        } = this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ];
+        this.newObjectCreation(
+          color,
+          width,
+          dashWidth === 0 ? 10 : dashWidth,
+          dashSpace === 0 ? 10 : dashSpace
+        );
+        this.dashWidth = dashWidth === 0 ? 10 : dashWidth;
+        this.dashSpacing = dashSpace === 0 ? 10 : dashSpace;
+      } else {
+        this.turnOffStroke();
+      }
+    },
     selectedCalculationChangeColor(value) {
       if (value) {
         this.dialog = true;
       }
     }
   },
-  directives: {
-    Draggable
-  },
   data: () => ({
     isExpanded: true,
+    strokeWidth: null,
     dialog: true,
+    dashWidth: null,
+    dashSpacing: null,
     fillColor: null,
-    handleId: "handle",
+    strokeColor: "#ffffff00",
     hexa: "hexa",
-    draggableValue: {
-      handle: undefined,
-      boundingElement: undefined,
-      resetInitialPos: undefined
-    }
+    tab: null,
+    strokeStyle: "No Stroke",
+    strokeStyles: ["No Stroke", "Solid", "Dashed"],
+    strokeStatus: false
   }),
-  mounted() {
-    const element = document.getElementById("ol-map-container");
-    this.draggableValue.resetInitialPos = false;
-    this.draggableValue.boundingElement = element;
-    this.draggableValue.handle = this.$refs[this.handleId];
-  },
   created() {
     let colorHex = this.calculationColors[
       this.selectedCalculationChangeColor.id - 1
     ];
+
+    this.strokeWidth = this.calculationSrokeObjects[
+      this.selectedCalculationChangeColor.id - 1
+    ].width.toString();
+
+    this.strokeColor = this.calculationSrokeObjects[
+      this.selectedCalculationChangeColor.id - 1
+    ].color;
+
+    if (
+      this.calculationSrokeObjects[this.selectedCalculationChangeColor.id - 1]
+        .dashWidth &&
+      this.calculationSrokeObjects[this.selectedCalculationChangeColor.id - 1]
+        .dashSpace
+    ) {
+      this.strokeStyle = "Dashed";
+    } else if (this.strokeColor[7] === "0" && this.strokeColor[8] === "0") {
+      this.strokeStyle = "No Stroke";
+    } else {
+      this.strokeStyle = "Solid";
+    }
+
+    this.dashWidth = this.calculationSrokeObjects[
+      this.selectedCalculationChangeColor.id - 1
+    ].dashWidth;
+
+    this.dashSpacing = this.calculationSrokeObjects[
+      this.selectedCalculationChangeColor.id - 1
+    ].dashSpace;
 
     this.fillColor = colorHex;
   },
@@ -116,12 +288,17 @@ export default {
     },
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
-      calculationColors: "calculationColors",
+      preDefCalculationColors: "preDefCalculationColors",
       colors: "colors",
+      calculationColors: "calculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects",
       selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapFields("isochrones", {
+      preDefCalculationColors: "preDefCalculationColors",
+      calculations: "calculations",
       calculationColors: "calculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects",
       selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("app", {
@@ -129,6 +306,53 @@ export default {
     })
   },
   methods: {
+    newObjectCreation(color, width, dashWidth, dashSpace) {
+      let newObj = {
+        color: color,
+        width: width,
+        dashWidth: dashWidth,
+        dashSpace: dashSpace
+      };
+      this.updateStrokeStyling(newObj);
+    },
+    updateStrokeStyling(stylingObject) {
+      let newStrokes = [
+        ...this.calculationSrokeObjects.map((elem, idx) => {
+          if (idx === this.selectedCalculationChangeColor.id - 1) {
+            return stylingObject;
+          } else {
+            return elem;
+          }
+        })
+      ];
+      this.calculationSrokeObjects = newStrokes;
+    },
+    findTheRightPreDefIndex(calc) {
+      if (calc.id <= 10) {
+        return calc.id;
+      } else {
+        let remain = calc.id % 10;
+        return remain;
+      }
+    },
+    // changeDash() {
+    //   let { color } = this.calculationSrokeObjects[
+    //     this.selectedCalculationChangeColor.id - 1
+    //   ];
+    //   this.newObjectCreation(
+    //     color,
+    //     this.strokeWidth,
+    //     this.dashWidth,
+    //     this.dashSpacing
+    //   );
+    // },
+    changeWidth() {
+      let newWidth = parseInt(this.strokeWidth);
+      let { color, dashWidth, dashSpace } = this.calculationSrokeObjects[
+        this.selectedCalculationChangeColor.id - 1
+      ];
+      this.newObjectCreation(color, newWidth, dashWidth, dashSpace);
+    },
     onFillColorChange(value) {
       if (value[7] === "F" && value[8] === "F") {
         let newModColor = value.slice(0, -2) + "80";
@@ -150,60 +374,43 @@ export default {
         this.calculationColors = newColors;
       }
     },
+    onStrokeColorChange(value) {
+      let { dashWidth, dashSpace } = this.calculationSrokeObjects[
+        this.selectedCalculationChangeColor.id - 1
+      ];
+      this.newObjectCreation(
+        value,
+        parseInt(this.strokeWidth),
+        dashWidth,
+        dashSpace
+      );
+      this.strokeColor = value;
+    },
     resetStyle(calculation) {
+      this.strokeStyle = "No Stroke";
       let tempArray = this.calculationColors;
-      tempArray[calculation.id - 1] = this.temporaryColors[calculation.id - 1];
+      tempArray[calculation.id - 1] = this.temporaryColors[
+        this.findTheRightPreDefIndex(calculation) - 1
+      ];
       this.calculationColors = [...tempArray];
       this.fillColor = this.temporaryColors[calculation.id - 1];
+      this.newObjectCreation("#00000000", 2, 0, 0);
     },
-    closeDialog() {
-      this.selectedCalculationChangeColor = null;
-      this.dialog = false;
+    turnOnStroke() {
+      this.strokeColor =
+        this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ].color
+          .slice(0, -1)
+          .slice(0, -1) + "ff";
     },
-    expand() {
-      this.isExpanded = !this.isExpanded;
-    },
-    getPaletteColor(color) {
-      return Object.values(color).toString();
-    },
-    colorChanged() {
-      const color = this.colors[
-        this.calculation[`${this.selectedMode}ColorPalette`]
-      ];
-      // Update isochrone color
-      this.calculation.data.forEach(obj => {
-        const isochroneFeature = this.isochroneLayer
-          .getSource()
-          .getFeatureById(obj.id);
-        if (this.selectedMode == isochroneFeature.get("modus")) {
-          const step = isochroneFeature.get("step");
-          const interpolatedColor = IsochroneUtils.getInterpolatedColor(
-            1,
-            20,
-            parseInt(step / 60),
-            color
-          );
-          isochroneFeature.set("color", interpolatedColor);
-          // legend el color
-          obj.color = interpolatedColor;
-        }
-      });
-      // Update network color
-      if (!this.calculation.additionalData[this.selectedMode]) return;
-      this.calculation.additionalData[this.selectedMode].features.forEach(
-        feature => {
-          const cost = feature.get("cost");
-          const lowestCostValue = 0; // TODO: Find lowest and highest based on response data
-          const highestCostValue = 1200;
-          const interpolatedColor = IsochroneUtils.getInterpolatedColor(
-            lowestCostValue,
-            highestCostValue,
-            cost,
-            color
-          );
-          feature.set("color", interpolatedColor);
-        }
-      );
+    turnOffStroke() {
+      this.strokeColor =
+        this.calculationSrokeObjects[
+          this.selectedCalculationChangeColor.id - 1
+        ].color
+          .slice(0, -1)
+          .slice(0, -1) + "00";
     }
   }
 };

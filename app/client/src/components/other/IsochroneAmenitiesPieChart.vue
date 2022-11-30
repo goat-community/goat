@@ -93,7 +93,7 @@ export default {
       selectedCalculations: "selectedCalculations",
       isochroneRange: "isochroneRange",
       chartDatasetType: "chartDatasetType",
-      calculationColors: "calculationColors"
+      preDefCalculationColors: "preDefCalculationColors"
     }),
     ...mapGetters("poisaois", {
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys",

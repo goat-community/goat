@@ -11,6 +11,7 @@ import poisAoisStore from "../store/modules/poisaois";
 import isochroneStore from "../store/modules/isochrones";
 import store from "../store/index";
 import mapStore from "../store/modules/map";
+import Stroke from "ol/style/Stroke";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
 import { getIconUnicode } from "../utils/Helpers";
@@ -212,7 +213,8 @@ export function getIsochroneStyle() {
         return;
       }
       let calculationColors = isochroneStore.state.calculationColors;
-      // const selectedCalculations = isochroneStore.state.selectedCalculations;
+      let calculationStroke = isochroneStore.state.calculationSrokeObjects;
+
       let calculationNumber = feature.get("calculationNumber");
       if (calculationNumber > 10) {
         let division = calculationNumber / 10;
@@ -223,6 +225,14 @@ export function getIsochroneStyle() {
         new OlStyle({
           fill: new OlFill({
             color: calculationColors[calculationNumber - 1]
+          }),
+          stroke: new Stroke({
+            color: calculationStroke[calculationNumber - 1].color,
+            width: calculationStroke[calculationNumber - 1].width,
+            lineDash: [
+              calculationStroke[calculationNumber - 1].dashWidth,
+              calculationStroke[calculationNumber - 1].dashSpace
+            ]
           })
         })
       );
@@ -956,56 +966,124 @@ export function poisAoisStyle(feature, resolution) {
   }
   // ----POIS-----
   // Shadow style
-  st.push(poisShadowStyle);
-  if (!poiIconConf || !poiIconConf.icon) {
-    return [];
-  }
-  const icon = poiIconConf.icon;
   // if (!poisAoisStyleCache[icon + color]) {
-  let radiusBasedOnZoom = 20;
-  poisShadowStyle.getImage().setScale(1);
 
-  if (resolution > 20) {
-    radiusBasedOnZoom = 10;
-    poisShadowStyle.getImage().setScale(0);
-  } else if (resolution > 15 && resolution <= 20) {
-    radiusBasedOnZoom = 14;
-    poisShadowStyle.getImage().setScale(0);
-  } else if (resolution > 10 && resolution <= 15) {
-    radiusBasedOnZoom = 18;
-    poisShadowStyle.getImage().setScale(0.95);
-  }
   // Font style
-  poisAoisStyleCache[icon + color] = new OlStyle({
-    image: new OlFontSymbol({
-      form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
-      gradient: false,
-      glyph: icon,
-      text: "", // text to use if no glyph is defined
-      font: "sans-serif",
-      fontSize: 0.7,
-      fontStyle: "900",
-      radius: radiusBasedOnZoom,
-      rotation: 0,
-      rotateWithView: false,
-      offsetY: -20,
-      color: color, // icon color
-      fill: new OlFill({
-        color: "#fff" // marker color
+  const icon = poiIconConf.icon;
+
+  let min_zoom = feature.get("min_zoom");
+  let max_zoom = feature.get("max_zoom");
+
+  if (min_zoom || max_zoom) {
+    if (min_zoom >= resolution || max_zoom <= resolution) {
+      st.push(poisShadowStyle);
+      if (!poiIconConf || !poiIconConf.icon) {
+        return [];
+      }
+      
+      let radiusBasedOnZoom = 20;
+      let offsetInYDir = -20;
+      poisShadowStyle.getImage().setScale(1);
+
+      if (resolution > 20) {
+        offsetInYDir = 0;
+        radiusBasedOnZoom = 10;
+        poisShadowStyle.getImage().setScale(0);
+      } else if (resolution > 15 && resolution <= 20) {
+        offsetInYDir = 0;
+        radiusBasedOnZoom = 14;
+        poisShadowStyle.getImage().setScale(0);
+      } else if (resolution > 10 && resolution <= 15) {
+        radiusBasedOnZoom = 16;
+        poisShadowStyle.getImage().setScale(0.95);
+      }
+      poisAoisStyleCache[icon + color] = new OlStyle({
+        image: new OlFontSymbol({
+          form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
+          gradient: false,
+          glyph: icon,
+          text: "", // text to use if no glyph is defined
+          font: "sans-serif",
+          fontSize: 0.7,
+          fontStyle: "900",
+          radius: radiusBasedOnZoom,
+          rotation: 0,
+          rotateWithView: false,
+          offsetY: offsetInYDir,
+          color: color, // icon color
+          fill: new OlFill({
+            color: "#fff" // marker color
+          }),
+          stroke: new OlStroke({
+            color: color,
+            width: 2
+          })
+        }),
+        stroke: new OlStroke({
+          width: 2,
+          color: "#f80"
+        }),
+        fill: new OlFill({
+          color: [255, 136, 0, 0.6]
+        })
+      });
+    } else {
+      poisAoisStyleCache[icon + color] = new OlStyle();
+    }
+  } else {
+    st.push(poisShadowStyle);
+    if (!poiIconConf || !poiIconConf.icon) {
+      return [];
+    }
+    let radiusBasedOnZoom = 20;
+    let offsetInYDir = -20;
+    poisShadowStyle.getImage().setScale(1);
+
+    if (resolution > 20) {
+      offsetInYDir = -10;
+      radiusBasedOnZoom = 10;
+      poisShadowStyle.getImage().setScale(0);
+    } else if (resolution > 15 && resolution <= 20) {
+      offsetInYDir = -14;
+      radiusBasedOnZoom = 14;
+      poisShadowStyle.getImage().setScale(0);
+    } else if (resolution > 10 && resolution <= 15) {
+      radiusBasedOnZoom = 18;
+      offsetInYDir = -18;
+      poisShadowStyle.getImage().setScale(0.95);
+    }
+    poisAoisStyleCache[icon + color] = new OlStyle({
+      image: new OlFontSymbol({
+        form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
+        gradient: false,
+        glyph: icon,
+        text: "", // text to use if no glyph is defined
+        font: "sans-serif",
+        fontSize: 0.7,
+        fontStyle: "900",
+        radius: radiusBasedOnZoom,
+        rotation: 0,
+        rotateWithView: false,
+        offsetY: offsetInYDir,
+        color: color, // icon color
+        fill: new OlFill({
+          color: "#fff" // marker color
+        }),
+        stroke: new OlStroke({
+          color: color,
+          width: 2
+        })
       }),
       stroke: new OlStroke({
-        color: color,
-        width: 2
+        width: 2,
+        color: "#f80"
+      }),
+      fill: new OlFill({
+        color: [255, 136, 0, 0.6]
       })
-    }),
-    stroke: new OlStroke({
-      width: 2,
-      color: "#f80"
-    }),
-    fill: new OlFill({
-      color: [255, 136, 0, 0.6]
-    })
-  });
+    });
+  }
+
   // }
   st.push(poisAoisStyleCache[icon + color]);
   return st;
