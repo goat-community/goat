@@ -43,8 +43,6 @@ from src.utils import print_hashtags, print_info, print_warning
 # from pathos.pools import ProcessPool as Pool
 
 
-
-
 class CRUDGridCalculation(
     CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
 ):
@@ -65,7 +63,7 @@ class CRUDHeatmap:
         await db.execute(text("DROP TABLE IF EXISTS temporal.heatmap_grid_helper;"))
         await db.commit()
         query = text(
-           """
+            """
             CREATE TABLE temporal.heatmap_grid_helper AS 
             WITH relevant_study_area_ids AS 
             (
@@ -231,12 +229,12 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
         # Compute isochrones
         # DOES NOT WORK WITH MULTIPROCESSING
         # TODO: Fix multiprocessing
-        
-        heatmapObject = [];
-        
+
+        heatmapObject = []
+
         for indx, starting_id in enumerate(starting_ids):
             # print(unordered_map)
-            singleHeatmapIsochrone = [
+            singleHeatmapIsochrone = (
                 adj_list,
                 edges_source,
                 edges_target,
@@ -248,9 +246,9 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
                 starting_id,
                 grid_ids[indx],
                 obj_multi_isochrones.settings.travel_time,
-                obj_multi_isochrones.output.resolution
-            ]
-            
+                obj_multi_isochrones.output.resolution,
+            )
+
             heatmapObject.append(singleHeatmapIsochrone)
         print(len(heatmapObject))
         # zip_object = zip(
@@ -332,6 +330,7 @@ def main():
 
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
+
 
 print("main")
 

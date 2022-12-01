@@ -4,6 +4,7 @@ import heapq
 import json
 import math
 import time
+from multiprocessing import Pool
 
 import numpy as np
 from numba import njit
@@ -326,7 +327,7 @@ def prepare_network_isochrone(edge_network_input):
     edges_geom = np.array(edge_network["geom"])
     edges_length = np.array(edge_network["length"])
     unordered_map, node_coords, extent = remap_edges(edges_source, edges_target, edges_geom)
-    
+
     # construct adjacency list
     adj_list = construct_adjacency_list_(
         len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
@@ -475,6 +476,7 @@ def compute_isochrone(
 
     return grid_data, network
 
+
 def compute_isochrone_heatmap(
     adj_list,
     edges_source,
@@ -507,17 +509,26 @@ def compute_isochrone_heatmap(
 
     Returns:
         _type_: _description_
-    """    
+    """
 
     # run dijkstra
     traveltimeobjs = []
     for idx, start_vertex in enumerate(start_vertices):
-        start_vertices_ids = start_vertices_ids = np.array([unordered_map[v] for v in [start_vertex]])
+        start_vertices_ids = start_vertices_ids = np.array(
+            [unordered_map[v] for v in [start_vertex]]
+        )
         distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
 
         # convert restuls to grid
         grid = network_to_grid(
-            extent[idx], zoom, edges_source, edges_target, edges_length, edges_geom, distances, node_coords
+            extent[idx],
+            zoom,
+            edges_source,
+            edges_target,
+            edges_length,
+            edges_geom,
+            distances,
+            node_coords,
         )
 
         costs = bz2.compress(grid["data"])
@@ -535,13 +546,14 @@ def compute_isochrone_heatmap(
 
 
 import concurrent.futures as cf
-from concurrent.futures import ProcessPoolExecutor as Pool
+
+# from concurrent.futures import ProcessPoolExecutor as Pool
 from concurrent.futures.process import _chain_from_iterable_of_lists
 
 
 def heatmap_multiprocessing(zip_object):
     # start = time.perf_counter()
-    # with Pool() as executor: 
+    # with Pool() as executor:
     #     total_inserts = executor.map(
     #         compute_isochrone_heatmap,
     #         list(zip_object),
@@ -549,24 +561,21 @@ def heatmap_multiprocessing(zip_object):
     #     print(total_inserts)
     # end = time.perf_counter()
     # print(f'Time taken for a kmeans: {end - start} secs')
-    
-    
+
     start = time.perf_counter()
-    with Pool() as executor: 
-        total_inserts = executor.map(
+    with Pool() as executor:
+        total_inserts = executor.starmap(
             compute_isochrone_heatmap,
             zip_object,
         )
-        
+
         for result in total_inserts:
             print(result)
-            
+
     end = time.perf_counter()
-    print(f'Time taken for a kmeans: {end - start} secs')
+    print(f"Time taken for a kmeans: {end - start} secs")
 
 
-    
-    
 async def main():
     edges_network, starting_ids, obj_in = await get_sample_network(minutes=5)
     edge_network = edge_network.iloc[1:, :]
