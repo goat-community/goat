@@ -358,6 +358,7 @@ def network_to_grid(
     width_meter = extent[2] - extent[0]
     height_meter = extent[3] - extent[1]
     # Pixel coordinates origin is at the top left corner of the image. (y of top right/left corner is smaller than y of bottom right/left corner)
+ 
     xy_bottom_left = [
         math.floor(x)
         for x in coordinate_to_pixel(
@@ -370,7 +371,6 @@ def network_to_grid(
             [extent[2], extent[3]], zoom=zoom, return_dict=False, web_mercator=True
         )
     ]
-
     # pixel x, y distances
     width_pixel = xy_top_right[0] - xy_bottom_left[0]
     height_pixel = xy_bottom_left[1] - xy_top_right[1]
@@ -382,6 +382,7 @@ def network_to_grid(
     # split edges based on resolution
     interpolated_coords = []
     interpolated_costs = []
+
     interpolated_coords, interpolated_costs = split_edges(
         edges_source,
         edges_target,
@@ -397,6 +398,7 @@ def network_to_grid(
     node_coords_list, node_costs_list = filter_nodes(
         node_coords_list, node_costs_list, zoom, width_pixel, xy_bottom_left[0], xy_top_right[1]
     )
+
     Z = build_grid_interpolate_(
         node_coords_list,
         node_costs_list,
@@ -404,6 +406,7 @@ def network_to_grid(
         step_x=web_mercator_x_step,
         step_y=web_mercator_y_step,
     )
+
     # build grid data (single depth)
     grid_data = get_single_depth_grid_(zoom, xy_bottom_left[0], xy_top_right[1], Z)
     return grid_data
@@ -478,9 +481,10 @@ def compute_isochrone(
 
 
 def compute_isochrone_heatmap(
-    adj_list,
     edges_source,
     edges_target,
+    edges_cost,
+    edges_reverse_cost,
     edges_geom,
     edges_length,
     unordered_map,
@@ -513,13 +517,20 @@ def compute_isochrone_heatmap(
 
     # run dijkstra
     traveltimeobjs = []
+    # construct adjacency list
+    adj_list = construct_adjacency_list_(
+        len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
+    )
     for idx, start_vertex in enumerate(start_vertices):
         start_vertices_ids = start_vertices_ids = np.array(
             [unordered_map[v] for v in [start_vertex]]
         )
-        distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
 
-        # convert restuls to grid
+        distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
+        
+        # TODO: Explore what is the slow part of the network_to_grid function
+
+        # # convert restuls to grid
         grid = network_to_grid(
             extent[idx],
             zoom,
@@ -531,51 +542,17 @@ def compute_isochrone_heatmap(
             node_coords,
         )
 
-        costs = bz2.compress(grid["data"])
-        traveltimeobj = TravelTimeMatrixWalking(
-            grid_calculation_id=grid_ids[idx],
-            north=grid["north"],
-            west=grid["west"],
-            heigth=grid["height"],
-            width=grid["width"],
-            costs=costs,
-        )
-        traveltimeobjs.append(traveltimeobj)
-
     return traveltimeobjs
 
-
-import concurrent.futures as cf
-
-# from concurrent.futures import ProcessPoolExecutor as Pool
-from concurrent.futures.process import _chain_from_iterable_of_lists
-
-
 def heatmap_multiprocessing(zip_object):
-    # start = time.perf_counter()
-    # with Pool() as executor:
-    #     total_inserts = executor.map(
-    #         compute_isochrone_heatmap,
-    #         list(zip_object),
-    #     )
-    #     print(total_inserts)
-    # end = time.perf_counter()
-    # print(f'Time taken for a kmeans: {end - start} secs')
 
-    start = time.perf_counter()
     with Pool() as executor:
         total_inserts = executor.starmap(
             compute_isochrone_heatmap,
             zip_object,
         )
-
-        for result in total_inserts:
-            print(result)
-
-    end = time.perf_counter()
-    print(f"Time taken for a kmeans: {end - start} secs")
-
-
+    # TODO: Save results to new folder structure using numpy.savez_compressed
+        
 async def main():
     edges_network, starting_ids, obj_in = await get_sample_network(minutes=5)
     edge_network = edge_network.iloc[1:, :]
@@ -585,7 +562,6 @@ async def main():
         travel_time=5,
         zoom=12,
     )
-    print()
 
 
 if __name__ == "__main__":

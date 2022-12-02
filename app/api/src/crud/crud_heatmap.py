@@ -35,31 +35,20 @@ from src.schemas.isochrone import (
 )
 from src.utils import print_hashtags, print_info, print_warning
 
-# from multiprocessing.pool import ThreadPool as Pool
-# from concurrent.futures import ProcessPoolExecutor as Pool
-# from loky import get_reusable_executor
-# from pathos.multiprocessing import ProcessingPool as Pool
-
-# from pathos.pools import ProcessPool as Pool
-
 
 class CRUDGridCalculation(
     CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
 ):
     pass
 
-
-# Alternative to_sql() *method* for DBs that support COPY FROM
-import csv
-from io import StringIO
-
-
 class CRUDHeatmap:
     # == WALKING AND CYCLING INDICATORS ==#
 
     async def prepare_starting_points(self, db: AsyncSession, current_user: models.User):
         """Get starting points for heatmap calculation."""
-
+        
+        #TODO: Develop a tiling strategy using H3 Uber Grids
+        
         await db.execute(text("DROP TABLE IF EXISTS temporal.heatmap_grid_helper;"))
         await db.commit()
         query = text(
@@ -76,7 +65,7 @@ class CRUDHeatmap:
                 WHERE s.study_area_id IN (SELECT * FROM relevant_study_area_ids) 
                 AND g.id = s.grid_visualization_id 
             ) 
-            SELECT ST_ClusterKMeans(g.geom, (cnt / 50)::integer) OVER() AS cid, g.id, g.geom, False as already_processed  
+            SELECT ST_ClusterKMeans(g.geom, (cnt / 400)::integer) OVER() AS cid, g.id, g.geom, False as already_processed  
             FROM basic.grid_visualization g, basic.study_area_grid_visualization s, cnt 
             WHERE s.study_area_id IN (SELECT * FROM relevant_study_area_ids) 
             AND g.id = s.grid_visualization_id 
@@ -176,7 +165,10 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
                 region_type="study_area",  # Dummy to avoid validation error
                 region=[1, 2, 3],  # Dummy to avoid validation error
             ),
-            output=IsochroneOutput(format=IsochroneOutputType.GRID),
+            output=IsochroneOutput(
+                format=IsochroneOutputType.GRID,
+                resolution=12,
+            ),
             scenario=IsochroneScenario(
                 id=1,
                 name="Default",
@@ -206,38 +198,15 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
             node_coords,
             total_extent,
         ) = prepare_network_isochrone(edge_network_input=network)
-        # WORKS
-        # total_inserts = []
-        # for idx, batch_starting_ids in enumerate(starting_ids):
-
-        #     batch_insert = compute_isochrone_heatmap(
-        #         adj_list,
-        #         edges_source,
-        #         edges_target,
-        #         edges_geom,
-        #         edges_length,
-        #         unordered_map,
-        #         node_coords,
-        #         extents[idx],
-        #         batch_starting_ids,
-        #         grid_ids[idx],
-        #         obj_multi_isochrones.settings.travel_time,
-        #         obj_multi_isochrones.output.resolution,
-        #     )
-        #     total_inserts.extend(batch_insert)
-
-        # Compute isochrones
-        # DOES NOT WORK WITH MULTIPROCESSING
-        # TODO: Fix multiprocessing
 
         heatmapObject = []
-
         for indx, starting_id in enumerate(starting_ids):
             # print(unordered_map)
             singleHeatmapIsochrone = (
-                adj_list,
                 edges_source,
                 edges_target,
+                edges_cost,
+                edges_reverse_cost,
                 edges_geom,
                 edges_length,
                 unordered_map,
@@ -250,28 +219,8 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
             )
 
             heatmapObject.append(singleHeatmapIsochrone)
-        print(len(heatmapObject))
-        # zip_object = zip(
-        #     list(repeat(adj_list, len(starting_ids))),
-        #     list(repeat(edges_source, len(starting_ids))),
-        #     list(repeat(edges_target, len(starting_ids))),
-        #     list(repeat(edges_geom, len(starting_ids))),
-        #     list(repeat(edges_length, len(starting_ids))),
-        #     list(repeat(unordered_map, len(starting_ids))),
-        #     list(repeat(node_coords, len(starting_ids))),
-        #     extents,
-        #     starting_ids,
-        #     grid_ids,
-        #     list(repeat(obj_multi_isochrones.settings.travel_time, len(starting_ids))),
-        #     list(repeat(obj_multi_isochrones.output.resolution, len(starting_ids))),
-        # )
-        heatmap_multiprocessing(heatmapObject)
 
-        # TURNED OFF TABLE ISERTION TO NOT CAUSE PROBLEMS ##################################################
-        # beginning_time_bulk_insert = time.time()
-        # db.add_all(total_inserts)
-        # await db.commit()
-        # end_time_bulk_insert = time.time()
+        heatmap_multiprocessing(heatmapObject)
 
         end_time_section = time.time()
 
@@ -331,7 +280,4 @@ def main():
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
 
-
-print("main")
-
-main()
+#main()
