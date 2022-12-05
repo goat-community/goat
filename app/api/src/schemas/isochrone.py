@@ -22,65 +22,6 @@ class IsochroneTypeEnum(str, Enum):
     heatmap = "heatmap"
 
 
-class IsochroneBase(BaseModel):
-    user_id: Optional[int]
-    scenario_id: Optional[int] = 0
-    minutes: int
-    speed: float
-    modus: str
-    n: int
-    routing_profile: str
-    active_upload_ids: Optional[List[int]] = [0]
-
-    @root_validator
-    def compute_values(cls, values):
-        """Compute values."""
-        # convert minutes to seconds (max_cutoff is in seconds)
-        values["max_cutoff"] = values["minutes"] * 60
-
-        return values
-
-    @validator("routing_profile")
-    def check_routing_profile(cls, v):
-        if v not in RoutingTypes._value2member_map_:
-            raise HTTPException(status_code=400, detail="Invalid routing profile.")
-        return v
-
-    @validator("modus")
-    def check_modus(cls, v):
-        if v not in CalculationTypes._value2member_map_:
-            raise HTTPException(status_code=400, detail="Invalid calculation modus.")
-        return v
-
-
-class IsochroneSingle(IsochroneBase):
-    x: float
-    y: float
-
-
-class IsochroneMulti(IsochroneBase):
-    x: list[float]
-    y: list[float]
-
-
-class IsochronePoiMulti(IsochroneBase):
-    region_type: str
-    region: List[str]
-    amenities: List[str]
-
-    @root_validator
-    def define_study_area_ids(cls, values):
-        if values["region_type"] == "study_area":
-            values["study_area_ids"] = [int(integer_string) for integer_string in values["region"]]
-            values["region_geom"] = None
-        elif values["region_type"] == "draw":
-            values["study_area_ids"] = None
-            values["region_geom"] = values["region"][0]
-        else:
-            raise HTTPException(status_code=400, detail="Invalid region type")
-        return values
-
-
 class IsochroneMultiCountPois(BaseModel):
     user_id: Optional[int]
     scenario_id: Optional[int] = 0
@@ -91,17 +32,6 @@ class IsochroneMultiCountPois(BaseModel):
     region_type: str
     speed: int
     active_upload_ids: Optional[List[int]] = [0]
-
-
-class IsochroneMultiCountPoisProperties(BaseModel):
-    gid: int
-    count_pois: int
-    region_name: str
-
-
-class IsochroneMultiCountPoisFeature(Feature):
-    geometry: Union[Polygon, MultiPolygon]
-    properties: IsochroneMultiCountPoisProperties
 
 
 class CalculationTypes(str, Enum):

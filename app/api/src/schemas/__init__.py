@@ -1,11 +1,4 @@
 from .heatmap import ComputePoiUser
-from .isochrone import (
-    IsochroneMulti,
-    IsochroneMultiCountPois,
-    IsochroneMultiCountPoisFeature,
-    IsochroneMultiCountPoisProperties,
-    IsochroneSingle,
-)
 from .item import Item, ItemCreate, ItemInDB, ItemUpdate
 from .msg import Msg
 from .organization import OrganizationCreate, OrganizationUpdate

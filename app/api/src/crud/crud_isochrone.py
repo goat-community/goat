@@ -43,10 +43,8 @@ from src.resources.enums import IsochroneExportType, IsochroneTypes
 from src.schemas.isochrone import (
     IsochroneDTO,
     IsochroneMode,
-    IsochroneMulti,
     IsochroneMultiRegionType,
     IsochroneOutputType,
-    IsochroneSingle,
     IsochroneStartingPointCoord,
     IsochroneTypeEnum,
 )
