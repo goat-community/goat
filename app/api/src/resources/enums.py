@@ -186,3 +186,11 @@ class GeostoreType(str, Enum):
 class SystemStatus(str, Enum):
     maintenance = "maintenance"
     running = "running"
+
+class HeatmapWalkingBulkResolution(int, Enum):
+    """H3 Resolution Bulk."""
+    resolution = 6
+
+class HeatmapWalkingCalculationResolution(int, Enum):
+    """H3 Resolution Calculation."""
+    resolution = 10

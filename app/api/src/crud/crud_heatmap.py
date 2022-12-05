@@ -2,28 +2,27 @@ import asyncio
 import bz2
 import os
 import time
-from datetime import datetime, timedelta
-from functools import partial
-from itertools import repeat
-from multiprocessing.pool import Pool
+import h3
 
 import numpy as np
 import pandas as pd
+import geopandas as gpd
+import json
 from rich import print
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.future import select
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import delete, text
-
+from sqlalchemy.sql import delete, text, select
+from sqlalchemy.sql.functions import func
 from src import crud, schemas
+from src.endpoints import deps
 from src.core.isochrone import (
-    compute_isochrone_heatmap,
     heatmap_multiprocessing,
     prepare_network_isochrone,
 )
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
+from codetiming import Timer
 from src.schemas.isochrone import (
     IsochroneDTO,
     IsochroneOutput,
@@ -33,7 +32,13 @@ from src.schemas.isochrone import (
     IsochroneStartingPoint,
     IsochroneStartingPointCoord,
 )
+from src.resources.enums import (
+    HeatmapWalkingBulkResolution,
+    HeatmapWalkingCalculationResolution,
+    RoutingTypes,
+)
 from src.utils import print_hashtags, print_info, print_warning
+from src.db.session import async_session, sync_session
 
 
 class CRUDGridCalculation(
@@ -41,168 +46,182 @@ class CRUDGridCalculation(
 ):
     pass
 
+
 class CRUDHeatmap:
-    # == WALKING AND CYCLING INDICATORS ==#
+    def __init__(self, db, db_sync, current_user):
+        self.db = db
+        self.db_sync = db_sync
+        self.current_user = current_user
 
-    async def prepare_starting_points(self, db: AsyncSession, current_user: models.User):
-        """Get starting points for heatmap calculation."""
-        
-        #TODO: Develop a tiling strategy using H3 Uber Grids
-        
-        await db.execute(text("DROP TABLE IF EXISTS temporal.heatmap_grid_helper;"))
-        await db.commit()
-        query = text(
-            """
-            CREATE TABLE temporal.heatmap_grid_helper AS 
-            WITH relevant_study_area_ids AS 
-            (
-                SELECT id FROM basic.study_area WHERE id IN (83110000)
-            ),
-            cnt AS 
-            (
-                SELECT count(*) cnt 
-                FROM basic.grid_visualization g, basic.study_area_grid_visualization s
-                WHERE s.study_area_id IN (SELECT * FROM relevant_study_area_ids) 
-                AND g.id = s.grid_visualization_id 
-            ) 
-            SELECT ST_ClusterKMeans(g.geom, (cnt / 400)::integer) OVER() AS cid, g.id, g.geom, False as already_processed  
-            FROM basic.grid_visualization g, basic.study_area_grid_visualization s, cnt 
-            WHERE s.study_area_id IN (SELECT * FROM relevant_study_area_ids) 
-            AND g.id = s.grid_visualization_id 
-            """
-        )
-        await db.execute(query)
-        await db.commit()
+    async def prepare_bulk_objs(
+        self,
+        bulk_resolution: int,
+        calculation_resolution: int,
+        buffer_extent: float,
+        study_area_ids: list[int] = None,
+    ) -> dict:
 
+        """Created the starting points for the traveltime matrix calculation.
 
-async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: models.User):
-    starting_time = time.time()
-    travel_time = 20
-    speed = 5
-    buffer_distance = (speed / 3.6) * (travel_time * 60)
+        Args:
+            db (AsyncSession): Database session.
+            bulk_resolution (int): H3 resolution for the bulk grids.
+            calculation_resolution (int): H3 resolution for the calculation grids.
+            study_area_ids (list[int], optional): List of study area ids. Defaults to None and will use all study area.
 
-    kmeans_classes = await db.execute(
-        text("SELECT DISTINCT cid FROM temporal.heatmap_grid_helper;")
-    )
-    kmeans_classes = kmeans_classes.fetchall()
-    kmeans_classes = [c[0] for c in kmeans_classes]
+        Raises:
+            ValueError: If the bulk resolution is smaller than the calculation resolution.
 
-    await db.execute(
-        "SELECT basic.heatmap_prepare_artificial(:kmeans_classes);",
-        {"kmeans_classes": kmeans_classes},
-    )
-    await db.commit()
+        Returns:
+            dict: Hierarchical structure of starting points for the calculation using the bulk resolution as parent and calculation resolution as children.
+        """
+        begin = time.time()
+        if bulk_resolution >= calculation_resolution:
+            raise ValueError(
+                "Resolution of parent grid cannot be smaller then resolution of children grid."
+            )
 
-    cnt = 0
-    cnt_sections = len(kmeans_classes)
-    cpus = os.cpu_count()
-    batch_size = 20
+        print_hashtags()
+        print_info("Preparing starting points for heatmap calculation")
 
-    for kmeans_class in kmeans_classes:
-        starting_time_section = time.time()
-        starting_time_network_preparation = time.time()
-        cnt += 1
-        # Get starting points for starting grids
-        starting_points = await db.execute(
-            text(
-                f"""
-                SELECT ARRAY_AGG(starting_id) AS starting_id, ARRAY_AGG(grid_calculation_id) AS grid_calculation_id, 
-                ARRAY_AGG(x) AS x, ARRAY_AGG(y) AS y, ARRAY_AGG(extent) AS extent 
+        # Get relevant study areas
+        if study_area_ids is None:
+            statement = select(models.StudyArea.id)
+        else:
+            statement = select(models.StudyArea.id).where(models.StudyArea.id.in_(study_area_ids))
+        study_area_ids = await self.db.execute(statement)
+        study_area_ids = study_area_ids.scalars().all()
+
+        print_info(f"Processing will be done for Study area ids: {str(study_area_ids)[1:-1]}")
+
+        # Get unioned study areas
+        # Doing this in Raw SQL because query could not be build with SQLAlchemy ORM
+        sql_query = f"""
+                SELECT ST_AsGeoJSON(ST_MakePolygon(ST_ExteriorRing(geom))) AS geom 
                 FROM 
                 (
-                    SELECT (row_number() over()) / :batch_size AS id, v.id AS starting_id, c.id AS grid_calculation_id, 
-                    ST_X(ST_CENTROID(v.geom)) AS x, ST_Y(ST_CENTROID(v.geom)) AS y,
-                    ARRAY[
-                        ST_X(ST_TRANSFORM(ST_PROJECT(v.geom, :buffer_distance, radians(-45.0))::geometry, 3857)),
-                        ST_Y(ST_TRANSFORM(ST_PROJECT(v.geom, :buffer_distance, radians(135.0))::geometry, 3857)),
-                        ST_X(ST_TRANSFORM(ST_PROJECT(v.geom, :buffer_distance, radians(135.0))::geometry, 3857)),
-                        ST_Y(ST_TRANSFORM(ST_PROJECT(v.geom, :buffer_distance, radians(-45.0))::geometry, 3857))
-                    ] AS extent
-                    FROM temporal.heatmap_starting_vertices v, basic.grid_calculation c, temporal.heatmap_grid_helper h  
-                    WHERE ST_Intersects(v.geom, c.geom)
-                    AND c.grid_visualization_id = h.id 
-                    AND h.cid = :cid 
-                    AND h.already_processed = False 
-                ) AS g
-                GROUP BY id
-                """
-            ),
-            {"cid": kmeans_class, "buffer_distance": buffer_distance, "batch_size": batch_size},
-        )
+                    SELECT (ST_DUMP(ST_UNION(geom))).geom
+                    FROM basic.study_area sa
+                    WHERE sa.id IN ({str(study_area_ids)[1:-1]})
+                ) u
+            """
+        union_geoms = await self.db.execute(text(sql_query))
+        union_geoms = union_geoms.scalars().all()
+        union_geoms_json = [json.loads(i) for i in union_geoms]
 
-        starting_points = starting_points.fetchall()
+        #  Get all grids for the bulk resolution
+        bulk_ids = []
+        for geom in union_geoms_json:
+            if geom["type"] != "Polygon":
+                raise ValueError("Unioned Study area geometries are not a of type polygon.")
 
-        # Check if there are no starting points
-        if len(starting_points) == 0:
-            print_info(f"No starting points for section [bold magenta]{str(cnt)}[/bold magenta]")
-            continue
-        # Create a list of DTOs for starting points
-        starting_points_dto_arr = []
-        starting_ids = []
-        grid_ids = []
-        extents = []
+            bulk_ids.extend(list(h3.polyfill_geojson(geom, bulk_resolution)))
 
-        for batch in starting_points:
-            starting_ids.append(batch[0])
-            grid_ids.append(batch[1])
-            extents.append(batch[4])
+        bulk_ids = list(set(bulk_ids))
 
-            for idx, lon in enumerate(batch[2]):
-                lat = batch[3][idx]
-                starting_points_dto_arr.append(IsochroneStartingPointCoord(lat=lat, lon=lon))
+        # Get all grids for the calculation resolution that are children of the bulk resolution
+        calculation_objs = {}
+        cnt_calculation_ids = 0
+        lons = []
+        lats = []
+        for bulk_id in bulk_ids:
+            calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
+            starting_point_objs = []
+            coords = []
+            calculation_objs[bulk_id] = {}
+            for calculation_id in calculation_ids:
+                lat, lon = h3.h3_to_geo(calculation_id)
+                coords.append([lon, lat])
+                starting_point_objs.append(IsochroneStartingPointCoord(lat=lat, lon=lon))
+                lons.append(lon)
+                lats.append(lat)
+            calculation_objs[bulk_id]["calculation_ids"] = list(calculation_ids)
+            calculation_objs[bulk_id]["coords"] = coords
+            calculation_objs[bulk_id]["starting_point_objs"] = starting_point_objs
+            cnt_calculation_ids += len(calculation_ids)
 
-        # Create Isochrone DTO for heatmap calculation
-        # TODO: Adjust DTO to properly work with heatmap
-        obj_multi_isochrones = IsochroneDTO(
-            mode="walking",
-            settings=IsochroneSettings(
-                travel_time=travel_time,
-                speed=speed,
-                walking_profile="standard",
-            ),
-            starting_point=IsochroneStartingPoint(
-                input=starting_points_dto_arr,
-                region_type="study_area",  # Dummy to avoid validation error
-                region=[1, 2, 3],  # Dummy to avoid validation error
-            ),
-            output=IsochroneOutput(
-                format=IsochroneOutputType.GRID,
-                resolution=12,
-            ),
-            scenario=IsochroneScenario(
-                id=1,
-                name="Default",
-            ),
-        )
-        # Read network
-        network = await crud.isochrone.read_network(
-            db=db,
-            obj_in=obj_multi_isochrones,
-            current_user=current_user,
-            isochrone_type=schemas.isochrone.IsochroneTypeEnum.heatmap.value,
-        )
-        network = network[0]
-        network = network.iloc[1:, :]
-        # Get end time for network preparation
-        end_time_network_preparation = time.time()
+            # Get buffered extents for grid size
+            gdf_starting_points = gpd.points_from_xy(x=lons, y=lats, crs="epsg:4326")
+            gdf_starting_points = gdf_starting_points.to_crs(epsg=3395)
+            extents = gdf_starting_points.buffer(buffer_extent, cap_style=3)
+            extents = extents.to_crs(epsg=3857)
+            extents = extents.bounds
+            extents = extents[:, [2, 1, 0, 3]]
+            extents = extents.tolist()
+            calculation_objs[bulk_id]["extents"] = extents
 
-        (
-            adj_list,
-            edges_source,
-            edges_target,
-            edges_cost,
-            edges_reverse_cost,
-            edges_geom,
-            edges_length,
-            unordered_map,
-            node_coords,
-            total_extent,
-        ) = prepare_network_isochrone(edge_network_input=network)
+        end = time.time()
+        print_info(f"Number of bulk grids: {len(bulk_ids)}")
+        print_info(f"Number of calculation grids: {cnt_calculation_ids}")
+        print_info(f"Calculation time: {end - begin} seconds")
+        print_hashtags()
+        return calculation_objs
 
-        heatmapObject = []
-        for indx, starting_id in enumerate(starting_ids):
-            # print(unordered_map)
-            singleHeatmapIsochrone = (
+    async def compute_traveltime(
+        self,
+        isochrone_settings: IsochroneSettings,
+        routing_type: RoutingTypes,
+        calculation_objs: dict,
+        traveltime_grid_resolution: int,
+    ):
+        starting_time = time.time()
+
+        cnt = 0
+        cpus = os.cpu_count()
+        cnt_sections = len(calculation_objs)
+
+        begin = time.time()
+        await self.db.execute(text("SELECT ST_CENTROID(geom) FROM basic.building"))
+        end = time.time()
+        print_info(f"Time to execute dummy query: {end - begin} seconds")
+
+        for bulk in calculation_objs:
+            starting_time_section = time.time()
+            starting_time_network_preparation = time.time()
+            cnt += 1
+
+
+            # TODO: Compute bulk starting nodes from network
+
+            # Check if there are no starting points
+            if len(bulk["starting_point_objs"]) == 0:
+                print_info(
+                    f"No starting points for section [bold magenta]{str(cnt)}[/bold magenta]"
+                )
+                continue
+
+            isochrone_dto = IsochroneDTO(
+                mode="walking",
+                settings=isochrone_settings,
+                starting_point=IsochroneStartingPoint(
+                    input=bulk["starting_point_objs"],
+                    region_type="study_area",  # Dummy to avoid validation error
+                    region=[1, 2, 3],  # Dummy to avoid validation error
+                ),
+                output=IsochroneOutput(
+                    format=IsochroneOutputType.GRID,
+                    resolution=traveltime_grid_resolution,
+                ),
+                scenario=IsochroneScenario(
+                    id=1,
+                    name="Default",
+                ),
+            )
+
+            # Read network
+            network = await crud.isochrone.read_network(
+                db=self.db,
+                obj_in=isochrone_dto,
+                current_user=self.current_user,
+                isochrone_type=schemas.isochrone.IsochroneTypeEnum.heatmap.value,
+            )
+            network = network[0]
+            network = network.iloc[1:, :]
+            # Get end time for network preparation
+            end_time_network_preparation = time.time()
+
+            (
+                adj_list,
                 edges_source,
                 edges_target,
                 edges_cost,
@@ -211,73 +230,111 @@ async def compute_traveltime(db: AsyncSession, db_sync: Session, current_user: m
                 edges_length,
                 unordered_map,
                 node_coords,
-                extents[indx],
-                starting_id,
-                grid_ids[indx],
-                obj_multi_isochrones.settings.travel_time,
-                obj_multi_isochrones.output.resolution,
+                total_extent,
+            ) = prepare_network_isochrone(edge_network_input=network)
+
+            heatmapObject = []
+            for indx, starting_id in enumerate(starting_ids):
+                # print(unordered_map)
+                singleHeatmapIsochrone = (
+                    edges_source,
+                    edges_target,
+                    edges_cost,
+                    edges_reverse_cost,
+                    edges_geom,
+                    edges_length,
+                    unordered_map,
+                    node_coords,
+                    extents[indx],
+                    starting_id,
+                    grid_ids[indx],
+                    isochrone_dto.settings.travel_time,
+                    isochrone_dto.output.resolution,
+                )
+
+                heatmapObject.append(singleHeatmapIsochrone)
+
+            heatmap_multiprocessing(heatmapObject)
+
+            end_time_section = time.time()
+
+            print_hashtags()
+            print_info(
+                f"You computed [bold magenta]{cnt}[/bold magenta] out of [bold magenta]{cnt_sections}[/bold magenta] added."
             )
+            print_info(
+                f"Section contains [bold magenta]{sum([len(i) for i in starting_ids])}[/bold magenta] starting points"
+            )
+            print_info(
+                f"Section took [bold magenta]{(end_time_section - starting_time_section)}[/bold magenta] seconds"
+            )
+            print_info(
+                f"Network preparation took [bold magenta]{(end_time_network_preparation - starting_time_network_preparation)}[/bold magenta] seconds"
+            )
+            # print_info(f"Bulk insert took [bold magenta]{end_time_bulk_insert-beginning_time_bulk_insert}[/bold magenta]")
+            print_hashtags()
 
-            heatmapObject.append(singleHeatmapIsochrone)
-
-        heatmap_multiprocessing(heatmapObject)
-
-        end_time_section = time.time()
-
+        end_time = time.time()
         print_hashtags()
         print_info(
-            f"You computed [bold magenta]{cnt}[/bold magenta] out of [bold magenta]{cnt_sections}[/bold magenta] added."
+            f"Total time: [bold magenta]{(end_time - starting_time)}[/bold magenta] seconds"
         )
-        print_info(
-            f"Section contains [bold magenta]{sum([len(i) for i in starting_ids])}[/bold magenta] starting points"
-        )
-        print_info(
-            f"Section took [bold magenta]{(end_time_section - starting_time_section)}[/bold magenta] seconds"
-        )
-        print_info(
-            f"Network preparation took [bold magenta]{(end_time_network_preparation - starting_time_network_preparation)}[/bold magenta] seconds"
-        )
-        # print_info(f"Bulk insert took [bold magenta]{end_time_bulk_insert-beginning_time_bulk_insert}[/bold magenta]")
-        print_hashtags()
 
-    end_time = time.time()
-    print_hashtags()
-    print_info(f"Total time: [bold magenta]{(end_time - starting_time)}[/bold magenta] seconds")
+    async def execute_pre_calculation(
+        self,
+        routing_type: RoutingTypes,
+        isochrone_settings: IsochroneSettings,
+        bulk_resolution: HeatmapWalkingBulkResolution,
+        calculation_resolution: HeatmapWalkingCalculationResolution,
+        traveltime_grid_resolution: int,
+        study_area_ids: list[int] = None,
+    ):
 
-
-indicator = CRUDHeatmap()
+        buffer_extent = (isochrone_settings.speed / 3.6) * (isochrone_settings.travel_time * 60)
+        # Get calculation objects
+        calculation_objs = await self.prepare_bulk_objs(
+            study_area_ids=study_area_ids,
+            bulk_resolution=bulk_resolution,
+            calculation_resolution=calculation_resolution,
+            buffer_extent=buffer_extent,
+        )
+        await self.compute_traveltime(
+            isochrone_settings=isochrone_settings,
+            routing_type=routing_type,
+            calculation_objs=calculation_objs,
+            traveltime_grid_resolution=traveltime_grid_resolution,
+        )
 
 
 def main():
-    from src.db.session import async_session, sync_session
-
+    # Get superuser
     db = async_session()
     db_sync = sync_session()
     superuser = asyncio.get_event_loop().run_until_complete(
         CRUDBase(models.User).get_by_key(db, key="id", value=15)
     )
     superuser = superuser[0]
-    asyncio.get_event_loop().run_until_complete(
-        CRUDHeatmap().prepare_starting_points(db=db, current_user=superuser)
+
+    isochrone_settings = IsochroneSettings(
+        travel_time=20,
+        speed=5,
+        walking_profile=RoutingTypes["walking_standard"].value.split("_")[1],
     )
+
+    crud_heatmap = CRUDHeatmap(db=db, db_sync=db_sync, current_user=superuser)
     asyncio.get_event_loop().run_until_complete(
-        compute_traveltime(db=db, db_sync=db_sync, current_user=superuser)
+        crud_heatmap.execute_pre_calculation(
+            routing_type=RoutingTypes["walking_standard"],
+            isochrone_settings=isochrone_settings,
+            bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
+            calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
+            traveltime_grid_resolution=12,
+            study_area_ids=[9576],
+        )
     )
-    # asyncio.get_event_loop().run_until_complete(CRUDHeatmap().finalize_connectivity_heatmap(db=db))
-    # asyncio.get_event_loop().run_until_complete(
-    #     CRUDHeatmap().bulk_compute_reached_pois(db=async_session(), current_user=superuser)
-    # )
-    # asyncio.get_event_loop().run_until_complete(
-    # CRUDHeatmap().compute_population_heatmap(db=async_session())
-    # )
-    # asyncio.get_event_loop().run_until_complete(
-    #     CRUDHeatmap().bulk_recompute_scenario(db=db)
-    # )
-    # asyncio.get_event_loop().run_until_complete(
-    #     CRUDHeatmap().bulk_recompute_poi_user(db=db)
-    # )
 
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
+
 
 #main()
