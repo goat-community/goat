@@ -31,6 +31,7 @@ from src.schemas.isochrone import (
     IsochroneSettings,
     IsochroneStartingPoint,
     IsochroneStartingPointCoord,
+    IsochroneMode,
 )
 from src.resources.enums import (
     HeatmapWalkingBulkResolution,
@@ -122,9 +123,10 @@ class CRUDHeatmap:
         # Get all grids for the calculation resolution that are children of the bulk resolution
         calculation_objs = {}
         cnt_calculation_ids = 0
-        lons = []
-        lats = []
+
         for bulk_id in bulk_ids:
+            lons = []
+            lats = []
             calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
             starting_point_objs = []
             coords = []
@@ -149,6 +151,8 @@ class CRUDHeatmap:
             extents = extents[:, [2, 1, 0, 3]]
             extents = extents.tolist()
             calculation_objs[bulk_id]["extents"] = extents
+            calculation_objs[bulk_id]["lats"] = lats
+            calculation_objs[bulk_id]["lons"] = lons
 
         end = time.time()
         print_info(f"Number of bulk grids: {len(bulk_ids)}")
@@ -157,12 +161,10 @@ class CRUDHeatmap:
         print_hashtags()
         return calculation_objs
 
-    async def compute_traveltime(
+    async def compute_traveltime_active_mobility(
         self,
-        isochrone_settings: IsochroneSettings,
-        routing_type: RoutingTypes,
-        calculation_objs: dict,
-        traveltime_grid_resolution: int,
+        isochrone_dto: IsochroneDTO,
+        calculation_objs: dict
     ):
         starting_time = time.time()
 
@@ -170,44 +172,49 @@ class CRUDHeatmap:
         cpus = os.cpu_count()
         cnt_sections = len(calculation_objs)
 
-        begin = time.time()
-        await self.db.execute(text("SELECT ST_CENTROID(geom) FROM basic.building"))
-        end = time.time()
-        print_info(f"Time to execute dummy query: {end - begin} seconds")
+        routing_profile = None
+        if isochrone_dto.mode.value == IsochroneMode.WALKING.value:
+            routing_profile = isochrone_dto.mode.value + "_" + isochrone_dto.settings.walking_profile.value
+        elif isochrone_dto.mode.value == IsochroneMode.CYCLING.value:
+            routing_profile = isochrone_dto.mode.value + "_" + isochrone_dto.settings.cycling_profile.value
 
-        for bulk in calculation_objs:
+
+        for key, obj in calculation_objs.items():
             starting_time_section = time.time()
             starting_time_network_preparation = time.time()
             cnt += 1
-
-
-            # TODO: Compute bulk starting nodes from network
-
+            cnt_theoretical_starting_points = len(obj["starting_point_objs"])
             # Check if there are no starting points
-            if len(bulk["starting_point_objs"]) == 0:
+            if len(obj["starting_point_objs"]) == 0:
                 print_info(
                     f"No starting points for section [bold magenta]{str(cnt)}[/bold magenta]"
                 )
                 continue
 
-            isochrone_dto = IsochroneDTO(
-                mode="walking",
-                settings=isochrone_settings,
-                starting_point=IsochroneStartingPoint(
-                    input=bulk["starting_point_objs"],
-                    region_type="study_area",  # Dummy to avoid validation error
-                    region=[1, 2, 3],  # Dummy to avoid validation error
-                ),
-                output=IsochroneOutput(
-                    format=IsochroneOutputType.GRID,
-                    resolution=traveltime_grid_resolution,
-                ),
-                scenario=IsochroneScenario(
-                    id=1,
-                    name="Default",
-                ),
-            )
+            # TODO: Compute bulk starting nodes from network
+            # Run starting points in bulks of 10000
+ 
+            starting_ids = await self.db.execute(
+                func.basic.heatmap_prepare_artificial(
+                    obj["lons"],
+                    obj["lats"],
+                    isochrone_dto.settings.travel_time * 60,
+                    isochrone_dto.settings.speed,
+                    isochrone_dto.scenario.modus.value,
+                    isochrone_dto.scenario.id,
+                    routing_profile
+                )
+            )   
+            await self.db.commit()
+            starting_ids = starting_ids.scalars().all()
+            starting_ids = np.array(starting_ids)
+            starting_ids.sort()
+            theoretical_starting_ids = np.arange(2147483647-cnt_theoretical_starting_points, 2147483647 + 1)
+            valid_starting_ids = np.isin(theoretical_starting_ids, starting_ids)
+            grid_ids = np.array(obj['calculation_ids'])[valid_starting_ids]
+            extents = np.array(obj['extents'])[valid_starting_ids]
 
+            isochrone_dto.starting_point.input = obj["starting_point_objs"]
             # Read network
             network = await crud.isochrone.read_network(
                 db=self.db,
@@ -282,15 +289,13 @@ class CRUDHeatmap:
 
     async def execute_pre_calculation(
         self,
-        routing_type: RoutingTypes,
-        isochrone_settings: IsochroneSettings,
+        isochrone_dto: IsochroneDTO,
         bulk_resolution: HeatmapWalkingBulkResolution,
         calculation_resolution: HeatmapWalkingCalculationResolution,
-        traveltime_grid_resolution: int,
         study_area_ids: list[int] = None,
     ):
 
-        buffer_extent = (isochrone_settings.speed / 3.6) * (isochrone_settings.travel_time * 60)
+        buffer_extent = isochrone_dto.settings.speed * (isochrone_dto.settings.travel_time * 60)
         # Get calculation objects
         calculation_objs = await self.prepare_bulk_objs(
             study_area_ids=study_area_ids,
@@ -298,11 +303,9 @@ class CRUDHeatmap:
             calculation_resolution=calculation_resolution,
             buffer_extent=buffer_extent,
         )
-        await self.compute_traveltime(
-            isochrone_settings=isochrone_settings,
-            routing_type=routing_type,
+        await self.compute_traveltime_active_mobility(
+            isochrone_dto=isochrone_dto,
             calculation_objs=calculation_objs,
-            traveltime_grid_resolution=traveltime_grid_resolution,
         )
 
 
@@ -315,20 +318,35 @@ def main():
     )
     superuser = superuser[0]
 
-    isochrone_settings = IsochroneSettings(
-        travel_time=20,
-        speed=5,
-        walking_profile=RoutingTypes["walking_standard"].value.split("_")[1],
+    isochrone_dto = IsochroneDTO(
+        mode="walking",
+        settings=IsochroneSettings(
+            travel_time=20,
+            speed=5,
+            walking_profile=RoutingTypes["walking_standard"].value.split("_")[1],
+        ),
+        starting_point=IsochroneStartingPoint(
+            input=[IsochroneStartingPointCoord(lat=0, lon=0)],# Dummy points will be replaced in the function
+            region_type="study_area",  # Dummy to avoid validation error
+            region=[1, 2, 3],  # Dummy to avoid validation error
+        ),
+        output=IsochroneOutput(
+            format=IsochroneOutputType.GRID,
+            resolution=12,
+        ),
+        scenario=IsochroneScenario(
+            id=1,
+            name="Default",
+        ),
     )
+
 
     crud_heatmap = CRUDHeatmap(db=db, db_sync=db_sync, current_user=superuser)
     asyncio.get_event_loop().run_until_complete(
         crud_heatmap.execute_pre_calculation(
-            routing_type=RoutingTypes["walking_standard"],
-            isochrone_settings=isochrone_settings,
+            isochrone_dto=isochrone_dto,
             bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
             calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
-            traveltime_grid_resolution=12,
             study_area_ids=[9576],
         )
     )
@@ -337,4 +355,4 @@ def main():
     input()
 
 
-#main()
+main()

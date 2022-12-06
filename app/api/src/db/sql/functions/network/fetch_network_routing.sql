@@ -1,25 +1,42 @@
-CREATE OR REPLACE FUNCTION basic.heatmap_prepare_artificial(x float[], y float[], max_cutoff float, speed float, modus text, scenario_id integer, routing_profile text)
- RETURNS void
+CREATE OR REPLACE FUNCTION basic.fetch_network_routing(x float[], y float[], max_cutoff float, speed float, modus text, scenario_id integer, routing_profile text)
+ RETURNS SETOF type_fetch_edges_routing
  LANGUAGE plpgsql
 AS $function$
-
+DECLARE 
+	buffer_starting_point geometry; 
+	buffer_network geometry;
+	point geometry := ST_SETSRID(ST_POINT(x[1],y[1]), 4326);
+	snap_distance_network integer := basic.select_customization('snap_distance_network')::integer;
+	max_new_node_id integer := 2147483647;
+	max_new_edge_id integer := 2147483647;
 BEGIN 
 
-	PERFORM basic.create_multiple_artificial_edges(x, y, max_cutoff, speed, modus, scenario_id, routing_profile);
-	
-	DROP TABLE IF EXISTS temporal.heatmap_edges_artificial; 
-	CREATE TABLE temporal.heatmap_edges_artificial AS
-	SELECT * FROM final_artificial_edges;
-	ALTER TABLE temporal.heatmap_edges_artificial ADD PRIMARY KEY(id);
-	CREATE INDEX ON temporal.heatmap_edges_artificial USING GIST(geom);
-	
-	DROP TABLE IF EXISTS temporal.heatmap_starting_vertices; 
-	CREATE TABLE temporal.heatmap_starting_vertices AS
-	SELECT * FROM starting_vertices;
-	CREATE INDEX ON temporal.heatmap_starting_vertices USING GIST(geom);
+	SELECT ST_Buffer(point::geography,snap_distance_network)::geometry
+	INTO buffer_starting_point;
+
+	SELECT ST_Buffer(point::geography,max_cutoff * speed)::geometry
+	INTO buffer_network;
+
+	DROP TABLE IF EXISTS artificial_edges;
+	CREATE TEMP TABLE artificial_edges AS   
+	SELECT * 
+	FROM basic.create_artificial_edges(basic.query_edges_routing(ST_ASTEXT(buffer_starting_point),modus,scenario_id,speed,routing_profile,FALSE),point, 
+		snap_distance_network,max_new_node_id, max_new_edge_id 
+	); 
+		
+	RETURN query EXECUTE 
+	'SELECT 0, 0, 0, 0, 0, 0, NULL,''[[1.1,1.1],[1.1,1.1]]''::json, $1, $2
+	 UNION ALL ' || 
+	basic.query_edges_routing(ST_ASTEXT(buffer_network),modus,scenario_id,speed,routing_profile,True) || 
+    ' AND id NOT IN (SELECT wid FROM artificial_edges)
+	UNION ALL 
+	SELECT id, source, target, ST_LENGTH(ST_TRANSFORM(geom, 3857)) AS length_3857, cost, reverse_cost, NULL AS death_end, ST_AsGeoJSON(ST_Transform(geom,3857))::json->''coordinates'', NULL AS starting_ids, NULL AS starting_geoms
+	FROM artificial_edges' USING ARRAY[max_new_node_id]::integer[], ARRAY[ST_ASTEXT(point)]::TEXT[];
 
 END;
 $function$;
-/*
- * SELECT basic.heatmap_prepare_artificial(ARRAY[11.5828], ARRAY[48.2726], 1200., 1.33, 'default', 1, 'walking_standard'); 
- */
+
+/*Fetches the routing network
+SELECT * 
+FROM basic.fetch_network_routing(ARRAY[11.543274],ARRAY[48.195524], 1200., 1.33, 'default', 1, 'walking_standard')
+*/
