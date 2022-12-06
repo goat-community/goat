@@ -83,29 +83,73 @@
       </template>
     </template>
     <!-- ISOCHRONES -->
-    <template v-if="calculations.length">
+    <template v-if="selectedCalculations.length">
       <p class="grey--text text--darken-2 pb-0 mb-1 mt-2 subtitle-2">
         {{ $t("isochrones.title") }}
       </p>
-      <template v-for="calculation in calculations">
-        <div :key="calculation.id" class="isochrone-wrapper">
-          <span class="fa-stack fa-md mr-1 mt-2" style="color:#800000;">
-            <span class="fa fa-solid fa-location-pin fa-stack-2x"></span>
-            <strong
-              style="font-size:15px;margin-top: -3px"
-              class="white--text fa-stack-1x"
-            >
-              {{ calculation.id }}
-            </strong>
-          </span>
-          <p class="result-text">
-            {{
-              calculation.position === "multiIsochroneCalculation"
-                ? $t("isochrones.results.multiIsochroneHeader")
-                : calculation.position
-            }}
-          </p>
-        </div>
+      <template v-for="calculation in selectedCalculations">
+        <template v-if="calculation.id">
+          <div :key="calculation.id" class="isochrone-wrapper">
+            <span class="fa-stack fa-md mr-1 mt-2" style="color:#800000;">
+              <span class="fa fa-solid fa-location-pin fa-stack-2x"></span>
+              <strong
+                style="font-size:15px;margin-top: -3px"
+                class="white--text fa-stack-1x"
+              >
+                {{ getCurrentIsochroneNumber(calculation) }}
+              </strong>
+            </span>
+            <!-- <p>Travel Mode: {{ calculation.config.mode }}</p>
+            <p>Travel Time: {{ calculation.config.travel_time }}</p> -->
+            <section class="isochrone-detail">
+              <div>
+                <v-icon small class="text-xs-center">{{
+                  routingProfiles[calculation.routing].icon
+                }}</v-icon>
+                <span class="ml-1 caption">
+                  {{ $t(`isochrones.options.${calculation.routing}`) }}
+                </span>
+              </div>
+
+              <template
+                v-if="!['transit', 'car'].includes(calculation.routing)"
+              >
+                <div>
+                  <v-icon small class="text-xs-center mx-2"
+                    >fas fa-tachometer-alt
+                  </v-icon>
+                  <span class="caption"
+                    >{{ calculation.config.settings.speed }} km/h</span
+                  >
+                </div>
+              </template>
+              <template v-if="['transit', 'car'].includes(calculation.routing)">
+                <div>
+                  <v-icon small class="text-xs-center mx-2"
+                    >fas fa-clock
+                  </v-icon>
+                  <span class="caption"
+                    >{{
+                      secondsToHoursAndMins(
+                        calculation.config.settings.from_time
+                      )
+                    }}
+                    -
+                    {{
+                      secondsToHoursAndMins(calculation.config.settings.to_time)
+                    }}</span
+                  >
+                </div>
+              </template>
+              <div
+                :style="
+                  `background: ${returnTheCalculationColor(calculation.id)}`
+                "
+                class="isochrone-color"
+              ></div>
+            </section>
+          </div>
+        </template>
       </template>
     </template>
   </div>
@@ -116,6 +160,11 @@ import { EventBus } from "../../../EventBus";
 import { Mapable } from "../../../mixins/Mapable";
 import { getWMSLegendURL } from "../../../utils/Layer";
 import LegendRenderer from "../../../utils/LegendRenderer";
+import {
+  calculateCalculationsLength,
+  calculateCurrentIndex,
+  secondsToHoursAndMins
+} from "../../../utils/Helpers";
 import { mapFields } from "vuex-map-fields";
 
 export default {
@@ -250,7 +299,43 @@ export default {
         return true;
       }
       return false;
-    }
+    },
+    getCurrentIsochroneNumber(calc) {
+      return calculateCalculationsLength() - calculateCurrentIndex(calc);
+    },
+    returnTheCalculationColor(id) {
+      let styling = "";
+      if (
+        this.calculationColors[id - 1][7] === "0" &&
+        this.calculationColors[id - 1][8] === "0"
+      ) {
+        styling =
+          "url('img/styling/transparent.png'); background-size: cover; background-position: center; border: 2px solid #D0342C;";
+      } else {
+        styling = this.calculationColors[id - 1] + ";";
+      }
+
+      if (
+        this.calculationSrokeObjects[id - 1].color[7] !== "0" &&
+        this.calculationSrokeObjects[id - 1].color[7] !== "0"
+      ) {
+        if (
+          this.calculationSrokeObjects[id - 1].dashWidth !== 0 &&
+          this.calculationSrokeObjects[id - 1].dashSpace !== 0
+        ) {
+          styling += ` border: 3px dashed ${
+            this.calculationSrokeObjects[id - 1].color
+          };`;
+        } else {
+          styling += ` border: 3px solid ${
+            this.calculationSrokeObjects[id - 1].color
+          };`;
+        }
+      }
+
+      return styling;
+    },
+    secondsToHoursAndMins
   },
 
   computed: {
@@ -264,7 +349,10 @@ export default {
       selectedPoisAois: "selectedPoisAois"
     }),
     ...mapFields("isochrones", {
-      calculations: "calculations"
+      calculations: "calculations",
+      selectedCalculations: "selectedCalculations",
+      calculationColors: "calculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects"
     }),
     ...mapGetters("isochrones", {
       routingProfiles: "routingProfiles"
@@ -303,7 +391,8 @@ export default {
 
 .isochrone-wrapper {
   border: 1px solid #ccc;
-  padding: 0 5px;
+  width: 100%;
+  padding: 0 0;
   border-radius: 8px;
   margin: 10px 10px 0 0;
 }
@@ -311,5 +400,21 @@ export default {
 .result-text {
   margin-top: 10px;
   font-size: 13px;
+}
+
+.isochrone-color {
+  width: 35px;
+  height: 15px;
+  margin-left: 5px;
+  border-radius: 3px;
+}
+
+.isochrone-detail {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 5px 10px;
+  width: 100%;
+  column-gap: 7px;
 }
 </style>
