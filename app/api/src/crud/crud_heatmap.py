@@ -1,46 +1,43 @@
 import asyncio
 import bz2
+import json
 import os
 import time
-import h3
+from typing import List
 
+import geopandas as gpd
+import h3
 import numpy as np
 import pandas as pd
-import geopandas as gpd
-import json
+from codetiming import Timer
 from rich import print
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import delete, text, select
+from sqlalchemy.sql import delete, select, text
 from sqlalchemy.sql.functions import func
+
 from src import crud, schemas
-from src.endpoints import deps
-from src.core.isochrone import (
-    heatmap_multiprocessing,
-    prepare_network_isochrone,
-)
+from src.core.isochrone import heatmap_multiprocessing, prepare_network_isochrone
 from src.crud.base import CRUDBase
 from src.db import models
-from src.db.session import legacy_engine
-from codetiming import Timer
+from src.db.session import async_session, legacy_engine, sync_session
+from src.endpoints import deps
+from src.resources.enums import (
+    HeatmapWalkingBulkResolution,
+    HeatmapWalkingCalculationResolution,
+    RoutingTypes,
+)
 from src.schemas.isochrone import (
     IsochroneDTO,
+    IsochroneMode,
     IsochroneOutput,
     IsochroneOutputType,
     IsochroneScenario,
     IsochroneSettings,
     IsochroneStartingPoint,
     IsochroneStartingPointCoord,
-    IsochroneMode,
-)
-from src.resources.enums import (
-    HeatmapWalkingBulkResolution,
-    HeatmapWalkingCalculationResolution,
-    RoutingTypes,
 )
 from src.utils import print_hashtags, print_info, print_warning
-from src.db.session import async_session, sync_session
-from typing import List
 
 poi_layers = {
     "poi": models.Poi,
@@ -62,6 +59,7 @@ class CRUDHeatmap:
         self.current_user = current_user
         self.multi_processing_bulk_size = 50
         self.path_traveltime_matrices = "/app/src/cache/traveltime_matrices"
+        self.path_opportunity_matrices = "/app/src/cache/opportunity_matrices"
 
     async def prepare_bulk_objs(
         self,
@@ -329,12 +327,56 @@ class CRUDHeatmap:
             isochrone_dto=isochrone_dto, table_name="poi", filter_geoms=filter_geoms
         )
         #TODO: Read relevant Opportunity Matrices
+        
+        allFiles = []
+        
+        for key in calculation_objs:
+            npzfile = np.load(f"{self.path_traveltime_matrices}/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}/{key}.npz", allow_pickle=True)
+            allFiles.append(npzfile)            
+        
         # with load('foo.npz') as data:
         #     a = data['a']
         #self.path_traveltime_matrices
 
         #TODO: Loop through POIs and derive opportunity matrix
-        print("POI read")
+        
+        calculation_keys = list(calculation_objs.keys())
+        
+        for indxFile, file in enumerate(allFiles):
+            heatmapWidths = file['width']
+            heatmapHeights = file['height']
+            heatmapNorth = file['north']
+            heatmapWest = file['west']
+            travelTimes = file['travel_times']
+            allPois = []
+            
+            for poiGroup in pois:
+                for poi in poiGroup:
+                    poiObject = {}
+                    width = poi[3][1]
+                    height = poi[3][0]
+                    name = poi[2]
+                    category = poi[1]
+                    traveltime = []
+                    grids = []
+                    
+                    for indx, h_width in enumerate(heatmapWidths):
+                        if (width > heatmapWest[indx] and width < heatmapWest[indx] + h_width ):
+                            if (height > heatmapNorth[indx] and height < heatmapNorth[indx] + heatmapHeights[indx]):
+                                traveltime.append(travelTimes[indx])
+                                grids.append(calculation_objs[calculation_keys[indxFile]]['calculation_ids'][indx])
+                    
+                    poiObject = {
+                        "coord": [height, width],
+                        "name": name,
+                        "category": category,
+                        "traveltime": np.array(traveltime, dtype=object),
+                        "grids": np.array(grids)
+                    }       
+                        
+                    allPois.append(poiObject)   
+                    
+            np.savez(f'{self.path_opportunity_matrices}/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}/{calculation_keys[indxFile]}.npz', np.array(allPois))  
 
     async def read_poi(
         self,
@@ -420,10 +462,10 @@ class CRUDHeatmap:
             buffer_extent=buffer_extent,
         )
 
-        await self.compute_traveltime_active_mobility(
-            isochrone_dto=isochrone_dto,
-            calculation_objs=calculation_objs,
-        )
+        # await self.compute_traveltime_active_mobility(
+        #     isochrone_dto=isochrone_dto,
+        #     calculation_objs=calculation_objs,
+        # )
         # TODO: Compute opportunity matrix
         await self.compute_opportunity_matrix(
             isochrone_dto=isochrone_dto,
