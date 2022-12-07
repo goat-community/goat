@@ -284,11 +284,10 @@ class CRUDHeatmap:
             traveltimeobjs = heatmap_multiprocessing(heatmapObject)
 
             # Save files into cache folder
-            for obj in traveltimeobjs:
-                np.savez(
-                    f"{self.path_traveltime_matrices}/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}/{key}.npz",
-                    **obj,
-                )
+            np.savez(
+                f"{self.path_traveltime_matrices}/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}/{key}.npz",
+                **traveltimeobjs,
+            )
 
             end_time_section = time.time()
 
@@ -412,7 +411,7 @@ class CRUDHeatmap:
         """        
 
         buffer_extent = isochrone_dto.settings.speed * (isochrone_dto.settings.travel_time * 60)
-        
+
         # Get calculation objects
         calculation_objs = await self.prepare_bulk_objs(
             study_area_ids=study_area_ids,
@@ -471,7 +470,7 @@ def main():
             isochrone_dto=isochrone_dto,
             bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
             calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
-            study_area_ids=[91620000],
+            study_area_ids=[83110000],
         )
     )
 
