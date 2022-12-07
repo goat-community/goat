@@ -358,7 +358,7 @@ def network_to_grid(
     width_meter = extent[2] - extent[0]
     height_meter = extent[3] - extent[1]
     # Pixel coordinates origin is at the top left corner of the image. (y of top right/left corner is smaller than y of bottom right/left corner)
- 
+    
     xy_bottom_left = [
         math.floor(x)
         for x in coordinate_to_pixel(
@@ -515,8 +515,14 @@ def compute_isochrone_heatmap(
         _type_: _description_
     """
 
-    # run dijkstra
-    traveltimeobjs = []
+    traveltimeobjs = {}
+    arr_west = []
+    arr_north = []
+    arr_zoom = []
+    arr_width = []
+    arr_height = []
+    arr_travel_times = []
+
     # construct adjacency list
     adj_list = construct_adjacency_list_(
         len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
@@ -541,16 +547,32 @@ def compute_isochrone_heatmap(
             distances,
             node_coords,
         )
+        arr_west.append(grid["west"])
+        arr_north.append(grid["north"])
+        arr_zoom.append(grid["zoom"])
+        arr_width.append(grid["width"])
+        arr_height.append(grid["height"])
+        arr_travel_times.append(grid["data"])
+
+    traveltimeobjs["west"] = np.array(arr_west)
+    traveltimeobjs["north"] = np.array(arr_north)
+    traveltimeobjs["zoom"] = np.array(arr_zoom)
+    traveltimeobjs["width"] = np.array(arr_width)
+    traveltimeobjs["height"] = np.array(arr_height)
+    traveltimeobjs["travel_times"] = np.array(arr_travel_times, dtype=object)
 
     return traveltimeobjs
 
 def heatmap_multiprocessing(zip_object):
 
     with Pool() as executor:
-        total_inserts = executor.starmap(
+        traveltimeobjs = executor.starmap(
             compute_isochrone_heatmap,
             zip_object,
         )
+    
+
+    return traveltimeobjs
     # TODO: Save results to new folder structure using numpy.savez_compressed
         
 async def main():
