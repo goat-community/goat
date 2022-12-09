@@ -761,7 +761,11 @@ def delete_dir(dir_path: str) -> None:
     except OSError as e:
         pass
 
-
+def create_dir(dir_path: str) -> None:
+    """Create directory if it does not exist."""
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+ 
 def clean_unpacked_zip(dir_path: str, zip_path: str) -> None:
     """Delete unpacked zip file and directory."""
     delete_dir(dir_path)

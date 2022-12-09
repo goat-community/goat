@@ -521,6 +521,7 @@ def compute_isochrone_heatmap(
     arr_zoom = []
     arr_width = []
     arr_height = []
+    arr_grids = []
     arr_travel_times = []
 
     # construct adjacency list
@@ -536,7 +537,7 @@ def compute_isochrone_heatmap(
         
         # TODO: Explore what is the slow part of the network_to_grid function
 
-        # # convert restuls to grid
+        # # convert results to grid
         grid = network_to_grid(
             extent[idx],
             zoom,
@@ -552,6 +553,7 @@ def compute_isochrone_heatmap(
         arr_zoom.append(grid["zoom"])
         arr_width.append(grid["width"])
         arr_height.append(grid["height"])
+        arr_grids.append(grid_ids[idx])
         arr_travel_times.append(grid["data"])
 
     traveltimeobjs["west"] = np.array(arr_west)
@@ -559,6 +561,7 @@ def compute_isochrone_heatmap(
     traveltimeobjs["zoom"] = np.array(arr_zoom)
     traveltimeobjs["width"] = np.array(arr_width)
     traveltimeobjs["height"] = np.array(arr_height)
+    traveltimeobjs["grid_ids"] = np.array(arr_grids)
     traveltimeobjs["travel_times"] = np.array(arr_travel_times, dtype=object)
 
     return traveltimeobjs
@@ -578,6 +581,7 @@ def heatmap_multiprocessing(zip_object):
     arr_width = []
     arr_height = []
     arr_travel_times = []
+    arr_grid_ids = []
 
     for obj in traveltimeobjs:
         arr_west.extend(obj["west"])
@@ -585,6 +589,7 @@ def heatmap_multiprocessing(zip_object):
         arr_zoom.extend(obj["zoom"])
         arr_width.extend(obj["width"])
         arr_height.extend(obj["height"])
+        arr_grid_ids.extend(obj["grid_ids"])
         arr_travel_times.extend(obj["travel_times"])
     
     merged_traveltime_obj["west"] = np.array(arr_west)
@@ -592,12 +597,10 @@ def heatmap_multiprocessing(zip_object):
     merged_traveltime_obj["zoom"] = np.array(arr_zoom)
     merged_traveltime_obj["width"] = np.array(arr_width)
     merged_traveltime_obj["height"] = np.array(arr_height)
+    merged_traveltime_obj["grid_ids"] = np.array(arr_grid_ids)
     merged_traveltime_obj["travel_times"] = np.array(arr_travel_times, dtype=object)
 
-
-
     return merged_traveltime_obj
-    # TODO: Save results to new folder structure using numpy.savez_compressed
         
 async def main():
     edges_network, starting_ids, obj_in = await get_sample_network(minutes=5)
