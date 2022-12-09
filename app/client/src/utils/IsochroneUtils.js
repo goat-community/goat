@@ -3,6 +3,8 @@ import {
   getClosest,
   interpolateColor
 } from "../utils/Helpers";
+import { geojsonToFeature, fromPixel } from "../utils/MapUtils";
+import { jsolines } from "../utils/Jsolines";
 import i18n from "../../src/plugins/i18n";
 /**
  * Util class for Isochrone Calculation
@@ -127,6 +129,32 @@ const IsochroneUtils = {
     }
 
     return interpolatedColor;
+  },
+  updateIsochroneSurface(calculation, timeRange) {
+    const {
+      surface,
+      width,
+      height,
+      west,
+      north,
+      zoom
+      // eslint-disable-next-line no-undef
+    } = calculation.surfaceData;
+    const isochronePolygon = jsolines({
+      surface,
+      width,
+      height,
+      cutoff: timeRange,
+      project: ([x, y]) => {
+        const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+        return [ll.lon, ll.lat];
+      }
+    });
+    let olFeatures = geojsonToFeature(isochronePolygon, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857"
+    });
+    calculation.feature.setGeometry(olFeatures[0].getGeometry());
   }
 };
 

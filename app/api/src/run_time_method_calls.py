@@ -18,7 +18,12 @@ async def run_calculate_isochrone_single_default(
             if settings.R5_HOST:
                 try:
                     rich.print("[blue]check R5 for 3 seconds...[/blue]")
-                    requests.get(settings.R5_API_URL, verify=False, timeout=3)
+                    # set authorization header if R5_AUTHORIZATION is set
+                    headers = {}
+                    if settings.R5_AUTHORIZATION:
+                        headers["Authorization"] = settings.R5_AUTHORIZATION
+                    requests.get(settings.R5_API_URL, verify=False,
+                                 timeout=3, headers=headers)
                 except:
                     rich.print(
                         f"[orange3]Coudn't reach R5! So skip call:[/orange3] [bold]{isochrone_mode}[/bold]"
