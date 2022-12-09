@@ -3,10 +3,11 @@
     <div v-show="print.active === false">
       <!-- isochrone-thematic-data -->
       <isochrone-thematic-data v-show="!miniViewOlMap" />
-      <isochrone-color-picker
+      <style-dialog
         :temporaryColors="temporaryColors"
+        type="isochrone"
         v-if="selectedCalculationChangeColor"
-      />
+      ></style-dialog>
 
       <!-- mapillary-->
       <div
@@ -65,10 +66,10 @@
 import appMap from "./ol/Map";
 import appMapillary from "./mapillary/Mapillary";
 import IsochronThematicData from "../isochrones/IsochroneThematicData.vue";
-import IsochroneColorPicker from "../isochrones/IsochroneColorPicker.vue";
 import PrintViewer from "./print/PrintViewer";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
+import StyleDialog from "../styling/StyleDialog.vue";
 
 export default {
   name: "app-viewer",
@@ -77,7 +78,7 @@ export default {
     "app-mapillary": appMapillary,
     "isochrone-thematic-data": IsochronThematicData,
     "print-viewer": PrintViewer,
-    "isochrone-color-picker": IsochroneColorPicker
+    "style-dialog": StyleDialog
   },
   data() {
     return {
@@ -88,7 +89,7 @@ export default {
     };
   },
   mounted() {
-    this.temporaryColors = this.calculationColors;
+    this.temporaryColors = this.preDefCalculationColors;
   },
   computed: {
     ...mapGetters("app", {
@@ -100,7 +101,8 @@ export default {
     }),
     ...mapGetters("isochrones", {
       selectedCalculationChangeColor: "selectedCalculationChangeColor",
-      calculationColors: "calculationColors"
+      calculationColors: "calculationColors",
+      preDefCalculationColors: "preDefCalculationColors"
     }),
     ...mapFields("map", {
       isMapillaryBtnDisabled: "isMapillaryBtnDisabled",
@@ -128,6 +130,15 @@ export default {
       this.miniViewerVisible = false;
       this.miniViewOlMap = false;
       this.updateViews();
+    },
+    translate(type, key) {
+      //Checks if key exists and translates it othewise return the input value
+      const canTranslate = this.$te(`map.${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`map.${type}.${key}`);
+      } else {
+        return key;
+      }
     }
   }
 };

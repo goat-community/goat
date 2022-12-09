@@ -852,7 +852,7 @@ export default {
                   clonedFeature = selectedFeatures[0].clone();
                   clonedFeature.set("layerName", layer.get("name"));
                 }
-                me.getInfoResult.push(clonedFeature);
+                me.getInfoResult.unshift(clonedFeature);
               }
               break;
             }

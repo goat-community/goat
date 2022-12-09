@@ -1,5 +1,6 @@
 CREATE OR REPLACE FUNCTION basic.poi_aoi_visualization(user_id_input integer, scenario_id_input integer, active_upload_ids integer[], active_study_area_id integer)
-RETURNS TABLE (id integer, uid TEXT, category TEXT, name TEXT, opening_hours TEXT, street TEXT, housenumber TEXT, zipcode TEXT, edit_type TEXT, geom geometry)
+RETURNS TABLE (id integer, uid TEXT, category TEXT, name TEXT, opening_hours TEXT, street TEXT, housenumber TEXT, zipcode TEXT, 
+min_zoom integer, max_zoom integer, edit_type TEXT, geom geometry)
 LANGUAGE plpgsql
 AS $function$
 DECLARE 	
@@ -33,7 +34,8 @@ BEGIN
 	buffer_geom_study_area = (SELECT buffer_geom_heatmap AS geom FROM basic.study_area s WHERE s.id = active_study_area_id);
 
     RETURN query
-   	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, NULL AS edit_type, p.geom  
+   	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, 
+	(p.tags ->> 'min_zoom')::integer AS min_zoom, (p.tags ->> 'max_zoom')::integer AS min_zoom, NULL AS edit_type, p.geom  
 	FROM basic.poi p
 	WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 	AND p.uid NOT IN (SELECT UNNEST(excluded_pois_id))
@@ -41,7 +43,8 @@ BEGIN
 	AND p.category NOT IN (SELECT UNNEST(data_upload_poi_categories));
 	
 	RETURN query 
-	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, NULL AS edit_type, p.geom  
+	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, 
+	(p.tags ->> 'min_zoom')::integer AS min_zoom, (p.tags ->> 'max_zoom')::integer AS min_zoom, NULL AS edit_type, p.geom  
 	FROM customer.poi_user p
 	WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 	AND p.data_upload_id IN (SELECT UNNEST(active_upload_ids))
@@ -50,21 +53,24 @@ BEGIN
 	
 	RETURN query 
 	/*No scenarios nor aoi_user is implemented at the moment*/
-	SELECT p.id, NULL, p.category, p.name, p.opening_hours, NULL AS street, NULL AS housenumber, NULL AS zipcode, NULL AS edit_type, p.geom
+	SELECT p.id, NULL, p.category, p.name, p.opening_hours, NULL AS street, NULL AS housenumber, NULL AS zipcode, 
+	(p.tags ->> 'min_zoom')::integer AS min_zoom, (p.tags ->> 'max_zoom')::integer AS min_zoom, NULL AS edit_type, p.geom
 	FROM basic.aoi p 
 	WHERE p.category IN (SELECT UNNEST(aoi_categories))
 	AND p.geom && buffer_geom_study_area; 
 	
 	IF scenario_id_input <> 0 THEN 
 	   	RETURN query 
-	   	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, p.edit_type, p.geom  
+	   	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, 
+		(p.tags ->> 'min_zoom')::integer AS min_zoom, (p.tags ->> 'max_zoom')::integer AS min_zoom, p.edit_type, p.geom  
 		FROM customer.poi_modified p
 		WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 		AND p.geom && buffer_geom_study_area
 		AND p.scenario_id = scenario_id_input; 
 	   	
 		RETURN query
-	   	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, 'd' AS edit_type, p.geom  
+	   	SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, 
+		(p.tags ->> 'min_zoom')::integer AS min_zoom, (p.tags ->> 'max_zoom')::integer AS min_zoom, 'd' AS edit_type, p.geom  
 		FROM basic.poi p
 		WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 		AND p.uid IN (SELECT UNNEST(excluded_pois_id))
@@ -72,7 +78,8 @@ BEGIN
 		AND p.category NOT IN (SELECT UNNEST(data_upload_poi_categories));
 	
 		RETURN query 
-		SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, 'd' AS edit_type, p.geom  
+		SELECT p.id, p.uid, p.category, p.name, p.opening_hours, p.street, p.housenumber, p.zipcode, 
+		(p.tags ->> 'min_zoom')::integer AS min_zoom, (p.tags ->> 'max_zoom')::integer AS min_zoom, 'd' AS edit_type, p.geom  
 		FROM customer.poi_user p
 		WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 		AND p.data_upload_id IN (SELECT UNNEST(active_upload_ids))

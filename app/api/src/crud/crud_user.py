@@ -45,7 +45,7 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
             hashed_password = get_password_hash(update_data["password"])
             del update_data["password"]
             update_data["hashed_password"] = hashed_password
-        if update_data.get("roles") or len(update_data["roles"]) == 0:
+        if update_data.get("roles") or update_data.get("roles") == []:
             roles = await db.execute(
                 select(models.Role).filter(models.Role.name.in_(obj_in.roles))
             )

@@ -322,6 +322,12 @@
     "calculation": "Calculation",
     "calculationTitle": "Isochrone Calculation",
     "stopIsochroneCalc": "Stop Calculation",
+    "styling": {
+      "fillColor": "Fill Color",
+      "StrokeColor": "Stroke",
+      "strokeWidth": "Stroke Width",
+      "strokeStyle": "Stroke Style"
+    },
     "mode": {
       "default": "Default",
       "input": "Input",
@@ -394,6 +400,7 @@
       "hideResultsTooltip": "Hide Results",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
+      "showAdditionalData": "Additional data",
       "deleteAll": "DELETE ALL",
       "changeColorTooltip": "Click to change color",
       "dataTable": "Data Table",
@@ -445,7 +452,7 @@
       "startingPoints": "Starting Points"
     },
     "pickColor": {
-      "title": "Isochrone Color"
+      "title": "Isochrone Style"
     }
   },
   "indicators": {
@@ -947,7 +954,8 @@
     "discount_gym": "Discount Gym",
     "gym": "Gym",
     "yoga": "Yoga",
-    "outdoor_fitness_station": "Outdoor fitness station"
+    "outdoor_fitness_station": "Outdoor fitness station",
+    "swimming_pool_outdoor": "Swimming Pool Outdoor"
   },
   "$vuetify": {
     "close": "Close",

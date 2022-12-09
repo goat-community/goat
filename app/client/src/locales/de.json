@@ -295,7 +295,6 @@
       "deleteAllTitle": "Alle löschen",
       "deleteAllMessage": "Wollen Sie alle Scenario Daten löschen?",
       "confirmDeleteScenario": "Sind sicher, dass Sie das Szenario löschen wollen?"
-
     },
     "settings": {
       "title": "Einstellungen",
@@ -336,6 +335,13 @@
     "title": "Isochronen",
     "calculation": "Berechnung",
     "calculationTitle": "Isochronenberechnung",
+    "stopIsochroneCalc": "Berechnung stoppen",
+    "styling": {
+      "fillColor": "Fülleffekt",
+      "StrokeColor": "Formkontur",
+      "strokeWidth": "Stärke",
+      "strokeStyle": "Art"
+    },
     "mode": {
       "default": "Standard",
       "input": "Szenario",
@@ -402,6 +408,7 @@
       "showDataTooltip": "Daten anzeigen",
       "toggleVisibilityTooltip": "Anzeige umschalten",
       "showResultsTooltip": "Ergebnisse anzeigen",
+      "showAdditionalData": "Weitere Daten",
       "hideResultsTooltip": "Ergebnisse ausblenden",
       "downloadTooltip": "Herunterladen",
       "deleteCalcTooltip": "Berechnung löschen",
@@ -454,7 +461,7 @@
       "startingPoints": "Startpunkte"
     },
     "pickColor": {
-      "title": "Farbe der Isochrone"
+      "title": "Isochrone Style"
     }
   },
   "indicators": {
@@ -946,7 +953,8 @@
     "discount_gym": "Discount Fitnessstudio",
     "gym": "Fitnessstudio",
     "yoga": "Yoga",
-    "outdoor_fitness_station": "Outdoor Fitness"
+    "outdoor_fitness_station": "Outdoor Fitness",
+    "swimming_pool_outdoor": "Freibad"
   },
   "$vuetify": {
     "close": "Schließen",
