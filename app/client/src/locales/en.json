@@ -324,7 +324,9 @@
     "stopIsochroneCalc": "Stop Calculation",
     "styling": {
       "fillColor": "Fill Color",
-      "StrokeColor": "Stroke"
+      "StrokeColor": "Stroke",
+      "strokeWidth": "Stroke Width",
+      "strokeStyle": "Stroke Style"
     },
     "mode": {
       "default": "Default",
@@ -398,6 +400,7 @@
       "hideResultsTooltip": "Hide Results",
       "downloadTooltip": "Download",
       "deleteCalcTooltip": "Delete Calculation",
+      "showAdditionalData": "Additional data",
       "deleteAll": "DELETE ALL",
       "changeColorTooltip": "Click to change color",
       "dataTable": "Data Table",
@@ -449,7 +452,7 @@
       "startingPoints": "Starting Points"
     },
     "pickColor": {
-      "title": "Isochrone Color"
+      "title": "Isochrone Style"
     }
   },
   "indicators": {

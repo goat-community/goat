@@ -8,7 +8,9 @@ module.exports = {
     proxy: {
       "/api": {
         target: process.env.API_BASEURL,
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false,
+        logLevel: "debug"
       }
     }
   },

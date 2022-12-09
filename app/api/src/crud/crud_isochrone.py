@@ -44,6 +44,7 @@ from src.schemas.isochrone import (
     IsochroneMode,
     IsochroneMulti,
     IsochroneMultiRegionType,
+    IsochroneOutputType,
     IsochroneSingle,
     IsochroneStartingPointCoord,
     IsochroneTypeEnum,
@@ -384,17 +385,23 @@ class CRUDIsochrone:
         # Bring into correct format for client
         if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
             for idx, sub_study_area in get_reachable_population.iterrows():
+                total_population = sub_study_area["population"]
+                reached_population = population_grid_count[idx]
+                reached_population[reached_population > total_population] = total_population
+                
                 population_count[sub_study_area["name"]] = {
-                    "total_population": sub_study_area["population"],
-                    "reached_population": population_grid_count[idx].astype(int).tolist(),
+                    "total_population": total_population,
+                    "reached_population": reached_population.astype(int).tolist(),
                 }
         elif obj_in.starting_point.region_type == IsochroneMultiRegionType.DRAW:
             reached_population = np.zeros(max_time)
             for idx, sub_study_area_id in enumerate(sub_study_area_ids):
                 reached_population += population_grid_count[idx]
+            total_population = int(get_reachable_population["population"][0])
+            reached_population[reached_population > total_population] = total_population
 
             population_count["polygon"] = {
-                "total_population": int(get_reachable_population["population"][0]),
+                "total_population": total_population,
                 "reached_population": reached_population.astype(int).tolist(),
             }
 
@@ -622,6 +629,7 @@ class CRUDIsochrone:
         """
         grid = None
         result = None
+        network = None
         if len(obj_in.starting_point.input) == 1 and isinstance(
             obj_in.starting_point.input[0], IsochroneStartingPointCoord
         ):
@@ -634,7 +642,7 @@ class CRUDIsochrone:
             network, starting_ids = await self.read_network(
                 db, obj_in, current_user, isochrone_type
             )
-            grid = compute_isochrone(
+            grid, network = compute_isochrone(
                 network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
             )
         # == Public transport isochrone ==
@@ -696,14 +704,16 @@ class CRUDIsochrone:
             )
             grid = decode_r5_grid(response.content)
 
-        # Opportunity intersect
-        if isochrone_type == IsochroneTypeEnum.single.value:
-            grid = await self.get_opportunities_single_isochrone(grid, obj_in, current_user)
-        elif isochrone_type == IsochroneTypeEnum.multi.value:
-            grid = await self.get_opportunities_multi_isochrone(grid, obj_in, current_user)
-
-        grid_encoded = encode_r5_grid(grid)
-        result = Response(bytes(grid_encoded))
+        if obj_in.output.type.value != IsochroneOutputType.NETWORK.value:
+            # Opportunity intersect
+            if isochrone_type == IsochroneTypeEnum.single.value:
+                grid = await self.get_opportunities_single_isochrone(grid, obj_in, current_user)
+            elif isochrone_type == IsochroneTypeEnum.multi.value:
+                grid = await self.get_opportunities_multi_isochrone(grid, obj_in, current_user)
+            grid_encoded = encode_r5_grid(grid)
+            result = Response(bytes(grid_encoded))
+        else:
+            result = network
         return result
 
 
