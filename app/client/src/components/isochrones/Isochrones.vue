@@ -716,7 +716,10 @@
                       </v-layout>
                       <v-layout row>
                         <v-spacer></v-spacer>
-                        <v-tooltip top>
+                        <v-tooltip
+                          v-if="!['transit'].includes(calculation.routing)"
+                          top
+                        >
                           <template v-slot:activator="{ on }">
                             <v-icon
                               :disabled="isIsochroneBusy"
