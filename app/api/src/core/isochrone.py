@@ -157,7 +157,7 @@ def remap_edges(edge_source, edge_target, edge_geom):
     :param edge_geom: List of edge geometries
     """
     unordered_map = {}
-    node_coords = {}
+    node_coords = np.empty(shape=[len(edge_source), 2], dtype=np.double)
     id = 0
     extent = [np.inf, np.inf, -np.inf, -np.inf]  # [min_x, min_y, max_x, max_y]
     for i in range(len(edge_source)):
@@ -372,7 +372,7 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
         min([web_mercator_x_step, web_mercator_y_step]),
     )
 
-    node_coords_list = list(node_coords.values()) + interpolated_coords
+    node_coords_list = list(node_coords) + interpolated_coords
     node_costs_list = distances + interpolated_costs
 
     node_coords_list, node_costs_list = filter_nodes(
@@ -388,7 +388,8 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
                 "geometry": {"type": "LineString", "coordinates": edges_geom[idx]},
                 "properties": {"cost": distances[edges_target[idx]]},
             }
-            for idx in edges_length if distances[edges_target[idx]] != np.inf
+            for idx in edges_length
+            if distances[edges_target[idx]] != np.inf
         ],
     }
     # write geojson
