@@ -2,6 +2,7 @@ import asyncio
 import heapq
 import json
 import math
+from time import time
 
 import numpy as np
 from numba import njit
@@ -68,11 +69,13 @@ def dijkstra_(start_vertices, adj_list, travel_time):
     :return: List of shortest paths and costs
     """
     n = len(adj_list)
-    distances = [np.Inf for _ in range(n)]
+    # distances = [np.Inf for _ in range(n)]
+    distances = np.full(n, np.Inf, np.double)
     # loop over all start vertices
     for start_vertex in start_vertices:
         distances[start_vertex] = 0.0
-        visited = [False for _ in range(n)]
+        # visited = [False for _ in range(n)]
+        visited = np.full(n, False, np.bool8)
         # set up priority queue
         pq = [(0.0, start_vertex)]
         while len(pq) > 0:
@@ -156,6 +159,7 @@ def remap_edges(edge_source, edge_target, edge_geom):
     :param edge_target: List of target nodes
     :param edge_geom: List of edge geometries
     """
+    start_time = time()
     unordered_map = {}
     node_coords = np.empty(shape=[len(edge_source), 2], dtype=np.double)
     id = 0
@@ -189,7 +193,20 @@ def remap_edges(edge_source, edge_target, edge_geom):
         else:
             edge_target[i] = unordered_map.get(edge_target[i])
 
-    return unordered_map, node_coords, extent
+    end_time = time()
+    print(f"Remap edges time: {end_time - start_time}s")
+    return unordered_map, node_coords[: len(unordered_map)], extent
+
+
+def estimate_split_edges_size(edge_length, edge_geom, split_distance):
+    full_edge_length = np.sum(edge_length)
+    number_of_geoms = 0
+    for geom in edge_geom:
+        number_of_geoms += len(geom) - 2  # Remove the ends of the edge
+
+    minimum_size = full_edge_length / split_distance + 1
+    maximum_size = minimum_size + number_of_geoms
+    return int(maximum_size)
 
 
 def split_edges(edge_source, edge_target, edge_length, edge_geom, agg_costs, split_distance):
@@ -203,8 +220,12 @@ def split_edges(edge_source, edge_target, edge_length, edge_geom, agg_costs, spl
     :param split_distance: Distance to split edges in meters
     :return: List of interpolated coordinates and costs along the line every x meters, including vertices
     """
-    coords = []
-    costs = []
+    start_time = time()
+    est_size = estimate_split_edges_size(edge_length, edge_geom, split_distance)
+    coords = np.empty(shape=[est_size, 2], dtype=np.double)
+    costs = np.empty(shape=[est_size], dtype=np.double)
+
+    counter = -1
     for i in range(len(edge_source)):
         source_id = edge_source[i]
         target_id = edge_target[i]
@@ -226,24 +247,30 @@ def split_edges(edge_source, edge_target, edge_length, edge_geom, agg_costs, spl
 
                     n_splits = math.floor(dist / split_distance)
                     for n in range(1, n_splits + 1):
+                        counter += 1
                         distance_to_next = n * split_distance
                         x = coord[0] - ((distance_to_next * (coord[0] - next_coord[0])) / dist)
                         y = coord[1] - ((distance_to_next * (coord[1] - next_coord[1])) / dist)
-                        coords.append([x, y])
+                        coords[counter] = [x, y]
                         cost = source_cost + (
                             (previous_agg_dist + distance_to_next) / total_length
                         ) * (target_cost - source_cost)
-                        costs.append(cost)
+                        costs[counter] = cost
                     # if next point is vertex, add it and update previous
                     if idx + 1 <= len(geom) - 2:
-                        coords.append(geom[idx + 1])
+                        counter += 1
+                        coords[counter] = geom[idx + 1]
                         cost = source_cost + (agg_dist / total_length) * (
                             target_cost - source_cost
                         )
-                        costs.append(cost)
+                        costs[counter] = cost
                         previous_agg_dist = agg_dist
 
-    return coords, costs
+    print(f"estimated size: {est_size}, calculated size: {counter}")
+    end_time = time()
+    print(f"Split Edges time: {end_time - start_time}s")
+
+    return coords[:counter, :], costs[:counter]
 
 
 def get_single_depth_grid_(zoom, west, north, data):
@@ -298,6 +325,7 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     :param travel_time: Travel time in minutes
     :return: R5 Grid
     """
+    start_time = time()
     edge_network = edge_network.iloc[1:, :]  # TODO: Fix this
     edge_network.astype(
         {
@@ -331,7 +359,10 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
 
     # run dijkstra
     start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
+    start_time = time()
     distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
+    end_time = time()
+    print(f"Dijkstra time: {end_time - start_time}s")
 
     # minx, miny, maxx, maxy
     width_meter = extent[2] - extent[0]
@@ -372,8 +403,9 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
         min([web_mercator_x_step, web_mercator_y_step]),
     )
 
-    node_coords_list = list(node_coords) + interpolated_coords
-    node_costs_list = distances + interpolated_costs
+    # node_coords_list = list(node_coords) + interpolated_coords
+    node_coords_list = np.concatenate((node_coords, interpolated_coords))
+    node_costs_list = np.concatenate((distances, interpolated_costs))
 
     node_coords_list, node_costs_list = filter_nodes(
         node_coords_list, node_costs_list, zoom, width_pixel, xy_bottom_left[0], xy_top_right[1]
@@ -407,6 +439,8 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
 
     # build grid data (single depth)
     grid_data = get_single_depth_grid_(zoom, xy_bottom_left[0], xy_top_right[1], Z)
+    end_time = time()
+    print(f"Compute Isochrone time: {end_time - start_time}s")
     return grid_data, network
 
 
