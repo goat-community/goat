@@ -290,7 +290,7 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
 
     tree = spatial.KDTree(points)
     grid_points = np.stack((X.flatten(), Y.flatten()), axis=1)
-    distances, indices = tree.query(grid_points, k=3, distance_upper_bound=100, workers=-1)
+    distances, indices = tree.query(grid_points, k=3, distance_upper_bound=200, workers=-1)
     distances[distances == np.inf] = 0
     indices_flatten = indices.flatten()
 
@@ -424,6 +424,7 @@ def compute_isochrone(
     :return: R5 Grid
     """
     (
+        adj_list,
         edges_source,
         edges_target,
         edges_cost,
@@ -440,11 +441,6 @@ def compute_isochrone(
     extent[1] -= 200
     extent[2] += 200
     extent[3] += 200
-
-    # construct adjacency list
-    adj_list = construct_adjacency_list_(
-        len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
-    )
 
     # run dijkstra
     start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
