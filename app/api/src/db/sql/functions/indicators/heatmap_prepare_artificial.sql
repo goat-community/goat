@@ -1,11 +1,13 @@
-CREATE OR REPLACE FUNCTION basic.heatmap_prepare_artificial(x double precision[], y double precision[], max_cutoff double precision, speed double precision, modus text, scenario_id integer, routing_profile TEXT, drop_table BOOLEAN = True)
- RETURNS SETOF integer
+
+CREATE OR REPLACE FUNCTION basic.heatmap_prepare_artificial(x double precision[], y double precision[], max_cutoff double precision, 
+speed double precision, modus text, scenario_id integer, routing_profile TEXT, drop_table BOOLEAN = True, grid_ids Text[] = NULL)
+ RETURNS TABLE(starting_id integer, grid_id text)
  LANGUAGE plpgsql
 AS $function$
 
 BEGIN 
 
-	PERFORM basic.create_multiple_artificial_edges(x, y, max_cutoff, speed, modus, scenario_id, routing_profile);
+	PERFORM basic.create_multiple_artificial_edges(x, y, max_cutoff, speed, modus, scenario_id, routing_profile, grid_ids);
 	
 	IF drop_table = TRUE THEN 
 		DROP TABLE IF EXISTS temporal.heatmap_edges_artificial; 
@@ -27,7 +29,7 @@ BEGIN
 		SELECT * FROM starting_vertices;
 	END IF;
 	RETURN query 
-	SELECT id FROM starting_vertices;
+	SELECT s.id, s.grid_id FROM starting_vertices s;
 END;
 $function$;
 /*

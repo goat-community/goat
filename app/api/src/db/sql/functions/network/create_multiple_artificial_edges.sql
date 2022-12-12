@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION basic.create_multiple_artificial_edges(x float[], y float[], max_cutoff float, speed float, modus text, scenario_id integer, routing_profile text)
+CREATE OR REPLACE FUNCTION basic.create_multiple_artificial_edges(x float[], y float[], max_cutoff float, speed float, modus text, scenario_id integer, 
+routing_profile text, grid_ids text[] DEFAULT NULL)
  RETURNS VOID 
  LANGUAGE plpgsql
 AS $function$
@@ -11,6 +12,7 @@ DECLARE
 	length_starting_points integer := array_length(x, 1);
 	max_new_node_id integer := 2147483647;
 	max_new_edge_id integer := 2147483647;
+	current_grid_id text;
 BEGIN 
 	
 	/*Prepare temporary tables*/
@@ -26,7 +28,8 @@ BEGIN
 		fraction float, 
 		geom geometry, 
 		vid integer, 
-		point_geom geometry
+		point_geom geometry,
+		grid_id text
 	); 
 
 	DROP TABLE IF EXISTS duplicated_artificial_edges; 
@@ -39,13 +42,19 @@ BEGIN
 	WHILE cnt_starting_points < length_starting_points 
 	LOOP
 		cnt_starting_points = cnt_starting_points + 1;
+		IF grid_ids IS NOT NULL THEN
+			current_grid_id = grid_ids[cnt_starting_points];
+		ELSE
+			current_grid_id = NULL;
+		END IF;
+		
 		point = ST_SETSRID(ST_POINT(x[cnt_starting_points],y[cnt_starting_points]), 4326);
 		
 		SELECT ST_SETSRID(ST_Buffer(point::geography,snap_distance_network)::geometry, 4326)
 		INTO buffer_starting_point;	
 		
 		INSERT INTO artificial_edges
-		SELECT c.*, max_new_node_id, point AS point_geom  
+		SELECT c.*, max_new_node_id, point AS point_geom, current_grid_id  
 		FROM basic.create_artificial_edges(basic.query_edges_routing(ST_ASTEXT(buffer_starting_point),modus,scenario_id,speed,routing_profile,FALSE),
 			point, snap_distance_network, max_new_node_id, max_new_edge_id  
 		) c; 
@@ -60,7 +69,7 @@ BEGIN
 	union_buffer_network  = (SELECT ST_UNION(b.geom) FROM buffer_network b);
 	
 	DROP TABLE IF EXISTS starting_vertices; 
-	CREATE TEMP TABLE starting_vertices (id integer, geom geometry);
+	CREATE TEMP TABLE starting_vertices (id integer, geom geometry, grid_id text);
 
 	/*Identify duplicates and unique artificial edges */
 	DROP TABLE IF EXISTS final_artificial_edges; 
@@ -73,7 +82,7 @@ BEGIN
 	),	
 	not_duplicates AS 
 	(
-		SELECT a.wid, a.vid, a.id, a.COST, a.reverse_cost, a.length_m, a.SOURCE, a.target, a.geom, a.point_geom  
+		SELECT a.wid, a.vid, a.id, a.COST, a.reverse_cost, a.length_m, a.SOURCE, a.target, a.geom, a.point_geom, a.grid_id  
 		FROM artificial_edges a, cnt_artificial_edges c
 		WHERE a.wid = c.wid 
 		AND c.cnt <= 2
@@ -81,8 +90,8 @@ BEGIN
 	insert_not_duplicates AS 
 	(
 		INSERT INTO starting_vertices 
-		SELECT DISTINCT vid, point_geom 
-		FROM not_duplicates 	
+		SELECT DISTINCT n.vid, n.point_geom, n.grid_id 
+		FROM not_duplicates n 	
 	),
 	insert_duplicates AS 
 	(
@@ -92,7 +101,7 @@ BEGIN
 		WHERE a.wid = c.wid 
 		AND c.cnt > 2 
 	)
-	SELECT n.wid, n.id, n.COST, n.reverse_cost, n.length_m, n.SOURCE, n.target, n.geom, n.point_geom  
+	SELECT n.wid, n.id, n.COST, n.reverse_cost, n.length_m, n.SOURCE, n.target, n.geom, n.point_geom, n.grid_id  
 	FROM not_duplicates n; 
 	
 	/*Handle duplicated artificial edges*/
@@ -106,7 +115,7 @@ BEGIN
 	),
 	ordered AS 
 	(
-		SELECT DISTINCT d.wid, d.vid, d.fraction, s.COST, s.reverse_cost, d.point_geom  
+		SELECT DISTINCT d.wid, d.vid, d.fraction, s.COST, s.reverse_cost, d.point_geom, d.grid_id  
 		FROM duplicated_artificial_edges d, sum_costs s  
 		WHERE d.vid = s.vid 
 		AND d.fraction NOT IN (0,1)
@@ -115,7 +124,7 @@ BEGIN
 	insert_distinct_starting_points AS 
 	(
 		INSERT INTO starting_vertices 
-		SELECT o.vid, point_geom  
+		SELECT o.vid, o.point_geom, o.grid_id  
 		FROM ordered o
 	),
 	grouped AS 

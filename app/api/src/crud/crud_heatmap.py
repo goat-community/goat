@@ -1,30 +1,33 @@
 import asyncio
-import bz2
 import json
 import os
 import time
-import math 
-from typing import List
-
+import math
+import os
 import geopandas as gpd
 import h3
 import numpy as np
 import pandas as pd
+from typing import List
 from codetiming import Timer
 from geoalchemy2.functions import ST_Dump
 from rich import print
 from shapely.geometry import Polygon
-from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.orm import Session
-from sqlalchemy.sql import delete, select, text
+from scipy import spatial
+
+from sqlalchemy.sql import select, text
 from sqlalchemy.sql.functions import func
 
+from src.core.heatmap import merge_heatmap_traveltime_objects
 from src import crud, schemas
-from src.core.isochrone import heatmap_multiprocessing, prepare_network_isochrone
+from src.core.isochrone import (
+    heatmap_multiprocessing,
+    prepare_network_isochrone,
+    compute_isochrone_heatmap,
+)
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import async_session, legacy_engine, sync_session
-from src.endpoints import deps
 from src.resources.enums import (
     RoutingTypes,
 )
@@ -68,10 +71,9 @@ class CRUDGridCalculation(
     pass
 
 
-import os
-
-
 # TODO: Refactor filepaths using os.path.join
+# TODO: Refactor code and split into two files. One for precalculation and one for the endpoints. 
+# TODO: Add more comments
 class CRUDHeatmap:
     def __init__(self, db, db_sync, current_user):
         self.db = db
@@ -212,7 +214,6 @@ class CRUDHeatmap:
             calculation_objs[bulk_id]["starting_point_objs"] = starting_point_objs
             cnt_calculation_ids += len(calculation_ids)
 
-
             # Get buffered extents for grid size
             gdf_starting_points = gpd.points_from_xy(x=lons, y=lats, crs="epsg:4326")
             gdf_starting_points = gdf_starting_points.to_crs(epsg=3395)
@@ -277,19 +278,30 @@ class CRUDHeatmap:
                     isochrone_dto.scenario.modus.value,
                     isochrone_dto.scenario.id,
                     routing_profile,
+                    True,
+                    obj["calculation_ids"],
                 )
             )
             await self.db.commit()
             starting_ids = starting_ids.scalars().all()
-            starting_ids = np.array(starting_ids)
-            starting_ids.sort()
-            theoretical_starting_ids = np.arange(
-                2147483647 - cnt_theoretical_starting_points + 1, 2147483647 + 1
-            )
-            valid_starting_ids = np.isin(theoretical_starting_ids, starting_ids)
-            grid_ids = np.array(obj["calculation_ids"])[valid_starting_ids]
-            extents = np.array(obj["extents"])[valid_starting_ids]
-            starting_point_objs = np.array(obj["starting_point_objs"])[valid_starting_ids]
+
+            valid_extents = []
+            valid_starting_ids = []
+            valid_starting_point_objs = []
+            valid_calculation_ids = []
+            for i in starting_ids:
+                starting_id = i[0]
+                grid_calculation_id = i[1]
+                idx = obj["calculation_ids"].index(grid_calculation_id)
+                valid_extents.append(obj["extents"][idx])
+                valid_starting_ids.append(starting_id)
+                valid_starting_point_objs.append(obj["starting_point_objs"][idx])
+                valid_calculation_ids.append(grid_calculation_id)
+
+            grid_ids = np.array(valid_calculation_ids)
+            extents = np.array(valid_extents)
+            starting_point_objs = np.array(valid_starting_point_objs)
+            starting_ids = np.array(valid_starting_ids)
             isochrone_dto.starting_point.input = starting_point_objs
 
             # Read network
@@ -319,12 +331,13 @@ class CRUDHeatmap:
             ) = prepare_network_isochrone(edge_network_input=network)
 
             # Prepare heatmap calculation objects
-            heatmapObject = []
+            traveltimeobjs = []
             for i in range(0, len(starting_ids), self.multi_processing_bulk_size):
                 starting_ids_bulk = starting_ids[i : i + self.multi_processing_bulk_size]
                 grid_ids_bulk = grid_ids[i : i + self.multi_processing_bulk_size]
                 extents_bulk = extents[i : i + self.multi_processing_bulk_size]
-                singleHeatmapIsochrone = (
+
+                results = compute_isochrone_heatmap(
                     edges_source,
                     edges_target,
                     edges_cost,
@@ -333,18 +346,18 @@ class CRUDHeatmap:
                     edges_length,
                     unordered_map,
                     node_coords,
-                    extents_bulk.tolist(),
-                    starting_ids_bulk.tolist(),
-                    grid_ids_bulk.tolist(),
+                    extents_bulk,
+                    starting_ids_bulk,
+                    grid_ids_bulk,
                     isochrone_dto.settings.travel_time,
                     isochrone_dto.output.resolution,
                 )
-
-                heatmapObject.append(singleHeatmapIsochrone)
+                traveltimeobjs.append(results)
+                print("Computed traveltime for {} starting points".format(len(starting_ids_bulk)))
 
             # Run multiprocessing
-            traveltimeobjs = heatmap_multiprocessing(heatmapObject)
-
+            # traveltimeobjs = heatmap_multiprocessing(heatmapObject)
+            traveltimeobjs = merge_heatmap_traveltime_objects(traveltimeobjs)
             # Save files into cache folder
             file_dir = f"{self.path_traveltime_matrices}/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}/{key}.npz"
             delete_file(file_dir)
@@ -398,7 +411,10 @@ class CRUDHeatmap:
             filter_geoms.append(f"POLYGON(({coords_str}))")
 
         pois = await self.read_poi(
-            isochrone_dto=isochrone_dto, table_name="poi", filter_geoms=filter_geoms, bulk_ids=bulk_ids
+            isochrone_dto=isochrone_dto,
+            table_name="poi",
+            filter_geoms=filter_geoms,
+            bulk_ids=bulk_ids,
         )
 
         # Read relevant opportunity matrices and merged arrays
@@ -414,9 +430,7 @@ class CRUDHeatmap:
         # TODO Performance improvements here (consider multiprocessing)
         begin = time.time()
 
-        test_obj = {"861f81537ffffff": calculation_objs["861f81537ffffff"]}
-
-        for key in test_obj:#calculation_objs["861f81537ffffff"]:
+        for key in calculation_objs:
             matrix = np.load(
                 f"{self.path_traveltime_matrices}/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}/{key}.npz",
                 allow_pickle=True,
@@ -442,7 +456,6 @@ class CRUDHeatmap:
 
         # Loop through all POIs
         # TODO Performance improvements here (consider multiprocessing) and avoid loops
-        pois = {"861f81537ffffff": pois["861f81537ffffff"]}
         for bulk_id in pois:
             poi_bulk = pois[bulk_id]
             poi_matrix = {}
@@ -458,6 +471,10 @@ class CRUDHeatmap:
                 relevant_traveltime_matrices = travel_time_matrices_travel_times[
                     indices_relevant_matrices
                 ]
+                relevant_traveltime_matrices_grid_ids = travel_time_matrices_grids_ids[
+                    indices_relevant_matrices
+                ]
+
                 indices_travel_times = (
                     (x - travel_time_matrices_north[indices_relevant_matrices])
                     * travel_time_matrices_width[indices_relevant_matrices]
@@ -475,7 +492,7 @@ class CRUDHeatmap:
 
                     if travel_time < 2147483647:
                         arr_travel_times.append(travel_time)
-                        arr_grid_ids.append(travel_time_matrices_grids_ids[idx])
+                        arr_grid_ids.append(relevant_traveltime_matrices_grid_ids[idx])
                     else:
                         cnt += 1
                 arr_travel_times = np.array(arr_travel_times)
@@ -541,7 +558,6 @@ class CRUDHeatmap:
                 SELECT :bulk_id AS bulk_id, p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
                 FROM basic.poi p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
                 WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
-                AND category = 'nursery'
             """
             sql_params = {}
         elif table_name == "poi_user" and data_upload_id is not None:
@@ -641,6 +657,7 @@ class CRUDHeatmap:
         arr_grid_ids = []
         matrix = None
         matrix_df = None
+        #TODO: Speed up reading of matrices. Final result are two one-dimensional numpy array with all travel times and one with all grid_ids
         for bulk_id in bulk_ids:
             try:
                 matrix = np.load(
@@ -651,16 +668,67 @@ class CRUDHeatmap:
                 arr_grid_ids.append(np.concatenate(matrix["grid_ids"]))
             except FileNotFoundError:
                 continue
+        
+        #TODO: Return two one-dimensional numpy array with all travel times and one with all grid_ids
 
         if arr_travel_times != []:
             flat_travel_times = np.concatenate(arr_travel_times)
             flat_grid_ids = np.concatenate(arr_grid_ids)
-            begin = time.time()
-            matrix_df = pd.DataFrame({"grid_id": flat_grid_ids, "travel_time": flat_travel_times})
-            end = time.time()
-            print("Time to create df", end - begin)
+            matrix_df = pd.DataFrame({"grid_id": flat_grid_ids, category: flat_travel_times})
 
         return matrix_df
+
+    async def aggregate_on_building(self, results: pd.DataFrame, study_area_ids: list[int]):
+        
+        # Get buildings for testing. Currently only one study area is supported
+        buildings = await self.db.execute(
+            text(
+                """
+                SELECT b.id, ARRAY[ST_X(centroid), ST_Y(centroid)] AS coords
+                FROM basic.building b, basic.study_area s, LATERAL ST_TRANSFORM(ST_CENTROID(b.geom), 3857) AS centroid
+                WHERE ST_Intersects(b.geom, s.geom)
+                AND s.id = :study_area_id
+                """
+            ),
+            {"study_area_id": study_area_ids[0]},
+        )
+        buildings_points = buildings.fetchall()
+        buildings_ids = [building[0] for building in buildings_points]
+        buildings_points = [building[1] for building in buildings_points]
+
+        #TODO: write proper endpoint this is just for testing
+        from pyproj import Transformer
+        transformer = Transformer.from_crs(4326, 3857)
+        grid_ids = results["grid_id"].to_list()
+        grid_centroids = [h3.h3_to_geo(grid_id) for grid_id in grid_ids]
+        grid_centroids = [transformer.transform(c[0], c[1]) for c in grid_centroids]
+        x = np.array([c[0] for c in grid_centroids])
+        y = np.array([c[1] for c in grid_centroids])
+        grid_points = np.stack((x, y), axis=1)
+        tree = spatial.KDTree(grid_points)
+        
+        distances, indices = tree.query(buildings_points, k=3, distance_upper_bound=100, workers=-1)
+        distances[distances == np.inf] = 0
+        indices_flatten = indices.flatten()
+        
+        df_column = results.columns
+        
+        interpolated = {"building_id": buildings_ids}
+        for category in df_column[1:]:
+            costs = results[category].to_numpy()
+            unvalid_indices = np.asarray(indices_flatten == len(costs)).nonzero()[0]
+            mapped_costs = np.take(costs, indices_flatten, mode="clip")
+            np.put(mapped_costs, unvalid_indices, 0)
+            mapped_costs = mapped_costs.reshape(int(len(mapped_costs) / 3), 3)
+
+            to_divide = np.ndarray.sum(distances * mapped_costs, axis=1)
+            to_divide[to_divide == 0] = np.NaN
+            Z = (to_divide / np.ndarray.sum(distances, axis=1))
+            Z=Z.astype(int)
+            interpolated[category] = Z
+
+        building_df = pd.DataFrame(interpolated)
+        building_df.to_sql("min_traveltime_building_level", legacy_engine, schema="temporal", if_exists="replace", index=False)
 
     async def read_heatmap(
         self,
@@ -686,25 +754,38 @@ class CRUDHeatmap:
             f"{self.path_opportunity_matrices}/{heatmap_settings.mode.value}/{profile}/"
         )
 
+        # Create empty data frame
+        merged_df = pd.DataFrame()
+
         for category in opportunities:
             matrix_df = await self.read_opportunity_matrix(
                 matrix_base_path=matrix_base_path, category=category, bulk_ids=bulk_ids
             )
+            # TODO: Other hefunctions will go here later
             if matrix_df is not None:
-                matrix_min_travel_time = matrix_df.groupby("grid_id").min().reset_index()
+                indicator_df = matrix_df.groupby("grid_id").min().reset_index()
+                if merged_df.empty:
+                    merged_df = indicator_df
+                else:
+                    merged_df = pd.merge(
+                        merged_df,
+                        indicator_df,
+                        on="grid_id",
+                        how="outer",
+                    )
+        await self.aggregate_on_building(merged_df, study_area_ids)
+        print(merged_df)
+        # grid_ids = matrix_min_travel_time["grid_id"]
+        # travel_times = matrix_min_travel_time["travel_time"]
 
-        grid_ids = matrix_min_travel_time["grid_id"]
-        travel_times = matrix_min_travel_time["travel_time"]
+        # # # Get hexagon geometries and convert to GeoDataFrame
+        # hex_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
+        # hex_polygons = gpd.GeoSeries(list(map(hex_polygons, matrix_min_travel_time["grid_id"].tolist())), crs="EPSG:4326")
+        # gdf=gpd.GeoDataFrame(data={"grid_ids": matrix_min_travel_time["grid_id"], "travel_times": matrix_min_travel_time["travel_time"]}, geometry=hex_polygons)
+        # gdf.to_file("test_results.geojson", driver="GeoJSON")
+        # print(f"Read study areas: {end - begin}")
+        return merged_df
 
-        # # Get hexagon geometries and convert to GeoDataFrame
-        hex_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
-        hex_polygons = gpd.GeoSeries(list(map(hex_polygons, matrix_min_travel_time["grid_id"].tolist())), crs="EPSG:4326")
-        gdf=gpd.GeoDataFrame(data={"grid_ids": matrix_min_travel_time["grid_id"], "travel_times": matrix_min_travel_time["travel_time"]}, geometry=hex_polygons)
-        gdf.to_file("test_results.geojson", driver="GeoJSON")
-        print(f"Read study areas: {end - begin}")
-
-
-        
 
 def test_heatmap():
     """Test heatmap calculation"""
@@ -728,50 +809,50 @@ def test_heatmap():
             "opportunity": {
                 "poi": [
                     "nursery",
-                    # "kindergarten",
-                    # "grundschule",
-                    # "realschule",
-                    # "gymnasium",
-                    # "restaurant",
-                    # "fast_food",
-                    # "bar",
-                    # "pub",
-                    # "cafe",
-                    # "nightclub",
-                    # "bus_stop",
-                    # "tram_stop",
-                    # "subway_entrance",
-                    # "rail_station",
-                    # "bike_sharing",
-                    # "car_sharing",
-                    # "charging_station",
-                    # "dentist",
-                    # "general_practitioner",
-                    # "pharmacy",
-                    # "atm",
-                    # "bank",
-                    # "post_office",
-                    # "post_box",
-                    # "fuel",
-                    # "recycling",
-                    # "supermarket",
-                    # "discount_supermarket",
-                    # "hypermarket",
-                    # "organic_supermarket",
-                    # "convenience",
-                    # "marketplace",
-                    # "bakery",
-                    # "butcher",
-                    # "cinema",
-                    # "museum",
-                    # "hotel",
-                    # "playground",
-                    # "gym",
-                    # "discount_gym",
-                    # "yoga",
-                    # "park",
-                    # "forest",
-                    # "hauptschule_mittelschule",
+                    "kindergarten",
+                    "grundschule",
+                    "realschule",
+                    "gymnasium",
+                    "restaurant",
+                    "fast_food",
+                    "bar",
+                    "pub",
+                    "cafe",
+                    "nightclub",
+                    "bus_stop",
+                    "tram_stop",
+                    "subway_entrance",
+                    "rail_station",
+                    "bike_sharing",
+                    "car_sharing",
+                    "charging_station",
+                    "dentist",
+                    "general_practitioner",
+                    "pharmacy",
+                    "atm",
+                    "bank",
+                    "post_office",
+                    "post_box",
+                    "fuel",
+                    "recycling",
+                    "supermarket",
+                    "discount_supermarket",
+                    "hypermarket",
+                    "organic_supermarket",
+                    "convenience",
+                    "marketplace",
+                    "bakery",
+                    "butcher",
+                    "cinema",
+                    "museum",
+                    "hotel",
+                    "playground",
+                    "gym",
+                    "discount_gym",
+                    "yoga",
+                    "park",
+                    "forest",
+                    "hauptschule_mittelschule",
                 ]
             }
         },
@@ -784,8 +865,8 @@ def test_heatmap():
             heatmap_settings=heatmap_setting,
             current_user=superuser,
             study_area_ids=[
-                #91620000,
-                83110000,
+                91620000,
+                # 83110000,
                 # 9184,
                 # 9263,
                 # 9274,
@@ -800,9 +881,6 @@ def test_heatmap():
             ],
         )
     )
-
-
-
 
 
 def main():
@@ -845,7 +923,7 @@ def main():
             bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
             calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
             study_area_ids=[
-                83110000,
+                91620000,
             ],
         )
     )
@@ -854,5 +932,5 @@ def main():
     input()
 
 
-main()
-#test_heatmap()
+# main()
+test_heatmap()
