@@ -1771,7 +1771,8 @@ export default {
                 project: ([x, y]) => {
                   const ll = fromPixel({ x: x + west, y: y + north }, zoom);
                   return [ll.lon, ll.lat];
-                }
+                },
+                excludeHoles: true
               });
               let olFeatures = geojsonToFeature(isochronePolygon, {
                 dataProjection: "EPSG:4326",
@@ -2030,12 +2031,14 @@ export default {
                 project: ([x, y]) => {
                   const ll = fromPixel({ x: x + west, y: y + north }, zoom);
                   return [ll.lon, ll.lat];
-                }
+                },
+                excludeHoles: true
               });
               let olFeatures = geojsonToFeature(isochronePolygon, {
                 dataProjection: "EPSG:4326",
                 featureProjection: "EPSG:3857"
               });
+
               calculation[0].rawData = isochroneSurface;
               calculation[0].surfaceData = singleValuedSurface;
 
