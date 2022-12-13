@@ -153,12 +153,13 @@ def check_extent(extent, coord):
 
 
 def get_extent(geom_array):
-    extent = np.empty([2, 2], dtype=np.double)  # [min_x, min_y, max_x, max_y]
-    geom_array.min(out=extent[0], axis=0)
-    geom_array.max(out=extent[1], axis=0)
+    extent = np.empty((2, 2), np.double)  # [min_x, min_y, max_x, max_y]
+    geom_array.min(0, extent[0])
+    geom_array.max(0, extent[1])
     return extent.flat
 
 
+@njit
 def remap_edges(edge_source, edge_target, geom_address, geom_array):
     """
     Remap edges to start from 0
@@ -166,11 +167,10 @@ def remap_edges(edge_source, edge_target, geom_address, geom_array):
     :param edge_target: List of target nodes
     :param edge_geom: List of edge geometries
     """
-    start_time = time()
+    # start_time = time()
     unordered_map = {}
-    node_coords = np.empty(shape=[len(edge_source), 2], dtype=np.double)
+    node_coords = np.empty((len(edge_source), 2), np.double)
     id = 0
-    # extent = [np.inf, np.inf, -np.inf, -np.inf]  # [min_x, min_y, max_x, max_y]
     for i in range(len(edge_source)):
         edge_geom = geom_array[geom_address[i] : geom_address[i + 1], :]
         # source
@@ -190,10 +190,9 @@ def remap_edges(edge_source, edge_target, geom_address, geom_array):
         else:
             edge_target[i] = unordered_map.get(edge_target[i])
 
-    extent = get_extent(geom_array)
-    end_time = time()
-    print(f"Remap edges time: {end_time - start_time}s")
-    return unordered_map, node_coords[: len(unordered_map)], extent
+    # end_time = time()
+    # print(f"Remap edges time: {end_time - start_time}s")
+    return unordered_map, node_coords[: len(unordered_map)]
 
 
 @njit
@@ -365,9 +364,8 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     # edges_geom = np.array(edge_network["geom"])
     geom_address, geom_array = get_geom_array(edge_network["geom"])
     edges_length = np.array(edge_network["length"])
-    unordered_map, node_coords, extent = remap_edges(
-        edges_source, edges_target, geom_address, geom_array
-    )
+    unordered_map, node_coords = remap_edges(edges_source, edges_target, geom_address, geom_array)
+    extent = get_extent(geom_array)
 
     # add buffer of 200 meters to extent
     extent[0] -= 200
