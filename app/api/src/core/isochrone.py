@@ -102,6 +102,144 @@ def dijkstra_(start_vertices, adj_list, travel_time):
     return distances
 
 
+spec = [
+    ("pointer", int64),  # a simple scalar field
+    ("unordered_map", int64[:, :]),  # an array field
+    ("reverced_map", int64[:, :]),  # an array field
+]
+
+
+@jitclass(spec)
+class UnorderedMap:
+    def __init__(self, map_size) -> None:
+        self.pointer = 0
+        self.unordered_map = np.empty((map_size, 2), np.int64)
+
+    def set(self, first, second):
+        if self.get(first) is None:
+            self.unordered_map[self.pointer] = (first, second)
+            self.pointer += 1
+            self.sort()
+
+    def get(self, first):
+        return self.search_sorted(first)
+
+    def get_by_list(self, v):
+        unordered_map_t = self.unordered_map.transpose()
+        search = np.searchsorted(unordered_map_t[0, 0 : self.pointer], v)
+        values = self.unordered_map[0 : self.pointer, 1]
+        return values[search]
+
+    def sort(self):
+        i = 1
+        while i < self.pointer:
+            x = self.unordered_map[i].copy()
+            j = i - 1
+            while j >= 0 and self.unordered_map[j][0] > x[0]:
+                self.unordered_map[j + 1] = self.unordered_map[j]
+                j = j - 1
+            self.unordered_map[j + 1] = x
+            i = i + 1
+
+    def search_sorted(self, first):
+        for i in range(self.pointer):
+            if first == self.unordered_map[i][0]:
+                return self.unordered_map[i][1]
+            elif first < self.unordered_map[i][0]:
+                return None
+        return None
+
+    @property
+    def len(self):
+        return self.pointer
+
+
+@njit
+def array_equals(vertex, array):
+    pointer = 0
+    found = np.empty(100, np.int64)
+    for i, value in enumerate(array):
+        if value == vertex:
+            found[pointer] = i
+            pointer += 1
+    return found[:pointer]
+
+
+@njit
+def get_adj_list(vertex, edge_source, edge_target):
+    forward_adjacency = array_equals(vertex, edge_source)
+    backward_adjacency = array_equals(vertex, edge_target)
+    return forward_adjacency, backward_adjacency
+
+
+@njit
+def get_adj_count(edge_source, edge_target):
+    concat = np.concatenate((edge_source, edge_target))
+    unique = np.unique(concat)
+    return len(unique)
+
+
+@njit
+def dijkstra2(
+    start_vertices,
+    edges_source,
+    edges_target,
+    edges_cost,
+    edges_reverse_cost,
+    travel_time,
+):
+    """
+    Dijkstra's algorithm one-to-all shortest path search
+    :param start_vertices: List of start vertices
+    :param adj_list: Adjacency list
+    :param travel_time: Travel time matrix
+    :return: List of shortest paths and costs
+    """
+    n = get_adj_count(edges_source, edges_target)
+    # distances = [np.Inf for _ in range(n)]
+    distances = np.full(n, np.Inf, np.double)
+    # loop over all start vertices
+    for start_vertex in start_vertices:
+        distances[start_vertex] = 0.0
+        # visited = [False for _ in range(n)]
+        visited = np.full(n, False, np.bool8)
+        # set up priority queue
+        pq = [(0.0, start_vertex)]
+        while len(pq) > 0:
+            if pq[0][0] >= travel_time:
+                break
+            # get the root, discard current distance (!!!distances in the data are in seconds)
+            _, u = heapq.heappop(pq)
+            # if the node is visited, skip
+            if visited[u]:
+                continue
+            # set the node to visited
+            visited[u] = True
+            # check the distance and node and distance
+
+            forward_adj, reversed_adj = get_adj_list(u, edges_source, edges_target)
+            for adj_id in forward_adj:
+                v = edges_target[adj_id]
+                l = edges_cost[adj_id] / 60.0  # convert cost to minutes
+                # if the current node's distance + distance to the node we're visiting
+                # is less than the distance of the node we're visiting on file
+                # replace that distance and push the node we're visiting into the priority queue
+                if distances[u] + l < distances[v]:
+                    distances[v] = distances[u] + l
+                    heapq.heappush(pq, (distances[v], v))
+
+            for adj_id in reversed_adj:
+                v = edges_source[adj_id]
+                l = edges_reverse_cost[adj_id] / 60.0  # convert cost to minutes
+                # if the current node's distance + distance to the node we're visiting
+                # is less than the distance of the node we're visiting on file
+                # replace that distance and push the node we're visiting into the priority queue
+                if distances[u] + l < distances[v]:
+                    distances[v] = distances[u] + l
+                    heapq.heappush(pq, (distances[v], v))
+    return distances
+
+
 @njit
 def filter_nodes(node_coords_list, node_costs_list, zoom, width, west, north):
     """
@@ -158,57 +296,6 @@ def get_extent(geom_array):
     geom_array.min(0, extent[0])
     geom_array.max(0, extent[1])
     return extent.flat
-
-
-spec = [
-    ("pointer", int64),  # a simple scalar field
-    ("unordered_map", int64[:, :]),  # an array field
-]
-
-
-@jitclass(spec)
-class UnorderedMap:
-    def __init__(self, map_size) -> None:
-        self.pointer = 0
-        self.unordered_map = np.empty((map_size, 2), np.int64)
-
-    def set(self, first, second):
-        if self.get(first) is None:
-            self.unordered_map[self.pointer] = (first, second)
-            self.pointer += 1
-            self.sort()
-
-    def get(self, first):
-        return self.search_sorted(first)
-
-    def get_by_list(self, v):
-        unordered_map_t = self.unordered_map.transpose()
-        search = np.searchsorted(unordered_map_t[0, 0 : self.pointer], v)
-        values = self.unordered_map[0 : self.pointer, 1]
-        return values[search]
-
-    def sort(self):
-        i = 1
-        while i < self.pointer:
-            x = self.unordered_map[i].copy()
-            j = i - 1
-            while j >= 0 and self.unordered_map[j][0] > x[0]:
-                self.unordered_map[j + 1] = self.unordered_map[j]
-                j = j - 1
-            self.unordered_map[j + 1] = x
-            i = i + 1
-
-    def search_sorted(self, first):
-        for i in range(self.pointer):
-            if first == self.unordered_map[i][0]:
-                return self.unordered_map[i][1]
-            elif first < self.unordered_map[i][0]:
-                return None
-        return None
-
-    @property
-    def len(self):
-        return self.pointer
 
 
 @njit
@@ -396,7 +483,7 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     :param travel_time: Travel time in minutes
     :return: R5 Grid
     """
-    start_time = time()
+    isochrone_start_time = time()
     edge_network = edge_network.iloc[1:, :]  # TODO: Fix this
     edge_network.astype(
         {
@@ -414,9 +501,16 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     edges_cost = edge_network["cost"].to_numpy()
     edges_reverse_cost = edge_network["reverse_cost"].to_numpy()
     # edges_geom = np.array(edge_network["geom"])
+    start_time = time()
     geom_address, geom_array = get_geom_array(edge_network["geom"])
+    end_time = time()
+    print(f"Convert geom array took {end_time - start_time} s")
     edges_length = np.array(edge_network["length"])
+    start_time = time()
     unordered_map, node_coords = remap_edges(edges_source, edges_target, geom_address, geom_array)
+    end_time = time()
+    print(f"Remap edges took {end_time-start_time} s")
+
     extent = get_extent(geom_array)
 
     # add buffer of 200 meters to extent
@@ -426,15 +520,22 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     extent[3] += 200
 
     # construct adjacency list
-    adj_list = construct_adjacency_list_(
-        unordered_map.len, edges_source, edges_target, edges_cost, edges_reverse_cost
-    )
+    # adj_list = construct_adjacency_list_(
+    #     unordered_map.len, edges_source, edges_target, edges_cost, edges_reverse_cost
+    # )
 
     # run dijkstra
     # start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
     start_vertices_ids = unordered_map.get_by_list(start_vertices)
     start_time = time()
-    distances = dijkstra_(start_vertices_ids, adj_list, travel_time)
+    distances = dijkstra2(
+        start_vertices_ids,
+        edges_source,
+        edges_target,
+        edges_cost,
+        edges_reverse_cost,
+        travel_time,
+    )
     end_time = time()
     print(f"Dijkstra time: {end_time - start_time}s")
 
@@ -468,6 +569,7 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     # split edges based on resolution
     interpolated_coords = []
     interpolated_costs = []
+    start_time = time()
     interpolated_coords, interpolated_costs = split_edges(
         edges_source,
         edges_target,
@@ -477,14 +579,22 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
         distances,
         min([web_mercator_x_step, web_mercator_y_step]),
     )
+    end_time = time()
+    print(f"Split Edges took {end_time - start_time} s")
 
     # node_coords_list = list(node_coords) + interpolated_coords
+    start_time = time()
     node_coords_list = np.concatenate((node_coords, interpolated_coords))
     node_costs_list = np.concatenate((distances, interpolated_costs))
+    end_time = time()
+    print(f"Coords concatenations took {end_time - start_time} s")
 
+    start_time = time()
     node_coords_list, node_costs_list = filter_nodes(
         node_coords_list, node_costs_list, zoom, width_pixel, xy_bottom_left[0], xy_top_right[1]
     )
+    end_time = time()
+    print(f"Filter nodes took {end_time - start_time} s")
 
     edges_length = range(len(edges_source))
     network = {
@@ -517,8 +627,8 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
 
     # build grid data (single depth)
     grid_data = get_single_depth_grid_(zoom, xy_bottom_left[0], xy_top_right[1], Z)
-    end_time = time()
-    print(f"Compute Isochrone time: {end_time - start_time}s")
+    isochrone_end_time = time()
+    print(f"Compute Isochrone time: {isochrone_end_time - isochrone_start_time}s")
     return grid_data, network
 
 
