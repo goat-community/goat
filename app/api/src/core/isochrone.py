@@ -119,7 +119,7 @@ class UnorderedMap:
         if self.get(first) is None:
             self.unordered_map[self.pointer] = (first, second)
             self.pointer += 1
-            self.sort()
+            # self.sort()
 
     def get(self, first):
         return self.search_sorted(first)
@@ -145,8 +145,8 @@ class UnorderedMap:
         for i in range(self.pointer):
             if first == self.unordered_map[i][0]:
                 return self.unordered_map[i][1]
-            elif first < self.unordered_map[i][0]:
-                return None
+            # elif first < self.unordered_map[i][0]:
+            #     return None
         return None
 
     @property
@@ -504,12 +504,12 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     start_time = time()
     geom_address, geom_array = get_geom_array(edge_network["geom"])
     end_time = time()
-    print(f"Convert geom array took {end_time - start_time} s")
+    print(f"Convert geom array time: \t {end_time - start_time} s")
     edges_length = np.array(edge_network["length"])
     start_time = time()
     unordered_map, node_coords = remap_edges(edges_source, edges_target, geom_address, geom_array)
     end_time = time()
-    print(f"Remap edges took {end_time-start_time} s")
+    print(f"Remap edges time: \t\t {end_time-start_time} s")
 
     extent = get_extent(geom_array)
 
@@ -537,7 +537,7 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
         travel_time,
     )
     end_time = time()
-    print(f"Dijkstra time: {end_time - start_time}s")
+    print(f"Dijkstra time: \t\t {end_time - start_time}s")
 
     # minx, miny, maxx, maxy
     width_meter = extent[2] - extent[0]
@@ -580,23 +580,24 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
         min([web_mercator_x_step, web_mercator_y_step]),
     )
     end_time = time()
-    print(f"Split Edges took {end_time - start_time} s")
+    print(f"Split Edges took \t\t {end_time - start_time} s")
 
     # node_coords_list = list(node_coords) + interpolated_coords
     start_time = time()
     node_coords_list = np.concatenate((node_coords, interpolated_coords))
     node_costs_list = np.concatenate((distances, interpolated_costs))
     end_time = time()
-    print(f"Coords concatenations took {end_time - start_time} s")
+    print(f"Coords concatenations time: \t {end_time - start_time} s")
 
     start_time = time()
     node_coords_list, node_costs_list = filter_nodes(
         node_coords_list, node_costs_list, zoom, width_pixel, xy_bottom_left[0], xy_top_right[1]
     )
     end_time = time()
-    print(f"Filter nodes took {end_time - start_time} s")
+    print(f"Filter nodes time: \t\t {end_time - start_time} s")
 
     edges_length = range(len(edges_source))
+    start_time = time()
     network = {
         "type": "FeatureCollection",
         "features": [
@@ -612,11 +613,14 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
             if distances[edges_target[idx]] != np.inf
         ],
     }
+    end_time = time()
+    print(f"Build network time: \t\t {end_time - start_time} s")
     # write geojson
     # with open("isochrone.geojson", "w") as f:
     #     json.dump(geojson, f)
 
     # build grid
+    start_time = time()
     Z = build_grid_interpolate_(
         node_coords_list,
         node_costs_list,
@@ -624,11 +628,17 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
         step_x=web_mercator_x_step,
         step_y=web_mercator_y_step,
     )
+    end_time = time()
+    print(f"Grid interpolate time: \t\t {end_time - start_time} s")
 
     # build grid data (single depth)
+    start_time = time()
     grid_data = get_single_depth_grid_(zoom, xy_bottom_left[0], xy_top_right[1], Z)
+    end_time = time()
+    print(f"Single Depth grid time: \t\t {end_time - start_time} s")
+
     isochrone_end_time = time()
-    print(f"Compute Isochrone time: {isochrone_end_time - isochrone_start_time}s")
+    print(f"Compute Isochrone time: \t {isochrone_end_time - isochrone_start_time}s")
     return grid_data, network
 
 
