@@ -6,9 +6,10 @@ from time import time
 
 import numpy as np
 from numba import int64, njit, uint, vectorize
+from numba.core import types
 from numba.experimental import jitclass
 from numba.pycc import CC
-from numba.typed import List
+from numba.typed import Dict, List
 from scipy.interpolate import LinearNDInterpolator
 
 from src.utils import (
@@ -100,58 +101,6 @@ def dijkstra_(start_vertices, adj_list, travel_time):
                     distances[v] = distances[u] + l
                     heapq.heappush(pq, (distances[v], v))
     return distances
-
-
-spec = [
-    ("pointer", int64),  # a simple scalar field
-    ("unordered_map", int64[:, :]),  # an array field
-    ("reverced_map", int64[:, :]),  # an array field
-]
-
-
-@jitclass(spec)
-class UnorderedMap:
-    def __init__(self, map_size) -> None:
-        self.pointer = 0
-        self.unordered_map = np.empty((map_size, 2), np.int64)
-
-    def set(self, first, second):
-        if self.get(first) is None:
-            self.unordered_map[self.pointer] = (first, second)
-            self.pointer += 1
-            # self.sort()
-
-    def get(self, first):
-        return self.search_sorted(first)
-
-    def get_by_list(self, v):
-        unordered_map_t = self.unordered_map.transpose()
-        search = np.searchsorted(unordered_map_t[0, 0 : self.pointer], v)
-        values = self.unordered_map[0 : self.pointer, 1]
-        return values[search]
-
-    def sort(self):
-        i = 1
-        while i < self.pointer:
-            x = self.unordered_map[i].copy()
-            j = i - 1
-            while j >= 0 and self.unordered_map[j][0] > x[0]:
-                self.unordered_map[j + 1] = self.unordered_map[j]
-                j = j - 1
-            self.unordered_map[j + 1] = x
-            i = i + 1
-
-    def search_sorted(self, first):
-        for i in range(self.pointer):
-            if first == self.unordered_map[i][0]:
-                return self.unordered_map[i][1]
-            # elif first < self.unordered_map[i][0]:
-            #     return None
-        return None
-
-    @property
-    def len(self):
-        return self.pointer
 
 
 @njit
@@ -307,14 +256,18 @@ def remap_edges(edge_source, edge_target, geom_address, geom_array):
     :param edge_geom: List of edge geometries
     """
     # start_time = time()
-    unordered_map = UnorderedMap(len(edge_source))
+    # unordered_map = UnorderedMap(len(edge_source))
+    unordered_map = Dict.empty(
+        key_type=types.int64,
+        value_type=types.int64,
+    )
     node_coords = np.empty((len(edge_source), 2), np.double)
     id = 0
     for i in range(len(edge_source)):
         edge_geom = geom_array[geom_address[i] : geom_address[i + 1], :]
         # source
         if unordered_map.get(edge_source[i]) is None:
-            unordered_map.set(edge_source[i], id)
+            unordered_map[edge_source[i]] = id
             edge_source[i] = id
             node_coords[id] = edge_geom[0]
             id += 1
@@ -322,7 +275,7 @@ def remap_edges(edge_source, edge_target, geom_address, geom_array):
             edge_source[i] = unordered_map.get(edge_source[i])
         # target
         if unordered_map.get(edge_target[i]) is None:
-            unordered_map.set(edge_target[i], id)
+            unordered_map[edge_target[i]] = id
             edge_target[i] = id
             node_coords[id] = edge_geom[-1]
             id += 1
@@ -331,7 +284,7 @@ def remap_edges(edge_source, edge_target, geom_address, geom_array):
 
     # end_time = time()
     # print(f"Remap edges time: {end_time - start_time}s")
-    return unordered_map, node_coords[: unordered_map.len]
+    return unordered_map, node_coords[: len(unordered_map)]
 
 
 @njit
@@ -525,8 +478,8 @@ def compute_isochrone(edge_network, start_vertices, travel_time, zoom: int = 10)
     # )
 
     # run dijkstra
-    # start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
-    start_vertices_ids = unordered_map.get_by_list(start_vertices)
+    start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
+    # start_vertices_ids = unordered_map.get_by_list(start_vertices)
     start_time = time()
     distances = dijkstra2(
         start_vertices_ids,
