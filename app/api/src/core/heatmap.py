@@ -1,4 +1,6 @@
 import numpy as np
+from numba import njit
+
 
 def merge_heatmap_traveltime_objects(traveltimeobjs):
     merged_traveltime_obj = {}
@@ -18,7 +20,7 @@ def merge_heatmap_traveltime_objects(traveltimeobjs):
         arr_height.extend(obj["height"])
         arr_grid_ids.extend(obj["grid_ids"])
         arr_travel_times.extend(obj["travel_times"])
-    
+
     merged_traveltime_obj["west"] = np.array(arr_west)
     merged_traveltime_obj["north"] = np.array(arr_north)
     merged_traveltime_obj["zoom"] = np.array(arr_zoom)
@@ -28,3 +30,65 @@ def merge_heatmap_traveltime_objects(traveltimeobjs):
     merged_traveltime_obj["travel_times"] = np.array(arr_travel_times, dtype=object)
 
     return merged_traveltime_obj
+
+
+def sort_and_unique_by_grid_ids(grid_ids, travel_times):
+    table_ = np.vstack((grid_ids, travel_times))
+    table = table_.transpose()
+    sorted_table = table[table[:, 0].argsort()]
+    unique = np.unique(sorted_table[:, 0], return_index=True)
+    return sorted_table, unique
+
+
+@njit()
+def medians(sorted_table, unique):
+    travel_times = sorted_table.transpose()[1]
+    medians = np.empty(unique[1].shape[0], np.float32)
+    unique_index = unique[1]
+    for i in range(unique_index.shape[0] - 1):
+        j = i + 1
+        travel_time = travel_times[unique_index[i] : unique_index[j]]
+        medians[i] = np.median(travel_time)
+    else:
+        travel_time = travel_times[unique_index[i + 1] :]
+        medians[i + 1] = np.median(travel_time)
+    return medians
+
+
+@njit()
+def mins(sorted_table, unique):
+    travel_times = sorted_table.transpose()[1]
+    mins = np.empty(unique[1].shape[0], np.float32)
+    for i in range(unique[1].shape[0] - 1):
+        travel_time = travel_times[unique[1][i] : unique[1][i + 1]]
+        mins[i] = np.min(travel_time)
+    else:
+        travel_time = travel_times[unique[1][i + 1] :]
+        mins[i + 1] = np.min(travel_time)
+    return mins
+
+
+@njit()
+def counts(sorted_table, unique):
+    travel_times = sorted_table.transpose()[1]
+    counts = np.empty(unique[1].shape[0], np.float32)
+    for i in range(unique[1].shape[0] - 1):
+        travel_time = travel_times[unique[1][i] : unique[1][i + 1]]
+        counts[i] = travel_time.shape[0]
+    else:
+        travel_time = travel_times[unique[1][i + 1] :]
+        counts[i + 1] = travel_time.shape[0]
+    return counts
+
+
+@njit()
+def averages(sorted_table, unique):
+    travel_times = sorted_table.transpose()[1]
+    averages = np.empty(unique[1].shape[0], np.float32)
+    for i in range(unique[1].shape[0] - 1):
+        travel_time = travel_times[unique[1][i] : unique[1][i + 1]]
+        averages[i] = np.average(travel_time)
+    else:
+        travel_time = travel_times[unique[1][i + 1] :]
+        averages[i + 1] = np.average(travel_time)
+    return averages
