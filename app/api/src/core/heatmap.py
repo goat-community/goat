@@ -45,8 +45,8 @@ def sort_and_unique_by_grid_ids(grid_ids, travel_times):
 @njit()
 def medians(sorted_table, unique):
     travel_times = sorted_table.transpose()[1]
-    medians = np.empty(unique[1].shape[0], np.float32)
     unique_index = unique[1]
+    medians = np.empty(unique_index.shape[0], np.float32)
     for i in range(unique_index.shape[0] - 1):
         j = i + 1
         travel_time = travel_times[unique_index[i] : unique_index[j]]
@@ -60,12 +60,13 @@ def medians(sorted_table, unique):
 @njit()
 def mins(sorted_table, unique):
     travel_times = sorted_table.transpose()[1]
-    mins = np.empty(unique[1].shape[0], np.float32)
-    for i in range(unique[1].shape[0] - 1):
-        travel_time = travel_times[unique[1][i] : unique[1][i + 1]]
+    unique_index = unique[1]
+    mins = np.empty(unique_index.shape[0], np.float32)
+    for i in range(unique_index.shape[0] - 1):
+        travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         mins[i] = np.min(travel_time)
     else:
-        travel_time = travel_times[unique[1][i + 1] :]
+        travel_time = travel_times[unique_index[i + 1] :]
         mins[i + 1] = np.min(travel_time)
     return mins
 
@@ -73,12 +74,13 @@ def mins(sorted_table, unique):
 @njit()
 def counts(sorted_table, unique):
     travel_times = sorted_table.transpose()[1]
-    counts = np.empty(unique[1].shape[0], np.float32)
-    for i in range(unique[1].shape[0] - 1):
-        travel_time = travel_times[unique[1][i] : unique[1][i + 1]]
+    unique_index = unique[1]
+    counts = np.empty(unique_index.shape[0], np.float32)
+    for i in range(unique_index.shape[0] - 1):
+        travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         counts[i] = travel_time.shape[0]
     else:
-        travel_time = travel_times[unique[1][i + 1] :]
+        travel_time = travel_times[unique_index[i + 1] :]
         counts[i + 1] = travel_time.shape[0]
     return counts
 
@@ -86,12 +88,13 @@ def counts(sorted_table, unique):
 @njit()
 def averages(sorted_table, unique):
     travel_times = sorted_table.transpose()[1]
-    averages = np.empty(unique[1].shape[0], np.float32)
-    for i in range(unique[1].shape[0] - 1):
-        travel_time = travel_times[unique[1][i] : unique[1][i + 1]]
+    unique_index = unique[1]
+    averages = np.empty(unique_index.shape[0], np.float32)
+    for i in range(unique_index.shape[0] - 1):
+        travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         averages[i] = np.average(travel_time)
     else:
-        travel_time = travel_times[unique[1][i + 1] :]
+        travel_time = travel_times[unique_index[i + 1] :]
         averages[i + 1] = np.average(travel_time)
     return averages
 
@@ -99,26 +102,27 @@ def averages(sorted_table, unique):
 @njit
 def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
     travel_times = sorted_table.transpose()[1]
-    modified_gaussian_per_grids = np.empty(unique[1].shape[0],np.float64)
-    for i in range(unique[1].shape[0] - 1):
-        travel_time = travel_times[unique[1][i] : unique[1][i + 1]]
+    unique_index = unique[1]
+    modified_gaussian_per_grids = np.empty(unique_index.shape[0], np.float64)
+    for i in range(unique_index.shape[0] - 1):
+        travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         sum = 0
         for t in travel_time:
-            t = t/60
-            f = exp(-t*t/sensitivity)
+            t = t / 60
+            f = exp(-t * t / sensitivity)
             sum += f
             if sum >= cutoff:
                 modified_gaussian_per_grids[i] = 0
                 break
         else:
             modified_gaussian_per_grids[i] = sum
-                
+
     else:
-        travel_time = travel_times[unique[1][i + 1] :]
+        travel_time = travel_times[unique_index[i + 1] :]
         sum = 0
         for t in travel_time:
-            t = t/60
-            f = exp(-t*t/sensitivity)
+            t = t / 60
+            f = exp(-t * t / sensitivity)
             sum += f
             if sum >= cutoff:
                 modified_gaussian_per_grids[i] = 0
