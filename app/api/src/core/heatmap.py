@@ -1,3 +1,5 @@
+from math import exp
+
 import numpy as np
 from numba import njit
 
@@ -92,3 +94,35 @@ def averages(sorted_table, unique):
         travel_time = travel_times[unique[1][i + 1] :]
         averages[i + 1] = np.average(travel_time)
     return averages
+
+
+@njit
+def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
+    travel_times = sorted_table.transpose()[1]
+    modified_gaussian_per_grids = np.empty(unique[1].shape[0],np.float64)
+    for i in range(unique[1].shape[0] - 1):
+        travel_time = travel_times[unique[1][i] : unique[1][i + 1]]
+        sum = 0
+        for t in travel_time:
+            t = t/60
+            f = exp(-t*t/sensitivity)
+            sum += f
+            if sum >= cutoff:
+                modified_gaussian_per_grids[i] = 0
+                break
+        else:
+            modified_gaussian_per_grids[i] = sum
+                
+    else:
+        travel_time = travel_times[unique[1][i + 1] :]
+        sum = 0
+        for t in travel_time:
+            t = t/60
+            f = exp(-t*t/sensitivity)
+            sum += f
+            if sum >= cutoff:
+                modified_gaussian_per_grids[i] = 0
+                break
+        else:
+            modified_gaussian_per_grids[i] = sum
+    return modified_gaussian_per_grids
