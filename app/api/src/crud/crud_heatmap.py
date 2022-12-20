@@ -18,6 +18,7 @@ from sqlalchemy.sql import select, text
 from sqlalchemy.sql.functions import func
 
 from src import crud, schemas
+from src.core import heatmap as heatmap_core
 from src.core.heatmap import merge_heatmap_traveltime_objects
 from src.core.isochrone import (
     compute_isochrone_heatmap,
@@ -537,7 +538,6 @@ class CRUDHeatmap:
             for idx, category in enumerate(poi_matrix["names"]):
                 poi_matrix["names"][idx] = np.array(category, dtype=np.str_)
 
-            
             poi_matrix["travel_times_matrix_size"] = np.array(
                 poi_matrix["travel_times_matrix_size"], dtype=object
             )
@@ -720,7 +720,7 @@ class CRUDHeatmap:
                 print(f"File not found for bulk_id {bulk_id}")
                 continue
 
-        return arr_travel_times, arr_grid_ids
+        return np.concatenate(np.hstack(arr_travel_times)), np.concatenate(np.hstack(arr_grid_ids))
 
     async def aggregate_on_building(self, results: pd.DataFrame, study_area_ids: list[int]):
 
@@ -813,8 +813,23 @@ class CRUDHeatmap:
         traveltimes, grid_ids = await self.read_opportunity_matrix(
             matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
         )
+
+        ## Compile
+        sorted_table, unique = heatmap_core.sort_and_unique_by_grid_ids(grid_ids, traveltimes)
+        mins = heatmap_core.mins(sorted_table, unique)
+
+        ## Run
+        start_time = time.time()
+        sorted_table, unique = heatmap_core.sort_and_unique_by_grid_ids(grid_ids, traveltimes)
+        end_time = time.time()
+        print(f"sort takes: {end_time - start_time} s")
+        start_time = time.time()
+        mins = heatmap_core.mins(sorted_table, unique)
+        end_time = time.time()
+        print(f"mins takes: {end_time - start_time} s")
+
         # TODO: Accessibility Index Calculation
-        
+
         # await self.aggregate_on_building(merged_df, study_area_ids)
         # grid_ids = matrix_min_travel_time["grid_id"]
         # travel_times = matrix_min_travel_time["travel_time"]
@@ -922,6 +937,6 @@ def main():
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
 
-
-# main()
-test_heatmap()
+if __name__ == '__main__':
+    # main()
+    test_heatmap()
