@@ -69,7 +69,7 @@ class CRUDGridCalculation(
 
 
 # TODO: Refactor filepaths using os.path.join
-# TODO: Refactor code and split into two files. One for precalculation and one for the endpoints. 
+# TODO: Refactor code and split into two files. One for precalculation and one for the endpoints.
 # TODO: Add more comments
 class CRUDHeatmap:
     def __init__(self, db, db_sync, current_user):
@@ -455,11 +455,28 @@ class CRUDHeatmap:
         # TODO Performance improvements here (consider multiprocessing) and avoid loops
         for bulk_id in pois:
             poi_bulk = pois[bulk_id]
-            poi_matrix = {}
-            poi_matrix['category'] = []
-            
+            previous_category = None
+
+            poi_matrix = {
+                "travel_times": [],
+                "travel_times_matrix_size": [],
+                "grid_ids": [],
+                "names": [],
+                "uids": [],
+            }
+            poi_categories = []
+
             for poi in poi_bulk:
                 uid, category, name, x, y = poi
+
+                # Check if category is already in poi categories
+                if poi_categories == [] or previous_category != category:
+                    poi_categories.append(category)
+                    idx_poi_category = len(poi_categories) - 1
+                    for key in poi_matrix.keys():
+                        poi_matrix[key].append([])
+
+                previous_category = category
 
                 indices_relevant_matrices = (
                     (travel_time_matrices_north <= x)
@@ -491,53 +508,55 @@ class CRUDHeatmap:
 
                     if travel_time < 2147483647:
                         arr_travel_times.append(travel_time)
-                        arr_grid_ids.append(h3.string_to_h3(str(relevant_traveltime_matrices_grid_ids[idx])))
+                        arr_grid_ids.append(
+                            h3.string_to_h3(str(relevant_traveltime_matrices_grid_ids[idx]))
+                        )
                     else:
                         cnt += 1
                 arr_travel_times = np.array(arr_travel_times, dtype=np.dtype(np.byte))
                 arr_grid_ids = np.array(arr_grid_ids, dtype=np.dtype(np.int_))
-                if category in poi_matrix['category'] and len(arr_travel_times) > 0:
-                    poi_matrix["travel_times"].append(arr_travel_times)
-                    poi_matrix["travel_times_matrix_size"].append(len(arr_travel_times))
-                    poi_matrix["grid_ids"].append(arr_grid_ids)
-                    poi_matrix['category'].append(category) 
-                    poi_matrix[category]["uids"].append(uid)
-                    poi_matrix[category]["names"].append(name)
-                elif len(arr_travel_times) > 0:
-                    poi_matrix["travel_times"] = [arr_travel_times]
-                    poi_matrix["travel_times_matrix_size"] = [len(arr_travel_times)]
-                    poi_matrix["grid_ids"] = [arr_grid_ids]
-                    poi_matrix['category'].append(category) 
-                    poi_matrix[category]["uids"] = [uid]
-                    poi_matrix[category]["names"] = [name]
+
+                if len(arr_travel_times) > 0:
+                    poi_matrix["travel_times"][idx_poi_category].append(arr_travel_times)
+                    poi_matrix["travel_times_matrix_size"][idx_poi_category].append(
+                        arr_travel_times.shape[0]
+                    )
+                    poi_matrix["grid_ids"][idx_poi_category].append(arr_grid_ids)
+                    poi_matrix["names"][idx_poi_category].append(name)
+                    poi_matrix["uids"][idx_poi_category].append(uid)
                 else:
                     continue
-                
-            poi_matrix["travel_times"] = np.array(
-                poi_matrix["travel_times"], dtype=object
-            )
+
+            for key in ["travel_times", "grid_ids"]:
+                for idx, category in enumerate(poi_matrix[key]):
+                    poi_matrix[key][idx] = np.array(category, dtype=object)
+
+            for idx, category in enumerate(poi_matrix["uids"]):
+                poi_matrix["uids"][idx] = np.array(category, dtype=np.str_)
+
+            for idx, category in enumerate(poi_matrix["names"]):
+                poi_matrix["names"][idx] = np.array(category, dtype=np.str_)
+
             
-            # poi_matrix["travel_times_matrix_size"] = np.array(
-            #     poi_matrix["travel_times_matrix_size"], dtype=np.dtype(np.ushort)
-            # )
-            poi_matrix["grid_ids"] = np.array(
-                poi_matrix["grid_ids"], dtype=object
+            poi_matrix["travel_times_matrix_size"] = np.array(
+                poi_matrix["travel_times_matrix_size"], dtype=object
             )
-            poi_matrix["category"] = np.array(
-                poi_matrix["category"], dtype=np.str_
-            )
-            poi_matrix[category]["uids"] = np.array(poi_matrix[category]["uids"], dtype=object)
-            poi_matrix[category]["names"] = np.array(
-                poi_matrix[category]["names"], dtype=np.str_
-            )
+            for idx, category in enumerate(poi_matrix["travel_times_matrix_size"]):
+                poi_matrix["travel_times_matrix_size"][idx] = np.array(
+                    category, dtype=np.dtype(np.ushort)
+                )
+
+            poi_matrix["travel_times"] = np.array(poi_matrix["travel_times"], dtype=object)
+            poi_matrix["grid_ids"] = np.array(poi_matrix["grid_ids"], dtype=object)
+            poi_matrix["uids"] = np.array(poi_matrix["uids"], dtype=object)
+            poi_matrix["names"] = np.array(poi_matrix["names"], dtype=object)
+            poi_matrix["categories"] = np.array(poi_categories, dtype=np.str_)
 
             dir = f"{self.path_opportunity_matrices}/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}/{bulk_id}"
             create_dir(dir)
-            values = list(poi_matrix.keys())
-            
-            for value in values:
-                np.savez(
-                    f"{dir}/{value}.npz",
+            for value in poi_matrix.keys():
+                np.save(
+                    f"{dir}/{value}",
                     poi_matrix[value],
                 )
 
@@ -569,6 +588,7 @@ class CRUDHeatmap:
                 SELECT :bulk_id AS bulk_id, p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
                 FROM basic.poi p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
                 WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
+                ORDER BY p.category
             """
             sql_params = {}
         elif table_name == "poi_user" and data_upload_id is not None:
@@ -577,6 +597,7 @@ class CRUDHeatmap:
                 FROM basic.poi_user p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
                 WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
                 AND p.data_upload_id = :data_upload_id
+                ORDER BY p.category
             """
             sql_params = {"data_upload_id": data_upload_id}
 
@@ -635,7 +656,7 @@ class CRUDHeatmap:
         # await self.compute_traveltime_active_mobility(
         #     isochrone_dto=isochrone_dto,
         #     calculation_objs=calculation_objs,
-        # ) 
+        # )
 
         await self.compute_opportunity_matrix(
             isochrone_dto=isochrone_dto,
@@ -658,87 +679,51 @@ class CRUDHeatmap:
 
         return categories
 
-    arr_travel_times = []
-    arr_grid_ids = []
-    arr_categories = []
-    category_indices = []
-    
-    async def async_reading(self, matrix_base_path, bulk_id, key, categories):
-        try:
-            matrix = np.load(
-                os.path.join(matrix_base_path, bulk_id, key + ".npz"),
-                allow_pickle=True,
-            )
-            if(key == 'travel_times'):   
-                self.arr_travel_times.append(matrix["arr_0"])
-            elif(key == 'grid_ids'):
-                self.arr_grid_ids.append(matrix["arr_0"])
-            elif(key == 'category'):
-                self.arr_categories.append(matrix["arr_0"])
-            # if(len(categories) == 0):
-            #     if(key == 'travel_times'):   
-            #         self.arr_travel_times.append(matrix["arr_0"])
-            #     elif(key == 'grid_ids'):
-            #         self.arr_grid_ids.append(matrix["arr_0"])
-            #     elif(key == 'category'):
-            #         self.arr_categories.append(matrix["arr_0"])
-            # else:
-            #     if(key == 'travel_times'):   
-            #         # self.arr_travel_times.append(matrix["arr_0"])
-            #         self.arr_travel_times = [matrix["arr_0"][item] for item in self.category_indices]
-            #     elif(key == 'grid_ids'):
-            #         # self.arr_grid_ids.append(matrix["arr_0"])
-            #         self.arr_grid_ids = [matrix["arr_0"][item] for item in self.category_indices]
-            #     elif(key == 'category'):
-            #         self.category_indices = [index for (index, item) in enumerate(matrix["arr_0"]) if item in categories]
-            #         self.arr_categories = [item for (index, item) in enumerate(matrix["arr_0"]) if item in categories]
-            #         # self.arr_categories.append(matrix["arr_0"])
-            return
-        except FileNotFoundError:
-            return
-
     async def read_opportunity_matrix(
-        self,
-        matrix_base_path: str,
-        key: str,
-        bulk_ids: list[str],
-        chosen_categories
+        self, matrix_base_path: str, bulk_ids: list[str], chosen_categories
     ):
-        # arr_travel_times = []
-        # arr_grid_ids = []
-        matrix = None
-        matrix_df = None
-        #TODO: Speed up reading of matrices. Final result are two one-dimensional numpy array with all travel times and one with all grid_ids
-        startTime = time.time()
-        coords = [asyncio.create_task(self.async_reading(matrix_base_path, bulk_id, key, chosen_categories)) for bulk_id in np.array(bulk_ids)]
-        await asyncio.wait(coords, return_when=asyncio.ALL_COMPLETED)
-        
-        # for bulk_id in np.array(bulk_ids):
-        #     try:
-        #         matrix = np.load(
-        #             os.path.join(matrix_base_path, bulk_id, category + ".npz"),
-        #             allow_pickle=True,
-        #         )
-        #         self.arr_travel_times.append(matrix["travel_times"])
-        #         self.arr_grid_ids.append(matrix["grid_ids"])
-                
-        #     except FileNotFoundError:
-        #         continue
-        
-        endTime = time.time()
-        print(f'time: {endTime - startTime}sec')
-        
-        #TODO: Return two one-dimensional numpy array with all travel times and one with all grid_ids
+        arr_travel_times = []
+        arr_grid_ids = []
 
-        if self.arr_travel_times != []:
-            flat_travel_times = self.arr_travel_times
-            flat_grid_ids = self.arr_grid_ids
-            # matrix_df = pd.DataFrame({"grid_id": flat_grid_ids, category: flat_travel_times})
-         
-        return matrix_df
+        # #TODO: Speed up reading of matrices. Final result are two one-dimensional numpy array with all travel times and one with all grid_id
+        # coords = [asyncio.create_task(self.async_reading(matrix_base_path, bulk_id, key, chosen_categories)) for bulk_id in np.array(bulk_ids)]
+        # await asyncio.wait(coords, return_when=asyncio.ALL_COMPLETED)
+
+        for bulk_id in np.array(bulk_ids):
+            try:
+                # Select relevant POI categories
+                poi_categories = np.load(
+                    os.path.join(matrix_base_path, bulk_id, "categories" + ".npy"),
+                    allow_pickle=True,
+                )
+                selected_categories_index = np.in1d(poi_categories, np.array(chosen_categories))
+
+                travel_times_matrix_size = np.load(
+                    os.path.join(matrix_base_path, bulk_id, "travel_times_matrix_size" + ".npy"),
+                    allow_pickle=True,
+                )
+                # selected_travel_times_matrix_size = travel_times_matrix_size[selected_categories_index]
+                # Read travel times and grid ids
+                travel_times = np.load(
+                    os.path.join(matrix_base_path, bulk_id, "travel_times" + ".npy"),
+                    allow_pickle=True,
+                )
+                arr_travel_times.extend(travel_times[selected_categories_index])
+
+                grid_ids = np.load(
+                    os.path.join(matrix_base_path, bulk_id, "grid_ids" + ".npy"),
+                    allow_pickle=True,
+                )
+                arr_grid_ids.extend(grid_ids[selected_categories_index])
+
+            except FileNotFoundError:
+                print(f"File not found for bulk_id {bulk_id}")
+                continue
+
+        return arr_travel_times, arr_grid_ids
 
     async def aggregate_on_building(self, results: pd.DataFrame, study_area_ids: list[int]):
-        
+
         # Get buildings for testing. Currently only one study area is supported
         buildings = await self.db.execute(
             text(
@@ -755,8 +740,9 @@ class CRUDHeatmap:
         buildings_ids = [building[0] for building in buildings_points]
         buildings_points = [building[1] for building in buildings_points]
 
-        #TODO: write proper endpoint this is just for testing
+        # TODO: write proper endpoint this is just for testing
         from pyproj import Transformer
+
         transformer = Transformer.from_crs(4326, 3857)
         grid_ids = results["grid_id"].to_list()
         grid_centroids = [h3.h3_to_geo(grid_id) for grid_id in grid_ids]
@@ -765,13 +751,15 @@ class CRUDHeatmap:
         y = np.array([c[1] for c in grid_centroids])
         grid_points = np.stack((x, y), axis=1)
         tree = spatial.KDTree(grid_points)
-        
-        distances, indices = tree.query(buildings_points, k=3, distance_upper_bound=100, workers=-1)
+
+        distances, indices = tree.query(
+            buildings_points, k=3, distance_upper_bound=100, workers=-1
+        )
         distances[distances == np.inf] = 0
         indices_flatten = indices.flatten()
-        
+
         df_column = results.columns
-        
+
         interpolated = {"building_id": buildings_ids}
         for category in df_column[1:]:
             costs = results[category].to_numpy()
@@ -782,12 +770,18 @@ class CRUDHeatmap:
 
             to_divide = np.ndarray.sum(distances * mapped_costs, axis=1)
             to_divide[to_divide == 0] = np.NaN
-            Z = (to_divide / np.ndarray.sum(distances, axis=1))
-            Z=Z.astype(int)
+            Z = to_divide / np.ndarray.sum(distances, axis=1)
+            Z = Z.astype(int)
             interpolated[category] = Z
 
         building_df = pd.DataFrame(interpolated)
-        building_df.to_sql("min_traveltime_building_level", legacy_engine, schema="temporal", if_exists="replace", index=False)
+        building_df.to_sql(
+            "min_traveltime_building_level",
+            legacy_engine,
+            schema="temporal",
+            if_exists="replace",
+            index=False,
+        )
 
     async def read_heatmap(
         self,
@@ -796,14 +790,16 @@ class CRUDHeatmap:
         study_area_ids: list[int] = None,
     ) -> list[dict]:
 
+        # Get buffer size
         speed = HeatmapBaseSpeed[heatmap_settings.mode.value].value
         buffer_size = (speed / 3.6) * (heatmap_settings.max_travel_time * 60)
-        begin = time.time()
+
+        # Get bulk ids
         bulk_ids = await self.read_h3_grids_study_areas(
             resolution=6, buffer_size=buffer_size, study_area_ids=study_area_ids
         )
-        end = time.time()
-        opportunities = ['category', 'grid_ids', 'travel_times' ]
+        # Get heatmap settings
+        opportunities = heatmap_settings.heatmap_config["categories"]
         if heatmap_settings.mode == HeatmapMode.walking:
             profile = heatmap_settings.walking_profile.value
         elif heatmap_settings.mode == HeatmapMode.cycling:
@@ -813,30 +809,13 @@ class CRUDHeatmap:
             f"{self.path_opportunity_matrices}/{heatmap_settings.mode.value}/{profile}/"
         )
 
-        # Create empty data frame
-        merged_df = pd.DataFrame()
-        temp_categ = ['fast_food', 'bus_stop']
-        start = time.time()
-        for key in opportunities:
-            matrix_df = await self.read_opportunity_matrix(
-                matrix_base_path=matrix_base_path, key=key, bulk_ids=bulk_ids, chosen_categories=temp_categ
-            )
-            # TODO: Other hefunctions will go here later
-            if matrix_df is not None:
-                indicator_df = matrix_df.groupby("grid_id").min().reset_index()
-                if merged_df.empty:
-                    merged_df = indicator_df
-                else:
-                    merged_df = pd.merge(
-                        merged_df,
-                        indicator_df,
-                        on="grid_id",
-                        how="outer",
-                    )
+        # Read travel times and grid ids
+        traveltimes, grid_ids = await self.read_opportunity_matrix(
+            matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
+        )
+        # TODO: Accessibility Index Calculation
+        
         # await self.aggregate_on_building(merged_df, study_area_ids)
-        end = time.time()
-        print(f'the whole function took:  {end-start} sec')
-        print(merged_df)
         # grid_ids = matrix_min_travel_time["grid_id"]
         # travel_times = matrix_min_travel_time["travel_time"]
 
@@ -846,7 +825,7 @@ class CRUDHeatmap:
         # gdf=gpd.GeoDataFrame(data={"grid_ids": matrix_min_travel_time["grid_id"], "travel_times": matrix_min_travel_time["travel_time"]}, geometry=hex_polygons)
         # gdf.to_file("test_results.geojson", driver="GeoJSON")
         # print(f"Read study areas: {end - begin}")
-        return merged_df
+        return
 
 
 def test_heatmap():
@@ -867,11 +846,7 @@ def test_heatmap():
         ),
         analysis_unit="building",
         heatmap_type="closest",
-        heatmap_config={
-            "keys": [
-                'grid_ids', 'travel_times'
-            ]
-        },
+        heatmap_config={"categories": ["supermarket", "bus_stop", "tram_stop"]},
         return_type="geojson",
     )
 
