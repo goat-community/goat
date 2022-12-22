@@ -717,7 +717,14 @@
                       <v-layout row>
                         <v-spacer></v-spacer>
                         <v-tooltip
-                          v-if="!['transit'].includes(calculation.routing)"
+                          v-if="
+                            ![
+                              'transit',
+                              'cycling_standard',
+                              'cycling_pedelec'
+                            ].includes(calculation.routing) &&
+                              calculation.type !== 'multiple'
+                          "
                           top
                         >
                           <template v-slot:activator="{ on }">
