@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,11 +9,10 @@ from src import crud, schemas
 from src.crud.base import CRUDBase
 from src.crud.crud_customization import customization, dynamic_customization
 from src.db import models
-from src.schemas.customization import request_examples
-from src.endpoints import deps
 from src.db.models.config_validation import *
-from fastapi.encoders import jsonable_encoder
+from src.endpoints import deps
 from src.resources.enums import SettingToModify
+from src.schemas.customization import request_examples
 
 router = APIRouter()
 
@@ -26,9 +26,12 @@ async def get_user_settings_me(
     """
     Get customization settings for user.
     """
-    settings = await dynamic_customization.build_main_setting_json(db=db, current_user=current_user)
+    settings = await dynamic_customization.build_main_setting_json(
+        db=db, current_user=current_user
+    )
 
     return settings
+
 
 @router.post("/user/insert/{setting_type}", response_class=JSONResponse)
 async def insert_user_settings(
@@ -36,21 +39,23 @@ async def insert_user_settings(
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
     setting_type: SettingToModify,
-    obj_in: Any = Body(
-        ..., examples=request_examples.get("user_customization_insert")
-    ),    
+    obj_in: Any = Body(..., examples=request_examples.get("user_customization_insert")),
 ) -> Any:
     """
     Insert settings for POIs.
     """
     obj_dict = jsonable_encoder(obj_in)
-    if setting_type.value == 'poi_groups':
+    if setting_type.value == "poi_groups":
         if check_dict_schema(PoiCategory, obj_dict) == False:
             raise HTTPException(status_code=400, detail="Invalid JSON-schema")
 
-    await dynamic_customization.insert_opportunity_setting(db=db, current_user=current_user, insert_settings=obj_dict)
-      
-    update_settings = await dynamic_customization.build_main_setting_json(db=db, current_user=current_user)
+    await dynamic_customization.insert_opportunity_setting(
+        db=db, current_user=current_user, insert_settings=obj_dict
+    )
+
+    update_settings = await dynamic_customization.build_main_setting_json(
+        db=db, current_user=current_user
+    )
     return update_settings
 
 
@@ -60,9 +65,7 @@ async def delete_user_settings(
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
     setting_type: SettingToModify,
-    category: str = Path(
-        ..., description="Category name", example="nursery"
-    )
+    category: str = Path(..., description="Category name", example="nursery"),
 ) -> Any:
     """
     Reset styles for POIs
@@ -70,8 +73,12 @@ async def delete_user_settings(
     if category not in await crud.dynamic_customization.get_all_default_poi_categories(db=db):
         raise HTTPException(status_code=400, detail="Cannot reset custom POI category.")
 
-    await dynamic_customization.delete_opportunity_setting(db=db, current_user=current_user, setting_type=setting_type.value, category=category)
-    update_settings = await dynamic_customization.build_main_setting_json(db=db, current_user=current_user)
+    await dynamic_customization.delete_opportunity_setting(
+        db=db, current_user=current_user, setting_type=setting_type.value, category=category
+    )
+    update_settings = await dynamic_customization.build_main_setting_json(
+        db=db, current_user=current_user
+    )
     return update_settings
 
 
@@ -131,7 +138,7 @@ async def update_user_settings(
         customization = await CRUDBase(models.Customization).get_by_key(
             db, key="type", value=user_customization_key
         )
-        
+
         if customization is not None:
             customization = customization[0]
             user_customization = await CRUDBase(models.UserCustomization).get_by_multi_keys(
@@ -187,3 +194,88 @@ async def delete_user_setting(
     if user_customization is not None and len(user_customization) > 0:
         await CRUDBase(models.UserCustomization).remove(db, id=user_customization[0].id)
     return {"msg": "Customization deleted"}
+
+
+@router.get("/base", response_class=JSONResponse)
+async def list_base_customizations(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+    ordering: str = None,
+    q: str = None,
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+) -> Any:
+
+    settings = await crud.customization.get_multi(
+        db, skip=skip, limit=limit, ordering=ordering, query=q
+    )
+
+    return settings
+
+
+@router.get("/base/{id}", response_class=JSONResponse)
+async def get_base_customization_by_id(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    id: int,
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+) -> Any:
+
+    customization = await crud.customization.get(db, id=id)
+    if not customization:
+        raise HTTPException(
+            status_code=404,
+            detail="Customization not found.",
+        )
+
+    return customization
+
+
+@router.post("/base", response_class=JSONResponse)
+async def create_base_customization(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    customization_in: models.CustomizationBase,
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+) -> Any:
+
+    customization = await crud.customization.create(db, obj_in=customization_in)
+    return customization
+
+
+@router.put("/base/{id}", response_class=JSONResponse)
+async def update_base_customization(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    id: int,
+    customization_in: models.CustomizationBase,
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    customization = await crud.customization.get(db, id=id)
+    if not customization:
+        raise HTTPException(
+            status_code=404,
+            detail="Customization not found.",
+        )
+    customization = await crud.customization.update(
+        db, db_obj=customization, obj_in=customization_in
+    )
+    return customization
+
+
+@router.delete("/base/{id}", response_class=JSONResponse)
+async def delete_base_customization(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    id: int,
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    customization = await crud.customization.get(db, id=id)
+    if not customization:
+        raise HTTPException(
+            status_code=404,
+            detail="Customization not found.",
+        )
+    customization = await crud.customization.remove(db, id=id)
+    return customization

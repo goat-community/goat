@@ -329,15 +329,12 @@ async def update_user(
     db: AsyncSession = Depends(deps.get_db),
     user_id: int,
     user_in: schemas.UserUpdate = Body(..., example=request_examples["update"]),
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Update a user.
     """
-    is_superuser = crud.user.is_superuser(current_user)
-    if not is_superuser:
-        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
-
+    
     user = await crud.user.get(
         db, id=user_id, extra_fields=[models.User.study_areas, models.User.roles]
     )
