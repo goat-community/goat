@@ -521,7 +521,7 @@ def group_opportunities_single_isochrone(
         poi_more_entrance_grid_count,
     )
 
-@njit(nopython=True)
+@njit
 def is_inside_sm(polygon, point):
     length = len(polygon)-1
     dy2 = point[1] - polygon[0][1]

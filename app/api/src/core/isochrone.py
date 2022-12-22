@@ -446,17 +446,10 @@ def prepare_network_isochrone(edge_network_input):
     print(f"Remap edges time: \t\t {end_time-start_time} s")
 
     extent = get_extent(geom_array)
-
-    # construct adjacency list
-    # adj_list = construct_adjacency_list_(
-    #     len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
-    # )
-    # add buffer of 200 meters to extent
     extent[0] -= 200
     extent[1] -= 200
     extent[2] += 200
     extent[3] += 200
-
     return (
         edges_source,
         edges_target,
@@ -510,6 +503,7 @@ def network_to_grid(
     # split edges based on resolution
     interpolated_coords = []
     interpolated_costs = []
+    start_time = time()
     interpolated_coords, interpolated_costs = split_edges(
         edges_source,
         edges_target,
@@ -522,7 +516,6 @@ def network_to_grid(
     end_time = time()
     print(f"Split Edges took \t\t {end_time - start_time} s")
 
-    # node_coords_list = list(node_coords) + interpolated_coords
     start_time = time()
     node_coords_list = np.concatenate((node_coords, interpolated_coords))
     node_costs_list = np.concatenate((distances, interpolated_costs))
@@ -536,6 +529,7 @@ def network_to_grid(
     end_time = time()
     print(f"Filter nodes time: \t\t {end_time - start_time} s")
 
+    start_time = time()
     Z = build_grid_interpolate_(
         node_coords_list,
         node_costs_list,
@@ -549,6 +543,8 @@ def network_to_grid(
     # build grid data (single depth)
     start_time = time()
     grid_data = get_single_depth_grid_(zoom, xy_bottom_left[0], xy_top_right[1], Z)
+    end_time = time()
+    print(f"Get single depth grid time: \t {end_time - start_time} s")
     return grid_data
 
 
@@ -563,6 +559,7 @@ def compute_isochrone(
     :param travel_time: Travel time in minutes
     :return: R5 Grid
     """
+    isochrone_start_time = time()
     (
         edges_source,
         edges_target,
@@ -575,6 +572,8 @@ def compute_isochrone(
         geom_address,
         geom_array,
     ) = prepare_network_isochrone(edge_network_input=edge_network_input)
+    prepare_network_end_time = time()
+    print(f"PREPARE NETWORK TIME: \t\t {prepare_network_end_time-isochrone_start_time} s")
 
     # run dijkstra
     start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
@@ -588,9 +587,10 @@ def compute_isochrone(
         travel_time,
     )
     end_time = time()
-    print(f"Dijkstra time: \t\t {end_time - start_time}s")
+    print(f"DIJKSTRA TIME: \t\t {end_time - start_time}s")
 
     # convert results to grid
+    start_time = time()
     grid_data = network_to_grid(
         extent,
         zoom,
@@ -602,6 +602,8 @@ def compute_isochrone(
         distances,
         node_coords,
     )
+    end_time = time()
+    print(f"NETWORK TO GRID TIME: \t\t {end_time - start_time}s")
 
     if return_network == True:
         edges_length = range(len(edges_source))
@@ -623,6 +625,8 @@ def compute_isochrone(
     else:
         network = None
 
+    isochrone_end_time = time()
+    print(f"ISOCHRONE CALCULATION TOTAL TIME: \t {isochrone_end_time - isochrone_start_time}s")
     return grid_data, network
 
 
