@@ -806,7 +806,7 @@ class CRUDHeatmap:
             resolution=6, buffer_size=buffer_size, study_area_ids=study_area_ids
         )
         # Get heatmap settings
-        opportunities = heatmap_settings.heatmap_config["categories"]
+        opportunities = heatmap_settings.heatmap_config.keys()
         if heatmap_settings.mode == HeatmapMode.walking:
             profile = heatmap_settings.walking_profile.value
         elif heatmap_settings.mode == HeatmapMode.cycling:
@@ -882,7 +882,10 @@ def test_heatmap():
         ),
         analysis_unit="building",
         heatmap_type="closest",
-        heatmap_config={"categories": ["supermarket", "bus_stop", "tram_stop"]},
+        heatmap_config={
+            "supermarket": {"max_traveltime": 5, "weight": 1},
+            "tram_stop": {"max_traveltime": 10, "weight": 1},
+        },
         return_type="geojson",
     )
 
