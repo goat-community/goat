@@ -281,9 +281,6 @@ async def deactivate_demo_users(
                     email_language=user.language_preference,
                 )
 
-        if (time_diff.days > 30) and not user.is_active:
-            await crud.user.remove(db, id=user.id)
-
     return {"msg": "Demo users deactivated"}
 
 
@@ -334,7 +331,7 @@ async def update_user(
     """
     Update a user.
     """
-    
+
     user = await crud.user.get(
         db, id=user_id, extra_fields=[models.User.study_areas, models.User.roles]
     )
