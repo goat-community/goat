@@ -682,8 +682,11 @@ class CRUDHeatmap:
     async def read_opportunity_matrix(
         self, matrix_base_path: str, bulk_ids: list[str], chosen_categories
     ):
-        arr_travel_times = []
-        arr_grid_ids = []
+        travel_times_dict = {}
+        grid_ids_dict = {}
+        for cat in chosen_categories:
+            travel_times_dict[cat] = []
+            grid_ids_dict[cat] = []
 
         # #TODO: Speed up reading of matrices. Final result are two one-dimensional numpy array with all travel times and one with all grid_id
         # coords = [asyncio.create_task(self.async_reading(matrix_base_path, bulk_id, key, chosen_categories)) for bulk_id in np.array(bulk_ids)]
@@ -696,31 +699,35 @@ class CRUDHeatmap:
                     os.path.join(matrix_base_path, bulk_id, "categories" + ".npy"),
                     allow_pickle=True,
                 )
-                selected_categories_index = np.in1d(poi_categories, np.array(chosen_categories))
-
-                travel_times_matrix_size = np.load(
-                    os.path.join(matrix_base_path, bulk_id, "travel_times_matrix_size" + ".npy"),
-                    allow_pickle=True,
-                )
-                # selected_travel_times_matrix_size = travel_times_matrix_size[selected_categories_index]
-                # Read travel times and grid ids
                 travel_times = np.load(
                     os.path.join(matrix_base_path, bulk_id, "travel_times" + ".npy"),
                     allow_pickle=True,
                 )
-                arr_travel_times.extend(travel_times[selected_categories_index])
+                for cat in chosen_categories:
+                    selected_category_index = np.in1d(poi_categories, np.array([cat]))
+                    # travel_times_matrix_size = np.load(
+                    #     os.path.join(matrix_base_path, bulk_id, "travel_times_matrix_size" + ".npy"),
+                    #     allow_pickle=True,
+                    # )
+                    # selected_travel_times_matrix_size = travel_times_matrix_size[selected_category_index]
+                    # Read travel times and grid ids
 
-                grid_ids = np.load(
-                    os.path.join(matrix_base_path, bulk_id, "grid_ids" + ".npy"),
-                    allow_pickle=True,
-                )
-                arr_grid_ids.extend(grid_ids[selected_categories_index])
+                    travel_times_dict[cat].extend(travel_times[selected_category_index])
+
+                    grid_ids = np.load(
+                        os.path.join(matrix_base_path, bulk_id, "grid_ids" + ".npy"),
+                        allow_pickle=True,
+                    )
+                    grid_ids_dict[cat].extend(grid_ids[selected_category_index])
 
             except FileNotFoundError:
                 print(f"File not found for bulk_id {bulk_id}")
                 continue
+        for cat in chosen_categories:
+            grid_ids_dict[cat] = np.concatenate(np.hstack(grid_ids_dict[cat]))
+            travel_times_dict[cat] = np.concatenate(np.hstack(travel_times_dict[cat]))
 
-        return np.concatenate(np.hstack(arr_travel_times)), np.concatenate(np.hstack(arr_grid_ids))
+        return grid_ids_dict, travel_times_dict
 
     async def aggregate_on_building(self, results: pd.DataFrame, study_area_ids: list[int]):
 
@@ -813,18 +820,32 @@ class CRUDHeatmap:
         traveltimes, grid_ids = await self.read_opportunity_matrix(
             matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
         )
-
         ## Compile
-        sorted_table, unique = heatmap_core.sort_and_unique_by_grid_ids(grid_ids, traveltimes)
-        mins = heatmap_core.mins(sorted_table, unique)
+        sorted_table, unique = {}, {}
+        for op in opportunities:
+            sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
+                grid_ids[op], traveltimes[op]
+            )
+        mins = {}
+        for op in opportunities:
+            mins[op] = heatmap_core.mins(sorted_table[op], unique[op])
+
+        # sorted_table, unique = heatmap_core.sort_and_unique_by_grid_ids(grid_ids, traveltimes)
+        # mins = heatmap_core.mins(sorted_table, unique)
 
         ## Run
         start_time = time.time()
-        sorted_table, unique = heatmap_core.sort_and_unique_by_grid_ids(grid_ids, traveltimes)
+        sorted_table, unique = {}, {}
+        for op in opportunities:
+            sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
+                grid_ids[op], traveltimes[op]
+            )
         end_time = time.time()
         print(f"sort takes: {end_time - start_time} s")
         start_time = time.time()
-        mins = heatmap_core.mins(sorted_table, unique)
+        mins = {}
+        for op in opportunities:
+            mins[op] = heatmap_core.mins(sorted_table[op], unique[op])
         end_time = time.time()
         print(f"mins takes: {end_time - start_time} s")
 
@@ -937,6 +958,7 @@ def main():
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # main()
     test_heatmap()
