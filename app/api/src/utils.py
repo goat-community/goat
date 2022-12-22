@@ -593,14 +593,23 @@ def pixel_to_latitude(pixel_y, zoom):
 
 
 @njit
-def coordinate_from_pixel(pixel, zoom):
+def coordinate_from_pixel(input, zoom, round_int=False, web_mercator=False):
     """
     Convert pixel coordinate to longitude and latitude
     """
-    return {
-        "lat": pixel_to_latitude(pixel["y"], zoom),
-        "lon": pixel_to_longitude(pixel["x"], zoom),
-    }
+    if web_mercator:
+        x = pixel_x_to_web_mercator_x(input[0], zoom)
+        y = pixel_y_to_web_mercator_y(input[1], zoom)
+    else:
+        x = pixel_to_longitude(input[0], zoom)
+        y = pixel_to_latitude(input[1], zoom)
+    if round_int:
+        x = round(x)
+        y = round(y)
+    
+    return [x, y]
+
+
 
 
 def coordinate_to_pixel(input, zoom, return_dict=True, round_int=False, web_mercator=False):
@@ -641,6 +650,14 @@ def web_mercator_x_to_pixel_x(x, zoom):
 @njit
 def web_mercator_y_to_pixel_y(y, zoom):
     return (y - (40075016.68557849 / 2.0)) / (40075016.68557849 / (-1 * z_scale(zoom)))
+
+@njit
+def pixel_x_to_web_mercator_x(x, zoom):
+    return x * (40075016.68557849 / (z_scale(zoom))) - (40075016.68557849 / 2.0)
+
+@njit
+def pixel_y_to_web_mercator_y(y, zoom):
+    return y * (40075016.68557849 / (-1 * z_scale(zoom))) + (40075016.68557849 / 2.0)
 
 
 def geometry_to_pixel(geometry, zoom):

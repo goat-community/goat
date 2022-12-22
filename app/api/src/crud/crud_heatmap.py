@@ -316,16 +316,16 @@ class CRUDHeatmap:
             end_time_network_preparation = time.time()
 
             (
-                adj_list,
                 edges_source,
                 edges_target,
                 edges_cost,
                 edges_reverse_cost,
-                edges_geom,
                 edges_length,
                 unordered_map,
                 node_coords,
                 total_extent,
+                geom_address,
+                geom_array,
             ) = prepare_network_isochrone(edge_network_input=network)
 
             # Prepare heatmap calculation objects
@@ -340,7 +340,8 @@ class CRUDHeatmap:
                     edges_target,
                     edges_cost,
                     edges_reverse_cost,
-                    edges_geom,
+                    geom_address,
+                    geom_array,
                     edges_length,
                     unordered_map,
                     node_coords,

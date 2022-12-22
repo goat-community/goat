@@ -293,14 +293,15 @@ class CRUDIsochrone:
             grid_decoded["west"],
             grid_decoded["north"],
             grid_decoded["zoom"],
-            max_time,
+            np.array([max_time]),
+            web_mercator=False,
         )
         if return_type == "shapely":
             multipolygon_shape = shape(
-                {"type": "MultiPolygon", "coordinates": isochrone_multipolygon_coordinates}
+                {"type": "MultiPolygon", "coordinates": isochrone_multipolygon_coordinates[0]}
             )
         elif return_type == "coordinates":
-            multipolygon_shape = isochrone_multipolygon_coordinates
+            multipolygon_shape = isochrone_multipolygon_coordinates[0]
         else:
             raise ValueError("Return type not supported")
         
@@ -694,7 +695,7 @@ class CRUDIsochrone:
                 3: "2022-05-19",
                 4: "2022-05-20",
                 5: "2022-05-21",
-                6: "2022-05-22"
+                6: "2022-05-22",
             }
 
             payload = {

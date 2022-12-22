@@ -3,11 +3,16 @@ Translated from https://github.com/goat-community/goat/blob/0089611acacbebf4e297
 """
 
 import math
+import time
 
 import numpy as np
 from numba import njit
 
-from src.utils import coordinate_from_pixel
+from src.utils import (
+    compute_single_value_surface,
+    coordinate_from_pixel,
+    decode_r5_grid,
+)
 
 MAX_COORDS = 20000
 
@@ -21,8 +26,8 @@ def get_contour(surface, width, height, cutoff):
     contour = np.zeros((width - 1) * (height - 1), dtype=np.int8)
 
     # compute contour values for each cell
-    for x in np.arange(width - 1):
-        for y in np.arange(height - 1):
+    for x in range(width - 1):
+        for y in range(height - 1):
             index = y * width + x
             topLeft = surface[index] < cutoff
             topRight = surface[index + 1] < cutoff
@@ -187,134 +192,129 @@ def jsolines(
     west,
     north,
     zoom,
-    cutoff,
-    maxCoordinates=MAX_COORDS,
+    cutoffs,
     interpolation=True,
+    web_mercator=True
 ):
-    contour = get_contour(surface, width, height, cutoff)
-    cWidth = width - 1
+    geometries = []
+    for _, cutoff in np.ndenumerate(cutoffs):
+        contour = get_contour(surface, width, height, cutoff)
+        cWidth = width - 1
+        # Store warnings
+        warnings = []
 
-    # Store warnings
-    warnings = []
+        # JavaScript does not have boolean arrays.
+        found = np.zeros((width - 1) * (height - 1), dtype=np.int8)
 
-    # JavaScript does not have boolean arrays.
-    found = np.zeros((width - 1) * (height - 1), dtype=np.int8)
+        # DEBUG, comment out to save memory
+        indices = []
 
-    # DEBUG, comment out to save memory
-    indices = []
+        # We'll sort out what shell goes with what hole in a bit.
+        shells = []
+        holes = []
 
-    # We'll sort out what shell goes with what hole in a bit.
-    shells = []
-    holes = []
+        # Find a cell that has a line in it, then follow that line, keeping filled
+        # area to your left. This lets us use winding direction to determine holes.
 
-    # Find a cell that has a line in it, then follow that line, keeping filled
-    # area to your left. This lets us use winding direction to determine holes.
-
-    for origy in np.arange(height - 1):
-        for origx in np.arange(width - 1):
-            index = origy * cWidth + origx
-            if found[index] == 1:
-                continue
-            idx = contour[index]
-
-            # Continue if there is no line here or if it's a saddle, as we don't know which way the saddle goes.
-            if idx == 0 or idx == 5 or idx == 10 or idx == 15:
-                continue
-
-            # Huzzah! We have found a line, now follow it, keeping the filled area to our left,
-            # which allows us to use the winding direction to determine what should be a shell and
-            # what should be a hole
-            pos = [origx, origy]
-            prev = [-1, -1]
-            start = [-1, -1]
-
-            # Track winding direction
-            direction = 0
-            coords = []
-
-            # Make sure we're not traveling in circles.
-            # NB using index from _previous_ cell, we have not yet set an index for this cell
-
-            while found[index] != 1:
-                prev = start
-                start = pos
+        for origy in range(height - 1):
+            for origx in range(width - 1):
+                index = origy * cWidth + origx
+                if found[index] == 1:
+                    continue
                 idx = contour[index]
 
-                indices.append(idx)
+                # Continue if there is no line here or if it's a saddle, as we don't know which way the saddle goes.
+                if idx == 0 or idx == 5 or idx == 10 or idx == 15:
+                    continue
 
-                # Mark as found if it's not a saddle because we expect to reach saddles twice.
-                if idx != 5 and idx != 10:
-                    found[index] = 1
+                # Huzzah! We have found a line, now follow it, keeping the filled area to our left,
+                # which allows us to use the winding direction to determine what should be a shell and
+                # what should be a hole
+                pos = [origx, origy]
+                prev = [-1, -1]
+                start = [-1, -1]
 
-                if idx == 0 or idx >= 15:
-                    warnings.append("Ran off outside of ring")
-                    break
+                # Track winding direction
+                direction = 0
+                coords = []
 
-                # Follow the loop
-                pos = followLoop(idx, pos, prev)
-                index = pos[1] * cWidth + pos[0]
+                # Make sure we're not traveling in circles.
+                # NB using index from _previous_ cell, we have not yet set an index for this cell
 
-                # Keep track of winding direction
-                direction += (pos[0] - start[0]) * (pos[1] + start[1])
+                while found[index] != 1:
+                    prev = start
+                    start = pos
+                    idx = contour[index]
 
-                # Shift exact coordinates
-                if interpolation:
-                    coord = interpolate(pos, cutoff, start, surface, width, height)
-                else:
-                    coord = noInterpolate(pos, start)
+                    indices.append(idx)
 
-                if not coord:
-                    warnings.append(
-                        f"Unexpected coordinate shift from ${start[0]}, ${start[1]} to ${pos[0]}, ${pos[1]}, discarding ring"
-                    )
-                    break
-                ll = coordinate_from_pixel(
-                    {"x": coord[0] + west, "y": coord[1] + north},
-                    zoom=zoom,
-                )
-                coords.append([ll["lon"], ll["lat"]])
+                    # Mark as found if it's not a saddle because we expect to reach saddles twice.
+                    if idx != 5 and idx != 10:
+                        found[index] = 1
 
-                # TODO Remove completely? May be unnecessary.
-                if len(coords) > maxCoordinates:
-                    warnings.append(f"Ring coordinates > ${maxCoordinates} found, skipping")
-                    break
+                    if idx == 0 or idx >= 15:
+                        warnings.append("Ran off outside of ring")
+                        break
 
-                # We're back at the start of the ring
-                if pos[0] == origx and pos[1] == origy:
-                    coords.append(coords[0])  # close the ring
+                    # Follow the loop
+                    pos = followLoop(idx, pos, prev)
+                    index = pos[1] * cWidth + pos[0]
 
-                    # make it a fully-fledged GeoJSON object
-                    geom = [coords]
+                    # Keep track of winding direction
+                    direction += (pos[0] - start[0]) * (pos[1] + start[1])
 
-                    # Check winding direction. Positive here means counter clockwise,
-                    # see http:#stackoverflow.com/questions/1165647
-                    # +y is down so the signs are reversed from what would be expected
-                    if direction > 0:
-                        shells.append(geom)
+                    # Shift exact coordinates
+                    if interpolation:
+                        coord = interpolate(pos, cutoff, start, surface, width, height)
                     else:
-                        holes.append(geom)
-                    break
+                        coord = noInterpolate(pos, start)
 
-    # Shell game time. Sort out shells and holes.
-    for hole in holes:
-        # Only accept holes that are at least 2-dimensional.
-        # Workaroudn (x+y) to avoid float to str type conversion in numba
-        vertices = list(set([(x + y) for x, y in hole[0]]))
+                    if not coord:
+                        warnings.append(
+                            f"Unexpected coo rdinate shift from ${start[0]}, ${start[1]} to ${pos[0]}, ${pos[1]}, discarding ring"
+                        )
+                        break
+                    xy = coordinate_from_pixel(
+                        [coord[0] + west, coord[1] + north], zoom=zoom, web_mercator=web_mercator
+                    )
+                    coords.append(xy)
 
-        if len(vertices) >= 3:
-            # NB this is checking whether the first coordinate of the hole is inside
-            # the shell. This is sufficient as shells don't overlap, and holes are
-            # guaranteed to be completely contained by a single shell.
-            holePoint = hole[0][0]
-            containingShell = []
-            for shell in shells:
-                if pointinpolygon(holePoint[0], holePoint[1], shell[0]):
-                    containingShell.append(shell)
-            if len(containingShell) == 1:
-                containingShell[0].append(hole[0])
+                    # We're back at the start of the ring
+                    if pos[0] == origx and pos[1] == origy:
+                        coords.append(coords[0])  # close the ring
 
-    return list(shells)
+                        # make it a fully-fledged GeoJSON object
+                        geom = [coords]
 
+                        # Check winding direction. Positive here means counter clockwise,
+                        # see http:#stackoverflow.com/questions/1165647
+                        # +y is down so the signs are reversed from what would be expected
+                        if direction > 0:
+                            shells.append(geom)
+                        else:
+                            holes.append(geom)
+                        break
+
+        # Shell game time. Sort out shells and holes.
+        for hole in holes:
+            # Only accept holes that are at least 2-dimensional.
+            # Workaroudn (x+y) to avoid float to str type conversion in numba
+            vertices = list(set([(x + y) for x, y in hole[0]]))
+
+            if len(vertices) >= 3:
+                # NB this is checking whether the first coordinate of the hole is inside
+                # the shell. This is sufficient as shells don't overlap, and holes are
+                # guaranteed to be completely contained by a single shell.
+                holePoint = hole[0][0]
+                containingShell = []
+                for shell in shells:
+                    if pointinpolygon(holePoint[0], holePoint[1], shell[0]):
+                        containingShell.append(shell)
+                if len(containingShell) == 1:
+                    containingShell[0].append(hole[0])
+
+        geometries.append(list(shells)) 
+    return geometries
 
 @njit
 def pointinpolygon(x, y, poly):
@@ -336,3 +336,43 @@ def pointinpolygon(x, y, poly):
         p1x, p1y = p2x, p2y
 
     return inside
+
+
+
+if __name__ == "__main__":
+    fileName = "/app/src/tests/data/isochrone/public_transport_calculation.bin"
+    with open(fileName, mode='rb') as file: # b is important -> binary
+        fileContent = file.read()
+        grid_decoded = decode_r5_grid(fileContent)
+        grid_decoded["surface"] = compute_single_value_surface(
+            grid_decoded["width"],
+            grid_decoded["height"],
+            grid_decoded["depth"],
+            grid_decoded["data"],
+            5,
+        )
+        print("Start")
+        start = time.time()
+        isochrone_multipolygon_coordinates = jsolines(
+            grid_decoded["surface"],
+            grid_decoded["width"],
+            grid_decoded["height"],
+            grid_decoded["west"],
+            grid_decoded["north"],
+            grid_decoded["zoom"],
+            np.arange(1,61), # cuttoffs every minute
+        )
+        end = time.time()
+
+        print("Marching square took: ", end - start)
+        print("Finished")
+
+    # grid_test = {
+    #     "width": 6, 
+    #     "height": 6,
+    #     "depth": 1,
+    #     "surface": np.array([10,12,12,11,10,11,9,8,6,6,8,10,9,7,4,5,7,9,4,2,3,0,2,3,8,5,4,4,5,6,11,10,9,8,9,10]),
+    #     "zoom": 9, 
+    #     "west": 0,
+    #     "north": 0,
+    # }
