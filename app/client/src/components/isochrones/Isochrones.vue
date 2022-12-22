@@ -716,7 +716,17 @@
                       </v-layout>
                       <v-layout row>
                         <v-spacer></v-spacer>
-                        <v-tooltip top>
+                        <v-tooltip
+                          v-if="
+                            ![
+                              'transit',
+                              'cycling_standard',
+                              'cycling_pedelec'
+                            ].includes(calculation.routing) &&
+                              calculation.type !== 'multiple'
+                          "
+                          top
+                        >
                           <template v-slot:activator="{ on }">
                             <v-icon
                               :disabled="isIsochroneBusy"

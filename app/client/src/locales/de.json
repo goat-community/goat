@@ -295,7 +295,6 @@
       "deleteAllTitle": "Alle löschen",
       "deleteAllMessage": "Wollen Sie alle Scenario Daten löschen?",
       "confirmDeleteScenario": "Sind sicher, dass Sie das Szenario löschen wollen?"
-
     },
     "settings": {
       "title": "Einstellungen",
@@ -409,6 +408,7 @@
       "showDataTooltip": "Daten anzeigen",
       "toggleVisibilityTooltip": "Anzeige umschalten",
       "showResultsTooltip": "Ergebnisse anzeigen",
+      "showAdditionalData": "Weitere Daten",
       "hideResultsTooltip": "Ergebnisse ausblenden",
       "downloadTooltip": "Herunterladen",
       "deleteCalcTooltip": "Berechnung löschen",

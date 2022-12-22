@@ -59,6 +59,7 @@ jobs:
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
       R5_HOST: ${{ secrets.R5_HOST }}
+      R5_AUTHORIZATION: ${{ secrets.R5_AUTHORIZATION }}
       API_SECRET_KEY: ${{ secrets.API_SECRET_KEY }}
       SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
       EMAILS_FROM_EMAIL: ${{ secrets.EMAILS_FROM_EMAIL }}
