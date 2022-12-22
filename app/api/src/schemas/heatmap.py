@@ -64,6 +64,15 @@ class HeatmapBaseSpeed(Enum):
     cycling = 15.0
 
 
+class HeatmapConfigClosest(BaseModel):
+    max_traveltime: int
+    weight: int
+
+
+class HeatmapConfigGravity(HeatmapConfigClosest):
+    sensitivity: int
+
+
 class HeatmapSettings(BaseModel):
     """Setting for different heatmap types"""
 
@@ -101,7 +110,23 @@ class HeatmapSettings(BaseModel):
     return_type: ReturnTypeHeatmap = Field(
         ReturnTypeHeatmap.geobuf, description="Return type of the heatmap"
     )
-    # TODO: Validation
+
+    @validator("heatmap_config")
+    def heatmap_config_schema(cls, value, values):
+        """
+        Validate each part of heatmap_config against validator class corresponding to heatmap_type
+        """
+        validator_classes = {"gravity": HeatmapConfigGravity, "closest": HeatmapConfigClosest}
+
+        heatmap_type = values["heatmap_type"].value
+        if heatmap_type not in validator_classes.keys():
+            raise ValueError(f"Validation for type {heatmap_type} not found.")
+        validator_class = validator_classes[heatmap_type]
+        heatmap_config = value
+        for category in heatmap_config:
+            validator_class(**heatmap_config[category])
+
+        return value
 
 
 """
