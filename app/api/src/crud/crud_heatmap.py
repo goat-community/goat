@@ -689,9 +689,6 @@ class CRUDHeatmap:
             travel_times_dict[cat] = []
             grid_ids_dict[cat] = []
 
-        # #TODO: Speed up reading of matrices. Final result are two one-dimensional numpy array with all travel times and one with all grid_id
-        # coords = [asyncio.create_task(self.async_reading(matrix_base_path, bulk_id, key, chosen_categories)) for bulk_id in np.array(bulk_ids)]
-        # await asyncio.wait(coords, return_when=asyncio.ALL_COMPLETED)
 
         for bulk_id in np.array(bulk_ids):
             try:
@@ -704,21 +701,13 @@ class CRUDHeatmap:
                     os.path.join(matrix_base_path, bulk_id, "travel_times" + ".npy"),
                     allow_pickle=True,
                 )
+                grid_ids = np.load(
+                    os.path.join(matrix_base_path, bulk_id, "grid_ids" + ".npy"),
+                    allow_pickle=True,
+                )
                 for cat in chosen_categories:
                     selected_category_index = np.in1d(poi_categories, np.array([cat]))
-                    # travel_times_matrix_size = np.load(
-                    #     os.path.join(matrix_base_path, bulk_id, "travel_times_matrix_size" + ".npy"),
-                    #     allow_pickle=True,
-                    # )
-                    # selected_travel_times_matrix_size = travel_times_matrix_size[selected_category_index]
-                    # Read travel times and grid ids
-
                     travel_times_dict[cat].extend(travel_times[selected_category_index])
-
-                    grid_ids = np.load(
-                        os.path.join(matrix_base_path, bulk_id, "grid_ids" + ".npy"),
-                        allow_pickle=True,
-                    )
                     grid_ids_dict[cat].extend(grid_ids[selected_category_index])
 
             except FileNotFoundError:
@@ -818,9 +807,13 @@ class CRUDHeatmap:
         )
 
         # Read travel times and grid ids
+        begin = time.time()
         traveltimes, grid_ids = await self.read_opportunity_matrix(
             matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
         )
+        end = time.time()
+        print(f"Reading matrices took {end - begin} seconds")
+
         ## Compile
         sorted_table, unique = {}, {}
         for op in opportunities:
@@ -882,15 +875,18 @@ def test_heatmap():
             name="Default",
         ),
         analysis_unit="building",
-        heatmap_type="closest",
+        heatmap_type="closest_average",
         heatmap_config={
-            "supermarket": {"max_traveltime": 5, "weight": 1},
-            "tram_stop": {"max_traveltime": 10, "weight": 1},
+            "supermarket": {"max_traveltime": 5, "max_count": 1, "weight": 1},
+            "tram_stop": {"max_traveltime": 10, "max_count": 1, "weight": 1},
+            "bus_stop": {"max_traveltime": 10, "max_count": 1, "weight": 1},
+            "nursery": {"max_traveltime": 10, "max_count": 1, "weight": 1},
         },
         return_type="geojson",
     )
 
     crud_heatmap = CRUDHeatmap(db=db, db_sync=db_sync, current_user=superuser)
+    begin = time.time()
     asyncio.get_event_loop().run_until_complete(
         crud_heatmap.read_heatmap(
             heatmap_settings=heatmap_setting,
@@ -912,6 +908,9 @@ def test_heatmap():
             ],
         )
     )
+    end = time.time()
+    print(f"Read heatmap: {end - begin}")
+
 
 
 def main():

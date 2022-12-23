@@ -38,9 +38,7 @@ class HeatmapType(Enum):
     gravity = "gravity"
     connectivity = "connectivity"
     cumulative = "cumulative"
-    closest = "closest"
-    average_three_closest = "average_three_closest"
-
+    closest_average = "closest_average"
 
 class ReturnTypeHeatmap(Enum):
     geojson = "geojson"
@@ -64,13 +62,16 @@ class HeatmapBaseSpeed(Enum):
     cycling = 15.0
 
 
-class HeatmapConfigClosest(BaseModel):
+class HeatmapBase(BaseModel):
     max_traveltime: int
     weight: int
 
 
-class HeatmapConfigGravity(HeatmapConfigClosest):
+class HeatmapConfigGravity(HeatmapBase):
     sensitivity: int
+
+class HeatmapClosestAverage(HeatmapBase):
+    max_count: int
 
 
 class HeatmapSettings(BaseModel):
@@ -116,7 +117,7 @@ class HeatmapSettings(BaseModel):
         """
         Validate each part of heatmap_config against validator class corresponding to heatmap_type
         """
-        validator_classes = {"gravity": HeatmapConfigGravity, "closest": HeatmapConfigClosest}
+        validator_classes = {"gravity": HeatmapConfigGravity, "closest_average": HeatmapClosestAverage}
 
         heatmap_type = values["heatmap_type"].value
         if heatmap_type not in validator_classes.keys():
