@@ -689,7 +689,6 @@ class CRUDHeatmap:
             travel_times_dict[cat] = []
             grid_ids_dict[cat] = []
 
-
         for bulk_id in np.array(bulk_ids):
             try:
                 # Select relevant POI categories
@@ -808,7 +807,7 @@ class CRUDHeatmap:
 
         # Read travel times and grid ids
         begin = time.time()
-        traveltimes, grid_ids = await self.read_opportunity_matrix(
+        grid_ids, traveltimes = await self.read_opportunity_matrix(
             matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
         )
         end = time.time()
@@ -910,7 +909,6 @@ def test_heatmap():
     )
     end = time.time()
     print(f"Read heatmap: {end - begin}")
-
 
 
 def main():
