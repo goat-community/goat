@@ -44,6 +44,8 @@ def sort_and_unique_by_grid_ids(grid_ids, travel_times):
 
 @njit()
 def medians(sorted_table, unique):
+    if not sorted_table.size:
+        return None
     travel_times = sorted_table.transpose()[1]
     unique_index = unique[1]
     medians = np.empty(unique_index.shape[0], np.float32)
@@ -59,6 +61,8 @@ def medians(sorted_table, unique):
 
 @njit()
 def mins(sorted_table, unique):
+    if not sorted_table.size:
+        return None
     travel_times = sorted_table.transpose()[1]
     unique_index = unique[1]
     mins = np.empty(unique_index.shape[0], np.float32)
@@ -73,6 +77,8 @@ def mins(sorted_table, unique):
 
 @njit()
 def counts(sorted_table, unique):
+    if not sorted_table.size:
+        return None
     travel_times = sorted_table.transpose()[1]
     unique_index = unique[1]
     counts = np.empty(unique_index.shape[0], np.float32)
@@ -87,6 +93,8 @@ def counts(sorted_table, unique):
 
 @njit()
 def averages(sorted_table, unique):
+    if not sorted_table.size:
+        return None
     travel_times = sorted_table.transpose()[1]
     unique_index = unique[1]
     averages = np.empty(unique_index.shape[0], np.float32)
@@ -101,6 +109,8 @@ def averages(sorted_table, unique):
 
 @njit
 def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
+    if not sorted_table.size:
+        return None
     travel_times = sorted_table.transpose()[1]
     unique_index = unique[1]
     modified_gaussian_per_grids = np.empty(unique_index.shape[0], np.float64)
