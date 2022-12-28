@@ -705,6 +705,7 @@ class CRUDHeatmap:
                     allow_pickle=True,
                 )
                 for cat in chosen_categories:
+
                     selected_category_index = np.in1d(poi_categories, np.array([cat]))
                     travel_times_dict[cat].extend(travel_times[selected_category_index])
                     grid_ids_dict[cat].extend(grid_ids[selected_category_index])
@@ -713,8 +714,16 @@ class CRUDHeatmap:
                 print(f"File not found for bulk_id {bulk_id}")
                 continue
         for cat in chosen_categories:
-            grid_ids_dict[cat] = np.concatenate(np.hstack(grid_ids_dict[cat]))
-            travel_times_dict[cat] = np.concatenate(np.hstack(travel_times_dict[cat]))
+            if grid_ids_dict[cat]:
+                grid_ids_dict[cat] = np.concatenate(
+                    np.concatenate(grid_ids_dict[cat], axis=None), axis=None
+                )
+                travel_times_dict[cat] = np.concatenate(
+                    np.concatenate(travel_times_dict[cat], axis=None), axis=None
+                )
+            else:
+                grid_ids_dict[cat] = np.array([], np.int64)
+                travel_times_dict[cat] = np.array([], np.int8)
 
         return grid_ids_dict, travel_times_dict
 
@@ -876,10 +885,52 @@ def test_heatmap():
         analysis_unit="building",
         heatmap_type="closest_average",
         heatmap_config={
-            "supermarket": {"max_traveltime": 5, "max_count": 1, "weight": 1},
-            "tram_stop": {"max_traveltime": 10, "max_count": 1, "weight": 1},
-            "bus_stop": {"max_traveltime": 10, "max_count": 1, "weight": 1},
-            "nursery": {"max_traveltime": 10, "max_count": 1, "weight": 1},
+            "atm": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "bar": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "pub": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "bank": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "cafe": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "fuel": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "park": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "yoga": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "hotel": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "bakery": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "cinema": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "forest": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "museum": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "butcher": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "dentist": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "nursery": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "bus_stop": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "pharmacy": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "post_box": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "fast_food": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "gymnasium": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "nightclub": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "recycling": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "tram_stop": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "playground": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "realschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "restaurant": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "car_sharing": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "convenience": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "grundschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "hypermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "marketplace": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "post_office": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "bike_sharing": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "discount_gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "kindergarten": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "rail_station": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "subway_entrance": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "charging_station": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "organic_supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "discount_supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "general_practitioner": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "swimming_pool_outdoor": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "hauptschule_mittelschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
         },
         return_type="geojson",
     )
