@@ -705,6 +705,7 @@ class CRUDHeatmap:
                     allow_pickle=True,
                 )
                 for cat in chosen_categories:
+
                     selected_category_index = np.in1d(poi_categories, np.array([cat]))
                     travel_times_dict[cat].extend(travel_times[selected_category_index])
                     grid_ids_dict[cat].extend(grid_ids[selected_category_index])
@@ -713,8 +714,16 @@ class CRUDHeatmap:
                 print(f"File not found for bulk_id {bulk_id}")
                 continue
         for cat in chosen_categories:
-            grid_ids_dict[cat] = np.concatenate(np.hstack(grid_ids_dict[cat]))
-            travel_times_dict[cat] = np.concatenate(np.hstack(travel_times_dict[cat]))
+            if grid_ids_dict[cat]:
+                grid_ids_dict[cat] = np.concatenate(
+                    np.concatenate(grid_ids_dict[cat], axis=None), axis=None
+                )
+                travel_times_dict[cat] = np.concatenate(
+                    np.concatenate(travel_times_dict[cat], axis=None), axis=None
+                )
+            else:
+                grid_ids_dict[cat] = np.array([], np.int64)
+                travel_times_dict[cat] = np.array([], np.int8)
 
         return grid_ids_dict, travel_times_dict
 
