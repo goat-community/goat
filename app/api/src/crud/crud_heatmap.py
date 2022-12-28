@@ -718,7 +718,7 @@ class CRUDHeatmap:
 
         return grid_ids_dict, travel_times_dict
 
-    async def aggregate_on_building(self, results: pd.DataFrame, study_area_ids: list[int]):
+    async def aggregate_on_building(self, grid_ids: dict, indices: dict, study_area_ids: list[int]):
 
         # Get buildings for testing. Currently only one study area is supported
         buildings = await self.db.execute(
@@ -736,39 +736,74 @@ class CRUDHeatmap:
         buildings_ids = [building[0] for building in buildings_points]
         buildings_points = [building[1] for building in buildings_points]
 
-        # TODO: write proper endpoint this is just for testing
-        from pyproj import Transformer
+        # Preliminary solution to get all grids from DB in the future do this outside this function and read from files instead DB
+        all_grid = await self.db.execute(
+            text(
+                """
+                SELECT g.id, ST_X(centroid) x, ST_Y(centroid) y 
+                FROM basic.grid_calculation g, basic.study_area s, LATERAL ST_TRANSFORM(ST_CENTROID(g.geom), 3857) AS centroid
+                WHERE ST_Intersects(g.geom, s.geom)
+                AND s.id = :study_area_id
+                """
+            ),
+            {"study_area_id": study_area_ids[0]},              
+        )
+        all_grid = all_grid.fetchall()
+        all_grids = np.array([grid[0] for grid in all_grid])
+        x = np.array([grid[1] for grid in all_grid])
+        y = np.array([grid[2] for grid in all_grid])
 
-        transformer = Transformer.from_crs(4326, 3857)
-        grid_ids = results["grid_id"].to_list()
-        grid_centroids = [h3.h3_to_geo(grid_id) for grid_id in grid_ids]
-        grid_centroids = [transformer.transform(c[0], c[1]) for c in grid_centroids]
-        x = np.array([c[0] for c in grid_centroids])
-        y = np.array([c[1] for c in grid_centroids])
         grid_points = np.stack((x, y), axis=1)
         tree = spatial.KDTree(grid_points)
 
-        distances, indices = tree.query(
-            buildings_points, k=3, distance_upper_bound=100, workers=-1
+        distances, positions = tree.query(
+            buildings_points, k=3, distance_upper_bound=200, workers=-1
         )
-        distances[distances == np.inf] = 0
-        indices_flatten = indices.flatten()
-
-        df_column = results.columns
+        indices_all_inf = (distances == np.inf).all(axis=1)
+        distances = distances[np.where(indices_all_inf==False)].tolist()
+        positions = positions[np.where(indices_all_inf==False)].tolist()
+        buildings_ids = np.array(buildings_ids)[np.where(indices_all_inf==False)].tolist()
+        #distances[distances == np.inf] = 0
+        #distances_flatten = distances.flatten()
+        #positions_flatten = positions.flatten()
+        #all_grids = np.append(all_grids, np.inf)
+        #grid_map = np.take(all_grids, positions_flatten)
 
         interpolated = {"building_id": buildings_ids}
-        for category in df_column[1:]:
-            costs = results[category].to_numpy()
-            unvalid_indices = np.asarray(indices_flatten == len(costs)).nonzero()[0]
-            mapped_costs = np.take(costs, indices_flatten, mode="clip")
-            np.put(mapped_costs, unvalid_indices, 0)
-            mapped_costs = mapped_costs.reshape(int(len(mapped_costs) / 3), 3)
+        for category in indices.keys():
+            costs = indices[category]
+            grids = grid_ids[category][0]
+            
+            intersect_grids = np.intersect1d(all_grids, grids, return_indices=True)
+            grids, relevant_indices = intersect_grids[0], intersect_grids[2]
+            costs = costs[relevant_indices]
 
-            to_divide = np.ndarray.sum(distances * mapped_costs, axis=1)
-            to_divide[to_divide == 0] = np.NaN
-            Z = to_divide / np.ndarray.sum(distances, axis=1)
-            Z = Z.astype(int)
-            interpolated[category] = Z
+            interpolated_values = []
+            for idx, distance in enumerate(distances):
+                position = positions[idx]
+                sum_distance = 0
+                sum_distance_cost = 0
+                for idx2, idx_grid in enumerate(position):
+                    if distance[idx2] != np.inf:
+                        grid = all_grids[idx_grid]
+                        idx_cost = np.isin(grids, grid).nonzero()
+                        if len(idx_cost[0]) > 0:
+                            idx_cost = idx_cost[0][0]
+                        else:
+                            continue
+                        cost = costs[idx_cost]
+                        distance_times_cost = distance[idx2] * cost
+                        sum_distance += distance[idx2]
+                        sum_distance_cost += distance_times_cost
+                    else:
+                        continue
+
+                if sum_distance != 0:
+                    interpolated_value = sum_distance_cost / sum_distance
+                    interpolated_values.append(interpolated_value)
+                else:
+                    interpolated_values.append(9999999)
+            interpolated[category] = np.array(interpolated_values)
 
         building_df = pd.DataFrame(interpolated)
         building_df.to_sql(
@@ -825,7 +860,7 @@ class CRUDHeatmap:
 
         # sorted_table, unique = heatmap_core.sort_and_unique_by_grid_ids(grid_ids, traveltimes)
         # mins = heatmap_core.mins(sorted_table, unique)
-
+        x = await self.aggregate_on_building(unique, mins, study_area_ids)
         ## Run
         start_time = time.time()
         sorted_table, unique = {}, {}
@@ -876,10 +911,52 @@ def test_heatmap():
         analysis_unit="building",
         heatmap_type="closest_average",
         heatmap_config={
-            "supermarket": {"max_traveltime": 5, "max_count": 1, "weight": 1},
-            "tram_stop": {"max_traveltime": 10, "max_count": 1, "weight": 1},
-            "bus_stop": {"max_traveltime": 10, "max_count": 1, "weight": 1},
-            "nursery": {"max_traveltime": 10, "max_count": 1, "weight": 1},
+            "atm": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "bar": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "pub": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "bank": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "cafe": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "fuel": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "park": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "yoga": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "hotel": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "bakery": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "cinema": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "forest": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "museum": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "butcher": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "dentist": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "nursery": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "bus_stop": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "pharmacy": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "post_box": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "fast_food": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "gymnasium": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "nightclub": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "recycling": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "tram_stop": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "playground": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "realschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "restaurant": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "car_sharing": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "convenience": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "grundschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "hypermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "marketplace": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "post_office": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "bike_sharing": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "discount_gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "kindergarten": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "rail_station": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "subway_entrance": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "charging_station": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "organic_supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "discount_supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "general_practitioner": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "swimming_pool_outdoor": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            "hauptschule_mittelschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
         },
         return_type="geojson",
     )
