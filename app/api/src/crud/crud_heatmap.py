@@ -781,6 +781,8 @@ class CRUDHeatmap:
         interpolated = {"building_id": buildings_ids}
         for category in indices.keys():
             costs = indices[category]
+            if costs is None:
+                continue
             grids = grid_ids[category][0]
             
             intersect_grids = np.intersect1d(all_grids, grids, return_indices=True)
