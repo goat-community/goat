@@ -392,17 +392,23 @@ class CRUDIsochrone:
         # Bring into correct format for client
         if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
             for idx, sub_study_area in get_reachable_population.iterrows():
+                total_population = sub_study_area["population"]
+                reached_population = population_grid_count[idx]
+                reached_population[reached_population > total_population] = total_population
+                
                 population_count[sub_study_area["name"]] = {
-                    "total_population": sub_study_area["population"],
-                    "reached_population": population_grid_count[idx].astype(int).tolist(),
+                    "total_population": total_population,
+                    "reached_population": reached_population.astype(int).tolist(),
                 }
         elif obj_in.starting_point.region_type == IsochroneMultiRegionType.DRAW:
             reached_population = np.zeros(max_time)
             for idx, sub_study_area_id in enumerate(sub_study_area_ids):
                 reached_population += population_grid_count[idx]
+            total_population = int(get_reachable_population["population"][0])
+            reached_population[reached_population > total_population] = total_population
 
             population_count["polygon"] = {
-                "total_population": int(get_reachable_population["population"][0]),
+                "total_population": total_population,
                 "reached_population": reached_population.astype(int).tolist(),
             }
 

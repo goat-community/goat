@@ -716,7 +716,17 @@
                       </v-layout>
                       <v-layout row>
                         <v-spacer></v-spacer>
-                        <v-tooltip top>
+                        <v-tooltip
+                          v-if="
+                            ![
+                              'transit',
+                              'cycling_standard',
+                              'cycling_pedelec'
+                            ].includes(calculation.routing) &&
+                              calculation.type !== 'multiple'
+                          "
+                          top
+                        >
                           <template v-slot:activator="{ on }">
                             <v-icon
                               :disabled="isIsochroneBusy"
@@ -1480,7 +1490,7 @@ export default {
       ApiService.post(`/isochrones/multi/count-pois`, {
         region_type: this.multiIsochroneMethod,
         region,
-        scenario_id: 0, //TODO: Get scenario id
+        scenario_id: this.activeScenario || 0, //TODO: Get scenario id
         modus: this.calculationMode.active,
         routing_profile: this.routing,
         minutes: this.time,
@@ -2294,6 +2304,11 @@ export default {
         // Reset features to 10 minutes.
         this.isochroneRange = 10;
         this.isochroneResultWindow = false;
+      }
+    },
+    activeScenario() {
+      if (this.multiIsochroneMethod) {
+        this.countPois();
       }
     }
   },
