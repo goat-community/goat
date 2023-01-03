@@ -140,3 +140,20 @@ def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
         else:
             modified_gaussian_per_grids[i] = sum
     return modified_gaussian_per_grids
+
+
+def quantile_classify(a, NQ=5):
+    q = np.arange(1 / NQ, 1, 1 / NQ)
+    quantiles = np.quantile(a[a > 0], q)
+    out = np.empty(a.size, np.int8)
+    out[np.where(a == 0)] = 0
+    out[np.where(np.logical_and(np.greater(a, 0), np.less(a, quantiles[0])))] = 1
+    out[np.where(a >= quantiles[-1])] = NQ
+    for i in range(NQ - 2):
+        out[
+            np.where(
+                np.logical_and(np.greater_equal(a, quantiles[i]), np.less(a, quantiles[i + 1]))
+            )
+        ] = (i + 2)
+
+    return out
