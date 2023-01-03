@@ -173,7 +173,7 @@ def test_quantile(n):
         print("Example of output:")
         print(out)
     else:
-        for i in range(NQ):
+        for i in range(NQ + 1):
             print(f"count {i}: {np.where(out==i)[0].size}")
             # print(i,np.where(out==i)[0].size)
 
