@@ -1,4 +1,5 @@
 from math import exp
+from time import time
 
 import numpy as np
 from numba import njit
@@ -157,3 +158,26 @@ def quantile_classify(a, NQ=5):
         ] = (i + 2)
 
     return out
+
+
+def test_quantile(n):
+    NQ = 5
+    a = np.random.random(n) * 120
+    a[a < 10] = 0
+
+    start_time = time()
+    out = quantile_classify(a, 5)
+    end_time = time()
+    print(f"quantile for {a.size} elements is: {int((end_time-start_time)*1000)} ms")
+    if n <= 100:
+        print("Example of output:")
+        print(out)
+    else:
+        for i in range(NQ):
+            print(f"count {i}: {np.where(out==i)[0].size}")
+            # print(i,np.where(out==i)[0].size)
+
+
+if __name__ == "__main__":
+    test_quantile(10000)
+    test_quantile(20)
