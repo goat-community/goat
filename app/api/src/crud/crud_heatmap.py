@@ -77,7 +77,6 @@ class CRUDHeatmap:
         self.db = db
         self.db_sync = db_sync
         self.current_user = current_user
-        self.multi_processing_bulk_size = 50
 
     async def read_h3_grids_study_areas(
         self, resolution: int, buffer_size: int, study_area_ids: list[int] = None
@@ -328,10 +327,12 @@ class CRUDHeatmap:
 
             # Prepare heatmap calculation objects
             traveltimeobjs = []
-            for i in range(0, len(starting_ids), self.multi_processing_bulk_size):
-                starting_ids_bulk = starting_ids[i : i + self.multi_processing_bulk_size]
-                grid_ids_bulk = grid_ids[i : i + self.multi_processing_bulk_size]
-                extents_bulk = extents[i : i + self.multi_processing_bulk_size]
+            for i in range(0, len(starting_ids), settings.HEATMAP_MULTIPROCESSING_BULK_SIZE):
+                starting_ids_bulk = starting_ids[
+                    i : i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE
+                ]
+                grid_ids_bulk = grid_ids[i : i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE]
+                extents_bulk = extents[i : i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE]
 
                 results = compute_isochrone_heatmap(
                     edges_source,

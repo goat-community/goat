@@ -157,6 +157,7 @@ class Settings(BaseSettings):
     # path_traveltime_matrices
     TRAVELTIME_MATRICES_PATH: str = "/app/src/cache/traveltime_matrices"
     OPPORTUNITY_MATRICES_PATH: str = "/app/src/cache/opportunity_matrices"
+    HEATMAP_MULTIPROCESSING_BULK_SIZE = 50
 
     @validator("R5_API_URL", pre=True)
     def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
