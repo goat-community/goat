@@ -94,3 +94,6 @@ class User(UserBase, table=True):
         back_populates="user", sa_relationship_kwargs={"cascade": "all,delete,delete-orphan"}
     )
     # active_study_area: "StudyArea" = Relationship(back_populates="users_active")
+
+    class Config:
+        search_fields = ["name", "email", "surname"]

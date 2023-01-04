@@ -18,6 +18,17 @@ export default {
     });
   },
   methods: {
+    checkOpacityOfColor: function(color) {
+      if (
+        typeof parseInt(color[7]) === "number" &&
+        typeof parseInt(color[8]) === "number"
+      ) {
+        if (parseInt(color[7]) <= 0 && parseInt(color[8]) <= 9) {
+          return "#00000080";
+        }
+      }
+      return color;
+    },
     renderLineChart: function() {
       const accessibilityData = this.selectedCalculations[0].surfaceData
         .accessibility;
@@ -35,9 +46,12 @@ export default {
               ? this.$t(`pois.population`)
               : "population",
             fill: false,
-            borderColor: this.calculationColors[index],
+            borderColor: this.checkOpacityOfColor(
+              this.calculationColors[calculation.id - 1]
+            ),
             borderDash: index === 0 ? [0, 0] : [10, 5],
-            pointRadius: 1
+            pointRadius: 1,
+            tension: 0
           });
         } else {
           let keys = [];
@@ -58,6 +72,7 @@ export default {
                   ? this.$t(`pois.${amenity}`)
                   : amenity,
                 fill: false,
+                tension: 0,
                 borderColor: config[amenity].color[0] || "rgb(54, 162, 235)",
                 borderDash: index === 0 ? [0, 0] : [10, 5],
                 pointRadius: 1
@@ -114,14 +129,19 @@ export default {
           },
           annotation: {
             annotations: [
-              {
-                id: "current-time-annotation",
-                type: "line",
-                mode: "vertical",
-                scaleID: "x-axis-0",
-                borderColor: "red",
-                value: this.isochroneRange
-              }
+              ...this.selectedCalculations.map(calc => {
+                return {
+                  id: `current-time-annotation-${calc.id}`,
+                  type: "line",
+                  mode: "vertical",
+                  scaleID: "x-axis-0",
+                  borderWidth: 3,
+                  borderColor: this.checkOpacityOfColor(
+                    this.calculationColors[calc.id - 1]
+                  ),
+                  value: this.calculationTravelTime[calc.id - 1]
+                };
+              })
             ]
           },
           legend: {
@@ -143,6 +163,9 @@ export default {
     }
   },
   watch: {
+    calculationColors() {
+      this.renderLineChart();
+    },
     selectedPoisOnlyKeys: {
       handler: function() {
         this.renderLineChart();
@@ -155,7 +178,7 @@ export default {
       },
       deep: true
     },
-    isochroneRange: function() {
+    calculationTravelTime: function() {
       this.renderLineChart();
     },
     chartDatasetType: function() {
@@ -170,6 +193,8 @@ export default {
       selectedCalculations: "selectedCalculations",
       isochroneRange: "isochroneRange",
       chartDatasetType: "chartDatasetType",
+      preDefCalculationColors: "preDefCalculationColors",
+      calculationTravelTime: "calculationTravelTime",
       calculationColors: "calculationColors"
     }),
     ...mapGetters("poisaois", {

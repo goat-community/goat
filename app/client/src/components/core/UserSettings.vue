@@ -28,15 +28,6 @@
       </v-row>
 
       <v-divider></v-divider>
-      <!-- <v-select
-        class="mt-8"
-        v-model="studyAreaId"
-        :items="studyAreaList"
-        item-value="id"
-        item-text="name"
-        :label="$t('userSettings.changeStudyAreaTitle')"
-        @change="changeStudyArea"
-      > -->
       <v-autocomplete
         v-model="studyAreaId"
         class="mt-8"

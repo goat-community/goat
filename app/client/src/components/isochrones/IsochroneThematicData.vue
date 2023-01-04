@@ -2,13 +2,11 @@
   <v-card
     v-if="isochroneResultWindow === true"
     v-draggable="draggableValue"
-    class="thematic-data elevation-4"
+    class="thematic-data isochrone-result"
     id="isochroneWindowId"
-    :style="[isExpanded ? { height: '520px' } : { height: '50px' }]"
-    style="position:fixed;top:10px;left:400px;z-index:2;max-width:600px;min-width:370px;height:450px;overflow:hidden;"
     ondragstart="return false;"
   >
-    <v-layout justify-space-between column fill-height>
+    <v-layout justify-space-between column>
       <v-app-bar
         :ref="handleId"
         :color="appColor.primary"
@@ -30,10 +28,7 @@
 
       <vue-scroll>
         <div>
-          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1">
-            <v-card-text class="ma-0 py-0 pt-0 pb-2">
-              <v-layout row wrap justify-end> </v-layout>
-            </v-card-text>
+          <v-flex v-if="isExpanded" xs12 class="mx-3 mt-1 mb-1">
             <v-card-text class="ma-0 pa-0" row>
               <v-row justify="center" align="center" class="mx-1">
                 <v-menu offset-y>
@@ -68,14 +63,32 @@
                 >
                   <div
                     class="mx-2 colorPalettePicker"
-                    :style="`border-bottom:4px solid ${calculationColors[0]};`"
+                    :style="
+                      `border-bottom:4px solid ${
+                        calculationColors[selectedCalculations[0].id - 1]
+                      };`
+                    "
                   ></div>
-                  <span>Isochrone {{ selectedCalculations[0].id }}</span>
+                  <span
+                    >Isochrone
+                    {{
+                      getCurrentIsochroneNumber(selectedCalculations[0])
+                    }}</span
+                  >
                   <div
                     class="ml-6 mr-2 colorPalettePicker"
-                    :style="`border-bottom:4px dashed ${calculationColors[1]};`"
+                    :style="
+                      `border-bottom:4px dashed ${
+                        calculationColors[selectedCalculations[1].id - 1]
+                      };`
+                    "
                   ></div>
-                  <span>Isochrone {{ selectedCalculations[1].id }}</span>
+                  <span
+                    >Isochrone
+                    {{
+                      getCurrentIsochroneNumber(selectedCalculations[1])
+                    }}</span
+                  >
                 </template>
                 <v-spacer></v-spacer>
                 <v-btn-toggle
@@ -103,29 +116,6 @@
                     <v-icon small>fa-solid fa-chart-pie</v-icon>
                   </v-btn>
                 </v-btn-toggle>
-              </v-row>
-              <v-row class="ml-1 mr-0">
-                <v-col cols="12" class="pr-0 pb-0 mr-0">
-                  <v-slider
-                    @mousedown.native.stop
-                    @mouseup.native.stop
-                    @click.native.stop
-                    class="pt-4"
-                    prepend-icon="schedule"
-                    :track-color="appColor.secondary"
-                    :color="appColor.secondary"
-                    v-model="isochroneRange"
-                    :min="1"
-                    :max="getMaxIsochroneRange"
-                    thumb-label="always"
-                    thumb-size="25"
-                    @input="udpateIsochroneSurface"
-                  >
-                    <template v-slot:thumb-label="{ value }">
-                      {{ value }}
-                    </template>
-                  </v-slider>
-                </v-col>
               </v-row>
             </v-card-text>
             <isochrone-amenities-line-chart
@@ -180,7 +170,8 @@
               v-if="resultViewType === 0"
               :headers="tableHeaders"
               :items="tableItems"
-              class="elevation-1 mb-2"
+              class="mb-2"
+              style="max-height: 250px;"
               :search="search"
               hide-default-footer
               :no-data-text="
@@ -205,22 +196,21 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-// import IsochroneUtils from "../../utils/IsochroneUtils";
+import IsochroneUtils from "../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
 import { mapFields } from "vuex-map-fields";
-import {
-  featuresToGeojson,
-  fromPixel,
-  geojsonToFeature
-} from "../../utils/MapUtils";
-import { jsolines } from "../../utils/Jsolines";
+import { featuresToGeojson } from "../../utils/MapUtils";
 import IsochroneAmenitiesLineChart from "../other/IsochroneAmenitiesLineChart.vue";
 import IsochroneAmenitiesPieChart from "../other/IsochroneAmenitiesPieChart.vue";
 import IsochroneAmenitiesRadarChartVue from "../other/IsochroneAmenitiesRadarChart.vue";
 import { saveAs } from "file-saver";
-import { debounce } from "../../utils/Helpers";
+import { debounce, numberSeparator } from "../../utils/Helpers";
 import ApiService from "../../services/api.service";
 import JSZip from "jszip";
+import {
+  calculateCalculationsLength,
+  calculateCurrentIndex
+} from "../../utils/Helpers";
 export default {
   components: {
     IsochroneAmenitiesLineChart,
@@ -276,35 +266,12 @@ export default {
       }
       return string;
     },
-    updateIsochroneSurface(calculation) {
-      const {
-        surface,
-        width,
-        height,
-        west,
-        north,
-        zoom
-        // eslint-disable-next-line no-undef
-      } = calculation.surfaceData;
-      const isochronePolygon = jsolines({
-        surface,
-        width,
-        height,
-        cutoff: this.isochroneRange,
-        project: ([x, y]) => {
-          const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-          return [ll.lon, ll.lat];
-        }
-      });
-      let olFeatures = geojsonToFeature(isochronePolygon, {
-        dataProjection: "EPSG:4326",
-        featureProjection: "EPSG:3857"
-      });
-      calculation.feature.setGeometry(olFeatures[0].getGeometry());
-    },
-    udpateIsochroneSurface: debounce(function() {
+    updateIsochroneSurface: debounce(function() {
       this.selectedCalculations.forEach(calculation => {
-        this.updateIsochroneSurface(calculation);
+        IsochroneUtils.updateIsochroneSurface(
+          calculation,
+          this.calculationTravelTime[calculation.id - 1]
+        );
       });
     }, 30),
     downloadIsochrone(type) {
@@ -380,6 +347,9 @@ export default {
             timeout: 10000
           });
         });
+    },
+    getCurrentIsochroneNumber(calc) {
+      return calculateCalculationsLength() - calculateCurrentIndex(calc);
     }
   },
   computed: {
@@ -398,7 +368,7 @@ export default {
           }
         ];
         this.selectedCalculations.forEach(calculation => {
-          const id = calculation.id;
+          const id = this.getCurrentIsochroneNumber(calculation);
           // const modus = calculation.config.scenario.modus;
           headers.push({
             text: `Isochrone #${id}`,
@@ -442,7 +412,7 @@ export default {
       this.selectedCalculations.forEach(calculation => {
         // Single isochrone calculation
         let pois = calculation.surfaceData.accessibility;
-        let selectedTime = this.isochroneRange;
+        let selectedTime = this.calculationTravelTime[calculation.id - 1];
         if (calculation.type === "single") {
           let keys = Object.keys(pois);
           if (keys.length > 0) {
@@ -461,8 +431,26 @@ export default {
                   let obj = {
                     pois: amenity ? this.$t(`pois.${amenity}`) : amenity
                   };
-                  let value = this.getString(parseInt(sumPois[amenity]));
-                  obj[`isochrone-${calculation.id}`] = value || "-";
+                  let value = numberSeparator(
+                    this.getString(parseInt(sumPois[amenity])),
+                    this.$i18n.locale
+                  );
+
+                  // Check if the amenity is AOI
+                  let aoiCheck = this.selectedAois.filter(
+                    aoi => aoi.value === amenity
+                  );
+                  if (aoiCheck.length) {
+                    value =
+                      numberSeparator(
+                        this.getString(parseInt(sumPois[amenity])),
+                        this.$i18n.locale
+                      ) + " m²";
+                  }
+
+                  obj[
+                    `isochrone-${this.getCurrentIsochroneNumber(calculation)}`
+                  ] = value || "-";
                   if (poisObj[amenity]) {
                     poisObj[amenity] = { ...poisObj[amenity], ...obj };
                   } else {
@@ -489,7 +477,7 @@ export default {
         }
       });
       //Sort table rows based on number of amenties || alphabeticaly (only on single calculations)
-      if (this.calculations[0].type === "single") {
+      if (this.selectedCalculations[0].type === "single") {
         items = Object.values(poisObj);
         items.sort((a, b) => {
           const b_Value = b[Object.keys(b)[0]];
@@ -500,6 +488,7 @@ export default {
           return b_Value - a_Value;
         });
       }
+      console.log(items);
       return items;
     },
     getMaxIsochroneRange() {
@@ -512,14 +501,18 @@ export default {
       }
       return maxIsochroneRange;
     },
-
     ...mapGetters("isochrones", {
       isochroneLayer: "isochroneLayer",
-      calculationColors: "calculationColors"
+      calculationColors: "calculationColors",
+      preDefCalculationColors: "preDefCalculationColors",
+      calculationSrokeObjects: "calculationSrokeObjects",
+      calculationTravelTime: "calculationTravelTime",
+      selectedCalculationChangeColor: "selectedCalculationChangeColor"
     }),
     ...mapGetters("poisaois", {
       poisAois: "poisAois",
       selectedPois: "selectedPois",
+      selectedAois: "selectedAois",
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys",
       selectedAoisOnlyKeys: "selectedAoisOnlyKeys"
     }),
@@ -535,6 +528,12 @@ export default {
     })
   },
   watch: {
+    calculationColors() {
+      this.updateIsochroneSurface(this.selectedCalculationChangeColor);
+    },
+    calculationSrokeObjects() {
+      this.updateIsochroneSurface(this.selectedCalculationChangeColor);
+    },
     resultViewType(value) {
       if (value === 2 && this.chartDatasetType === 0) {
         if (this.selectedPoisOnlyKeys.length > 0) {
@@ -627,5 +626,16 @@ export default {
   width: 50px;
   border-radius: 0px;
   margin-bottom: 16px;
+}
+
+.isochrone-result {
+  position: fixed;
+  z-index: 2;
+  top: 20px;
+  /** Drawer width + 70px margin */
+  left: calc(360px + 70px);
+  max-width: 600px;
+  min-width: 370px;
+  height: fit-content;
 }
 </style>

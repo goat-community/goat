@@ -3,11 +3,12 @@ from enum import Enum, IntEnum
 from typing import Dict, List, Optional, Union
 
 from bson import STANDARD
-from src.endpoints import deps
+from fastapi import HTTPException
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import MultiPolygon, Polygon
 from pydantic import BaseModel, Field, root_validator, validator
-from fastapi import HTTPException
+
+from src.endpoints import deps
 from src.resources.enums import RoutingTypes
 
 """
@@ -123,13 +124,14 @@ class IsochroneWalkingProfile(Enum):
 
 class IsochroneCyclingProfile(Enum):
     STANDARD = "standard"
+    PEDELEC = "pedelec"
 
 
 class IsochroneAccessMode(Enum):
     WALK = "walk"
     BICYCLE = "bicycle"
-    CAR = "car"
-    CAR_PARK = "car_park"
+    # CAR = "car" //TODO: not supported yet
+    # CAR_PARK = "car_park" //TODO: not supported yet
 
 
 class IsochroneTransitMode(Enum):
@@ -145,7 +147,7 @@ class IsochroneTransitMode(Enum):
 
 class IsochroneEgressMode(Enum):
     WALK = "walk"
-    BICYCLE = "bicycle"
+    # BICYCLE = "bicycle" //TODO: not supported yet
 
 
 class IsochroneOutputType(Enum):

@@ -3,7 +3,7 @@ from sqlalchemy import update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import and_, func
-
+from geoalchemy2.shape import to_shape, from_shape
 from src import crud
 from src.crud.base import CRUDBase
 from src.db import models
@@ -12,6 +12,7 @@ from src.db.models.config_validation import *
 from src.db.models.customization import Customization
 from sqlalchemy.sql import delete, select
 from fastapi.encoders import jsonable_encoder
+from src.utils import wgs84_to_web_mercator, web_mercator_to_wgs84
 
 class CRUDCustomization(
     CRUDBase[models.Customization, models.Customization, models.Customization]
@@ -54,6 +55,7 @@ class CRUDDynamicCustomization:
             "access_token",
             "max_resolution",
             "max_resolution",
+            "doc_url"
         ]:
             if getattr(layer, key) is not None:
                 layer_attributes[key] = getattr(layer, key)
@@ -248,10 +250,16 @@ class CRUDDynamicCustomization:
         if transit != {}:
             filtered_transit_modes = []
             for public_transport_type in transit["transit_modes"]:
-                # Check if station type is in study area
+                # Check if station type is in study area buffer
+                study_area_geom = to_shape(study_area_obj.geom)
+                study_area_geom = wgs84_to_web_mercator(study_area_geom)
+                study_area_geom = study_area_geom.buffer(60000)
+                study_area_geom = web_mercator_to_wgs84(study_area_geom)
+                study_area_geom = from_shape(study_area_geom, srid=4326)
+
                 statement = select(models.Poi).where(
                     and_(
-                        models.Poi.geom.ST_Intersects(study_area_obj.geom),
+                        models.Poi.geom.ST_Intersects(study_area_geom),
                         models.Poi.category == public_transport_type["poi_category"],
                     )
                 ).limit(1)

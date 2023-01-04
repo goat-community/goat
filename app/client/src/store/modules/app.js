@@ -45,14 +45,6 @@ const getters = {
     return state.appConfig.app_ui.base_color;
   },
   scenarioLayerEditModeColor: state => state.scenarioLayerEditModeColor,
-  routingProfiles: state => {
-    let routingProfiles = {};
-    const routing = state.appConfig.routing;
-    routing.forEach(r => {
-      routingProfiles[r.type] = r;
-    });
-    return routingProfiles;
-  },
   poisAoisTree: state => {
     let treeStruct = [];
     const poiAoiGroups = [

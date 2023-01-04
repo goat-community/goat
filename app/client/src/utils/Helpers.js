@@ -1,4 +1,5 @@
 import jwt_decode from "jwt-decode";
+import store from "../store";
 
 export function humanize(str) {
   if (!str) return "";
@@ -250,3 +251,31 @@ export const secondsToHoursAndMins = seconds => {
   fromTimeDate.setSeconds(seconds);
   return fromTimeDate.toISOString().substring(11, 16);
 };
+
+export const numberSeparator = (number, locale) => {
+  if (locale === "en") {
+    return number.toLocaleString("en-US");
+  } else if (locale === "de") {
+    return number.toLocaleString("de-DE");
+  }
+};
+
+//! Clculate the real length of the calculations array
+export function calculateCalculationsLength() {
+  let realArr = store.state.isochrones.calculations.filter(
+    calculation => calculation !== "deleted"
+  );
+  return realArr.length;
+}
+export function calculateRealCalculations() {
+  let realArr = store.state.isochrones.calculations.filter(
+    calculation => calculation !== "deleted"
+  );
+  return realArr;
+}
+export function calculateCurrentIndex(calc) {
+  let realArr = store.state.isochrones.calculations.filter(
+    calculation => calculation !== "deleted"
+  );
+  return realArr.indexOf(calc);
+}

@@ -51,6 +51,7 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Total-Count"],
     )
 
 
@@ -98,7 +99,7 @@ async def status_check(db: AsyncSession = Depends(deps.get_db)):
     except Exception as e:
         return JSONResponse(status_code=503, content={"message": "Service Unavailable"})
 
-    if results.setting["status"] == "maintenance":
+    if results.setting.get("status") == "maintenance":
         return JSONResponse(status_code=503, content={"message": "Service Unavailable"})
     else:
         return {"status": "ok"}

@@ -45,6 +45,7 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
 	VERSION=$(VERSION) \
 	POSTGRES_HOST=$(POSTGRES_HOST) \
 	R5_HOST=$(R5_HOST) \
+	R5_AUTHORIZATION=$(R5_AUTHORIZATION) \
 	POSTGRES_DB=$(POSTGRES_DB) \
 	POSTGRES_USER=$(POSTGRES_USER) \
 	POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
@@ -118,3 +119,8 @@ build-k8s:
 .PHONY: deploy
 deploy: setup-kube-config build-k8s
 	$(KCTL) apply -f k8s/deploy/$(COMPONENT).yaml
+
+# target: make deploy-service -e COMPONENT=api|client
+.PHONY: deploy-service
+deploy-service: setup-kube-config build-k8s
+	$(KCTL) replace -f k8s/deploy/$(COMPONENT).yaml

@@ -1,27 +1,32 @@
+from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import (
     Column,
+    DateTime,
     Field,
     ForeignKey,
     Integer,
     Relationship,
     SQLModel,
     Text,
-    DateTime,
-    text
+    text,
 )
-from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSONB
 
 if TYPE_CHECKING:
     from .role import Role
-    from .user import User
     from .study_area import StudyArea
+    from .user import User
 
 
+class CustomizationBase(SQLModel):
+    type: str
+    setting: dict
+    role_id: int
 
-class Customization(SQLModel, table=True):
+
+class Customization(CustomizationBase, table=True):
     __tablename__ = "customization"
     __table_args__ = {"schema": "customer"}
 
@@ -33,9 +38,10 @@ class Customization(SQLModel, table=True):
             Integer, ForeignKey("customer.role.id", ondelete="CASCADE"), nullable=False
         )
     )
-
     role: "Role" = Relationship(back_populates="customizations")
-    user_customizations: Optional[List["UserCustomization"]] = Relationship(back_populates="customizations")
+    user_customizations: Optional[List["UserCustomization"]] = Relationship(
+        back_populates="customizations"
+    )
 
 
 class UserCustomization(SQLModel, table=True):
@@ -51,7 +57,7 @@ class UserCustomization(SQLModel, table=True):
         default=None,
         sa_column=Column(
             Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
-        )
+        ),
     )
     customization_id: int = Field(
         sa_column=Column(
@@ -59,9 +65,7 @@ class UserCustomization(SQLModel, table=True):
         )
     )
     study_area_id: int = Field(
-        sa_column=Column(
-            Integer, ForeignKey("basic.study_area.id"), nullable=False
-        )
+        sa_column=Column(Integer, ForeignKey("basic.study_area.id"), nullable=False)
     )
     customizations: "Customization" = Relationship(back_populates="user_customizations")
     users: "User" = Relationship(back_populates="user_customizations")

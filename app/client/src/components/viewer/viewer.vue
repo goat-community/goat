@@ -3,6 +3,11 @@
     <div v-show="print.active === false">
       <!-- isochrone-thematic-data -->
       <isochrone-thematic-data v-show="!miniViewOlMap" />
+      <style-dialog
+        :temporaryColors="temporaryColors"
+        type="isochrone"
+        v-if="selectedCalculationChangeColor"
+      ></style-dialog>
 
       <!-- mapillary-->
       <div
@@ -64,6 +69,7 @@ import IsochronThematicData from "../isochrones/IsochroneThematicData.vue";
 import PrintViewer from "./print/PrintViewer";
 import { mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
+import StyleDialog from "../styling/StyleDialog.vue";
 
 export default {
   name: "app-viewer",
@@ -71,14 +77,19 @@ export default {
     "app-ol-map": appMap,
     "app-mapillary": appMapillary,
     "isochrone-thematic-data": IsochronThematicData,
-    "print-viewer": PrintViewer
+    "print-viewer": PrintViewer,
+    "style-dialog": StyleDialog
   },
   data() {
     return {
       miniViewOlMap: false,
+      temporaryColors: null,
       mapillaryAccessToken:
         "MLY|4945732362162775|a3872ee8a2b737be51db110cdcdea3d4"
     };
+  },
+  mounted() {
+    this.temporaryColors = this.preDefCalculationColors;
   },
   computed: {
     ...mapGetters("app", {
@@ -87,6 +98,11 @@ export default {
     ...mapGetters("map", {
       print: "print",
       studyArea: "studyArea"
+    }),
+    ...mapGetters("isochrones", {
+      selectedCalculationChangeColor: "selectedCalculationChangeColor",
+      calculationColors: "calculationColors",
+      preDefCalculationColors: "preDefCalculationColors"
     }),
     ...mapFields("map", {
       isMapillaryBtnDisabled: "isMapillaryBtnDisabled",
@@ -114,6 +130,15 @@ export default {
       this.miniViewerVisible = false;
       this.miniViewOlMap = false;
       this.updateViews();
+    },
+    translate(type, key) {
+      //Checks if key exists and translates it othewise return the input value
+      const canTranslate = this.$te(`map.${type}.${key}`);
+      if (canTranslate) {
+        return this.$t(`map.${type}.${key}`);
+      } else {
+        return key;
+      }
     }
   }
 };

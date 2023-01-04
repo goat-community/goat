@@ -2,10 +2,13 @@ import datetime
 import json
 from typing import Any, List, Union
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic.networks import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.collections import InstrumentedList
+from sqlalchemy.sql import select
 
 from src import crud, schemas
 from src.core.config import settings
@@ -21,19 +24,24 @@ router = APIRouter()
 
 @router.get("", response_model=List[models.User], response_model_exclude={"hashed_password"})
 async def read_users(
+    response: Response,
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    ordering: str = None,
+    q: str = None,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve users.
     """
     is_superuser = crud.user.is_superuser(current_user)
+    total_count = await crud.user.count(db)
+    response.headers["X-Total-Count"] = str(total_count)
     if not is_superuser:
         raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 
-    users = await crud.user.get_multi(db, skip=skip, limit=limit)
+    users = await crud.user.get_multi(db, skip=skip, limit=limit, ordering=ordering, query=q)
     return users
 
 
@@ -110,19 +118,16 @@ async def update_user_preference(
     return user
 
 
-@router.post("", response_model=models.User, response_model_exclude={"hashed_password"})
+@router.post("")
 async def create_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
     user_in: schemas.UserCreate = Body(..., example=request_examples["create"]),
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Create new user.
     """
-    is_superuser = crud.user.is_superuser(current_user)
-    if not is_superuser:
-        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 
     user = await crud.user.get_by_key(db, key="email", value=user_in.email)
     if user and len(user) > 0:
@@ -131,7 +136,14 @@ async def create_user(
             detail="The user with this email already exists in the system.",
         )
     user = await crud.user.create(db, obj_in=user_in)
-    return user
+    user = await crud.user.get(
+        db, id=user.id, extra_fields=[models.User.roles, models.User.study_areas]
+    )
+    user_json = jsonable_encoder(user)
+    user_json["roles"] = [json.loads(role.json()) for role in user.roles]
+    user_json["study_areas"] = [study_area.id for study_area in user.study_areas]
+    del user_json["hashed_password"]
+    return user_json
 
 
 @router.post("/demo", response_model=models.User, response_model_exclude={"hashed_password"})
@@ -269,31 +281,29 @@ async def deactivate_demo_users(
                     email_language=user.language_preference,
                 )
 
-        if (time_diff.days > 30) and not user.is_active:
-            await crud.user.remove(db, id=user.id)
-
     return {"msg": "Demo users deactivated"}
 
 
-@router.get("/{user_id}", response_model=models.User, response_model_exclude={"hashed_password"})
+@router.get("/{user_id}")
 async def read_user_by_id(
     user_id: int,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     """
     Get a specific user by id.
     """
-    is_superuser = crud.user.is_superuser(current_user)
-    if not is_superuser:
-        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
+    user = await crud.user.get(
+        db, id=user_id, extra_fields=[models.User.roles, models.User.study_areas]
+    )
 
-    user = await crud.user.get(db, id=user_id, extra_fields=[models.User.roles])
-    if user == current_user:
-        return user
-    if not crud.user.is_superuser(current_user):
-        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
-    return user
+    user_json = jsonable_encoder(user)
+    user_json["roles"] = [json.loads(role.json()) for role in user.roles]
+    user_json["study_areas"] = [study_area.id for study_area in user.study_areas]
+
+    del user_json["hashed_password"]
+
+    return user_json
 
 
 @router.delete("/")
@@ -316,14 +326,11 @@ async def update_user(
     db: AsyncSession = Depends(deps.get_db),
     user_id: int,
     user_in: schemas.UserUpdate = Body(..., example=request_examples["update"]),
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Update a user.
     """
-    is_superuser = crud.user.is_superuser(current_user)
-    if not is_superuser:
-        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 
     user = await crud.user.get(
         db, id=user_id, extra_fields=[models.User.study_areas, models.User.roles]

@@ -13,10 +13,12 @@ from sqlmodel import (
     Relationship,
     SQLModel,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 
 if TYPE_CHECKING:
     from .heatmap import ReachedEdgeHeatmapGridCalculation
     from .study_area import StudyArea
+    from .traveltime_matrix import TravelTimeMatrixWalking
 
 from ._link_model import StudyAreaGridVisualization
 
@@ -38,13 +40,15 @@ class GridVisualization(SQLModel, table=True):
             nullable=False,
         )
     )
-
+    demography: Optional[dict] = Field(sa_column=Column(JSONB))
     study_areas: List["StudyArea"] = Relationship(
         back_populates="grid_visualizations", link_model=StudyAreaGridVisualization
     )
     grid_calculations: List["GridCalculation"] = Relationship(back_populates="grid_visualization")
 
+
 Index("idx_grid_visualization_geom", GridVisualization.__table__.c.geom, postgresql_using="gist")
+
 
 class GridCalculation(SQLModel, table=True):
     __tablename__ = "grid_calculation"
@@ -69,7 +73,9 @@ class GridCalculation(SQLModel, table=True):
     )
     grid_visualization: "GridVisualization" = Relationship(back_populates="grid_calculations")
 
+    traveltime_matrix_walking: "TravelTimeMatrixWalking" = Relationship(
+        back_populates="grid_calculation"
+    )
 
 
 Index("idx_grid_caclulation_geom", GridCalculation.__table__.c.geom, postgresql_using="gist")
-

@@ -9,13 +9,23 @@ import OlShadow from "../utils/Shadow";
 
 import poisAoisStore from "../store/modules/poisaois";
 import isochroneStore from "../store/modules/isochrones";
+import store from "../store/index";
 import mapStore from "../store/modules/map";
+import Stroke from "ol/style/Stroke";
 import appStore from "../store/modules/app";
 import { FA_DEFINITIONS } from "../utils/FontAwesomev6ProDefs";
-import { getIconUnicode } from "../utils/Helpers";
+import {
+  getIconUnicode,
+  interpolateColor,
+  LinearColorInterpolator
+} from "../utils/Helpers";
 import Point from "ol/geom/Point";
 import { getArea } from "ol/sphere.js";
 import i18n from "../../src/plugins/i18n";
+import {
+  calculateRealCalculations,
+  calculateCalculationsLength
+} from "../utils/Helpers";
 
 OlFontSymbol.addDefs(
   {
@@ -197,82 +207,125 @@ export function getIsochroneStyle() {
      * Creates styles for isochrone polygon geometry type and isochrone
      * center marker.
      */
-    if (
-      geomType === "Polygon" ||
-      geomType === "MultiPolygon" ||
-      geomType === "LineString"
-    ) {
+    if (["Polygon", "MultiPolygon", "LineString"].includes(geomType)) {
       //Check feature isVisible Property
       if (isVisible === false) {
         return;
       }
-      const calculationColors = isochroneStore.state.calculationColors;
-      const selectedCalculations = isochroneStore.state.selectedCalculations;
-      const calculationNumber = feature.get("calculationNumber");
-      const calculationIndex = selectedCalculations.findIndex(calculation => {
-        return calculation.id === calculationNumber;
-      });
-      styles.push(
-        new OlStyle({
-          fill: new OlFill({
-            color: calculationColors[calculationIndex]
+      let calculationColors = isochroneStore.state.calculationColors;
+      let calculationStroke = isochroneStore.state.calculationSrokeObjects;
+      let calculationNumber = feature.get("calculationNumber");
+      if (calculationNumber && calculationNumber > 10) {
+        let division = calculationNumber / 10;
+        let remaining = division - parseInt(division);
+        calculationNumber = Math.round(remaining * 10);
+      }
+      // Network visualization
+      if (geomType === "LineString") {
+        const time =
+          isochroneStore.state.calculationTravelTime[calculationNumber - 1];
+        if (time && feature.get("cost") > time) {
+          return;
+        }
+        let factor = feature.get("cost") / time;
+        if (factor > 1) {
+          factor = 1;
+        }
+        const rgbColor = LinearColorInterpolator.convertHexToRgb(
+          calculationColors[calculationNumber - 1].slice(0, -2)
+        );
+        const color = interpolateColor(
+          "rgb(255,255,255)",
+          `rgb(${rgbColor.r},${rgbColor.g},${rgbColor.b})`,
+          factor
+        );
+        styles.push(
+          new OlStyle({
+            stroke: new Stroke({
+              color: color,
+              width: 2
+            })
           })
-        })
-      );
+        );
+      } else {
+        // Isochrone visualization
 
-      if (feature.get("showLabel")) {
-        if (geomType !== ["Polygon", "LineString"]) {
-          styles.push(
-            new OlStyle({
-              geometry: feature => {
-                const coordinates = feature
-                  .getGeometry()
-                  .getCoordinates()[0][0];
-                let maxY = null;
-                let index = null;
-                // Find max coordinate Y
-                coordinates.forEach(coordinate => {
-                  if (maxY === null || coordinate[1] > maxY) {
-                    maxY = coordinate[1];
-                    index = coordinates.indexOf(coordinate);
-                  }
-                });
-                const center = coordinates[index];
-                return new Point(center);
-              },
-              text: new OlText({
-                text: isochroneStore.state.isochroneRange + " min",
-                font: "bold 16px Arial",
-                placement: "point",
-                fill: new OlFill({
-                  color: "white"
-                }),
-                maxAngle: 0,
-                backgroundFill: new OlFill({
-                  color: calculationColors[calculationIndex]
-                }),
-                padding: [2, 2, 2, 2]
-              })
+        styles.push(
+          new OlStyle({
+            fill: new OlFill({
+              color: calculationColors[calculationNumber - 1]
+            }),
+            stroke: new Stroke({
+              color: calculationStroke[calculationNumber - 1].color,
+              width: calculationStroke[calculationNumber - 1].width,
+              lineDash: [
+                calculationStroke[calculationNumber - 1].dashWidth,
+                calculationStroke[calculationNumber - 1].dashSpace
+              ]
             })
-          );
-        } else {
-          styles.push(
-            new OlStyle({
-              text: new OlText({
-                text: isochroneStore.state.isochroneRange + " min",
-                font: "bold 16px Arial",
-                placement: "line",
-                fill: new OlFill({
-                  color: calculationColors[calculationIndex]
-                }),
-                maxAngle: 0
+          })
+        );
+
+        if (feature.get("showLabel")) {
+          if (geomType !== ["Polygon", "LineString"]) {
+            styles.push(
+              new OlStyle({
+                geometry: feature => {
+                  const coordinates = feature
+                    .getGeometry()
+                    .getCoordinates()[0][0];
+                  let maxY = null;
+                  let index = null;
+                  // Find max coordinate Y
+                  coordinates.forEach(coordinate => {
+                    if (maxY === null || coordinate[1] > maxY) {
+                      maxY = coordinate[1];
+                      index = coordinates.indexOf(coordinate);
+                    }
+                  });
+                  const center = coordinates[index];
+                  return new Point(center);
+                },
+                text: new OlText({
+                  text: isochroneStore.state.isochroneRange + " min",
+                  font: "bold 16px Arial",
+                  placement: "point",
+                  fill: new OlFill({
+                    color: "white"
+                  }),
+                  maxAngle: 0,
+                  backgroundFill: new OlFill({
+                    color: calculationColors[calculationNumber]
+                  }),
+                  padding: [2, 2, 2, 2]
+                })
               })
-            })
-          );
+            );
+          } else {
+            styles.push(
+              new OlStyle({
+                text: new OlText({
+                  text: isochroneStore.state.isochroneRange + " min",
+                  font: "bold 16px Arial",
+                  placement: "line",
+                  fill: new OlFill({
+                    color: calculationColors[calculationNumber]
+                  }),
+                  maxAngle: 0
+                })
+              })
+            );
+          }
         }
       }
     } else {
-      let path = `img/markers/marker-${feature.get("calculationNumber")}.png`;
+      let calcNumber;
+      calculateRealCalculations().forEach((calc, idx) => {
+        if (calc.id === parseInt(feature.get("calculationNumber"))) {
+          calcNumber = calculateCalculationsLength() - idx;
+        }
+      });
+      let path = `img/markers/marker-${calcNumber}.png`;
       let markerStyle = new OlStyle({
         image: new OlIcon({
           anchor: [0.5, 0.96],
@@ -915,7 +968,7 @@ const poisShadowStyle = new OlStyle({
   })
 });
 
-export function poisAoisStyle(feature) {
+export function poisAoisStyle(feature, resolution) {
   const category = feature.get("category");
   if (!poisAoisStore.state.poisAois[category]) {
     return [];
@@ -943,13 +996,92 @@ export function poisAoisStyle(feature) {
   }
   // ----POIS-----
   // Shadow style
-  st.push(poisShadowStyle);
-  if (!poiIconConf || !poiIconConf.icon) {
-    return [];
-  }
+  // if (!poisAoisStyleCache[icon + color]) {
+
+  // Font style
   const icon = poiIconConf.icon;
-  if (!poisAoisStyleCache[icon + color]) {
-    // Font style
+
+  let min_zoom = feature.get("min_zoom");
+  let max_zoom = feature.get("max_zoom");
+
+  if (min_zoom || max_zoom) {
+    if (min_zoom >= resolution || max_zoom <= resolution) {
+      st.push(poisShadowStyle);
+      if (!poiIconConf || !poiIconConf.icon) {
+        return [];
+      }
+
+      let radiusBasedOnZoom = 20;
+      let offsetInYDir = -20;
+      poisShadowStyle.getImage().setScale(1);
+
+      if (resolution > 20) {
+        offsetInYDir = 0;
+        radiusBasedOnZoom = 10;
+        poisShadowStyle.getImage().setScale(0);
+      } else if (resolution > 15 && resolution <= 20) {
+        offsetInYDir = 0;
+        radiusBasedOnZoom = 14;
+        poisShadowStyle.getImage().setScale(0);
+      } else if (resolution > 10 && resolution <= 15) {
+        radiusBasedOnZoom = 16;
+        poisShadowStyle.getImage().setScale(0.95);
+      }
+      poisAoisStyleCache[icon + color] = new OlStyle({
+        image: new OlFontSymbol({
+          form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
+          gradient: false,
+          glyph: icon,
+          text: "", // text to use if no glyph is defined
+          font: "sans-serif",
+          fontSize: 0.7,
+          fontStyle: "900",
+          radius: radiusBasedOnZoom,
+          rotation: 0,
+          rotateWithView: false,
+          offsetY: offsetInYDir,
+          color: color, // icon color
+          fill: new OlFill({
+            color: "#fff" // marker color
+          }),
+          stroke: new OlStroke({
+            color: color,
+            width: 2
+          })
+        }),
+        stroke: new OlStroke({
+          width: 2,
+          color: "#f80"
+        }),
+        fill: new OlFill({
+          color: [255, 136, 0, 0.6]
+        })
+      });
+    } else {
+      poisAoisStyleCache[icon + color] = new OlStyle();
+    }
+  } else {
+    st.push(poisShadowStyle);
+    if (!poiIconConf || !poiIconConf.icon) {
+      return [];
+    }
+    let radiusBasedOnZoom = 20;
+    let offsetInYDir = -20;
+    poisShadowStyle.getImage().setScale(1);
+
+    if (resolution > 20) {
+      offsetInYDir = -10;
+      radiusBasedOnZoom = 10;
+      poisShadowStyle.getImage().setScale(0);
+    } else if (resolution > 15 && resolution <= 20) {
+      offsetInYDir = -14;
+      radiusBasedOnZoom = 14;
+      poisShadowStyle.getImage().setScale(0);
+    } else if (resolution > 10 && resolution <= 15) {
+      radiusBasedOnZoom = 18;
+      offsetInYDir = -18;
+      poisShadowStyle.getImage().setScale(0.95);
+    }
     poisAoisStyleCache[icon + color] = new OlStyle({
       image: new OlFontSymbol({
         form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
@@ -959,10 +1091,10 @@ export function poisAoisStyle(feature) {
         font: "sans-serif",
         fontSize: 0.7,
         fontStyle: "900",
-        radius: 20,
+        radius: radiusBasedOnZoom,
         rotation: 0,
         rotateWithView: false,
-        offsetY: -20,
+        offsetY: offsetInYDir,
         color: color, // icon color
         fill: new OlFill({
           color: "#fff" // marker color
@@ -981,29 +1113,17 @@ export function poisAoisStyle(feature) {
       })
     });
   }
+
+  // }
   st.push(poisAoisStyleCache[icon + color]);
   return st;
 }
 
 import Chart from "ol-ext/style/Chart";
 
-// PT Station count layer style
-// feature:
-// "properties": {
-//   "stop_id": "de:09162:1",
-//   "stop_name": "Karlsplatz (Stachus)",
-//   "trip_cnt": {
-//     "1": 14,
-//     "2": 31
-//   }
-// }
 export function ptStationCountStyle(feature) {
-  let time =
-    (appStore.state.timeIndicators.endTime -
-      appStore.state.timeIndicators.startTime) /
-    3600;
   const tripCnt = feature.get("trip_cnt");
-
+  const time = store.getters["isochrones/timeDelta"]; // number of hours
   const tripCntSum = Object.values(tripCnt).reduce((a, b) => a + b, 0) / time;
   let radius = 3;
   if (tripCntSum <= 5 && tripCntSum > 0) {
@@ -1021,21 +1141,17 @@ export function ptStationCountStyle(feature) {
   } else if (tripCntSum > 80) {
     radius = 19;
   }
-
-  const colorMapping = {
-    0: "#D31E20",
-    1: "#004D89",
-    2: "#338FB4",
-    3: "#005567",
-    4: "#BEB8EB",
-    5: "#1A3A3A",
-    6: "#C57B57",
-    7: "#457B9D",
-    11: "#6A3E37",
-    12: "#34344A"
-  };
-  const colors = Object.keys(tripCnt).map(key => colorMapping[key]);
-  const data = Object.values(tripCnt).map(val => val / time);
+  const routeTypes = store.getters["isochrones/transitRouteTypesByNr"];
+  // Filter out the route types that don't exist in config
+  const filteredTripCnt = Object.keys(routeTypes).reduce((obj, key) => {
+    const value = tripCnt[key];
+    if (value) {
+      obj[key] = value;
+    }
+    return obj;
+  }, {});
+  const colors = Object.keys(filteredTripCnt).map(key => routeTypes[key].color);
+  const data = Object.values(filteredTripCnt).map(val => val / time);
   return new OlStyle({
     image: new Chart({
       type: "pie",

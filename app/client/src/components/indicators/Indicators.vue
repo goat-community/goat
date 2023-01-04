@@ -19,8 +19,30 @@
                 layer.get('showOptions') === true
             }"
           >
-            <v-expansion-panel-header expand-icon="" v-slot="{}">
-              <v-layout row class="pl-1" wrap align-center>
+            <v-expansion-panel-header
+              expand-icon=""
+              v-slot="{}"
+              class="pl-0 ml-0"
+            >
+              <v-layout row class="pl-0 ml-0" wrap align-center>
+                <v-flex class="checkbox" xs1>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
+                      <v-btn
+                        v-on="on"
+                        @click.stop="openDocumentation(layer)"
+                        v-show="layer.get('docUrl')"
+                        class="ma-0 pb-0"
+                        small
+                        text
+                        icon
+                      >
+                        <i class="fas fa-info"></i>
+                      </v-btn>
+                    </template>
+                    <span>{{ $t(`map.tooltips.openDocumentation`) }}</span>
+                  </v-tooltip>
+                </v-flex>
                 <v-flex class="checkbox" xs1>
                   <v-checkbox
                     :color="appColor.secondary"
@@ -28,7 +50,7 @@
                     @change="toggleLayerVisibility(layer)"
                   ></v-checkbox>
                 </v-flex>
-                <v-flex xs10 class="light-text">
+                <v-flex xs9 class="light-text">
                   <h4 class="pl-2">
                     {{ translate("layerName", layer.get("name")) }}
                   </h4>
@@ -123,12 +145,19 @@
     </vue-scroll>
     <span v-if="styleDialogStatus">
       <StyleDialog
+        type="layer"
         :item="currentItem"
         :translate="translate"
         :key="styleDialogKey"
         :styleDialogStatus="styleDialogStatus"
       ></StyleDialog>
     </span>
+    <documentation-dialog
+      :color="appColor.primary"
+      :visible="showDocumentationDialog"
+      :item="selectedDocumentationLayer"
+      @close="showDocumentationDialog = false"
+    ></documentation-dialog>
     <span v-if="timePickerDialogStatus">
       <TimePicker
         :status="timePickerDialogStatus"
@@ -137,29 +166,6 @@
         @updateTimeIndicators="refreshVisibleIndicators(updateIndicators.time)"
       ></TimePicker>
     </span>
-    <overlay-popup
-      :color="appColor.primary"
-      :title="indicatorPopupInfo.name || 'No Title fetched'"
-      v-show="popup.isVisible"
-      ref="indicatorPopup"
-    >
-      <template v-slot:close>
-        <v-btn @click="closePopup()" icon>
-          <v-icon>close</v-icon>
-        </v-btn>
-      </template>
-      <template v-slot:body>
-        <p
-          v-for="(transportMean, tranportKey) in indicatorPopupInfo.description"
-          :key="tranportKey"
-        >
-          <!-- {{ translatePT("pt_route_types", tranportKey.toString()) }} -
-          {{ transportMean }} -->
-          {{ transportMean }}
-        </p>
-        <p></p>
-      </template>
-    </overlay-popup>
   </v-flex>
 </template>
 
@@ -170,28 +176,21 @@ import { Mapable } from "../../mixins/Mapable";
 import { mapFields } from "vuex-map-fields";
 import Legend from "../viewer/ol/controls/Legend";
 import LayerTree from "../layers/layerTree/LayerTree";
-import StyleDialog from "../layers/changeStyle/StyleDialog.vue";
+import StyleDialog from "../styling/StyleDialog.vue";
 import TimePicker from "./TimePicker.vue";
 import InLegend from "../viewer/ol/controls/InLegend.vue";
 import ApiService from "../../services/api.service";
 import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
-import OverlayPopup from "../viewer/ol/controls/Overlay.vue";
-import Overlay from "ol/Overlay";
+import DocumentationDialog from "../other/DocumentationDialog.vue";
 export default {
   mixins: [Mapable, Legend, LayerTree],
   components: {
     InLegend,
     StyleDialog,
     TimePicker,
-    "overlay-popup": OverlayPopup
+    DocumentationDialog
   },
   data: () => ({
-    popup: {
-      rawHtml: null,
-      title: "info",
-      isVisible: false,
-      currentLayerIndex: 0
-    },
     indicatorLayers: [],
     interactionType: "indicator-interaction",
     indicatorsWithAmenities: [
@@ -207,19 +206,13 @@ export default {
     styleDialogKey: 0,
     styleDialogStatus: false,
     timePickerDialogStatus: false,
-    indicatorPopupInfo: {
-      name: "",
-      description: []
-    }
+    showDocumentationDialog: false,
+    selectedDocumentationLayer: null
   }),
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
       this.styleDialogStatus = value;
     });
-    window.setTimeout(() => {
-      this.createPopupOverlay();
-      this.showPopup();
-    }, 200);
   },
   computed: {
     ...mapGetters("app", {
@@ -245,54 +238,14 @@ export default {
     ...mapMutations("map", {
       toggleSnackbar: "TOGGLE_SNACKBAR"
     }),
-    closePopup() {
-      this.popup.isVisible = false;
-    },
     changeTimePickerDialogStatus() {
       this.indicatorLayers.forEach(layer => {
         if (this.updateIndicators.time.includes(layer.get("name")))
-          layer.setVisible(false);
+          if (layer.getVisible() === true) {
+            this.toggleLayerVisibility(layer);
+          }
       });
       this.timePickerDialogStatus = false;
-    },
-    createPopupOverlay() {
-      this.popupOverlay = new Overlay({
-        element: this.$refs.indicatorPopup.$el,
-        autoPan: false,
-        autoPanMargin: 40,
-        positioning: "bottom-left",
-        autoPanAnimation: {
-          duration: 250
-        }
-      });
-      this.map.addOverlay(this.popupOverlay);
-    },
-    showPopup() {
-      this.map.on("click", e => {
-        this.popupOverlay.setPosition(undefined);
-        this.map.forEachFeatureAtPixel(e.pixel, feature => {
-          this.indicatorPopupInfo.description = [];
-          let clickedCoordinate = e.coordinate;
-          if (!feature.get("stop_name")) {
-            this.indicatorPopupInfo.name = `Class ${feature.get("class")}`;
-            this.indicatorPopupInfo.description = [
-              this.translatePT("gutteklassenRating", feature.get("class"))
-            ];
-          } else {
-            let clickedFeatureAdditionalInfo = feature.get("trip_cnt");
-            this.indicatorPopupInfo.name = feature.get("stop_name");
-            for (let element in clickedFeatureAdditionalInfo) {
-              this.indicatorPopupInfo.description.push(
-                `${this.translatePT("pt_route_types", element)} - ${
-                  clickedFeatureAdditionalInfo[element]
-                }`
-              );
-            }
-          }
-          this.popupOverlay.setPosition(clickedCoordinate);
-          this.popup.isVisible = true;
-        });
-      });
     },
     onMapBound() {
       this.map
@@ -315,14 +268,6 @@ export default {
       const canTranslate = this.$te(`map.${type}.${key}`);
       if (canTranslate) {
         return this.$t(`map.${type}.${key}`);
-      } else {
-        return key;
-      }
-    },
-    translatePT(type, key) {
-      const canTranslate = this.$te(`indicators.${type}.${key}`);
-      if (canTranslate) {
-        return this.$t(`indicators.${type}.${key}`);
       } else {
         return key;
       }
@@ -399,25 +344,27 @@ export default {
         }
       });
     },
-    refreshIndicator(update) {
+    refreshIndicator(groups) {
       if (this.indicatorCancelToken instanceof Function) {
         this.indicatorCancelToken("cancelled");
         this.indicatorCancelToken = null;
       }
-      if (this.updateIndicators[update]) {
-        this.updateIndicators[update].forEach(indicatorName => {
-          this.indicatorLayers.forEach(layer => {
-            if (layer.get("name") === indicatorName && layer.getVisible()) {
-              this.checkIfIndicatorNeedsPois(layer);
-              if (this.indicatorCancelToken instanceof Function) {
-                this.indicatorCancelToken("cancelled");
-                this.indicatorCancelToken = null;
+      groups.forEach(group => {
+        if (this.updateIndicators[group]) {
+          this.updateIndicators[group].forEach(indicatorName => {
+            this.indicatorLayers.forEach(layer => {
+              if (layer.get("name") === indicatorName && layer.getVisible()) {
+                this.checkIfIndicatorNeedsPois(layer);
+                if (this.indicatorCancelToken instanceof Function) {
+                  this.indicatorCancelToken("cancelled");
+                  this.indicatorCancelToken = null;
+                }
+                layer.getSource().refresh();
               }
-              layer.getSource().refresh();
-            }
+            });
           });
-        });
-      }
+        }
+      });
     },
     recomputeIndicators() {
       this.isRecomputingIndicator = true;
@@ -479,6 +426,10 @@ export default {
       } else {
         return false;
       }
+    },
+    openDocumentation(layer) {
+      this.showDocumentationDialog = true;
+      this.selectedDocumentationLayer = layer;
     }
   },
   watch: {

@@ -17,8 +17,15 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
         db_obj.hashed_password = get_password_hash(obj_in.password)
         roles = await db.execute(select(models.Role).filter(models.Role.name.in_(obj_in.roles)))
         db_obj.roles = roles.scalars().all()
+
+        # combine study_area_ids with active_study_area_id
+        user_study_area_ids = set()
+        if obj_in.active_study_area_id:
+            user_study_area_ids.add(obj_in.active_study_area_id)
+        user_study_area_ids.update(obj_in.study_areas)
+
         study_areas = await db.execute(
-            select(models.StudyArea).filter(models.StudyArea.id.in_(obj_in.study_areas))
+            select(models.StudyArea).filter(models.StudyArea.id.in_(user_study_area_ids))
         )
         db_obj.study_areas = study_areas.scalars().all()
         db.add(db_obj)
@@ -38,7 +45,7 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
             hashed_password = get_password_hash(update_data["password"])
             del update_data["password"]
             update_data["hashed_password"] = hashed_password
-        if update_data.get("roles") or len(update_data["roles"]) == 0:
+        if update_data.get("roles") or update_data.get("roles") == []:
             roles = await db.execute(
                 select(models.Role).filter(models.Role.name.in_(obj_in.roles))
             )
