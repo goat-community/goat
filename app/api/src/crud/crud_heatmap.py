@@ -19,6 +19,7 @@ from sqlalchemy.sql.functions import func
 
 from src import crud, schemas
 from src.core import heatmap as heatmap_core
+from src.core.config import settings
 from src.core.heatmap import merge_heatmap_traveltime_objects
 from src.core.isochrone import (
     compute_isochrone_heatmap,
@@ -69,7 +70,6 @@ class CRUDGridCalculation(
     pass
 
 
-# TODO: Refactor filepaths using os.path.join
 # TODO: Refactor code and split into two files. One for precalculation and one for the endpoints.
 # TODO: Add more comments
 class CRUDHeatmap:
@@ -77,9 +77,6 @@ class CRUDHeatmap:
         self.db = db
         self.db_sync = db_sync
         self.current_user = current_user
-        self.multi_processing_bulk_size = 50
-        self.path_traveltime_matrices = "/app/src/cache/traveltime_matrices"
-        self.path_opportunity_matrices = "/app/src/cache/opportunity_matrices"
 
     async def read_h3_grids_study_areas(
         self, resolution: int, buffer_size: int, study_area_ids: list[int] = None
@@ -330,10 +327,12 @@ class CRUDHeatmap:
 
             # Prepare heatmap calculation objects
             traveltimeobjs = []
-            for i in range(0, len(starting_ids), self.multi_processing_bulk_size):
-                starting_ids_bulk = starting_ids[i : i + self.multi_processing_bulk_size]
-                grid_ids_bulk = grid_ids[i : i + self.multi_processing_bulk_size]
-                extents_bulk = extents[i : i + self.multi_processing_bulk_size]
+            for i in range(0, len(starting_ids), settings.HEATMAP_MULTIPROCESSING_BULK_SIZE):
+                starting_ids_bulk = starting_ids[
+                    i : i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE
+                ]
+                grid_ids_bulk = grid_ids[i : i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE]
+                extents_bulk = extents[i : i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE]
 
                 results = compute_isochrone_heatmap(
                     edges_source,
@@ -358,7 +357,13 @@ class CRUDHeatmap:
             # traveltimeobjs = heatmap_multiprocessing(heatmapObject)
             traveltimeobjs = merge_heatmap_traveltime_objects(traveltimeobjs)
             # Save files into cache folder
-            file_dir = f"{self.path_traveltime_matrices}/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}/{key}.npz"
+            file_name = f"{key}.npz"
+            file_dir = os.path.join(
+                settings.TRAVELTIME_MATRICES_PATH,
+                isochrone_dto.mode.value,
+                isochrone_dto.settings.walking_profile.value,
+                file_name,
+            )
             delete_file(file_dir)
             np.savez_compressed(
                 file_dir,
@@ -430,8 +435,15 @@ class CRUDHeatmap:
         begin = time.time()
 
         for key in calculation_objs:
+            file_name = f"{key}.npz"
+            file_path = os.path.join(
+                settings.TRAVELTIME_MATRICES_PATH,
+                isochrone_dto.mode.value,
+                isochrone_dto.settings.walking_profile.value,
+                file_name,
+            )
             matrix = np.load(
-                f"{self.path_traveltime_matrices}/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}/{key}.npz",
+                file_path,
                 allow_pickle=True,
             )
 
@@ -553,7 +565,12 @@ class CRUDHeatmap:
             poi_matrix["names"] = np.array(poi_matrix["names"], dtype=object)
             poi_matrix["categories"] = np.array(poi_categories, dtype=np.str_)
 
-            dir = f"{self.path_opportunity_matrices}/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}/{bulk_id}"
+            dir = os.path.join(
+                settings.OPPORTUNITY_MATRICES_PATH,
+                isochrone_dto.mode.value,
+                isochrone_dto.settings.walking_profile.value,
+                bulk_id,
+            )
             create_dir(dir)
             for value in poi_matrix.keys():
                 np.save(
@@ -727,7 +744,9 @@ class CRUDHeatmap:
 
         return grid_ids_dict, travel_times_dict
 
-    async def aggregate_on_building(self, grid_ids: dict, indices: dict, study_area_ids: list[int]):
+    async def aggregate_on_building(
+        self, grid_ids: dict, indices: dict, study_area_ids: list[int]
+    ):
 
         # Get buildings for testing. Currently only one study area is supported
         buildings = await self.db.execute(
@@ -755,7 +774,7 @@ class CRUDHeatmap:
                 AND s.id = :study_area_id
                 """
             ),
-            {"study_area_id": study_area_ids[0]},              
+            {"study_area_id": study_area_ids[0]},
         )
         all_grid = all_grid.fetchall()
         all_grids = np.array([grid[0] for grid in all_grid])
@@ -769,14 +788,14 @@ class CRUDHeatmap:
             buildings_points, k=3, distance_upper_bound=200, workers=-1
         )
         indices_all_inf = (distances == np.inf).all(axis=1)
-        distances = distances[np.where(indices_all_inf==False)].tolist()
-        positions = positions[np.where(indices_all_inf==False)].tolist()
-        buildings_ids = np.array(buildings_ids)[np.where(indices_all_inf==False)].tolist()
-        #distances[distances == np.inf] = 0
-        #distances_flatten = distances.flatten()
-        #positions_flatten = positions.flatten()
-        #all_grids = np.append(all_grids, np.inf)
-        #grid_map = np.take(all_grids, positions_flatten)
+        distances = distances[np.where(indices_all_inf == False)].tolist()
+        positions = positions[np.where(indices_all_inf == False)].tolist()
+        buildings_ids = np.array(buildings_ids)[np.where(indices_all_inf == False)].tolist()
+        # distances[distances == np.inf] = 0
+        # distances_flatten = distances.flatten()
+        # positions_flatten = positions.flatten()
+        # all_grids = np.append(all_grids, np.inf)
+        # grid_map = np.take(all_grids, positions_flatten)
 
         interpolated = {"building_id": buildings_ids}
         for category in indices.keys():
@@ -784,7 +803,7 @@ class CRUDHeatmap:
             if costs is None:
                 continue
             grids = grid_ids[category][0]
-            
+
             intersect_grids = np.intersect1d(all_grids, grids, return_indices=True)
             grids, relevant_indices = intersect_grids[0], intersect_grids[2]
             costs = costs[relevant_indices]
@@ -847,10 +866,9 @@ class CRUDHeatmap:
         elif heatmap_settings.mode == HeatmapMode.cycling:
             profile = heatmap_settings.cycling_profile.value
 
-        matrix_base_path = (
-            f"{self.path_opportunity_matrices}/{heatmap_settings.mode.value}/{profile}/"
+        matrix_base_path = os.path.join(
+            settings.OPPORTUNITY_MATRICES_PATH, heatmap_settings.mode.value, profile
         )
-
         # Read travel times and grid ids
         begin = time.time()
         grid_ids, traveltimes = await self.read_opportunity_matrix(
