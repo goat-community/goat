@@ -66,8 +66,6 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_SERVER=${POSTGRES_SERVER}
-      - POSTGRES_DB=${COMPOSE_PROJECT_NAME}
       - PROJECT_NAME=${COMPOSE_PROJECT_NAME}
       - SERVER_NAME=${DOMAIN_NAME}
       - SERVER_HOST=http://${DOMAIN_NAME}
@@ -80,7 +78,7 @@ services:
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.entrypoints=web"
     ports:
-      - "5000:5000"
+      - "${API_PORT}:5000"
     networks:
       proxy:
 
