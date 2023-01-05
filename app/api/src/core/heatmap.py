@@ -1,4 +1,5 @@
 from math import exp
+from time import time
 
 import numpy as np
 from numba import njit
@@ -140,3 +141,43 @@ def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
         else:
             modified_gaussian_per_grids[i] = sum
     return modified_gaussian_per_grids
+
+
+def quantile_classify(a, NQ=5):
+    q = np.arange(1 / NQ, 1, 1 / NQ)
+    quantiles = np.quantile(a[a > 0], q)
+    out = np.empty(a.size, np.int8)
+    out[np.where(a == 0)] = 0
+    out[np.where(np.logical_and(np.greater(a, 0), np.less(a, quantiles[0])))] = 1
+    out[np.where(a >= quantiles[-1])] = NQ
+    for i in range(NQ - 2):
+        out[
+            np.where(
+                np.logical_and(np.greater_equal(a, quantiles[i]), np.less(a, quantiles[i + 1]))
+            )
+        ] = (i + 2)
+
+    return out
+
+
+def test_quantile(n):
+    NQ = 5
+    a = np.random.random(n) * 120
+    a[a < 10] = 0
+
+    start_time = time()
+    out = quantile_classify(a, 5)
+    end_time = time()
+    print(f"quantile for {a.size} elements is: {int((end_time-start_time)*1000)} ms")
+    if n <= 100:
+        print("Example of output:")
+        print(out)
+    else:
+        for i in range(NQ + 1):
+            print(f"count {i}: {np.where(out==i)[0].size}")
+            # print(i,np.where(out==i)[0].size)
+
+
+if __name__ == "__main__":
+    test_quantile(10000)
+    test_quantile(20)
