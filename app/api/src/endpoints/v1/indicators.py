@@ -18,7 +18,8 @@ from src.resources.enums import (
     ReturnType,
     SQLReturnTypes,
 )
-from src.schemas.heatmap import request_examples
+from src.schemas.heatmap import request_examples, HeatmapSettings, request_example as heatmap_request_example
+
 from src.schemas.indicators import (
     CalculateOevGueteklassenParameters,
     CalculateLocalAccessibilityAggregated,
@@ -29,6 +30,23 @@ from src.schemas.indicators import (
 from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()
+
+
+@router.post("/heatmap")
+async def calculate_heatmap(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    params: HeatmapSettings = Body(..., example=heatmap_request_example),
+):
+    """
+    Calculate a heatmap.
+    """
+
+    result = await crud.read_heatmap(db=db, current_user=current_user).read_heatmap(
+        heatmap_settings=params
+    )
+    return result
 
 
 @router.get("/connectivity", response_class=JSONResponse)

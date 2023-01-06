@@ -23,3 +23,4 @@ from .crud_system import system
 from .crud_traveltime_matrix import traveltime_matrix_walking
 from .crud_upload import data_upload, upload
 from .crud_user import user
+from .crud_read_heatmap import read_heatmap

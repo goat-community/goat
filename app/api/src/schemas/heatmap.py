@@ -76,7 +76,7 @@ class HeatmapClosestAverage(HeatmapBase):
 
 class HeatmapSettings(BaseModel):
     """Setting for different heatmap types"""
-
+    study_area_ids: List[int]
     mode: HeatmapMode = Field(HeatmapMode.walking, description="Isochrone Mode")
     max_travel_time: int = Field(
         10,
@@ -102,7 +102,7 @@ class HeatmapSettings(BaseModel):
         Field(AnalysisUnit.hexagon, description="Analysis unit for the heatmap"),
     )
     analysis_unit_size: Optional[int] = (
-        Field(10, description="Size of the analysis unit in meters"),
+        Field(10, description="Size of the analysis"),
     )
     heatmap_type: HeatmapType = (
         Field(HeatmapType.gravity, description="Type of heatmap to compute"),
@@ -135,5 +135,69 @@ Body of the request
 """
 request_examples = {
     "compute_poi_user": {"data_upload_id": 1},
-    "heatmap_config": """{"supermarket":{"sensitivity":250000,"weight":1}}""",
+    "heatmap_configuration": """{"supermarket":{"sensitivity":250000,"weight":1}}""",
 }
+
+request_example = HeatmapSettings(
+    study_area_ids=[91620000],
+    mode="walking",
+    max_travel_time=20,
+    walking_profile="standard",
+    scenario=IsochroneScenario(
+        id=1,
+        name="Default",
+    ),
+    analysis_unit="hexagon",
+    analysis_unit_size=10,
+    heatmap_type="closest_average",
+    heatmap_config={
+        "atm": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "bar": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "pub": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "bank": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "cafe": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "fuel": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "park": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "yoga": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "hotel": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "bakery": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "cinema": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "forest": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "museum": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "butcher": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "dentist": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "nursery": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "bus_stop": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "pharmacy": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "post_box": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "fast_food": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "gymnasium": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "nightclub": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "recycling": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "tram_stop": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "playground": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "realschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "restaurant": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "car_sharing": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "convenience": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "grundschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "hypermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "marketplace": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "post_office": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "bike_sharing": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "discount_gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "kindergarten": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "rail_station": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "subway_entrance": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "charging_station": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "organic_supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "discount_supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "general_practitioner": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "swimming_pool_outdoor": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+        "hauptschule_mittelschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+    },
+    return_type="geojson",
+).dict()
+
