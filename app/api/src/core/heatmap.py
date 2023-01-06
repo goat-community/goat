@@ -119,7 +119,6 @@ def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         sum = 0
         for t in travel_time:
-            t = t / 60
             f = exp(-t * t / sensitivity)
             sum += f
             if sum >= cutoff:
@@ -132,7 +131,6 @@ def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
         travel_time = travel_times[unique_index[i + 1] :]
         sum = 0
         for t in travel_time:
-            t = t / 60
             f = exp(-t * t / sensitivity)
             sum += f
             if sum >= cutoff:
