@@ -73,6 +73,7 @@ class CRUDGridCalculation(
 # TODO: Refactor code and split into two files. One for precalculation and one for the endpoints.
 # TODO: Add more comments
 
+
 class CRUDBaseHeatmap:
     def __init__(self, db, current_user):
         self.db = db
@@ -148,8 +149,8 @@ class CRUDBaseHeatmap:
 
         return bulk_ids
 
+
 class CRUDReadHeatmap(CRUDBaseHeatmap):
-   
     async def prepare_bulk_objs(
         self,
         bulk_resolution: int,
@@ -391,8 +392,8 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         print(f"Reading matrices took {end - begin} seconds")
 
         ## Compile
-        #TODO: Remove the compile step
-        #TODO: Pick right function that correspond the heatmap the user want to calculate
+        # TODO: Remove the compile step
+        # TODO: Pick right function that correspond the heatmap the user want to calculate
         sorted_table, unique = {}, {}
         for op in opportunities:
             sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
@@ -420,10 +421,9 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         end_time = time.time()
         print(f"mins takes: {end_time - start_time} s")
 
-        #TODO: Aggregate on required resolution 
+        # TODO: Aggregate on required resolution
         # Here we need an if condition performing different actions depending on the resolution and analyses unit
         # Inside here we will also get the geometries as the geometries are different depending on the analyses unit
-  
 
         # await self.aggregate_on_building(merged_df, study_area_ids)
         # grid_ids = matrix_min_travel_time["grid_id"]
@@ -436,6 +436,40 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # gdf.to_file("test_results.geojson", driver="GeoJSON")
         # print(f"Read study areas: {end - begin}")
         return
+
+    def sort_and_unique(self, grid_ids, traveltimes):
+        sorted_table, unique = {}, {}
+        for op in traveltimes.kesys():
+            sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
+                grid_ids[op], traveltimes[op]
+            )
+        return sorted_table, unique
+
+    def do_calculations(self, sorted_table, unique, heatmap_settings):
+        # TODO: find a better name for this function
+        """
+        connect the heatmap core calculations to the heatmap method
+        """
+        method_map = {
+            "gravity": "gravity",
+            "connectivity": "connectivity",
+            "cumulative": "counts",
+            "closest_average": "modified_gaussian_per_grid",
+        }
+        method_name = method_map[heatmap_settings.method]
+        method = heatmap_core.getattr(method_name)
+        output = {}
+        for key, heatmap_config in heatmap_settings.heatmap_config:
+            output[key] = method(sorted_table[key], unique[key], heatmap_config)
+
+        return output
+
+    def quantile_classify(self, data):
+        quantile_index = {}
+        for key, a in data:
+            quantile_index[key] = heatmap_core.quantile_classify(a)
+        return quantile_index
+
 
 read_heatmap = CRUDReadHeatmap
 
@@ -539,9 +573,6 @@ if __name__ == "__main__":
     test_heatmap()
 
 
-
-
-
 #  async def aggregate_on_building(
 #         self, grid_ids: dict, indices: dict, study_area_ids: list[int]
 #     ):
@@ -566,7 +597,7 @@ if __name__ == "__main__":
 #         all_grid = await self.db.execute(
 #             text(
 #                 """
-#                 SELECT g.id, ST_X(centroid) x, ST_Y(centroid) y 
+#                 SELECT g.id, ST_X(centroid) x, ST_Y(centroid) y
 #                 FROM basic.grid_calculation g, basic.study_area s, LATERAL ST_TRANSFORM(ST_CENTROID(g.geom), 3857) AS centroid
 #                 WHERE ST_Intersects(g.geom, s.geom)
 #                 AND s.id = :study_area_id

@@ -109,7 +109,7 @@ def averages(sorted_table, unique):
 
 
 @njit
-def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
+def modified_gaussian_per_grid(sorted_table, unique, config):
     if not sorted_table.size:
         return None
     travel_times = sorted_table.transpose()[1]
@@ -119,10 +119,9 @@ def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         sum = 0
         for t in travel_time:
-            t = t / 60
-            f = exp(-t * t / sensitivity)
+            f = exp(-t * t / config["sensitivity]"])
             sum += f
-            if sum >= cutoff:
+            if sum >= config["cutoff]"]:
                 modified_gaussian_per_grids[i] = 0
                 break
         else:
@@ -132,10 +131,9 @@ def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
         travel_time = travel_times[unique_index[i + 1] :]
         sum = 0
         for t in travel_time:
-            t = t / 60
-            f = exp(-t * t / sensitivity)
+            f = exp(-t * t / config["sensitivity]"])
             sum += f
-            if sum >= cutoff:
+            if sum >= config["cutoff]"]:
                 modified_gaussian_per_grids[i] = 0
                 break
         else:
