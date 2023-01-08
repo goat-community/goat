@@ -28,7 +28,7 @@ BEGIN
 	END IF; 
 	
 	IF modus = 'default' THEN 
-		reachable_population = floor((reachable_population_default / 5)*5);
+		reachable_population = reachable_population_default::integer;
 	END IF; 
 
 	IF modus = 'scenario' THEN 
@@ -50,15 +50,11 @@ BEGIN
  		INTO reachable_population_scenario  
 		FROM prepared_scenario p; 
 		reachable_population = (reachable_population_default  + reachable_population_scenario)::integer;
-		
 	END IF; 
 
-	IF modus = 'default' THEN 
-		reachable_population = reachable_population_default::integer;
-	END IF; 
 
 	RETURN query 
-	SELECT 'polygon' AS name, reachable_population AS population; 
+	SELECT 'polygon' AS name, floor((reachable_population / 5)*5)::integer AS population; 
 
 END; 
 $function$ LANGUAGE plpgsql;

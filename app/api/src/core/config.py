@@ -29,6 +29,7 @@ class Settings(BaseSettings):
         "http://localhost:1024",
         "https://dashboard.plan4better.de",
         "https://dashboard-dev.plan4better.de",
+        "https://citizens.plan4better.de"
     ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
@@ -46,6 +47,12 @@ class Settings(BaseSettings):
     def sentry_dsn_can_be_blank(cls, v: str) -> Optional[str]:
         if len(v) == 0:
             return None
+        return v
+    
+    @validator("POSTGRES_DB")
+    def set_db_name_according_to_project_name_if_empty(cls,v,values):
+        if not v:
+            return values["COMPOSE_PROJECT_NAME"]
         return v
 
     POSTGRES_SERVER: str
@@ -169,6 +176,7 @@ class Settings(BaseSettings):
     def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         return f"Basic {v}="
 
+    COMPOSE_PROJECT_NAME: str
     class Config:
         case_sensitive = True
 

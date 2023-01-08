@@ -42,6 +42,7 @@ class UserUpdate(UserBase):
     organization_id: Optional[int] = None
     roles: Optional[List[str]] = None
     study_areas: Optional[List[int]] = None
+    is_active: bool = False
 
 
 class UserStudyAreaList(BaseModel):
