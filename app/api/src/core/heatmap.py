@@ -1,4 +1,5 @@
 from math import exp
+from time import time
 
 import numpy as np
 from numba import njit
@@ -44,6 +45,8 @@ def sort_and_unique_by_grid_ids(grid_ids, travel_times):
 
 @njit()
 def medians(sorted_table, unique):
+    if not sorted_table.size:
+        return None
     travel_times = sorted_table.transpose()[1]
     unique_index = unique[1]
     medians = np.empty(unique_index.shape[0], np.float32)
@@ -59,6 +62,8 @@ def medians(sorted_table, unique):
 
 @njit()
 def mins(sorted_table, unique):
+    if not sorted_table.size:
+        return None
     travel_times = sorted_table.transpose()[1]
     unique_index = unique[1]
     mins = np.empty(unique_index.shape[0], np.float32)
@@ -73,6 +78,8 @@ def mins(sorted_table, unique):
 
 @njit()
 def counts(sorted_table, unique):
+    if not sorted_table.size:
+        return None
     travel_times = sorted_table.transpose()[1]
     unique_index = unique[1]
     counts = np.empty(unique_index.shape[0], np.float32)
@@ -87,6 +94,8 @@ def counts(sorted_table, unique):
 
 @njit()
 def averages(sorted_table, unique):
+    if not sorted_table.size:
+        return None
     travel_times = sorted_table.transpose()[1]
     unique_index = unique[1]
     averages = np.empty(unique_index.shape[0], np.float32)
@@ -100,7 +109,9 @@ def averages(sorted_table, unique):
 
 
 @njit
-def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
+def modified_gaussian_per_grid(sorted_table, unique, config):
+    if not sorted_table.size:
+        return None
     travel_times = sorted_table.transpose()[1]
     unique_index = unique[1]
     modified_gaussian_per_grids = np.empty(unique_index.shape[0], np.float64)
@@ -108,10 +119,9 @@ def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         sum = 0
         for t in travel_time:
-            t = t / 60
-            f = exp(-t * t / sensitivity)
+            f = exp(-t * t / config["sensitivity]"])
             sum += f
-            if sum >= cutoff:
+            if sum >= config["cutoff]"]:
                 modified_gaussian_per_grids[i] = 0
                 break
         else:
@@ -121,12 +131,51 @@ def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
         travel_time = travel_times[unique_index[i + 1] :]
         sum = 0
         for t in travel_time:
-            t = t / 60
-            f = exp(-t * t / sensitivity)
+            f = exp(-t * t / config["sensitivity]"])
             sum += f
-            if sum >= cutoff:
+            if sum >= config["cutoff]"]:
                 modified_gaussian_per_grids[i] = 0
                 break
         else:
             modified_gaussian_per_grids[i] = sum
     return modified_gaussian_per_grids
+
+
+def quantile_classify(a, NQ=5):
+    q = np.arange(1 / NQ, 1, 1 / NQ)
+    quantiles = np.quantile(a[a > 0], q)
+    out = np.empty(a.size, np.int8)
+    out[np.where(a == 0)] = 0
+    out[np.where(np.logical_and(np.greater(a, 0), np.less(a, quantiles[0])))] = 1
+    out[np.where(a >= quantiles[-1])] = NQ
+    for i in range(NQ - 2):
+        out[
+            np.where(
+                np.logical_and(np.greater_equal(a, quantiles[i]), np.less(a, quantiles[i + 1]))
+            )
+        ] = (i + 2)
+
+    return out
+
+
+def test_quantile(n):
+    NQ = 5
+    a = np.random.random(n) * 120
+    a[a < 10] = 0
+
+    start_time = time()
+    out = quantile_classify(a, 5)
+    end_time = time()
+    print(f"quantile for {a.size} elements is: {int((end_time-start_time)*1000)} ms")
+    if n <= 100:
+        print("Example of output:")
+        print(out)
+    else:
+        for i in range(NQ + 1):
+            print(f"count {i}: {np.where(out==i)[0].size}")
+            # print(i,np.where(out==i)[0].size)
+
+
+if __name__ == "__main__":
+    test_quantile(10000)
+    test_quantile(20)
