@@ -3,6 +3,7 @@ import json
 import math
 import os
 import time
+from itertools import compress
 from typing import List
 
 import geopandas as gpd
@@ -501,6 +502,23 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     poi_matrix[value],
                 )
 
+    async def get_neighbors(self, grids):
+        neighbors = set()
+        for h in grids:
+            neighbors_ = h3.k_ring(h, 1)
+            for n in neighbors_:
+                if not n in grids:
+                    neighbors.add(n)
+        return list(neighbors)
+
+    async def get_interior_neighbors(self, grids, study_area_polygon):
+        neighbors = await self.get_neighbors(grids)
+        neighbor_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
+        neighbor_polygons = gpd.GeoSeries(list(map(neighbor_polygons, neighbors)), crs="EPSG:4326")
+        intersects = neighbor_polygons.intersects(study_area_polygon)
+        neighbors = list(compress(neighbors, intersects.values))
+        return neighbors
+
     async def create_h3_girds(self, study_area_ids):
         base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
         for study_area_id in study_area_ids:
@@ -513,6 +531,8 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     # Get hexagon geometries and convert to GeoDataFrame
                     grids.extend(grids_)
                 grids = list(set(grids))
+                neighbors = await self.get_interior_neighbors(grids, study_area_polygon)
+                grids.extend(neighbors)
                 hex_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
                 hex_polygons = gpd.GeoSeries(list(map(hex_polygons, grids)), crs="EPSG:4326")
                 gdf = gpd.GeoDataFrame(
