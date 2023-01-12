@@ -3,14 +3,17 @@ import json
 import math
 import os
 import time
+from itertools import compress
 from typing import List
 
 import geopandas as gpd
 import h3
+import heatmap_utils
 import numpy as np
 import pandas as pd
 from codetiming import Timer
 from geoalchemy2.functions import ST_Dump
+from geoalchemy2.shape import to_shape
 from rich import print
 from scipy import spatial
 from shapely.geometry import Polygon
@@ -27,6 +30,7 @@ from src.core.isochrone import (
     prepare_network_isochrone,
 )
 from src.crud.base import CRUDBase
+from src.crud.crud_read_heatmap import CRUDBaseHeatmap
 from src.db import models
 from src.db.session import async_session, legacy_engine, sync_session
 from src.resources.enums import RoutingTypes
@@ -44,8 +48,6 @@ from src.schemas.isochrone import (
     IsochroneStartingPoint,
     IsochroneStartingPointCoord,
 )
-from src.crud.crud_read_heatmap import CRUDBaseHeatmap
-
 from src.utils import (
     create_dir,
     delete_dir,
@@ -67,9 +69,9 @@ class CRUDGridCalculation(
 ):
     pass
 
-# TODO: Add more comments
-class CRUDComputeHeatmap(CRUDBase):
 
+# TODO: Add more comments
+class CRUDComputeHeatmap(CRUDBaseHeatmap):
     async def prepare_bulk_objs(
         self,
         bulk_resolution: int,
@@ -500,6 +502,48 @@ class CRUDComputeHeatmap(CRUDBase):
                     poi_matrix[value],
                 )
 
+    async def get_neighbors(self, grids):
+        neighbors = set()
+        for h in grids:
+            neighbors_ = h3.k_ring(h, 1)
+            for n in neighbors_:
+                if not n in grids:
+                    neighbors.add(n)
+        return list(neighbors)
+
+    async def get_interior_neighbors(self, grids, study_area_polygon):
+        neighbors = await self.get_neighbors(grids)
+        neighbor_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
+        neighbor_polygons = gpd.GeoSeries(list(map(neighbor_polygons, neighbors)), crs="EPSG:4326")
+        intersects = neighbor_polygons.intersects(study_area_polygon)
+        neighbors = list(compress(neighbors, intersects.values))
+        return neighbors
+
+    async def create_h3_girds(self, study_area_ids):
+        base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
+        for study_area_id in study_area_ids:
+            study_area = await crud.study_area.get(self.db, id=study_area_id)
+            for resolution in range(6, 11):
+                grids = []
+                study_area_polygon = to_shape(study_area.geom)
+                for polygon_ in list(study_area_polygon):
+                    grids_ = h3.polyfill_geojson(polygon_.__geo_interface__, resolution)
+                    # Get hexagon geometries and convert to GeoDataFrame
+                    grids.extend(grids_)
+                grids = list(set(grids))
+                neighbors = await self.get_interior_neighbors(grids, study_area_polygon)
+                grids.extend(neighbors)
+                hex_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
+                hex_polygons = gpd.GeoSeries(list(map(hex_polygons, grids)), crs="EPSG:4326")
+                gdf = gpd.GeoDataFrame(
+                    data={"bulk_id": grids}, geometry=hex_polygons, crs="EPSG:4326"
+                )
+                directory = os.path.join(base_path, str(study_area_id), "h3")
+                file_name = os.path.join(directory, f"{resolution}.geojson")
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+                gdf.to_file(file_name, driver="GeoJSON")
+
     async def execute_pre_calculation(
         self,
         isochrone_dto: IsochroneDTO,
@@ -517,7 +561,7 @@ class CRUDComputeHeatmap(CRUDBase):
         """
 
         buffer_size = isochrone_dto.settings.speed * (isochrone_dto.settings.travel_time * 60)
-
+        await self.create_h3_girds(study_area_ids)
         # Get calculation objects
         calculation_objs = await self.prepare_bulk_objs(
             study_area_ids=study_area_ids,
@@ -525,6 +569,8 @@ class CRUDComputeHeatmap(CRUDBase):
             calculation_resolution=calculation_resolution,
             buffer_size=buffer_size,
         )
+
+        await self.create_h3_girds(calculation_objs)
 
         # await self.compute_traveltime_active_mobility(
         #     isochrone_dto=isochrone_dto,
@@ -535,6 +581,7 @@ class CRUDComputeHeatmap(CRUDBase):
             isochrone_dto=isochrone_dto,
             calculation_objs=calculation_objs,
         )
+
 
 def main():
     # Get superuser
@@ -568,7 +615,7 @@ def main():
         ),
     )
 
-    crud_heatmap = CRUDComputeHeatmap(db=db, user=superuser)
+    crud_heatmap = CRUDComputeHeatmap(db=db, current_user=superuser)
     asyncio.get_event_loop().run_until_complete(
         crud_heatmap.execute_pre_calculation(
             isochrone_dto=isochrone_dto,
