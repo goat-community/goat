@@ -7,6 +7,7 @@ import time
 
 import numpy as np
 from numba import njit
+from pandas import read_sql
 
 from src.utils import (
     compute_single_value_surface,
@@ -186,15 +187,7 @@ def ensureFractionIsNumber(frac, direction):
 
 @njit
 def jsolines(
-    surface,
-    width,
-    height,
-    west,
-    north,
-    zoom,
-    cutoffs,
-    interpolation=True,
-    web_mercator=True
+    surface, width, height, west, north, zoom, cutoffs, interpolation=True, web_mercator=True
 ):
     geometries = []
     for _, cutoff in np.ndenumerate(cutoffs):
@@ -313,8 +306,9 @@ def jsolines(
                 if len(containingShell) == 1:
                     containingShell[0].append(hole[0])
 
-        geometries.append(list(shells)) 
+        geometries.append(list(shells))
     return geometries
+
 
 @njit
 def pointinpolygon(x, y, poly):
@@ -338,10 +332,19 @@ def pointinpolygon(x, y, poly):
     return inside
 
 
+def intersect_with_pois(isochrone_shapes):
+    from src.db.session import legacy_engine
+
+    get_poi_one_entrance_3857 = read_sql(
+        "SELECT * FROM basic.get_poi_one_entrance_3857(15, 'default'::text, ST_SETSRID(ST_BUFFER(ST_MAKEPOINT(11.57616,48.13168)::geography, 200000)::geometry, 4326), 10)",
+        legacy_engine,
+    )
+    print("finished poi loadeding")
+
 
 if __name__ == "__main__":
     fileName = "/app/src/tests/data/isochrone/public_transport_calculation.bin"
-    with open(fileName, mode='rb') as file: # b is important -> binary
+    with open(fileName, mode="rb") as file:  # b is important -> binary
         fileContent = file.read()
         grid_decoded = decode_r5_grid(fileContent)
         grid_decoded["surface"] = compute_single_value_surface(
@@ -360,19 +363,20 @@ if __name__ == "__main__":
             grid_decoded["west"],
             grid_decoded["north"],
             grid_decoded["zoom"],
-            np.arange(1,61), # cuttoffs every minute
+            np.arange(1, 61),  # cuttoffs every minute
         )
         end = time.time()
 
         print("Marching square took: ", end - start)
         print("Finished")
 
+        intersect_with_pois()
     # grid_test = {
-    #     "width": 6, 
+    #     "width": 6,
     #     "height": 6,
     #     "depth": 1,
     #     "surface": np.array([10,12,12,11,10,11,9,8,6,6,8,10,9,7,4,5,7,9,4,2,3,0,2,3,8,5,4,4,5,6,11,10,9,8,9,10]),
-    #     "zoom": 9, 
+    #     "zoom": 9,
     #     "west": 0,
     #     "north": 0,
     # }

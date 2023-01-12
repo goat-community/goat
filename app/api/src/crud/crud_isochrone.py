@@ -1,16 +1,10 @@
 import io
 import json
-import math
 import os
 import shutil
-import time
 import uuid
-import pyproj
-from errno import ELOOP
 from typing import Any
-from unicodedata import category
 
-import matplotlib.path
 import numpy as np
 import pandas as pd
 import pyproj
@@ -18,18 +12,12 @@ import requests
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
-from geojson import FeatureCollection
-from geopandas import GeoDataFrame, GeoSeries
-from geopandas.io.sql import read_postgis
+from geopandas import GeoDataFrame
 from pandas.io.sql import read_sql
-from pyproj import Transformer
-from shapely import wkb, wkt
-from shapely.geometry import MultiPolygon, Point, Polygon, shape
-from shapely.ops import unary_union
-from sqlalchemy import intersect
+from shapely import wkt
+from shapely.geometry import MultiPolygon, Point, shape
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
-from urllib3 import HTTPResponse
 
 from src import crud
 from src.core.config import settings
@@ -37,9 +25,8 @@ from src.core.isochrone import compute_isochrone
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
-from src.exts.cpp.bind import isochrone as isochrone_cpp
 from src.jsoline import jsolines
-from src.resources.enums import IsochroneExportType, IsochroneTypes
+from src.resources.enums import IsochroneExportType
 from src.schemas.isochrone import (
     IsochroneDTO,
     IsochroneMode,
@@ -53,12 +40,10 @@ from src.utils import (
     decode_r5_grid,
     delete_dir,
     encode_r5_grid,
-    geometry_to_pixel,
     group_opportunities_multi_isochrone,
     group_opportunities_single_isochrone,
     web_mercator_to_wgs84,
     wgs84_to_web_mercator,
-    is_inside_sm_parallel,
 )
 
 web_mercator_proj = pyproj.Proj("EPSG:3857")
@@ -274,7 +259,7 @@ class CRUDIsochrone:
         )
         return response
 
-    async def get_max_isochrone_shape(self, grid_decoded, max_time, return_type = "shapely"):
+    async def get_max_isochrone_shape(self, grid_decoded, max_time, return_type="shapely"):
         """
         Gets the isochrone with the highest travel time for opportunity intersect.
         """
@@ -304,7 +289,7 @@ class CRUDIsochrone:
             multipolygon_shape = isochrone_multipolygon_coordinates[0]
         else:
             raise ValueError("Return type not supported")
-        
+
         return multipolygon_shape
 
     async def get_opportunities_multi_isochrone(self, grid_decoded, obj_in, current_user) -> Any:
@@ -395,7 +380,7 @@ class CRUDIsochrone:
                 total_population = sub_study_area["population"]
                 reached_population = population_grid_count[idx]
                 reached_population[reached_population > total_population] = total_population
-                
+
                 population_count[sub_study_area["name"]] = {
                     "total_population": total_population,
                     "reached_population": reached_population.astype(int).tolist(),
@@ -462,11 +447,11 @@ class CRUDIsochrone:
         """
 
         # get_poi_one_entrance_3857_query = f"""
-        #     SELECT * 
+        #     SELECT *
         #     FROM basic.get_poi_one_entrance_3857(
-        #         {current_user.id}, 
-        #         '{modus}', 
-        #         ST_GeomFromText('{max_isochrone_wkt}', 4326), 
+        #         {current_user.id},
+        #         '{modus}',
+        #         ST_GeomFromText('{max_isochrone_wkt}', 4326),
         #         {scenario_id},
         #         ARRAY{active_data_upload_ids}::integer[]
         #     )
@@ -489,12 +474,11 @@ class CRUDIsochrone:
         #     legacy_engine,
         # )
 
-
         # begin = time.time()
         # transformer = pyproj.Transformer.from_crs("epsg:4326", "epsg:3857")
         # isochrones_3857 = []
         # for current_time in range(max_time):
-            
+
         #     isochrone_shape = await self.get_max_isochrone_shape(
         #         grid_decoded, current_time + 1, return_type="coordinates"
         #     )
@@ -502,8 +486,8 @@ class CRUDIsochrone:
         #         isochrone_shape = [shape[0] for shape in isochrone_shape]
         #         for shape in isochrone_shape:
         #             coords_3857 = []
-        #             for coords in shape: 
-        #                 coords_3857.append(list(transformer.transform(coords[1], coords[0]))) 
+        #             for coords in shape:
+        #                 coords_3857.append(list(transformer.transform(coords[1], coords[0])))
         #     isochrones_3857.append(coords_3857)
         #         #y,x = transformer.transform(isochrone_shape[0][0][0][1], isochrone_shape[0][0][0][0])
         #     #isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
@@ -743,9 +727,7 @@ class CRUDIsochrone:
             if settings.R5_AUTHORIZATION:
                 headers["Authorization"] = settings.R5_AUTHORIZATION
             response = requests.post(
-                settings.R5_API_URL + "/analysis",
-                json=payload,
-                headers=headers
+                settings.R5_API_URL + "/analysis", json=payload, headers=headers
             )
             grid = decode_r5_grid(response.content)
 
