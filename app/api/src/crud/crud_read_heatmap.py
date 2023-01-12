@@ -371,7 +371,9 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         # Get bulk ids
         bulk_ids = await self.read_h3_grids_study_areas(
-            resolution=6, buffer_size=buffer_size, study_area_ids=heatmap_settings.study_area_ids
+            resolution=heatmap_settings.resolution,
+            buffer_size=buffer_size,
+            study_area_ids=heatmap_settings.study_area_ids,
         )
         # Get heatmap settings
         opportunities = heatmap_settings.heatmap_config.keys()
@@ -394,32 +396,21 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         ## Compile
         # TODO: Remove the compile step
         # TODO: Pick right function that correspond the heatmap the user want to calculate
-        sorted_table, unique = {}, {}
-        for op in opportunities:
-            sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
-                grid_ids[op], traveltimes[op]
-            )
-        mins = {}
-        for op in opportunities:
-            mins[op] = heatmap_core.mins(sorted_table[op], unique[op])
+        sorted_table, uniques = self.sort_and_unique(grid_ids, traveltimes)
+        calculations = self.do_calculations(sorted_table, uniques, heatmap_settings)
+        quantiles = self.quantile_classify(calculations)
+        hexagons = await self.read_h3_dataframe(
+            heatmap_settings.study_area_ids[0], heatmap_settings.resolution
+        )
+        start_time = time.time()
+        calculations_dataframes = self.calculations_to_data_frame(uniques, calculations, quantiles)
+        end_time = time.time()
+        print_info(f"calc to df convertion time: {end_time-start_time} s")
+        print()
 
         # sorted_table, unique = heatmap_core.sort_and_unique_by_grid_ids(grid_ids, traveltimes)
         # mins = heatmap_core.mins(sorted_table, unique)
         ## Run
-        start_time = time.time()
-        sorted_table, unique = {}, {}
-        for op in opportunities:
-            sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
-                grid_ids[op], traveltimes[op]
-            )
-        end_time = time.time()
-        print(f"sort takes: {end_time - start_time} s")
-        start_time = time.time()
-        mins = {}
-        for op in opportunities:
-            mins[op] = heatmap_core.mins(sorted_table[op], unique[op])
-        end_time = time.time()
-        print(f"mins takes: {end_time - start_time} s")
 
         # TODO: Aggregate on required resolution
         # Here we need an if condition performing different actions depending on the resolution and analyses unit
@@ -439,36 +430,73 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     def sort_and_unique(self, grid_ids, traveltimes):
         sorted_table, unique = {}, {}
-        for op in traveltimes.kesys():
+        for op in traveltimes.keys():
             sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
                 grid_ids[op], traveltimes[op]
             )
         return sorted_table, unique
 
-    def do_calculations(self, sorted_table, unique, heatmap_settings):
+    def do_calculations(self, sorted_table, uniques, heatmap_settings):
         # TODO: find a better name for this function
         """
         connect the heatmap core calculations to the heatmap method
         """
         method_map = {
-            "gravity": "gravity",
+            "gravity": "modified_gaussian_per_grid",
             "connectivity": "connectivity",
             "cumulative": "counts",
-            "closest_average": "modified_gaussian_per_grid",
+            "closest_average": "mins",
         }
-        method_name = method_map[heatmap_settings.method]
-        method = heatmap_core.getattr(method_name)
         output = {}
-        for key, heatmap_config in heatmap_settings.heatmap_config:
-            output[key] = method(sorted_table[key], unique[key], heatmap_config)
+        if heatmap_settings.heatmap_type.value == "gravity":
+            for key, heatmap_config in heatmap_settings.heatmap_config.items():
+                output[key] = heatmap_core.modified_gaussian_per_grid(
+                    sorted_table[key],
+                    uniques[key],
+                    heatmap_config["sensitivity"],
+                    heatmap_config["cutoff"],
+                )
+        else:
+            method_name = method_map[heatmap_settings.heatmap_type.value]
+            method = getattr(heatmap_core, method_name)
+            for key, heatmap_config in heatmap_settings.heatmap_config.items():
+                output[key] = method(sorted_table[key], uniques[key])
 
         return output
 
-    def quantile_classify(self, data):
+    def quantile_classify(self, calculations):
         quantile_index = {}
-        for key, a in data:
+        for key, a in calculations.items():
             quantile_index[key] = heatmap_core.quantile_classify(a)
         return quantile_index
+
+    def calculations_to_data_frame(self, uniques, calculations, quantiles):
+        dataframes = []
+        for oportunity, unique in uniques.items():
+            if not unique[0].size:
+                continue
+            # TODO: What to do whith empty arrays
+            start_time = time.time()
+            frame = pd.DataFrame(
+                data=[unique[0], calculations[oportunity], quantiles[oportunity]]
+            ).T
+            end_time = time.time()
+            print_info(f"converting {oportunity} time: {end_time-start_time} s")
+            frame.columns = ["id", oportunity, "class"]
+            dataframes.append(frame)
+
+        return dataframes
+
+    async def read_h3_dataframe(self, study_area_id, resolution):
+        base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
+        directory = os.path.join(base_path, str(study_area_id), "h3")
+        file_name = os.path.join(directory, f"{resolution}.geojson")
+        dataframe = gpd.read_file(file_name)
+        dataframe["bulk_id"] = dataframe["bulk_id"].apply(int, base=16)
+        return dataframe
+
+    def merge_frames(self, hexagons: pd.DataFrame, calculations_dataframes: list[pd.DataFrame]):
+        pass
 
 
 read_heatmap = CRUDReadHeatmap
@@ -484,6 +512,10 @@ def test_heatmap():
     heatmap_setting = HeatmapSettings(
         mode="walking",
         max_travel_time=20,
+        study_area_ids=[
+            91620000,
+        ],
+        resolution=6,
         walking_profile="standard",
         scenario=IsochroneScenario(
             id=1,
@@ -547,22 +579,22 @@ def test_heatmap():
     asyncio.get_event_loop().run_until_complete(
         crud_heatmap.read_heatmap(
             heatmap_settings=heatmap_setting,
-            current_user=superuser,
-            study_area_ids=[
-                91620000,
-                # 83110000,
-                # 9184,
-                # 9263,
-                # 9274,
-                # 9186,
-                # 9188,
-                # 9361,
-                # 9362,
-                # 9363,
-                # 9461,
-                # 9462,
-                # 9463,
-            ],
+            # current_user=superuser,
+            # study_area_ids=[
+            #     91620000,
+            #     # 83110000,
+            #     # 9184,
+            #     # 9263,
+            #     # 9274,
+            #     # 9186,
+            #     # 9188,
+            #     # 9361,
+            #     # 9362,
+            #     # 9363,
+            #     # 9461,
+            #     # 9462,
+            #     # 9463,
+            # ],
         )
     )
     end = time.time()
