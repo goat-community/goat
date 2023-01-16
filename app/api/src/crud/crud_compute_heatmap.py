@@ -8,7 +8,6 @@ from typing import List
 
 import geopandas as gpd
 import h3
-import heatmap_utils
 import numpy as np
 import pandas as pd
 from codetiming import Timer
@@ -533,16 +532,29 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 grids = list(set(grids))
                 neighbors = await self.get_interior_neighbors(grids, study_area_polygon)
                 grids.extend(neighbors)
-                hex_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
-                hex_polygons = gpd.GeoSeries(list(map(hex_polygons, grids)), crs="EPSG:4326")
-                gdf = gpd.GeoDataFrame(
-                    data={"bulk_id": grids}, geometry=hex_polygons, crs="EPSG:4326"
+                hex_polygons_lambda = lambda hex_id: np.array(
+                    h3.h3_to_geo_boundary(str(hex_id), geo_json=True)
                 )
+                hex_polygons = [
+                    np.array(h3.h3_to_geo_boundary(str(hex_id), geo_json=True)) for hex_id in grids
+                ]
+                grids = np.array([int(hex_id, 16) for hex_id in grids])
+                # hex_polygons_func = np.vectorize(hex_polygons_lambda)
+                hex_polygons = np.array(hex_polygons)
+
+                # hex_polygons = gpd.GeoSeries(list(map(hex_polygons, grids)), crs="EPSG:4326")
+                # gdf = gpd.GeoDataFrame(
+                #     data={"bulk_id": grids}, geometry=hex_polygons, crs="EPSG:4326"
+                # )
+
                 directory = os.path.join(base_path, str(study_area_id), "h3")
-                file_name = os.path.join(directory, f"{resolution}.geojson")
+                grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
+                hex_polygons_filename = os.path.join(directory, f"{resolution}_polygons.npy")
                 if not os.path.exists(directory):
                     os.makedirs(directory)
-                gdf.to_file(file_name, driver="GeoJSON")
+
+                np.save(grids_file_name, grids)
+                np.save(hex_polygons_filename, hex_polygons)
 
     async def execute_pre_calculation(
         self,
