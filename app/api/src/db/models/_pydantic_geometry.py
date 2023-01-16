@@ -7,7 +7,7 @@ from typing import Dict, Optional, Union
 import geoalchemy2.shape
 from geoalchemy2 import WKBElement
 from pydantic import BaseModel, Field, validator
-from shapely.geometry import Point, asShape
+from shapely.geometry import Point, shape
 from shapely.geometry.base import BaseGeometry
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ def create_geom(v, values) -> Point:
             if isinstance(v, list):
                 return Point(*v)
             elif isinstance(v, dict):
-                return asShape(v)
+                return shape(v)
             elif hasattr(v, "__geo_interface__"):
                 pass  # v is already a geometry
             return v
