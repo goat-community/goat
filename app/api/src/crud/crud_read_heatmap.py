@@ -394,18 +394,15 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         print(f"Reading matrices took {end - begin} seconds")
 
         ## Compile
-        # TODO: Remove the compile step
         # TODO: Pick right function that correspond the heatmap the user want to calculate
-        sorted_table, uniques = self.sort_and_unique(grid_ids, traveltimes)
+        sorted_table, uniques = self.sort_and_unique(grid_ids, traveltimes)  # Resolution 10 inside
         calculations = self.do_calculations(sorted_table, uniques, heatmap_settings)
-        quantiles = self.quantile_classify(calculations)
-        hexagons = await self.read_h3_dataframe(
+        grids, h_polygons = await self.read_hexagons(
             heatmap_settings.study_area_ids[0], heatmap_settings.resolution
         )
-        start_time = time.time()
-        calculations_dataframes = self.calculations_to_data_frame(uniques, calculations, quantiles)
-        end_time = time.time()
-        print_info(f"calc to df convertion time: {end_time-start_time} s")
+        # TODO: Warnong: Study areas should get concatenated
+        calculation_arrays = self.reorder_calculations(calculations, grids, uniques)
+
         print()
 
         # sorted_table, unique = heatmap_core.sort_and_unique_by_grid_ids(grid_ids, traveltimes)
@@ -470,33 +467,121 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             quantile_index[key] = heatmap_core.quantile_classify(a)
         return quantile_index
 
-    def calculations_to_data_frame(self, uniques, calculations, quantiles):
-        dataframes = []
-        for oportunity, unique in uniques.items():
-            if not unique[0].size:
-                continue
-            # TODO: What to do whith empty arrays
-            start_time = time.time()
-            frame = pd.DataFrame(
-                data=[unique[0], calculations[oportunity], quantiles[oportunity]]
-            ).T
-            end_time = time.time()
-            print_info(f"converting {oportunity} time: {end_time-start_time} s")
-            frame.columns = ["id", oportunity, "class"]
-            dataframes.append(frame)
+    # def calculations_to_data_frame(self, uniques, calculations, quantiles):
+    #     dataframes = []
+    #     for opportunity, unique in uniques.items():
+    #         if not unique[0].size:
+    #             continue
+    #         # TODO: What to do with empty arrays
+    #         start_time = time.time()
+    #         frame = pd.DataFrame(
+    #             data=[unique[0], calculations[opportunity], quantiles[opportunity]]
+    #         ).T
+    #         end_time = time.time()
+    #         print_info(f"converting {opportunity} time: {end_time-start_time} s")
+    #         frame.columns = ["id", opportunity, "class"]
+    #         dataframes.append(frame)
 
-        return dataframes
+    #     return dataframes
 
-    async def read_h3_dataframe(self, study_area_id, resolution):
-        base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
+    # async def read_h3_dataframe(self, study_area_id, resolution):
+    #     base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
+    #     directory = os.path.join(base_path, str(study_area_id), "h3")
+    #     file_name = os.path.join(directory, f"{resolution}.geojson")
+    #     dataframe = gpd.read_file(file_name)
+    #     dataframe["bulk_id"] = dataframe["bulk_id"].apply(int, base=16)
+    #     return dataframe
+
+    async def read_hexagons(self, study_area_id: int, resolution: int):
+        base_path = "/app/src/cache/analyses_unit/"
         directory = os.path.join(base_path, str(study_area_id), "h3")
-        file_name = os.path.join(directory, f"{resolution}.geojson")
-        dataframe = gpd.read_file(file_name)
-        dataframe["bulk_id"] = dataframe["bulk_id"].apply(int, base=16)
-        return dataframe
+        grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
+        polygons_file_name = os.path.join(directory, f"{resolution}_polygons.npy")
+        grids = np.load(grids_file_name)
+        polygons = np.load(polygons_file_name)
+        return grids, polygons
 
-    def merge_frames(self, hexagons: pd.DataFrame, calculations_dataframes: list[pd.DataFrame]):
-        pass
+    def tag_uniques_by_parent(self, uniques: dict, target_resolution: int):
+        parent_tags = {}
+        parent_tag_lambda = lambda grid_id: int(
+            h3.h3_to_parent(h3.h3_to_string(grid_id), target_resolution), 16
+        )
+        tags = np.vectorize(parent_tag_lambda)
+        for key, unique in uniques.items():
+            if not unique[0].size:
+                parent_tags[key] = np.array([])
+                continue
+            parent_tags[key] = tags(unique[0])
+
+        return parent_tags
+
+    def create_grids_unordered_map(self, grids: dict):
+        """
+        Convert grids to unordered map for fast lookup
+        """
+        indexes = range(grids.size)
+        grids_unordered_map = dict(zip(grids, indexes))
+        return grids_unordered_map
+
+    def get_calculations_null_array(self, grids):
+        return np.full(grids.size, np.nan, np.float32)
+
+    def create_grid_pointers(self, grids_unordered_map, parent_tags):
+        grid_pointers = {}
+        get_id = lambda tag: grids_unordered_map.get(tag, -1)
+        for key, parent_tag in parent_tags.items():
+            if not parent_tag.size:
+                grid_pointers[key] = parent_tag.copy()
+                continue
+            grid_pointers[key] = np.vectorize(get_id)(parent_tag)
+        return grid_pointers
+
+    def create_calculation_arrays(self, grids, grid_pointers, calculations):
+        calculation_arrays = {}
+        for key, grid_pointer in grid_pointers.items():
+            if not grid_pointer.size:
+                calculation_arrays[key] = grid_pointer.copy()
+                continue
+            calculation_arrays[key] = self.get_calculations_null_array(grids)
+            mask = grid_pointer != -1
+            masked_grid_pointer = grid_pointer[mask]
+            calculation_arrays[key][masked_grid_pointer] = calculations[key][mask]
+        return calculation_arrays
+
+    def create_quantile_arrays(self, calculations):
+        quantile_arrays = {}
+        for key, calculation in calculations.items():
+            quantile_arrays[key] = heatmap_core.quantile_classify(calculation)
+        return quantile_arrays
+
+    def reorder_calculations(self, calculations, grids, uniques):
+        """
+        Reorder calculations to match the order of grids
+        """
+        # convert grid_id from int to hex
+        sample_grid_id = h3.h3_to_string(grids[0])
+        target_resolution = h3.h3_get_resolution(sample_grid_id)
+        uniques_parent_tags = self.tag_uniques_by_parent(uniques, target_resolution)
+        grids_unordered_map = self.create_grids_unordered_map(grids)
+        grid_pointer = self.create_grid_pointers(grids_unordered_map, uniques_parent_tags)
+        calculations = self.create_calculation_arrays(grids, grid_pointer, calculations)
+        quantiles = self.create_quantile_arrays(calculations)
+        return calculations, quantiles
+
+    def convert_parent_tags_to_geojson(self, parent_tags: dict):
+        tags = set()
+        for key, tag in parent_tags.items():
+            tags.update(tag)
+        hex_tags = np.array([h3.h3_to_string(tag) for tag in tags])
+
+        tags_polygons = [h3.h3_to_geo_boundary(str(tag), True) for tag in hex_tags]
+        tags_polygons = [Polygon(polygon) for polygon in tags_polygons]
+        # tags_polygons = np.array(tags_polygons)
+
+        hex_polygons = gpd.GeoSeries(tags_polygons, crs="EPSG:4326")
+        # write hex_polygons to geojson file
+        hex_polygons_data_frame = gpd.GeoDataFrame(hex_polygons, columns=["geometry"])
+        hex_polygons_data_frame.to_file("/app/src/cache/hex_polygons.geojson", driver="GeoJSON")
 
 
 read_heatmap = CRUDReadHeatmap
