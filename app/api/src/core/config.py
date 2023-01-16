@@ -48,12 +48,6 @@ class Settings(BaseSettings):
         if len(v) == 0:
             return None
         return v
-    
-    @validator("POSTGRES_DB")
-    def set_db_name_according_to_project_name_if_empty(cls,v,values):
-        if not v:
-            return values["COMPOSE_PROJECT_NAME"]
-        return v
 
     POSTGRES_SERVER: str
     POSTGRES_USER: str
@@ -176,7 +170,6 @@ class Settings(BaseSettings):
     def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         return f"Basic {v}="
 
-    COMPOSE_PROJECT_NAME: str
     class Config:
         case_sensitive = True
 
