@@ -401,7 +401,13 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             heatmap_settings.study_area_ids[0], heatmap_settings.resolution
         )
         # TODO: Warnong: Study areas should get concatenated
-        calculation_arrays = self.reorder_calculations(calculations, grids, uniques)
+        calculations = self.reorder_calculations(calculations, grids, uniques)
+        quantiles = self.create_quantile_arrays(calculations)
+        geojson = self.generate_final_geojson(grids, h_polygons, calculations, quantiles)
+        # Write geojson to file
+        with open("/app/src/cache/sample_geojson.geojson", "w") as f:
+            json.dump(geojson, f, indent=4, sort_keys=True)
+        return geojson
 
         print()
 
@@ -466,31 +472,6 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         for key, a in calculations.items():
             quantile_index[key] = heatmap_core.quantile_classify(a)
         return quantile_index
-
-    # def calculations_to_data_frame(self, uniques, calculations, quantiles):
-    #     dataframes = []
-    #     for opportunity, unique in uniques.items():
-    #         if not unique[0].size:
-    #             continue
-    #         # TODO: What to do with empty arrays
-    #         start_time = time.time()
-    #         frame = pd.DataFrame(
-    #             data=[unique[0], calculations[opportunity], quantiles[opportunity]]
-    #         ).T
-    #         end_time = time.time()
-    #         print_info(f"converting {opportunity} time: {end_time-start_time} s")
-    #         frame.columns = ["id", opportunity, "class"]
-    #         dataframes.append(frame)
-
-    #     return dataframes
-
-    # async def read_h3_dataframe(self, study_area_id, resolution):
-    #     base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
-    #     directory = os.path.join(base_path, str(study_area_id), "h3")
-    #     file_name = os.path.join(directory, f"{resolution}.geojson")
-    #     dataframe = gpd.read_file(file_name)
-    #     dataframe["bulk_id"] = dataframe["bulk_id"].apply(int, base=16)
-    #     return dataframe
 
     async def read_hexagons(self, study_area_id: int, resolution: int):
         base_path = "/app/src/cache/analyses_unit/"
@@ -565,8 +546,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         grids_unordered_map = self.create_grids_unordered_map(grids)
         grid_pointer = self.create_grid_pointers(grids_unordered_map, uniques_parent_tags)
         calculations = self.create_calculation_arrays(grids, grid_pointer, calculations)
-        quantiles = self.create_quantile_arrays(calculations)
-        return calculations, quantiles
+        return calculations
 
     def convert_parent_tags_to_geojson(self, parent_tags: dict):
         tags = set()
@@ -582,6 +562,37 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # write hex_polygons to geojson file
         hex_polygons_data_frame = gpd.GeoDataFrame(hex_polygons, columns=["geometry"])
         hex_polygons_data_frame.to_file("/app/src/cache/hex_polygons.geojson", driver="GeoJSON")
+
+    def generate_final_geojson(self, grid_ids, polygons, calculations, quantiles):
+        geojson = {}
+        features = []
+        for i, grid_id in enumerate(grid_ids):
+            feature = {
+                "type": "Feature",
+                "properties": {
+                    "id": int(grid_id),
+                },
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [polygons[i].tolist()],
+                },
+            }
+            for key, calculation in calculations.items():
+                if not calculation.size:
+                    feature["properties"][key] = None
+                    feature["properties"][key + "_class"] = -1
+                    continue
+                if np.isnan(calculation[i]):
+                    feature["properties"][key] = None
+                    feature["properties"][key + "_class"] = -1
+                    continue
+                feature["properties"][key] = float(calculation[i])
+                feature["properties"][key + "_class"] = int(quantiles[key][i])
+            features.append(feature)
+        geojson["type"] = "FeatureCollection"
+        # geojson["crs"] = {"type": "name", "properties": {"name": "EPSG:4326"}}
+        geojson["features"] = features
+        return geojson
 
 
 read_heatmap = CRUDReadHeatmap
