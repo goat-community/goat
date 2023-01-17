@@ -144,6 +144,8 @@ def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
 def quantile_classify(a, NQ=5):
     if a is None:
         return None
+    if not a.size:
+        return a.copy()
     q = np.arange(1 / NQ, 1, 1 / NQ)
     quantiles = np.quantile(a[a > 0], q)
     out = np.empty(a.size, np.int8)
@@ -156,6 +158,7 @@ def quantile_classify(a, NQ=5):
                 np.logical_and(np.greater_equal(a, quantiles[i]), np.less(a, quantiles[i + 1]))
             )
         ] = (i + 2)
+    out[np.isnan(a)] = -1
 
     return out
 
