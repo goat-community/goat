@@ -110,9 +110,6 @@ class HeatmapSettings(BaseModel):
         HeatmapType.gravity, description="Type of heatmap to compute"
     )
     heatmap_config: dict
-    return_type: ReturnTypeHeatmap = Field(
-        ReturnTypeHeatmap.geobuf, description="Return type of the heatmap"
-    )
 
     @validator("heatmap_config")
     def heatmap_config_schema(cls, value, values):
@@ -155,7 +152,6 @@ request_example = {
     "heatmap_type": "closest_average",
     "analysis_unit": "building",
     "resolution": 6,
-    "return_type": "geojson",
     "heatmap_config": {
         "atm": {"weight": 1, "max_count": 1, "max_traveltime": 5},
         "bar": {"weight": 1, "max_count": 1, "max_traveltime": 5},
