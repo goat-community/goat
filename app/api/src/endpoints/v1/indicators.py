@@ -1,4 +1,5 @@
 import json
+import time
 from typing import Any, List, Optional, Union
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
@@ -18,15 +19,15 @@ from src.resources.enums import (
     ReturnType,
     SQLReturnTypes,
 )
-from src.schemas.heatmap import request_examples, HeatmapSettings, request_example as heatmap_request_example
-
+from src.schemas.heatmap import HeatmapSettings, ReturnTypeHeatmap
+from src.schemas.heatmap import request_example as heatmap_request_example
+from src.schemas.heatmap import request_examples
 from src.schemas.indicators import (
-    CalculateOevGueteklassenParameters,
     CalculateLocalAccessibilityAggregated,
-    oev_gueteklasse_config_example,
+    CalculateOevGueteklassenParameters,
     local_accessibility_aggregated_example,
+    oev_gueteklasse_config_example,
 )
-
 from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()
@@ -37,15 +38,20 @@ async def calculate_heatmap(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    params: HeatmapSettings = Body(..., example=heatmap_request_example),
+    heatmap_settings: HeatmapSettings = Body(..., example=heatmap_request_example),
+    return_type: ReturnTypeHeatmap = Query(..., description="Return type of the response"),
 ):
     """
     Calculate a heatmap.
     """
-
+    start_time = time.time()
     result = await crud.read_heatmap(db=db, current_user=current_user).read_heatmap(
-        heatmap_settings=params
+        heatmap_settings=heatmap_settings
     )
+    end_time = time.time()
+    print(f"Time to calculate heatmap: {round(end_time - start_time,2)}")
+    if return_type == "geobuf":
+        return return_geojson_or_geobuf(result, "geobuf")
     return result
 
 
@@ -318,20 +324,21 @@ async def calculate_local_accessibility_aggregated(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    params: CalculateLocalAccessibilityAggregated = Body(..., example=local_accessibility_aggregated_example),
+    params: CalculateLocalAccessibilityAggregated = Body(
+        ..., example=local_accessibility_aggregated_example
+    ),
 ):
     """
     Local accessibility aggregated is an indicator.
     """
-    #TODO: Check if user owns study area 
-    
+    # TODO: Check if user owns study area
+
     # local_accessibility_features = await crud.indicator.compute_local_accessibility_aggregated(
     #     db=db,
     #     study_area_id=study_area_id,
     #     indicator_config=indicator_config
-    # ) 
+    # )
 
-    
     return {"Test": "Test"}
 
 

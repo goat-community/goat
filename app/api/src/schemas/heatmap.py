@@ -81,7 +81,7 @@ class HeatmapSettings(BaseModel):
 
     study_area_ids: List[int]
     resolution: int = Field(None, ge=6, le=10)
-    mode: HeatmapMode = Field(HeatmapMode.walking, description="Isochrone Mode")
+    mode: HeatmapMode = Field(HeatmapMode.walking.value, description="Isochrone Mode")
     max_travel_time: int = Field(
         10,
         gt=0,
@@ -102,17 +102,14 @@ class HeatmapSettings(BaseModel):
         },
         description="Isochrone scenario parameters. Only supported for POIs and Building scenario at the moment",
     )
-    analysis_unit: AnalysisUnit = (
-        Field(AnalysisUnit.hexagon, description="Analysis unit for the heatmap"),
+    analysis_unit: AnalysisUnit = Field(
+        AnalysisUnit.hexagon, description="Analysis unit for the heatmap"
     )
-    analysis_unit_size: Optional[int] = (Field(10, description="Size of the analysis"),)
-    heatmap_type: HeatmapType = (
-        Field(HeatmapType.gravity, description="Type of heatmap to compute"),
+    analysis_unit_size: Optional[int] = Field(10, description="Size of the analysis")
+    heatmap_type: HeatmapType = Field(
+        HeatmapType.gravity, description="Type of heatmap to compute"
     )
     heatmap_config: dict
-    return_type: ReturnTypeHeatmap = Field(
-        ReturnTypeHeatmap.geobuf, description="Return type of the heatmap"
-    )
 
     @validator("heatmap_config")
     def heatmap_config_schema(cls, value, values):
@@ -143,19 +140,19 @@ request_examples = {
     "heatmap_configuration": """{"supermarket":{"sensitivity":250000,"weight":1}}""",
 }
 
-request_example = HeatmapSettings(
-    study_area_ids=[91620000],
-    mode="walking",
-    max_travel_time=20,
-    walking_profile="standard",
-    scenario=IsochroneScenario(
-        id=1,
-        name="Default",
-    ),
-    analysis_unit="hexagon",
-    analysis_unit_size=10,
-    heatmap_type="closest_average",
-    heatmap_config={
+request_example = {
+    "mode": "walking",
+    "study_area_ids": [91620000],
+    "max_travel_time": 20,
+    "walking_profile": "standard",
+    "scenario": {
+        "id": 1,
+        "name": "default",
+    },
+    "heatmap_type": "closest_average",
+    "analysis_unit": "building",
+    "resolution": 6,
+    "heatmap_config": {
         "atm": {"weight": 1, "max_count": 1, "max_traveltime": 5},
         "bar": {"weight": 1, "max_count": 1, "max_traveltime": 5},
         "gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
@@ -203,5 +200,4 @@ request_example = HeatmapSettings(
         "swimming_pool_outdoor": {"weight": 1, "max_count": 1, "max_traveltime": 5},
         "hauptschule_mittelschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
     },
-    return_type="geojson",
-).dict()
+}
