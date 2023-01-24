@@ -518,14 +518,14 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         neighbors = list(compress(neighbors, intersects.values))
         return neighbors
 
-    async def create_h3_girds(self, study_area_ids):
+    async def create_h3_grids(self, study_area_ids):
         base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
         for study_area_id in study_area_ids:
             study_area = await crud.study_area.get(self.db, id=study_area_id)
             for resolution in range(6, 11):
                 grids = []
                 study_area_polygon = to_shape(study_area.geom)
-                for polygon_ in list(study_area_polygon):
+                for polygon_ in list(study_area_polygon.geoms):
                     grids_ = h3.polyfill_geojson(polygon_.__geo_interface__, resolution)
                     # Get hexagon geometries and convert to GeoDataFrame
                     grids.extend(grids_)
@@ -628,17 +628,23 @@ def main():
     )
 
     crud_heatmap = CRUDComputeHeatmap(db=db, current_user=superuser)
+    # asyncio.get_event_loop().run_until_complete(
+    #     crud_heatmap.execute_pre_calculation(
+    #         isochrone_dto=isochrone_dto,
+    #         bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
+    #         calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
+    #         study_area_ids=[
+    #             91620000,
+    #         ],
+    #     )
+    # )
     asyncio.get_event_loop().run_until_complete(
-        crud_heatmap.execute_pre_calculation(
-            isochrone_dto=isochrone_dto,
-            bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
-            calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
-            study_area_ids=[
-                91620000,
-            ],
-        )
+    crud_heatmap.create_h3_grids(
+          study_area_ids=[
+            91620000,
+        ],
     )
-
+    )
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
 

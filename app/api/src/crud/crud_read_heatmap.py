@@ -695,7 +695,7 @@ def test_heatmap():
             id=1,
             name="Default",
         ),
-        analysis_unit="building",
+        analysis_unit="hexagon",
         heatmap_type="closest_average",
         heatmap_config={
             "atm": {"weight": 1, "max_count": 1, "max_traveltime": 5},
