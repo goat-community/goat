@@ -28,8 +28,7 @@ python-jose = {extras = ["cryptography"], version = "^3.1.0"}
 GeoAlchemy2 = "^0.9.4"
 geojson-pydantic = "^0.3.1"
 geojson = "^2.5.0"
-Shapely = "^1.8.0"
-geopandas = "^0.10.2"
+geopandas = "0.12.2"
 morecantile = "^2.1.4"
 cppimport = "^21.3.7"
 pandas = "^1.3.4"
@@ -53,6 +52,8 @@ numba = "^0.55.2"
 codetiming = "^1.4.0"
 h3 = "^3.7.6"
 cython = "^0.29.33"
+pyarrow = "^10.0.1"
+
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.770"
