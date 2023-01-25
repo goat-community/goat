@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from geojson_pydantic.features import Feature, FeatureCollection
 from geojson_pydantic.geometries import MultiPolygon, Polygon
 from pydantic import BaseModel, Field, root_validator, validator
+from shapely.geometry import Polygon as ShapelyPolygon
 
 from src.endpoints import deps
 from src.resources.enums import RoutingTypes
@@ -410,6 +411,13 @@ class IsochroneDTO(BaseModel):
 
         return values
 
+    def validate_user_study_area_limit(self, user):
+        if not user.study_areas_contains_points(self.starting_point.input):
+            raise HTTPException(
+                status_code=401,
+                detail="Starting point is not in user study area",
+            )
+
 
 request_examples = {
     "isochrone": {
@@ -423,7 +431,7 @@ request_examples = {
                     "walking_profile": "standard",
                 },
                 "starting_point": {
-                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                    "input": [{"lat": 11.5696284, "lon": 48.1502132}],
                 },
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
@@ -473,7 +481,7 @@ request_examples = {
                     "monte_carlo_draws": 200,
                 },
                 "starting_point": {
-                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                    "input": [{"lat": 11.5696284, "lon": 48.1502132}],
                 },
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {

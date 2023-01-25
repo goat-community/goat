@@ -31,6 +31,10 @@ async def calculate_isochrone(
     """
     Calculate isochrone.
     """
+    current_user = await crud.user.get(
+        db, id=current_user.id, extra_fields=[models.User.study_areas]
+    )
+    isochrone_in.validate_user_study_area_limit(current_user)
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
     result = await crud.isochrone.calculate(db, isochrone_in, current_user)

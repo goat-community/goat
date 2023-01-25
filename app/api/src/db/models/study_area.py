@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 from geoalchemy2 import Geometry
+from geoalchemy2.shape import to_shape
 from pydantic import validator
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import (
@@ -25,7 +26,7 @@ if TYPE_CHECKING:
     from .opportunity_config import OpportunityStudyAreaConfig, OpportunityUserConfig
     from .geostore import Geostore
 
-from ._link_model import StudyAreaGridVisualization, UserStudyArea, StudyAreaGeostore
+from ._link_model import StudyAreaGeostore, StudyAreaGridVisualization, UserStudyArea
 from ._pydantic_geometry import dump_geom
 
 
@@ -58,10 +59,19 @@ class StudyArea(SQLModel, table=True):
     # users_active: List["User"] = Relationship(back_populates="active_study_area")
     user_customizations: List["UserCustomization"] = Relationship(back_populates="study_areas")
     data_uploads: List["DataUpload"] = Relationship(back_populates="study_area")
-    opportunity_study_area_configs: List["OpportunityStudyAreaConfig"] = Relationship(back_populates="study_area")
-    opportunity_user_configs: List["OpportunityUserConfig"] = Relationship(back_populates="study_area")
-    geostores: List["Geostore"] = Relationship(back_populates="study_areas", link_model=StudyAreaGeostore)
+    opportunity_study_area_configs: List["OpportunityStudyAreaConfig"] = Relationship(
+        back_populates="study_area"
+    )
+    opportunity_user_configs: List["OpportunityUserConfig"] = Relationship(
+        back_populates="study_area"
+    )
+    geostores: List["Geostore"] = Relationship(
+        back_populates="study_areas", link_model=StudyAreaGeostore
+    )
     _validate_geom = validator("geom", pre=True, allow_reuse=True)(dump_geom)
+
+    def contains_point(self, geom) -> bool:
+        return to_shape(self.geom).contains(geom)
 
 
 Index("idx_study_area_geom", StudyArea.__table__.c.geom, postgresql_using="gist")

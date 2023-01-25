@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
+from geoalchemy2.shape import to_shape
 from pydantic import EmailStr
+from shapely.geometry import Point
 from sqlmodel import (
     ARRAY,
     Column,
@@ -97,3 +99,16 @@ class User(UserBase, table=True):
 
     class Config:
         search_fields = ["name", "email", "surname"]
+
+    def study_areas_cointains_point(self, point):
+        point = Point(point.lat, point.lon)
+        for study_area in self.study_areas:
+            if study_area.contains_point(point):
+                return True
+        return False
+
+    def study_areas_contains_points(self, points: List):
+        for point in points:
+            if not self.study_areas_cointains_point(point):
+                return False
+        return True
