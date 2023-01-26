@@ -431,7 +431,7 @@ request_examples = {
                     "walking_profile": "standard",
                 },
                 "starting_point": {
-                    "input": [{"lat": 11.5696284, "lon": 48.1502132}],
+                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
                 },
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
@@ -481,7 +481,7 @@ request_examples = {
                     "monte_carlo_draws": 200,
                 },
                 "starting_point": {
-                    "input": [{"lat": 11.5696284, "lon": 48.1502132}],
+                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
                 },
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
