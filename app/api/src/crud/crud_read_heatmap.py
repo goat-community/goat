@@ -558,7 +558,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                     sorted_table[key],
                     uniques[key],
                     heatmap_config["sensitivity"],
-                    heatmap_config["cutoff"],
+                    heatmap_config["max_traveltime"],
                 )
         else:
             method_name = method_map[heatmap_settings.heatmap_type.value]
