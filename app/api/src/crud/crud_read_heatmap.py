@@ -363,80 +363,6 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         return grid_ids_dict, travel_times_dict
 
-    def read_opportunity_matrix_from_file(
-        self,
-        matrix_base_path: str,
-        bulk_id: str,
-    ) -> None:
-        """Read opportunity matrix from file
-
-        Args:
-            matrix_base_path (str): Path to the matrix
-        """
-        try:
-            base_path = os.path.join(matrix_base_path, bulk_id)
-            # Select relevant POI categories
-            poi_categories = np.load(
-                os.path.join(base_path, "categories.npy"),
-                allow_pickle=True,
-            )
-            travel_times = np.load(
-                os.path.join(base_path, "travel_times.npy"),
-                allow_pickle=True,
-            )
-            grid_ids = np.load(
-                os.path.join(base_path, "grid_ids.npy"),
-                allow_pickle=True,
-            )
-        except FileNotFoundError:
-            print(base_path)
-            print(f"File not found for bulk_id {bulk_id}")
-            return (None, None, None)
-        return (grid_ids, travel_times, poi_categories)
-
-    async def read_opportunity_matrix_from_files_multithread(
-        self, matrix_base_path: str, bulk_ids: list[str], chosen_categories
-    ):
-        travel_times_dict = {}
-        grid_ids_dict = {}
-        for cat in chosen_categories:
-            travel_times_dict[cat] = []
-            grid_ids_dict[cat] = []
-
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            for bulk_id in bulk_ids:
-                # Prepare threads to read matrix files
-                futures.append(
-                    executor.submit(
-                        self.read_opportunity_matrix_from_file, matrix_base_path, bulk_id
-                    )
-                )
-            for future in concurrent.futures.as_completed(futures):
-                grid_ids, travel_times, poi_categories = future.result()
-                if grid_ids is None:
-                    continue
-                for cat in chosen_categories:
-                    # Pick only the relevant categories from travel_times and grid_ids
-                    selected_category_index = np.in1d(poi_categories, np.array([cat]))
-                    travel_times_dict[cat].extend(travel_times[selected_category_index])
-                    grid_ids_dict[cat].extend(grid_ids[selected_category_index])
-
-        # Flatten and then concatenate grid_ids and travel_times
-        for cat in chosen_categories:
-            if grid_ids_dict[cat]:
-                grid_ids_dict[cat] = np.concatenate(
-                    np.concatenate(grid_ids_dict[cat], axis=None), axis=None
-                )
-                travel_times_dict[cat] = np.concatenate(
-                    np.concatenate(travel_times_dict[cat], axis=None), axis=None
-                )
-            else:
-                grid_ids_dict[cat] = np.array([], np.int64)
-                travel_times_dict[cat] = np.array([], np.int8)
-
-        return grid_ids_dict, travel_times_dict
-
     async def read_bulk_ids(self, study_area_ids):
         bulk_ids_list = []
         for study_area_id in study_area_ids:
@@ -464,11 +390,6 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         # Get bulk ids
         start_time = time.time()
-        # bulk_ids = await self.read_h3_grids_study_areas(
-        #     resolution=heatmap_settings.resolution,
-        #     buffer_size=buffer_size,
-        #     study_area_ids=heatmap_settings.study_area_ids,
-        # )
         bulk_ids = await self.read_bulk_ids(heatmap_settings.study_area_ids)
         end_time = time.time()
         print(f"Time to read bulk_ids: {end_time - start_time}")
@@ -488,9 +409,6 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         grid_ids, traveltimes = await self.read_opportunity_matrix(
             matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
         )
-        # grid_ids, traveltimes = await self.read_opportunity_matrix_from_files_multithread(
-        #     matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
-        # )
 
         end = time.time()
         print(f"Reading matrices took {end - begin} seconds")
