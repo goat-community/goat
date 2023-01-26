@@ -109,7 +109,7 @@ def averages(sorted_table, unique):
 
 
 @njit
-def modified_gaussian_per_grid(sorted_table, unique, config):
+def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
     if not sorted_table.size:
         return None
     travel_times = sorted_table.transpose()[1]
@@ -119,9 +119,9 @@ def modified_gaussian_per_grid(sorted_table, unique, config):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         sum = 0
         for t in travel_time:
-            f = exp(-t * t / config["sensitivity]"])
+            f = exp(-t * t / sensitivity)
             sum += f
-            if sum >= config["cutoff]"]:
+            if sum >= cutoff:
                 modified_gaussian_per_grids[i] = 0
                 break
         else:
@@ -131,9 +131,9 @@ def modified_gaussian_per_grid(sorted_table, unique, config):
         travel_time = travel_times[unique_index[i + 1] :]
         sum = 0
         for t in travel_time:
-            f = exp(-t * t / config["sensitivity]"])
+            f = exp(-t * t / sensitivity)
             sum += f
-            if sum >= config["cutoff]"]:
+            if sum >= cutoff:
                 modified_gaussian_per_grids[i] = 0
                 break
         else:
@@ -142,6 +142,8 @@ def modified_gaussian_per_grid(sorted_table, unique, config):
 
 
 def quantile_classify(a, NQ=5):
+    if a is None:
+        return None
     q = np.arange(1 / NQ, 1, 1 / NQ)
     quantiles = np.quantile(a[a > 0], q)
     out = np.empty(a.size, np.int8)

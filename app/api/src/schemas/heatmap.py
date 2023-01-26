@@ -40,6 +40,7 @@ class HeatmapType(Enum):
     cumulative = "cumulative"
     closest_average = "closest_average"
 
+
 class ReturnTypeHeatmap(Enum):
     geojson = "geojson"
     csv = "csv"
@@ -70,13 +71,16 @@ class HeatmapBase(BaseModel):
 class HeatmapConfigGravity(HeatmapBase):
     sensitivity: int
 
+
 class HeatmapClosestAverage(HeatmapBase):
     max_count: int
 
 
 class HeatmapSettings(BaseModel):
     """Setting for different heatmap types"""
+
     study_area_ids: List[int]
+    resolution: int = Field(None, ge=6, le=10)
     mode: HeatmapMode = Field(HeatmapMode.walking, description="Isochrone Mode")
     max_travel_time: int = Field(
         10,
@@ -101,9 +105,7 @@ class HeatmapSettings(BaseModel):
     analysis_unit: AnalysisUnit = (
         Field(AnalysisUnit.hexagon, description="Analysis unit for the heatmap"),
     )
-    analysis_unit_size: Optional[int] = (
-        Field(10, description="Size of the analysis"),
-    )
+    analysis_unit_size: Optional[int] = (Field(10, description="Size of the analysis"),)
     heatmap_type: HeatmapType = (
         Field(HeatmapType.gravity, description="Type of heatmap to compute"),
     )
@@ -117,7 +119,10 @@ class HeatmapSettings(BaseModel):
         """
         Validate each part of heatmap_config against validator class corresponding to heatmap_type
         """
-        validator_classes = {"gravity": HeatmapConfigGravity, "closest_average": HeatmapClosestAverage}
+        validator_classes = {
+            "gravity": HeatmapConfigGravity,
+            "closest_average": HeatmapClosestAverage,
+        }
 
         heatmap_type = values["heatmap_type"].value
         if heatmap_type not in validator_classes.keys():
@@ -200,4 +205,3 @@ request_example = HeatmapSettings(
     },
     return_type="geojson",
 ).dict()
-
