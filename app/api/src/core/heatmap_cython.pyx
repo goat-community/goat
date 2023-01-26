@@ -2,7 +2,10 @@ import h3
 import numpy as np
 import cython
 
-def get_h3_parents(h3_array, resolution):
+def get_h3_parents(h3_array: np.ndarray, int resolution):
+    """Get the parent of each H3 index in the array at the given resolution.
+    """
+
     if h3_array is None:
         return None
     if not h3_array.size:
@@ -13,7 +16,10 @@ def get_h3_parents(h3_array, resolution):
     return out
 
 
-def create_grid_pointers(grids_unordered_map, parent_tags):
+def create_grid_pointers(grids_unordered_map:dict, parent_tags:dict):
+    """
+    Create grid pointers for each grid in the grid map.
+    """
     grid_pointers = {}
     get_id = lambda tag: grids_unordered_map.get(tag, -1)
     for key, parent_tag in parent_tags.items():
@@ -23,7 +29,11 @@ def create_grid_pointers(grids_unordered_map, parent_tags):
         grid_pointers[key] = np.vectorize(get_id)(parent_tag)
     return grid_pointers
 
-def generate_final_geojson(grid_ids, polygons, calculations, quantiles, agg_classes):
+def generate_final_geojson(grid_ids:np.ndarray, polygons:np.ndarray, calculations:dict, quantiles:dict, agg_classes:np.ndarray):
+    """
+    Generate the final geojson.
+    """
+    
     geojson = {}
     features = []
     for i, grid_id in enumerate(grid_ids):
