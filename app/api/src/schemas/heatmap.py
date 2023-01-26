@@ -183,6 +183,27 @@ request_examples = {
             },
         },
     },
+    "gravity_hexagon_6": {
+        "summary": "Gravity heatmap with hexagon resolution 6",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "max_travel_time": 20,
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "gravity",
+            "analysis_unit": "hexagon",
+            "resolution": 6,
+            "heatmap_config": {
+                "atm": {"weight": 1, "sensitivity": 250000, "max_traveltime": 5},
+                "bar": {"weight": 1, "sensitivity": 250000, "max_traveltime": 5},
+                "gym": {"weight": 1, "sensitivity": 350000, "max_traveltime": 5},
+            },
+        },
+    },
     "closest_average_hexagon_10": {
         "summary": "Closest average heatmap with hexagon resolution 10",
         "value": {
@@ -261,6 +282,27 @@ request_examples = {
             "heatmap_type": "closest_average",
             "analysis_unit": "hexagon",
             "resolution": 9,
+            "heatmap_config": {
+                "atm": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+                "bar": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+                "gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            },
+        },
+    },
+    "closest_average_hexagon_6": {
+        "summary": "Closest average hexagon with resolution 6",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "max_travel_time": 20,
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "closest_average",
+            "analysis_unit": "hexagon",
+            "resolution": 6,
             "heatmap_config": {
                 "atm": {"weight": 1, "max_count": 1, "max_traveltime": 5},
                 "bar": {"weight": 1, "max_count": 1, "max_traveltime": 5},
