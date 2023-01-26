@@ -462,7 +462,8 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         weighted_quantiles = []
         weight_agg = 0
         for key, quantile in quantiles.items():
-            weighted_quantiles.append(quantile * heatmap_config[key].get("weight", 1))
+            if quantile.size:
+                weighted_quantiles.append(quantile * heatmap_config[key].get("weight", 1))
             weight_agg += heatmap_config[key].get("weight", 1)
 
         agg_class = np.array(weighted_quantiles).sum(axis=0) / weight_agg
