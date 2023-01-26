@@ -158,7 +158,7 @@ def quantile_classify(a, NQ=5):
                 np.logical_and(np.greater_equal(a, quantiles[i]), np.less(a, quantiles[i + 1]))
             )
         ] = (i + 2)
-    out[np.isnan(a)] = -1
+    out[np.isnan(a)] = 0
 
     return out
 

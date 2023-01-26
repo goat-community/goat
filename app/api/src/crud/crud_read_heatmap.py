@@ -422,6 +422,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # TODO: Warnong: Study areas should get concatenated
         calculations = self.reorder_calculations(calculations, grids, uniques)
         quantiles = self.create_quantile_arrays(calculations)
+        agg_class = self.add_weight_to_quantiles(quantiles, heatmap_settings.heatmap_config)
         geojson = self.generate_final_geojson(grids, h_polygons, calculations, quantiles)
         # Write geojson to file
         # with open("/app/src/cache/sample_geojson.geojson", "w") as f:
@@ -446,6 +447,16 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # gdf=gpd.GeoDataFrame(data={"grid_ids": matrix_min_travel_time["grid_id"], "travel_times": matrix_min_travel_time["travel_time"]}, geometry=hex_polygons)
         # gdf.to_file("test_results.geojson", driver="GeoJSON")
         # print(f"Read study areas: {end - begin}")
+
+    def add_weight_to_quantiles(self, quantiles, heatmap_config):
+        weighted_quantiles = []
+        weight_agg = 0
+        for key, quantile in quantiles.items():
+            weighted_quantiles.append(quantile * heatmap_config[key].get("weight", 1))
+            weight_agg += heatmap_config[key].get("weight", 1)
+
+        agg_class = np.array(weighted_quantiles).sum(axis=0) / weight_agg
+        return agg_class
 
     @timing
     def sort_and_unique(self, grid_ids, traveltimes):
