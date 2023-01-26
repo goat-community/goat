@@ -363,7 +363,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         return grid_ids_dict, travel_times_dict
 
-    async def read_bulk_ids(self, study_area_ids):
+    async def read_bulk_ids(self, study_area_ids: list[int]):
+        """
+        Read list of bulk ids from cache
+        """
+
         bulk_ids_list = []
         for study_area_id in study_area_ids:
             base_path = "/app/src/cache/analyses_unit/"
@@ -422,7 +426,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # TODO: Warnong: Study areas should get concatenated
         calculations = self.reorder_calculations(calculations, grids, uniques)
         quantiles = self.create_quantile_arrays(calculations)
-        agg_class = self.add_weight_to_quantiles(quantiles, heatmap_settings.heatmap_config)
+        agg_class = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
         geojson = self.generate_final_geojson(grids, h_polygons, calculations, quantiles)
         # Write geojson to file
         # with open("/app/src/cache/sample_geojson.geojson", "w") as f:
@@ -448,7 +452,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # gdf.to_file("test_results.geojson", driver="GeoJSON")
         # print(f"Read study areas: {end - begin}")
 
-    def add_weight_to_quantiles(self, quantiles, heatmap_config):
+    def calculate_agg_class(self, quantiles: dict, heatmap_config: dict):
+        """
+        Calculate the aggregated class for each grid cell based on the opportunity weights.
+        """
+
         weighted_quantiles = []
         weight_agg = 0
         for key, quantile in quantiles.items():
@@ -459,7 +467,15 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         return agg_class
 
     @timing
-    def sort_and_unique(self, grid_ids, traveltimes):
+    def sort_and_unique(self, grid_ids: dict, traveltimes: dict):
+        """
+        Sort grid_ids in order to do calculations on travel times faster.
+        Also find the uniques which used as ids (h3 index)
+
+        returing unique is dict[tuple(unique_ids, unique_index)]
+        sorted_table is dict[Array[grid_ids, travel_times]]
+        """
+
         sorted_table, unique = {}, {}
         for op in traveltimes.keys():
             # sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
@@ -469,11 +485,12 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         return sorted_table, unique
 
     @timing
-    def do_calculations(self, sorted_table, uniques, heatmap_settings):
+    def do_calculations(self, sorted_table: dict, uniques: dict, heatmap_settings: dict):
         # TODO: find a better name for this function
         """
         connect the heatmap core calculations to the heatmap method
         """
+
         method_map = {
             "gravity": "modified_gaussian_per_grid",
             "connectivity": "connectivity",
@@ -499,6 +516,12 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     def quantile_classify(self, calculations):
+        """
+        For each calculation, classify the values into quantiles
+
+        returns: dict[quantile_index]
+        """
+
         quantile_index = {}
         for key, a in calculations.items():
             quantile_index[key] = heatmap_core.quantile_classify(a)
@@ -506,6 +529,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     async def read_hexagons(self, study_area_id: int, resolution: int):
+        """
+        Read the hexagons from the cache in requested resolution
+        returns: grids, polygons
+        """
+
         base_path = "/app/src/cache/analyses_unit/"
         directory = os.path.join(base_path, str(study_area_id), "h3")
         grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
@@ -516,6 +544,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     def tag_uniques_by_parent(self, uniques: dict, target_resolution: int):
+        """
+        For each unique (hex id) find the parent id in (requested resolution)
+        returns: dict[parent_tag]
+        """
+
         parent_tags = {}
         # parent_tag_lambda = lambda grid_id: int(
         #     h3.h3_to_parent(h3.h3_to_string(grid_id), target_resolution), 16
@@ -536,6 +569,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         """
         Convert grids to unordered map for fast lookup
         """
+
         indexes = range(grids.size)
         grids_unordered_map = dict(zip(grids, indexes))
         return grids_unordered_map
@@ -545,10 +579,20 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     def create_grid_pointers(self, grids_unordered_map, parent_tags):
+        """
+        Pointing each calculation to the corresponding grid
+        returns pointers to target hexagons
+        """
+
         return heatmap_cython.create_grid_pointers(grids_unordered_map, parent_tags)
 
     @timing
     def create_calculation_arrays(self, grids, grid_pointers, calculations):
+        """
+        each calculation with their grid_pointers can be considered as a sparse array
+        This function converts the sparse array to a dense array
+        """
+
         calculation_arrays = {}
         for key, grid_pointer in grid_pointers.items():
             if not grid_pointer.size:
@@ -562,19 +606,28 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     def create_quantile_arrays(self, calculations):
+        """
+        Classify each calculation to a quantile
+        returns dict[quantile_array]
+        """
+
         quantile_arrays = {}
         for key, calculation in calculations.items():
             quantile_arrays[key] = heatmap_core.quantile_classify(calculation)
         return quantile_arrays
 
     # @timing
-    def reorder_calculations(self, calculations, grids, uniques):
+    def reorder_calculations(self, calculations: dict, grids, uniques: dict):
         """
-        Reorder calculations to match the order of grids
+        First we create kind of a sparse array for each calculation
+        Then we convert the sparse array to a dense array targeting the hexagon grids
         """
-        # convert grid_id from int to hex
+
+        # Find the target resolution from the first grid
         sample_grid_id = h3.h3_to_string(grids[0])
         target_resolution = h3.h3_get_resolution(sample_grid_id)
+        #############################################
+
         uniques_parent_tags = self.tag_uniques_by_parent(uniques, target_resolution)
         grids_unordered_map = self.create_grids_unordered_map(grids)
         grid_pointer = self.create_grid_pointers(grids_unordered_map, uniques_parent_tags)
@@ -583,6 +636,10 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     def convert_parent_tags_to_geojson(self, parent_tags: dict):
+        """
+        For testing purposes
+        Save the parent tags to geojson file to visualize in QGIS
+        """
         tags = set()
         for key, tag in parent_tags.items():
             tags.update(tag)
@@ -598,7 +655,10 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         hex_polygons_data_frame.to_file("/app/src/cache/hex_polygons.geojson", driver="GeoJSON")
 
     @timing
-    def generate_final_geojson(self, grid_ids, polygons, calculations, quantiles):
+    def generate_final_geojson(self, grid_ids, polygons, calculations: dict, quantiles: dict):
+        """
+        Generate the final geojson to return to the client
+        """
         return heatmap_cython.generate_final_geojson(grid_ids, polygons, calculations, quantiles)
 
 
