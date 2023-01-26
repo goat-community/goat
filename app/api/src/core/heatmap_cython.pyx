@@ -23,7 +23,7 @@ def create_grid_pointers(grids_unordered_map, parent_tags):
         grid_pointers[key] = np.vectorize(get_id)(parent_tag)
     return grid_pointers
 
-def generate_final_geojson(grid_ids, polygons, calculations, quantiles):
+def generate_final_geojson(grid_ids, polygons, calculations, quantiles, agg_classes):
     geojson = {}
     features = []
     for i, grid_id in enumerate(grid_ids):
@@ -31,6 +31,7 @@ def generate_final_geojson(grid_ids, polygons, calculations, quantiles):
             "type": "Feature",
             "properties": {
                 "id": int(grid_id),
+                "agg_class": round(agg_classes[i], 2),
             },
             "geometry": {
                 "type": "Polygon",

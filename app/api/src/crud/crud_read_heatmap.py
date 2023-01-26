@@ -426,8 +426,10 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # TODO: Warnong: Study areas should get concatenated
         calculations = self.reorder_calculations(calculations, grids, uniques)
         quantiles = self.create_quantile_arrays(calculations)
-        agg_class = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
-        geojson = self.generate_final_geojson(grids, h_polygons, calculations, quantiles)
+        agg_classes = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
+        geojson = self.generate_final_geojson(
+            grids, h_polygons, calculations, quantiles, agg_classes
+        )
         # Write geojson to file
         # with open("/app/src/cache/sample_geojson.geojson", "w") as f:
         #     json.dump(geojson, f, indent=4, sort_keys=True)
@@ -655,11 +657,20 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         hex_polygons_data_frame.to_file("/app/src/cache/hex_polygons.geojson", driver="GeoJSON")
 
     @timing
-    def generate_final_geojson(self, grid_ids, polygons, calculations: dict, quantiles: dict):
+    def generate_final_geojson(
+        self,
+        grid_ids: np.ndarray,
+        polygons: np.ndarray,
+        calculations: dict,
+        quantiles: dict,
+        agg_classes: np.ndarray,
+    ):
         """
         Generate the final geojson to return to the client
         """
-        return heatmap_cython.generate_final_geojson(grid_ids, polygons, calculations, quantiles)
+        return heatmap_cython.generate_final_geojson(
+            grid_ids, polygons, calculations, quantiles, agg_classes
+        )
 
 
 read_heatmap = CRUDReadHeatmap
