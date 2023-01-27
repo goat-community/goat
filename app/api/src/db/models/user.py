@@ -100,14 +100,22 @@ class User(UserBase, table=True):
     class Config:
         search_fields = ["name", "email", "surname"]
 
-    def study_areas_cointains_point(self, point):
+    def study_areas_cointains_point(self, point) -> bool:
+        """
+        If one of the study areas contains the point, return True
+        Otherwise return False
+        """
         point = Point(point.lat, point.lon)
         for study_area in self.study_areas:
             if study_area.contains_point(point):
                 return True
         return False
 
-    def study_areas_contains_points(self, points: List):
+    def study_areas_contains_points(self, points: List) -> bool:
+        """
+        If all the points are contained in one of the study areas, return True
+        If at least one point is not contained in any study area, return False
+        """
         for point in points:
             if not self.study_areas_cointains_point(point):
                 return False

@@ -71,6 +71,7 @@ class StudyArea(SQLModel, table=True):
     _validate_geom = validator("geom", pre=True, allow_reuse=True)(dump_geom)
 
     def contains_point(self, geom) -> bool:
+        """Check if a point or geom is contained in the study area"""
         return to_shape(self.geom).contains(geom)
 
 

@@ -9,6 +9,7 @@ from geojson_pydantic.geometries import MultiPolygon, Polygon
 from pydantic import BaseModel, Field, root_validator, validator
 from shapely.geometry import Polygon as ShapelyPolygon
 
+from src.db import models
 from src.endpoints import deps
 from src.resources.enums import RoutingTypes
 
@@ -411,7 +412,8 @@ class IsochroneDTO(BaseModel):
 
         return values
 
-    def validate_user_study_area_limit(self, user):
+    def validate_user_study_area_limit(self, user:models.User):
+        """Validate if the points are within the user study area limit"""
         if not user.study_areas_contains_points(self.starting_point.input):
             raise HTTPException(
                 status_code=401,
