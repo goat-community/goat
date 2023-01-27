@@ -7,7 +7,8 @@ from typing import Dict, Optional, Union
 import geoalchemy2.shape
 from geoalchemy2 import WKBElement
 from pydantic import BaseModel, Field, validator
-from shapely.geometry import Point, asShape
+from shapely.geometry import Point
+from shapely.geometry import shape as asShape
 from shapely.geometry.base import BaseGeometry
 
 logger = logging.getLogger(__name__)
