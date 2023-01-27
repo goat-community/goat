@@ -105,7 +105,7 @@ class User(UserBase, table=True):
         If one of the study areas contains the point, return True
         Otherwise return False
         """
-        point = Point(point.lat, point.lon)
+        point = Point(point.lon, point.lat)
         for study_area in self.study_areas:
             if study_area.contains_point(point):
                 return True
