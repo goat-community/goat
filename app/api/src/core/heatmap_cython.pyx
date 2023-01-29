@@ -28,39 +28,3 @@ def create_grid_pointers(grids_unordered_map:dict, parent_tags:dict):
             continue
         grid_pointers[key] = np.vectorize(get_id)(parent_tag)
     return grid_pointers
-
-def generate_final_geojson(grid_ids:np.ndarray, polygons:np.ndarray, calculations:dict, quantiles:dict, agg_classes:np.ndarray):
-    """
-    Generate the final geojson.
-    """
-    
-    geojson = {}
-    features = []
-    for i, grid_id in enumerate(grid_ids):
-        feature = {
-            "type": "Feature",
-            "properties": {
-                "id": int(grid_id),
-                "agg_class": round(agg_classes[i], 2),
-            },
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": [polygons[i].tolist()],
-            },
-        }
-        for key, calculation in calculations.items():
-            if not calculation.size:
-                feature["properties"][key] = None
-                feature["properties"][key + "_class"] = -1
-                continue
-            if np.isnan(calculation[i]):
-                feature["properties"][key] = None
-                feature["properties"][key + "_class"] = -1
-                continue
-            feature["properties"][key] = round(float(calculation[i]), 2)
-            feature["properties"][key + "_class"] = int(quantiles[key][i])
-        features.append(feature)
-    geojson["type"] = "FeatureCollection"
-    # geojson["crs"] = {"type": "name", "properties": {"name": "EPSG:4326"}}
-    geojson["features"] = features
-    return geojson
