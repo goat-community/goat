@@ -57,7 +57,7 @@ def generate_final_geojson(grid_ids:np.ndarray, polygons:np.ndarray, calculation
                 feature["properties"][key] = None
                 feature["properties"][key + "_class"] = -1
                 continue
-            feature["properties"][key] = float(calculation[i])
+            feature["properties"][key] = round(float(calculation[i]), 2)
             feature["properties"][key + "_class"] = int(quantiles[key][i])
         features.append(feature)
     geojson["type"] = "FeatureCollection"
