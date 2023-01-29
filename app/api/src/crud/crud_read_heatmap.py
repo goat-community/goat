@@ -430,29 +430,9 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         geojson = self.generate_final_geojson(
             grids, h_polygons, calculations, quantiles, agg_classes
         )
-        # Write geojson to file
-        # with open("/app/src/cache/sample_geojson.geojson", "w") as f:
-        #     json.dump(geojson, f, indent=4, sort_keys=True)
+        
         return geojson
 
-        # sorted_table, unique = heatmap_core.sort_and_unique_by_grid_ids(grid_ids, traveltimes)
-        # mins = heatmap_core.mins(sorted_table, unique)
-        ## Run
-
-        # TODO: Aggregate on required resolution
-        # Here we need an if condition performing different actions depending on the resolution and analyses unit
-        # Inside here we will also get the geometries as the geometries are different depending on the analyses unit
-
-        # await self.aggregate_on_building(merged_df, study_area_ids)
-        # grid_ids = matrix_min_travel_time["grid_id"]
-        # travel_times = matrix_min_travel_time["travel_time"]
-
-        # # # Get hexagon geometries and convert to GeoDataFrame
-        # hex_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
-        # hex_polygons = gpd.GeoSeries(list(map(hex_polygons, matrix_min_travel_time["grid_id"].tolist())), crs="EPSG:4326")
-        # gdf=gpd.GeoDataFrame(data={"grid_ids": matrix_min_travel_time["grid_id"], "travel_times": matrix_min_travel_time["travel_time"]}, geometry=hex_polygons)
-        # gdf.to_file("test_results.geojson", driver="GeoJSON")
-        # print(f"Read study areas: {end - begin}")
 
     def calculate_agg_class(self, quantiles: dict, heatmap_config: dict):
         """
