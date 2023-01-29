@@ -135,14 +135,15 @@ class HeatmapSettings(BaseModel):
 """
 Body of the request
 """
-request_examples = {
+request_examples_ = {
     "compute_poi_user": {"data_upload_id": 1},
     "heatmap_configuration": """{"supermarket":{"sensitivity":250000,"weight":1}}""",
 }
 
-request_example = {
-    "heatmap": {
-        "gravity_hexagon_10": {
+request_examples = {
+    "gravity_hexagon_10": {
+        "summary": "Gravity heatmap with hexagon resolution 10",
+        "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
             "max_travel_time": 20,
@@ -160,7 +161,10 @@ request_example = {
                 "gym": {"weight": 1, "sensitivity": 350000, "max_traveltime": 5},
             },
         },
-        "gravity_hexagon_9": {
+    },
+    "gravity_hexagon_9": {
+        "summary": "Gravity heatmap with hexagon resolution 9",
+        "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
             "max_travel_time": 20,
@@ -178,7 +182,31 @@ request_example = {
                 "gym": {"weight": 1, "sensitivity": 350000, "max_traveltime": 5},
             },
         },
-        "closest_average_hexagon_10": {
+    },
+    "gravity_hexagon_6": {
+        "summary": "Gravity heatmap with hexagon resolution 6",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "max_travel_time": 20,
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "gravity",
+            "analysis_unit": "hexagon",
+            "resolution": 6,
+            "heatmap_config": {
+                "atm": {"weight": 1, "sensitivity": 250000, "max_traveltime": 5},
+                "bar": {"weight": 1, "sensitivity": 250000, "max_traveltime": 5},
+                "gym": {"weight": 1, "sensitivity": 350000, "max_traveltime": 5},
+            },
+        },
+    },
+    "closest_average_hexagon_10": {
+        "summary": "Closest average heatmap with hexagon resolution 10",
+        "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
             "max_travel_time": 20,
@@ -239,7 +267,10 @@ request_example = {
                 "hauptschule_mittelschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
             },
         },
-        "closest_average_hexagon_9": {
+    },
+    "closest_average_hexagon_9": {
+        "summary": "Closest average hexagon with resolution 9",
+        "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
             "max_travel_time": 20,
@@ -257,5 +288,26 @@ request_example = {
                 "gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
             },
         },
-    }
+    },
+    "closest_average_hexagon_6": {
+        "summary": "Closest average hexagon with resolution 6",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "max_travel_time": 20,
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "closest_average",
+            "analysis_unit": "hexagon",
+            "resolution": 6,
+            "heatmap_config": {
+                "atm": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+                "bar": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+                "gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
+            },
+        },
+    },
 }

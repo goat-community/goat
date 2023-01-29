@@ -363,81 +363,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         return grid_ids_dict, travel_times_dict
 
-    def read_opportunity_matrix_from_file(
-        self,
-        matrix_base_path: str,
-        bulk_id: str,
-    ) -> None:
-        """Read opportunity matrix from file
-
-        Args:
-            matrix_base_path (str): Path to the matrix
+    async def read_bulk_ids(self, study_area_ids: list[int]):
         """
-        try:
-            base_path = os.path.join(matrix_base_path, bulk_id)
-            # Select relevant POI categories
-            poi_categories = np.load(
-                os.path.join(base_path, "categories.npy"),
-                allow_pickle=True,
-            )
-            travel_times = np.load(
-                os.path.join(base_path, "travel_times.npy"),
-                allow_pickle=True,
-            )
-            grid_ids = np.load(
-                os.path.join(base_path, "grid_ids.npy"),
-                allow_pickle=True,
-            )
-        except FileNotFoundError:
-            print(base_path)
-            print(f"File not found for bulk_id {bulk_id}")
-            return (None, None, None)
-        return (grid_ids, travel_times, poi_categories)
+        Read list of bulk ids from cache
+        """
 
-    async def read_opportunity_matrix_from_files_multithread(
-        self, matrix_base_path: str, bulk_ids: list[str], chosen_categories
-    ):
-        travel_times_dict = {}
-        grid_ids_dict = {}
-        for cat in chosen_categories:
-            travel_times_dict[cat] = []
-            grid_ids_dict[cat] = []
-
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            for bulk_id in bulk_ids:
-                # Prepare threads to read matrix files
-                futures.append(
-                    executor.submit(
-                        self.read_opportunity_matrix_from_file, matrix_base_path, bulk_id
-                    )
-                )
-            for future in concurrent.futures.as_completed(futures):
-                grid_ids, travel_times, poi_categories = future.result()
-                if grid_ids is None:
-                    continue
-                for cat in chosen_categories:
-                    # Pick only the relevant categories from travel_times and grid_ids
-                    selected_category_index = np.in1d(poi_categories, np.array([cat]))
-                    travel_times_dict[cat].extend(travel_times[selected_category_index])
-                    grid_ids_dict[cat].extend(grid_ids[selected_category_index])
-
-        # Flatten and then concatenate grid_ids and travel_times
-        for cat in chosen_categories:
-            if grid_ids_dict[cat]:
-                grid_ids_dict[cat] = np.concatenate(
-                    np.concatenate(grid_ids_dict[cat], axis=None), axis=None
-                )
-                travel_times_dict[cat] = np.concatenate(
-                    np.concatenate(travel_times_dict[cat], axis=None), axis=None
-                )
-            else:
-                grid_ids_dict[cat] = np.array([], np.int64)
-                travel_times_dict[cat] = np.array([], np.int8)
-
-        return grid_ids_dict, travel_times_dict
-
-    async def read_bulk_ids(self, study_area_ids):
         bulk_ids_list = []
         for study_area_id in study_area_ids:
             base_path = "/app/src/cache/analyses_unit/"
@@ -464,11 +394,6 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         # Get bulk ids
         start_time = time.time()
-        # bulk_ids = await self.read_h3_grids_study_areas(
-        #     resolution=heatmap_settings.resolution,
-        #     buffer_size=buffer_size,
-        #     study_area_ids=heatmap_settings.study_area_ids,
-        # )
         bulk_ids = await self.read_bulk_ids(heatmap_settings.study_area_ids)
         end_time = time.time()
         print(f"Time to read bulk_ids: {end_time - start_time}")
@@ -488,9 +413,6 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         grid_ids, traveltimes = await self.read_opportunity_matrix(
             matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
         )
-        # grid_ids, traveltimes = await self.read_opportunity_matrix_from_files_multithread(
-        #     matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
-        # )
 
         end = time.time()
         print(f"Reading matrices took {end - begin} seconds")
@@ -504,7 +426,10 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # TODO: Warnong: Study areas should get concatenated
         calculations = self.reorder_calculations(calculations, grids, uniques)
         quantiles = self.create_quantile_arrays(calculations)
-        geojson = self.generate_final_geojson(grids, h_polygons, calculations, quantiles)
+        agg_classes = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
+        geojson = self.generate_final_geojson(
+            grids, h_polygons, calculations, quantiles, agg_classes
+        )
         # Write geojson to file
         # with open("/app/src/cache/sample_geojson.geojson", "w") as f:
         #     json.dump(geojson, f, indent=4, sort_keys=True)
@@ -529,8 +454,31 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # gdf.to_file("test_results.geojson", driver="GeoJSON")
         # print(f"Read study areas: {end - begin}")
 
+    def calculate_agg_class(self, quantiles: dict, heatmap_config: dict):
+        """
+        Calculate the aggregated class for each grid cell based on the opportunity weights.
+        """
+
+        weighted_quantiles = []
+        weight_agg = 0
+        for key, quantile in quantiles.items():
+            if quantile.size:
+                weighted_quantiles.append(quantile * heatmap_config[key].get("weight", 1))
+            weight_agg += heatmap_config[key].get("weight", 1)
+
+        agg_class = np.array(weighted_quantiles).sum(axis=0) / weight_agg
+        return agg_class
+
     @timing
-    def sort_and_unique(self, grid_ids, traveltimes):
+    def sort_and_unique(self, grid_ids: dict, traveltimes: dict):
+        """
+        Sort grid_ids in order to do calculations on travel times faster.
+        Also find the uniques which used as ids (h3 index)
+
+        returing unique is dict[tuple(unique_ids, unique_index)]
+        sorted_table is dict[Array[grid_ids, travel_times]]
+        """
+
         sorted_table, unique = {}, {}
         for op in traveltimes.keys():
             # sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
@@ -540,11 +488,12 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         return sorted_table, unique
 
     @timing
-    def do_calculations(self, sorted_table, uniques, heatmap_settings):
+    def do_calculations(self, sorted_table: dict, uniques: dict, heatmap_settings: dict):
         # TODO: find a better name for this function
         """
         connect the heatmap core calculations to the heatmap method
         """
+
         method_map = {
             "gravity": "modified_gaussian_per_grid",
             "connectivity": "connectivity",
@@ -558,7 +507,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                     sorted_table[key],
                     uniques[key],
                     heatmap_config["sensitivity"],
-                    heatmap_config["cutoff"],
+                    heatmap_config["max_traveltime"],
                 )
         else:
             method_name = method_map[heatmap_settings.heatmap_type.value]
@@ -570,6 +519,12 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     def quantile_classify(self, calculations):
+        """
+        For each calculation, classify the values into quantiles
+
+        returns: dict[quantile_index]
+        """
+
         quantile_index = {}
         for key, a in calculations.items():
             quantile_index[key] = heatmap_core.quantile_classify(a)
@@ -577,6 +532,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     async def read_hexagons(self, study_area_id: int, resolution: int):
+        """
+        Read the hexagons from the cache in requested resolution
+        returns: grids, polygons
+        """
+
         base_path = "/app/src/cache/analyses_unit/"
         directory = os.path.join(base_path, str(study_area_id), "h3")
         grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
@@ -587,6 +547,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     def tag_uniques_by_parent(self, uniques: dict, target_resolution: int):
+        """
+        For each unique (hex id) find the parent id in (requested resolution)
+        returns: dict[parent_tag]
+        """
+
         parent_tags = {}
         # parent_tag_lambda = lambda grid_id: int(
         #     h3.h3_to_parent(h3.h3_to_string(grid_id), target_resolution), 16
@@ -607,6 +572,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         """
         Convert grids to unordered map for fast lookup
         """
+
         indexes = range(grids.size)
         grids_unordered_map = dict(zip(grids, indexes))
         return grids_unordered_map
@@ -616,10 +582,20 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     def create_grid_pointers(self, grids_unordered_map, parent_tags):
+        """
+        Pointing each calculation to the corresponding grid
+        returns pointers to target hexagons
+        """
+
         return heatmap_cython.create_grid_pointers(grids_unordered_map, parent_tags)
 
     @timing
     def create_calculation_arrays(self, grids, grid_pointers, calculations):
+        """
+        each calculation with their grid_pointers can be considered as a sparse array
+        This function converts the sparse array to a dense array
+        """
+
         calculation_arrays = {}
         for key, grid_pointer in grid_pointers.items():
             if not grid_pointer.size:
@@ -633,19 +609,28 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     def create_quantile_arrays(self, calculations):
+        """
+        Classify each calculation to a quantile
+        returns dict[quantile_array]
+        """
+
         quantile_arrays = {}
         for key, calculation in calculations.items():
             quantile_arrays[key] = heatmap_core.quantile_classify(calculation)
         return quantile_arrays
 
     # @timing
-    def reorder_calculations(self, calculations, grids, uniques):
+    def reorder_calculations(self, calculations: dict, grids, uniques: dict):
         """
-        Reorder calculations to match the order of grids
+        First we create kind of a sparse array for each calculation
+        Then we convert the sparse array to a dense array targeting the hexagon grids
         """
-        # convert grid_id from int to hex
+
+        # Find the target resolution from the first grid
         sample_grid_id = h3.h3_to_string(grids[0])
         target_resolution = h3.h3_get_resolution(sample_grid_id)
+        #############################################
+
         uniques_parent_tags = self.tag_uniques_by_parent(uniques, target_resolution)
         grids_unordered_map = self.create_grids_unordered_map(grids)
         grid_pointer = self.create_grid_pointers(grids_unordered_map, uniques_parent_tags)
@@ -654,6 +639,10 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
     @timing
     def convert_parent_tags_to_geojson(self, parent_tags: dict):
+        """
+        For testing purposes
+        Save the parent tags to geojson file to visualize in QGIS
+        """
         tags = set()
         for key, tag in parent_tags.items():
             tags.update(tag)
@@ -669,212 +658,20 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         hex_polygons_data_frame.to_file("/app/src/cache/hex_polygons.geojson", driver="GeoJSON")
 
     @timing
-    def generate_final_geojson(self, grid_ids, polygons, calculations, quantiles):
-        return heatmap_cython.generate_final_geojson(grid_ids, polygons, calculations, quantiles)
+    def generate_final_geojson(
+        self,
+        grid_ids: np.ndarray,
+        polygons: np.ndarray,
+        calculations: dict,
+        quantiles: dict,
+        agg_classes: np.ndarray,
+    ):
+        """
+        Generate the final geojson to return to the client
+        """
+        return heatmap_cython.generate_final_geojson(
+            grid_ids, polygons, calculations, quantiles, agg_classes
+        )
 
 
 read_heatmap = CRUDReadHeatmap
-
-# TODO: Remove this and instead write endpoint to test using OpenAPI
-def test_heatmap():
-    """Test heatmap calculation"""
-    db = async_session()
-    superuser = asyncio.get_event_loop().run_until_complete(
-        CRUDBase(models.User).get_by_key(db, key="id", value=15)
-    )
-    superuser = superuser[0]
-    heatmap_setting = HeatmapSettings(
-        mode="walking",
-        max_travel_time=20,
-        study_area_ids=[
-            91620000,
-        ],
-        resolution=6,
-        walking_profile="standard",
-        scenario=IsochroneScenario(
-            id=1,
-            name="Default",
-        ),
-        analysis_unit="hexagon",
-        heatmap_type="closest_average",
-        heatmap_config={
-            "atm": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "bar": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "pub": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "bank": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "cafe": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "fuel": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "park": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "yoga": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "hotel": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "bakery": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "cinema": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "forest": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "museum": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "butcher": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "dentist": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "nursery": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "bus_stop": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "pharmacy": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "post_box": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "fast_food": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "gymnasium": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "nightclub": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "recycling": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "tram_stop": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "playground": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "realschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "restaurant": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "car_sharing": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "convenience": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "grundschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "hypermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "marketplace": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "post_office": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "bike_sharing": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "discount_gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "kindergarten": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "rail_station": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "subway_entrance": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "charging_station": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "organic_supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "discount_supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "general_practitioner": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "swimming_pool_outdoor": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-            "hauptschule_mittelschule": {"weight": 1, "max_count": 1, "max_traveltime": 5},
-        },
-        return_type="geojson",
-    )
-
-    crud_heatmap = CRUDReadHeatmap(db=db, current_user=superuser)
-    begin = time.time()
-    asyncio.get_event_loop().run_until_complete(
-        crud_heatmap.read_heatmap(
-            heatmap_settings=heatmap_setting,
-            # current_user=superuser,
-            # study_area_ids=[
-            #     91620000,
-            #     # 83110000,
-            #     # 9184,
-            #     # 9263,
-            #     # 9274,
-            #     # 9186,
-            #     # 9188,
-            #     # 9361,
-            #     # 9362,
-            #     # 9363,
-            #     # 9461,
-            #     # 9462,
-            #     # 9463,
-            # ],
-        )
-    )
-    end = time.time()
-    print(f"Read heatmap: {end - begin}")
-
-
-if __name__ == "__main__":
-    test_heatmap()
-
-
-#  async def aggregate_on_building(
-#         self, grid_ids: dict, indices: dict, study_area_ids: list[int]
-#     ):
-
-#         Get buildings for testing. Currently only one study area is supported
-#         buildings = await self.db.execute(
-#             text(
-#                 """
-#                 SELECT b.id, ARRAY[ST_X(centroid), ST_Y(centroid)] AS coords
-#                 FROM basic.building b, basic.study_area s, LATERAL ST_TRANSFORM(ST_CENTROID(b.geom), 3857) AS centroid
-#                 WHERE ST_Intersects(b.geom, s.geom)
-#                 AND s.id = :study_area_id
-#                 """
-#             ),
-#             {"study_area_id": study_area_ids[0]},
-#         )
-#         buildings_points = buildings.fetchall()
-#         buildings_ids = [building[0] for building in buildings_points]
-#         buildings_points = [building[1] for building in buildings_points]
-
-#         Preliminary solution to get all grids from DB in the future do this outside this function and read from files instead DB
-#         all_grid = await self.db.execute(
-#             text(
-#                 """
-#                 SELECT g.id, ST_X(centroid) x, ST_Y(centroid) y
-#                 FROM basic.grid_calculation g, basic.study_area s, LATERAL ST_TRANSFORM(ST_CENTROID(g.geom), 3857) AS centroid
-#                 WHERE ST_Intersects(g.geom, s.geom)
-#                 AND s.id = :study_area_id
-#                 """
-#             ),
-#             {"study_area_id": study_area_ids[0]},
-#         )
-#         all_grid = all_grid.fetchall()
-#         all_grids = np.array([grid[0] for grid in all_grid])
-#         x = np.array([grid[1] for grid in all_grid])
-#         y = np.array([grid[2] for grid in all_grid])
-
-#         grid_points = np.stack((x, y), axis=1)
-#         tree = spatial.KDTree(grid_points)
-
-#         distances, positions = tree.query(
-#             buildings_points, k=3, distance_upper_bound=200, workers=-1
-#         )
-#         indices_all_inf = (distances == np.inf).all(axis=1)
-#         distances = distances[np.where(indices_all_inf == False)].tolist()
-#         positions = positions[np.where(indices_all_inf == False)].tolist()
-#         buildings_ids = np.array(buildings_ids)[np.where(indices_all_inf == False)].tolist()
-#         distances[distances == np.inf] = 0
-#         distances_flatten = distances.flatten()
-#         positions_flatten = positions.flatten()
-#         all_grids = np.append(all_grids, np.inf)
-#         grid_map = np.take(all_grids, positions_flatten)
-
-#         interpolated = {"building_id": buildings_ids}
-#         for category in indices.keys():
-#             costs = indices[category]
-#             if costs is None:
-#                 continue
-#             grids = grid_ids[category][0]
-
-#             intersect_grids = np.intersect1d(all_grids, grids, return_indices=True)
-#             grids, relevant_indices = intersect_grids[0], intersect_grids[2]
-#             costs = costs[relevant_indices]
-
-#             interpolated_values = []
-#             for idx, distance in enumerate(distances):
-#                 position = positions[idx]
-#                 sum_distance = 0
-#                 sum_distance_cost = 0
-#                 for idx2, idx_grid in enumerate(position):
-#                     if distance[idx2] != np.inf:
-#                         grid = all_grids[idx_grid]
-#                         idx_cost = np.isin(grids, grid).nonzero()
-#                         if len(idx_cost[0]) > 0:
-#                             idx_cost = idx_cost[0][0]
-#                         else:
-#                             continue
-#                         cost = costs[idx_cost]
-#                         distance_times_cost = distance[idx2] * cost
-#                         sum_distance += distance[idx2]
-#                         sum_distance_cost += distance_times_cost
-#                     else:
-#                         continue
-
-#                 if sum_distance != 0:
-#                     interpolated_value = sum_distance_cost / sum_distance
-#                     interpolated_values.append(interpolated_value)
-#                 else:
-#                     interpolated_values.append(9999999)
-#             interpolated[category] = np.array(interpolated_values)
-
-#         building_df = pd.DataFrame(interpolated)
-#         building_df.to_sql(
-#             "min_traveltime_building_level",
-#             legacy_engine,
-#             schema="temporal",
-#             if_exists="replace",
-#             index=False,
-#         )
