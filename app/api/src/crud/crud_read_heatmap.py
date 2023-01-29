@@ -430,9 +430,8 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         geojson = self.generate_final_geojson(
             grids, h_polygons, calculations, quantiles, agg_classes
         )
-        
-        return geojson
 
+        return geojson
 
     def calculate_agg_class(self, quantiles: dict, heatmap_config: dict):
         """
@@ -649,9 +648,36 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         """
         Generate the final geojson to return to the client
         """
-        return heatmap_cython.generate_final_geojson(
-            grid_ids, polygons, calculations, quantiles, agg_classes
-        )
+        geojson = {}
+        features = []
+        for i, grid_id in enumerate(grid_ids):
+            feature = {
+                "type": "Feature",
+                "properties": {
+                    "id": int(grid_id),
+                    "agg_class": round(agg_classes[i], 2),
+                },
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [polygons[i].tolist()],
+                },
+            }
+            for key, calculation in calculations.items():
+                if not calculation.size:
+                    feature["properties"][key] = None
+                    feature["properties"][key + "_class"] = -1
+                    continue
+                if np.isnan(calculation[i]):
+                    feature["properties"][key] = None
+                    feature["properties"][key + "_class"] = -1
+                    continue
+                feature["properties"][key] = round(float(calculation[i]), 2)
+                feature["properties"][key + "_class"] = int(quantiles[key][i])
+            features.append(feature)
+        geojson["type"] = "FeatureCollection"
+        # geojson["crs"] = {"type": "name", "properties": {"name": "EPSG:4326"}}
+        geojson["features"] = features
+        return geojson
 
 
 read_heatmap = CRUDReadHeatmap
