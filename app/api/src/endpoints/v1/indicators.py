@@ -19,9 +19,9 @@ from src.resources.enums import (
     ReturnType,
     SQLReturnTypes,
 )
-from src.schemas.heatmap import HeatmapSettings
-from src.schemas.heatmap import request_example as heatmap_request_example
-from src.schemas.heatmap import request_examples
+from src.schemas.heatmap import HeatmapSettings, ReturnTypeHeatmap
+from src.schemas.heatmap import request_examples as heatmap_request_examples
+from src.schemas.heatmap import request_examples_
 from src.schemas.indicators import (
     CalculateLocalAccessibilityAggregated,
     CalculateOevGueteklassenParameters,
@@ -38,17 +38,20 @@ async def calculate_heatmap(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    params: HeatmapSettings = Body(..., example=heatmap_request_example),
+    heatmap_settings: HeatmapSettings = Body(..., examples=heatmap_request_examples),
+    return_type: ReturnTypeHeatmap = Query(..., description="Return type of the response"),
 ):
     """
     Calculate a heatmap.
     """
     start_time = time.time()
     result = await crud.read_heatmap(db=db, current_user=current_user).read_heatmap(
-        heatmap_settings=params
+        heatmap_settings=heatmap_settings
     )
     end_time = time.time()
     print(f"Time to calculate heatmap: {round(end_time - start_time,2)}")
+    if return_type == "geobuf":
+        return return_geojson_or_geobuf(result, "geobuf")
     return result
 
 
@@ -151,7 +154,7 @@ async def read_local_accessibility_heatmap(
     heatmap_configuration: str = Query(
         ...,
         description="The configuration per POI category to create the dynamic heatmap.",
-        example=request_examples["heatmap_configuration"],
+        example=request_examples_["heatmap_configuration"],
     ),
     return_type: ReturnType = Query(
         description="Return type of the response", default=ReturnType.geojson

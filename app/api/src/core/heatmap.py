@@ -36,6 +36,11 @@ def merge_heatmap_traveltime_objects(traveltimeobjs):
 
 
 def sort_and_unique_by_grid_ids(grid_ids, travel_times):
+    """
+    Sort grid_ids in order to do calculations on travel times faster.
+    Also find the uniques which used as ids (h3 index)
+    """
+
     table_ = np.vstack((grid_ids, travel_times))
     table = table_.transpose()
     sorted_table = table[table[:, 0].argsort()]
@@ -45,6 +50,18 @@ def sort_and_unique_by_grid_ids(grid_ids, travel_times):
 
 @njit()
 def medians(sorted_table, unique):
+    """
+    Example:
+    sorted_table:
+        [[0,0,0,1,1,2,2,2,3,3,3,3],
+        [1,2,3,4,5,6,7,8,9,10,11,12]]
+    unique:
+        [0,1,2,3]
+    medians:
+        [2,5,7,10]
+
+    Consider unique is touples of (unique, index)
+    """
     if not sorted_table.size:
         return None
     travel_times = sorted_table.transpose()[1]
@@ -62,6 +79,19 @@ def medians(sorted_table, unique):
 
 @njit()
 def mins(sorted_table, unique):
+    """
+    Example:
+    sorted_table:
+        [[0,0,0,1,1,2,2,2,3,3,3,3],
+        [1,2,3,4,5,6,7,8,9,10,11,12]]
+    unique:
+        [0,1,2,3]
+
+    mins:
+        [1,4,6,9]
+
+    Consider unique is touples of (unique, index)
+    """
     if not sorted_table.size:
         return None
     travel_times = sorted_table.transpose()[1]
@@ -78,6 +108,18 @@ def mins(sorted_table, unique):
 
 @njit()
 def counts(sorted_table, unique):
+    """
+    Example:
+    sorted_table:
+        [[0,0,0,1,1,2,2,2,3,3,3,3],
+        [1,2,3,4,5,6,7,8,9,10,11,12]]
+    unique:
+        [0,1,2,3]
+    counts:
+        [3,2,3,4]
+
+    Consider unique is touples of (unique, index)
+    """
     if not sorted_table.size:
         return None
     travel_times = sorted_table.transpose()[1]
@@ -94,6 +136,18 @@ def counts(sorted_table, unique):
 
 @njit()
 def averages(sorted_table, unique):
+    """
+    Example:
+    sorted_table:
+        [[0,0,0,1,1,2,2,2,3,3,3,3],
+        [1,2,3,4,5,6,7,8,9,10,11,12]]
+    unique:
+        [0,1,2,3]
+    averages:
+        [2,5,7,10]
+
+    Consider unique is touples of (unique, index)
+    """
     if not sorted_table.size:
         return None
     travel_times = sorted_table.transpose()[1]
@@ -142,6 +196,13 @@ def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
 
 
 def quantile_classify(a, NQ=5):
+    """
+    Classify the array into NQ quantiles.
+    examle:
+    a = np.array([0,0,0,1,1,2,2,2,3,3,3,3])
+    quantile is:
+        array([0,0,0,1,1,2,2,2,3,3,3,3])
+    """
     if a is None:
         return None
     if not a.size:
@@ -158,7 +219,7 @@ def quantile_classify(a, NQ=5):
                 np.logical_and(np.greater_equal(a, quantiles[i]), np.less(a, quantiles[i + 1]))
             )
         ] = (i + 2)
-    out[np.isnan(a)] = -1
+    out[np.isnan(a)] = 0
 
     return out
 
