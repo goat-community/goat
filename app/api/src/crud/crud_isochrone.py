@@ -37,7 +37,6 @@ from src.core.isochrone import compute_isochrone
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
-from src.exts.cpp.bind import isochrone as isochrone_cpp
 from src.jsoline import jsolines
 from src.resources.enums import IsochroneExportType, IsochroneTypes
 from src.schemas.isochrone import (
