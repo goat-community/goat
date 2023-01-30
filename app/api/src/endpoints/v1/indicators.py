@@ -50,8 +50,8 @@ async def calculate_heatmap(
     )
     end_time = time.time()
     print(f"Time to calculate heatmap: {round(end_time - start_time,2)}")
-    if return_type == "geobuf":
-        return return_geojson_or_geobuf(result, "geobuf")
+    if return_type.value == "geobuf":
+        result = return_geojson_or_geobuf(result, "geobuf")
     return result
 
 
