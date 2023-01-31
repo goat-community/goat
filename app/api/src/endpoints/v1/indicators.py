@@ -20,8 +20,8 @@ from src.resources.enums import (
     SQLReturnTypes,
 )
 from src.schemas.heatmap import HeatmapSettings, ReturnTypeHeatmap
-from src.schemas.heatmap import request_example as heatmap_request_example
-from src.schemas.heatmap import request_examples
+from src.schemas.heatmap import request_examples as heatmap_request_examples
+from src.schemas.heatmap import request_examples_
 from src.schemas.indicators import (
     CalculateLocalAccessibilityAggregated,
     CalculateOevGueteklassenParameters,
@@ -38,7 +38,7 @@ async def calculate_heatmap(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    heatmap_settings: HeatmapSettings = Body(..., example=heatmap_request_example),
+    heatmap_settings: HeatmapSettings = Body(..., examples=heatmap_request_examples),
     return_type: ReturnTypeHeatmap = Query(..., description="Return type of the response"),
 ):
     """
@@ -154,7 +154,7 @@ async def read_local_accessibility_heatmap(
     heatmap_configuration: str = Query(
         ...,
         description="The configuration per POI category to create the dynamic heatmap.",
-        example=request_examples["heatmap_configuration"],
+        example=request_examples_["heatmap_configuration"],
     ),
     return_type: ReturnType = Query(
         description="Return type of the response", default=ReturnType.geojson
