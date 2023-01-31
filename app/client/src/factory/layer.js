@@ -289,6 +289,7 @@ export const LayerFactory = {
           const scenarioId = `${
             activeScenario ? "&scenario_id=" + activeScenario : ""
           }`;
+          console.log(resolution);
           const amenityConfiguration = {};
           poisAoisStore.state.selectedPoisAois.forEach(poiAoiObject => {
             if (appStore.state.poiIcons[poiAoiObject.value]) {
@@ -360,8 +361,8 @@ export const LayerFactory = {
               max_travel_time: 20,
               walking_profile: "standard",
               scenario: {
-                id: 1,
-                name: "default"
+                id: activeScenario ? activeScenario : 1,
+                name: modus
               },
               heatmap_type: "gravity",
               analysis_unit: "hexagon",
