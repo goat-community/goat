@@ -289,7 +289,6 @@ export const LayerFactory = {
           const scenarioId = `${
             activeScenario ? "&scenario_id=" + activeScenario : ""
           }`;
-          console.log(resolution);
           const amenityConfiguration = {};
           poisAoisStore.state.selectedPoisAois.forEach(poiAoiObject => {
             if (appStore.state.poiIcons[poiAoiObject.value]) {
@@ -354,14 +353,15 @@ export const LayerFactory = {
                 max_traveltime: 5
               };
             }
-
             const payload = {
               mode: "walking",
-              study_area_ids: [91620000],
+              study_area_ids: mapStore.state.studyArea.map(
+                studyArea => studyArea.values_.id
+              ),
               max_travel_time: 20,
               walking_profile: "standard",
               scenario: {
-                id: activeScenario ? activeScenario : 1,
+                id: activeScenario ? activeScenario : 0,
                 name: modus
               },
               heatmap_type: "gravity",
