@@ -1153,7 +1153,6 @@ export default {
               })
             })
             .then(response => {
-              console.log(response);
               let olFeatures = geojsonToFeature(response.data, {
                 dataProjection: "EPSG:3857",
                 featureProjection: "EPSG:3857"
