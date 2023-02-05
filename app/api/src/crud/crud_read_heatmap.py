@@ -665,11 +665,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             for key, calculation in calculations.items():
                 if not calculation.size:
                     feature["properties"][key] = None
-                    feature["properties"][key + "_class"] = -1
+                    feature["properties"][key + "_class"] = 0
                     continue
                 if np.isnan(calculation[i]):
                     feature["properties"][key] = None
-                    feature["properties"][key + "_class"] = -1
+                    feature["properties"][key + "_class"] = 0
                     continue
                 feature["properties"][key] = round(float(calculation[i]), 2)
                 feature["properties"][key + "_class"] = int(quantiles[key][i])
