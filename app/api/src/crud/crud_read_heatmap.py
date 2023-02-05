@@ -474,13 +474,13 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         """
 
         method_map = {
-            "gravity": "modified_gaussian_per_grid",
+            "modified_gaussian": "modified_gaussian_per_grid",
             "connectivity": "connectivity",
             "cumulative": "counts",
             "closest_average": "mins",
         }
         output = {}
-        if heatmap_settings.heatmap_type.value == "gravity":
+        if heatmap_settings.heatmap_type.value == "modified_gaussian":
             for key, heatmap_config in heatmap_settings.heatmap_config.items():
                 output[key] = heatmap_core.modified_gaussian_per_grid(
                     sorted_table[key],

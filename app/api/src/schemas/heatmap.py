@@ -35,7 +35,8 @@ class HeatmapMode(Enum):
 
 
 class HeatmapType(Enum):
-    gravity = "gravity"
+    modified_gaussian = "modified_gaussian"
+    combined_cumulative_modified_gaussian = "combined_cumulative_modified_gaussian"
     connectivity = "connectivity"
     cumulative = "cumulative"
     closest_average = "closest_average"
@@ -107,7 +108,7 @@ class HeatmapSettings(BaseModel):
     )
     analysis_unit_size: Optional[int] = Field(10, description="Size of the analysis")
     heatmap_type: HeatmapType = Field(
-        HeatmapType.gravity, description="Type of heatmap to compute"
+        HeatmapType.modified_gaussian, description="Type of heatmap to compute"
     )
     heatmap_config: dict
 
@@ -117,7 +118,7 @@ class HeatmapSettings(BaseModel):
         Validate each part of heatmap_config against validator class corresponding to heatmap_type
         """
         validator_classes = {
-            "gravity": HeatmapConfigGravity,
+            "modified_gaussian": HeatmapConfigGravity,
             "closest_average": HeatmapClosestAverage,
         }
 
@@ -150,7 +151,7 @@ request_examples_ = {
 }
 
 request_examples = {
-    "gravity_hexagon_10": {
+    "modified_gaussian_hexagon_10": {
         "summary": "Gravity heatmap with hexagon resolution 10",
         "value": {
             "mode": "walking",
@@ -161,7 +162,7 @@ request_examples = {
                 "id": 1,
                 "name": "default",
             },
-            "heatmap_type": "gravity",
+            "heatmap_type": "modified_gaussian",
             "analysis_unit": "hexagon",
             "resolution": 10,
             "heatmap_config": {
@@ -173,7 +174,7 @@ request_examples = {
             },
         },
     },
-    "gravity_hexagon_9": {
+    "modified_gaussian_hexagon_9": {
         "summary": "Gravity heatmap with hexagon resolution 9",
         "value": {
             "mode": "walking",
@@ -184,7 +185,7 @@ request_examples = {
                 "id": 1,
                 "name": "default",
             },
-            "heatmap_type": "gravity",
+            "heatmap_type": "modified_gaussian",
             "analysis_unit": "hexagon",
             "resolution": 9,
             "heatmap_config": {
@@ -196,7 +197,7 @@ request_examples = {
             },
         },
     },
-    "gravity_hexagon_6": {
+    "modified_gaussian_hexagon_6": {
         "summary": "Gravity heatmap with hexagon resolution 6",
         "value": {
             "mode": "walking",
@@ -207,7 +208,7 @@ request_examples = {
                 "id": 1,
                 "name": "default",
             },
-            "heatmap_type": "gravity",
+            "heatmap_type": "modified_gaussian",
             "analysis_unit": "hexagon",
             "resolution": 6,
             "heatmap_config": {
