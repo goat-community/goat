@@ -168,7 +168,7 @@ def combined_modified_gaussian_per_grid(
     travel_times = sorted_table.transpose()[1]
     # Add the last index to the unique index:
     unique_index = np.append(unique[1], sorted_table.shape[0])
-    modified_gaussian_per_grids = np.empty(unique[1].shape[0], np.float64)
+    combined_modified_gaussian_per_grids = np.empty(unique[1].shape[0], np.float64)
     for i in range(unique_index.shape[0] - 1):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         sum = 0
@@ -180,12 +180,12 @@ def combined_modified_gaussian_per_grid(
                 f = exp(-t * t / sensitivity)
             sum += f
             if sum >= cutoff:
-                modified_gaussian_per_grids[i] = 0
+                combined_modified_gaussian_per_grids[i] = 0
                 break
         else:
-            modified_gaussian_per_grids[i] = sum
+            combined_modified_gaussian_per_grids[i] = sum
 
-    return modified_gaussian_per_grids
+    return combined_modified_gaussian_per_grids
 
 
 @njit

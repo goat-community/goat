@@ -475,6 +475,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         method_map = {
             "modified_gaussian": "modified_gaussian_per_grid",
+            "combined_cumulative_modified_gaussian": "combined_modified_gaussian_per_grid",
             "connectivity": "connectivity",
             "cumulative": "counts",
             "closest_average": "mins",
@@ -487,6 +488,15 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                     uniques[key],
                     heatmap_config["sensitivity"],
                     heatmap_config["max_traveltime"],
+                )
+        elif heatmap_settings.heatmap_type.value == "combined_cumulative_modified_gaussian":
+            for key, heatmap_config in heatmap_settings.heatmap_config.items():
+                output[key] = heatmap_core.combined_modified_gaussian_per_grid(
+                    sorted_table[key],
+                    uniques[key],
+                    heatmap_config["sensitivity"],
+                    heatmap_config["max_traveltime"],
+                    heatmap_config["static_traveltime"],
                 )
         else:
             method_name = method_map[heatmap_settings.heatmap_type.value]

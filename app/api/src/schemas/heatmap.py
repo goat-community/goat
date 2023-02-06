@@ -73,6 +73,10 @@ class HeatmapConfigGravity(HeatmapBase):
     sensitivity: int
 
 
+class HeatmapConfigCombinedGravity(HeatmapConfigGravity):
+    static_traveltime: int
+
+
 class HeatmapClosestAverage(HeatmapBase):
     max_count: int
 
@@ -119,6 +123,7 @@ class HeatmapSettings(BaseModel):
         """
         validator_classes = {
             "modified_gaussian": HeatmapConfigGravity,
+            "combined_cumulative_modified_gaussian": HeatmapConfigCombinedGravity,
             "closest_average": HeatmapClosestAverage,
         }
 
@@ -216,6 +221,44 @@ request_examples = {
                     "atm": {"weight": 1, "sensitivity": 250000, "max_traveltime": 5},
                     "bar": {"weight": 1, "sensitivity": 250000, "max_traveltime": 5},
                     "gym": {"weight": 1, "sensitivity": 350000, "max_traveltime": 5},
+                },
+            },
+        },
+    },
+    "combined_modified_gaussian_hexagon_6": {
+        "summary": "Combined Gravity heatmap with hexagon resolution 6",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "max_travel_time": 20,
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "combined_cumulative_modified_gaussian",
+            "analysis_unit": "hexagon",
+            "resolution": 6,
+            "heatmap_config": {
+                "poi": {
+                    "atm": {
+                        "weight": 1,
+                        "sensitivity": 250000,
+                        "max_traveltime": 20,
+                        "static_traveltime": 5,
+                    },
+                    "bar": {
+                        "weight": 1,
+                        "sensitivity": 250000,
+                        "max_traveltime": 20,
+                        "static_traveltime": 5,
+                    },
+                    "gym": {
+                        "weight": 1,
+                        "sensitivity": 350000,
+                        "max_traveltime": 20,
+                        "static_traveltime": 5,
+                    },
                 },
             },
         },
