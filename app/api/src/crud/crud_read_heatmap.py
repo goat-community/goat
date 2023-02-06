@@ -474,19 +474,29 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         """
 
         method_map = {
-            "gravity": "modified_gaussian_per_grid",
+            "modified_gaussian": "modified_gaussian_per_grid",
+            "combined_cumulative_modified_gaussian": "combined_modified_gaussian_per_grid",
             "connectivity": "connectivity",
             "cumulative": "counts",
             "closest_average": "mins",
         }
         output = {}
-        if heatmap_settings.heatmap_type.value == "gravity":
+        if heatmap_settings.heatmap_type.value == "modified_gaussian":
             for key, heatmap_config in heatmap_settings.heatmap_config.items():
                 output[key] = heatmap_core.modified_gaussian_per_grid(
                     sorted_table[key],
                     uniques[key],
                     heatmap_config["sensitivity"],
                     heatmap_config["max_traveltime"],
+                )
+        elif heatmap_settings.heatmap_type.value == "combined_cumulative_modified_gaussian":
+            for key, heatmap_config in heatmap_settings.heatmap_config.items():
+                output[key] = heatmap_core.combined_modified_gaussian_per_grid(
+                    sorted_table[key],
+                    uniques[key],
+                    heatmap_config["sensitivity"],
+                    heatmap_config["max_traveltime"],
+                    heatmap_config["static_traveltime"],
                 )
         else:
             method_name = method_map[heatmap_settings.heatmap_type.value]
@@ -665,11 +675,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             for key, calculation in calculations.items():
                 if not calculation.size:
                     feature["properties"][key] = None
-                    feature["properties"][key + "_class"] = -1
+                    feature["properties"][key + "_class"] = 0
                     continue
                 if np.isnan(calculation[i]):
                     feature["properties"][key] = None
-                    feature["properties"][key + "_class"] = -1
+                    feature["properties"][key + "_class"] = 0
                     continue
                 feature["properties"][key] = round(float(calculation[i]), 2)
                 feature["properties"][key + "_class"] = int(quantiles[key][i])

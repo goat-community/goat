@@ -20,18 +20,7 @@ __pycache__
 !/app/api/src/data/.gitkeep
 r5-cache
 
-/app/api/src/cache/traveltime_matrices/walking/*
-/app/api/src/cache/traveltime_matrices/cycling/*
-/app/api/src/cache/traveltime_matrices/public_transport/*
-!/app/api/src/cache/traveltime_matrices/walking/standard/.gitkeep
-!/app/api/src/cache/traveltime_matrices/cycling/.gitkeep
-!/app/api/src/cache/traveltime_matrices/public_transport/.gitkeep
-/app/api/src/cache/opportunity_matrices/walking/*
-/app/api/src/cache/opportunity_matrices/cycling/*
-/app/api/src/cache/opportunity_matrices/public_transport/*
-!/app/api/src/cache/opportunity_matrices/walking/standard/.gitkeep
-!/app/api/src/cache/opportunity_matrices/cycling/.gitkeep
-!/app/api/src/cache/opportunity_matrices/public_transport/.gitkeep
+/app/api/src/cache/
 
 # Unit test / coverage reports 
 .coverage

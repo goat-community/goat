@@ -37,7 +37,6 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "stopOnEntry": true,
             "justMyCode": false
         },
         {
