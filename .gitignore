@@ -21,6 +21,7 @@ __pycache__
 r5-cache
 
 /app/api/src/cache/
+/app/api/tmp/
 
 # Unit test / coverage reports 
 .coverage
