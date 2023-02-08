@@ -1,3 +1,6 @@
+import pyximport
+
+pyximport.install()
 import asyncio
 import json
 import math
@@ -13,6 +16,7 @@ import pandas as pd
 from codetiming import Timer
 from geoalchemy2.functions import ST_Dump
 from geoalchemy2.shape import to_shape
+from pyproj import Geod
 from rich import print
 from scipy import spatial
 from shapely.geometry import Polygon
@@ -21,6 +25,7 @@ from sqlalchemy.sql.functions import func
 
 from src import crud, schemas
 from src.core import heatmap as heatmap_core
+from src.core import heatmap_cython
 from src.core.config import settings
 from src.core.heatmap import merge_heatmap_traveltime_objects
 from src.core.isochrone import (
@@ -32,6 +37,7 @@ from src.crud.base import CRUDBase
 from src.crud.crud_read_heatmap import CRUDBaseHeatmap
 from src.db import models
 from src.db.session import async_session, legacy_engine, sync_session
+from src.jsoline import jsolines
 from src.resources.enums import RoutingTypes
 from src.schemas.heatmap import (
     HeatmapWalkingBulkResolution,
@@ -518,23 +524,28 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         neighbors = list(compress(neighbors, intersects.values))
         return neighbors
 
+    async def get_h3_grids(self, study_area_id, resolution, style="int"):
+        study_area = await crud.study_area.get(self.db, id=study_area_id)
+        study_area_polygon = to_shape(study_area.geom)
+        grids = []
+        for polygon_ in list(study_area_polygon.geoms):
+            grids_ = h3.polyfill_geojson(polygon_.__geo_interface__, resolution)
+            # Get hexagon geometries and convert to GeoDataFrame
+            grids.extend(grids_)
+        grids = list(set(grids))
+        neighbors = await self.get_interior_neighbors(grids, study_area_polygon)
+        grids.extend(neighbors)
+        if style == "hex":
+            grids = np.array(grids)
+        elif style == "int":
+            grids = np.array([int(hex_id, 16) for hex_id in grids])
+        return grids
+
     async def create_h3_grids(self, study_area_ids):
         base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
         for study_area_id in study_area_ids:
-            study_area = await crud.study_area.get(self.db, id=study_area_id)
             for resolution in range(6, 11):
-                grids = []
-                study_area_polygon = to_shape(study_area.geom)
-                for polygon_ in list(study_area_polygon.geoms):
-                    grids_ = h3.polyfill_geojson(polygon_.__geo_interface__, resolution)
-                    # Get hexagon geometries and convert to GeoDataFrame
-                    grids.extend(grids_)
-                grids = list(set(grids))
-                neighbors = await self.get_interior_neighbors(grids, study_area_polygon)
-                grids.extend(neighbors)
-                hex_polygons_lambda = lambda hex_id: np.array(
-                    h3.h3_to_geo_boundary(str(hex_id), geo_json=True)
-                )
+                grids = await self.get_h3_grids(study_area_id, resolution, style="hex")
                 hex_polygons = [
                     np.array(h3.h3_to_geo_boundary(str(hex_id), geo_json=True)) for hex_id in grids
                 ]
@@ -594,6 +605,58 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             calculation_objs=calculation_objs,
         )
 
+    async def create_connectivity_heatmap_files(
+        self, mode: str, profile: str, h6_id: str, max_time: int
+    ):
+        if type(h6_id) is int:
+            h6_id = h6_id.toString(16)
+
+        travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
+        traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
+        areas = []
+        for i in range(traveltime_h6["west"].size):
+            isochrone_multipolygon_coordinates = jsolines(
+                traveltime_h6["travel_times"][i],
+                traveltime_h6["width"][i],
+                traveltime_h6["height"][i],
+                traveltime_h6["west"][i],
+                traveltime_h6["north"][i],
+                traveltime_h6["zoom"][i],
+                np.array(list(range(1, max_time + 1)), dtype=np.uint8),
+                web_mercator=False,
+            )
+            areas.append(isochrone_multipolygon_coordinates["full"].area)
+        areas = np.array(areas)
+        pass
+
+    async def compute_areas(self, mode: str, profile: str, h6_id: str, max_time: int):
+        travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
+        traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
+        areas = heatmap_cython.calculate_areas_from_pixles(
+            traveltime_h6["travel_times"], list(range(1, max_time + 1))
+        )
+        return areas
+
+    async def generate_connectivity_heatmap(
+        self, mode: str, profile: str, study_area_id: int, max_time: int
+    ):
+
+        directory = self.get_connectivity_path(mode, profile)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        h6_hexagons = await self.get_h3_grids(study_area_id, 6, style="hex")
+        for h6_id in h6_hexagons:
+            travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
+            traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
+            areas = heatmap_cython.calculate_areas_from_pixles(
+                traveltime_h6["travel_times"], list(range(1, max_time + 1))
+            )
+            grid_ids = heatmap_cython.h3_to_int(traveltime_h6["grid_ids"])
+
+            file_name = os.path.join(directory, f"{h6_id}.npz")
+            np.savez(file_name, grid_ids=grid_ids, areas=areas)
+            pass
+
 
 def main():
     # Get superuser
@@ -638,13 +701,29 @@ def main():
     #         ],
     #     )
     # )
+    # asyncio.get_event_loop().run_until_complete(
+    #     crud_heatmap.create_h3_grids(
+    #         study_area_ids=[
+    #             91620000,
+    #         ],
+    #     )
+    # )
+    # asyncio.get_event_loop().run_until_complete(
+    #     crud_heatmap.create_connectivity_heatmap_files(
+    #         profile="walking", h6_id="861f8d787ffffff", max_time=20
+    #     )
+    # )
+    start_time = time.time()
+    # areas = asyncio.get_event_loop().run_until_complete(
+    #     crud_heatmap.compute_areas(profile="walking", h6_id="861f8d787ffffff", max_time=20)
+    # )
     asyncio.get_event_loop().run_until_complete(
-    crud_heatmap.create_h3_grids(
-          study_area_ids=[
-            91620000,
-        ],
+        crud_heatmap.generate_connectivity_heatmap(
+            mode="walking", profile="standard", study_area_id=91620000, max_time=20
+        )
     )
-    )
+    end_time = time.time()
+    print(f"Compute Areas Time: {end_time - start_time}")
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
 
