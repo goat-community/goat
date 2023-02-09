@@ -16,6 +16,7 @@ from typing import IO, Any, Dict, List, Optional
 import emails
 import geobuf
 import geopandas
+import h3
 import numba
 import numpy as np
 import pyproj
@@ -29,6 +30,7 @@ from jose import jwt
 from numba import njit
 from rich import print as print
 from sentry_sdk import HttpTransport
+from shapely import geometry
 from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
 from shapely.ops import transform
 from starlette import status
@@ -931,6 +933,57 @@ def geopandas_read_file(data_file: UploadFile):
 
         finally:
             delete_file(temp_file_path)
+
+
+# https://github.com/uber/h3/issues/275#issuecomment-976886644
+def _cover_polygon_h3(polygon: Polygon, resolution: int):
+    """
+    Return the set of H3 cells at the specified resolution which completely cover the input polygon.
+    """
+    result_set = set()
+    # Hexes for vertices
+    vertex_hexes = [h3.geo_to_h3(t[1], t[0], resolution) for t in list(polygon.exterior.coords)]
+    # Hexes for edges (inclusive of vertices)
+    for i in range(len(vertex_hexes) - 1):
+        result_set.update(h3.h3_line(vertex_hexes[i], vertex_hexes[i + 1]))
+    # Hexes for internal area
+    result_set.update(
+        list(h3.polyfill(geometry.mapping(polygon), resolution, geo_json_conformant=True))
+    )
+    return result_set
+
+
+def create_h3_grid(geometry: geometry, h3_resolution: int, return_h3_geometries=False):
+    """Create a list of H3 indexes
+
+    :param geometry: Shapely geometry to create H3 indexes for.
+    :param h3_resolution: H3 resolution.
+    :param return_h3_geometries: If true, return a GeoDataFrame with the H3 indexes and the corresponding geometries
+
+    :return: List of H3 indexes in a GeoDataFrame.
+    """
+
+    h3_indexes_gdf = geopandas.GeoDataFrame(columns=["h3_index"])
+
+    h3_indexes = []
+    if geometry.geom_type == "Polygon":
+        h3_index = _cover_polygon_h3(geometry, h3_resolution)
+        h3_indexes.extend(h3_index)
+    elif geometry.geom_type == "MultiPolygon":
+        for polygon in geometry.geoms:
+            h3_index = _cover_polygon_h3(polygon, h3_resolution)
+            h3_indexes.extend(h3_index)
+    h3_indexes = list(set(h3_indexes))
+
+    h3_indexes_gdf["h3_index"] = h3_indexes
+
+    if return_h3_geometries:
+        h3_indexes_gdf["geometry"] = h3_indexes_gdf["h3_index"].apply(
+            lambda x: Polygon(h3.h3_to_geo_boundary(h=x))
+        )
+        h3_indexes_gdf.set_crs(epsg=4326, inplace=True)
+
+    return h3_indexes_gdf
 
 
 def timing(f):

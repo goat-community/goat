@@ -519,6 +519,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         return neighbors
 
     async def create_h3_grids(self, study_area_ids):
+        # TODO: Part of this is moved as a utility function. Refactor.
         base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
         for study_area_id in study_area_ids:
             study_area = await crud.study_area.get(self.db, id=study_area_id)
@@ -639,11 +640,11 @@ def main():
     #     )
     # )
     asyncio.get_event_loop().run_until_complete(
-    crud_heatmap.create_h3_grids(
-          study_area_ids=[
-            91620000,
-        ],
-    )
+        crud_heatmap.create_h3_grids(
+            study_area_ids=[
+                91620000,
+            ],
+        )
     )
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
