@@ -81,6 +81,10 @@ class HeatmapClosestAverage(HeatmapBase):
     max_count: int
 
 
+class HeatmapConfigConnectivity(BaseModel):
+    max_traveltime: int = Field(None, le=25)
+
+
 class HeatmapSettings(BaseModel):
     """Setting for different heatmap types"""
 
@@ -117,10 +121,22 @@ class HeatmapSettings(BaseModel):
     heatmap_config: dict
 
     @validator("heatmap_config")
+    def heatmap_config_schema_connectivity(cls, value, values):
+
+        if values["heatmap_type"] != HeatmapType.connectivity:
+            return value
+        else:
+            return HeatmapConfigConnectivity(**value)
+
+    @validator("heatmap_config")
     def heatmap_config_schema(cls, value, values):
         """
         Validate each part of heatmap_config against validator class corresponding to heatmap_type
         """
+        if values["heatmap_type"] == HeatmapType.connectivity:
+            # This validator should not apply to connectivity heatmap
+            return value
+
         validator_classes = {
             "modified_gaussian": HeatmapConfigGravity,
             "combined_cumulative_modified_gaussian": HeatmapConfigCombinedGravity,
@@ -176,6 +192,25 @@ request_examples = {
                     "bar": {"weight": 1, "sensitivity": 250000, "max_traveltime": 5},
                     "gym": {"weight": 1, "sensitivity": 350000, "max_traveltime": 5},
                 },
+            },
+        },
+    },
+    "connectivity_heatmap_6": {
+        "summary": "Connectivity heatmap with hexagon resolution 6",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "max_travel_time": 20,
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "connectivity",
+            "analysis_unit": "hexagon",
+            "resolution": 6,
+            "heatmap_config": {
+                "max_traveltime": 20,
             },
         },
     },
@@ -373,6 +408,22 @@ request_examples = {
                     "gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
                 },
             },
+        },
+    },
+    "connectivity_heatmap_10": {
+        "summary": "Connectivity heatmap with hexagon resolution 10",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "connectivity",
+            "analysis_unit": "hexagon",
+            "resolution": 10,
+            "heatmap_config": {"max_travel_time": 10},
         },
     },
 }
