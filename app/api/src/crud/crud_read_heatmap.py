@@ -447,7 +447,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
             end = time.time()
             print(f"Reading matrices took {end - begin} seconds")
-
+            grid_ids = self.convert_grid_ids_to_parent(grid_ids, heatmap_settings.resolution)
             # TODO: Pick right function that correspond the heatmap the user want to calculate
             sorted_table, uniques = self.sort_and_unique(
                 grid_ids, traveltimes
@@ -611,6 +611,13 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         polygons = np.load(polygons_file_name)
         return grids, polygons
 
+    def convert_grid_ids_to_parent(self, grid_ids: dict, target_resolution: int):
+        for key, grid_id in grid_ids.items():
+            if not grid_id.size:
+                continue
+            grid_ids[key] = heatmap_cython.get_h3_parents(grid_id, target_resolution)
+        return grid_ids
+
     @timing
     def tag_uniques_by_parent(self, uniques: dict, target_resolution: int):
         """
@@ -697,9 +704,9 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         target_resolution = h3.h3_get_resolution(sample_grid_id)
         #############################################
 
-        uniques_parent_tags = self.tag_uniques_by_parent(uniques, target_resolution)
+        # uniques_parent_tags = self.tag_uniques_by_parent(uniques, target_resolution)
         grids_unordered_map = self.create_grids_unordered_map(grids)
-        grid_pointer = self.create_grid_pointers(grids_unordered_map, uniques_parent_tags)
+        grid_pointer = self.create_grid_pointers(grids_unordered_map, uniques)
         calculations = self.create_calculation_arrays(grids, grid_pointer, calculations)
         return calculations
 

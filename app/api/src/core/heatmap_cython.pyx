@@ -32,6 +32,7 @@ def create_grid_pointers(grids_unordered_map:dict, parent_tags:dict):
     grid_pointers = {}
     get_id = lambda tag: grids_unordered_map.get(tag, -1)
     for key, parent_tag in parent_tags.items():
+        parent_tag = parent_tag[0]
         if not parent_tag.size:
             grid_pointers[key] = parent_tag.copy()
             continue
