@@ -503,7 +503,9 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             )
             connectivity_heatmaps.append(connectivity_areas_sorted)
             uniques.append(unique)
-        uniques = heatmap_cython.concatenate_and_fix_uniques_index_order(uniques)
+        uniques = heatmap_cython.concatenate_and_fix_uniques_index_order(
+            uniques, connectivity_heatmaps
+        )
         # uniques = (uniques[0].astype(np.uint64), uniques[1])
         connectivity_heatmaps = np.concatenate(connectivity_heatmaps)
         return connectivity_heatmaps, uniques

@@ -131,7 +131,7 @@ def get_connectivity_average(areas:np.ndarray, int max_traveltime):
     return areas_average
 
 
-def concatenate_and_fix_uniques_index_order(uniques: list[tuple[np.ndarray, np.ndarray]]):
+def concatenate_and_fix_uniques_index_order(uniques: list[tuple[np.ndarray, np.ndarray]],connectivity_heatmaps: list[np.ndarray]):
     """
     Fix the uniques index order.
     """
@@ -141,7 +141,7 @@ def concatenate_and_fix_uniques_index_order(uniques: list[tuple[np.ndarray, np.n
     for i in range(len(uniques)):
         fixed_indexes = uniques[i][1] + agg_previous_length
         unique_index_fixed.append(fixed_indexes)
-        agg_previous_length += uniques[i][1].shape[0]
+        agg_previous_length += connectivity_heatmaps[i].shape[0]
     unique_ids = np.concatenate(unique_ids)
     unique_index_fixed = np.concatenate(unique_index_fixed)
     return (unique_ids, unique_index_fixed)
