@@ -35,7 +35,8 @@ class HeatmapMode(Enum):
 
 
 class HeatmapType(Enum):
-    gravity = "gravity"
+    modified_gaussian = "modified_gaussian"
+    combined_cumulative_modified_gaussian = "combined_cumulative_modified_gaussian"
     connectivity = "connectivity"
     cumulative = "cumulative"
     closest_average = "closest_average"
@@ -72,8 +73,16 @@ class HeatmapConfigGravity(HeatmapBase):
     sensitivity: int
 
 
+class HeatmapConfigCombinedGravity(HeatmapConfigGravity):
+    static_traveltime: int
+
+
 class HeatmapClosestAverage(HeatmapBase):
     max_count: int
+
+
+class HeatmapConfigConnectivity(BaseModel):
+    max_traveltime: int = Field(None, le=25)
 
 
 class HeatmapSettings(BaseModel):
@@ -107,17 +116,30 @@ class HeatmapSettings(BaseModel):
     )
     analysis_unit_size: Optional[int] = Field(10, description="Size of the analysis")
     heatmap_type: HeatmapType = Field(
-        HeatmapType.gravity, description="Type of heatmap to compute"
+        HeatmapType.modified_gaussian, description="Type of heatmap to compute"
     )
     heatmap_config: dict
+
+    @validator("heatmap_config")
+    def heatmap_config_schema_connectivity(cls, value, values):
+
+        if values["heatmap_type"] != HeatmapType.connectivity:
+            return value
+        else:
+            return HeatmapConfigConnectivity(**value)
 
     @validator("heatmap_config")
     def heatmap_config_schema(cls, value, values):
         """
         Validate each part of heatmap_config against validator class corresponding to heatmap_type
         """
+        if values["heatmap_type"] == HeatmapType.connectivity:
+            # This validator should not apply to connectivity heatmap
+            return value
+
         validator_classes = {
-            "gravity": HeatmapConfigGravity,
+            "modified_gaussian": HeatmapConfigGravity,
+            "combined_cumulative_modified_gaussian": HeatmapConfigCombinedGravity,
             "closest_average": HeatmapClosestAverage,
         }
 
@@ -150,7 +172,7 @@ request_examples_ = {
 }
 
 request_examples = {
-    "gravity_hexagon_10": {
+    "modified_gaussian_hexagon_10": {
         "summary": "Gravity heatmap with hexagon resolution 10",
         "value": {
             "mode": "walking",
@@ -161,7 +183,7 @@ request_examples = {
                 "id": 1,
                 "name": "default",
             },
-            "heatmap_type": "gravity",
+            "heatmap_type": "modified_gaussian",
             "analysis_unit": "hexagon",
             "resolution": 10,
             "heatmap_config": {
@@ -173,7 +195,26 @@ request_examples = {
             },
         },
     },
-    "gravity_hexagon_9": {
+    "connectivity_heatmap_6": {
+        "summary": "Connectivity heatmap with hexagon resolution 6",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "max_travel_time": 20,
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "connectivity",
+            "analysis_unit": "hexagon",
+            "resolution": 6,
+            "heatmap_config": {
+                "max_traveltime": 20,
+            },
+        },
+    },
+    "modified_gaussian_hexagon_9": {
         "summary": "Gravity heatmap with hexagon resolution 9",
         "value": {
             "mode": "walking",
@@ -184,7 +225,7 @@ request_examples = {
                 "id": 1,
                 "name": "default",
             },
-            "heatmap_type": "gravity",
+            "heatmap_type": "modified_gaussian",
             "analysis_unit": "hexagon",
             "resolution": 9,
             "heatmap_config": {
@@ -196,7 +237,7 @@ request_examples = {
             },
         },
     },
-    "gravity_hexagon_6": {
+    "modified_gaussian_hexagon_6": {
         "summary": "Gravity heatmap with hexagon resolution 6",
         "value": {
             "mode": "walking",
@@ -207,7 +248,7 @@ request_examples = {
                 "id": 1,
                 "name": "default",
             },
-            "heatmap_type": "gravity",
+            "heatmap_type": "modified_gaussian",
             "analysis_unit": "hexagon",
             "resolution": 6,
             "heatmap_config": {
@@ -215,6 +256,44 @@ request_examples = {
                     "atm": {"weight": 1, "sensitivity": 250000, "max_traveltime": 5},
                     "bar": {"weight": 1, "sensitivity": 250000, "max_traveltime": 5},
                     "gym": {"weight": 1, "sensitivity": 350000, "max_traveltime": 5},
+                },
+            },
+        },
+    },
+    "combined_modified_gaussian_hexagon_6": {
+        "summary": "Combined Gravity heatmap with hexagon resolution 6",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "max_travel_time": 20,
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "combined_cumulative_modified_gaussian",
+            "analysis_unit": "hexagon",
+            "resolution": 6,
+            "heatmap_config": {
+                "poi": {
+                    "atm": {
+                        "weight": 1,
+                        "sensitivity": 250000,
+                        "max_traveltime": 20,
+                        "static_traveltime": 5,
+                    },
+                    "bar": {
+                        "weight": 1,
+                        "sensitivity": 250000,
+                        "max_traveltime": 20,
+                        "static_traveltime": 5,
+                    },
+                    "gym": {
+                        "weight": 1,
+                        "sensitivity": 350000,
+                        "max_traveltime": 20,
+                        "static_traveltime": 5,
+                    },
                 },
             },
         },
@@ -329,6 +408,22 @@ request_examples = {
                     "gym": {"weight": 1, "max_count": 1, "max_traveltime": 5},
                 },
             },
+        },
+    },
+    "connectivity_heatmap_10": {
+        "summary": "Connectivity heatmap with hexagon resolution 10",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "connectivity",
+            "analysis_unit": "hexagon",
+            "resolution": 10,
+            "heatmap_config": {"max_travel_time": 10},
         },
     },
 }

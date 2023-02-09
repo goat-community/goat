@@ -77,6 +77,16 @@ class CRUDBaseHeatmap:
     def __init__(self, db, current_user):
         self.db = db
         self.current_user = current_user
+        self.travel_time_base_path = os.path.join(settings.CACHE_DIR, "traveltime_matrices")
+        self.connectivity_base_path = os.path.join(settings.CACHE_DIR, "connectivity_matrices")
+
+    def get_traveltime_path(self, mode: str, profile: str, h6_id: int):
+        if np.issubdtype(type(h6_id), int):
+            h6_id = f"{h6_id:x}"
+        return os.path.join(self.travel_time_base_path, mode, profile, f"{h6_id}.npz")
+
+    def get_connectivity_path(self, mode: str, profile: str):
+        return os.path.join(self.connectivity_base_path, mode, profile)
 
     async def read_h3_grids_study_areas(
         self, resolution: int, buffer_size: int, study_area_ids: list[int] = None
@@ -398,40 +408,107 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         end_time = time.time()
         print(f"Time to read bulk_ids: {end_time - start_time}")
 
+        # Read hexagons
+        grids, h_polygons = await self.read_hexagons(
+            heatmap_settings.study_area_ids[0], heatmap_settings.resolution
+        )
+
         # Get heatmap settings
-        opportunities = heatmap_settings.heatmap_config.keys()
         if heatmap_settings.mode == HeatmapMode.walking:
             profile = heatmap_settings.walking_profile.value
         elif heatmap_settings.mode == HeatmapMode.cycling:
             profile = heatmap_settings.cycling_profile.value
 
-        matrix_base_path = os.path.join(
-            settings.OPPORTUNITY_MATRICES_PATH, heatmap_settings.mode.value, profile
-        )
-        # Read travel times and grid ids
-        begin = time.time()
-        grid_ids, traveltimes = await self.read_opportunity_matrix(
-            matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
-        )
+        if heatmap_settings.heatmap_type == HeatmapType.connectivity:
+            connectivity_heatmaps_sorted, uniques = await self.read_connectivity_heatmaps_sorted(
+                bulk_ids, heatmap_settings, profile
+            )
+            areas = heatmap_cython.sums(connectivity_heatmaps_sorted, uniques)
+            areas_reordered = heatmap_cython.reorder_connectivity_heatmaps(
+                uniques[0], areas, grids
+            )
+            quantiles = heatmap_core.quantile_classify(areas_reordered)
+            geojson = self.generate_connectivity_final_geojson(
+                grids, h_polygons, areas_reordered, quantiles
+            )
+        else:
 
-        end = time.time()
-        print(f"Reading matrices took {end - begin} seconds")
+            matrix_base_path = os.path.join(
+                settings.OPPORTUNITY_MATRICES_PATH, heatmap_settings.mode.value, profile
+            )
+            # Read travel times and grid ids
+            opportunities = heatmap_settings.heatmap_config.keys()
+            begin = time.time()
+            grid_ids, traveltimes = await self.read_opportunity_matrix(
+                matrix_base_path=matrix_base_path,
+                bulk_ids=bulk_ids,
+                chosen_categories=opportunities,
+            )
 
-        # TODO: Pick right function that correspond the heatmap the user want to calculate
-        sorted_table, uniques = self.sort_and_unique(grid_ids, traveltimes)  # Resolution 10 inside
-        calculations = self.do_calculations(sorted_table, uniques, heatmap_settings)
-        grids, h_polygons = await self.read_hexagons(
-            heatmap_settings.study_area_ids[0], heatmap_settings.resolution
-        )
-        # TODO: Warnong: Study areas should get concatenated
-        calculations = self.reorder_calculations(calculations, grids, uniques)
-        quantiles = self.create_quantile_arrays(calculations)
-        agg_classes = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
-        geojson = self.generate_final_geojson(
-            grids, h_polygons, calculations, quantiles, agg_classes
-        )
+            end = time.time()
+            print(f"Reading matrices took {end - begin} seconds")
+
+            # TODO: Pick right function that correspond the heatmap the user want to calculate
+            sorted_table, uniques = self.sort_and_unique(
+                grid_ids, traveltimes
+            )  # Resolution 10 inside
+            calculations = self.do_calculations(sorted_table, uniques, heatmap_settings)
+            # TODO: Warnong: Study areas should get concatenated
+            calculations = self.reorder_calculations(calculations, grids, uniques)
+            quantiles = self.create_quantile_arrays(calculations)
+            agg_classes = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
+            geojson = self.generate_final_geojson(
+                grids, h_polygons, calculations, quantiles, agg_classes
+            )
 
         return geojson
+
+    def generate_connectivity_final_geojson(
+        self, grids: np.ndarray, h_polygons: np.ndarray, areas: np.ndarray, quantiles: np.ndarray
+    ):
+        features = []
+        for grid, h_polygon, area, quantile in zip(grids, h_polygons, areas, quantiles):
+            features.append(
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "id": int(grid),
+                        "area": round(float(area), 2),
+                        "area_class": int(quantile),
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [h_polygon.tolist()],
+                    },
+                }
+            )
+        geojson = {"type": "FeatureCollection", "features": features}
+        return geojson
+
+    async def read_connectivity_heatmaps_sorted(
+        self, bulk_ids: np.ndarray, heatmap_settings: HeatmapSettings, profile: str
+    ) -> dict:
+        connectivity_base_path = self.get_connectivity_path(heatmap_settings.mode.value, profile)
+        target_resolution = heatmap_settings.resolution
+        connectivity_heatmaps = []
+        uniques = []
+        max_traveltime = heatmap_settings.heatmap_config.max_traveltime
+        for bulk_id in bulk_ids:
+            file_path = os.path.join(connectivity_base_path, f"{bulk_id}.npz")
+            connectivity = np.load(file_path, allow_pickle=True)
+            areas = heatmap_cython.get_connectivity_average(connectivity["areas"], max_traveltime)
+            grids = heatmap_cython.convert_to_parents(connectivity["grid_ids"], target_resolution)
+            connectivity_areas_sorted, unique = heatmap_cython.sort_and_unique_by_grid_ids(
+                grids, areas
+            )
+            connectivity_heatmaps.append(connectivity_areas_sorted)
+            uniques.append(unique)
+        uniques = heatmap_cython.concatenate_and_fix_uniques_index_order(
+            uniques, connectivity_heatmaps
+        )
+        # uniques = (uniques[0].astype(np.uint64), uniques[1])
+        connectivity_heatmaps = np.concatenate(connectivity_heatmaps)
+        return connectivity_heatmaps, uniques
 
     def calculate_agg_class(self, quantiles: dict, heatmap_config: dict):
         """
@@ -474,19 +551,29 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         """
 
         method_map = {
-            "gravity": "modified_gaussian_per_grid",
+            "modified_gaussian": "modified_gaussian_per_grid",
+            "combined_cumulative_modified_gaussian": "combined_modified_gaussian_per_grid",
             "connectivity": "connectivity",
             "cumulative": "counts",
             "closest_average": "mins",
         }
         output = {}
-        if heatmap_settings.heatmap_type.value == "gravity":
+        if heatmap_settings.heatmap_type.value == "modified_gaussian":
             for key, heatmap_config in heatmap_settings.heatmap_config.items():
                 output[key] = heatmap_core.modified_gaussian_per_grid(
                     sorted_table[key],
                     uniques[key],
                     heatmap_config["sensitivity"],
                     heatmap_config["max_traveltime"],
+                )
+        elif heatmap_settings.heatmap_type.value == "combined_cumulative_modified_gaussian":
+            for key, heatmap_config in heatmap_settings.heatmap_config.items():
+                output[key] = heatmap_core.combined_modified_gaussian_per_grid(
+                    sorted_table[key],
+                    uniques[key],
+                    heatmap_config["sensitivity"],
+                    heatmap_config["max_traveltime"],
+                    heatmap_config["static_traveltime"],
                 )
         else:
             method_name = method_map[heatmap_settings.heatmap_type.value]
@@ -547,7 +634,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         return parent_tags
 
     @timing
-    def create_grids_unordered_map(self, grids: dict):
+    def create_grids_unordered_map(self, grids: np.ndarray):
         """
         Convert grids to unordered map for fast lookup
         """
@@ -665,11 +752,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             for key, calculation in calculations.items():
                 if not calculation.size:
                     feature["properties"][key] = None
-                    feature["properties"][key + "_class"] = -1
+                    feature["properties"][key + "_class"] = 0
                     continue
                 if np.isnan(calculation[i]):
                     feature["properties"][key] = None
-                    feature["properties"][key + "_class"] = -1
+                    feature["properties"][key + "_class"] = 0
                     continue
                 feature["properties"][key] = round(float(calculation[i]), 2)
                 feature["properties"][key + "_class"] = int(quantiles[key][i])
