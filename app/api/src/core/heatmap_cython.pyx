@@ -11,9 +11,15 @@ def get_h3_parents(h3_array: np.ndarray, int resolution):
         return None
     if not h3_array.size:
         return h3_array.copy()
+    cache = {}
     out = np.empty(h3_array.size, np.uint64)
     for i in range(h3_array.size):
-        out[i] = h3._cy.parent(h3_array[i], resolution)
+        parent = cache.get(h3_array[i], None)
+        if parent is None:
+            parent = h3._cy.parent(h3_array[i], resolution)
+            cache[h3_array[i]] = parent
+        out[i] = parent
+        # out[i] = h3._cy.parent(h3_array[i], resolution)
     return out
 
 def convert_to_parents(h3_array: np.ndarray, int resolution):
