@@ -449,10 +449,10 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             print(f"Reading matrices took {end - begin} seconds")
             grid_ids = self.convert_grid_ids_to_parent(grid_ids, heatmap_settings.resolution)
             # TODO: Pick right function that correspond the heatmap the user want to calculate
-            sorted_table, uniques = self.sort_and_unique(
+            sorted_data, uniques = self.sort_and_unique(
                 grid_ids, traveltimes
             )  # Resolution 10 inside
-            calculations = self.do_calculations(sorted_table, uniques, heatmap_settings)
+            calculations = self.do_calculations(sorted_data, uniques, heatmap_settings)
             # TODO: Warnong: Study areas should get concatenated
             calculations = self.reorder_calculations(calculations, grids, uniques)
             quantiles = self.create_quantile_arrays(calculations)
@@ -510,6 +510,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         connectivity_heatmaps = np.concatenate(connectivity_heatmaps)
         return connectivity_heatmaps, uniques
 
+    @timing
     def calculate_agg_class(self, quantiles: dict, heatmap_config: dict):
         """
         Calculate the aggregated class for each grid cell based on the opportunity weights.
@@ -535,13 +536,13 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         sorted_table is dict[Array[grid_ids, travel_times]]
         """
 
-        sorted_table, unique = {}, {}
+        sorted_data, unique = {}, {}
         for op in traveltimes.keys():
-            # sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
-            sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
+            # sorted_data[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
+            sorted_data[op], unique[op] = heatmap_cython.sort_and_unique_by_grid_ids(
                 grid_ids[op], traveltimes[op]
             )
-        return sorted_table, unique
+        return sorted_data, unique
 
     @timing
     def do_calculations(self, sorted_table: dict, uniques: dict, heatmap_settings: dict):
@@ -611,6 +612,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         polygons = np.load(polygons_file_name)
         return grids, polygons
 
+    @timing
     def convert_grid_ids_to_parent(self, grid_ids: dict, target_resolution: int):
         for key, grid_id in grid_ids.items():
             if not grid_id.size:
