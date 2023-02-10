@@ -49,11 +49,10 @@ def sort_and_unique_by_grid_ids(grid_ids, travel_times):
 
 
 @njit()
-def medians(sorted_table, unique):
+def medians(travel_times, unique):
     """
     Example:
-    sorted_table:
-        [[0,0,0,1,1,2,2,2,3,3,3,3],
+    travel_times:
         [1,2,3,4,5,6,7,8,9,10,11,12]]
     unique:
         [0,1,2,3]
@@ -62,11 +61,11 @@ def medians(sorted_table, unique):
 
     Consider unique is touples of (unique, index)
     """
-    if not sorted_table.size:
+    if not travel_times.size:
         return None
-    travel_times = sorted_table.transpose()[1]
+
     # Add the last index to the unique index:
-    unique_index = np.append(unique[1], sorted_table.shape[0])
+    unique_index = np.append(unique[1], travel_times.shape[0])
     medians = np.empty(unique[1].shape[0], np.float32)
     for i in range(unique_index.shape[0] - 1):
         j = i + 1
@@ -77,11 +76,10 @@ def medians(sorted_table, unique):
 
 
 @njit()
-def mins(sorted_table, unique):
+def mins(travel_times, unique):
     """
     Example:
-    sorted_table:
-        [[0,0,0,1,1,2,2,2,3,3,3,3],
+    travel_times:
         [1,2,3,4,5,6,7,8,9,10,11,12]]
     unique:
         [0,1,2,3]
@@ -91,11 +89,11 @@ def mins(sorted_table, unique):
 
     Consider unique is touples of (unique, index)
     """
-    if not sorted_table.size:
+    if not travel_times.size:
         return None
-    travel_times = sorted_table.transpose()[1]
+
     # Add the last index to the unique index:
-    unique_index = np.append(unique[1], sorted_table.shape[0])
+    unique_index = np.append(unique[1], travel_times.shape[0])
     mins = np.empty(unique[1].shape[0], np.float32)
     for i in range(unique_index.shape[0] - 1):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
@@ -105,11 +103,10 @@ def mins(sorted_table, unique):
 
 
 @njit()
-def counts(sorted_table, unique):
+def counts(travel_times, unique):
     """
     Example:
-    sorted_table:
-        [[0,0,0,1,1,2,2,2,3,3,3,3],
+    travel_times:
         [1,2,3,4,5,6,7,8,9,10,11,12]]
     unique:
         [0,1,2,3]
@@ -118,11 +115,11 @@ def counts(sorted_table, unique):
 
     Consider unique is touples of (unique, index)
     """
-    if not sorted_table.size:
+    if not travel_times.size:
         return None
-    travel_times = sorted_table.transpose()[1]
+
     # Add the last index to the unique index:
-    unique_index = np.append(unique[1], sorted_table.shape[0])
+    unique_index = np.append(unique[1], travel_times.shape[0])
     counts = np.empty(unique[1].shape[0], np.float32)
     for i in range(unique_index.shape[0] - 1):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
@@ -132,11 +129,10 @@ def counts(sorted_table, unique):
 
 
 @njit()
-def averages(sorted_table, unique):
+def averages(travel_times, unique):
     """
     Example:
-    sorted_table:
-        [[0,0,0,1,1,2,2,2,3,3,3,3],
+    travel_times:
         [1,2,3,4,5,6,7,8,9,10,11,12]]
     unique:
         [0,1,2,3]
@@ -145,11 +141,11 @@ def averages(sorted_table, unique):
 
     Consider unique is touples of (unique, index)
     """
-    if not sorted_table.size:
+    if not travel_times.size:
         return None
-    travel_times = sorted_table.transpose()[1]
+
     # Add the last index to the unique index:
-    unique_index = np.append(unique[1], sorted_table.shape[0])
+    unique_index = np.append(unique[1], travel_times.shape[0])
 
     averages = np.empty(unique[1].shape[0], np.float32)
     for i in range(unique_index.shape[0] - 1):
@@ -161,14 +157,13 @@ def averages(sorted_table, unique):
 
 @njit
 def combined_modified_gaussian_per_grid(
-    sorted_table, unique, sensitivity, cutoff, static_traveltime
+    travel_times, unique, sensitivity, cutoff, static_traveltime
 ):
-    if not sorted_table.size:
+    if not travel_times.size:
         return None
     sensitivity_ = sensitivity / (60 * 60)  # convert sensitivity to minutes
-    travel_times = sorted_table.transpose()[1]
     # Add the last index to the unique index:
-    unique_index = np.append(unique[1], sorted_table.shape[0])
+    unique_index = np.append(unique[1], travel_times.shape[0])
     combined_modified_gaussian_per_grids = np.empty(unique[1].shape[0], np.float64)
     for i in range(unique_index.shape[0] - 1):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
@@ -190,14 +185,14 @@ def combined_modified_gaussian_per_grid(
 
 
 @njit
-def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
-    if not sorted_table.size:
+def modified_gaussian_per_grid(travel_times, unique, sensitivity, cutoff):
+    if not travel_times.size:
         return None
 
     sensitivity_ = sensitivity / (60 * 60)  # convert sensitivity to minutes
-    travel_times = sorted_table.transpose()[1]
+
     # Add the last index to the unique index:
-    unique_index = np.append(unique[1], sorted_table.shape[0])
+    unique_index = np.append(unique[1], travel_times.shape[0])
     modified_gaussian_per_grids = np.empty(unique[1].shape[0], np.float64)
     for i in range(unique_index.shape[0] - 1):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
@@ -226,8 +221,15 @@ def quantile_classify(a, NQ=5):
         return None
     if not a.size:
         return a.copy()
+
+    a_gt_0 = a > 0
+
+    # Fix for when all values are 0
+    if not sum(a_gt_0):
+        return np.zeros(a.shape, np.int8)
+
     q = np.arange(1 / NQ, 1, 1 / NQ)
-    quantiles = np.quantile(a[a > 0], q)
+    quantiles = np.quantile(a[a_gt_0], q)
     out = np.empty(a.size, np.int8)
     out[np.where(a == 0)] = 0
     out[np.where(np.logical_and(np.greater(a, 0), np.less(a, quantiles[0])))] = 1
