@@ -63,6 +63,7 @@ services:
     hostname: ${COMPOSE_PROJECT_NAME}_api
     depends_on:
       - db
+      - rabbitmq
     env_file:
       - .env
     environment:
@@ -126,6 +127,10 @@ services:
       - "5050:5050"
     networks:
       proxy:
+  
+  rabbitmq:
+    image: rabbitmq:3
+
 
   # mongo:
   #   image: mongo:4
