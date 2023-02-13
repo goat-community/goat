@@ -31,7 +31,7 @@ from numba import njit
 from rich import print as print
 from sentry_sdk import HttpTransport
 from shapely import geometry
-from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
+from shapely.geometry import GeometryCollection, MultiPolygon, Point, Polygon, box
 from shapely.ops import transform
 from starlette import status
 from starlette.responses import Response
@@ -953,7 +953,9 @@ def _cover_polygon_h3(polygon: Polygon, resolution: int):
     return result_set
 
 
-def create_h3_grid(geometry: geometry, h3_resolution: int, return_h3_geometries=False):
+def create_h3_grid(
+    geometry: geometry, h3_resolution: int, return_h3_geometries=False, return_h3_centroids=False
+):
     """Create a list of H3 indexes
 
     :param geometry: Shapely geometry to create H3 indexes for.
@@ -978,9 +980,14 @@ def create_h3_grid(geometry: geometry, h3_resolution: int, return_h3_geometries=
     h3_indexes_gdf["h3_index"] = h3_indexes
 
     if return_h3_geometries:
-        h3_indexes_gdf["geometry"] = h3_indexes_gdf["h3_index"].apply(
-            lambda x: Polygon(h3.h3_to_geo_boundary(h=x))
-        )
+        if return_h3_centroids:
+            h3_indexes_gdf["geometry"] = h3_indexes_gdf["h3_index"].apply(
+                lambda x: Point(reversed(h3.h3_to_geo(h=x)))
+            )
+        else:
+            h3_indexes_gdf["geometry"] = h3_indexes_gdf["h3_index"].apply(
+                lambda x: Polygon(h3.h3_to_geo_boundary(h=x, geo_json=True))
+            )
         h3_indexes_gdf.set_crs(epsg=4326, inplace=True)
 
     return h3_indexes_gdf
