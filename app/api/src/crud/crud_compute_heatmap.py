@@ -322,6 +322,73 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             f"Total time: [bold magenta]{(end_time - starting_time)}[/bold magenta] seconds"
         )
 
+    async def read_poi(
+        self,
+        isochrone_dto: IsochroneDTO,
+        table_name: str,
+        filter_geoms: List[str],
+        data_upload_id: int = None,
+        bulk_ids: List[int] = None,
+    ) -> pd.DataFrame:
+        """Read POIs from database for given filter geoms
+
+        Args:
+            isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
+            table_name (str): Name of the POI table
+            filter_geoms (List[str]): Geometries to filter the POIs
+            data_upload_id (int, optional): Upload ids for poi_user. Defaults to None.
+
+        Raises:
+            ValueError: If table_name is not poi or poi_user
+
+        Returns:
+            POIs (List): Nested list of POIs
+        """
+
+        if table_name == "poi":
+            sql_query = f"""
+                SELECT :bulk_id AS bulk_id, p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
+                FROM basic.poi p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
+                WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
+                ORDER BY p.category
+            """
+            sql_params = {}
+        elif table_name == "poi_user" and data_upload_id is not None:
+            sql_query = f"""
+                SELECT :bulk_id AS bulk_id, p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
+                FROM basic.poi_user p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
+                WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
+                AND p.data_upload_id = :data_upload_id
+                ORDER BY p.category
+            """
+            sql_params = {"data_upload_id": data_upload_id}
+
+        else:
+            raise ValueError(f"Table name {table_name} is not a valid poi table name")
+
+        pois = [
+            self.db.execute(
+                sql_query,
+                sql_params
+                | {
+                    "bulk_id": bulk_ids[idx],
+                    "filter_geom": filter_geom,
+                    "pixel_resolution": isochrone_dto.output.resolution,
+                },
+            )
+            for idx, filter_geom in enumerate(filter_geoms)
+        ]
+
+        pois = await asyncio.gather(*pois)
+        pois = [batch.fetchall() for batch in pois]
+        pois_dict = {}
+        for idx_bulk, batch in enumerate(pois):
+            if len(batch) > 0:
+                bulk_id = batch[0][0]
+                batch = [poi[1:] for poi in batch]
+                pois_dict[bulk_id] = batch
+        return pois_dict
+
     async def compute_opportunity_matrix(
         self, isochrone_dto: IsochroneDTO, calculation_objs: dict
     ):
@@ -360,9 +427,12 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         travel_time_matrices_grids_ids = []
         travel_time_matrices_travel_times = []
 
-        # TODO Performance improvements here (consider multiprocessing)
-        begin = time.time()
+        #TODO: Buffer our single hex geom by 
+        # buffer = isochrone_dto.settings.speed * (isochrone_dto.settings.travel_time * 60)
 
+        #TODO: Find all hexes within buffer to get all relevant travel time matrices
+
+        #TODO: Merge all relevant travel time matrices based on the hexes we found before
         for key in calculation_objs:
             file_name = f"{key}.npz"
             file_path = os.path.join(
@@ -421,19 +491,22 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
                 previous_category = category
 
+                # Check if poi is in relevant travel time matrices
                 indices_relevant_matrices = (
                     (travel_time_matrices_north <= x)
                     & (travel_time_matrices_south >= x)
                     & (travel_time_matrices_west <= y)
                     & (travel_time_matrices_east >= y)
                 ).nonzero()[0]
+                # Get the relevant travel time matrices
                 relevant_traveltime_matrices = travel_time_matrices_travel_times[
                     indices_relevant_matrices
                 ]
+                # Get the grid ids of the relevant travel time matrices
                 relevant_traveltime_matrices_grid_ids = travel_time_matrices_grids_ids[
                     indices_relevant_matrices
                 ]
-
+                # Get the indices of the traveltimes to the poi
                 indices_travel_times = (
                     (x - travel_time_matrices_north[indices_relevant_matrices])
                     * travel_time_matrices_width[indices_relevant_matrices]
@@ -584,7 +657,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         """
 
         buffer_size = isochrone_dto.settings.speed * (isochrone_dto.settings.travel_time * 60)
-        await self.create_h3_girds(study_area_ids)
+        await self.create_h3_grids(study_area_ids)
         # Get calculation objects
         calculation_objs = await self.prepare_bulk_objs(
             study_area_ids=study_area_ids,
@@ -592,8 +665,6 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             calculation_resolution=calculation_resolution,
             buffer_size=buffer_size,
         )
-
-        await self.create_h3_girds(calculation_objs)
 
         # await self.compute_traveltime_active_mobility(
         #     isochrone_dto=isochrone_dto,
@@ -691,16 +762,16 @@ def main():
     )
 
     crud_heatmap = CRUDComputeHeatmap(db=db, current_user=superuser)
-    # asyncio.get_event_loop().run_until_complete(
-    #     crud_heatmap.execute_pre_calculation(
-    #         isochrone_dto=isochrone_dto,
-    #         bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
-    #         calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
-    #         study_area_ids=[
-    #             91620000,
-    #         ],
-    #     )
-    # )
+    asyncio.get_event_loop().run_until_complete(
+        crud_heatmap.execute_pre_calculation(
+            isochrone_dto=isochrone_dto,
+            bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
+            calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
+            study_area_ids=[
+                91620000,
+            ],
+        )
+    )
     # asyncio.get_event_loop().run_until_complete(
     #     crud_heatmap.create_h3_grids(
     #         study_area_ids=[
@@ -717,11 +788,11 @@ def main():
     # areas = asyncio.get_event_loop().run_until_complete(
     #     crud_heatmap.compute_areas(profile="walking", h6_id="861f8d787ffffff", max_time=20)
     # )
-    asyncio.get_event_loop().run_until_complete(
-        crud_heatmap.generate_connectivity_heatmap(
-            mode="walking", profile="standard", study_area_id=91620000, max_time=20
-        )
-    )
+    # asyncio.get_event_loop().run_until_complete(
+    #     crud_heatmap.generate_connectivity_heatmap(
+    #         mode="walking", profile="standard", study_area_id=91620000, max_time=20
+    #     )
+    # )
     end_time = time.time()
     print(f"Compute Areas Time: {end_time - start_time}")
     print("Heatmap is finished. Press Ctrl+C to exit.")

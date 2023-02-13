@@ -241,72 +241,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         print_hashtags()
         return calculation_objs
 
-    async def read_poi(
-        self,
-        isochrone_dto: IsochroneDTO,
-        table_name: str,
-        filter_geoms: List[str],
-        data_upload_id: int = None,
-        bulk_ids: List[int] = None,
-    ) -> pd.DataFrame:
-        """Read POIs from database for given filter geoms
-
-        Args:
-            isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
-            table_name (str): Name of the POI table
-            filter_geoms (List[str]): Geometries to filter the POIs
-            data_upload_id (int, optional): Upload ids for poi_user. Defaults to None.
-
-        Raises:
-            ValueError: If table_name is not poi or poi_user
-
-        Returns:
-            POIs (List): Nested list of POIs
-        """
-
-        if table_name == "poi":
-            sql_query = f"""
-                SELECT :bulk_id AS bulk_id, p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
-                FROM basic.poi p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
-                WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
-                ORDER BY p.category
-            """
-            sql_params = {}
-        elif table_name == "poi_user" and data_upload_id is not None:
-            sql_query = f"""
-                SELECT :bulk_id AS bulk_id, p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
-                FROM basic.poi_user p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
-                WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
-                AND p.data_upload_id = :data_upload_id
-                ORDER BY p.category
-            """
-            sql_params = {"data_upload_id": data_upload_id}
-
-        else:
-            raise ValueError(f"Table name {table_name} is not a valid poi table name")
-
-        pois = [
-            self.db.execute(
-                sql_query,
-                sql_params
-                | {
-                    "bulk_id": bulk_ids[idx],
-                    "filter_geom": filter_geom,
-                    "pixel_resolution": isochrone_dto.output.resolution,
-                },
-            )
-            for idx, filter_geom in enumerate(filter_geoms)
-        ]
-
-        pois = await asyncio.gather(*pois)
-        pois = [batch.fetchall() for batch in pois]
-        pois_dict = {}
-        for idx_bulk, batch in enumerate(pois):
-            if len(batch) > 0:
-                bulk_id = batch[0][0]
-                batch = [poi[1:] for poi in batch]
-                pois_dict[bulk_id] = batch
-        return pois_dict
+  
 
     async def get_categories_opportunities(self, heatmap_settings: HeatmapSettings) -> list[str]:
         """Get all categories from the heatmap config
