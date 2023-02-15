@@ -77,6 +77,69 @@ class CRUDGridCalculation(
 
 # TODO: Add more comments
 class CRUDComputeHeatmap(CRUDBaseHeatmap):
+    
+    
+    async def get_bulk_ids(
+        self,
+        bulk_resolution: int,
+        calculation_resolution: int,
+        buffer_size: float,
+        speed: float,
+        travel_time: float,
+        study_area_ids: list[int] = None,
+    ) -> list[str]:
+        
+        buffer_size = speed * (travel_time * 60)
+        
+        if bulk_resolution >= calculation_resolution:
+            raise ValueError(
+                "Resolution of parent grid cannot be smaller then resolution of children grid."
+            )
+
+        # Get unioned study areas
+        bulk_ids = await self.read_h3_grids_study_areas(
+            resolution=bulk_resolution, buffer_size=buffer_size, study_area_ids=study_area_ids
+        )
+        return bulk_ids
+    
+    async def create_calculation_object(
+        self,
+        calculation_resolution: int,
+        buffer_size: float,
+        bulk_id: str,
+    ) -> dict:
+        calculation_obj = {}
+        lons = []
+        lats = []
+        calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
+        starting_point_objs = []
+        coords = []
+        calculation_obj[bulk_id] = {}
+        for calculation_id in calculation_ids:
+            lat, lon = h3.h3_to_geo(calculation_id)
+            coords.append([lon, lat])
+            starting_point_objs.append(IsochroneStartingPointCoord(lat=lat, lon=lon))
+            lons.append(lon)
+            lats.append(lat)
+        calculation_obj[bulk_id]["calculation_ids"] = list(calculation_ids)
+        calculation_obj[bulk_id]["coords"] = coords
+        calculation_obj[bulk_id]["starting_point_objs"] = starting_point_objs
+        cnt_calculation_ids = len(calculation_ids)
+
+        # Get buffered extents for grid size
+        gdf_starting_points = gpd.points_from_xy(x=lons, y=lats, crs="epsg:4326")
+        gdf_starting_points = gdf_starting_points.to_crs(epsg=3395)
+        extents = gdf_starting_points.buffer(buffer_size * math.sqrt(2), cap_style=3)
+        extents = extents.to_crs(epsg=3857)
+        extents = extents.bounds
+        extents = extents.tolist()
+        calculation_obj[bulk_id]["extents"] = extents
+        calculation_obj[bulk_id]["lats"] = lats
+        calculation_obj[bulk_id]["lons"] = lons
+        
+        return calculation_obj
+        
+    
     async def prepare_bulk_objs(
         self,
         bulk_resolution: int,
