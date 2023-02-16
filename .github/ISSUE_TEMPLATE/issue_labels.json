@@ -1,0 +1,94 @@
+[
+  {
+    "name": "API",
+    "color": "f77c47"
+  },
+  {
+    "name": "Bug",
+    "color": "d73a4a"
+  },
+  {
+    "name": "Data preparation",
+    "color": "2B3015"
+  },
+  {
+    "name": "Database",
+    "color": "b2dbff"
+  },
+  {
+    "name": "Dependencies",
+    "color": "0366d6"
+  },
+  {
+    "name": "DevOps",
+    "color": "ed2d69"
+  },
+  {
+    "name": "Documentation",
+    "color": "e2b436"
+  },
+  {
+    "name": "Duplicate",
+    "color": "cfd3d7"
+  },
+  {
+    "name": "Epic",
+    "color": "78037A"
+  },
+  {
+    "name": "Experiment",
+    "color": "efc6ac"
+  },
+  {
+    "name": "Front-end",
+    "color": "c0cdf9"
+  },
+  {
+    "name": "High priority",
+    "color": "58c609"
+  },
+  {
+    "name": "javascript",
+    "color": "168700"
+  },
+  {
+    "name": "New Feature",
+    "color": "a2eeef"
+  },
+  {
+    "name": "Question",
+    "color": "d876e3"
+  },
+  {
+    "name": "Refactoring",
+    "color": "8D5D46"
+  },
+  {
+    "name": "Research",
+    "color": "006B75"
+  },
+  {
+    "name": "Testing",
+    "color": "5319E7"
+  },
+  {
+    "name": "UI/UX",
+    "color": "EE73BB"
+  },
+  {
+    "name": "WontFix",
+    "color": "ffffff"
+  },
+  {
+    "name": "Data scripting",
+    "color": "AB2DA5"
+  },
+  {
+    "name": "Data collection",
+    "color": "16C064"
+  },
+  {
+    "name": "Mapping",
+    "color": "124982"
+  }
+]

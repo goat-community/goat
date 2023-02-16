@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import uuid
+from errno import ELOOP
 from typing import Any
 
 import numpy as np
@@ -12,10 +13,11 @@ import requests
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
-from geopandas import GeoDataFrame
+from geopandas import GeoDataFrame, read_parquet, read_postgis
+from pandas import concat
 from pandas.io.sql import read_sql
-from shapely import wkt
-from shapely.geometry import MultiPolygon, Point, shape
+from shapely import wkb, wkt
+from shapely.geometry import Point, box, shape
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
@@ -37,13 +39,11 @@ from src.schemas.isochrone import (
 )
 from src.utils import (
     compute_single_value_surface,
+    create_h3_grid,
     decode_r5_grid,
     delete_dir,
     encode_r5_grid,
     group_opportunities_multi_isochrone,
-    group_opportunities_single_isochrone,
-    web_mercator_to_wgs84,
-    wgs84_to_web_mercator,
 )
 
 web_mercator_proj = pyproj.Proj("EPSG:3857")
@@ -56,6 +56,400 @@ class CRUDIsochroneCalculation(
 
 
 isochrone_calculation = CRUDIsochroneCalculation(models.IsochroneCalculation)
+
+
+class OpportunityIntersect:
+    def __init__(
+        self,
+        isochrone_in: IsochroneDTO,
+        isochrone_grid: dict,
+        user_id: int = 0,
+        user_active_upload_ids: list = [],
+        scenario_id: int = 0,
+        hexagon_size: int = 6,
+        isochrone_jsoline_percentile: int = 5,
+    ):
+        """Intersect opportunity data with isochrones.
+
+        Args:
+            isochrone_in (dict): Isochrorone Data Transfer Object.
+            isochrone_grid (dict): Isochrone grid.
+            user_id (int, optional): The user id. Defaults to 0.
+            user_active_upload_ids (list, optional): The user active upload ids. Defaults to [].
+            scenario_id (int, optional): The user scenario id. Defaults to 0.
+            hexagon_size (int, optional): The hexagon size of parque tiles. Defaults to 6.
+            isochrone_jsoline_percentile (int, optional): The percentile of the isochrone jsoline. Defaults to 5.
+        """
+        self.isochrone_in = isochrone_in
+        self.user_id = user_id
+        self.user_active_upload_ids = user_active_upload_ids
+        self.scenario_id = scenario_id
+        self.travel_time = isochrone_in.settings.travel_time
+        self.isochrones = self._generate_isolines(
+            isochrone_grid, self.travel_time, isochrone_jsoline_percentile
+        )
+        self.max_isochrone = self.isochrones["full"].iloc[-1]["geometry"]
+        max_isochrone_bbox = self.max_isochrone.bounds
+        self.bbox_wkt = box(*max_isochrone_bbox, ccw=True).wkt
+        self.h3_grid_gdf = create_h3_grid(self.max_isochrone, hexagon_size)
+
+    def count_poi(self):
+        """
+        Count the number of opportunities for each cutoff.
+
+        :return: A dictionary with the cummulative number of opportunities for each cutoff.
+
+        """
+        isochrones = self.isochrones
+        travel_time = self.travel_time
+        bbox_wkt = self.bbox_wkt
+        h3_tile_ids = self.h3_grid_gdf["h3_index"]
+        scenario_id = self.scenario_id
+        user_id = self.user_id
+        user_active_upload_ids = self.user_active_upload_ids
+        # - Excluded features that are modified by the user.
+        # Returns list of poi uid [1k3uirdsd, 2k3uirdsd, 3k3uirdsd] of features that are modified.
+        excluded_pois = []
+        if scenario_id != 0:
+            excluded_pois = pd.read_sql(
+                f"SELECT * FROM basic.modified_pois({scenario_id})",
+                legacy_engine,
+            ).iloc[0][0]
+
+        # - Get the poi categories that user has uploaded.
+        # Returns {'true': [restaurant, shop...], 'false': [bus_stop, train_station...]}
+        poi_categories = pd.read_sql(
+            f"SELECT * FROM basic.poi_categories({user_id})",
+            legacy_engine,
+        ).iloc[0][0]
+        poi_one_entrance = poi_categories["false"]
+        poi_multiple_entrances = poi_categories["true"]
+
+        # - Read categories uploaded by the user.
+        # Returns list of categories [restaurant, shop...] that user has uploaded.
+        poi_categories_data_uploads = pd.read_sql(
+            f"SELECT * FROM basic.poi_categories_data_uploads({user_id})",
+            legacy_engine,
+        ).iloc[0]["poi_categories_data_uploads"]
+        # add the poi_categories that user has uploaded to the poi_one_entrance list if not already there
+        poi_one_entrance = list(set(poi_one_entrance) | set(poi_categories_data_uploads))
+        # TODO: We are considering that data uploaded by the user is always one entrance. This might change in the future.
+
+        # - READ BASE DATA FROM PARQUET FILES
+        poi_gdf = []
+        for h3_index in h3_tile_ids:
+            try:
+                layer_gdf = read_parquet(
+                    f"{settings.CACHE_PATH}/parquet-h3-tiles/{h3_index}/poi.parquet"
+                )
+                poi_gdf.append(layer_gdf)
+            except Exception as e:
+                print(e)
+
+        if len(poi_gdf) > 0:
+            poi_gdf = concat(poi_gdf, ignore_index=True)
+        else:
+            poi_gdf = GeoDataFrame(columns=["uid", "category", "geometry"], crs="EPSG:4326")
+
+        if len(excluded_pois) > 0:
+            poi_gdf = poi_gdf[~poi_gdf["uid"].isin(excluded_pois)]
+
+        poi_one_entrance_gdf = poi_gdf[poi_gdf["category"].isin(poi_one_entrance)]
+        poi_multiple_entrances_gdf = poi_gdf[poi_gdf["category"].isin(poi_multiple_entrances)]
+
+        # - READ USER DATA FROM DATABASE
+        # TODO: This is a temporary solution. We should read the data from the parquet files.
+        poi_user_one_entrance_gdf = None
+        poi_user_multiple_entrances_gdf = None
+        if len(user_active_upload_ids) > 0:
+            poi_user_one_entrance_gdf = read_postgis(
+                f"""SELECT * FROM customer.poi_user p WHERE ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom) 
+                    AND p.category IN (SELECT UNNEST(ARRAY{poi_one_entrance}::text[])) 
+                    AND p.uid NOT IN (SELECT UNNEST(ARRAY{excluded_pois}::text[])) 
+                    AND p.data_upload_id IN (SELECT UNNEST(ARRAY{user_active_upload_ids}::integer[]))""",
+                legacy_engine,
+                crs="EPSG:4326",
+            )
+            poi_user_multiple_entrances_gdf = read_postgis(
+                f"""SELECT * FROM customer.poi_user p WHERE ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom) 
+                AND p.category IN (SELECT UNNEST(ARRAY{poi_multiple_entrances}::text[])) 
+                AND p.uid NOT IN (SELECT UNNEST(ARRAY{excluded_pois}::text[])) 
+                AND p.data_upload_id IN (SELECT UNNEST(ARRAY{user_active_upload_ids}::integer[]))""",
+                legacy_engine,
+                crs="EPSG:4326",
+            )
+
+        # - READ MODIFIED DATA FROM DATABASE
+        # TODO: This is a temporary solution. We should read the data from the parquet files.
+        poi_modified_one_entrance_gdf = None
+        poi_modified_multiple_entrances_gdf = None
+
+        if scenario_id != 0:
+            poi_modified_one_entrance_gdf = read_postgis(
+                f"""SELECT * FROM customer.poi_modified p WHERE ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom) 
+                    AND p.category IN (SELECT UNNEST(ARRAY{poi_one_entrance}::text[])) 
+                    AND p.uid NOT IN (SELECT UNNEST(ARRAY{excluded_pois}::text[])) 
+                    AND p.scenario_id = {scenario_id}""",
+                legacy_engine,
+                crs="EPSG:4326",
+            )
+            poi_modified_multiple_entrances_gdf = read_postgis(
+                f"""SELECT * FROM customer.poi_modified p WHERE ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom) 
+                AND p.category IN (SELECT UNNEST(ARRAY{poi_multiple_entrances}::text[])) 
+                AND p.uid NOT IN (SELECT UNNEST(ARRAY{excluded_pois}::text[])) 
+                AND p.scenario_id = {scenario_id}""",
+                legacy_engine,
+                crs="EPSG:4326",
+            )
+
+        # - JOIN BASE DATA WITH USER DATA AND MODIFIED DATA
+        poi_one_entrance_count = {}
+        if any(
+            item is not None
+            for item in [
+                poi_one_entrance_gdf,
+                poi_user_one_entrance_gdf,
+                poi_modified_one_entrance_gdf,
+            ]
+        ):
+            poi_one_entrance_gdf = concat(
+                [poi_one_entrance_gdf, poi_user_one_entrance_gdf, poi_modified_one_entrance_gdf],
+                ignore_index=True,
+            )
+            # Poi with one entrance.
+            poi_one_entrance_gdf_join = isochrones["incremental"].sjoin(
+                poi_one_entrance_gdf, predicate="intersects", how="inner"
+            )
+
+            poi_one_entrance_gdf_grouped = (
+                poi_one_entrance_gdf_join.groupby(["minute", "category"]).count().reset_index()
+            )
+            poi_one_entrance_count = (
+                poi_one_entrance_gdf_grouped.groupby("category")
+                .apply(
+                    lambda x: x.set_index("minute")["uid"]
+                    .reindex(range(travel_time), fill_value=0)
+                    .astype(int)
+                    .cumsum()
+                    .tolist()
+                )
+                .to_dict()
+            )
+
+        # Poi with multiple entrances. Pois with same name and category are considered as one poi.
+        # This is usually the case for bus stops, train stations, etc.
+        poi_multiple_entrances_count = {}
+        if any(
+            item is not None
+            for item in [
+                poi_multiple_entrances_gdf,
+                poi_user_multiple_entrances_gdf,
+                poi_modified_multiple_entrances_gdf,
+            ]
+        ):
+            poi_multiple_entrances_gdf = concat(
+                [
+                    poi_multiple_entrances_gdf,
+                    poi_user_multiple_entrances_gdf,
+                    poi_modified_multiple_entrances_gdf,
+                ],
+                ignore_index=True,
+            )
+
+            poi_multiple_entrances_gdf_join = isochrones["incremental"].sjoin(
+                poi_multiple_entrances_gdf, predicate="intersects", how="inner"
+            )
+
+            poi_multiple_entrances_gdf_grouped = (
+                poi_multiple_entrances_gdf_join.groupby(["category", "name"])
+                .agg({"minute": "mean"})
+                .reset_index()
+            )
+            poi_multiple_entrances_gdf_grouped = (
+                poi_multiple_entrances_gdf_grouped.groupby(["category", "minute"])
+                .size()
+                .reset_index(name="counts")
+            )
+
+            for category, group in poi_multiple_entrances_gdf_grouped.groupby("category"):
+                poi_multiple_entrances_count[category] = [
+                    int(group["counts"].iloc[:i].sum()) for i in range(1, travel_time + 1)
+                ]
+
+        result = {**poi_one_entrance_count, **poi_multiple_entrances_count}
+        return result
+
+    def count_population(self):
+        """
+        Count the number of population for each cutoff.
+
+        :return: A dictionary with the cummulative number of population for each cutoff.
+
+        """
+        isochrones = self.isochrones
+        travel_time = self.travel_time
+        bbox_wkt = self.bbox_wkt
+        h3_tile_ids = self.h3_grid_gdf["h3_index"]
+        scenario_id = self.scenario_id
+        # - Excluded features that are modified by the user.
+        # Returns list of populationv uid [1k3uirdsd, 2k3uirdsd, 3k3uirdsd] of features that are modified.
+        excluded_buildings = []
+        if scenario_id != 0:
+            excluded_buildings = pd.read_sql(
+                f"SELECT * FROM basic.modified_buildings({scenario_id})",
+                legacy_engine,
+            ).iloc[0][0]
+
+        # - READ BASE DATA FROM PARQUET FILES
+        population_gdf = []
+        for h3_index in h3_tile_ids:
+            try:
+                layer_gdf = read_parquet(
+                    f"{settings.CACHE_PATH}/parquet-h3-tiles/{h3_index}/population.parquet"
+                )
+                population_gdf.append(layer_gdf)
+            except Exception as e:
+                print(e)
+
+        if len(population_gdf) > 0:
+            population_gdf = concat(population_gdf, ignore_index=True)
+        else:
+            population_gdf = GeoDataFrame(
+                columns=["population", "building_id", "geometry"], crs="EPSG:4326"
+            )
+
+        if len(excluded_buildings) > 0:
+            population_gdf = population_gdf[
+                ~population_gdf["building_id"].isin(excluded_buildings)
+            ]
+
+        # - READ MODIFIED DATA FROM DATABASE
+        population_modified_gdf = None
+        if scenario_id != 0:
+            population_modified_gdf = read_postgis(
+                f"""SELECT * FROM customer.population_modified p WHERE ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom) 
+                AND p.building_modified_id NOT IN (SELECT UNNEST(ARRAY{excluded_buildings}::integer[])) 
+                AND p.scenario_id = {scenario_id}""",
+                legacy_engine,
+                crs="EPSG:4326",
+            )
+
+        # - JOIN BASE DATA WITH USER DATA AND MODIFIED DATA
+        result = {}
+        if any(item is not None for item in [population_gdf, population_modified_gdf]):
+            population_gdf = concat(
+                [population_gdf, population_modified_gdf],
+                ignore_index=True,
+            )
+
+            population_gdf_join = isochrones["incremental"].sjoin(
+                population_gdf, predicate="intersects", how="inner"
+            )
+            population_count = population_gdf_join.groupby("minute").agg({"population": "sum"})
+            population_count.index -= 1
+            population_count = population_count.reindex(range(travel_time), fill_value=0).cumsum()
+            result["population"] = population_count["population"].astype(int).tolist()
+
+        return result
+
+    def count_aoi(self):
+        """
+        Count the total area of aois for each cutoff.
+
+        :return: A dictionary with the cummulative area of aois for each cutoff.
+
+        """
+        isochrones = self.isochrones
+        travel_time = self.travel_time
+        h3_grid_gdf = self.h3_grid_gdf
+
+        # - READ BASE DATA FROM PARQUET FILES
+        aoi_gdf = []
+        for h3_index in h3_grid_gdf["h3_index"]:
+            try:
+                layer_gdf = read_parquet(
+                    f"{settings.CACHE_PATH}/parquet-h3-tiles/{h3_index}/aoi.parquet"
+                )
+                aoi_gdf.append(layer_gdf)
+            except Exception as e:
+                print(e)
+
+        if len(aoi_gdf) > 0:
+            aoi_gdf = concat(aoi_gdf, ignore_index=True)
+        else:
+            aoi_gdf = GeoDataFrame(columns=["category", "geometry"], crs="EPSG:4326")
+
+        result = {}
+        if any(item is not None for item in [aoi_gdf]):
+            isochrones_gdf_3857 = isochrones["incremental"].to_crs("EPSG:3857")
+            aoi_gdf_3857 = aoi_gdf.to_crs("EPSG:3857")
+            aoi_gdf_join = isochrones_gdf_3857.overlay(aoi_gdf_3857, how="intersection")
+            aoi_gdf_grouped = aoi_gdf_join.groupby(["category", "minute"]).apply(
+                lambda x: x.area.sum()
+            )
+
+            for category in aoi_gdf["category"].unique():
+                if category not in aoi_gdf_grouped:
+                    continue
+                aoi_gdf_grouped[category].index -= 1
+                aoi_count = (
+                    aoi_gdf_grouped[category].reindex(range(travel_time), fill_value=0).cumsum()
+                )
+                result[category] = aoi_count.astype(int).tolist()
+
+        return result
+
+    def _generate_isolines(self, grid, travel_time, percentile):
+        """
+        Generate the isolines from the isochrones.
+
+        :return: A GeoDataFrame with the isolines.
+
+        """
+        single_value_surface = compute_single_value_surface(
+            grid["width"],
+            grid["height"],
+            grid["depth"],
+            grid["data"],
+            percentile,
+        )
+        grid["surface"] = single_value_surface
+        isochrones = jsolines(
+            grid["surface"],
+            grid["width"],
+            grid["height"],
+            grid["west"],
+            grid["north"],
+            grid["zoom"],
+            cutoffs=np.arange(1, travel_time + 1),
+            return_incremental=True,
+        )
+
+        return isochrones
+
+    def calculate(self):
+        """
+        Get the results of the isochrones calculation.
+
+        :return: A dictionary with the results of the isochrones calculation.
+
+        """
+        poi_count = self.count_poi()
+        population_count = self.count_population()
+        aoi_count = {}
+        # At the moment, we only support aoi counting for walking and cycling due to the performance issue.
+        if self.isochrone_in.mode.value in [
+            IsochroneMode.WALKING.value,
+            IsochroneMode.CYCLING.value,
+        ]:
+            aoi_count = self.count_aoi()
+
+        result = {
+            **poi_count,
+            **population_count,
+            **aoi_count,
+        }
+        return result
 
 
 class CRUDIsochrone:
@@ -282,11 +676,11 @@ class CRUDIsochrone:
             web_mercator=False,
         )
         if return_type == "shapely":
-            multipolygon_shape = shape(
-                {"type": "MultiPolygon", "coordinates": isochrone_multipolygon_coordinates[0]}
-            )
+            multipolygon_shape = isochrone_multipolygon_coordinates["full"]["geometry"][0]
         elif return_type == "coordinates":
-            multipolygon_shape = isochrone_multipolygon_coordinates[0]
+            multipolygon_shape = isochrone_multipolygon_coordinates["full"]["geometry"][
+                0
+            ].__geo_interface__
         else:
             raise ValueError("Return type not supported")
 
@@ -399,211 +793,6 @@ class CRUDIsochrone:
 
         # Add population count to grid decoded
         grid_decoded["accessibility"] = population_count
-
-        return grid_decoded
-
-    async def get_opportunities_single_isochrone(self, grid_decoded, obj_in, current_user) -> Any:
-        """
-        Get opportunities (population+POIs) for single isochrone
-        """
-
-        max_time = obj_in.settings.travel_time
-        modus = obj_in.scenario.modus.value
-        scenario_id = obj_in.scenario.id
-        active_data_upload_ids = current_user.active_data_upload_ids
-        max_isochrone_geom = await self.get_max_isochrone_shape(grid_decoded, max_time)
-        max_isochrone_wkt = max_isochrone_geom.wkt
-
-        get_population_sum_query = f"""
-            SELECT * 
-            FROM basic.get_population_sum(
-                {current_user.id}, 
-                '{modus}', 
-                ST_GeomFromText('{max_isochrone_wkt}', 4326), 
-                {grid_decoded["zoom"]},
-                {scenario_id}
-        )"""
-        get_poi_one_entrance_sum_query = f"""
-            SELECT * 
-            FROM basic.get_poi_one_entrance_sum(
-                {current_user.id}, 
-                '{modus}', 
-                ST_GeomFromText('{max_isochrone_wkt}', 4326), 
-                {grid_decoded["zoom"]},
-                {scenario_id},
-                ARRAY{active_data_upload_ids}::integer[]
-            )
-        """
-        get_poi_more_entrance_sum_query = f"""
-            SELECT * 
-            FROM basic.get_poi_more_entrance_sum(
-                {current_user.id}, 
-                '{modus}', 
-                ST_GeomFromText('{max_isochrone_wkt}', 4326), 
-                {grid_decoded["zoom"]},
-                {scenario_id},
-                ARRAY{active_data_upload_ids}::integer[]
-            )
-        """
-
-        # get_poi_one_entrance_3857_query = f"""
-        #     SELECT *
-        #     FROM basic.get_poi_one_entrance_3857(
-        #         {current_user.id},
-        #         '{modus}',
-        #         ST_GeomFromText('{max_isochrone_wkt}', 4326),
-        #         {scenario_id},
-        #         ARRAY{active_data_upload_ids}::integer[]
-        #     )
-        # """
-
-        get_population_sum = read_sql(
-            get_population_sum_query,
-            legacy_engine,
-        )
-        get_poi_one_entrance_sum = read_sql(
-            get_poi_one_entrance_sum_query,
-            legacy_engine,
-        )
-        get_poi_more_entrance_sum = read_sql(
-            get_poi_more_entrance_sum_query,
-            legacy_engine,
-        )
-        # get_poi_one_entrance_3857 = read_sql(
-        #     get_poi_one_entrance_3857_query,
-        #     legacy_engine,
-        # )
-
-        # begin = time.time()
-        # transformer = pyproj.Transformer.from_crs("epsg:4326", "epsg:3857")
-        # isochrones_3857 = []
-        # for current_time in range(max_time):
-
-        #     isochrone_shape = await self.get_max_isochrone_shape(
-        #         grid_decoded, current_time + 1, return_type="coordinates"
-        #     )
-        #     if obj_in.mode.value not in [IsochroneMode.TRANSIT.value, IsochroneMode.CAR.value]:
-        #         isochrone_shape = [shape[0] for shape in isochrone_shape]
-        #         for shape in isochrone_shape:
-        #             coords_3857 = []
-        #             for coords in shape:
-        #                 coords_3857.append(list(transformer.transform(coords[1], coords[0])))
-        #     isochrones_3857.append(coords_3857)
-        #         #y,x = transformer.transform(isochrone_shape[0][0][0][1], isochrone_shape[0][0][0][0])
-        #     #isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
-        # for shape in isochrones_3857:
-        #     is_inside_sm_parallel(np.array(get_poi_one_entrance_3857["coords"].tolist()), np.array(shape))
-        # print("Calculation took: ", time.time() - begin)
-
-        ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
-        get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
-        get_population_sum_population = get_population_sum["population"].to_numpy(dtype=np.float64)
-
-        get_poi_one_entrance_sum_pixel = np.array(get_poi_one_entrance_sum["pixel"].tolist())
-        if len(get_poi_one_entrance_sum_pixel.shape) == 1:
-            get_poi_one_entrance_sum_pixel.shape = (get_poi_one_entrance_sum_pixel.shape[0], 2)
-        get_poi_one_entrance_sum_pixel = np.insert(
-            get_poi_one_entrance_sum_pixel, 0, np.array([0, 0]), 0
-        )
-        get_poi_one_entrance_sum_category = np.unique(
-            get_poi_one_entrance_sum["category"], return_inverse=True
-        )
-        get_poi_one_entrance_sum_cnt = get_poi_one_entrance_sum["cnt"].to_numpy(dtype=np.int64)
-
-        get_poi_more_entrance_sum_pixel = np.array(
-            get_poi_more_entrance_sum["pixel"].tolist(), dtype=np.int64
-        )
-        if len(get_poi_more_entrance_sum_pixel.shape) == 1:
-            get_poi_more_entrance_sum_pixel.shape = (get_poi_more_entrance_sum_pixel.shape[0], 2)
-        get_poi_more_entrance_sum_pixel = np.insert(
-            get_poi_more_entrance_sum_pixel, 0, np.array([0, 0]), 0
-        )
-
-        get_poi_more_entrance_sum_category = np.unique(
-            get_poi_more_entrance_sum["category"], return_inverse=True
-        )
-        # fill null values with a string to avoid errors
-        get_poi_more_entrance_sum["name"].fillna("_", inplace=True)
-        get_poi_more_entrance_sum_name = np.unique(
-            get_poi_more_entrance_sum["name"], return_inverse=True
-        )
-        get_poi_more_entrance_sum_cnt = get_poi_more_entrance_sum["cnt"].to_numpy(dtype=np.int64)
-        amenity_grid_count = group_opportunities_single_isochrone(
-            grid_decoded["west"],
-            grid_decoded["north"],
-            grid_decoded["width"],
-            grid_decoded["surface"],
-            get_population_sum_pixel,
-            get_population_sum_population,
-            get_poi_one_entrance_sum_pixel,
-            get_poi_one_entrance_sum_category[1],
-            get_poi_one_entrance_sum_cnt,
-            get_poi_more_entrance_sum_pixel,
-            get_poi_more_entrance_sum_category[1],
-            get_poi_more_entrance_sum_name[1],
-            get_poi_more_entrance_sum_cnt,
-            max_time,
-        )
-        amenity_count = {"population": amenity_grid_count[0].astype(int).tolist()}
-        # poi one entrance
-        for i in amenity_grid_count[1]:
-            index = np.where(get_poi_one_entrance_sum_category[1] == amenity_grid_count[1][i])[0]
-            value = get_poi_one_entrance_sum["category"][index[0]]
-            amenity_count[value] = amenity_grid_count[2][i].tolist()
-        # poi more entrances
-        for i in amenity_grid_count[3]:
-            index = np.where(get_poi_more_entrance_sum_category[1] == amenity_grid_count[3][i])[0]
-            value = get_poi_more_entrance_sum["category"][index[0]]
-            amenity_count[value] = amenity_grid_count[4][i].tolist()
-        # aoi count
-        if obj_in.mode.value not in [IsochroneMode.TRANSIT.value, IsochroneMode.CAR.value]:
-            # TODO: fix performance for public transport
-            get_aoi_query = f"""
-                SELECT category, ST_AREA(d.geom::geography)::integer AS area, ST_AsText(ST_Transform(d.geom,3857)) as geom
-                FROM basic.aoi a, LATERAL ST_DUMP(a.geom) d
-                WHERE ST_Intersects(a.geom, ST_GeomFromText('{max_isochrone_wkt}', 4326))
-            """
-            get_aoi = read_sql(get_aoi_query, legacy_engine)
-            aoi_categories = {}
-            for idx, aoi in get_aoi.iterrows():
-                geom = aoi["geom"]
-                category = aoi["category"]
-                geom_shapely = wkt.loads(geom)
-                # add category to aoi_categories if not already in there
-                if category not in aoi_categories:
-                    aoi_categories[category] = []
-                aoi_categories[category].append(geom_shapely)
-            # loop through aoi_categories
-            for category, polygons in aoi_categories.items():
-                multipolygon = MultiPolygon(polygons)
-                first_coordinate = web_mercator_to_wgs84(
-                    Point(
-                        multipolygon.geoms[0].exterior.coords.xy[0][0],
-                        multipolygon.geoms[0].exterior.coords.xy[1][0],
-                    )
-                )
-                scale_factor = web_mercator_proj.get_factors(
-                    first_coordinate.x, first_coordinate.y, errcheck=True
-                ).areal_scale
-
-                aoi_categories[category] = {"geom": multipolygon, "scale_factor": scale_factor}
-
-            for current_time in range(max_time):
-                isochrone_shape = await self.get_max_isochrone_shape(
-                    grid_decoded, current_time + 1
-                )
-                isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
-                for category, aoi in aoi_categories.items():
-                    aoi_geom = aoi["geom"]
-                    aoi_scale_factor = aoi["scale_factor"]
-                    category_area_diff = aoi_geom.difference(isochrone_polygon).area
-                    category_area = aoi_geom.area - category_area_diff
-                    if category not in amenity_count:
-                        amenity_count[category] = [0] * max_time
-                    amenity_count[category][current_time] = category_area / aoi_scale_factor
-
-        ##-- ADD AMENITY TO GRID DECODED --##
-        grid_decoded["accessibility"] = amenity_count
 
         return grid_decoded
 
@@ -734,9 +923,21 @@ class CRUDIsochrone:
         if obj_in.output.type.value != IsochroneOutputType.NETWORK.value:
             # Opportunity intersect
             if isochrone_type == IsochroneTypeEnum.single.value:
-                grid = await self.get_opportunities_single_isochrone(grid, obj_in, current_user)
+                opportunity_intersect = OpportunityIntersect(
+                    isochrone_in=obj_in,
+                    isochrone_grid=grid,
+                    user_id=current_user.id,
+                    user_active_upload_ids=current_user.active_data_upload_ids,
+                    scenario_id=obj_in.scenario.id,
+                )
+                start = time.time()
+                opportunity_count = opportunity_intersect.calculate()
+                print(f"Opportunity intersect took {time.time() - start} seconds")
+                grid["accessibility"] = opportunity_count
             elif isochrone_type == IsochroneTypeEnum.multi.value:
+                # TODO: Implement multi isochrone opportunity intersect in OpportunityIntersect class
                 grid = await self.get_opportunities_multi_isochrone(grid, obj_in, current_user)
+
             grid_encoded = encode_r5_grid(grid)
             result = Response(bytes(grid_encoded))
         else:
