@@ -1,7 +1,12 @@
 import asyncio
+import base64
+import random
+import time
+from pathlib import Path
 
-import aiohttp
+import aiofiles
 import geopandas as gpd
+from aiohttp import BasicAuth, ClientError, ClientSession
 
 from src.core.config import settings
 from src.db.session import legacy_engine
@@ -49,37 +54,59 @@ PAYLOAD = {
     "workerVersion": "v6.4",
     "projectId": "630c0014aad8682ef8461b44",
 }
-headers = {}
-if settings.R5_AUTHORIZATION:
-    headers["Authorization"] = settings.R5_AUTHORIZATION
 
 
-async def get_isochrone(payload, session, save_dir):
-    async with session.post(
-        settings.R5_API_URL + "/analysis", json=payload, headers=headers
-    ) as response:
-        response_data = await response.content.read()
-        h3_index = payload["h3_index"]
-        if response.status == 200:
-            with open(f"{save_dir}/{h3_index}.bin", "wb") as f:
-                f.write(response_data)
-        else:
-            fromLat = payload["fromLat"]
-            fromLon = payload["fromLon"]
-            print(f"Request failed on hex {h3_index} with lat and lon: {fromLat}, {fromLon}")
+user, password = (
+    base64.b64decode(settings.R5_AUTHORIZATION.split(" ")[1]).decode("utf-8").split(":")
+)
 
-        return response_data
+
+async def get_isochrone(payload, client, save_dir):
+    data = None
+    max_retries = 50
+    while data is None and max_retries > 0:
+        try:
+            print(f"Getting isochrone for {payload['h3_index']}")
+            async with client.post(settings.R5_API_URL + "/analysis", json=payload) as response:
+                response.raise_for_status()
+                if response.status == 202:
+                    # throw exception to retry. 202 means that the request is still being processed
+                    raise ClientError("Request still being processed")
+                data = await response.content.read()
+        except ClientError:
+            # sleep a little and try again for
+            print(f"Retrying {payload['h3_index']}")
+            max_retries -= 1
+            await asyncio.sleep(1)
+
+    if data is None:
+        raise Exception(f"Could not get isochrone for {payload['h3_index']}")
+
+    h3_index = payload["h3_index"]
+    out_path = Path(f"{save_dir}/")
+    if not out_path.is_dir():
+        out_path.mkdir()
+    async with aiofiles.open(out_path / f"{h3_index}.bin", "wb") as f:
+        await f.write(data)
 
 
 async def fetch_isochrones(payloads, batch_size, save_dir):
-
-    async with aiohttp.ClientSession(headers=headers) as session:
-        tasks = []
+    start = time.time()
+    async with ClientSession(
+        # logger=MyLogger(),
+        auth=BasicAuth(user, password),
+        # raise_for_status=True,
+        # retry_options=ExponentialRetry(attempts=3),
+    ) as client:
+        api_calls = []
         for i in range(0, len(payloads), batch_size):
             batch = payloads[i : i + batch_size]
             for index, payload in enumerate(batch):
-                tasks.append(get_isochrone(payload, session, save_dir))
-            await asyncio.gather(*tasks)
+                api_calls.append(get_isochrone(payload, client, save_dir))
+            await asyncio.gather(*api_calls)
+            print(f"Batch {i} done")
+
+    print(f"Done in {time.time() - start} seconds")
 
 
 def main():
@@ -119,19 +146,20 @@ def main():
         payload["h3_index"] = row["h3_index"]
         payload["fromLon"] = row["geometry"].x
         payload["fromLat"] = row["geometry"].y
-        payload["bounds"] = {
-            "north": bounds[3],
-            "south": bounds[1],
-            "east": bounds[2],
-            "west": bounds[0],
-        }
+        # payload["bounds"] = {
+        #     "north": bounds[3],
+        #     "south": bounds[1],
+        #     "east": bounds[2],
+        #     "west": bounds[0],
+        # }
         payloads.append(payload)
 
     # EXECUTE THE REQUESTS IN PARALLEL FETCH ISOCHRONES
-    bulk_size = 10
+    bulk_size = 100
+    payloads_sample = random.sample(payloads, bulk_size)
     asyncio.run(
         fetch_isochrones(
-            payloads[:bulk_size], bulk_size, "/app/src/cache/traveltime_matrices/public_transport"
+            payloads_sample, bulk_size, "/app/src/cache/traveltime_matrices/public_transport"
         )
     )
 
