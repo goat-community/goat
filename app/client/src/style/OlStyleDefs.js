@@ -285,20 +285,22 @@ export function getIsochroneStyle() {
                   });
                   const center = coordinates[index];
                   return new Point(center);
-                },
-                text: new OlText({
-                  text: isochroneStore.state.isochroneRange + " min",
-                  font: "bold 16px Arial",
-                  placement: "point",
-                  fill: new OlFill({
-                    color: "white"
-                  }),
-                  maxAngle: 0,
-                  backgroundFill: new OlFill({
-                    color: calculationColors[calculationNumber]
-                  }),
-                  padding: [2, 2, 2, 2]
-                })
+                }
+                // text: new OlText({
+                //   text:
+                //     isochroneStore.calculationTravelTime[calculationNumber] +
+                //     " min",
+                //   font: "bold 16px Arial",
+                //   placement: "point",
+                //   fill: new OlFill({
+                //     color: "white"
+                //   }),
+                //   maxAngle: 0,
+                //   backgroundFill: new OlFill({
+                //     color: calculationColors[calculationNumber]
+                //   }),
+                //   padding: [2, 2, 2, 2]
+                // })
               })
             );
           } else {
