@@ -102,6 +102,8 @@ class Settings(BaseSettings):
         return v
 
     EMAIL_TOKEN_EXPIRE_HOURS: int = 2
+    SRC_DIR: str = "/app/src"
+    CACHE_DIR: str = "/app/src/cache"
     EMAIL_TEMPLATES_DIR: str = "/app/src/templates/email/build"
     LAYER_TEMPLATES_DIR: str = "/app/src/templates/layer"
     EMAILS_ENABLED: bool = False

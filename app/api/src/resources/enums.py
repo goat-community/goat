@@ -8,6 +8,13 @@ class ReturnType(str, Enum):
     geobuf = "geobuf"
 
 
+class JsolineReturnType(str, Enum):
+    """ "Return types for jsolines"""
+
+    geodataframe = "geodataframe"
+    shapely = "shapely"
+
+
 class VectorType(str, Enum):
     """Vector Type Enums."""
 
@@ -186,4 +193,3 @@ class GeostoreType(str, Enum):
 class SystemStatus(str, Enum):
     maintenance = "maintenance"
     running = "running"
-

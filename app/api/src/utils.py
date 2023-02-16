@@ -4,9 +4,11 @@ import math
 import os
 import re
 import shutil
+import time
 import uuid
 import zipfile
 from datetime import datetime, timedelta
+from functools import wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import IO, Any, Dict, List, Optional
@@ -521,49 +523,54 @@ def group_opportunities_single_isochrone(
         poi_more_entrance_grid_count,
     )
 
+
 @njit
 def is_inside_sm(polygon, point):
-    length = len(polygon)-1
+    length = len(polygon) - 1
     dy2 = point[1] - polygon[0][1]
     intersections = 0
     ii = 0
     jj = 1
 
-    while ii<length:
-        dy  = dy2
+    while ii < length:
+        dy = dy2
         dy2 = point[1] - polygon[jj][1]
 
         # consider only lines which are not completely above/bellow/right from the point
-        if dy*dy2 <= 0.0 and (point[0] >= polygon[ii][0] or point[0] >= polygon[jj][0]):
+        if dy * dy2 <= 0.0 and (point[0] >= polygon[ii][0] or point[0] >= polygon[jj][0]):
 
             # non-horizontal line
-            if dy<0 or dy2<0:
-                F = dy*(polygon[jj][0] - polygon[ii][0])/(dy-dy2) + polygon[ii][0]
+            if dy < 0 or dy2 < 0:
+                F = dy * (polygon[jj][0] - polygon[ii][0]) / (dy - dy2) + polygon[ii][0]
 
-                if point[0] > F: # if line is left from the point - the ray moving towards left, will intersect it
+                if (
+                    point[0] > F
+                ):  # if line is left from the point - the ray moving towards left, will intersect it
                     intersections += 1
-                elif point[0] == F: # point on line
+                elif point[0] == F:  # point on line
                     return 2
 
             # point on upper peak (dy2=dx2=0) or horizontal line (dy=dy2=0 and dx*dx2<=0)
-            elif dy2==0 and (point[0]==polygon[jj][0] or (dy==0 and (point[0]-polygon[ii][0])*(point[0]-polygon[jj][0])<=0)):
+            elif dy2 == 0 and (
+                point[0] == polygon[jj][0]
+                or (dy == 0 and (point[0] - polygon[ii][0]) * (point[0] - polygon[jj][0]) <= 0)
+            ):
                 return 2
 
         ii = jj
         jj += 1
 
-    #print 'intersections =', intersections
-    return intersections & 1  
+    # print 'intersections =', intersections
+    return intersections & 1
 
 
 @njit(parallel=True)
 def is_inside_sm_parallel(points, polygon):
     ln = len(points)
-    D = np.empty(ln, dtype=numba.boolean) 
+    D = np.empty(ln, dtype=numba.boolean)
     for i in numba.prange(ln):
-        D[i] = is_inside_sm(polygon,points[i])
-    return D  
-
+        D[i] = is_inside_sm(polygon, points[i])
+    return D
 
 
 @njit
@@ -606,10 +613,8 @@ def coordinate_from_pixel(input, zoom, round_int=False, web_mercator=False):
     if round_int:
         x = round(x)
         y = round(y)
-    
+
     return [x, y]
-
-
 
 
 def coordinate_to_pixel(input, zoom, return_dict=True, round_int=False, web_mercator=False):
@@ -651,9 +656,11 @@ def web_mercator_x_to_pixel_x(x, zoom):
 def web_mercator_y_to_pixel_y(y, zoom):
     return (y - (40075016.68557849 / 2.0)) / (40075016.68557849 / (-1 * z_scale(zoom)))
 
+
 @njit
 def pixel_x_to_web_mercator_x(x, zoom):
     return x * (40075016.68557849 / (z_scale(zoom))) - (40075016.68557849 / 2.0)
+
 
 @njit
 def pixel_y_to_web_mercator_y(y, zoom):
@@ -778,11 +785,13 @@ def delete_dir(dir_path: str) -> None:
     except OSError as e:
         pass
 
+
 def create_dir(dir_path: str) -> None:
     """Create directory if it does not exist."""
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
- 
+
+
 def clean_unpacked_zip(dir_path: str, zip_path: str) -> None:
     """Delete unpacked zip file and directory."""
     delete_dir(dir_path)
@@ -922,3 +931,24 @@ def geopandas_read_file(data_file: UploadFile):
 
         finally:
             delete_file(temp_file_path)
+
+
+def timing(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        ts = time.time()
+        result = f(*args, **kw)
+        te = time.time()
+        total_time = te - ts
+        if total_time > 1:
+            total_time = round(total_time, 2)
+            total_time_string = f"{total_time} seconds"
+        else:
+            time_miliseconds = int((total_time) * 1000)
+            total_time_string = f"{time_miliseconds} miliseconds"
+
+        print(f"func: {f.__name__} took: {total_time_string}")
+
+        return result
+
+    return wrap

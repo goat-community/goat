@@ -25,7 +25,6 @@ from src.crud.base import CRUDBase
 from src.db import models
 from src.db.models import data_upload
 from src.db.session import legacy_engine
-from src.exts.cpp.bind import isochrone as isochrone_cpp
 from src.resources.enums import SQLReturnTypes
 from src.schemas.isochrone import (
     IsochroneDTO,
