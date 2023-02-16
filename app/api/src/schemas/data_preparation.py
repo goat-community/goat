@@ -36,7 +36,7 @@ OpportunityMatrixParametersExample = {
     "isochrone_dto": {
         "mode": "walking",
         "settings": {
-            "travel_time": 10,
+            "travel_time": 20,
             "speed": 5,
             "walking_profile": "standard"
         },
