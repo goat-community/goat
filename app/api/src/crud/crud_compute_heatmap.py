@@ -343,7 +343,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     isochrone_dto.output.resolution,
                 )
                 traveltimeobjs.append(results)
-                print("Computed traveltime for {} starting points".format(len(starting_ids_bulk)))
+                print(f"Computed traveltime for {i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE}th starting points out of {len(starting_ids)}")
 
             # Run multiprocessing
             # traveltimeobjs = heatmap_multiprocessing(heatmapObject)
