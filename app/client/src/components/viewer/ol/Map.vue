@@ -1027,6 +1027,10 @@ export default {
     },
     getPopupTitle() {
       if (this.currentInfoFeature && this.currentInfoFeature.get("stop_name")) {
+        console.log(
+          this.currentInfoFeature,
+          this.currentInfoFeature.get("stop_name")
+        );
         return this.currentInfoFeature.get("stop_name");
       }
       if (this.getInfoResult[this.popup.currentLayerIndex]) {
@@ -1042,6 +1046,7 @@ export default {
           }
         }
       } else {
+        console.log("first");
         return "info";
       }
     },
@@ -1122,6 +1127,7 @@ export default {
       return transformed;
     },
     currentInfoFeature() {
+      console.log(this.getInfoResult[this.popup.currentLayerIndex], "qetu");
       return this.getInfoResult[this.popup.currentLayerIndex];
     }
   },
