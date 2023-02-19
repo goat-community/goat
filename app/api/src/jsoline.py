@@ -12,7 +12,6 @@ from shapely.geometry import shape
 from src.utils import (
     compute_single_value_surface,
     coordinate_from_pixel,
-    create_h3_grid,
     decode_r5_grid,
 )
 
@@ -390,6 +389,34 @@ def jsolines(
         result[key].crs = crs
 
     return result
+
+
+def generate_jsolines(grid, travel_time, percentile):
+    """
+    Generate the jsolines from the isochrones.
+
+    :return: A GeoDataFrame with the jsolines.
+
+    """
+    single_value_surface = compute_single_value_surface(
+        grid["width"],
+        grid["height"],
+        grid["depth"],
+        grid["data"],
+        percentile,
+    )
+    grid["surface"] = single_value_surface
+    isochrones = jsolines(
+        grid["surface"],
+        grid["width"],
+        grid["height"],
+        grid["west"],
+        grid["north"],
+        grid["zoom"],
+        cutoffs=np.arange(1, travel_time + 1),
+        return_incremental=True,
+    )
+    return isochrones
 
 
 if __name__ == "__main__":

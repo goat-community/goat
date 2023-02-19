@@ -413,120 +413,6 @@ def group_opportunities_multi_isochrone(
 
 
 @njit
-def group_opportunities_single_isochrone(
-    west,
-    north,
-    width,
-    surface,
-    get_population_sum_pixel,
-    get_population_sum_population,
-    get_poi_one_entrance_sum_pixel,
-    get_poi_one_entrance_sum_category,
-    get_poi_one_entrance_sum_cnt,
-    get_poi_more_entrance_sum_pixel,
-    get_poi_more_entrance_sum_category,
-    get_poi_more_entrance_sum_name,
-    get_poi_more_entrance_sum_cnt,
-    MAX_TIME=120,
-):
-    """
-    Return a list of amenity count for every minute
-    """
-    population_grid_count = np.zeros(MAX_TIME)
-    # - loop population
-    for idx, pixel in enumerate(get_population_sum_pixel):
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        time_cost = surface[index]
-        if (
-            time_cost < 2147483647
-            and get_population_sum_population[idx] > 0
-            and time_cost <= MAX_TIME
-        ):
-            population_grid_count[int(time_cost) - 1] += get_population_sum_population[idx]
-    population_grid_count = np.cumsum(population_grid_count)
-    population_grid_count[population_grid_count < 5] = 0
-
-    # - loop poi_one_entrance
-    poi_one_entrance_list = []
-    poi_one_entrance_grid_count = []
-    for idx, pixel in enumerate(get_poi_one_entrance_sum_pixel):
-        if idx == 0:
-            continue
-        idx = idx - 1
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        category = get_poi_one_entrance_sum_category[idx]
-
-        if category not in poi_one_entrance_list:
-            poi_one_entrance_list.append(category)
-            poi_one_entrance_grid_count.append(np.zeros(MAX_TIME))
-
-        time_cost = surface[index]
-        if time_cost < 2147483647 and time_cost <= MAX_TIME:
-            count = get_poi_one_entrance_sum_cnt[idx]
-            poi_one_entrance_grid_count[poi_one_entrance_list.index(category)][
-                int(time_cost) - 1
-            ] += count
-
-    for index, value in enumerate(poi_one_entrance_grid_count):
-        poi_one_entrance_grid_count[index] = np.cumsum(value)
-
-    # - loop poi_more_entrance
-    visited_more_entrance_categories = []
-    poi_more_entrance_list = []
-    poi_more_entrance_grid_count = []
-    for idx, pixel in enumerate(get_poi_more_entrance_sum_pixel):
-        if idx == 0:
-            continue
-        idx = idx - 1
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        category = get_poi_more_entrance_sum_category[idx]
-        name = get_poi_more_entrance_sum_name[idx]
-
-        if category not in poi_more_entrance_list:
-            poi_more_entrance_list.append(category)
-            poi_more_entrance_grid_count.append(np.zeros(MAX_TIME))
-
-        time_cost = surface[index]
-        category_name = f"{category}_{name}"
-        if (
-            time_cost < 2147483647
-            and category_name not in visited_more_entrance_categories
-            and time_cost <= MAX_TIME
-        ):
-            count = get_poi_more_entrance_sum_cnt[idx]
-            poi_more_entrance_grid_count[poi_more_entrance_list.index(category)][
-                int(time_cost) - 1
-            ] += count
-            visited_more_entrance_categories.append(category_name)
-
-    for index, value in enumerate(poi_more_entrance_grid_count):
-        poi_more_entrance_grid_count[index] = np.cumsum(value)
-
-    return (
-        population_grid_count,
-        poi_one_entrance_list,
-        poi_one_entrance_grid_count,
-        poi_more_entrance_list,
-        poi_more_entrance_grid_count,
-    )
-
-
-@njit
 def is_inside_sm(polygon, point):
     length = len(polygon) - 1
     dy2 = point[1] - polygon[0][1]
@@ -991,6 +877,34 @@ def create_h3_grid(
         h3_indexes_gdf.set_crs(epsg=4326, inplace=True)
 
     return h3_indexes_gdf
+
+
+def merge_dicts(*dicts):
+    """
+    Recursively merge any number of dictionaries.
+    """
+    merged_dict = {}
+    for d in dicts:
+        for key, value in d.items():
+            if (
+                key in merged_dict
+                and isinstance(merged_dict[key], dict)
+                and isinstance(value, dict)
+            ):
+                merged_dict[key] = merge_dicts(merged_dict[key], value)
+            else:
+                merged_dict[key] = value
+    return merged_dict
+
+def remove_keys(dictionary, keys_to_remove):
+    """_summary_
+    Remove keys and returns a copy of the dictionary.
+    """
+    new_dict = dictionary.copy()
+    for key in keys_to_remove:
+        if key in new_dict:
+            new_dict.pop(key)
+    return new_dict
 
 
 def timing(f):
