@@ -615,6 +615,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         return grids
 
     async def create_h3_grids(self, study_area_ids):
+        # TODO: Part of this is moved as a utility function. Refactor.
         base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
         for study_area_id in study_area_ids:
             for resolution in range(6, 11):

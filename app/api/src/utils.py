@@ -16,6 +16,7 @@ from typing import IO, Any, Dict, List, Optional
 import emails
 import geobuf
 import geopandas
+import h3
 import numba
 import numpy as np
 import pyproj
@@ -29,7 +30,8 @@ from jose import jwt
 from numba import njit
 from rich import print as print
 from sentry_sdk import HttpTransport
-from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
+from shapely import geometry
+from shapely.geometry import GeometryCollection, MultiPolygon, Point, Polygon, box
 from shapely.ops import transform
 from starlette import status
 from starlette.responses import Response
@@ -408,120 +410,6 @@ def group_opportunities_multi_isochrone(
         population_grid_count[idx][population_grid_count[idx] < 5] = 0
 
     return population_grid_count
-
-
-@njit
-def group_opportunities_single_isochrone(
-    west,
-    north,
-    width,
-    surface,
-    get_population_sum_pixel,
-    get_population_sum_population,
-    get_poi_one_entrance_sum_pixel,
-    get_poi_one_entrance_sum_category,
-    get_poi_one_entrance_sum_cnt,
-    get_poi_more_entrance_sum_pixel,
-    get_poi_more_entrance_sum_category,
-    get_poi_more_entrance_sum_name,
-    get_poi_more_entrance_sum_cnt,
-    MAX_TIME=120,
-):
-    """
-    Return a list of amenity count for every minute
-    """
-    population_grid_count = np.zeros(MAX_TIME)
-    # - loop population
-    for idx, pixel in enumerate(get_population_sum_pixel):
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        time_cost = surface[index]
-        if (
-            time_cost < 2147483647
-            and get_population_sum_population[idx] > 0
-            and time_cost <= MAX_TIME
-        ):
-            population_grid_count[int(time_cost) - 1] += get_population_sum_population[idx]
-    population_grid_count = np.cumsum(population_grid_count)
-    population_grid_count[population_grid_count < 5] = 0
-
-    # - loop poi_one_entrance
-    poi_one_entrance_list = []
-    poi_one_entrance_grid_count = []
-    for idx, pixel in enumerate(get_poi_one_entrance_sum_pixel):
-        if idx == 0:
-            continue
-        idx = idx - 1
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        category = get_poi_one_entrance_sum_category[idx]
-
-        if category not in poi_one_entrance_list:
-            poi_one_entrance_list.append(category)
-            poi_one_entrance_grid_count.append(np.zeros(MAX_TIME))
-
-        time_cost = surface[index]
-        if time_cost < 2147483647 and time_cost <= MAX_TIME:
-            count = get_poi_one_entrance_sum_cnt[idx]
-            poi_one_entrance_grid_count[poi_one_entrance_list.index(category)][
-                int(time_cost) - 1
-            ] += count
-
-    for index, value in enumerate(poi_one_entrance_grid_count):
-        poi_one_entrance_grid_count[index] = np.cumsum(value)
-
-    # - loop poi_more_entrance
-    visited_more_entrance_categories = []
-    poi_more_entrance_list = []
-    poi_more_entrance_grid_count = []
-    for idx, pixel in enumerate(get_poi_more_entrance_sum_pixel):
-        if idx == 0:
-            continue
-        idx = idx - 1
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        category = get_poi_more_entrance_sum_category[idx]
-        name = get_poi_more_entrance_sum_name[idx]
-
-        if category not in poi_more_entrance_list:
-            poi_more_entrance_list.append(category)
-            poi_more_entrance_grid_count.append(np.zeros(MAX_TIME))
-
-        time_cost = surface[index]
-        category_name = f"{category}_{name}"
-        if (
-            time_cost < 2147483647
-            and category_name not in visited_more_entrance_categories
-            and time_cost <= MAX_TIME
-        ):
-            count = get_poi_more_entrance_sum_cnt[idx]
-            poi_more_entrance_grid_count[poi_more_entrance_list.index(category)][
-                int(time_cost) - 1
-            ] += count
-            visited_more_entrance_categories.append(category_name)
-
-    for index, value in enumerate(poi_more_entrance_grid_count):
-        poi_more_entrance_grid_count[index] = np.cumsum(value)
-
-    return (
-        population_grid_count,
-        poi_one_entrance_list,
-        poi_one_entrance_grid_count,
-        poi_more_entrance_list,
-        poi_more_entrance_grid_count,
-    )
 
 
 @njit
@@ -931,6 +819,92 @@ def geopandas_read_file(data_file: UploadFile):
 
         finally:
             delete_file(temp_file_path)
+
+
+# https://github.com/uber/h3/issues/275#issuecomment-976886644
+def _cover_polygon_h3(polygon: Polygon, resolution: int):
+    """
+    Return the set of H3 cells at the specified resolution which completely cover the input polygon.
+    """
+    result_set = set()
+    # Hexes for vertices
+    vertex_hexes = [h3.geo_to_h3(t[1], t[0], resolution) for t in list(polygon.exterior.coords)]
+    # Hexes for edges (inclusive of vertices)
+    for i in range(len(vertex_hexes) - 1):
+        result_set.update(h3.h3_line(vertex_hexes[i], vertex_hexes[i + 1]))
+    # Hexes for internal area
+    result_set.update(
+        list(h3.polyfill(geometry.mapping(polygon), resolution, geo_json_conformant=True))
+    )
+    return result_set
+
+
+def create_h3_grid(
+    geometry: geometry, h3_resolution: int, return_h3_geometries=False, return_h3_centroids=False
+):
+    """Create a list of H3 indexes
+
+    :param geometry: Shapely geometry to create H3 indexes for.
+    :param h3_resolution: H3 resolution.
+    :param return_h3_geometries: If true, return a GeoDataFrame with the H3 indexes and the corresponding geometries
+
+    :return: List of H3 indexes in a GeoDataFrame.
+    """
+
+    h3_indexes_gdf = geopandas.GeoDataFrame(columns=["h3_index"])
+
+    h3_indexes = []
+    if geometry.geom_type == "Polygon":
+        h3_index = _cover_polygon_h3(geometry, h3_resolution)
+        h3_indexes.extend(h3_index)
+    elif geometry.geom_type == "MultiPolygon":
+        for polygon in geometry.geoms:
+            h3_index = _cover_polygon_h3(polygon, h3_resolution)
+            h3_indexes.extend(h3_index)
+    h3_indexes = list(set(h3_indexes))
+
+    h3_indexes_gdf["h3_index"] = h3_indexes
+
+    if return_h3_geometries:
+        if return_h3_centroids:
+            h3_indexes_gdf["geometry"] = h3_indexes_gdf["h3_index"].apply(
+                lambda x: Point(reversed(h3.h3_to_geo(h=x)))
+            )
+        else:
+            h3_indexes_gdf["geometry"] = h3_indexes_gdf["h3_index"].apply(
+                lambda x: Polygon(h3.h3_to_geo_boundary(h=x, geo_json=True))
+            )
+        h3_indexes_gdf.set_crs(epsg=4326, inplace=True)
+
+    return h3_indexes_gdf
+
+
+def merge_dicts(*dicts):
+    """
+    Recursively merge any number of dictionaries.
+    """
+    merged_dict = {}
+    for d in dicts:
+        for key, value in d.items():
+            if (
+                key in merged_dict
+                and isinstance(merged_dict[key], dict)
+                and isinstance(value, dict)
+            ):
+                merged_dict[key] = merge_dicts(merged_dict[key], value)
+            else:
+                merged_dict[key] = value
+    return merged_dict
+
+def remove_keys(dictionary, keys_to_remove):
+    """_summary_
+    Remove keys and returns a copy of the dictionary.
+    """
+    new_dict = dictionary.copy()
+    for key in keys_to_remove:
+        if key in new_dict:
+            new_dict.pop(key)
+    return new_dict
 
 
 def timing(f):
