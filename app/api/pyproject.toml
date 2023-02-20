@@ -53,6 +53,7 @@ codetiming = "^1.4.0"
 h3 = "^3.7.6"
 cython = "^0.29.33"
 pyarrow = "^10.0.1"
+asgiref = "^3.6.0"
 
 
 [tool.poetry.dev-dependencies]
