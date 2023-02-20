@@ -74,7 +74,7 @@ class CRUDGridCalculation(
 
 
 class CRUDBaseHeatmap:
-    def __init__(self, db, current_user):
+    def __init__(self, db=None, current_user=None):
         self.db = db
         self.current_user = current_user
         self.travel_time_base_path = os.path.join(settings.CACHE_DIR, "traveltime_matrices")
