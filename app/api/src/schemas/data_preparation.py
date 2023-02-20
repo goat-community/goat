@@ -16,7 +16,11 @@ class OpportunityMatrixParameters(BaseModel):
     bulk_id: str
     calculation_resolution: int
     isochrone_dto: IsochroneDTO
-    
+
+class OpportunityMatrixParameters2(BaseModel):
+    bulk_id: list[str]
+    calculation_resolution: int
+    isochrone_dto: IsochroneDTO
     
     
     
@@ -31,7 +35,7 @@ BulkIdParametersExample = {
 }
 
 OpportunityMatrixParametersExample = {
-    "bulk_id": "861f8d55fffffff",
+    "bulk_id": ["861f8d55fffffff"],
     "calculation_resolution": 10,
     "isochrone_dto": {
         "mode": "walking",
