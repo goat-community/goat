@@ -168,8 +168,8 @@ services:
       - 55550:5555
     depends_on:
       - redis
-    env_file:
-      - .env
+    # env_file:
+    #   - .env
     
     networks:
       proxy:
