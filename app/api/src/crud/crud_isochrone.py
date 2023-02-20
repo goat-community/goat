@@ -5,7 +5,6 @@ import os
 import shutil
 import time
 import uuid
-import pyproj
 from errno import ELOOP
 from typing import Any
 from unicodedata import category
@@ -55,9 +54,9 @@ from src.utils import (
     geometry_to_pixel,
     group_opportunities_multi_isochrone,
     group_opportunities_single_isochrone,
+    is_inside_sm_parallel,
     web_mercator_to_wgs84,
     wgs84_to_web_mercator,
-    is_inside_sm_parallel,
 )
 
 web_mercator_proj = pyproj.Proj("EPSG:3857")
@@ -73,7 +72,7 @@ isochrone_calculation = CRUDIsochroneCalculation(models.IsochroneCalculation)
 
 
 class CRUDIsochrone:
-    async def read_network(self, db, obj_in: IsochroneDTO, current_user, isochrone_type) -> Any:
+    async def read_network(self, db, obj_in: IsochroneDTO, current_user, isochrone_type, table_prefix=None) -> Any:
 
         sql_text = ""
         if isochrone_type == IsochroneTypeEnum.single.value:
@@ -86,7 +85,7 @@ class CRUDIsochrone:
             """
         elif isochrone_type == IsochroneTypeEnum.heatmap.value:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
-            FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+            FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile, :table_prefix)
             """
 
         read_network_sql = text(sql_text)
@@ -126,6 +125,7 @@ class CRUDIsochrone:
                 "modus": obj_in.scenario.modus.value,
                 "scenario_id": obj_in.scenario.id,
                 "routing_profile": routing_profile,
+                "table_prefix": table_prefix,
             },
         )
         starting_ids = edges_network.iloc[0].starting_ids
