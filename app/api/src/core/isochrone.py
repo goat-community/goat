@@ -19,7 +19,7 @@ from src.utils import (
 )
 
 
-@njit
+@njit(cache=True)
 def construct_adjacency_list_(n, edge_source, edge_target, edge_cost, edge_reverse_cost):
     """
     Construct adjacency list from edges
@@ -45,7 +45,7 @@ def construct_adjacency_list_(n, edge_source, edge_target, edge_cost, edge_rever
     return adj_list
 
 
-@njit
+@njit(cache=True)
 def dijkstra_(start_vertices, adj_list, travel_time):
     """
     Dijkstra's algorithm one-to-all shortest path search
@@ -87,7 +87,7 @@ def dijkstra_(start_vertices, adj_list, travel_time):
     return distances
 
 
-@njit
+@njit(cache=True)
 def dijkstra2(
     start_vertices,
     edges_source,
@@ -148,7 +148,7 @@ def dijkstra2(
     return distances
 
 
-@njit
+@njit(cache=True)
 def array_equals(vertex, array):
     pointer = 0
     found = np.empty(100, np.int64)
@@ -159,21 +159,21 @@ def array_equals(vertex, array):
     return found[:pointer]
 
 
-@njit
+@njit(cache=True)
 def get_adj_list(vertex, edge_source, edge_target):
     forward_adjacency = array_equals(vertex, edge_source)
     backward_adjacency = array_equals(vertex, edge_target)
     return forward_adjacency, backward_adjacency
 
 
-@njit
+@njit(cache=True)
 def get_adj_count(edge_source, edge_target):
     concat = np.concatenate((edge_source, edge_target))
     unique = np.unique(concat)
     return len(unique)
 
 
-@njit
+@njit(cache=True)
 def filter_nodes(node_coords_list, node_costs_list, zoom, width, west, north):
     """
     Filter out nodes that fall inside the same pixel (keep the one with the lowest cost)
@@ -231,7 +231,7 @@ def get_extent(geom_array):
     return extent.flat
 
 
-@njit
+@njit(cache=True)
 def remap_edges(edge_source, edge_target, geom_address, geom_array):
     """
     Remap edges to start from 0
@@ -266,7 +266,7 @@ def remap_edges(edge_source, edge_target, geom_address, geom_array):
     return unordered_map, node_coords[: len(unordered_map)]
 
 
-@njit
+@njit(cache=True)
 def estimate_split_edges_size(edge_length, geom_array, split_distance):
     full_edge_length = np.sum(edge_length)
     number_of_geoms = len(geom_array) - 2 * len(edge_length)
@@ -275,7 +275,7 @@ def estimate_split_edges_size(edge_length, geom_array, split_distance):
     return int(maximum_size)
 
 
-@njit
+@njit(cache=True)
 def split_edges(
     edge_source, edge_target, edge_length, geom_address, geom_array, agg_costs, split_distance
 ):

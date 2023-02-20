@@ -2,8 +2,10 @@ import json
 import logging
 import math
 import os
+import random
 import re
 import shutil
+import string
 import time
 import uuid
 import zipfile
@@ -328,7 +330,7 @@ def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     return header | metadata | {"data": data, "errors": [], "warnings": []}
 
 
-@njit
+@njit(cache=True)
 def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     """
     Compute single value surface
@@ -366,7 +368,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
-@njit
+@njit(cache=True)
 def group_opportunities_multi_isochrone(
     west,
     north,
@@ -410,7 +412,7 @@ def group_opportunities_multi_isochrone(
     return population_grid_count
 
 
-@njit
+@njit(cache=True)
 def group_opportunities_single_isochrone(
     west,
     north,
@@ -524,7 +526,7 @@ def group_opportunities_single_isochrone(
     )
 
 
-@njit
+@njit(cache=True)
 def is_inside_sm(polygon, point):
     length = len(polygon) - 1
     dy2 = point[1] - polygon[0][1]
@@ -573,7 +575,7 @@ def is_inside_sm_parallel(points, polygon):
     return D
 
 
-@njit
+@njit(cache=True)
 def z_scale(z):
     """
     2^z represents the tile number. Scale that by the number of pixels in each tile.
@@ -582,7 +584,7 @@ def z_scale(z):
     return 2 ** z * PIXELS_PER_TILE
 
 
-@njit
+@njit(cache=True)
 def pixel_to_longitude(pixel_x, zoom):
     """
     Convert pixel x coordinate to longitude
@@ -590,7 +592,7 @@ def pixel_to_longitude(pixel_x, zoom):
     return (pixel_x / z_scale(zoom)) * 360 - 180
 
 
-@njit
+@njit(cache=True)
 def pixel_to_latitude(pixel_y, zoom):
     """
     Convert pixel y coordinate to latitude
@@ -599,7 +601,7 @@ def pixel_to_latitude(pixel_y, zoom):
     return lat_rad * 180 / math.pi
 
 
-@njit
+@njit(cache=True)
 def coordinate_from_pixel(input, zoom, round_int=False, web_mercator=False):
     """
     Convert pixel coordinate to longitude and latitude
@@ -647,22 +649,22 @@ def latitude_to_pixel(latitude, zoom):
     )
 
 
-@njit
+@njit(cache=True)
 def web_mercator_x_to_pixel_x(x, zoom):
     return (x + (40075016.68557849 / 2.0)) / (40075016.68557849 / (z_scale(zoom)))
 
 
-@njit
+@njit(cache=True)
 def web_mercator_y_to_pixel_y(y, zoom):
     return (y - (40075016.68557849 / 2.0)) / (40075016.68557849 / (-1 * z_scale(zoom)))
 
 
-@njit
+@njit(cache=True)
 def pixel_x_to_web_mercator_x(x, zoom):
     return x * (40075016.68557849 / (z_scale(zoom))) - (40075016.68557849 / 2.0)
 
 
-@njit
+@njit(cache=True)
 def pixel_y_to_web_mercator_y(y, zoom):
     return y * (40075016.68557849 / (-1 * z_scale(zoom))) + (40075016.68557849 / 2.0)
 
@@ -952,3 +954,10 @@ def timing(f):
         return result
 
     return wrap
+
+
+def get_random_string(length):
+    # choose from all lowercase letter
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(length))
+    
