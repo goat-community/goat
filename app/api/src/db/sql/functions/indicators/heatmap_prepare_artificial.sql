@@ -1,32 +1,36 @@
-
-CREATE OR REPLACE FUNCTION basic.heatmap_prepare_artificial(x double precision[], y double precision[], max_cutoff double precision, 
-speed double precision, modus text, scenario_id integer, routing_profile TEXT, drop_table BOOLEAN = True, grid_ids Text[] = NULL)
+CREATE OR REPLACE FUNCTION basic.heatmap_prepare_artificial(
+	x double precision[], y double precision[], max_cutoff double precision, 
+	speed double precision, modus text, scenario_id integer, routing_profile TEXT, 
+	drop_table BOOLEAN = True, grid_ids Text[] = NULL, artificial_tables_prefix TEXT = 'worker1')
  RETURNS TABLE(starting_id integer, grid_id text)
  LANGUAGE plpgsql
 AS $function$
+DECLARE
+	artificial_table_name TEXT := artificial_tables_prefix || '_' || 'heatmap_edges_artificial';
+	vertices_table_name TEXT := artificial_tables_prefix || '_' || 'heatmap_starting_vertices';
 
 BEGIN 
 
 	PERFORM basic.create_multiple_artificial_edges(x, y, max_cutoff, speed, modus, scenario_id, routing_profile, grid_ids);
-	
 	IF drop_table = TRUE THEN 
-		DROP TABLE IF EXISTS temporal.heatmap_edges_artificial; 
-		CREATE TABLE temporal.heatmap_edges_artificial AS
+		EXECUTE 'DROP TABLE IF EXISTS temporal.'||artificial_table_name; 
+		EXECUTE 'CREATE TABLE temporal.'||artificial_table_name||' AS
 		SELECT * FROM final_artificial_edges;
-		ALTER TABLE temporal.heatmap_edges_artificial ADD PRIMARY KEY(id);
-		CREATE INDEX ON temporal.heatmap_edges_artificial USING GIST(geom);
+		ALTER TABLE temporal.'||artificial_table_name||' ADD PRIMARY KEY(id);
+		CREATE INDEX ON temporal.'||artificial_table_name||' USING GIST(geom);'; 
 		
-		DROP TABLE IF EXISTS temporal.heatmap_starting_vertices; 
-		CREATE TABLE temporal.heatmap_starting_vertices AS
+		EXECUTE 'DROP TABLE IF EXISTS temporal.'||vertices_table_name||';';
+	
+		EXECUTE 'CREATE TABLE temporal.'||vertices_table_name||' AS
 		SELECT * FROM starting_vertices;
-		CREATE INDEX ON temporal.heatmap_starting_vertices USING GIST(geom);
+		CREATE INDEX ON temporal.'||vertices_table_name||' USING GIST(geom);';
 	
 	ELSE 
-		INSERT INTO temporal.heatmap_edges_artificial
-		SELECT * FROM final_artificial_edges;
+		EXECUTE 'INSERT INTO temporal.'||artificial_table_name||'
+		SELECT * FROM final_artificial_edges;';
 		
-		INSERT INTO temporal.heatmap_starting_vertices
-		SELECT * FROM starting_vertices;
+		EXECUTE 'INSERT INTO temporal.'||vertices_table_name||'
+		SELECT * FROM starting_vertices;';
 	END IF;
 	RETURN query 
 	SELECT s.id, s.grid_id FROM starting_vertices s;
