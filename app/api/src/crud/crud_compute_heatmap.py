@@ -20,6 +20,7 @@ from pyproj import Geod
 from rich import print
 from scipy import spatial
 from shapely.geometry import Polygon
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import select, text
 from sqlalchemy.sql.functions import func
 
@@ -36,7 +37,7 @@ from src.core.isochrone import (
 from src.crud.base import CRUDBase
 from src.crud.crud_read_heatmap import CRUDBaseHeatmap
 from src.db import models
-from src.db.session import async_session, legacy_engine, sync_session
+from src.db.session import async_session, engine, legacy_engine, sync_session
 from src.jsoline import jsolines
 from src.resources.enums import RoutingTypes
 from src.schemas.heatmap import (
@@ -57,6 +58,7 @@ from src.utils import (
     create_dir,
     delete_dir,
     delete_file,
+    get_random_string,
     print_hashtags,
     print_info,
     print_warning,
@@ -69,6 +71,7 @@ poi_layers = {
 }
 
 
+
 class CRUDGridCalculation(
     CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
 ):
@@ -76,8 +79,7 @@ class CRUDGridCalculation(
 
 
 # TODO: Add more comments
-class CRUDComputeHeatmap(CRUDBaseHeatmap):
-    
+class CRUDComputeHeatmap(CRUDBaseHeatmap):   
     
     async def get_bulk_ids(
         self,
@@ -228,6 +230,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
             calculation_objs (dict): Hierarchical structure of starting points for the calculation using the bulk resolution as parent and calculation resolution as children.
         """
+        random_table_prefix = get_random_string(10)
         starting_time = time.time()
 
         cnt = 0
@@ -256,7 +259,8 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 continue
 
             # Prepare starting points using routing network
-            starting_ids = await self.db.execute(
+            db = async_session()
+            starting_ids = await db.execute(
                 func.basic.heatmap_prepare_artificial(
                     obj["lons"],
                     obj["lats"],
@@ -267,10 +271,12 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     routing_profile,
                     True,
                     obj["calculation_ids"],
+                    random_table_prefix,
                 )
             )
-            await self.db.commit()
+            await db.commit()
             starting_ids = starting_ids.scalars().all()
+            await db.close()
 
             valid_extents = []
             valid_starting_ids = []
@@ -292,12 +298,15 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             isochrone_dto.starting_point.input = starting_point_objs
 
             # Read network
+            db = async_session()
             network = await crud.isochrone.read_network(
-                db=self.db,
+                db=db,
                 obj_in=isochrone_dto,
                 current_user=self.current_user,
                 isochrone_type=schemas.isochrone.IsochroneTypeEnum.heatmap.value,
+                table_prefix=random_table_prefix,
             )
+            await db.close()
             network = network[0]
             network = network.iloc[1:, :]
 
@@ -315,7 +324,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 total_extent,
                 geom_address,
                 geom_array,
-            ) = prepare_network_isochrone(edge_network_input=network)
+            ) = prepare_network_isochrone(network)
 
             # Prepare heatmap calculation objects
             traveltimeobjs = []
@@ -343,19 +352,21 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     isochrone_dto.output.resolution,
                 )
                 traveltimeobjs.append(results)
-                print(f"Computed traveltime for {i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE}th starting points out of {len(starting_ids)}")
+                print(f"Computed traveltime for {i} to {i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE}th starting points out of {len(starting_ids)}")
 
             # Run multiprocessing
             # traveltimeobjs = heatmap_multiprocessing(heatmapObject)
             traveltimeobjs = merge_heatmap_traveltime_objects(traveltimeobjs)
             # Save files into cache folder
             file_name = f"{key}.npz"
-            file_dir = os.path.join(
+            directory = os.path.join(
                 settings.TRAVELTIME_MATRICES_PATH,
                 isochrone_dto.mode.value,
                 isochrone_dto.settings.walking_profile.value,
-                file_name,
             )
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            file_dir = os.path.join(directory, file_name)
             delete_file(file_dir)
             np.savez_compressed(
                 file_dir,
@@ -428,9 +439,9 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
         else:
             raise ValueError(f"Table name {table_name} is not a valid poi table name")
-
+        db = async_session()
         pois = [
-            self.db.execute(
+            await db.execute(
                 sql_query,
                 sql_params
                 | {
@@ -441,6 +452,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             )
             for idx, filter_geom in enumerate(filter_geoms)
         ]
+        await db.close()
 
         pois = await asyncio.gather(*pois)
         pois = [batch.fetchall() for batch in pois]
@@ -661,7 +673,9 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         return neighbors
 
     async def get_h3_grids(self, study_area_id, resolution, style="int"):
-        study_area = await crud.study_area.get(self.db, id=study_area_id)
+        db = async_session()
+        study_area = await crud.study_area.get(db, id=study_area_id)
+        await db.close()
         study_area_polygon = to_shape(study_area.geom)
         grids = []
         for polygon_ in list(study_area_polygon.geoms):
