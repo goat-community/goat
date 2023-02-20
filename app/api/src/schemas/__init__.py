@@ -1,9 +1,3 @@
-from .data_preparation import (
-    BulkIdParameters,
-    BulkIdParametersExample,
-    OpportunityMatrixParameters,
-    OpportunityMatrixParametersExample,
-)
 from .geostore import CreateGeostore
 from .heatmap import ComputePoiUser
 from .item import Item, ItemCreate, ItemInDB, ItemUpdate
