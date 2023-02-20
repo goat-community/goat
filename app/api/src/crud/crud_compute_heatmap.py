@@ -441,7 +441,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             raise ValueError(f"Table name {table_name} is not a valid poi table name")
         db = async_session()
         pois = [
-            await db.execute(
+            db.execute(
                 sql_query,
                 sql_params
                 | {
@@ -452,10 +452,11 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             )
             for idx, filter_geom in enumerate(filter_geoms)
         ]
-        await db.close()
+        
 
         pois = await asyncio.gather(*pois)
         pois = [batch.fetchall() for batch in pois]
+        await db.close()
         pois_dict = {}
         for idx_bulk, batch in enumerate(pois):
             if len(batch) > 0:
