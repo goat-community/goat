@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+from .heatmap import HeatmapMode, HeatmapProfile
 from .isochrone import IsochroneDTO
 
 
@@ -21,7 +22,32 @@ class OpportunityMatrixParameters2(BaseModel):
     bulk_id: list[str]
     calculation_resolution: int
     isochrone_dto: IsochroneDTO
+
+class OpportunityMatrixOldParameters(BaseModel):
+    calculation_resolution: int
+    isochrone_dto: IsochroneDTO
+    bulk_resolution: int
+    calculation_resolution: int
+    buffer_size: float
+    speed: float
+    travel_time: float
+    study_area_ids: list[int]
+
+class ConnectivityHeatmapParameters(BaseModel):
+    mode: HeatmapMode
+    profile: HeatmapProfile
+    study_area_id: int
+    max_travel_time: int
     
+    
+    
+
+ConnectivityHeatmapParametersExample = {
+    "mode": "walking",
+    "profile": "standard",
+    "study_area_id": 91620000,
+    "max_travel_time": 20
+}
     
     
     
