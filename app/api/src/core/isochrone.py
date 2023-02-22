@@ -19,7 +19,7 @@ from src.utils import (
 )
 
 
-@njit
+@njit(cache=True)
 def construct_adjacency_list_(n, edge_source, edge_target, edge_cost, edge_reverse_cost):
     """
     Construct adjacency list from edges
@@ -45,7 +45,7 @@ def construct_adjacency_list_(n, edge_source, edge_target, edge_cost, edge_rever
     return adj_list
 
 
-@njit
+@njit(cache=True)
 def dijkstra_(start_vertices, adj_list, travel_time):
     """
     Dijkstra's algorithm one-to-all shortest path search
@@ -87,7 +87,7 @@ def dijkstra_(start_vertices, adj_list, travel_time):
     return distances
 
 
-@njit
+@njit(cache=True)
 def dijkstra2(
     start_vertices,
     edges_source,
@@ -148,7 +148,7 @@ def dijkstra2(
     return distances
 
 
-@njit
+@njit(cache=True)
 def array_equals(vertex, array):
     pointer = 0
     found = np.empty(100, np.int64)
@@ -159,21 +159,21 @@ def array_equals(vertex, array):
     return found[:pointer]
 
 
-@njit
+@njit(cache=True)
 def get_adj_list(vertex, edge_source, edge_target):
     forward_adjacency = array_equals(vertex, edge_source)
     backward_adjacency = array_equals(vertex, edge_target)
     return forward_adjacency, backward_adjacency
 
 
-@njit
+@njit(cache=True)
 def get_adj_count(edge_source, edge_target):
     concat = np.concatenate((edge_source, edge_target))
     unique = np.unique(concat)
     return len(unique)
 
 
-@njit
+@njit(cache=True)
 def filter_nodes(node_coords_list, node_costs_list, zoom, width, west, north):
     """
     Filter out nodes that fall inside the same pixel (keep the one with the lowest cost)
@@ -231,7 +231,7 @@ def get_extent(geom_array):
     return extent.flat
 
 
-@njit
+@njit(cache=True)
 def remap_edges(edge_source, edge_target, geom_address, geom_array):
     """
     Remap edges to start from 0
@@ -266,7 +266,7 @@ def remap_edges(edge_source, edge_target, geom_address, geom_array):
     return unordered_map, node_coords[: len(unordered_map)]
 
 
-@njit
+@njit(cache=True)
 def estimate_split_edges_size(edge_length, geom_array, split_distance):
     full_edge_length = np.sum(edge_length)
     number_of_geoms = len(geom_array) - 2 * len(edge_length)
@@ -275,7 +275,7 @@ def estimate_split_edges_size(edge_length, geom_array, split_distance):
     return int(maximum_size)
 
 
-@njit
+@njit(cache=True)
 def split_edges(
     edge_source, edge_target, edge_length, geom_address, geom_array, agg_costs, split_distance
 ):
@@ -335,7 +335,7 @@ def split_edges(
                         costs[counter] = cost
                         previous_agg_dist = agg_dist
 
-    print(f"estimated size: {est_size}, calculated size: {counter}")
+    # print(f"estimated size: {est_size}, calculated size: {counter}")
 
     return coords[:counter, :], costs[:counter]
 
@@ -438,12 +438,12 @@ def prepare_network_isochrone(edge_network_input):
     start_time = time()
     geom_address, geom_array = get_geom_array(edge_network["geom"])
     end_time = time()
-    print(f"Convert geom array time: \t {end_time - start_time} s")
+    # print(f"Convert geom array time: \t {end_time - start_time} s")
     edges_length = np.array(edge_network["length"])
     start_time = time()
     unordered_map, node_coords = remap_edges(edges_source, edges_target, geom_address, geom_array)
     end_time = time()
-    print(f"Remap edges time: \t\t {end_time-start_time} s")
+    # print(f"Remap edges time: \t\t {end_time-start_time} s")
 
     extent = get_extent(geom_array)
     extent[0] -= 200
@@ -514,20 +514,20 @@ def network_to_grid(
         min([web_mercator_x_step, web_mercator_y_step]),
     )
     end_time = time()
-    print(f"Split Edges took \t\t {end_time - start_time} s")
+    # print(f"Split Edges took \t\t {end_time - start_time} s")
 
     start_time = time()
     node_coords_list = np.concatenate((node_coords, interpolated_coords))
     node_costs_list = np.concatenate((distances, interpolated_costs))
     end_time = time()
-    print(f"Coords concatenations time: \t {end_time - start_time} s")
+    # print(f"Coords concatenations time: \t {end_time - start_time} s")
 
     start_time = time()
     node_coords_list, node_costs_list = filter_nodes(
         node_coords_list, node_costs_list, zoom, width_pixel, xy_bottom_left[0], xy_top_right[1]
     )
     end_time = time()
-    print(f"Filter nodes time: \t\t {end_time - start_time} s")
+    # print(f"Filter nodes time: \t\t {end_time - start_time} s")
 
     start_time = time()
     Z = build_grid_interpolate_(
@@ -538,13 +538,13 @@ def network_to_grid(
         step_y=web_mercator_y_step,
     )
     end_time = time()
-    print(f"Grid interpolate time: \t\t {end_time - start_time} s")
+    # print(f"Grid interpolate time: \t\t {end_time - start_time} s")
 
     # build grid data (single depth)
     start_time = time()
     grid_data = get_single_depth_grid_(zoom, xy_bottom_left[0], xy_top_right[1], Z)
     end_time = time()
-    print(f"Get single depth grid time: \t {end_time - start_time} s")
+    # print(f"Get single depth grid time: \t {end_time - start_time} s")
     return grid_data
 
 
@@ -573,7 +573,7 @@ def compute_isochrone(
         geom_array,
     ) = prepare_network_isochrone(edge_network_input=edge_network_input)
     prepare_network_end_time = time()
-    print(f"PREPARE NETWORK TIME: \t\t {prepare_network_end_time-isochrone_start_time} s")
+    # print(f"PREPARE NETWORK TIME: \t\t {prepare_network_end_time-isochrone_start_time} s")
 
     # run dijkstra
     start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
@@ -587,7 +587,7 @@ def compute_isochrone(
         travel_time,
     )
     end_time = time()
-    print(f"DIJKSTRA TIME: \t\t {end_time - start_time}s")
+    # print(f"DIJKSTRA TIME: \t\t {end_time - start_time}s")
 
     # convert results to grid
     start_time = time()
@@ -603,7 +603,7 @@ def compute_isochrone(
         node_coords,
     )
     end_time = time()
-    print(f"NETWORK TO GRID TIME: \t\t {end_time - start_time}s")
+    # print(f"NETWORK TO GRID TIME: \t\t {end_time - start_time}s")
 
     if return_network == True:
         edges_length = range(len(edges_source))
@@ -626,7 +626,7 @@ def compute_isochrone(
         network = None
 
     isochrone_end_time = time()
-    print(f"ISOCHRONE CALCULATION TOTAL TIME: \t {isochrone_end_time - isochrone_start_time}s")
+    # print(f"ISOCHRONE CALCULATION TOTAL TIME: \t {isochrone_end_time - isochrone_start_time}s")
     return grid_data, network
 
 
@@ -680,7 +680,9 @@ def compute_isochrone_heatmap(
     adj_list = construct_adjacency_list_(
         len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
     )
+    
     for idx, start_vertex in enumerate(start_vertices):
+        
         start_vertices_ids = start_vertices_ids = np.array(
             [unordered_map[v] for v in [start_vertex]]
         )
@@ -698,7 +700,7 @@ def compute_isochrone_heatmap(
 
         # # convert results to grid
         grid = network_to_grid(
-            extent,
+            extent[idx],
             zoom,
             edges_source,
             edges_target,

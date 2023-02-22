@@ -26,6 +26,9 @@ def convert_to_parents(h3_array: np.ndarray, int resolution):
     """
     Convert to h3 parent in place.
     """
+    if resolution == 10:
+        return h3_array
+    
     for i in range(h3_array.size):
         h3_array[i] = h3._cy.parent(h3_array[i], resolution)
     return h3_array
