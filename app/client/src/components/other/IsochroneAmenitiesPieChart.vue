@@ -30,21 +30,21 @@ export default {
       let keys = [];
       let config = [];
       if (this.chartDatasetType === 1) {
-        keys = this.selectedPoisOnlyKeys;
+        keys = [...this.selectedPoisOnlyKeys].reverse();
         config = this.poisConfig;
       } else if (this.chartDatasetType === 2) {
-        keys = this.selectedAoisOnlyKeys;
+        keys = [...this.selectedAoisOnlyKeys].reverse();
         config = this.aoisConfig;
       }
       keys.forEach(amenity => {
         if (calculationData[amenity]) {
-          datasets[0].data.push(
+          datasets[0].data.unshift(
             calculationData[amenity][this.isochroneRange - 1]
           );
-          datasets[0].backgroundColor.push(
+          datasets[0].backgroundColor.unshift(
             config[amenity].color[0] || "rgb(54, 162, 235)"
           );
-          labels.push(
+          labels.unshift(
             this.$te(`pois.${amenity}`) ? this.$t(`pois.${amenity}`) : amenity
           );
         }

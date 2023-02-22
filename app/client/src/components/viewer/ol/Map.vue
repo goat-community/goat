@@ -1046,7 +1046,6 @@ export default {
           }
         }
       } else {
-        console.log("first");
         return "info";
       }
     },
@@ -1127,7 +1126,6 @@ export default {
       return transformed;
     },
     currentInfoFeature() {
-      console.log(this.getInfoResult[this.popup.currentLayerIndex], "qetu");
       return this.getInfoResult[this.popup.currentLayerIndex];
     }
   },
