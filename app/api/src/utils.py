@@ -2,8 +2,10 @@ import json
 import logging
 import math
 import os
+import random
 import re
 import shutil
+import string
 import time
 import uuid
 import zipfile
@@ -330,7 +332,7 @@ def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     return header | metadata | {"data": data, "errors": [], "warnings": []}
 
 
-@njit
+@njit(cache=True)
 def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     """
     Compute single value surface
@@ -368,7 +370,7 @@ def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
     return surface
 
 
-@njit
+@njit(cache=True)
 def group_opportunities_multi_isochrone(
     west,
     north,
@@ -411,8 +413,121 @@ def group_opportunities_multi_isochrone(
 
     return population_grid_count
 
+@njit(cache=True)
+def group_opportunities_single_isochrone(
+    west,
+    north,
+    width,
+    surface,
+    get_population_sum_pixel,
+    get_population_sum_population,
+    get_poi_one_entrance_sum_pixel,
+    get_poi_one_entrance_sum_category,
+    get_poi_one_entrance_sum_cnt,
+    get_poi_more_entrance_sum_pixel,
+    get_poi_more_entrance_sum_category,
+    get_poi_more_entrance_sum_name,
+    get_poi_more_entrance_sum_cnt,
+    MAX_TIME=120,
+):
+    """
+    Return a list of amenity count for every minute
+    """
+    population_grid_count = np.zeros(MAX_TIME)
+    # - loop population
+    for idx, pixel in enumerate(get_population_sum_pixel):
+        pixel_x = pixel[1]
+        pixel_y = pixel[0]
+        x = pixel_x - west
+        y = pixel_y - north
+        width = width
+        index = y * width + x
+        time_cost = surface[index]
+        if (
+            time_cost < 2147483647
+            and get_population_sum_population[idx] > 0
+            and time_cost <= MAX_TIME
+        ):
+            population_grid_count[int(time_cost) - 1] += get_population_sum_population[idx]
+    population_grid_count = np.cumsum(population_grid_count)
+    population_grid_count[population_grid_count < 5] = 0
 
-@njit
+    # - loop poi_one_entrance
+    poi_one_entrance_list = []
+    poi_one_entrance_grid_count = []
+    for idx, pixel in enumerate(get_poi_one_entrance_sum_pixel):
+        if idx == 0:
+            continue
+        idx = idx - 1
+        pixel_x = pixel[1]
+        pixel_y = pixel[0]
+        x = pixel_x - west
+        y = pixel_y - north
+        width = width
+        index = y * width + x
+        category = get_poi_one_entrance_sum_category[idx]
+
+        if category not in poi_one_entrance_list:
+            poi_one_entrance_list.append(category)
+            poi_one_entrance_grid_count.append(np.zeros(MAX_TIME))
+
+        time_cost = surface[index]
+        if time_cost < 2147483647 and time_cost <= MAX_TIME:
+            count = get_poi_one_entrance_sum_cnt[idx]
+            poi_one_entrance_grid_count[poi_one_entrance_list.index(category)][
+                int(time_cost) - 1
+            ] += count
+
+    for index, value in enumerate(poi_one_entrance_grid_count):
+        poi_one_entrance_grid_count[index] = np.cumsum(value)
+
+    # - loop poi_more_entrance
+    visited_more_entrance_categories = []
+    poi_more_entrance_list = []
+    poi_more_entrance_grid_count = []
+    for idx, pixel in enumerate(get_poi_more_entrance_sum_pixel):
+        if idx == 0:
+            continue
+        idx = idx - 1
+        pixel_x = pixel[1]
+        pixel_y = pixel[0]
+        x = pixel_x - west
+        y = pixel_y - north
+        width = width
+        index = y * width + x
+        category = get_poi_more_entrance_sum_category[idx]
+        name = get_poi_more_entrance_sum_name[idx]
+
+        if category not in poi_more_entrance_list:
+            poi_more_entrance_list.append(category)
+            poi_more_entrance_grid_count.append(np.zeros(MAX_TIME))
+
+        time_cost = surface[index]
+        category_name = f"{category}_{name}"
+        if (
+            time_cost < 2147483647
+            and category_name not in visited_more_entrance_categories
+            and time_cost <= MAX_TIME
+        ):
+            count = get_poi_more_entrance_sum_cnt[idx]
+            poi_more_entrance_grid_count[poi_more_entrance_list.index(category)][
+                int(time_cost) - 1
+            ] += count
+            visited_more_entrance_categories.append(category_name)
+
+    for index, value in enumerate(poi_more_entrance_grid_count):
+        poi_more_entrance_grid_count[index] = np.cumsum(value)
+
+    return (
+        population_grid_count,
+        poi_one_entrance_list,
+        poi_one_entrance_grid_count,
+        poi_more_entrance_list,
+        poi_more_entrance_grid_count,
+    )
+
+
+@njit(cache=True)
 def is_inside_sm(polygon, point):
     length = len(polygon) - 1
     dy2 = point[1] - polygon[0][1]
@@ -461,7 +576,7 @@ def is_inside_sm_parallel(points, polygon):
     return D
 
 
-@njit
+@njit(cache=True)
 def z_scale(z):
     """
     2^z represents the tile number. Scale that by the number of pixels in each tile.
@@ -470,7 +585,7 @@ def z_scale(z):
     return 2 ** z * PIXELS_PER_TILE
 
 
-@njit
+@njit(cache=True)
 def pixel_to_longitude(pixel_x, zoom):
     """
     Convert pixel x coordinate to longitude
@@ -478,7 +593,7 @@ def pixel_to_longitude(pixel_x, zoom):
     return (pixel_x / z_scale(zoom)) * 360 - 180
 
 
-@njit
+@njit(cache=True)
 def pixel_to_latitude(pixel_y, zoom):
     """
     Convert pixel y coordinate to latitude
@@ -487,7 +602,7 @@ def pixel_to_latitude(pixel_y, zoom):
     return lat_rad * 180 / math.pi
 
 
-@njit
+@njit(cache=True)
 def coordinate_from_pixel(input, zoom, round_int=False, web_mercator=False):
     """
     Convert pixel coordinate to longitude and latitude
@@ -535,22 +650,22 @@ def latitude_to_pixel(latitude, zoom):
     )
 
 
-@njit
+@njit(cache=True)
 def web_mercator_x_to_pixel_x(x, zoom):
     return (x + (40075016.68557849 / 2.0)) / (40075016.68557849 / (z_scale(zoom)))
 
 
-@njit
+@njit(cache=True)
 def web_mercator_y_to_pixel_y(y, zoom):
     return (y - (40075016.68557849 / 2.0)) / (40075016.68557849 / (-1 * z_scale(zoom)))
 
 
-@njit
+@njit(cache=True)
 def pixel_x_to_web_mercator_x(x, zoom):
     return x * (40075016.68557849 / (z_scale(zoom))) - (40075016.68557849 / 2.0)
 
 
-@njit
+@njit(cache=True)
 def pixel_y_to_web_mercator_y(y, zoom):
     return y * (40075016.68557849 / (-1 * z_scale(zoom))) + (40075016.68557849 / 2.0)
 
@@ -926,3 +1041,10 @@ def timing(f):
         return result
 
     return wrap
+
+
+def get_random_string(length):
+    # choose from all lowercase letter
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(length))
+    

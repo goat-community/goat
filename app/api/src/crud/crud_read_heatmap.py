@@ -74,7 +74,7 @@ class CRUDGridCalculation(
 
 
 class CRUDBaseHeatmap:
-    def __init__(self, db, current_user):
+    def __init__(self, db=None, current_user=None):
         self.db = db
         self.current_user = current_user
         self.travel_time_base_path = os.path.join(settings.CACHE_DIR, "traveltime_matrices")
@@ -345,7 +345,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         # Read hexagons
         grids, h_polygons = await self.read_hexagons(
-            heatmap_settings.study_area_ids[0], heatmap_settings.resolution
+            heatmap_settings.study_area_ids, heatmap_settings.resolution
         )
 
         # Get heatmap settings
@@ -533,18 +533,22 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         return quantile_index
 
     @timing
-    async def read_hexagons(self, study_area_id: int, resolution: int):
+    async def read_hexagons(self, study_area_ids: int, resolution: int):
         """
         Read the hexagons from the cache in requested resolution
         returns: grids, polygons
         """
-
+        grids = []
+        polygons = []
         base_path = "/app/src/cache/analyses_unit/"
-        directory = os.path.join(base_path, str(study_area_id), "h3")
-        grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
-        polygons_file_name = os.path.join(directory, f"{resolution}_polygons.npy")
-        grids = np.load(grids_file_name)
-        polygons = np.load(polygons_file_name)
+        for study_area_id in study_area_ids:
+            directory = os.path.join(base_path, str(study_area_id), "h3")
+            grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
+            polygons_file_name = os.path.join(directory, f"{resolution}_polygons.npy")
+            grids.append(np.load(grids_file_name))
+            polygons.append(np.load(polygons_file_name))
+        grids = np.concatenate(grids)
+        polygons = np.concatenate(polygons)
         return grids, polygons
 
     @timing
