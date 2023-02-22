@@ -1027,10 +1027,6 @@ export default {
     },
     getPopupTitle() {
       if (this.currentInfoFeature && this.currentInfoFeature.get("stop_name")) {
-        console.log(
-          this.currentInfoFeature,
-          this.currentInfoFeature.get("stop_name")
-        );
         return this.currentInfoFeature.get("stop_name");
       }
       if (this.getInfoResult[this.popup.currentLayerIndex]) {
