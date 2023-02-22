@@ -399,10 +399,7 @@ def generate_jsolines(grid, travel_time, percentile):
 
     """
     single_value_surface = compute_single_value_surface(
-        grid["width"],
-        grid["height"],
-        grid["depth"],
-        grid["data"],
+        grid,
         percentile,
     )
     grid["surface"] = single_value_surface
@@ -426,14 +423,11 @@ if __name__ == "__main__":
 
         grid_decoded = decode_r5_grid(fileContent)
         grid_decoded["surface"] = compute_single_value_surface(
-            grid_decoded["width"],
-            grid_decoded["height"],
-            grid_decoded["depth"],
-            grid_decoded["data"],
+            grid_decoded,
             5,
         )
 
-        cutoffs = np.arange(1, 61)
+        cutoffs = np.arange(60, 61)
         isochrones = jsolines(
             grid_decoded["surface"],
             grid_decoded["width"],

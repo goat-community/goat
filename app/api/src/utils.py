@@ -275,7 +275,7 @@ def encode_r5_grid(grid_data: Any) -> bytes:
     return binary_output
 
 
-def decode_r5_grid(grid_data_buffer: bytes) -> Any:
+def decode_r5_grid(grid_data_buffer: bytes) -> dict:
     """
     Decode R5 grid data
     """
@@ -315,7 +315,7 @@ def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     )
     # - reshape the data
     data = data.reshape(header["depth"], gridSize)
-    reshaped_data = np.array([])
+    reshaped_data = np.array([], dtype=np.int32)
     for i in range(header["depth"]):
         reshaped_data = np.append(reshaped_data, data[i].cumsum())
     data = reshaped_data
@@ -330,135 +330,28 @@ def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     return header | metadata | {"data": data, "errors": [], "warnings": []}
 
 
-@njit
-def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
+def compute_single_value_surface(grid: dict, percentile: int) -> np.array:
     """
     Compute single value surface
     """
-    if data is None or width is None or height is None or depth is None:
+    if (
+        grid["data"] is None
+        or grid["width"] is None
+        or grid["height"] is None
+        or grid["depth"] is None
+    ):
         return None
-    grid_size = width * height
-    surface = np.empty(grid_size)
-    TRAVEL_TIME_PERCENTILES = [5, 25, 50, 75, 95]
-    percentile_index = 0
-    if depth == 1:
-        percentile = 5  # Walking and cycling
-    closest_diff = math.inf
-    for index, p in enumerate(TRAVEL_TIME_PERCENTILES):
-        current_diff = abs(p - percentile)
-        if current_diff < closest_diff:
-            percentile_index = index
-            closest_diff = current_diff
-    for y in np.arange(height):
-        for x in np.arange(width):
-            index = y * width + x
-            if (
-                x >= 0
-                and x < width
-                and y >= 0
-                and y < height
-                and percentile_index >= 0
-                and percentile_index < depth
-            ):
-                coord = data[(percentile_index * grid_size) + (y * width) + x]
-            else:
-                coord = math.inf
+    travel_time_percentiles = [5, 25, 50, 75, 95]
+    percentile_index = travel_time_percentiles.index(percentile)
 
-            surface[index] = coord
-    return surface
+    if grid["depth"] == 1:
+        # if only one percentile is requested, return the grid as is
+        surface = grid["data"]
+    else:
+        grid_percentiles = np.reshape(grid["data"], (grid["depth"], -1))
+        surface = grid_percentiles[percentile_index]
 
-
-@njit
-def group_opportunities_multi_isochrone(
-    west,
-    north,
-    width,
-    surface,
-    get_population_sum_pixel,
-    get_population_sum_population,
-    get_population_sub_study_area_id,
-    sub_study_areas_ids,
-    MAX_TIME=120,
-):
-    """
-    Return a list of population count for every minute and study-area/polygon
-    """
-
-    population_grid_count = np.zeros((len(sub_study_areas_ids), MAX_TIME))
-    # - loop population
-    for idx, pixel in enumerate(get_population_sum_pixel):
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        time_cost = surface[index]
-        if (
-            time_cost < 2147483647
-            and get_population_sum_population[idx] > 0
-            and time_cost <= MAX_TIME
-        ):
-            for id_sub_study_area_id, sub_study_area_id in enumerate(sub_study_areas_ids):
-                if get_population_sub_study_area_id[idx] == sub_study_area_id:
-                    population_grid_count[id_sub_study_area_id][
-                        int(time_cost) - 1
-                    ] += get_population_sum_population[idx]
-
-    for idx, population_per_study_area in enumerate(population_grid_count):
-        population_grid_count[idx] = np.cumsum(population_per_study_area)
-        population_grid_count[idx][population_grid_count[idx] < 5] = 0
-
-    return population_grid_count
-
-
-@njit
-def is_inside_sm(polygon, point):
-    length = len(polygon) - 1
-    dy2 = point[1] - polygon[0][1]
-    intersections = 0
-    ii = 0
-    jj = 1
-
-    while ii < length:
-        dy = dy2
-        dy2 = point[1] - polygon[jj][1]
-
-        # consider only lines which are not completely above/bellow/right from the point
-        if dy * dy2 <= 0.0 and (point[0] >= polygon[ii][0] or point[0] >= polygon[jj][0]):
-
-            # non-horizontal line
-            if dy < 0 or dy2 < 0:
-                F = dy * (polygon[jj][0] - polygon[ii][0]) / (dy - dy2) + polygon[ii][0]
-
-                if (
-                    point[0] > F
-                ):  # if line is left from the point - the ray moving towards left, will intersect it
-                    intersections += 1
-                elif point[0] == F:  # point on line
-                    return 2
-
-            # point on upper peak (dy2=dx2=0) or horizontal line (dy=dy2=0 and dx*dx2<=0)
-            elif dy2 == 0 and (
-                point[0] == polygon[jj][0]
-                or (dy == 0 and (point[0] - polygon[ii][0]) * (point[0] - polygon[jj][0]) <= 0)
-            ):
-                return 2
-
-        ii = jj
-        jj += 1
-
-    # print 'intersections =', intersections
-    return intersections & 1
-
-
-@njit(parallel=True)
-def is_inside_sm_parallel(points, polygon):
-    ln = len(points)
-    D = np.empty(ln, dtype=numba.boolean)
-    for i in numba.prange(ln):
-        D[i] = is_inside_sm(polygon, points[i])
-    return D
+    return surface.astype(np.uint8)
 
 
 @njit
@@ -895,6 +788,7 @@ def merge_dicts(*dicts):
             else:
                 merged_dict[key] = value
     return merged_dict
+
 
 def remove_keys(dictionary, keys_to_remove):
     """_summary_

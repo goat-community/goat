@@ -29,7 +29,7 @@ from src.core.isochrone import compute_isochrone
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
-from src.jsoline import generate_jsolines, jsolines
+from src.jsoline import generate_jsolines
 from src.resources.enums import IsochroneExportType
 from src.schemas.isochrone import (
     IsochroneDTO,
