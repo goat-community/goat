@@ -46,12 +46,6 @@ from src.utils import (
     encode_r5_grid,
     merge_dicts,
     remove_keys,
-    geometry_to_pixel,
-    group_opportunities_multi_isochrone,
-    group_opportunities_single_isochrone,
-    is_inside_sm_parallel,
-    web_mercator_to_wgs84,
-    wgs84_to_web_mercator,
 )
 
 web_mercator_proj = pyproj.Proj("EPSG:3857")
@@ -445,7 +439,9 @@ class CRUDIsochrone:
         # Step 5: Return the newly created dictionary
         return new_dict
 
-    async def read_network(self, db, obj_in: IsochroneDTO, current_user, isochrone_type, table_prefix=None) -> Any:
+    async def read_network(
+        self, db, obj_in: IsochroneDTO, current_user, isochrone_type, table_prefix=None
+    ) -> Any:
 
         sql_text = ""
         if isochrone_type == IsochroneTypeEnum.single.value:
