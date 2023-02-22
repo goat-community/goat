@@ -1,4 +1,4 @@
-FROM python:3.9.10
+FROM python:3.9-bullseye
 # create directory for the app user
 RUN mkdir -p /app
 WORKDIR /app/
@@ -23,6 +23,10 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python
     cd /usr/local/bin && \
     ln -s /opt/poetry/bin/poetry && \
     poetry config virtualenvs.create false
+
+# Download Celery daemon
+RUN curl -sSL https://raw.githubusercontent.com/celery/celery/master/extra/generic-init.d/celeryd > /etc/init.d/celeryd && \
+    chmod +x /etc/init.d/celeryd
 
 # Copy poetry.lock* in case it doesn't exist in the repo
 COPY ./pyproject.toml ./poetry.lock* /app/

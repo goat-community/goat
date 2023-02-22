@@ -20,6 +20,7 @@ from pyproj import Geod
 from rich import print
 from scipy import spatial
 from shapely.geometry import Polygon
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import select, text
 from sqlalchemy.sql.functions import func
 
@@ -36,7 +37,7 @@ from src.core.isochrone import (
 from src.crud.base import CRUDBase
 from src.crud.crud_read_heatmap import CRUDBaseHeatmap
 from src.db import models
-from src.db.session import async_session, legacy_engine, sync_session
+from src.db.session import async_session, engine, legacy_engine, sync_session
 from src.jsoline import jsolines
 from src.resources.enums import RoutingTypes
 from src.schemas.heatmap import (
@@ -57,6 +58,7 @@ from src.utils import (
     create_dir,
     delete_dir,
     delete_file,
+    get_random_string,
     print_hashtags,
     print_info,
     print_warning,
@@ -69,6 +71,7 @@ poi_layers = {
 }
 
 
+
 class CRUDGridCalculation(
     CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
 ):
@@ -76,86 +79,67 @@ class CRUDGridCalculation(
 
 
 # TODO: Add more comments
-class CRUDComputeHeatmap(CRUDBaseHeatmap):
-    async def prepare_bulk_objs(
+class CRUDComputeHeatmap(CRUDBaseHeatmap):   
+    
+    async def get_bulk_ids(
         self,
         bulk_resolution: int,
         calculation_resolution: int,
         buffer_size: float,
+        speed: float,
+        travel_time: float,
         study_area_ids: list[int] = None,
-    ) -> dict:
-
-        """Created the starting points for the traveltime matrix calculation.
-
-        Args:
-            db (AsyncSession): Database session.
-            bulk_resolution (int): H3 resolution for the bulk grids.
-            calculation_resolution (int): H3 resolution for the calculation grids.
-            study_area_ids (list[int], optional): List of study area ids. Defaults to None and will use all study area.
-
-        Raises:
-            ValueError: If the bulk resolution is smaller than the calculation resolution.
-
-        Returns:
-            dict: Hierarchical structure of starting points for the calculation using the bulk resolution as parent and calculation resolution as children.
-        """
-        begin = time.time()
+    ) -> list[str]:
+        
+        buffer_size = speed * (travel_time * 60)
+        
         if bulk_resolution >= calculation_resolution:
             raise ValueError(
                 "Resolution of parent grid cannot be smaller then resolution of children grid."
             )
 
-        print_hashtags()
-        print_info("Preparing starting points for heatmap calculation")
-
-        begin = time.time()
         # Get unioned study areas
         bulk_ids = await self.read_h3_grids_study_areas(
             resolution=bulk_resolution, buffer_size=buffer_size, study_area_ids=study_area_ids
         )
-        end = time.time()
-        print_info(f"Time to get bulk ids: {end - begin}")
+        return bulk_ids
+    
+    async def create_calculation_object(
+        self,
+        calculation_resolution: int,
+        buffer_size: float,
+        bulk_id: str,
+    ) -> dict:
+        calculation_obj = {}
+        lons = []
+        lats = []
+        calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
+        starting_point_objs = []
+        coords = []
+        calculation_obj[bulk_id] = {}
+        for calculation_id in calculation_ids:
+            lat, lon = h3.h3_to_geo(calculation_id)
+            coords.append([lon, lat])
+            starting_point_objs.append(IsochroneStartingPointCoord(lat=lat, lon=lon))
+            lons.append(lon)
+            lats.append(lat)
+        calculation_obj[bulk_id]["calculation_ids"] = list(calculation_ids)
+        calculation_obj[bulk_id]["coords"] = coords
+        calculation_obj[bulk_id]["starting_point_objs"] = starting_point_objs
 
-        # Get all grids for the calculation resolution that are children of the bulk resolution
-        calculation_objs = {}
-        cnt_calculation_ids = 0
-
-        for bulk_id in bulk_ids:
-            lons = []
-            lats = []
-            calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
-            starting_point_objs = []
-            coords = []
-            calculation_objs[bulk_id] = {}
-            for calculation_id in calculation_ids:
-                lat, lon = h3.h3_to_geo(calculation_id)
-                coords.append([lon, lat])
-                starting_point_objs.append(IsochroneStartingPointCoord(lat=lat, lon=lon))
-                lons.append(lon)
-                lats.append(lat)
-            calculation_objs[bulk_id]["calculation_ids"] = list(calculation_ids)
-            calculation_objs[bulk_id]["coords"] = coords
-            calculation_objs[bulk_id]["starting_point_objs"] = starting_point_objs
-            cnt_calculation_ids += len(calculation_ids)
-
-            # Get buffered extents for grid size
-            gdf_starting_points = gpd.points_from_xy(x=lons, y=lats, crs="epsg:4326")
-            gdf_starting_points = gdf_starting_points.to_crs(epsg=3395)
-            extents = gdf_starting_points.buffer(buffer_size * math.sqrt(2), cap_style=3)
-            extents = extents.to_crs(epsg=3857)
-            extents = extents.bounds
-            extents = extents.tolist()
-            calculation_objs[bulk_id]["extents"] = extents
-            calculation_objs[bulk_id]["lats"] = lats
-            calculation_objs[bulk_id]["lons"] = lons
-
-        end = time.time()
-        print_info(f"Number of bulk grids: {len(bulk_ids)}")
-        print_info(f"Number of calculation grids: {cnt_calculation_ids}")
-        print_info(f"Calculation time: {end - begin} seconds")
-        print_hashtags()
-        return calculation_objs
-
+        # Get buffered extents for grid size
+        gdf_starting_points = gpd.points_from_xy(x=lons, y=lats, crs="epsg:4326")
+        gdf_starting_points = gdf_starting_points.to_crs(epsg=3395)
+        extents = gdf_starting_points.buffer(buffer_size * math.sqrt(2), cap_style=3)
+        extents = extents.to_crs(epsg=3857)
+        extents = extents.bounds
+        extents = extents.tolist()
+        calculation_obj[bulk_id]["extents"] = extents
+        calculation_obj[bulk_id]["lats"] = lats
+        calculation_obj[bulk_id]["lons"] = lons
+        
+        return calculation_obj
+        
     async def compute_traveltime_active_mobility(
         self, isochrone_dto: IsochroneDTO, calculation_objs: dict
     ):
@@ -165,6 +149,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
             calculation_objs (dict): Hierarchical structure of starting points for the calculation using the bulk resolution as parent and calculation resolution as children.
         """
+        random_table_prefix = get_random_string(10)
         starting_time = time.time()
 
         cnt = 0
@@ -193,7 +178,8 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 continue
 
             # Prepare starting points using routing network
-            starting_ids = await self.db.execute(
+            db = async_session()
+            starting_ids = await db.execute(
                 func.basic.heatmap_prepare_artificial(
                     obj["lons"],
                     obj["lats"],
@@ -204,10 +190,12 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     routing_profile,
                     True,
                     obj["calculation_ids"],
+                    random_table_prefix,
                 )
             )
-            await self.db.commit()
+            await db.commit()
             starting_ids = starting_ids.scalars().all()
+            await db.close()
 
             valid_extents = []
             valid_starting_ids = []
@@ -229,12 +217,15 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             isochrone_dto.starting_point.input = starting_point_objs
 
             # Read network
+            db = async_session()
             network = await crud.isochrone.read_network(
-                db=self.db,
+                db=db,
                 obj_in=isochrone_dto,
                 current_user=self.current_user,
                 isochrone_type=schemas.isochrone.IsochroneTypeEnum.heatmap.value,
+                table_prefix=random_table_prefix,
             )
+            await db.close()
             network = network[0]
             network = network.iloc[1:, :]
 
@@ -252,7 +243,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 total_extent,
                 geom_address,
                 geom_array,
-            ) = prepare_network_isochrone(edge_network_input=network)
+            ) = prepare_network_isochrone(network)
 
             # Prepare heatmap calculation objects
             traveltimeobjs = []
@@ -280,19 +271,21 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     isochrone_dto.output.resolution,
                 )
                 traveltimeobjs.append(results)
-                print("Computed traveltime for {} starting points".format(len(starting_ids_bulk)))
+                print(f"Computed traveltime for {i} to {i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE}th starting points out of {len(starting_ids)}")
 
             # Run multiprocessing
             # traveltimeobjs = heatmap_multiprocessing(heatmapObject)
             traveltimeobjs = merge_heatmap_traveltime_objects(traveltimeobjs)
             # Save files into cache folder
             file_name = f"{key}.npz"
-            file_dir = os.path.join(
+            directory = os.path.join(
                 settings.TRAVELTIME_MATRICES_PATH,
                 isochrone_dto.mode.value,
                 isochrone_dto.settings.walking_profile.value,
-                file_name,
             )
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            file_dir = os.path.join(directory, file_name)
             delete_file(file_dir)
             np.savez_compressed(
                 file_dir,
@@ -365,9 +358,9 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
         else:
             raise ValueError(f"Table name {table_name} is not a valid poi table name")
-
+        db = async_session()
         pois = [
-            self.db.execute(
+            db.execute(
                 sql_query,
                 sql_params
                 | {
@@ -378,9 +371,11 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             )
             for idx, filter_geom in enumerate(filter_geoms)
         ]
+        
 
         pois = await asyncio.gather(*pois)
         pois = [batch.fetchall() for batch in pois]
+        await db.close()
         pois_dict = {}
         for idx_bulk, batch in enumerate(pois):
             if len(batch) > 0:
@@ -597,8 +592,10 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         neighbors = list(compress(neighbors, intersects.values))
         return neighbors
 
-    async def get_h3_grids(self, study_area_id, resolution, style="int"):
-        study_area = await crud.study_area.get(self.db, id=study_area_id)
+    async def get_h3_grids(self, study_area_id, resolution):
+        db = async_session()
+        study_area = await crud.study_area.get(db, id=study_area_id)
+        await db.close()
         study_area_polygon = to_shape(study_area.geom)
         grids = []
         for polygon_ in list(study_area_polygon.geoms):
@@ -608,29 +605,26 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         grids = list(set(grids))
         neighbors = await self.get_interior_neighbors(grids, study_area_polygon)
         grids.extend(neighbors)
-        if style == "hex":
-            grids = np.array(grids)
-        elif style == "int":
-            grids = np.array([int(hex_id, 16) for hex_id in grids])
+        grids = np.array(grids)
+
         return grids
 
     async def create_h3_grids(self, study_area_ids):
         # TODO: Part of this is moved as a utility function. Refactor.
         base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
         for study_area_id in study_area_ids:
+            print_info("Started creating H3 grids for study area: ", study_area_id)
             for resolution in range(6, 11):
-                grids = await self.get_h3_grids(study_area_id, resolution, style="hex")
+                print_info("Starting to compute resolution: ", resolution)
+                # Get grid ids
+                grids = await self.get_h3_grids(study_area_id, resolution)
+                # Get polygon geometries
                 hex_polygons = [
                     np.array(h3.h3_to_geo_boundary(str(hex_id), geo_json=True)) for hex_id in grids
                 ]
-                grids = np.array([int(hex_id, 16) for hex_id in grids])
-                # hex_polygons_func = np.vectorize(hex_polygons_lambda)
+                # Convert grid ids to int
+                grids = np.array([h3.string_to_h3(str(hex_id)) for hex_id in grids])
                 hex_polygons = np.array(hex_polygons)
-
-                # hex_polygons = gpd.GeoSeries(list(map(hex_polygons, grids)), crs="EPSG:4326")
-                # gdf = gpd.GeoDataFrame(
-                #     data={"bulk_id": grids}, geometry=hex_polygons, crs="EPSG:4326"
-                # )
 
                 directory = os.path.join(base_path, str(study_area_id), "h3")
                 grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
@@ -716,7 +710,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         directory = self.get_connectivity_path(mode, profile)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        h6_hexagons = await self.get_h3_grids(study_area_id, 6, style="hex")
+        h6_hexagons = await self.get_h3_grids(study_area_id, 6)
         for h6_id in h6_hexagons:
             travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
             traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
@@ -763,23 +757,23 @@ def main():
     )
 
     crud_heatmap = CRUDComputeHeatmap(db=db, current_user=superuser)
-    asyncio.get_event_loop().run_until_complete(
-        crud_heatmap.execute_pre_calculation(
-            isochrone_dto=isochrone_dto,
-            bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
-            calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
-            study_area_ids=[
-                91620000,
-            ],
-        )
-    )
     # asyncio.get_event_loop().run_until_complete(
-    #     crud_heatmap.create_h3_grids(
+    #     crud_heatmap.execute_pre_calculation(
+    #         isochrone_dto=isochrone_dto,
+    #         bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
+    #         calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
     #         study_area_ids=[
     #             91620000,
     #         ],
     #     )
     # )
+    asyncio.get_event_loop().run_until_complete(
+        crud_heatmap.create_h3_grids(
+            study_area_ids=[
+                91620000,
+            ],
+        )
+    )
     # asyncio.get_event_loop().run_until_complete(
     #     crud_heatmap.create_connectivity_heatmap_files(
     #         profile="walking", h6_id="861f8d787ffffff", max_time=20
