@@ -6,7 +6,6 @@ from .isochrone import IsochroneDTO
 class BulkIdParameters(BaseModel):
     bulk_resolution: int
     calculation_resolution: int
-    buffer_size: float
     speed: float
     travel_time: float
     study_area_ids: list[int]
@@ -28,7 +27,6 @@ class OpportunityMatrixParameters2(BaseModel):
 BulkIdParametersExample = {
     "bulk_resolution": 6,
     "calculation_resolution": 10,
-    "buffer_size": 0.5,
     "speed": 5,
     "travel_time": 20,
     "study_area_ids": [91620000]
@@ -58,7 +56,7 @@ OpportunityMatrixParametersExample = {
         },
         "output": {
             "type": "grid",
-            "steps": 12
+            "resolution": 12
         }
         }
 }

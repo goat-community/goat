@@ -64,11 +64,11 @@ def calculate_areas_from_pixles(travel_time_pixels, max_travel_times):
     
     return areas
 
-def h3_to_int(h3_array:np.ndarray):
-    """
-    Convert the h3 array to int array.
-    """
-    return np.vectorize(lambda x: int(x, 16), otypes=['uint64'])(h3_array)
+# def h3_to_int(h3_array:np.ndarray):
+#     """
+#     Convert the h3 array to int array.
+#     """
+#     return np.vectorize(lambda x: h3._cy.stringToH3(x), otypes=['uint64'])(h3_array)
 
 
 def sort_and_unique_by_grid_ids(grid_ids, travel_times):

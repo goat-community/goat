@@ -457,7 +457,8 @@ class CRUDIsochrone:
             FROM basic.fetch_network_routing_multi(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
             """
         elif isochrone_type == IsochroneTypeEnum.heatmap.value:
-            sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+            sql_text = f"""
+            SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
             FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile, :table_prefix)
             """
 
@@ -494,7 +495,7 @@ class CRUDIsochrone:
                 "x": x,
                 "y": y,
                 "max_cutoff": obj_in.settings.travel_time * 60,  # in seconds
-                "speed": obj_in.settings.speed,
+                "speed": obj_in.settings.speed / 3.6,
                 "modus": obj_in.scenario.modus.value,
                 "scenario_id": obj_in.scenario.id,
                 "routing_profile": routing_profile,
@@ -530,7 +531,7 @@ class CRUDIsochrone:
                 scenario_id=None if obj_in.scenario.id == 0 else obj_in.scenario.id,
                 starting_point=starting_point_geom,
                 routing_profile=routing_profile,
-                speed=obj_in.settings.speed * 3.6,  # in km/h
+                speed=obj_in.settings.speed,  # in km/h
                 modus=obj_in.scenario.modus.value,
                 parent_id=None,
             )
@@ -666,7 +667,7 @@ class CRUDIsochrone:
             "user_id": current_user.id,
             "modus": obj_in.scenario.modus.value,
             "minutes": obj_in.settings.travel_time,
-            "speed": obj_in.settings.speed,
+            "speed": obj_in.settings.speed / 3.6,
             "amenities": obj_in.starting_point.input,
             "scenario_id": obj_in.scenario.id,
             "active_upload_ids": current_user.active_data_upload_ids,
@@ -730,8 +731,8 @@ class CRUDIsochrone:
             payload = {
                 "accessModes": obj_in.settings.access_mode.value.upper(),
                 "transitModes": ",".join(x.value.upper() for x in obj_in.settings.transit_modes),
-                "bikeSpeed": obj_in.settings.bike_speed,
-                "walkSpeed": obj_in.settings.walk_speed,
+                "bikeSpeed": obj_in.settings.bike_speed / 3.6,
+                "walkSpeed": obj_in.settings.walk_speed / 3.6,
                 "bikeTrafficStress": obj_in.settings.bike_traffic_stress,
                 "date": available_dates[weekday],
                 "fromTime": obj_in.settings.from_time,
