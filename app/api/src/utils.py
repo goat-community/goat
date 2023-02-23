@@ -332,9 +332,65 @@ def decode_r5_grid(grid_data_buffer: bytes) -> dict:
     return header | metadata | {"data": data, "errors": [], "warnings": []}
 
 
-def compute_single_value_surface(grid: dict, percentile: int) -> np.array:
+def filter_r5_grid(grid: dict, percentile: int, travel_time_limit: int = None) -> dict:
     """
-    Compute single value surface
+    This function strips the grid to only include one percentile
+    and removes empty rows/columns around the bounding box of the largest isochrone.
+    It also updates the west/noth/width/height metadata values.
+    Padding is added to the grid to avoid edge effects on jsolines.
+    """
+    if (
+        grid["data"] is None
+        or grid["width"] is None
+        or grid["height"] is None
+        or grid["depth"] is None
+    ):
+        return None
+    travel_time_percentiles = [5, 25, 50, 75, 95]
+    percentile_index = travel_time_percentiles.index(percentile)
+
+    if grid["depth"] == 1:
+        # if only one percentile is requested, return the grid as is
+        grid_1d = grid["data"]
+    else:
+        grid_percentiles = np.reshape(grid["data"], (grid["depth"], -1))
+        grid_1d = grid_percentiles[percentile_index]
+        grid["depth"] = 1
+
+    # filter grid to only include percentile
+    # Convert the data list to a 2D array
+    grid_2d = np.array(grid_1d).reshape(grid["height"], grid["width"])
+
+    if travel_time_limit:
+        grid_2d = np.where(grid_2d > travel_time_limit, 2147483647, grid_2d)
+
+    # Find the minimum and maximum non-zero row and column indices in the data array
+    nonzero_rows, nonzero_cols = np.nonzero(grid_2d != 2147483647)
+    min_row, max_row = np.min(nonzero_rows), np.max(nonzero_rows)
+    min_col, max_col = np.min(nonzero_cols), np.max(nonzero_cols)
+    # Update the west, north, width, and height values
+    grid["west"] += min_col - 2
+    grid["north"] += min_row - 2
+    grid["width"] = max_col - min_col + 5
+    grid["height"] = max_row - min_row + 5
+    # Create a new 2D array with the dimensions of the figure bounding box
+    new_data_arr = np.full((max_row - min_row + 1, max_col - min_col + 1), 2147483647)
+    # Copy the non-zero values from the original array to the new array,
+    # but only within the figure bounding box
+    new_data_arr[nonzero_rows - min_row, nonzero_cols - min_col] = grid_2d[
+        nonzero_rows, nonzero_cols
+    ]
+    # Pad the new data array with 2147483647 to avoid edge effects on jsolines
+    new_data_arr = np.pad(new_data_arr, 2, "constant", constant_values=(2147483647,))
+    # Convert the new data array back to a list
+    new_data_arr = new_data_arr.flatten()
+    grid["data"] = new_data_arr
+    return grid
+
+
+def compute_r5_surface(grid: dict, percentile: int) -> np.array:
+    """
+    Compute single value surface from the grid
     """
     if (
         grid["data"] is None
@@ -362,7 +418,7 @@ def z_scale(z):
     2^z represents the tile number. Scale that by the number of pixels in each tile.
     """
     PIXELS_PER_TILE = 256
-    return 2 ** z * PIXELS_PER_TILE
+    return 2**z * PIXELS_PER_TILE
 
 
 @njit(cache=True)
@@ -651,7 +707,7 @@ def save_file(data_file: UploadFile):
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail="The uploaded file size is to big the largest allowd size is %s MB."
-                % round(MaxUploadFileSize.max_upload_poi_file_size / 1024.0 ** 2, 2),
+                % round(MaxUploadFileSize.max_upload_poi_file_size / 1024.0**2, 2),
             )
 
         temp.write(chunk)
@@ -827,11 +883,11 @@ def timing(f):
 def get_random_string(length):
     # choose from all lowercase letter
     letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for i in range(length))
-    
+    return "".join(random.choice(letters) for i in range(length))
 
-def h3_to_int(h3_array:np.ndarray):
+
+def h3_to_int(h3_array: np.ndarray):
     """
     Convert the h3 array to int array.
     """
-    return np.vectorize(lambda x: h3.string_to_h3(str(x)), otypes=['uint64'])(h3_array)
+    return np.vectorize(lambda x: h3.string_to_h3(str(x)), otypes=["uint64"])(h3_array)
