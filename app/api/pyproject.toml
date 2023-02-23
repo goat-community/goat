@@ -54,6 +54,8 @@ h3 = "^3.7.6"
 cython = "^0.29.33"
 pyarrow = "^10.0.1"
 asgiref = "^3.6.0"
+aiofiles = "^23.1.0"
+asyncio = "^3.4.3"
 
 
 [tool.poetry.dev-dependencies]
