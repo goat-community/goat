@@ -6,7 +6,6 @@ from sqlmodel import SQLModel
 
 from src.schemas.isochrone import (
     CalculationTypes,
-    IsochroneAccessMode,
     IsochroneCyclingProfile,
     IsochroneScenario,
     IsochroneWalkingProfile,
@@ -32,6 +31,7 @@ class HeatmapWalkingCalculationResolution(int, Enum):
 class HeatmapMode(Enum):
     walking = "walking"
     cycking = "cycling"
+    transit = "transit"
     
 class HeatmapProfile(Enum):
     standard = "standard"
