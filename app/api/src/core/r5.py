@@ -22,6 +22,7 @@ from src.utils import (
     print_info,
     print_warning,
     web_mercator_to_wgs84,
+    wgs84_to_web_mercator,
 )
 
 # ====================#
@@ -186,7 +187,7 @@ async def prepare_bulk_objs(
         calculation_objs[bulk_id]["lons"].append(lon)
         calculation_objs[bulk_id]["lats"].append(lat)
         coords = [lon, lat]
-        # TODO: Why we do we need the IsochroneStartingPointCoord model for walking.  We have the same data in the coords list and also in lons and lats.
+        # TODO: Why we do we need the IsochroneStartingPointCoord model for walking?  We have the same data in the coords list and also in lons and lats.
         if bulk_obj_type != HeatmapMode.transit:
             if "starting_point_objs" not in calculation_objs[bulk_id]:
                 calculation_objs[bulk_id]["starting_point_objs"] = []
@@ -198,8 +199,15 @@ async def prepare_bulk_objs(
         if bulk_obj_type == HeatmapMode.transit:
             # for transit we don't know how far you can reach so the extent of the isochrone is a large safe buffer in meters
             # if we don't define the extent of the isochrone the calculation will take a very long time as R5 will calculate it for the whole project extent.
-            # TODO: Find a better way to define the extent of the isochrone for transit
-            extent = row.geometry.buffer(65000 * math.sqrt(2), cap_style=3)
+            if len(calculation_objs[bulk_id]["extents"]) == 0:
+                # use the extent of the bulk object. This is done to optimize the R5 calculation speed. Since the buffer is quite large we can use the bulk object extent. 
+                bulk_lat, bulk_lon = h3.h3_to_geo(bulk_id)
+                bulk_geom = wgs84_to_web_mercator(Point(bulk_lon, bulk_lat))
+                # TODO: Find a better way to define/estimate the extent of the isochrone for transit
+                extent = bulk_geom.buffer(70000)
+            else:
+                # use same extent as first calculation object
+                extent = box(*calculation_objs[bulk_id]["extents"][0])
         else:
             extent = row.geometry.buffer(starting_point_buffer * math.sqrt(2), cap_style=3)
 
