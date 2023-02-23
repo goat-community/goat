@@ -1,29 +1,32 @@
 import asyncio
 import base64
 import math
-import random
 import time
 from enum import Enum
-from pathlib import Path
 
-import aiofiles
 import geopandas as gpd
 import h3
-import numpy as np
 from aiohttp import BasicAuth, ClientError, ClientSession
 from pydantic import BaseModel, Field
 from shapely.geometry import box
 
 from src.core.config import settings
+from src.core.heatmap import save_traveltime_matrix
 from src.db.session import legacy_engine
-from src.utils import create_h3_grid, decode_r5_grid, print_info, web_mercator_to_wgs84
+from src.utils import (
+    create_h3_grid,
+    decode_r5_grid,
+    filter_r5_grid,
+    print_info,
+    web_mercator_to_wgs84,
+)
 
 # -- R5 CONFIGURATION --
 RESOLUTION = 9
 MAX_DISTANCE_FROM_CENTER = 80000  # in meters (used to calculate the bounds from each hex center)
 WALKING_SPEED = 1.39  # in m/s
 MAX_WALK_TIME = 20  # in minutes
-PAYLOAD = {
+PAYLOAD_TMPL = {
     "accessModes": "WALK",
     "transitModes": "BUS,TRAM,SUBWAY,RAIL",
     "bikeSpeed": 4.166666666666667,
@@ -72,64 +75,22 @@ class PrepareBulkObjType(str, Enum):
     WALKING = "walking"
 
 
+class BulkCalculationObj(BaseModel):
+    lons: list[float] = []
+    lats: list[float] = []
+    coords: list[list[float]] = []
+    calculation_ids: list[str] = []
+    starting_point_objs: list[dict] = []
+    extents: list[dict] = []
+
+
+class BulkCalculationObjs(dict[str, BulkCalculationObj]):
+    pass
+
+
 user, password = (
     base64.b64decode(settings.R5_AUTHORIZATION.split(" ")[1]).decode("utf-8").split(":")
 )
-
-
-def filter_r5_grid(grid: dict, percentile: int, travel_time_limit: int = None):
-    """
-    This function strips the grid to only include one percentile and removes empty rows/columns around the bounding box of the largest isochrone.
-    It also updates the west/noth/width/height metadata values.
-    Padding is added to the grid to avoid edge effects on jsolines.
-    """
-    if (
-        grid["data"] is None
-        or grid["width"] is None
-        or grid["height"] is None
-        or grid["depth"] is None
-    ):
-        return None
-    travel_time_percentiles = [5, 25, 50, 75, 95]
-    percentile_index = travel_time_percentiles.index(percentile)
-
-    if grid["depth"] == 1:
-        # if only one percentile is requested, return the grid as is
-        grid_1d = grid["data"]
-    else:
-        grid_percentiles = np.reshape(grid["data"], (grid["depth"], -1))
-        grid_1d = grid_percentiles[percentile_index]
-        grid["depth"] = 1
-
-    # filter grid to only include percentile
-    # Convert the data list to a 2D array
-    grid_2d = np.array(grid_1d).reshape(grid["height"], grid["width"])
-
-    if travel_time_limit:
-        grid_2d = np.where(grid_2d > travel_time_limit, 2147483647, grid_2d)
-
-    # Find the minimum and maximum non-zero row and column indices in the data array
-    nonzero_rows, nonzero_cols = np.nonzero(grid_2d != 2147483647)
-    min_row, max_row = np.min(nonzero_rows), np.max(nonzero_rows)
-    min_col, max_col = np.min(nonzero_cols), np.max(nonzero_cols)
-    # Update the west, north, width, and height values
-    grid["west"] += min_col - 2
-    grid["north"] += min_row - 2
-    grid["width"] = max_col - min_col + 5
-    grid["height"] = max_row - min_row + 5
-    # Create a new 2D array with the dimensions of the figure bounding box
-    new_data_arr = np.full((max_row - min_row + 1, max_col - min_col + 1), 2147483647)
-    # Copy the non-zero values from the original array to the new array,
-    # but only within the figure bounding box
-    new_data_arr[nonzero_rows - min_row, nonzero_cols - min_col] = grid_2d[
-        nonzero_rows, nonzero_cols
-    ]
-    # Pad the new data array with 2147483647 to avoid edge effects on jsolines
-    new_data_arr = np.pad(new_data_arr, 2, "constant", constant_values=(2147483647,))
-    # Convert the new data array back to a list
-    new_data_arr = new_data_arr.flatten()
-    grid["data"] = new_data_arr
-    return grid
 
 
 async def prepare_bulk_objs(
@@ -237,48 +198,49 @@ async def prepare_bulk_objs(
     return calculation_objs
 
 
-async def compute_transit_traveltime_active_mobility(isochrone_dto: dict, calculation_objs: dict):
+async def compute_transit_traveltime_active_mobility(calculation_objs: BulkCalculationObjs):
     # PREPARE PAYLOADS
     for bulk_idx, (bulk_id, bulk_obj) in enumerate(calculation_objs.items()):
-        starting_time_section = time.time()
         print_info(
-            f"Starting to compute isochrones for bulk {bulk_id} - {bulk_idx +1 } of {len(calculation_objs)}"
+            f"{bulk_id} - {bulk_idx +1 } of {len(calculation_objs)}"
         )
-
-        payloads = []
-        for idx, value in enumerate(bulk_obj["calculation_ids"]):
-            payload = isochrone_dto.copy()
-            payload["h3_index"] = value
-            payload["fromLon"] = bulk_obj["lons"][idx]
-            payload["fromLat"] = bulk_obj["lats"][idx]
-            extent = bulk_obj["extents"][idx]
-            extent = list(web_mercator_to_wgs84(box(*extent, ccw=True)).bounds)
-            payload["bounds"] = {
-                "north": extent[3],
-                "south": extent[1],
-                "east": extent[2],
-                "west": extent[0],
-            }
-            payloads.append(payload)
-        # EXECUTE THE REQUESTS IN PARALLEL FETCH ISOCHRONES
-        # bulk_size = len(calculation_objs)
-        # payloads_sample = random.sample(payloads, bulk_size)
-        await fetch_isochrones(
-            payloads, "/app/src/cache/traveltime_matrices/public_transport", parallel_requests=60
+        await process_bulk(
+            bulk_id,
+            bulk_obj,
+            "/app/src/cache/traveltime_matrices/public_transport",
+            parallel_requests=60,
         )
-        print_info(
-            f"Computed {bulk_id} isochrones in {time.time() - starting_time_section} seconds"
-        )
+     
 
     return None
 
 
-async def fetch_isochrones(
-    payloads: dict,
-    save_dir: str,
+async def process_bulk(
+    bulk_id: str,
+    bulk_obj: BulkCalculationObj,
+    output_dir: str,
     parallel_requests: int = None,
 ):
     start = time.time()
+    print_info(f"Starting to process travel times for bulk {bulk_id}")
+    # Prepare R5 payloads
+    payloads = []
+    for idx, value in enumerate(bulk_obj["calculation_ids"]):
+        payload = PAYLOAD_TMPL.copy()
+        payload["h3_index"] = value
+        payload["fromLon"] = bulk_obj["lons"][idx]
+        payload["fromLat"] = bulk_obj["lats"][idx]
+        extent = bulk_obj["extents"][idx]
+        extent = list(web_mercator_to_wgs84(box(*extent, ccw=True)).bounds)
+        payload["bounds"] = {
+            "north": extent[3],
+            "south": extent[1],
+            "east": extent[2],
+            "west": extent[0],
+        }
+        payloads.append(payload)
+    traveltimeobjs = {"west": [], "north": [], "zoom": [], "width": [], "height": [], "grid_ids": [], "travel_times": []}
+    # Send requests to R5 API in batches
     if parallel_requests is None:
         parallel_requests = len(payloads)
     async with ClientSession(
@@ -288,14 +250,33 @@ async def fetch_isochrones(
             api_calls = []
             batch = payloads[i : i + parallel_requests]
             for index, payload in enumerate(batch):
-                api_calls.append(get_isochrone(payload, client))
+                api_calls.append(fetch_travel_time(payload, client, 60))
             results = await asyncio.gather(*api_calls)
+            for result in results:
+                h3_grid_id = result["h3_index"]
+                grid = result["grid"]
+                traveltimeobjs["west"].append(grid["west"])
+                traveltimeobjs["north"].append(grid["north"])
+                traveltimeobjs["zoom"].append(grid["zoom"])
+                traveltimeobjs["width"].append(grid["width"])
+                traveltimeobjs["height"].append(grid["height"])
+                traveltimeobjs["grid_ids"].append(h3_grid_id)
+                traveltimeobjs["travel_times"].append(grid["data"])
+
             print(f"Batch {i} done")
+    # Save results to npz file
+    save_traveltime_matrix(traveltimeobjs, output_dir, bulk_id)
 
-    print(f"Done in {time.time() - start} seconds")
+    # Copy to S3 bucket (if configured)
+
+    print(f"Computed travel times for {bulk_id} in {time.time() - start} seconds")
 
 
-async def get_isochrone(payload, client):
+async def fetch_travel_time(payload: dict, client: ClientSession, travel_time_limit: int = 60):
+    """
+    Fetches a single isochrone from the R5 API and returns the decoded grid
+    Grid is filtered to only include the area within the study area within the isochrone
+    """
     data = None
     retry_count = 0
     while data is None and retry_count < 10:
@@ -316,8 +297,7 @@ async def get_isochrone(payload, client):
     if data is None:
         raise Exception(f"Could not get isochrone for {payload['h3_index']}")
     grid = decode_r5_grid(data)
-    grid = filter_r5_grid(grid, 5, 60)  # TODO: Make this configurable
-    h3_index = payload["h3_index"]
+    grid = filter_r5_grid(grid, 5, travel_time_limit) #todo: compare the travel time result with the one from conveyal to see if they are the same
     payload["grid"] = grid
     return payload
 
@@ -332,7 +312,7 @@ async def main():
         bulk_obj_type=PrepareBulkObjType.TRANSIT,
         starting_point_buffer=starting_point_buffer,
     )
-    await compute_transit_traveltime_active_mobility(PAYLOAD, calculation_objs)
+    await compute_transit_traveltime_active_mobility(calculation_objs)
     print("Done")
     pass
 
