@@ -186,3 +186,11 @@ class GeostoreType(str, Enum):
 class SystemStatus(str, Enum):
     maintenance = "maintenance"
     running = "running"
+
+class OpportunityHeatmapTypes(str, Enum):
+    """Opportunity type for the heatmap."""
+
+    poi = "poi"
+    poi_user = "poi_user"
+    aoi = "aoi"
+    population = "population"

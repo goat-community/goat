@@ -829,3 +829,9 @@ def get_random_string(length):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
     
+
+def h3_to_int(h3_array:np.ndarray):
+    """
+    Convert the h3 array to int array.
+    """
+    return np.vectorize(lambda x: h3.string_to_h3(str(x)), otypes=['uint64'])(h3_array)

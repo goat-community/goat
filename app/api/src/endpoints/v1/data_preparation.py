@@ -43,7 +43,8 @@ async def create_traveltime_matrices(
 async def create_traveltime_matrices(
     *,
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
-    parameters: schemas.OpportunityMatrixParameters2 = Body(..., example=schemas.OpportunityMatrixParametersExample)):
+    parameters: schemas.OpportunityMatrixParameters2 = Body(..., example=schemas.OpportunityMatrixParametersExample)
+    ):
     parameters = json.loads(parameters.json())
     parameters2 = parameters.copy()
     current_super_user = json.loads(current_super_user.json())

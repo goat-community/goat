@@ -28,10 +28,7 @@ from src import crud, schemas
 from src.core import heatmap as heatmap_core
 from src.core import heatmap_cython
 from src.core.config import settings
-from src.core.heatmap import merge_heatmap_traveltime_objects
 from src.core.isochrone import (
-    compute_isochrone_heatmap,
-    heatmap_multiprocessing,
     prepare_network_isochrone,
 )
 from src.crud.base import CRUDBase
@@ -39,7 +36,7 @@ from src.crud.crud_read_heatmap import CRUDBaseHeatmap
 from src.db import models
 from src.db.session import async_session, engine, legacy_engine, sync_session
 from src.jsoline import jsolines
-from src.resources.enums import RoutingTypes
+from src.resources.enums import RoutingTypes, OpportunityHeatmapTypes
 from src.schemas.heatmap import (
     HeatmapWalkingBulkResolution,
     HeatmapWalkingCalculationResolution,
@@ -54,14 +51,19 @@ from src.schemas.isochrone import (
     IsochroneStartingPoint,
     IsochroneStartingPointCoord,
 )
+from src.core.isochrone import (
+    dijkstra2,
+    network_to_grid,
+)
+
 from src.utils import (
     create_dir,
-    delete_dir,
     delete_file,
     get_random_string,
     print_hashtags,
     print_info,
     print_warning,
+    h3_to_int,
 )
 
 poi_layers = {
@@ -70,37 +72,23 @@ poi_layers = {
     "poi_user": models.PoiUser,
 }
 
-
-
 class CRUDGridCalculation(
     CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
 ):
     pass
 
 
-# TODO: Add more comments
 class CRUDComputeHeatmap(CRUDBaseHeatmap):   
     
     async def get_bulk_ids(
         self,
-        bulk_resolution: int,
-        calculation_resolution: int,
-        buffer_size: float,
-        speed: float,
-        travel_time: float,
+        buffer_distance: int,
         study_area_ids: list[int] = None,
     ) -> list[str]:
-        
-        buffer_size = speed * (travel_time * 60)
-        
-        if bulk_resolution >= calculation_resolution:
-            raise ValueError(
-                "Resolution of parent grid cannot be smaller then resolution of children grid."
-            )
-
+    
         # Get unioned study areas
         bulk_ids = await self.read_h3_grids_study_areas(
-            resolution=bulk_resolution, buffer_size=buffer_size, study_area_ids=study_area_ids
+            resolution=HeatmapWalkingBulkResolution.value, buffer_size=buffer_distance, study_area_ids=study_area_ids
         )
         return bulk_ids
     
@@ -110,13 +98,19 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         buffer_size: float,
         bulk_id: str,
     ) -> dict:
+
+        # Define variables
         calculation_obj = {}
         lons = []
         lats = []
-        calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
         starting_point_objs = []
         coords = []
         calculation_obj[bulk_id] = {}
+        
+        # Get all calculation ids for bulk id
+        calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
+
+        # Loop through all calculation ids and create centroid coordinates for starting points
         for calculation_id in calculation_ids:
             lat, lon = h3.h3_to_geo(calculation_id)
             coords.append([lon, lat])
@@ -141,7 +135,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         return calculation_obj
         
     async def compute_traveltime_active_mobility(
-        self, isochrone_dto: IsochroneDTO, calculation_objs: dict
+        self, isochrone_dto: IsochroneDTO, calculation_obj: dict
     ):
         """Computes the traveltime for active mobility in matrix style.
 
@@ -149,13 +143,11 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
             calculation_objs (dict): Hierarchical structure of starting points for the calculation using the bulk resolution as parent and calculation resolution as children.
         """
+        # Create random table prefix for starting ids and artificial edges
         random_table_prefix = get_random_string(10)
         starting_time = time.time()
 
-        cnt = 0
-        cnt_sections = len(calculation_objs)
-
-        routing_profile = None
+        # Get Routing Profile
         if isochrone_dto.mode.value == IsochroneMode.WALKING.value:
             routing_profile = (
                 isochrone_dto.mode.value + "_" + isochrone_dto.settings.walking_profile.value
@@ -164,150 +156,155 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             routing_profile = (
                 isochrone_dto.mode.value + "_" + isochrone_dto.settings.cycling_profile.value
             )
+        else:
+            raise ValueError("Mode not supported.")
 
-        for key, obj in calculation_objs.items():
-            starting_time_section = time.time()
-            starting_time_network_preparation = time.time()
-            cnt += 1
-            cnt_theoretical_starting_points = len(obj["starting_point_objs"])
-            # Check if there are no starting points
-            if len(obj["starting_point_objs"]) == 0:
-                print_info(
-                    f"No starting points for section [bold magenta]{str(cnt)}[/bold magenta]"
-                )
-                continue
+        # Get calculation object
+        bulk_id = list(calculation_obj.keys())[0]
+        obj = calculation_obj[bulk_id]
 
-            # Prepare starting points using routing network
-            db = async_session()
-            starting_ids = await db.execute(
-                func.basic.heatmap_prepare_artificial(
-                    obj["lons"],
-                    obj["lats"],
-                    isochrone_dto.settings.travel_time * 60,
-                    isochrone_dto.settings.speed,
-                    isochrone_dto.scenario.modus.value,
-                    isochrone_dto.scenario.id,
-                    routing_profile,
-                    True,
-                    obj["calculation_ids"],
-                    random_table_prefix,
-                )
+        # Check if there are no starting points
+        if len(obj["starting_point_objs"]) == 0:
+            print_info(
+                f"No starting points for section."
             )
-            await db.commit()
-            starting_ids = starting_ids.scalars().all()
-            await db.close()
+            return
 
-            valid_extents = []
-            valid_starting_ids = []
-            valid_starting_point_objs = []
-            valid_calculation_ids = []
-            for i in starting_ids:
-                starting_id = i[0]
-                grid_calculation_id = i[1]
-                idx = obj["calculation_ids"].index(grid_calculation_id)
-                valid_extents.append(obj["extents"][idx])
-                valid_starting_ids.append(starting_id)
-                valid_starting_point_objs.append(obj["starting_point_objs"][idx])
-                valid_calculation_ids.append(grid_calculation_id)
-
-            grid_ids = np.array(valid_calculation_ids)
-            extents = np.array(valid_extents)
-            starting_point_objs = np.array(valid_starting_point_objs)
-            starting_ids = np.array(valid_starting_ids)
-            isochrone_dto.starting_point.input = starting_point_objs
-
-            # Read network
-            db = async_session()
-            network = await crud.isochrone.read_network(
-                db=db,
-                obj_in=isochrone_dto,
-                current_user=self.current_user,
-                isochrone_type=schemas.isochrone.IsochroneTypeEnum.heatmap.value,
-                table_prefix=random_table_prefix,
+        # Prepare starting points using routing network
+        db = async_session()
+        starting_ids = await db.execute(
+            func.basic.heatmap_prepare_artificial(
+                obj["lons"],
+                obj["lats"],
+                isochrone_dto.settings.travel_time * 60,
+                isochrone_dto.settings.speed / 3.6,
+                isochrone_dto.scenario.modus.value,
+                isochrone_dto.scenario.id,
+                routing_profile,
+                True,
+                obj["calculation_ids"],
+                random_table_prefix,
             )
-            await db.close()
-            network = network[0]
-            network = network.iloc[1:, :]
+        )
+        await db.commit()
+        starting_ids = starting_ids.scalars().all()
+        await db.close()
 
-            # Get end time for network preparation
-            end_time_network_preparation = time.time()
+        # Sort out invalid starting points (no network edge found)
+        valid_extents = []
+        valid_starting_ids = []
+        valid_starting_point_objs = []
+        valid_calculation_ids = []
 
-            (
+        for starting_id, grid_calculation_id in starting_ids:
+            idx = obj["calculation_ids"].index(grid_calculation_id)
+            valid_extents.append(obj["extents"][idx])
+            valid_starting_ids.append(starting_id)
+            valid_starting_point_objs.append(obj["starting_point_objs"][idx])
+            valid_calculation_ids.append(grid_calculation_id)
+
+        grid_ids = np.array(valid_calculation_ids)
+        extents = np.array(valid_extents)
+        starting_point_objs = np.array(valid_starting_point_objs)
+        starting_ids = np.array(valid_starting_ids)
+        isochrone_dto.starting_point.input = starting_point_objs
+
+        # Read network
+        db = async_session()
+        network = await crud.isochrone.read_network(
+            db=db,
+            obj_in=isochrone_dto,
+            current_user=self.current_user,
+            isochrone_type=schemas.isochrone.IsochroneTypeEnum.heatmap.value,
+            table_prefix=random_table_prefix,
+        )
+        await db.close()
+        network = network[0]
+        network = network.iloc[1:, :]
+
+        # Prepare network
+        (
+            edges_source,
+            edges_target,
+            edges_cost,
+            edges_reverse_cost,
+            edges_length,
+            unordered_map,
+            node_coords,
+            total_extent,
+            geom_address,
+            geom_array,
+        ) = prepare_network_isochrone(network)
+
+        # Prepare heatmap calculation objects
+        traveltimeobjs = {"west": [], "north": [], "zoom": [], "width": [], "height": [], "grid_ids": [], "travel_times": []}
+
+        for idx, start_vertex in enumerate(starting_ids):
+            # Assign variables
+            grid_id = grid_ids[idx]
+            extent = extents[idx]
+
+            # Get start vertex
+            start_id = np.array(
+                [unordered_map[v] for v in [start_vertex]]
+            )
+            # Run Dijkstra
+            distances = dijkstra2(
+                start_id,
                 edges_source,
                 edges_target,
                 edges_cost,
                 edges_reverse_cost,
+                isochrone_dto.settings.travel_time,
+            )
+
+            # Convert network to grid
+            grid = network_to_grid(
+                extent,
+                isochrone_dto.output.resolution,
+                edges_source,
+                edges_target,
                 edges_length,
-                unordered_map,
-                node_coords,
-                total_extent,
                 geom_address,
                 geom_array,
-            ) = prepare_network_isochrone(network)
+                distances,
+                node_coords,
+            )
+            # Assign grid_id and rename data to travel_times
+            grid["grid_ids"] = grid_id
+            grid["travel_times"] = grid.pop("data")
+            # Save to traveltime object
+            for key in traveltimeobjs.keys():
+                traveltimeobjs[key].append(grid[key])
+            # Print progress
+            if idx % 100 == 0:
+                print_info(f"Progress traveltime matrices: {idx}/{len(starting_ids)}")
 
-            # Prepare heatmap calculation objects
-            traveltimeobjs = []
-            for i in range(0, len(starting_ids), settings.HEATMAP_MULTIPROCESSING_BULK_SIZE):
-                starting_ids_bulk = starting_ids[
-                    i : i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE
-                ]
-                grid_ids_bulk = grid_ids[i : i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE]
-                extents_bulk = extents[i : i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE]
+        # Convert to numpy arrays
+        for key in traveltimeobjs.keys():
+            # Check if str then obj type 
+            if isinstance(traveltimeobjs[key][0], str):
+                traveltimeobjs[key] = np.array(traveltimeobjs[key], dtype=object)
+            else:
+                traveltimeobjs[key] = np.array(traveltimeobjs[key])
 
-                results = compute_isochrone_heatmap(
-                    edges_source,
-                    edges_target,
-                    edges_cost,
-                    edges_reverse_cost,
-                    geom_address,
-                    geom_array,
-                    edges_length,
-                    unordered_map,
-                    node_coords,
-                    extents_bulk,
-                    starting_ids_bulk,
-                    grid_ids_bulk,
-                    isochrone_dto.settings.travel_time,
-                    isochrone_dto.output.resolution,
-                )
-                traveltimeobjs.append(results)
-                print(f"Computed traveltime for {i} to {i + settings.HEATMAP_MULTIPROCESSING_BULK_SIZE}th starting points out of {len(starting_ids)}")
-
-            # Run multiprocessing
-            # traveltimeobjs = heatmap_multiprocessing(heatmapObject)
-            traveltimeobjs = merge_heatmap_traveltime_objects(traveltimeobjs)
-            # Save files into cache folder
-            file_name = f"{key}.npz"
-            directory = os.path.join(
-                settings.TRAVELTIME_MATRICES_PATH,
-                isochrone_dto.mode.value,
-                isochrone_dto.settings.walking_profile.value,
-            )
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            file_dir = os.path.join(directory, file_name)
-            delete_file(file_dir)
-            np.savez_compressed(
-                file_dir,
-                **traveltimeobjs,
-            )
-
-            end_time_section = time.time()
-
-            print_hashtags()
-            print_info(
-                f"You computed [bold magenta]{cnt}[/bold magenta] out of [bold magenta]{cnt_sections}[/bold magenta] added."
-            )
-            print_info(
-                f"Section contains [bold magenta]{starting_ids.size}[/bold magenta] starting points"
-            )
-            print_info(
-                f"Section took [bold magenta]{(end_time_section - starting_time_section)}[/bold magenta] seconds"
-            )
-            print_info(
-                f"Network preparation took [bold magenta]{(end_time_network_preparation - starting_time_network_preparation)}[/bold magenta] seconds"
-            )
-            print_hashtags()
+        # Save files into cache folder
+        file_name = f"{bulk_id}.npz"
+        directory = os.path.join(
+            settings.TRAVELTIME_MATRICES_PATH,
+            isochrone_dto.mode.value,
+            isochrone_dto.settings.walking_profile.value,
+        )
+        # Create directory if not exists
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        file_dir = os.path.join(directory, file_name)
+        delete_file(file_dir)
+        # Save to file
+        np.savez_compressed(
+            file_dir,
+            **traveltimeobjs,
+        )
 
         end_time = time.time()
         print_hashtags()
@@ -315,40 +312,40 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             f"Total time: [bold magenta]{(end_time - starting_time)}[/bold magenta] seconds"
         )
 
-    async def read_poi(
+    async def read_opportunities(
         self,
         isochrone_dto: IsochroneDTO,
-        table_name: str,
-        filter_geoms: List[str],
+        table_name: OpportunityHeatmapTypes,
+        filter_geom: List[str],
         data_upload_id: int = None,
-        bulk_ids: List[int] = None,
-    ) -> pd.DataFrame:
+        bulk_id: List[int] = None,
+    ) -> dict:
         """Read POIs from database for given filter geoms
 
         Args:
             isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
-            table_name (str): Name of the POI table
-            filter_geoms (List[str]): Geometries to filter the POIs
+            table_name (str): Name of the table
+            filter_geom (List[str]): Geometries to filter the POIs
             data_upload_id (int, optional): Upload ids for poi_user. Defaults to None.
 
         Raises:
             ValueError: If table_name is not poi or poi_user
 
         Returns:
-            POIs (List): Nested list of POIs
+            Opportinities (Dict): Dictionary with opportunities
         """
 
-        if table_name == "poi":
+        if table_name == OpportunityHeatmapTypes.poi.value:
             sql_query = f"""
-                SELECT :bulk_id AS bulk_id, p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
+                SELECT p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
                 FROM basic.poi p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
                 WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
                 ORDER BY p.category
             """
             sql_params = {}
-        elif table_name == "poi_user" and data_upload_id is not None:
+        elif table_name == OpportunityHeatmapTypes.poi_user.value and data_upload_id is not None:
             sql_query = f"""
-                SELECT :bulk_id AS bulk_id, p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
+                SELECT p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
                 FROM basic.poi_user p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
                 WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
                 AND p.data_upload_id = :data_upload_id
@@ -358,58 +355,49 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
         else:
             raise ValueError(f"Table name {table_name} is not a valid poi table name")
-        db = async_session()
-        pois = [
-            db.execute(
-                sql_query,
-                sql_params
-                | {
-                    "bulk_id": bulk_ids[idx],
-                    "filter_geom": filter_geom,
-                    "pixel_resolution": isochrone_dto.output.resolution,
-                },
-            )
-            for idx, filter_geom in enumerate(filter_geoms)
-        ]
         
+        # Request opportunities from database
+        db = async_session()
+        pois =  await db.execute(
+            sql_query,
+            sql_params
+            | {
+                "bulk_id": bulk_id,
+                "filter_geom": filter_geom,
+                "pixel_resolution": isochrone_dto.output.resolution,
+            },
+        )
+        pois = pois.scalars().all()
 
-        pois = await asyncio.gather(*pois)
-        pois = [batch.fetchall() for batch in pois]
-        await db.close()
-        pois_dict = {}
-        for idx_bulk, batch in enumerate(pois):
-            if len(batch) > 0:
-                bulk_id = batch[0][0]
-                batch = [poi[1:] for poi in batch]
-                pois_dict[bulk_id] = batch
+        pois_dict = {bulk_id: pois}
         return pois_dict
 
     async def compute_opportunity_matrix(
-        self, isochrone_dto: IsochroneDTO, calculation_objs: dict
+        self, isochrone_dto: IsochroneDTO, calculation_obj: dict
     ):
         """Computes opportunity matrix
 
         Args:
-            isochrone_dto (IsochroneDTO): _description_
-            calculation_objs (dict): _description_
+            isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
+            calculation_objs (dict): Dictionary with calculation objects
         """
 
         # Read relevant pois
-        filter_geoms = []
-        bulk_ids = list(calculation_objs.keys())
-        for bulk_id in bulk_ids:
-            coords = h3.h3_to_geo_boundary(h=bulk_id, geo_json=True)
-            coords_str = ""
-            for coord in coords:
-                coords_str = coords_str + str(coord[0]) + " " + str(coord[1]) + ", "
-            coords_str = coords_str + str(coords[0][0]) + " " + str(coords[0][1])
-            filter_geoms.append(f"POLYGON(({coords_str}))")
+        bulk_id = list(calculation_obj.keys())[0]
 
-        pois = await self.read_poi(
+        # Get Well Known Text (WKT) of bulk_id
+        coords = h3.h3_to_geo_boundary(h=bulk_id, geo_json=True)
+        coords_str = ""
+        for coord in coords:
+            coords_str = coords_str + str(coord[0]) + " " + str(coord[1]) + ", "
+        coords_str = coords_str + str(coords[0][0]) + " " + str(coords[0][1])
+        filter_geom = f"POLYGON(({coords_str}))"
+
+        pois = await self.read_opportunities(
             isochrone_dto=isochrone_dto,
             table_name="poi",
-            filter_geoms=filter_geoms,
-            bulk_ids=bulk_ids,
+            filter_geom=filter_geom,
+            bulk_ids=bulk_id,
         )
 
         # Read relevant opportunity matrices and merged arrays
@@ -422,13 +410,14 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         travel_time_matrices_grids_ids = []
         travel_time_matrices_travel_times = []
 
-        #TODO: Buffer our single hex geom by 
-        # buffer = isochrone_dto.settings.speed * (isochrone_dto.settings.travel_time * 60)
+        #Find all relevant travel time matrices by applying a k-ring around the bulk_id based on the max travel distance 
+        max_travel_distance = isochrone_dto.settings.speed/3.6 * (isochrone_dto.settings.travel_time * 60) # in meters
+        edge_length = h3.edge_length(h=bulk_id, unit='m')
+        distance_in_neightbors = math.ceil(max_travel_distance / edge_length)
+        travel_time_grids = h3.k_ring(h=bulk_id, k=distance_in_neightbors)
 
-        #TODO: Find all hexes within buffer to get all relevant travel time matrices
-
-        #TODO: Merge all relevant travel time matrices based on the hexes we found before
-        for key in calculation_objs:
+        # Read relevant travel time matrices
+        for key in travel_time_grids:
             file_name = f"{key}.npz"
             file_path = os.path.join(
                 settings.TRAVELTIME_MATRICES_PATH,
@@ -436,10 +425,14 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 isochrone_dto.settings.walking_profile.value,
                 file_name,
             )
-            matrix = np.load(
-                file_path,
-                allow_pickle=True,
-            )
+            try:
+                matrix = np.load(
+                    file_path,
+                    allow_pickle=True,
+                )
+            except FileNotFoundError:
+                print_warning(f"File {file_path} not found")
+                continue
 
             travel_time_matrices_north.append(matrix["north"])
             travel_time_matrices_west.append(matrix["west"])
@@ -460,120 +453,120 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         travel_time_matrices_grids_ids = np.concatenate(travel_time_matrices_grids_ids)
 
         # Loop through all POIs
-        # TODO Performance improvements here (consider multiprocessing) and avoid loops
-        for bulk_id in pois:
-            poi_bulk = pois[bulk_id]
-            previous_category = None
+        previous_category = None
+        poi_matrix = {
+            "travel_times": [],
+            "travel_times_matrix_size": [],
+            "grid_ids": [],
+            "names": [],
+            "uids": [],
+        }
+        poi_categories = []
 
-            poi_matrix = {
-                "travel_times": [],
-                "travel_times_matrix_size": [],
-                "grid_ids": [],
-                "names": [],
-                "uids": [],
-            }
-            poi_categories = []
+        for poi in pois:
+            uid, category, name, x, y = poi
 
-            for poi in poi_bulk:
-                uid, category, name, x, y = poi
+            # Check if category is already in poi categories
+            if poi_categories == [] or previous_category != category:
+                poi_categories.append(category)
+                idx_poi_category = len(poi_categories) - 1
+                for key in poi_matrix.keys():
+                    poi_matrix[key].append([])
 
-                # Check if category is already in poi categories
-                if poi_categories == [] or previous_category != category:
-                    poi_categories.append(category)
-                    idx_poi_category = len(poi_categories) - 1
-                    for key in poi_matrix.keys():
-                        poi_matrix[key].append([])
+            previous_category = category
 
-                previous_category = category
+            #TODO: Put this into another function to refactor for Population and AOI intersection
+            ####################################################################################
+            # Check if poi is in relevant travel time matrices
+            indices_relevant_matrices = (
+                (travel_time_matrices_north <= x)
+                & (travel_time_matrices_south >= x)
+                & (travel_time_matrices_west <= y)
+                & (travel_time_matrices_east >= y)
+            ).nonzero()[0]
+            # Get the relevant travel time matrices
+            relevant_traveltime_matrices = travel_time_matrices_travel_times[
+                indices_relevant_matrices
+            ]
+            # Get the grid ids of the relevant travel time matrices
+            relevant_traveltime_matrices_grid_ids = travel_time_matrices_grids_ids[
+                indices_relevant_matrices
+            ]
+            # Get the indices of the traveltimes to the poi
+            indices_travel_times = (
+                (x - travel_time_matrices_north[indices_relevant_matrices])
+                * travel_time_matrices_width[indices_relevant_matrices]
+                + y
+                - travel_time_matrices_west[indices_relevant_matrices]
+            )
 
-                # Check if poi is in relevant travel time matrices
-                indices_relevant_matrices = (
-                    (travel_time_matrices_north <= x)
-                    & (travel_time_matrices_south >= x)
-                    & (travel_time_matrices_west <= y)
-                    & (travel_time_matrices_east >= y)
-                ).nonzero()[0]
-                # Get the relevant travel time matrices
-                relevant_traveltime_matrices = travel_time_matrices_travel_times[
-                    indices_relevant_matrices
-                ]
-                # Get the grid ids of the relevant travel time matrices
-                relevant_traveltime_matrices_grid_ids = travel_time_matrices_grids_ids[
-                    indices_relevant_matrices
-                ]
-                # Get the indices of the traveltimes to the poi
-                indices_travel_times = (
-                    (x - travel_time_matrices_north[indices_relevant_matrices])
-                    * travel_time_matrices_width[indices_relevant_matrices]
-                    + y
-                    - travel_time_matrices_west[indices_relevant_matrices]
-                )
+            arr_travel_times = []
+            arr_grid_ids = []
 
-                arr_travel_times = []
-                arr_grid_ids = []
+            cnt = 0
+            # TODO: Avoid this loop by selecting the indices directly from nested array
+            for idx, matrix in enumerate(relevant_traveltime_matrices):
+                travel_time = matrix[indices_travel_times[idx]]
 
-                cnt = 0
-                # TODO: Avoid this loop by selecting the indices directly from nested array
-                for idx, matrix in enumerate(relevant_traveltime_matrices):
-                    travel_time = matrix[indices_travel_times[idx]]
-
-                    if travel_time < 2147483647:
-                        arr_travel_times.append(travel_time)
-                        arr_grid_ids.append(
-                            h3.string_to_h3(str(relevant_traveltime_matrices_grid_ids[idx]))
-                        )
-                    else:
-                        cnt += 1
-                arr_travel_times = np.array(arr_travel_times, dtype=np.dtype(np.byte))
-                arr_grid_ids = np.array(arr_grid_ids, dtype=np.dtype(np.int_))
-
-                if len(arr_travel_times) > 0:
-                    poi_matrix["travel_times"][idx_poi_category].append(arr_travel_times)
-                    poi_matrix["travel_times_matrix_size"][idx_poi_category].append(
-                        arr_travel_times.shape[0]
+                if travel_time <= isochrone_dto.settings.travel_time:
+                    arr_travel_times.append(travel_time)
+                    arr_grid_ids.append(
+                        h3.string_to_h3(str(relevant_traveltime_matrices_grid_ids[idx]))
                     )
-                    poi_matrix["grid_ids"][idx_poi_category].append(arr_grid_ids)
-                    poi_matrix["names"][idx_poi_category].append(name)
-                    poi_matrix["uids"][idx_poi_category].append(uid)
                 else:
-                    continue
+                    cnt += 1
+            arr_travel_times = np.array(arr_travel_times, dtype=np.dtype(np.byte))
+            arr_grid_ids = np.array(arr_grid_ids, dtype=np.dtype(np.int_))
 
-            for key in ["travel_times", "grid_ids"]:
-                for idx, category in enumerate(poi_matrix[key]):
-                    poi_matrix[key][idx] = np.array(category, dtype=object)
+            ####################################################################################
 
-            for idx, category in enumerate(poi_matrix["uids"]):
-                poi_matrix["uids"][idx] = np.array(category, dtype=np.str_)
-
-            for idx, category in enumerate(poi_matrix["names"]):
-                poi_matrix["names"][idx] = np.array(category, dtype=np.str_)
-
-            poi_matrix["travel_times_matrix_size"] = np.array(
-                poi_matrix["travel_times_matrix_size"], dtype=object
-            )
-            for idx, category in enumerate(poi_matrix["travel_times_matrix_size"]):
-                poi_matrix["travel_times_matrix_size"][idx] = np.array(
-                    category, dtype=np.dtype(np.ushort)
+            if len(arr_travel_times) > 0:
+                poi_matrix["travel_times"][idx_poi_category].append(arr_travel_times)
+                poi_matrix["travel_times_matrix_size"][idx_poi_category].append(
+                    arr_travel_times.shape[0]
                 )
+                poi_matrix["grid_ids"][idx_poi_category].append(arr_grid_ids)
+                poi_matrix["names"][idx_poi_category].append(name)
+                poi_matrix["uids"][idx_poi_category].append(uid)
+            else:
+                continue
 
-            poi_matrix["travel_times"] = np.array(poi_matrix["travel_times"], dtype=object)
-            poi_matrix["grid_ids"] = np.array(poi_matrix["grid_ids"], dtype=object)
-            poi_matrix["uids"] = np.array(poi_matrix["uids"], dtype=object)
-            poi_matrix["names"] = np.array(poi_matrix["names"], dtype=object)
-            poi_matrix["categories"] = np.array(poi_categories, dtype=np.str_)
+        for key in ["travel_times", "grid_ids"]:
+            for idx, category in enumerate(poi_matrix[key]):
+                poi_matrix[key][idx] = np.array(category, dtype=object)
 
-            dir = os.path.join(
-                settings.OPPORTUNITY_MATRICES_PATH,
-                isochrone_dto.mode.value,
-                isochrone_dto.settings.walking_profile.value,
-                bulk_id,
+        for idx, category in enumerate(poi_matrix["uids"]):
+            poi_matrix["uids"][idx] = np.array(category, dtype=np.str_)
+
+        for idx, category in enumerate(poi_matrix["names"]):
+            poi_matrix["names"][idx] = np.array(category, dtype=np.str_)
+
+        poi_matrix["travel_times_matrix_size"] = np.array(
+            poi_matrix["travel_times_matrix_size"], dtype=object
+        )
+        for idx, category in enumerate(poi_matrix["travel_times_matrix_size"]):
+            poi_matrix["travel_times_matrix_size"][idx] = np.array(
+                category, dtype=np.dtype(np.ushort)
             )
-            create_dir(dir)
-            for value in poi_matrix.keys():
-                np.save(
-                    f"{dir}/{value}",
-                    poi_matrix[value],
-                )
+
+        poi_matrix["travel_times"] = np.array(poi_matrix["travel_times"], dtype=object)
+        poi_matrix["grid_ids"] = np.array(poi_matrix["grid_ids"], dtype=object)
+        poi_matrix["uids"] = np.array(poi_matrix["uids"], dtype=object)
+        poi_matrix["names"] = np.array(poi_matrix["names"], dtype=object)
+        poi_matrix["categories"] = np.array(poi_categories, dtype=np.str_)
+
+        dir = os.path.join(
+            settings.OPPORTUNITY_MATRICES_PATH,
+            isochrone_dto.mode.value,
+            isochrone_dto.settings.walking_profile.value,
+            bulk_id,
+        )
+        create_dir(dir)
+        for value in poi_matrix.keys():
+            np.save(
+                f"{dir}/{value}",
+                poi_matrix[value],
+            )
 
     async def get_neighbors(self, grids):
         neighbors = set()
@@ -613,9 +606,9 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         # TODO: Part of this is moved as a utility function. Refactor.
         base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
         for study_area_id in study_area_ids:
-            print_info("Started creating H3 grids for study area: ", study_area_id)
-            for resolution in range(6, 11):
-                print_info("Starting to compute resolution: ", resolution)
+            print_info(f"Started creating H3 grids for study area: {study_area_id}")
+            for resolution in range():
+                print_info(f"Starting to compute resolution: {resolution}")
                 # Get grid ids
                 grids = await self.get_h3_grids(study_area_id, resolution)
                 # Get polygon geometries
@@ -624,8 +617,8 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 ]
                 # Convert grid ids to int
                 grids = np.array([h3.string_to_h3(str(hex_id)) for hex_id in grids])
+                  
                 hex_polygons = np.array(hex_polygons)
-
                 directory = os.path.join(base_path, str(study_area_id), "h3")
                 grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
                 hex_polygons_filename = os.path.join(directory, f"{resolution}_polygons.npy")
@@ -635,65 +628,29 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 np.save(grids_file_name, grids)
                 np.save(hex_polygons_filename, hex_polygons)
 
-    async def execute_pre_calculation(
-        self,
-        isochrone_dto: IsochroneDTO,
-        bulk_resolution: HeatmapWalkingBulkResolution,
-        calculation_resolution: HeatmapWalkingCalculationResolution,
-        study_area_ids: list[int] = None,
-    ):
-        """Executes pre-calculation for the heatmaps
+    # async def create_connectivity_heatmap_files(
+    #     self, mode: str, profile: str, h6_id: str, max_time: int
+    # ):
+    #     if type(h6_id) is int:
+    #         h6_id = h3.h3_to_string(h6_id)
 
-        Args:
-            isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
-            bulk_resolution (int): H3 resolution for the bulk grids.
-            calculation_resolution (int): H3 resolution for the calculation grids.
-            study_area_ids (list[int], optional): List of study area ids. Defaults to None and will use all study area.
-        """
-
-        buffer_size = isochrone_dto.settings.speed * (isochrone_dto.settings.travel_time * 60)
-        await self.create_h3_grids(study_area_ids)
-        # Get calculation objects
-        calculation_objs = await self.prepare_bulk_objs(
-            study_area_ids=study_area_ids,
-            bulk_resolution=bulk_resolution,
-            calculation_resolution=calculation_resolution,
-            buffer_size=buffer_size,
-        )
-
-        # await self.compute_traveltime_active_mobility(
-        #     isochrone_dto=isochrone_dto,
-        #     calculation_objs=calculation_objs,
-        # )
-
-        await self.compute_opportunity_matrix(
-            isochrone_dto=isochrone_dto,
-            calculation_objs=calculation_objs,
-        )
-
-    async def create_connectivity_heatmap_files(
-        self, mode: str, profile: str, h6_id: str, max_time: int
-    ):
-        if type(h6_id) is int:
-            h6_id = h6_id.toString(16)
-
-        travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
-        traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
-        areas = []
-        for i in range(traveltime_h6["west"].size):
-            isochrone_multipolygon_coordinates = jsolines(
-                traveltime_h6["travel_times"][i],
-                traveltime_h6["width"][i],
-                traveltime_h6["height"][i],
-                traveltime_h6["west"][i],
-                traveltime_h6["north"][i],
-                traveltime_h6["zoom"][i],
-                np.array(list(range(1, max_time + 1)), dtype=np.uint8),
-                web_mercator=False,
-            )
-            areas.append(isochrone_multipolygon_coordinates["full"].area)
-        areas = np.array(areas)
-        pass
+    #     travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
+    #     traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
+    #     areas = []
+    #     for i in range(traveltime_h6["west"].size):
+    #         isochrone_multipolygon_coordinates = jsolines(
+    #             traveltime_h6["travel_times"][i],
+    #             traveltime_h6["width"][i],
+    #             traveltime_h6["height"][i],
+    #             traveltime_h6["west"][i],
+    #             traveltime_h6["north"][i],
+    #             traveltime_h6["zoom"][i],
+    #             np.array(list(range(1, max_time + 1)), dtype=np.uint8),
+    #             web_mercator=False,
+    #         )
+    #         areas.append(isochrone_multipolygon_coordinates["full"].area)
+    #     areas = np.array(areas)
+    #     pass
 
     async def compute_areas(self, mode: str, profile: str, h6_id: str, max_time: int):
         travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
@@ -713,14 +670,20 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         h6_hexagons = await self.get_h3_grids(study_area_id, 6)
         for h6_id in h6_hexagons:
             travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
-            traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
+            try:
+                traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
+            except FileNotFoundError:
+                print_warning(f"File not found: {travel_time_path}")
+                continue
+
             areas = heatmap_cython.calculate_areas_from_pixles(
                 traveltime_h6["travel_times"], list(range(1, max_time + 1))
             )
-            grid_ids = heatmap_cython.h3_to_int(traveltime_h6["grid_ids"])
+            grid_ids = h3_to_int(traveltime_h6["grid_ids"])
 
             file_name = os.path.join(directory, f"{h6_id}.npz")
             np.savez(file_name, grid_ids=grid_ids, areas=areas)
+            print_info(f"Com: {file_name}")
             pass
 
 
@@ -767,18 +730,18 @@ def main():
     #         ],
     #     )
     # )
-    asyncio.get_event_loop().run_until_complete(
-        crud_heatmap.create_h3_grids(
-            study_area_ids=[
-                91620000,
-            ],
-        )
-    )
     # asyncio.get_event_loop().run_until_complete(
-    #     crud_heatmap.create_connectivity_heatmap_files(
-    #         profile="walking", h6_id="861f8d787ffffff", max_time=20
+    #     crud_heatmap.create_h3_grids(
+    #         study_area_ids=[
+    #             91620000,
+    #         ],
     #     )
     # )
+    asyncio.get_event_loop().run_until_complete(
+        crud_heatmap.generate_connectivity_heatmap(
+            mode="walking", profile='standard', study_area_id=91620000, max_time=20
+        )
+    )
     start_time = time.time()
     # areas = asyncio.get_event_loop().run_until_complete(
     #     crud_heatmap.compute_areas(profile="walking", h6_id="861f8d787ffffff", max_time=20)
