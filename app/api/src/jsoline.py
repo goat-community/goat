@@ -3,16 +3,12 @@ Translated from https://github.com/goat-community/goat/blob/0089611acacbebf4e297
 """
 
 import math
-import time
 
-import h3
 import numpy as np
-import pandas as pd
-from geopandas import GeoDataFrame, read_parquet
+from geopandas import GeoDataFrame
 from numba import njit
 from shapely.geometry import shape
 
-from src.resources.enums import JsolineReturnType
 from src.utils import (
     compute_single_value_surface,
     coordinate_from_pixel,
@@ -346,7 +342,6 @@ def jsolines(
     cutoffs,
     interpolation=True,
     return_incremental=False,
-    return_type: JsolineReturnType = JsolineReturnType.geodataframe,
     web_mercator=False,
 ):
     """
@@ -361,10 +356,9 @@ def jsolines(
     :param cutoffs: A list of cutoff values.
     :param interpolation: Whether to interpolate between pixels.
     :param return_incremental: Whether to also return incremental isolines. Takes
-    :param return_type: The type of the return value. Can be 'geodataframe' or 'shapely'.
     :param web_mercator: Whether to use web mercator coordinates.
 
-    :return: A dictionary with full and/or incremental isolines as an array of shapely or a geodataframe object.
+    :return: A dictionary with full and/or incremental isolines as a geodataframe object.
     """
 
     isochrone_multipolygon_coordinates = calculate_jsolines(
@@ -376,10 +370,7 @@ def jsolines(
     for isochrone in isochrone_multipolygon_coordinates:
         isochrone_shapes.append(shape({"type": "MultiPolygon", "coordinates": isochrone}))
 
-    result["full"] = isochrone_shapes
-
-    if return_type == JsolineReturnType.geodataframe:
-        result["full"] = GeoDataFrame({"geometry": result["full"], "minute": cutoffs})
+    result["full"] = GeoDataFrame({"geometry": isochrone_shapes, "minute": cutoffs})
 
     if return_incremental:
         isochrone_diff = []
@@ -389,39 +380,55 @@ def jsolines(
             else:
                 isochrone_diff.append(isochrone_shapes[i].difference(isochrone_shapes[i - 1]))
 
-        result["incremental"] = isochrone_diff
+        result["incremental"] = GeoDataFrame({"geometry": isochrone_diff, "minute": cutoffs})
 
-        if return_type == JsolineReturnType.geodataframe:
-            result["incremental"] = GeoDataFrame(
-                {"geometry": result["incremental"], "minute": cutoffs}
-            )
-
-    # Set the CRS if we're returning a GeoDataFrame. CRS aren't supported in Shapely.
-    if return_type == JsolineReturnType.geodataframe:
-        crs = "EPSG:4326"
-        if web_mercator:
-            crs = "EPSG:3857"
-        for key in result:
-            result[key].crs = crs
+    crs = "EPSG:4326"
+    if web_mercator:
+        crs = "EPSG:3857"
+    for key in result:
+        result[key].crs = crs
 
     return result
+
+
+def generate_jsolines(grid, travel_time, percentile):
+    """
+    Generate the jsolines from the isochrones.
+
+    :return: A GeoDataFrame with the jsolines.
+
+    """
+    single_value_surface = compute_single_value_surface(
+        grid,
+        percentile,
+    )
+    grid["surface"] = single_value_surface
+    isochrones = jsolines(
+        grid["surface"],
+        grid["width"],
+        grid["height"],
+        grid["west"],
+        grid["north"],
+        grid["zoom"],
+        cutoffs=np.arange(1, travel_time + 1),
+        return_incremental=True,
+    )
+    return isochrones
 
 
 if __name__ == "__main__":
     fileName = "/app/src/tests/data/isochrone/public_transport_calculation.bin"
     with open(fileName, mode="rb") as file:  # b is important -> binary
         fileContent = file.read()
+
         grid_decoded = decode_r5_grid(fileContent)
         grid_decoded["surface"] = compute_single_value_surface(
-            grid_decoded["width"],
-            grid_decoded["height"],
-            grid_decoded["depth"],
-            grid_decoded["data"],
+            grid_decoded,
             5,
         )
 
-        cutoffs = np.arange(1, 61)
-        isochrone_shapes = jsolines(
+        cutoffs = np.arange(60, 61)
+        isochrones = jsolines(
             grid_decoded["surface"],
             grid_decoded["width"],
             grid_decoded["height"],
@@ -432,69 +439,3 @@ if __name__ == "__main__":
             return_incremental=True,
             web_mercator=False,
         )
-
-        isochrone_gdf = GeoDataFrame(
-            {"geometry": isochrone_shapes["incremental"], "minute": cutoffs}
-        )
-        isochrone_gdf.crs = "EPSG:4326"
-        h3_indexes = []
-        # get largest isochrone
-        max_isochrone = isochrone_shapes["full"][-1]
-
-        if max_isochrone.geom_type == "Polygon":
-            h3_index = h3.polyfill(max_isochrone, 6)
-            h3_indexes.extend(h3_index)
-        elif max_isochrone.geom_type == "MultiPolygon":
-            for polygon in max_isochrone.geoms:
-                h3_index = h3.polyfill(polygon.__geo_interface__, 6)
-                h3_indexes.extend(h3_index)
-        h3_indexes = list(set(h3_indexes))
-        print(h3_indexes)
-
-        poi_gdf = []
-        population_gdf = []
-        start = time.time()
-        for index in h3_indexes:
-            try:
-                poi_gdf_h3_index = read_parquet(
-                    f"/app/src/cache/parquet-h3-tiles/{index}/poi.parquet"
-                )
-                population_gdf_h3_index = read_parquet(
-                    f"/app/src/cache/parquet-h3-tiles/{index}/population.parquet"
-                )
-                poi_gdf.append(poi_gdf_h3_index)
-                population_gdf.append(population_gdf_h3_index)
-            except Exception as e:
-                print(e)
-
-        poi_gdf = pd.concat(poi_gdf)
-        poi_gdf["count"] = 1
-        population_gdf = pd.concat(population_gdf)
-
-        population_sjoin = isochrone_gdf.sjoin(population_gdf, predicate="intersects", how="inner")
-        poi_sjoin = isochrone_gdf.sjoin(poi_gdf, predicate="intersects", how="inner")
-
-        grouped = poi_sjoin.groupby(["minute", "category"]).count().reset_index()
-        max_minute = grouped["minute"].max()
-        poi_ = (
-            grouped.groupby("category")
-            .apply(
-                lambda x: x.set_index("minute")["count"]
-                .reindex(range(max_minute + 1), fill_value=0)
-                .cumsum()
-                .tolist()
-            )
-            .to_dict()
-        )
-        print(time.time() - start)
-        print(poi_gdf, population_gdf)
-
-    # grid_test = {
-    #     "width": 6,
-    #     "height": 6,
-    #     "depth": 1,
-    #     "surface": np.array([10,12,12,11,10,11,9,8,6,6,8,10,9,7,4,5,7,9,4,2,3,0,2,3,8,5,4,4,5,6,11,10,9,8,9,10]),
-    #     "zoom": 9,
-    #     "west": 0,
-    #     "north": 0,
-    # }

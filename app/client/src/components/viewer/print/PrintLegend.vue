@@ -90,15 +90,26 @@
       <template v-for="calculation in selectedCalculations">
         <template v-if="calculation.id">
           <div :key="calculation.id" class="isochrone-wrapper">
-            <span class="fa-stack fa-md mr-1 mt-2" style="color:#800000;">
-              <span class="fa fa-solid fa-location-pin fa-stack-2x"></span>
-              <strong
-                style="font-size:15px;margin-top: -3px"
-                class="white--text fa-stack-1x"
-              >
-                {{ getCurrentIsochroneNumber(calculation) }}
-              </strong>
-            </span>
+            <section class="isochrone-desc">
+              <span class="fa-stack fa-md mr-1 mt-2" style="color:#800000;">
+                <span class="fa fa-solid fa-location-pin fa-stack-2x"></span>
+                <strong
+                  style="font-size:15px;margin-top: -3px"
+                  class="white--text fa-stack-1x"
+                >
+                  {{ getCurrentIsochroneNumber(calculation) }}
+                </strong>
+              </span>
+              <div class="mt-2">
+                <p class="ma-0 result-title">
+                  {{ calculation.position }}
+                </p>
+                <p class="ma-0 " style="font-size: 10.5px; font-weight: bold;">
+                  {{ calculationTravelTime[calculation.id - 1] }}
+                  {{ $t("isochrones.traveltimes.minutes") }}
+                </p>
+              </div>
+            </section>
             <!-- <p>Travel Mode: {{ calculation.config.mode }}</p>
             <p>Travel Time: {{ calculation.config.travel_time }}</p> -->
             <section class="isochrone-detail">
@@ -106,7 +117,7 @@
                 <v-icon small class="text-xs-center">{{
                   routingProfiles[calculation.routing].icon
                 }}</v-icon>
-                <span class="ml-1 caption">
+                <span class="ml-1" style="font-size: 10.5px;">
                   {{ $t(`isochrones.options.${calculation.routing}`) }}
                 </span>
               </div>
@@ -118,7 +129,7 @@
                   <v-icon small class="text-xs-center mx-2"
                     >fas fa-tachometer-alt
                   </v-icon>
-                  <span class="caption"
+                  <span style="font-size: 10.5px;"
                     >{{ calculation.config.settings.speed }} km/h</span
                   >
                 </div>
@@ -128,7 +139,7 @@
                   <v-icon small class="text-xs-center mx-2"
                     >fas fa-clock
                   </v-icon>
-                  <span class="caption"
+                  <span style="font-size: 10.5px;"
                     >{{
                       secondsToHoursAndMins(
                         calculation.config.settings.from_time
@@ -355,7 +366,8 @@ export default {
       calculationSrokeObjects: "calculationSrokeObjects"
     }),
     ...mapGetters("isochrones", {
-      routingProfiles: "routingProfiles"
+      routingProfiles: "routingProfiles",
+      calculationTravelTime: "calculationTravelTime"
     })
   },
   watch: {
@@ -416,5 +428,21 @@ export default {
   padding: 5px 10px;
   width: 100%;
   column-gap: 7px;
+}
+
+.isochrone-desc {
+  display: flex;
+  align-items: center;
+}
+
+.result-title {
+  display: inline-block;
+  width: 170px;
+  font-size: 12px;
+  font-weight: bold;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

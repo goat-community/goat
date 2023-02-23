@@ -94,11 +94,6 @@ class HeatmapSettings(BaseModel):
     study_area_ids: List[int]
     resolution: int = Field(None, ge=6, le=10)
     mode: HeatmapMode = Field(HeatmapMode.walking.value, description="Isochrone Mode")
-    max_travel_time: int = Field(
-        10,
-        gt=0,
-        description="Travel time in **minutes**",
-    )
     walking_profile: Optional[IsochroneWalkingProfile] = Field(
         IsochroneWalkingProfile.STANDARD.value,
         description="Walking profile.",
@@ -165,6 +160,15 @@ class HeatmapSettings(BaseModel):
         else:
             return value
 
+class BulkTravelTime(BaseModel):
+    west: list[int]
+    north: list[int]
+    zoom: list[int]
+    width: list[int]
+    height: list[int]
+    grid_ids: list[int]
+    travel_times: list[list[int]]
+
 
 """
 Body of the request
@@ -180,7 +184,6 @@ request_examples = {
         "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
-            "max_travel_time": 20,
             "walking_profile": "standard",
             "scenario": {
                 "id": 1,
@@ -203,7 +206,6 @@ request_examples = {
         "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
-            "max_travel_time": 20,
             "walking_profile": "standard",
             "scenario": {
                 "id": 1,
@@ -222,7 +224,6 @@ request_examples = {
         "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
-            "max_travel_time": 20,
             "walking_profile": "standard",
             "scenario": {
                 "id": 1,
@@ -245,7 +246,6 @@ request_examples = {
         "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
-            "max_travel_time": 20,
             "walking_profile": "standard",
             "scenario": {
                 "id": 1,
@@ -268,7 +268,6 @@ request_examples = {
         "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
-            "max_travel_time": 20,
             "walking_profile": "standard",
             "scenario": {
                 "id": 1,
@@ -306,7 +305,6 @@ request_examples = {
         "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
-            "max_travel_time": 20,
             "walking_profile": "standard",
             "scenario": {
                 "id": 1,
@@ -372,7 +370,6 @@ request_examples = {
         "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
-            "max_travel_time": 20,
             "walking_profile": "standard",
             "scenario": {
                 "id": 1,
@@ -395,7 +392,6 @@ request_examples = {
         "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
-            "max_travel_time": 20,
             "walking_profile": "standard",
             "scenario": {
                 "id": 1,
@@ -426,7 +422,7 @@ request_examples = {
             "heatmap_type": "connectivity",
             "analysis_unit": "hexagon",
             "resolution": 10,
-            "heatmap_config": {"max_travel_time": 10},
+            "heatmap_config": {"max_traveltime": 10},
         },
     },
 }

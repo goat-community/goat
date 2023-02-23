@@ -3,36 +3,10 @@ from time import time
 
 import numpy as np
 from numba import njit
-
-
-def merge_heatmap_traveltime_objects(traveltimeobjs):
-    merged_traveltime_obj = {}
-    arr_west = []
-    arr_north = []
-    arr_zoom = []
-    arr_width = []
-    arr_height = []
-    arr_travel_times = []
-    arr_grid_ids = []
-
-    for obj in traveltimeobjs:
-        arr_west.extend(obj["west"])
-        arr_north.extend(obj["north"])
-        arr_zoom.extend(obj["zoom"])
-        arr_width.extend(obj["width"])
-        arr_height.extend(obj["height"])
-        arr_grid_ids.extend(obj["grid_ids"])
-        arr_travel_times.extend(obj["travel_times"])
-
-    merged_traveltime_obj["west"] = np.array(arr_west)
-    merged_traveltime_obj["north"] = np.array(arr_north)
-    merged_traveltime_obj["zoom"] = np.array(arr_zoom)
-    merged_traveltime_obj["width"] = np.array(arr_width)
-    merged_traveltime_obj["height"] = np.array(arr_height)
-    merged_traveltime_obj["grid_ids"] = np.array(arr_grid_ids)
-    merged_traveltime_obj["travel_times"] = np.array(arr_travel_times, dtype=object)
-
-    return merged_traveltime_obj
+from src.schemas.isochrone import IsochroneDTO
+from src.utils import delete_file
+from src.core.config import settings
+import os
 
 
 def sort_and_unique_by_grid_ids(grid_ids, travel_times):
@@ -261,6 +235,38 @@ def test_quantile(n):
         for i in range(NQ + 1):
             print(f"count {i}: {np.where(out==i)[0].size}")
             # print(i,np.where(out==i)[0].size)
+
+
+def save_traveltime_matrix(bulk_id: int, traveltimeobjs: dict, isochrone_dto: IsochroneDTO):
+
+    # Convert to numpy arrays
+    for key in traveltimeobjs.keys():
+        # Check if str then obj type 
+        if isinstance(traveltimeobjs[key][0], str):
+            traveltimeobjs[key] = np.array(traveltimeobjs[key], dtype=object)
+        else:
+            traveltimeobjs[key] = np.array(traveltimeobjs[key])
+
+    # Save files into cache folder
+    file_name = f"{bulk_id}.npz"
+    directory = os.path.join(
+        settings.TRAVELTIME_MATRICES_PATH,
+        isochrone_dto.mode.value,
+        isochrone_dto.settings.walking_profile.value,
+    )
+    # Create directory if not exists
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    file_dir = os.path.join(directory, file_name)
+    delete_file(file_dir)
+    # Save to file
+    np.savez_compressed(
+        file_dir,
+        **traveltimeobjs,
+    )
+
+
+
 
 
 if __name__ == "__main__":

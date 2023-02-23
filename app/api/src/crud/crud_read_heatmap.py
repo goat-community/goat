@@ -12,11 +12,7 @@ from typing import List
 import geopandas as gpd
 import h3
 import numpy as np
-import pandas as pd
-from codetiming import Timer
-from geoalchemy2.functions import ST_Dump
 from rich import print
-from scipy import spatial
 from shapely.geometry import Polygon
 from sqlalchemy.sql import select, text
 
@@ -26,33 +22,18 @@ from src.core.config import settings
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import async_session, legacy_engine, sync_session
-from src.resources.enums import RoutingTypes
 from src.schemas.heatmap import (
     HeatmapBaseSpeed,
     HeatmapMode,
     HeatmapSettings,
     HeatmapType,
-    HeatmapWalkingBulkResolution,
-    HeatmapWalkingCalculationResolution,
-    ReturnTypeHeatmap,
 )
 from src.schemas.isochrone import (
-    IsochroneDTO,
-    IsochroneMode,
-    IsochroneOutput,
-    IsochroneOutputType,
-    IsochroneScenario,
-    IsochroneSettings,
-    IsochroneStartingPoint,
     IsochroneStartingPointCoord,
 )
 from src.utils import (
-    create_dir,
-    delete_dir,
-    delete_file,
     print_hashtags,
     print_info,
-    print_warning,
     timing,
 )
 
@@ -67,10 +48,6 @@ class CRUDGridCalculation(
     CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
 ):
     pass
-
-
-# TODO: Refactor code and split into two files. One for precalculation and one for the endpoints.
-# TODO: Add more comments
 
 
 class CRUDBaseHeatmap:
@@ -147,17 +124,7 @@ class CRUDBaseHeatmap:
 
             bulk_ids.extend(list(h3.polyfill_geojson(geom, resolution)))
 
-        # kring_buffer = ceil(buffer_size / h3.edge_length(resolution, "m"))
         bulk_ids = list(set(bulk_ids))
-        # bulk_ids = set().union(*[set().union(*h3.k_ring_distances(i, kring_buffer)) for i in bulk_ids])
-        # Testing grids for the bulk resolution
-
-        # # Get hexagon geometries and convert to GeoDataFrame
-        # hex_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
-        # hex_polygons = gpd.GeoSeries(list(map(hex_polygons, bulk_ids)), crs="EPSG:4326")
-        # gdf = gpd.GeoDataFrame(data={"bulk_id": bulk_ids}, geometry=hex_polygons, crs="EPSG:4326")
-        # gdf.to_file("hex_polygons.geojson", driver="GeoJSON")
-
         return bulk_ids
 
 

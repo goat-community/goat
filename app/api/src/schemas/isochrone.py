@@ -303,8 +303,8 @@ class IsochroneDTO(BaseModel):
                 raise ValueError(
                     "Travel time maximum for walking and cycling should be less or equal to 25 minutes"
                 )
-            if values["settings"].speed:
-                values["settings"].speed = values["settings"].speed / 3.6
+            # if values["settings"].speed:
+            #     values["settings"].speed = values["settings"].speed / 3.6
 
         # For PT and Car Isochrone starting point should be only lat lon coordinates and not amenities, travel time smaller than 120 minutes
         if values["mode"].value in [
@@ -329,10 +329,10 @@ class IsochroneDTO(BaseModel):
             if values["settings"].from_time > values["settings"].to_time:
                 raise ValueError("Start time should be smaller than end time")
 
-            # convert bike speed to m/s
-            values["settings"].bike_speed = values["settings"].bike_speed / 3.6
-            # convert walk speed to m/s
-            values["settings"].walk_speed = values["settings"].walk_speed / 3.6
+            # # convert bike speed to m/s
+            # values["settings"].bike_speed = values["settings"].bike_speed / 3.6
+            # # convert walk speed to m/s
+            # values["settings"].walk_speed = values["settings"].walk_speed / 3.6
 
         # If starting-point input length is more than 1 then it should be multi-isochrone and region should be specified
         if len(values["starting_point"].input) > 1 and len(values["starting_point"].region) == 0:
@@ -358,7 +358,7 @@ request_examples = {
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
                     "type": "grid",
-                    "steps": "12",
+                    "resolution": "12",
                 },
             },
         },
