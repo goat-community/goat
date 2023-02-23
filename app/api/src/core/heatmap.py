@@ -3,6 +3,11 @@ from time import time
 
 import numpy as np
 from numba import njit
+from src.schemas.isochrone import IsochroneDTO
+from src.utils import delete_file
+from src.core.config import settings
+import os
+
 
 def sort_and_unique_by_grid_ids(grid_ids, travel_times):
     """
@@ -230,6 +235,38 @@ def test_quantile(n):
         for i in range(NQ + 1):
             print(f"count {i}: {np.where(out==i)[0].size}")
             # print(i,np.where(out==i)[0].size)
+
+
+def save_traveltime_matrix(bulk_id: int, traveltimeobjs: dict, isochrone_dto: IsochroneDTO):
+
+    # Convert to numpy arrays
+    for key in traveltimeobjs.keys():
+        # Check if str then obj type 
+        if isinstance(traveltimeobjs[key][0], str):
+            traveltimeobjs[key] = np.array(traveltimeobjs[key], dtype=object)
+        else:
+            traveltimeobjs[key] = np.array(traveltimeobjs[key])
+
+    # Save files into cache folder
+    file_name = f"{bulk_id}.npz"
+    directory = os.path.join(
+        settings.TRAVELTIME_MATRICES_PATH,
+        isochrone_dto.mode.value,
+        isochrone_dto.settings.walking_profile.value,
+    )
+    # Create directory if not exists
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    file_dir = os.path.join(directory, file_name)
+    delete_file(file_dir)
+    # Save to file
+    np.savez_compressed(
+        file_dir,
+        **traveltimeobjs,
+    )
+
+
+
 
 
 if __name__ == "__main__":

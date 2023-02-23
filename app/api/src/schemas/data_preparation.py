@@ -4,10 +4,7 @@ from .isochrone import IsochroneDTO
 
 
 class BulkIdParameters(BaseModel):
-    bulk_resolution: int
-    calculation_resolution: int
-    speed: float
-    travel_time: float
+    buffer_distance: int #in meters 
     study_area_ids: list[int]
 
 

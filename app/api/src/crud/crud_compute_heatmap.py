@@ -54,12 +54,10 @@ from src.schemas.isochrone import (
 from src.core.isochrone import (
     dijkstra2,
     network_to_grid,
-    compute_isochrone
 )
 
 from src.utils import (
     create_dir,
-    delete_dir,
     delete_file,
     get_random_string,
     print_hashtags,
@@ -84,24 +82,13 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
     
     async def get_bulk_ids(
         self,
-        bulk_resolution: HeatmapWalkingBulkResolution,
-        calculation_resolution: int,
-        speed: float,
-        travel_time: float,
+        buffer_distance: int,
         study_area_ids: list[int] = None,
     ) -> list[str]:
     
-        # Get buffer size in meters based on speed and travel time
-        buffer_size = (speed/3.6) * (travel_time * 60)
-        
-        if bulk_resolution >= calculation_resolution:
-            raise ValueError(
-                "Resolution of parent grid cannot be smaller then resolution of children grid."
-            )
-
         # Get unioned study areas
         bulk_ids = await self.read_h3_grids_study_areas(
-            resolution=bulk_resolution, buffer_size=buffer_size, study_area_ids=study_area_ids
+            resolution=HeatmapWalkingBulkResolution.value, buffer_size=buffer_distance, study_area_ids=study_area_ids
         )
         return bulk_ids
     
@@ -404,12 +391,12 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         for coord in coords:
             coords_str = coords_str + str(coord[0]) + " " + str(coord[1]) + ", "
         coords_str = coords_str + str(coords[0][0]) + " " + str(coords[0][1])
-        filter_geoms = f"POLYGON(({coords_str}))"
+        filter_geom = f"POLYGON(({coords_str}))"
 
-        pois = await self.read_poi(
+        pois = await self.read_opportunities(
             isochrone_dto=isochrone_dto,
             table_name="poi",
-            filter_geoms=filter_geoms,
+            filter_geom=filter_geom,
             bulk_ids=bulk_id,
         )
 

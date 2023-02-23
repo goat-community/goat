@@ -157,6 +157,15 @@ class HeatmapSettings(BaseModel):
         else:
             return value
 
+class BulkTravelTime(BaseModel):
+    west: list[int]
+    north: list[int]
+    zoom: list[int]
+    width: list[int]
+    height: list[int]
+    grid_ids: list[int]
+    travel_times: list[list[int]]
+
 
 """
 Body of the request
