@@ -9,11 +9,7 @@ from geopandas import GeoDataFrame
 from numba import njit
 from shapely.geometry import shape
 
-from src.utils import (
-    compute_single_value_surface,
-    coordinate_from_pixel,
-    decode_r5_grid,
-)
+from src.utils import compute_r5_surface, coordinate_from_pixel, decode_r5_grid
 
 MAX_COORDS = 20000
 
@@ -398,7 +394,7 @@ def generate_jsolines(grid, travel_time, percentile):
     :return: A GeoDataFrame with the jsolines.
 
     """
-    single_value_surface = compute_single_value_surface(
+    single_value_surface = compute_r5_surface(
         grid,
         percentile,
     )
@@ -422,7 +418,7 @@ if __name__ == "__main__":
         fileContent = file.read()
 
         grid_decoded = decode_r5_grid(fileContent)
-        grid_decoded["surface"] = compute_single_value_surface(
+        grid_decoded["surface"] = compute_r5_surface(
             grid_decoded,
             5,
         )
