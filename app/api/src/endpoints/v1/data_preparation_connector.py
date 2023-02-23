@@ -28,3 +28,12 @@ async def create_opportunity_matrices_async(
     await crud_compute_heatmap.compute_opportunity_matrix(isochrone_dto, calculation_object)
     
     return "Ok"
+
+async def create_connectivity_heatmaps_async(
+    current_super_user,
+    parameters):
+    current_super_user = models.User(**current_super_user)
+    crud_compute_heatmap = CRUDComputeHeatmap(current_user=current_super_user)
+    await crud_compute_heatmap.generate_connectivity_heatmap(**parameters)
+    
+    return "Ok"
