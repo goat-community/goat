@@ -216,7 +216,6 @@ async def compute_transit_traveltime_active_mobility(calculation_objs: BulkCalcu
 
 
 async def process_bulk(
-    # payloads: dict,
     bulk_id: str,
     bulk_obj: BulkCalculationObj,
     output_dir: str,
@@ -265,10 +264,10 @@ async def process_bulk(
                 traveltimeobjs["travel_times"].append(grid["data"])
 
             print(f"Batch {i} done")
+    # Save results to npz file
     save_traveltime_matrix(traveltimeobjs, output_dir, bulk_id)
-    # Save results to file
 
-
+    # Copy to S3 bucket (if configured)
 
     print(f"Computed travel times for {bulk_id} in {time.time() - start} seconds")
 
