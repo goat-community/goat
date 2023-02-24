@@ -28,15 +28,13 @@ from src import crud, schemas
 from src.core import heatmap as heatmap_core
 from src.core import heatmap_cython
 from src.core.config import settings
-from src.core.isochrone import (
-    prepare_network_isochrone,
-)
+from src.core.isochrone import dijkstra2, network_to_grid, prepare_network_isochrone
 from src.crud.base import CRUDBase
 from src.crud.crud_read_heatmap import CRUDBaseHeatmap
 from src.db import models
 from src.db.session import async_session, engine, legacy_engine, sync_session
 from src.jsoline import jsolines
-from src.resources.enums import RoutingTypes, OpportunityHeatmapTypes
+from src.resources.enums import OpportunityHeatmapTypes, RoutingTypes
 from src.schemas.heatmap import (
     HeatmapWalkingBulkResolution,
     HeatmapWalkingCalculationResolution,
@@ -51,19 +49,14 @@ from src.schemas.isochrone import (
     IsochroneStartingPoint,
     IsochroneStartingPointCoord,
 )
-from src.core.isochrone import (
-    dijkstra2,
-    network_to_grid,
-)
-
 from src.utils import (
     create_dir,
     delete_file,
     get_random_string,
+    h3_to_int,
     print_hashtags,
     print_info,
     print_warning,
-    h3_to_int,
 )
 
 poi_layers = {
@@ -88,7 +81,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
     
         # Get unioned study areas
         bulk_ids = await self.read_h3_grids_study_areas(
-            resolution=HeatmapWalkingBulkResolution.value, buffer_size=buffer_distance, study_area_ids=study_area_ids
+            resolution=HeatmapWalkingBulkResolution.resolution.value, buffer_size=buffer_distance, study_area_ids=study_area_ids
         )
         return bulk_ids
     
@@ -397,7 +390,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             isochrone_dto=isochrone_dto,
             table_name="poi",
             filter_geom=filter_geom,
-            bulk_ids=bulk_id,
+            bulk_id=bulk_id,
         )
 
         # Read relevant opportunity matrices and merged arrays
@@ -412,12 +405,15 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
         #Find all relevant travel time matrices by applying a k-ring around the bulk_id based on the max travel distance 
         max_travel_distance = isochrone_dto.settings.speed/3.6 * (isochrone_dto.settings.travel_time * 60) # in meters
-        edge_length = h3.edge_length(h=bulk_id, unit='m')
+        # edge_length = h3.edge_length(h=bulk_id, unit='m')
+        # edge_length = h3.exact_edge_length(e=bulk_id, unit='m')
+        edge_length = h3.edge_length(resolution=6, unit='m')
         distance_in_neightbors = math.ceil(max_travel_distance / edge_length)
         travel_time_grids = h3.k_ring(h=bulk_id, k=distance_in_neightbors)
 
         # Read relevant travel time matrices
         for key in travel_time_grids:
+            print(f"Reading travel time matrix {key}...")
             file_name = f"{key}.npz"
             file_path = os.path.join(
                 settings.TRAVELTIME_MATRICES_PATH,
@@ -660,7 +656,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         )
         return areas
 
-    async def generate_connectivity_heatmap(
+    async def compute_connectivity_matrix(
         self, mode: str, profile: str, study_area_id: int, max_time: int
     ):
 
