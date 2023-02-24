@@ -7,6 +7,7 @@ from fastapi import APIRouter, Body, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+# from src.crud import crud_compute_heatmap_old
 from src.crud.crud_compute_heatmap import CRUDComputeHeatmap
 from src.db import models
 from src.endpoints import deps
