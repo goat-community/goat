@@ -294,7 +294,7 @@ async def process_bulk(
                 metadata["h3_index"].append(h3_grid_id)
                 metadata["processing_time"].append(time.time())
                 metadata["status"].append(status)
-                metadata["geometry"].append(Point(payload["fromLon"], payload["fromLat"]))
+                metadata["geometry"].append(Point(result["fromLon"], result["fromLat"]))
 
     # Save results to npz file
     print_info(f"Saving travel times for {bulk_id}")
