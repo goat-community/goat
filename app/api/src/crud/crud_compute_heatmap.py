@@ -681,6 +681,188 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             np.savez(file_name, grid_ids=grid_ids, areas=areas)
             print_info(f"Com: {file_name}")
             pass
+    
+    async def read_travel_time_matrices(self, isochrone_dto: IsochroneDTO, travel_time_grids: list[str]):
+        travel_time_files = []
+        for key in travel_time_grids:
+            file_name = f"{key}.npz"
+            file_path = os.path.join(
+                settings.TRAVELTIME_MATRICES_PATH,
+                isochrone_dto.mode.value,
+                isochrone_dto.settings.walking_profile.value,
+                file_name,
+            )
+            try:
+                matrix = np.load(
+                    file_path,
+                    allow_pickle=True,
+                )
+                travel_time_files.append(matrix)
+            except FileNotFoundError:
+                print_warning(f"File {file_path} not found")
+                continue
+        travel_time_matirces = {}
+        # travel_time_keys = ["north", "west", "height", "width", "travel_times", "grid_ids"]
+        travel_time_keys = ["north", "west", "width", "travel_times", "grid_ids"]
+        for key in travel_time_keys:
+            print(f"Concatenating {key}")
+            travel_time_matirces[key] = np.concatenate([matrix[key] for matrix in travel_time_files])
+        return travel_time_matirces
+        
+    async def compute_opportunity_matrix2(
+        self, isochrone_dto: IsochroneDTO, calculation_obj: dict
+    ):
+        """Computes opportunity matrix
+
+        Args:
+            isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
+            calculation_objs (dict): Dictionary with calculation objects
+        """
+
+        # Read relevant pois
+        bulk_id = list(calculation_obj.keys())[0]
+
+        # Get Well Known Text (WKT) of bulk_id
+        coords = h3.h3_to_geo_boundary(h=bulk_id, geo_json=True)
+        coords_str = ""
+        for coord in coords:
+            coords_str = coords_str + str(coord[0]) + " " + str(coord[1]) + ", "
+        coords_str = coords_str + str(coords[0][0]) + " " + str(coords[0][1])
+        filter_geom = f"POLYGON(({coords_str}))"
+
+        pois = await self.read_opportunities(
+            isochrone_dto=isochrone_dto,
+            table_name="poi",
+            filter_geom=filter_geom,
+            bulk_id=bulk_id,
+        )
+
+        #Find all relevant travel time matrices by applying a k-ring around the bulk_id based on the max travel distance 
+        max_travel_distance = isochrone_dto.settings.speed/3.6 * (isochrone_dto.settings.travel_time * 60) # in meters
+        # edge_length = h3.edge_length(h=bulk_id, unit='m')
+        # edge_length = h3.exact_edge_length(e=bulk_id, unit='m')
+        edge_length = h3.edge_length(resolution=6, unit='m')
+        distance_in_neightbors = math.ceil(max_travel_distance / edge_length)
+        travel_time_grids = h3.k_ring(h=bulk_id, k=distance_in_neightbors)
+
+        # Read relevant travel time matrices
+        travel_time_matrices = await self.read_travel_time_matrices(isochrone_dto, travel_time_grids)
+
+        # Loop through all POIs
+        previous_category = None
+        poi_matrix = {
+            "travel_times": [],
+            "travel_times_matrix_size": [],
+            "grid_ids": [],
+            "names": [],
+            "uids": [],
+        }
+        poi_categories = []
+
+        for poi in pois:
+            uid, category, name, x, y = poi
+
+            # Check if category is already in poi categories
+            if poi_categories == [] or previous_category != category:
+                poi_categories.append(category)
+                idx_poi_category = len(poi_categories) - 1
+                for key in poi_matrix.keys():
+                    poi_matrix[key].append([])
+
+            previous_category = category
+
+            #TODO: Put this into another function to refactor for Population and AOI intersection
+            ####################################################################################
+            # Check if poi is in relevant travel time matrices
+            indices_relevant_matrices = (
+                (travel_time_matrices['south'] <= x)
+                & (travel_time_matrices['south'] >= x)
+                & (travel_time_matrices['west'] <= y)
+                & (travel_time_matrices['east'] >= y)
+            ).nonzero()[0]
+            # Get the relevant travel time matrices
+            relevant_traveltime_matrices = travel_time_matrices['travel_times'][
+                indices_relevant_matrices
+            ]
+            # Get the grid ids of the relevant travel time matrices
+            relevant_traveltime_matrices_grid_ids = travel_time_matrices['grid_ids'][
+                indices_relevant_matrices
+            ]
+            # Get the indices of the traveltimes to the poi
+            indices_travel_times = (
+                (x - travel_time_matrices['south'][indices_relevant_matrices])
+                * travel_time_matrices['width'][indices_relevant_matrices]
+                + y
+                - travel_time_matrices['west'][indices_relevant_matrices]
+            )
+
+            arr_travel_times = []
+            arr_grid_ids = []
+
+            cnt = 0
+            # TODO: Avoid this loop by selecting the indices directly from nested array
+            for idx, matrix in enumerate(relevant_traveltime_matrices):
+                travel_time = matrix[indices_travel_times[idx]]
+
+                if travel_time <= isochrone_dto.settings.travel_time:
+                    arr_travel_times.append(travel_time)
+                    arr_grid_ids.append(
+                        h3.string_to_h3(str(relevant_traveltime_matrices_grid_ids[idx]))
+                    )
+                else:
+                    cnt += 1
+            arr_travel_times = np.array(arr_travel_times, dtype=np.dtype(np.byte))
+            arr_grid_ids = np.array(arr_grid_ids, dtype=np.dtype(np.int_))
+
+            ####################################################################################
+
+            if len(arr_travel_times) > 0:
+                poi_matrix["travel_times"][idx_poi_category].append(arr_travel_times)
+                poi_matrix["travel_times_matrix_size"][idx_poi_category].append(
+                    arr_travel_times.shape[0]
+                )
+                poi_matrix["grid_ids"][idx_poi_category].append(arr_grid_ids)
+                poi_matrix["names"][idx_poi_category].append(name)
+                poi_matrix["uids"][idx_poi_category].append(uid)
+            else:
+                continue
+
+        for key in ["travel_times", "grid_ids"]:
+            for idx, category in enumerate(poi_matrix[key]):
+                poi_matrix[key][idx] = np.array(category, dtype=object)
+
+        for idx, category in enumerate(poi_matrix["uids"]):
+            poi_matrix["uids"][idx] = np.array(category, dtype=np.str_)
+
+        for idx, category in enumerate(poi_matrix["names"]):
+            poi_matrix["names"][idx] = np.array(category, dtype=np.str_)
+
+        poi_matrix["travel_times_matrix_size"] = np.array(
+            poi_matrix["travel_times_matrix_size"], dtype=object
+        )
+        for idx, category in enumerate(poi_matrix["travel_times_matrix_size"]):
+            poi_matrix["travel_times_matrix_size"][idx] = np.array(
+                category, dtype=np.dtype(np.ushort)
+            )
+
+        poi_matrix["travel_times"] = np.array(poi_matrix["travel_times"], dtype=object)
+        poi_matrix["grid_ids"] = np.array(poi_matrix["grid_ids"], dtype=object)
+        poi_matrix["uids"] = np.array(poi_matrix["uids"], dtype=object)
+        poi_matrix["names"] = np.array(poi_matrix["names"], dtype=object)
+        poi_matrix["categories"] = np.array(poi_categories, dtype=np.str_)
+
+        dir = os.path.join(
+            settings.OPPORTUNITY_MATRICES_PATH,
+            isochrone_dto.mode.value,
+            isochrone_dto.settings.walking_profile.value,
+            bulk_id,
+        )
+        create_dir(dir)
+        for value in poi_matrix.keys():
+            np.save(
+                f"{dir}/{value}",
+                poi_matrix[value],
+            )
 
 
 def main():
