@@ -309,10 +309,10 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         self,
         isochrone_dto: IsochroneDTO,
         table_name: OpportunityHeatmapTypes,
-        filter_geom: List[str],
+        filter_geom: str,
+        bulk_id: int,  
         data_upload_id: int = None,
-        bulk_id: List[int] = None,
-    ) -> dict:
+    ) -> list:
         """Read POIs from database for given filter geoms
 
         Args:
@@ -360,10 +360,10 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 "pixel_resolution": isochrone_dto.output.resolution,
             },
         )
-        pois = pois.scalars().all()
+        pois = pois.fetchall()
+        pois = [list(row) for row in pois]
 
-        pois_dict = {bulk_id: pois}
-        return pois_dict
+        return pois
 
     async def compute_opportunity_matrix(
         self, isochrone_dto: IsochroneDTO, calculation_obj: dict
