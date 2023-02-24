@@ -29,11 +29,9 @@ async def create_opportunity_matrices_async(
     
     return "Ok"
 
-async def create_connectivity_heatmaps_async(
+async def create_connectivity_matrices_async(
     current_super_user,
-    parameters):
-    current_super_user = models.User(**current_super_user)
+    parameters
+):
     crud_compute_heatmap = CRUDComputeHeatmap(current_user=current_super_user)
-    await crud_compute_heatmap.generate_connectivity_heatmap(**parameters)
-    
-    return "Ok"
+    await crud_compute_heatmap.compute_connectivity_matrix(**parameters)

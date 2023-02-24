@@ -19,6 +19,20 @@ class OpportunityMatrixParameters2(BaseModel):
     calculation_resolution: int
     isochrone_dto: IsochroneDTO
 
+class ConnectivityMatrixParameters(BaseModel):
+    mode: str
+    profile: str
+    study_area_id: int
+    max_time: int
+
+
+
+ConnectivityMatrixExample = {
+    "mode": "walking",
+    "profile": "standard",
+    "study_area_id": 91620000,
+    "max_time": 20
+}
 class OpportunityMatrixOldParameters(BaseModel):
     calculation_resolution: int
     isochrone_dto: IsochroneDTO
@@ -48,10 +62,7 @@ ConnectivityHeatmapParametersExample = {
     
     
 BulkIdParametersExample = {
-    "bulk_resolution": 6,
-    "calculation_resolution": 10,
-    "speed": 5,
-    "travel_time": 20,
+    "buffer_distance": 1000,
     "study_area_ids": [91620000]
 }
 
