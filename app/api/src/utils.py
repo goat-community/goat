@@ -332,12 +332,18 @@ def decode_r5_grid(grid_data_buffer: bytes) -> dict:
     return header | metadata | {"data": data, "errors": [], "warnings": []}
 
 
-def filter_r5_grid(grid: dict, percentile: int, travel_time_limit: int = None) -> dict:
+def filter_r5_grid(grid: dict, percentile: int = None, travel_time_limit: int = None) -> dict:
     """
     This function strips the grid to only include one percentile
     and removes empty rows/columns around the bounding box of the largest isochrone.
     It also updates the west/noth/width/height metadata values.
     Padding is added to the grid to avoid edge effects on jsolines.
+
+    :param grid: R5 grid data
+    :param percentile: percentile to filter to (Only used if grid has multiple percentiles)
+    :param travel_time_limit: travel time limit to filter to
+
+    :return: filtered grid
     """
     if (
         grid["data"] is None
@@ -346,13 +352,13 @@ def filter_r5_grid(grid: dict, percentile: int, travel_time_limit: int = None) -
         or grid["depth"] is None
     ):
         return None
-    travel_time_percentiles = [5, 25, 50, 75, 95]
-    percentile_index = travel_time_percentiles.index(percentile)
 
     if grid["depth"] == 1:
         # if only one percentile is requested, return the grid as is
         grid_1d = grid["data"]
     else:
+        travel_time_percentiles = [5, 25, 50, 75, 95]
+        percentile_index = travel_time_percentiles.index(percentile)
         grid_percentiles = np.reshape(grid["data"], (grid["depth"], -1))
         grid_1d = grid_percentiles[percentile_index]
         grid["depth"] = 1

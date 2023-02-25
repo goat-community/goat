@@ -36,6 +36,10 @@ KCTL:=$(shell which kubectl) # brew install kubernetes-cli
 AWS:=$(shell which aws) # brew install awscli
 HELM:=$(shell which helm) # brew install helm
 
+#=============================
+# ===== DEPLOYMENT K8S =======
+#=============================
+
 # Templating magic
 K8S_SRC:=$(wildcard $(SRC_DIR)/*.tpl.yaml)
 K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
