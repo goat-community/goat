@@ -30,8 +30,8 @@ class HeatmapWalkingCalculationResolution(int, Enum):
 
 class HeatmapMode(Enum):
     walking = "walking"
-    cycking = "cycling"
-    transit = "transit"
+    cycling = "cycling"
+    public_transport = "public_transport"
     
 class HeatmapProfile(Enum):
     standard = "standard"
@@ -85,7 +85,7 @@ class HeatmapClosestAverage(HeatmapBase):
 
 
 class HeatmapConfigConnectivity(BaseModel):
-    max_traveltime: int = Field(None, le=25)
+    max_traveltime: int = Field(None, le=60)
 
 
 class HeatmapSettings(BaseModel):
@@ -201,8 +201,8 @@ request_examples = {
             },
         },
     },
-    "connectivity_heatmap_6": {
-        "summary": "Connectivity heatmap with hexagon resolution 6",
+    "connectivity_heatmap_6_walking": {
+        "summary": "Connectivity heatmap with hexagon resolution 6 Walking",
         "value": {
             "mode": "walking",
             "study_area_ids": [91620000],
@@ -216,6 +216,23 @@ request_examples = {
             "resolution": 6,
             "heatmap_config": {
                 "max_traveltime": 20,
+            },
+        },
+    },
+    "connectivity_heatmap_6_public_transport": {
+        "summary": "Connectivity heatmap with hexagon resolution 6 Public Transport",
+        "value": {
+            "mode": "public_transport",
+            "study_area_ids": [91620000],
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "connectivity",
+            "analysis_unit": "hexagon",
+            "resolution": 6,
+            "heatmap_config": {
+                "max_traveltime": 60,
             },
         },
     },

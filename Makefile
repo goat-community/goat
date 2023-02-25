@@ -13,7 +13,8 @@ K8S_CLUSTER?=goat
 NAMESPACE?=$(shell git rev-parse --abbrev-ref HEAD)
 # Build and test directories
 CWD:=$(shell pwd)
-SRC_DIR?=$(CWD)/k8s/deploy
+SRC_DIR?=$(CWD)/infra/templates/k8s/deploy
+
 
 ifeq ($(NAMESPACE), prod)
 	DOMAIN=goat.plan4better.de
@@ -32,6 +33,7 @@ DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/$(COMPONENT)-${NAMESPACE}:$(VERSION)
 # Build and test tools abstraction
 DOCKER:=$(shell which docker) # https://docs.docker.com/docker-for-mac/install/
 KCTL:=$(shell which kubectl) # brew install kubernetes-cli
+AWS:=$(shell which aws) # brew install awscli
 HELM:=$(shell which helm) # brew install helm
 
 # Templating magic
@@ -113,14 +115,39 @@ after-success:
 build-k8s:
 	rm -f $(K8S_OBJ)
 	make $(K8S_OBJ)
-	@echo "Built k8s/deploy/*.yaml from k8s/deploy/*.tpl.yaml"
+	@echo "Built infra/templates/k8s/deploy/*.yaml from infra/templates/k8s/deploy/*.tpl.yaml"
 
 # target: make deploy -e COMPONENT=api|client
 .PHONY: deploy
 deploy: setup-kube-config build-k8s
-	$(KCTL) apply -f k8s/deploy/$(COMPONENT).yaml
+	$(KCTL) apply -f infra/templates/k8s/deploy/$(COMPONENT).yaml
 
 # target: make deploy-service -e COMPONENT=api|client
 .PHONY: deploy-service
 deploy-service: setup-kube-config build-k8s
-	$(KCTL) replace -f k8s/deploy/$(COMPONENT).yaml
+	$(KCTL) replace -f infra/templates/k8s/deploy/$(COMPONENT).yaml
+
+#=============================
+# ==== AWS CLOUDFORMATION ====
+#=============================
+
+S3_BUCKET?=plan4better-cloud-functions # S3 Bucket to store the cloud formation templates etc. #TODO: CREATE CLOUDFORMATION TEMPLATE FOR THIS
+AWS_DEFAULT_REGION?=eu-central-1
+WORKER_TYPE?=goat-pt-heatmap
+
+# target: make deploy-worker -e WORKER_TYPE=goat-pt-heatmap | goat-walking-cycling
+.PHONY: deploy-worker
+deploy-worker:
+	@echo "Deploying the cloud formation goat-$(NAMESPACE) to AWS"
+	cd infra/templates/cft && aws cloudformation deploy \
+	--stack-name goat-worker-$(NAMESPACE) \
+	--template-file worker.yaml \
+	--capabilities CAPABILITY_IAM \
+	--region $(AWS_DEFAULT_REGION) \
+	--s3-bucket $(S3_BUCKET) \
+	--s3-prefix goat \
+	--no-fail-on-empty-changeset \
+	--parameter-overrides Environment=$(NAMESPACE) WorkerType=${WORKER_TYPE} \
+	--tags environment=$(NAMESPACE) app=goat resource=worker
+
+	@echo "Done deploying the goat-$(NAMESPACE)"

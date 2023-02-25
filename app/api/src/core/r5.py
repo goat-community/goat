@@ -82,7 +82,7 @@ class IsochroneStartingPointCoord(BaseModel):
 class HeatmapMode(Enum):
     walking = "walking"
     cycking = "cycling"
-    transit = "transit"
+    public_transport = "public_transport"
 
 #TODO: !! circular import ERRROR when importing from src.core.heatmap
 class BulkTravelTime(BaseModel):
@@ -131,17 +131,17 @@ async def prepare_bulk_objs(
 
     # Buffer size for the study area. This is computed in order to include all hex res 6 hexagon within the study area.
     # Multiplying the edge length of a hexagon with 2 will give the diameter of the hexagon.
-    study_area_buffer = h3.edge_length(bulk_resolution, "m") * 2
+    study_area_buffer = 0
     # TODO: Revise this hex creation if it is correct on the edges of the study area
-    if bulk_obj_type == HeatmapMode.transit:
+    if bulk_obj_type == HeatmapMode.public_transport:
         # fetch study area for transit bulk objects
         sql_query = f"""
         DROP TABLE IF EXISTS tmp_study_area_buffer;
         CREATE TEMP TABLE tmp_study_area_buffer AS  
-        SELECT st_transform(st_buffer(st_transform(sa.geom, 3857),{starting_point_buffer}),4326) AS geom, sa.id as id
+        SELECT st_transform(st_buffer(st_transform(sa.geom, 3857),{study_area_buffer}),4326) AS geom, sa.id as id
         FROM basic.study_area sa; 
         CREATE INDEX ON tmp_study_area_buffer USING GIST(geom); 	
-        SELECT st_union(st_transform(st_buffer(st_transform(st.stop_loc, 3857),{study_area_buffer}),4326)) AS geom 
+        SELECT st_union(st_transform(st_buffer(st_transform(st.stop_loc, 3857),{starting_point_buffer}),4326)) AS geom 
         FROM gtfs.stops st, tmp_study_area_buffer sa 
         WHERE ST_Intersects(st.stop_loc, sa.geom)
         """
@@ -188,7 +188,7 @@ async def prepare_bulk_objs(
         calculation_objs[bulk_id]["lats"].append(lat)
         coords = [lon, lat]
         # TODO: Why we do we need the IsochroneStartingPointCoord model for walking?  We have the same data in the coords list and also in lons and lats.
-        if bulk_obj_type != HeatmapMode.transit:
+        if bulk_obj_type != HeatmapMode.public_transport:
             if "starting_point_objs" not in calculation_objs[bulk_id]:
                 calculation_objs[bulk_id]["starting_point_objs"] = []
             calculation_objs[bulk_id]["starting_point_objs"].append(
@@ -196,7 +196,7 @@ async def prepare_bulk_objs(
             )
         calculation_objs[bulk_id]["coords"].append(coords)
         calculation_objs[bulk_id]["calculation_ids"].append(row.h3_index)
-        if bulk_obj_type == HeatmapMode.transit:
+        if bulk_obj_type == HeatmapMode.public_transport:
             # for transit we don't know how far you can reach so the extent of the isochrone is a large safe buffer in meters
             # if we don't define the extent of the isochrone the calculation will take a very long time as R5 will calculate it for the whole project extent.
             if len(calculation_objs[bulk_id]["extents"]) == 0:
@@ -382,12 +382,12 @@ async def main():
         bulk_resolution=6,
         calculation_resolution=9,
         study_area_ids=[91620000],
-        bulk_obj_type=HeatmapMode.transit,
+        bulk_obj_type=HeatmapMode.public_transport,
         starting_point_buffer=starting_point_buffer,
     )
     await compute_transit_traveltime_active_mobility(calculation_objs)
     print("Done")
-    pass
+    pass 
 
 
 # ADD MAIN FUNCTION

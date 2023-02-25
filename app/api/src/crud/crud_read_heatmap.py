@@ -28,14 +28,8 @@ from src.schemas.heatmap import (
     HeatmapSettings,
     HeatmapType,
 )
-from src.schemas.isochrone import (
-    IsochroneStartingPointCoord,
-)
-from src.utils import (
-    print_hashtags,
-    print_info,
-    timing,
-)
+from src.schemas.isochrone import IsochroneStartingPointCoord
+from src.utils import print_hashtags, print_info, print_warning, timing
 
 poi_layers = {
     "poi": models.Poi,
@@ -301,7 +295,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
     ) -> list[dict]:
 
         # Get buffer size
-        speed = HeatmapBaseSpeed[heatmap_settings.mode.value].value
+        # speed = HeatmapBaseSpeed[heatmap_settings.mode.value].value
         # buffer_size = (speed / 3.6) * (heatmap_settings.max_travel_time * 60)
 
         # Get bulk ids
@@ -316,6 +310,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         )
 
         # Get heatmap settings
+        profile = ""
         if heatmap_settings.mode == HeatmapMode.walking:
             profile = heatmap_settings.walking_profile.value
         elif heatmap_settings.mode == HeatmapMode.cycling:
@@ -397,6 +392,9 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         max_traveltime = heatmap_settings.heatmap_config.max_traveltime
         for bulk_id in bulk_ids:
             file_path = os.path.join(connectivity_base_path, f"{bulk_id}.npz")
+            if not os.path.exists(file_path):
+                print_warning(f"File {file_path} does not exist")
+                continue
             connectivity = np.load(file_path, allow_pickle=True)
             areas = heatmap_cython.get_connectivity_average(connectivity["areas"], max_traveltime)
             grids = heatmap_cython.convert_to_parents(connectivity["grid_ids"], target_resolution)
