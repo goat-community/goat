@@ -104,7 +104,8 @@ async def prepare_bulk_objs(
     calculation_resolution: int,
     study_area_ids: list[int] = None,
     bulk_obj_type: HeatmapMode = HeatmapMode.walking,
-    starting_point_buffer: float = 1668,
+    study_area_buffer: float = 1668,
+    pt_stop_buffer: float = 1668,
 ) -> dict:
 
     """Creates the starting points for the traveltime matrix calculation.
@@ -114,7 +115,8 @@ async def prepare_bulk_objs(
         calculation_resolution (int): H3 resolution for the calculation grids.
         study_area_ids (list[int], optional): List of study area ids. Defaults to None and will use all study area.
         bulk_obj_type (HeatmapMode, optional): Type of bulk object. Defaults to HeatmapMode.walking.
-        starting_point_buffer (float): Buffer size in meters around the starting point. Defaults to 1668 meters (20 minutes walking at 1.39 m/s)
+        study_area_buffer (float, optional): Buffer size in meters around the study area. Defaults to 1668 meters (20 minutes walking at 1.39 m/s)
+        pt_stop_buffer (float): Buffer size in meters around the starting point. Defaults to 1668 meters (20 minutes walking to the station at 1.39 m/s). Only relevant for PT
 
     Raises:
         ValueError: If the bulk resolution is smaller than the calculation resolution.
@@ -128,45 +130,43 @@ async def prepare_bulk_objs(
         )
 
     # FETCH STUDY AREA GEOMETRY
+    study_area_sql = f"""
+    SELECT st_transform(st_buffer(st_transform(sa.geom, 3857),{study_area_buffer}),4326) AS geom, sa.id as id
+    FROM basic.study_area sa
+    """
+    if study_area_ids is not None and len(study_area_ids) > 0:
+        study_area_sql += f" WHERE sa.id = any(array{study_area_ids})"
 
-    # Buffer size for the study area. This is computed in order to include all hex res 6 hexagon within the study area.
-    # Multiplying the edge length of a hexagon with 2 will give the diameter of the hexagon.
-    study_area_buffer = 0
-    # TODO: Revise this hex creation if it is correct on the edges of the study area
+    study_area_geom = gpd.read_postgis(study_area_sql, legacy_engine)
+
+    # CREATE BULK GRID FOR STUDY AREAS
+    h3_bulk_grid = create_h3_grid(
+        study_area_geom.iloc[0]["geom"],
+        bulk_resolution,
+        return_h3_geometries=True,
+        return_h3_centroids=False,
+    )
+
+    # FOR PUBLIC TRANSPORT, CLIP THE GRID WITH THE STATION BUFFER
     if bulk_obj_type == HeatmapMode.public_transport:
-        # fetch study area for transit bulk objects
-        sql_query = f"""
-        DROP TABLE IF EXISTS tmp_study_area_buffer;
-        CREATE TEMP TABLE tmp_study_area_buffer AS  
-        SELECT st_transform(st_buffer(st_transform(sa.geom, 3857),{study_area_buffer}),4326) AS geom, sa.id as id
-        FROM basic.study_area sa; 
-        CREATE INDEX ON tmp_study_area_buffer USING GIST(geom); 	
-        SELECT st_union(st_transform(st_buffer(st_transform(st.stop_loc, 3857),{starting_point_buffer}),4326)) AS geom 
-        FROM gtfs.stops st, tmp_study_area_buffer sa 
-        WHERE ST_Intersects(st.stop_loc, sa.geom)
-        """
-        if study_area_ids is not None and len(study_area_ids) > 0:
-            sql_query += f" AND sa.id = any(array{study_area_ids})"
-
-    else:
-        # fetch study area for walking/cycling bulk objects
-        sql_query = f"""
-        SELECT st_union(geom) as geom FROM basic.study_area sa 
-        """
-        if study_area_ids is not None and len(study_area_ids) > 0:
-            sql_query += f" WHERE sa.id = any(array{study_area_ids})"
-
-    study_area_geom = gpd.read_postgis(sql_query, legacy_engine)
-    if study_area_geom.empty:
-        raise Exception("No study area found")
+        station_buffered = gpd.read_postgis(
+            f"""SELECT st_union(st_transform(st_buffer(st_transform(st.stop_loc, 3857),{pt_stop_buffer}),4326)) AS geom 
+            FROM gtfs.stops st WHERE ST_Intersects(st.stop_loc, 'SRID=4326;{h3_bulk_grid.unary_union.wkt}'::geometry)
+            """,
+            legacy_engine,
+        )
+        
+        h3_bulk_grid = gpd.clip(h3_bulk_grid, station_buffered.iloc[0]["geom"])
 
     # CREATE GRID FOR CALCULATION
     h3_calculation_grid = create_h3_grid(
-        study_area_geom.iloc[0]["geom"],
+        h3_bulk_grid.unary_union,
         calculation_resolution,
         return_h3_geometries=True,
         return_h3_centroids=True,
+        intersect_with_centroid=True
     )
+    
 
     h3_calculation_grid.to_crs(epsg=3857, inplace=True)
 
@@ -175,6 +175,9 @@ async def prepare_bulk_objs(
     calculation_objs = {}
     for row in h3_calculation_grid.itertuples():
         bulk_id = h3.h3_to_parent(row.h3_index, bulk_resolution)
+        # check if bulk_id is in h3_bulk_grid
+        if bulk_id not in h3_bulk_grid.h3_index.values:
+            continue
         if bulk_id not in calculation_objs:
             calculation_objs[bulk_id] = {
                 "lons": [],
@@ -209,7 +212,7 @@ async def prepare_bulk_objs(
                 # use same extent as first calculation object
                 extent = box(*calculation_objs[bulk_id]["extents"][0])
         else:
-            extent = row.geometry.buffer(starting_point_buffer * math.sqrt(2), cap_style=3)
+            extent = row.geometry.buffer(study_area_buffer * math.sqrt(2), cap_style=3)
 
         calculation_objs[bulk_id]["extents"].append(list(extent.bounds))
 
@@ -381,9 +384,9 @@ async def main():
     calculation_objs = await prepare_bulk_objs(
         bulk_resolution=6,
         calculation_resolution=9,
-        study_area_ids=[91620000],
+        study_area_ids=[],
         bulk_obj_type=HeatmapMode.public_transport,
-        starting_point_buffer=starting_point_buffer,
+        pt_stop_buffer=starting_point_buffer,
     )
     await compute_transit_traveltime_active_mobility(calculation_objs)
     print("Done")

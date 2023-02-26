@@ -384,7 +384,7 @@ class OpportunityIntersect(OpportunityRead):
         return aoi_gdf_join
 
 
-class OpportunityCount(OpportunityIntersect):
+class OpportunityIsochroneCount(OpportunityIntersect):
     def __init__(
         self,
         input_geometries: GeoDataFrame,
@@ -887,7 +887,7 @@ class CRUDIsochrone:
             }
             if isochrone_type == IsochroneTypeEnum.single.value:
                 start = time.time()
-                opportunity_count = OpportunityCount(
+                opportunity_count = OpportunityIsochroneCount(
                     input_geometries=isochrone_shapes["incremental"],
                     **opportunity_user_args,
                 )
@@ -952,7 +952,7 @@ class CRUDIsochrone:
 
                 intersected_regions = pd.concat(intersected_regions, ignore_index=True)
                 # intersect the clipped isochrone shapes with the opportunity data
-                opportunity_count = OpportunityCount(
+                opportunity_count = OpportunityIsochroneCount(
                     input_geometries=intersected_regions,
                     **opportunity_user_args,
                 )

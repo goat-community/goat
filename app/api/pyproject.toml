@@ -55,6 +55,7 @@ cython = "^0.29.33"
 pyarrow = "^10.0.1"
 asgiref = "^3.6.0"
 asyncio = "^3.4.3"
+aiohttp = "^3.8.4"
 
 
 [tool.poetry.dev-dependencies]
