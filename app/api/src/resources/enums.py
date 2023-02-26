@@ -194,3 +194,13 @@ class OpportunityHeatmapTypes(str, Enum):
     poi_user = "poi_user"
     aoi = "aoi"
     population = "population"
+
+
+class MigrationTables(str, Enum):
+    """Migration Tables."""
+    poi = "poi"
+    aoi = "aoi"
+    study_area = "study_area"
+    sub_study_area = "sub_study_area"
+    population = "population"
+    building = "building"
