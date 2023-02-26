@@ -64,7 +64,6 @@ services:
     depends_on:
       - db
       - redis
-      - flower
       - worker
     env_file:
       - .env
@@ -146,6 +145,8 @@ services:
     depends_on:
       - db
       - redis
+      - rabbit
+      - flower
     env_file:
       - .env
     environment:
@@ -155,7 +156,7 @@ services:
       - SERVER_HOST=http://${DOMAIN_NAME}
     volumes:
       - ./app/api:/app
-      - ${PWD}/app/api/celeryd:/etc/default/celeryd
+      # - ${PWD}/app/api/celeryd:/etc/default/celeryd
     command: bash -c "/etc/init.d/celeryd start; tail -f /dev/null"
     networks:
       proxy:
@@ -163,13 +164,23 @@ services:
   flower:
     image: mher/flower
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
     ports:
       - 55550:5555
     depends_on:
-      - redis
+      - rabbit
     # env_file:
     #   - .env
+    
+    networks:
+      proxy:
+  
+  rabbit:
+    image: rabbitmq:3-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST}
+    ports:
+      - 15672:15672
     
     networks:
       proxy:
