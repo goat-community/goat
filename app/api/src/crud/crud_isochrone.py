@@ -60,11 +60,242 @@ class CRUDIsochroneCalculation(
 isochrone_calculation = CRUDIsochroneCalculation(models.IsochroneCalculation)
 
 
-class OpportunityIntersect:
+class OpportunityRead:
+    """
+    Reads opportunity data from parquet files or database.
+    """
+
+    def __init__(self):
+        layers = {
+            "poi": ["uid", "category", "geometry"],
+            "population": ["population", "building_id", "geometry"],
+            "aoi": ["id", "geometry"],
+        }
+        self.layers = layers
+        self.layers_modifiable = ["poi", "population"]
+        self.layers_user_data = ["poi"]
+
+    def _read_h3_parquet(self, layer: str, h3_indexes: list) -> GeoDataFrame:
+        """
+        Read parquet files.
+
+        :param layer: The layer name.
+        :param h3_indexes: The h3 indexes.
+
+        :return: A GeoDataFrame with the data.
+        """
+        if layer not in self.layers:
+            raise ValueError(f"Layer {layer} not in {self.layers.keys()}.")
+
+        layer_gdfs = []
+        for h3_index in h3_indexes:
+            try:
+                layer_gdf = read_parquet(
+                    f"{settings.CACHE_PATH}/parquet-h3-tiles/{h3_index}/{layer}.parquet"
+                )
+                layer_gdfs.append(layer_gdf)
+            except Exception as e:
+                print(e)
+
+        return layer_gdfs
+
+    def _read_base_data(self, layer: str, h3_indexes: list) -> GeoDataFrame:
+        """
+        Read base data.
+
+        :param layer: The layer name.
+        :param h3_indexes: The h3 indexes.
+
+        :return: A GeoDataFrame with the data.
+        """
+
+        layer_gdf = self._read_h3_parquet(layer, h3_indexes)
+
+        if len(layer_gdf) > 0:
+            layer_gdf = concat(layer_gdf, ignore_index=True)
+        else:
+            # If there is no data, return an empty GeoDataFrame.
+            layer_gdf = GeoDataFrame(columns=self.layers[layer], crs="EPSG:4326")
+
+        return layer_gdf
+
+    def _read_modified_data(
+        self, db, layer: str, scenario_id: int, bbox_wkt: str = None
+    ) -> GeoDataFrame:
+        """
+        Read modified data.
+
+        :param layer: The layer name.
+
+        :return: A GeoDataFrame with the data.
+        """
+        if scenario_id == 0:
+            return None
+
+        if layer not in self.layers_modifiable:
+            raise ValueError(f"Layer {layer} not in modifiable layers {self.layers_modifiable}.")
+
+        sql_query = (
+            f"""SELECT * FROM customer.{layer}_modified p WHERE p.scenario_id = {scenario_id}"""
+        )
+        if bbox_wkt is None:
+            sql_query = f""" AND ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom)"""
+
+        modified_gdf = read_postgis(
+            sql_query,
+            db,
+            crs="EPSG:4326",
+        )
+
+        if len(modified_gdf) == 0:
+            # If there is no data, return None to avoid warnings on crs when merging.
+            modified_gdf = None
+
+        return modified_gdf
+
+    def _read_user_data(
+        self, db, layer: str, user_active_upload_ids: list[int], bbox_wkt: str = None
+    ) -> GeoDataFrame:
+        """
+        Read user data.
+
+        :param layer: The layer name.
+
+        :return: A GeoDataFrame with the data.
+        """
+        if len(user_active_upload_ids) == 0:
+            return None
+
+        if layer not in self.layers_user_data:
+            raise ValueError(f"Layer {layer} not in user data layers {self.layers_user_data}.")
+
+        sql_query = f"""SELECT * FROM customer.{layer}_user p WHERE p.data_upload_id IN (SELECT UNNEST(ARRAY{user_active_upload_ids}::integer[]))"""
+        if bbox_wkt is None:
+            sql_query = f""" AND ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom)"""
+
+        user_gdf = read_postgis(
+            sql_query,
+            db,
+            crs="EPSG:4326",
+        )
+
+        if len(user_gdf) == 0:
+            # If there is no data, return None to avoid warnings on crs when merging.
+            user_gdf = None
+
+        return user_gdf
+
+    def read_poi(
+        self,
+        db,
+        h3_indexes: list,
+        user_id: int,
+        scenario_id: int,
+        user_active_upload_ids: list[int],
+        bbox_wkt: str = None,
+    ) -> GeoDataFrame:
+        """
+        Read poi data.
+
+        :param h3_indexes: The h3 indexes.
+        :param scenario_id: The scenario id.
+        :param user_active_upload_ids: The user active upload ids.
+        :param bbox_wkt: The bounding box wkt.
+
+        :return: A GeoDataFrame with the data.
+        """
+        # - Excluded features that are modified by the user.
+        # Returns list of poi uid [1k3uirdsd, 2k3uirdsd, 3k3uirdsd] of features that are modified.
+        modified_poi_uids = []
+        if scenario_id != 0:
+            modified_poi_uids = pd.read_sql(
+                f"SELECT * FROM basic.modified_pois({scenario_id})",
+                db,
+            ).iloc[0][0]
+        # - Get the poi categories for one entrance and multiple entrances.
+        # Returns {'true': [restaurant, shop...], 'false': [bus_stop, train_station...]}
+        poi_categories = pd.read_sql(f"SELECT * FROM basic.poi_categories({user_id})", db,).iloc[
+            0
+        ][0]
+        poi_multiple_entrances = poi_categories["true"]
+
+        poi_gdf = self._read_base_data("poi", h3_indexes)
+        poi_user_gdf = self._read_user_data(db, "poi", user_active_upload_ids, bbox_wkt)
+        poi_gdf = concat([poi_gdf, poi_user_gdf], ignore_index=True)
+        if len(modified_poi_uids) > 0:
+            # this will filter out "deleted" and "modified" features from the base data
+            poi_gdf = poi_gdf[~poi_gdf["uid"].isin(modified_poi_uids)]
+
+        poi_modified_gdf = self._read_modified_data(db, "poi", scenario_id, bbox_wkt)
+        poi_gdf = concat([poi_gdf, poi_modified_gdf], ignore_index=True)
+
+        # add entrance type as columns
+        poi_gdf["entrance_type"] = np.where(
+            poi_gdf["category"].isin(poi_multiple_entrances), "multiple", "one"
+        )
+
+        return poi_gdf
+
+    def read_population(
+        self,
+        db,
+        h3_indexes: list,
+        scenario_id: int,
+        bbox_wkt: str = None,
+    ) -> GeoDataFrame:
+        """
+        Read population data.
+
+        :param h3_indexes: The h3 indexes.
+        :param scenario_id: The scenario id.
+        :param user_active_upload_ids: The user active upload ids.
+        :param bbox_wkt: The bounding box wkt.
+
+        :return: A GeoDataFrame with the data.
+        """
+        # - Excluded features that are modified by the user.
+        # Returns list of populationv uid [1k3uirdsd, 2k3uirdsd, 3k3uirdsd] of features that are modified.
+        modified_buildings = []
+        if scenario_id != 0:
+            modified_buildings = pd.read_sql(
+                f"SELECT * FROM basic.modified_buildings({scenario_id})",
+                legacy_engine,
+            ).iloc[0][0]
+
+        # - Read population data.
+        population_gdf = self._read_base_data("population", h3_indexes)
+        if len(modified_buildings) > 0:
+            # this will filter out "deleted" and "modified" features from the base data
+            population_gdf = population_gdf[
+                ~population_gdf["building_uid"].isin(modified_buildings)
+            ]
+
+        population_modified_gdf = self._read_modified_data(db, "population", scenario_id, bbox_wkt)
+
+        population_gdf = concat([population_gdf, population_modified_gdf], ignore_index=True)
+
+        return population_gdf
+
+    def read_aoi(
+        self,
+        h3_indexes: list,
+    ) -> GeoDataFrame:
+        """
+        Read aoi data.
+
+        :param h3_indexes: The h3 indexes.
+
+        :return: A GeoDataFrame with the data.
+        """
+        # No modifications or user uploaded data to aoi data.
+        aoi_gdf = self._read_base_data("aoi", h3_indexes)
+        return aoi_gdf
+
+
+class OpportunityIntersect(OpportunityRead):
     def __init__(
         self,
         input_geometries: GeoDataFrame,
-        group_by_column: str = "id",
         user_id: int = 0,
         user_active_upload_ids: list = [],
         scenario_id: int = 0,
@@ -74,309 +305,186 @@ class OpportunityIntersect:
 
         Args:
             input_geometries (GeoDataFrame): Geometries to intersect with opportunity data.
-            group_by (str): The input_geometries column to group by. Defaults to "id".
             user_id (int, optional): The user id. Defaults to 0.
             user_active_upload_ids (list, optional): The user active upload ids. Defaults to [].
             scenario_id (int, optional): The user scenario id. Defaults to 0.
             hexagon_size (int, optional): The hexagon size of parque tiles. Defaults to 6.
         """
-        if group_by_column not in input_geometries.columns:
-            raise ValueError(f"Column {group_by_column} not in input_geometries.")
+        OpportunityRead.__init__(self)
         self.input_geometries = input_geometries
         self.user_id = user_id
         self.user_active_upload_ids = user_active_upload_ids
         self.scenario_id = scenario_id
-        self.group_by_column = group_by_column
-        geometry_bounds = input_geometries["geometry"].apply(
-            lambda geom: box(*geom.bounds, ccw=True)
-        )
+        geometry_bounds = input_geometries["geometry"][
+            ~input_geometries["geometry"].is_empty
+        ].apply(lambda geom: box(*geom.bounds, ccw=True))
         bbox = geometry_bounds.unary_union
         self.bbox_wkt = bbox.wkt
         self.h3_grid_gdf = create_h3_grid(bbox, hexagon_size)
 
-    def count_poi(self):
+    def poi(self):
         """
         Count the number of opportunities for each cutoff.
+
+        :param group_by: The input_geometries column to group by.
 
         :return: A dictionary with the cummulative number of opportunities for each cutoff.
 
         """
-        # - Excluded features that are modified by the user.
-        # Returns list of poi uid [1k3uirdsd, 2k3uirdsd, 3k3uirdsd] of features that are modified.
-        excluded_pois = []
-        if self.scenario_id != 0:
-            excluded_pois = pd.read_sql(
-                f"SELECT * FROM basic.modified_pois({self.scenario_id})",
-                legacy_engine,
-            ).iloc[0][0]
-
-        # - Get the poi categories that user has uploaded.
-        # Returns {'true': [restaurant, shop...], 'false': [bus_stop, train_station...]}
-        poi_categories = pd.read_sql(
-            f"SELECT * FROM basic.poi_categories({self.user_id})",
+        poi_gdf = self.read_poi(
             legacy_engine,
-        ).iloc[0][0]
-        poi_one_entrance = poi_categories["false"]
-        poi_multiple_entrances = poi_categories["true"]
+            self.h3_grid_gdf["h3_index"].tolist(),
+            self.user_id,
+            self.scenario_id,
+            self.user_active_upload_ids,
+            self.bbox_wkt,
+        )
 
-        # - Read categories uploaded by the user.
-        # Returns list of categories [restaurant, shop...] that user has uploaded.
-        poi_categories_data_uploads = pd.read_sql(
-            f"SELECT * FROM basic.poi_categories_data_uploads({self.user_id})",
+        poi_gdf_join = self.input_geometries.sjoin(poi_gdf, predicate="intersects", how="inner")
+
+        return poi_gdf_join
+
+    def population(self) -> GeoDataFrame:
+        """
+        Intersect the population for each cutoff.
+
+        :return: A GeoDataFrame of population for each cutoff.
+
+        """
+        population_gdf = self.read_population(
             legacy_engine,
-        ).iloc[0]["poi_categories_data_uploads"]
-        # add the poi_categories that user has uploaded to the poi_one_entrance list if not already there
-        poi_one_entrance = list(set(poi_one_entrance) | set(poi_categories_data_uploads))
-        # TODO: We are considering that data uploaded by the user is always one entrance. This might change in the future.
+            self.h3_grid_gdf["h3_index"],
+            self.scenario_id,
+            self.bbox_wkt,
+        )
 
-        # - READ BASE DATA FROM PARQUET FILES
-        poi_gdf = []
-        for h3_index in self.h3_grid_gdf["h3_index"]:
-            try:
-                layer_gdf = read_parquet(
-                    f"{settings.CACHE_PATH}/parquet-h3-tiles/{h3_index}/poi.parquet"
-                )
-                poi_gdf.append(layer_gdf)
-            except Exception as e:
-                print(e)
+        population_gdf_join = self.input_geometries.sjoin(
+            population_gdf, predicate="intersects", how="inner"
+        )
 
-        if len(poi_gdf) > 0:
-            poi_gdf = concat(poi_gdf, ignore_index=True)
-        else:
-            poi_gdf = GeoDataFrame(columns=["uid", "category", "geometry"], crs="EPSG:4326")
+        return population_gdf_join
 
-        if len(excluded_pois) > 0:
-            poi_gdf = poi_gdf[~poi_gdf["uid"].isin(excluded_pois)]
+    def aoi(self) -> GeoDataFrame:
+        """
+        Intersect aoi for each cutoff.
 
-        poi_one_entrance_gdf = poi_gdf[poi_gdf["category"].isin(poi_one_entrance)]
-        poi_multiple_entrances_gdf = poi_gdf[poi_gdf["category"].isin(poi_multiple_entrances)]
+        :return: A GeoDataFrame of the aoi for each cutoff.
 
-        # - READ USER DATA FROM DATABASE
-        # TODO: This is a temporary solution. We should read the data from the parquet files.
-        poi_user_one_entrance_gdf = None
-        poi_user_multiple_entrances_gdf = None
-        if len(self.user_active_upload_ids) > 0:
-            poi_user_one_entrance_gdf = read_postgis(
-                f"""SELECT * FROM customer.poi_user p WHERE ST_Intersects('SRID=4326;{self.bbox_wkt}'::geometry, p.geom) 
-                    AND p.category IN (SELECT UNNEST(ARRAY{poi_one_entrance}::text[])) 
-                    AND p.uid NOT IN (SELECT UNNEST(ARRAY{excluded_pois}::text[])) 
-                    AND p.data_upload_id IN (SELECT UNNEST(ARRAY{self.user_active_upload_ids}::integer[]))""",
-                legacy_engine,
-                crs="EPSG:4326",
-            )
-            poi_user_multiple_entrances_gdf = read_postgis(
-                f"""SELECT * FROM customer.poi_user p WHERE ST_Intersects('SRID=4326;{self.bbox_wkt}'::geometry, p.geom) 
-                AND p.category IN (SELECT UNNEST(ARRAY{poi_multiple_entrances}::text[])) 
-                AND p.uid NOT IN (SELECT UNNEST(ARRAY{excluded_pois}::text[])) 
-                AND p.data_upload_id IN (SELECT UNNEST(ARRAY{self.user_active_upload_ids}::integer[]))""",
-                legacy_engine,
-                crs="EPSG:4326",
-            )
+        """
 
-        # - READ MODIFIED DATA FROM DATABASE
-        # TODO: This is a temporary solution. We should read the data from the parquet files.
-        poi_modified_one_entrance_gdf = None
-        poi_modified_multiple_entrances_gdf = None
+        aoi_gdf = self.read_aoi(self.h3_grid_gdf["h3_index"])
 
-        if self.scenario_id != 0:
-            poi_modified_one_entrance_gdf = read_postgis(
-                f"""SELECT * FROM customer.poi_modified p WHERE ST_Intersects('SRID=4326;{self.bbox_wkt}'::geometry, p.geom) 
-                    AND p.category IN (SELECT UNNEST(ARRAY{poi_one_entrance}::text[])) 
-                    AND p.uid NOT IN (SELECT UNNEST(ARRAY{excluded_pois}::text[])) 
-                    AND p.scenario_id = {self.scenario_id}""",
-                legacy_engine,
-                crs="EPSG:4326",
-            )
-            poi_modified_multiple_entrances_gdf = read_postgis(
-                f"""SELECT * FROM customer.poi_modified p WHERE ST_Intersects('SRID=4326;{self.bbox_wkt}'::geometry, p.geom) 
-                AND p.category IN (SELECT UNNEST(ARRAY{poi_multiple_entrances}::text[])) 
-                AND p.uid NOT IN (SELECT UNNEST(ARRAY{excluded_pois}::text[])) 
-                AND p.scenario_id = {self.scenario_id}""",
-                legacy_engine,
-                crs="EPSG:4326",
-            )
+        if aoi_gdf is None:
+            return None
 
-        # - JOIN BASE DATA WITH USER DATA AND MODIFIED DATA
+        input_geometries_gdf_3857 = self.input_geometries.to_crs("EPSG:3857")
+        aoi_gdf_3857 = aoi_gdf.to_crs("EPSG:3857")
+        aoi_gdf_join = input_geometries_gdf_3857.overlay(aoi_gdf_3857, how="intersection")
+
+        return aoi_gdf_join
+
+
+class OpportunityCount(OpportunityIntersect):
+    def __init__(
+        self,
+        input_geometries: GeoDataFrame,
+        user_id: int = 0,
+        user_active_upload_ids: list = [],
+        scenario_id: int = 0,
+        hexagon_size: int = 6,
+    ):
+        """Intersect opportunity data with geometries.
+
+        Args:
+            input_geometries (GeoDataFrame): Geometries to intersect with opportunity data.
+            user_id (int, optional): The user id. Defaults to 0.
+            user_active_upload_ids (list, optional): The user active upload ids. Defaults to [].
+            scenario_id (int, optional): The user scenario id. Defaults to 0.
+            hexagon_size (int, optional): The hexagon size of parque tiles. Defaults to 6.
+        """
+        OpportunityIntersect.__init__(
+            self, input_geometries, user_id, user_active_upload_ids, scenario_id, hexagon_size
+        )
+
+    def count_poi(self, group_by_column: str):
+        """
+        Count the number of poi for each cutoff.
+
+        :param group_by: The input_geometries column to group by.
+
+        :return: A dictionary with the cummulative number of opportunities for each cutoff .
+
+        """
+        poi_gdf = self.poi()
         poi_count = defaultdict(dict)
-        if any(
-            item is not None
-            for item in [
-                poi_one_entrance_gdf,
-                poi_user_one_entrance_gdf,
-                poi_modified_one_entrance_gdf,
-            ]
-        ):
-            poi_one_entrance_gdf = concat(
-                [poi_one_entrance_gdf, poi_user_one_entrance_gdf, poi_modified_one_entrance_gdf],
-                ignore_index=True,
-            )
-            # Poi with one entrance.
-            poi_one_entrance_gdf_join = self.input_geometries.sjoin(
-                poi_one_entrance_gdf, predicate="intersects", how="inner"
-            )
+        # Poi with one entrance.
+        poi_one_entrance_gdf = poi_gdf[poi_gdf["entrance_type"] == "one"]
+        poi_one_entrance_gdf_grouped = poi_one_entrance_gdf.groupby([group_by_column, "category"])["uid"].count()
 
-            poi_one_entrance_gdf_grouped = poi_one_entrance_gdf_join.groupby(
-                [self.group_by_column, "category"]
-            )["uid"].count()
-            # loop all poi_one_entrance_gdf_gruped
-            for (group_by_column, category), value in poi_one_entrance_gdf_grouped.items():
-                poi_count[group_by_column][category] = value
+        for (key, category), value in poi_one_entrance_gdf_grouped.items():
+            poi_count[key][category] = value
 
-        # Poi with multiple entrances. Pois with same name and category are considered as one poi.
-        # This is usually the case for bus stops, train stations, etc.
-        if any(
-            item is not None
-            for item in [
-                poi_multiple_entrances_gdf,
-                poi_user_multiple_entrances_gdf,
-                poi_modified_multiple_entrances_gdf,
-            ]
-        ):
-            poi_multiple_entrances_gdf = concat(
-                [
-                    poi_multiple_entrances_gdf,
-                    poi_user_multiple_entrances_gdf,
-                    poi_modified_multiple_entrances_gdf,
-                ],
-                ignore_index=True,
-            )
+        # Poi with multiple entrances.
+        poi_multiple_entrances_gdf = poi_gdf[poi_gdf["entrance_type"] == "multiple"]
 
-            poi_multiple_entrances_gdf_join = self.input_geometries.sjoin(
-                poi_multiple_entrances_gdf, predicate="intersects", how="inner"
-            )
+        agg_func = {}
+        if  group_by_column == "minute":
+            # relevant for isochrone inputs
+            agg_func = {"minute": "mean"}
+        else:
+            # case when a multi entrance poi is in multiple shapes
+            agg_func = {group_by_column: "_".join}
 
-            agg_func = {}
-            if self.group_by_column == "minute":
-                # relevant for isochrone inputs
-                agg_func = {"minute": "mean"}
-            else:
-                # case when a multi entrance poi is in multiple shapes
-                agg_func = {self.group_by_column: "_".join}
+        poi_multiple_entrances_gdf_grouped = (
+            poi_multiple_entrances_gdf.groupby(["category", "name"]).agg(agg_func).reset_index()
+        )
+        if group_by_column == "minute":
+            poi_multiple_entrances_gdf_grouped["minute"] = poi_multiple_entrances_gdf_grouped[
+                "minute"
+            ].astype(int)
 
-            poi_multiple_entrances_gdf_grouped = (
-                poi_multiple_entrances_gdf_join.groupby(["category", "name"])
-                .agg(agg_func)
-                .reset_index()
-            )
-            if self.group_by_column == "minute":
-                poi_multiple_entrances_gdf_grouped["minute"] = poi_multiple_entrances_gdf_grouped[
-                    "minute"
-                ].astype(int)
-
-            poi_multiple_entrances_gdf_grouped = poi_multiple_entrances_gdf_grouped.groupby(
-                [self.group_by_column, "category"]
-            )["name"].count()
-
-            # loop all poi_one_entrance_gdf_gruped
-            for (group_by_column, category), value in poi_multiple_entrances_gdf_grouped.items():
-                poi_count[group_by_column][category] = value
+        poi_multiple_entrances_gdf_grouped = poi_multiple_entrances_gdf_grouped.groupby(
+            [group_by_column, "category"]
+        )["name"].count()
+        for (key, category), value in poi_multiple_entrances_gdf_grouped.items():
+            poi_count[key][category] = value
 
         return dict(poi_count)
 
-    def count_population(self):
+    def count_population(self, group_by_columns: list[str]):
         """
         Count the number of population for each cutoff.
 
-        :return: A dictionary with the cummulative number of population for each cutoff.
+        :param group_by: The input_geometries column to group by.
+
+        :return: A dictionary with the cummulative number of opportunities for each cutoff.
 
         """
-        # - Excluded features that are modified by the user.
-        # Returns list of populationv uid [1k3uirdsd, 2k3uirdsd, 3k3uirdsd] of features that are modified.
-        excluded_buildings = []
-        if self.scenario_id != 0:
-            excluded_buildings = pd.read_sql(
-                f"SELECT * FROM basic.modified_buildings({self.scenario_id})",
-                legacy_engine,
-            ).iloc[0][0]
-
-        # - READ BASE DATA FROM PARQUET FILES
-        population_gdf = []
-        for h3_index in self.h3_grid_gdf["h3_index"]:
-            try:
-                layer_gdf = read_parquet(
-                    f"{settings.CACHE_PATH}/parquet-h3-tiles/{h3_index}/population.parquet"
-                )
-                population_gdf.append(layer_gdf)
-            except Exception as e:
-                print(e)
-
-        if len(population_gdf) > 0:
-            population_gdf = concat(population_gdf, ignore_index=True)
-        else:
-            population_gdf = GeoDataFrame(
-                columns=["population", "building_id", "geometry"], crs="EPSG:4326"
-            )
-
-        if len(excluded_buildings) > 0:
-            population_gdf = population_gdf[
-                ~population_gdf["building_id"].isin(excluded_buildings)
-            ]
-
-        # - READ MODIFIED DATA FROM DATABASE
-        population_modified_gdf = None
-        if self.scenario_id != 0:
-            population_modified_gdf = read_postgis(
-                f"""SELECT * FROM customer.population_modified p WHERE ST_Intersects('SRID=4326;{self.bbox_wkt}'::geometry, p.geom) 
-                AND p.building_modified_id NOT IN (SELECT UNNEST(ARRAY{excluded_buildings}::integer[])) 
-                AND p.scenario_id = {self.scenario_id}""",
-                legacy_engine,
-                crs="EPSG:4326",
-            )
-
-        # - JOIN BASE DATA WITH USER DATA AND MODIFIED DATA
         population_count = defaultdict(dict)
-        if any(item is not None for item in [population_gdf, population_modified_gdf]):
-            population_gdf = concat(
-                [population_gdf, population_modified_gdf],
-                ignore_index=True,
-            )
-
-            population_gdf_join = self.input_geometries.sjoin(
-                population_gdf, predicate="intersects", how="inner"
-            )
-            population_gdf_grouped = population_gdf_join.groupby(self.group_by_column).agg(
-                {"population": "sum"}
-            )
-            for (key, value) in population_gdf_grouped.iterrows():
-                population_count[key]["population"] = value["population"]
+        population_gdf_join = self.population()
+        population_gdf_grouped = population_gdf_join.groupby(group_by_columns).agg(
+            {"population": "sum"}
+        )
+        for (key, value) in population_gdf_grouped.iterrows():
+            population_count[key]["population"] = value["population"]
 
         return dict(population_count)
 
-    def count_aoi(self):
+    def count_aoi(self, group_by_columns: list[str]):
         """
-        Count the total area of aois for each cutoff.
+        Count the number of aoi for each cutoff.
 
-        :return: A dictionary with the cummulative area of aois for each cutoff.
+        :param group_by: The input_geometries column to group by.
+
+        :return: A dictionary with the cummulative number of opportunities for each cutoff.
 
         """
-
-        # - READ BASE DATA FROM PARQUET FILES
-        aoi_gdf = []
-        for h3_index in self.h3_grid_gdf["h3_index"]:
-            try:
-                layer_gdf = read_parquet(
-                    f"{settings.CACHE_PATH}/parquet-h3-tiles/{h3_index}/aoi.parquet"
-                )
-                aoi_gdf.append(layer_gdf)
-            except Exception as e:
-                print(e)
-
-        if len(aoi_gdf) > 0:
-            aoi_gdf = concat(aoi_gdf, ignore_index=True)
-        else:
-            aoi_gdf = GeoDataFrame(columns=["category", "geometry"], crs="EPSG:4326")
 
         aoi_count = defaultdict(dict)
-        if any(item is not None for item in [aoi_gdf]):
-            input_geometries_gdf_3857 = self.input_geometries.to_crs("EPSG:3857")
-            aoi_gdf_3857 = aoi_gdf.to_crs("EPSG:3857")
-            aoi_gdf_join = input_geometries_gdf_3857.overlay(aoi_gdf_3857, how="intersection")
-            aoi_gdf_grouped = aoi_gdf_join.groupby([self.group_by_column, "category"]).apply(
-                lambda x: x.area.sum()
-            )
-
-        for (group_by_column, category), value in aoi_gdf_grouped.items():
-            aoi_count[group_by_column][category] = value
+        aoi_gdf = self.aoi()
+        aoi_gdf_grouped = aoi_gdf.groupby(group_by_columns).apply(lambda x: x.area.sum())
+        for (key, category), value in aoi_gdf_grouped.items():
+            aoi_count[key][category] = value
 
         return dict(aoi_count)
 
@@ -527,7 +635,7 @@ class CRUDIsochrone:
                 scenario_id=None if obj_in.scenario.id == 0 else obj_in.scenario.id,
                 starting_point=starting_point_geom,
                 routing_profile=routing_profile,
-                speed=obj_in.settings.speed,  # in km/h
+                speed=obj_in.settings.speed,
                 modus=obj_in.scenario.modus.value,
                 parent_id=None,
             )
@@ -779,22 +887,25 @@ class CRUDIsochrone:
             }
             if isochrone_type == IsochroneTypeEnum.single.value:
                 start = time.time()
-                opportunity_intersect = OpportunityIntersect(
+                opportunity_count = OpportunityCount(
                     input_geometries=isochrone_shapes["incremental"],
-                    group_by_column="minute",
                     **opportunity_user_args,
                 )
 
-                poi_count = opportunity_intersect.count_poi()
-                population_count = opportunity_intersect.count_population()
-                opportunity_count = [poi_count, population_count]
-                if obj_in.mode.value != IsochroneMode.TRANSIT.value:
-                    aoi_count = opportunity_intersect.count_aoi()
-                    opportunity_count.append(aoi_count)
+                # Poi
+                poi_count = opportunity_count.count_poi(group_by_column="minute")
+                # Population
+                population_count = opportunity_count.count_population(group_by_columns=["minute"])
 
-                opportunity_count = merge_dicts(*opportunity_count)
-                opportunity_count = self.restructure_dict(opportunity_count)
-                grid["accessibility"] = opportunity_count
+                opportunities = [poi_count, population_count]
+                if obj_in.mode.value != IsochroneMode.TRANSIT.value:
+                    # Aoi
+                    aoi_count = opportunity_count.count_aoi(group_by_columns=["minute", "category"])
+                    opportunities.append(aoi_count)
+
+                opportunities = merge_dicts(*opportunities)
+                opportunities = self.restructure_dict(opportunities)
+                grid["accessibility"] = opportunities
                 print(f"Opportunity intersect took {time.time() - start} seconds")
             elif isochrone_type == IsochroneTypeEnum.multi.value:
                 if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
@@ -841,12 +952,11 @@ class CRUDIsochrone:
 
                 intersected_regions = pd.concat(intersected_regions, ignore_index=True)
                 # intersect the clipped isochrone shapes with the opportunity data
-                opportunity_intersect = OpportunityIntersect(
+                opportunity_count = OpportunityCount(
                     input_geometries=intersected_regions,
-                    group_by_column="region",
                     **opportunity_user_args,
                 )
-                population_count = opportunity_intersect.count_population()
+                population_count = opportunity_count.count_population(group_by_columns=["region"])
                 # split the dictionary based on region groups
                 regions_count = {}
                 for key, count_value in population_count.items():
@@ -857,7 +967,7 @@ class CRUDIsochrone:
                         regions_count[region] = {}
                     regions_count[region][count_key] = count_value
 
-                opportunity_count = defaultdict(dict)
+                opportunities = defaultdict(dict)
                 # population count
                 for region, population_count in regions_count.items():
                     population_reached = self.restructure_dict(
@@ -873,12 +983,10 @@ class CRUDIsochrone:
                             "population"
                         ]
 
-                    opportunity_count[region]["total_population"] = int(total_population)
-                    opportunity_count[region]["reached_population"] = population_reached[
-                        "population"
-                    ]
+                    opportunities[region]["total_population"] = int(total_population)
+                    opportunities[region]["reached_population"] = population_reached["population"]
 
-                grid["accessibility"] = dict(opportunity_count)
+                grid["accessibility"] = dict(opportunities)
             grid_encoded = encode_r5_grid(grid)
             result = Response(bytes(grid_encoded))
         else:
