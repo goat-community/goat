@@ -131,7 +131,7 @@ async def prepare_bulk_objs(
 
     # FETCH STUDY AREA GEOMETRY
     study_area_sql = f"""
-    SELECT st_transform(st_buffer(st_transform(sa.geom, 3857),{study_area_buffer}),4326) AS geom, sa.id as id
+    SELECT st_union(st_transform(st_buffer(st_transform(sa.geom, 3857),{study_area_buffer}),4326)) AS geom
     FROM basic.study_area sa
     """
     if study_area_ids is not None and len(study_area_ids) > 0:
@@ -384,7 +384,7 @@ async def main():
     calculation_objs = await prepare_bulk_objs(
         bulk_resolution=6,
         calculation_resolution=9,
-        study_area_ids=[],
+        study_area_ids=[91620000],
         bulk_obj_type=HeatmapMode.public_transport,
         pt_stop_buffer=starting_point_buffer,
     )
