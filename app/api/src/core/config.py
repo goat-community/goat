@@ -126,17 +126,12 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_LIMIT_SCENARIOS: int = 50
     FIRST_SUPERUSER_LANGUAGE_PREFERENCE: str = "en"
 
-    POSTGRES_DB_STAGING: Optional[str] = "goat"
-    POSTGRES_SERVER_STAGING: Optional[str] = "localhost"
-    POSTGRES_USER_STAGING: Optional[str] = "postgres"
-    POSTGRES_PASSWORD_STAGING: Optional[str] = "secret"
-    POSTGRES_OUTER_PORT_STAGING: Optional[int] = 5432
-
-    POSTGRES_DB_RAW: Optional[str] = "goat"
-    POSTGRES_SERVER_RAW: Optional[str] = "localhost"
-    POSTGRES_USER_RAW: Optional[str] = "postgres"
-    POSTGRES_PASSWORD_RAW: Optional[str] = "secret"
-    POSTGRES_OUTER_PORT_RAW: Optional[int] = 5432
+    POSTGRES_DB_FOREIGN: Optional[str] = "goat"
+    POSTGRES_SERVER_FOREIGN: Optional[str] = "localhost"
+    POSTGRES_USER_FOREIGN: Optional[str] = "postgres"
+    POSTGRES_PASSWORD_FOREIGN: Optional[str] = "secret"
+    POSTGRES_OUTER_PORT_FOREIGN: Optional[int] = 5432
+    POSTGRES_SCHEMA_FOREIGN: Optional[str] = "basic"
 
     POSTGRES_FUNCTIONS_SCHEMA: Optional[str] = "basic"
 
