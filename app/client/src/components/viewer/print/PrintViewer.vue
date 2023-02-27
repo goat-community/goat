@@ -216,7 +216,6 @@ export default {
         left = 5 + padding + this.getMapWidth;
         const title = this.$refs["print-title"];
         if (title && title.clientHeight) {
-          console.log(title.clientHeight);
           let pixels = padding + title.clientHeight;
           top = (pixels * 25.4) / 72 + 7; // convert to mm
         } else {
