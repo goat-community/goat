@@ -488,7 +488,6 @@ export default {
           return b_Value - a_Value;
         });
       }
-      console.log(items);
       return items;
     },
     getMaxIsochroneRange() {
