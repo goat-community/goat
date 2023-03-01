@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     CACHE_PATH: str = "/app/src/cache"
     API_SECRET_KEY: str = secrets.token_urlsafe(32)
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
+    AWS_REGION: str = "eu-central-1"
     # 60 minutes * 24 hours * 8 days = 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     SERVER_NAME: str
@@ -163,11 +166,19 @@ class Settings(BaseSettings):
     TRAVELTIME_MATRICES_PATH: str = "/app/src/cache/traveltime_matrices"
     OPPORTUNITY_MATRICES_PATH: str = "/app/src/cache/opportunity_matrices"
     HEATMAP_MULTIPROCESSING_BULK_SIZE = 50
-    
-    
+
     # Celery config
     CELERY_BROKER_URL: str
-    CELERY_RESULT_BACKEND: str
+    CELERY_CONFIG: Optional[dict] = {}
+
+    @validator("CELERY_CONFIG", pre=True)
+    def celery_broker_config(cls, v: Optional[dict], values: Dict[str, Any]) -> Any:
+        celery_broker_url = values.get("CELERY_BROKER_URL")
+        aws_region = values.get("AWS_REGION")
+        if celery_broker_url == "sqs://":
+            return {
+                "broker_transport_options": {"region": aws_region or "eu-central-1"},
+            }
 
     @validator("R5_API_URL", pre=True)
     def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:

@@ -19,19 +19,16 @@ import emails
 import geobuf
 import geopandas
 import h3
-import numba
 import numpy as np
 import pyproj
 from emails.template import JinjaTemplate
 from fastapi import HTTPException, UploadFile
-from fiona import _err
 from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from jose import jwt
 from numba import njit
 from rich import print as print
-from sentry_sdk import HttpTransport
 from shapely import geometry
 from shapely.geometry import GeometryCollection, MultiPolygon, Point, Polygon, box
 from shapely.ops import transform

@@ -3,7 +3,7 @@ from src.db import models
 from src.schemas.data_preparation import OpportunityMatrixParameters
 
 
-async def create_traveltime_matrices_async(
+async def create_traveltime_matrices_active_mobility_async(
     current_super_user,
     parameters):
     current_super_user = models.User(**current_super_user)
