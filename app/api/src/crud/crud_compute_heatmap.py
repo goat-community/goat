@@ -991,7 +991,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             bulk_id=bulk_id, traveltimeobjs=traveltimeobjs, output_dir=output_dir
         )
         # Save metadata to geojson file
-        self.save_metadata_gdf(f"{output_dir}/metadata/{bulk_id}.geojson")
+        self.save_metadata_gdf(metadata, f"{output_dir}/metadata/{bulk_id}.geojson")
         # Copy to S3 bucket (if configured)
         if s3_folder:
             await self.upload_npz_to_s3(
