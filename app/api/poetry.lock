@@ -277,6 +277,46 @@ python2 = ["typed-ast (>=1.4.3)"]
 uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
+name = "boto3"
+version = "1.26.81"
+description = "The AWS SDK for Python"
+category = "main"
+optional = false
+python-versions = ">= 3.7"
+files = [
+    {file = "boto3-1.26.81-py3-none-any.whl", hash = "sha256:a631ce2d22662f326cdf121967b53c251338e4ae7cdfa166c11a31e94a8b6a60"},
+    {file = "boto3-1.26.81.tar.gz", hash = "sha256:898fa38387e2f5a9136aec6cf9caa0a44ddbf78f1c4aaa33f7b1611ac44b4a4d"},
+]
+
+[package.dependencies]
+botocore = ">=1.29.81,<1.30.0"
+jmespath = ">=0.7.1,<2.0.0"
+s3transfer = ">=0.6.0,<0.7.0"
+
+[package.extras]
+crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
+
+[[package]]
+name = "botocore"
+version = "1.29.81"
+description = "Low-level, data-driven core of boto 3."
+category = "main"
+optional = false
+python-versions = ">= 3.7"
+files = [
+    {file = "botocore-1.29.81-py3-none-any.whl", hash = "sha256:b0b9f4b784e6e58e52f6756bd28d32240016377659adc04e0a0a12df2a90e3f9"},
+    {file = "botocore-1.29.81.tar.gz", hash = "sha256:b140c865fce64097c54cba37420c27f24b26cdec0fc00ce83ad439d3bdb053e1"},
+]
+
+[package.dependencies]
+jmespath = ">=0.7.1,<2.0.0"
+python-dateutil = ">=2.1,<3.0.0"
+urllib3 = ">=1.25.4,<1.27"
+
+[package.extras]
+crt = ["awscrt (==0.16.9)"]
+
+[[package]]
 name = "cachetools"
 version = "5.0.0"
 description = "Extensible memoizing collections and decorators"
@@ -1396,6 +1436,18 @@ MarkupSafe = ">=0.23"
 
 [package.extras]
 i18n = ["Babel (>=0.8)"]
+
+[[package]]
+name = "jmespath"
+version = "1.0.1"
+description = "JSON Matching Expressions"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980"},
+    {file = "jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe"},
+]
 
 [[package]]
 name = "kiwisolver"
@@ -2997,6 +3049,24 @@ files = [
 pyasn1 = ">=0.1.3"
 
 [[package]]
+name = "s3transfer"
+version = "0.6.0"
+description = "An Amazon S3 Transfer Manager"
+category = "main"
+optional = false
+python-versions = ">= 3.7"
+files = [
+    {file = "s3transfer-0.6.0-py3-none-any.whl", hash = "sha256:06176b74f3a15f61f1b4f25a1fc29a4429040b7647133a463da8fa5bd28d5ecd"},
+    {file = "s3transfer-0.6.0.tar.gz", hash = "sha256:2ed07d3866f523cc561bf4a00fc5535827981b117dd7876f036b0c1aca42c947"},
+]
+
+[package.dependencies]
+botocore = ">=1.12.36,<2.0a.0"
+
+[package.extras]
+crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
+
+[[package]]
 name = "schedule"
 version = "1.1.0"
 description = "Job scheduling for humans."
@@ -3507,4 +3577,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9, <3.11"
-content-hash = "031502501cde7ce326e6d6c35e5fa895709995bab151a29f25f745dc93200f47"
+content-hash = "68726d5718d202d59e881073022b4f27575021ebf20e22938d7f66c0d10251b5"

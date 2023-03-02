@@ -6,7 +6,7 @@ from src.core.config import settings
 from src.utils import print_info
 
 
-class MigrationBase:
+class DBMigrationBase:
     def __init__(
         self,
         legacy_engine,

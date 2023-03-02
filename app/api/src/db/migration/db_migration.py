@@ -1,10 +1,10 @@
-from src.db.sql.migration_base import MigrationBase
+from src.db.migration.db_migration_base import DBMigrationBase
 from src.resources.enums import MigrationTables
 from src.utils import print_info, print_warning, print_hashtags
 from src.db.session import legacy_engine
 from sqlalchemy import text
 
-class Migration(MigrationBase):
+class DBMigration(DBMigrationBase):
 
     def __init__(self, legacy_engine, study_area_ids: list[int]):
         """Migration class.
@@ -329,7 +329,7 @@ def main():
     print_hashtags()
 
 
-    migration = Migration(legacy_engine=legacy_engine, study_area_ids=["5334"])
+    migration = DBMigration(legacy_engine=legacy_engine, study_area_ids=["11000009"])
     migration.initialize()
 
     # Perform migration for Study Area and Sub Study Area.

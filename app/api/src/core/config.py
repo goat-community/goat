@@ -1,6 +1,6 @@
 import secrets
 from typing import Any, Dict, List, Optional, Union
-
+import boto3
 from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, validator
 
 
@@ -178,6 +178,28 @@ class Settings(BaseSettings):
     @validator("R5_AUTHORIZATION", pre=True)
     def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         return f"Basic {v}="
+
+    # AWS Client 
+    AWS_BUCKET_NAME: str = None
+    AWS_ACCESS_KEY_ID: str = None
+    AWS_SECRET_ACCESS_KEY: str = None
+    AWS_DEFAULT_REGION: str = None
+    S3_CLIENT: Optional[Any] = None
+    @validator("S3_CLIENT", pre=True)
+    def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        if isinstance(v, str):
+            return v
+        return boto3.client(
+            's3',
+            aws_access_key_id=values.get("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=values.get("AWS_SECRET_ACCESS_KEY"),
+            region_name=values.get("AWS_DEFAULT_REGION")
+        )
+        
+    OPENROUTESERVICE_API_KEY: str = None
+    GEOAPIFY_API_KEY: str = None
+    GOOGLE_API_KEY: str = None
+    GITHUB_ACCESS_TOKEN: str = None
 
     class Config:
         case_sensitive = True
