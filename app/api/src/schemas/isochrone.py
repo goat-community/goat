@@ -341,6 +341,44 @@ class IsochroneDTO(BaseModel):
         return values
 
 
+R5TravelTimePayloadTemplate = {
+    "accessModes": "WALK",
+    "transitModes": "BUS,TRAM,SUBWAY,RAIL",
+    "bikeSpeed": 4.166666666666667,
+    "walkSpeed": 1.39,
+    "bikeTrafficStress": 4,
+    "date": "2022-05-16",
+    "fromTime": 25200,  # 7 AM
+    "toTime": 39600,  # 9 AM
+    "maxTripDurationMinutes": 120,
+    "decayFunction": {
+        "type": "logistic",
+        "standard_deviation_minutes": 12,
+        "width_minutes": 10,
+    },
+    "destinationPointSetIds": [],
+    "bounds": {
+        "north": 48.27059464660387,
+        "south": 48.03915718648435, 
+        "east": 11.327192290815145,
+        "west": 11.756388821971976,
+    },
+    "directModes": "WALK",
+    "egressModes": "WALK",
+    "fromLat": 48.1502132,
+    "fromLon": 11.5696284,
+    "zoom": 9,
+    "maxBikeTime": 20,
+    "maxRides": 4,
+    "maxWalkTime": 1.39,  # in m/s
+    "monteCarloDraws": 200,
+    "percentiles": [5, 25, 50, 75, 95],
+    "variantIndex": -1,
+    "workerVersion": "v6.4",
+    "projectId": "630c0014aad8682ef8461b44",
+}
+
+
 request_examples = {
     "isochrone": {
         "single_walking_default": {

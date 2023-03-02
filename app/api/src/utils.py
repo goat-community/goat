@@ -19,19 +19,16 @@ import emails
 import geobuf
 import geopandas
 import h3
-import numba
 import numpy as np
 import pyproj
 from emails.template import JinjaTemplate
 from fastapi import HTTPException, UploadFile
-from fiona import _err
 from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from jose import jwt
 from numba import njit
 from rich import print as print
-from sentry_sdk import HttpTransport
 from shapely import geometry
 from shapely.geometry import GeometryCollection, MultiPolygon, Point, Polygon, box
 from shapely.ops import transform
@@ -779,16 +776,19 @@ def geopandas_read_file(data_file: UploadFile):
 
 
 # https://github.com/uber/h3/issues/275#issuecomment-976886644
-def _cover_polygon_h3(polygon: Polygon, resolution: int):
+def _cover_polygon_h3(polygon: Polygon, resolution: int, intersect_with_centroid: bool):
     """
     Return the set of H3 cells at the specified resolution which completely cover the input polygon.
     """
     result_set = set()
-    # Hexes for vertices
-    vertex_hexes = [h3.geo_to_h3(t[1], t[0], resolution) for t in list(polygon.exterior.coords)]
-    # Hexes for edges (inclusive of vertices)
-    for i in range(len(vertex_hexes) - 1):
-        result_set.update(h3.h3_line(vertex_hexes[i], vertex_hexes[i + 1]))
+    if intersect_with_centroid == False:
+        # Hexes for vertices
+        vertex_hexes = [
+            h3.geo_to_h3(t[1], t[0], resolution) for t in list(polygon.exterior.coords)
+        ]
+        # Hexes for edges (inclusive of vertices)
+        for i in range(len(vertex_hexes) - 1):
+            result_set.update(h3.h3_line(vertex_hexes[i], vertex_hexes[i + 1]))
     # Hexes for internal area
     result_set.update(
         list(h3.polyfill(geometry.mapping(polygon), resolution, geo_json_conformant=True))
@@ -797,13 +797,18 @@ def _cover_polygon_h3(polygon: Polygon, resolution: int):
 
 
 def create_h3_grid(
-    geometry: geometry, h3_resolution: int, return_h3_geometries=False, return_h3_centroids=False
+    geometry: geometry,
+    h3_resolution: int,
+    return_h3_geometries=False,
+    return_h3_centroids=False,
+    intersect_with_centroid=False,
 ):
     """Create a list of H3 indexes
 
     :param geometry: Shapely geometry to create H3 indexes for.
     :param h3_resolution: H3 resolution.
     :param return_h3_geometries: If true, return a GeoDataFrame with the H3 indexes and the corresponding geometries
+    :param intersect_with_centroid: If true, will return only the H3 indexes that intersect with the centroid of the geometry
 
     :return: List of H3 indexes in a GeoDataFrame.
     """
@@ -812,11 +817,11 @@ def create_h3_grid(
 
     h3_indexes = []
     if geometry.geom_type == "Polygon":
-        h3_index = _cover_polygon_h3(geometry, h3_resolution)
+        h3_index = _cover_polygon_h3(geometry, h3_resolution, intersect_with_centroid)
         h3_indexes.extend(h3_index)
     elif geometry.geom_type == "MultiPolygon":
         for polygon in geometry.geoms:
-            h3_index = _cover_polygon_h3(polygon, h3_resolution)
+            h3_index = _cover_polygon_h3(polygon, h3_resolution, intersect_with_centroid)
             h3_indexes.extend(h3_index)
     h3_indexes = list(set(h3_indexes))
 
