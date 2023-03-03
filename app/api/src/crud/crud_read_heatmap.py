@@ -311,10 +311,13 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         # Get heatmap settings
         profile = ""
-        if heatmap_settings.mode == HeatmapMode.walking:
-            profile = heatmap_settings.walking_profile.value
-        elif heatmap_settings.mode == HeatmapMode.cycling:
-            profile = heatmap_settings.cycling_profile.value
+        
+        # Aggregated data does not need a profile
+        if heatmap_settings.heatmap_type != HeatmapType.aggregated_data:
+            if heatmap_settings.mode == HeatmapMode.walking:
+                profile = heatmap_settings.walking_profile.value
+            elif heatmap_settings.mode == HeatmapMode.cycling:
+                profile = heatmap_settings.cycling_profile.value
 
         if heatmap_settings.heatmap_type == HeatmapType.connectivity:
             connectivity_heatmaps_sorted, uniques = await self.read_connectivity_heatmaps_sorted(
@@ -325,8 +328,27 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                 uniques[0], areas, grids
             )
             quantiles = heatmap_core.quantile_classify(areas_reordered)
-            geojson = self.generate_connectivity_final_geojson(
-                grids, h_polygons, areas_reordered, quantiles
+            geojson = self.generate_data_final_geojson(
+                grids, h_polygons, areas_reordered, quantiles, data_name="area"
+            )
+        elif heatmap_settings.heatmap_type == HeatmapType.aggregated_data:
+            source = heatmap_settings.heatmap_config.source.value
+            aggregated_data_heatmaps_sorted, uniques = await self.read_aggregating_data_sorted(
+                bulk_ids, heatmap_settings, source
+            )
+            aggregated_data = heatmap_cython.sums(
+                aggregated_data_heatmaps_sorted, uniques
+            )
+            aggregated_data_reordered = heatmap_cython.reorder_connectivity_heatmaps(
+                uniques[0], aggregated_data, grids
+            )
+            quantiles = heatmap_core.quantile_classify(aggregated_data_reordered)
+            geojson = self.generate_data_final_geojson(
+                grids,
+                h_polygons,
+                aggregated_data_reordered,
+                quantiles,
+                data_name=source,
             )
         else:
 
@@ -360,9 +382,10 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         return geojson
 
-    def generate_connectivity_final_geojson(
-        self, grids: np.ndarray, h_polygons: np.ndarray, areas: np.ndarray, quantiles: np.ndarray
+    def generate_data_final_geojson(
+        self, grids: np.ndarray, h_polygons: np.ndarray, areas: np.ndarray, quantiles: np.ndarray, data_name: str
     ):
+        data_name_class = f"{data_name}_class"
         features = []
         for grid, h_polygon, area, quantile in zip(grids, h_polygons, areas, quantiles):
             features.append(
@@ -370,8 +393,8 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                     "type": "Feature",
                     "properties": {
                         "id": int(grid),
-                        "area": round(float(area), 2),
-                        "area_class": int(quantile),
+                        data_name: round(float(area), 2),
+                        data_name_class: int(quantile),
                     },
                     "geometry": {
                         "type": "Polygon",
@@ -409,6 +432,29 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # uniques = (uniques[0].astype(np.uint64), uniques[1])
         connectivity_heatmaps = np.concatenate(connectivity_heatmaps)
         return connectivity_heatmaps, uniques
+    
+    def get_aggregating_data_path(self, bulk_id, source: str):
+        return os.path.join(settings.AGGREGATING_MATRICES_PATH, bulk_id, f"{source}.npz")
+    
+    async def read_aggregating_data_sorted(self, bulk_ids, heatmap_settings, source):
+        target_resolution = heatmap_settings.resolution
+        aggregating_data = []
+        uniques = []
+        for bulk_id in bulk_ids:
+            file_path = self.get_aggregating_data_path(bulk_id, source)
+            if not os.path.exists(file_path):
+                print_warning(f"File {file_path} does not exist")
+                continue
+            data = np.load(file_path, allow_pickle=True)
+            grids = heatmap_cython.convert_to_parents(data["grid_id"], target_resolution)
+            data_sorted, unique = heatmap_cython.sort_and_unique_by_grid_ids(grids, data["value"])
+            aggregating_data.append(data_sorted)
+            uniques.append(unique)
+        uniques = heatmap_cython.concatenate_and_fix_uniques_index_order(
+            uniques, aggregating_data
+        )
+        aggregating_data = np.concatenate(aggregating_data)
+        return aggregating_data, uniques
 
     @timing
     def calculate_agg_class(self, quantiles: dict, heatmap_config: dict):

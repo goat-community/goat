@@ -37,6 +37,8 @@ class HeatmapMode(Enum):
 class HeatmapProfile(Enum):
     standard = "standard"
 
+class AggregatingDataSource(Enum):
+    population = "population"
 
 class HeatmapType(Enum):
     modified_gaussian = "modified_gaussian"
@@ -44,6 +46,7 @@ class HeatmapType(Enum):
     connectivity = "connectivity"
     cumulative = "cumulative"
     closest_average = "closest_average"
+    aggregated_data = "aggregated_data"
 
 
 class ReturnTypeHeatmap(Enum):
@@ -88,12 +91,31 @@ class HeatmapClosestAverage(HeatmapBase):
 class HeatmapConfigConnectivity(BaseModel):
     max_traveltime: int = Field(None, le=60)
 
+class HeatmapConfigAggregatedData(BaseModel):
+    source : AggregatingDataSource
 
-class HeatmapSettings(BaseModel):
-    """Setting for different heatmap types"""
 
+class HeatmapSettingsBase(BaseModel):
     study_area_ids: List[int]
     resolution: int = Field(None, ge=6, le=10)
+    heatmap_type: HeatmapType
+    heatmap_config: dict
+    analysis_unit: AnalysisUnit
+    analysis_unit_size: Optional[int] = Field(10, description="Size of the analysis")
+    scenario: Optional[IsochroneScenario] = Field(
+        {
+            "id": 1,
+            "modus": CalculationTypes.default,
+        },
+        description="Isochrone scenario parameters. Only supported for POIs and Building scenario at the moment",
+    )
+
+class HeatmapSettingsAggregatedData(HeatmapSettingsBase):
+    heatmap_config: HeatmapConfigAggregatedData
+
+class HeatmapSettings0(HeatmapSettingsBase):
+    """Setting for different heatmap types"""
+
     mode: HeatmapMode = Field(HeatmapMode.walking.value, description="Isochrone Mode")
     walking_profile: Optional[IsochroneWalkingProfile] = Field(
         IsochroneWalkingProfile.STANDARD.value,
@@ -103,22 +125,10 @@ class HeatmapSettings(BaseModel):
         IsochroneCyclingProfile.STANDARD.value,
         description="Cycling profile.",
     )
-    scenario: Optional[IsochroneScenario] = Field(
-        {
-            "id": 1,
-            "modus": CalculationTypes.default,
-        },
-        description="Isochrone scenario parameters. Only supported for POIs and Building scenario at the moment",
-    )
-    analysis_unit: AnalysisUnit = Field(
-        AnalysisUnit.hexagon, description="Analysis unit for the heatmap"
-    )
-    analysis_unit_size: Optional[int] = Field(10, description="Size of the analysis")
+    
     heatmap_type: HeatmapType = Field(
         HeatmapType.modified_gaussian, description="Type of heatmap to compute"
     )
-    heatmap_config: dict
-
     @validator("heatmap_config")
     def heatmap_config_schema_connectivity(cls, value, values):
 
@@ -160,6 +170,14 @@ class HeatmapSettings(BaseModel):
             return poi
         else:
             return value
+
+class HeatmapSettings(BaseModel):
+    def __new__(cls, *args, **kwargs):
+        if kwargs.get("heatmap_type") == HeatmapType.aggregated_data.value:
+            return HeatmapSettingsAggregatedData(*args, **kwargs)
+        else:
+            return HeatmapSettings0(*args, **kwargs)
+
 
 class BulkTravelTime(BaseModel):
     west: list[int]

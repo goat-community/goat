@@ -1,5 +1,6 @@
 import secrets
 from typing import Any, Dict, List, Optional, Union
+
 import boto3
 from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, validator
 
@@ -179,6 +180,7 @@ class Settings(BaseSettings):
     # path_traveltime_matrices
     TRAVELTIME_MATRICES_PATH: str = "/app/src/cache/traveltime_matrices"
     OPPORTUNITY_MATRICES_PATH: str = "/app/src/cache/opportunity_matrices"
+    AGGREGATING_MATRICES_PATH: str = "/app/src/cache/opportunity/grid"
     HEATMAP_MULTIPROCESSING_BULK_SIZE = 50
 
     # Celery config
@@ -193,6 +195,8 @@ class Settings(BaseSettings):
             return {
                 "broker_transport_options": {"region": aws_region or "eu-central-1"},
             }
+        else:
+            return {}
 
     @validator("R5_API_URL", pre=True)
     def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
@@ -210,16 +214,16 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: str = None
     AWS_DEFAULT_REGION: str = None
     S3_CLIENT: Optional[Any] = None
-    @validator("S3_CLIENT", pre=True)
-    def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        if isinstance(v, str):
-            return v
-        return boto3.client(
-            's3',
-            aws_access_key_id=values.get("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=values.get("AWS_SECRET_ACCESS_KEY"),
-            region_name=values.get("AWS_DEFAULT_REGION")
-        )
+    # @validator("S3_CLIENT", pre=True)
+    # def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    #     if isinstance(v, str):
+    #         return v
+    #     return boto3.client(
+    #         's3',
+    #         aws_access_key_id=values.get("AWS_ACCESS_KEY_ID"),
+    #         aws_secret_access_key=values.get("AWS_SECRET_ACCESS_KEY"),
+    #         region_name=values.get("AWS_DEFAULT_REGION")
+    #     )
         
     OPENROUTESERVICE_API_KEY: str = None
     GEOAPIFY_API_KEY: str = None
