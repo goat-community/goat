@@ -20,6 +20,20 @@ class Settings(BaseSettings):
     AWS_ACCESS_KEY_ID: str = ""
     AWS_SECRET_ACCESS_KEY: str = ""
     AWS_REGION: str = "eu-central-1"
+    AWS_BUCKET_NAME: str = "plan4better-data"
+    S3_CLIENT: Optional[Any] = None
+
+    @validator("S3_CLIENT", pre=True)
+    def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        if isinstance(v, str):
+            return v
+        return boto3.client(
+            "s3",
+            aws_access_key_id=values.get("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=values.get("AWS_SECRET_ACCESS_KEY"),
+            region_name=values.get("AWS_REGION"),
+        )
+
     # 60 minutes * 24 hours * 8 days = 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     SERVER_NAME: str

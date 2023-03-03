@@ -16,22 +16,23 @@ class ComputePoiUser(SQLModel):
     data_upload_id: int
 
 
-class HeatmapWalkingBulkResolution(int, Enum):
+class HeatmapBulkResolution(int, Enum):
     """H3 Resolution Bulk."""
+    active_mobility = 6
+    motorized_transport = 6
 
-    resolution = 6
 
-
-class HeatmapWalkingCalculationResolution(int, Enum):
+class HeatmapCalculationResolution(int, Enum):
     """H3 Resolution Calculation."""
 
-    resolution = 10
+    active_mobility = 10
+    motorized_transport = 9
 
 
 class HeatmapMode(Enum):
     walking = "walking"
     cycling = "cycling"
-    public_transport = "public_transport"
+    transit = "transit"
     
 class HeatmapProfile(Enum):
     standard = "standard"
@@ -220,10 +221,10 @@ request_examples = {
             },
         },
     },
-    "connectivity_heatmap_6_public_transport": {
+    "connectivity_heatmap_6_transit": {
         "summary": "Connectivity heatmap with hexagon resolution 6 Public Transport",
         "value": {
-            "mode": "public_transport",
+            "mode": "transit",
             "study_area_ids": [91620000],
             "scenario": {
                 "id": 1,

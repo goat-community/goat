@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime
 from pathlib import Path
 
 import pyximport
@@ -27,13 +28,13 @@ from src.core.isochrone import dijkstra2, network_to_grid, prepare_network_isoch
 from src.crud.base import CRUDBase
 from src.crud.crud_read_heatmap import CRUDBaseHeatmap
 from src.db import models
-from src.db.session import async_session
+from src.db.session import async_session, legacy_engine
 from src.jsoline import jsolines
 from src.resources.enums import OpportunityHeatmapTypes, RoutingTypes
 from src.schemas.heatmap import (
     BulkTravelTime,
-    HeatmapWalkingBulkResolution,
-    HeatmapWalkingCalculationResolution,
+    HeatmapBulkResolution,
+    HeatmapCalculationResolution,
 )
 from src.schemas.isochrone import (
     IsochroneDTO,
@@ -48,6 +49,7 @@ from src.schemas.isochrone import (
 )
 from src.utils import (
     create_dir,
+    create_h3_grid,
     decode_r5_grid,
     delete_file,
     filter_r5_grid,
@@ -57,6 +59,7 @@ from src.utils import (
     print_info,
     print_warning,
     web_mercator_to_wgs84,
+    wgs84_to_web_mercator,
 )
 
 poi_layers = {
@@ -81,7 +84,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
         # Get unioned study areas
         bulk_ids = await self.read_h3_grids_study_areas(
-            resolution=HeatmapWalkingBulkResolution.resolution.value,
+            resolution=HeatmapBulkResolution.active_mobility.value,
             buffer_size=buffer_distance,
             study_area_ids=study_area_ids,
         )
@@ -89,10 +92,57 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
     async def create_calculation_object(
         self,
-        calculation_resolution: int,
-        buffer_size: float,
+        isochrone_dto: IsochroneDTO,
         bulk_id: str,
+        calculation_resolution: int = None,
     ) -> dict:
+
+        mode = isochrone_dto.mode
+        if mode == IsochroneMode.TRANSIT:
+            # todo: Find a better way to define/estimate the extent of the isochrone for transit
+            buffer_size = 70000  # in meters
+            calculation_resolution = (
+                calculation_resolution or HeatmapCalculationResolution.motorized_transport.value
+            )
+            bulk_calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
+            h3_grid_gdf = gpd.GeoDataFrame(columns=["h3_index"])
+            h3_grid_gdf["h3_index"] = list(bulk_calculation_ids)
+            h3_grid_gdf["geometry"] = h3_grid_gdf["h3_index"].apply(
+                lambda x: Polygon(h3.h3_to_geo_boundary(h=x, geo_json=True))
+            )
+            h3_grid_gdf.crs = "EPSG:4326"
+            pt_stop_buffer = (isochrone_dto.settings.walk_speed / 3.6) * (
+                isochrone_dto.settings.max_walk_time * 60
+            )
+            # Get all stops within bulk cell, buffer and clip. This approach avoids calculating places that are not reachable within the max walk time
+            station_clip_calcualtion_grid_gdf = gpd.read_postgis(
+                f"""SELECT st_intersection(st_union(st_transform(st_buffer(st_transform(st.stop_loc, 3857),{pt_stop_buffer}),4326)), 'SRID=4326;{h3_grid_gdf.unary_union.wkt}'::geometry) AS geom 
+                FROM gtfs.stops st WHERE ST_Intersects(st.stop_loc, 'SRID=4326;{h3_grid_gdf.unary_union.wkt}'::geometry)
+                """,
+                legacy_engine,
+            )
+            station_clip_calcualtion_ids = create_h3_grid(
+                geometry=station_clip_calcualtion_grid_gdf.unary_union,
+                h3_resolution=calculation_resolution,
+                intersect_with_centroid=True,
+            )["h3_index"].tolist()
+
+            calculation_ids = list(set(station_clip_calcualtion_ids) & bulk_calculation_ids)
+            # use the extent of the bulk object. This is done to optimize the R5 calculation speed. Since the buffer is quite large we can use the bulk object extent.
+            bulk_lat, bulk_lon = h3.h3_to_geo(bulk_id)
+            bulk_geom = wgs84_to_web_mercator(Point(bulk_lon, bulk_lat))
+            # todo: Find a better way to define/estimate the extent of the isochrone for transit
+            extent = bulk_geom.buffer(70000)
+
+        elif mode == IsochroneMode.WALKING or mode == IsochroneMode.CYCLING:
+            buffer_size = (isochrone_dto.settings.speed / 3.6) * (
+                isochrone_dto.settings.travel_time * 60
+            )
+            calculation_resolution = (
+                calculation_resolution or HeatmapCalculationResolution.active_mobility.value
+            )
+
+            calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
 
         # Define variables
         calculation_obj = {}
@@ -101,10 +151,6 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         starting_point_objs = []
         coords = []
         calculation_obj[bulk_id] = {}
-
-        # Get all calculation ids for bulk id
-        calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
-
         # Loop through all calculation ids and create centroid coordinates for starting points
         for calculation_id in calculation_ids:
             lat, lon = h3.h3_to_geo(calculation_id)
@@ -117,13 +163,18 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         calculation_obj[bulk_id]["starting_point_objs"] = starting_point_objs
 
         # Get buffered extents for grid size
-        gdf_starting_points = gpd.points_from_xy(x=lons, y=lats, crs="epsg:4326")
-        gdf_starting_points = gdf_starting_points.to_crs(epsg=3395)
-        extents = gdf_starting_points.buffer(buffer_size * math.sqrt(2), cap_style=3)
-        extents = extents.to_crs(epsg=3857)
-        extents = extents.bounds
-        extents = extents.tolist()
-        calculation_obj[bulk_id]["extents"] = extents
+        if mode == IsochroneMode.TRANSIT:
+            # same extent for all calculation ids
+            calculation_obj[bulk_id]["extents"] = [list(extent.bounds)] * len(calculation_ids)
+        else:
+            gdf_starting_points = gpd.points_from_xy(x=lons, y=lats, crs="epsg:4326")
+            gdf_starting_points = gdf_starting_points.to_crs(epsg=3395)
+            extents = gdf_starting_points.buffer(buffer_size * math.sqrt(2), cap_style=3)
+            extents = extents.to_crs(epsg=3857)
+            extents = extents.bounds
+            extents = extents.tolist()
+            calculation_obj[bulk_id]["extents"] = extents
+
         calculation_obj[bulk_id]["lats"] = lats
         calculation_obj[bulk_id]["lons"] = lons
 
@@ -422,32 +473,6 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
         return grids
 
-    async def create_h3_grids(self, study_area_ids):
-        # TODO: Part of this is moved as a utility function. Refactor.
-        base_path = "/app/src/cache/analyses_unit/"  # 9222/h3/10
-        for study_area_id in study_area_ids:
-            print_info(f"Started creating H3 grids for study area: {study_area_id}")
-            for resolution in range():
-                print_info(f"Starting to compute resolution: {resolution}")
-                # Get grid ids
-                grids = await self.get_h3_grids(study_area_id, resolution)
-                # Get polygon geometries
-                hex_polygons = [
-                    np.array(h3.h3_to_geo_boundary(str(hex_id), geo_json=True)) for hex_id in grids
-                ]
-                # Convert grid ids to int
-                grids = np.array([h3.string_to_h3(str(hex_id)) for hex_id in grids])
-
-                hex_polygons = np.array(hex_polygons)
-                directory = os.path.join(base_path, str(study_area_id), "h3")
-                grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
-                hex_polygons_filename = os.path.join(directory, f"{resolution}_polygons.npy")
-                if not os.path.exists(directory):
-                    os.makedirs(directory)
-
-                np.save(grids_file_name, grids)
-                np.save(hex_polygons_filename, hex_polygons)
-
     async def compute_areas(self, mode: str, profile: str, h6_id: str, max_time: int):
         travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
         traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
@@ -673,13 +698,17 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             )
 
     async def compute_traveltime_active_mobility(
-        self, isochrone_dto: IsochroneDTO, calculation_obj: dict
+        self,
+        isochrone_dto: IsochroneDTO,
+        calculation_obj: dict,
+        s3_folder: str = "",
     ):
         """Computes the traveltime for active mobility in matrix style.
 
         Args:
             isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
-            calculation_objs (dict): Hierarchical structure of starting points for the calculation using the bulk resolution as parent and calculation resolution as children.
+            calculation_obj (dict): Hierarchical structure of starting points for the calculation using the bulk resolution as parent and calculation resolution as children.
+            s3_folder: The S3 output directory where the travel time folder will be stored
         """
         # Create random table prefix for starting ids and artificial edges
         random_table_prefix = get_random_string(10)
@@ -705,7 +734,6 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         if len(obj["starting_point_objs"]) == 0:
             print_info(f"No starting points for section.")
             return
-
         # Prepare starting points using routing network
         db = async_session()
         starting_ids = await db.execute(
@@ -744,7 +772,6 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         starting_point_objs = np.array(valid_starting_point_objs)
         starting_ids = np.array(valid_starting_ids)
         isochrone_dto.starting_point.input = starting_point_objs
-
         # Read network
         db = async_session()
         network = await crud.isochrone.read_network(
@@ -787,7 +814,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             # Assign variables
             grid_id = grid_ids[idx]
             extent = extents[idx]
-
+            starting_point_obj = starting_point_objs[idx]
             # Get start vertex
             start_id = np.array([unordered_map[v] for v in [start_vertex]])
             # Run Dijkstra
@@ -847,6 +874,14 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             file_dir,
             **traveltimeobjs,
         )
+        # Copy to S3 bucket (if configured)
+        if s3_folder:
+            await self.upload_npz_to_s3(
+                bulk_id,
+                local_folder=directory,
+                s3_folder=s3_folder
+                + f"/traveltime_matrices/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}",
+            )
 
         end_time = time.time()
         print_hashtags()
@@ -856,31 +891,30 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
     async def compute_traveltime_motorized_transport(
         self,
-        bulk_id: str,
-        bulk_obj: dict,
-        output_dir: str,
-        parallel_requests: int = None,
-        upload_to_s3: bool = False,
+        isochrone_dto: IsochroneDTO,
+        calculation_obj: dict,
+        parallel_requests: int = 60,
+        s3_folder: str = "",
     ) -> BulkTravelTime:
-        """
-        Process a bulk of travel times for a given bulk id and bulk object.
+        """Computes the traveltime for active mobility in matrix style.
 
-        :param bulk_id: The bulk id
-        :param bulk_obj: The bulk object
-        :param output_dir: The output directory where the travel time matrices will be stored (locally)
-        :param parallel_requests: The number of parallel requests to R5
-        :param upload_to_s3: If the travel time matrices should be uploaded to S3
-        
-        :return: The bulk travel time object
+        Args:
+            isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
+            calculation_obj (dict): Hierarchical structure of starting points for the calculation using the bulk resolution as parent and calculation resolution as children.
+            parallel_requests (int, optional): Number of parallel requests to R5. Defaults to 60.
+            s3_folder: The S3 output directory where the travel time folder will be stored
         """
-
+        # Get calculation object
+        bulk_id = list(calculation_obj.keys())[0]
+        obj = calculation_obj[bulk_id]
         start = time.time()
         print_info(f"Starting to process travel times for bulk {bulk_id}")
         # Create output dir if it does not exist
+        output_dir = settings.TRAVELTIME_MATRICES_PATH + "/" + isochrone_dto.mode.value
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         # Prepare metadata. This will be used to create the metadata file for the bulk object to know which h3 index was calculated and which has failed.
-        metadata = {"h3_index": [], "processing_time": [], "status": [], "geometry": []}
+        metadata = {"h3_index": [], "status": [], "geometry": []}
         # Prepare R5 payloads
         # Loop through all calculation objects and create a payload for each one
         payloads = []
@@ -888,12 +922,12 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         user, password = (
             base64.b64decode(settings.R5_AUTHORIZATION.split(" ")[1]).decode("utf-8").split(":")
         )
-        for idx, value in enumerate(bulk_obj["calculation_ids"]):
+        for idx, value in enumerate(obj["calculation_ids"]):
             payload = R5TravelTimePayloadTemplate.copy()
             payload["h3_index"] = value
-            payload["fromLon"] = bulk_obj["lons"][idx]
-            payload["fromLat"] = bulk_obj["lats"][idx]
-            extent = bulk_obj["extents"][idx]
+            payload["fromLon"] = obj["lons"][idx]
+            payload["fromLat"] = obj["lats"][idx]
+            extent = obj["extents"][idx]
             extent = list(web_mercator_to_wgs84(box(*extent, ccw=True)).bounds)
             payload["bounds"] = {
                 "north": extent[3],
@@ -939,16 +973,15 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     if grid == None:
                         status = "failed"
                         continue
-                    traveltimeobjs["west"].append(grid["west"])
-                    traveltimeobjs["north"].append(grid["north"])
-                    traveltimeobjs["zoom"].append(grid["zoom"])
-                    traveltimeobjs["width"].append(grid["width"])
-                    traveltimeobjs["height"].append(grid["height"])
+
+                    for key in ["west", "north", "zoom", "width", "height"]:
+                        traveltimeobjs[key].append(grid[key])
+
                     traveltimeobjs["grid_ids"].append(h3_grid_id)
                     traveltimeobjs["travel_times"].append(grid["data"])
+
                     # fill metadata
                     metadata["h3_index"].append(h3_grid_id)
-                    metadata["processing_time"].append(time.time())
                     metadata["status"].append(status)
                     metadata["geometry"].append(Point(result["fromLon"], result["fromLat"]))
 
@@ -958,22 +991,19 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             bulk_id=bulk_id, traveltimeobjs=traveltimeobjs, output_dir=output_dir
         )
         # Save metadata to geojson file
-        metadata_output_dir = f"{output_dir}/metadata"
-        if not os.path.exists(metadata_output_dir):
-            os.makedirs(metadata_output_dir)
-        metadata_gdf = gpd.GeoDataFrame(metadata, geometry="geometry", crs="EPSG:4326")
-        metadata_gdf.to_file(
-            Path(metadata_output_dir, f"metadata_{bulk_id}.geojson"),
-            driver="GeoJSON",
-        )
+        self.save_metadata_gdf(metadata, f"{output_dir}/metadata/{bulk_id}.geojson")
         # Copy to S3 bucket (if configured)
-        if upload_to_s3:
-            print_info(f"Uploading travel times for {bulk_id} to S3")
-            # TODO: Implement upload to S3
-            # upload npz and metadata to S3
+        if s3_folder:
+            await self.upload_npz_to_s3(
+                bulk_id,
+                local_folder=output_dir,
+                s3_folder=s3_folder + "/traveltime_matrices/transit",
+            )
+
         print_info(f"Computed travel times for {bulk_id} in {time.time() - start} seconds")
         return traveltimeobjs
 
+    @staticmethod
     async def fetch_r5_travel_time(
         payload: dict,
         client: ClientSession,
@@ -1020,76 +1050,46 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         print_info(f"Fetched travel time for {payload['h3_index']}")
         return payload
 
+    @staticmethod
+    async def upload_npz_to_s3(bulk_id: str, local_folder: str, s3_folder: str = "") -> None:
+        """
+        Uploads the travel time matrix and metadata to S3
 
-def main():
-    # Get superuser
-    db = async_session()
-    superuser = asyncio.get_event_loop().run_until_complete(
-        CRUDBase(models.User).get_by_key(db, key="id", value=15)
-    )
-    superuser = superuser[0]
-
-    isochrone_dto = IsochroneDTO(
-        mode="walking",
-        settings=IsochroneSettings(
-            travel_time=20,
-            speed=5,
-            walking_profile=RoutingTypes["walking_standard"].value.split("_")[1],
-        ),
-        starting_point=IsochroneStartingPoint(
-            input=[
-                IsochroneStartingPointCoord(lat=0, lon=0)
-            ],  # Dummy points will be replaced in the function
-            region_type="study_area",  # Dummy to avoid validation error
-            region=[1, 2, 3],  # Dummy to avoid validation error
-        ),
-        output=IsochroneOutput(
-            format=IsochroneOutputType.GRID,
-            resolution=12,
-        ),
-        scenario=IsochroneScenario(
-            id=1,
-            name="Default",
-        ),
-    )
-
-    crud_heatmap = CRUDComputeHeatmap(db=db, current_user=superuser)
-    # asyncio.get_event_loop().run_until_complete(
-    #     crud_heatmap.execute_pre_calculation(
-    #         isochrone_dto=isochrone_dto,
-    #         bulk_resolution=HeatmapWalkingBulkResolution["resolution"],
-    #         calculation_resolution=HeatmapWalkingCalculationResolution["resolution"],
-    #         study_area_ids=[
-    #             91620000,
-    #         ],
-    #     )
-    # )
-    # asyncio.get_event_loop().run_until_complete(
-    #     crud_heatmap.create_h3_grids(
-    #         study_area_ids=[
-    #             91620000,
-    #         ],
-    #     )
-    # )
-    asyncio.get_event_loop().run_until_complete(
-        crud_heatmap.generate_connectivity_heatmap(
-            mode="walking", profile="standard", study_area_id=91620000, max_time=20
+        :param bulk_id: bulk id
+        :param local_folder: local output directory
+        :param s3_folder: S3 output directory
+        """
+        # upload npz and metadata to S3
+        s3_client = settings.S3_CLIENT
+        if s3_folder == "":
+            # add time as folder name
+            s3_folder = datetime.now().strftime("%Y-%m-%d")
+        s3_client.upload_file(
+            f"{local_folder}/{bulk_id}.npz",
+            settings.AWS_BUCKET_NAME,
+            f"{s3_folder}/{bulk_id}.npz",
         )
-    )
-    start_time = time.time()
-    # areas = asyncio.get_event_loop().run_until_complete(
-    #     crud_heatmap.compute_areas(profile="walking", h6_id="861f8d787ffffff", max_time=20)
-    # )
-    # asyncio.get_event_loop().run_until_complete(
-    #     crud_heatmap.generate_connectivity_heatmap(
-    #         mode="walking", profile="standard", study_area_id=91620000, max_time=20
-    #     )
-    # )
-    end_time = time.time()
-    print(f"Compute Areas Time: {end_time - start_time}")
-    print("Heatmap is finished. Press Ctrl+C to exit.")
-    input()
+        metadata_file_path = f"{local_folder}/metadata/{bulk_id}.geojson"
+        if os.path.exists(metadata_file_path):
+            s3_client.upload_file(
+                metadata_file_path,
+                settings.AWS_BUCKET_NAME,
+                f"{s3_folder}/metadata/{bulk_id}.geojson",
+            )
+        return
 
+    @staticmethod
+    async def save_metadata_gdf(metadata, output_file):
+        """
+        Saves the metadata to a geojson file
 
-if __name__ == "__main__":
-    main()
+        :param metadata: metadata object with geometry column
+        :param output_file: output file path
+        """
+        output_file_path = Path(output_file)
+        output_file_path.parent.mkdir(parents=True, exist_ok=True)
+        metadata_gdf = gpd.GeoDataFrame(metadata, geometry="geometry", crs="EPSG:4326")
+        metadata_gdf.to_file(
+            output_file,
+            driver="GeoJSON",
+        )

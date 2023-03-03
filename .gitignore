@@ -32,8 +32,6 @@ r5-cache
 !/app/api/src/cache/opportunity_matrices/walking/standard/.gitkeep
 !/app/api/src/cache/opportunity_matrices/cycling/.gitkeep
 !/app/api/src/cache/opportunity_matrices/public_transport/.gitkeep
-/app/api/src/cache/parquet-h3-tiles/*
-!/app/api/src/cache/parquet-h3-tiles/.gitkeep
 /app/api/src/cache/
 /app/api/tmp/
 

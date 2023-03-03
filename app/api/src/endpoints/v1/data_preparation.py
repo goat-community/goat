@@ -44,7 +44,7 @@ def display_top(snapshot, key_type="lineno", limit=3):
     print("Total allocated size: %.1f KiB" % (total / 1024))
 
 
-@router.post("/travel-time-matrices")
+@router.post("/bulk-ids")
 async def get_bulk_ids_for_study_area(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -60,23 +60,22 @@ async def get_bulk_ids_for_study_area(
 async def create_traveltime_matrices(
     *,
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
-    parameters: schemas.OpportunityMatrixParameters2 = Body(
-        ..., example=schemas.OpportunityMatrixParametersExample
+    parameters: schemas.OpportunityMatrixParameters = Body(
+        ..., examples=schemas.OpportunityMatrixParametersExample
     )
 ):
     parameters = json.loads(parameters.json())
-    parameters2 = parameters.copy()
+    parameters_serialized = parameters.copy()
     current_super_user = json.loads(current_super_user.json())
     for bulk_id in parameters["bulk_id"]:
-        parameters2["bulk_id"] = bulk_id
+        parameters_serialized["bulk_id"] = bulk_id
         if settings.CELERY_BROKER_URL:
-            heatmap_active_mobility.create_traveltime_matrices_active_mobility_sync.delay(
-                current_super_user, parameters2
+            heatmap_active_mobility.create_traveltime_matrices_sync.delay(
+                current_super_user, parameters_serialized
             )
         else:
-            # FOR DEBUGGING
-            await method_connector.create_traveltime_matrices_active_mobility_async(
-                current_super_user, parameters2
+            await method_connector.create_traveltime_matrices_async(
+                current_super_user, parameters_serialized
             )
     return JSONResponse("Ok")
 
@@ -85,8 +84,8 @@ async def create_traveltime_matrices(
 async def create_opportunity_matrices(
     *,
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
-    parameters: schemas.OpportunityMatrixParameters2 = Body(
-        ..., example=schemas.OpportunityMatrixParametersExample
+    parameters: schemas.OpportunityMatrixParameters = Body(
+        ..., examples=schemas.OpportunityMatrixParametersExample
     )
 ):
     parameters = json.loads(parameters.json())

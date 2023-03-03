@@ -320,7 +320,7 @@ class OpportunityIntersect(OpportunityRead):
         ].apply(lambda geom: box(*geom.bounds, ccw=True))
         bbox = geometry_bounds.unary_union
         self.bbox_wkt = bbox.wkt
-        self.h3_grid_gdf = create_h3_grid(bbox, hexagon_size)
+        self.h3_grid_gdf = create_h3_grid(bbox, hexagon_size, intersect_with_centroid=False)
 
     def poi(self):
         """
@@ -419,7 +419,9 @@ class OpportunityIsochroneCount(OpportunityIntersect):
         poi_count = defaultdict(dict)
         # Poi with one entrance.
         poi_one_entrance_gdf = poi_gdf[poi_gdf["entrance_type"] == "one"]
-        poi_one_entrance_gdf_grouped = poi_one_entrance_gdf.groupby([group_by_column, "category"])["uid"].count()
+        poi_one_entrance_gdf_grouped = poi_one_entrance_gdf.groupby([group_by_column, "category"])[
+            "uid"
+        ].count()
 
         for (key, category), value in poi_one_entrance_gdf_grouped.items():
             poi_count[key][category] = value
@@ -428,7 +430,7 @@ class OpportunityIsochroneCount(OpportunityIntersect):
         poi_multiple_entrances_gdf = poi_gdf[poi_gdf["entrance_type"] == "multiple"]
 
         agg_func = {}
-        if  group_by_column == "minute":
+        if group_by_column == "minute":
             # relevant for isochrone inputs
             agg_func = {"minute": "mean"}
         else:
@@ -900,7 +902,9 @@ class CRUDIsochrone:
                 opportunities = [poi_count, population_count]
                 if obj_in.mode.value != IsochroneMode.TRANSIT.value:
                     # Aoi
-                    aoi_count = opportunity_count.count_aoi(group_by_columns=["minute", "category"])
+                    aoi_count = opportunity_count.count_aoi(
+                        group_by_columns=["minute", "category"]
+                    )
                     opportunities.append(aoi_count)
 
                 opportunities = merge_dicts(*opportunities)

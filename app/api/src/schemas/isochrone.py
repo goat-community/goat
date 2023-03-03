@@ -146,7 +146,7 @@ class IsochroneSettings(BaseModel):
             IsochroneTransitMode.SUBWAY.value,
             IsochroneTransitMode.RAIL.value,
         ],
-        description="(PT) Transit modes",
+        description="Public Transport modes",
         unique_items=True,
     )
     access_mode: Optional[IsochroneAccessMode] = Field(
@@ -370,7 +370,7 @@ R5TravelTimePayloadTemplate = {
     "zoom": 9,
     "maxBikeTime": 20,
     "maxRides": 4,
-    "maxWalkTime": 1.39,  # in m/s
+    "maxWalkTime": 20,
     "monteCarloDraws": 200,
     "percentiles": [5, 25, 50, 75, 95],
     "variantIndex": -1,

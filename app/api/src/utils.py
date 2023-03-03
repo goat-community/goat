@@ -801,7 +801,7 @@ def create_h3_grid(
     h3_resolution: int,
     return_h3_geometries=False,
     return_h3_centroids=False,
-    intersect_with_centroid=False,
+    intersect_with_centroid=True,
 ):
     """Create a list of H3 indexes
 
@@ -813,7 +813,7 @@ def create_h3_grid(
     :return: List of H3 indexes in a GeoDataFrame.
     """
 
-    h3_indexes_gdf = geopandas.GeoDataFrame(columns=["h3_index"])
+    h3_grid_gdf = geopandas.GeoDataFrame(columns=["h3_index"])
 
     h3_indexes = []
     if geometry.geom_type == "Polygon":
@@ -825,20 +825,20 @@ def create_h3_grid(
             h3_indexes.extend(h3_index)
     h3_indexes = list(set(h3_indexes))
 
-    h3_indexes_gdf["h3_index"] = h3_indexes
+    h3_grid_gdf["h3_index"] = h3_indexes
 
     if return_h3_geometries:
         if return_h3_centroids:
-            h3_indexes_gdf["geometry"] = h3_indexes_gdf["h3_index"].apply(
+            h3_grid_gdf["geometry"] = h3_grid_gdf["h3_index"].apply(
                 lambda x: Point(reversed(h3.h3_to_geo(h=x)))
             )
         else:
-            h3_indexes_gdf["geometry"] = h3_indexes_gdf["h3_index"].apply(
+            h3_grid_gdf["geometry"] = h3_grid_gdf["h3_index"].apply(
                 lambda x: Polygon(h3.h3_to_geo_boundary(h=x, geo_json=True))
             )
-        h3_indexes_gdf.set_crs(epsg=4326, inplace=True)
+        h3_grid_gdf.set_crs(epsg=4326, inplace=True)
 
-    return h3_indexes_gdf
+    return h3_grid_gdf
 
 
 def merge_dicts(*dicts):
