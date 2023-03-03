@@ -60,6 +60,8 @@ async def get_scenarios(
     """
     Get all scenarios.
     """
+    #TODO: Check if the scenarios have outdated features in the table poi_modified, way_modified and building_modified
+    
     result = await crud.scenario.get_by_multi_keys(
         db=db,
         keys={"user_id": current_user.id, "study_area_id": current_user.active_study_area_id},
