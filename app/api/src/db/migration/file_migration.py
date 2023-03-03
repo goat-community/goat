@@ -206,8 +206,8 @@ class FileMigration:
                             self.boto3.upload_file(
                                 "{}/{}".format(h3_output_file_dir, filename),
                                 settings.AWS_BUCKET_NAME,
-                                "{}/{}/{}".format(
-                                    self.s3_folder, row["grid_id"], filename
+                                "{}/{}/{}/{}".format(
+                                    self.s3_folder, "original", row["grid_id"], filename
                                 ),
                             )
                         status = "success"
@@ -236,7 +236,7 @@ class FileMigration:
 
         # Get list of H3 indexes
         h3_parent_ids = h3_indexes_gdf["grid_id"].tolist()
-        batch_size = 100
+        batch_size = 500
         
         for parent_id in h3_parent_ids:
             print_info(f"Processing grid export for H3 index {parent_id}")
