@@ -178,6 +178,7 @@ request_examples_ = {
     "heatmap_configuration": """{"supermarket":{"sensitivity":250000,"weight":1}}""",
 }
 
+
 request_examples = {
     "modified_gaussian_hexagon_10": {
         "summary": "Gravity heatmap with hexagon resolution 10",
@@ -442,4 +443,20 @@ request_examples = {
             "heatmap_config": {"max_traveltime": 10},
         },
     },
+    "aggregated_data_heatmap_10":{
+        "summary": "Aggregated data with hexagon resolution 10",
+        "value": {
+            "study_area_ids": [91620000],
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "aggregated_data",
+            "analysis_unit": "hexagon",
+            "resolution": 10,
+            "heatmap_config": {
+                "source": "population"  
+            },
+        },
+    }
 }
