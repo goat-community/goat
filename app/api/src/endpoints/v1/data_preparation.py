@@ -60,8 +60,8 @@ async def get_bulk_ids_for_study_area(
 async def create_traveltime_matrices(
     *,
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
-    parameters: schemas.OpportunityMatrixParameters = Body(
-        ..., examples=schemas.OpportunityMatrixParametersExample
+    parameters: schemas.TravelTimeMatrixParameters = Body(
+        ..., examples=schemas.examples["travel_time_matrix"]
     )
 ):
     parameters = json.loads(parameters.json())
@@ -85,19 +85,17 @@ async def create_opportunity_matrices(
     *,
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
     parameters: schemas.OpportunityMatrixParameters = Body(
-        ..., examples=schemas.OpportunityMatrixParametersExample
+        ..., examples=schemas.examples["opportunity_matrix"]
     )
 ):
     parameters = json.loads(parameters.json())
-    parameters2 = parameters.copy()
+    parameters_serialized = parameters.copy()
     current_super_user = json.loads(current_super_user.json())
     for bulk_id in parameters["bulk_id"]:
-        parameters2["bulk_id"] = bulk_id
-        # data_preparation_tasks.create_opportunity_matrices_sync.delay(current_super_user, parameters2)
-        tracemalloc.start()
-        await method_connector.create_opportunity_matrices_async(current_super_user, parameters2)
-        snapshot = tracemalloc.take_snapshot()
-        display_top(snapshot)
+        parameters_serialized["bulk_id"] = bulk_id
+        await method_connector.create_opportunity_matrices_async(
+            current_super_user, parameters_serialized
+        )
     return JSONResponse("Ok")
 
 
