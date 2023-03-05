@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from .heatmap import HeatmapMode, HeatmapProfile
 from .isochrone import (
     IsochroneAccessMode,
+    IsochroneDTO,
     IsochroneMode,
     IsochroneOutput,
     IsochroneSettings,
@@ -24,7 +25,7 @@ class BulkIdParameters(BaseModel):
 
 class TravelTimeMatrixParameters(BaseModel):
     bulk_id: list[str]
-    isochrone_dto: HeatmapIsochroneDTO
+    isochrone_dto: IsochroneDTO
     calculation_resolution: int
     s3_folder: Optional[str] = ""
 
@@ -87,6 +88,10 @@ examples = {
                 "isochrone_dto": {
                     "mode": "walking",
                     "settings": {"travel_time": 20, "speed": 5, "walking_profile": "standard"},
+                    "starting_point": {
+                        "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                    },
+                    "scenario": {"id": 0, "modus": "default"},
                     "output": {"type": "grid", "resolution": 12},
                 },
                 "s3_folder": "test",
@@ -114,6 +119,10 @@ examples = {
                         "percentiles": [5, 25, 50, 75, 95],
                         "monte_carlo_draws": 200,
                     },
+                    "starting_point": {
+                        "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                    },
+                    "scenario": {"id": 0, "modus": "default"},
                     "output": {"type": "grid", "resolution": "9"},
                 },
                 "s3_folder": "test",

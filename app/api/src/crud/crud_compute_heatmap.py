@@ -430,8 +430,8 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 obj["lats"],
                 isochrone_dto.settings.travel_time * 60,
                 isochrone_dto.settings.speed / 3.6,
-                isochrone_dto.scenario.modus.value,
-                isochrone_dto.scenario.id,
+                "default", # no scenario for active mobility yet
+                0, # no scenario for active mobility yet
                 routing_profile,
                 True,
                 obj["calculation_ids"],
@@ -679,7 +679,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             bulk_id=bulk_id, traveltimeobjs=traveltimeobjs, output_dir=output_dir
         )
         # Save metadata to geojson file
-        self.save_metadata_gdf(metadata, f"{output_dir}/metadata/{bulk_id}.geojson")
+        await self.save_metadata_gdf(metadata, f"{output_dir}/metadata/{bulk_id}.geojson")
         # Copy to S3 bucket (if configured)
         if s3_folder:
             await self.upload_npz_to_s3(
