@@ -18,10 +18,10 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     CACHE_PATH: str = "/app/src/cache"
     API_SECRET_KEY: str = secrets.token_urlsafe(32)
-    AWS_ACCESS_KEY_ID: str = ""
-    AWS_SECRET_ACCESS_KEY: str = ""
-    AWS_REGION: str = "eu-central-1"
-    AWS_BUCKET_NAME: str = "plan4better-data"
+    AWS_ACCESS_KEY_ID: Optional[str] = ""
+    AWS_SECRET_ACCESS_KEY: Optional[str] = ""
+    AWS_REGION: Optional[str] = "eu-central-1"
+    AWS_BUCKET_NAME: Optional[str] = "plan4better-data"
     S3_CLIENT: Optional[Any] = None
 
     @validator("S3_CLIENT", pre=True)
@@ -157,7 +157,6 @@ class Settings(BaseSettings):
     DEMO_USER_SCENARIO_LIMIT: Optional[int] = 5
     DEMO_USER_STORAGE: Optional[int] = 0  # In kilobytes
     DEMO_USER_DEACTIVATION_DAYS: Optional[int] = 30
-    USERS_OPEN_REGISTRATION: bool = False
     # Tile / Table config
     TILE_RESOLUTION: int = 4096
     TILE_BUFFER: int = 256
@@ -183,7 +182,7 @@ class Settings(BaseSettings):
     HEATMAP_MULTIPROCESSING_BULK_SIZE = 50
 
     # Celery config
-    CELERY_BROKER_URL: str
+    CELERY_BROKER_URL: Optional[str] = ""
     CELERY_CONFIG: Optional[dict] = {}
 
     @validator("CELERY_CONFIG", pre=True)
@@ -205,10 +204,10 @@ class Settings(BaseSettings):
     def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         return f"Basic {v}="
         
-    OPENROUTESERVICE_API_KEY: str = None
-    GEOAPIFY_API_KEY: str = None
-    GOOGLE_API_KEY: str = None
-    GITHUB_ACCESS_TOKEN: str = None
+    OPENROUTESERVICE_API_KEY: Optional[str] = None
+    GEOAPIFY_API_KEY: Optional[str] = None
+    GOOGLE_API_KEY: Optional[str] = None
+    GITHUB_ACCESS_TOKEN: Optional[str] = None
 
     class Config:
         case_sensitive = True

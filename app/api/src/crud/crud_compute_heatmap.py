@@ -56,18 +56,6 @@ from src.utils import (
     wgs84_to_web_mercator,
 )
 
-poi_layers = {
-    "poi": models.Poi,
-    "poi_modified": models.PoiModified,
-    "poi_user": models.PoiUser,
-}
-
-
-class CRUDGridCalculation(
-    CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
-):
-    pass
-
 
 class CRUDComputeHeatmap(CRUDBaseHeatmap):
     async def get_bulk_ids(

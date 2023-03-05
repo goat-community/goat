@@ -2,12 +2,10 @@ import pyximport
 
 pyximport.install()
 import asyncio
-import concurrent.futures
 import json
 import math
 import os
 import time
-from typing import List
 
 import geopandas as gpd
 import h3
@@ -19,23 +17,10 @@ from sqlalchemy.sql import select, text
 from src.core import heatmap as heatmap_core
 from src.core import heatmap_cython
 from src.core.config import settings
-from src.crud.base import CRUDBase
 from src.db import models
 from src.schemas.heatmap import HeatmapMode, HeatmapSettings, HeatmapType
 from src.schemas.isochrone import IsochroneStartingPointCoord
 from src.utils import print_hashtags, print_info, print_warning, timing
-
-poi_layers = {
-    "poi": models.Poi,
-    "poi_modified": models.PoiModified,
-    "poi_user": models.PoiUser,
-}
-
-
-class CRUDGridCalculation(
-    CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
-):
-    pass
 
 
 class CRUDBaseHeatmap:
