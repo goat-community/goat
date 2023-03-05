@@ -72,6 +72,13 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+
+    @validator("POSTGRES_DB", pre=True)
+    def set_db_name_according_to_project_name_if_empty(cls, v, values):
+        if not v and values.get("COMPOSE_PROJECT_NAME"):
+            return values["COMPOSE_PROJECT_NAME"]
+        return v
+
     POSTGRES_DATABASE_URI: str = None
 
     @validator("POSTGRES_DATABASE_URI", pre=True)
@@ -208,6 +215,8 @@ class Settings(BaseSettings):
     GEOAPIFY_API_KEY: Optional[str] = None
     GOOGLE_API_KEY: Optional[str] = None
     GITHUB_ACCESS_TOKEN: Optional[str] = None
+
+    COMPOSE_PROJECT_NAME: Optional[str] = None
 
     class Config:
         case_sensitive = True
