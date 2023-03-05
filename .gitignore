@@ -19,6 +19,7 @@ __pycache__
 /app/api/src/data/*
 !/app/api/src/data/.gitkeep
 r5-cache
+/app/api/src/cache
 
 /app/api/src/cache/traveltime_matrices/walking/*
 /app/api/src/cache/traveltime_matrices/cycling/*

@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from geoalchemy2.shape import WKTElement, to_shape
 from shapely import wkt
 from shapely.ops import transform
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, or_, text
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import delete, select
 
@@ -298,6 +298,18 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         # Return empty string at the moment
         # TODO: add removed items instead.
         return ""
+    
+    async def is_scenario_broken(self, db: AsyncSession, scenario_id: int) -> bool:
+        # Cheking if any of the modified objects has a outdatad column set to true
+        query = text('''SELECT EXISTS (SELECT 1 FROM customer.poi_modified pm WHERE outdated = true and pm.scenario_id=:scenario_id)
+                        OR EXISTS (SELECT 1 FROM customer.way_modified wm WHERE outdated = true and wm.scenario_id=:scenario_id)
+                        OR EXISTS (SELECT 1 FROM customer.building_modified bm WHERE outdated = true and bm.scenario_id=:scenario_id)
+                        AS broken;''')
+        result = await db.execute(query, {"scenario_id": scenario_id})
+        result = result.scalars().first()
+
+        return bool(result)
+        
 
 
 scenario = CRUDScenario(models.Scenario)
