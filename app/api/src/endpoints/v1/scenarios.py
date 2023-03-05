@@ -12,7 +12,11 @@ from src.db import models
 from src.endpoints import deps
 from src.resources.enums import ReturnType
 from src.schemas.msg import Msg
-from src.schemas.scenario import request_examples, scenario_deleted_columns
+from src.schemas.scenario import (
+    ScenarioWithBrokenField,
+    request_examples,
+    scenario_deleted_columns,
+)
 from src.utils import return_geojson_or_geobuf, to_feature_collection
 
 router = APIRouter()
@@ -51,7 +55,7 @@ async def create_scenario(
     return result
 
 
-@router.get("", response_model=List[models.Scenario])
+@router.get("", response_model=List[ScenarioWithBrokenField])
 async def get_scenarios(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -64,6 +68,11 @@ async def get_scenarios(
         db=db,
         keys={"user_id": current_user.id, "study_area_id": current_user.active_study_area_id},
     )
+    for index, r in enumerate(result):
+        broken = await crud.scenario.is_scenario_broken(db, r.id)
+        r = ScenarioWithBrokenField.parse_obj(r)
+        r.broken = broken
+        result[index] = r
     return result
 
 
