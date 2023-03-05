@@ -32,6 +32,9 @@
         <!-- CREATE SCENARIO  -->
         <div v-if="scenarioList.length > 1">
           <v-row class="mt-4" no-gutters no-wrap>
+            <v-alert v-if="scenarioError" dense type="error">
+              {{ scenarioError }}
+            </v-alert>
             <v-select
               v-model="activeScenario"
               :items="scenarioList"
@@ -677,6 +680,7 @@ export default {
     //Scenario Dialog
     showScenarioDialog: false,
     activeScenarioId: null,
+    scenarioError: null,
 
     editElVisible: true,
     dataManageElVisible: true,
@@ -697,6 +701,14 @@ export default {
   }),
   watch: {
     activeScenario() {
+      let currentScenario = this.scenarioList.find(
+        scenario => scenario.id === this.activeScenario
+      );
+
+      this.scenarioError = currentScenario.broken
+        ? "This scenario is broken, please contact us to fix it."
+        : null;
+
       // Fetch all features from the scenario
       if (this.selectedLayer) {
         this.fetchScenarioLayerFeatures(this.selectedLayer["name"]);
