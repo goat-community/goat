@@ -27,7 +27,7 @@ class Settings(BaseSettings):
         "http://localhost",
         "https://dashboard.plan4better.de",
         "https://dashboard-dev.plan4better.de",
-        "https://citizens.plan4better.de"
+        "https://citizens.plan4better.de",
     ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
@@ -46,17 +46,18 @@ class Settings(BaseSettings):
         if len(v) == 0:
             return None
         return v
-    
 
     POSTGRES_SERVER: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+
     @validator("POSTGRES_DB", pre=True)
-    def set_db_name_according_to_project_name_if_empty(cls,v,values):
+    def set_db_name_according_to_project_name_if_empty(cls, v, values):
         if not v and values.get("COMPOSE_PROJECT_NAME"):
             return values["COMPOSE_PROJECT_NAME"]
         return v
+
     POSTGRES_DATABASE_URI: str = None
 
     @validator("POSTGRES_DATABASE_URI", pre=True)
@@ -169,7 +170,8 @@ class Settings(BaseSettings):
     def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         return f"Basic {v}="
 
-    COMPOSE_PROJECT_NAME: str
+    COMPOSE_PROJECT_NAME: Optional[str] = None
+
     class Config:
         case_sensitive = True
 
