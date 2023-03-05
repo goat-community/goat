@@ -280,17 +280,18 @@ export default {
         const feature = calculation.feature.clone();
         const reached_opportunities = {};
         const accessibility = calculation.surfaceData.accessibility;
+        const traveltime = this.calculationTravelTime[calculation.id - 1];
         if (calculation.type === "single") {
           Object.keys(accessibility).forEach(category => {
             reached_opportunities[category] =
-              accessibility[category][this.isochroneRange - 1];
+              accessibility[category][traveltime - 1];
           });
         } else {
           Object.keys(accessibility).forEach(studyAreaId => {
             reached_opportunities[studyAreaId] = {
               reached_population:
                 accessibility[studyAreaId]["reached_population"][
-                  this.isochroneRange - 1
+                  traveltime - 1
                 ],
               total_population: accessibility[studyAreaId]["total_population"]
             };
@@ -298,7 +299,7 @@ export default {
         }
         const properties = {
           isochrone_calculation_id: calculation.id,
-          traveltime: this.isochroneRange,
+          traveltime,
           modus: calculation.config.scenario.modus,
           routing_profile: calculation.routing,
           reached_opportunities
@@ -317,7 +318,8 @@ export default {
               responseType: "blob",
               headers: {
                 "Content-Type": "application/json"
-              }
+              },
+              traveltime // this is needed on Promise.all to get the correct traveltime
             }
           )
         );
@@ -326,7 +328,8 @@ export default {
         .then(responses => {
           const zip = new JSZip();
           responses.forEach((response, index) => {
-            const exportName = `isochrone-export_${index}_${this.isochroneRange}-min.zip`;
+            const traveltime = response.config.traveltime || 0;
+            const exportName = `isochrone-export_${index}_${traveltime}-min.zip`;
             if (responses.length === 1) {
               saveAs(response.data, exportName);
             }
@@ -523,7 +526,6 @@ export default {
       calculations: "calculations",
       selectedCalculations: "selectedCalculations",
       chartDatasetType: "chartDatasetType",
-      isochroneRange: "isochroneRange",
       isochroneResultWindow: "isochroneResultWindow"
     })
   },
