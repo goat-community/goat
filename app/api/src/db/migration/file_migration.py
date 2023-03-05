@@ -152,13 +152,14 @@ class FileMigration:
                 f"""
                 WITH h3_grid AS (
                     SELECT ST_SETSRID(ST_GEOMFROMTEXT(geom_text), 4326) AS geom, grid_id
-                    FROM UNNEST(ARRAY[{clip}]) AS geom_text, UNNEST(ARRAY[{group_by}]) AS grid_id
+                    FROM (SELECT UNNEST(ARRAY[{clip}]) AS geom_text, UNNEST(ARRAY[{group_by}]) AS grid_id) x 
                 )
                 SELECT grid_id, g.*
                 FROM h3_grid
                 CROSS JOIN LATERAL (
                     {input_sql}
-                    WHERE ST_Intersects(geom, h3_grid.geom)
+                    WHERE ST_Intersects(p.geom, h3_grid.geom)
+                    GROUP BY grid_id
                 ) AS g
                 """
             )
@@ -332,7 +333,7 @@ class FileMigration:
         export_metadata_gdf.set_index("grid_id", inplace=True)
        
         # Export data
-        export_metadata_gdf = self._export_original(h3_indexes_gdf, export_metadata_gdf, layer_input["original"])
+        #export_metadata_gdf = self._export_original(h3_indexes_gdf, export_metadata_gdf, layer_input["original"])
         export_metadata_gdf = self._export_grid(h3_indexes_gdf, export_metadata_gdf, layer_input["grid"])      
 
         #TODO: Fix export metadata

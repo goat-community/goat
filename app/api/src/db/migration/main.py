@@ -19,7 +19,7 @@ def file_migration():
                 "aoi": "SELECT * FROM basic.aoi",
             },
             "grid": {
-                "population": "SELECT SUM(population) AS value FROM basic.population",
+                "population": "SELECT SUM(population) AS value FROM basic.population p",
             },
         },
         "upload_to_s3": True,
