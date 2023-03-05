@@ -21,13 +21,7 @@ from src.core import heatmap_cython
 from src.core.config import settings
 from src.crud.base import CRUDBase
 from src.db import models
-from src.db.session import async_session, legacy_engine, sync_session
-from src.schemas.heatmap import (
-    HeatmapBaseSpeed,
-    HeatmapMode,
-    HeatmapSettings,
-    HeatmapType,
-)
+from src.schemas.heatmap import HeatmapMode, HeatmapSettings, HeatmapType
 from src.schemas.isochrone import IsochroneStartingPointCoord
 from src.utils import print_hashtags, print_info, print_warning, timing
 
