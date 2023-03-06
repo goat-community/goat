@@ -4,8 +4,7 @@ from src.db.session import legacy_engine
 
 
 def file_migration():
-    """Temporary script to execute data migration from the database to parquet files.
-    """    
+    """Temporary script to execute data migration from the database to parquet files."""
 
     input_config = {
         "mask_config": "SELECT ST_Union(buffer_geom_heatmap) as geom FROM basic.study_area",
@@ -20,6 +19,9 @@ def file_migration():
             },
             "grid": {
                 "population": "SELECT SUM(population) AS value FROM basic.population",
+            },
+            "analysis_unit": {
+                "h3": "SELECT * FROM basic.study_area"
             },
         },
         "upload_to_s3": True,
@@ -41,17 +43,16 @@ def file_migration():
         mask_config,
         mask_buffer_distance,
         h3_bulk_resolution,
-        h3_child_resolution, 
+        h3_child_resolution,
         output_dir,
         upload_to_s3=input_config["upload_to_s3"],
-        s3_folder=input_config["s3_folder"],        
+        s3_folder=input_config["s3_folder"],
     ).run()
 
 
 file_migration()
 
 # def main():
-
 
 
 # if __name__ == "__main__":

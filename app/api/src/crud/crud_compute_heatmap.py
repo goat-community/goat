@@ -507,9 +507,12 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 distances,
                 node_coords,
             )
-            grid = filter_r5_grid(
-                grid, percentile=5, travel_time_limit=isochrone_dto.settings.travel_time
-            )
+            try:
+                grid = filter_r5_grid(
+                    grid, percentile=5, travel_time_limit=isochrone_dto.settings.travel_time
+                )
+            except Exception as e:
+                print("Could not filter grid")
             # Assign grid_id and rename data to travel_times
             grid["grid_ids"] = grid_id
             grid["travel_times"] = grid.pop("data")
