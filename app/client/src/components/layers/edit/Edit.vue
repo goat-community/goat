@@ -706,7 +706,7 @@ export default {
       );
 
       this.scenarioError = currentScenario.broken
-        ? "This scenario is broken, please contact us to fix it."
+        ? this.$t("appBar.edit.scenario_error")
         : null;
 
       // Fetch all features from the scenario
