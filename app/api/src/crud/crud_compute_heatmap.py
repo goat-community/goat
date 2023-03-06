@@ -418,6 +418,10 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         starting_ids = starting_ids.scalars().all()
         await db.close()
 
+        if len(starting_ids) == 0:
+            print_info(f"No starting points for section.")
+            return
+
         # Sort out invalid starting points (no network edge found)
         valid_extents = []
         valid_starting_ids = []
@@ -502,6 +506,9 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 geom_array,
                 distances,
                 node_coords,
+            )
+            grid = filter_r5_grid(
+                grid, percentile=5, travel_time_limit=isochrone_dto.settings.travel_time
             )
             # Assign grid_id and rename data to travel_times
             grid["grid_ids"] = grid_id
