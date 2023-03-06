@@ -69,7 +69,7 @@ class CRUDBaseHeatmap:
             study_areas_union_geom, resolution, intersect_with_centroid=False
         )
 
-        return bulk_ids
+        return bulk_ids["h3_index"].to_list()
 
 
 class CRUDReadHeatmap(CRUDBaseHeatmap):
