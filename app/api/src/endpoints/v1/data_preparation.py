@@ -77,7 +77,7 @@ async def create_traveltime_matrices(
                 )
             else:
 
-                heatmap_motorized_transport.create_traveltime_matrices_sync.delay(
+                heatmap_motorized_transport.create_r5_traveltime_matrices_sync.delay(
                     current_super_user, parameters_serialized
                 )
         else:

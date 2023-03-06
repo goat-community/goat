@@ -8,7 +8,7 @@ from .method_connector import (
 
 
 @celery_app.task
-def create_traveltime_matrices_sync(current_super_user, parameters):
+def create_r5_traveltime_matrices_sync(current_super_user, parameters):
     loop = asyncio.get_event_loop()
     coroutine = create_traveltime_matrices_async(
         current_super_user=current_super_user, parameters=parameters

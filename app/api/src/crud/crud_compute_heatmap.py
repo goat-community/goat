@@ -10,12 +10,11 @@ import asyncio
 import math
 import os
 import time
-from itertools import compress
 
 import h3
 import numpy as np
 from geoalchemy2.shape import to_shape
-from geopandas import GeoDataFrame, GeoSeries, points_from_xy, read_postgis
+from geopandas import GeoDataFrame, points_from_xy, read_postgis
 from rich import print
 from shapely.geometry import Point, Polygon, box
 from sqlalchemy.sql.functions import func
@@ -171,31 +170,6 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     neighbors.add(n)
         return list(neighbors)
 
-    async def get_interior_neighbors(self, grids, study_area_polygon):
-        neighbors = await self.get_neighbors(grids)
-        neighbor_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
-        neighbor_polygons = GeoSeries(list(map(neighbor_polygons, neighbors)), crs="EPSG:4326")
-        intersects = neighbor_polygons.intersects(study_area_polygon)
-        neighbors = list(compress(neighbors, intersects.values))
-        return neighbors
-
-    async def get_h3_grids(self, study_area_id, resolution):
-        db = async_session()
-        study_area = await crud.study_area.get(db, id=study_area_id)
-        await db.close()
-        study_area_polygon = to_shape(study_area.geom)
-        grids = []
-        for polygon_ in list(study_area_polygon.geoms):
-            grids_ = h3.polyfill_geojson(polygon_.__geo_interface__, resolution)
-            # Get hexagon geometries and convert to GeoDataFrame
-            grids.extend(grids_)
-        grids = list(set(grids))
-        neighbors = await self.get_interior_neighbors(grids, study_area_polygon)
-        grids.extend(neighbors)
-        grids = np.array(grids)
-
-        return grids
-
     async def compute_areas(self, mode: str, profile: str, h6_id: str, max_time: int):
         travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
         traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
@@ -312,8 +286,10 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     opportunity_matrix["grid_ids"][idx_poi_category].append(arr_grid_ids)
                     opportunity_matrix["names"][idx_poi_category].append(name)
                     opportunity_matrix["uids"][idx_poi_category].append(uid)
-                    if (weight_key is not None):
-                        opportunity_matrix["weight"][idx_poi_category].append(opportunity[weight_key])
+                    if weight_key is not None:
+                        opportunity_matrix["weight"][idx_poi_category].append(
+                            opportunity[weight_key]
+                        )
                     else:
                         opportunity_matrix["weight"][idx_poi_category].append(1)
                 else:
@@ -366,7 +342,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         directory = self.get_connectivity_path(mode, profile)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        h6_hexagons = await self.get_h3_grids(study_area_id, 6)
+        h6_hexagons = await self.read_h3_grids_study_areas(6, 0, [study_area_id])
         for h6_id in h6_hexagons:
             travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
             try:
@@ -430,8 +406,8 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 obj["lats"],
                 isochrone_dto.settings.travel_time * 60,
                 isochrone_dto.settings.speed / 3.6,
-                "default", # no scenario for active mobility yet
-                0, # no scenario for active mobility yet
+                "default",  # no scenario for active mobility yet
+                0,  # no scenario for active mobility yet
                 routing_profile,
                 True,
                 obj["calculation_ids"],

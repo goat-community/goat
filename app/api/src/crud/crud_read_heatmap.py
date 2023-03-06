@@ -18,9 +18,10 @@ from src.core import heatmap as heatmap_core
 from src.core import heatmap_cython
 from src.core.config import settings
 from src.db import models
+from src.db.session import legacy_engine
 from src.schemas.heatmap import HeatmapMode, HeatmapSettings, HeatmapType
 from src.schemas.isochrone import IsochroneStartingPointCoord
-from src.utils import print_hashtags, print_info, print_warning, timing
+from src.utils import print_hashtags, print_info, print_warning, timing, create_h3_grid
 
 
 class CRUDBaseHeatmap:
@@ -39,7 +40,7 @@ class CRUDBaseHeatmap:
         return os.path.join(self.connectivity_base_path, mode, profile)
 
     async def read_h3_grids_study_areas(
-        self, resolution: int, buffer_size: int, study_area_ids: list[int] = None
+        self, resolution: int, buffer_size: int, study_area_ids: list[int] = []
     ) -> list[str]:
 
         """Reads grid ids for study areas.
@@ -53,51 +54,21 @@ class CRUDBaseHeatmap:
             list[str]: List of grid ids.
         """
 
-        resolution = 6
-
-        # Get relevant study areas
-        if study_area_ids is None:
-            statement = select(models.StudyArea.id)
-        else:
-            statement = select(models.StudyArea.id).where(models.StudyArea.id.in_(study_area_ids))
-        study_area_ids = await self.db.execute(statement)
-        study_area_ids = study_area_ids.scalars().all()
-        print_info(f"Processing will be done for Study area ids: {str(study_area_ids)[1:-1]}")
-
-        # Get buffer size
-        buffer_size = buffer_size + h3.edge_length(resolution, "m")
-
-        # # Get unioned study areas
-        # # Doing this in Raw SQL because query could not be build with SQLAlchemy ORM
-        # TODO: Reduce the amount of grids
-        sql_query = text(
-            f"""
-            SELECT ST_AsGeoJSON(ST_BUFFER(geom::geography, :buffer_size)::geometry) AS geom
-            FROM
-            ( 
-                SELECT (ST_DUMP(geom)).geom AS geom
-                FROM basic.study_area sa
-                WHERE sa.id = :study_area_id
-            ) AS dumped
-        """
+        study_areas_union_geom = (
+            gpd.read_postgis(
+                f"SELECT geom FROM basic.study_area sa WHERE sa.id = any(array{study_area_ids})",
+                legacy_engine,
+            )
+            .to_crs("EPSG:3857")
+            .buffer(buffer_size)
+            .to_crs("EPSG:4326")
+            .unary_union
         )
-        union_geoms = [
-            self.db.execute(sql_query, {"study_area_id": i, "buffer_size": buffer_size})
-            for i in study_area_ids
-        ]
-        union_geoms = await asyncio.gather(*union_geoms)
-        union_geoms = [geom.fetchall() for geom in union_geoms][0]
-        union_geoms_json = [json.loads(geom[0]) for geom in union_geoms]
 
-        #  Get all grids for the bulk resolution
-        bulk_ids = []
-        for geom in union_geoms_json:
-            if geom["type"] != "Polygon":
-                raise ValueError("Unioned Study area geometries are not a of type polygon.")
+        bulk_ids = create_h3_grid(
+            study_areas_union_geom, resolution, intersect_with_centroid=False
+        )
 
-            bulk_ids.extend(list(h3.polyfill_geojson(geom, resolution)))
-
-        bulk_ids = list(set(bulk_ids))
         return bulk_ids
 
 
@@ -180,8 +151,6 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         print_info(f"Calculation time: {end - begin} seconds")
         print_hashtags()
         return calculation_objs
-
-  
 
     async def get_categories_opportunities(self, heatmap_settings: HeatmapSettings) -> list[str]:
         """Get all categories from the heatmap config
