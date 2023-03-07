@@ -28,7 +28,7 @@ class FileMigration:
         mask_buffer_distance: int = 0,
         h3_bulk_resolution: int = 6,
         h3_child_resolution: int = 10,
-        output_dir: str = "/app/src/cache/opportunity",
+        output_dir: str = settings.OPPORTUNITY_PATH,
         upload_to_s3: bool = False,
         s3_folder: str = "",
     ):
@@ -328,7 +328,7 @@ class FileMigration:
         base_path = settings.ANALYSIS_UNIT_PATH  # 9222/h3/10
         study_areas = self._read_from_postgis(self.layer_config["analysis_unit"]["h3"])
         for idx, study_area in study_areas.iterrows():
-            for resolution in range(self.h3_bulk_resolution, self.h3_child_resolution):
+            for resolution in range(self.h3_bulk_resolution, self.h3_child_resolution + 1):
                 grid = create_h3_grid(
                     geometry=study_area["geom"],
                     h3_resolution=resolution,

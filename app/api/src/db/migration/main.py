@@ -33,7 +33,7 @@ def file_migration():
     h3_child_resolution = input_config["h3_child_resolution"]
     mask_buffer_distance = input_config["mask_buffer_distance"]
     layer_config = input_config["layer_config"]
-    output_dir = "/app/src/cache/opportunity"
+    output_dir = settings.OPPORTUNITY_PATH
     boto3 = settings.S3_CLIENT
 
     FileMigration(
@@ -51,47 +51,3 @@ def file_migration():
 
 
 file_migration()
-
-# def main():
-
-
-# if __name__ == "__main__":
-#     main()
-
-
-# Example input_config.json
-
-
-# parser = argparse.ArgumentParser(
-#     description="Export data from the database to parquet files."
-# )
-# parser.add_argument(
-#     "--input_config",
-#     type=str,
-#     required=True,
-#     help="Json file containing input configuration",
-# )
-# parser.add_argument(
-#     "--output_dir", type=str, default="../data/output", help="Output directory"
-# )
-# parser.add_argument(
-#     "-u",
-#     "--upload_to_s3",
-#     action="store_false",
-#     help="If set, the output directory will be uploaded to s3 bucket",
-# )
-
-# parser.add_argument(
-#     "--s3_folder",
-#     type=str,
-#     default="",
-#     help="If upload_to_s3 is set, the output directory will be uploaded to s3 bucket under this folder",
-# )
-
-# args = parser.parse_args()
-# with open(args.input_config, "r") as f:
-#     input_config = json.load(f)
-
-
-# Example Run the script
-# python export.py --input_config /app/src/data/input/input_config.json --output_dir /app/src/data/output --upload_to_s3 True --s3_folder parquet-tiles

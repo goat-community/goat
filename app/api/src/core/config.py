@@ -187,6 +187,8 @@ class Settings(BaseSettings):
     TRAVELTIME_MATRICES_PATH: str = "/app/src/cache/traveltime_matrices"
     OPPORTUNITY_MATRICES_PATH: str = "/app/src/cache/opportunity_matrices"
     ANALYSIS_UNIT_PATH: str = "/app/src/cache/analysis_unit"
+    OPPORTUNITY_PATH: str = "/app/src/cache/opportunity"
+    
     HEATMAP_MULTIPROCESSING_BULK_SIZE = 50
 
     # Celery config

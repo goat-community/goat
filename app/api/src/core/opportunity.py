@@ -27,12 +27,13 @@ class Opportunity:
         self.layers_modifiable = ["poi", "population"]
         self.layers_user_data = ["poi"]
 
-    def read_h3_parquet(self, layer: str, h3_indexes: list) -> GeoDataFrame:
+    def read_h3_parquet(self, layer: str, h3_indexes: list, type: str = "original") -> GeoDataFrame:
         """
         Read parquet files.
 
         :param layer: The layer name.
         :param h3_indexes: The h3 indexes.
+        :param type: The type of data (original or grid (aggregated)).
 
         :return: A GeoDataFrame with the data.
         """
@@ -43,7 +44,7 @@ class Opportunity:
         for h3_index in h3_indexes:
             try:
                 layer_gdf = read_parquet(
-                    f"{settings.CACHE_PATH}/parquet-h3-tiles/{h3_index}/{layer}.parquet"
+                    f"{settings.OPPORTUNITY_PATH}/{type}/{h3_index}/{layer}.parquet"
                 )
                 layer_gdfs.append(layer_gdf)
             except Exception as e:

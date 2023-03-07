@@ -35,7 +35,7 @@ class TravelTimeMatrixParametersSingleBulk(TravelTimeMatrixParameters):
 
 
 class OpportunityMatrixParameters(TravelTimeMatrixParameters):
-    opportunity_types: Optional[list[str]] = ["poi", "population", "aoi"]
+    opportunity_types: Optional[list[str]] = ["poi", "population"]
     scenario_ids: Optional[list[int]] = []
     user_data_ids: Optional[list[int]] = []
     compute_base_data: Optional[bool] = True
@@ -138,6 +138,10 @@ examples = {
                 "isochrone_dto": {
                     "mode": "walking",
                     "settings": {"travel_time": 20, "speed": 5, "walking_profile": "standard"},
+                    "starting_point": {
+                        "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                    },
+                    "scenario": {"id": 0, "modus": "default"},
                     "output": {"type": "grid", "resolution": 12},
                 },
                 "scenario_ids": [],
@@ -168,6 +172,10 @@ examples = {
                         "percentiles": [5, 25, 50, 75, 95],
                         "monte_carlo_draws": 200,
                     },
+                    "starting_point": {
+                        "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                    },
+                    "scenario": {"id": 0, "modus": "default"},
                     "output": {"type": "grid", "resolution": "9"},
                 },
                 "scenario_ids": [],

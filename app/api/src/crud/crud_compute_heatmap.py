@@ -275,8 +275,12 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                         )
                     else:
                         cnt += 1
-                arr_travel_times = np.array(arr_travel_times, dtype=np.dtype(np.byte))
-                arr_grid_ids = np.array(arr_grid_ids, dtype=np.dtype(np.int_))
+                try: 
+                    arr_travel_times = np.array(arr_travel_times, dtype=np.dtype(np.byte))
+                    arr_grid_ids = np.array(arr_grid_ids, dtype=np.dtype(np.int_))
+                except Exception as e:
+                    print(e)
+                    continue
 
                 if len(arr_travel_times) > 0:
                     opportunity_matrix["travel_times"][idx_poi_category].append(arr_travel_times)
@@ -304,10 +308,16 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
         for idx, category in enumerate(opportunity_matrix["names"]):
             opportunity_matrix["names"][idx] = np.array(category, dtype=np.str_)
+    
+        for idx, category in enumerate(opportunity_matrix["weight"]):
+            opportunity_matrix["weight"][idx] = np.array(category, dtype=np.float32)
 
         opportunity_matrix["travel_times_matrix_size"] = np.array(
             opportunity_matrix["travel_times_matrix_size"], dtype=object
         )
+
+        opportunity_matrix["weight"] = np.array(opportunity_matrix["weight"], dtype=object)
+
         for idx, category in enumerate(opportunity_matrix["travel_times_matrix_size"]):
             opportunity_matrix["travel_times_matrix_size"][idx] = np.array(
                 category, dtype=np.dtype(np.ushort)
