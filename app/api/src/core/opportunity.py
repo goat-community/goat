@@ -1,5 +1,5 @@
 from collections import defaultdict
-
+import os
 import numpy as np
 import pandas as pd
 from geopandas import GeoDataFrame, clip, read_parquet, read_postgis
@@ -27,13 +27,16 @@ class Opportunity:
         self.layers_modifiable = ["poi", "population"]
         self.layers_user_data = ["poi"]
 
-    def read_h3_parquet(self, layer: str, h3_indexes: list, type: str = "original") -> GeoDataFrame:
+    def read_h3_parquet(
+        self, layer: str, h3_indexes: list, type: str = "original", s3_folder: str = ""
+    ) -> GeoDataFrame:
         """
         Read parquet files.
 
         :param layer: The layer name.
         :param h3_indexes: The h3 indexes.
         :param type: The type of data (original or grid (aggregated)).
+        :param s3_folder: The s3 folder (Optional).
 
         :return: A GeoDataFrame with the data.
         """
@@ -43,26 +46,43 @@ class Opportunity:
         layer_gdfs = []
         for h3_index in h3_indexes:
             try:
-                layer_gdf = read_parquet(
-                    f"{settings.OPPORTUNITY_PATH}/{type}/{h3_index}/{layer}.parquet"
-                )
+                dir_name = f"{settings.OPPORTUNITY_PATH}/{type}/{h3_index}"
+                file_path = f"{dir_name}/{layer}.parquet"
+                if s3_folder != "" and not os.path.exists(file_path):
+                    print(f"File {file_path} not found. Trying to download from S3.")
+                    if not os.path.exists(dir_name):
+                        os.makedirs(dir_name, exist_ok=True)
+                    s3_path = f"{s3_folder}/opportunity/{type}/{h3_index}/{layer}.parquet"
+                    settings.S3_CLIENT.download_file(settings.AWS_BUCKET_NAME, s3_path, file_path)
+
+                layer_gdf = read_parquet(file_path)
                 layer_gdfs.append(layer_gdf)
             except Exception as e:
                 print(e)
 
         return layer_gdfs
 
-    def read_base_data(self, layer: str, h3_indexes: list, bbox_wkt: str = None) -> GeoDataFrame:
+    def read_base_data(
+        self,
+        layer: str,
+        h3_indexes: list,
+        bbox_wkt: str = None,
+        type: str = "original",
+        s3_folder="",
+    ) -> GeoDataFrame:
         """
         Read base data.
 
         :param layer: The layer name.
         :param h3_indexes: The h3 indexes.
+        :param bbox_wkt: The bounding box (Optional).
+        :param type: The type of data (original or grid (aggregated)).
+        :param s3_folder: The s3 folder (Optional).
 
         :return: A GeoDataFrame with the data.
         """
 
-        layer_gdf = self.read_h3_parquet(layer, h3_indexes)
+        layer_gdf = self.read_h3_parquet(layer, h3_indexes, type=type, s3_folder=s3_folder)
 
         if len(layer_gdf) > 0:
             layer_gdf = concat(layer_gdf, ignore_index=True)

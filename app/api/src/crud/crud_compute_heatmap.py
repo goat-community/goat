@@ -186,6 +186,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         opportunities: GeoDataFrame,
         travel_time_matrices: dict,
         output_path: str = settings.OPPORTUNITY_MATRICES_PATH,
+        s3_folder: str = None,
     ):
         """Computes opportunity matrix
 
@@ -196,6 +197,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             opportunities (GeoDataFrame): Opportunities
             travel_time_matrices (dict): Travel time matrices
             output_path (str, optional): Path to save opportunity matrix. Defaults to settings.OPPORTUNITY_MATRICES_PATH. For scenarios, this is the path to the scenario folder.
+            s3_folder (str, optional): S3 folder to save opportunity matrix. Defaults to None.
         """
         profile = (
             isochrone_dto.settings.walking_profile.value
@@ -323,9 +325,13 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 category, dtype=np.dtype(np.ushort)
             )
 
-        opportunity_matrix["travel_times"] = np.array(
-            opportunity_matrix["travel_times"], dtype=object
-        )
+        try:
+            opportunity_matrix["travel_times"] = np.array(
+                opportunity_matrix["travel_times"], dtype=object
+            )
+        except Exception as e:
+            print(e)
+            return
         opportunity_matrix["grid_ids"] = np.array(opportunity_matrix["grid_ids"], dtype=object)
         opportunity_matrix["uids"] = np.array(opportunity_matrix["uids"], dtype=object)
         opportunity_matrix["names"] = np.array(opportunity_matrix["names"], dtype=object)
@@ -344,6 +350,23 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 f"{dir}/{value}",
                 opportunity_matrix[value],
             )
+        if settings.S3_CLIENT and s3_folder:
+            try:
+                s3_folder_path = os.path.join(
+                    f"{s3_folder}/opportunity_matrices",
+                    isochrone_dto.mode.value,
+                    profile,
+                    bulk_id,
+                    opportunity_type,
+                )
+                for root, dirs, files in os.walk(dir):
+                    for file in files:
+                        settings.S3_CLIENT.upload_file(
+                            f"{dir}/{file}", settings.AWS_BUCKET_NAME, f"{s3_folder_path}/{file}"
+                        )
+            except Exception as e:
+                print_warning(f"Could not upload to s3: {e}")
+                pass
 
     async def compute_connectivity_matrix(
         self, mode: str, profile: str, study_area_id: int, max_time: int
@@ -746,25 +769,24 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 file_name,
             )
             # check if file doesn't exist in local file system and missing_keys folder
-            if not os.path.exists(file_path) and not os.path.exists(
-                f"{dir_profile}/missing_keys/{key}"
-            ):
+            if s3_folder != "" and not os.path.exists(file_path):
                 # check if file exists in S3
-                if settings.S3_CLIENT and s3_folder != "":
+                if settings.S3_CLIENT:
                     print_info(f"File {key}.npz not found locally. Checking S3...")
                     try:
-                        s3_path = os.path.join(f"{s3_folder}/traveltime_matrices/{isochrone_dto.mode.value}", profile, file_name)
+                        s3_path = os.path.join(
+                            f"{s3_folder}/traveltime_matrices/{isochrone_dto.mode.value}",
+                            profile,
+                            file_name,
+                        )
+                        if not os.path.exists(dir_profile):
+                            os.makedirs(dir_profile, exist_ok=True)
                         settings.S3_CLIENT.download_file(
                             settings.AWS_BUCKET_NAME,
                             s3_path,
                             file_path,
                         )
                     except Exception as e:
-                        # save the missing key to a empty file with name of the key
-                        if not os.path.exists(f"{dir_profile}/missing_keys"):
-                            os.makedirs(f"{dir_profile}/missing_keys")
-                        if not os.path.exists(f"{dir_profile}/missing_keys/{key}"):
-                            open(f"{dir_profile}/missing_keys/{key}", "w").close()
                         print_warning(f"File {key}.npz not found in S3. Skipping...")
                         continue
                 else:
@@ -791,9 +813,12 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
         if len(travel_time_matrices["north"]) == 0:
             return None
-
-        for key in travel_time_matrices:
-            travel_time_matrices[key] = np.concatenate(travel_time_matrices[key])
+        try:
+            for key in travel_time_matrices:
+                travel_time_matrices[key] = np.concatenate(travel_time_matrices[key])
+        except Exception as e:
+            print_warning(f"Error while reading travel time matrices: {e}")
+            return None
 
         return travel_time_matrices
 

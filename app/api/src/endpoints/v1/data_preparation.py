@@ -100,9 +100,14 @@ async def create_opportunity_matrices(
     current_super_user = json.loads(current_super_user.json())
     for bulk_id in parameters["bulk_id"]:
         parameters_serialized["bulk_id"] = bulk_id
-        await method_connector.create_opportunity_matrices_async(
-            current_super_user, parameters_serialized
-        )
+        if settings.CELERY_BROKER_URL:
+            heatmap_active_mobility.create_opportunity_matrices_sync.delay(
+                current_super_user, parameters_serialized
+            )
+        else:
+            await method_connector.create_opportunity_matrices_async(
+                current_super_user, parameters_serialized
+            )
     return JSONResponse("Ok")
 
 

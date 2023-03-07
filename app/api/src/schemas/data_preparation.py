@@ -35,7 +35,7 @@ class TravelTimeMatrixParametersSingleBulk(TravelTimeMatrixParameters):
 
 
 class OpportunityMatrixParameters(TravelTimeMatrixParameters):
-    opportunity_types: Optional[list[str]] = ["poi", "population"]
+    opportunity_types: Optional[list[str]] = ["poi"]
     scenario_ids: Optional[list[int]] = []
     user_data_ids: Optional[list[int]] = []
     compute_base_data: Optional[bool] = True
