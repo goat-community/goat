@@ -275,7 +275,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                         )
                     else:
                         cnt += 1
-                try: 
+                try:
                     arr_travel_times = np.array(arr_travel_times, dtype=np.dtype(np.byte))
                     arr_grid_ids = np.array(arr_grid_ids, dtype=np.dtype(np.int_))
                 except Exception as e:
@@ -308,7 +308,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
         for idx, category in enumerate(opportunity_matrix["names"]):
             opportunity_matrix["names"][idx] = np.array(category, dtype=np.str_)
-    
+
         for idx, category in enumerate(opportunity_matrix["weight"]):
             opportunity_matrix["weight"][idx] = np.array(category, dtype=np.float32)
 
@@ -687,7 +687,9 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         print_info(f"Computed travel times for {bulk_id} in {time.time() - start} seconds")
         return traveltimeobjs
 
-    async def read_travel_time_matrices(self, bulk_id: str, isochrone_dto: IsochroneDTO):
+    async def read_travel_time_matrices(
+        self, bulk_id: str, isochrone_dto: IsochroneDTO, s3_folder: str = ""
+    ):
         """
         Reads the travel time matrices from the local file system or from S3 if configured.
 
@@ -736,19 +738,46 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         for key in travel_time_grids:
             print(f"Reading travel time matrix {key}...")
             file_name = f"{key}.npz"
+            dir_profile = os.path.join(
+                settings.TRAVELTIME_MATRICES_PATH, isochrone_dto.mode.value, profile
+            )
             file_path = os.path.join(
-                settings.TRAVELTIME_MATRICES_PATH,
-                isochrone_dto.mode.value,
-                profile,
+                dir_profile,
                 file_name,
             )
+            # check if file doesn't exist in local file system and missing_keys folder
+            if not os.path.exists(file_path) and not os.path.exists(
+                f"{dir_profile}/missing_keys/{key}"
+            ):
+                # check if file exists in S3
+                if settings.S3_CLIENT and s3_folder != "":
+                    print_info(f"File {key}.npz not found locally. Checking S3...")
+                    try:
+                        s3_path = os.path.join(f"{s3_folder}/traveltime_matrices/{isochrone_dto.mode.value}", profile, file_name)
+                        settings.S3_CLIENT.download_file(
+                            settings.AWS_BUCKET_NAME,
+                            s3_path,
+                            file_path,
+                        )
+                    except Exception as e:
+                        # save the missing key to a empty file with name of the key
+                        if not os.path.exists(f"{dir_profile}/missing_keys"):
+                            os.makedirs(f"{dir_profile}/missing_keys")
+                        if not os.path.exists(f"{dir_profile}/missing_keys/{key}"):
+                            open(f"{dir_profile}/missing_keys/{key}", "w").close()
+                        print_warning(f"File {key}.npz not found in S3. Skipping...")
+                        continue
+                else:
+                    print_warning(f"File {key}.npz not found locally. Skipping...")
+                    continue
+
             try:
                 matrix = np.load(
                     file_path,
                     allow_pickle=True,
                 )
             except FileNotFoundError:
-                print_warning(f"File {file_path} not found")
+                print_warning(f"Cant load file {file_path}. Skipping...")
                 continue
 
             # loop through travel_time_matrices and add the values of grid
@@ -759,6 +788,9 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             travel_time_matrices["south"].append(matrix["north"] + matrix["height"] - 1)
             travel_time_matrices["east"].append(matrix["west"] + matrix["width"] - 1)
             travel_time_matrices["grids_ids"].append(matrix["grid_ids"])
+
+        if len(travel_time_matrices["north"]) == 0:
+            return None
 
         for key in travel_time_matrices:
             travel_time_matrices[key] = np.concatenate(travel_time_matrices[key])
