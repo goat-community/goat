@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 import h3
@@ -53,13 +54,19 @@ async def create_opportunity_matrices_async(user, parameters):
     bulk_geom = Polygon(h3.h3_to_geo_boundary(h=bulk_id, geo_json=True))
     opportunity = Opportunity()
     travel_time_matrices = await crud_compute_heatmap.read_travel_time_matrices(
-        bulk_id=bulk_id, isochrone_dto=isochrone_dto
+        bulk_id=bulk_id, isochrone_dto=isochrone_dto, s3_folder=parameters.s3_folder
     )
+
+    if travel_time_matrices is None:
+        return "No travel time matrices found for bulk_id: {bulk_id}"
     # Compute base data
     if parameters.compute_base_data == True:
         for opportunity_type in opportunity_types:
             opportunities_base = opportunity.read_base_data(
-                layer=opportunity_type, h3_indexes=[bulk_id], bbox_wkt=bulk_geom.wkt
+                layer=opportunity_type,
+                h3_indexes=[bulk_id],
+                bbox_wkt=bulk_geom.wkt,
+                s3_folder=parameters.s3_folder,
             )
             if len(opportunities_base) == 0:
                 continue
@@ -68,7 +75,8 @@ async def create_opportunity_matrices_async(user, parameters):
                 isochrone_dto,
                 opportunity_type,
                 opportunities=opportunities_base,
-                travel_time_matrices=travel_time_matrices
+                travel_time_matrices=travel_time_matrices,
+                s3_folder=parameters.s3_folder,
             )
 
     # Compute modified data

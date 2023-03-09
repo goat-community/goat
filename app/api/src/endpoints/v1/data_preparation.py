@@ -12,7 +12,7 @@ from src.crud.crud_compute_heatmap import CRUDComputeHeatmap
 from src.db import models
 from src.endpoints import deps
 from src.schemas import data_preparation as schemas
-from src.workers import heatmap_active_mobility, method_connector
+from src.workers import heatmap_active_mobility, heatmap_motorized_transport, method_connector
 
 router = APIRouter()
 
@@ -70,9 +70,16 @@ async def create_traveltime_matrices(
     for bulk_id in parameters["bulk_id"]:
         parameters_serialized["bulk_id"] = bulk_id
         if settings.CELERY_BROKER_URL:
-            heatmap_active_mobility.create_traveltime_matrices_sync.delay(
-                current_super_user, parameters_serialized
-            )
+            if parameters["isochrone_dto"]["mode"] != "transit":
+
+                heatmap_active_mobility.create_traveltime_matrices_sync.delay(
+                    current_super_user, parameters_serialized
+                )
+            else:
+
+                heatmap_motorized_transport.create_r5_traveltime_matrices_sync.delay(
+                    current_super_user, parameters_serialized
+                )
         else:
             await method_connector.create_traveltime_matrices_async(
                 current_super_user, parameters_serialized
@@ -93,9 +100,14 @@ async def create_opportunity_matrices(
     current_super_user = json.loads(current_super_user.json())
     for bulk_id in parameters["bulk_id"]:
         parameters_serialized["bulk_id"] = bulk_id
-        await method_connector.create_opportunity_matrices_async(
-            current_super_user, parameters_serialized
-        )
+        if settings.CELERY_BROKER_URL:
+            heatmap_active_mobility.create_opportunity_matrices_sync.delay(
+                current_super_user, parameters_serialized
+            )
+        else:
+            await method_connector.create_opportunity_matrices_async(
+                current_super_user, parameters_serialized
+            )
     return JSONResponse("Ok")
 
 

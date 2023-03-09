@@ -10,12 +10,11 @@ import asyncio
 import math
 import os
 import time
-from itertools import compress
 
 import h3
 import numpy as np
 from geoalchemy2.shape import to_shape
-from geopandas import GeoDataFrame, GeoSeries, points_from_xy, read_postgis
+from geopandas import GeoDataFrame, points_from_xy, read_postgis
 from rich import print
 from shapely.geometry import Point, Polygon, box
 from sqlalchemy.sql.functions import func
@@ -55,18 +54,6 @@ from src.utils import (
     web_mercator_to_wgs84,
     wgs84_to_web_mercator,
 )
-
-poi_layers = {
-    "poi": models.Poi,
-    "poi_modified": models.PoiModified,
-    "poi_user": models.PoiUser,
-}
-
-
-class CRUDGridCalculation(
-    CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
-):
-    pass
 
 
 class CRUDComputeHeatmap(CRUDBaseHeatmap):
@@ -183,31 +170,6 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     neighbors.add(n)
         return list(neighbors)
 
-    async def get_interior_neighbors(self, grids, study_area_polygon):
-        neighbors = await self.get_neighbors(grids)
-        neighbor_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
-        neighbor_polygons = GeoSeries(list(map(neighbor_polygons, neighbors)), crs="EPSG:4326")
-        intersects = neighbor_polygons.intersects(study_area_polygon)
-        neighbors = list(compress(neighbors, intersects.values))
-        return neighbors
-
-    async def get_h3_grids(self, study_area_id, resolution):
-        db = async_session()
-        study_area = await crud.study_area.get(db, id=study_area_id)
-        await db.close()
-        study_area_polygon = to_shape(study_area.geom)
-        grids = []
-        for polygon_ in list(study_area_polygon.geoms):
-            grids_ = h3.polyfill_geojson(polygon_.__geo_interface__, resolution)
-            # Get hexagon geometries and convert to GeoDataFrame
-            grids.extend(grids_)
-        grids = list(set(grids))
-        neighbors = await self.get_interior_neighbors(grids, study_area_polygon)
-        grids.extend(neighbors)
-        grids = np.array(grids)
-
-        return grids
-
     async def compute_areas(self, mode: str, profile: str, h6_id: str, max_time: int):
         travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
         traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
@@ -224,6 +186,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         opportunities: GeoDataFrame,
         travel_time_matrices: dict,
         output_path: str = settings.OPPORTUNITY_MATRICES_PATH,
+        s3_folder: str = None,
     ):
         """Computes opportunity matrix
 
@@ -234,6 +197,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             opportunities (GeoDataFrame): Opportunities
             travel_time_matrices (dict): Travel time matrices
             output_path (str, optional): Path to save opportunity matrix. Defaults to settings.OPPORTUNITY_MATRICES_PATH. For scenarios, this is the path to the scenario folder.
+            s3_folder (str, optional): S3 folder to save opportunity matrix. Defaults to None.
         """
         profile = (
             isochrone_dto.settings.walking_profile.value
@@ -313,8 +277,12 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                         )
                     else:
                         cnt += 1
-                arr_travel_times = np.array(arr_travel_times, dtype=np.dtype(np.byte))
-                arr_grid_ids = np.array(arr_grid_ids, dtype=np.dtype(np.int_))
+                try:
+                    arr_travel_times = np.array(arr_travel_times, dtype=np.dtype(np.byte))
+                    arr_grid_ids = np.array(arr_grid_ids, dtype=np.dtype(np.int_))
+                except Exception as e:
+                    print(e)
+                    continue
 
                 if len(arr_travel_times) > 0:
                     opportunity_matrix["travel_times"][idx_poi_category].append(arr_travel_times)
@@ -324,8 +292,10 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     opportunity_matrix["grid_ids"][idx_poi_category].append(arr_grid_ids)
                     opportunity_matrix["names"][idx_poi_category].append(name)
                     opportunity_matrix["uids"][idx_poi_category].append(uid)
-                    if (weight_key is not None):
-                        opportunity_matrix["weight"][idx_poi_category].append(opportunity[weight_key])
+                    if weight_key is not None:
+                        opportunity_matrix["weight"][idx_poi_category].append(
+                            opportunity[weight_key]
+                        )
                     else:
                         opportunity_matrix["weight"][idx_poi_category].append(1)
                 else:
@@ -341,17 +311,27 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         for idx, category in enumerate(opportunity_matrix["names"]):
             opportunity_matrix["names"][idx] = np.array(category, dtype=np.str_)
 
+        for idx, category in enumerate(opportunity_matrix["weight"]):
+            opportunity_matrix["weight"][idx] = np.array(category, dtype=np.float32)
+
         opportunity_matrix["travel_times_matrix_size"] = np.array(
             opportunity_matrix["travel_times_matrix_size"], dtype=object
         )
+
+        opportunity_matrix["weight"] = np.array(opportunity_matrix["weight"], dtype=object)
+
         for idx, category in enumerate(opportunity_matrix["travel_times_matrix_size"]):
             opportunity_matrix["travel_times_matrix_size"][idx] = np.array(
                 category, dtype=np.dtype(np.ushort)
             )
 
-        opportunity_matrix["travel_times"] = np.array(
-            opportunity_matrix["travel_times"], dtype=object
-        )
+        try:
+            opportunity_matrix["travel_times"] = np.array(
+                opportunity_matrix["travel_times"], dtype=object
+            )
+        except Exception as e:
+            print(e)
+            return
         opportunity_matrix["grid_ids"] = np.array(opportunity_matrix["grid_ids"], dtype=object)
         opportunity_matrix["uids"] = np.array(opportunity_matrix["uids"], dtype=object)
         opportunity_matrix["names"] = np.array(opportunity_matrix["names"], dtype=object)
@@ -370,6 +350,23 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 f"{dir}/{value}",
                 opportunity_matrix[value],
             )
+        if settings.S3_CLIENT and s3_folder:
+            try:
+                s3_folder_path = os.path.join(
+                    f"{s3_folder}/opportunity_matrices",
+                    isochrone_dto.mode.value,
+                    profile,
+                    bulk_id,
+                    opportunity_type,
+                )
+                for root, dirs, files in os.walk(dir):
+                    for file in files:
+                        settings.S3_CLIENT.upload_file(
+                            f"{dir}/{file}", settings.AWS_BUCKET_NAME, f"{s3_folder_path}/{file}"
+                        )
+            except Exception as e:
+                print_warning(f"Could not upload to s3: {e}")
+                pass
 
     async def compute_connectivity_matrix(
         self, mode: str, profile: str, study_area_id: int, max_time: int
@@ -378,7 +375,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         directory = self.get_connectivity_path(mode, profile)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        h6_hexagons = await self.get_h3_grids(study_area_id, 6)
+        h6_hexagons = await self.read_h3_grids_study_areas(6, 0, [study_area_id])
         for h6_id in h6_hexagons:
             travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
             try:
@@ -442,8 +439,8 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 obj["lats"],
                 isochrone_dto.settings.travel_time * 60,
                 isochrone_dto.settings.speed / 3.6,
-                isochrone_dto.scenario.modus.value,
-                isochrone_dto.scenario.id,
+                "default",  # no scenario for active mobility yet
+                0,  # no scenario for active mobility yet
                 routing_profile,
                 True,
                 obj["calculation_ids"],
@@ -453,6 +450,10 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         await db.commit()
         starting_ids = starting_ids.scalars().all()
         await db.close()
+
+        if len(starting_ids) == 0:
+            print_info(f"No starting points for section.")
+            return
 
         # Sort out invalid starting points (no network edge found)
         valid_extents = []
@@ -539,6 +540,12 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 distances,
                 node_coords,
             )
+            try:
+                grid = filter_r5_grid(
+                    grid, percentile=5, travel_time_limit=isochrone_dto.settings.travel_time
+                )
+            except Exception as e:
+                print("Could not filter grid")
             # Assign grid_id and rename data to travel_times
             grid["grid_ids"] = grid_id
             grid["travel_times"] = grid.pop("data")
@@ -691,7 +698,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             bulk_id=bulk_id, traveltimeobjs=traveltimeobjs, output_dir=output_dir
         )
         # Save metadata to geojson file
-        self.save_metadata_gdf(metadata, f"{output_dir}/metadata/{bulk_id}.geojson")
+        await self.save_metadata_gdf(metadata, f"{output_dir}/metadata/{bulk_id}.geojson")
         # Copy to S3 bucket (if configured)
         if s3_folder:
             await self.upload_npz_to_s3(
@@ -703,7 +710,9 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         print_info(f"Computed travel times for {bulk_id} in {time.time() - start} seconds")
         return traveltimeobjs
 
-    async def read_travel_time_matrices(self, bulk_id: str, isochrone_dto: IsochroneDTO):
+    async def read_travel_time_matrices(
+        self, bulk_id: str, isochrone_dto: IsochroneDTO, s3_folder: str = ""
+    ):
         """
         Reads the travel time matrices from the local file system or from S3 if configured.
 
@@ -752,19 +761,45 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         for key in travel_time_grids:
             print(f"Reading travel time matrix {key}...")
             file_name = f"{key}.npz"
+            dir_profile = os.path.join(
+                settings.TRAVELTIME_MATRICES_PATH, isochrone_dto.mode.value, profile
+            )
             file_path = os.path.join(
-                settings.TRAVELTIME_MATRICES_PATH,
-                isochrone_dto.mode.value,
-                profile,
+                dir_profile,
                 file_name,
             )
+            # check if file doesn't exist in local file system and missing_keys folder
+            if s3_folder != "" and not os.path.exists(file_path):
+                # check if file exists in S3
+                if settings.S3_CLIENT:
+                    print_info(f"File {key}.npz not found locally. Checking S3...")
+                    try:
+                        s3_path = os.path.join(
+                            f"{s3_folder}/traveltime_matrices/{isochrone_dto.mode.value}",
+                            profile,
+                            file_name,
+                        )
+                        if not os.path.exists(dir_profile):
+                            os.makedirs(dir_profile, exist_ok=True)
+                        settings.S3_CLIENT.download_file(
+                            settings.AWS_BUCKET_NAME,
+                            s3_path,
+                            file_path,
+                        )
+                    except Exception as e:
+                        print_warning(f"File {key}.npz not found in S3. Skipping...")
+                        continue
+                else:
+                    print_warning(f"File {key}.npz not found locally. Skipping...")
+                    continue
+
             try:
                 matrix = np.load(
                     file_path,
                     allow_pickle=True,
                 )
             except FileNotFoundError:
-                print_warning(f"File {file_path} not found")
+                print_warning(f"Cant load file {file_path}. Skipping...")
                 continue
 
             # loop through travel_time_matrices and add the values of grid
@@ -776,8 +811,14 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             travel_time_matrices["east"].append(matrix["west"] + matrix["width"] - 1)
             travel_time_matrices["grids_ids"].append(matrix["grid_ids"])
 
-        for key in travel_time_matrices:
-            travel_time_matrices[key] = np.concatenate(travel_time_matrices[key])
+        if len(travel_time_matrices["north"]) == 0:
+            return None
+        try:
+            for key in travel_time_matrices:
+                travel_time_matrices[key] = np.concatenate(travel_time_matrices[key])
+        except Exception as e:
+            print_warning(f"Error while reading travel time matrices: {e}")
+            return None
 
         return travel_time_matrices
 
