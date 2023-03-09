@@ -319,11 +319,12 @@ class FileMigration:
         # Build layer input
         layer_input = {"original": {}, "grid": {}}
         for export_type in layer_input.keys():
-            for layer_name, layer_source in self.layer_config[export_type].items():
-                if Path(layer_source).is_file():
-                    layer_input[export_type][layer_name] = gpd.read_file(layer_source)
-                else:
-                    layer_input[export_type][layer_name] = layer_source
+            if export_type in self.layer_config.keys():
+                for layer_name, layer_source in self.layer_config[export_type].items():
+                    if Path(layer_source).is_file():
+                        layer_input[export_type][layer_name] = gpd.read_file(layer_source)
+                    else:
+                        layer_input[export_type][layer_name] = layer_source
                 
         #TODO: Fix metadata creation
         # Create metadata dataframe
@@ -333,8 +334,8 @@ class FileMigration:
         export_metadata_gdf.set_index("grid_id", inplace=True)
        
         # Export data
-        #export_metadata_gdf = self._export_original(h3_indexes_gdf, export_metadata_gdf, layer_input["original"])
-        export_metadata_gdf = self._export_grid(h3_indexes_gdf, export_metadata_gdf, layer_input["grid"])      
+        export_metadata_gdf = self._export_original(h3_indexes_gdf, export_metadata_gdf, layer_input["original"])
+        #export_metadata_gdf = self._export_grid(h3_indexes_gdf, export_metadata_gdf, layer_input["grid"])      
 
         #TODO: Fix export metadata
         # Save metadata
