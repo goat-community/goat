@@ -20,8 +20,8 @@ from src.core.config import settings
 from src.db import models
 from src.db.session import legacy_engine
 from src.schemas.heatmap import HeatmapMode, HeatmapSettings, HeatmapType
-from src.schemas.isochrone import IsochroneDTO, IsochroneMode, IsochroneStartingPointCoord
-from src.utils import print_hashtags, print_info, print_warning, timing, create_h3_grid
+from src.schemas.isochrone import IsochroneStartingPointCoord, IsochroneDTO, IsochroneMode
+from src.utils import create_h3_grid, print_hashtags, print_info, print_warning, timing
 
 
 class CRUDBaseHeatmap:
@@ -421,26 +421,31 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         output = {}
         if heatmap_settings.heatmap_type.value == "modified_gaussian":
             for key, heatmap_config in heatmap_settings.heatmap_config.items():
+                weights = np.ones(len(sorted_table[key][0]))
                 output[key] = heatmap_core.modified_gaussian_per_grid(
                     sorted_table[key],
                     uniques[key],
                     heatmap_config["sensitivity"],
                     heatmap_config["max_traveltime"],
+                    weights
                 )
         elif heatmap_settings.heatmap_type.value == "combined_cumulative_modified_gaussian":
             for key, heatmap_config in heatmap_settings.heatmap_config.items():
+                weights = np.ones(len(sorted_table[key][0]))
                 output[key] = heatmap_core.combined_modified_gaussian_per_grid(
                     sorted_table[key],
                     uniques[key],
                     heatmap_config["sensitivity"],
                     heatmap_config["max_traveltime"],
                     heatmap_config["static_traveltime"],
+                    weights
                 )
         else:
             method_name = method_map[heatmap_settings.heatmap_type.value]
             method = getattr(heatmap_core, method_name)
             for key, heatmap_config in heatmap_settings.heatmap_config.items():
-                output[key] = method(sorted_table[key], uniques[key])
+                weights = np.ones(len(sorted_table[key][0]))
+                output[key] = method(sorted_table[key], uniques[key], weights)
 
         return output
 
