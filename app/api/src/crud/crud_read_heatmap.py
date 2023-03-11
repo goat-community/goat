@@ -20,7 +20,7 @@ from src.core.config import settings
 from src.db import models
 from src.db.session import legacy_engine
 from src.schemas.heatmap import HeatmapMode, HeatmapSettings, HeatmapType
-from src.schemas.isochrone import IsochroneStartingPointCoord
+from src.schemas.isochrone import IsochroneDTO, IsochroneMode, IsochroneStartingPointCoord
 from src.utils import print_hashtags, print_info, print_warning, timing, create_h3_grid
 
 
@@ -38,6 +38,16 @@ class CRUDBaseHeatmap:
 
     def get_connectivity_path(self, mode: str, profile: str):
         return os.path.join(self.connectivity_base_path, mode, profile)
+
+    def get_routing_profile(self, isochrone_dto: IsochroneDTO):
+        if isochrone_dto.mode == IsochroneMode.WALKING:
+            profile = isochrone_dto.settings.walking_profile.value
+        elif isochrone_dto.mode == IsochroneMode.CYCLING:
+            profile = isochrone_dto.settings.cycling_profile.value
+        else:
+            profile = ""
+
+        return profile
 
     async def read_h3_grids_study_areas(
         self, resolution: int, buffer_size: int, study_area_ids: list[int] = []
@@ -179,7 +189,9 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         for bulk_id in np.array(bulk_ids):
             try:
-                base_path = os.path.join(matrix_base_path, bulk_id, "poi") #TODO: Make this dynamic
+                base_path = os.path.join(
+                    matrix_base_path, bulk_id, "poi"
+                )  # TODO: Make this dynamic
                 # Select relevant POI categories
                 poi_categories = np.load(
                     os.path.join(base_path, "categories.npy"),

@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pyximport
 from aiohttp import BasicAuth, ClientError, ClientSession
+import rasterio
 
 pyximport.install()
 import asyncio
@@ -53,7 +54,223 @@ from src.utils import (
     print_warning,
     web_mercator_to_wgs84,
     wgs84_to_web_mercator,
+    downsample_array,
+    pad_to_divisible,
 )
+
+
+def pixelate_geom(geom, isochrone_resolution):
+    """
+    Pixelate a geometry to the resolution of the isochrone
+
+    :param geom:
+    :param isochrone_resolution:
+
+    :return: list of pixel coordinates
+    """
+
+    if geom.geom_type == "Point":
+        coord = coordinate_to_pixel(
+            [geom.x, geom.y],
+            zoom=isochrone_resolution,
+            return_dict=False,
+            round_int=True,
+        )
+        return np.array(coord)
+
+    if geom.geom_type == "Polygon":
+        bounds = geom.bounds
+
+        # Calculate the width and height on the resolution of the isochrone
+        isochrone_resolution = isochrone_resolution
+        bl_isochrone_res = coordinate_to_pixel(
+            [bounds[0], bounds[1]],
+            zoom=isochrone_resolution,
+            return_dict=False,
+            round_int=False,
+        )
+
+        tr_isochrone_res = coordinate_to_pixel(
+            [bounds[2], bounds[3]],
+            zoom=isochrone_resolution,
+            return_dict=False,
+            round_int=False,
+        )
+
+        width_isochrone_res = (
+            round(tr_isochrone_res[0] - bl_isochrone_res[0]) + 1
+        )  # +1 because the pixel coordinates are inclusive
+        height_isochrone_res = (
+            round(bl_isochrone_res[1] - tr_isochrone_res[1]) + 1
+        )  # the order of the y coordinates is reversed in the pixel coordinate system
+        geom_fill_isochrone_res = (height_isochrone_res, width_isochrone_res)  # (rows, cols)
+
+        # Calculate the width and height on the resolution of the polygon pixelate
+        polygon_pixelate_resolution = 15  # todo: make this a parameter
+        area_per_pixel = 5  # todo: area in square meters of a pixel
+        bl = coordinate_to_pixel(  # bottom left
+            [bounds[0], bounds[1]],
+            zoom=polygon_pixelate_resolution,
+            return_dict=False,
+            round_int=False,
+        )
+        tr = coordinate_to_pixel(  # top right
+            [bounds[2], bounds[3]],
+            zoom=polygon_pixelate_resolution,
+            return_dict=False,
+            round_int=False,
+        )
+
+        width = round(tr[0] - bl[0]) + 1
+        height = round(bl[1] - tr[1]) + 1
+        affine_transform = rasterio.transform.from_bounds(
+            bounds[0], bounds[1], bounds[2], bounds[3], width, height
+        )
+        geom_fill_pixelate_res = rasterio.features.rasterize(
+            [geom],
+            out_shape=(height, width),
+            all_touched=False,
+            transform=affine_transform,
+        )
+        geom_fill_pixelate_res_padded = pad_to_divisible(
+            geom_fill_pixelate_res, height_isochrone_res, width_isochrone_res
+        )
+        # Downsample the array
+        downsampled_arr = downsample_array(
+            geom_fill_pixelate_res_padded, geom_fill_isochrone_res, method="sum"
+        )
+        # Top left corner coordinates isochrone res
+        x0, y0 = round(bl_isochrone_res[0]), round(tr_isochrone_res[1])
+
+        # Generate x and y coordinates for every point in the array
+        x_coords, y_coords = np.meshgrid(
+            np.arange(x0, x0 + downsampled_arr.shape[1]),
+            np.arange(y0, y0 + downsampled_arr.shape[0]),
+        )
+
+        # Get the values of each point in the array (area in square meters)
+        values = downsampled_arr.ravel()
+
+        # Create a list of tuples for x, y and value
+        coords = np.concatenate(
+            (x_coords.reshape(-1, 1), y_coords.reshape(-1, 1), values.reshape(-1, 1)), axis=1
+        ).astype(int)
+
+        return coords
+
+
+def get_relevant_travel_time_matrices(travel_time_matrices: dict, feature: dict) -> dict:
+    """
+    Get the travel time matrices that are relevant for the isochrone resolution
+
+    :param travel_time_matrices:
+    :param isochrone_resolution:
+
+    :return: dict of relevant travel time matrices
+    """
+    if feature.geom.geom_type == "Point":
+        x, y = feature.pixel
+        # Check if feature is in relevant travel time matrices
+        indices_relevant_matrices = (
+            (travel_time_matrices["north"] <= y)
+            & (travel_time_matrices["south"] >= y)
+            & (travel_time_matrices["west"] <= x)
+            & (travel_time_matrices["east"] >= x)
+        ).nonzero()[0]
+
+    elif feature.geom.geom_type == "Polygon" or feature.geom.geom_type == "MultiPolygon":
+        # Check if feature is in relevant travel time matrices
+        try:
+            indices_relevant_matrices = (
+                (travel_time_matrices["north"] <= feature.pixel[0][1])
+                & (travel_time_matrices["south"] >= feature.pixel[-1][1])
+                & (travel_time_matrices["west"] <= feature.pixel[0][0])
+                & (travel_time_matrices["east"] >= feature.pixel[-1][0])
+            ).nonzero()[0]
+        except:
+            return []
+
+    return indices_relevant_matrices
+
+
+def get_opportunity_relations(
+    pixels: np.array,
+    tt_north: np.array,
+    tt_width: np.array,
+    tt_west: np.array,
+    indices_relevant_matrices: np.array,
+    relevant_traveltime_matrices: np.array,
+    relevant_traveltime_matrices_grid_ids: np.array,
+    max_travel_time: int,
+    weight: int = None,
+):
+    """
+    Get the opportunity relations for a given set of pixels
+
+    :param pixels: np.array of pixels
+    :param tt_north: np.array of north coordinates of travel time matrices
+    :param tt_width: np.array of width of travel time matrices
+    :param tt_west: np.array of west coordinates of travel time matrices
+    :param indices_relevant_matrices: np.array of indices of relevant travel time matrices
+    :param relevant_traveltime_matrices: np.array of relevant travel time matrices
+    :param relevant_traveltime_matrices_grid_ids: np.array of grid ids of relevant travel time matrices
+    :param max_travel_time: int of maximum travel time
+    :param weight: int of weight value. Relevant only for point features. Default is None
+
+    :return: dict of opportunity relations
+    """
+    result = {"grid_ids": [], "travel_times": [], "weight": [], "relation_size": []}
+    # For polygon features. (aoi, etc) we need to iterate over all pixels and get the weight from the tuple. Edge case
+    if weight is None and len(pixels.shape) == 2:
+        opportunity_relation = {}
+        for pixel in pixels:
+            x = pixel[0]
+            y = pixel[1]
+            weight = pixel[2]
+            if weight == 0:
+                continue
+            # Get the indices of the traveltimes to the opportunity
+            indices_travel_times = (
+                (y - tt_north[indices_relevant_matrices]) * tt_width[indices_relevant_matrices]
+                + x
+                - tt_west[indices_relevant_matrices]
+            )
+
+            for idx, matrix in enumerate(relevant_traveltime_matrices):
+                travel_time = matrix[indices_travel_times[idx]]
+                if travel_time <= max_travel_time:
+                    grid_id = relevant_traveltime_matrices_grid_ids[idx]
+                    if grid_id not in opportunity_relation:
+                        opportunity_relation[grid_id] = {}
+                    if travel_time not in opportunity_relation[grid_id]:
+                        opportunity_relation[grid_id][travel_time] = 0
+
+                    opportunity_relation[grid_id][travel_time] += weight
+
+        for grid_id, items in opportunity_relation.items():
+            result["travel_times"].extend(list(items.keys()))
+            result["weight"].extend(list(items.values()))
+            result["grid_ids"].append(grid_id)
+            result["relation_size"].append(len(items))
+
+    else:
+        # For point features.
+        x = pixels[0]
+        y = pixels[1]
+        indices_travel_times = (
+            (y - tt_north[indices_relevant_matrices]) * tt_width[indices_relevant_matrices]
+            + x
+            - tt_west[indices_relevant_matrices]
+        )
+        for idx, matrix in enumerate(relevant_traveltime_matrices):
+            travel_time = matrix[indices_travel_times[idx]]
+            if travel_time <= max_travel_time:
+                result["travel_times"].append(travel_time)
+                result["grid_ids"].append(relevant_traveltime_matrices_grid_ids[idx])
+        result["relation_size"].append(1)
+        result["weight"] = weight or 1
+
+    return result
 
 
 class CRUDComputeHeatmap(CRUDBaseHeatmap):
@@ -112,8 +329,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             # use the extent of the bulk object. This is done to optimize the R5 calculation speed. Since the buffer is quite large we can use the bulk object extent.
             bulk_lat, bulk_lon = h3.h3_to_geo(bulk_id)
             bulk_geom = wgs84_to_web_mercator(Point(bulk_lon, bulk_lat))
-            # todo: Find a better way to define/estimate the extent of the isochrone for transit
-            extent = bulk_geom.buffer(70000)
+            extent = bulk_geom.buffer(buffer_size)
 
         elif mode == IsochroneMode.WALKING or mode == IsochroneMode.CYCLING:
             buffer_size = (isochrone_dto.settings.speed / 3.6) * (
@@ -161,23 +377,6 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
         return calculation_obj
 
-    async def get_neighbors(self, grids):
-        neighbors = set()
-        for h in grids:
-            neighbors_ = h3.k_ring(h, 1)
-            for n in neighbors_:
-                if not n in grids:
-                    neighbors.add(n)
-        return list(neighbors)
-
-    async def compute_areas(self, mode: str, profile: str, h6_id: str, max_time: int):
-        travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
-        traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
-        areas = heatmap_cython.calculate_areas_from_pixles(
-            traveltime_h6["travel_times"], list(range(1, max_time + 1))
-        )
-        return areas
-
     async def compute_opportunity_matrix(
         self,
         bulk_id: str,
@@ -199,55 +398,52 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             output_path (str, optional): Path to save opportunity matrix. Defaults to settings.OPPORTUNITY_MATRICES_PATH. For scenarios, this is the path to the scenario folder.
             s3_folder (str, optional): S3 folder to save opportunity matrix. Defaults to None.
         """
-        profile = (
-            isochrone_dto.settings.walking_profile.value
-            if isochrone_dto.mode in [IsochroneMode.WALKING, IsochroneMode.CYCLING]
-            else ""  # no profile for motored modes currently
-        )
+        routing_profile = self.get_routing_profile(isochrone_dto)
         # OPPORTUNITY INTERSECTION
         opportunities["pixel"] = opportunities["geom"].apply(
-            lambda geom: coordinate_to_pixel(
-                [geom.x, geom.y],
-                zoom=isochrone_dto.output.resolution,
-                return_dict=False,
-                round_int=True,
-            )
+            pixelate_geom, isochrone_resolution=isochrone_dto.output.resolution
         )
-
-        weight_key = None
+        weight = None
         if opportunity_type == "population":
-            opportunities["category"] = "population"  # edge case for population data
-            weight_key = "population"
+            # edge case for population data. Also for other `point` data that that we don't know the key for the weight
+            # todo: make this more generic by defining the weight key somewhere else.
+            opportunities["category"] = "population"
+            weight = "population"
+        if opportunity_type == "poi":
+            weight = 1
 
         opportunity_matrix = {
             "travel_times": [],
-            "travel_times_matrix_size": [],
             "grid_ids": [],
             "names": [],
             "uids": [],
             "weight": [],
+            "relation_size": [],
         }
+        types = {
+            "travel_times": np.byte,
+            "grid_ids": np.int_,
+            "weight": np.float32,
+            "relation_size": np.int_,
+        }
+        _grid_id_int_cache = {}
         opportunity_categories = []
         opportunities = opportunities.groupby("category")
         for category, opportunity_group in opportunities:
             opportunity_categories.append(category)
             for key in opportunity_matrix.keys():
                 opportunity_matrix[key].append([])
-            idx_poi_category = len(opportunity_categories) - 1
+            idx_opportunity_category = len(opportunity_categories) - 1
             for index, opportunity in opportunity_group.iterrows():
                 uid = opportunity.get("uid") or opportunity.get("id")
                 name = opportunity.get("name") or ""
                 category = opportunity["category"]
-                x = opportunity["pixel"][0]
-                y = opportunity["pixel"][1]
-
-                # Check if poi is in relevant travel time matrices
-                indices_relevant_matrices = (
-                    (travel_time_matrices["north"] <= y)
-                    & (travel_time_matrices["south"] >= y)
-                    & (travel_time_matrices["west"] <= x)
-                    & (travel_time_matrices["east"] >= x)
-                ).nonzero()[0]
+                # Check if feature is in relevant travel time matrices
+                indices_relevant_matrices = get_relevant_travel_time_matrices(
+                    travel_time_matrices, opportunity
+                )
+                if len(indices_relevant_matrices) == 0:
+                    continue
                 # Get the relevant travel time matrices
                 relevant_traveltime_matrices = travel_time_matrices["travel_times"][
                     indices_relevant_matrices
@@ -256,48 +452,41 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 relevant_traveltime_matrices_grid_ids = travel_time_matrices["grids_ids"][
                     indices_relevant_matrices
                 ]
-                # Get the indices of the traveltimes to the opportunity
-                indices_travel_times = (
-                    (y - travel_time_matrices["north"][indices_relevant_matrices])
-                    * travel_time_matrices["width"][indices_relevant_matrices]
-                    + x
-                    - travel_time_matrices["west"][indices_relevant_matrices]
+
+                if weight is not None and weight in opportunity.keys():
+                    weight = opportunity[weight]
+
+                opportunity_relations = get_opportunity_relations(
+                    opportunity["pixel"],
+                    travel_time_matrices["north"],
+                    travel_time_matrices["width"],
+                    travel_time_matrices["west"],
+                    indices_relevant_matrices,
+                    relevant_traveltime_matrices,
+                    relevant_traveltime_matrices_grid_ids,
+                    isochrone_dto.settings.travel_time,
+                    weight,
                 )
 
-                arr_travel_times = []
-                arr_grid_ids = []
-                cnt = 0
-                for idx, matrix in enumerate(relevant_traveltime_matrices):
-                    travel_time = matrix[indices_travel_times[idx]]
-
-                    if travel_time <= isochrone_dto.settings.travel_time:
-                        arr_travel_times.append(travel_time)
-                        arr_grid_ids.append(
-                            h3.string_to_h3(str(relevant_traveltime_matrices_grid_ids[idx]))
+                if len(opportunity_relations["travel_times"]) > 0:
+                    for key in ["travel_times", "weight", "relation_size"]:
+                        opportunity_matrix[key][idx_opportunity_category].append(
+                            np.array(opportunity_relations[key], dtype=types[key])
                         )
-                    else:
-                        cnt += 1
-                try:
-                    arr_travel_times = np.array(arr_travel_times, dtype=np.dtype(np.byte))
-                    arr_grid_ids = np.array(arr_grid_ids, dtype=np.dtype(np.int_))
-                except Exception as e:
-                    print(e)
-                    continue
 
-                if len(arr_travel_times) > 0:
-                    opportunity_matrix["travel_times"][idx_poi_category].append(arr_travel_times)
-                    opportunity_matrix["travel_times_matrix_size"][idx_poi_category].append(
-                        arr_travel_times.shape[0]
+                    h3_arr_grid_ids = []
+                    for x in opportunity_relations["grid_ids"]:
+                        h3_int = _grid_id_int_cache.setdefault(x, h3.string_to_h3(str(x)))
+                        h3_arr_grid_ids.append(h3_int)
+
+                    h3_arr_grid_ids = np.array(h3_arr_grid_ids, dtype=np.dtype(np.int_))
+                    opportunity_matrix["grid_ids"][idx_opportunity_category].append(
+                        h3_arr_grid_ids
                     )
-                    opportunity_matrix["grid_ids"][idx_poi_category].append(arr_grid_ids)
-                    opportunity_matrix["names"][idx_poi_category].append(name)
-                    opportunity_matrix["uids"][idx_poi_category].append(uid)
-                    if weight_key is not None:
-                        opportunity_matrix["weight"][idx_poi_category].append(
-                            opportunity[weight_key]
-                        )
-                    else:
-                        opportunity_matrix["weight"][idx_poi_category].append(1)
+
+                    opportunity_matrix["names"][idx_opportunity_category].append(name)
+                    opportunity_matrix["uids"][idx_opportunity_category].append(uid)
+
                 else:
                     continue
 
@@ -312,18 +501,9 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             opportunity_matrix["names"][idx] = np.array(category, dtype=np.str_)
 
         for idx, category in enumerate(opportunity_matrix["weight"]):
-            opportunity_matrix["weight"][idx] = np.array(category, dtype=np.float32)
-
-        opportunity_matrix["travel_times_matrix_size"] = np.array(
-            opportunity_matrix["travel_times_matrix_size"], dtype=object
-        )
+            opportunity_matrix["weight"][idx] = np.array(category, dtype=object)
 
         opportunity_matrix["weight"] = np.array(opportunity_matrix["weight"], dtype=object)
-
-        for idx, category in enumerate(opportunity_matrix["travel_times_matrix_size"]):
-            opportunity_matrix["travel_times_matrix_size"][idx] = np.array(
-                category, dtype=np.dtype(np.ushort)
-            )
 
         try:
             opportunity_matrix["travel_times"] = np.array(
@@ -340,7 +520,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         dir = os.path.join(
             output_path,
             isochrone_dto.mode.value,
-            profile,
+            routing_profile,
             bulk_id,
             opportunity_type,
         )
@@ -355,7 +535,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 s3_folder_path = os.path.join(
                     f"{s3_folder}/opportunity_matrices",
                     isochrone_dto.mode.value,
-                    profile,
+                    routing_profile,
                     bulk_id,
                     opportunity_type,
                 )
@@ -412,16 +592,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         starting_time = time.time()
 
         # Get Routing Profile
-        if isochrone_dto.mode.value == IsochroneMode.WALKING.value:
-            routing_profile = (
-                isochrone_dto.mode.value + "_" + isochrone_dto.settings.walking_profile.value
-            )
-        elif isochrone_dto.mode.value == IsochroneMode.CYCLING.value:
-            routing_profile = (
-                isochrone_dto.mode.value + "_" + isochrone_dto.settings.cycling_profile.value
-            )
-        else:
-            raise ValueError("Mode not supported.")
+        routing_profile = self.get_routing_profile(isochrone_dto)
 
         # Get calculation object
         bulk_id = list(calculation_obj.keys())[0]
@@ -569,7 +740,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         directory = os.path.join(
             settings.TRAVELTIME_MATRICES_PATH,
             isochrone_dto.mode.value,
-            isochrone_dto.settings.walking_profile.value,
+            routing_profile,
         )
         # Create directory if not exists
         if not os.path.exists(directory):
@@ -587,7 +758,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 bulk_id,
                 local_folder=directory,
                 s3_folder=s3_folder
-                + f"/traveltime_matrices/{isochrone_dto.mode.value}/{isochrone_dto.settings.walking_profile.value}",
+                + f"/traveltime_matrices/{isochrone_dto.mode.value}/{routing_profile}",
             )
 
         end_time = time.time()
@@ -726,11 +897,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         """
         # FIND RELEVANT TRAVEL TIME MATRICES
         bulk_resolution = h3.h3_get_resolution(h=bulk_id)
-        profile = (
-            isochrone_dto.settings.walking_profile.value
-            if isochrone_dto.mode in [IsochroneMode.WALKING, IsochroneMode.CYCLING]
-            else ""  # no profile for motored modes currently
-        )
+        routing_profile = self.get_routing_profile(isochrone_dto)
         if (
             isochrone_dto.mode == IsochroneMode.WALKING
             or isochrone_dto.mode == IsochroneMode.CYCLING
@@ -762,7 +929,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             print(f"Reading travel time matrix {key}...")
             file_name = f"{key}.npz"
             dir_profile = os.path.join(
-                settings.TRAVELTIME_MATRICES_PATH, isochrone_dto.mode.value, profile
+                settings.TRAVELTIME_MATRICES_PATH, isochrone_dto.mode.value, routing_profile
             )
             file_path = os.path.join(
                 dir_profile,
@@ -776,7 +943,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                     try:
                         s3_path = os.path.join(
                             f"{s3_folder}/traveltime_matrices/{isochrone_dto.mode.value}",
-                            profile,
+                            routing_profile,
                             file_name,
                         )
                         if not os.path.exists(dir_profile):
