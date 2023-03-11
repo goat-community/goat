@@ -158,3 +158,7 @@ class DBMigrationBase:
         self.upgrade_foreign_server()
         self.upgrade_mapping_user()
         self.upgrade_foreign_tables()
+
+
+from src.db.session import legacy_engine
+DBMigrationBase(legacy_engine=legacy_engine).initialize()

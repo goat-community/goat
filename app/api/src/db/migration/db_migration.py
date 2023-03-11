@@ -329,7 +329,7 @@ def main():
     print_hashtags()
 
 
-    migration = DBMigration(legacy_engine=legacy_engine, study_area_ids=["11000009"])
+    migration = DBMigration(legacy_engine=legacy_engine, study_area_ids=["90001"])
     migration.initialize()
 
     # Perform migration for Study Area and Sub Study Area.
