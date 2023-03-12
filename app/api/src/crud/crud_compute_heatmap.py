@@ -16,6 +16,7 @@ import h3
 import numpy as np
 from geoalchemy2.shape import to_shape
 from geopandas import GeoDataFrame, points_from_xy, read_postgis
+from pandas import isnull
 from rich import print
 from shapely.geometry import Point, Polygon, box
 from sqlalchemy.sql.functions import func
@@ -238,7 +239,7 @@ def get_opportunity_relations(
 
             for idx, matrix in enumerate(relevant_traveltime_matrices):
                 travel_time = matrix[indices_travel_times[idx]]
-                if travel_time <= max_travel_time:
+                if travel_time <= max_travel_time and travel_time >= 0:
                     grid_id = relevant_traveltime_matrices_grid_ids[idx]
                     if grid_id not in opportunity_relation:
                         opportunity_relation[grid_id] = {}
@@ -250,7 +251,8 @@ def get_opportunity_relations(
         for grid_id, items in opportunity_relation.items():
             result["travel_times"].extend(list(items.keys()))
             result["weight"].extend(list(items.values()))
-            result["grid_ids"].append(grid_id)
+            grid_ids = [grid_id] * len(items)
+            result["grid_ids"].extend(grid_ids)
             result["relation_size"].append(len(items))
 
     else:
@@ -264,11 +266,11 @@ def get_opportunity_relations(
         )
         for idx, matrix in enumerate(relevant_traveltime_matrices):
             travel_time = matrix[indices_travel_times[idx]]
-            if travel_time <= max_travel_time:
+            if travel_time <= max_travel_time and travel_time >= 0:
                 result["travel_times"].append(travel_time)
+                result["weight"].append(weight)
                 result["grid_ids"].append(relevant_traveltime_matrices_grid_ids[idx])
         result["relation_size"].append(1)
-        result["weight"] = weight or 1
 
     return result
 
@@ -455,6 +457,8 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
 
                 if weight is not None and weight in opportunity.keys():
                     weight = opportunity[weight]
+                    if isnull(weight):
+                        weight = 0
 
                 opportunity_relations = get_opportunity_relations(
                     opportunity["pixel"],
@@ -469,11 +473,15 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 )
 
                 if len(opportunity_relations["travel_times"]) > 0:
-                    for key in ["travel_times", "weight", "relation_size"]:
-                        opportunity_matrix[key][idx_opportunity_category].append(
-                            np.array(opportunity_relations[key], dtype=types[key])
-                        )
-
+                    try:
+                        for key in ["travel_times", "weight", "relation_size"]:
+                            opportunity_matrix[key][idx_opportunity_category].append(
+                                np.array(opportunity_relations[key], dtype=types[key])
+                            )
+                    except Exception as e:
+                        print(e)
+                        print(opportunity_relations)
+                        raise e
                     h3_arr_grid_ids = []
                     for x in opportunity_relations["grid_ids"]:
                         h3_int = _grid_id_int_cache.setdefault(x, h3.string_to_h3(str(x)))
@@ -490,32 +498,24 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 else:
                     continue
 
-        for key in ["travel_times", "grid_ids"]:
+        for key in ["travel_times", "grid_ids", "weight", "relation_size"]:
             for idx, category in enumerate(opportunity_matrix[key]):
                 opportunity_matrix[key][idx] = np.array(category, dtype=object)
 
-        for idx, category in enumerate(opportunity_matrix["uids"]):
-            opportunity_matrix["uids"][idx] = np.array(category, dtype=np.str_)
+        for key in ["names", "uids"]:
+            for idx, category in enumerate(opportunity_matrix[key]):
+                opportunity_matrix[key][idx] = np.array(category, dtype=np.str_)
 
-        for idx, category in enumerate(opportunity_matrix["names"]):
-            opportunity_matrix["names"][idx] = np.array(category, dtype=np.str_)
-
-        for idx, category in enumerate(opportunity_matrix["weight"]):
-            opportunity_matrix["weight"][idx] = np.array(category, dtype=object)
-
-        opportunity_matrix["weight"] = np.array(opportunity_matrix["weight"], dtype=object)
 
         try:
-            opportunity_matrix["travel_times"] = np.array(
-                opportunity_matrix["travel_times"], dtype=object
-            )
+            for key in ["travel_times", "grid_ids", "weight", "relation_size", "names", "uids"]:
+                opportunity_matrix[key] = np.array(opportunity_matrix[key], dtype=object)
+
+            opportunity_matrix["categories"] = np.array(opportunity_categories, dtype=np.str_)
+
         except Exception as e:
             print(e)
             return
-        opportunity_matrix["grid_ids"] = np.array(opportunity_matrix["grid_ids"], dtype=object)
-        opportunity_matrix["uids"] = np.array(opportunity_matrix["uids"], dtype=object)
-        opportunity_matrix["names"] = np.array(opportunity_matrix["names"], dtype=object)
-        opportunity_matrix["categories"] = np.array(opportunity_categories, dtype=np.str_)
 
         dir = os.path.join(
             output_path,
