@@ -3,6 +3,19 @@ kind: Namespace
 metadata:
   name: ${NAMESPACE}
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-claim-${NAMESPACE}
+  namespace: ${NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 50Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,6 +63,13 @@ spec:
             timeoutSeconds: 60
             periodSeconds: 120
             failureThreshold: 3
+          volumeMounts:
+            - name: persistent-storage
+              mountPath: /app/src/cache
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim-${NAMESPACE}
 ---
 apiVersion: v1
 kind: Service
@@ -95,25 +115,3 @@ data:
   R5_HOST: ${R5_HOST}
   R5_AUTHORIZATION: ${R5_AUTHORIZATION}
   CELERY_BROKER_URL: sqs://
-
-  # ---
-
-# apiVersion: batch/v1
-# kind: Job
-# metadata:
-#   namespace: ${NAMESPACE}
-#   name: goat-api-migrations
-#   labels:
-#     app: goat-api
-# spec:
-#   template:
-#     spec:
-#       containers:
-#         - name: migration-container
-#           image: ${DOCKER_IMAGE}
-#           command: ['alembic', 'upgrade', 'head']
-#           envFrom:
-#             - configMapRef:
-#                 name: api-config
-#       restartPolicy: Never
-#   backoffLimit: 3
