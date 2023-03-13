@@ -350,7 +350,7 @@ export const LayerFactory = {
               amenities[key] = {
                 sensitivity: amenityConfiguration[key]["sensitivity"],
                 weight: amenityConfiguration[key]["weight"],
-                max_traveltime: 5
+                max_traveltime: 20
               };
             }
             const payload = {
@@ -358,13 +358,13 @@ export const LayerFactory = {
               study_area_ids: mapStore.state.studyArea.map(
                 studyArea => studyArea.values_.id
               ),
-              max_travel_time: 20,
+              // max_travel_time: 20,
               walking_profile: "standard",
               scenario: {
                 id: activeScenario ? activeScenario : 0,
                 name: modus
               },
-              heatmap_type: "gravity",
+              heatmap_type: "modified_gaussian",
               analysis_unit: "hexagon",
               resolution: 9,
               heatmap_config: {
@@ -380,6 +380,12 @@ export const LayerFactory = {
                 const olFeatures = geobufToFeatures(response.data, {
                   dataProjection: lConf.data_projection,
                   featureProjection: proj
+                });
+                olFeatures.forEach(feature => {
+                  feature.set(
+                    "agg_class",
+                    Math.round(feature.get("agg_class"))
+                  );
                 });
                 source.addFeatures(olFeatures);
               }
