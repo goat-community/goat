@@ -25,7 +25,7 @@ from src import crud, schemas
 from src.core import heatmap_cython
 from src.core.config import settings
 from src.core.heatmap import save_traveltime_matrix
-from src.core.isochrone import dijkstra2, network_to_grid, prepare_network_isochrone
+from src.core.isochrone import dijkstra2, network_to_grid, prepare_network_isochrone, dijkstra_, construct_adjacency_list_
 from src.crud.base import CRUDBase
 from src.crud.crud_read_heatmap import CRUDBaseHeatmap
 from src.db import models
@@ -681,6 +681,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             "grid_ids": [],
             "travel_times": [],
         }
+        adj_list = construct_adjacency_list_(len(edges_source), edges_source, edges_target, edges_cost, edges_reverse_cost)
 
         for idx, start_vertex in enumerate(starting_ids):
             # Assign variables
@@ -690,14 +691,9 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             # Get start vertex
             start_id = np.array([unordered_map[v] for v in [start_vertex]])
             # Run Dijkstra
-            distances = dijkstra2(
-                start_id,
-                edges_source,
-                edges_target,
-                edges_cost,
-                edges_reverse_cost,
-                isochrone_dto.settings.travel_time,
-            )
+            start_time = time.time()
+            distances = dijkstra_(start_id, adj_list, isochrone_dto.settings.travel_time)
+            print(f"Time dijkstra: {time.time() - start_time}")
 
             # Convert network to grid
             grid = network_to_grid(
