@@ -612,7 +612,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
                 isochrone_dto.settings.speed / 3.6,
                 "default",  # no scenario for active mobility yet
                 0,  # no scenario for active mobility yet
-                routing_profile,
+                isochrone_dto.mode.value + "_" + routing_profile,
                 True,
                 obj["calculation_ids"],
                 random_table_prefix,
