@@ -1,39 +1,14 @@
+import os
 from math import exp
 from time import time
 
 import numpy as np
 from numba import njit
 
+from src.utils import delete_file
 
-def merge_heatmap_traveltime_objects(traveltimeobjs):
-    merged_traveltime_obj = {}
-    arr_west = []
-    arr_north = []
-    arr_zoom = []
-    arr_width = []
-    arr_height = []
-    arr_travel_times = []
-    arr_grid_ids = []
-
-    for obj in traveltimeobjs:
-        arr_west.extend(obj["west"])
-        arr_north.extend(obj["north"])
-        arr_zoom.extend(obj["zoom"])
-        arr_width.extend(obj["width"])
-        arr_height.extend(obj["height"])
-        arr_grid_ids.extend(obj["grid_ids"])
-        arr_travel_times.extend(obj["travel_times"])
-
-    merged_traveltime_obj["west"] = np.array(arr_west)
-    merged_traveltime_obj["north"] = np.array(arr_north)
-    merged_traveltime_obj["zoom"] = np.array(arr_zoom)
-    merged_traveltime_obj["width"] = np.array(arr_width)
-    merged_traveltime_obj["height"] = np.array(arr_height)
-    merged_traveltime_obj["grid_ids"] = np.array(arr_grid_ids)
-    merged_traveltime_obj["travel_times"] = np.array(arr_travel_times, dtype=object)
-
-    return merged_traveltime_obj
-
+ii32 = np.iinfo(np.int32)
+example_weights_max = np.array([ii32.max], dtype=np.float32)
 
 def sort_and_unique_by_grid_ids(grid_ids, travel_times):
     """
@@ -49,149 +24,173 @@ def sort_and_unique_by_grid_ids(grid_ids, travel_times):
 
 
 @njit()
-def medians(sorted_table, unique):
+def medians(travel_times, unique, weights):
     """
     Example:
-    sorted_table:
-        [[0,0,0,1,1,2,2,2,3,3,3,3],
+    travel_times:
         [1,2,3,4,5,6,7,8,9,10,11,12]]
     unique:
-        [0,1,2,3]
+        [[0,1,2,3], [0,3,5,8,10]]
     medians:
-        [2,5,7,10]
+        [2,4,6,9]
 
     Consider unique is touples of (unique, index)
     """
-    if not sorted_table.size:
+    if not travel_times.size:
         return None
-    travel_times = sorted_table.transpose()[1]
-    unique_index = unique[1]
-    medians = np.empty(unique_index.shape[0], np.float32)
+    travel_times = travel_times * weights
+
+    # Add the last index to the unique index:
+    unique_index = np.append(unique[1], travel_times.shape[0])
+    medians = np.empty(unique[1].shape[0], np.float32)
     for i in range(unique_index.shape[0] - 1):
         j = i + 1
         travel_time = travel_times[unique_index[i] : unique_index[j]]
         medians[i] = np.median(travel_time)
-    else:
-        travel_time = travel_times[unique_index[i + 1] :]
-        medians[i + 1] = np.median(travel_time)
+
     return medians
 
 
 @njit()
-def mins(sorted_table, unique):
+def mins(travel_times, unique, weights):
     """
     Example:
-    sorted_table:
-        [[0,0,0,1,1,2,2,2,3,3,3,3],
+    travel_times:
         [1,2,3,4,5,6,7,8,9,10,11,12]]
     unique:
-        [0,1,2,3]
-
+        [[0,1,2,3], [0,3,5,8,10]]
     mins:
-        [1,4,6,9]
+        [1,2,3,4]
 
     Consider unique is touples of (unique, index)
     """
-    if not sorted_table.size:
+    if not travel_times.size:
         return None
-    travel_times = sorted_table.transpose()[1]
-    unique_index = unique[1]
-    mins = np.empty(unique_index.shape[0], np.float32)
+    travel_times = travel_times * weights
+
+    # Add the last index to the unique index:
+    unique_index = np.append(unique[1], travel_times.shape[0])
+    mins = np.empty(unique[1].shape[0], np.float32)
     for i in range(unique_index.shape[0] - 1):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         mins[i] = np.min(travel_time)
-    else:
-        travel_time = travel_times[unique_index[i + 1] :]
-        mins[i + 1] = np.min(travel_time)
+
     return mins
 
 
 @njit()
-def counts(sorted_table, unique):
+def counts(travel_times, unique, weights):
     """
     Example:
-    sorted_table:
-        [[0,0,0,1,1,2,2,2,3,3,3,3],
+    travel_times:
         [1,2,3,4,5,6,7,8,9,10,11,12]]
     unique:
-        [0,1,2,3]
+        [[0,1,2,3], [0,3,5,8,10]]
     counts:
-        [3,2,3,4]
+        [3,2,3,3]
 
     Consider unique is touples of (unique, index)
     """
-    if not sorted_table.size:
+    if not travel_times.size:
         return None
-    travel_times = sorted_table.transpose()[1]
-    unique_index = unique[1]
-    counts = np.empty(unique_index.shape[0], np.float32)
+    weights = np.ones(travel_times.shape[0], dtype=np.float32)
+    
+    # Add the last index to the unique index:
+    unique_index = np.append(unique[1], travel_times.shape[0])
+    counts = np.empty(unique[1].shape[0], np.float32)
     for i in range(unique_index.shape[0] - 1):
-        travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
-        counts[i] = travel_time.shape[0]
-    else:
-        travel_time = travel_times[unique_index[i + 1] :]
-        counts[i + 1] = travel_time.shape[0]
+        # travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
+        # counts[i] = travel_time.shape[0]
+        counts[i] = np.sum(weights[unique_index[i] : unique_index[i + 1]])
+
     return counts
 
 
 @njit()
-def averages(sorted_table, unique):
+def averages(travel_times, unique, weights):
     """
     Example:
-    sorted_table:
-        [[0,0,0,1,1,2,2,2,3,3,3,3],
+    travel_times:
         [1,2,3,4,5,6,7,8,9,10,11,12]]
     unique:
-        [0,1,2,3]
+        [[0,1,2,3], [0,3,5,8,10]]
     averages:
         [2,5,7,10]
 
     Consider unique is touples of (unique, index)
     """
-    if not sorted_table.size:
+    if not travel_times.size:
         return None
-    travel_times = sorted_table.transpose()[1]
-    unique_index = unique[1]
-    averages = np.empty(unique_index.shape[0], np.float32)
+    travel_times = travel_times * weights
+
+    # Add the last index to the unique index:
+    unique_index = np.append(unique[1], travel_times.shape[0])
+
+    averages = np.empty(unique[1].shape[0], np.float32)
     for i in range(unique_index.shape[0] - 1):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         averages[i] = np.average(travel_time)
-    else:
-        travel_time = travel_times[unique_index[i + 1] :]
-        averages[i + 1] = np.average(travel_time)
+
     return averages
 
 
 @njit
-def modified_gaussian_per_grid(sorted_table, unique, sensitivity, cutoff):
-    if not sorted_table.size:
+def combined_modified_gaussian_per_grid(
+    travel_times, unique, sensitivity, cutoff, static_traveltime, weights
+):
+    if not travel_times.size:
         return None
-    travel_times = sorted_table.transpose()[1]
-    unique_index = unique[1]
-    modified_gaussian_per_grids = np.empty(unique_index.shape[0], np.float64)
+    
+    sensitivity_ = sensitivity / (60 * 60)  # convert sensitivity to minutes
+    # Add the last index to the unique index:
+    unique_index = np.append(unique[1], travel_times.shape[0])
+    combined_modified_gaussian_per_grids = np.empty(unique[1].shape[0], np.float64)
+    counter = -1
+    for i in range(unique_index.shape[0] - 1):
+        travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
+        sum = 0.0
+        for t in travel_time:
+            counter += 1
+            if t > cutoff:
+                # Assume result is 0
+                continue
+            if t <= static_traveltime:
+                f = 1
+            else:
+                t = t - static_traveltime
+                f = exp(-t * t / sensitivity_)
+            sum += f * weights[counter]
+        else:
+            # Add the sum to the result after loop finished
+            combined_modified_gaussian_per_grids[i] = sum
+
+    return combined_modified_gaussian_per_grids
+
+
+@njit
+def modified_gaussian_per_grid(travel_times, unique, sensitivity, cutoff, weights):
+    if not travel_times.size:
+        return None
+
+    sensitivity_ = sensitivity / (60 * 60)  # convert sensitivity to minutes
+
+    # Add the last index to the unique index:
+    unique_index = np.append(unique[1], travel_times.shape[0])
+    modified_gaussian_per_grids = np.empty(unique[1].shape[0], np.float64)
+    counter = -1
     for i in range(unique_index.shape[0] - 1):
         travel_time = travel_times[unique_index[i] : unique_index[i + 1]]
         sum = 0
         for t in travel_time:
-            f = exp(-t * t / sensitivity)
-            sum += f
-            if sum >= cutoff:
-                modified_gaussian_per_grids[i] = 0
-                break
+            counter += 1
+            if t > cutoff:
+                # Assume result is 0
+                continue
+            f = exp(-t * t / sensitivity_)
+            sum += f * weights[counter]
         else:
             modified_gaussian_per_grids[i] = sum
 
-    else:
-        travel_time = travel_times[unique_index[i + 1] :]
-        sum = 0
-        for t in travel_time:
-            f = exp(-t * t / sensitivity)
-            sum += f
-            if sum >= cutoff:
-                modified_gaussian_per_grids[i] = 0
-                break
-        else:
-            modified_gaussian_per_grids[i] = sum
     return modified_gaussian_per_grids
 
 
@@ -207,8 +206,15 @@ def quantile_classify(a, NQ=5):
         return None
     if not a.size:
         return a.copy()
+
+    a_gt_0 = a > 0
+
+    # Fix for when all values are 0
+    if not sum(a_gt_0):
+        return np.zeros(a.shape, np.int8)
+
     q = np.arange(1 / NQ, 1, 1 / NQ)
-    quantiles = np.quantile(a[a > 0], q)
+    quantiles = np.quantile(a[a_gt_0], q)
     out = np.empty(a.size, np.int8)
     out[np.where(a == 0)] = 0
     out[np.where(np.logical_and(np.greater(a, 0), np.less(a, quantiles[0])))] = 1
@@ -242,6 +248,42 @@ def test_quantile(n):
             # print(i,np.where(out==i)[0].size)
 
 
+def save_traveltime_matrix(bulk_id: int, traveltimeobjs: dict, output_dir: str):
+
+    # Convert to numpy arrays
+    for key in traveltimeobjs.keys():
+        # Check if str then obj type 
+        if isinstance(traveltimeobjs[key][0], str):
+            traveltimeobjs[key] = np.array(traveltimeobjs[key])
+        else:
+            traveltimeobjs[key] = np.array(traveltimeobjs[key], dtype=object)
+
+    # Save files into cache folder
+    file_name = f"{bulk_id}.npz"
+    # Create directory if not exists
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    file_dir = os.path.join(output_dir, file_name)
+    delete_file(file_dir)
+    # Save to file
+    np.savez_compressed(
+        file_dir,
+        **traveltimeobjs,
+    )
+
+
+
+
+
 if __name__ == "__main__":
     test_quantile(10000)
     test_quantile(20)
+    travel_times = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    unique = (np.array([1,2,3,4,5]),np.array([0, 3, 5, 8, 10]))
+    weights = np.array([1,2,1,1,2,3,1,2,1,1,2,3])
+    sensitivity = 250000
+    cuttoff = 8
+    static_traveltime = 2
+    results = combined_modified_gaussian_per_grid(
+        travel_times, unique, sensitivity, cuttoff, static_traveltime, weights)
+    print(results)

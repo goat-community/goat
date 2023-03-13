@@ -1,15 +1,9 @@
 from curses.ascii import HT
-from enum import Enum, IntEnum
-from typing import Dict, List, Optional, Union
+from enum import Enum
+from typing import List, Optional, Union
 
 from bson import STANDARD
-from fastapi import HTTPException
-from geojson_pydantic.features import Feature, FeatureCollection
-from geojson_pydantic.geometries import MultiPolygon, Polygon
-from pydantic import BaseModel, Field, root_validator, validator
-
-from src.endpoints import deps
-from src.resources.enums import RoutingTypes
+from pydantic import BaseModel, Field, root_validator
 
 """
 Body of the request
@@ -146,7 +140,7 @@ class IsochroneSettings(BaseModel):
             IsochroneTransitMode.SUBWAY.value,
             IsochroneTransitMode.RAIL.value,
         ],
-        description="(PT) Transit modes",
+        description="Public Transport modes",
         unique_items=True,
     )
     access_mode: Optional[IsochroneAccessMode] = Field(
@@ -238,7 +232,7 @@ class IsochroneDTO(BaseModel):
         },
         description="Isochrone scenario parameters. Only supported for Walking and Cycling Isochrones",
     )
-    starting_point: IsochroneStartingPoint = Field(
+    starting_point: Optional[IsochroneStartingPoint] = Field(
         ...,
         description="Isochrone starting points. If multiple starting points are specified, the isochrone is considered a multi-isochrone calculation. **Multi-Isochrone Only works for Walking and Cycling Isochrones**. Alternatively, amenities can be used to specify the starting points for multi-isochrones.",
     )
@@ -260,11 +254,11 @@ class IsochroneDTO(BaseModel):
         # Validation check on grid resolution and number of steps for geojson for walking and cycling isochrones
         if (
             values["output"].type.value == IsochroneOutputType.GRID.value
-            and values["output"].resolution not in [9, 10, 11, 12, 13, 14]
+            and values["output"].resolution not in [9, 10, 11, 12]
             and values["mode"].value
             in [
                 IsochroneAccessMode.WALK.value,
-                IsochroneAccessMode.CYCLE.value,
+                IsochroneAccessMode.BICYCLE.value,
             ]
         ):
 
@@ -291,10 +285,15 @@ class IsochroneDTO(BaseModel):
             raise ValueError("Step must be between 1 and 6")
 
         # Don't allow multi-isochrone calculation for PT and Car Isochrone
-        if len(values["starting_point"].input) > 1 and values["mode"].value in [
-            IsochroneMode.TRANSIT.value,
-            IsochroneMode.CAR.value,
-        ]:
+        if (
+            values["starting_point"]
+            and len(values["starting_point"].input) > 1
+            and values["mode"].value
+            in [
+                IsochroneMode.TRANSIT.value,
+                IsochroneMode.CAR.value,
+            ]
+        ):
             raise ValueError("Multi-Isochrone is not supported for Transit and Car")
 
         # For walking and cycling travel time maximumn should be 20 minutes and speed to m/s
@@ -303,8 +302,8 @@ class IsochroneDTO(BaseModel):
                 raise ValueError(
                     "Travel time maximum for walking and cycling should be less or equal to 25 minutes"
                 )
-            if values["settings"].speed:
-                values["settings"].speed = values["settings"].speed / 3.6
+            # if values["settings"].speed:
+            #     values["settings"].speed = values["settings"].speed / 3.6
 
         # For PT and Car Isochrone starting point should be only lat lon coordinates and not amenities, travel time smaller than 120 minutes
         if values["mode"].value in [
@@ -329,16 +328,54 @@ class IsochroneDTO(BaseModel):
             if values["settings"].from_time > values["settings"].to_time:
                 raise ValueError("Start time should be smaller than end time")
 
-            # convert bike speed to m/s
-            values["settings"].bike_speed = values["settings"].bike_speed / 3.6
-            # convert walk speed to m/s
-            values["settings"].walk_speed = values["settings"].walk_speed / 3.6
+            # # convert bike speed to m/s
+            # values["settings"].bike_speed = values["settings"].bike_speed / 3.6
+            # # convert walk speed to m/s
+            # values["settings"].walk_speed = values["settings"].walk_speed / 3.6
 
         # If starting-point input length is more than 1 then it should be multi-isochrone and region should be specified
         if len(values["starting_point"].input) > 1 and len(values["starting_point"].region) == 0:
             raise ValueError("Region is not specified for multi-isochrone")
 
         return values
+
+
+R5TravelTimePayloadTemplate = {
+    "accessModes": "WALK",
+    "transitModes": "BUS,TRAM,SUBWAY,RAIL",
+    "bikeSpeed": 4.166666666666667,
+    "walkSpeed": 1.39,
+    "bikeTrafficStress": 4,
+    "date": "2022-05-16",
+    "fromTime": 25200,  # 7 AM
+    "toTime": 39600,  # 9 AM
+    "maxTripDurationMinutes": 120,
+    "decayFunction": {
+        "type": "logistic",
+        "standard_deviation_minutes": 12,
+        "width_minutes": 10,
+    },
+    "destinationPointSetIds": [],
+    "bounds": {
+        "north": 48.27059464660387,
+        "south": 48.03915718648435,
+        "east": 11.327192290815145,
+        "west": 11.756388821971976,
+    },
+    "directModes": "WALK",
+    "egressModes": "WALK",
+    "fromLat": 48.1502132,
+    "fromLon": 11.5696284,
+    "zoom": 9,
+    "maxBikeTime": 20,
+    "maxRides": 4,
+    "maxWalkTime": 20,
+    "monteCarloDraws": 200,
+    "percentiles": [5, 25, 50, 75, 95],
+    "variantIndex": -1,
+    "workerVersion": "v6.4",
+    "projectId": "630c0014aad8682ef8461b44",
+}
 
 
 request_examples = {
@@ -358,7 +395,7 @@ request_examples = {
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
                     "type": "grid",
-                    "steps": "12",
+                    "resolution": "12",
                 },
             },
         },

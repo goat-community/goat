@@ -1,4 +1,7 @@
-CREATE OR REPLACE FUNCTION basic.fetch_network_routing_heatmap(x float[], y float[], max_cutoff float, speed float, modus text, scenario_id integer, routing_profile text)
+		
+CREATE OR REPLACE FUNCTION basic.fetch_network_routing_heatmap(
+	x float[], y float[], max_cutoff float, speed float, modus text, 
+	scenario_id integer, routing_profile TEXT, artificial_tables_prefix TEXT = 'worker1')
  RETURNS SETOF type_fetch_edges_routing
  LANGUAGE plpgsql
 AS $function$
@@ -7,6 +10,8 @@ DECLARE
 	cnt_starting_points integer := 0;
 	length_starting_points integer := array_length(x, 1);
 	point geometry;
+	artificial_table_name TEXT := artificial_tables_prefix || '_' || 'heatmap_edges_artificial';
+	vertices_table_name TEXT := artificial_tables_prefix || '_' || 'heatmap_starting_vertices';
 BEGIN 
 	
 	PERFORM basic.create_multiple_artificial_edges(x, y, max_cutoff, speed, modus, scenario_id, routing_profile);
@@ -33,18 +38,21 @@ BEGIN
 	CREATE INDEX ON buffer_starting_points USING GIST(geom); 
 
 	union_buffer_network  = (SELECT ST_UNION(b.geom) FROM buffer_network b);
-	
+
 	DROP TABLE IF EXISTS batch_artificial_edges; 
-	CREATE TEMP TABLE batch_artificial_edges AS
+	EXECUTE 'CREATE TEMP TABLE batch_artificial_edges AS
 	SELECT *
-	FROM temporal.heatmap_edges_artificial a
-	WHERE ST_Intersects(a.geom, union_buffer_network); 
+	FROM temporal.'||artificial_table_name||' a
+	WHERE ST_Intersects(a.geom, $1);' USING union_buffer_network; 
 	
 	DROP TABLE IF EXISTS batch_starting_vertices; 
-	CREATE TEMP TABLE batch_starting_vertices AS
+	EXECUTE 'CREATE TEMP TABLE batch_starting_vertices AS
 	SELECT v.*
-	FROM temporal.heatmap_starting_vertices v, buffer_starting_points s  
-	WHERE ST_Intersects(v.geom, s.geom); 
+	FROM temporal.'||vertices_table_name||' v, buffer_starting_points s  
+	WHERE ST_Intersects(v.geom, s.geom);'; 
+	
+	EXECUTE 'DROP TABLE IF EXISTS '||artificial_table_name;
+	EXECUTE 'DROP TABLE IF EXISTS '||vertices_table_name;
 
 	/*Fetch Network*/
 	RETURN query EXECUTE 

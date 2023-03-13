@@ -1,6 +1,7 @@
 import secrets
 from typing import Any, Dict, List, Optional, Union
 
+import boto3
 from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, validator
 
 
@@ -15,7 +16,25 @@ class SyncPostgresDsn(PostgresDsn):
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
+    CACHE_PATH: str = "/app/src/cache"
     API_SECRET_KEY: str = secrets.token_urlsafe(32)
+    AWS_ACCESS_KEY_ID: Optional[str] = ""
+    AWS_SECRET_ACCESS_KEY: Optional[str] = ""
+    AWS_REGION: Optional[str] = "eu-central-1"
+    AWS_BUCKET_NAME: Optional[str] = "plan4better-data"
+    S3_CLIENT: Optional[Any] = None
+
+    @validator("S3_CLIENT", pre=True)
+    def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        if isinstance(v, str):
+            return v
+        return boto3.client(
+            "s3",
+            aws_access_key_id=values.get("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=values.get("AWS_SECRET_ACCESS_KEY"),
+            region_name=values.get("AWS_REGION"),
+        )
+
     # 60 minutes * 24 hours * 8 days = 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     SERVER_NAME: str
@@ -29,7 +48,7 @@ class Settings(BaseSettings):
         "http://localhost:1024",
         "https://dashboard.plan4better.de",
         "https://dashboard-dev.plan4better.de",
-        "https://citizens.plan4better.de"
+        "https://citizens.plan4better.de",
     ]
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
@@ -53,6 +72,13 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+
+    @validator("POSTGRES_DB", pre=True)
+    def set_db_name_according_to_project_name_if_empty(cls, v, values):
+        if not v and values.get("COMPOSE_PROJECT_NAME"):
+            return values["COMPOSE_PROJECT_NAME"]
+        return v
+
     POSTGRES_DATABASE_URI: str = None
 
     @validator("POSTGRES_DATABASE_URI", pre=True)
@@ -102,6 +128,8 @@ class Settings(BaseSettings):
         return v
 
     EMAIL_TOKEN_EXPIRE_HOURS: int = 2
+    SRC_DIR: str = "/app/src"
+    CACHE_DIR: str = "/app/src/cache"
     EMAIL_TEMPLATES_DIR: str = "/app/src/templates/email/build"
     LAYER_TEMPLATES_DIR: str = "/app/src/templates/layer"
     EMAILS_ENABLED: bool = False
@@ -123,11 +151,12 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_LIMIT_SCENARIOS: int = 50
     FIRST_SUPERUSER_LANGUAGE_PREFERENCE: str = "en"
 
-    POSTGRES_DB_STAGING: Optional[str] = "goat"
-    POSTGRES_SERVER_STAGING: Optional[str] = "localhost"
-    POSTGRES_USER_STAGING: Optional[str] = "postgres"
-    POSTGRES_PASSWORD_STAGING: Optional[str] = "secret"
-    POSTGRES_OUTER_PORT_STAGING: Optional[int] = 5432
+    POSTGRES_DB_FOREIGN: Optional[str] = "goat"
+    POSTGRES_SERVER_FOREIGN: Optional[str] = "localhost"
+    POSTGRES_USER_FOREIGN: Optional[str] = "postgres"
+    POSTGRES_PASSWORD_FOREIGN: Optional[str] = "secret"
+    POSTGRES_OUTER_PORT_FOREIGN: Optional[int] = 5432
+    POSTGRES_SCHEMA_FOREIGN: Optional[str] = "basic"
 
     POSTGRES_FUNCTIONS_SCHEMA: Optional[str] = "basic"
 
@@ -135,7 +164,6 @@ class Settings(BaseSettings):
     DEMO_USER_SCENARIO_LIMIT: Optional[int] = 5
     DEMO_USER_STORAGE: Optional[int] = 0  # In kilobytes
     DEMO_USER_DEACTIVATION_DAYS: Optional[int] = 30
-    USERS_OPEN_REGISTRATION: bool = False
     # Tile / Table config
     TILE_RESOLUTION: int = 4096
     TILE_BUFFER: int = 256
@@ -158,7 +186,24 @@ class Settings(BaseSettings):
     # path_traveltime_matrices
     TRAVELTIME_MATRICES_PATH: str = "/app/src/cache/traveltime_matrices"
     OPPORTUNITY_MATRICES_PATH: str = "/app/src/cache/opportunity_matrices"
+    ANALYSIS_UNIT_PATH: str = "/app/src/cache/analysis_unit"
+    OPPORTUNITY_PATH: str = "/app/src/cache/opportunity"
+    
     HEATMAP_MULTIPROCESSING_BULK_SIZE = 50
+
+    # Celery config
+    CELERY_BROKER_URL: Optional[str] = ""
+    CELERY_CONFIG: Optional[dict] = {}
+
+    @validator("CELERY_CONFIG", pre=True)
+    def celery_broker_config(cls, v: Optional[dict], values: Dict[str, Any]) -> Any:
+        celery_broker_url = values.get("CELERY_BROKER_URL")
+        aws_region = values.get("AWS_REGION")
+        if celery_broker_url == "sqs://":
+            return {
+                "broker_transport_options": {"region": aws_region or "eu-central-1"},
+            }
+        return v
 
     @validator("R5_API_URL", pre=True)
     def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
@@ -169,6 +214,30 @@ class Settings(BaseSettings):
     @validator("R5_AUTHORIZATION", pre=True)
     def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         return f"Basic {v}="
+
+    # AWS Client 
+    # AWS_BUCKET_NAME: str = None
+    # AWS_ACCESS_KEY_ID: str = None
+    # AWS_SECRET_ACCESS_KEY: str = None
+    # AWS_DEFAULT_REGION: str = None
+    # S3_CLIENT: Optional[Any] = None
+    # @validator("S3_CLIENT", pre=True)
+    # def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    #     if isinstance(v, str):
+    #         return v
+    #     return boto3.client(
+    #         's3',
+    #         aws_access_key_id=values.get("AWS_ACCESS_KEY_ID"),
+    #         aws_secret_access_key=values.get("AWS_SECRET_ACCESS_KEY"),
+    #         region_name=values.get("AWS_DEFAULT_REGION")
+    #     )
+        
+    OPENROUTESERVICE_API_KEY: Optional[str] = None
+    GEOAPIFY_API_KEY: Optional[str] = None
+    GOOGLE_API_KEY: Optional[str] = None
+    GITHUB_ACCESS_TOKEN: Optional[str] = None
+
+    COMPOSE_PROJECT_NAME: Optional[str] = None
 
     class Config:
         case_sensitive = True

@@ -25,11 +25,10 @@ sentry_sdk.init(
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    # docs_url="/api/docs",
     redoc_url="/api/redoc",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    swagger_ui_parameters={"persistAuthorization": True},
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -40,6 +39,7 @@ async def swagger_ui_html():
         swagger_favicon_url="/static/api_favicon.png",
         openapi_url=f"{settings.API_V1_STR}/openapi.json",
         title=settings.PROJECT_NAME,
+        swagger_ui_parameters={"persistAuthorization": True}
     )
 
 

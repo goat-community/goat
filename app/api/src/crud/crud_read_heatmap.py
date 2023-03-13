@@ -1,85 +1,53 @@
 import pyximport
 
 pyximport.install()
-import asyncio
-import concurrent.futures
 import json
 import math
 import os
 import time
-from typing import List
 
 import geopandas as gpd
 import h3
 import numpy as np
-import pandas as pd
-from codetiming import Timer
-from geoalchemy2.functions import ST_Dump
 from rich import print
-from scipy import spatial
 from shapely.geometry import Polygon
-from sqlalchemy.sql import select, text
 
 from src.core import heatmap as heatmap_core
 from src.core import heatmap_cython
 from src.core.config import settings
-from src.crud.base import CRUDBase
-from src.db import models
-from src.db.session import async_session, legacy_engine, sync_session
-from src.resources.enums import RoutingTypes
-from src.schemas.heatmap import (
-    HeatmapBaseSpeed,
-    HeatmapMode,
-    HeatmapSettings,
-    HeatmapType,
-    HeatmapWalkingBulkResolution,
-    HeatmapWalkingCalculationResolution,
-    ReturnTypeHeatmap,
-)
-from src.schemas.isochrone import (
-    IsochroneDTO,
-    IsochroneMode,
-    IsochroneOutput,
-    IsochroneOutputType,
-    IsochroneScenario,
-    IsochroneSettings,
-    IsochroneStartingPoint,
-    IsochroneStartingPointCoord,
-)
-from src.utils import (
-    create_dir,
-    delete_dir,
-    delete_file,
-    print_hashtags,
-    print_info,
-    print_warning,
-    timing,
-)
-
-poi_layers = {
-    "poi": models.Poi,
-    "poi_modified": models.PoiModified,
-    "poi_user": models.PoiUser,
-}
-
-
-class CRUDGridCalculation(
-    CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
-):
-    pass
-
-
-# TODO: Refactor code and split into two files. One for precalculation and one for the endpoints.
-# TODO: Add more comments
+from src.db.session import legacy_engine
+from src.schemas.heatmap import HeatmapMode, HeatmapSettings, HeatmapType
+from src.schemas.isochrone import IsochroneDTO, IsochroneMode
+from src.utils import create_h3_grid, print_warning, timing
 
 
 class CRUDBaseHeatmap:
-    def __init__(self, db, current_user):
+    def __init__(self, db=None, current_user=None):
         self.db = db
         self.current_user = current_user
+        self.travel_time_base_path = os.path.join(settings.CACHE_DIR, "traveltime_matrices")
+        self.connectivity_base_path = os.path.join(settings.CACHE_DIR, "connectivity_matrices")
+
+    def get_traveltime_path(self, mode: str, profile: str, h6_id: int):
+        if np.issubdtype(type(h6_id), int):
+            h6_id = f"{h6_id:x}"
+        return os.path.join(self.travel_time_base_path, mode, profile, f"{h6_id}.npz")
+
+    def get_connectivity_path(self, mode: str, profile: str):
+        return os.path.join(self.connectivity_base_path, mode, profile)
+
+    def get_routing_profile(self, isochrone_dto: IsochroneDTO):
+        if isochrone_dto.mode == IsochroneMode.WALKING:
+            profile = isochrone_dto.settings.walking_profile.value
+        elif isochrone_dto.mode == IsochroneMode.CYCLING:
+            profile = isochrone_dto.settings.cycling_profile.value
+        else:
+            profile = ""
+
+        return profile
 
     async def read_h3_grids_study_areas(
-        self, resolution: int, buffer_size: int, study_area_ids: list[int] = None
+        self, resolution: int, buffer_size: int, study_area_ids: list[int] = []
     ) -> list[str]:
 
         """Reads grid ids for study areas.
@@ -93,263 +61,74 @@ class CRUDBaseHeatmap:
             list[str]: List of grid ids.
         """
 
-        resolution = 6
-
-        # Get relevant study areas
-        if study_area_ids is None:
-            statement = select(models.StudyArea.id)
-        else:
-            statement = select(models.StudyArea.id).where(models.StudyArea.id.in_(study_area_ids))
-        study_area_ids = await self.db.execute(statement)
-        study_area_ids = study_area_ids.scalars().all()
-        print_info(f"Processing will be done for Study area ids: {str(study_area_ids)[1:-1]}")
-
-        # Get buffer size
-        buffer_size = buffer_size + h3.edge_length(resolution, "m")
-
-        # # Get unioned study areas
-        # # Doing this in Raw SQL because query could not be build with SQLAlchemy ORM
-        # TODO: Reduce the amount of grids
-        sql_query = text(
-            f"""
-            SELECT ST_AsGeoJSON(ST_BUFFER(geom::geography, :buffer_size)::geometry) AS geom
-            FROM
-            ( 
-                SELECT (ST_DUMP(geom)).geom AS geom
-                FROM basic.study_area sa
-                WHERE sa.id = :study_area_id
-            ) AS dumped
-        """
+        study_areas_union_geom = (
+            gpd.read_postgis(
+                f"SELECT geom FROM basic.study_area sa WHERE sa.id = any(array{study_area_ids})",
+                legacy_engine,
+            )
+            .to_crs("EPSG:3857")
+            .buffer(buffer_size)
+            .to_crs("EPSG:4326")
+            .unary_union
         )
-        union_geoms = [
-            self.db.execute(sql_query, {"study_area_id": i, "buffer_size": buffer_size})
-            for i in study_area_ids
-        ]
-        union_geoms = await asyncio.gather(*union_geoms)
-        union_geoms = [geom.fetchall() for geom in union_geoms][0]
-        union_geoms_json = [json.loads(geom[0]) for geom in union_geoms]
 
-        #  Get all grids for the bulk resolution
-        bulk_ids = []
-        for geom in union_geoms_json:
-            if geom["type"] != "Polygon":
-                raise ValueError("Unioned Study area geometries are not a of type polygon.")
+        bulk_ids = create_h3_grid(
+            study_areas_union_geom, resolution, intersect_with_centroid=False
+        )
 
-            bulk_ids.extend(list(h3.polyfill_geojson(geom, resolution)))
-
-        # kring_buffer = ceil(buffer_size / h3.edge_length(resolution, "m"))
-        bulk_ids = list(set(bulk_ids))
-        # bulk_ids = set().union(*[set().union(*h3.k_ring_distances(i, kring_buffer)) for i in bulk_ids])
-        # Testing grids for the bulk resolution
-
-        # # Get hexagon geometries and convert to GeoDataFrame
-        # hex_polygons = lambda hex_id: Polygon(h3.h3_to_geo_boundary(hex_id, geo_json=True))
-        # hex_polygons = gpd.GeoSeries(list(map(hex_polygons, bulk_ids)), crs="EPSG:4326")
-        # gdf = gpd.GeoDataFrame(data={"bulk_id": bulk_ids}, geometry=hex_polygons, crs="EPSG:4326")
-        # gdf.to_file("hex_polygons.geojson", driver="GeoJSON")
-
-        return bulk_ids
+        return bulk_ids["h3_index"].to_list()
 
 
 class CRUDReadHeatmap(CRUDBaseHeatmap):
-    async def prepare_bulk_objs(
-        self,
-        bulk_resolution: int,
-        calculation_resolution: int,
-        buffer_size: float,
-        study_area_ids: list[int] = None,
-    ) -> dict:
-
-        """Created the starting points for the traveltime matrix calculation.
-
-        Args:
-            db (AsyncSession): Database session.
-            bulk_resolution (int): H3 resolution for the bulk grids.
-            calculation_resolution (int): H3 resolution for the calculation grids.
-            study_area_ids (list[int], optional): List of study area ids. Defaults to None and will use all study area.
-
-        Raises:
-            ValueError: If the bulk resolution is smaller than the calculation resolution.
-
-        Returns:
-            dict: Hierarchical structure of starting points for the calculation using the bulk resolution as parent and calculation resolution as children.
-        """
-        begin = time.time()
-        if bulk_resolution >= calculation_resolution:
-            raise ValueError(
-                "Resolution of parent grid cannot be smaller then resolution of children grid."
-            )
-
-        print_hashtags()
-        print_info("Preparing starting points for heatmap calculation")
-
-        begin = time.time()
-        # Get unioned study areas
-        bulk_ids = await self.read_h3_grids_study_areas(
-            resolution=bulk_resolution, buffer_size=buffer_size, study_area_ids=study_area_ids
-        )
-        end = time.time()
-        print_info(f"Time to get bulk ids: {end - begin}")
-
-        # Get all grids for the calculation resolution that are children of the bulk resolution
-        calculation_objs = {}
-        cnt_calculation_ids = 0
-
-        for bulk_id in bulk_ids:
-            lons = []
-            lats = []
-            calculation_ids = h3.h3_to_children(bulk_id, calculation_resolution)
-            starting_point_objs = []
-            coords = []
-            calculation_objs[bulk_id] = {}
-            for calculation_id in calculation_ids:
-                lat, lon = h3.h3_to_geo(calculation_id)
-                coords.append([lon, lat])
-                starting_point_objs.append(IsochroneStartingPointCoord(lat=lat, lon=lon))
-                lons.append(lon)
-                lats.append(lat)
-            calculation_objs[bulk_id]["calculation_ids"] = list(calculation_ids)
-            calculation_objs[bulk_id]["coords"] = coords
-            calculation_objs[bulk_id]["starting_point_objs"] = starting_point_objs
-            cnt_calculation_ids += len(calculation_ids)
-
-            # Get buffered extents for grid size
-            gdf_starting_points = gpd.points_from_xy(x=lons, y=lats, crs="epsg:4326")
-            gdf_starting_points = gdf_starting_points.to_crs(epsg=3395)
-            extents = gdf_starting_points.buffer(buffer_size * math.sqrt(2), cap_style=3)
-            extents = extents.to_crs(epsg=3857)
-            extents = extents.bounds
-            extents = extents.tolist()
-            calculation_objs[bulk_id]["extents"] = extents
-            calculation_objs[bulk_id]["lats"] = lats
-            calculation_objs[bulk_id]["lons"] = lons
-
-        end = time.time()
-        print_info(f"Number of bulk grids: {len(bulk_ids)}")
-        print_info(f"Number of calculation grids: {cnt_calculation_ids}")
-        print_info(f"Calculation time: {end - begin} seconds")
-        print_hashtags()
-        return calculation_objs
-
-    async def read_poi(
-        self,
-        isochrone_dto: IsochroneDTO,
-        table_name: str,
-        filter_geoms: List[str],
-        data_upload_id: int = None,
-        bulk_ids: List[int] = None,
-    ) -> pd.DataFrame:
-        """Read POIs from database for given filter geoms
-
-        Args:
-            isochrone_dto (IsochroneDTO): Settings for the isochrone calculation
-            table_name (str): Name of the POI table
-            filter_geoms (List[str]): Geometries to filter the POIs
-            data_upload_id (int, optional): Upload ids for poi_user. Defaults to None.
-
-        Raises:
-            ValueError: If table_name is not poi or poi_user
-
-        Returns:
-            POIs (List): Nested list of POIs
-        """
-
-        if table_name == "poi":
-            sql_query = f"""
-                SELECT :bulk_id AS bulk_id, p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
-                FROM basic.poi p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
-                WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
-                ORDER BY p.category
-            """
-            sql_params = {}
-        elif table_name == "poi_user" and data_upload_id is not None:
-            sql_query = f"""
-                SELECT :bulk_id AS bulk_id, p.uid, p.category, p.name, pixel[1] AS x, pixel[2] AS y
-                FROM basic.poi_user p, LATERAL basic.coordinate_to_pixel(ST_Y(p.geom), ST_X(p.geom), :pixel_resolution) AS pixel
-                WHERE ST_Intersects(p.geom, ST_GeomFromText(:filter_geom, 4326))
-                AND p.data_upload_id = :data_upload_id
-                ORDER BY p.category
-            """
-            sql_params = {"data_upload_id": data_upload_id}
-
-        else:
-            raise ValueError(f"Table name {table_name} is not a valid poi table name")
-
-        pois = [
-            self.db.execute(
-                sql_query,
-                sql_params
-                | {
-                    "bulk_id": bulk_ids[idx],
-                    "filter_geom": filter_geom,
-                    "pixel_resolution": isochrone_dto.output.resolution,
-                },
-            )
-            for idx, filter_geom in enumerate(filter_geoms)
-        ]
-
-        pois = await asyncio.gather(*pois)
-        pois = [batch.fetchall() for batch in pois]
-        pois_dict = {}
-        for idx_bulk, batch in enumerate(pois):
-            if len(batch) > 0:
-                bulk_id = batch[0][0]
-                batch = [poi[1:] for poi in batch]
-                pois_dict[bulk_id] = batch
-        return pois_dict
-
-    async def get_categories_opportunities(self, heatmap_settings: HeatmapSettings) -> list[str]:
-        """Get all categories from the heatmap config
-
-        Args:
-            heatmap_settings (HeatmapSettings): Heatmap settings
-
-        Returns:
-            list: List of categories
-        """
-        categories = []
-        if heatmap_settings.heatmap_type == HeatmapType.closest:
-            for category in heatmap_settings.heatmap_config["opportunity"]["poi"]:
-                categories.append(category)
-
-        return categories
-
     async def read_opportunity_matrix(
-        self, matrix_base_path: str, bulk_ids: list[str], chosen_categories
+        self, matrix_base_path: str, bulk_ids: list[str], heatmap_config: dict
     ):
         travel_times_dict = {}
         grid_ids_dict = {}
-        for cat in chosen_categories:
-            travel_times_dict[cat] = []
-            grid_ids_dict[cat] = []
+        weight_dict = {}
+        opportunity_types = list(heatmap_config.keys())
+        opportunity_categories = {}
+
+        for opportunity_type in opportunity_types:
+            opportunity_categories[opportunity_type] = list(
+                heatmap_config[opportunity_type].keys()
+            )
+            for cat in opportunity_categories[opportunity_type]:
+                travel_times_dict[cat] = []
+                grid_ids_dict[cat] = []
+                weight_dict[cat] = []
 
         for bulk_id in np.array(bulk_ids):
-            try:
-                base_path = os.path.join(matrix_base_path, bulk_id)
-                # Select relevant POI categories
-                poi_categories = np.load(
-                    os.path.join(base_path, "categories.npy"),
-                    allow_pickle=True,
-                )
-                travel_times = np.load(
-                    os.path.join(base_path, "travel_times.npy"),
-                    allow_pickle=True,
-                )
-                grid_ids = np.load(
-                    os.path.join(base_path, "grid_ids.npy"),
-                    allow_pickle=True,
-                )
-                for cat in chosen_categories:
+            for opportunity_type in opportunity_types:
+                try:
+                    base_path = os.path.join(matrix_base_path, bulk_id, opportunity_type)
+                    categories = np.load(
+                        os.path.join(base_path, "categories.npy"),
+                        allow_pickle=True,
+                    )
+                    travel_times = np.load(
+                        os.path.join(base_path, "travel_times.npy"),
+                        allow_pickle=True,
+                    )
+                    grid_ids = np.load(
+                        os.path.join(base_path, "grid_ids.npy"),
+                        allow_pickle=True,
+                    )
+                    weight = np.load(
+                        os.path.join(base_path, "weight.npy"),
+                        allow_pickle=True,
+                    )
+                    for cat in opportunity_categories[opportunity_type]:
+                        selected_category_index = np.in1d(categories, np.array([cat]))
+                        travel_times_dict[cat].extend(travel_times[selected_category_index])
+                        grid_ids_dict[cat].extend(grid_ids[selected_category_index])
+                        weight_dict[cat].extend(weight[selected_category_index])
 
-                    selected_category_index = np.in1d(poi_categories, np.array([cat]))
-                    travel_times_dict[cat].extend(travel_times[selected_category_index])
-                    grid_ids_dict[cat].extend(grid_ids[selected_category_index])
-
-            except FileNotFoundError:
-                print(base_path)
-                print(f"File not found for bulk_id {bulk_id}")
-                continue
-        for cat in chosen_categories:
+                except FileNotFoundError:
+                    print(base_path)
+                    print(f"File not found for bulk_id {bulk_id}")
+                    continue
+        for cat in travel_times_dict.keys():
             if grid_ids_dict[cat]:
                 grid_ids_dict[cat] = np.concatenate(
                     np.concatenate(grid_ids_dict[cat], axis=None), axis=None
@@ -357,11 +136,15 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                 travel_times_dict[cat] = np.concatenate(
                     np.concatenate(travel_times_dict[cat], axis=None), axis=None
                 )
+                weight_dict[cat] = np.concatenate(
+                    np.concatenate(weight_dict[cat], axis=None), axis=None
+                )
             else:
                 grid_ids_dict[cat] = np.array([], np.int64)
                 travel_times_dict[cat] = np.array([], np.int8)
+                weight_dict[cat] = np.array([], np.float64)
 
-        return grid_ids_dict, travel_times_dict
+        return grid_ids_dict, travel_times_dict, weight_dict
 
     async def read_bulk_ids(self, study_area_ids: list[int]):
         """
@@ -370,7 +153,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         bulk_ids_list = []
         for study_area_id in study_area_ids:
-            base_path = "/app/src/cache/analyses_unit/"
+            base_path = settings.ANALYSIS_UNIT_PATH
             directory = os.path.join(base_path, str(study_area_id), "h3")
             grids_file_name = os.path.join(directory, "6_grids.npy")
             bulk_ids_list.append(np.load(grids_file_name, allow_pickle=True))
@@ -380,7 +163,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             for bulk_id in bulk_ids_:
                 bulk_ids.append(f"{bulk_id:x}")
 
-        return bulk_ids
+        return list(set(bulk_ids))
 
     @timing
     async def read_heatmap(
@@ -389,7 +172,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
     ) -> list[dict]:
 
         # Get buffer size
-        speed = HeatmapBaseSpeed[heatmap_settings.mode.value].value
+        # speed = HeatmapBaseSpeed[heatmap_settings.mode.value].value
         # buffer_size = (speed / 3.6) * (heatmap_settings.max_travel_time * 60)
 
         # Get bulk ids
@@ -398,41 +181,114 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         end_time = time.time()
         print(f"Time to read bulk_ids: {end_time - start_time}")
 
+        # Read hexagons
+        grids, h_polygons = await self.read_hexagons(
+            heatmap_settings.study_area_ids, heatmap_settings.resolution
+        )
+
         # Get heatmap settings
-        opportunities = heatmap_settings.heatmap_config.keys()
+        profile = ""
         if heatmap_settings.mode == HeatmapMode.walking:
             profile = heatmap_settings.walking_profile.value
         elif heatmap_settings.mode == HeatmapMode.cycling:
             profile = heatmap_settings.cycling_profile.value
 
-        matrix_base_path = os.path.join(
-            settings.OPPORTUNITY_MATRICES_PATH, heatmap_settings.mode.value, profile
-        )
-        # Read travel times and grid ids
-        begin = time.time()
-        grid_ids, traveltimes = await self.read_opportunity_matrix(
-            matrix_base_path=matrix_base_path, bulk_ids=bulk_ids, chosen_categories=opportunities
-        )
+        if heatmap_settings.heatmap_type == HeatmapType.connectivity:
+            connectivity_heatmaps_sorted, uniques = await self.read_connectivity_heatmaps_sorted(
+                bulk_ids, heatmap_settings, profile
+            )
+            areas = heatmap_cython.sums(connectivity_heatmaps_sorted, uniques)
+            areas_reordered = heatmap_cython.reorder_connectivity_heatmaps(
+                uniques[0], areas, grids
+            )
+            quantiles = heatmap_core.quantile_classify(areas_reordered)
+            geojson = self.generate_connectivity_final_geojson(
+                grids, h_polygons, areas_reordered, quantiles
+            )
+        else:
 
-        end = time.time()
-        print(f"Reading matrices took {end - begin} seconds")
+            matrix_base_path = os.path.join(
+                settings.OPPORTUNITY_MATRICES_PATH, heatmap_settings.mode.value, profile
+            )
+            # Read travel times and grid ids
+            begin = time.time()
+            grid_ids, traveltimes, weights = await self.read_opportunity_matrix(
+                matrix_base_path=matrix_base_path,
+                bulk_ids=bulk_ids,
+                heatmap_config=heatmap_settings.heatmap_config,
+            )
 
-        # TODO: Pick right function that correspond the heatmap the user want to calculate
-        sorted_table, uniques = self.sort_and_unique(grid_ids, traveltimes)  # Resolution 10 inside
-        calculations = self.do_calculations(sorted_table, uniques, heatmap_settings)
-        grids, h_polygons = await self.read_hexagons(
-            heatmap_settings.study_area_ids[0], heatmap_settings.resolution
-        )
-        # TODO: Warnong: Study areas should get concatenated
-        calculations = self.reorder_calculations(calculations, grids, uniques)
-        quantiles = self.create_quantile_arrays(calculations)
-        agg_classes = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
-        geojson = self.generate_final_geojson(
-            grids, h_polygons, calculations, quantiles, agg_classes
-        )
+            end = time.time()
+            print(f"Reading matrices took {end - begin} seconds")
+            grid_ids = self.convert_grid_ids_to_parent(grid_ids, heatmap_settings.resolution)
+            # TODO: Pick right function that correspond the heatmap the user want to calculate
+            travel_times_sorted, weights_sorted, uniques = self.sort_and_unique(
+                grid_ids, traveltimes, weights
+            )  # Resolution 10 inside
+            calculations = self.do_calculations(
+                travel_times_sorted, weights_sorted, uniques, heatmap_settings
+            )
+            # TODO: Warning: Study areas should get concatenated
+            calculations = self.reorder_calculations(calculations, grids, uniques)
+            quantiles = self.create_quantile_arrays(calculations)
+            agg_classes = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
+            geojson = self.generate_final_geojson(
+                grids, h_polygons, calculations, quantiles, agg_classes
+            )
 
         return geojson
 
+    def generate_connectivity_final_geojson(
+        self, grids: np.ndarray, h_polygons: np.ndarray, areas: np.ndarray, quantiles: np.ndarray
+    ):
+        features = []
+        for grid, h_polygon, area, quantile in zip(grids, h_polygons, areas, quantiles):
+            features.append(
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "id": int(grid),
+                        "area": round(float(area), 2),
+                        "area_class": int(quantile),
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [h_polygon.tolist()],
+                    },
+                }
+            )
+        geojson = {"type": "FeatureCollection", "features": features}
+        return geojson
+
+    async def read_connectivity_heatmaps_sorted(
+        self, bulk_ids: np.ndarray, heatmap_settings: HeatmapSettings, profile: str
+    ) -> dict:
+        connectivity_base_path = self.get_connectivity_path(heatmap_settings.mode.value, profile)
+        target_resolution = heatmap_settings.resolution
+        connectivity_heatmaps = []
+        uniques = []
+        max_traveltime = heatmap_settings.heatmap_config.max_traveltime
+        for bulk_id in bulk_ids:
+            file_path = os.path.join(connectivity_base_path, f"{bulk_id}.npz")
+            if not os.path.exists(file_path):
+                print_warning(f"File {file_path} does not exist")
+                continue
+            connectivity = np.load(file_path, allow_pickle=True)
+            areas = heatmap_cython.get_connectivity_average(connectivity["areas"], max_traveltime)
+            grids = heatmap_cython.convert_to_parents(connectivity["grid_ids"], target_resolution)
+            connectivity_areas_sorted, unique = heatmap_cython.sort_and_unique_by_grid_ids(
+                grids, areas
+            )
+            connectivity_heatmaps.append(connectivity_areas_sorted)
+            uniques.append(unique)
+        uniques = heatmap_cython.concatenate_and_fix_uniques_index_order(
+            uniques, connectivity_heatmaps
+        )
+        # uniques = (uniques[0].astype(np.uint64), uniques[1])
+        connectivity_heatmaps = np.concatenate(connectivity_heatmaps)
+        return connectivity_heatmaps, uniques
+
+    @timing
     def calculate_agg_class(self, quantiles: dict, heatmap_config: dict):
         """
         Calculate the aggregated class for each grid cell based on the opportunity weights.
@@ -440,16 +296,20 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         weighted_quantiles = []
         weight_agg = 0
+        categories = {}
+        for opportunity_categories in heatmap_config.values():
+            categories = {**categories, **opportunity_categories}
+
         for key, quantile in quantiles.items():
             if quantile.size:
-                weighted_quantiles.append(quantile * heatmap_config[key].get("weight", 1))
-            weight_agg += heatmap_config[key].get("weight", 1)
+                weighted_quantiles.append(quantile * categories[key].get("weight", 1))
+            weight_agg += categories[key].get("weight", 1)
 
         agg_class = np.array(weighted_quantiles).sum(axis=0) / weight_agg
         return agg_class
 
     @timing
-    def sort_and_unique(self, grid_ids: dict, traveltimes: dict):
+    def sort_and_unique(self, grid_ids: dict, traveltimes: dict, weights: dict):
         """
         Sort grid_ids in order to do calculations on travel times faster.
         Also find the uniques which used as ids (h3 index)
@@ -458,41 +318,71 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         sorted_table is dict[Array[grid_ids, travel_times]]
         """
 
-        sorted_table, unique = {}, {}
+        travel_times_sorted, weights_sorted, unique = {}, {}, {}
         for op in traveltimes.keys():
-            # sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
-            sorted_table[op], unique[op] = heatmap_core.sort_and_unique_by_grid_ids(
-                grid_ids[op], traveltimes[op]
+            (
+                travel_times_sorted[op],
+                weights_sorted[op],
+                unique[op],
+            ) = heatmap_cython.sort_and_unique_by_grid_ids2(
+                grid_ids[op], traveltimes[op], weights[op]
             )
-        return sorted_table, unique
+        return travel_times_sorted, weights_sorted, unique
 
     @timing
-    def do_calculations(self, sorted_table: dict, uniques: dict, heatmap_settings: dict):
+    def do_calculations(
+        self, travel_times_sorted: dict, weights_sorted, uniques: dict, heatmap_settings: dict
+    ):
         # TODO: find a better name for this function
         """
         connect the heatmap core calculations to the heatmap method
         """
 
         method_map = {
-            "gravity": "modified_gaussian_per_grid",
+            "modified_gaussian": "modified_gaussian_per_grid",
+            "combined_cumulative_modified_gaussian": "combined_modified_gaussian_per_grid",
             "connectivity": "connectivity",
             "cumulative": "counts",
             "closest_average": "mins",
         }
         output = {}
-        if heatmap_settings.heatmap_type.value == "gravity":
-            for key, heatmap_config in heatmap_settings.heatmap_config.items():
-                output[key] = heatmap_core.modified_gaussian_per_grid(
-                    sorted_table[key],
-                    uniques[key],
-                    heatmap_config["sensitivity"],
-                    heatmap_config["max_traveltime"],
-                )
+
+        if heatmap_settings.heatmap_type.value == "modified_gaussian":
+            for opportunity_type in heatmap_settings.heatmap_config.keys():
+                categories = heatmap_settings.heatmap_config[opportunity_type]
+                for category in categories:
+                    heatmap_config = categories[category]
+                    output[category] = heatmap_core.modified_gaussian_per_grid(
+                        travel_times_sorted[category],
+                        uniques[category],
+                        heatmap_config["sensitivity"],
+                        heatmap_config["max_traveltime"],
+                        weights_sorted[category],
+                    )
+
+        elif heatmap_settings.heatmap_type.value == "combined_cumulative_modified_gaussian":
+            for opportunity_type in heatmap_settings.heatmap_config.keys():
+                categories = heatmap_settings.heatmap_config[opportunity_type]
+                for category in categories:
+                    heatmap_config = categories[category]
+                    output[category] = heatmap_core.combined_modified_gaussian_per_grid(
+                        travel_times_sorted[category],
+                        uniques[category],
+                        heatmap_config["sensitivity"],
+                        heatmap_config["max_traveltime"],
+                        heatmap_config["static_traveltime"],
+                        weights_sorted[category],
+                    )
         else:
             method_name = method_map[heatmap_settings.heatmap_type.value]
             method = getattr(heatmap_core, method_name)
-            for key, heatmap_config in heatmap_settings.heatmap_config.items():
-                output[key] = method(sorted_table[key], uniques[key])
+            for opportunity_type in heatmap_settings.heatmap_config.keys():
+                categories = heatmap_settings.heatmap_config[opportunity_type]
+                for category in categories:
+                    heatmap_config = categories[category]
+                    output[category] = method(
+                        travel_times_sorted[category], uniques[category], weights_sorted[category]
+                    )
 
         return output
 
@@ -510,19 +400,31 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         return quantile_index
 
     @timing
-    async def read_hexagons(self, study_area_id: int, resolution: int):
+    async def read_hexagons(self, study_area_ids: int, resolution: int):
         """
         Read the hexagons from the cache in requested resolution
         returns: grids, polygons
         """
-
-        base_path = "/app/src/cache/analyses_unit/"
-        directory = os.path.join(base_path, str(study_area_id), "h3")
-        grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
-        polygons_file_name = os.path.join(directory, f"{resolution}_polygons.npy")
-        grids = np.load(grids_file_name)
-        polygons = np.load(polygons_file_name)
+        grids = []
+        polygons = []
+        base_path = settings.ANALYSIS_UNIT_PATH
+        for study_area_id in study_area_ids:
+            directory = os.path.join(base_path, str(study_area_id), "h3")
+            grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
+            polygons_file_name = os.path.join(directory, f"{resolution}_polygons.npy")
+            grids.append(np.load(grids_file_name))
+            polygons.append(np.load(polygons_file_name, allow_pickle=True))
+        grids, idx = np.unique(np.concatenate(grids), return_index=True)
+        polygons = np.concatenate(polygons)[idx]
         return grids, polygons
+
+    @timing
+    def convert_grid_ids_to_parent(self, grid_ids: dict, target_resolution: int):
+        for key, grid_id in grid_ids.items():
+            if not grid_id.size:
+                continue
+            grid_ids[key] = heatmap_cython.get_h3_parents(grid_id, target_resolution)
+        return grid_ids
 
     @timing
     def tag_uniques_by_parent(self, uniques: dict, target_resolution: int):
@@ -547,7 +449,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         return parent_tags
 
     @timing
-    def create_grids_unordered_map(self, grids: dict):
+    def create_grids_unordered_map(self, grids: np.ndarray):
         """
         Convert grids to unordered map for fast lookup
         """
@@ -610,9 +512,9 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         target_resolution = h3.h3_get_resolution(sample_grid_id)
         #############################################
 
-        uniques_parent_tags = self.tag_uniques_by_parent(uniques, target_resolution)
+        # uniques_parent_tags = self.tag_uniques_by_parent(uniques, target_resolution)
         grids_unordered_map = self.create_grids_unordered_map(grids)
-        grid_pointer = self.create_grid_pointers(grids_unordered_map, uniques_parent_tags)
+        grid_pointer = self.create_grid_pointers(grids_unordered_map, uniques)
         calculations = self.create_calculation_arrays(grids, grid_pointer, calculations)
         return calculations
 
@@ -665,11 +567,11 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             for key, calculation in calculations.items():
                 if not calculation.size:
                     feature["properties"][key] = None
-                    feature["properties"][key + "_class"] = -1
+                    feature["properties"][key + "_class"] = 0
                     continue
                 if np.isnan(calculation[i]):
                     feature["properties"][key] = None
-                    feature["properties"][key + "_class"] = -1
+                    feature["properties"][key + "_class"] = 0
                     continue
                 feature["properties"][key] = round(float(calculation[i]), 2)
                 feature["properties"][key + "_class"] = int(quantiles[key][i])

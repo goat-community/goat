@@ -1,16 +1,13 @@
 import io
 import json
-import math
 import os
 import shutil
 import time
 import uuid
-import pyproj
+from collections import defaultdict
 from errno import ELOOP
 from typing import Any
-from unicodedata import category
 
-import matplotlib.path
 import numpy as np
 import pandas as pd
 import pyproj
@@ -18,27 +15,21 @@ import requests
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
-from geojson import FeatureCollection
-from geopandas import GeoDataFrame, GeoSeries
-from geopandas.io.sql import read_postgis
+from geopandas import GeoDataFrame, GeoSeries, clip, read_parquet, read_postgis
 from pandas.io.sql import read_sql
-from pyproj import Transformer
-from shapely import wkb, wkt
-from shapely.geometry import MultiPolygon, Point, Polygon, shape
-from shapely.ops import unary_union
-from sqlalchemy import intersect
+from shapely.geometry import Point, shape
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
-from urllib3 import HTTPResponse
 
 from src import crud
 from src.core.config import settings
 from src.core.isochrone import compute_isochrone
+from src.core.opportunity import OpportunityIsochroneCount
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
-from src.jsoline import jsolines
-from src.resources.enums import IsochroneExportType, IsochroneTypes
+from src.jsoline import generate_jsolines
+from src.resources.enums import IsochroneExportType
 from src.schemas.isochrone import (
     IsochroneDTO,
     IsochroneMode,
@@ -48,32 +39,77 @@ from src.schemas.isochrone import (
     IsochroneTypeEnum,
 )
 from src.utils import (
-    compute_single_value_surface,
     decode_r5_grid,
     delete_dir,
     encode_r5_grid,
-    geometry_to_pixel,
-    group_opportunities_multi_isochrone,
-    group_opportunities_single_isochrone,
-    web_mercator_to_wgs84,
-    wgs84_to_web_mercator,
-    is_inside_sm_parallel,
+    merge_dicts,
+    remove_keys,
 )
-
-web_mercator_proj = pyproj.Proj("EPSG:3857")
-
-
-class CRUDIsochroneCalculation(
-    CRUDBase[models.IsochroneCalculation, models.IsochroneCalculation, models.IsochroneCalculation]
-):
-    pass
-
-
-isochrone_calculation = CRUDIsochroneCalculation(models.IsochroneCalculation)
 
 
 class CRUDIsochrone:
-    async def read_network(self, db, obj_in: IsochroneDTO, current_user, isochrone_type) -> Any:
+    def restructure_dict(self, original_dict, max_minute=None):
+        """
+        Restructures a dictionary of counts of various categories at different minutes
+        into a dictionary of cumulative counts of categories at each minute.
+
+        Args:
+        - original_dict (dict): A dictionary of the form {minute: {category: count, ...}, ...},
+        where minute is an integer, category is a string, and count is an integer.
+        - max_minute (int): The maximum minute to consider. If None, the maximum minute is
+        automatically determined from the original dictionary.
+
+        Returns:
+        - new_dict (dict): A dictionary of the form {category: [count1, count2, ...]},
+        where count1, count2, ... are the cumulative counts of the category at each minute.
+
+        Example usage:
+        original_dict = {
+            1: {"atm": 3, "post": 4},
+            2: {"atm": 3, "post": 4, "park": 300}
+        }
+        new_dict = restructure_dict(original_dict)
+        print(new_dict)
+        # Output: {"atm": [3, 6], "post": [4, 8], "park": [0, 300]}
+
+        In the returned dictionary, the root keys are the categories from the original dictionary,
+        and each value is a list of the cumulative counts of the category at each minute.
+        """
+        # Find the maximum minute and collect all categories
+        if len(original_dict) == 0:
+            return {}
+        if max_minute is None:
+            max_minute = max(original_dict.keys())
+        categories = set()
+        for minute_dict in original_dict.values():
+            categories.update(minute_dict.keys())
+
+        # Convert the original dictionary to a 2D NumPy array
+        arr = np.zeros((len(categories), max_minute))
+
+        for i, category in enumerate(categories):
+            for j in range(max_minute):
+                if j + 1 in original_dict:
+                    arr[i, j] = original_dict[j + 1].get(category, 0)
+
+        # Compute the cumulative sum along the rows
+        cumulative_arr = arr.cumsum(axis=1)
+
+        # Convert the result back to a dictionary
+        new_dict = {category: [] for category in categories}
+        for i, category in enumerate(categories):
+            for j in range(max_minute):
+                if j < cumulative_arr.shape[1]:
+                    new_dict[category].append(cumulative_arr[i, j])
+                else:
+                    new_dict[category].append(new_dict[category][-1])
+
+        # Step 5: Return the newly created dictionary
+        return new_dict
+
+    async def read_network(
+        self, db, obj_in: IsochroneDTO, current_user, isochrone_type, table_prefix=None
+    ) -> Any:
 
         sql_text = ""
         if isochrone_type == IsochroneTypeEnum.single.value:
@@ -85,8 +121,9 @@ class CRUDIsochrone:
             FROM basic.fetch_network_routing_multi(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
             """
         elif isochrone_type == IsochroneTypeEnum.heatmap.value:
-            sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
-            FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
+            sql_text = f"""
+            SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+            FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile, :table_prefix)
             """
 
         read_network_sql = text(sql_text)
@@ -122,10 +159,11 @@ class CRUDIsochrone:
                 "x": x,
                 "y": y,
                 "max_cutoff": obj_in.settings.travel_time * 60,  # in seconds
-                "speed": obj_in.settings.speed,
+                "speed": obj_in.settings.speed / 3.6,
                 "modus": obj_in.scenario.modus.value,
                 "scenario_id": obj_in.scenario.id,
                 "routing_profile": routing_profile,
+                "table_prefix": table_prefix,
             },
         )
         starting_ids = edges_network.iloc[0].starting_ids
@@ -157,7 +195,7 @@ class CRUDIsochrone:
                 scenario_id=None if obj_in.scenario.id == 0 else obj_in.scenario.id,
                 starting_point=starting_point_geom,
                 routing_profile=routing_profile,
-                speed=obj_in.settings.speed * 3.6,  # in km/h
+                speed=obj_in.settings.speed,
                 modus=obj_in.scenario.modus.value,
                 parent_id=None,
             )
@@ -273,355 +311,6 @@ class CRUDIsochrone:
         )
         return response
 
-    async def get_max_isochrone_shape(self, grid_decoded, max_time, return_type = "shapely"):
-        """
-        Gets the isochrone with the highest travel time for opportunity intersect.
-        """
-        single_value_surface = compute_single_value_surface(
-            grid_decoded["width"],
-            grid_decoded["height"],
-            grid_decoded["depth"],
-            grid_decoded["data"],
-            5,
-        )
-        grid_decoded["surface"] = single_value_surface
-        isochrone_multipolygon_coordinates = jsolines(
-            grid_decoded["surface"],
-            grid_decoded["width"],
-            grid_decoded["height"],
-            grid_decoded["west"],
-            grid_decoded["north"],
-            grid_decoded["zoom"],
-            np.array([max_time]),
-            web_mercator=False,
-        )
-        if return_type == "shapely":
-            multipolygon_shape = shape(
-                {"type": "MultiPolygon", "coordinates": isochrone_multipolygon_coordinates[0]}
-            )
-        elif return_type == "coordinates":
-            multipolygon_shape = isochrone_multipolygon_coordinates[0]
-        else:
-            raise ValueError("Return type not supported")
-        
-        return multipolygon_shape
-
-    async def get_opportunities_multi_isochrone(self, grid_decoded, obj_in, current_user) -> Any:
-        """
-        Get opportunities (population) for multiple isochrones
-        """
-        max_time = obj_in.settings.travel_time
-        modus = obj_in.scenario.modus.value
-        scenario_id = obj_in.scenario.id
-
-        clip_population_geom = await self.get_max_isochrone_shape(grid_decoded, max_time)
-        if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
-            # Use study area ids to get reachable population
-            clip_population_wkt = clip_population_geom.wkt
-            sub_study_area_ids = [int(i) for i in obj_in.starting_point.region]
-            get_reachable_population_query = f"""
-                SELECT * 
-                FROM basic.reachable_population_study_area({scenario_id}, '{modus}', ARRAY{sub_study_area_ids}::integer[])
-            """
-            get_reachable_population = read_sql(
-                get_reachable_population_query,
-                legacy_engine,
-            )
-            sub_study_area_ids = get_reachable_population["sub_study_area_id"]
-
-        elif obj_in.starting_point.region_type == IsochroneMultiRegionType.DRAW:
-            # Get intersecting study_area_ids to pass to population reader
-            clip_population_wkt = obj_in.starting_point.region[0]
-            get_relevant_study_area_ids_query = f"""
-                SELECT DISTINCT id AS sub_study_area_id
-                FROM basic.sub_study_area
-                WHERE ST_Intersects(geom, ST_GeomFromText('{clip_population_wkt}', 4326))
-            """
-            get_relevant_study_area_ids = read_sql(
-                get_relevant_study_area_ids_query, legacy_engine
-            )
-            sub_study_area_ids = np.array(
-                [int(i) for i in get_relevant_study_area_ids["sub_study_area_id"]]
-            )
-            # Use polygon to get reachable population
-            get_reachable_population_query = f"""
-                SELECT 1 AS sub_study_area_id, * 
-                FROM basic.reachable_population_polygon({scenario_id}, '{modus}', '{clip_population_wkt}')
-            """
-            get_reachable_population = read_sql(
-                get_reachable_population_query,
-                legacy_engine,
-            )
-
-        get_population_multi_query = f"""
-            SELECT * 
-            FROM basic.get_population_multi_sum(
-                {current_user.id}, 
-                '{modus}', 
-                ST_GeomFromText('{clip_population_wkt}', 4326), 
-                ARRAY{sub_study_area_ids.tolist()}::integer[],
-                {grid_decoded["zoom"]},
-                {scenario_id}
-            ) 
-        """
-        # Read relevant population from database
-        get_population_multi = read_sql(
-            get_population_multi_query,
-            legacy_engine,
-        )
-
-        get_population_sum_pixel = np.array(get_population_multi["pixel"].tolist())
-        get_population_sum_population = get_population_multi["population"].to_numpy()
-        get_population_sub_study_area_id = get_population_multi["sub_study_area_id"].to_numpy()
-
-        # Count population for each sub_study_area_id/polygon
-        population_grid_count = group_opportunities_multi_isochrone(
-            grid_decoded["west"],
-            grid_decoded["north"],
-            grid_decoded["width"],
-            grid_decoded["surface"],
-            get_population_sum_pixel,
-            get_population_sum_population,
-            get_population_sub_study_area_id,
-            sub_study_area_ids.tolist(),
-            max_time,
-        )
-        population_count = {}
-
-        # Bring into correct format for client
-        if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
-            for idx, sub_study_area in get_reachable_population.iterrows():
-                total_population = sub_study_area["population"]
-                reached_population = population_grid_count[idx]
-                reached_population[reached_population > total_population] = total_population
-                
-                population_count[sub_study_area["name"]] = {
-                    "total_population": total_population,
-                    "reached_population": reached_population.astype(int).tolist(),
-                }
-        elif obj_in.starting_point.region_type == IsochroneMultiRegionType.DRAW:
-            reached_population = np.zeros(max_time)
-            for idx, sub_study_area_id in enumerate(sub_study_area_ids):
-                reached_population += population_grid_count[idx]
-            total_population = int(get_reachable_population["population"][0])
-            reached_population[reached_population > total_population] = total_population
-
-            population_count["polygon"] = {
-                "total_population": total_population,
-                "reached_population": reached_population.astype(int).tolist(),
-            }
-
-        # Add population count to grid decoded
-        grid_decoded["accessibility"] = population_count
-
-        return grid_decoded
-
-    async def get_opportunities_single_isochrone(self, grid_decoded, obj_in, current_user) -> Any:
-        """
-        Get opportunities (population+POIs) for single isochrone
-        """
-
-        max_time = obj_in.settings.travel_time
-        modus = obj_in.scenario.modus.value
-        scenario_id = obj_in.scenario.id
-        active_data_upload_ids = current_user.active_data_upload_ids
-        max_isochrone_geom = await self.get_max_isochrone_shape(grid_decoded, max_time)
-        max_isochrone_wkt = max_isochrone_geom.wkt
-
-        get_population_sum_query = f"""
-            SELECT * 
-            FROM basic.get_population_sum(
-                {current_user.id}, 
-                '{modus}', 
-                ST_GeomFromText('{max_isochrone_wkt}', 4326), 
-                {grid_decoded["zoom"]},
-                {scenario_id}
-        )"""
-        get_poi_one_entrance_sum_query = f"""
-            SELECT * 
-            FROM basic.get_poi_one_entrance_sum(
-                {current_user.id}, 
-                '{modus}', 
-                ST_GeomFromText('{max_isochrone_wkt}', 4326), 
-                {grid_decoded["zoom"]},
-                {scenario_id},
-                ARRAY{active_data_upload_ids}::integer[]
-            )
-        """
-        get_poi_more_entrance_sum_query = f"""
-            SELECT * 
-            FROM basic.get_poi_more_entrance_sum(
-                {current_user.id}, 
-                '{modus}', 
-                ST_GeomFromText('{max_isochrone_wkt}', 4326), 
-                {grid_decoded["zoom"]},
-                {scenario_id},
-                ARRAY{active_data_upload_ids}::integer[]
-            )
-        """
-
-        # get_poi_one_entrance_3857_query = f"""
-        #     SELECT * 
-        #     FROM basic.get_poi_one_entrance_3857(
-        #         {current_user.id}, 
-        #         '{modus}', 
-        #         ST_GeomFromText('{max_isochrone_wkt}', 4326), 
-        #         {scenario_id},
-        #         ARRAY{active_data_upload_ids}::integer[]
-        #     )
-        # """
-
-        get_population_sum = read_sql(
-            get_population_sum_query,
-            legacy_engine,
-        )
-        get_poi_one_entrance_sum = read_sql(
-            get_poi_one_entrance_sum_query,
-            legacy_engine,
-        )
-        get_poi_more_entrance_sum = read_sql(
-            get_poi_more_entrance_sum_query,
-            legacy_engine,
-        )
-        # get_poi_one_entrance_3857 = read_sql(
-        #     get_poi_one_entrance_3857_query,
-        #     legacy_engine,
-        # )
-
-
-        # begin = time.time()
-        # transformer = pyproj.Transformer.from_crs("epsg:4326", "epsg:3857")
-        # isochrones_3857 = []
-        # for current_time in range(max_time):
-            
-        #     isochrone_shape = await self.get_max_isochrone_shape(
-        #         grid_decoded, current_time + 1, return_type="coordinates"
-        #     )
-        #     if obj_in.mode.value not in [IsochroneMode.TRANSIT.value, IsochroneMode.CAR.value]:
-        #         isochrone_shape = [shape[0] for shape in isochrone_shape]
-        #         for shape in isochrone_shape:
-        #             coords_3857 = []
-        #             for coords in shape: 
-        #                 coords_3857.append(list(transformer.transform(coords[1], coords[0]))) 
-        #     isochrones_3857.append(coords_3857)
-        #         #y,x = transformer.transform(isochrone_shape[0][0][0][1], isochrone_shape[0][0][0][0])
-        #     #isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
-        # for shape in isochrones_3857:
-        #     is_inside_sm_parallel(np.array(get_poi_one_entrance_3857["coords"].tolist()), np.array(shape))
-        # print("Calculation took: ", time.time() - begin)
-
-        ##-- FIND AMENITY COUNT FOR EACH GRID CELL --##
-        get_population_sum_pixel = np.array(get_population_sum["pixel"].tolist())
-        get_population_sum_population = get_population_sum["population"].to_numpy(dtype=np.float64)
-
-        get_poi_one_entrance_sum_pixel = np.array(get_poi_one_entrance_sum["pixel"].tolist())
-        if len(get_poi_one_entrance_sum_pixel.shape) == 1:
-            get_poi_one_entrance_sum_pixel.shape = (get_poi_one_entrance_sum_pixel.shape[0], 2)
-        get_poi_one_entrance_sum_pixel = np.insert(
-            get_poi_one_entrance_sum_pixel, 0, np.array([0, 0]), 0
-        )
-        get_poi_one_entrance_sum_category = np.unique(
-            get_poi_one_entrance_sum["category"], return_inverse=True
-        )
-        get_poi_one_entrance_sum_cnt = get_poi_one_entrance_sum["cnt"].to_numpy(dtype=np.int64)
-
-        get_poi_more_entrance_sum_pixel = np.array(
-            get_poi_more_entrance_sum["pixel"].tolist(), dtype=np.int64
-        )
-        if len(get_poi_more_entrance_sum_pixel.shape) == 1:
-            get_poi_more_entrance_sum_pixel.shape = (get_poi_more_entrance_sum_pixel.shape[0], 2)
-        get_poi_more_entrance_sum_pixel = np.insert(
-            get_poi_more_entrance_sum_pixel, 0, np.array([0, 0]), 0
-        )
-
-        get_poi_more_entrance_sum_category = np.unique(
-            get_poi_more_entrance_sum["category"], return_inverse=True
-        )
-        # fill null values with a string to avoid errors
-        get_poi_more_entrance_sum["name"].fillna("_", inplace=True)
-        get_poi_more_entrance_sum_name = np.unique(
-            get_poi_more_entrance_sum["name"], return_inverse=True
-        )
-        get_poi_more_entrance_sum_cnt = get_poi_more_entrance_sum["cnt"].to_numpy(dtype=np.int64)
-        amenity_grid_count = group_opportunities_single_isochrone(
-            grid_decoded["west"],
-            grid_decoded["north"],
-            grid_decoded["width"],
-            grid_decoded["surface"],
-            get_population_sum_pixel,
-            get_population_sum_population,
-            get_poi_one_entrance_sum_pixel,
-            get_poi_one_entrance_sum_category[1],
-            get_poi_one_entrance_sum_cnt,
-            get_poi_more_entrance_sum_pixel,
-            get_poi_more_entrance_sum_category[1],
-            get_poi_more_entrance_sum_name[1],
-            get_poi_more_entrance_sum_cnt,
-            max_time,
-        )
-        amenity_count = {"population": amenity_grid_count[0].astype(int).tolist()}
-        # poi one entrance
-        for i in amenity_grid_count[1]:
-            index = np.where(get_poi_one_entrance_sum_category[1] == amenity_grid_count[1][i])[0]
-            value = get_poi_one_entrance_sum["category"][index[0]]
-            amenity_count[value] = amenity_grid_count[2][i].tolist()
-        # poi more entrances
-        for i in amenity_grid_count[3]:
-            index = np.where(get_poi_more_entrance_sum_category[1] == amenity_grid_count[3][i])[0]
-            value = get_poi_more_entrance_sum["category"][index[0]]
-            amenity_count[value] = amenity_grid_count[4][i].tolist()
-        # aoi count
-        if obj_in.mode.value not in [IsochroneMode.TRANSIT.value, IsochroneMode.CAR.value]:
-            # TODO: fix performance for public transport
-            get_aoi_query = f"""
-                SELECT category, ST_AREA(d.geom::geography)::integer AS area, ST_AsText(ST_Transform(d.geom,3857)) as geom
-                FROM basic.aoi a, LATERAL ST_DUMP(a.geom) d
-                WHERE ST_Intersects(a.geom, ST_GeomFromText('{max_isochrone_wkt}', 4326))
-            """
-            get_aoi = read_sql(get_aoi_query, legacy_engine)
-            aoi_categories = {}
-            for idx, aoi in get_aoi.iterrows():
-                geom = aoi["geom"]
-                category = aoi["category"]
-                geom_shapely = wkt.loads(geom)
-                # add category to aoi_categories if not already in there
-                if category not in aoi_categories:
-                    aoi_categories[category] = []
-                aoi_categories[category].append(geom_shapely)
-            # loop through aoi_categories
-            for category, polygons in aoi_categories.items():
-                multipolygon = MultiPolygon(polygons)
-                first_coordinate = web_mercator_to_wgs84(
-                    Point(
-                        multipolygon.geoms[0].exterior.coords.xy[0][0],
-                        multipolygon.geoms[0].exterior.coords.xy[1][0],
-                    )
-                )
-                scale_factor = web_mercator_proj.get_factors(
-                    first_coordinate.x, first_coordinate.y, errcheck=True
-                ).areal_scale
-
-                aoi_categories[category] = {"geom": multipolygon, "scale_factor": scale_factor}
-
-            for current_time in range(max_time):
-                isochrone_shape = await self.get_max_isochrone_shape(
-                    grid_decoded, current_time + 1
-                )
-                isochrone_polygon = wgs84_to_web_mercator(isochrone_shape)
-                for category, aoi in aoi_categories.items():
-                    aoi_geom = aoi["geom"]
-                    aoi_scale_factor = aoi["scale_factor"]
-                    category_area_diff = aoi_geom.difference(isochrone_polygon).area
-                    category_area = aoi_geom.area - category_area_diff
-                    if category not in amenity_count:
-                        amenity_count[category] = [0] * max_time
-                    amenity_count[category][current_time] = category_area / aoi_scale_factor
-
-        ##-- ADD AMENITY TO GRID DECODED --##
-        grid_decoded["accessibility"] = amenity_count
-
-        return grid_decoded
-
     async def count_opportunity(self, db: AsyncSession, *, obj_in) -> dict:
         """
         Count opportunities for each study area or geometry
@@ -642,7 +331,7 @@ class CRUDIsochrone:
             "user_id": current_user.id,
             "modus": obj_in.scenario.modus.value,
             "minutes": obj_in.settings.travel_time,
-            "speed": obj_in.settings.speed,
+            "speed": obj_in.settings.speed / 3.6,
             "amenities": obj_in.starting_point.input,
             "scenario_id": obj_in.scenario.id,
             "active_upload_ids": current_user.active_data_upload_ids,
@@ -706,8 +395,8 @@ class CRUDIsochrone:
             payload = {
                 "accessModes": obj_in.settings.access_mode.value.upper(),
                 "transitModes": ",".join(x.value.upper() for x in obj_in.settings.transit_modes),
-                "bikeSpeed": obj_in.settings.bike_speed,
-                "walkSpeed": obj_in.settings.walk_speed,
+                "bikeSpeed": obj_in.settings.bike_speed / 3.6,
+                "walkSpeed": obj_in.settings.walk_speed / 3.6,
                 "bikeTrafficStress": obj_in.settings.bike_traffic_stress,
                 "date": available_dates[weekday],
                 "fromTime": obj_in.settings.from_time,
@@ -742,18 +431,124 @@ class CRUDIsochrone:
             if settings.R5_AUTHORIZATION:
                 headers["Authorization"] = settings.R5_AUTHORIZATION
             response = requests.post(
-                settings.R5_API_URL + "/analysis",
-                json=payload,
-                headers=headers
+                settings.R5_API_URL + "/analysis", json=payload, headers=headers
             )
             grid = decode_r5_grid(response.content)
 
+        isochrone_shapes = generate_jsolines(
+            grid=grid, travel_time=obj_in.settings.travel_time, percentile=5
+        )
         if obj_in.output.type.value != IsochroneOutputType.NETWORK.value:
             # Opportunity intersect
+            opportunity_user_args = {
+                "user_id": current_user.id,
+                "user_active_upload_ids": current_user.active_data_upload_ids,
+                "scenario_id": obj_in.scenario.id,
+            }
             if isochrone_type == IsochroneTypeEnum.single.value:
-                grid = await self.get_opportunities_single_isochrone(grid, obj_in, current_user)
+                start = time.time()
+                opportunity_count = OpportunityIsochroneCount(
+                    input_geometries=isochrone_shapes["incremental"],
+                    **opportunity_user_args,
+                )
+
+                # Poi
+                poi_count = opportunity_count.count_poi(group_by_column="minute")
+                # Population
+                population_count = opportunity_count.count_population(group_by_columns=["minute"])
+
+                opportunities = [poi_count, population_count]
+                if obj_in.mode.value != IsochroneMode.TRANSIT.value:
+                    # Aoi
+                    aoi_count = opportunity_count.count_aoi(
+                        group_by_columns=["minute", "category"]
+                    )
+                    opportunities.append(aoi_count)
+
+                opportunities = merge_dicts(*opportunities)
+                opportunities = self.restructure_dict(opportunities)
+                grid["accessibility"] = opportunities
+                print(f"Opportunity intersect took {time.time() - start} seconds")
             elif isochrone_type == IsochroneTypeEnum.multi.value:
-                grid = await self.get_opportunities_multi_isochrone(grid, obj_in, current_user)
+                if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
+                    regions = read_postgis(
+                        f"SELECT * FROM basic.sub_study_area WHERE id = ANY(ARRAY[{list(map(int, obj_in.starting_point.region))}])",
+                        legacy_engine,
+                    )
+                else:
+                    # if there is only one region, name is polygon, otherwise it is the index + 1
+                    if len(obj_in.starting_point.region) == 1:
+                        name = "polygon"
+                    else:
+                        name = np.arange(1, len(obj_in.starting_point.region) + 1)
+                    # name is the list index + 1 as currently there is no name for the user drawn regions
+                    regions = GeoDataFrame(
+                        {
+                            "name": name,
+                            "geom": (GeoSeries.from_wkt(obj_in.starting_point.region)),
+                        }
+                    )
+                    regions.set_geometry("geom", inplace=True)
+                    regions.set_crs(epsg=4326, inplace=True)
+                if "geometry" not in regions.columns:
+                    regions.rename_geometry("geometry", inplace=True)
+                intersected_regions = []
+                for idx, region in regions.iterrows():
+                    # clip the isochrone shapes to the regions
+                    isochrone_clip = clip(isochrone_shapes["incremental"], region["geometry"])
+                    # adds a column which combines the region id and the isochrone minute to avoid calling the opportunity intersect multiple times within the loop
+                    isochrone_clip["region"] = isochrone_clip.apply(
+                        lambda x: "{}_x_{}".format(region["name"], x.minute), axis=1
+                    )
+                    isochrone_clip.set_crs(epsg=4326, inplace=True)
+
+                    intersected_regions.append(isochrone_clip)
+
+                # intersect the original region shapes if the user has selected to draw the regions
+                # study areas already have the population count from DB so no need to intersect
+                if obj_in.starting_point.region_type == IsochroneMultiRegionType.DRAW:
+                    regions["region"] = regions.apply(
+                        lambda x: "{}_x_{}".format(x["name"], "total"), axis=1
+                    )
+                    intersected_regions.append(regions)
+
+                intersected_regions = pd.concat(intersected_regions, ignore_index=True)
+                # intersect the clipped isochrone shapes with the opportunity data
+                opportunity_count = OpportunityIsochroneCount(
+                    input_geometries=intersected_regions,
+                    **opportunity_user_args,
+                )
+                population_count = opportunity_count.count_population(group_by_columns=["region"])
+                # split the dictionary based on region groups
+                regions_count = {}
+                for key, count_value in population_count.items():
+                    region, count_key = key.split("_x_")
+                    if count_key != "total":
+                        count_key = int(count_key)
+                    if region not in regions_count:
+                        regions_count[region] = {}
+                    regions_count[region][count_key] = count_value
+
+                opportunities = defaultdict(dict)
+                # population count
+                for region, population_count in regions_count.items():
+                    population_reached = self.restructure_dict(
+                        remove_keys(population_count, ["total"]),
+                        max_minute=obj_in.settings.travel_time,
+                    )
+                    if population_count.get("total") and population_count.get("total").get(
+                        "population"
+                    ):
+                        total_population = int(population_count.get("total")["population"])
+                    else:
+                        total_population = regions.query(f'name == "{region}"').iloc[0][
+                            "population"
+                        ]
+
+                    opportunities[region]["total_population"] = int(total_population)
+                    opportunities[region]["reached_population"] = population_reached["population"]
+
+                grid["accessibility"] = dict(opportunities)
             grid_encoded = encode_r5_grid(grid)
             result = Response(bytes(grid_encoded))
         else:

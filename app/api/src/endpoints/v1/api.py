@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from src.endpoints.v1 import (
     customizations,
+    data_preparation,
     geostores,
     indicators,
     isochrones,
@@ -67,6 +68,8 @@ api_router.include_router(geostores.router, prefix="/config/geostores", tags=["G
 api_router.include_router(
     opportunities.router, prefix="/config/opportunities", tags=["Opportunities"]
 )
+api_router.include_router(data_preparation.router, prefix="/config/data-preparation", tags=["Data Preparation"])
 api_router.include_router(
     opportunity_config.router, prefix="/config/opportunity-study-area", tags=["Opportunities"]
 )
+

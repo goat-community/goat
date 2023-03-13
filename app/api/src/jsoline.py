@@ -3,16 +3,13 @@ Translated from https://github.com/goat-community/goat/blob/0089611acacbebf4e297
 """
 
 import math
-import time
 
 import numpy as np
+from geopandas import GeoDataFrame
 from numba import njit
+from shapely.geometry import shape
 
-from src.utils import (
-    compute_single_value_surface,
-    coordinate_from_pixel,
-    decode_r5_grid,
-)
+from src.utils import compute_r5_surface, coordinate_from_pixel, decode_r5_grid
 
 MAX_COORDS = 20000
 
@@ -185,16 +182,8 @@ def ensureFractionIsNumber(frac, direction):
 
 
 @njit
-def jsolines(
-    surface,
-    width,
-    height,
-    west,
-    north,
-    zoom,
-    cutoffs,
-    interpolation=True,
-    web_mercator=True
+def calculate_jsolines(
+    surface, width, height, west, north, zoom, cutoffs, interpolation=True, web_mercator=True
 ):
     geometries = []
     for _, cutoff in np.ndenumerate(cutoffs):
@@ -313,8 +302,9 @@ def jsolines(
                 if len(containingShell) == 1:
                     containingShell[0].append(hole[0])
 
-        geometries.append(list(shells)) 
+        geometries.append(list(shells))
     return geometries
+
 
 @njit
 def pointinpolygon(x, y, poly):
@@ -338,41 +328,110 @@ def pointinpolygon(x, y, poly):
     return inside
 
 
+def jsolines(
+    surface,
+    width,
+    height,
+    west,
+    north,
+    zoom,
+    cutoffs,
+    interpolation=True,
+    return_incremental=False,
+    web_mercator=False,
+):
+    """
+    Calculate isolines from a surface.
+
+    :param surface: A 2D array of values.
+    :param width: The width of the surface.
+    :param height: The height of the surface.
+    :param west: The western edge of the surface.
+    :param north: The northern edge of the surface.
+    :param zoom: The zoom level of the surface.
+    :param cutoffs: A list of cutoff values.
+    :param interpolation: Whether to interpolate between pixels.
+    :param return_incremental: Whether to also return incremental isolines. Takes
+    :param web_mercator: Whether to use web mercator coordinates.
+
+    :return: A dictionary with full and/or incremental isolines as a geodataframe object.
+    """
+
+    isochrone_multipolygon_coordinates = calculate_jsolines(
+        surface, width, height, west, north, zoom, cutoffs, interpolation, web_mercator
+    )
+
+    result = {}
+    isochrone_shapes = []
+    for isochrone in isochrone_multipolygon_coordinates:
+        isochrone_shapes.append(shape({"type": "MultiPolygon", "coordinates": isochrone}))
+
+    result["full"] = GeoDataFrame({"geometry": isochrone_shapes, "minute": cutoffs})
+
+    if return_incremental:
+        isochrone_diff = []
+        for i in range(len(isochrone_shapes)):
+            if i == 0:
+                isochrone_diff.append(isochrone_shapes[i])
+            else:
+                isochrone_diff.append(isochrone_shapes[i].difference(isochrone_shapes[i - 1]))
+
+        result["incremental"] = GeoDataFrame({"geometry": isochrone_diff, "minute": cutoffs})
+
+    crs = "EPSG:4326"
+    if web_mercator:
+        crs = "EPSG:3857"
+    for key in result:
+        result[key].crs = crs
+
+    return result
+
+
+def generate_jsolines(grid, travel_time, percentile):
+    """
+    Generate the jsolines from the isochrones.
+
+    :return: A GeoDataFrame with the jsolines.
+
+    """
+    single_value_surface = compute_r5_surface(
+        grid,
+        percentile,
+    )
+    grid["surface"] = single_value_surface
+    isochrones = jsolines(
+        grid["surface"],
+        grid["width"],
+        grid["height"],
+        grid["west"],
+        grid["north"],
+        grid["zoom"],
+        cutoffs=np.arange(1, travel_time + 1),
+        return_incremental=True,
+    )
+    return isochrones
+
 
 if __name__ == "__main__":
     fileName = "/app/src/tests/data/isochrone/public_transport_calculation.bin"
-    with open(fileName, mode='rb') as file: # b is important -> binary
+    with open(fileName, mode="rb") as file:  # b is important -> binary
         fileContent = file.read()
+
         grid_decoded = decode_r5_grid(fileContent)
-        grid_decoded["surface"] = compute_single_value_surface(
-            grid_decoded["width"],
-            grid_decoded["height"],
-            grid_decoded["depth"],
-            grid_decoded["data"],
+        grid_decoded["surface"] = compute_r5_surface(
+            grid_decoded,
             5,
         )
-        print("Start")
-        start = time.time()
-        isochrone_multipolygon_coordinates = jsolines(
+
+        cutoffs = np.arange(60, 61)
+        isochrones = jsolines(
             grid_decoded["surface"],
             grid_decoded["width"],
             grid_decoded["height"],
             grid_decoded["west"],
             grid_decoded["north"],
             grid_decoded["zoom"],
-            np.arange(1,61), # cuttoffs every minute
+            cutoffs,
+            return_incremental=True,
+            web_mercator=False,
         )
-        end = time.time()
-
-        print("Marching square took: ", end - start)
-        print("Finished")
-
-    # grid_test = {
-    #     "width": 6, 
-    #     "height": 6,
-    #     "depth": 1,
-    #     "surface": np.array([10,12,12,11,10,11,9,8,6,6,8,10,9,7,4,5,7,9,4,2,3,0,2,3,8,5,4,4,5,6,11,10,9,8,9,10]),
-    #     "zoom": 9, 
-    #     "west": 0,
-    #     "north": 0,
-    # }
