@@ -96,7 +96,6 @@ export default {
         if (Array.isArray(response.data) && response.data.length > 0) {
           const startImageId = response.data[0].id;
           mapillaryStyleDefs.activeSequence = response.data[0].sequence;
-          console.log(response.data[0]);
           this.mapillary = new Viewer({
             accessToken: this.accessToken,
             container: container,

@@ -307,9 +307,10 @@ export const LayerFactory = {
             heatmap_accessibility_population: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_accessibility_population&heatmap_configuration=${JSON.stringify(
               amenityConfiguration
             )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
-            heatmap_local_accessibility: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_local_accessibility&heatmap_configuration=${JSON.stringify(
-              amenityConfiguration
-            )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
+            heatmap_local_accessibility: `${baseUrl_}/heatmap?return_type=${returnType}`,
+            // heatmap_local_accessibility: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_local_accessibility&heatmap_configuration=${JSON.stringify(
+            //   amenityConfiguration
+            // )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
             pt_station_count: `${baseUrl_}/pt-station-count?start_time=${startTime}&end_time=${endTime}&weekday=${weekday}&return_type=${returnType}`,
             pt_oev_gueteklasse: `${baseUrl_}/pt-oev-gueteklassen`
           };
@@ -322,7 +323,8 @@ export const LayerFactory = {
           const promiseConfig = {
             responseType: "arraybuffer",
             headers: {
-              Accept: "application/pdf"
+              Accept: "application/pdf",
+              "Content-Encoding": "gzip"
             },
             cancelToken: new CancelToken(c => {
               // An executor function receives a cancel function as a parameter
@@ -338,8 +340,38 @@ export const LayerFactory = {
               station_config: indicatorsStore.state.pt_oev_gueteklasse.config
             };
             promise = ApiService.post_(url, payload, promiseConfig);
-          } else {
+          } else if (lConf.name !== "heatmap_local_accessibility") {
             promise = ApiService.get_(url, promiseConfig);
+          }
+
+          if (lConf.name === "heatmap_local_accessibility") {
+            let amenities = {};
+            for (var key in amenityConfiguration) {
+              amenities[key] = {
+                sensitivity: amenityConfiguration[key]["sensitivity"],
+                weight: amenityConfiguration[key]["weight"],
+                max_traveltime: 20
+              };
+            }
+            const payload = {
+              mode: "walking",
+              study_area_ids: mapStore.state.studyArea.map(
+                studyArea => studyArea.values_.id
+              ),
+              // max_travel_time: 20,
+              walking_profile: "standard",
+              scenario: {
+                id: activeScenario ? activeScenario : 0,
+                name: modus
+              },
+              heatmap_type: "modified_gaussian",
+              analysis_unit: "hexagon",
+              resolution: 9,
+              heatmap_config: {
+                poi: amenities
+              }
+            };
+            promise = ApiService.post_(url, payload, promiseConfig);
           }
 
           promise
@@ -349,11 +381,17 @@ export const LayerFactory = {
                   dataProjection: lConf.data_projection,
                   featureProjection: proj
                 });
+                olFeatures.forEach(feature => {
+                  feature.set(
+                    "agg_class",
+                    Math.round(feature.get("agg_class"))
+                  );
+                });
                 source.addFeatures(olFeatures);
               }
             })
-            .catch(({ response }) => {
-              console.log(response);
+            .catch(err => {
+              console.log(err);
             })
             .finally(() => {
               mapStore.state.isMapBusy = false;
