@@ -377,12 +377,12 @@ class FileMigration:
         #export_metadata_gdf = self._export_grid(h3_indexes_gdf, export_metadata_gdf, layer_input["grid"])      
 
         # Export data
-        export_metadata_gdf = self._export_original(
-            h3_indexes_gdf, export_metadata_gdf, layer_input["original"]
-        )
-        export_metadata_gdf = self._export_grid(
-            h3_indexes_gdf, export_metadata_gdf, layer_input["grid"]
-        )
+        # export_metadata_gdf = self._export_original(
+        #     h3_indexes_gdf, export_metadata_gdf, layer_input["original"]
+        # )
+        # export_metadata_gdf = self._export_grid(
+        #     h3_indexes_gdf, export_metadata_gdf, layer_input["grid"]
+        # )
 
         # TODO: Fix export metadata
         # Save metadata

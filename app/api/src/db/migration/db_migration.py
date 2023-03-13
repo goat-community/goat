@@ -4,6 +4,9 @@ from src.utils import print_info, print_warning, print_hashtags
 from src.db.session import legacy_engine
 from sqlalchemy import text
 
+
+#TODO: Finish this
+#TODO: Add logic for the other tables
 class DBMigration(DBMigrationBase):
 
     def __init__(self, legacy_engine, study_area_ids: list[int]):
@@ -120,7 +123,7 @@ class DBMigration(DBMigrationBase):
         sql_on_condition = sql_on_condition[:-5]
         return sql_on_condition
 
-    def select_relevant_rows_query(self, table_name: MigrationTables) -> str:
+    def select_relevant_rows_query(self, table_name: MigrationTables, study_area_id: int) -> str:
         """Prepares a query to select the relevant rows from the table using study area filter and table specific logic.
 
         Args:
@@ -138,13 +141,20 @@ class DBMigration(DBMigrationBase):
             sql_select_query = f"""
                 SELECT *
                 FROM {self.schema_bridge}.{table_name} 
-                WHERE id IN ({", ".join([str(id) for id in self.study_area_ids])})
+                WHERE id = {study_area_id}
             """
         elif table_name == MigrationTables.sub_study_area.value:
             sql_select_query = f"""
                 SELECT *
                 FROM {self.schema_bridge}.{table_name}
-                WHERE study_area_id IN ({", ".join([str(id) for id in self.study_area_ids])})
+                WHERE study_area_id = {study_area_id}
+            """
+        elif table_name == MigrationTables.poi.value:
+            sql_select_query = f"""
+                SELECT p.*
+                FROM {self.schema_bridge}.{table_name} p, {self.schema_bridge}.study_area s
+                WHERE s.id = {study_area_id}
+                AND ST_Intersects(s.geom, p.geom)
             """
         else: 
             raise Exception(f"Table {table_name} is not supported for migration.")
@@ -152,7 +162,7 @@ class DBMigration(DBMigrationBase):
         return sql_select_query
 
 
-    def prepare_rows_to_update(self, table_name: MigrationTables, columns_to_match: list[str], columns_to_exclude: list[str] = []):
+    def prepare_rows_to_update(self, table_name: MigrationTables, columns_to_match: list[str], study_area_id: int, columns_to_exclude: list[str] = []):
         """Select the rows that have a match in the existing table and inserts them into the migration table.
 
         Args:
@@ -211,7 +221,7 @@ class DBMigration(DBMigrationBase):
         self.prepare_migration_table(table_name, column_names, data_types, columns_to_match)
 
         # Create the query to select the relevant rows to be checked for migration.
-        select_relevant_rows = self.select_relevant_rows_query(table_name)
+        select_relevant_rows = self.select_relevant_rows_query(table_name, study_area_id)
 
         # Merge query parts.
         stmt = text(
@@ -227,7 +237,7 @@ class DBMigration(DBMigrationBase):
         )
         self.legacy_engine.execute(stmt)
             
-    def prepare_rows_to_insert(self, table_name: MigrationTables, columns_to_match: list[str]):
+    def prepare_rows_to_insert(self, table_name: MigrationTables, columns_to_match: list[str], study_area_id: int):
         """Select the new rows and inserts them into the migration table.
 
         Args:
@@ -241,7 +251,7 @@ class DBMigration(DBMigrationBase):
         sql_on_condition = self.create_on_condition(columns_to_match)
 
         # Create the query to select the relevant rows to be checked for migration.
-        select_relevant_rows = self.select_relevant_rows_query(table_name)
+        select_relevant_rows = self.select_relevant_rows_query(table_name, study_area_id)
 
         # Insert statement for new data.
         stmt = text(
@@ -275,8 +285,11 @@ class DBMigration(DBMigrationBase):
         # Check if table schema matches the schema in the migration table.
         self.check_table_schema_matches(table_name)
         # Prepare rows to be updated and inserted.
-        self.prepare_rows_to_update(table_name, columns_to_match, columns_to_exclude=columns_to_exclude)
-        self.prepare_rows_to_insert(table_name, columns_to_match=columns_to_match)
+
+        for study_area_id in self.study_area_ids:
+            print_info(f"Starting migration for study area {study_area_id}...")
+            self.prepare_rows_to_update(table_name, columns_to_match, study_area_id=study_area_id, columns_to_exclude=columns_to_exclude)
+            self.prepare_rows_to_insert(table_name, columns_to_match=columns_to_match, study_area_id=study_area_id)
 
         # Ask user if migration table has been checked.
         print_warning("Have you checked the migration table? (y/n)")
@@ -329,12 +342,13 @@ def main():
     print_hashtags()
 
 
-    migration = DBMigration(legacy_engine=legacy_engine, study_area_ids=["90001"])
+    migration = DBMigration(legacy_engine=legacy_engine, study_area_ids=[5334,5358,5370,8315,8316,9161,9163,9173,9174,9175,9177,9178,9179,9184,9186,9188,9261,9262,9263,9274,9361,9362,9363,9461,9462,9463,9464,9474,9561,9562,9563,9564,9565,9572,9573,9574,9576,9661,9662,9663,9761,9762,9763,9764,14626,83110000,91620000])
     migration.initialize()
 
     # Perform migration for Study Area and Sub Study Area.
-    migration.perform_migration("study_area", columns_to_match=["id"], columns_to_exclude=["setting"])
-    migration.perform_migration("sub_study_area", columns_to_match=["id"])
+    # migration.perform_migration("study_area", columns_to_match=["id"], columns_to_exclude=["setting"])
+    # migration.perform_migration("sub_study_area", columns_to_match=["id"])
+    migration.perform_migration("poi", columns_to_match=["uid"])
 
 
     print_hashtags()

@@ -25,7 +25,7 @@ def file_migration():
             },
         },
         "upload_to_s3": True,
-        "s3_folder": "opportunity",
+        "s3_folder": "release_1/opportunity",
     }
 
     mask_config = input_config["mask_config"]
