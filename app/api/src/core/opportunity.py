@@ -460,6 +460,8 @@ class OpportunityIsochroneCount(OpportunityIntersect):
 
         aoi_count = defaultdict(dict)
         aoi_gdf = self.aoi()
+        if aoi_gdf is None or len(aoi_gdf) == 0:
+            return dict(aoi_count)
         aoi_gdf_grouped = aoi_gdf.groupby(group_by_columns).apply(lambda x: x.area.sum())
         for (key, category), value in aoi_gdf_grouped.items():
             aoi_count[key][category] = value

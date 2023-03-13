@@ -82,6 +82,20 @@ def sort_and_unique_by_grid_ids(grid_ids, travel_times):
     unique = np.unique(grid_ids[sort_index], return_index=True)
     return sorted_data, unique
 
+# todo: Refactor
+def sort_and_unique_by_grid_ids2(grid_ids, travel_times, weights):
+    """
+    Sort grid_ids in order to do calculations on travel times faster.
+    Also find the uniques which used as ids (h3 index)
+    """
+
+    sort_index = grid_ids.argsort()
+    sorted_travel_times = travel_times[sort_index]
+    sorted_weights = weights[sort_index]
+    unique = np.unique(grid_ids[sort_index], return_index=True)
+    return sorted_travel_times, sorted_weights, unique
+
+
 def sums(sorted_data, unique):
     """
     Example:

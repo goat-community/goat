@@ -902,3 +902,86 @@ def h3_to_int(h3_array: np.ndarray):
     Convert the h3 array to int array.
     """
     return np.vectorize(lambda x: h3.string_to_h3(str(x)), otypes=["uint64"])(h3_array)
+
+
+def pad_to_divisible(input_array, kernel_rows, kernel_cols):
+    """
+    Pad input array to be divisible by kernel size.
+
+    Parameters:
+    -----------
+    input_array : numpy.ndarray
+        Input array to be padded.
+    kernel_rows : int
+        Kernel size for rows.
+    kernel_cols : int
+        Kernel size for columns.
+
+    Returns:
+    --------
+    padded_array : numpy.ndarray
+        Padded array that is divisible by the kernel size.
+    """
+
+    padding_rows = (kernel_rows - (input_array.shape[0] % kernel_rows)) % kernel_rows
+    padding_cols = (kernel_cols - (input_array.shape[1] % kernel_cols)) % kernel_cols
+
+    # calculate even padding on each side of each dimension
+    top_padding = padding_rows // 2
+    bottom_padding = padding_rows - top_padding
+    left_padding = padding_cols // 2
+    right_padding = padding_cols - left_padding
+
+    # pad input array
+    padded_array = np.pad(
+        input_array,
+        ((top_padding, bottom_padding), (left_padding, right_padding)),
+        mode="constant",
+    )
+
+    return padded_array
+
+
+def downsample_array(arr, new_shape, method="sum"):
+    """
+    Downsamples a NumPy array to an arbitrary shape and aggregates elements using either the `mean` or `sum` function.
+
+    Parameters:
+    -----------
+    arr : numpy.ndarray
+        Input array to be downsampled.
+    new_shape : tuple
+        Shape of the output array.
+    method : str
+        Aggregation method to use. Supported methods are 'mean' and 'sum'.
+
+    Returns:
+    --------
+    downsampled_arr : numpy.ndarray
+        Downsampled array.
+    """
+    if method not in ["mean", "sum"]:
+        raise ValueError(
+            f"Unsupported method '{method}' for downsampling array. Supported methods are 'mean' and 'sum'."
+        )
+
+    if (
+        len(new_shape) != 2
+        or not isinstance(new_shape[0], int)
+        or not isinstance(new_shape[1], int)
+    ):
+        raise ValueError("new_shape should be a tuple of two integers.")
+
+    if arr.shape[0] % new_shape[0] != 0 or arr.shape[1] % new_shape[1] != 0:
+        raise ValueError("The shape of the input array should be divisible by the new_shape.")
+
+    reshaped_arr = arr.reshape(
+        (new_shape[0], arr.shape[0] // new_shape[0], new_shape[1], arr.shape[1] // new_shape[1])
+    )
+
+    if method == "mean":
+        downsampled_arr = reshaped_arr.mean(axis=(1, 3))
+    elif method == "sum":
+        downsampled_arr = reshaped_arr.sum(axis=(1, 3))
+
+    return downsampled_arr

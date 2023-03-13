@@ -76,6 +76,8 @@ class CRUDIsochrone:
         and each value is a list of the cumulative counts of the category at each minute.
         """
         # Find the maximum minute and collect all categories
+        if len(original_dict) == 0:
+            return {}
         if max_minute is None:
             max_minute = max(original_dict.keys())
         categories = set()
