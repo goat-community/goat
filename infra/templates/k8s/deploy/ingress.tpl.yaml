@@ -16,6 +16,7 @@ metadata:
     alb.ingress.kubernetes.io/success-codes: '200'
     alb.ingress.kubernetes.io/healthy-threshold-count: '2'
     alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=600
     alb.ingress.kubernetes.io/listen-ports: |
       [{"HTTP": 80}, {"HTTPS": 443}]
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-central-1:253602339696:certificate/aee2875c-f066-4d08-a0d0-41515836f37e

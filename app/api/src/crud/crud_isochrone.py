@@ -15,7 +15,7 @@ import requests
 from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
-from geopandas import GeoDataFrame, GeoSeries, clip, read_parquet, read_postgis
+from geopandas import GeoDataFrame, GeoSeries, clip, read_postgis
 from pandas.io.sql import read_sql
 from shapely.geometry import Point, shape
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -25,7 +25,6 @@ from src import crud
 from src.core.config import settings
 from src.core.isochrone import compute_isochrone
 from src.core.opportunity import OpportunityIsochroneCount
-from src.crud.base import CRUDBase
 from src.db import models
 from src.db.session import legacy_engine
 from src.jsoline import generate_jsolines
@@ -37,6 +36,8 @@ from src.schemas.isochrone import (
     IsochroneOutputType,
     IsochroneStartingPointCoord,
     IsochroneTypeEnum,
+    R5AvailableDates,
+    R5TravelTimePayloadTemplate
 )
 from src.utils import (
     decode_r5_grid,
@@ -380,45 +381,17 @@ class CRUDIsochrone:
             )
         # == Public transport isochrone ==
         else:
-            # TODO: get the mapping dynamically from the database based on the study area
             weekday = obj_in.settings.weekday
-            available_dates = {
-                0: "2022-05-16",
-                1: "2022-05-17",
-                2: "2022-05-18",
-                3: "2022-05-19",
-                4: "2022-05-20",
-                5: "2022-05-21",
-                6: "2022-05-22",
-            }
-
-            payload = {
-                "accessModes": obj_in.settings.access_mode.value.upper(),
-                "transitModes": ",".join(x.value.upper() for x in obj_in.settings.transit_modes),
-                "bikeSpeed": obj_in.settings.bike_speed / 3.6,
-                "walkSpeed": obj_in.settings.walk_speed / 3.6,
-                "bikeTrafficStress": obj_in.settings.bike_traffic_stress,
-                "date": available_dates[weekday],
-                "fromTime": obj_in.settings.from_time,
-                "toTime": obj_in.settings.to_time,
-                "maxTripDurationMinutes": 120,  # TODO: Fix this
-                "decayFunction": obj_in.settings.decay_function,
-                "destinationPointSetIds": [],
-                "directModes": obj_in.settings.access_mode.value.upper(),
-                "egressModes": obj_in.settings.egress_mode.value.upper(),
-                "fromLat": obj_in.starting_point.input[0].lat,
-                "fromLon": obj_in.starting_point.input[0].lon,
-                "zoom": obj_in.output.resolution,
-                "maxBikeTime": obj_in.settings.max_bike_time,
-                "maxRides": obj_in.settings.max_rides,
-                "maxWalkTime": obj_in.settings.max_walk_time,
-                "monteCarloDraws": obj_in.settings.monte_carlo_draws,
-                "percentiles": obj_in.settings.percentiles,
-                "variantIndex": -1,
-                "workerVersion": "v6.4",
-            }
-            # TODO: Get the project id.
-            payload["projectId"] = "630c0014aad8682ef8461b44"
+            payload = R5TravelTimePayloadTemplate.copy()
+            payload["accessModes"] = obj_in.settings.access_mode.value.upper()
+            payload["transitModes"] = ",".join(x.value.upper() for x in obj_in.settings.transit_modes)
+            payload["date"] = R5AvailableDates[weekday]
+            payload["fromTime"] = obj_in.settings.from_time
+            payload["toTime"] = obj_in.settings.to_time
+            payload["directModes"] = obj_in.settings.access_mode.value.upper()
+            payload["egressModes"] = obj_in.settings.egress_mode.value.upper()
+            payload["fromLat"] = obj_in.starting_point.input[0].lat
+            payload["fromLon"] = obj_in.starting_point.input[0].lon
             study_area = await crud.user.get_active_study_area(db, current_user)
             study_area_bounds = study_area["bounds"]
             payload["bounds"] = {

@@ -339,6 +339,18 @@ class IsochroneDTO(BaseModel):
 
         return values
 
+# R5
+R5AvailableDates = {
+    0: "2022-05-16",
+    1: "2022-05-17",
+    2: "2022-05-18",
+    3: "2022-05-19",
+    4: "2022-05-20",
+    5: "2022-05-21",
+    6: "2022-05-22",
+}
+
+R5ProjectID = "630c0014aad8682ef8461b44"
 
 R5TravelTimePayloadTemplate = {
     "accessModes": "WALK",

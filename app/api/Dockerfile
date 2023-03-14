@@ -9,6 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV ENVIRONMENT prod
 ENV PYTHONPATH "${PYTHONPATH}:."
+ENV USE_PYGEOS 0
 # Install system dependencies
 RUN apt-get update \
     && apt-get -y install netcat gcc libpq-dev \
