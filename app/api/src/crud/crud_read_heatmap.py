@@ -110,6 +110,9 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                         os.path.join(base_path, "travel_times.npy"),
                         allow_pickle=True,
                     )
+                    #todo: check if this is needed. Travel times should not be saved if they are empty
+                    if travel_times.size == 0:
+                        continue
                     grid_ids = np.load(
                         os.path.join(base_path, "grid_ids.npy"),
                         allow_pickle=True,
