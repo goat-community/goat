@@ -186,6 +186,7 @@ class Settings(BaseSettings):
     # path_traveltime_matrices
     TRAVELTIME_MATRICES_PATH: str = "/app/src/cache/traveltime_matrices"
     OPPORTUNITY_MATRICES_PATH: str = "/app/src/cache/opportunity_matrices"
+    AGGREGATING_MATRICES_PATH: str = "/app/src/cache/opportunity/grid"
     ANALYSIS_UNIT_PATH: str = "/app/src/cache/analysis_unit"
     OPPORTUNITY_PATH: str = "/app/src/cache/opportunity"
     
@@ -203,7 +204,8 @@ class Settings(BaseSettings):
             return {
                 "broker_transport_options": {"region": aws_region or "eu-central-1"},
             }
-        return v
+        else:
+            return {}
 
     @validator("R5_API_URL", pre=True)
     def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
