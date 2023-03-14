@@ -276,7 +276,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         bulk_ids_list = []
         for study_area_id in study_area_ids:
-            base_path = "/app/src/cache/analyses_unit/"
+            base_path = "/app/src/cache/analysis_unit/"
             directory = os.path.join(base_path, str(study_area_id), "h3")
             grids_file_name = os.path.join(directory, "6_grids.npy")
             bulk_ids_list.append(np.load(grids_file_name, allow_pickle=True))
@@ -551,13 +551,13 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         """
         grids = []
         polygons = []
-        base_path = "/app/src/cache/analyses_unit/"
+        base_path = "/app/src/cache/analysis_unit/"
         for study_area_id in study_area_ids:
             directory = os.path.join(base_path, str(study_area_id), "h3")
             grids_file_name = os.path.join(directory, f"{resolution}_grids.npy")
             polygons_file_name = os.path.join(directory, f"{resolution}_polygons.npy")
             grids.append(np.load(grids_file_name))
-            polygons.append(np.load(polygons_file_name))
+            polygons.append(np.load(polygons_file_name, allow_pickle=True))
         grids = np.concatenate(grids)
         polygons = np.concatenate(polygons)
         return grids, polygons
