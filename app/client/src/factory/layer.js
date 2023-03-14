@@ -23,6 +23,7 @@ import poisAoisStore from "../store/modules/poisaois";
 import indicatorsStore from "../store/modules/indicators";
 import mapStore from "../store/modules/map";
 import axios from "axios";
+import store from "../store";
 
 /**
  * Factory, which creates OpenLayers layer instances according to a given config
@@ -298,6 +299,20 @@ export const LayerFactory = {
               };
             }
           });
+          const poiAmenities = {};
+          const aoiAmenities = {};
+          store.getters["poisaois/selectedAois"].map(aoi => {
+            aoiAmenities[aoi.value] = {
+              sensitivity: aoi.sensitivity,
+              weight: aoi.weight || 1
+            };
+          });
+          store.getters["poisaois/selectedPois"].map(poi => {
+            poiAmenities[poi.value] = {
+              sensitivity: poi.sensitivity,
+              weight: poi.weight || 1
+            };
+          });
           const startTime = appStore.state.timeIndicators.startTime;
           const endTime = appStore.state.timeIndicators.endTime;
           const weekday = appStore.state.timeIndicators.weekday;
@@ -360,14 +375,26 @@ export const LayerFactory = {
             };
             promise = ApiService.post_(url, payload, promiseConfig);
           } else if (lConf.name === "heatmap_local_accessibility") {
-            let amenities = {};
-            for (var key in amenityConfiguration) {
-              amenities[key] = {
-                sensitivity: amenityConfiguration[key]["sensitivity"],
-                weight: amenityConfiguration[key]["weight"],
+            let amenities = {
+              pois: {},
+              aois: {}
+            };
+
+            for (var key in poiAmenities) {
+              amenities["pois"][key] = {
+                sensitivity: poiAmenities[key]["sensitivity"],
+                weight: poiAmenities[key]["weight"],
                 max_traveltime: 20
               };
             }
+            for (var aoi_name in aoiAmenities) {
+              amenities["pois"][aoi_name] = {
+                sensitivity: aoiAmenities[aoi_name]["sensitivity"],
+                weight: aoiAmenities[aoi_name]["weight"],
+                max_traveltime: 20
+              };
+            }
+
             const payload = {
               mode: "walking",
               study_area_ids: mapStore.state.studyArea.map(
@@ -383,7 +410,8 @@ export const LayerFactory = {
               analysis_unit: "hexagon",
               resolution: 9,
               heatmap_config: {
-                poi: amenities
+                poi: amenities["pois"],
+                aoi: amenities["aois"]
               }
             };
             promise = ApiService.post_(url, payload, promiseConfig);
