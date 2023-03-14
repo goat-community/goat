@@ -157,19 +157,13 @@ class HeatmapSettings0(HeatmapSettingsBase):
             raise ValueError(f"Validation for type {heatmap_type} not found.")
         validator_class = validator_classes[heatmap_type]
         heatmap_config = value
-        for category in heatmap_config:
-            validator_class(**heatmap_config[category])
+        for opportunity in heatmap_config:
+            for category in heatmap_config[opportunity]:
+                category_settings = heatmap_config[opportunity][category]
+                validator_class(**category_settings)
 
         return value
 
-    # TODO: Remove this validator when we have a proper schema for heatmap_config
-    @validator("heatmap_config", pre=True)
-    def pass_poi_to_heatmap_config(cls, value):
-        poi = value.get("poi")
-        if poi:
-            return poi
-        else:
-            return value
 
 class HeatmapSettings(BaseModel):
     def __new__(cls, *args, **kwargs):

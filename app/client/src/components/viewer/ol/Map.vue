@@ -514,7 +514,7 @@ export default {
      * Creates pois aois layer
      */
     createPoisAoisLayer() {
-      const vector = new VectorLayer({
+      const vector = new VectorImageLayer({
         name: "pois_aois_layer",
         type: "VECTOR",
         displayInLayerList: false,

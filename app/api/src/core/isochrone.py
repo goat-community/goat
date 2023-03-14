@@ -336,7 +336,8 @@ def split_edges(
                         previous_agg_dist = agg_dist
 
     # print(f"estimated size: {est_size}, calculated size: {counter}")
-
+    if counter == -1:
+        counter = 0
     return coords[:counter, :], costs[:counter]
 
 
@@ -527,7 +528,6 @@ def network_to_grid(
         step_x=web_mercator_x_step,
         step_y=web_mercator_y_step,
     )
-
 
     # build grid data (single depth)
     grid_data = get_single_depth_grid_(zoom, xy_bottom_left[0], xy_top_right[1], Z)

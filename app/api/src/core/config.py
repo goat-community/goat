@@ -18,10 +18,10 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     CACHE_PATH: str = "/app/src/cache"
     API_SECRET_KEY: str = secrets.token_urlsafe(32)
-    AWS_ACCESS_KEY_ID: str = ""
-    AWS_SECRET_ACCESS_KEY: str = ""
-    AWS_REGION: str = "eu-central-1"
-    AWS_BUCKET_NAME: str = "plan4better-data"
+    AWS_ACCESS_KEY_ID: Optional[str] = ""
+    AWS_SECRET_ACCESS_KEY: Optional[str] = ""
+    AWS_REGION: Optional[str] = "eu-central-1"
+    AWS_BUCKET_NAME: Optional[str] = "plan4better-data"
     S3_CLIENT: Optional[Any] = None
 
     @validator("S3_CLIENT", pre=True)
@@ -72,6 +72,13 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+
+    @validator("POSTGRES_DB", pre=True)
+    def set_db_name_according_to_project_name_if_empty(cls, v, values):
+        if not v and values.get("COMPOSE_PROJECT_NAME"):
+            return values["COMPOSE_PROJECT_NAME"]
+        return v
+
     POSTGRES_DATABASE_URI: str = None
 
     @validator("POSTGRES_DATABASE_URI", pre=True)
@@ -157,7 +164,6 @@ class Settings(BaseSettings):
     DEMO_USER_SCENARIO_LIMIT: Optional[int] = 5
     DEMO_USER_STORAGE: Optional[int] = 0  # In kilobytes
     DEMO_USER_DEACTIVATION_DAYS: Optional[int] = 30
-    USERS_OPEN_REGISTRATION: bool = False
     # Tile / Table config
     TILE_RESOLUTION: int = 4096
     TILE_BUFFER: int = 256
@@ -181,10 +187,13 @@ class Settings(BaseSettings):
     TRAVELTIME_MATRICES_PATH: str = "/app/src/cache/traveltime_matrices"
     OPPORTUNITY_MATRICES_PATH: str = "/app/src/cache/opportunity_matrices"
     AGGREGATING_MATRICES_PATH: str = "/app/src/cache/opportunity/grid"
+    ANALYSIS_UNIT_PATH: str = "/app/src/cache/analysis_unit"
+    OPPORTUNITY_PATH: str = "/app/src/cache/opportunity"
+    
     HEATMAP_MULTIPROCESSING_BULK_SIZE = 50
 
     # Celery config
-    CELERY_BROKER_URL: str
+    CELERY_BROKER_URL: Optional[str] = ""
     CELERY_CONFIG: Optional[dict] = {}
 
     @validator("CELERY_CONFIG", pre=True)
@@ -209,11 +218,11 @@ class Settings(BaseSettings):
         return f"Basic {v}="
 
     # AWS Client 
-    AWS_BUCKET_NAME: str = None
-    AWS_ACCESS_KEY_ID: str = None
-    AWS_SECRET_ACCESS_KEY: str = None
-    AWS_DEFAULT_REGION: str = None
-    S3_CLIENT: Optional[Any] = None
+    # AWS_BUCKET_NAME: str = None
+    # AWS_ACCESS_KEY_ID: str = None
+    # AWS_SECRET_ACCESS_KEY: str = None
+    # AWS_DEFAULT_REGION: str = None
+    # S3_CLIENT: Optional[Any] = None
     # @validator("S3_CLIENT", pre=True)
     # def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
     #     if isinstance(v, str):
@@ -225,10 +234,12 @@ class Settings(BaseSettings):
     #         region_name=values.get("AWS_DEFAULT_REGION")
     #     )
         
-    OPENROUTESERVICE_API_KEY: str = None
-    GEOAPIFY_API_KEY: str = None
-    GOOGLE_API_KEY: str = None
-    GITHUB_ACCESS_TOKEN: str = None
+    OPENROUTESERVICE_API_KEY: Optional[str] = None
+    GEOAPIFY_API_KEY: Optional[str] = None
+    GOOGLE_API_KEY: Optional[str] = None
+    GITHUB_ACCESS_TOKEN: Optional[str] = None
+
+    COMPOSE_PROJECT_NAME: Optional[str] = None
 
     class Config:
         case_sensitive = True

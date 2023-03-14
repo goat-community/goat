@@ -554,7 +554,7 @@ export default {
           .dispatch(`auth/${CREATE_USER}`, {
             name: this.name,
             surname: this.surname,
-            email: this.email,
+            email: this.email.toLowerCase(),
             password: this.password,
             occupation: this.occupation,
             domain: this.domain,
@@ -582,7 +582,7 @@ export default {
         }
         this.loading = true;
         const formData = new FormData();
-        formData.append("email", this.email);
+        formData.append("email", this.email.toLowerCase());
         this.setMessage("");
         this.setError("");
         this.$store.dispatch(`auth/${FORGOT_PASSWORD}`, formData).then(

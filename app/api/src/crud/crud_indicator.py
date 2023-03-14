@@ -1,13 +1,14 @@
+import asyncio
 import bisect
+import csv
 from datetime import datetime, timedelta
+from io import StringIO
 from typing import Any
 
 import numpy as np
 import pandas as pd
 import pyproj
-import asyncio
 from fastapi import HTTPException
-from fastapi.encoders import jsonable_encoder
 from geojson import Feature, FeatureCollection
 from geopandas import GeoSeries
 from rich import print
@@ -23,31 +24,17 @@ from sqlalchemy.sql import delete, text
 from src import crud, schemas
 from src.crud.base import CRUDBase
 from src.db import models
-from src.db.models import data_upload
 from src.db.session import legacy_engine
 from src.resources.enums import SQLReturnTypes
 from src.schemas.isochrone import (
     IsochroneDTO,
-    IsochroneScenario,
-    IsochroneSettings,
-    IsochroneStartingPointCoord,
-    IsochroneAccessMode,
-    IsochroneStartingPoint,
-    IsochroneMode,
     IsochroneOutput,
     IsochroneOutputType,
+    IsochroneScenario,
+    IsochroneSettings,
+    IsochroneStartingPoint,
+    IsochroneStartingPointCoord,
 )
-
-
-class CRUDGridCalculation(
-    CRUDBase[models.GridCalculation, models.GridCalculation, models.GridCalculation]
-):
-    pass
-
-
-# Alternative to_sql() *method* for DBs that support COPY FROM
-import csv
-from io import StringIO
 
 
 def psql_insert_copy(table, conn, keys, data_iter):
@@ -560,7 +547,9 @@ class CRUDIndicator:
                     db=db, current_user=user, data_upload_id=data_upload_id.id
                 )
 
-            print(f"INFO: Recomputed data uploads for user with the following id: [bold magenta]{user.id}[/bold magenta].")
+            print(
+                f"INFO: Recomputed data uploads for user with the following id: [bold magenta]{user.id}[/bold magenta]."
+            )
 
     async def bulk_recompute_scenario(self, db: AsyncSession):
         """Recomputes the heatmap for all scenarios"""
@@ -569,7 +558,7 @@ class CRUDIndicator:
         for scenario in scenarios:
             await db.execute(
                 text(
-                """
+                    """
                     SELECT basic.reached_pois_heatmap(
                         'poi_modified'::text, 
                         geom, 
@@ -582,11 +571,13 @@ class CRUDIndicator:
                     WHERE scenario_id = :scenario_id;
                 """
                 ),
-                {"user_id": scenario.user_id, "scenario_id": scenario.id}
+                {"user_id": scenario.user_id, "scenario_id": scenario.id},
             )
             await db.commit()
-   
-            print(f"INFO: Recomputed scenario with the following id: [bold magenta]{scenario.id}[/bold magenta].")
+
+            print(
+                f"INFO: Recomputed scenario with the following id: [bold magenta]{scenario.id}[/bold magenta]."
+            )
 
     async def bulk_compute_reached_pois(self, db: AsyncSession, current_user: models.User):
         # Reset reached_pois_heatmap table
@@ -630,7 +621,7 @@ class CRUDIndicator:
             calculation_geom = calculation_geom.fetchall()
 
             for study_area_id, geom in calculation_geom:
-                #TODO: Use models here. It was not used due to some problems that could not be fixed quickly
+                # TODO: Use models here. It was not used due to some problems that could not be fixed quickly
                 await db.execute(
                     text(
                         """
@@ -743,7 +734,7 @@ class CRUDIndicator:
                 "study_area_id": study_area_id,
                 "start_time": timedelta(seconds=start_time),
                 "end_time": timedelta(seconds=end_time),
-                "weekday": weekday
+                "weekday": weekday,
             },
         )
         stations_count = stations_count.fetchall()[0][0]
@@ -764,10 +755,10 @@ class CRUDIndicator:
         # TODO: Use isochrone calculation instead of buffer
 
         time_window = (end_time - start_time) / 60
-        
+
         # Get max buffer size from config to find buffer size for study area
         buffer_distances = []
-        for cls in station_config['classification'].items():
+        for cls in station_config["classification"].items():
             buffer_distances = buffer_distances + list(cls[1].keys())
         max_buffer_distance = max(map(int, buffer_distances))
 
@@ -786,7 +777,7 @@ class CRUDIndicator:
                     "end_time": timedelta(seconds=end_time),
                     "weekday": weekday,
                     "max_buffer_distance": max_buffer_distance,
-                    "route_types": list(station_config["groups"].keys())
+                    "route_types": list(station_config["groups"].keys()),
                 },
             )
             fetched_stations = fetched_stations.fetchall()
@@ -807,7 +798,7 @@ class CRUDIndicator:
                 if station_group:
                     station_groups.append(station_group)
                     station_group_trip_count += trip_count
-                    
+
             station_group = min(station_groups)  # the highest priority (e.g A )
             if station_group_trip_count == 0:
                 continue
@@ -852,49 +843,47 @@ class CRUDIndicator:
 
         return FeatureCollection(features)
 
-
     async def compute_local_accessibility_aggregated(
-        self,
-        db: AsyncSession,
-        study_area_id,
-        indicator_config
+        self, db: AsyncSession, study_area_id, indicator_config
     ) -> FeatureCollection:
-        
-        #TODO: Compute indicator for each POI Category 
+
+        # TODO: Compute indicator for each POI Category
         print(indicator_config)
+
 
 indicator = CRUDIndicator()
 
 
 def main():
     from src.db.session import async_session, sync_session
+
     db = async_session()
     db_sync = sync_session()
-    superuser = asyncio.get_event_loop().run_until_complete(CRUDBase(models.User).get_by_key(db, key='id', value=15))
+    superuser = asyncio.get_event_loop().run_until_complete(
+        CRUDBase(models.User).get_by_key(db, key="id", value=15)
+    )
     superuser = superuser[0]
     asyncio.get_event_loop().run_until_complete(
-    CRUDIndicator().prepare_starting_points(db=db, current_user=superuser)
+        CRUDIndicator().prepare_starting_points(db=db, current_user=superuser)
     )
     asyncio.get_event_loop().run_until_complete(CRUDIndicator().clean_tables(db=db))
     asyncio.get_event_loop().run_until_complete(
-    CRUDIndicator().compute_traveltime(db=db, db_sync=db_sync, current_user=superuser)
+        CRUDIndicator().compute_traveltime(db=db, db_sync=db_sync, current_user=superuser)
     )
-    asyncio.get_event_loop().run_until_complete(CRUDIndicator().finalize_connectivity_heatmap(db=db))
+    asyncio.get_event_loop().run_until_complete(
+        CRUDIndicator().finalize_connectivity_heatmap(db=db)
+    )
     asyncio.get_event_loop().run_until_complete(
         CRUDIndicator().bulk_compute_reached_pois(db=async_session(), current_user=superuser)
     )
     asyncio.get_event_loop().run_until_complete(
-    CRUDIndicator().compute_population_heatmap(db=async_session())
+        CRUDIndicator().compute_population_heatmap(db=async_session())
     )
-    asyncio.get_event_loop().run_until_complete(
-        CRUDIndicator().bulk_recompute_scenario(db=db)
-    )
-    asyncio.get_event_loop().run_until_complete(
-        CRUDIndicator().bulk_recompute_poi_user(db=db)
-    )
+    asyncio.get_event_loop().run_until_complete(CRUDIndicator().bulk_recompute_scenario(db=db))
+    asyncio.get_event_loop().run_until_complete(CRUDIndicator().bulk_recompute_poi_user(db=db))
 
     print("Heatmap is finished. Press Ctrl+C to exit.")
     input()
 
 
-#main()
+# main()

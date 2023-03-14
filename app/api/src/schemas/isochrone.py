@@ -1,15 +1,9 @@
 from curses.ascii import HT
-from enum import Enum, IntEnum
-from typing import Dict, List, Optional, Union
+from enum import Enum
+from typing import List, Optional, Union
 
 from bson import STANDARD
-from fastapi import HTTPException
-from geojson_pydantic.features import Feature, FeatureCollection
-from geojson_pydantic.geometries import MultiPolygon, Polygon
-from pydantic import BaseModel, Field, root_validator, validator
-
-from src.endpoints import deps
-from src.resources.enums import RoutingTypes
+from pydantic import BaseModel, Field, root_validator
 
 """
 Body of the request
@@ -238,7 +232,7 @@ class IsochroneDTO(BaseModel):
         },
         description="Isochrone scenario parameters. Only supported for Walking and Cycling Isochrones",
     )
-    starting_point: IsochroneStartingPoint = Field(
+    starting_point: Optional[IsochroneStartingPoint] = Field(
         ...,
         description="Isochrone starting points. If multiple starting points are specified, the isochrone is considered a multi-isochrone calculation. **Multi-Isochrone Only works for Walking and Cycling Isochrones**. Alternatively, amenities can be used to specify the starting points for multi-isochrones.",
     )
@@ -260,11 +254,11 @@ class IsochroneDTO(BaseModel):
         # Validation check on grid resolution and number of steps for geojson for walking and cycling isochrones
         if (
             values["output"].type.value == IsochroneOutputType.GRID.value
-            and values["output"].resolution not in [9, 10, 11, 12, 13, 14]
+            and values["output"].resolution not in [9, 10, 11, 12]
             and values["mode"].value
             in [
                 IsochroneAccessMode.WALK.value,
-                IsochroneAccessMode.CYCLE.value,
+                IsochroneAccessMode.BICYCLE.value,
             ]
         ):
 
@@ -291,10 +285,15 @@ class IsochroneDTO(BaseModel):
             raise ValueError("Step must be between 1 and 6")
 
         # Don't allow multi-isochrone calculation for PT and Car Isochrone
-        if len(values["starting_point"].input) > 1 and values["mode"].value in [
-            IsochroneMode.TRANSIT.value,
-            IsochroneMode.CAR.value,
-        ]:
+        if (
+            values["starting_point"]
+            and len(values["starting_point"].input) > 1
+            and values["mode"].value
+            in [
+                IsochroneMode.TRANSIT.value,
+                IsochroneMode.CAR.value,
+            ]
+        ):
             raise ValueError("Multi-Isochrone is not supported for Transit and Car")
 
         # For walking and cycling travel time maximumn should be 20 minutes and speed to m/s
@@ -359,7 +358,7 @@ R5TravelTimePayloadTemplate = {
     "destinationPointSetIds": [],
     "bounds": {
         "north": 48.27059464660387,
-        "south": 48.03915718648435, 
+        "south": 48.03915718648435,
         "east": 11.327192290815145,
         "west": 11.756388821971976,
     },
