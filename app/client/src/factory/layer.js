@@ -411,7 +411,6 @@ export const LayerFactory = {
                     );
                   }
                 });
-                console.log(olFeatures);
                 source.addFeatures(olFeatures);
               }
             })
