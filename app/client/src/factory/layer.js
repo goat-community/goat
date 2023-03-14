@@ -344,7 +344,7 @@ export const LayerFactory = {
               },
               heatmap_type: "connectivity",
               analysis_unit: "hexagon",
-              resolution: 10,
+              resolution: 9,
               heatmap_config: {
                 max_traveltime: 10
               }
