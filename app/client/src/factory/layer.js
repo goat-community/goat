@@ -287,9 +287,9 @@ export const LayerFactory = {
           const returnType = "geobuf";
           const modus = appStore.state.calculationMode.active;
           const activeScenario = scenarioStore.state.activeScenario;
-          const scenarioId = `${
-            activeScenario ? "&scenario_id=" + activeScenario : ""
-          }`;
+          // const scenarioId = `${
+          //   activeScenario ? "&scenario_id=" + activeScenario : ""
+          // }`;
           const amenityConfiguration = {};
           poisAoisStore.state.selectedPoisAois.forEach(poiAoiObject => {
             if (appStore.state.poiIcons[poiAoiObject.value]) {
@@ -319,14 +319,8 @@ export const LayerFactory = {
           const indicatorParams = {
             heatmap_connectivity: `${baseUrl_}/heatmap?return_type=${returnType}`,
             heatmap_population: `${baseUrl_}/heatmap?return_type=${returnType}`,
-            heatmap_accessibility_population: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_accessibility_population&heatmap_configuration=${JSON.stringify(
-              amenityConfiguration
-            )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
-            // heatmap_accessibility_population: `${baseUrl_}/heatmap?return_type=${returnType}`,
+            heatmap_accessibility_population: `${baseUrl_}/heatmap?return_type=${returnType}`,
             heatmap_local_accessibility: `${baseUrl_}/heatmap?return_type=${returnType}`,
-            // heatmap_local_accessibility: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_local_accessibility&heatmap_configuration=${JSON.stringify(
-            //   amenityConfiguration
-            // )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
             pt_station_count: `${baseUrl_}/pt-station-count?start_time=${startTime}&end_time=${endTime}&weekday=${weekday}&return_type=${returnType}`,
             pt_oev_gueteklasse: `${baseUrl_}/pt-oev-gueteklassen`
           };
@@ -391,8 +385,8 @@ export const LayerFactory = {
             promise = ApiService.post_(url, payload, promiseConfig);
           } else if (
             [
-              "heatmap_local_accessibility"
-              // "heatmap_accessibility_population"
+              "heatmap_local_accessibility",
+              "heatmap_accessibility_population"
             ].includes(lConf.name)
           ) {
             let amenities = {
@@ -406,6 +400,9 @@ export const LayerFactory = {
                 weight: poiAmenities[key]["weight"],
                 max_traveltime: 20
               };
+              if (lConf.name === "heatmap_accessibility_population") {
+                amenities["pois"][key]["static_traveltime"] = 1;
+              }
             }
             for (var aoi_name in aoiAmenities) {
               amenities["aois"][aoi_name] = {
@@ -413,6 +410,9 @@ export const LayerFactory = {
                 weight: aoiAmenities[aoi_name]["weight"],
                 max_traveltime: 20
               };
+              if (lConf.name === "heatmap_accessibility_population") {
+                amenities["aois"][aoi_name]["static_traveltime"] = 1;
+              }
             }
 
             const payload = {
@@ -441,7 +441,6 @@ export const LayerFactory = {
                 break;
               case "heatmap_accessibility_population":
                 payload.heatmap_type = "modified_gaussian_population";
-                payload.resolution = 10;
                 break;
               default:
                 break;
@@ -460,11 +459,9 @@ export const LayerFactory = {
                 });
                 olFeatures.forEach(feature => {
                   if (
-                    [
-                      "heatmap_connectivity",
-                      "heatmap_population",
-                      "heatmap_accessibility_population"
-                    ].includes(lConf.name)
+                    ["heatmap_connectivity", "heatmap_population"].includes(
+                      lConf.name
+                    )
                   ) {
                     if ("heatmap_connectivity" === lConf.name) {
                       feature.set(
@@ -472,13 +469,6 @@ export const LayerFactory = {
                         Math.round(feature.get("area_class"))
                       );
                     } else if ("heatmap_population" === lConf.name) {
-                      feature.set(
-                        "percentile_population",
-                        Math.round(feature.get("population_class"))
-                      );
-                    } else if (
-                      "heatmap_accessibility_population" === lConf.name
-                    ) {
                       feature.set(
                         "percentile_population",
                         Math.round(feature.get("population_class"))

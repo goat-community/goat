@@ -281,7 +281,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             heatmap_settings.heatmap_config = {"source":"population"}
             heatmap_settings = HeatmapSettings(**dict(heatmap_settings))
             grids, h_polygons, aggregated_data_reordered, aggregated_data_quantiles, data_name = await self.read_heatmap(heatmap_settings)
-            difference_quantiles = agg_classes - aggregated_data_quantiles
+            difference_quantiles = aggregated_data_quantiles - agg_classes
             geojson = self.generate_modified_gaussian_population_final_geojson(
                 grids,
                 h_polygons,
