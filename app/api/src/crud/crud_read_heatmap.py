@@ -208,9 +208,9 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                 uniques[0], areas, grids
             )
             quantiles = heatmap_core.quantile_classify(areas_reordered)
-            geojson = self.generate_data_final_geojson(
-                grids, h_polygons, areas_reordered, quantiles, data_name="area"
-            )
+            data_name = "area"
+            return grids, h_polygons, areas_reordered, quantiles, data_name
+
         elif heatmap_settings.heatmap_type == HeatmapType.aggregated_data:
             source = heatmap_settings.heatmap_config.source.value
             aggregated_data_heatmaps_sorted, uniques = await self.read_aggregating_data_sorted(
@@ -223,13 +223,10 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                 uniques[0], aggregated_data, grids
             )
             quantiles = heatmap_core.quantile_classify(aggregated_data_reordered)
-            geojson = self.generate_data_final_geojson(
-                grids,
-                h_polygons,
-                aggregated_data_reordered,
-                quantiles,
-                data_name=source,
-            )
+            data_name = source
+            return grids, h_polygons, aggregated_data_reordered, quantiles, data_name
+
+            
         else:
 
             matrix_base_path = os.path.join(
@@ -257,11 +254,78 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             calculations = self.reorder_calculations(calculations, grids, uniques)
             quantiles = self.create_quantile_arrays(calculations)
             agg_classes = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
+            return grids, h_polygons, calculations, quantiles, agg_classes
+
+        return geojson
+    
+    async def read_heatmap2(self, heatmap_settings):
+        if heatmap_settings.heatmap_type == HeatmapType.connectivity:
+            grids, h_polygons, areas_reordered, quantiles, data_name = await self.read_heatmap(heatmap_settings)
+            geojson = self.generate_data_final_geojson(
+                grids, h_polygons, areas_reordered, quantiles, data_name
+            )
+        elif heatmap_settings.heatmap_type == HeatmapType.aggregated_data:
+            grids, h_polygons, aggregated_data_reordered, quantiles, data_name = await self.read_heatmap(heatmap_settings)
+            geojson = self.generate_data_final_geojson(
+                grids,
+                h_polygons,
+                aggregated_data_reordered,
+                quantiles,
+                data_name,
+            )
+        elif heatmap_settings.heatmap_type == HeatmapType.modified_gaussian_population:
+            heatmap_settings.heatmap_type = HeatmapType.modified_gaussian
+            heatmap_settings = HeatmapSettings(**dict(heatmap_settings))
+            grids, h_polygons, calculations, gaussian_quantiles, agg_classes = await self.read_heatmap(heatmap_settings)
+            heatmap_settings.heatmap_type = HeatmapType.aggregated_data
+            heatmap_settings.heatmap_config = {"source":"population"}
+            heatmap_settings = HeatmapSettings(**dict(heatmap_settings))
+            grids, h_polygons, aggregated_data_reordered, aggregated_data_quantiles, data_name = await self.read_heatmap(heatmap_settings)
+            difference_quantiles = agg_classes - aggregated_data_quantiles
+            geojson = self.generate_modified_gaussian_population_final_geojson(
+                grids,
+                h_polygons,
+                agg_class= agg_classes,
+                population_class=aggregated_data_quantiles,
+                difference_class = difference_quantiles
+            )
+            pass
+        
+        else:
+            grids, h_polygons, calculations, quantiles, agg_classes = await self.read_heatmap(heatmap_settings)
             geojson = self.generate_final_geojson(
                 grids, h_polygons, calculations, quantiles, agg_classes
             )
-
+        
         return geojson
+            
+            
+    
+    def generate_modified_gaussian_population_final_geojson(
+        self, grids: np.ndarray, h_polygons: np.ndarray, agg_class: np.ndarray, population_class: np.ndarray, difference_class: np.ndarray
+    ):
+        features = []
+        for grid, h_polygon, agg_class_, population_class_, difference_class_ in zip(grids, h_polygons, agg_class, population_class, difference_class):
+            features.append(
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "id": int(grid),
+                        "agg_class": round(float(agg_class_), 2),
+                        "population_class": round(float(population_class_), 2),
+                        "difference_class": round(float(difference_class_), 2),
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [h_polygon.tolist()],
+                    },
+                }
+            )
+        geojson = {"type": "FeatureCollection", "features": features}
+        return geojson    
+            
+        
+        
 
     def generate_data_final_geojson(
         self, grids: np.ndarray, h_polygons: np.ndarray, areas: np.ndarray, quantiles: np.ndarray, data_name: str
