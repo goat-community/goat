@@ -380,13 +380,6 @@ export const LayerFactory = {
               aois: {}
             };
 
-
-          if (lConf.name === "heatmap_local_accessibility") {
-            let amenities = {
-              pois: {},
-              aois: {}
-            };
-
             for (var key in poiAmenities) {
               amenities["pois"][key] = {
                 sensitivity: poiAmenities[key]["sensitivity"],
@@ -395,7 +388,7 @@ export const LayerFactory = {
               };
             }
             for (var aoi_name in aoiAmenities) {
-              amenities["pois"][aoi_name] = {
+              amenities["aois"][aoi_name] = {
                 sensitivity: aoiAmenities[aoi_name]["sensitivity"],
                 weight: aoiAmenities[aoi_name]["weight"],
                 max_traveltime: 20
