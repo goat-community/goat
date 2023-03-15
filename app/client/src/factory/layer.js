@@ -318,10 +318,11 @@ export const LayerFactory = {
           const weekday = appStore.state.timeIndicators.weekday;
           const indicatorParams = {
             heatmap_connectivity: `${baseUrl_}/heatmap?return_type=${returnType}`,
-            heatmap_population: `${baseUrl_}/population?modus=${modus}${scenarioId}&return_type=${returnType}`,
+            heatmap_population: `${baseUrl_}/heatmap?return_type=${returnType}`,
             heatmap_accessibility_population: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_accessibility_population&heatmap_configuration=${JSON.stringify(
               amenityConfiguration
             )}&modus=${modus}${scenarioId}&return_type=${returnType}`,
+            // heatmap_accessibility_population: `${baseUrl_}/heatmap?return_type=${returnType}`,
             heatmap_local_accessibility: `${baseUrl_}/heatmap?return_type=${returnType}`,
             // heatmap_local_accessibility: `${baseUrl_}/local-accessibility?heatmap_type=heatmap_local_accessibility&heatmap_configuration=${JSON.stringify(
             //   amenityConfiguration
@@ -346,8 +347,11 @@ export const LayerFactory = {
               mapStore.state.indicatorCancelToken = c;
             })
           };
-          if (lConf.name === "heatmap_connectivity") {
-            const payload = {
+
+          if (
+            ["heatmap_connectivity", "heatmap_population"].includes(lConf.name)
+          ) {
+            let payload = {
               mode: "walking",
               study_area_ids: mapStore.state.studyArea.map(
                 studyArea => studyArea.values_.id
@@ -357,13 +361,24 @@ export const LayerFactory = {
                 id: activeScenario ? activeScenario : 0,
                 name: modus
               },
-              heatmap_type: "connectivity",
+              // heatmap_type: "connectivity",
               analysis_unit: "hexagon",
               resolution: 9,
-              heatmap_config: {
-                max_traveltime: 10
-              }
+              heatmap_config: {}
             };
+
+            switch (lConf.name) {
+              case "heatmap_connectivity":
+                payload.heatmap_config["max_traveltime"] = 10;
+                payload.heatmap_type = "connectivity";
+                break;
+              case "heatmap_population":
+                payload.heatmap_config["source"] = "population";
+                payload.heatmap_type = "aggregated_data";
+                break;
+              default:
+                break;
+            }
             promise = ApiService.post_(url, payload, promiseConfig);
           } else if (lConf.name === "pt_oev_gueteklasse") {
             const payload = {
@@ -374,7 +389,12 @@ export const LayerFactory = {
               station_config: indicatorsStore.state.pt_oev_gueteklasse.config
             };
             promise = ApiService.post_(url, payload, promiseConfig);
-          } else if (lConf.name === "heatmap_local_accessibility") {
+          } else if (
+            [
+              "heatmap_local_accessibility"
+              // "heatmap_accessibility_population"
+            ].includes(lConf.name)
+          ) {
             let amenities = {
               pois: {},
               aois: {}
@@ -406,7 +426,7 @@ export const LayerFactory = {
                 id: activeScenario ? activeScenario : 0,
                 name: modus
               },
-              heatmap_type: "modified_gaussian",
+              // heatmap_type: "modified_gaussian",
               analysis_unit: "hexagon",
               resolution: 9,
               heatmap_config: {
@@ -414,6 +434,18 @@ export const LayerFactory = {
                 aoi: amenities["aois"]
               }
             };
+
+            switch (lConf.name) {
+              case "heatmap_local_accessibility":
+                payload.heatmap_type = "modified_gaussian";
+                break;
+              case "heatmap_accessibility_population":
+                payload.heatmap_type = "modified_gaussian_population";
+                payload.resolution = 10;
+                break;
+              default:
+                break;
+            }
             promise = ApiService.post_(url, payload, promiseConfig);
           } else {
             promise = ApiService.get_(url, promiseConfig);
@@ -427,11 +459,31 @@ export const LayerFactory = {
                   featureProjection: proj
                 });
                 olFeatures.forEach(feature => {
-                  if (lConf.name === "heatmap_connectivity") {
-                    feature.set(
-                      "percentile_area_isochrone",
-                      Math.round(feature.get("area_class"))
-                    );
+                  if (
+                    [
+                      "heatmap_connectivity",
+                      "heatmap_population",
+                      "heatmap_accessibility_population"
+                    ].includes(lConf.name)
+                  ) {
+                    if ("heatmap_connectivity" === lConf.name) {
+                      feature.set(
+                        "percentile_area_isochrone",
+                        Math.round(feature.get("area_class"))
+                      );
+                    } else if ("heatmap_population" === lConf.name) {
+                      feature.set(
+                        "percentile_population",
+                        Math.round(feature.get("population_class"))
+                      );
+                    } else if (
+                      "heatmap_accessibility_population" === lConf.name
+                    ) {
+                      feature.set(
+                        "percentile_population",
+                        Math.round(feature.get("population_class"))
+                      );
+                    }
                   } else {
                     feature.set(
                       "agg_class",
