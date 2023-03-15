@@ -47,6 +47,7 @@ class HeatmapType(Enum):
     cumulative = "cumulative"
     closest_average = "closest_average"
     aggregated_data = "aggregated_data"
+    modified_gaussian_population = "modified_gaussian_population"
 
 
 class ReturnTypeHeatmap(Enum):
@@ -149,6 +150,7 @@ class HeatmapSettings0(HeatmapSettingsBase):
         validator_classes = {
             "modified_gaussian": HeatmapConfigGravity,
             "combined_cumulative_modified_gaussian": HeatmapConfigCombinedGravity,
+            "modified_gaussian_population": HeatmapConfigCombinedGravity,
             "closest_average": HeatmapClosestAverage,
         }
 
@@ -167,7 +169,8 @@ class HeatmapSettings0(HeatmapSettingsBase):
 
 class HeatmapSettings(BaseModel):
     def __new__(cls, *args, **kwargs):
-        if kwargs.get("heatmap_type") == HeatmapType.aggregated_data.value:
+        heatmap_type = kwargs.get("heatmap_type")
+        if heatmap_type == HeatmapType.aggregated_data.value or heatmap_type == HeatmapType.aggregated_data:
             return HeatmapSettingsAggregatedData(*args, **kwargs)
         else:
             return HeatmapSettings0(*args, **kwargs)
@@ -471,5 +474,42 @@ request_examples = {
                 "source": "population"  
             },
         },
-    }
+    },
+    "modified_gaussian_population_6": {
+        "summary": "Modified gaussian population with hexagon resolution 6",
+        "value": {
+            "mode": "walking",
+            "study_area_ids": [91620000],
+            "walking_profile": "standard",
+            "scenario": {
+                "id": 1,
+                "name": "default",
+            },
+            "heatmap_type": "modified_gaussian_population",
+            "analysis_unit": "hexagon",
+            "resolution": 6,
+            "heatmap_config": {
+                "poi": {
+                    "atm": {
+                        "weight": 1,
+                        "sensitivity": 250000,
+                        "max_traveltime": 20,
+                        "static_traveltime": 5,
+                    },
+                    "bar": {
+                        "weight": 1,
+                        "sensitivity": 250000,
+                        "max_traveltime": 20,
+                        "static_traveltime": 5,
+                    },
+                    "gym": {
+                        "weight": 1,
+                        "sensitivity": 350000,
+                        "max_traveltime": 20,
+                        "static_traveltime": 5,
+                    },
+                },
+            },
+        },
+    },
 }

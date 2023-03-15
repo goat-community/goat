@@ -45,7 +45,7 @@ async def calculate_heatmap(
     Calculate a heatmap.
     """
     start_time = time.time()
-    result = await crud.read_heatmap(db=db, current_user=current_user).read_heatmap(
+    result = await crud.read_heatmap(db=db, current_user=current_user).read_heatmap2(
         heatmap_settings=heatmap_settings
     )
     end_time = time.time()
