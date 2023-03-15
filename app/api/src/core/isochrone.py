@@ -46,7 +46,7 @@ def construct_adjacency_list_(n, edge_source, edge_target, edge_cost, edge_rever
 
 
 @njit(cache=True)
-def dijkstra_(start_vertices, adj_list, travel_time):
+def dijkstra(start_vertices, adj_list, travel_time):
     """
     Dijkstra's algorithm one-to-all shortest path search
     :param start_vertices: List of start vertices
@@ -78,67 +78,6 @@ def dijkstra_(start_vertices, adj_list, travel_time):
             for v, l in adj_list[u]:
                 v = int(v)
                 l = l / 60.0  # convert cost to minutes
-                # if the current node's distance + distance to the node we're visiting
-                # is less than the distance of the node we're visiting on file
-                # replace that distance and push the node we're visiting into the priority queue
-                if distances[u] + l < distances[v]:
-                    distances[v] = distances[u] + l
-                    heapq.heappush(pq, (distances[v], v))
-    return distances
-
-
-@njit(cache=True)
-def dijkstra2(
-    start_vertices,
-    edges_source,
-    edges_target,
-    edges_cost,
-    edges_reverse_cost,
-    travel_time,
-):
-    """
-    Dijkstra's algorithm one-to-all shortest path search
-    :param start_vertices: List of start vertices
-    :param adj_list: Adjacency list
-    :param travel_time: Travel time matrix
-    :return: List of shortest paths and costs
-    """
-    n = get_adj_count(edges_source, edges_target)
-    # distances = [np.Inf for _ in range(n)]
-    distances = np.full(n, np.Inf, np.double)
-    # loop over all start vertices
-    for start_vertex in start_vertices:
-        distances[start_vertex] = 0.0
-        # visited = [False for _ in range(n)]
-        visited = np.full(n, False, np.bool8)
-        # set up priority queue
-        pq = [(0.0, start_vertex)]
-        while len(pq) > 0:
-            if pq[0][0] >= travel_time:
-                break
-            # get the root, discard current distance (!!!distances in the data are in seconds)
-            _, u = heapq.heappop(pq)
-            # if the node is visited, skip
-            if visited[u]:
-                continue
-            # set the node to visited
-            visited[u] = True
-            # check the distance and node and distance
-
-            forward_adj, reversed_adj = get_adj_list(u, edges_source, edges_target)
-            for adj_id in forward_adj:
-                v = edges_target[adj_id]
-                l = edges_cost[adj_id] / 60.0  # convert cost to minutes
-                # if the current node's distance + distance to the node we're visiting
-                # is less than the distance of the node we're visiting on file
-                # replace that distance and push the node we're visiting into the priority queue
-                if distances[u] + l < distances[v]:
-                    distances[v] = distances[u] + l
-                    heapq.heappush(pq, (distances[v], v))
-
-            for adj_id in reversed_adj:
-                v = edges_source[adj_id]
-                l = edges_reverse_cost[adj_id] / 60.0  # convert cost to minutes
                 # if the current node's distance + distance to the node we're visiting
                 # is less than the distance of the node we're visiting on file
                 # replace that distance and push the node we're visiting into the priority queue
@@ -560,16 +499,11 @@ def compute_isochrone(
     ) = prepare_network_isochrone(edge_network_input=edge_network_input)
 
     # run dijkstra
-    start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
-
-    distances = dijkstra2(
-        start_vertices_ids,
-        edges_source,
-        edges_target,
-        edges_cost,
-        edges_reverse_cost,
-        travel_time,
+    adj_list = construct_adjacency_list_(
+        len(unordered_map), edges_source, edges_target, edges_cost, edges_reverse_cost
     )
+    start_vertices_ids = np.array([unordered_map[v] for v in start_vertices])
+    distances = dijkstra(start_vertices_ids, adj_list, travel_time)
 
     # convert results to grid
     grid_data = network_to_grid(
