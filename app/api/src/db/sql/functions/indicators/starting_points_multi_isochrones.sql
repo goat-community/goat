@@ -27,6 +27,7 @@ BEGIN
    
 	IF modus = 'scenario' THEN
         excluded_pois_id = basic.modified_pois(scenario_id_input);
+       	RAISE NOTICE '%', excluded_pois_id;
     ELSEIF modus = 'default' THEN
     	scenario_id_input = 0; 
     END IF;
@@ -55,6 +56,7 @@ BEGIN
 		AND p.category IN (SELECT UNNEST(amenities))
 		AND p.scenario_id = scenario_id_input
 		AND (p.data_upload_id IN (SELECT UNNEST(active_upload_ids)) OR p.data_upload_id IS NULL)
+		AND p.edit_type <> 'd'
 	)
 	SELECT ARRAY_AGG(r.x) AS x, ARRAY_AGG(r.y) AS y 
 	FROM relevant_pois r;
@@ -62,6 +64,7 @@ BEGIN
 END; 
 $function$
 LANGUAGE plpgsql;
+
 
 /*
 SELECT * 
