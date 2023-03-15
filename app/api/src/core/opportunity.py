@@ -96,12 +96,20 @@ class Opportunity:
         return layer_gdf
 
     def read_modified_data(
-        self, db, layer: str, scenario_id: int, bbox_wkt: str = None
+        self,
+        db,
+        layer: str,
+        scenario_id: int,
+        bbox_wkt: str = None,
+        edit_type: list = ["n", "m", "d"],
     ) -> GeoDataFrame:
         """
         Read modified data.
 
         :param layer: The layer name.
+        :param scenario_id: The scenario id.
+        :param bbox_wkt: The bounding box (Optional).
+        :param edit_type: The edit type (n: new, m: modified, d: deleted).
 
         :return: A GeoDataFrame with the data.
         """
@@ -111,11 +119,14 @@ class Opportunity:
         if layer not in self.layers_modifiable:
             raise ValueError(f"Layer {layer} not in modifiable layers {self.layers_modifiable}.")
 
-        sql_query = (
-            f"""SELECT * FROM customer.{layer}_modified p WHERE p.scenario_id = {scenario_id}"""
-        )
-        if bbox_wkt is None:
-            sql_query = f""" AND ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom)"""
+        sql_query = f"""SELECT * FROM customer.{layer}_modified p WHERE p.scenario_id = {scenario_id} """
+
+        if layer == "poi":
+            sql_query += f""" AND p.edit_type IN (SELECT UNNEST(ARRAY{edit_type}::text[]))"""
+
+        if bbox_wkt is not None:
+            sql_query += f""" AND ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom)"""
+
 
         modified_gdf = read_postgis(
             sql_query,
@@ -146,8 +157,8 @@ class Opportunity:
             raise ValueError(f"Layer {layer} not in user data layers {self.layers_user_data}.")
 
         sql_query = f"""SELECT * FROM customer.{layer}_user p WHERE p.data_upload_id IN (SELECT UNNEST(ARRAY{user_active_upload_ids}::integer[]))"""
-        if bbox_wkt is None:
-            sql_query = f""" AND ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom)"""
+        if bbox_wkt is not None:
+            sql_query += f""" AND ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom)"""
 
         user_gdf = read_postgis(
             sql_query,
@@ -243,7 +254,7 @@ class Opportunity:
         if len(modified_buildings) > 0:
             # this will filter out "deleted" and "modified" features from the base data
             population_gdf = population_gdf[
-                ~population_gdf["building_uid"].isin(modified_buildings)
+                ~population_gdf["building_id"].isin(modified_buildings)
             ]
 
         population_modified_gdf = self.read_modified_data(db, "population", scenario_id, bbox_wkt)
@@ -467,3 +478,6 @@ class OpportunityIsochroneCount(OpportunityIntersect):
             aoi_count[key][category] = value
 
         return dict(aoi_count)
+
+
+opportunity = Opportunity()
