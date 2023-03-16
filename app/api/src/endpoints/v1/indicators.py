@@ -2,7 +2,7 @@ import json
 import time
 from typing import Any, List, Optional, Union
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import func, text
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -79,6 +79,12 @@ async def get_heatmap_result(
     
     elif result.failed():
         raise HTTPException(status_code=500, detail="Task failed")
+    else:
+        content = {
+            "task-status": result.status,
+            "details": "Task is still running, please try again later",
+        }
+        return JSONResponse(status_code=status.HTTP_102_PROCESSING, content=content)
     
     
     
