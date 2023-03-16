@@ -7,12 +7,14 @@ from shapely import Polygon
 from src.core.config import settings
 from src.core.opportunity import Opportunity
 from src.crud.crud_compute_heatmap import CRUDComputeHeatmap
+from src.crud.crud_read_heatmap import CRUDReadHeatmap
 from src.db import models
 from src.db.session import legacy_engine
 from src.schemas.data_preparation import (
     OpportunityMatrixParametersSingleBulk,
     TravelTimeMatrixParametersSingleBulk,
 )
+from src.schemas.heatmap import HeatmapSettings
 from src.schemas.isochrone import IsochroneMode
 
 
@@ -124,3 +126,12 @@ async def create_opportunity_matrices_async(user, parameters):
 async def create_connectivity_matrices_async(current_super_user, parameters):
     crud_compute_heatmap = CRUDComputeHeatmap(current_user=current_super_user)
     await crud_compute_heatmap.compute_connectivity_matrix(**parameters)
+
+
+async def crud_read_heatmap_async(current_user, heatmap_settings):
+    current_user = models.User(**current_user)
+    heatmap_settings = HeatmapSettings(**heatmap_settings)
+    crud_read_heatmap = CRUDReadHeatmap(current_user=current_user)
+    heatmap = await crud_read_heatmap.read_heatmap2(heatmap_settings=heatmap_settings)
+    return heatmap
+    

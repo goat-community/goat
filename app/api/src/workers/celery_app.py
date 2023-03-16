@@ -4,7 +4,7 @@ from src.core.config import settings
 
 celery_app = Celery(
     "worker",
-    include=["src.workers.heatmap_active_mobility", "src.workers.heatmap_motorized_transport"],
+    include=["src.workers.heatmap_active_mobility", "src.workers.heatmap_motorized_transport", "src.workers.read_heatmap"],
     task_create_missing_queues=True,
 )
 celery_app.conf.update(settings.CELERY_CONFIG)
@@ -15,6 +15,7 @@ celery_app.conf.update(
         "src.workers.heatmap_motorized_transport.*": {
             "queue": "goat-motorized-transport-heatmap-worker"
         },
+        "src.workers.read_heatmap.*": {"queue": "goat-read-heatmap-worker"},
     }
 )
 

@@ -29,3 +29,4 @@ from .user import (
     UserStudyAreaList,
     UserUpdate,
 )
+from .workers import TaskResultRequest

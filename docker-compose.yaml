@@ -156,7 +156,6 @@ services:
       - SERVER_HOST=http://${DOMAIN_NAME}
     volumes:
       - ./app/api:/app
-      # - ${PWD}/app/api/celeryd:/etc/default/celeryd
     command: bash -c "/etc/init.d/celeryd start; tail -f /dev/null"
     networks:
       proxy:
@@ -165,12 +164,12 @@ services:
     image: mher/flower
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - FLOWER_OUTER_PORT=${FLOWER_OUTER_PORT}
     ports:
-      - 55550:5555
+      - "${FLOWER_OUTER_PORT}:5555"
     depends_on:
       - rabbit
-    # env_file:
-    #   - .env
+
     
     networks:
       proxy:
@@ -178,7 +177,13 @@ services:
   rabbit:
     image: rabbitmq:3-management-alpine
     ports:
-      - 15672:15672
+      - "${RABBIT_OUTER_PORT}:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST}
+      - RABBIT_OUTER_PORT=${RABBIT_OUTER_PORT}
+
     
     networks:
       proxy:

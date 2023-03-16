@@ -15,15 +15,14 @@ from shapely.geometry import Polygon
 from src.core import heatmap as heatmap_core
 from src.core import heatmap_cython
 from src.core.config import settings
-from src.db.session import legacy_engine
+from src.db.session import legacy_engine, async_session
 from src.schemas.heatmap import HeatmapMode, HeatmapSettings, HeatmapType
 from src.schemas.isochrone import IsochroneDTO, IsochroneMode
 from src.utils import create_h3_grid, print_warning, timing
 
 
 class CRUDBaseHeatmap:
-    def __init__(self, db=None, current_user=None):
-        self.db = db
+    def __init__(self, current_user=None):
         self.current_user = current_user
         self.travel_time_base_path = os.path.join(settings.CACHE_DIR, "traveltime_matrices")
         self.connectivity_base_path = os.path.join(settings.CACHE_DIR, "connectivity_matrices")
