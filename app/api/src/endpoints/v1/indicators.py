@@ -2,7 +2,7 @@ import json
 import time
 from typing import Any, List, Optional, Union
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import func, text
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -20,6 +20,7 @@ from src.resources.enums import (
     SQLReturnTypes,
 )
 from src.schemas.heatmap import HeatmapSettings, ReturnTypeHeatmap
+from src.schemas.workers import TaskResultRequest
 from src.schemas.heatmap import request_examples as heatmap_request_examples
 from src.schemas.heatmap import request_examples_
 from src.schemas.indicators import (
@@ -29,6 +30,9 @@ from src.schemas.indicators import (
     oev_gueteklasse_config_example,
 )
 from src.utils import return_geojson_or_geobuf
+from src.workers.read_heatmap import read_heatmap_task
+from src.workers.celery_app import celery_app
+from celery.result import AsyncResult
 
 router = APIRouter()
 
@@ -36,24 +40,54 @@ router = APIRouter()
 @router.post("/heatmap")
 async def calculate_heatmap(
     *,
-    db: AsyncSession = Depends(deps.get_db),
+    # db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
     heatmap_settings: HeatmapSettings = Body(..., examples=heatmap_request_examples),
-    return_type: ReturnTypeHeatmap = Query(..., description="Return type of the response"),
+    # return_type: ReturnTypeHeatmap = Query(..., description="Return type of the response"),
 ):
     """
     Calculate a heatmap.
     """
-    start_time = time.time()
-    result = await crud.read_heatmap(db=db, current_user=current_user).read_heatmap2(
-        heatmap_settings=heatmap_settings
+    current_user = json.loads(current_user.json())
+    heatmap_settings = json.loads(heatmap_settings.json())
+    task = read_heatmap_task.delay(
+        current_user=current_user,
+        heatmap_settings=heatmap_settings,
     )
-    end_time = time.time()
-    print(f"Time to calculate heatmap: {round(end_time - start_time,2)}")
-    if return_type.value == "geobuf":
-        result = return_geojson_or_geobuf(result, "geobuf")
-    return result
+    return {"task_id": task.id}
+    # start_time = time.time()
+    # result = await crud.read_heatmap(db=db, current_user=current_user).read_heatmap2(
+    #     heatmap_settings=heatmap_settings
+    # )
+    # end_time = time.time()
+    # print(f"Time to calculate heatmap: {round(end_time - start_time,2)}")
+    # if return_type.value == "geobuf":
+    #     result = return_geojson_or_geobuf(result, "geobuf")
+    # return result
 
+@router.post("/heatmap/result")
+async def get_heatmap_result(
+    current_user: models.User = Depends(deps.get_current_active_user),
+    body: TaskResultRequest = Body(..., example={"task_id": "f7f0f0f0-0f0f-0f0f-0f0f-0f0f0f0f0f0f"}),
+    return_type: ReturnTypeHeatmap = Query(..., description="Return type of the response"),
+):
+    result = AsyncResult(body.task_id, app=celery_app)
+    if result.ready():
+        if return_type.value == "geobuf":
+            result = return_geojson_or_geobuf(result.get(), "geobuf")
+        return result.get()
+    
+    elif result.failed():
+        raise HTTPException(status_code=500, detail="Task failed")
+    else:
+        content = {
+            "task-status": result.status,
+            "details": "Task is still running, please try again later",
+        }
+        return JSONResponse(status_code=status.HTTP_102_PROCESSING, content=content)
+    
+    
+    
 
 @router.get("/connectivity", response_class=JSONResponse)
 async def read_connectivity_heatmap(
