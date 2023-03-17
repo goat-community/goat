@@ -93,7 +93,12 @@ spec:
     spec:
       containers:
         - image: ${DOCKER_IMAGE}
-          command: [ "bash", "-c", "/etc/init.d/celeryd start; tail -f /dev/null" ]
+          command: 
+            - "bash"
+            - "-c"
+            - |
+              /etc/init.d/celeryd start
+              sleep infinity
           imagePullPolicy: Always
           name: goat-worker
           envFrom:
