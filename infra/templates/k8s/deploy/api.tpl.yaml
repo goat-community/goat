@@ -22,7 +22,7 @@ metadata:
   name: goat-api
   namespace: ${NAMESPACE}
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: goat-api
@@ -63,6 +63,42 @@ spec:
             timeoutSeconds: 60
             periodSeconds: 120
             failureThreshold: 3
+          volumeMounts:
+            - name: persistent-storage
+              mountPath: /app/src/cache
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim-${NAMESPACE}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goat-worker
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: goat-worker
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        app: goat-worker
+    spec:
+      containers:
+        - image: ${DOCKER_IMAGE}
+          command: [ "bash", "-c", "/etc/init.d/celeryd start; tail -f /dev/null" ]
+          imagePullPolicy: Always
+          name: goat-worker
+          envFrom:
+            - configMapRef:
+                name: api-config
           volumeMounts:
             - name: persistent-storage
               mountPath: /app/src/cache
@@ -114,4 +150,6 @@ data:
   API_SECRET_KEY: ${API_SECRET_KEY}
   R5_HOST: ${R5_HOST}
   R5_AUTHORIZATION: ${R5_AUTHORIZATION}
-  CELERY_BROKER_URL: sqs://
+  CELERYD_OPTS: "--concurrency=1 --queues=goat-light-worker"
+  CELERY_BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@goat-rabbitmq-service:5672/goat
+  CELERY_RESULT_BACKEND: redis://goat-redis-service:6379/0

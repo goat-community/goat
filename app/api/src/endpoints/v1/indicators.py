@@ -55,38 +55,6 @@ async def calculate_heatmap(
         heatmap_settings=heatmap_settings,
     )
     return {"task_id": task.id}
-    # start_time = time.time()
-    # result = await crud.read_heatmap(db=db, current_user=current_user).read_heatmap2(
-    #     heatmap_settings=heatmap_settings
-    # )
-    # end_time = time.time()
-    # print(f"Time to calculate heatmap: {round(end_time - start_time,2)}")
-    # if return_type.value == "geobuf":
-    #     result = return_geojson_or_geobuf(result, "geobuf")
-    # return result
-
-@router.post("/heatmap/result")
-async def get_heatmap_result(
-    current_user: models.User = Depends(deps.get_current_active_user),
-    body: TaskResultRequest = Body(..., example={"task_id": "f7f0f0f0-0f0f-0f0f-0f0f-0f0f0f0f0f0f"}),
-    return_type: ReturnTypeHeatmap = Query(..., description="Return type of the response"),
-):
-    result = AsyncResult(body.task_id, app=celery_app)
-    if result.ready():
-        if return_type.value == "geobuf":
-            result = return_geojson_or_geobuf(result.get(), "geobuf")
-        return result.get()
-    
-    elif result.failed():
-        raise HTTPException(status_code=500, detail="Task failed")
-    else:
-        content = {
-            "task-status": result.status,
-            "details": "Task is still running, please try again later",
-        }
-        return JSONResponse(status_code=status.HTTP_102_PROCESSING, content=content)
-    
-    
     
 
 @router.get("/connectivity", response_class=JSONResponse)
@@ -384,3 +352,32 @@ async def calculate_ptal(
     PTAL
     """
     return ""
+
+
+
+@router.get("/heatmap/result/{task_id}")
+async def get_heatmap_result(
+    task_id: str,
+    current_user: models.User = Depends(deps.get_current_active_user),
+    return_type: ReturnTypeHeatmap = Query(..., description="Return type of the response"),
+):
+    """Fetch result for given task_id"""
+    result = AsyncResult(task_id, app=celery_app)
+    if result.ready():
+        try:
+            result = None
+            if return_type.value == "geobuf":
+                result = return_geojson_or_geobuf(result.get(), "geobuf")
+            return result
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Task failed")
+
+    elif result.failed():
+        raise HTTPException(status_code=500, detail="Task failed")
+    else:
+        content = {
+            "task-status": result.status,
+            "details": "Task is still running, please try again later",
+        }
+        return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=content)
+    

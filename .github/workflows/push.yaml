@@ -70,6 +70,8 @@ jobs:
       FIRST_SUPERUSER_SURNAME: ${{ secrets.FIRST_SUPERUSER_SURNAME }}
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
       BACKEND_CORS_ORIGIN: ${{ secrets.BACKEND_CORS_ORIGIN }}
+      RABBITMQ_DEFAULT_USER: ${{ secrets.RABBITMQ_DEFAULT_USER }}
+      RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_DEFAULT_PASS }}
     steps:
       - uses: actions/checkout@v2
       - uses: aws-actions/configure-aws-credentials@v1

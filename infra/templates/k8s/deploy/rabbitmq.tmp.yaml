@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${NAMESPACE}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goat-rabbitmq
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goat-rabbitmq
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        app: goat-rabbitmq
+    spec:
+      containers:
+        - image: rabbitmq:3-management-alpine
+          imagePullPolicy: IfNotPresent
+          name: goat-rabbitmq
+          envFrom:
+            - configMapRef:
+                name: goat-rabbitmq-config
+          ports:
+            - containerPort: 5672
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: goat-rabbitmq-service
+  namespace: ${NAMESPACE}
+spec:
+  ports:
+    - port: 5672
+      targetPort: 5672
+  type: NodePort
+  selector:
+    app: goat-rabbitmq
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: goat-rabbitmq-config
+  namespace: ${NAMESPACE}
+  labels:
+    app: goat-rabbitmq
+data:
+  RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+  RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}

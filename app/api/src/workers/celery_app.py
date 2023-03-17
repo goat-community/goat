@@ -15,7 +15,7 @@ celery_app.conf.update(
         "src.workers.heatmap_motorized_transport.*": {
             "queue": "goat-motorized-transport-heatmap-worker"
         },
-        "src.workers.read_heatmap.*": {"queue": "goat-read-heatmap-worker"},
+        "src.workers.read_heatmap.*": {"queue": "goat-light-worker"},
     }
 )
 
