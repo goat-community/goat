@@ -89,11 +89,11 @@ jobs:
         with:
           output: ' '
       - name: Deploy postgres-service
-        run: make deploy-service -e COMPONENT=postgres
+        run: make deploy -e COMPONENT=postgres
       - name: Deploy rabbitmq-service
-        run: make deploy-service -e COMPONENT=rabbitmq
+        run: make deploy -e COMPONENT=rabbitmq
       - name: Deploy redis-service
-        run: make deploy-service -e COMPONENT=redis
+        run: make deploy -e COMPONENT=redis
       - name: Deploy changed client
         if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'trigger build')
         run: make deploy -e COMPONENT=client
