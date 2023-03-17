@@ -9,3 +9,4 @@ def read_heatmap_task(current_user, heatmap_settings):
     asyncio.set_event_loop(loop)
     heatmap = loop.run_until_complete(crud_read_heatmap_async(current_user, heatmap_settings))
     return heatmap
+

@@ -150,6 +150,6 @@ data:
   API_SECRET_KEY: ${API_SECRET_KEY}
   R5_HOST: ${R5_HOST}
   R5_AUTHORIZATION: ${R5_AUTHORIZATION}
-  CELERYD_OPTS: "--concurrency=1 --queues=goat-light-worker"
+  CELERYD_OPTS: --concurrency=1 --queues=goat-light-worker
   CELERY_BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@goat-rabbitmq-service:5672/goat
   CELERY_RESULT_BACKEND: redis://goat-redis-service:6379/0
