@@ -123,3 +123,4 @@ async def item_already_exists_handler(request: Request, exc: IntegrityError):
             "detail": str(exc.__dict__.get("orig")),
         },
     )
+
