@@ -8,6 +8,7 @@ from starlette.responses import JSONResponse
 
 from src import crud
 from src.crud.base import CRUDBase
+from src.core.config import settings
 from src.db import models
 from src.endpoints import deps
 from src.resources.enums import (
@@ -20,6 +21,7 @@ from src.schemas.indicators import (
     oev_gueteklasse_config_example,
 )
 from src.utils import return_geojson_or_geobuf
+from src.workers.method_connector import crud_read_heatmap_async
 from src.workers.read_heatmap import read_heatmap_task
 from src.workers.celery_app import celery_app
 from celery.result import AsyncResult
@@ -34,14 +36,23 @@ async def calculate_heatmap(
     heatmap_settings: HeatmapSettings = Body(..., examples=heatmap_request_examples),
 ):
     """
-    Calculate a heatmap.
+    Calculate a heatmap for a given set of parameters.
     """
     current_user = json.loads(current_user.json())
     heatmap_settings = json.loads(heatmap_settings.json())
-    task = read_heatmap_task.delay(
-        current_user=current_user,
-        heatmap_settings=heatmap_settings,
-    )
+    if settings.CELERY_BROKER_URL:
+        task = read_heatmap_task.delay(
+            current_user=current_user,
+            heatmap_settings=heatmap_settings,
+        )
+    else:
+        results = await crud_read_heatmap_async(  
+            current_user=current_user,
+            heatmap_settings=heatmap_settings
+            )
+        return results
+        
+  
     return {"task_id": task.id}
     
 

@@ -16,6 +16,7 @@ from src.core import heatmap as heatmap_core
 from src.core import heatmap_cython
 from src.core.config import settings
 from src.db.session import legacy_engine, async_session
+from src.core.opportunity import opportunity
 from src.schemas.heatmap import HeatmapMode, HeatmapSettings, HeatmapType
 from src.schemas.isochrone import IsochroneDTO, IsochroneMode
 from src.utils import create_h3_grid, print_warning, timing
@@ -85,6 +86,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         travel_times_dict = {}
         grid_ids_dict = {}
         weight_dict = {}
+        uids_dict = {}
         opportunity_types = list(heatmap_config.keys())
         opportunity_categories = {}
 
@@ -96,6 +98,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                 travel_times_dict[cat] = []
                 grid_ids_dict[cat] = []
                 weight_dict[cat] = []
+                uids_dict[cat] = []
 
         for bulk_id in np.array(bulk_ids):
             for opportunity_type in opportunity_types:
@@ -109,7 +112,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                         os.path.join(base_path, "travel_times.npy"),
                         allow_pickle=True,
                     )
-                    #todo: check if this is needed. Travel times should not be saved if they are empty
+                    # todo: check if this is needed. Travel times should not be saved if they are empty
                     if travel_times.size == 0:
                         continue
                     grid_ids = np.load(
@@ -120,11 +123,20 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                         os.path.join(base_path, "weight.npy"),
                         allow_pickle=True,
                     )
+                    uid = np.load(
+                        os.path.join(base_path, "uids.npy"),
+                        allow_pickle=True,
+                    )
+                    trave = np.load(
+                        os.path.join(base_path, "uids.npy"),
+                        allow_pickle=True,
+                    )
                     for cat in opportunity_categories[opportunity_type]:
                         selected_category_index = np.in1d(categories, np.array([cat]))
                         travel_times_dict[cat].extend(travel_times[selected_category_index])
                         grid_ids_dict[cat].extend(grid_ids[selected_category_index])
                         weight_dict[cat].extend(weight[selected_category_index])
+                        uids_dict[cat].extend(uid[selected_category_index])
 
                 except FileNotFoundError:
                     print(base_path)
@@ -141,12 +153,16 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
                 weight_dict[cat] = np.concatenate(
                     np.concatenate(weight_dict[cat], axis=None), axis=None
                 )
+                uids_dict[cat] = np.concatenate(
+                    np.concatenate(uids_dict[cat], axis=None), axis=None
+                )
             else:
                 grid_ids_dict[cat] = np.array([], np.int64)
                 travel_times_dict[cat] = np.array([], np.int8)
                 weight_dict[cat] = np.array([], np.float64)
+                uids_dict[cat] = np.array([], np.str_)
 
-        return grid_ids_dict, travel_times_dict, weight_dict
+        return grid_ids_dict, travel_times_dict, weight_dict, uids_dict
 
     async def read_bulk_ids(self, study_area_ids: list[int]):
         """
@@ -190,7 +206,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
 
         # Get heatmap settings
         profile = ""
-        
+
         # Aggregated data does not need a profile
         if heatmap_settings.heatmap_type != HeatmapType.aggregated_data:
             if heatmap_settings.mode == HeatmapMode.walking:
@@ -215,9 +231,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             aggregated_data_heatmaps_sorted, uniques = await self.read_aggregating_data_sorted(
                 bulk_ids, heatmap_settings, source
             )
-            aggregated_data = heatmap_cython.sums(
-                aggregated_data_heatmaps_sorted, uniques
-            )
+            aggregated_data = heatmap_cython.sums(aggregated_data_heatmaps_sorted, uniques)
             aggregated_data_reordered = heatmap_cython.reorder_connectivity_heatmaps(
                 uniques[0], aggregated_data, grids
             )
@@ -233,11 +247,58 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             )
             # Read travel times and grid ids
             begin = time.time()
-            grid_ids, traveltimes, weights = await self.read_opportunity_matrix(
+            grid_ids, traveltimes, weights, uids = await self.read_opportunity_matrix(
                 matrix_base_path=matrix_base_path,
                 bulk_ids=bulk_ids,
                 heatmap_config=heatmap_settings.heatmap_config,
             )
+            if heatmap_settings.scenario.id not in (0, 1):
+                scenario_id = heatmap_settings.scenario.id
+                scenario_matrix_base_path = (
+                    f"{settings.CACHE_PATH}/user/scenario/{scenario_id}/walking/standard"
+                )
+                # list folders in scenario_matrix_base_path
+                bulk_ids = os.listdir(scenario_matrix_base_path)
+                (
+                    grid_ids_scenario,
+                    traveltimes_scenario,
+                    weights_scenario,
+                    uids_scenario,
+                ) = await self.read_opportunity_matrix(
+                    matrix_base_path=scenario_matrix_base_path,
+                    bulk_ids=bulk_ids,
+                    heatmap_config=heatmap_settings.heatmap_config,
+                )
+                opportunities_modified = opportunity.read_modified_data(
+                    db=legacy_engine, layer="poi", scenario_id=scenario_id
+                )
+                modified_deleted_uids = opportunities_modified.loc[
+                    opportunities_modified["edit_type"] != "n", "uid"
+                ].tolist()
+                modified_deleted_category = opportunities_modified.loc[
+                    opportunities_modified["edit_type"] != "n", "category"
+                ].unique()
+
+                new_categories = opportunities_modified.loc[
+                    opportunities_modified["edit_type"] == "n", "category"
+                ].unique()
+
+                diff_data = {
+                    "grid_ids": [],
+                    "traveltimes": [],
+                    "weights": [],
+                }
+                for category in modified_deleted_category:
+                    uids_in_category = uids[category]
+                    indexes_diff = ~np.in1d(uids_in_category, modified_deleted_uids)
+                    diff_data["grid_ids"].extend(grid_ids[category][indexes_diff])
+                    diff_data["traveltimes"].extend(traveltimes[category][indexes_diff])
+                    diff_data["weights"].extend(weights[category][indexes_diff])
+
+                for category in new_categories:
+                    diff_data["grid_ids"].extend(grid_ids_scenario[category])
+                    diff_data["traveltimes"].extend(traveltimes_scenario[category])
+                    diff_data["weights"].extend(weights_scenario[category])
 
             end = time.time()
             print(f"Reading matrices took {end - begin} seconds")
@@ -327,7 +388,12 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         
 
     def generate_data_final_geojson(
-        self, grids: np.ndarray, h_polygons: np.ndarray, areas: np.ndarray, quantiles: np.ndarray, data_name: str
+        self,
+        grids: np.ndarray,
+        h_polygons: np.ndarray,
+        areas: np.ndarray,
+        quantiles: np.ndarray,
+        data_name: str,
     ):
         data_name_class = f"{data_name}_class"
         features = []
@@ -376,10 +442,10 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
         # uniques = (uniques[0].astype(np.uint64), uniques[1])
         connectivity_heatmaps = np.concatenate(connectivity_heatmaps)
         return connectivity_heatmaps, uniques
-    
+
     def get_aggregating_data_path(self, bulk_id, source: str):
         return os.path.join(settings.AGGREGATING_MATRICES_PATH, bulk_id, f"{source}.npz")
-    
+
     async def read_aggregating_data_sorted(self, bulk_ids, heatmap_settings, source):
         target_resolution = heatmap_settings.resolution
         aggregating_data = []
@@ -394,9 +460,7 @@ class CRUDReadHeatmap(CRUDBaseHeatmap):
             data_sorted, unique = heatmap_cython.sort_and_unique_by_grid_ids(grids, data["value"])
             aggregating_data.append(data_sorted)
             uniques.append(unique)
-        uniques = heatmap_cython.concatenate_and_fix_uniques_index_order(
-            uniques, aggregating_data
-        )
+        uniques = heatmap_cython.concatenate_and_fix_uniques_index_order(uniques, aggregating_data)
         aggregating_data = np.concatenate(aggregating_data)
         return aggregating_data, uniques
 
