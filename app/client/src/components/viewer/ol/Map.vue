@@ -185,6 +185,22 @@
         </div>
       </template>
     </overlay-popup>
+    <!-- Info Snackbar for not visible POIs -->
+    <v-snackbar
+      :color="appColor.primary"
+      top
+      :timeout="visibilityPoiSnackbar.timeout"
+      v-model="visibilityPoiSnackbar.state"
+    >
+      <v-icon color="white" class="mr-3">
+        info
+      </v-icon>
+      <span v-html="visibilityPoiSnackbar.message"></span>
+      <v-btn text @click="visibilityPoiSnackbar.state = false">
+        <v-icon>close</v-icon>
+      </v-btn>
+    </v-snackbar>
+
     <!-- Info Snackbar for not visible layers. -->
     <v-snackbar
       :color="appColor.primary"
@@ -364,6 +380,11 @@ export default {
         state: false,
         message: "",
         timeout: 8000
+      },
+      visibilityPoiSnackbar: {
+        state: false,
+        message: "",
+        timeout: 8000
       }
     };
   },
@@ -525,7 +546,20 @@ export default {
       });
       this.map.addLayer(vector);
       this.poisAoisLayer = vector;
-      this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
+
+      const extent = this.map.getView().calculateExtent(this.map.getSize());
+
+      const topLeft = this.map.getPixelFromCoordinate([extent[0], extent[3]]);
+      const bottomRight = this.map.getPixelFromCoordinate([
+        extent[2],
+        extent[1]
+      ]);
+
+      // Calculate width and height in pixels
+      const width = bottomRight[0] - topLeft[0];
+      const height = bottomRight[1] - topLeft[1];
+
+      this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`, { width, height });
     },
 
     /**
@@ -958,7 +992,27 @@ export default {
       this.popup.currentLayerIndex += 1;
       this.showPopup();
     },
-
+    showNonVisiblePoisInfo: debounce(function() {
+      const currentResolution = this.map.getView().getResolution();
+      if (
+        (this.selectedPoisAois.length > 0) &
+        (currentResolution > this.maxZoomBasedOnPoisAois)
+      ) {
+        this.visibilityPoiSnackbar = {
+          state: true,
+          message: `${this.$t(
+            `map.snackbarMessages.zoomInToShowFeatures`
+          )} Amenities`,
+          timeout: 80000
+        };
+      } else {
+        this.visibilityPoiSnackbar = {
+          state: false,
+          message: ``,
+          timeout: 0
+        };
+      }
+    }, 200),
     showNonVisibleLayersInfo: debounce(function() {
       const currentResolution = this.map.getView().getResolution();
       const notVisibleLayers = [];
@@ -1069,9 +1123,10 @@ export default {
     ...mapFields("poisaois", {
       poisAoisLayer: "poisAoisLayer",
       selectedPoisAois: "selectedPoisAois",
+      rawPoisAois: "rawPoisAois",
+      maxZoomBasedOnPoisAois: "maxZoomBasedOnPoisAois",
       poisAois: "poisAois"
     }),
-
     ...mapGetters("map", {
       studyArea: "studyArea",
       helpTooltip: "helpTooltip",
@@ -1143,11 +1198,18 @@ export default {
     // this should be watched here as it might be that poisAoisTree component is not rendered yet.
     selectedPoisAois(selected) {
       const poisAois = {};
+      this.poisAoisLayer.getSource().clear();
       selected.forEach(item => {
+        if (item.value in this.rawPoisAois) {
+          this.poisAoisLayer
+            .getSource()
+            .addFeatures(this.rawPoisAois[item.value]);
+        }
         poisAois[item.value] = true;
       });
       this.poisAois = poisAois;
       this.poisAoisLayer.changed();
+      this.showNonVisiblePoisInfo();
     }
   }
 };
