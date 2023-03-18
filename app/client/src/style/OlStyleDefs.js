@@ -438,7 +438,7 @@ function poisEditShadowStyle(color, radius) {
 }
 
 const poisEditStyleCache = {};
-export function poisEditStyle(feature, resolution) {
+export function poisEditStyle(feature) {
   const category = feature.get("category");
   if (
     !poisAoisStore.state.poisAois[category] ||
@@ -516,9 +516,8 @@ export function poisEditStyle(feature, resolution) {
       })
     });
   }
-  if (resolution < poisAoisStore.state.maxZoomBasedOnPoisAois) {
-    st.push(poisAoisStyleCache[icon + color]);
-  }
+
+  st.push(poisAoisStyleCache[icon + color]);
 
   return st;
 }
@@ -970,7 +969,7 @@ const poisAoisStyleCache = {};
 //   })
 // });
 
-export function poisAoisStyle(feature, resolution) {
+export function poisAoisStyle(feature) {
   const category = feature.get("category");
   if (!poisAoisStore.state.poisAois[category]) {
     return [];
@@ -1033,9 +1032,7 @@ export function poisAoisStyle(feature, resolution) {
     })
   });
 
-  if (resolution < poisAoisStore.state.maxZoomBasedOnPoisAois) {
-    st.push(poisAoisStyleCache[icon + color]);
-  }
+  st.push(poisAoisStyleCache[icon + color]);
   return st;
 }
 

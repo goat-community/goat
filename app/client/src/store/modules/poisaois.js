@@ -8,7 +8,7 @@ const state = {
   poisAoisLayer: null,
   poisAois: {},
   rawPoisAois: {},
-  maxZoomBasedOnPoisAois: 12,
+  lengthPois: 0,
   selectedPoisAois: [],
   treeViewKey: 0 // Used for re-rendering the tree view
 };
@@ -91,8 +91,8 @@ const actions = {
               }
             });
             if (map_width) {
-              state.maxZoomBasedOnPoisAois = Math.log2(
-                olFeatures.length / (map_width.width / 2000)
+              state.poisAoisLayer.setMinZoom(
+                Math.log2(olFeatures.length / (map_width.width / 2000))
               );
             }
           }
