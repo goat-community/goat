@@ -66,13 +66,13 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
 
         if layer_name.value == schemas.ScenarioLayersNoPoisEnum.way.value:
             excluded_ids_results = await db.execute(
-                func.basic.select_customization("excluded_class_id_walking")
+                func.basic.select_customization("excluded_class_id_walking", current_user.active_study_area_id)
             )
             excluded_ids = excluded_ids_results.fetchall()
             excluded_ids_list = dict(excluded_ids[0])["select_customization_1"]
 
             excluded_foot_results = await db.execute(
-                func.basic.select_customization("categories_no_foot")
+                func.basic.select_customization("categories_no_foot", current_user.active_study_area_id)
             )
             excluded_foot = excluded_foot_results.fetchall()
             excluded_foot_list = dict(excluded_foot[0])["select_customization_1"]

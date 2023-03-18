@@ -8,6 +8,7 @@ DECLARE
 	region_geom geometry;  
 	buffer_geom geometry; 
 	data_upload_poi_categories TEXT[] = '{}'::TEXT[];
+	detour_factor numeric = 0.8;
 BEGIN 
 	data_upload_poi_categories = basic.poi_categories_data_uploads(user_id_input);
 
@@ -23,11 +24,10 @@ BEGIN
         RAISE EXCEPTION 'Please specify either region or study_area_ids but not both.';
     END IF;
 	
-   	buffer_geom = ST_Buffer(region_geom::geography, speed_input  * 60 * minutes)::geometry;
+   	buffer_geom = ST_Buffer(region_geom::geography, speed_input  * 60 * minutes * detour_factor)::geometry;
    
 	IF modus = 'scenario' THEN
         excluded_pois_id = basic.modified_pois(scenario_id_input);
-       	RAISE NOTICE '%', excluded_pois_id;
     ELSEIF modus = 'default' THEN
     	scenario_id_input = 0; 
     END IF;
