@@ -290,7 +290,7 @@ export default {
         .then(() => {
           this.$store.dispatch(`app/${GET_USER_CUSTOM_DATA}`);
           this.$store.dispatch(`app/${GET_APP_CONFIG}`);
-          this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
+          // this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
         })
         .finally(() => {
           this.isBusy = false;
