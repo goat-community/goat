@@ -14,7 +14,6 @@ import time
 
 import h3
 import numpy as np
-from geoalchemy2.shape import to_shape
 from geopandas import GeoDataFrame, points_from_xy, read_postgis
 from pandas import isnull
 from rich import print
@@ -22,11 +21,11 @@ from shapely.geometry import Point, Polygon, box
 from sqlalchemy.sql.functions import func
 
 from src import crud, schemas
-from src.core import heatmap_cython
+from src.core.heatmap import heatmap_core_cython as heatmap_cython
 from src.core.config import settings
-from src.core.heatmap import save_traveltime_matrix
+from src.core.heatmap.heatmap_core import save_traveltime_matrix
 from src.core.isochrone import network_to_grid, prepare_network_isochrone, dijkstra, construct_adjacency_list_
-from src.crud.crud_read_heatmap import CRUDBaseHeatmap
+from src.core.heatmap.heatmap_read import BaseHeatmap
 from src.db.session import async_session, legacy_engine
 from src.schemas.heatmap import (
     BulkTravelTime,
@@ -273,7 +272,7 @@ def get_opportunity_relations(
     return result
 
 
-class CRUDComputeHeatmap(CRUDBaseHeatmap):
+class ComputeHeatmap(BaseHeatmap):
     async def get_bulk_ids(
         self,
         buffer_distance: int,
@@ -281,7 +280,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
     ) -> list[str]:
 
         # Get unioned study areas
-        bulk_ids = await self.read_h3_grids_study_areas(
+        bulk_ids = self.read_h3_grids_study_areas(
             resolution=HeatmapBulkResolution.active_mobility.value,
             buffer_size=buffer_distance,
             study_area_ids=study_area_ids,
@@ -398,7 +397,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
             output_path (str, optional): Path to save opportunity matrix. Defaults to settings.OPPORTUNITY_MATRICES_PATH. For scenarios, this is the path to the scenario folder.
             s3_folder (str, optional): S3 folder to save opportunity matrix. Defaults to None.
         """
-        routing_profile = self.get_routing_profile(isochrone_dto)
+        routing_profile = self.get_isochrone_routing_profile(isochrone_dto)
         # OPPORTUNITY INTERSECTION
         opportunities["pixel"] = opportunities["geom"].apply(
             pixelate_geom, isochrone_resolution=isochrone_dto.output.resolution
@@ -553,7 +552,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         directory = self.get_connectivity_path(mode, profile)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        h6_hexagons = await self.read_h3_grids_study_areas(6, 0, [study_area_id])
+        h6_hexagons = self.read_h3_grids_study_areas(6, 0, [study_area_id])
         for h6_id in h6_hexagons:
             travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
             try:
@@ -590,7 +589,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         starting_time = time.time()
 
         # Get Routing Profile
-        routing_profile = self.get_routing_profile(isochrone_dto)
+        routing_profile = self.get_isochrone_routing_profile(isochrone_dto)
 
         # Get calculation object
         bulk_id = list(calculation_obj.keys())[0]
@@ -891,7 +890,7 @@ class CRUDComputeHeatmap(CRUDBaseHeatmap):
         """
         # FIND RELEVANT TRAVEL TIME MATRICES
         bulk_resolution = h3.h3_get_resolution(h=bulk_id)
-        routing_profile = self.get_routing_profile(isochrone_dto)
+        routing_profile = self.get_isochrone_routing_profile(isochrone_dto)
         if (
             isochrone_dto.mode == IsochroneMode.WALKING
             or isochrone_dto.mode == IsochroneMode.CYCLING

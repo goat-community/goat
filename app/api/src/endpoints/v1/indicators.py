@@ -21,7 +21,7 @@ from src.schemas.indicators import (
     oev_gueteklasse_config_example,
 )
 from src.utils import return_geojson_or_geobuf
-from src.workers.method_connector import crud_read_heatmap_async
+from src.workers.method_connector import read_heatmap_async
 from src.workers.read_heatmap import read_heatmap_task
 from src.workers.celery_app import celery_app
 from celery.result import AsyncResult
@@ -46,11 +46,11 @@ async def calculate_heatmap(
             heatmap_settings=heatmap_settings,
         )
     else:
-        results = await crud_read_heatmap_async(  
+        results = await read_heatmap_async(  
             current_user=current_user,
-            heatmap_settings=heatmap_settings
+            settings=heatmap_settings
             )
-        return results
+        return return_geojson_or_geobuf(results)
         
   
     return {"task_id": task.id}

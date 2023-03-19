@@ -14,7 +14,7 @@ from src import schemas
 from src.core.opportunity import opportunity
 from src.core.config import settings
 from src.crud.base import CRUDBase
-from src.crud.crud_compute_heatmap import CRUDComputeHeatmap
+from src.core.heatmap.heatmap_compute import ComputeHeatmap
 from src.db import models
 from src.db.session import legacy_engine
 from shapely import wkb
@@ -360,7 +360,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
     ) -> None:
         # ->
         s3_folder = ""
-        crud_compute_heatmap = CRUDComputeHeatmap(current_user=user)
+        crud_compute_heatmap = ComputeHeatmap(current_user=user)
         # todo: the isochrone settings can be dynamic in the future. Currently scenario is only for walking and 20 minutes, 5km/h
         isochrone_dto = IsochroneDTO(
             **request_examples["isochrone"]["single_walking_default"]["value"]

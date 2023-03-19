@@ -74,6 +74,7 @@ services:
       - SERVER_HOST=http://${DOMAIN_NAME}
     volumes:
       - ./app/api:/app
+      - /mnt/efs/fs1:/app/src/cache
     command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
     labels:
       - "traefik.enable=true"
