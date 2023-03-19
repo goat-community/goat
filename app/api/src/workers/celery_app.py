@@ -20,4 +20,4 @@ celery_app.conf.update(
 )
 
 
-# celery -A src.workers.celery_app worker -l info -c 1 -Q goat-active-mobility-heatmap-worker
+# celery -A src.workers.celery_app worker -l info -c 1 -Q goat-light-worker

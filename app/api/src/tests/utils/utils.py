@@ -3,9 +3,8 @@ import string
 from typing import Dict
 
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import crud, schemas
+from src import schemas
 from src.core.config import settings
 from src.db import models
 
