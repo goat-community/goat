@@ -52,7 +52,7 @@ async def get_bulk_ids_for_study_area(
     parameters: schemas.BulkIdParameters = Body(..., example=schemas.BulkIdParametersExample)
 ):
 
-    crud_compute_heatmap = ComputeHeatmap(db, current_super_user)
+    crud_compute_heatmap = ComputeHeatmap(current_super_user)
     return await crud_compute_heatmap.get_bulk_ids(**parameters.dict())
 
 
