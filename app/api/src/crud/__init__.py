@@ -14,7 +14,6 @@ from .crud_opportunity_config import (
 from .crud_organization import organization
 from .crud_poi_aoi import poi_aoi
 from .crud_r5 import r5
-from .crud_read_heatmap import read_heatmap
 from .crud_role import role, user_role
 from .crud_scenario import scenario
 from .crud_static_layer import static_layer

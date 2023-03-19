@@ -56,7 +56,7 @@ r5-cache
 # Unit test / coverage reports 
 .coverage
 coverage.xml
-
+cache*
 
 # Temporary files
 NearestNDInterpolate.png

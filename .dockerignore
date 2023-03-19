@@ -9,7 +9,7 @@ docker-compose*.yml
 *.md
 hosts
 LICENSE
-
+cache
 # Node
 ## Logs
 logs

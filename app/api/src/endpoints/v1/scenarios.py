@@ -1,22 +1,19 @@
 import asyncio
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, UploadFile
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src import crud, schemas
 from src.db import models
 from src.endpoints import deps
+from src.core import opportunity
 from src.resources.enums import ReturnType
 from src.schemas.msg import Msg
-from src.schemas.scenario import (
-    ScenarioWithBrokenField,
-    request_examples,
-    scenario_deleted_columns,
-)
+from src.schemas.scenario import ScenarioWithBrokenField, request_examples
 from src.utils import return_geojson_or_geobuf, to_feature_collection
 
 router = APIRouter()
@@ -64,8 +61,8 @@ async def get_scenarios(
     """
     Get all scenarios.
     """
-    #TODO: Check if the scenarios have outdated features in the table poi_modified, way_modified and building_modified
-    
+    # TODO: Check if the scenarios have outdated features in the table poi_modified, way_modified and building_modified
+
     result = await crud.scenario.get_by_multi_keys(
         db=db,
         keys={"user_id": current_user.id, "study_area_id": current_user.active_study_area_id},
@@ -109,28 +106,8 @@ async def delete_scenario(
     """
     Delete scenario.
     """
-    return await crud.scenario.remove_multi_by_id_and_userid(db, ids=id, user_id=current_user.id)
-
-
-@router.get("/{scenario_id}/upload", response_model=Msg)
-async def upload_scenario_changes(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
-    scenario_id: int,
-):
-    """
-    Upload scenario changes.
-    """
-    scenario = await crud.scenario.get_by_multi_keys(
-        db, keys={"id": scenario_id, "user_id": current_user.id}
-    )
-    if len(scenario) > 0:
-        # TODO: Call network modification function
-        await asyncio.sleep(5)
-        return {"msg": "Scenario changes uploaded."}
-    else:
-        raise HTTPException(status_code=400, detail="Scenario not found")
+    result = await crud.scenario.remove_multi_by_id_and_userid(db, ids=id, user_id=current_user.id)
+    return
 
 
 # ------------------------Scenario Layers (_modified tables)---------------------------
