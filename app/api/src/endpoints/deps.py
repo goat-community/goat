@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, schemas
+from src.crud.crud_scenario import scenario as crud_scenario
 from src.core import security
 from src.core.config import settings
 from src.db import models
@@ -67,7 +68,7 @@ async def check_user_owns_scenario(
     if scenario_id == 0 or scenario_id == None:
         return 0
 
-    scenario = await crud.scenario.get_by_multi_keys(
+    scenario = await crud_scenario.get_by_multi_keys(
         db, keys={"id": scenario_id, "user_id": current_user.id}
     )
     if scenario == []:
