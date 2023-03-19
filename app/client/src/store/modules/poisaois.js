@@ -1,13 +1,14 @@
 import { getField, updateField } from "vuex-map-fields";
 import ApiService from "../../services/api.service";
 import { GET_POIS_AOIS } from "../actions.type";
-import { SET_POIS_AOIS } from "../mutations.type";
 import { geobufToFeatures } from "../../utils/MapUtils";
 //parts of the data will be loaded dynamically from app conf json
 
 const state = {
   poisAoisLayer: null,
   poisAois: {},
+  rawPoisAois: {},
+  lengthPois: 0,
   selectedPoisAois: [],
   treeViewKey: 0 // Used for re-rendering the tree view
 };
@@ -65,7 +66,7 @@ const getters = {
 };
 
 const actions = {
-  [GET_POIS_AOIS](context) {
+  [GET_POIS_AOIS]({ state }, map_width) {
     return new Promise((resolve, reject) => {
       ApiService.get_(`/pois-aois/visualization?return_type=geobuf`, {
         responseType: "arraybuffer",
@@ -81,7 +82,19 @@ const actions = {
               dataProjection: "EPSG:4326",
               featureProjection: "EPSG:3857"
             });
-            context.commit(SET_POIS_AOIS, olFeatures);
+
+            olFeatures.forEach(oneFeature => {
+              if (oneFeature.get("category") in state.rawPoisAois) {
+                state.rawPoisAois[oneFeature.get("category")].push(oneFeature);
+              } else {
+                state.rawPoisAois[oneFeature.get("category")] = [];
+              }
+            });
+            if (map_width) {
+              state.poisAoisLayer.setMinZoom(
+                Math.log2(olFeatures.length / (map_width.width / 2000))
+              );
+            }
           }
         })
         .catch(({ response }) => {
@@ -92,24 +105,7 @@ const actions = {
 };
 
 const mutations = {
-  updateField,
-  [SET_POIS_AOIS](state, poisAois) {
-    if (state.poisAoisLayer) {
-      let chunkedArrs = poisAois.chunk(1000);
-
-      state.poisAoisLayer.getSource().clear();
-
-      chunkedArrs.forEach(chunk => {
-        setTimeout(() => {
-          state.poisAoisLayer.getSource().addFeatures(chunk);
-        }, 50);
-      });
-
-      state.selectedPoisAois = JSON.parse(
-        JSON.stringify(state.selectedPoisAois)
-      );
-    }
-  }
+  updateField
 };
 
 export default {

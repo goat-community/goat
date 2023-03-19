@@ -230,10 +230,87 @@ def quantile_classify(a, NQ=5):
     return out
 
 
+def quantile_borders(a, NQ=5):
+    """
+    Classify the array into NQ quantiles and returns the borders.
+    example:
+    a = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+    borders is:
+        array([ 4.8,  8.6, 12.4, 16.2])
+    """
+    if a is None:
+        return None
+    if not a.size:
+        return a.copy()
+
+    greater_zero = a > 0
+
+    # Fix for when all values are 0
+    if not sum(greater_zero):
+        return np.zeros(a.shape, np.int8)
+
+    q = np.arange(1 / NQ, 1, 1 / NQ)
+    quantiles = np.quantile(a[greater_zero], q)
+
+    return quantiles
+
+def quantile_classify_new(a, borders=None, NQ=5):
+    """
+    Classify the array into NQ quantiles.
+    example:
+    a = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+    borders = np.array([ 4.8,  8.6, 12.4, 16.2])
+    quantile is:
+        np.array([1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5])
+    """
+    if a is None:
+        return None
+    if not a.size:
+        return a.copy()
+
+    greater_zero = a > 0
+
+    # Fix for when all values are 0
+    if not sum(greater_zero):
+        return np.zeros(a.shape, np.int8)
+
+    if borders is None:
+        q = np.arange(1 / NQ, 1, 1 / NQ)
+        quantiles = np.quantile(a[greater_zero], q)
+    
+    quantiles = borders
+    out = np.empty(a.size, np.int8)
+    out[np.where(a == 0)] = 0
+    out[np.where(np.logical_and(np.greater(a, 0), np.less(a, quantiles[0])))] = 1
+    out[np.where(a >= quantiles[-1])] = NQ
+    for i in range(NQ - 2):
+        out[
+            np.where(
+                np.logical_and(np.greater_equal(a, quantiles[i]), np.less(a, quantiles[i + 1]))
+            )
+        ] = (i + 2)
+    out[np.isnan(a)] = 0
+
+    return out
+
+def test_quantile_new():
+    # Values from 1 to 20
+    a = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+    # other values then a 
+    b = np.array([2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40])
+
+    borders = quantile_borders(a)
+    results = quantile_classify_new(b, borders, 5)
+    return results
+
+
 def test_quantile(n):
     NQ = 5
     a = np.random.random(n) * 120
     a[a < 10] = 0
+
+    b = np.random.random(n) * 120
+    b[b < 10] = 0
 
     start_time = time()
     out = quantile_classify(a, 5)
@@ -272,18 +349,15 @@ def save_traveltime_matrix(bulk_id: int, traveltimeobjs: dict, output_dir: str):
     )
 
 
-
-
-
-if __name__ == "__main__":
-    test_quantile(10000)
-    test_quantile(20)
-    travel_times = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
-    unique = (np.array([1,2,3,4,5]),np.array([0, 3, 5, 8, 10]))
-    weights = np.array([1,2,1,1,2,3,1,2,1,1,2,3])
-    sensitivity = 250000
-    cuttoff = 8
-    static_traveltime = 2
-    results = combined_modified_gaussian_per_grid(
-        travel_times, unique, sensitivity, cuttoff, static_traveltime, weights)
-    print(results)
+# if __name__ == "__main__":
+#     test_quantile(10000)
+#     test_quantile(20)
+#     travel_times = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+#     unique = (np.array([1,2,3,4,5]),np.array([0, 3, 5, 8, 10]))
+#     weights = np.array([1,2,1,1,2,3,1,2,1,1,2,3])
+#     sensitivity = 250000
+#     cuttoff = 8
+#     static_traveltime = 2
+#     results = combined_modified_gaussian_per_grid(
+#         travel_times, unique, sensitivity, cuttoff, static_traveltime, weights)
+#     print(results)

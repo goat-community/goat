@@ -6,10 +6,14 @@ DECLARE
 	buffer_starting_point geometry; 
 	buffer_network geometry;
 	point geometry := ST_SETSRID(ST_POINT(x[1],y[1]), 4326);
-	snap_distance_network integer := basic.select_customization('snap_distance_network')::integer;
+	snap_distance_network integer;
 	max_new_node_id integer := 2147483647;
 	max_new_edge_id integer := 2147483647;
+	setting_study_area_id integer;
 BEGIN 
+
+	setting_study_area_id = basic.get_reference_study_area(ST_SETSRID(ST_POINT(x[1], y[1]), 4326));
+	snap_distance_network = basic.select_customization('snap_distance_network', setting_study_area_id)::integer;
 
 	SELECT ST_Buffer(point::geography,snap_distance_network)::geometry
 	INTO buffer_starting_point;
@@ -21,7 +25,7 @@ BEGIN
 	CREATE TEMP TABLE artificial_edges AS   
 	SELECT * 
 	FROM basic.create_artificial_edges(basic.query_edges_routing(ST_ASTEXT(buffer_starting_point),modus,scenario_id,speed,routing_profile,FALSE),point, 
-		snap_distance_network,max_new_node_id, max_new_edge_id 
+		snap_distance_network, max_new_node_id, max_new_edge_id 
 	); 
 		
 	RETURN query EXECUTE 

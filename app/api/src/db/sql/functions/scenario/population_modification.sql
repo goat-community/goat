@@ -3,8 +3,17 @@ RETURNS SETOF void
 LANGUAGE plpgsql
 AS $function$
 DECLARE 
-	average_gross_living_area integer := basic.select_customization('average_gross_living_area');
+	setting_study_area_id integer; 
+	average_gross_living_area integer;
 BEGIN 
+	
+	setting_study_area_id = (
+		SELECT get_reference_study_area(ST_CENTROID(geom))
+		FROM customer.building_modified 
+		WHERE scenario_id = scenario_id_input
+		LIMIT 1
+	);
+	average_gross_living_area = basic.select_customization('average_gross_living_area', setting_study_area_id);
 
 	UPDATE customer.building_modified b
 	SET area = ST_AREA(geom::geography), 

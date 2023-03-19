@@ -16,19 +16,23 @@ DECLARE
 	sql_cost TEXT;
 	time_loss_intersections jsonb := '{}'::jsonb;
 	geom_column TEXT = 'geom';
+	setting_study_area_id integer;
+
 BEGIN 
 	IF modus_input = 'default' THEN 
 		scenario_id_input = 0;
 	END IF;
+
+	setting_study_area_id = basic.get_reference_study_area(ST_SETSRID(ST_CENTROID(buffer_geom), 4326));
 	
-	excluded_class_id = (basic.select_customization('excluded_class_id_' || transport_mode))::text;
+	excluded_class_id = (basic.select_customization('excluded_class_id_' || transport_mode, setting_study_area_id))::text;
 	excluded_class_id = substr(excluded_class_id, 2, length(excluded_class_id) - 2);
 
-  	filter_categories = replace(basic.select_customization('categories_no_' || category)::TEXT, '"', '''');
+  	filter_categories = replace(basic.select_customization('categories_no_' || category, setting_study_area_id)::TEXT, '"', '''');
 	filter_categories = substr(filter_categories, 2, length(filter_categories) - 2);
 
   	IF transport_mode IN ('cycling','ebike') THEN
-  		time_loss_intersections = basic.select_customization('cycling_crossings_delay');
+  		time_loss_intersections = basic.select_customization('cycling_crossings_delay', setting_study_area_id);
   	END IF;
 	
 	IF routing_profile = 'cycling_pedelec' THEN 

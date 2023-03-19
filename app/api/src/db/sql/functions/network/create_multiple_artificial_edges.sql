@@ -7,14 +7,14 @@ DECLARE
 	buffer_starting_point geometry; 
 	union_buffer_network geometry;
 	point geometry; 
-	snap_distance_network integer := basic.select_customization('snap_distance_network')::integer;
+	snap_distance_network integer;
 	cnt_starting_points integer := 0;
 	length_starting_points integer := array_length(x, 1);
 	max_new_node_id integer := 2147483647;
 	max_new_edge_id integer := 2147483647;
 	current_grid_id text;
+	setting_study_area_id integer;
 BEGIN 
-	
 	/*Prepare temporary tables*/
 	DROP TABLE IF EXISTS artificial_edges; 
 	CREATE TEMP TABLE artificial_edges (
@@ -31,6 +31,9 @@ BEGIN
 		point_geom geometry,
 		grid_id text
 	); 
+	
+	setting_study_area_id = basic.get_reference_study_area(ST_SETSRID(ST_MAKEPOINT(x[1], y[1]), 4326));
+	snap_distance_network = basic.select_customization('snap_distance_network', setting_study_area_id)::integer;
 
 	DROP TABLE IF EXISTS duplicated_artificial_edges; 
 	CREATE TEMP TABLE duplicated_artificial_edges (LIKE artificial_edges); 

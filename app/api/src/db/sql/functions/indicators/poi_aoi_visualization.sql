@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION basic.poi_aoi_visualization(user_id_input integer, scenario_id_input integer, active_upload_ids integer[], active_study_area_id integer)
+CREATE OR REPLACE FUNCTION basic.poi_aoi_visualization(user_id_input integer, scenario_id_input integer, active_upload_ids integer[], active_study_area_id integer, 
+grouped_multi_entrance boolean = FALSE)
 RETURNS TABLE (id integer, uid TEXT, category TEXT, name TEXT, opening_hours TEXT, street TEXT, housenumber TEXT, zipcode TEXT, 
 min_zoom integer, max_zoom integer, edit_type TEXT, geom geometry)
 LANGUAGE plpgsql
@@ -12,12 +13,23 @@ DECLARE
 BEGIN
 	data_upload_poi_categories = basic.poi_categories_data_uploads(user_id_input);
 	active_study_area_id = (SELECT u.active_study_area_id FROM customer.user u WHERE u.id = user_id_input);
-	/*Get combined poi categories*/
-	SELECT array_agg(o.category) 
-	INTO all_poi_categories 
-	FROM basic.active_opportunities(user_id_input, active_study_area_id) o, basic.opportunity_group g 
-	WHERE o.category_group = g.GROUP 
-	AND g.TYPE = 'poi';
+
+	IF grouped_multi_entrance = TRUE THEN 
+		/*Get combined poi categories*/
+		SELECT array_agg(o.category) 
+		INTO all_poi_categories 
+		FROM basic.active_opportunities(user_id_input, active_study_area_id) o, basic.opportunity_group g 
+		WHERE o.category_group = g.GROUP 
+		AND g.TYPE = 'poi'
+		AND multiple_entrance = grouped_multi_entrance;
+	
+	ELSE 
+		SELECT array_agg(o.category) 
+		INTO all_poi_categories 
+		FROM basic.active_opportunities(user_id_input, active_study_area_id) o, basic.opportunity_group g 
+		WHERE o.category_group = g.GROUP 
+		AND g.TYPE = 'poi'; 
+	END IF; 
 
 	/*Prepare AOI categories*/
 	SELECT ARRAY_AGG(o.category) 
