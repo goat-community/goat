@@ -1,39 +1,38 @@
 import os
-from typing import List
 
 import h3
 from shapely import Polygon
 
 from src.core.config import settings
 from src.core.opportunity import Opportunity
-from src.crud.crud_compute_heatmap import CRUDComputeHeatmap
-from src.crud.crud_read_heatmap import CRUDReadHeatmap
+from src.core.heatmap.heatmap_compute import ComputeHeatmap
+from src.core.heatmap.heatmap_read import ReadHeatmap
 from src.db import models
 from src.db.session import legacy_engine
 from src.schemas.data_preparation import (
     OpportunityMatrixParametersSingleBulk,
     TravelTimeMatrixParametersSingleBulk,
 )
-from src.schemas.heatmap import HeatmapSettings
+from src.schemas.heatmap import HeatmapSettings, HeatmapType
 from src.schemas.isochrone import IsochroneMode
 
 
 async def create_traveltime_matrices_async(current_super_user, parameters):
     current_super_user = models.User(**current_super_user)
     parameters = TravelTimeMatrixParametersSingleBulk(**parameters)
-    crud_compute_heatmap = CRUDComputeHeatmap(current_user=current_super_user)
-    calculation_object = await crud_compute_heatmap.create_calculation_object(
+    compute_heatmap = ComputeHeatmap(current_user=current_super_user)
+    calculation_object = await compute_heatmap.create_calculation_object(
         isochrone_dto=parameters.isochrone_dto, bulk_id=parameters.bulk_id
     )
     mode = parameters.isochrone_dto.mode
     if mode == IsochroneMode.TRANSIT or mode == IsochroneMode.CAR:
-        await crud_compute_heatmap.compute_traveltime_motorized_transport(
+        await compute_heatmap.compute_traveltime_motorized_transport(
             parameters.isochrone_dto,
             calculation_object,
             s3_folder=parameters.s3_folder,
         )
     else:
-        await crud_compute_heatmap.compute_traveltime_active_mobility(
+        await compute_heatmap.compute_traveltime_active_mobility(
             parameters.isochrone_dto,
             calculation_object,
             s3_folder=parameters.s3_folder,
@@ -52,10 +51,10 @@ async def create_opportunity_matrices_async(user, parameters):
     scenario_ids = parameters.scenario_ids
     user_data_ids = parameters.user_data_ids
     bulk_id = parameters.bulk_id
-    crud_compute_heatmap = CRUDComputeHeatmap(current_user=user)
+    compute_heatmap = ComputeHeatmap(current_user=user)
     bulk_geom = Polygon(h3.h3_to_geo_boundary(h=bulk_id, geo_json=True))
     opportunity = Opportunity()
-    travel_time_matrices = await crud_compute_heatmap.read_travel_time_matrices(
+    travel_time_matrices = await compute_heatmap.read_travel_time_matrices(
         bulk_id=bulk_id, isochrone_dto=isochrone_dto, s3_folder=parameters.s3_folder
     )
 
@@ -72,7 +71,7 @@ async def create_opportunity_matrices_async(user, parameters):
             )
             if len(opportunities_base) == 0:
                 continue
-            await crud_compute_heatmap.compute_opportunity_matrix(
+            await compute_heatmap.compute_opportunity_matrix(
                 bulk_id,
                 isochrone_dto,
                 opportunity_type,
@@ -92,7 +91,7 @@ async def create_opportunity_matrices_async(user, parameters):
             )
             if len(opportunities_modified) == 0:
                 continue
-            await crud_compute_heatmap.compute_opportunity_matrix(
+            await compute_heatmap.compute_opportunity_matrix(
                 bulk_id,
                 isochrone_dto,
                 opportunity_type,
@@ -112,7 +111,7 @@ async def create_opportunity_matrices_async(user, parameters):
             )
             if len(opportunities_user) == 0:
                 continue
-            await crud_compute_heatmap.compute_opportunity_matrix(
+            await compute_heatmap.compute_opportunity_matrix(
                 bulk_id,
                 isochrone_dto,
                 opportunity_type,
@@ -124,14 +123,47 @@ async def create_opportunity_matrices_async(user, parameters):
 
 
 async def create_connectivity_matrices_async(current_super_user, parameters):
-    crud_compute_heatmap = CRUDComputeHeatmap(current_user=current_super_user)
-    await crud_compute_heatmap.compute_connectivity_matrix(**parameters)
+    compute_heatmap = ComputeHeatmap(current_user=current_super_user)
+    await compute_heatmap.compute_connectivity_matrix(**parameters)
 
 
-async def crud_read_heatmap_async(current_user, heatmap_settings):
+async def read_heatmap_async(current_user, settings):
     current_user = models.User(**current_user)
-    heatmap_settings = HeatmapSettings(**heatmap_settings)
-    crud_read_heatmap = CRUDReadHeatmap(current_user=current_user)
-    heatmap = await crud_read_heatmap.read_heatmap2(heatmap_settings=heatmap_settings)
-    return heatmap
-    
+    settings = HeatmapSettings(**settings)
+    heatmap = ReadHeatmap(current_user=current_user)
+
+    if settings.heatmap_type == HeatmapType.modified_gaussian_population:
+        """
+        This is a special case where we need to call the modified gaussian calculation twice.
+        The first time we calculate the modified gaussian and the second time we calculate the population.
+        We then subtract the population from the modified gaussian to get the difference.
+        todo: This should be refactored in the future to be more generic
+        """
+        # Modified gaussian calculation
+        settings.heatmap_type = HeatmapType.modified_gaussian
+        modified_gausian_result = heatmap.read(settings)
+
+        # Population calculation
+        settings.heatmap_type = HeatmapType.aggregated_data
+        settings.heatmap_config = {"source": "population"}
+        population_result = heatmap.read(settings)
+
+        difference_quantiles = (
+            population_result["aggregated_data_quantiles"] - modified_gausian_result["agg_classes"]
+        )
+
+        result = {
+            "h3_grid_ids": modified_gausian_result["h3_grid_ids"],
+            "h3_polygons": modified_gausian_result["h3_polygons"],
+            "agg_class": modified_gausian_result["agg_classes"],
+            "population_class": population_result["aggregated_data_quantiles"],
+            "difference_class": difference_quantiles,
+        }
+
+    else:
+        result = heatmap.read(settings)
+
+    #todo: Can be extended to other formats in the future based on return type
+    result = heatmap.to_geojson(result)
+
+    return result

@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
-from src.crud.crud_compute_heatmap import CRUDComputeHeatmap
+from src.core.heatmap.heatmap_compute import ComputeHeatmap
 from src.db import models
 from src.endpoints import deps
 from src.schemas import data_preparation as schemas
@@ -52,7 +52,7 @@ async def get_bulk_ids_for_study_area(
     parameters: schemas.BulkIdParameters = Body(..., example=schemas.BulkIdParametersExample)
 ):
 
-    crud_compute_heatmap = CRUDComputeHeatmap(db, current_super_user)
+    crud_compute_heatmap = ComputeHeatmap(db, current_super_user)
     return await crud_compute_heatmap.get_bulk_ids(**parameters.dict())
 
 
