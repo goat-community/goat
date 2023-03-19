@@ -12,7 +12,7 @@ from src.core.config import settings
 from src.db.session import legacy_engine
 from src.core.opportunity import opportunity
 from src.schemas.heatmap import HeatmapMode, HeatmapSettings, HeatmapType
-from src.schemas.isochrone import IsochroneDTO, IsochroneMode
+from src.schemas.isochrone import IsochroneDTO, IsochroneMode, CalculationTypes
 from src.utils import create_h3_grid, print_warning, without_keys
 
 
@@ -130,11 +130,11 @@ class ReadHeatmap(BaseHeatmap):
     ) -> list[dict]:
 
         bulk_ids = self.read_bulk_ids(heatmap_settings.study_area_ids)
-        grids, h_polygons = self.read_hexagons(
+        grid_array, h_polygons = self.read_hexagons(
             heatmap_settings.study_area_ids, heatmap_settings.resolution
         )
         result = {
-            "h3_grid_ids": grids,
+            "h3_grid_ids": grid_array,
             "h3_polygons": h_polygons,
         }
         if heatmap_settings.heatmap_type != HeatmapType.aggregated_data:
@@ -146,7 +146,7 @@ class ReadHeatmap(BaseHeatmap):
             )
             areas = heatmap_cython.sums(connectivity_heatmaps_sorted, uniques)
             areas_reordered = heatmap_cython.reorder_connectivity_heatmaps(
-                uniques[0], areas, grids
+                uniques[0], areas, grid_array
             )
             quantiles = heatmap_core.quantile_classify(areas_reordered)
             result["area"] = areas_reordered
@@ -160,7 +160,7 @@ class ReadHeatmap(BaseHeatmap):
             )
             aggregated_data = heatmap_cython.sums(aggregated_data_heatmaps_sorted, uniques)
             aggregated_data_reordered = heatmap_cython.reorder_connectivity_heatmaps(
-                uniques[0], aggregated_data, grids
+                uniques[0], aggregated_data, grid_array
             )
             quantiles = heatmap_core.quantile_classify(aggregated_data_reordered)
             result[source] = aggregated_data_reordered
@@ -172,72 +172,38 @@ class ReadHeatmap(BaseHeatmap):
             matrix_base_path = os.path.join(
                 settings.OPPORTUNITY_MATRICES_PATH, heatmap_settings.mode.value, profile
             )
-            grid_ids, traveltimes, weights, uids = self.read_opportunity_matrix(
+            grids, traveltimes, weights, uids, relation_sizes = self.read_opportunity_matrix(
                 matrix_base_path=matrix_base_path,
                 bulk_ids=bulk_ids,
                 heatmap_config=heatmap_settings.heatmap_config,
             )
-            if heatmap_settings.scenario.id not in (0, 1):
-                scenario_id = heatmap_settings.scenario.id
-                scenario_matrix_base_path = (
-                    f"{settings.CACHE_PATH}/user/scenario/{scenario_id}/walking/standard"
-                )
-                # list folders in scenario_matrix_base_path
-                bulk_ids = os.listdir(scenario_matrix_base_path)
-                (
-                    grid_ids_scenario,
-                    traveltimes_scenario,
-                    weights_scenario,
-                    uids_scenario,
-                ) = self.read_opportunity_matrix(
-                    matrix_base_path=scenario_matrix_base_path,
-                    bulk_ids=bulk_ids,
-                    heatmap_config=heatmap_settings.heatmap_config,
-                )
-                opportunities_modified = opportunity.read_modified_data(
-                    db=legacy_engine, layer="poi", scenario_id=scenario_id
-                )
-                modified_deleted_uids = opportunities_modified.loc[
-                    opportunities_modified["edit_type"] != "n", "uid"
-                ].tolist()
-                modified_deleted_category = opportunities_modified.loc[
-                    opportunities_modified["edit_type"] != "n", "category"
-                ].unique()
 
-                new_categories = opportunities_modified.loc[
-                    opportunities_modified["edit_type"] == "n", "category"
-                ].unique()
-
-                diff_data = {
-                    "grid_ids": [],
-                    "traveltimes": [],
-                    "weights": [],
-                }
-                for category in modified_deleted_category:
-                    uids_in_category = uids[category]
-                    indexes_diff = ~np.in1d(uids_in_category, modified_deleted_uids)
-                    diff_data["grid_ids"].extend(grid_ids[category][indexes_diff])
-                    diff_data["traveltimes"].extend(traveltimes[category][indexes_diff])
-                    diff_data["weights"].extend(weights[category][indexes_diff])
-
-                for category in new_categories:
-                    diff_data["grid_ids"].extend(grid_ids_scenario[category])
-                    diff_data["traveltimes"].extend(traveltimes_scenario[category])
-                    diff_data["weights"].extend(weights_scenario[category])
-
-            grid_ids = self.convert_grid_ids_to_parent(grid_ids, heatmap_settings.resolution)
-            travel_times_sorted, weights_sorted, uniques = self.sort_and_unique(
-                grid_ids, traveltimes, weights
+            calculations = self.prepare_result(
+                heatmap_settings=heatmap_settings,
+                grids=grids,
+                grid_array=grid_array,
+                traveltimes=traveltimes,
+                weights=weights,
             )
-            calculations = self.do_calculations(
-                travel_times_sorted, weights_sorted, uniques, heatmap_settings
-            )
-            calculations = self.reorder_calculations(calculations, grids, uniques)
-            quantiles = self.create_quantile_arrays(calculations)
+
+            calculations_scenario = None
+            if heatmap_settings.scenario.id not in (0, 1) and heatmap_settings.scenario.modus in [
+                CalculationTypes.comparison,
+                CalculationTypes.scenario,
+            ]:
+                calculations_scenario = self.prepare_result_scenario(
+                    heatmap_settings=heatmap_settings,
+                    grid_ids=grids,
+                    grid_array=grid_array,
+                    traveltimes=traveltimes,
+                    weights=weights,
+                    uids=uids,
+                    relation_sizes=relation_sizes,
+                )
+
+            quantiles = self.create_quantile_arrays(calculations, calculations_scenario)
             agg_classes = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
-
             quantiles = {key + "_class": value for key, value in quantiles.items()}
-
             result = {
                 **result,
                 **calculations,
@@ -336,7 +302,162 @@ class ReadHeatmap(BaseHeatmap):
                 uids_dict[cat] = np.array([], np.str_)
                 relation_sizes_dict[cat] = np.array([], np.int64)
 
-        return grid_ids_dict, travel_times_dict, weight_dict, uids_dict
+        return grid_ids_dict, travel_times_dict, weight_dict, uids_dict, relation_sizes_dict
+
+    def prepare_result_scenario(
+        self,
+        heatmap_settings: HeatmapSettings,
+        uids: dict,
+        relation_sizes: dict,
+        traveltimes: dict,
+        weights: dict,
+        grid_ids: dict,
+        grid_array
+    ):
+        """
+        Filter the opportunity matrix for the scenario
+
+        Parameters
+        ----------
+        heatmap_settings : HeatmapSettings
+            Heatmap settings
+        uids : dict
+            Dictionary with opportunity categories as keys and numpy arrays with uids as values
+        relation_sizes : dict
+            Dictionary with opportunity categories as keys and numpy arrays with relation sizes as values
+        traveltimes : dict
+            Dictionary with opportunity categories as keys and numpy arrays with travel times as values
+        weights : dict
+            Dictionary with opportunity categories as keys and numpy arrays with weights as values
+        grid_ids : dict
+
+        Returns
+        -------
+        dict
+            Return the prepared result for scenario
+
+        """
+
+        scenario_id = heatmap_settings.scenario.id
+        scenario_matrix_base_path = (
+            f"{settings.CACHE_PATH}/user/scenario/{scenario_id}/walking/standard"
+        )
+        opportunities_modified = opportunity.read_modified_data(
+            db=legacy_engine, layer="poi", scenario_id=scenario_id
+        )
+        if opportunities_modified is None:
+            return None
+        not_deleted_features = opportunities_modified.loc[
+            opportunities_modified["edit_type"] != "d", :
+        ]
+
+        if not not_deleted_features.empty:
+            scenario_categories = not_deleted_features["category"].unique()
+            heatmap_config = heatmap_settings.heatmap_config.copy()
+            # Remove categories that are not in the scenario categories
+            for opportunity_type in heatmap_config.keys():
+                heatmap_config[opportunity_type] = [
+                    cat for cat in heatmap_config[opportunity_type] if cat in scenario_categories
+                ]
+            bulk_ids = os.listdir(scenario_matrix_base_path)
+            (
+                grid_ids_scenario,
+                traveltimes_scenario,
+                weights_scenario,
+                uids_scenario,
+                relation_sizes_scenario,
+            ) = self.read_opportunity_matrix(
+                matrix_base_path=scenario_matrix_base_path,
+                bulk_ids=bulk_ids,
+                heatmap_config=heatmap_config,
+            )
+       
+        uids_to_exclude = opportunities_modified.loc[
+            opportunities_modified["edit_type"] != "n", "uid"
+        ].tolist()
+        exclude_from_category = opportunities_modified.loc[
+            opportunities_modified["edit_type"] != "n", "category"
+        ].unique()
+
+        add_to_category = opportunities_modified.loc[
+            opportunities_modified["edit_type"] != "d", "category"
+        ].unique()
+
+        diff_data = {
+            "grid_ids": {},
+            "traveltimes": {},
+            "weights": {},
+            "relation_sizes": {},
+        }
+        for category in exclude_from_category:
+
+            diff_data["grid_ids"][category] = []
+            diff_data["traveltimes"][category] = []
+            diff_data["weights"][category] = []
+            diff_data["relation_sizes"][category] = []
+
+            uids_in_category = uids[category]
+
+            indexes_diff = np.intersect1d(uids_in_category, uids_to_exclude, return_indices=True)[
+                1
+            ]
+            values_to_exclude = []
+            for index_diff in indexes_diff:
+                slice_start = relation_sizes[category][: index_diff].sum()
+                slice_end = slice_start + relation_sizes[category][index_diff]
+                values_to_exclude.extend(np.arange(slice_start, slice_end))
+
+            travel_times_filtered = np.delete(traveltimes[category], values_to_exclude)
+            grid_ids_filtered = np.delete(grid_ids[category], values_to_exclude)
+            weights_filtered = np.delete(weights[category], values_to_exclude)
+            relation_sizes_filtered = np.delete(relation_sizes[category], indexes_diff)
+
+            diff_data["grid_ids"][category].extend(grid_ids_filtered)
+            diff_data["traveltimes"][category].extend(travel_times_filtered)
+            diff_data["weights"][category].extend(weights_filtered)
+            diff_data["relation_sizes"][category].extend(relation_sizes_filtered)
+
+        if not not_deleted_features.empty:
+            for category in add_to_category:
+                diff_data["grid_ids"][category].extend(grid_ids_scenario[category])
+                diff_data["traveltimes"][category].extend(traveltimes_scenario[category])
+                diff_data["weights"][category].extend(weights_scenario[category])
+                diff_data["relation_sizes"][category].extend(relation_sizes_scenario[category])
+
+        for category in diff_data["grid_ids"].keys():
+            diff_data["grid_ids"][category] = np.array(diff_data["grid_ids"][category], np.int64)
+            diff_data["traveltimes"][category] = np.array(diff_data["traveltimes"][category], np.int8)
+            diff_data["weights"][category] = np.array(diff_data["weights"][category], np.float64)
+            diff_data["relation_sizes"][category] = np.array(diff_data["relation_sizes"][category], np.int64)
+
+
+        calculations = self.prepare_result(
+            heatmap_settings=heatmap_settings,
+            grids=diff_data["grid_ids"],
+            grid_array=grid_array,
+            traveltimes=diff_data["traveltimes"],
+            weights=diff_data["weights"],
+        )
+
+        return calculations
+
+    def prepare_result(
+        self,
+        grids,
+        grid_array,
+        heatmap_settings,
+        traveltimes,
+        weights,
+    ):
+        grid_ids = self.convert_grid_ids_to_parent(grids, heatmap_settings.resolution)
+        travel_times_sorted, weights_sorted, uniques = self.sort_and_unique(
+            grid_ids, traveltimes, weights
+        )
+        calculations = self.accessibility_calculation(
+            travel_times_sorted, weights_sorted, uniques, heatmap_settings
+        )
+        calculations = self.reorder_calculations(calculations, grid_array, uniques)
+        return calculations
 
     def read_connectivity_heatmaps_sorted(
         self, bulk_ids: np.ndarray, heatmap_settings: HeatmapSettings, profile: str
@@ -422,7 +543,7 @@ class ReadHeatmap(BaseHeatmap):
             )
         return travel_times_sorted, weights_sorted, unique
 
-    def do_calculations(
+    def accessibility_calculation(
         self, travel_times_sorted: dict, weights_sorted, uniques: dict, heatmap_settings: dict
     ):
         # TODO: find a better name for this function
@@ -502,15 +623,21 @@ class ReadHeatmap(BaseHeatmap):
             calculation_arrays[key][masked_grid_pointer] = calculations[key][mask]
         return calculation_arrays
 
-    def create_quantile_arrays(self, calculations):
+    def create_quantile_arrays(self, calculations_base, calculations_scenario=None):
         """
         Classify each calculation to a quantile
         returns dict[quantile_array]
         """
 
         quantile_arrays = {}
-        for key, calculation in calculations.items():
-            quantile_arrays[key] = heatmap_core.quantile_classify(calculation)
+        for key, calculation_base in calculations_base.items():
+            if calculations_scenario is not None:
+                borders = heatmap_core.quantile_borders(calculation_base, 5)
+                quantile_arrays[key] = heatmap_core.quantile_classify(
+                    calculations_scenario[key], borders, 5
+                )
+            else:
+                quantile_arrays[key] = heatmap_core.quantile_classify(calculation_base, None, 5)
         return quantile_arrays
 
     def reorder_calculations(self, calculations: dict, grids, uniques: dict):

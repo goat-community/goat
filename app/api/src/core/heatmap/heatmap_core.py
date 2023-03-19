@@ -194,42 +194,6 @@ def modified_gaussian_per_grid(travel_times, unique, sensitivity, cutoff, weight
     return modified_gaussian_per_grids
 
 
-def quantile_classify(a, NQ=5):
-    """
-    Classify the array into NQ quantiles.
-    examle:
-    a = np.array([0,0,0,1,1,2,2,2,3,3,3,3])
-    quantile is:
-        array([0,0,0,1,1,2,2,2,3,3,3,3])
-    """
-    if a is None:
-        return None
-    if not a.size:
-        return a.copy()
-
-    a_gt_0 = a > 0
-
-    # Fix for when all values are 0
-    if not sum(a_gt_0):
-        return np.zeros(a.shape, np.int8)
-
-    q = np.arange(1 / NQ, 1, 1 / NQ)
-    quantiles = np.quantile(a[a_gt_0], q)
-    out = np.empty(a.size, np.int8)
-    out[np.where(a == 0)] = 0
-    out[np.where(np.logical_and(np.greater(a, 0), np.less(a, quantiles[0])))] = 1
-    out[np.where(a >= quantiles[-1])] = NQ
-    for i in range(NQ - 2):
-        out[
-            np.where(
-                np.logical_and(np.greater_equal(a, quantiles[i]), np.less(a, quantiles[i + 1]))
-            )
-        ] = (i + 2)
-    out[np.isnan(a)] = 0
-
-    return out
-
-
 def quantile_borders(a, NQ=5):
     """
     Classify the array into NQ quantiles and returns the borders.
@@ -254,7 +218,7 @@ def quantile_borders(a, NQ=5):
 
     return quantiles
 
-def quantile_classify_new(a, borders=None, NQ=5):
+def quantile_classify(a, borders=None, NQ=5):
     """
     Classify the array into NQ quantiles.
     example:
@@ -276,7 +240,7 @@ def quantile_classify_new(a, borders=None, NQ=5):
 
     if borders is None:
         q = np.arange(1 / NQ, 1, 1 / NQ)
-        quantiles = np.quantile(a[greater_zero], q)
+        borders = np.quantile(a[greater_zero], q)
     
     quantiles = borders
     out = np.empty(a.size, np.int8)
@@ -300,7 +264,7 @@ def test_quantile_new():
     b = np.array([2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40])
 
     borders = quantile_borders(a)
-    results = quantile_classify_new(b, borders, 5)
+    results = quantile_classify(b, borders, 5)
     return results
 
 
