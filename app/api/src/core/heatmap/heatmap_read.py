@@ -127,7 +127,6 @@ class BaseHeatmap:
 
 
 class ReadHeatmap(BaseHeatmap):
-
     def read(
         self,
         heatmap_settings: HeatmapSettings,
@@ -181,53 +180,53 @@ class ReadHeatmap(BaseHeatmap):
                 bulk_ids=bulk_ids,
                 heatmap_config=heatmap_settings.heatmap_config,
             )
-            # if heatmap_settings.scenario.id not in (0, 1):
-            #     scenario_id = heatmap_settings.scenario.id
-            #     scenario_matrix_base_path = (
-            #         f"{settings.CACHE_PATH}/user/scenario/{scenario_id}/walking/standard"
-            #     )
-            #     # list folders in scenario_matrix_base_path
-            #     bulk_ids = os.listdir(scenario_matrix_base_path)
-            #     (
-            #         grid_ids_scenario,
-            #         traveltimes_scenario,
-            #         weights_scenario,
-            #         uids_scenario,
-            #     ) = self.read_opportunity_matrix(
-            #         matrix_base_path=scenario_matrix_base_path,
-            #         bulk_ids=bulk_ids,
-            #         heatmap_config=heatmap_settings.heatmap_config,
-            #     )
-            #     opportunities_modified = opportunity.read_modified_data(
-            #         db=legacy_engine, layer="poi", scenario_id=scenario_id
-            #     )
-            #     modified_deleted_uids = opportunities_modified.loc[
-            #         opportunities_modified["edit_type"] != "n", "uid"
-            #     ].tolist()
-            #     modified_deleted_category = opportunities_modified.loc[
-            #         opportunities_modified["edit_type"] != "n", "category"
-            #     ].unique()
+            if heatmap_settings.scenario.id not in (0, 1):
+                scenario_id = heatmap_settings.scenario.id
+                scenario_matrix_base_path = (
+                    f"{settings.CACHE_PATH}/user/scenario/{scenario_id}/walking/standard"
+                )
+                # list folders in scenario_matrix_base_path
+                bulk_ids = os.listdir(scenario_matrix_base_path)
+                (
+                    grid_ids_scenario,
+                    traveltimes_scenario,
+                    weights_scenario,
+                    uids_scenario,
+                ) = self.read_opportunity_matrix(
+                    matrix_base_path=scenario_matrix_base_path,
+                    bulk_ids=bulk_ids,
+                    heatmap_config=heatmap_settings.heatmap_config,
+                )
+                opportunities_modified = opportunity.read_modified_data(
+                    db=legacy_engine, layer="poi", scenario_id=scenario_id
+                )
+                modified_deleted_uids = opportunities_modified.loc[
+                    opportunities_modified["edit_type"] != "n", "uid"
+                ].tolist()
+                modified_deleted_category = opportunities_modified.loc[
+                    opportunities_modified["edit_type"] != "n", "category"
+                ].unique()
 
-            #     new_categories = opportunities_modified.loc[
-            #         opportunities_modified["edit_type"] == "n", "category"
-            #     ].unique()
+                new_categories = opportunities_modified.loc[
+                    opportunities_modified["edit_type"] == "n", "category"
+                ].unique()
 
-            #     diff_data = {
-            #         "grid_ids": [],
-            #         "traveltimes": [],
-            #         "weights": [],
-            #     }
-            #     for category in modified_deleted_category:
-            #         uids_in_category = uids[category]
-            #         indexes_diff = ~np.in1d(uids_in_category, modified_deleted_uids)
-            #         diff_data["grid_ids"].extend(grid_ids[category][indexes_diff])
-            #         diff_data["traveltimes"].extend(traveltimes[category][indexes_diff])
-            #         diff_data["weights"].extend(weights[category][indexes_diff])
+                diff_data = {
+                    "grid_ids": [],
+                    "traveltimes": [],
+                    "weights": [],
+                }
+                for category in modified_deleted_category:
+                    uids_in_category = uids[category]
+                    indexes_diff = ~np.in1d(uids_in_category, modified_deleted_uids)
+                    diff_data["grid_ids"].extend(grid_ids[category][indexes_diff])
+                    diff_data["traveltimes"].extend(traveltimes[category][indexes_diff])
+                    diff_data["weights"].extend(weights[category][indexes_diff])
 
-            #     for category in new_categories:
-            #         diff_data["grid_ids"].extend(grid_ids_scenario[category])
-            #         diff_data["traveltimes"].extend(traveltimes_scenario[category])
-            #         diff_data["weights"].extend(weights_scenario[category])
+                for category in new_categories:
+                    diff_data["grid_ids"].extend(grid_ids_scenario[category])
+                    diff_data["traveltimes"].extend(traveltimes_scenario[category])
+                    diff_data["weights"].extend(weights_scenario[category])
 
             grid_ids = self.convert_grid_ids_to_parent(grid_ids, heatmap_settings.resolution)
             travel_times_sorted, weights_sorted, uniques = self.sort_and_unique(
@@ -240,7 +239,7 @@ class ReadHeatmap(BaseHeatmap):
             quantiles = self.create_quantile_arrays(calculations)
             agg_classes = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
 
-            quantiles = {key+"_class": value for key, value in quantiles.items()}
+            quantiles = {key + "_class": value for key, value in quantiles.items()}
 
             result = {
                 **result,
@@ -248,7 +247,7 @@ class ReadHeatmap(BaseHeatmap):
                 "agg_class": agg_classes,
                 **quantiles,
             }
-            
+
             return result
 
     def read_opportunity_matrix(
@@ -300,17 +299,17 @@ class ReadHeatmap(BaseHeatmap):
                         os.path.join(base_path, "uids.npy"),
                         allow_pickle=True,
                     )
-                    # relation_size = np.load(
-                    #     os.path.join(base_path, "relation_size.npy"),
-                    #     allow_pickle=True,
-                    # )
+                    relation_size = np.load(
+                        os.path.join(base_path, "relation_size.npy"),
+                        allow_pickle=True,
+                    )
                     for cat in opportunity_categories[opportunity_type]:
                         selected_category_index = np.in1d(categories, np.array([cat]))
                         travel_times_dict[cat].extend(travel_times[selected_category_index])
                         grid_ids_dict[cat].extend(grid_ids[selected_category_index])
                         weight_dict[cat].extend(weight[selected_category_index])
                         uids_dict[cat].extend(uid[selected_category_index])
-                        # relation_sizes_dict[cat].extend(relation_size[selected_category_index])
+                        relation_sizes_dict[cat].extend(relation_size[selected_category_index])
 
                 except FileNotFoundError:
                     print(base_path)
@@ -330,15 +329,15 @@ class ReadHeatmap(BaseHeatmap):
                 uids_dict[cat] = np.concatenate(
                     np.concatenate(uids_dict[cat], axis=None), axis=None
                 )
-                # relation_sizes_dict[cat] = np.concatenate(
-                #     np.concatenate(relation_sizes_dict[cat], axis=None), axis=None
-                # )
+                relation_sizes_dict[cat] = np.concatenate(
+                    np.concatenate(relation_sizes_dict[cat], axis=None), axis=None
+                )
             else:
                 grid_ids_dict[cat] = np.array([], np.int64)
                 travel_times_dict[cat] = np.array([], np.int8)
                 weight_dict[cat] = np.array([], np.float64)
                 uids_dict[cat] = np.array([], np.str_)
-                # relation_sizes_dict[cat] = np.array([], np.int64)
+                relation_sizes_dict[cat] = np.array([], np.int64)
 
         return grid_ids_dict, travel_times_dict, weight_dict, uids_dict
 
@@ -528,7 +527,6 @@ class ReadHeatmap(BaseHeatmap):
         calculations = self.create_calculation_arrays(grids, grid_pointer, calculations)
         return calculations
 
-
     def to_geojson(
         self,
         results: dict,
@@ -546,8 +544,8 @@ class ReadHeatmap(BaseHeatmap):
         geojson : dict
         """
         if "h3_grid_ids" not in results or "h3_polygons" not in results:
-            raise ValueError("h3_grid_ids and h3_polygons are required keys")  
-    
+            raise ValueError("h3_grid_ids and h3_polygons are required keys")
+
         h3_grid_ids = results["h3_grid_ids"]
         h3_polygons = results["h3_polygons"]
         properties = without_keys(results, ["h3_grid_ids", "h3_polygons"])
@@ -570,10 +568,7 @@ class ReadHeatmap(BaseHeatmap):
             features.append(
                 {
                     "type": "Feature",
-                    "properties": {
-                        "id": int(h3_grid_id),
-                        **properties_
-                    },
+                    "properties": {"id": int(h3_grid_id), **properties_},
                     "geometry": {
                         "type": "Polygon",
                         "coordinates": [h3_polygon.tolist()],
@@ -582,5 +577,6 @@ class ReadHeatmap(BaseHeatmap):
             )
         geojson = {"type": "FeatureCollection", "features": features}
         return geojson
+
 
 read_heatmap = ReadHeatmap
