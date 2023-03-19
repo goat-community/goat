@@ -1,7 +1,6 @@
 from ._base_class import Base
 from ._link_model import (
     StudyAreaGeostore,
-    StudyAreaGridVisualization,
     UserRole,
     UserStudyArea,
 )
@@ -11,12 +10,6 @@ from .customization import Customization, CustomizationBase, UserCustomization
 from .data_upload import DataUpload
 from .edge import Edge, EdgeBase, WayModified
 from .geostore import Geostore
-from .grid import GridCalculation, GridVisualization
-from .heatmap import (
-    ReachedEdgeFullHeatmap,
-    ReachedEdgeHeatmapGridCalculation,
-    ReachedPoiHeatmap,
-)
 from .isochrone import IsochroneCalculation
 from .layer_library import LayerLibrary, LayerSource, StyleLibrary
 from .node import Node
@@ -34,5 +27,4 @@ from .scenario import Scenario
 from .static_layer import StaticLayer
 from .study_area import StudyArea, SubStudyArea
 from .system import System
-from .traveltime_matrix import TravelTimeMatrixWalking
 from .user import User, UserBase

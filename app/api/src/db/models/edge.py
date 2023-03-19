@@ -22,7 +22,6 @@ from sqlmodel import (
 )
 
 if TYPE_CHECKING:
-    from .heatmap import ReachedEdgeHeatmap
     from .isochrone import IsochroneEdge
     from .node import Node
     from .scenario import Scenario

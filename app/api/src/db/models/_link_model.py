@@ -12,22 +12,6 @@ from sqlmodel import (
     text,
 )
 
-class StudyAreaGridVisualization(SQLModel, table=True):
-    __tablename__ = "study_area_grid_visualization"
-    __table_args__ = {"schema": "basic"}
-
-    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
-    study_area_id: int = Field(
-        sa_column=Column(Integer, ForeignKey("basic.study_area.id", ondelete="CASCADE"), nullable=False, index=True)
-    )
-    grid_visualization_id: int = Field(
-        sa_column=Column(
-            BigInteger,
-            ForeignKey("basic.grid_visualization.id", ondelete="CASCADE"),
-            nullable=False,
-        )
-    )
-
 class UserRole(SQLModel, table=True):
     __tablename__ = "user_role"
     __table_args__ = {"schema": "customer"}

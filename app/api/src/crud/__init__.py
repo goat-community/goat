@@ -19,6 +19,6 @@ from .crud_static_layer import static_layer
 from .crud_study_area import study_area
 from .crud_study_area_geostore import study_area_geostore
 from .crud_system import system
-from .crud_traveltime_matrix import traveltime_matrix_walking
 from .crud_upload import data_upload, upload
 from .crud_user import user
+from .crud_scenario import scenario
