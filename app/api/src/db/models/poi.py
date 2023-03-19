@@ -19,7 +19,6 @@ from sqlmodel import (
 from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
     from .data_upload import DataUpload
-    from .heatmap import ReachedPoiHeatmap
     from .scenario import Scenario
 
 

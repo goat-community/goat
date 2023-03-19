@@ -18,14 +18,13 @@ from sqlmodel import (
 from src.db.models import data_upload
 
 if TYPE_CHECKING:
-    from .grid import GridVisualization
     from .user import User
     from .customization import UserCustomization
     from .data_upload import DataUpload
     from .opportunity_config import OpportunityStudyAreaConfig, OpportunityUserConfig
     from .geostore import Geostore
 
-from ._link_model import StudyAreaGridVisualization, UserStudyArea, StudyAreaGeostore
+from ._link_model import UserStudyArea, StudyAreaGeostore
 from ._pydantic_geometry import dump_geom
 
 
@@ -50,12 +49,8 @@ class StudyArea(SQLModel, table=True):
             nullable=False,
         )
     )
-    grid_visualizations: List["GridVisualization"] = Relationship(
-        back_populates="study_areas", link_model=StudyAreaGridVisualization
-    )
     sub_study_areas: List["SubStudyArea"] = Relationship(back_populates="study_area")
     users: List["User"] = Relationship(back_populates="study_areas", link_model=UserStudyArea)
-    # users_active: List["User"] = Relationship(back_populates="active_study_area")
     user_customizations: List["UserCustomization"] = Relationship(back_populates="study_areas")
     data_uploads: List["DataUpload"] = Relationship(back_populates="study_area")
     opportunity_study_area_configs: List["OpportunityStudyAreaConfig"] = Relationship(back_populates="study_area")
