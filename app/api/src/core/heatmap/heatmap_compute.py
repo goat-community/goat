@@ -20,7 +20,7 @@ from rich import print
 from shapely.geometry import Point, Polygon, box
 from sqlalchemy.sql.functions import func
 
-from src import crud, schemas
+from src.crud.crud_isochrone import isochrone
 from src.core.heatmap import heatmap_core_cython as heatmap_cython
 from src.core.config import settings
 from src.core.heatmap.heatmap_core import save_traveltime_matrix
@@ -36,6 +36,7 @@ from src.schemas.isochrone import (
     IsochroneDTO,
     IsochroneMode,
     IsochroneStartingPointCoord,
+    IsochroneTypeEnum,
     R5TravelTimePayloadTemplate,
 )
 from src.utils import (
@@ -643,11 +644,11 @@ class ComputeHeatmap(BaseHeatmap):
         isochrone_dto.starting_point.input = starting_point_objs
         # Read network
         db = async_session()
-        network = await crud.isochrone.read_network(
+        network = await isochrone.read_network(
             db=db,
             obj_in=isochrone_dto,
             current_user=self.current_user,
-            isochrone_type=schemas.isochrone.IsochroneTypeEnum.heatmap.value,
+            isochrone_type=IsochroneTypeEnum.heatmap.value,
             table_prefix=random_table_prefix,
         )
         await db.close()

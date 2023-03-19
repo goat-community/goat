@@ -2,7 +2,7 @@ import asyncio
 
 from src.workers.celery_app import celery_app
 
-from .method_connector import (
+from src.workers.method_connector import (
     create_connectivity_matrices_async,
     create_opportunity_matrices_async,
     create_traveltime_matrices_async,

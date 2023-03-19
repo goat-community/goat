@@ -2,13 +2,10 @@ import pyximport
 
 pyximport.install()
 import os
-import time
 
 import geopandas as gpd
-import h3
 import numpy as np
 from rich import print
-from shapely.geometry import Polygon
 
 from src.core.heatmap import heatmap_core, heatmap_core_cython as heatmap_cython
 from src.core.config import settings
