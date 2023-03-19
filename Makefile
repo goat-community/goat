@@ -24,7 +24,6 @@ ifeq ($(NAMESPACE), staging)
 	DOMAIN=goat-test.plan4better.de
 endif
 
-
 ifeq ($(NAMESPACE), dev)
 	DOMAIN=goat-dev.plan4better.de
 endif
