@@ -394,12 +394,16 @@ class ReadHeatmap(BaseHeatmap):
 
         if not not_deleted_features.empty:
             scenario_categories = not_deleted_features["category"].unique()
-            heatmap_config = heatmap_settings.heatmap_config.copy()
+            heatmap_config = {}
             # Remove categories that are not in the scenario categories
-            for opportunity_type in heatmap_config.keys():
-                heatmap_config[opportunity_type] = [
-                    cat for cat in heatmap_config[opportunity_type] if cat in scenario_categories
-                ]
+            for opportunity_type in heatmap_settings.heatmap_config.keys():
+                heatmap_config[opportunity_type] = {}
+                for category in heatmap_settings.heatmap_config[opportunity_type].keys():
+                    if category in scenario_categories:
+                        heatmap_config[opportunity_type][
+                            category
+                        ] = heatmap_settings.heatmap_config[opportunity_type][category]
+
             bulk_ids = os.listdir(scenario_matrix_base_path)
             (
                 grid_ids_scenario,
@@ -430,13 +434,14 @@ class ReadHeatmap(BaseHeatmap):
             "weights": {},
             "relation_sizes": {},
         }
-        for category in exclude_from_category:
 
+        for category in opportunities_modified["category"].unique().tolist():
             diff_data["grid_ids"][category] = []
             diff_data["traveltimes"][category] = []
             diff_data["weights"][category] = []
             diff_data["relation_sizes"][category] = []
-
+            
+        for category in exclude_from_category:
             uids_in_category = uids[category]
 
             indexes_diff = np.intersect1d(uids_in_category, uids_to_exclude, return_indices=True)[
@@ -565,6 +570,8 @@ class ReadHeatmap(BaseHeatmap):
             weight_agg += categories[key].get("weight", 1)
 
         agg_class = np.array(weighted_quantiles).sum(axis=0) / weight_agg
+        if not isinstance(agg_class, np.ndarray) and np.isnan(agg_class):
+            agg_class = []
         return agg_class
 
     def sort_and_unique(self, grid_ids: dict, traveltimes: dict, weights: dict):
@@ -742,6 +749,8 @@ class ReadHeatmap(BaseHeatmap):
 
             properties_ = {}
             for key, arr in properties.items():
+                if i >= len(arr):
+                    continue
                 value = arr[i]
                 if arr.dtype.kind in ["U"]:
                     properties_[key] = value
