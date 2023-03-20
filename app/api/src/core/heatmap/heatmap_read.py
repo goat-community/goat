@@ -392,14 +392,19 @@ class ReadHeatmap(BaseHeatmap):
             opportunities_modified["edit_type"] != "d", :
         ]
 
+        heatmap_settings_scenario = heatmap_settings.copy()
+        heatmap_settings_scenario.heatmap_config = {}
         if not not_deleted_features.empty:
             scenario_categories = not_deleted_features["category"].unique()
-            heatmap_config = heatmap_settings.heatmap_config.copy()
             # Remove categories that are not in the scenario categories
-            for opportunity_type in heatmap_config.keys():
-                heatmap_config[opportunity_type] = [
-                    cat for cat in heatmap_config[opportunity_type] if cat in scenario_categories
-                ]
+            for opportunity_type in heatmap_settings.heatmap_config.keys():
+                heatmap_settings_scenario.heatmap_config[opportunity_type] = {}
+                for category in heatmap_settings.heatmap_config[opportunity_type].keys():
+                    if category in scenario_categories:
+                        heatmap_settings_scenario.heatmap_config[opportunity_type][
+                            category
+                        ] = heatmap_settings.heatmap_config[opportunity_type][category]
+
             bulk_ids = os.listdir(scenario_matrix_base_path)
             (
                 grid_ids_scenario,
@@ -410,7 +415,7 @@ class ReadHeatmap(BaseHeatmap):
             ) = self.read_opportunity_matrix(
                 matrix_base_path=scenario_matrix_base_path,
                 bulk_ids=bulk_ids,
-                heatmap_config=heatmap_config,
+                heatmap_config=heatmap_settings_scenario.heatmap_config,
             )
 
         uids_to_exclude = opportunities_modified.loc[
@@ -430,13 +435,17 @@ class ReadHeatmap(BaseHeatmap):
             "weights": {},
             "relation_sizes": {},
         }
-        for category in exclude_from_category:
 
+        for category in opportunities_modified["category"].unique().tolist():
             diff_data["grid_ids"][category] = []
             diff_data["traveltimes"][category] = []
             diff_data["weights"][category] = []
             diff_data["relation_sizes"][category] = []
 
+        uid_keys = list(uids.keys())
+        for category in exclude_from_category:
+            if category not in uid_keys:
+                continue
             uids_in_category = uids[category]
 
             indexes_diff = np.intersect1d(uids_in_category, uids_to_exclude, return_indices=True)[
@@ -460,6 +469,8 @@ class ReadHeatmap(BaseHeatmap):
 
         if not not_deleted_features.empty:
             for category in add_to_category:
+                if grid_ids_scenario.get(category) is None:
+                    continue
                 diff_data["grid_ids"][category].extend(grid_ids_scenario[category])
                 diff_data["traveltimes"][category].extend(traveltimes_scenario[category])
                 diff_data["weights"][category].extend(weights_scenario[category])
@@ -476,7 +487,7 @@ class ReadHeatmap(BaseHeatmap):
             )
 
         calculations = self.prepare_result(
-            heatmap_settings=heatmap_settings,
+            heatmap_settings=heatmap_settings_scenario,
             grids=diff_data["grid_ids"],
             grid_array=grid_array,
             traveltimes=diff_data["traveltimes"],
@@ -565,6 +576,8 @@ class ReadHeatmap(BaseHeatmap):
             weight_agg += categories[key].get("weight", 1)
 
         agg_class = np.array(weighted_quantiles).sum(axis=0) / weight_agg
+        if not isinstance(agg_class, np.ndarray) and np.isnan(agg_class):
+            agg_class = []
         return agg_class
 
     def sort_and_unique(self, grid_ids: dict, traveltimes: dict, weights: dict):
@@ -682,9 +695,12 @@ class ReadHeatmap(BaseHeatmap):
 
             if calculations_scenario is not None:
                 borders = heatmap_core.quantile_borders(calculation_base, 5)
-                quantile_arrays_scenario[key] = heatmap_core.quantile_classify(
-                    calculations_scenario[key], borders, 5
-                )
+                if calculations_scenario.get(key) is None:
+                    quantile_arrays_scenario[key] = quantile_arrays_base[key].copy()
+                else:
+                    quantile_arrays_scenario[key] = heatmap_core.quantile_classify(
+                        calculations_scenario[key], borders, 5
+                    )
 
             if modus == CalculationTypes.comparison:
                 if key not in quantile_arrays_scenario or key not in quantile_arrays_base:
@@ -742,6 +758,8 @@ class ReadHeatmap(BaseHeatmap):
 
             properties_ = {}
             for key, arr in properties.items():
+                if i >= len(arr):
+                    continue
                 value = arr[i]
                 if arr.dtype.kind in ["U"]:
                     properties_[key] = value
