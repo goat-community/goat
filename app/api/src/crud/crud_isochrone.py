@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 import pyproj
 import requests
-from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from geopandas import GeoDataFrame, GeoSeries, clip, read_postgis
@@ -355,7 +354,7 @@ class CRUDIsochrone:
         return starting_points
 
     def calculate(
-        self, db: AsyncSession, obj_in: IsochroneDTO, current_user: models.User, study_area
+        self, db: AsyncSession, obj_in: IsochroneDTO, current_user: models.User, study_area_bounds
     ) -> Any:
         """
         Calculate the isochrone for a given location and time
@@ -392,7 +391,6 @@ class CRUDIsochrone:
             payload["egressModes"] = obj_in.settings.egress_mode.value.upper()
             payload["fromLat"] = obj_in.starting_point.input[0].lat
             payload["fromLon"] = obj_in.starting_point.input[0].lon
-            study_area_bounds = study_area["bounds"]
             payload["bounds"] = {
                 "north": study_area_bounds[3],
                 "south": study_area_bounds[1],
@@ -522,7 +520,7 @@ class CRUDIsochrone:
 
                 grid["accessibility"] = dict(opportunities)
             grid_encoded = encode_r5_grid(grid)
-            result = Response(bytes(grid_encoded))
+            result = grid_encoded
         else:
             result = network
         return result
