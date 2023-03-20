@@ -1,18 +1,18 @@
-import asyncio
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, UploadFile
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from src import crud, schemas
+from src import schemas
+from src.crud.crud_scenario import scenario as crud_scenario
 from src.db import models
 from src.endpoints import deps
 from src.resources.enums import ReturnType
 from src.schemas.msg import Msg
-from src.schemas.scenario import request_examples, scenario_deleted_columns
+from src.schemas.scenario import ScenarioWithBrokenField, request_examples
 from src.utils import return_geojson_or_geobuf, to_feature_collection
 
 router = APIRouter()
@@ -47,11 +47,11 @@ async def create_scenario(
         user_id=current_user.id,
         study_area_id=current_user.active_study_area_id,
     )
-    result = await crud.scenario.create(db=db, obj_in=obj_scenario)
+    result = await crud_scenario.create(db=db, obj_in=obj_scenario)
     return result
 
 
-@router.get("", response_model=List[models.Scenario])
+@router.get("", response_model=List[ScenarioWithBrokenField])
 async def get_scenarios(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -60,10 +60,17 @@ async def get_scenarios(
     """
     Get all scenarios.
     """
-    result = await crud.scenario.get_by_multi_keys(
+    # TODO: Check if the scenarios have outdated features in the table poi_modified, way_modified and building_modified
+
+    result = await crud_scenario.get_by_multi_keys(
         db=db,
         keys={"user_id": current_user.id, "study_area_id": current_user.active_study_area_id},
     )
+    for index, r in enumerate(result):
+        broken = await crud_scenario.is_scenario_broken(db, r.id)
+        r = ScenarioWithBrokenField.parse_obj(r)
+        r.broken = broken
+        result[index] = r
     return result
 
 
@@ -78,11 +85,11 @@ async def update_scenario(
     """
     Update scenario.
     """
-    scenario = await crud.scenario.get_by_multi_keys(
+    scenario = await crud_scenario.get_by_multi_keys(
         db, keys={"id": scenario_id, "user_id": current_user.id}
     )
     if len(scenario) > 0:
-        result = await crud.scenario.update(db=db, db_obj=scenario[0], obj_in=scenario_in)
+        result = await crud_scenario.update(db=db, db_obj=scenario[0], obj_in=scenario_in)
         return result
     else:
         raise HTTPException(status_code=400, detail="Scenario not found")
@@ -98,28 +105,8 @@ async def delete_scenario(
     """
     Delete scenario.
     """
-    return await crud.scenario.remove_multi_by_id_and_userid(db, ids=id, user_id=current_user.id)
-
-
-@router.get("/{scenario_id}/upload", response_model=Msg)
-async def upload_scenario_changes(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
-    scenario_id: int,
-):
-    """
-    Upload scenario changes.
-    """
-    scenario = await crud.scenario.get_by_multi_keys(
-        db, keys={"id": scenario_id, "user_id": current_user.id}
-    )
-    if len(scenario) > 0:
-        # TODO: Call network modification function
-        await asyncio.sleep(5)
-        return {"msg": "Scenario changes uploaded."}
-    else:
-        raise HTTPException(status_code=400, detail="Scenario not found")
+    result = await crud_scenario.remove_multi_by_id_and_userid(db, ids=id, user_id=current_user.id)
+    return
 
 
 # ------------------------Scenario Layers (_modified tables)---------------------------
@@ -151,13 +138,13 @@ async def read_scenario_features(
     """
     Get features from scenario layers (default or modified).
     """
-    scenario = await crud.scenario.get_by_multi_keys(
+    scenario = await crud_scenario.get_by_multi_keys(
         db, keys={"id": scenario_id, "user_id": current_user.id}
     )
     if len(scenario) == 0:
         raise HTTPException(status_code=400, detail="Scenario not found")
 
-    result = await crud.scenario.read_scenario_features(
+    result = await crud_scenario.read_scenario_features(
         db, current_user, scenario_id, layer_name, intersect
     )
     features = to_feature_collection(
@@ -186,13 +173,13 @@ async def delete_scenario_features(
     """
     Delete all features from scenario layers. This endpoint is used to delete features in "modified" tables.
     """
-    scenario = await crud.scenario.get_by_multi_keys(
+    scenario = await crud_scenario.get_by_multi_keys(
         db, keys={"id": scenario_id, "user_id": current_user.id}
     )
     if len(scenario) == 0:
         raise HTTPException(status_code=400, detail="Scenario not found")
 
-    result = await crud.scenario.delete_scenario_features(
+    result = await crud_scenario.delete_scenario_features(
         db, current_user, scenario_id, layer_name
     )
     return result
@@ -220,13 +207,13 @@ async def delete_selected_scenario_feature(
     """
     Delete specific features from scenario layer. This endpoint is used to delete feature in "modified" tables.
     """
-    scenario = await crud.scenario.get_by_multi_keys(
+    scenario = await crud_scenario.get_by_multi_keys(
         db, keys={"id": scenario_id, "user_id": current_user.id}
     )
     if len(scenario) == 0:
         raise HTTPException(status_code=400, detail="Scenario not found")
     else:
-        result = await crud.scenario.delete_scenario_feature(
+        result = await scenario.delete_scenario_feature(
             db, current_user, scenario_id, layer_name, id
         )
         return result
@@ -256,13 +243,13 @@ async def create_scenario_features(
     """
     Create feature in scenario layer. This endpoint is used to create features in "modified" tables.
     """
-    scenario = await crud.scenario.get_by_multi_keys(
+    scenario = await crud_scenario.get_by_multi_keys(
         db, keys={"id": scenario_id, "user_id": current_user.id}
     )
     if len(scenario) == 0:
         raise HTTPException(status_code=400, detail="Scenario not found")
     else:
-        result = await crud.scenario.create_scenario_features(
+        result = await crud_scenario.create_scenario_features(
             db, current_user, scenario_id, layer_name, features_in
         )
         features = to_feature_collection(
@@ -295,13 +282,13 @@ async def update_scenario_features(
     """
     Update feature in scenario layer. This endpoint is used to update features in "modified" tables.
     """
-    scenario = await crud.scenario.get_by_multi_keys(
+    scenario = await crud_scenario.get_by_multi_keys(
         db, keys={"id": scenario_id, "user_id": current_user.id}
     )
     if len(scenario) == 0:
         raise HTTPException(status_code=400, detail="Scenario not found")
     else:
-        result = await crud.scenario.update_scenario_features(
+        result = await crud_scenario.update_scenario_features(
             db, current_user, scenario_id, layer_name, features_in
         )
         features = to_feature_collection(

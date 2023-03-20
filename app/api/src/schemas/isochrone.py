@@ -1,15 +1,9 @@
 from curses.ascii import HT
-from enum import Enum, IntEnum
-from typing import Dict, List, Optional, Union
+from enum import Enum
+from typing import List, Optional, Union
 
 from bson import STANDARD
-from fastapi import HTTPException
-from geojson_pydantic.features import Feature, FeatureCollection
-from geojson_pydantic.geometries import MultiPolygon, Polygon
-from pydantic import BaseModel, Field, root_validator, validator
-
-from src.endpoints import deps
-from src.resources.enums import RoutingTypes
+from pydantic import BaseModel, Field, root_validator
 
 """
 Body of the request
@@ -20,65 +14,6 @@ class IsochroneTypeEnum(str, Enum):
     single = "single_isochrone"
     multi = "multi_isochrone"
     heatmap = "heatmap"
-
-
-class IsochroneBase(BaseModel):
-    user_id: Optional[int]
-    scenario_id: Optional[int] = 0
-    minutes: int
-    speed: float
-    modus: str
-    n: int
-    routing_profile: str
-    active_upload_ids: Optional[List[int]] = [0]
-
-    @root_validator
-    def compute_values(cls, values):
-        """Compute values."""
-        # convert minutes to seconds (max_cutoff is in seconds)
-        values["max_cutoff"] = values["minutes"] * 60
-
-        return values
-
-    @validator("routing_profile")
-    def check_routing_profile(cls, v):
-        if v not in RoutingTypes._value2member_map_:
-            raise HTTPException(status_code=400, detail="Invalid routing profile.")
-        return v
-
-    @validator("modus")
-    def check_modus(cls, v):
-        if v not in CalculationTypes._value2member_map_:
-            raise HTTPException(status_code=400, detail="Invalid calculation modus.")
-        return v
-
-
-class IsochroneSingle(IsochroneBase):
-    x: float
-    y: float
-
-
-class IsochroneMulti(IsochroneBase):
-    x: list[float]
-    y: list[float]
-
-
-class IsochronePoiMulti(IsochroneBase):
-    region_type: str
-    region: List[str]
-    amenities: List[str]
-
-    @root_validator
-    def define_study_area_ids(cls, values):
-        if values["region_type"] == "study_area":
-            values["study_area_ids"] = [int(integer_string) for integer_string in values["region"]]
-            values["region_geom"] = None
-        elif values["region_type"] == "draw":
-            values["study_area_ids"] = None
-            values["region_geom"] = values["region"][0]
-        else:
-            raise HTTPException(status_code=400, detail="Invalid region type")
-        return values
 
 
 class IsochroneMultiCountPois(BaseModel):
@@ -93,22 +28,12 @@ class IsochroneMultiCountPois(BaseModel):
     active_upload_ids: Optional[List[int]] = [0]
 
 
-class IsochroneMultiCountPoisProperties(BaseModel):
-    gid: int
-    count_pois: int
-    region_name: str
-
-
-class IsochroneMultiCountPoisFeature(Feature):
-    geometry: Union[Polygon, MultiPolygon]
-    properties: IsochroneMultiCountPoisProperties
-
-
 class CalculationTypes(str, Enum):
     """Calculation types for isochrone."""
 
     default = "default"
     scenario = "scenario"
+    comparison = "comparison"
 
 
 class IsochroneMode(Enum):
@@ -216,7 +141,7 @@ class IsochroneSettings(BaseModel):
             IsochroneTransitMode.SUBWAY.value,
             IsochroneTransitMode.RAIL.value,
         ],
-        description="(PT) Transit modes",
+        description="Public Transport modes",
         unique_items=True,
     )
     access_mode: Optional[IsochroneAccessMode] = Field(
@@ -308,7 +233,7 @@ class IsochroneDTO(BaseModel):
         },
         description="Isochrone scenario parameters. Only supported for Walking and Cycling Isochrones",
     )
-    starting_point: IsochroneStartingPoint = Field(
+    starting_point: Optional[IsochroneStartingPoint] = Field(
         ...,
         description="Isochrone starting points. If multiple starting points are specified, the isochrone is considered a multi-isochrone calculation. **Multi-Isochrone Only works for Walking and Cycling Isochrones**. Alternatively, amenities can be used to specify the starting points for multi-isochrones.",
     )
@@ -330,11 +255,11 @@ class IsochroneDTO(BaseModel):
         # Validation check on grid resolution and number of steps for geojson for walking and cycling isochrones
         if (
             values["output"].type.value == IsochroneOutputType.GRID.value
-            and values["output"].resolution not in [9, 10, 11, 12, 13, 14]
+            and values["output"].resolution not in [9, 10, 11, 12]
             and values["mode"].value
             in [
                 IsochroneAccessMode.WALK.value,
-                IsochroneAccessMode.CYCLE.value,
+                IsochroneAccessMode.BICYCLE.value,
             ]
         ):
 
@@ -361,10 +286,15 @@ class IsochroneDTO(BaseModel):
             raise ValueError("Step must be between 1 and 6")
 
         # Don't allow multi-isochrone calculation for PT and Car Isochrone
-        if len(values["starting_point"].input) > 1 and values["mode"].value in [
-            IsochroneMode.TRANSIT.value,
-            IsochroneMode.CAR.value,
-        ]:
+        if (
+            values["starting_point"]
+            and len(values["starting_point"].input) > 1
+            and values["mode"].value
+            in [
+                IsochroneMode.TRANSIT.value,
+                IsochroneMode.CAR.value,
+            ]
+        ):
             raise ValueError("Multi-Isochrone is not supported for Transit and Car")
 
         # For walking and cycling travel time maximumn should be 20 minutes and speed to m/s
@@ -373,8 +303,8 @@ class IsochroneDTO(BaseModel):
                 raise ValueError(
                     "Travel time maximum for walking and cycling should be less or equal to 25 minutes"
                 )
-            if values["settings"].speed:
-                values["settings"].speed = values["settings"].speed / 3.6
+            # if values["settings"].speed:
+            #     values["settings"].speed = values["settings"].speed / 3.6
 
         # For PT and Car Isochrone starting point should be only lat lon coordinates and not amenities, travel time smaller than 120 minutes
         if values["mode"].value in [
@@ -399,16 +329,66 @@ class IsochroneDTO(BaseModel):
             if values["settings"].from_time > values["settings"].to_time:
                 raise ValueError("Start time should be smaller than end time")
 
-            # convert bike speed to m/s
-            values["settings"].bike_speed = values["settings"].bike_speed / 3.6
-            # convert walk speed to m/s
-            values["settings"].walk_speed = values["settings"].walk_speed / 3.6
+            # # convert bike speed to m/s
+            # values["settings"].bike_speed = values["settings"].bike_speed / 3.6
+            # # convert walk speed to m/s
+            # values["settings"].walk_speed = values["settings"].walk_speed / 3.6
 
         # If starting-point input length is more than 1 then it should be multi-isochrone and region should be specified
         if len(values["starting_point"].input) > 1 and len(values["starting_point"].region) == 0:
             raise ValueError("Region is not specified for multi-isochrone")
 
         return values
+
+# R5
+R5AvailableDates = {
+    0: "2022-05-16",
+    1: "2022-05-17",
+    2: "2022-05-18",
+    3: "2022-05-19",
+    4: "2022-05-20",
+    5: "2022-05-21",
+    6: "2022-05-22",
+}
+
+R5ProjectID = "630c0014aad8682ef8461b44"
+
+R5TravelTimePayloadTemplate = {
+    "accessModes": "WALK",
+    "transitModes": "BUS,TRAM,SUBWAY,RAIL",
+    "bikeSpeed": 4.166666666666667,
+    "walkSpeed": 1.39,
+    "bikeTrafficStress": 4,
+    "date": "2022-05-16",
+    "fromTime": 25200,  # 7 AM
+    "toTime": 39600,  # 9 AM
+    "maxTripDurationMinutes": 120,
+    "decayFunction": {
+        "type": "logistic",
+        "standard_deviation_minutes": 12,
+        "width_minutes": 10,
+    },
+    "destinationPointSetIds": [],
+    "bounds": {
+        "north": 48.27059464660387,
+        "south": 48.03915718648435,
+        "east": 11.327192290815145,
+        "west": 11.756388821971976,
+    },
+    "directModes": "WALK",
+    "egressModes": "WALK",
+    "fromLat": 48.1502132,
+    "fromLon": 11.5696284,
+    "zoom": 9,
+    "maxBikeTime": 20,
+    "maxRides": 4,
+    "maxWalkTime": 20,
+    "monteCarloDraws": 200,
+    "percentiles": [5, 25, 50, 75, 95],
+    "variantIndex": -1,
+    "workerVersion": "v6.4",
+    "projectId": "630c0014aad8682ef8461b44",
+}
 
 
 request_examples = {
@@ -428,7 +408,7 @@ request_examples = {
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
                     "type": "grid",
-                    "steps": "12",
+                    "resolution": "12",
                 },
             },
         },

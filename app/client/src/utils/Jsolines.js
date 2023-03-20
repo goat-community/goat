@@ -37,7 +37,8 @@ export function jsolines({
   project,
   interpolation = true,
   surface,
-  width
+  width,
+  excludeHoles = false // Don't include holes in the output
 }) {
   // First, create the contour grid.
   const contour = getContour({ surface, width, height, cutoff });
@@ -162,29 +163,33 @@ export function jsolines({
   }
 
   // Shell game time. Sort out shells and holes.
-  holes.forEach(hole => {
-    // Only accept holes that are at least 2-dimensional.
-    const vertices = Object.keys(
-      hole.geometry.coordinates[0].reduce((unique, [lat, lng]) => {
-        unique[`${lat}-${lng}`] = null;
-        return unique;
-      }, {})
-    );
+  if (excludeHoles === false) {
+    holes.forEach(hole => {
+      // Only accept holes that are at least 2-dimensional.
+      const vertices = Object.keys(
+        hole.geometry.coordinates[0].reduce((unique, [lat, lng]) => {
+          unique[`${lat}-${lng}`] = null;
+          return unique;
+        }, {})
+      );
 
-    if (vertices.length >= 3) {
-      // NB this is checking whether the first coordinate of the hole is inside
-      // the shell. This is sufficient as shells don't overlap, and holes are
-      // guaranteed to be completely contained by a single shell.
-      const holePoint = point(hole.geometry.coordinates[0][0]);
-      const containingShell = shells.find(shell => inside(holePoint, shell));
+      if (vertices.length >= 3) {
+        // NB this is checking whether the first coordinate of the hole is inside
+        // the shell. This is sufficient as shells don't overlap, and holes are
+        // guaranteed to be completely contained by a single shell.
+        const holePoint = point(hole.geometry.coordinates[0][0]);
+        const containingShell = shells.find(shell => inside(holePoint, shell));
 
-      if (containingShell) {
-        containingShell.geometry.coordinates.push(hole.geometry.coordinates[0]);
-      } else {
-        logError("Did not find fitting shell for hole");
+        if (containingShell) {
+          containingShell.geometry.coordinates.push(
+            hole.geometry.coordinates[0]
+          );
+        } else {
+          logError("Did not find fitting shell for hole");
+        }
       }
-    }
-  });
+    });
+  }
 
   return {
     type: "Feature",

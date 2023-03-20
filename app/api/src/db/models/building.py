@@ -49,10 +49,7 @@ class Building(BuildingBase, table=True):
     __table_args__ = {"schema": "basic"}
 
     osm_id: Optional[int]
-
     populations: List["Population"] = Relationship(back_populates="building")
-    buildings_modified: List["BuildingModified"] = Relationship(back_populates="building")
-
 
 Index("idx_building_geom", Building.__table__.c.geom, postgresql_using="gist")
 
@@ -66,7 +63,7 @@ class BuildingModified(BuildingBase, table=True):
     )
     building_id: Optional[int] = Field(
         sa_column=Column(
-            Integer, ForeignKey("basic.building.id", ondelete="CASCADE"), default=None
+            Integer, default=None
         ),
     )
     scenario_id: int = Field(
@@ -77,8 +74,7 @@ class BuildingModified(BuildingBase, table=True):
             nullable=False,
         ),
     )
-    population: Optional[float] = Field(sa_column=Column(Float(53)))
-    building: Optional["Building"] = Relationship(back_populates="buildings_modified")
+    population: Optional[float] = Field(sa_column=Column(Float(53)))    
     scenario: "Scenario" = Relationship(back_populates="buildings_modified")
     populations_modified: Optional[List["PopulationModified"]] = Relationship(
         back_populates="building_modified"
