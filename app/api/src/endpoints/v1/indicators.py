@@ -46,15 +46,9 @@ async def calculate_heatmap(
             heatmap_settings=heatmap_settings,
         )
     else:
-        results = await read_heatmap_async(  
-            current_user=current_user,
-            settings=heatmap_settings
-            )
-        return return_geojson_or_geobuf(results)
-        
-  
+        results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
+        return return_geojson_or_geobuf(results, return_type="geobuf")
     return {"task_id": task.id}
-    
 
 
 @router.get("/pt-station-count")
@@ -177,4 +171,3 @@ async def get_heatmap_result(
             "details": "Task is still running, please try again later",
         }
         return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=content)
-    

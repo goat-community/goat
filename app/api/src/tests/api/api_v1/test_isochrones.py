@@ -10,6 +10,7 @@ from shapely.ops import transform
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
+from src.crud.crud_scenario import scenario as crud_scenario
 from src.core.config import settings
 from src.db import models
 from src.resources.enums import IsochroneExportType
@@ -87,12 +88,12 @@ async def test_calculate_isochrone_single_scenario(
         user_id=superuser[0].id,
         study_area_id=superuser[0].active_study_area_id,
     )
-    scenario = await crud.scenario.create(db=db, obj_in=obj_scenario)
+    scenario = await crud_scenario.create(db=db, obj_in=obj_scenario)
 
     scenario_ways_modified_features = []
     for feature in isochrone_scenario_new_bridge["features"]:
         scenario_ways_modified_features.append(ScenarioWaysModifiedCreate(**feature))
-    await crud.scenario.create_scenario_features(
+    await crud_scenario.create_scenario_features(
         db,
         superuser[0],
         scenario.id,

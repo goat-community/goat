@@ -50,7 +50,13 @@ export default class OlMeasureController extends OlBaseController {
     me.createTooltip();
     me.createHelpTooltip();
 
-    me.helpMessage = i18n.t("map.tooltips.clickToStartMeasure");
+    me.helpMessage = i18n.t(
+      `map.tooltips.${
+        type === "LineString"
+          ? "clickToStartMeasure"
+          : "clickToStartMeasurePolygon"
+      }`
+    );
 
     let listener;
     let sketch;
@@ -70,7 +76,11 @@ export default class OlMeasureController extends OlBaseController {
             tooltipCoord = geom.getInteriorPoint().getCoordinates();
             if (geom.getLinearRing(0).getCoordinates().length > 3) {
               me.helpMessage = i18n.t(
-                "map.tooltips.clickToFinishDrawingPolygon"
+                `map.tooltips.${
+                  type === "LineString"
+                    ? "clickToFinishDrawingPolygon"
+                    : "clickToFinishDrawing"
+                }`
               );
             } else {
               me.helpMessage = i18n.t("map.tooltips.clickToContinueDrawing");
@@ -78,7 +88,13 @@ export default class OlMeasureController extends OlBaseController {
           } else if (geom instanceof LineString) {
             output = me.formatLength(geom);
             tooltipCoord = geom.getLastCoordinate();
-            me.helpMessage = i18n.t("map.tooltips.clickToFinishDrawingPolygon");
+            me.helpMessage = i18n.t(
+              `map.tooltips.${
+                type === "LineString"
+                  ? "clickToFinishDrawingPolygon"
+                  : "clickToFinishDrawing"
+              }`
+            );
           }
           me.tooltipElement.innerHTML = output;
           me.tooltip.setPosition(tooltipCoord);
