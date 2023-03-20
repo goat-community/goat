@@ -15,7 +15,7 @@
         patience. Soon we will be online again.
       </p>
       <a href="https://plan4better.de/" target="blank">
-        <button>Back to PlanBetter</button>
+        <button>Back to Plan4Better</button>
       </a>
     </div>
   </div>
@@ -34,7 +34,7 @@ export default {
     })
   },
   mounted() {
-    document.title = "PlanBetter - Under Maintenance";
+    document.title = "Plan4Better - Under Maintenance";
 
     const CancelToken = axios.CancelToken;
     const axiosInstance = axios.create();
