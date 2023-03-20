@@ -47,9 +47,9 @@ BEGIN
 		rec.reverse_cost * (length_part2 / total_length_m) AS reverse_cost,
 		length_part2, rec.vid AS SOURCE, rec.target, rec.fraction AS fraction, line_part2 AS geom
 	)
-	SELECT p.wid, p.id, p.COST, p.reverse_cost, p.length_m, p.SOURCE, p.target, p.fraction, p.geom 
-	FROM pair_artificial p
-	WHERE p.COST <> 0;
+	SELECT p.wid, p.id, p.COST, p.reverse_cost, p.length_m, p.SOURCE, p.target, p.fraction, 
+	CASE WHEN ST_Geometrytype(p.geom) = 'ST_Point' THEN ST_MAKELINE(p.geom, p.geom) ELSE p.geom END AS geom
+	FROM pair_artificial p;
 END 
 $function$;
 /*This function create two artificial edges at starting point 
