@@ -148,10 +148,6 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
             select(layer).where(and_(layer.scenario_id == scenario_id, layer.id.in_(feature_ids)))
         )
         features_in_db = features_in_db.scalars().fetchall()
-        if layer_name.value in ("poi_modified"):
-            await self.compute_scenario_opportunity_matrices(
-                scenario_id, layer_name.value.split("_")[0], features_in_db, current_user
-        )
             
         return {"msg": "Features deleted successfully"}
 
@@ -372,6 +368,8 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         # ->
         bulk_id_affected = []
         for feature in features:
+            if feature.edit_type == "d":
+                continue
             point_shape = wkb.loads(feature.geom.data)
             h3_id = h3.geo_to_h3(point_shape.y, point_shape.x, 6)
             bulk_id_affected.append(h3_id)
