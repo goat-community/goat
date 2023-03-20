@@ -30,7 +30,7 @@ import store from "../store";
  * object.
  */
 const max_tries = 21;
-
+let heatmapGetCancelToken = null;
 function heatmapGet(taskId, proj, current_try, lConf, source) {
   console.log(current_try);
   if (current_try < max_tries) {
@@ -49,20 +49,21 @@ function heatmapGet(taskId, proj, current_try, lConf, source) {
       },
       cancelToken: new CancelToken(c => {
         // An executor function receives a cancel function as a parameter
-        mapStore.state.indicatorCancelToken = c;
+        heatmapGetCancelToken = c;
       })
     });
 
     promise
       .then(response => {
-        if (response.data["task-status"] === "PENDING") {
-          console.log("progress...");
+        if (response.status === 202) {
           setTimeout(() => {
-            heatmapGet(taskId, proj, current_try + 1, lConf, source);
+            if (heatmapGetCancelToken != null) {
+              heatmapGet(taskId, proj, current_try + 1, lConf, source);
+            }
           }, 1000);
         } else {
-          console.log(response);
           if (response.data) {
+            mapStore.state.isMapBusy = false;
             const olFeatures = geobufToFeatures(response.data, {
               dataProjection: "EPSG:4326",
               featureProjection: "EPSG:3857"
@@ -349,6 +350,10 @@ export const LayerFactory = {
         ...this.baseConf(lConf).sOpts,
         // eslint-disable-next-line no-unused-vars
         loader: function(extent, resolution, projection, success, failure) {
+          if (heatmapGetCancelToken instanceof Function) {
+            heatmapGetCancelToken("cancelled");
+            heatmapGetCancelToken = null;
+          }
           const proj = projection.getCode();
           const source = this;
           source.clear();
@@ -525,7 +530,6 @@ export const LayerFactory = {
               console.log(err);
             })
             .finally(() => {
-              mapStore.state.isMapBusy = false;
               mapStore.state.indicatorCancelToken = null;
             });
         },
