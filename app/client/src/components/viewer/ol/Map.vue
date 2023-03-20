@@ -544,15 +544,33 @@ export default {
         source: new VectorSource(),
         style: poisAoisStyle
       });
+
+      const vectorgrouped = new VectorImageLayer({
+        name: "pois_aois_layer",
+        type: "VECTOR",
+        displayInLayerList: false,
+        queryable: true,
+        zIndex: 99,
+        source: new VectorSource(),
+        style: poisAoisStyle
+      });
+
       this.map.addLayer(vector);
+      this.map.addLayer(vectorgrouped);
       this.poisAoisLayer = vector;
+      this.poisAoisGroupingLayer = vectorgrouped;
 
-      const extent = this.map.getView().calculateExtent(this.map.getSize());
+      // const extent = this.map.getView().calculateExtent(this.map.getSize());
 
-      const topLeft = this.map.getPixelFromCoordinate([extent[0], extent[3]]);
+      const boundaries = this.studyArea[0].get("bounds");
+
+      const topLeft = this.map.getPixelFromCoordinate([
+        boundaries[0],
+        boundaries[3]
+      ]);
       const bottomRight = this.map.getPixelFromCoordinate([
-        extent[2],
-        extent[1]
+        boundaries[2],
+        boundaries[1]
       ]);
 
       // Calculate width and height in pixels
@@ -1124,7 +1142,9 @@ export default {
       poisAoisLayer: "poisAoisLayer",
       selectedPoisAois: "selectedPoisAois",
       rawPoisAois: "rawPoisAois",
-      poisAois: "poisAois"
+      rawGroupPoisAois: "rawGroupPoisAois",
+      poisAois: "poisAois",
+      poisAoisGroupingLayer: "poisAoisGroupingLayer"
     }),
     ...mapGetters("map", {
       studyArea: "studyArea",
@@ -1197,12 +1217,19 @@ export default {
     // this should be watched here as it might be that poisAoisTree component is not rendered yet.
     selectedPoisAois(selected) {
       const poisAois = {};
+      this.poisAoisGroupingLayer.getSource().clear();
       this.poisAoisLayer.getSource().clear();
       selected.forEach(item => {
         if (item.value in this.rawPoisAois) {
           this.poisAoisLayer
             .getSource()
             .addFeatures(this.rawPoisAois[item.value]);
+        }
+
+        if (item.value in this.rawGroupPoisAois) {
+          this.poisAoisGroupingLayer
+            .getSource()
+            .addFeatures(this.rawGroupPoisAois[item.value]);
         }
         poisAois[item.value] = true;
       });
