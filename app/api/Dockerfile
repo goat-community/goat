@@ -22,6 +22,8 @@ ENV CELERYD_USER "root"
 ENV CELERYD_GROUP "root"
 ENV CELERY_CREATE_DIRS 1
 
+ENV NUMBA_CACHE_DIR "/tmp"
+
 
 # Install system dependencies
 RUN apt-get update \
