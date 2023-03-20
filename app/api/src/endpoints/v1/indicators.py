@@ -40,15 +40,14 @@ async def calculate_heatmap(
     """
     current_user = json.loads(current_user.json())
     heatmap_settings = json.loads(heatmap_settings.json())
-    # if settings.CELERY_BROKER_URL:
-    #     task = read_heatmap_task.delay(
-    #         current_user=current_user,
-    #         heatmap_settings=heatmap_settings,
-    #     )
-    # else:
-    results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
-    return return_geojson_or_geobuf(results, return_type="geobuf")
-
+    if settings.CELERY_BROKER_URL:
+        task = read_heatmap_task.delay(
+            current_user=current_user,
+            heatmap_settings=heatmap_settings,
+        )
+    else:
+        results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
+        return return_geojson_or_geobuf(results, return_type="geobuf")
     return {"task_id": task.id}
 
 

@@ -268,7 +268,7 @@ def get_opportunity_relations(
                 result["travel_times"].append(travel_time)
                 result["weight"].append(weight)
                 result["grid_ids"].append(relevant_traveltime_matrices_grid_ids[idx])
-        result["relation_size"].append(1)
+        result["relation_size"].append(len(result["travel_times"]))
 
     return result
 

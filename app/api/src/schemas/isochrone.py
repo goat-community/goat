@@ -33,6 +33,7 @@ class CalculationTypes(str, Enum):
 
     default = "default"
     scenario = "scenario"
+    comparison = "comparison"
 
 
 class IsochroneMode(Enum):
