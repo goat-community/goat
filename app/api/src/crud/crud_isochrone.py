@@ -108,7 +108,7 @@ class CRUDIsochrone:
         # Step 5: Return the newly created dictionary
         return new_dict
 
-    async def read_network(
+    def read_network(
         self, db, obj_in: IsochroneDTO, current_user, isochrone_type, table_prefix=None
     ) -> Any:
 
@@ -144,7 +144,7 @@ class CRUDIsochrone:
                 x = [point.lon for point in obj_in.starting_point.input]
                 y = [point.lat for point in obj_in.starting_point.input]
             else:
-                starting_points = await self.starting_points_opportunities(
+                starting_points = self.starting_points_opportunities(
                     current_user, db, obj_in
                 )
                 x = starting_points[0][0]
@@ -202,7 +202,7 @@ class CRUDIsochrone:
             )
 
             db.add(obj_starting_point)
-            await db.commit()
+            db.commit()
 
         # return edges_network and obj_starting_point
         edges_network.astype(
@@ -325,7 +325,7 @@ class CRUDIsochrone:
         result = await db.execute(sql, obj_in_data)
         return result.fetchall()[0][0]
 
-    async def starting_points_opportunities(
+    def starting_points_opportunities(
         self, current_user, db: AsyncSession, obj_in: IsochroneDTO
     ) -> Any:
         obj_in_data = {
@@ -350,12 +350,12 @@ class CRUDIsochrone:
             """SELECT x, y 
             FROM basic.starting_points_multi_isochrones(:user_id, :modus, :minutes, :speed, :amenities, :scenario_id, :active_upload_ids, :region_geom, :study_area_ids)"""
         )
-        starting_points = await db.execute(sql_starting_points, obj_in_data)
+        starting_points = db.execute(sql_starting_points, obj_in_data)
         starting_points = starting_points.fetchall()
         return starting_points
 
-    async def calculate(
-        self, db: AsyncSession, obj_in: IsochroneDTO, current_user: models.User
+    def calculate(
+        self, db: AsyncSession, obj_in: IsochroneDTO, current_user: models.User, study_area
     ) -> Any:
         """
         Calculate the isochrone for a given location and time
@@ -372,7 +372,7 @@ class CRUDIsochrone:
 
         # == Walking and cycling isochrone ==
         if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
-            network, starting_ids = await self.read_network(
+            network, starting_ids = self.read_network(
                 db, obj_in, current_user, isochrone_type
             )
             network = network.iloc[1:, :]
@@ -392,7 +392,6 @@ class CRUDIsochrone:
             payload["egressModes"] = obj_in.settings.egress_mode.value.upper()
             payload["fromLat"] = obj_in.starting_point.input[0].lat
             payload["fromLon"] = obj_in.starting_point.input[0].lon
-            study_area = await crud.user.get_active_study_area(db, current_user)
             study_area_bounds = study_area["bounds"]
             payload["bounds"] = {
                 "north": study_area_bounds[3],

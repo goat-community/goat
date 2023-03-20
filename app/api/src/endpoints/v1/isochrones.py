@@ -16,6 +16,7 @@ from src.schemas.isochrone import (
     IsochroneOutputType,
     request_examples,
 )
+from src.db.session import sync_session
 from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()
@@ -33,7 +34,12 @@ async def calculate_isochrone(
     """
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
-    result = await crud.isochrone.calculate(db, isochrone_in, current_user)
+    
+    study_area = await crud.user.get_active_study_area(db, current_user)
+    
+    db = sync_session()
+    result = crud.isochrone.calculate(db, isochrone_in, current_user, study_area)
+    db.close()
     if isochrone_in.output.type.value == IsochroneOutputType.NETWORK.value:
         result = return_geojson_or_geobuf(result, "geojson")
     return result
