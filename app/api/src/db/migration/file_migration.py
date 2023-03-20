@@ -211,8 +211,8 @@ class FileMigration:
                             self.boto3.upload_file(
                                 "{}/{}".format(h3_output_file_dir, filename),
                                 settings.AWS_BUCKET_NAME,
-                                "{}/{}/{}/{}".format(
-                                    self.s3_folder, "original", row["grid_id"], filename
+                                "{}/{}/{}/{}/{}".format(
+                                    self.s3_folder, "opportunity", "original", row["grid_id"], filename
                                 ),
                             )
                         status = "success"
@@ -307,8 +307,8 @@ class FileMigration:
                             self.boto3.upload_file(
                                 "{}/{}".format(h3_output_file_dir, filename + ".npz"),
                                 settings.AWS_BUCKET_NAME,
-                                "{}/{}/{}/{}".format(
-                                    self.s3_folder, "grid", parent_id, filename + ".npz"
+                                "{}/{}/{}/{}/{}".format(
+                                    self.s3_folder, "opportunity", "grid", parent_id, filename + ".npz"
                                 ),
                             )
                         status = "success"
@@ -374,7 +374,7 @@ class FileMigration:
        
         # Export data
         export_metadata_gdf = self._export_original(h3_indexes_gdf, export_metadata_gdf, layer_input["original"])
-        #export_metadata_gdf = self._export_grid(h3_indexes_gdf, export_metadata_gdf, layer_input["grid"])      
+        export_metadata_gdf = self._export_grid(h3_indexes_gdf, export_metadata_gdf, layer_input["grid"])      
 
         # Export data
         # export_metadata_gdf = self._export_original(
