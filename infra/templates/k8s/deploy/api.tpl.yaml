@@ -66,6 +66,10 @@ spec:
           volumeMounts:
             - name: persistent-storage
               mountPath: /app/src/cache
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1337
+        fsGroup: 1337
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:
@@ -107,6 +111,10 @@ spec:
           volumeMounts:
             - name: persistent-storage
               mountPath: /app/src/cache
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1337
+        fsGroup: 1337
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:
