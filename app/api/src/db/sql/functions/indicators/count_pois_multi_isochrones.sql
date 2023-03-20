@@ -8,6 +8,7 @@ DECLARE
     region_name text;
     excluded_pois_id text[] := ARRAY[]::text[];
     data_upload_poi_categories text[];
+    detour_factor numeric = 0.8;
 BEGIN
 	
 	data_upload_poi_categories = basic.poi_categories_data_uploads(userid_input);
@@ -32,7 +33,7 @@ BEGIN
     ELSE 
         RAISE EXCEPTION 'Unknown region type: %', region_type;
     END IF;
-    buffer_geom = ST_Buffer(region_geom::geography, speed_input  * 60 * minutes)::geometry;
+    buffer_geom = ST_Buffer(region_geom::geography, speed_input  * 60 * minutes * detour_factor)::geometry;
     
     RETURN query 
 	WITH intersected_pois AS (

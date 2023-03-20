@@ -2,11 +2,15 @@ import json
 import logging
 import math
 import os
+import random
 import re
 import shutil
+import string
+import time
 import uuid
 import zipfile
 from datetime import datetime, timedelta
+from functools import wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import IO, Any, Dict, List, Optional
@@ -14,20 +18,19 @@ from typing import IO, Any, Dict, List, Optional
 import emails
 import geobuf
 import geopandas
-import numba
+import h3
 import numpy as np
 import pyproj
 from emails.template import JinjaTemplate
 from fastapi import HTTPException, UploadFile
-from fiona import _err
 from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from jose import jwt
 from numba import njit
 from rich import print as print
-from sentry_sdk import HttpTransport
-from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
+from shapely import geometry
+from shapely.geometry import GeometryCollection, MultiPolygon, Point, Polygon, box
 from shapely.ops import transform
 from starlette import status
 from starlette.responses import Response
@@ -271,7 +274,7 @@ def encode_r5_grid(grid_data: Any) -> bytes:
     return binary_output
 
 
-def decode_r5_grid(grid_data_buffer: bytes) -> Any:
+def decode_r5_grid(grid_data_buffer: bytes) -> dict:
     """
     Decode R5 grid data
     """
@@ -311,7 +314,7 @@ def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     )
     # - reshape the data
     data = data.reshape(header["depth"], gridSize)
-    reshaped_data = np.array([])
+    reshaped_data = np.array([], dtype=np.int32)
     for i in range(header["depth"]):
         reshaped_data = np.append(reshaped_data, data[i].cumsum())
     data = reshaped_data
@@ -326,212 +329,102 @@ def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     return header | metadata | {"data": data, "errors": [], "warnings": []}
 
 
-@njit
-def compute_single_value_surface(width, height, depth, data, percentile) -> Any:
+def filter_r5_grid(grid: dict, percentile: int = None, travel_time_limit: int = None) -> dict:
     """
-    Compute single value surface
+    This function strips the grid to only include one percentile
+    and removes empty rows/columns around the bounding box of the largest isochrone.
+    It also updates the west/noth/width/height metadata values.
+    Padding is added to the grid to avoid edge effects on jsolines.
+
+    :param grid: R5 grid data
+    :param percentile: percentile to filter to (Only used if grid has multiple percentiles)
+    :param travel_time_limit: travel time limit to filter to
+
+    :return: filtered grid
     """
-    if data is None or width is None or height is None or depth is None:
+    if (
+        grid["data"] is None
+        or grid["width"] is None
+        or grid["height"] is None
+        or grid["depth"] is None
+    ):
         return None
-    grid_size = width * height
-    surface = np.empty(grid_size)
-    TRAVEL_TIME_PERCENTILES = [5, 25, 50, 75, 95]
-    percentile_index = 0
-    if depth == 1:
-        percentile = 5  # Walking and cycling
-    closest_diff = math.inf
-    for index, p in enumerate(TRAVEL_TIME_PERCENTILES):
-        current_diff = abs(p - percentile)
-        if current_diff < closest_diff:
-            percentile_index = index
-            closest_diff = current_diff
-    for y in np.arange(height):
-        for x in np.arange(width):
-            index = y * width + x
-            if (
-                x >= 0
-                and x < width
-                and y >= 0
-                and y < height
-                and percentile_index >= 0
-                and percentile_index < depth
-            ):
-                coord = data[(percentile_index * grid_size) + (y * width) + x]
-            else:
-                coord = math.inf
 
-            surface[index] = coord
-    return surface
+    if grid["depth"] == 1:
+        # if only one percentile is requested, return the grid as is
+        grid_1d = grid["data"]
+    else:
+        travel_time_percentiles = [5, 25, 50, 75, 95]
+        percentile_index = travel_time_percentiles.index(percentile)
+        grid_percentiles = np.reshape(grid["data"], (grid["depth"], -1))
+        grid_1d = grid_percentiles[percentile_index]
+        grid["depth"] = 1
+
+    # filter grid to only include percentile
+    # Convert the data list to a 2D array
+    grid_2d = np.array(grid_1d).reshape(grid["height"], grid["width"])
+
+    if travel_time_limit:
+        grid_2d = np.where(grid_2d > travel_time_limit, 2147483647, grid_2d)
+
+    # Find the minimum and maximum non-zero row and column indices in the data array
+    nonzero_rows, nonzero_cols = np.nonzero(grid_2d != 2147483647)
+    min_row, max_row = np.min(nonzero_rows), np.max(nonzero_rows)
+    min_col, max_col = np.min(nonzero_cols), np.max(nonzero_cols)
+    # Update the west, north, width, and height values
+    grid["west"] += min_col - 2
+    grid["north"] += min_row - 2
+    grid["width"] = max_col - min_col + 5
+    grid["height"] = max_row - min_row + 5
+    # Create a new 2D array with the dimensions of the figure bounding box
+    new_data_arr = np.full((max_row - min_row + 1, max_col - min_col + 1), 2147483647)
+    # Copy the non-zero values from the original array to the new array,
+    # but only within the figure bounding box
+    new_data_arr[nonzero_rows - min_row, nonzero_cols - min_col] = grid_2d[
+        nonzero_rows, nonzero_cols
+    ]
+    # Pad the new data array with 2147483647 to avoid edge effects on jsolines
+    new_data_arr = np.pad(new_data_arr, 2, "constant", constant_values=(2147483647,))
+    # Convert the new data array back to a list
+    new_data_arr = new_data_arr.flatten()
+    grid["data"] = new_data_arr
+    return grid
 
 
-@njit
-def group_opportunities_multi_isochrone(
-    west,
-    north,
-    width,
-    surface,
-    get_population_sum_pixel,
-    get_population_sum_population,
-    get_population_sub_study_area_id,
-    sub_study_areas_ids,
-    MAX_TIME=120,
-):
+def compute_r5_surface(grid: dict, percentile: int) -> np.array:
     """
-    Return a list of population count for every minute and study-area/polygon
+    Compute single value surface from the grid
     """
+    if (
+        grid["data"] is None
+        or grid["width"] is None
+        or grid["height"] is None
+        or grid["depth"] is None
+    ):
+        return None
+    travel_time_percentiles = [5, 25, 50, 75, 95]
+    percentile_index = travel_time_percentiles.index(percentile)
 
-    population_grid_count = np.zeros((len(sub_study_areas_ids), MAX_TIME))
-    # - loop population
-    for idx, pixel in enumerate(get_population_sum_pixel):
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        time_cost = surface[index]
-        if (
-            time_cost < 2147483647
-            and get_population_sum_population[idx] > 0
-            and time_cost <= MAX_TIME
-        ):
-            for id_sub_study_area_id, sub_study_area_id in enumerate(sub_study_areas_ids):
-                if get_population_sub_study_area_id[idx] == sub_study_area_id:
-                    population_grid_count[id_sub_study_area_id][
-                        int(time_cost) - 1
-                    ] += get_population_sum_population[idx]
+    if grid["depth"] == 1:
+        # if only one percentile is requested, return the grid as is
+        surface = grid["data"]
+    else:
+        grid_percentiles = np.reshape(grid["data"], (grid["depth"], -1))
+        surface = grid_percentiles[percentile_index]
 
-    for idx, population_per_study_area in enumerate(population_grid_count):
-        population_grid_count[idx] = np.cumsum(population_per_study_area)
-        population_grid_count[idx][population_grid_count[idx] < 5] = 0
-
-    return population_grid_count
+    return surface.astype(np.uint8)
 
 
-@njit
-def group_opportunities_single_isochrone(
-    west,
-    north,
-    width,
-    surface,
-    get_population_sum_pixel,
-    get_population_sum_population,
-    get_poi_one_entrance_sum_pixel,
-    get_poi_one_entrance_sum_category,
-    get_poi_one_entrance_sum_cnt,
-    get_poi_more_entrance_sum_pixel,
-    get_poi_more_entrance_sum_category,
-    get_poi_more_entrance_sum_name,
-    get_poi_more_entrance_sum_cnt,
-    MAX_TIME=120,
-):
-    """
-    Return a list of amenity count for every minute
-    """
-    population_grid_count = np.zeros(MAX_TIME)
-    # - loop population
-    for idx, pixel in enumerate(get_population_sum_pixel):
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        time_cost = surface[index]
-        if (
-            time_cost < 2147483647
-            and get_population_sum_population[idx] > 0
-            and time_cost <= MAX_TIME
-        ):
-            population_grid_count[int(time_cost) - 1] += get_population_sum_population[idx]
-    population_grid_count = np.cumsum(population_grid_count)
-    population_grid_count[population_grid_count < 5] = 0
-
-    # - loop poi_one_entrance
-    poi_one_entrance_list = []
-    poi_one_entrance_grid_count = []
-    for idx, pixel in enumerate(get_poi_one_entrance_sum_pixel):
-        if idx == 0:
-            continue
-        idx = idx - 1
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        category = get_poi_one_entrance_sum_category[idx]
-
-        if category not in poi_one_entrance_list:
-            poi_one_entrance_list.append(category)
-            poi_one_entrance_grid_count.append(np.zeros(MAX_TIME))
-
-        time_cost = surface[index]
-        if time_cost < 2147483647 and time_cost <= MAX_TIME:
-            count = get_poi_one_entrance_sum_cnt[idx]
-            poi_one_entrance_grid_count[poi_one_entrance_list.index(category)][
-                int(time_cost) - 1
-            ] += count
-
-    for index, value in enumerate(poi_one_entrance_grid_count):
-        poi_one_entrance_grid_count[index] = np.cumsum(value)
-
-    # - loop poi_more_entrance
-    visited_more_entrance_categories = []
-    poi_more_entrance_list = []
-    poi_more_entrance_grid_count = []
-    for idx, pixel in enumerate(get_poi_more_entrance_sum_pixel):
-        if idx == 0:
-            continue
-        idx = idx - 1
-        pixel_x = pixel[1]
-        pixel_y = pixel[0]
-        x = pixel_x - west
-        y = pixel_y - north
-        width = width
-        index = y * width + x
-        category = get_poi_more_entrance_sum_category[idx]
-        name = get_poi_more_entrance_sum_name[idx]
-
-        if category not in poi_more_entrance_list:
-            poi_more_entrance_list.append(category)
-            poi_more_entrance_grid_count.append(np.zeros(MAX_TIME))
-
-        time_cost = surface[index]
-        category_name = f"{category}_{name}"
-        if (
-            time_cost < 2147483647
-            and category_name not in visited_more_entrance_categories
-            and time_cost <= MAX_TIME
-        ):
-            count = get_poi_more_entrance_sum_cnt[idx]
-            poi_more_entrance_grid_count[poi_more_entrance_list.index(category)][
-                int(time_cost) - 1
-            ] += count
-            visited_more_entrance_categories.append(category_name)
-
-    for index, value in enumerate(poi_more_entrance_grid_count):
-        poi_more_entrance_grid_count[index] = np.cumsum(value)
-
-    return (
-        population_grid_count,
-        poi_one_entrance_list,
-        poi_one_entrance_grid_count,
-        poi_more_entrance_list,
-        poi_more_entrance_grid_count,
-    )
-
-
-@njit
+@njit(cache=True)
 def z_scale(z):
     """
     2^z represents the tile number. Scale that by the number of pixels in each tile.
     """
     PIXELS_PER_TILE = 256
-    return 2 ** z * PIXELS_PER_TILE
+    return 2**z * PIXELS_PER_TILE
 
 
-@njit
+@njit(cache=True)
 def pixel_to_longitude(pixel_x, zoom):
     """
     Convert pixel x coordinate to longitude
@@ -539,7 +432,7 @@ def pixel_to_longitude(pixel_x, zoom):
     return (pixel_x / z_scale(zoom)) * 360 - 180
 
 
-@njit
+@njit(cache=True)
 def pixel_to_latitude(pixel_y, zoom):
     """
     Convert pixel y coordinate to latitude
@@ -548,15 +441,22 @@ def pixel_to_latitude(pixel_y, zoom):
     return lat_rad * 180 / math.pi
 
 
-@njit
-def coordinate_from_pixel(pixel, zoom):
+@njit(cache=True)
+def coordinate_from_pixel(input, zoom, round_int=False, web_mercator=False):
     """
     Convert pixel coordinate to longitude and latitude
     """
-    return {
-        "lat": pixel_to_latitude(pixel["y"], zoom),
-        "lon": pixel_to_longitude(pixel["x"], zoom),
-    }
+    if web_mercator:
+        x = pixel_x_to_web_mercator_x(input[0], zoom)
+        y = pixel_y_to_web_mercator_y(input[1], zoom)
+    else:
+        x = pixel_to_longitude(input[0], zoom)
+        y = pixel_to_latitude(input[1], zoom)
+    if round_int:
+        x = round(x)
+        y = round(y)
+
+    return [x, y]
 
 
 def coordinate_to_pixel(input, zoom, return_dict=True, round_int=False, web_mercator=False):
@@ -589,14 +489,24 @@ def latitude_to_pixel(latitude, zoom):
     )
 
 
-@njit
+@njit(cache=True)
 def web_mercator_x_to_pixel_x(x, zoom):
     return (x + (40075016.68557849 / 2.0)) / (40075016.68557849 / (z_scale(zoom)))
 
 
-@njit
+@njit(cache=True)
 def web_mercator_y_to_pixel_y(y, zoom):
     return (y - (40075016.68557849 / 2.0)) / (40075016.68557849 / (-1 * z_scale(zoom)))
+
+
+@njit(cache=True)
+def pixel_x_to_web_mercator_x(x, zoom):
+    return x * (40075016.68557849 / (z_scale(zoom))) - (40075016.68557849 / 2.0)
+
+
+@njit(cache=True)
+def pixel_y_to_web_mercator_y(y, zoom):
+    return y * (40075016.68557849 / (-1 * z_scale(zoom))) + (40075016.68557849 / 2.0)
 
 
 def geometry_to_pixel(geometry, zoom):
@@ -718,6 +628,12 @@ def delete_dir(dir_path: str) -> None:
         pass
 
 
+def create_dir(dir_path: str) -> None:
+    """Create directory if it does not exist."""
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+
 def clean_unpacked_zip(dir_path: str, zip_path: str) -> None:
     """Delete unpacked zip file and directory."""
     delete_dir(dir_path)
@@ -794,7 +710,7 @@ def save_file(data_file: UploadFile):
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail="The uploaded file size is to big the largest allowd size is %s MB."
-                % round(MaxUploadFileSize.max_upload_poi_file_size / 1024.0 ** 2, 2),
+                % round(MaxUploadFileSize.max_upload_poi_file_size / 1024.0**2, 2),
             )
 
         temp.write(chunk)
@@ -857,3 +773,215 @@ def geopandas_read_file(data_file: UploadFile):
 
         finally:
             delete_file(temp_file_path)
+
+
+# https://github.com/uber/h3/issues/275#issuecomment-976886644
+def _cover_polygon_h3(polygon: Polygon, resolution: int, intersect_with_centroid: bool):
+    """
+    Return the set of H3 cells at the specified resolution which completely cover the input polygon.
+    """
+    result_set = set()
+    if intersect_with_centroid == False:
+        # Hexes for vertices
+        vertex_hexes = [
+            h3.geo_to_h3(t[1], t[0], resolution) for t in list(polygon.exterior.coords)
+        ]
+        # Hexes for edges (inclusive of vertices)
+        for i in range(len(vertex_hexes) - 1):
+            result_set.update(h3.h3_line(vertex_hexes[i], vertex_hexes[i + 1]))
+    # Hexes for internal area
+    result_set.update(
+        list(h3.polyfill(geometry.mapping(polygon), resolution, geo_json_conformant=True))
+    )
+    return result_set
+
+
+def create_h3_grid(
+    geometry: geometry,
+    h3_resolution: int,
+    return_h3_geometries=False,
+    return_h3_centroids=False,
+    intersect_with_centroid=True,
+):
+    """Create a list of H3 indexes
+
+    :param geometry: Shapely geometry to create H3 indexes for.
+    :param h3_resolution: H3 resolution.
+    :param return_h3_geometries: If true, return a GeoDataFrame with the H3 indexes and the corresponding geometries
+    :param intersect_with_centroid: If true, will return only the H3 indexes that intersect with the centroid of the geometry
+
+    :return: List of H3 indexes in a GeoDataFrame.
+    """
+
+    h3_grid_gdf = geopandas.GeoDataFrame(columns=["h3_index"])
+
+    h3_indexes = []
+    if geometry.geom_type == "Polygon":
+        h3_index = _cover_polygon_h3(geometry, h3_resolution, intersect_with_centroid)
+        h3_indexes.extend(h3_index)
+    elif geometry.geom_type == "MultiPolygon":
+        for polygon in geometry.geoms:
+            h3_index = _cover_polygon_h3(polygon, h3_resolution, intersect_with_centroid)
+            h3_indexes.extend(h3_index)
+    h3_indexes = list(set(h3_indexes))
+
+    h3_grid_gdf["h3_index"] = h3_indexes
+
+    if return_h3_geometries:
+        if return_h3_centroids:
+            h3_grid_gdf["geometry"] = h3_grid_gdf["h3_index"].apply(
+                lambda x: Point(reversed(h3.h3_to_geo(h=x)))
+            )
+        else:
+            h3_grid_gdf["geometry"] = h3_grid_gdf["h3_index"].apply(
+                lambda x: Polygon(h3.h3_to_geo_boundary(h=x, geo_json=True))
+            )
+        h3_grid_gdf.set_crs(epsg=4326, inplace=True)
+
+    return h3_grid_gdf
+
+
+def merge_dicts(*dicts):
+    """
+    Recursively merge any number of dictionaries.
+    """
+    merged_dict = {}
+    for d in dicts:
+        for key, value in d.items():
+            if (
+                key in merged_dict
+                and isinstance(merged_dict[key], dict)
+                and isinstance(value, dict)
+            ):
+                merged_dict[key] = merge_dicts(merged_dict[key], value)
+            else:
+                merged_dict[key] = value
+    return merged_dict
+
+
+def remove_keys(dictionary, keys_to_remove):
+    """_summary_
+    Remove keys and returns a copy of the dictionary.
+    """
+    new_dict = dictionary.copy()
+    for key in keys_to_remove:
+        if key in new_dict:
+            new_dict.pop(key)
+    return new_dict
+
+
+def timing(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        ts = time.time()
+        result = f(*args, **kw)
+        te = time.time()
+        total_time = te - ts
+        if total_time > 1:
+            total_time = round(total_time, 2)
+            total_time_string = f"{total_time} seconds"
+        else:
+            time_miliseconds = int((total_time) * 1000)
+            total_time_string = f"{time_miliseconds} miliseconds"
+
+        print(f"func: {f.__name__} took: {total_time_string}")
+
+        return result
+
+    return wrap
+
+
+def get_random_string(length):
+    # choose from all lowercase letter
+    letters = string.ascii_lowercase
+    return "".join(random.choice(letters) for i in range(length))
+
+
+def h3_to_int(h3_array: np.ndarray):
+    """
+    Convert the h3 array to int array.
+    """
+    return np.vectorize(lambda x: h3.string_to_h3(str(x)), otypes=["uint64"])(h3_array)
+
+
+def pad_to_divisible(input_array, kernel_rows, kernel_cols):
+    """
+    Pad input array to be divisible by kernel size.
+
+    Parameters:
+    -----------
+    input_array : numpy.ndarray
+        Input array to be padded.
+    kernel_rows : int
+        Kernel size for rows.
+    kernel_cols : int
+        Kernel size for columns.
+
+    Returns:
+    --------
+    padded_array : numpy.ndarray
+        Padded array that is divisible by the kernel size.
+    """
+
+    padding_rows = (kernel_rows - (input_array.shape[0] % kernel_rows)) % kernel_rows
+    padding_cols = (kernel_cols - (input_array.shape[1] % kernel_cols)) % kernel_cols
+
+    # calculate even padding on each side of each dimension
+    top_padding = padding_rows // 2
+    bottom_padding = padding_rows - top_padding
+    left_padding = padding_cols // 2
+    right_padding = padding_cols - left_padding
+
+    # pad input array
+    padded_array = np.pad(
+        input_array,
+        ((top_padding, bottom_padding), (left_padding, right_padding)),
+        mode="constant",
+    )
+
+    return padded_array
+
+
+def downsample_array(arr, new_shape, method="sum"):
+    """
+    Downsamples a NumPy array to an arbitrary shape and aggregates elements using either the `mean` or `sum` function.
+
+    Parameters:
+    -----------
+    arr : numpy.ndarray
+        Input array to be downsampled.
+    new_shape : tuple
+        Shape of the output array.
+    method : str
+        Aggregation method to use. Supported methods are 'mean' and 'sum'.
+
+    Returns:
+    --------
+    downsampled_arr : numpy.ndarray
+        Downsampled array.
+    """
+    if method not in ["mean", "sum"]:
+        raise ValueError(
+            f"Unsupported method '{method}' for downsampling array. Supported methods are 'mean' and 'sum'."
+        )
+
+    if (
+        len(new_shape) != 2
+        or not isinstance(new_shape[0], int)
+        or not isinstance(new_shape[1], int)
+    ):
+        raise ValueError("new_shape should be a tuple of two integers.")
+
+    if arr.shape[0] % new_shape[0] != 0 or arr.shape[1] % new_shape[1] != 0:
+        raise ValueError("The shape of the input array should be divisible by the new_shape.")
+
+    reshaped_arr = arr.reshape(
+        (new_shape[0], arr.shape[0] // new_shape[0], new_shape[1], arr.shape[1] // new_shape[1])
+    )
+
+    if method == "mean":
+        downsampled_arr = reshaped_arr.mean(axis=(1, 3))
+    elif method == "sum":
+        downsampled_arr = reshaped_arr.sum(axis=(1, 3))
+
+    return downsampled_arr

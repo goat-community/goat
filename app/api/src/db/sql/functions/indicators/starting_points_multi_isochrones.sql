@@ -8,6 +8,7 @@ DECLARE
 	region_geom geometry;  
 	buffer_geom geometry; 
 	data_upload_poi_categories TEXT[] = '{}'::TEXT[];
+	detour_factor numeric = 0.8;
 BEGIN 
 	data_upload_poi_categories = basic.poi_categories_data_uploads(user_id_input);
 
@@ -23,7 +24,7 @@ BEGIN
         RAISE EXCEPTION 'Please specify either region or study_area_ids but not both.';
     END IF;
 	
-   	buffer_geom = ST_Buffer(region_geom::geography, speed_input  * 60 * minutes)::geometry;
+   	buffer_geom = ST_Buffer(region_geom::geography, speed_input  * 60 * minutes * detour_factor)::geometry;
    
 	IF modus = 'scenario' THEN
         excluded_pois_id = basic.modified_pois(scenario_id_input);
@@ -55,6 +56,7 @@ BEGIN
 		AND p.category IN (SELECT UNNEST(amenities))
 		AND p.scenario_id = scenario_id_input
 		AND (p.data_upload_id IN (SELECT UNNEST(active_upload_ids)) OR p.data_upload_id IS NULL)
+		AND p.edit_type <> 'd'
 	)
 	SELECT ARRAY_AGG(r.x) AS x, ARRAY_AGG(r.y) AS y 
 	FROM relevant_pois r;
@@ -62,6 +64,7 @@ BEGIN
 END; 
 $function$
 LANGUAGE plpgsql;
+
 
 /*
 SELECT * 

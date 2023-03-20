@@ -22,13 +22,15 @@ async def poi_aoi_visualization(
     ),
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
+    full_attributes: bool = True,
+    grouped_multi_entrance: bool = False 
 ) -> Any:
     """
     Visualize POIs and AOIs based on settings specified by the user.
     """
     scenario_id = await deps.check_user_owns_scenario(db, scenario_id, current_user)
     pois = await crud.poi_aoi.poi_aoi_visualization(
-        db=db, scenario_id=scenario_id, current_user=current_user, return_type=return_type
+        db=db, scenario_id=scenario_id, current_user=current_user, return_type=return_type, grouped_multi_entrance=grouped_multi_entrance, full_attributes=full_attributes
     )
     _return_type = return_type.value
     if return_type == ReturnType.geobuf.value:

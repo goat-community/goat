@@ -1,18 +1,19 @@
 from fastapi import HTTPException
+from fastapi.encoders import jsonable_encoder
+from geoalchemy2.shape import from_shape, to_shape
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.sql import and_, func
-from geoalchemy2.shape import to_shape, from_shape
+from sqlalchemy.sql import and_, delete, func, select
+
 from src import crud
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.models import study_area
 from src.db.models.config_validation import *
 from src.db.models.customization import Customization
-from sqlalchemy.sql import delete, select
-from fastapi.encoders import jsonable_encoder
-from src.utils import wgs84_to_web_mercator, web_mercator_to_wgs84
+from src.utils import web_mercator_to_wgs84, wgs84_to_web_mercator
+
 
 class CRUDCustomization(
     CRUDBase[models.Customization, models.Customization, models.Customization]
@@ -249,7 +250,7 @@ class CRUDDynamicCustomization:
         
         if transit != {}:
             filtered_transit_modes = []
-            for public_transport_type in transit["transit_modes"]:
+            for transit_type in transit["transit_modes"]:
                 # Check if station type is in study area buffer
                 study_area_geom = to_shape(study_area_obj.geom)
                 study_area_geom = wgs84_to_web_mercator(study_area_geom)
@@ -260,14 +261,14 @@ class CRUDDynamicCustomization:
                 statement = select(models.Poi).where(
                     and_(
                         models.Poi.geom.ST_Intersects(study_area_geom),
-                        models.Poi.category == public_transport_type["poi_category"],
+                        models.Poi.category == transit_type["poi_category"],
                     )
                 ).limit(1)
                 result = await db.execute(statement)
                 result = result.first()
 
                 if result is not None:
-                    filtered_transit_modes.append(public_transport_type)
+                    filtered_transit_modes.append(transit_type)
         
             combined_settings["routing"][index_transit]["transit_modes"] = filtered_transit_modes
 
