@@ -687,7 +687,11 @@ class ComputeHeatmap(BaseHeatmap):
             extent = extents[idx]
             starting_point_obj = starting_point_objs[idx]
             # Get start vertex
-            start_id = np.array([unordered_map[v] for v in [start_vertex]])
+            try:
+                start_id = np.array([unordered_map[v] for v in [start_vertex]])
+            except Exception as e:
+                print(e)
+                continue
             # Run Dijkstra
             start_time = time.time()
             distances = dijkstra(start_id, adj_list, isochrone_dto.settings.travel_time)

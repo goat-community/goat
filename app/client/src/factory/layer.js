@@ -29,6 +29,76 @@ import store from "../store";
  * Factory, which creates OpenLayers layer instances according to a given config
  * object.
  */
+const max_tries = 21;
+let heatmapGetCancelToken = null;
+function heatmapGet(taskId, proj, current_try, lConf, source) {
+  console.log(current_try);
+  if (current_try < max_tries) {
+    const returnType = "geobuf";
+    const baseUrl_ = "indicators";
+    const requestUrl = `${baseUrl_}/heatmap/result/${taskId}?return_type=${returnType}`;
+
+    let promise;
+    mapStore.state.isMapBusy = true;
+    const CancelToken = axios.CancelToken;
+    promise = ApiService.get_(requestUrl, {
+      responseType: "arraybuffer",
+      headers: {
+        Accept: "application/pdf",
+        "Content-Encoding": "gzip"
+      },
+      cancelToken: new CancelToken(c => {
+        // An executor function receives a cancel function as a parameter
+        heatmapGetCancelToken = c;
+      })
+    });
+
+    promise
+      .then(response => {
+        if (response.status === 202) {
+          setTimeout(() => {
+            if (heatmapGetCancelToken != null) {
+              heatmapGet(taskId, proj, current_try + 1, lConf, source);
+            }
+          }, 1000);
+        } else {
+          if (response.data) {
+            mapStore.state.isMapBusy = false;
+            const olFeatures = geobufToFeatures(response.data, {
+              dataProjection: "EPSG:4326",
+              featureProjection: "EPSG:3857"
+            });
+            olFeatures.forEach(feature => {
+              if (
+                ["heatmap_connectivity", "heatmap_population"].includes(
+                  lConf.name
+                )
+              ) {
+                if ("heatmap_connectivity" === lConf.name) {
+                  feature.set(
+                    "percentile_area_isochrone",
+                    Math.round(feature.get("area_class"))
+                  );
+                } else if ("heatmap_population" === lConf.name) {
+                  feature.set(
+                    "percentile_population",
+                    Math.round(feature.get("population_class"))
+                  );
+                }
+              } else {
+                feature.set("agg_class", Math.round(feature.get("agg_class")));
+              }
+            });
+            source.addFeatures(olFeatures);
+          }
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }
+}
+
 export const LayerFactory = {
   /**
    * Maps the format literal of the config to the corresponding OL module.
@@ -280,6 +350,10 @@ export const LayerFactory = {
         ...this.baseConf(lConf).sOpts,
         // eslint-disable-next-line no-unused-vars
         loader: function(extent, resolution, projection, success, failure) {
+          if (heatmapGetCancelToken instanceof Function) {
+            heatmapGetCancelToken("cancelled");
+            heatmapGetCancelToken = null;
+          }
           const proj = projection.getCode();
           const source = this;
           source.clear();
@@ -317,10 +391,10 @@ export const LayerFactory = {
           const endTime = appStore.state.timeIndicators.endTime;
           const weekday = appStore.state.timeIndicators.weekday;
           const indicatorParams = {
-            heatmap_connectivity: `${baseUrl_}/heatmap?return_type=${returnType}`,
-            heatmap_population: `${baseUrl_}/heatmap?return_type=${returnType}`,
-            heatmap_accessibility_population: `${baseUrl_}/heatmap?return_type=${returnType}`,
-            heatmap_local_accessibility: `${baseUrl_}/heatmap?return_type=${returnType}`,
+            heatmap_connectivity: `${baseUrl_}/heatmap`,
+            heatmap_population: `${baseUrl_}/heatmap`,
+            heatmap_accessibility_population: `${baseUrl_}/heatmap`,
+            heatmap_local_accessibility: `${baseUrl_}/heatmap`,
             pt_station_count: `${baseUrl_}/pt-station-count?start_time=${startTime}&end_time=${endTime}&weekday=${weekday}&return_type=${returnType}`,
             pt_oev_gueteklasse: `${baseUrl_}/pt-oev-gueteklassen`
           };
@@ -331,11 +405,6 @@ export const LayerFactory = {
           mapStore.state.isMapBusy = true;
           const CancelToken = axios.CancelToken;
           const promiseConfig = {
-            responseType: "arraybuffer",
-            headers: {
-              Accept: "application/pdf",
-              "Content-Encoding": "gzip"
-            },
             cancelToken: new CancelToken(c => {
               // An executor function receives a cancel function as a parameter
               mapStore.state.indicatorCancelToken = c;
@@ -353,7 +422,7 @@ export const LayerFactory = {
               walking_profile: "standard",
               scenario: {
                 id: activeScenario ? activeScenario : 0,
-                modus
+                name: modus
               },
               // heatmap_type: "connectivity",
               analysis_unit: "hexagon",
@@ -424,7 +493,7 @@ export const LayerFactory = {
               walking_profile: "standard",
               scenario: {
                 id: activeScenario ? activeScenario : 0,
-                modus
+                name: modus
               },
               // heatmap_type: "modified_gaussian",
               analysis_unit: "hexagon",
@@ -453,42 +522,14 @@ export const LayerFactory = {
           promise
             .then(response => {
               if (response.data) {
-                const olFeatures = geobufToFeatures(response.data, {
-                  dataProjection: lConf.data_projection,
-                  featureProjection: proj
-                });
-                olFeatures.forEach(feature => {
-                  if (
-                    ["heatmap_connectivity", "heatmap_population"].includes(
-                      lConf.name
-                    )
-                  ) {
-                    if ("heatmap_connectivity" === lConf.name) {
-                      feature.set(
-                        "percentile_area_isochrone",
-                        Math.round(feature.get("area_class"))
-                      );
-                    } else if ("heatmap_population" === lConf.name) {
-                      feature.set(
-                        "percentile_population",
-                        Math.round(feature.get("population_class"))
-                      );
-                    }
-                  } else {
-                    feature.set(
-                      "agg_class",
-                      Math.round(feature.get("agg_class"))
-                    );
-                  }
-                });
-                source.addFeatures(olFeatures);
+                console.log(response.data.task_id);
+                heatmapGet(response.data.task_id, proj, 1, lConf, source);
               }
             })
             .catch(err => {
               console.log(err);
             })
             .finally(() => {
-              mapStore.state.isMapBusy = false;
               mapStore.state.indicatorCancelToken = null;
             });
         },
