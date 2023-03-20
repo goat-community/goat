@@ -121,8 +121,38 @@ const state = {
     aerial_lift: 6,
     funicular: 7,
     trolleybus: 11,
-    monorail: 12
-  }
+    monorail: 12,
+    railway_service: 100,
+    high_speed_rail_service: 101,
+    long_distance_trains: 102,
+    inter_regional_rail_service: 103
+  },
+  transitRouteTypeExtensions: [
+    {
+      type: "high_speed_rail_service",
+      color: "#ADD8E6"
+    },
+    {
+      type: "long_distance_trains",
+      color: "#849e78"
+    },
+    {
+      type: "inter_regional_rail_service",
+      color: "#e055ce"
+    }
+    /*
+    ferry: 4,
+    cable_tram: 5,
+    aerial_lift: 6,
+    funicular: 7,
+    trolleybus: 11,
+    monorail: 12,
+    railway_service: 100,
+    high_speed_rail_service: 101,
+    long_distance_trains: 102,
+    inter_regional_rail_service: 103
+    */
+  ]
 };
 
 const getters = {
@@ -164,7 +194,10 @@ const getters = {
       r => r.type === "transit"
     );
     if (routing.length > 0) {
-      const transitModes = routing[0].transit_modes;
+      const transitModes = [
+        ...routing[0].transit_modes,
+        ...state.transitRouteTypeExtensions
+      ];
       transitModes.forEach(t => {
         const typeNr = state.transitRouteTypes[t.type];
         obj[typeNr] = {
@@ -181,6 +214,7 @@ const getters = {
     let obj = {};
     Object.keys(transitRouteTypesByNr).forEach(nr => {
       const type = transitRouteTypesByNr[nr];
+      console.log(type);
       obj[type.name] = {
         id: nr,
         color: type.color,
