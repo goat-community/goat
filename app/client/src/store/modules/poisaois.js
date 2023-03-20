@@ -6,8 +6,10 @@ import { geobufToFeatures } from "../../utils/MapUtils";
 
 const state = {
   poisAoisLayer: null,
+  poisAoisGroupingLayer: null,
   poisAois: {},
   rawPoisAois: {},
+  rawGroupPoisAois: {},
   lengthPois: 0,
   selectedPoisAois: [],
   treeViewKey: 0 // Used for re-rendering the tree view
@@ -92,9 +94,47 @@ const actions = {
             });
             if (map_width) {
               state.poisAoisLayer.setMinZoom(
-                Math.log2(olFeatures.length / (map_width.width / 2000))
+                Math.log2(olFeatures.length / (map_width.width / 200))
+              );
+              state.poisAoisGroupingLayer.setMinZoom(
+                Math.log2(olFeatures.length / (map_width.width / 200)) - 2
+              );
+              state.poisAoisGroupingLayer.setMaxZoom(
+                Math.log2(olFeatures.length / (map_width.width / 200))
               );
             }
+          }
+        })
+        .catch(({ response }) => {
+          reject(response);
+        });
+      ApiService.get_(
+        `/pois-aois/visualization?return_type=geobuf&grouped_multi_entrance=true`,
+        {
+          responseType: "arraybuffer",
+          headers: {
+            Accept: "application/pdf"
+          }
+        }
+      )
+        .then(response => {
+          resolve(response);
+          if (response.data) {
+            resolve(response.data);
+            const olFeatures = geobufToFeatures(response.data, {
+              dataProjection: "EPSG:4326",
+              featureProjection: "EPSG:3857"
+            });
+
+            olFeatures.forEach(oneFeature => {
+              if (oneFeature.get("category") in state.rawGroupPoisAois) {
+                state.rawGroupPoisAois[oneFeature.get("category")].push(
+                  oneFeature
+                );
+              } else {
+                state.rawGroupPoisAois[oneFeature.get("category")] = [];
+              }
+            });
           }
         })
         .catch(({ response }) => {
