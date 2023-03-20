@@ -8,7 +8,7 @@ DECLARE
 BEGIN 
 	
 	setting_study_area_id = (
-		SELECT get_reference_study_area(ST_CENTROID(geom))
+		SELECT basic.get_reference_study_area(ST_CENTROID(geom))
 		FROM customer.building_modified 
 		WHERE scenario_id = scenario_id_input
 		LIMIT 1
