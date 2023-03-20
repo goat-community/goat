@@ -10,6 +10,7 @@ from src.utils import delete_file
 ii32 = np.iinfo(np.int32)
 example_weights_max = np.array([ii32.max], dtype=np.float32)
 
+
 def sort_and_unique_by_grid_ids(grid_ids, travel_times):
     """
     Sort grid_ids in order to do calculations on travel times faster.
@@ -94,7 +95,7 @@ def counts(travel_times, unique, weights):
     if not travel_times.size:
         return None
     weights = np.ones(travel_times.shape[0], dtype=np.float32)
-    
+
     # Add the last index to the unique index:
     unique_index = np.append(unique[1], travel_times.shape[0])
     counts = np.empty(unique[1].shape[0], np.float32)
@@ -140,7 +141,7 @@ def combined_modified_gaussian_per_grid(
 ):
     if not travel_times.size:
         return None
-    
+
     sensitivity_ = sensitivity / (60 * 60)  # convert sensitivity to minutes
     # Add the last index to the unique index:
     unique_index = np.append(unique[1], travel_times.shape[0])
@@ -218,6 +219,7 @@ def quantile_borders(a, NQ=5):
 
     return quantiles
 
+
 def quantile_classify(a, borders=None, NQ=5):
     """
     Classify the array into NQ quantiles.
@@ -241,7 +243,7 @@ def quantile_classify(a, borders=None, NQ=5):
     if borders is None:
         q = np.arange(1 / NQ, 1, 1 / NQ)
         borders = np.quantile(a[greater_zero], q)
-    
+
     quantiles = borders
     out = np.empty(a.size, np.int8)
     out[np.where(a == 0)] = 0
@@ -257,11 +259,28 @@ def quantile_classify(a, borders=None, NQ=5):
 
     return out
 
+
+def population_classify(population):
+    percentile_population = np.zeros(population.shape)
+    percentile_population[population == 0] = 0
+    percentile_population[population < -1000] = -5
+    percentile_population[(population >= -1000) & (population < -500)] = -4
+    percentile_population[(population >= -500) & (population < -200)] = -3
+    percentile_population[(population >= -200) & (population < -80)] = -2
+    percentile_population[(population >= -80) & (population < 0)] = -1
+    percentile_population[(population > 0) & (population <= 80)] = 1
+    percentile_population[(population > 80) & (population <= 200)] = 2
+    percentile_population[(population > 200) & (population <= 500)] = 3
+    percentile_population[(population > 500) & (population <= 1000)] = 4
+    percentile_population[population > 1000] = 5
+    return percentile_population
+
+
 def test_quantile_new():
     # Values from 1 to 20
-    a = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
-    # other values then a 
-    b = np.array([2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40])
+    a = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+    # other values then a
+    b = np.array([2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40])
 
     borders = quantile_borders(a)
     results = quantile_classify(b, borders, 5)
@@ -293,7 +312,7 @@ def save_traveltime_matrix(bulk_id: int, traveltimeobjs: dict, output_dir: str):
 
     # Convert to numpy arrays
     for key in traveltimeobjs.keys():
-        # Check if str then obj type 
+        # Check if str then obj type
         if isinstance(traveltimeobjs[key][0], str):
             traveltimeobjs[key] = np.array(traveltimeobjs[key])
         else:
@@ -313,15 +332,19 @@ def save_traveltime_matrix(bulk_id: int, traveltimeobjs: dict, output_dir: str):
     )
 
 
-# if __name__ == "__main__":
-#     test_quantile(10000)
-#     test_quantile(20)
-#     travel_times = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
-#     unique = (np.array([1,2,3,4,5]),np.array([0, 3, 5, 8, 10]))
-#     weights = np.array([1,2,1,1,2,3,1,2,1,1,2,3])
-#     sensitivity = 250000
-#     cuttoff = 8
-#     static_traveltime = 2
-#     results = combined_modified_gaussian_per_grid(
-#         travel_times, unique, sensitivity, cuttoff, static_traveltime, weights)
-#     print(results)
+def read_population_modified_sql(scenario_id: int):
+    sql = f"""
+    WITH pop AS
+    (
+    SELECT p.*
+    FROM basic.population p, UNNEST(basic.modified_buildings({scenario_id})) m
+    WHERE p.building_id = m.m
+    )
+    SELECT p.id, CASE WHEN b.edit_type = 'd' THEN -p.population ELSE p.population END AS population,
+    p.geom, demography, sub_study_area_id, b.edit_type
+    FROM pop p, customer.building_modified b
+    WHERE p.building_id = b.building_id
+    """
+
+    return sql
+

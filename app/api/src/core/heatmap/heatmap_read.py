@@ -3,9 +3,11 @@ import pyximport
 pyximport.install()
 import os
 
+import h3
 import geopandas as gpd
 import numpy as np
 from rich import print
+
 
 from src.core.heatmap import heatmap_core, heatmap_core_cython as heatmap_cython
 from src.core.config import settings
@@ -162,9 +164,40 @@ class ReadHeatmap(BaseHeatmap):
             aggregated_data_reordered = heatmap_cython.reorder_connectivity_heatmaps(
                 uniques[0], aggregated_data, grid_array
             )
-            quantiles = heatmap_core.quantile_classify(aggregated_data_reordered)
+            if heatmap_settings.scenario.id not in (0, 1) and heatmap_settings.scenario.modus in [
+                CalculationTypes.comparison,
+                CalculationTypes.scenario,
+            ]:
+
+                opportunities_modified = gpd.read_postgis(
+                    heatmap_core.read_population_modified_sql(heatmap_settings.scenario.id),
+                    legacy_engine,
+                )
+                if heatmap_settings.scenario.modus == CalculationTypes.comparison:
+                    aggregated_data_reordered = np.zeros(aggregated_data_reordered.shape)
+
+                if opportunities_modified is not None:
+                    opportunities_modified["h3_index"] = opportunities_modified["geom"].apply(
+                        lambda geom: h3.string_to_h3(h3.geo_to_h3(geom.y, geom.x, 9))
+                    )
+
+                    opportunities_modified_grouped = (
+                        opportunities_modified.groupby("h3_index").sum().reset_index()
+                    )
+                    for index, row in opportunities_modified_grouped.iterrows():
+                        aggregated_data_reordered[grid_array == row["h3_index"]] += row[
+                            "population"
+                        ]
+
+            agg_classes = heatmap_core.population_classify(aggregated_data_reordered)
+
+            modus = np.array(
+                [heatmap_settings.scenario.modus.value] * len(agg_classes), np.str_
+            )  # todo: !!!fix this.
+
             result[source] = aggregated_data_reordered
-            result[source + "_class"] = quantiles
+            result[source + "_class"] = agg_classes
+            result["modus"] = modus
             return result
 
         else:
@@ -201,13 +234,21 @@ class ReadHeatmap(BaseHeatmap):
                     relation_sizes=relation_sizes,
                 )
 
-            quantiles = self.create_quantile_arrays(calculations, calculations_scenario)
+            quantiles = self.create_quantile_arrays(
+                calculations, calculations_scenario, heatmap_settings.scenario.modus
+            )
             agg_classes = self.calculate_agg_class(quantiles, heatmap_settings.heatmap_config)
             quantiles = {key + "_class": value for key, value in quantiles.items()}
+
+            modus = np.array(
+                [heatmap_settings.scenario.modus.value] * len(agg_classes), np.str_
+            )  # todo: !!!fix this.
+
             result = {
                 **result,
                 **calculations,
                 "agg_class": agg_classes,
+                "modus": modus,
                 **quantiles,
             }
 
@@ -312,7 +353,7 @@ class ReadHeatmap(BaseHeatmap):
         traveltimes: dict,
         weights: dict,
         grid_ids: dict,
-        grid_array
+        grid_array,
     ):
         """
         Filter the opportunity matrix for the scenario
@@ -371,7 +412,7 @@ class ReadHeatmap(BaseHeatmap):
                 bulk_ids=bulk_ids,
                 heatmap_config=heatmap_config,
             )
-       
+
         uids_to_exclude = opportunities_modified.loc[
             opportunities_modified["edit_type"] != "n", "uid"
         ].tolist()
@@ -403,7 +444,7 @@ class ReadHeatmap(BaseHeatmap):
             ]
             values_to_exclude = []
             for index_diff in indexes_diff:
-                slice_start = relation_sizes[category][: index_diff].sum()
+                slice_start = relation_sizes[category][:index_diff].sum()
                 slice_end = slice_start + relation_sizes[category][index_diff]
                 values_to_exclude.extend(np.arange(slice_start, slice_end))
 
@@ -426,10 +467,13 @@ class ReadHeatmap(BaseHeatmap):
 
         for category in diff_data["grid_ids"].keys():
             diff_data["grid_ids"][category] = np.array(diff_data["grid_ids"][category], np.int64)
-            diff_data["traveltimes"][category] = np.array(diff_data["traveltimes"][category], np.int8)
+            diff_data["traveltimes"][category] = np.array(
+                diff_data["traveltimes"][category], np.int8
+            )
             diff_data["weights"][category] = np.array(diff_data["weights"][category], np.float64)
-            diff_data["relation_sizes"][category] = np.array(diff_data["relation_sizes"][category], np.int64)
-
+            diff_data["relation_sizes"][category] = np.array(
+                diff_data["relation_sizes"][category], np.int64
+            )
 
         calculations = self.prepare_result(
             heatmap_settings=heatmap_settings,
@@ -623,22 +667,40 @@ class ReadHeatmap(BaseHeatmap):
             calculation_arrays[key][masked_grid_pointer] = calculations[key][mask]
         return calculation_arrays
 
-    def create_quantile_arrays(self, calculations_base, calculations_scenario=None):
+    def create_quantile_arrays(
+        self, calculations_base, calculations_scenario=None, modus=CalculationTypes.default
+    ):
         """
         Classify each calculation to a quantile
         returns dict[quantile_array]
         """
-
-        quantile_arrays = {}
+        quantile_arrays_scenario = {}
+        quantile_arrays_base = {}
+        quantile_arrays_comparison = {}
         for key, calculation_base in calculations_base.items():
+            quantile_arrays_base[key] = heatmap_core.quantile_classify(calculation_base, None, 5)
+
             if calculations_scenario is not None:
                 borders = heatmap_core.quantile_borders(calculation_base, 5)
-                quantile_arrays[key] = heatmap_core.quantile_classify(
+                quantile_arrays_scenario[key] = heatmap_core.quantile_classify(
                     calculations_scenario[key], borders, 5
                 )
-            else:
-                quantile_arrays[key] = heatmap_core.quantile_classify(calculation_base, None, 5)
-        return quantile_arrays
+
+            if modus == CalculationTypes.comparison:
+                if key not in quantile_arrays_scenario or key not in quantile_arrays_base:
+                    quantile_arrays_comparison[key] = np.array(len(calculation_base) * [0])
+                    continue
+                quantile_arrays_comparison[key] = (
+                    quantile_arrays_scenario[key] - quantile_arrays_base[key]
+                )
+
+        if modus == CalculationTypes.comparison:
+            return quantile_arrays_comparison
+
+        if calculations_scenario is not None:
+            return quantile_arrays_scenario
+
+        return quantile_arrays_base
 
     def reorder_calculations(self, calculations: dict, grids, uniques: dict):
         """
@@ -681,13 +743,16 @@ class ReadHeatmap(BaseHeatmap):
             properties_ = {}
             for key, arr in properties.items():
                 value = arr[i]
-                if arr.dtype.kind in ["f", "c"]:
-                    value = round(float(value), 2)
-                if arr.dtype.kind in ["i", "u"]:
-                    value = int(value)
-                if np.isnan(value):
-                    value = None
-                properties_[key] = value
+                if arr.dtype.kind in ["U"]:
+                    properties_[key] = value
+                else:
+                    if arr.dtype.kind in ["f", "c"]:
+                        value = round(float(value), 2)
+                    if arr.dtype.kind in ["i", "u"]:
+                        value = int(value)
+                    if np.isnan(value):
+                        value = None
+                    properties_[key] = value
 
             features.append(
                 {
