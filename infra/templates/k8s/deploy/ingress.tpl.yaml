@@ -38,6 +38,10 @@ spec:
             backend:
               serviceName: goat-api
               servicePort: 80
+          - path: /flower/*
+            backend:
+              serviceName: goat-celery-flower-service
+              servicePort: 80
           - path: /*
             backend:
               serviceName: goat-client
