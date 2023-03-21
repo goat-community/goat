@@ -41,6 +41,13 @@ spec:
         - image: ${DOCKER_IMAGE}
           imagePullPolicy: Always
           name: goat-api
+          resources:
+            requests:
+              memory: 700Mi
+              cpu: 600m
+            limits:
+              memory: 4Gi
+              cpu: 2
           envFrom:
             - configMapRef:
                 name: api-config
@@ -107,6 +114,13 @@ spec:
           volumeMounts:
             - name: persistent-storage
               mountPath: /app/src/cache
+          resources:
+            requests:
+              memory: 700Mi
+              cpu: 600m
+            limits:
+              memory: 4Gi
+              cpu: 2
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:

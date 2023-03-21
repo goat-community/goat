@@ -213,7 +213,7 @@ async def delete_selected_scenario_feature(
     if len(scenario) == 0:
         raise HTTPException(status_code=400, detail="Scenario not found")
     else:
-        result = await scenario.delete_scenario_feature(
+        result = await crud_scenario.delete_scenario_feature(
             db, current_user, scenario_id, layer_name, id
         )
         return result
