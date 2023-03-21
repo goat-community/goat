@@ -95,6 +95,7 @@ function heatmapGet(taskId, proj, current_try, lConf, source) {
       })
       .catch(err => {
         console.log(err);
+        mapStore.state.isMapBusy = false;
       });
   }
 }
@@ -422,7 +423,7 @@ export const LayerFactory = {
               walking_profile: "standard",
               scenario: {
                 id: activeScenario ? activeScenario : 0,
-                name: modus
+                modus
               },
               // heatmap_type: "connectivity",
               analysis_unit: "hexagon",
@@ -522,12 +523,12 @@ export const LayerFactory = {
           promise
             .then(response => {
               if (response.data) {
-                console.log(response.data.task_id);
                 heatmapGet(response.data.task_id, proj, 1, lConf, source);
               }
             })
             .catch(err => {
               console.log(err);
+              mapStore.state.isMapBusy = false;
             })
             .finally(() => {
               mapStore.state.indicatorCancelToken = null;
