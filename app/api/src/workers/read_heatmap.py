@@ -3,7 +3,7 @@ import asyncio
 from src.workers.celery_app import celery_app
 from src.workers.method_connector import read_heatmap_async
 
-@celery_app.task
+@celery_app.task(time_limit=60)
 def read_heatmap_task(current_user, heatmap_settings):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
