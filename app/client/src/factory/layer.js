@@ -493,7 +493,7 @@ export const LayerFactory = {
               walking_profile: "standard",
               scenario: {
                 id: activeScenario ? activeScenario : 0,
-                name: modus
+                modus
               },
               // heatmap_type: "modified_gaussian",
               analysis_unit: "hexagon",
