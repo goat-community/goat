@@ -9,7 +9,7 @@ metadata:
   name: goat-client
   namespace: ${NAMESPACE}
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: goat-client
@@ -30,13 +30,6 @@ spec:
           name: goat-client
           ports:
             - containerPort: 80
-          resources:
-            requests:
-              memory: 512Mi
-              cpu: 200m
-            limits:
-              memory: 1Gi
-              cpu: 300m
 ---
 apiVersion: v1
 kind: Service
