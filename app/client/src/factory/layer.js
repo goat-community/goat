@@ -95,6 +95,7 @@ function heatmapGet(taskId, proj, current_try, lConf, source) {
       })
       .catch(err => {
         console.log(err);
+        mapStore.state.isMapBusy = false;
       });
   }
 }
