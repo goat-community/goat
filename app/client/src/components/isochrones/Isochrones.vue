@@ -960,7 +960,7 @@ export default {
     multiIsochronePoiCount: null,
     drawPolygon: null,
     mapPointerMoveKey: null,
-    maxAmenities: 1000, //TODO: make this a configurable setting
+    maxAmenities: 500, //TODO: make this a configurable setting
     // Cancel Request Tokens
     cancelRequestTokens: [],
     // ----PT---

@@ -522,12 +522,12 @@ export const LayerFactory = {
           promise
             .then(response => {
               if (response.data) {
-                console.log(response.data.task_id);
                 heatmapGet(response.data.task_id, proj, 1, lConf, source);
               }
             })
             .catch(err => {
               console.log(err);
+              mapStore.state.isMapBusy = false;
             })
             .finally(() => {
               mapStore.state.indicatorCancelToken = null;
