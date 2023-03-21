@@ -394,8 +394,8 @@ class ReadHeatmap(BaseHeatmap):
 
         heatmap_settings_scenario = heatmap_settings.copy()
         heatmap_settings_scenario.heatmap_config = {}
-        if not not_deleted_features.empty:
-            scenario_categories = not_deleted_features["category"].unique()
+        if not opportunities_modified.empty:
+            scenario_categories = opportunities_modified["category"].unique()
             # Remove categories that are not in the scenario categories
             for opportunity_type in heatmap_settings.heatmap_config.keys():
                 heatmap_settings_scenario.heatmap_config[opportunity_type] = {}
