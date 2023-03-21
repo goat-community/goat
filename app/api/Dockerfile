@@ -23,6 +23,7 @@ ENV CELERYD_GROUP "root"
 ENV CELERY_CREATE_DIRS 1
 
 
+
 # Install system dependencies
 RUN apt-get update \
     && apt-get -y install netcat gcc libpq-dev \
@@ -48,4 +49,6 @@ COPY ./pyproject.toml ./poetry.lock* /app/
 ARG INSTALL_DEV=false
 RUN bash -c "if [ $INSTALL_DEV == 'True' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
 COPY . /app
+
+
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
