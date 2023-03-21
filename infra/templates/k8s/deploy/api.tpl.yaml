@@ -44,10 +44,10 @@ spec:
           resources:
             requests:
               memory: 300Mi
-              cpu: 300m
+              cpu: 600m
             limits:
-              memory: 800Mi
-              cpu: 1
+              memory: 4Gi
+              cpu: 2
           envFrom:
             - configMapRef:
                 name: api-config
@@ -117,10 +117,10 @@ spec:
           resources:
             requests:
               memory: 300Mi
-              cpu: 300m
+              cpu: 600m
             limits:
-              memory: 800Mi
-              cpu: 1
+              memory: 4Gi
+              cpu: 2
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:
