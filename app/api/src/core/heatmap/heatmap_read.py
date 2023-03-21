@@ -471,6 +471,13 @@ class ReadHeatmap(BaseHeatmap):
             for category in add_to_category:
                 if grid_ids_scenario.get(category) is None:
                     continue
+                
+                if len(diff_data["grid_ids"].get(category)) == 0:
+                    diff_data["grid_ids"][category].extend(grid_ids[category])
+                    diff_data["traveltimes"][category].extend(traveltimes[category])
+                    diff_data["weights"][category].extend(weights[category])
+                    diff_data["relation_sizes"][category].extend(relation_sizes[category])
+
                 diff_data["grid_ids"][category].extend(grid_ids_scenario[category])
                 diff_data["traveltimes"][category].extend(traveltimes_scenario[category])
                 diff_data["weights"][category].extend(weights_scenario[category])
