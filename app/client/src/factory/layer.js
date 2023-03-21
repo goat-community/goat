@@ -29,6 +29,33 @@ import store from "../store";
  * Factory, which creates OpenLayers layer instances according to a given config
  * object.
  */
+
+function addHeatmapToMap(response, lConf, source) {
+  mapStore.state.isMapBusy = false;
+  const olFeatures = geobufToFeatures(response.data, {
+    dataProjection: "EPSG:4326",
+    featureProjection: "EPSG:3857"
+  });
+  olFeatures.forEach(feature => {
+    if (["heatmap_connectivity", "heatmap_population"].includes(lConf.name)) {
+      if ("heatmap_connectivity" === lConf.name) {
+        feature.set(
+          "percentile_area_isochrone",
+          Math.round(feature.get("area_class"))
+        );
+      } else if ("heatmap_population" === lConf.name) {
+        feature.set(
+          "percentile_population",
+          Math.round(feature.get("population_class"))
+        );
+      }
+    } else {
+      feature.set("agg_class", Math.round(feature.get("agg_class")));
+    }
+  });
+  source.addFeatures(olFeatures);
+}
+
 const max_tries = 21;
 let heatmapGetCancelToken = null;
 function heatmapGet(taskId, proj, current_try, lConf, source) {
@@ -63,33 +90,34 @@ function heatmapGet(taskId, proj, current_try, lConf, source) {
           }, 1000);
         } else {
           if (response.data) {
-            mapStore.state.isMapBusy = false;
-            const olFeatures = geobufToFeatures(response.data, {
-              dataProjection: "EPSG:4326",
-              featureProjection: "EPSG:3857"
-            });
-            olFeatures.forEach(feature => {
-              if (
-                ["heatmap_connectivity", "heatmap_population"].includes(
-                  lConf.name
-                )
-              ) {
-                if ("heatmap_connectivity" === lConf.name) {
-                  feature.set(
-                    "percentile_area_isochrone",
-                    Math.round(feature.get("area_class"))
-                  );
-                } else if ("heatmap_population" === lConf.name) {
-                  feature.set(
-                    "percentile_population",
-                    Math.round(feature.get("population_class"))
-                  );
-                }
-              } else {
-                feature.set("agg_class", Math.round(feature.get("agg_class")));
-              }
-            });
-            source.addFeatures(olFeatures);
+            addHeatmapToMap(response, lConf, source);
+            // mapStore.state.isMapBusy = false;
+            // const olFeatures = geobufToFeatures(response.data, {
+            //   dataProjection: "EPSG:4326",
+            //   featureProjection: "EPSG:3857"
+            // });
+            // olFeatures.forEach(feature => {
+            //   if (
+            //     ["heatmap_connectivity", "heatmap_population"].includes(
+            //       lConf.name
+            //     )
+            //   ) {
+            //     if ("heatmap_connectivity" === lConf.name) {
+            //       feature.set(
+            //         "percentile_area_isochrone",
+            //         Math.round(feature.get("area_class"))
+            //       );
+            //     } else if ("heatmap_population" === lConf.name) {
+            //       feature.set(
+            //         "percentile_population",
+            //         Math.round(feature.get("population_class"))
+            //       );
+            //     }
+            //   } else {
+            //     feature.set("agg_class", Math.round(feature.get("agg_class")));
+            //   }
+            // });
+            // source.addFeatures(olFeatures);
           }
         }
       })
@@ -443,15 +471,32 @@ export const LayerFactory = {
                 break;
             }
             promise = ApiService.post_(url, payload, promiseConfig);
-          } else if (lConf.name === "pt_oev_gueteklasse") {
-            const payload = {
-              start_time: startTime,
-              end_time: endTime,
-              weekday: weekday,
-              return_type: returnType,
-              station_config: indicatorsStore.state.pt_oev_gueteklasse.config
+          } else if (
+            ["pt_oev_gueteklasse", "pt_station_count"].includes(lConf.name)
+          ) {
+            const promiseConfig = {
+              responseType: "arraybuffer",
+              headers: {
+                Accept: "application/pdf",
+                "Content-Encoding": "gzip"
+              },
+              cancelToken: new CancelToken(c => {
+                // An executor function receives a cancel function as a parameter
+                heatmapGetCancelToken = c;
+              })
             };
-            promise = ApiService.post_(url, payload, promiseConfig);
+            if (lConf.name === "pt_oev_gueteklasse") {
+              const payload = {
+                start_time: startTime,
+                end_time: endTime,
+                weekday: weekday,
+                return_type: returnType,
+                station_config: indicatorsStore.state.pt_oev_gueteklasse.config
+              };
+              promise = ApiService.post_(url, payload, promiseConfig);
+            } else if (lConf.name === "pt_station_count") {
+              promise = ApiService.get_(url, promiseConfig);
+            }
           } else if (
             [
               "heatmap_local_accessibility",
@@ -521,9 +566,14 @@ export const LayerFactory = {
 
           promise
             .then(response => {
+              console.log(response);
               if (response.data) {
-                console.log(response.data.task_id);
-                heatmapGet(response.data.task_id, proj, 1, lConf, source);
+                if (response.data.task_id) {
+                  console.log(response.data.task_id);
+                  heatmapGet(response.data.task_id, proj, 1, lConf, source);
+                } else {
+                  addHeatmapToMap(response, lConf, source);
+                }
               }
             })
             .catch(err => {
