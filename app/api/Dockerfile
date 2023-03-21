@@ -22,7 +22,6 @@ ENV CELERYD_USER "root"
 ENV CELERYD_GROUP "root"
 ENV CELERY_CREATE_DIRS 1
 
-ENV NUMBA_CACHE_DIR "/tmp"
 
 
 # Install system dependencies
@@ -51,6 +50,5 @@ ARG INSTALL_DEV=false
 RUN bash -c "if [ $INSTALL_DEV == 'True' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
 COPY . /app
 
-RUN chmod +777 -R /app
 
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
