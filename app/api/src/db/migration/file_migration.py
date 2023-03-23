@@ -6,7 +6,7 @@ import geopandas as gpd
 import h3
 import numpy as np
 import pandas as pd
-from shapely.geometry import Polygon
+from shapely.geometry import Point, Polygon
 
 from src.core.config import settings
 from src.utils import print_info, print_warning, h3_to_int, create_h3_grid
@@ -194,30 +194,55 @@ class FileMigration:
             h3_output_file_dir.mkdir(parents=True, exist_ok=True)
             for layer_name, layer_source in layer_input.items():
                 print(f"Processing {layer_name} for H3 index {row['grid_id']}")
-                filename = layer_name + ".parquet"
+                filenames = [layer_name + ".parquet"]
                 try:
                     if isinstance(layer_source, str):
                         layer_source = self._read_from_postgis(layer_source, row["geometry"].wkt)
 
                     if len(layer_source) != 0:
+                        export_gdfs = []
                         h3_gdf = gpd.clip(layer_source, row["geometry"])
                         # for poi layer, convert tags to str type. Parquet doesn't support dict type for some reason TODO: fix this
                         if layer_name == "poi":
                             h3_gdf["tags"] = h3_gdf["tags"].astype(str)
-                        h3_gdf.to_parquet(h3_output_file_dir / filename)
+                        
+                        export_gdfs.append(h3_gdf)
+                        if layer_name == "population":
+                            # Create empty geodataframe for grouped data 
+                            h3_gdf_to_group = gpd.GeoDataFrame()
+                            # Get h3 index population apply the h3 index of resolution 10 
+                            h3_gdf_to_group["grid_id"] = h3_gdf.apply(lambda x: h3.geo_to_h3(x["geom"].y, x["geom"].x, 10), axis=1)
+    
+                            # Group by h3 index of resolution 10 and sum the population
+                            h3_gdf_to_group["population"] = h3_gdf["population"]
+                            h3_gdf_grouped = h3_gdf_to_group.groupby(["grid_id"]).agg({"population": "sum"}).reset_index()
 
-                        if self.upload_to_s3 == True:
-                            # Save to S3
-                            self.boto3.upload_file(
-                                "{}/{}".format(h3_output_file_dir, filename),
-                                settings.AWS_BUCKET_NAME,
-                                "{}/{}/{}/{}/{}".format(
-                                    self.s3_folder, "opportunity", "original", row["grid_id"], filename
-                                ),
-                            )
-                        status = "success"
-                    else:
-                        status = "no_data"
+                            # Add geometry to the grouped data using points from xy 
+                            h3_gdf_grouped["geometry"] = h3_gdf_grouped.apply(lambda x: Point(reversed(h3.h3_to_geo(str(x["grid_id"])))), axis=1)
+                            h3_gdf_grouped = gpd.GeoDataFrame(h3_gdf_grouped, geometry="geometry")
+                            h3_gdf_grouped.set_crs(epsg=4326, inplace=True)
+                            # Convert h3 to integer 
+                            h3_gdf_grouped["grid_id_integer"] = h3_gdf_grouped["grid_id"].apply(lambda x: h3.string_to_h3(x))
+                            h3_gdf_grouped = h3_gdf_grouped.drop(columns=["grid_id"])
+                            h3_gdf_grouped = h3_gdf_grouped.rename(columns={"grid_id_integer": "grid_id"})
+
+                            filenames.append("population_grouped.parquet")
+                            export_gdfs.append(h3_gdf_grouped)
+                        
+                        for export_gdf, filename in zip(export_gdfs, filenames):
+                            export_gdf.to_parquet(h3_output_file_dir / filename)
+                            if self.upload_to_s3 == True:
+                                # Save to S3
+                                self.boto3.upload_file(
+                                    "{}/{}".format(h3_output_file_dir, filename),
+                                    settings.AWS_BUCKET_NAME,
+                                    "{}/{}/{}/{}/{}".format(
+                                        self.s3_folder, "opportunity", "original", row["grid_id"], filename
+                                    ),
+                                )
+                                status = "success"
+                            else:
+                                status = "no_data"
                 except Exception as e:
                     message = f'Processing {layer_name} for H3 index {row["grid_id"]}'
                     print_warning(message)
