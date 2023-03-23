@@ -27,7 +27,7 @@ _opportunity_matrices_relations = [
     "categories",
 ]
 
-opportunity_matrices_layers = ["poi", "population", "aoi"]
+_opportunity_matrices_layers = ["poi", "population", "aoi"]
 
 
 def download_files(s3_client, bucket_name, subfolder, local_path, file_names):
@@ -80,7 +80,7 @@ def fetch_cache():
 
         # Fetch opportunity matrices
         for mode in config["modes"]:
-            for layer in opportunity_matrices_layers:
+            for layer in _opportunity_matrices_layers:
                 for relation in _opportunity_matrices_relations:
                     file_names.append(
                         f"opportunity_matrices/{mode}/standard/{bulk_id}/{layer}/{relation}.npy"
