@@ -547,30 +547,27 @@ class ComputeHeatmap(BaseHeatmap):
                 pass
 
     async def compute_connectivity_matrix(
-        self, mode: str, profile: str, study_area_id: int, max_time: int
+        self, mode: str, profile: str, bulk_id: str, max_time: int, s3_folder: str = ""
     ):
 
         directory = self.get_connectivity_path(mode, profile)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        h6_hexagons = self.read_h3_grids_study_areas(6, 0, [study_area_id])
-        for h6_id in h6_hexagons:
-            travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
-            try:
-                traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
-            except FileNotFoundError:
-                print_warning(f"File not found: {travel_time_path}")
-                continue
+        matrix = await self.download_travel_time_matrices(bulk_id, mode, profile, s3_folder)
+        areas = heatmap_cython.calculate_areas_from_pixles(
+            matrix["travel_times"], list(range(1, max_time + 1))
+        )
+        grid_ids = h3_to_int(matrix["grid_ids"])
 
-            areas = heatmap_cython.calculate_areas_from_pixles(
-                traveltime_h6["travel_times"], list(range(1, max_time + 1))
-            )
-            grid_ids = h3_to_int(traveltime_h6["grid_ids"])
-
-            file_name = os.path.join(directory, f"{h6_id}.npz")
-            np.savez(file_name, grid_ids=grid_ids, areas=areas)
-            print_info(f"Com: {file_name}")
-            pass
+        file_name = os.path.join(directory, f"{bulk_id}.npz")
+        np.savez(file_name, grid_ids=grid_ids, areas=areas)
+        await self.upload_npz_to_s3(
+            bulk_id,
+            local_folder=directory,
+            s3_folder=s3_folder
+            + f"/connectivity_matrices/{mode}/{profile}",
+        )
+      
 
     async def compute_traveltime_active_mobility(
         self,
@@ -878,6 +875,52 @@ class ComputeHeatmap(BaseHeatmap):
 
         print_info(f"Computed travel times for {bulk_id} in {time.time() - start} seconds")
         return traveltimeobjs
+
+    async def download_travel_time_matrices(self, bulk_id: str, mode: str, profile: str, s3_folder: str = ""):
+        """Downloads travel time matrices from S3 bucket if not exists."""
+
+        file_name = f"{bulk_id}.npz"
+        dir_profile = os.path.join(
+            settings.TRAVELTIME_MATRICES_PATH, mode, profile
+        )
+        file_path = os.path.join(
+            dir_profile,
+            file_name,
+        )
+        if s3_folder != "" and not os.path.exists(file_path):
+            # check if file exists in S3
+            if settings.S3_CLIENT:
+                print_info(f"File {bulk_id}.npz not found locally. Checking S3...")
+                try:
+                    s3_path = os.path.join(
+                        f"{s3_folder}/traveltime_matrices/{mode}",
+                        profile,
+                        file_name,
+                    )
+                    if not os.path.exists(dir_profile):
+                        os.makedirs(dir_profile, exist_ok=True)
+                    settings.S3_CLIENT.download_file(
+                        settings.AWS_BUCKET_NAME,
+                        s3_path,
+                        file_path,
+                    )
+                except Exception as e:
+                    print_warning(f"File {bulk_id}.npz not found in S3. Skipping...")
+              
+            else:
+                print_warning(f"File {bulk_id}.npz not found locally. Skipping...")
+
+        try:
+            matrix = np.load(
+                file_path,
+                allow_pickle=True,
+            )
+            return matrix
+        except FileNotFoundError:
+            print_warning(f"Cant load file {file_path}. Skipping...")
+
+        
+
 
     async def read_travel_time_matrices(
         self, bulk_id: str, isochrone_dto: IsochroneDTO, s3_folder: str = ""
