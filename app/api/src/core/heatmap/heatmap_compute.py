@@ -554,19 +554,21 @@ class ComputeHeatmap(BaseHeatmap):
         if not os.path.exists(directory):
             os.makedirs(directory)
         matrix = await self.download_travel_time_matrices(bulk_id, mode, profile, s3_folder)
-        areas = heatmap_cython.calculate_areas_from_pixles(
-            matrix["travel_times"], list(range(1, max_time + 1))
-        )
-        grid_ids = h3_to_int(matrix["grid_ids"])
+        
+        if matrix is not None:
+            areas = heatmap_cython.calculate_areas_from_pixles(
+                matrix["travel_times"], list(range(1, max_time + 1))
+            )
+            grid_ids = h3_to_int(matrix["grid_ids"])
 
-        file_name = os.path.join(directory, f"{bulk_id}.npz")
-        np.savez(file_name, grid_ids=grid_ids, areas=areas)
-        await self.upload_npz_to_s3(
-            bulk_id,
-            local_folder=directory,
-            s3_folder=s3_folder
-            + f"/connectivity_matrices/{mode}/{profile}",
-        )
+            file_name = os.path.join(directory, f"{bulk_id}.npz")
+            np.savez(file_name, grid_ids=grid_ids, areas=areas)
+            await self.upload_npz_to_s3(
+                bulk_id,
+                local_folder=directory,
+                s3_folder=s3_folder
+                + f"/connectivity_matrices/{mode}/{profile}",
+            )
       
 
     async def compute_traveltime_active_mobility(
