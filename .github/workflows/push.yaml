@@ -49,8 +49,6 @@ jobs:
       name: ${{ needs.release.outputs.env_name }}
     needs: [release]
     env:
-
-    
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
@@ -72,6 +70,10 @@ jobs:
       BACKEND_CORS_ORIGIN: ${{ secrets.BACKEND_CORS_ORIGIN }}
       RABBITMQ_DEFAULT_USER: ${{ secrets.RABBITMQ_DEFAULT_USER }}
       RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_DEFAULT_PASS }}
+      CELERY_RESULT_EXPIRES: ${{ vars.CELERY_RESULT_EXPIRES }}
+      CELERY_TASK_TIME_LIMIT: ${{ vars.CELERY_TASK_TIME_LIMIT }}
+      API_REPLICAS: ${{ vars.API_REPLICAS }}
+      WORKER_REPLICAS: ${{ vars.WORKER_REPLICAS }}
     steps:
       - uses: actions/checkout@v2
       - uses: aws-actions/configure-aws-credentials@v1

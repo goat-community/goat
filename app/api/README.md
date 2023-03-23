@@ -15,6 +15,7 @@
 docker-compose up -d
 ```
 
+
 * Now you can open your browser and interact with these URLs:
 
 Backend, JSON based web API based on OpenAPI: http://localhost/api/
