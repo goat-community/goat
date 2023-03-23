@@ -206,6 +206,8 @@ class Settings(BaseSettings):
             }
         else:
             return {}
+    
+    CELERY_TASK_TIME_LIST: Optional[int] = 60 # seconds
 
     @validator("R5_API_URL", pre=True)
     def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
