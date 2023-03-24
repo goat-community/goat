@@ -63,8 +63,13 @@ async def create_opportunity_matrices_async(user, parameters):
     # Compute base data
     if parameters.compute_base_data == True:
         for opportunity_type in opportunity_types:
+
+            opportunity_type_read = opportunity_type
+            if opportunity_type == "population":
+                opportunity_type_read = "population_grouped"
+
             opportunities_base = opportunity.read_base_data(
-                layer=opportunity_type,
+                layer=opportunity_type_read,
                 h3_indexes=[bulk_id],
                 bbox_wkt=bulk_geom.wkt,
                 s3_folder=parameters.s3_folder,
@@ -163,7 +168,7 @@ async def read_heatmap_async(current_user, settings):
     else:
         result = heatmap.read(settings)
 
-    #todo: Can be extended to other formats in the future based on return type
+    # todo: Can be extended to other formats in the future based on return type
     result = heatmap.to_geojson(result)
 
     return result

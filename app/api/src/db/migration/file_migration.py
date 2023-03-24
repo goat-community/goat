@@ -187,7 +187,7 @@ class FileMigration:
         Returns:
             gpd.GeoDataFrame: Returns a GeoDataFrame with the export metadata
         """
-
+        status = "success"
         for index, row in h3_indexes_gdf.iterrows():
             print_info(f"Processing original export for H3 index {row['grid_id']}")
             h3_output_file_dir = Path(self.output_dir, "original", row["grid_id"])
@@ -218,8 +218,8 @@ class FileMigration:
                             h3_gdf_grouped = h3_gdf_to_group.groupby(["grid_id"]).agg({"population": "sum"}).reset_index()
 
                             # Add geometry to the grouped data using points from xy 
-                            h3_gdf_grouped["geometry"] = h3_gdf_grouped.apply(lambda x: Point(reversed(h3.h3_to_geo(str(x["grid_id"])))), axis=1)
-                            h3_gdf_grouped = gpd.GeoDataFrame(h3_gdf_grouped, geometry="geometry")
+                            h3_gdf_grouped["geom"] = h3_gdf_grouped.apply(lambda x: Point(reversed(h3.h3_to_geo(str(x["grid_id"])))), axis=1)
+                            h3_gdf_grouped = gpd.GeoDataFrame(h3_gdf_grouped, geometry="geom")
                             h3_gdf_grouped.set_crs(epsg=4326, inplace=True)
                             # Convert h3 to integer 
                             h3_gdf_grouped["grid_id_integer"] = h3_gdf_grouped["grid_id"].apply(lambda x: h3.string_to_h3(x))
