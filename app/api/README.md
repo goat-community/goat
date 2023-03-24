@@ -58,6 +58,7 @@ From `./backend/app/` you can install all the dependencies with:
 $ poetry install
 ```
 
+
 Then you can start a shell session with the new environment with:
 
 ```console
