@@ -119,7 +119,7 @@ spec:
               memory: 700Mi
               cpu: 600m
             limits:
-              memory: 4Gi
+              memory: ${WORKER_MEMORY_LIMIT}Gi
               cpu: 2
       volumes:
         - name: persistent-storage
