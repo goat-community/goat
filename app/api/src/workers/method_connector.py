@@ -13,7 +13,7 @@ from src.schemas.data_preparation import (
     OpportunityMatrixParametersSingleBulk,
     TravelTimeMatrixParametersSingleBulk,
 )
-from src.schemas.heatmap import HeatmapSettings, HeatmapType
+from src.schemas.heatmap import HeatmapSettings, HeatmapType, HeatmapConfigAggregatedData
 from src.schemas.isochrone import IsochroneMode
 
 
@@ -63,8 +63,13 @@ async def create_opportunity_matrices_async(user, parameters):
     # Compute base data
     if parameters.compute_base_data == True:
         for opportunity_type in opportunity_types:
+
+            opportunity_type_read = opportunity_type
+            if opportunity_type == "population":
+                opportunity_type_read = "population_grouped"
+
             opportunities_base = opportunity.read_base_data(
-                layer=opportunity_type,
+                layer=opportunity_type_read,
                 h3_indexes=[bulk_id],
                 bbox_wkt=bulk_geom.wkt,
                 s3_folder=parameters.s3_folder,
@@ -145,25 +150,25 @@ async def read_heatmap_async(current_user, settings):
 
         # Population calculation
         settings.heatmap_type = HeatmapType.aggregated_data
-        settings.heatmap_config = {"source": "population"}
+        settings.heatmap_config = HeatmapConfigAggregatedData(**{"source": "population"})
         population_result = heatmap.read(settings)
 
         difference_quantiles = (
-            population_result["aggregated_data_quantiles"] - modified_gausian_result["agg_classes"]
+            population_result["population_class"] - modified_gausian_result["agg_class"]
         )
 
         result = {
             "h3_grid_ids": modified_gausian_result["h3_grid_ids"],
             "h3_polygons": modified_gausian_result["h3_polygons"],
-            "agg_class": modified_gausian_result["agg_classes"],
-            "population_class": population_result["aggregated_data_quantiles"],
+            "agg_class": modified_gausian_result["agg_class"],
+            "population_class": population_result["population_class"],
             "difference_class": difference_quantiles,
         }
 
     else:
         result = heatmap.read(settings)
 
-    #todo: Can be extended to other formats in the future based on return type
+    # todo: Can be extended to other formats in the future based on return type
     result = heatmap.to_geojson(result)
 
     return result

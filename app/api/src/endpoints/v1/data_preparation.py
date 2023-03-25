@@ -120,7 +120,17 @@ async def create_connectivity_matrices(
     )
 ):
     parameters = json.loads(parameters.json())
+    parameters_serialized = parameters.copy()
     current_super_user = json.loads(current_super_user.json())
-    # data_preparation_tasks.create_connectivity_matrices_sync.delay(current_super_user, parameters2)
-    await method_connector.create_connectivity_matrices_async(current_super_user, parameters)
+    for bulk_id in parameters["bulk_id"]:
+        parameters_serialized["bulk_id"] = bulk_id
+        if settings.CELERY_BROKER_URL:
+            heatmap_active_mobility.create_connectivity_matrices_sync.delay(
+                current_super_user, parameters_serialized
+            )
+        else:
+            await method_connector.create_connectivity_matrices_async(
+                current_super_user, parameters_serialized
+            )
+    
     return JSONResponse("Ok")

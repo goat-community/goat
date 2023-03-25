@@ -22,7 +22,7 @@ metadata:
   name: goat-api
   namespace: ${NAMESPACE}
 spec:
-  replicas: 2
+  replicas: ${API_REPLICAS}
   selector:
     matchLabels:
       app: goat-api
@@ -43,11 +43,11 @@ spec:
           name: goat-api
           resources:
             requests:
-              memory: 300Mi
-              cpu: 300m
+              memory: 700Mi
+              cpu: 600m
             limits:
-              memory: 800Mi
-              cpu: 1
+              memory: 4Gi
+              cpu: 2
           envFrom:
             - configMapRef:
                 name: api-config
@@ -84,7 +84,7 @@ metadata:
   name: goat-worker
   namespace: ${NAMESPACE}
 spec:
-  replicas: 2
+  replicas: ${WORKER_REPLICAS}
   selector:
     matchLabels:
       app: goat-worker
@@ -116,11 +116,11 @@ spec:
               mountPath: /app/src/cache
           resources:
             requests:
-              memory: 300Mi
-              cpu: 300m
+              memory: 700Mi
+              cpu: 600m
             limits:
-              memory: 800Mi
-              cpu: 1
+              memory: ${WORKER_MEMORY_LIMIT}Gi
+              cpu: 2
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:
@@ -172,3 +172,5 @@ data:
   CELERYD_OPTS: --concurrency=1 --queues=goat-light-worker
   CELERY_BROKER_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@goat-rabbitmq-service:5672/goat
   CELERY_RESULT_BACKEND: redis://goat-redis-service:6379/0
+  CELERY_RESULT_EXPIRES: "\"${CELERY_RESULT_EXPIRES}"\"
+  CELERY_TASK_TIME_LIMIT: "\"${CELERY_TASK_TIME_LIMIT}"\"
