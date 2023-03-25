@@ -59,7 +59,6 @@ function addHeatmapToMap(response, lConf, source) {
 const max_tries = 21;
 let heatmapGetCancelToken = null;
 function heatmapGet(taskId, proj, current_try, lConf, source) {
-  console.log(current_try);
   if (current_try < max_tries) {
     const returnType = "geobuf";
     const baseUrl_ = "indicators";
@@ -566,10 +565,8 @@ export const LayerFactory = {
 
           promise
             .then(response => {
-              console.log(response);
               if (response.data) {
                 if (response.data.task_id) {
-                  console.log(response.data.task_id);
                   heatmapGet(response.data.task_id, proj, 1, lConf, source);
                 } else {
                   addHeatmapToMap(response, lConf, source);
