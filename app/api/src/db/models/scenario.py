@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     from .aoi import AoiModified
     from .building import BuildingModified
     from .edge import Edge, WayModified
-    from .heatmap import ReachedEdgeHeatmap, ReachedPoiHeatmap
     from .isochrone import IsochroneCalculation
     from .node import Node
     from .poi import PoiModified

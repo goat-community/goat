@@ -7,7 +7,6 @@ from pydantic.networks import EmailStr
 from starlette.responses import StreamingResponse
 
 from src import schemas
-from src.core.celery_app import celery_app
 from src.db import models
 from src.endpoints import deps
 from src.utils import send_test_email
@@ -36,18 +35,6 @@ async def reverse_proxy(
         url = f"http://{url}"
     response = requests.get(url)
     return Response(content=response.content)
-
-
-@router.post("/test-celery", response_model=schemas.Msg, status_code=201)
-def test_celery(
-    msg: schemas.Msg,
-    current_user: models.User = Depends(deps.get_current_active_superuser),
-) -> Any:
-    """
-    Test Celery worker.
-    """
-    celery_app.send_task("app.worker.test_celery", args=[msg.msg])
-    return {"msg": "Word received"}
 
 
 @router.post("/test-email", response_model=schemas.Msg, status_code=201)

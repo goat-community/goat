@@ -90,11 +90,39 @@ class LegendRenderer {
           .attr("width", iconSize[0])
           .attr("height", iconSize[1])
           .attr("href", uri);
-        container
-          .append("text")
-          .text(item.title)
-          .attr("x", position[0] + iconSize[0] + 5)
-          .attr("y", position[1] + 20);
+        if (item.title.split(" ").length > 4) {
+          let texts = [
+            item.title
+              .split(" ")
+              .slice(0, 4)
+              .join(" "),
+            item.title
+              .split(" ")
+              .slice(4, item.title.split(" ").length)
+              .join(" ")
+          ];
+
+          texts.forEach((text, index) => {
+            container
+              .append("text")
+              .text(text)
+              // .style("word-wrap", "break-word")
+              .attr("x", position[0] + iconSize[0] + 5)
+              .attr("y", (position[1] + 17) * (index + 0.7));
+          });
+          // const arr = [];
+          // for (let i = 0; i < item.title.length; i += 10) {
+          //   arr.push(item.title.substring(i, i + 10));
+          // }
+          console.log(texts);
+        } else {
+          container
+            .append("text")
+            .text(item.title)
+            // .style("word-wrap", "break-word")
+            .attr("x", position[0] + iconSize[0] + 5)
+            .attr("y", position[1] + 20);
+        }
         position[1] += iconSize[1] + 5;
         if (
           maxColumnHeight &&

@@ -28,7 +28,7 @@
           <h1 style="text-align:center; color: #000000; line-height:32px">Thank you for signing up for the free demo!</h1>
         </mj-text>
       <mj-text align="left" color="#797e82" font-family="Open Sans, Helvetica, Arial, sans-serif" font-size="13px" line-height="22px" padding-bottom="0px" padding-left="50px" padding-right="50px" padding-top="0px" padding="0px 25px 0px 25px">
-          <p style="margin: 10px 0; text-align: center;">We are delighted that you are becoming part of the GOAT community! During your 30-day trial period, you will have full access to the GOAT version for Munich. If you like it and want to use GOAT also in your municipality, just <a target="_blank" rel="noopener noreferrer" href="https://plan4better.de/en/contact/" style="color:#2BB381">contact our sales team</a>.</p>
+          <p style="margin: 10px 0; text-align: center;">We are delighted that you are becoming part of the GOAT community! During your 30-day trial period, you will have full access to the GOAT version for Munich. If you like it and want to use GOAT also in your municipality, just <a target="_blank" rel="noopener noreferrer" href="https://plan4better.de/en/contact/" style="color:#2BB381">contact our sales team</a>. To get started, we recommend to have a look at our <a target="_blank" rel="noopener noreferrer" href="https://plan4better.de/en/tutorials/isochrone/" style="color:#2BB381">tutorials</a> and <a target="_blank" rel="noopener noreferrer" href="https://plan4better.de/en/videos/" style="color:#2BB381">videos</a></p>
         </mj-text>
       </mj-column>
     </mj-section>

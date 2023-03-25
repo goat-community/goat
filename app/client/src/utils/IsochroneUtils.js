@@ -148,7 +148,8 @@ const IsochroneUtils = {
       project: ([x, y]) => {
         const ll = fromPixel({ x: x + west, y: y + north }, zoom);
         return [ll.lon, ll.lat];
-      }
+      },
+      excludeHoles: true
     });
     let olFeatures = geojsonToFeature(isochronePolygon, {
       dataProjection: "EPSG:4326",

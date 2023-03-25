@@ -185,6 +185,22 @@
         </div>
       </template>
     </overlay-popup>
+    <!-- Info Snackbar for not visible POIs -->
+    <v-snackbar
+      :color="appColor.primary"
+      top
+      :timeout="visibilityPoiSnackbar.timeout"
+      v-model="visibilityPoiSnackbar.state"
+    >
+      <v-icon color="white" class="mr-3">
+        info
+      </v-icon>
+      <span v-html="visibilityPoiSnackbar.message"></span>
+      <v-btn text @click="visibilityPoiSnackbar.state = false">
+        <v-icon>close</v-icon>
+      </v-btn>
+    </v-snackbar>
+
     <!-- Info Snackbar for not visible layers. -->
     <v-snackbar
       :color="appColor.primary"
@@ -364,6 +380,11 @@ export default {
         state: false,
         message: "",
         timeout: 8000
+      },
+      visibilityPoiSnackbar: {
+        state: false,
+        message: "",
+        timeout: 8000
       }
     };
   },
@@ -514,7 +535,7 @@ export default {
      * Creates pois aois layer
      */
     createPoisAoisLayer() {
-      const vector = new VectorLayer({
+      const vector = new VectorImageLayer({
         name: "pois_aois_layer",
         type: "VECTOR",
         displayInLayerList: false,
@@ -523,9 +544,40 @@ export default {
         source: new VectorSource(),
         style: poisAoisStyle
       });
+
+      const vectorgrouped = new VectorImageLayer({
+        name: "pois_aois_layer",
+        type: "VECTOR",
+        displayInLayerList: false,
+        queryable: true,
+        zIndex: 99,
+        source: new VectorSource(),
+        style: poisAoisStyle
+      });
+
       this.map.addLayer(vector);
+      this.map.addLayer(vectorgrouped);
       this.poisAoisLayer = vector;
-      this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`);
+      this.poisAoisGroupingLayer = vectorgrouped;
+
+      // const extent = this.map.getView().calculateExtent(this.map.getSize());
+
+      const boundaries = this.studyArea[0].get("bounds");
+
+      const topLeft = this.map.getPixelFromCoordinate([
+        boundaries[0],
+        boundaries[3]
+      ]);
+      const bottomRight = this.map.getPixelFromCoordinate([
+        boundaries[2],
+        boundaries[1]
+      ]);
+
+      // Calculate width and height in pixels
+      const width = bottomRight[0] - topLeft[0];
+      const height = bottomRight[1] - topLeft[1];
+
+      this.$store.dispatch(`poisaois/${GET_POIS_AOIS}`, { width, height });
     },
 
     /**
@@ -958,7 +1010,27 @@ export default {
       this.popup.currentLayerIndex += 1;
       this.showPopup();
     },
-
+    showNonVisiblePoisInfo: debounce(function() {
+      const currentResolution = this.map.getView().getResolution();
+      if (
+        (this.selectedPoisAois.length > 0) &
+        (currentResolution > this.poisAoisLayer.getMinZoom())
+      ) {
+        this.visibilityPoiSnackbar = {
+          state: true,
+          message: `${this.$t(
+            `map.snackbarMessages.zoomInToShowFeatures`
+          )} Amenities`,
+          timeout: 80000
+        };
+      } else {
+        this.visibilityPoiSnackbar = {
+          state: false,
+          message: ``,
+          timeout: 0
+        };
+      }
+    }, 200),
     showNonVisibleLayersInfo: debounce(function() {
       const currentResolution = this.map.getView().getResolution();
       const notVisibleLayers = [];
@@ -1069,9 +1141,11 @@ export default {
     ...mapFields("poisaois", {
       poisAoisLayer: "poisAoisLayer",
       selectedPoisAois: "selectedPoisAois",
-      poisAois: "poisAois"
+      rawPoisAois: "rawPoisAois",
+      rawGroupPoisAois: "rawGroupPoisAois",
+      poisAois: "poisAois",
+      poisAoisGroupingLayer: "poisAoisGroupingLayer"
     }),
-
     ...mapGetters("map", {
       studyArea: "studyArea",
       helpTooltip: "helpTooltip",
@@ -1143,11 +1217,25 @@ export default {
     // this should be watched here as it might be that poisAoisTree component is not rendered yet.
     selectedPoisAois(selected) {
       const poisAois = {};
+      this.poisAoisGroupingLayer.getSource().clear();
+      this.poisAoisLayer.getSource().clear();
       selected.forEach(item => {
+        if (item.value in this.rawPoisAois) {
+          this.poisAoisLayer
+            .getSource()
+            .addFeatures(this.rawPoisAois[item.value]);
+        }
+
+        if (item.value in this.rawGroupPoisAois) {
+          this.poisAoisGroupingLayer
+            .getSource()
+            .addFeatures(this.rawGroupPoisAois[item.value]);
+        }
         poisAois[item.value] = true;
       });
       this.poisAois = poisAois;
       this.poisAoisLayer.changed();
+      this.showNonVisiblePoisInfo();
     }
   }
 };

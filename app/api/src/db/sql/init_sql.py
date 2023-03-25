@@ -7,6 +7,7 @@ from pathlib import Path
 from alembic_utils.pg_function import PGFunction
 from alembic_utils.pg_trigger import PGTrigger
 from alembic_utils.pg_view import PGView
+from psycopg2.errors import UndefinedFunction
 from sqlalchemy import text
 
 from src.core.config import settings
@@ -41,7 +42,11 @@ def downgrade_functions():
     sql_function_entities_.reverse()
     for function in sql_function_entities_:
         statement = function.to_sql_statement_drop()
-        legacy_engine.execute(text(statement.text))
+        try:
+            legacy_engine.execute(text(statement.text))
+        except UndefinedFunction as e:
+            print(e)
+            
 
 
 def upgrade_functions():
@@ -56,7 +61,10 @@ def downgrade_triggers():
     sql_trigger_entities_.reverse()
     for triger in sql_trigger_entities_:
         statement = triger.to_sql_statement_drop()
-        legacy_engine.execute(text(statement.text))
+        try:
+            legacy_engine.execute(text(statement.text))
+        except UndefinedFunction as e:
+            print(e)
 
 
 def upgrade_triggers():
