@@ -440,10 +440,7 @@ function poisEditShadowStyle(color, radius) {
 const poisEditStyleCache = {};
 export function poisEditStyle(feature) {
   const category = feature.get("category");
-  if (
-    !poisAoisStore.state.poisAois[category] ||
-    ["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())
-  ) {
+  if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
     return [];
   }
   const calculationMode = appStore.state.calculationMode.active;
