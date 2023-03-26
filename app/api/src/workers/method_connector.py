@@ -14,7 +14,9 @@ from src.schemas.data_preparation import (
     TravelTimeMatrixParametersSingleBulk,
 )
 from src.schemas.heatmap import HeatmapSettings, HeatmapType, HeatmapConfigAggregatedData
+from src.schemas.indicators import CalculateOevGueteklassenParameters
 from src.schemas.isochrone import IsochroneMode
+from src.crud.crud_indicator import indicator
 
 
 async def create_traveltime_matrices_async(current_super_user, parameters):
@@ -172,3 +174,23 @@ async def read_heatmap_async(current_user, settings):
     result = heatmap.to_geojson(result)
 
     return result
+
+
+async def read_pt_station_count_async(current_user, payload):
+    current_user = models.User(**current_user)
+    station_count_features = await indicator.count_pt_service_stations(**payload)
+    return station_count_features
+
+
+async def read_pt_oev_gueteklassen_async(current_user, payload):
+    current_user = models.User(**current_user)
+    payload = CalculateOevGueteklassenParameters(**payload)
+    oev_gueteklassen_features = await indicator.compute_oev_gueteklassen(
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+        weekday=payload.weekday,
+        study_area_ids=payload.study_area_ids,
+        station_config=payload.station_config,
+    )
+
+    return oev_gueteklassen_features

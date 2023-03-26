@@ -2,44 +2,35 @@ import bisect
 from datetime import timedelta
 from typing import Any
 
+import json
 import pyproj
 from geojson import Feature, FeatureCollection
+from geopandas import read_postgis
 from shapely import wkb
 from shapely.ops import transform, unary_union
-from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.sql import text
-
-from src.resources.enums import SQLReturnTypes
-
-
-
+from src.db.session import legacy_engine as db_sync_engine
+from pandas.io.sql import read_sql
 
 class CRUDIndicator:
     async def count_pt_service_stations(
-        self, db: AsyncSession, start_time, end_time, weekday, study_area_id, return_type
+        self, start_time, end_time, weekday, study_area_id
     ) -> Any:
         """Get count of public transport stations for every service."""
-        template_sql = SQLReturnTypes[return_type.value].value
-        stations_count = await db.execute(
-            text(
-                template_sql
-                % f"""
-                SELECT * FROM basic.count_public_transport_services_station(:study_area_id, :start_time, :end_time, :weekday)
-                """
-            ),
-            {
-                "study_area_id": study_area_id,
-                "start_time": timedelta(seconds=start_time),
-                "end_time": timedelta(seconds=end_time),
-                "weekday": weekday,
-            },
+        stations_count = read_postgis(
+            f"""
+            SELECT * FROM basic.count_public_transport_services_station({study_area_id},
+            '{timedelta(seconds=start_time)}',
+            '{timedelta(seconds=end_time)}',
+            {weekday})
+            """,
+            con=db_sync_engine,
         )
-        stations_count = stations_count.fetchall()[0][0]
+        stations_count = json.loads(stations_count.to_json())
+
         return stations_count
 
     async def compute_oev_gueteklassen(
         self,
-        db: AsyncSession,
         start_time,
         end_time,
         weekday,
@@ -61,23 +52,21 @@ class CRUDIndicator:
 
         stations = []
         for study_area_id in study_area_ids:
-            fetched_stations = await db.execute(
-                text(
-                    """
-                    SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom 
-                    FROM basic.count_public_transport_services_station(:study_area_id, :start_time, :end_time, :weekday, :max_buffer_distance, :route_types)
-                    """
-                ),
-                {
-                    "study_area_id": study_area_id,
-                    "start_time": timedelta(seconds=start_time),
-                    "end_time": timedelta(seconds=end_time),
-                    "weekday": weekday,
-                    "max_buffer_distance": max_buffer_distance,
-                    "route_types": list(station_config["groups"].keys()),
-                },
+
+            fetched_stations = read_sql(
+                f"""
+                    SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom
+                    FROM basic.count_public_transport_services_station({study_area_id}, 
+                    '{timedelta(seconds=start_time)}', 
+                    '{timedelta(seconds=end_time)}', 
+                    {weekday}, 
+                    {max_buffer_distance}, 
+                    ARRAY[{list(station_config["groups"].keys())}])
+                """,
+                con=db_sync_engine,
             )
-            fetched_stations = fetched_stations.fetchall()
+
+            fetched_stations = list(fetched_stations.to_records(index=False))
             stations = stations + fetched_stations
 
         project = pyproj.Transformer.from_crs(
@@ -141,6 +130,4 @@ class CRUDIndicator:
         return FeatureCollection(features)
 
 
-
 indicator = CRUDIndicator()
-
