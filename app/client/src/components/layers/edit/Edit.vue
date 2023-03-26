@@ -879,7 +879,7 @@ export default {
         displayInLayerList: false,
         source: new VectorSource({ wrapX: false }),
         zIndex: 10,
-        style: getEditStyle(),
+        style: getEditStyle("editable"),
         queryable: true
       });
       editLayer.getSource().on("changefeature", this.onFeatureChange);
@@ -891,11 +891,11 @@ export default {
 
       // Visualization Edit Layer
       const visualizationEditLayer = new VectorImageLayer({
-        name: "Edit Layer",
+        name: "Visualization Edit Layer",
         displayInLayerList: false,
         source: new VectorSource({ wrapX: false }),
+        style: getEditStyle("visualization"),
         zIndex: 10,
-        style: getEditStyle(),
         queryable: true
       });
       visualizationEditLayer
@@ -1013,6 +1013,12 @@ export default {
       let otherLayers = ["way", "poi", "building"].filter(
         type => type !== layer
       );
+
+      let style = [
+        this.editLayer.getStyle(),
+        this.visualizationEditLayer.getStyle()
+      ];
+      console.log(style);
 
       const requestsVisualization = [];
       otherLayers.forEach(type => {
@@ -1845,6 +1851,7 @@ export default {
       this.olEditCtrl.clear();
       this.olSelectCtrl.clear();
       this.editLayer.getSource().clear();
+      this.visualizationEditLayer.getSource().clear();
       this.highlightLayer.getSource().clear();
       this.bldEntranceLayer.getSource().clear();
       if (this.contextmenu) {

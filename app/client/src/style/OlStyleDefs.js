@@ -166,8 +166,8 @@ export function studyAreaStyle() {
   });
 }
 
-export function getEditStyle() {
-  return editStyleFn();
+export function getEditStyle(type) {
+  return editStyleFn(type);
 }
 
 export function getIsochroneNetworkStyle() {
@@ -438,7 +438,7 @@ function poisEditShadowStyle(color, radius) {
 }
 
 const poisEditStyleCache = {};
-export function poisEditStyle(feature) {
+export function poisEditStyle(feature, resolution, type) {
   const category = feature.get("category");
   if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
     return [];
@@ -455,10 +455,10 @@ export function poisEditStyle(feature) {
   const poiIconConf = appStore.state.poiIcons[category];
   const editType = feature.get("edit_type");
   //edit_type m = modified, d = deleted, n = new
-  const shadowColor = {
-    n: "#6495ED",
-    m: "#FFA500",
-    d: "#FF0000"
+  let shadowColor = {
+    n: type === "visualization" ? "rgba(79, 79, 79, 0.64)" : "#6495ED",
+    m: type === "visualization" ? "rgba(115, 115, 115, 0.64" : "#FFA500",
+    d: type === "visualization" ? "rgba(156, 156, 156, 0.64)" : "#FF0000"
   };
   var st = [];
   // Shadow Style for Editing POIs
@@ -466,6 +466,7 @@ export function poisEditStyle(feature) {
   //   st.push(poisEditShadowStyle("rgba(0,0,0,0.5)", 15));
   // }
   if (!poisEditShadowStyleCache[editType]) {
+    console.log(shadowColor);
     poisEditShadowStyleCache[editType] = poisEditShadowStyle(
       shadowColor[editType],
       25
@@ -537,20 +538,20 @@ export function uploadedFeaturesStyle() {
   });
   return [style];
 }
-export function waysNewRoadStyle() {
+export function waysNewRoadStyle(type) {
   const style = new OlStyle({
     stroke: new OlStroke({
-      color: "#6495ED",
+      color: type === "visualization" ? "rgba(79, 79, 79, 0.64)" : "#6495ED",
       width: 4
     })
   });
   return [style];
 }
 
-export function waysNewBridgeStyle() {
+export function waysNewBridgeStyle(type) {
   const style = new OlStyle({
     stroke: new OlStroke({
-      color: "#FFA500",
+      color: type === "visualization" ? "rgba(79, 79, 79, 0.64)" : "#FFA500",
       width: 4
     })
   });
@@ -583,11 +584,11 @@ export function deletedStyle() {
   return [style];
 }
 
-export function editStyleFn() {
+export function editStyleFn(type) {
   const styleFunction = (feature, resolution) => {
     const props = feature.getProperties();
     if (props.layerName === "poi") {
-      return poisEditStyle(feature, resolution);
+      return poisEditStyle(feature, resolution, type);
     }
     // Deleted Style
     if (props.edit_type === "d") {
@@ -597,9 +598,9 @@ export function editStyleFn() {
     // New road Style
     if (feature.get("layerName") === "way") {
       if (props.way_type == "bridge") {
-        return waysNewBridgeStyle();
+        return waysNewBridgeStyle(type);
       } else if (props.way_type == "road") {
-        return waysNewRoadStyle();
+        return waysNewRoadStyle(type);
       }
     }
     if (feature.get("layerName") === "building" && feature.get("edit_type")) {
@@ -607,13 +608,13 @@ export function editStyleFn() {
       const geomType = feature.getGeometry().getType();
       const strokeOpt = {
         color: ["MultiPolygon", "Polygon"].includes(geomType)
-          ? "rgba(255, 0, 0, 1)"
+          ? "rgba(79, 79, 79, 1)"
           : "#707070",
         width: 3
       };
       const fillOpt = {
         color: ["MultiPolygon", "Polygon"].includes(geomType)
-          ? "rgba(255, 0, 0, 0.5)"
+          ? "rgba(79, 79, 79, 0.5)"
           : [0, 0, 0, 0]
       };
       const properties = feature.getProperties();
