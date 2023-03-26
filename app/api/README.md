@@ -15,6 +15,7 @@
 docker-compose up -d
 ```
 
+
 * Now you can open your browser and interact with these URLs:
 
 Backend, JSON based web API based on OpenAPI: http://localhost/api/
@@ -56,6 +57,8 @@ From `./backend/app/` you can install all the dependencies with:
 ```console
 $ poetry install
 ```
+
+
 
 Then you can start a shell session with the new environment with:
 
