@@ -1018,7 +1018,6 @@ export default {
         this.editLayer.getStyle(),
         this.visualizationEditLayer.getStyle()
       ];
-      console.log(style);
 
       const requestsVisualization = [];
       otherLayers.forEach(type => {

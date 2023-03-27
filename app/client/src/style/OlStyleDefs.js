@@ -421,7 +421,7 @@ export function defaultStyle(feature) {
   return styles;
 }
 
-const poisEditShadowStyleCache = {};
+let poisEditShadowStyleCache = {};
 
 function poisEditShadowStyle(color, radius) {
   return new OlStyle({
@@ -437,7 +437,7 @@ function poisEditShadowStyle(color, radius) {
   });
 }
 
-const poisEditStyleCache = {};
+let poisEditStyleCache = {};
 export function poisEditStyle(feature, resolution, type) {
   const category = feature.get("category");
   if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
@@ -453,20 +453,17 @@ export function poisEditStyle(feature, resolution, type) {
   }
 
   const poiIconConf = appStore.state.poiIcons[category];
+
   const editType = feature.get("edit_type");
-  //edit_type m = modified, d = deleted, n = new
+
   let shadowColor = {
     n: type === "visualization" ? "rgba(79, 79, 79, 0.64)" : "#6495ED",
     m: type === "visualization" ? "rgba(115, 115, 115, 0.64" : "#FFA500",
     d: type === "visualization" ? "rgba(156, 156, 156, 0.64)" : "#FF0000"
   };
   var st = [];
-  // Shadow Style for Editing POIs
-  // if (!editType) {
-  //   st.push(poisEditShadowStyle("rgba(0,0,0,0.5)", 15));
-  // }
+  poisEditShadowStyleCache = {};
   if (!poisEditShadowStyleCache[editType]) {
-    console.log(shadowColor);
     poisEditShadowStyleCache[editType] = poisEditShadowStyle(
       shadowColor[editType],
       25
