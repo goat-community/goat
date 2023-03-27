@@ -218,9 +218,6 @@ export default {
     ...mapGetters("app", {
       appColor: "appColor",
       appConfig: "appConfig",
-      poisTreeOnlyChildren: "poisTreeOnlyChildren",
-      poiIcons: "poiIcons",
-      poisAoisTree: "poisAoisTree",
       calculationMode: "calculationMode",
       unCalculatedDataUploadIds: "unCalculatedDataUploadIds"
     }),
@@ -232,9 +229,6 @@ export default {
     }),
     ...mapFields("map", {
       indicatorCancelToken: "indicatorCancelToken"
-    }),
-    ...mapGetters("map", {
-      isMapBusy: "isMapBusy"
     }),
     ...mapFields("app", {
       isRecomputingIndicator: "isRecomputingIndicator"
@@ -299,29 +293,6 @@ export default {
         );
       }
       this.currentItem = item;
-    },
-    turnOnAndLockPoiTreeNode(type) {
-      // const uniqueCategories = [
-      //   ...new Set(features.map(f => f.get("category")))
-      // ];
-      let allpoisaois = Object.keys(this.poiIcons);
-
-      allpoisaois.forEach(category => {
-        if (type == "add") {
-          const poiNodeObj = this.poisTreeOnlyChildren[category];
-          if (poiNodeObj) {
-            poiNodeObj.isLocked = true;
-            this.poisTreeOnlyChildren[category] = poiNodeObj;
-          }
-        }
-        if (type === "unlock") {
-          const poiNodeObj = this.poisTreeOnlyChildren[category];
-          if (poiNodeObj) {
-            poiNodeObj.isLocked = false;
-            this.poisTreeOnlyChildren[category] = poiNodeObj;
-          }
-        }
-      });
     },
     toggleLayerVisibility(layer) {
       if (this.indicatorCancelToken instanceof Function) {
@@ -462,13 +433,6 @@ export default {
     }
   },
   watch: {
-    isMapBusy(value) {
-      if (value) {
-        this.turnOnAndLockPoiTreeNode("add");
-      } else {
-        this.turnOnAndLockPoiTreeNode("unlock");
-      }
-    },
     selectedPoisOnlyKeys() {
       this.refreshVisibleIndicators(this.updateIndicators.poi);
     },

@@ -85,7 +85,7 @@
               <v-flex xs11>
                 <span
                   class="justify-start"
-                  style="padding-right: 50px"
+                  style="padding-right: 50px;"
                   :ref="`legend-vector-${layer.get('name') + ith}`"
                   v-html="renderLegend(layer, ith)"
                 >

@@ -93,12 +93,12 @@ const actions = {
               }
             });
 
-            if (olFeatures.length > 35000) {
-              state.poisAoisLayer.setMinZoom(14);
+            // if (olFeatures.length > 35000) {
+            //   state.poisAoisLayer.setMinZoom(14);
 
-              state.poisAoisGroupingLayer.setMinZoom(14);
-              state.poisAoisGroupingLayer.setMaxZoom(16);
-            }
+            //   state.poisAoisGroupingLayer.setMinZoom(14);
+            //   state.poisAoisGroupingLayer.setMaxZoom(16);
+            // }
             console.log(map_width);
             // if (map_width) {
             //   state.poisAoisLayer.setMinZoom(
