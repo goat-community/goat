@@ -74,6 +74,7 @@ jobs:
       CELERY_TASK_TIME_LIMIT: ${{ vars.CELERY_TASK_TIME_LIMIT }}
       API_REPLICAS: ${{ vars.API_REPLICAS }}
       WORKER_REPLICAS: ${{ vars.WORKER_REPLICAS }}
+      WORKER_MEMORY_LIMIT: ${{ vars.WORKER_MEMORY_LIMIT }}
     steps:
       - uses: actions/checkout@v2
       - uses: aws-actions/configure-aws-credentials@v1

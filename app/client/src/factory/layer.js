@@ -36,7 +36,7 @@ function heatmapGet(taskId, proj, current_try, lConf, source) {
   if (current_try < max_tries) {
     const returnType = "geobuf";
     const baseUrl_ = "indicators";
-    const requestUrl = `${baseUrl_}/heatmap/result/${taskId}?return_type=${returnType}`;
+    const requestUrl = `${baseUrl_}/result/${taskId}?return_type=${returnType}`;
 
     let promise;
     mapStore.state.isMapBusy = true;

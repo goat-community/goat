@@ -21,6 +21,7 @@ class Opportunity:
         layers = {
             "poi": ["uid", "category", "geometry"],
             "population": ["population", "building_id", "geometry"],
+            "population_grouped": ["population", "building_id", "geometry"],
             "aoi": ["id", "geometry"],
         }
         self.layers = layers
