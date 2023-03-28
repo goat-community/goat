@@ -37,7 +37,7 @@ from src.schemas.isochrone import (
     IsochroneStartingPointCoord,
     IsochroneTypeEnum,
     R5AvailableDates,
-    R5TravelTimePayloadTemplate
+    R5TravelTimePayloadTemplate,
 )
 from src.utils import (
     decode_r5_grid,
@@ -215,7 +215,7 @@ class CRUDIsochrone:
                 "length": np.double,
             }
         )
-        return edges_network, starting_ids
+        return edges_network, starting_ids, starting_point_geom
 
     async def export_isochrone(
         self,
@@ -372,19 +372,25 @@ class CRUDIsochrone:
 
         # == Walking and cycling isochrone ==
         if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
-            network, starting_ids = await self.read_network(
+            network, starting_ids, starting_point_geom = await self.read_network(
                 db, obj_in, current_user, isochrone_type
             )
             network = network.iloc[1:, :]
             grid, network = compute_isochrone(
-                network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
+                network, starting_ids, obj_in.settings.travel_time, obj_in.settings.speed / 3.6, obj_in.output.resolution
             )
         # == Public transport isochrone ==
         else:
+            starting_point_geom = Point(
+                obj_in.starting_point.input[0].lon, obj_in.starting_point.input[0].lat
+            ).wkt
+
             weekday = obj_in.settings.weekday
             payload = R5TravelTimePayloadTemplate.copy()
             payload["accessModes"] = obj_in.settings.access_mode.value.upper()
-            payload["transitModes"] = ",".join(x.value.upper() for x in obj_in.settings.transit_modes)
+            payload["transitModes"] = ",".join(
+                x.value.upper() for x in obj_in.settings.transit_modes
+            )
             payload["date"] = R5AvailableDates[weekday]
             payload["fromTime"] = obj_in.settings.from_time
             payload["toTime"] = obj_in.settings.to_time
@@ -440,7 +446,10 @@ class CRUDIsochrone:
 
                 opportunities = merge_dicts(*opportunities)
                 opportunities = self.restructure_dict(opportunities)
-                grid["accessibility"] = opportunities
+                grid["accessibility"] = {
+                    "starting_points": starting_point_geom,
+                    "opportunities": opportunities,
+                }
                 print(f"Opportunity intersect took {time.time() - start} seconds")
             elif isochrone_type == IsochroneTypeEnum.multi.value:
                 if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:

@@ -10,6 +10,7 @@ metadata:
   namespace: ${NAMESPACE}
 spec:
   replicas: 1
+  # hostname: goat_${NAMESPACE}_rabbitmq
   selector:
     matchLabels:
       app: goat-rabbitmq
@@ -24,7 +25,7 @@ spec:
         app: goat-rabbitmq
     spec:
       containers:
-        - image: rabbitmq:3-management-alpine
+        - image: goatcommunity/rabbitmq:latest
           imagePullPolicy: IfNotPresent
           name: goat-rabbitmq
           envFrom:
@@ -56,4 +57,6 @@ metadata:
 data:
   RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
   RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
   RABBITMQ_DEFAULT_VHOST: goat

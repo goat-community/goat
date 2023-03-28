@@ -166,8 +166,8 @@ export function studyAreaStyle() {
   });
 }
 
-export function getEditStyle() {
-  return editStyleFn();
+export function getEditStyle(type) {
+  return editStyleFn(type);
 }
 
 export function getIsochroneNetworkStyle() {
@@ -421,7 +421,7 @@ export function defaultStyle(feature) {
   return styles;
 }
 
-const poisEditShadowStyleCache = {};
+let poisEditShadowStyleCache = {};
 
 function poisEditShadowStyle(color, radius) {
   return new OlStyle({
@@ -437,13 +437,11 @@ function poisEditShadowStyle(color, radius) {
   });
 }
 
-const poisEditStyleCache = {};
-export function poisEditStyle(feature) {
+let poisEditStyleCache = {};
+export function poisEditStyle(feature, resolution, type) {
+  const isGrouped = feature.get("grouped");
   const category = feature.get("category");
-  if (
-    !poisAoisStore.state.poisAois[category] ||
-    ["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())
-  ) {
+  if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
     return [];
   }
   const calculationMode = appStore.state.calculationMode.active;
@@ -455,19 +453,26 @@ export function poisEditStyle(feature) {
     return [];
   }
 
+  if (GROUPED_CATEGORIES[category]) {
+    const zoom = mapStore.state.map.getView().getZoomForResolution(resolution);
+    if (
+      (isGrouped && zoom > GROUPED_MIN_ZOOM) ||
+      (!isGrouped && zoom <= GROUPED_MIN_ZOOM)
+    )
+      return [];
+  }
+
   const poiIconConf = appStore.state.poiIcons[category];
+
   const editType = feature.get("edit_type");
-  //edit_type m = modified, d = deleted, n = new
-  const shadowColor = {
-    n: "#6495ED",
-    m: "#FFA500",
-    d: "#FF0000"
+
+  let shadowColor = {
+    n: type === "visualization" ? "rgba(79, 79, 79, 0.64)" : "#6495ED",
+    m: type === "visualization" ? "rgba(115, 115, 115, 0.64" : "#FFA500",
+    d: type === "visualization" ? "rgba(156, 156, 156, 0.64)" : "#FF0000"
   };
   var st = [];
-  // Shadow Style for Editing POIs
-  // if (!editType) {
-  //   st.push(poisEditShadowStyle("rgba(0,0,0,0.5)", 15));
-  // }
+  poisEditShadowStyleCache = {};
   if (!poisEditShadowStyleCache[editType]) {
     poisEditShadowStyleCache[editType] = poisEditShadowStyle(
       shadowColor[editType],
@@ -540,20 +545,20 @@ export function uploadedFeaturesStyle() {
   });
   return [style];
 }
-export function waysNewRoadStyle() {
+export function waysNewRoadStyle(type) {
   const style = new OlStyle({
     stroke: new OlStroke({
-      color: "#6495ED",
+      color: type === "visualization" ? "rgba(79, 79, 79, 0.64)" : "#6495ED",
       width: 4
     })
   });
   return [style];
 }
 
-export function waysNewBridgeStyle() {
+export function waysNewBridgeStyle(type) {
   const style = new OlStyle({
     stroke: new OlStroke({
-      color: "#FFA500",
+      color: type === "visualization" ? "rgba(79, 79, 79, 0.64)" : "#FFA500",
       width: 4
     })
   });
@@ -586,11 +591,11 @@ export function deletedStyle() {
   return [style];
 }
 
-export function editStyleFn() {
+export function editStyleFn(type) {
   const styleFunction = (feature, resolution) => {
     const props = feature.getProperties();
     if (props.layerName === "poi") {
-      return poisEditStyle(feature, resolution);
+      return poisEditStyle(feature, resolution, type);
     }
     // Deleted Style
     if (props.edit_type === "d") {
@@ -600,9 +605,9 @@ export function editStyleFn() {
     // New road Style
     if (feature.get("layerName") === "way") {
       if (props.way_type == "bridge") {
-        return waysNewBridgeStyle();
+        return waysNewBridgeStyle(type);
       } else if (props.way_type == "road") {
-        return waysNewRoadStyle();
+        return waysNewRoadStyle(type);
       }
     }
     if (feature.get("layerName") === "building" && feature.get("edit_type")) {
@@ -610,13 +615,13 @@ export function editStyleFn() {
       const geomType = feature.getGeometry().getType();
       const strokeOpt = {
         color: ["MultiPolygon", "Polygon"].includes(geomType)
-          ? "rgba(255, 0, 0, 1)"
+          ? "rgba(79, 79, 79, 1)"
           : "#707070",
         width: 3
       };
       const fillOpt = {
         color: ["MultiPolygon", "Polygon"].includes(geomType)
-          ? "rgba(255, 0, 0, 0.5)"
+          ? "rgba(79, 79, 79, 0.5)"
           : [0, 0, 0, 0]
       };
       const properties = feature.getProperties();
@@ -969,11 +974,35 @@ const poisAoisStyleCache = {};
 //   })
 // });
 
-export function poisAoisStyle(feature) {
+const GROUPED_CATEGORIES = {
+  bus_stop: true,
+  tram_stop: true,
+  subway_entrance: true,
+  rail_station: true,
+  bike_sharing: true,
+  car_sharing: true,
+  charging_station: true
+};
+
+const GROUPED_MIN_ZOOM = 16;
+
+export function poisAoisStyle(feature, resolution) {
   const category = feature.get("category");
+  const isGrouped = feature.get("grouped");
+
   if (!poisAoisStore.state.poisAois[category]) {
     return [];
   }
+
+  if (GROUPED_CATEGORIES[category]) {
+    const zoom = mapStore.state.map.getView().getZoomForResolution(resolution);
+    if (
+      (isGrouped && zoom > GROUPED_MIN_ZOOM) ||
+      (!isGrouped && zoom <= GROUPED_MIN_ZOOM)
+    )
+      return [];
+  }
+
   const poiIconConf = appStore.state.poiIcons[category];
   if (!poiIconConf && !poiIconConf.color) return [];
   const color = poiIconConf.color;
@@ -1007,21 +1036,20 @@ export function poisAoisStyle(feature) {
   }
   let radiusBasedOnZoom = 20;
   let offsetInYDir = -20;
-
   poisAoisStyleCache[icon + color] = new OlStyle({
     image: new OlFontSymbol({
-      // gradient: false,
-      //     text: "", // text to use if no glyph is defined
-      //     font: "sans-serif",
-      //     rotation: 0,
-      //     rotateWithView: false,
-      //     color: color, // icon color
       form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
+      gradient: false,
       glyph: icon,
+      text: "", // text to use if no glyph is defined
+      font: "sans-serif",
       fontSize: 0.7,
       fontStyle: "900",
       radius: radiusBasedOnZoom,
+      rotation: 0,
+      rotateWithView: false,
       offsetY: offsetInYDir,
+      color: color, // icon color
       fill: new OlFill({
         color: "#fff" // marker color
       }),
@@ -1029,9 +1057,17 @@ export function poisAoisStyle(feature) {
         color: color,
         width: 2
       })
+    }),
+    stroke: new OlStroke({
+      width: 2,
+      color: "#f80"
+    }),
+    fill: new OlFill({
+      color: [255, 136, 0, 0.6]
     })
   });
 
+  // }
   st.push(poisAoisStyleCache[icon + color]);
   return st;
 }

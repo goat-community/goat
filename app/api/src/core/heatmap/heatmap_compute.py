@@ -547,7 +547,7 @@ class ComputeHeatmap(BaseHeatmap):
                 pass
 
     async def compute_connectivity_matrix(
-        self, mode: str, profile: str, bulk_id: str, max_time: int, s3_folder: str = ""
+        self, mode: str, profile: str, bulk_id: str, max_traveltime: int, s3_folder: str = ""
     ):
 
         directory = self.get_connectivity_path(mode, profile)
@@ -557,7 +557,7 @@ class ComputeHeatmap(BaseHeatmap):
         
         if matrix is not None:
             areas = heatmap_cython.calculate_areas_from_pixles(
-                matrix["travel_times"], list(range(1, max_time + 1))
+                matrix["travel_times"], list(range(1, max_traveltime + 1))
             )
             grid_ids = h3_to_int(matrix["grid_ids"])
 
@@ -707,6 +707,8 @@ class ComputeHeatmap(BaseHeatmap):
                 geom_array,
                 distances,
                 node_coords,
+                isochrone_dto.settings.speed / 3.6, 
+                isochrone_dto.settings.travel_time,
             )
             try:
                 grid = filter_r5_grid(
