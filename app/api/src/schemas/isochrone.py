@@ -8,7 +8,23 @@ from pydantic import BaseModel, Field, root_validator
 """
 Body of the request
 """
-
+isochrone_poi_count_limit = [
+    {
+        "speed_from" : 0,
+        "speed_to" : 10,
+        "poi_count_limit" : 1000
+    },
+    {
+        "speed_from" : 10,
+        "speed_to" : 20,
+        "poi_count_limit" : 300
+    },
+    {
+        "speed_from" : 20,
+        "speed_to" : 25,
+        "poi_count_limit" : 200
+    }
+]
 
 class IsochroneTypeEnum(str, Enum):
     single = "single_isochrone"
@@ -339,6 +355,50 @@ class IsochroneDTO(BaseModel):
             raise ValueError("Region is not specified for multi-isochrone")
 
         return values
+    
+    @property
+    def isochrone_type(self):
+        if len(self.starting_point.input) == 1 and isinstance(
+            self.starting_point.input[0], IsochroneStartingPointCoord
+        ):
+            return IsochroneTypeEnum.single
+        else:
+            return IsochroneTypeEnum.multi
+        
+    
+    # class IsochroneMultiCountPois(BaseModel):
+    # user_id: Optional[int]
+    # scenario_id: Optional[int] = 0
+    # amenities: List[str]
+    # minutes: int
+    # modus: str
+    # region: List[str]
+    # region_type: str
+    # speed: int
+    # active_upload_ids: Optional[List[int]] = [0]
+    
+    def get_isochrone_multi_count_pois(self, current_user):
+        if self.isochrone_type == IsochroneTypeEnum.single:
+            return False
+        else:
+            return IsochroneMultiCountPois(
+                user_id=current_user.id,
+                scenario_id=self.scenraio.id,
+                amenities=self.amenities,
+                modus=self.scenario.modus.value,
+                region=self.starting_point.region,
+                region_type=self.starting_point.region_type.value,
+                speed=self.settings.speed,
+                active_upload_ids=self.active_upload_ids,
+            )
+    
+    def validate_poi_limit(self, poi_count):
+        for limit in isochrone_poi_count_limit:
+            if self.settings.speed > limit["speed_from"] and self.settings.speed <= limit["speed_to"]:
+                if poi_count > limit["poi_count_limit"]:
+                    raise ValueError(f"POI count should be less than {limit['poi_count_limit']} for speed {self.settings.speed}")
+                else:
+                    break
 
 # R5
 R5AvailableDates = {
