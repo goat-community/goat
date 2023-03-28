@@ -912,6 +912,7 @@ import Translate from "ol/interaction/Translate";
 import {
   geojsonToFeature,
   geometryToWKT,
+  wktToFeature,
   computeSingleValuedSurface,
   fromPixel
 } from "../../utils/MapUtils";
@@ -1940,26 +1941,32 @@ export default {
             const calculation = this.selectedCalculations.find(
               c => c.id === calculationId
             );
-            const lonLat = toLonLat(evt.coordinate);
-            const pixel = toPixel(lonLat, calculation.surfaceData.zoom);
-            const x = Math.floor(pixel.x - calculation.surfaceData.west);
-            const y = Math.floor(pixel.y - calculation.surfaceData.north);
-            const depthIndex = calculation.rawData.depth === 1 ? 0 : 2;
-            let time = null;
-            if (calculation.rawData.contains(x, y, depthIndex)) {
-              time = [calculation.rawData.get(x, y, depthIndex)];
-            }
-            if (time) {
-              overlayerInnerHtml += `<div>#${this.getCurrentIsochroneNumber(
-                calculation
-              )} ${this.$t("isochrones.options.time")}: ${time} min</div>`;
-            }
-            if (features.length === 2 && index == 0) {
-              overlayerInnerHtml += `<br>`;
+            if (calculation.config.mode !== "transit") {
+              const lonLat = toLonLat(evt.coordinate);
+              const pixel = toPixel(lonLat, calculation.surfaceData.zoom);
+              const x = Math.floor(pixel.x - calculation.surfaceData.west);
+              const y = Math.floor(pixel.y - calculation.surfaceData.north);
+              const depthIndex = calculation.rawData.depth === 1 ? 0 : 2;
+              let time = null;
+              if (calculation.rawData.contains(x, y, depthIndex)) {
+                time = [calculation.rawData.get(x, y, depthIndex)];
+              }
+              if (time) {
+                overlayerInnerHtml += `<div>#${this.getCurrentIsochroneNumber(
+                  calculation
+                )} ${this.$t("isochrones.options.time")}: ${time} min</div>`;
+              }
+              if (features.length === 2 && index == 0) {
+                overlayerInnerHtml += `<br>`;
+              }
             }
             this.isochroneHoverOverlayEl.innerHTML = overlayerInnerHtml;
           });
-          this.isochroneHoverOverlay.setPosition(evt.coordinate);
+          if (overlayerInnerHtml) {
+            this.isochroneHoverOverlay.setPosition(evt.coordinate);
+          } else {
+            this.isochroneHoverOverlay.setPosition(undefined);
+          }
         }
       });
     },
@@ -2071,6 +2078,7 @@ export default {
                   calculation[0].feature.setGeometry(
                     olFeatures[0].getGeometry()
                   );
+                  this.adjustStartingPoint(calculation[0], feature);
                 });
             })
             .catch(e => {
@@ -2133,6 +2141,38 @@ export default {
           this.selectedCalculations = [];
         }
         this.selectedCalculations.push(calculation);
+      }
+    },
+    adjustStartingPoint(calculation, feature = null) {
+      if (calculation.type === "single") {
+        // Correct starting point
+        let startPoint = calculation.config.starting_point.input[0];
+        if (calculation.surfaceData.accessibility["starting_points"]) {
+          startPoint = wktToFeature(
+            calculation.surfaceData.accessibility["starting_points"],
+            "EPSG:4326",
+            "EPSG:4326"
+          )
+            .getGeometry()
+            .getCoordinates();
+
+          startPoint = {
+            lat: startPoint[1],
+            lon: startPoint[0]
+          };
+        }
+        const coords = fromLonLat([startPoint.lon, startPoint.lat]);
+        if (feature) {
+          feature.getGeometry().setCoordinates(coords);
+          return;
+        }
+        const isochroneMarkerFeature = new Feature({
+          geometry: new Point(coords),
+          calculationNumber: calculation.id
+        });
+        isochroneMarkerFeature.setId("isochrone_marker_" + calculation.id);
+        isochroneMarkerFeature.set("showLabel", false);
+        this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
       }
     },
     // ------------CLEAR----------
@@ -2276,17 +2316,8 @@ export default {
     selectedCalculations() {
       this.isochroneLayer.getSource().clear();
       this.selectedCalculations.forEach(calculation => {
-        if (calculation.type === "single") {
-          const startPoint = calculation.config.starting_point.input[0];
-          const isochroneMarkerFeature = new Feature({
-            geometry: new Point(fromLonLat([startPoint.lon, startPoint.lat])),
-            calculationNumber: calculation.id
-          });
-          isochroneMarkerFeature.setId("isochrone_marker_" + calculation.id);
-          isochroneMarkerFeature.set("showLabel", false);
-          this.isochroneLayer.getSource().addFeature(isochroneMarkerFeature);
-        }
         this.isochroneLayer.getSource().addFeatures([calculation.feature]);
+        this.adjustStartingPoint(calculation);
         // add network features if state is true
         if (
           calculation.additionalData &&

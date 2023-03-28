@@ -37,7 +37,8 @@ export default {
       labels = labels.map(num => num + 1);
       const datasets = [];
       this.selectedCalculations.forEach((calculation, index) => {
-        const calculationData = calculation.surfaceData.accessibility;
+        const calculationData =
+          calculation.surfaceData.accessibility["opportunities"];
         if (this.chartDatasetType === 0) {
           // add only population data
           datasets.push({

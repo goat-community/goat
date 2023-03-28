@@ -27,7 +27,8 @@ export default {
       const datasets = [];
 
       this.selectedCalculations.forEach(calculation => {
-        const calculationData = calculation.surfaceData.accessibility;
+        const calculationData =
+          calculation.surfaceData.accessibility["opportunities"];
         // add only amenities
         const data = [];
         let keys = [];
