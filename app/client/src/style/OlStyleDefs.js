@@ -439,6 +439,7 @@ function poisEditShadowStyle(color, radius) {
 
 let poisEditStyleCache = {};
 export function poisEditStyle(feature, resolution, type) {
+  const isGrouped = feature.get("grouped");
   const category = feature.get("category");
   if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
     return [];
@@ -450,6 +451,15 @@ export function poisEditStyle(feature, resolution, type) {
 
   if (calculationMode === "comparison" && !feature.get("edit_type")) {
     return [];
+  }
+
+  if (GROUPED_CATEGORIES[category]) {
+    const zoom = mapStore.state.map.getView().getZoomForResolution(resolution);
+    if (
+      (isGrouped && zoom > GROUPED_MIN_ZOOM) ||
+      (!isGrouped && zoom <= GROUPED_MIN_ZOOM)
+    )
+      return [];
   }
 
   const poiIconConf = appStore.state.poiIcons[category];
@@ -964,11 +974,35 @@ const poisAoisStyleCache = {};
 //   })
 // });
 
+const GROUPED_CATEGORIES = {
+  bus_stop: true,
+  tram_stop: true,
+  subway_entrance: true,
+  rail_station: true,
+  bike_sharing: true,
+  car_sharing: true,
+  charging_station: true
+};
+
+const GROUPED_MIN_ZOOM = 16;
+
 export function poisAoisStyle(feature, resolution) {
   const category = feature.get("category");
+  const isGrouped = feature.get("grouped");
+
   if (!poisAoisStore.state.poisAois[category]) {
     return [];
   }
+
+  if (GROUPED_CATEGORIES[category]) {
+    const zoom = mapStore.state.map.getView().getZoomForResolution(resolution);
+    if (
+      (isGrouped && zoom > GROUPED_MIN_ZOOM) ||
+      (!isGrouped && zoom <= GROUPED_MIN_ZOOM)
+    )
+      return [];
+  }
+
   const poiIconConf = appStore.state.poiIcons[category];
   if (!poiIconConf && !poiIconConf.color) return [];
   const color = poiIconConf.color;
@@ -997,92 +1031,41 @@ export function poisAoisStyle(feature, resolution) {
   // Font style
   const icon = poiIconConf.icon;
 
-  let min_zoom = feature.get("min_zoom");
-  let max_zoom = feature.get("max_zoom");
-
-  if (min_zoom || max_zoom) {
-    if (min_zoom <= resolution && 25 >= resolution) {
-      if (!poiIconConf || !poiIconConf.icon) {
-        return [];
-      }
-      let radiusBasedOnZoom = 20;
-      let offsetInYDir = -20;
-      poisAoisStyleCache[icon + color] = new OlStyle({
-        image: new OlFontSymbol({
-          form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
-          gradient: false,
-          glyph: icon,
-          text: "", // text to use if no glyph is defined
-          font: "sans-serif",
-          fontSize: 0.7,
-          fontStyle: "900",
-          radius: radiusBasedOnZoom,
-          rotation: 0,
-          rotateWithView: false,
-          offsetY: offsetInYDir,
-          color: color, // icon color
-          fill: new OlFill({
-            color: "#fff" // marker color
-          }),
-          stroke: new OlStroke({
-            color: color,
-            width: 2
-          })
-        }),
-        stroke: new OlStroke({
-          width: 2,
-          color: "#f80"
-        }),
-        fill: new OlFill({
-          color: [255, 136, 0, 0.6]
-        })
-      });
-    } else {
-      poisAoisStyleCache[icon + color] = new OlStyle();
-    }
-  } else {
-    let defaul_max_zoom = 15;
-    if (defaul_max_zoom > resolution) {
-      if (!poiIconConf || !poiIconConf.icon) {
-        return [];
-      }
-      let radiusBasedOnZoom = 20;
-      let offsetInYDir = -20;
-
-      poisAoisStyleCache[icon + color] = new OlStyle({
-        image: new OlFontSymbol({
-          form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
-          gradient: false,
-          glyph: icon,
-          text: "", // text to use if no glyph is defined
-          font: "sans-serif",
-          fontSize: 0.7,
-          fontStyle: "900",
-          radius: radiusBasedOnZoom,
-          rotation: 0,
-          rotateWithView: false,
-          offsetY: offsetInYDir,
-          color: color, // icon color
-          fill: new OlFill({
-            color: "#fff" // marker color
-          }),
-          stroke: new OlStroke({
-            color: color,
-            width: 2
-          })
-        }),
-        stroke: new OlStroke({
-          width: 2,
-          color: "#f80"
-        }),
-        fill: new OlFill({
-          color: [255, 136, 0, 0.6]
-        })
-      });
-    } else {
-      poisAoisStyleCache[icon + color] = new OlStyle();
-    }
+  if (!poiIconConf || !poiIconConf.icon) {
+    return [];
   }
+  let radiusBasedOnZoom = 20;
+  let offsetInYDir = -20;
+  poisAoisStyleCache[icon + color] = new OlStyle({
+    image: new OlFontSymbol({
+      form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
+      gradient: false,
+      glyph: icon,
+      text: "", // text to use if no glyph is defined
+      font: "sans-serif",
+      fontSize: 0.7,
+      fontStyle: "900",
+      radius: radiusBasedOnZoom,
+      rotation: 0,
+      rotateWithView: false,
+      offsetY: offsetInYDir,
+      color: color, // icon color
+      fill: new OlFill({
+        color: "#fff" // marker color
+      }),
+      stroke: new OlStroke({
+        color: color,
+        width: 2
+      })
+    }),
+    stroke: new OlStroke({
+      width: 2,
+      color: "#f80"
+    }),
+    fill: new OlFill({
+      color: [255, 136, 0, 0.6]
+    })
+  });
 
   // }
   st.push(poisAoisStyleCache[icon + color]);

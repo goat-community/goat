@@ -19,14 +19,14 @@ class CRUDPoiAoi:
             _return_type = "db_geobuf"
         template_sql = SQLReturnTypes[_return_type].value
 
-        attributes = 'uid, id, category, name, geom, opening_hours, street, housenumber, zipcode, min_zoom, max_zoom, edit_type'
+        attributes = 'uid, id, category, name, geom, opening_hours, street, housenumber, zipcode, edit_type'
 
         query = f"""
-        SELECT {attributes} 
+        SELECT {attributes}, NULL as grouped 
         FROM basic.poi_aoi_visualization(:user_id, :scenario_id, :active_upload_ids, :active_study_area_id, FALSE)
         UNION ALL 
         SELECT NULL AS uid, row_number() over() AS id, category, name, ST_CENTROID(ST_COLLECT(ST_ClusterWithin(geom, 0.001))) AS geom,
-        NULL, NULL, NULL, NULL, 19, 22, NULL  
+        NULL, NULL, NULL, NULL, NULL, true  
         FROM basic.poi_aoi_visualization(:user_id, :scenario_id, :active_upload_ids, :active_study_area_id, TRUE)
         GROUP BY category, name
         """
