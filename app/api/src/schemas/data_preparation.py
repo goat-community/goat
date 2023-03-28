@@ -49,7 +49,7 @@ class ConnectivityMatrixParameters(BaseModel):
     mode: str
     profile: str
     bulk_id: list[str]
-    max_time: int
+    max_traveltime: int
     s3_folder: Optional[str] = ""
 
 
@@ -57,7 +57,7 @@ ConnectivityMatrixExample = {
     "mode": "walking",
     "profile": "standard",
     "bulk_id": ["861f8d55fffffff"],
-    "max_time": 20,
+    "max_traveltime": 20,
     "s3_folder": "test",
 }
 
