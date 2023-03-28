@@ -843,6 +843,7 @@ export default {
     setupMapClick() {
       const me = this;
       const map = me.map;
+      this.mapStore = map;
       me.mapClickListenerKey = map.on("click", evt => {
         me.closePopup();
         if (me.activeInteractions.length > 0) {
@@ -1136,7 +1137,8 @@ export default {
       subStudyAreaLayer: "subStudyAreaLayer",
       selectedEditLayer: "selectedEditLayer",
       isMapillaryBtnDisabled: "isMapillaryBtnDisabled",
-      miniViewerVisible: "miniViewerVisible"
+      miniViewerVisible: "miniViewerVisible",
+      mapStore: "map"
     }),
     ...mapFields("poisaois", {
       poisAoisLayer: "poisAoisLayer",

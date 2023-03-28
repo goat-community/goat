@@ -810,6 +810,9 @@ export default {
     poisAois() {
       // Add remove features.
       if (this.selectedLayer && this.selectedLayer["name"] === "poi") {
+        if (this.selectedLayer.getSource().getFeatures().length > 35000) {
+          this.selectedLayer.setMinZoom(14);
+        }
         this.syncPoiFeatures();
       }
     }
@@ -826,7 +829,8 @@ export default {
           if (
             !["MultiPolygon", "Polygon"].includes(
               feature.getGeometry().getType()
-            )
+            ) &&
+            !feature.get("grouped")
           ) {
             const category = feature.get("category");
             const featureInEdit = this.editLayer
@@ -1013,11 +1017,6 @@ export default {
       let otherLayers = ["way", "poi", "building"].filter(
         type => type !== layer
       );
-
-      let style = [
-        this.editLayer.getStyle(),
-        this.visualizationEditLayer.getStyle()
-      ];
 
       const requestsVisualization = [];
       otherLayers.forEach(type => {
