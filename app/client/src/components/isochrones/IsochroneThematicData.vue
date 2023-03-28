@@ -279,7 +279,8 @@ export default {
       this.selectedCalculations.forEach(calculation => {
         const feature = calculation.feature.clone();
         const reached_opportunities = {};
-        const accessibility = calculation.surfaceData.accessibility;
+        const accessibility =
+          calculation.surfaceData.accessibility["opportunities"];
         const traveltime = this.calculationTravelTime[calculation.id - 1];
         if (calculation.type === "single") {
           Object.keys(accessibility).forEach(category => {
@@ -414,7 +415,7 @@ export default {
       let poisObj = {};
       this.selectedCalculations.forEach(calculation => {
         // Single isochrone calculation
-        let pois = calculation.surfaceData.accessibility;
+        let pois = calculation.surfaceData.accessibility["opportunities"];
         let selectedTime = this.calculationTravelTime[calculation.id - 1];
         if (calculation.type === "single") {
           let keys = Object.keys(pois);

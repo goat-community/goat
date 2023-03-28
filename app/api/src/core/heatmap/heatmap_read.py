@@ -319,29 +319,41 @@ class ReadHeatmap(BaseHeatmap):
                     print(base_path)
                     print(f"File not found for bulk_id {bulk_id}")
                     continue
+        failed_categories = []
         for cat in travel_times_dict.keys():
             if grid_ids_dict[cat]:
-                grid_ids_dict[cat] = np.concatenate(
-                    np.concatenate(grid_ids_dict[cat], axis=None), axis=None
-                )
-                travel_times_dict[cat] = np.concatenate(
-                    np.concatenate(travel_times_dict[cat], axis=None), axis=None
-                )
-                weight_dict[cat] = np.concatenate(
-                    np.concatenate(weight_dict[cat], axis=None), axis=None
-                )
-                uids_dict[cat] = np.concatenate(
-                    np.concatenate(uids_dict[cat], axis=None), axis=None
-                )
-                relation_sizes_dict[cat] = np.concatenate(
-                    np.concatenate(relation_sizes_dict[cat], axis=None), axis=None
-                )
+                try:
+                    grid_ids_dict[cat] = np.concatenate(
+                        np.concatenate(grid_ids_dict[cat], axis=None), axis=None
+                    )
+                    travel_times_dict[cat] = np.concatenate(
+                        np.concatenate(travel_times_dict[cat], axis=None), axis=None
+                    )
+                    weight_dict[cat] = np.concatenate(
+                        np.concatenate(weight_dict[cat], axis=None), axis=None
+                    )
+                    uids_dict[cat] = np.concatenate(
+                        np.concatenate(uids_dict[cat], axis=None), axis=None
+                    )
+                    relation_sizes_dict[cat] = np.concatenate(
+                        np.concatenate(relation_sizes_dict[cat], axis=None), axis=None
+                    )
+                except Exception as e:
+                    failed_categories.append(cat)
             else:
                 grid_ids_dict[cat] = np.array([], np.int64)
                 travel_times_dict[cat] = np.array([], np.int8)
                 weight_dict[cat] = np.array([], np.float64)
                 uids_dict[cat] = np.array([], np.str_)
                 relation_sizes_dict[cat] = np.array([], np.int64)
+
+        # remove failed categories: #todo: fix this in the opportunity matrix creation
+        for cat in failed_categories:
+            travel_times_dict[cat] = np.array([], np.int8)
+            weight_dict[cat] = np.array([], np.float64)
+            uids_dict[cat] = np.array([], np.str_)
+            relation_sizes_dict[cat] = np.array([], np.int64)
+            grid_ids_dict[cat] = np.array([], np.int64)
 
         return grid_ids_dict, travel_times_dict, weight_dict, uids_dict, relation_sizes_dict
 
@@ -471,7 +483,7 @@ class ReadHeatmap(BaseHeatmap):
             for category in add_to_category:
                 if grid_ids_scenario.get(category) is None:
                     continue
-                
+
                 if len(diff_data["grid_ids"].get(category)) == 0:
                     diff_data["grid_ids"][category].extend(grid_ids[category])
                     diff_data["traveltimes"][category].extend(traveltimes[category])

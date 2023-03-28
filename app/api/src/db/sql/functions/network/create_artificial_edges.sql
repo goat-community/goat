@@ -15,6 +15,17 @@ DECLARE
 BEGIN 
 	
 	buffer = ST_Buffer(point::geography, snap_distance)::geometry;
+
+	sql_network = replace(sql_network, 'SELECT', 'ST_LineLocatePoint(geom, $2) AS fraction') 
+
+	sql_start_vertices = '
+		WITH start_point AS 
+		(
+			%1$s
+		)
+		SELECT fraction, w.geom AS w_geom, w.SOURCE, w.target, w.COST, w.reverse_cost, $3 AS vid, w.id AS wid
+	'
+
   	sql_start_vertices = 'SELECT ST_LineLocatePoint(geom,$2) AS fraction, 
 	w.geom AS w_geom, w.SOURCE, w.target, w.COST, w.reverse_cost, $3 AS vid, w.id AS wid
 	FROM 
@@ -26,7 +37,7 @@ BEGIN
   	LIMIT 1;';
   	
   
-	EXECUTE format(sql_start_vertices, sql_network) USING buffer, point, new_node_id INTO rec;
+	EXECUTE format(sql_start_vertices, sql_network) USING point, new_node_id INTO rec;
 
  	total_length_m = ST_LENGTH(rec.w_geom::geography);
 	line_part1 = ST_LINESUBSTRING(rec.w_geom,0,rec.fraction);

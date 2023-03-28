@@ -214,7 +214,6 @@ const getters = {
     let obj = {};
     Object.keys(transitRouteTypesByNr).forEach(nr => {
       const type = transitRouteTypesByNr[nr];
-      console.log(type);
       obj[type.name] = {
         id: nr,
         color: type.color,

@@ -30,7 +30,7 @@ BEGIN
 
 	DROP TABLE IF EXISTS drawn_features; 
 	CREATE TEMP TABLE drawn_features as
-	SELECT w.id, w.geom, 
+	SELECT w.id, ST_RemoveRepeatedPoints(w.geom) AS geom, 
 	w.way_type, w.surface, w.wheelchair, w.lit, w.foot, w.bicycle, w.scenario_id, w.way_id AS original_id 
 	FROM customer.way_modified w
 	WHERE w.scenario_id = scenario_id_input
@@ -43,10 +43,10 @@ BEGIN
 	/*Round start and end point for snapping*/
 	DROP TABLE IF EXISTS snapped_drawn_features; 
  	CREATE TEMP TABLE snapped_drawn_features AS 
-	SELECT d.id AS did, ST_ReducePrecision(st_startpoint(d.geom), 0.00001) geom, 's' AS point_type, FALSE AS snapped, NULL::integer AS node_id 
+	SELECT d.id AS did, st_startpoint(d.geom) geom, 's' AS point_type, FALSE AS snapped, NULL::integer AS node_id 
 	FROM drawn_features d
 	UNION ALL 
-	SELECT d.id AS did, ST_ReducePrecision(st_endpoint(d.geom), 0.00001) geom, 'e' AS point_type, FALSE AS snapped, NULL AS node_id  
+	SELECT d.id AS did, st_endpoint(d.geom) geom, 'e' AS point_type, FALSE AS snapped, NULL AS node_id  
 	FROM drawn_features d; 
 
 	ALTER TABLE snapped_drawn_features ADD COLUMN id serial; 
@@ -68,6 +68,7 @@ BEGIN
 		LIMIT 1
 	) s;
 	CREATE INDEX ON snapped_to_node USING GIST(node_geom); 	
+
 
 	UPDATE snapped_drawn_features d
 	SET geom = node_geom, snapped = TRUE, node_id = s.node_id 
@@ -91,12 +92,37 @@ BEGIN
 	) s
 	WHERE r.snapped = False;
 	
+	/*Update based on snapped to new*/
 	UPDATE snapped_drawn_features d
 	SET geom = closest_point_edge, snapped = True
 	FROM snapped_to_edge s 
 	WHERE s.did = d.did 
 	AND d.point_type = s.point_type;  
 
+	/*Snapping to each other*/
+	DROP TABLE IF EXISTS snapped_to_each_other; 
+	CREATE TEMP TABLE snapped_to_each_other AS  
+	SELECT r.id, r.did, r.point_type, r.geom original_geom, s.geom closest_point_edge 
+	FROM snapped_drawn_features r
+	CROSS JOIN LATERAL 
+	(
+		SELECT n.id, ST_CLOSESTPOINT(n.geom, r.geom) AS geom 
+		FROM drawn_features n
+		WHERE ST_Intersects(ST_BUFFER(r.geom,0.00001), n.geom)
+		AND r.did <> n.id 
+		ORDER BY r.geom <-> ST_CLOSESTPOINT(n.geom, r.geom)
+		LIMIT 1
+	) s
+	WHERE r.snapped = False;
+	
+	/*Update based on snapped to each other*/
+	UPDATE snapped_drawn_features d
+	SET geom = closest_point_edge, snapped = True
+	FROM snapped_to_each_other s 
+	WHERE s.did = d.did 
+	AND d.point_type = s.point_type;  
+
+	/*Update drawn features*/
 	UPDATE drawn_features d
 	SET geom = st_setpoint(d.geom, 0, s.geom)
 	FROM snapped_drawn_features s
@@ -111,7 +137,6 @@ BEGIN
 	AND s.snapped = TRUE 
 	AND s.point_type = 'e';
 
-	/*Snapping drawn features to each other*/	
 	UPDATE drawn_features d
 	SET geom = st_setpoint(d.geom, 0, s.geom)
 	FROM snapped_drawn_features s
@@ -129,6 +154,7 @@ BEGIN
 	---------------------------------------------------------------------------------------------------------------------
 	--Cut network
 	---------------------------------------------------------------------------------------------------------------------
+
 	/*Extend lines to cut network*/		
 	DROP TABLE IF EXISTS extended_lines; 
 	CREATE TEMP TABLE extended_lines AS  
@@ -142,17 +168,17 @@ BEGIN
 	SELECT CASE WHEN ARRAY['e', 's'] && point_type THEN d.geom
 	WHEN ARRAY['s'] = point_type THEN basic.extend_line(d.geom, 0.00001, 'end')
 	WHEN ARRAY['e'] = point_type THEN basic.extend_line(d.geom, 0.00001, 'start')
-	END AS geom 
+	END AS geom, d.original_id
 	FROM agg_snapped_nodes a, drawn_features d
 	WHERE a.id = d.id 
-	AND d.way_type <> 'bridge'
+	AND (d.way_type = 'road' OR d.way_type IS NULL)
 	UNION ALL 
-	SELECT basic.extend_line(d.geom, 0.00001, 'both') 
+	SELECT basic.extend_line(d.geom, 0.00001, 'both'), d.original_id  
 	FROM drawn_features d 
 	LEFT JOIN snapped_to_node s 
 	ON d.id = s.did 
 	WHERE s.id IS NULL
-	AND d.way_type <> 'bridge';  
+	AND (d.way_type = 'road' OR d.way_type IS NULL); 
 		
 	/*Intersects drawn bridges*/
 	DROP TABLE IF EXISTS start_end_bridges;
@@ -169,17 +195,19 @@ BEGIN
 	/*Intersect drawn ways with existing ways*/
 	DROP TABLE IF EXISTS intersection_existing_network;
 	CREATE TEMP TABLE intersection_existing_network AS 
-	
 	WITH intersection_result AS 
 	(
-		SELECT (ST_DUMP(ST_Intersection(d.geom, w.geom))).geom AS geom 
-		FROM extended_lines d, basic.edge w
+		SELECT (ST_DUMP(ST_Intersection(d.geom, w.geom))).geom AS geom, w.id  
+		FROM extended_lines d, basic.edge w 
 		WHERE ST_Intersects(ST_BUFFER(d.geom, 0.00001), w.geom)
 		AND w.scenario_id IS NULL
 	)
-	SELECT i.geom AS geom 
-	FROM intersection_result i 
-	WHERE st_geometrytype(i.geom) = 'ST_Point'; 
+	SELECT i.* 
+	FROM intersection_result i
+	LEFT JOIN extended_lines e
+	ON i.id = e.original_id
+	WHERE e.original_id IS NULL 
+	AND st_geometrytype(i.geom) = 'ST_Point'; 
 
 	INSERT INTO intersection_existing_network
 	WITH to_add AS
@@ -235,7 +263,7 @@ BEGIN
 		FROM drawn_features;
 	ELSE 
 		CREATE TEMP TABLE split_drawn_features AS
-		SELECT id AS did, basic.split_by_drawn_lines(id::integer,geom) AS geom, way_type, surface, wheelchair, lit, foot, bicycle, scenario_id, original_id  
+		SELECT id AS did, basic.split_by_drawn_lines(id::integer, geom) AS geom, way_type, surface, wheelchair, lit, foot, bicycle, scenario_id, original_id  
 		FROM drawn_features
 		WHERE (way_type IS NULL OR way_type <> 'bridge')
 		UNION ALL 
@@ -302,14 +330,15 @@ BEGIN
 	FROM snapped_drawn_features s
 	WHERE n.did = s.did 
 	AND s.node_id IS NOT NULL 
-	AND s.point_type = 's'; 
+	AND s.point_type = 's'
+	AND ST_ASTEXT(st_startpoint(n.geom)) = ST_ASTEXT(s.geom); 
 	
 	UPDATE new_network n
 	SET target = s.node_id
 	FROM snapped_drawn_features s
 	WHERE n.did = s.did 
 	AND s.node_id IS NOT NULL 
-	AND s.point_type = 'e'; 
+	AND ST_ASTEXT(st_endpoint(n.geom)) = ST_ASTEXT(s.geom); 
 
 	/*Create new vertices*/
 	DROP TABLE IF EXISTS loop_vertices; 
