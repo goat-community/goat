@@ -10,7 +10,7 @@ metadata:
   namespace: ${NAMESPACE}
 spec:
   replicas: 1
-  hostname: goat_${NAMESPACE}_rabbitmq
+  # hostname: goat_${NAMESPACE}_rabbitmq
   selector:
     matchLabels:
       app: goat-rabbitmq
