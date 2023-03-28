@@ -377,7 +377,7 @@ class CRUDIsochrone:
             )
             network = network.iloc[1:, :]
             grid, network = compute_isochrone(
-                network, starting_ids, obj_in.settings.travel_time, obj_in.output.resolution
+                network, starting_ids, obj_in.settings.travel_time, obj_in.settings.speed / 3.6, obj_in.output.resolution
             )
         # == Public transport isochrone ==
         else:

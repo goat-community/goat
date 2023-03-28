@@ -707,6 +707,8 @@ class ComputeHeatmap(BaseHeatmap):
                 geom_array,
                 distances,
                 node_coords,
+                isochrone_dto.settings.speed / 3.6, 
+                isochrone_dto.settings.travel_time,
             )
             try:
                 grid = filter_r5_grid(

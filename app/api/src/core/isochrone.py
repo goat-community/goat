@@ -325,7 +325,7 @@ def get_geom_array(edges_geom):
     return geom_address, geom_array
 
 
-def build_grid_interpolate_(points, costs, extent, step_x, step_y):
+def build_grid_interpolate_(points, costs, extent, step_x, step_y, speed, max_traveltime):
     """
     Build grid interpolate
     :param points: List of points
@@ -341,18 +341,17 @@ def build_grid_interpolate_(points, costs, extent, step_x, step_y):
 
     tree = spatial.KDTree(points)
     grid_points = np.stack((X.flatten(), Y.flatten()), axis=1)
-    distances, indices = tree.query(grid_points, k=3, distance_upper_bound=200, workers=-1)
-    distances[distances == np.inf] = 0
+    distances, indices = tree.query(grid_points, k=1, distance_upper_bound=200, workers=-1)
+    distances[distances == np.inf] = np.NaN
+    additional_costs = (distances / speed) / 60
     indices_flatten = indices.flatten()
 
     unvalid_indices = np.asarray(indices_flatten == len(costs)).nonzero()[0]
     mapped_costs = np.take(costs, indices_flatten, mode="clip")
-    np.put(mapped_costs, unvalid_indices, 0)
-    mapped_costs = mapped_costs.reshape(int(len(mapped_costs) / 3), 3)
-
-    to_divide = np.ndarray.sum(distances * mapped_costs, axis=1)
-    to_divide[to_divide == 0] = np.NaN
-    Z = to_divide / np.ndarray.sum(distances, axis=1)
+    np.put(mapped_costs, unvalid_indices, np.NaN)
+    mapped_costs = np.rint(mapped_costs + additional_costs)
+    distances[distances > max_traveltime] = np.NaN
+    Z = mapped_costs
     Z = Z.reshape(len(X), len(X[0]))
 
     return np.flip(Z, 0)
@@ -414,6 +413,8 @@ def network_to_grid(
     geom_array,
     distances,
     node_coords,
+    speed, 
+    max_traveltime,
 ):
     # minx, miny, maxx, maxy
     width_meter = extent[2] - extent[0]
@@ -466,6 +467,8 @@ def network_to_grid(
         extent,
         step_x=web_mercator_x_step,
         step_y=web_mercator_y_step,
+        speed=speed,
+        max_traveltime=max_traveltime,
     )
 
     # build grid data (single depth)
@@ -475,7 +478,7 @@ def network_to_grid(
 
 
 def compute_isochrone(
-    edge_network_input, start_vertices, travel_time, zoom: int = 10, return_network: bool = True
+    edge_network_input, start_vertices, travel_time, speed, zoom: int = 10, return_network: bool = True
 ):
     """
     Compute isochrone for a given start vertices
@@ -516,6 +519,8 @@ def compute_isochrone(
         geom_array,
         distances,
         node_coords,
+        speed, 
+        travel_time,
     )
 
     # Convert network to geojson
@@ -528,7 +533,7 @@ def compute_isochrone(
                     "type": "Feature",
                     "geometry": {
                         "type": "LineString",
-                        "coordinates": geom_array[geom_address[idx] : geom_address[idx + 1], :],
+                        "coordinates": geom_array[geom_address[idx] : geom_address[idx + 1], :].tolist(),
                     },
                     "properties": {"cost": distances[edges_target[idx]]},
                 }
@@ -550,6 +555,7 @@ async def main():
         starting_ids,
         travel_time=5,
         zoom=12,
+        speed=1.333
     )
 
 
