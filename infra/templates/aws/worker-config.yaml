@@ -81,8 +81,10 @@ Resources:
           Fn::Base64:
             Fn::Sub: '#!/bin/bash -xe
 
-              cd /home/ubuntu/goat
+              cd /home/goat && git fetch origin && git checkout dev && git merge origin/dev
               
+              echo "CELERY_QUEUES=${workerType}" >> .env             
+
               docker-compose up -d --force-recreate worker
               '
     
