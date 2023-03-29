@@ -33,9 +33,7 @@ spec:
                 name: goat-rabbitmq-config
           ports:
             - containerPort: 5672
-              name: rabbitmq
             - containerPort: 15672
-              name: rabbitmq-mgmt
 ---
 apiVersion: v1
 kind: Service
@@ -45,19 +43,10 @@ metadata:
 spec:
   ports:
     - port: 5672
+      name: amqp
       targetPort: 5672
-  type: NodePort
-  selector:
-    app: goat-rabbitmq
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: goat-rabbitmq-management-service
-  namespace: ${NAMESPACE}
-spec:
-  ports:
     - port: 15672
+      name: management
       targetPort: 15672
   type: NodePort
   selector:
