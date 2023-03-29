@@ -23,7 +23,7 @@ spec:
       labels:
         app: goat-rabbitmq
     spec:
-      hostname: goat_${NAMESPACE}_rabbitmq
+      hostname: goat-${NAMESPACE}-rabbitmq
       containers:
         - image: goatcommunity/rabbitmq:latest
           imagePullPolicy: IfNotPresent
