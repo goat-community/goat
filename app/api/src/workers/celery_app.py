@@ -11,9 +11,9 @@ celery_app.conf.update(settings.CELERY_CONFIG)
 
 celery_app.conf.update(
     task_routes={
-        "src.workers.heatmap_active_mobility.*": {"queue": "goat-active-mobility-heatmap-worker"},
+        "src.workers.heatmap_active_mobility.*": {"queue": "goat-heavy-worker"},
         "src.workers.heatmap_motorized_transport.*": {
-            "queue": "goat-motorized-transport-heatmap-worker"
+            "queue": "goat-superheavy-worker"
         },
         "src.workers.read_heatmap.*": {"queue": "goat-light-worker"},
     }
