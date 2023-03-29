@@ -810,7 +810,7 @@ export default {
     poisAois() {
       // Add remove features.
       if (this.selectedLayer && this.selectedLayer["name"] === "poi") {
-        if (this.selectedLayer.getSource().getFeatures().length > 35000) {
+        if (this.selectedLayer.getSource().getFeatures().length > 45000) {
           this.selectedLayer.setMinZoom(14);
         }
         this.syncPoiFeatures();

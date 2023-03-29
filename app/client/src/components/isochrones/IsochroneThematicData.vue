@@ -313,7 +313,7 @@ export default {
         );
         promiseArray.push(
           ApiService.post(
-            `/isochrones/export?return_type=${type}`,
+            `/indicators/isochrone/export?return_type=${type}`,
             geojsonPayload,
             {
               responseType: "blob",

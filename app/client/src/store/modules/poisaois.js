@@ -93,7 +93,7 @@ const actions = {
               }
             });
 
-            if (olFeatures.length > 35000) {
+            if (olFeatures.length > 45000) {
               state.poisAoisLayer.setMinZoom(14);
 
               state.poisAoisGroupingLayer.setMinZoom(14);
