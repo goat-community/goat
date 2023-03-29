@@ -175,7 +175,7 @@ services:
       proxy:
   
   rabbit:
-    image: rabbitmq:3-management-alpine
+    image: goatcommunity/rabbitmq:latest
     ports:
       - "${RABBIT_OUTER_PORT}:15672"
     environment:
@@ -184,7 +184,6 @@ services:
       - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST}
       - RABBIT_OUTER_PORT=${RABBIT_OUTER_PORT}
 
-    
     networks:
       proxy:
 
