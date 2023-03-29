@@ -48,6 +48,19 @@ spec:
     app: goat-rabbitmq
 ---
 apiVersion: v1
+kind: Service
+metadata:
+  name: goat-rabbitmq-management-service
+  namespace: ${NAMESPACE}
+spec:
+  ports:
+    - port: 15672
+      targetPort: 15672
+  type: NodePort
+  selector:
+    app: goat-rabbitmq
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: goat-rabbitmq-config

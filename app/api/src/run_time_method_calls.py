@@ -40,7 +40,7 @@ async def run_calculate_isochrone_single_default(
             f'[bold]running: [light_slate_blue]{request_examples["isochrone"][isochrone_mode].get("summary")}[/light_slate_blue]...[/bold]'
         )
         r = await client.post(
-            f"{settings.API_V1_STR}/isochrones",
+            f"{settings.API_V1_STR}/indicators/isochrone",
             headers=superuser_token_headers,
             json=data,
         )
