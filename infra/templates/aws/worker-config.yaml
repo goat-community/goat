@@ -113,7 +113,7 @@ Resources:
       PolicyType: TargetTrackingScaling
       AutoScalingGroupName: !Ref autoScalingGroup
       TargetTrackingConfiguration:
-        TargetValue: 1.0
+        TargetValue: 0.9
         CustomizedMetricSpecification:
             MetricName: Messages
             Namespace: RabbitMQ
