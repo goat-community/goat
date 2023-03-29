@@ -1147,7 +1147,7 @@ export default {
           this.isMapBusy = true;
           this.isIsochroneBusy = true;
           axiosInstance
-            .post(`./isochrones`, _payload, {
+            .post(`./indicators/isochrone`, _payload, {
               cancelToken: new CancelToken(c => {
                 // An executor function receives a cancel function as a parameter
                 this.cancelRequestTokens.push(c);
@@ -1487,7 +1487,7 @@ export default {
           region.push(geometryToWKT(geometry));
         }
       });
-      ApiService.post(`/isochrones/multi/count-pois`, {
+      ApiService.post(`/indicators/isochrone/multi/count-pois`, {
         region_type: this.multiIsochroneMethod,
         region,
         scenario_id: this.activeScenario || 0, //TODO: Get scenario id
@@ -1732,7 +1732,7 @@ export default {
         promiseArray.push(
           new Promise((resolve, reject) => {
             axiosInstance
-              .post(`./isochrones`, payload, {
+              .post(`./indicators/isochrone`, payload, {
                 responseType: "arraybuffer",
                 cancelToken: new CancelToken(c => {
                   // An executor function receives a cancel function as a parameter
@@ -2011,7 +2011,7 @@ export default {
           this.isIsochroneBusy = true;
           this.toggleIsochroneAdditionalData("network", calculation);
           axiosInstance
-            .post(`./isochrones`, payload, {
+            .post(`./indicators/isochrone`, payload, {
               responseType: "arraybuffer",
               cancelToken: new CancelToken(c => {
                 // An executor function receives a cancel function as a parameter

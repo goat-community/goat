@@ -28,9 +28,9 @@ Parameters:
     Description: "The name of the RabbitMQ cluster"
     Type: String
     AllowedValues:
-    - 'goat_dev_rabbitmq'
-    - 'goat_prod_rabbitmq'
-    Default: 'goat_dev_rabbitmq'
+    - 'goat-dev-rabbitmq'
+    - 'goat-prod-rabbitmq'
+    Default: 'goat-dev-rabbitmq'
 
 
 Mappings: 
