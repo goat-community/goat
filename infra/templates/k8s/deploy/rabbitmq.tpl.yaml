@@ -65,4 +65,4 @@ data:
   AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
   AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
   RABBITMQ_DEFAULT_VHOST: goat
-  RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management path_prefix "/rabbitmq"
+  RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management path_prefix "\"/rabbitmq"\"
