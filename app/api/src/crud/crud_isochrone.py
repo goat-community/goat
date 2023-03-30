@@ -530,7 +530,7 @@ class CRUDIsochrone:
                         ]
 
                     opportunities[region]["total_population"] = int(total_population)
-                    opportunities[region]["reached_population"] = population_reached["population"]
+                    opportunities[region]["reached_population"] = int(population_reached["population"])
 
                 grid["accessibility"] = {
                     "starting_points": starting_point_geom,
