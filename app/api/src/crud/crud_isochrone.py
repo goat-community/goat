@@ -377,7 +377,11 @@ class CRUDIsochrone:
             )
             network = network.iloc[1:, :]
             grid, network = compute_isochrone(
-                network, starting_ids, obj_in.settings.travel_time, obj_in.settings.speed / 3.6, obj_in.output.resolution
+                network,
+                starting_ids,
+                obj_in.settings.travel_time,
+                obj_in.settings.speed / 3.6,
+                obj_in.output.resolution,
             )
         # == Public transport isochrone ==
         else:
@@ -530,7 +534,10 @@ class CRUDIsochrone:
                     opportunities[region]["total_population"] = int(total_population)
                     opportunities[region]["reached_population"] = population_reached["population"]
 
-                grid["accessibility"] = dict(opportunities)
+                grid["accessibility"] = {
+                    "starting_points": starting_point_geom,
+                    "opportunities": dict(opportunities),
+                }
             grid_encoded = encode_r5_grid(grid)
             result = Response(bytes(grid_encoded))
         else:

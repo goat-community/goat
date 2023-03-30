@@ -26,13 +26,14 @@ spec:
       hostname: goat-${NAMESPACE}-rabbitmq
       containers:
         - image: goatcommunity/rabbitmq:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           name: goat-rabbitmq
           envFrom:
             - configMapRef:
                 name: goat-rabbitmq-config
           ports:
             - containerPort: 5672
+            - containerPort: 15672
 ---
 apiVersion: v1
 kind: Service
@@ -42,19 +43,10 @@ metadata:
 spec:
   ports:
     - port: 5672
+      name: amqp
       targetPort: 5672
-  type: NodePort
-  selector:
-    app: goat-rabbitmq
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: goat-rabbitmq-management-service
-  namespace: ${NAMESPACE}
-spec:
-  ports:
     - port: 15672
+      name: management
       targetPort: 15672
   type: NodePort
   selector:
@@ -73,3 +65,4 @@ data:
   AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
   AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
   RABBITMQ_DEFAULT_VHOST: goat
+  RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management path_prefix "/rabbitmq"
