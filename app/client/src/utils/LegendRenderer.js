@@ -65,7 +65,6 @@ class LegendRenderer {
    */
   renderLegendItem(container, item, position) {
     const { hideRect, maxColumnHeight, maxColumnWidth } = this.config;
-
     if (item.rule) {
       container = container
         .append("g")
@@ -90,39 +89,26 @@ class LegendRenderer {
           .attr("width", iconSize[0])
           .attr("height", iconSize[1])
           .attr("href", uri);
-        if (item.title.split(" ").length > 4) {
-          let texts = [
-            item.title
-              .split(" ")
-              .slice(0, 4)
-              .join(" "),
-            item.title
-              .split(" ")
-              .slice(4, item.title.split(" ").length)
-              .join(" ")
-          ];
 
-          texts.forEach((text, index) => {
+        let results = this.wrapLegendText(item.title);
+
+        results.forEach((text, indx) => {
+          if (results.length === 1) {
             container
               .append("text")
               .text(text)
-              // .style("word-wrap", "break-word")
               .attr("x", position[0] + iconSize[0] + 5)
-              .attr("y", (position[1] + 17) * (index + 0.7));
-          });
-          // const arr = [];
-          // for (let i = 0; i < item.title.length; i += 10) {
-          //   arr.push(item.title.substring(i, i + 10));
-          // }
-          console.log(texts);
-        } else {
-          container
-            .append("text")
-            .text(item.title)
-            // .style("word-wrap", "break-word")
-            .attr("x", position[0] + iconSize[0] + 5)
-            .attr("y", position[1] + 20);
-        }
+              .attr("y", position[1] + 20)
+              .style("font-size", "13px");
+          } else {
+            container
+              .append("text")
+              .text(text)
+              .attr("x", position[0] + iconSize[0] + 5)
+              .attr("y", position[1] + 3 + (indx + 1) * 12)
+              .style("font-size", "13px");
+          }
+        });
         position[1] += iconSize[1] + 5;
         if (
           maxColumnHeight &&
@@ -134,6 +120,27 @@ class LegendRenderer {
       });
     }
     return undefined;
+  }
+
+  wrapLegendText(legendWord) {
+    // const text = this.$refs.text;
+    const words = legendWord.split(" ");
+    let line = "";
+    // let lineNumber = 0;
+    let wrappedText = [];
+    for (let i = 0; i < words.length; i++) {
+      let testLine = line + words[i] + " ";
+      let testWidth = testLine.length;
+      if (testWidth > 20 && i > 0) {
+        wrappedText.push(line);
+        line = words[i] + " ";
+        // lineNumber++;
+      } else {
+        line = testLine;
+      }
+    }
+    wrappedText.push(line);
+    return wrappedText;
   }
 
   /**
