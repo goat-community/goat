@@ -1,8 +1,8 @@
 import json
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
-from fastapi.encoders import jsonable_encoder
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
 
@@ -12,21 +12,99 @@ from src.core.config import settings
 from src.db import models
 from src.endpoints import deps
 from src.resources.enums import (
+    IsochroneExportType,
     ReturnType,
 )
-from src.schemas.heatmap import HeatmapSettings, ReturnTypeHeatmap
+from src.schemas.heatmap import HeatmapSettings
 from src.schemas.heatmap import request_examples as heatmap_request_examples
 from src.schemas.indicators import (
     CalculateOevGueteklassenParameters,
     oev_gueteklasse_config_example,
 )
+
+from src.schemas.isochrone import (
+    IsochroneDTO,
+    IsochroneMultiCountPois,
+    IsochroneOutputType,
+    request_examples,
+)
 from src.utils import return_geojson_or_geobuf
-from src.workers.method_connector import read_heatmap_async
-from src.workers.read_heatmap import read_heatmap_task
+from src.workers.method_connector import (
+    read_heatmap_async,
+    read_pt_oev_gueteklassen_async,
+    read_pt_station_count_async,
+)
+from src.workers.read_heatmap import (
+    read_heatmap_task,
+    read_pt_oev_gueteklassen_task,
+    read_pt_station_count_task,
+)
 from src.workers.celery_app import celery_app
 from celery.result import AsyncResult
 
 router = APIRouter()
+
+
+@router.post("/isochrone")
+async def calculate_isochrone(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    isochrone_in: IsochroneDTO = Body(..., examples=request_examples["isochrone"]),
+    current_user: models.User = Depends(deps.get_current_active_user),
+):
+    """
+    Calculate isochrone indicator.
+    """
+    if isochrone_in.scenario.id:
+        await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
+    result = await crud.isochrone.calculate(db, isochrone_in, current_user)
+    if isochrone_in.output.type.value == IsochroneOutputType.NETWORK.value:
+        result = return_geojson_or_geobuf(result, "geojson")
+    return result
+
+
+@router.post("/isochrone/multi/count-pois", response_class=JSONResponse)
+async def count_pois_multi_isochrones(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    isochrone_in: IsochroneMultiCountPois = Body(
+        ..., examples=request_examples["pois_multi_isochrone_count_pois"]
+    ),
+    current_user: models.User = Depends(deps.get_current_active_user),
+):
+    """
+    Count Isochrone pois under study area.
+    """
+    isochrone_in.scenario_id = await deps.check_user_owns_scenario(
+        db=db, scenario_id=isochrone_in.scenario_id, current_user=current_user
+    )
+    isochrone_in.active_upload_ids = current_user.active_data_upload_ids
+    isochrone_in.user_id = current_user.id
+    cnt = await crud.isochrone.count_opportunity(db=db, obj_in=isochrone_in)
+    return cnt
+
+
+@router.post("/isochrone/export", response_class=StreamingResponse)
+async def export_isochrones(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    geojson: Dict = Body(..., examples=request_examples["to_export"]),
+    return_type: IsochroneExportType = Query(
+        description="Return type of the response", default=IsochroneExportType.geojson
+    ),
+) -> Any:
+    """
+    Export isochrones from GeoJSON data.
+    """
+
+    file_response = await crud.isochrone.export_isochrone(
+        db=db,
+        current_user=current_user,
+        return_type=return_type.value,
+        geojson_dictionary=geojson,
+    )
+    return file_response
 
 
 @router.post("/heatmap")
@@ -74,9 +152,6 @@ async def count_pt_service_stations(
     study_area_id: Optional[int] = Query(
         default=None, description="Study area id (Default: User active study area)"
     ),
-    return_type: ReturnType = Query(
-        default=ReturnType.geojson, description="Return type of the response"
-    ),
 ):
     """
     Return the number of trips for every route type on every station given a time period and weekday.
@@ -97,21 +172,28 @@ async def count_pt_service_stations(
     else:
         study_area_id = study_area_id or current_user.active_study_area_id
 
-    stations_count = await crud.indicator.count_pt_service_stations(
-        db=db,
-        start_time=start_time,
-        end_time=end_time,
-        weekday=weekday,
-        study_area_id=study_area_id,
-        return_type=return_type,
-    )
-    return return_geojson_or_geobuf(stations_count, return_type.value)
+    current_user = json.loads(current_user.json())
+    payload = {
+        "start_time": start_time,
+        "end_time": end_time,
+        "weekday": weekday,
+        "study_area_id": study_area_id,
+    }
+
+    if settings.CELERY_BROKER_URL:
+        task = read_pt_station_count_task.delay(
+            current_user=current_user,
+            payload=payload,
+        )
+    else:
+        results = await read_pt_station_count_async(current_user=current_user, payload=payload)
+        return return_geojson_or_geobuf(results, return_type="geobuf")
+    return {"task_id": task.id}
 
 
 @router.post("/pt-oev-gueteklassen")
 async def calculate_oev_gueteklassen(
     *,
-    db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
     params: CalculateOevGueteklassenParameters = Body(..., example=oev_gueteklasse_config_example),
 ):
@@ -135,24 +217,25 @@ async def calculate_oev_gueteklassen(
     else:
         study_area_ids = [current_user.active_study_area_id]
 
-    oev_gueteklassen_features = await crud.indicator.compute_oev_gueteklassen(
-        db=db,
-        start_time=params.start_time,
-        end_time=params.end_time,
-        weekday=params.weekday,
-        study_area_ids=study_area_ids,
-        station_config=params.station_config,
-    )
-    if params.return_type.value == ReturnType.geojson.value:
-        oev_gueteklassen_features = jsonable_encoder(oev_gueteklassen_features)
-    return return_geojson_or_geobuf(oev_gueteklassen_features, params.return_type.value)
+    current_user = json.loads(current_user.json())
+    payload = json.loads(params.json())
+    payload["study_area_ids"] = study_area_ids
+    if settings.CELERY_BROKER_URL:
+        task = read_pt_oev_gueteklassen_task.delay(
+            current_user=current_user,
+            payload=payload,
+        )
+    else:
+        results = await read_pt_oev_gueteklassen_async(current_user=current_user, payload=payload)
+        return return_geojson_or_geobuf(results, return_type="geobuf")
+    return {"task_id": task.id}
 
 
-@router.get("/heatmap/result/{task_id}")
-async def get_heatmap_result(
+@router.get("/result/{task_id}")
+async def get_indicators_result(
     task_id: str,
     current_user: models.User = Depends(deps.get_current_active_user),
-    return_type: ReturnTypeHeatmap = Query(..., description="Return type of the response"),
+    return_type: ReturnType = Query(..., description="Return type of the response"),
 ):
     """Fetch result for given task_id"""
     result = AsyncResult(task_id, app=celery_app)

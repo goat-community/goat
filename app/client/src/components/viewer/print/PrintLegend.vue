@@ -94,17 +94,17 @@
               <span class="fa-stack fa-md mr-1 mt-2" style="color:#800000;">
                 <span class="fa fa-solid fa-location-pin fa-stack-2x"></span>
                 <strong
-                  style="font-size:15px;margin-top: -3px"
+                  style="font-size:10px;margin-top: -5px"
                   class="white--text fa-stack-1x"
                 >
                   {{ getCurrentIsochroneNumber(calculation) }}
                 </strong>
               </span>
-              <div class="mt-2">
-                <p class="ma-0 result-title">
+              <div>
+                <!-- <p class="ma-0 result-title">
                   {{ calculation.position }}
-                </p>
-                <p class="ma-0 " style="font-size: 10.5px; font-weight: bold;">
+                </p> -->
+                <p class="ma-0" style="font-size: 10.5px; font-weight: bold;">
                   {{ calculationTravelTime[calculation.id - 1] }}
                   {{ $t("isochrones.traveltimes.minutes") }}
                 </p>
@@ -444,5 +444,9 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.fa-stack-2x {
+  font-size: 1.5em;
 }
 </style>

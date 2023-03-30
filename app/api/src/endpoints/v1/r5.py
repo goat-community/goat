@@ -1,4 +1,3 @@
-import time
 from typing import Any, List
 
 import numpy as np
@@ -10,7 +9,6 @@ from fastapi import (
     File,
     Form,
     HTTPException,
-    Response,
     UploadFile,
 )
 from sqlalchemy.ext.asyncio.session import AsyncSession

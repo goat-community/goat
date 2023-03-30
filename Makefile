@@ -68,6 +68,11 @@ K8S_OBJ:=$(patsubst %.tpl.yaml,%.yaml,$(K8S_SRC))
     FIRST_SUPERUSER_NAME=$(FIRST_SUPERUSER_NAME) \
     FIRST_SUPERUSER_SURNAME=$(FIRST_SUPERUSER_SURNAME) \
 	SMTP_PASSWORD=$(SMTP_PASSWORD) \
+	CELERY_RESULT_EXPIRES=$(CELERY_RESULT_EXPIRES) \
+	CELERY_TASK_TIME_LIMIT=$(CELERY_TASK_TIME_LIMIT) \
+	WORKER_REPLICAS=$(WORKER_REPLICAS) \
+	WORKER_MEMORY_LIMIT=$(WORKER_MEMORY_LIMIT) \
+	API_REPLICAS=$(API_REPLICAS) \
 	t=$$(cat $<); eval "echo \"$${t}\"" > $@
 
 # target: make help - displays this help.
@@ -134,23 +139,23 @@ deploy: setup-kube-config build-k8s
 # ==== AWS CLOUDFORMATION ====
 #=============================
 
-S3_BUCKET?=plan4better-cloud-functions # S3 Bucket to store the cloud formation templates etc. #TODO: CREATE CLOUDFORMATION TEMPLATE FOR THIS
+S3_BUCKET?=plan4better-cloud-functions # S3 Bucket to store the cloud formation templates etc.
 AWS_DEFAULT_REGION?=eu-central-1
-WORKER_TYPE?=goat-pt-heatmap
+WORKER_TYPE?=goat-heavy-worker
 
-# target: make deploy-worker -e WORKER_TYPE=goat-pt-heatmap | goat-walking-cycling
+# target: make deploy-worker -e WORKER_TYPE=goat-heavy-worker | goat-superheavy-worker
 .PHONY: deploy-worker
 deploy-worker:
-	@echo "Deploying the cloud formation goat-$(NAMESPACE) to AWS"
-	cd infra/templates/cft && aws cloudformation deploy \
+	@echo "Deploying the cloud formation goat-worker-$(NAMESPACE) to AWS"
+	aws cloudformation deploy \
 	--stack-name goat-worker-$(NAMESPACE) \
-	--template-file worker.yaml \
+	--template-file infra/templates/aws/worker-config.yaml \
 	--capabilities CAPABILITY_IAM \
 	--region $(AWS_DEFAULT_REGION) \
 	--s3-bucket $(S3_BUCKET) \
 	--s3-prefix goat \
 	--no-fail-on-empty-changeset \
-	--parameter-overrides Environment=$(NAMESPACE) WorkerType=${WORKER_TYPE} \
-	--tags environment=$(NAMESPACE) app=goat resource=worker
+	--parameter-overrides workerType=${WORKER_TYPE} \
+	--tags app=goat resource=worker
 
-	@echo "Done deploying the goat-$(NAMESPACE)"
+	@echo "Done deploying the goat-worker-$(NAMESPACE) to AWS"

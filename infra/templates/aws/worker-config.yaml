@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: P4B AWS Target tracking scaling policies for Amazon EC2 Auto Scaling
+Metadata:
+  Author:
+    Description: Majk Shkurti <majk.shkurti@plan4better.de>
+Parameters:
+
+  # ASG parameters
+  desiredCapacity:
+    Default: 0
+    Description: Desired capacity
+    Type: Number
+  minSize:
+    Default: 0
+    Description: Mininum capacity
+    Type: Number
+
+  # RabbitMQ parameters
+  workerType:
+    Description: "The type of worker that will be processing the queue"
+    Type: String
+    AllowedValues:
+    - 'goat-heavy-worker'
+    - 'goat-superheavy-worker'
+
+  cluster:
+    Description: "The name of the RabbitMQ cluster"
+    Type: String
+    AllowedValues:
+    - 'goat-dev-rabbitmq'
+    - 'goat-prod-rabbitmq'
+    Default: 'goat-dev-rabbitmq'
+
+
+Mappings: 
+  workerTypeToEC2:
+    goat-heavy-worker:
+      AMI: ami-03bd62afb7e503106
+      InstanceType: t2.xlarge
+      MaxSize: 7
+    goat-superheavy-worker:
+      AMI: ami-03bd62afb7e503106
+      InstanceType: d3.4xlarge
+      MaxSize: 5
+  
+
+Outputs:
+  launchTemplate:
+    Description: The name of the LaunchTemplate
+    Value: !Ref launchTemplate
+  autoScalingGroup:
+    Description: The name of the AutoScalingGroup
+    Value: !Ref autoScalingGroup
+  targetTrackingScalingPolicy:
+    Description: The name of the TargetTrackingScalingPolicy
+    Value: !Ref targetTrackingScalingPolicy   
+
+Resources:
+  launchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub ${workerType}-lt
+      LaunchTemplateData:
+        ImageId:
+          Fn::FindInMap:
+          - workerTypeToEC2
+          - !Ref workerType
+          - AMI
+        InstanceType:
+          Fn::FindInMap:
+          - workerTypeToEC2
+          - !Ref workerType
+          - InstanceType
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+          - Key: Name
+            Value: goat-worker
+        UserData:
+          Fn::Base64:
+            Fn::Sub: '#!/bin/bash -xe
+
+              cd /home/goat && git fetch origin && git checkout dev && git merge origin/dev
+              
+              echo "CELERY_QUEUES=${workerType}" >> .env             
+
+              docker-compose up -d --force-recreate worker
+              '
+    
+  autoScalingGroup:
+    DependsOn: launchTemplate
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub ${workerType}-asg
+      LaunchTemplate:
+        LaunchTemplateId: !Ref launchTemplate
+        Version: !GetAtt launchTemplate.LatestVersionNumber
+      AvailabilityZones:
+        Fn::GetAZs:
+          Ref: "AWS::Region"
+      MinSize: !Ref minSize
+      MaxSize: 
+        Fn::FindInMap:
+        - workerTypeToEC2
+        - !Ref workerType
+        - MaxSize
+      DesiredCapacity: !Ref desiredCapacity
+      Cooldown: 60
+
+  targetTrackingScalingPolicy:
+    DependsOn: autoScalingGroup
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      PolicyType: TargetTrackingScaling
+      AutoScalingGroupName: !Ref autoScalingGroup
+      TargetTrackingConfiguration:
+        TargetValue: 0.9
+        CustomizedMetricSpecification:
+            MetricName: Messages
+            Namespace: RabbitMQ
+            Dimensions:
+                - Name: VHost
+                  Value: goat
+                - Name: Cluster
+                  Value: !Sub rabbit@${cluster}
+                - Name: Metric
+                  Value: Queue
+                - Name: Queue
+                  Value: !Ref workerType
+            Statistic: Average

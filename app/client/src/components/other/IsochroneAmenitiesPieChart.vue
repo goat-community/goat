@@ -25,7 +25,8 @@ export default {
         }
       ];
       const calculation = this.selectedCalculations[this.calculationIndex];
-      const calculationData = calculation.surfaceData.accessibility;
+      const calculationData =
+        calculation.surfaceData.accessibility["opportunities"];
       // Add only amenities
       let keys = [];
       let config = [];
