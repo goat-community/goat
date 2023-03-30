@@ -520,6 +520,9 @@ class CRUDIsochrone:
                         remove_keys(population_count, ["total"]),
                         max_minute=obj_in.settings.travel_time,
                     )
+                    population_reached["population"] = [
+                        int(x) for x in population_reached["population"]
+                    ]
                     if population_count.get("total") and population_count.get("total").get(
                         "population"
                     ):
@@ -530,7 +533,7 @@ class CRUDIsochrone:
                         ]
 
                     opportunities[region]["total_population"] = int(total_population)
-                    opportunities[region]["reached_population"] = int(population_reached["population"])
+                    opportunities[region]["reached_population"] = population_reached["population"]
 
                 grid["accessibility"] = {
                     "starting_points": starting_point_geom,
