@@ -21,21 +21,29 @@ BEGIN
 		WHERE o.category_group = g.GROUP 
 		AND g.TYPE = 'poi'
 		AND multiple_entrance = grouped_multi_entrance;
-	
+
+		/*Get aoi categories*/
+		SELECT ARRAY_AGG(o.category) 
+		INTO aoi_categories
+		FROM basic.active_opportunities(user_id_input, active_study_area_id) o, basic.opportunity_group g 
+		WHERE o.category_group = g.GROUP 
+		AND g.TYPE = 'aoi'
+		AND multiple_entrance = grouped_multi_entrance;
 	ELSE 
 		SELECT array_agg(o.category) 
 		INTO all_poi_categories 
 		FROM basic.active_opportunities(user_id_input, active_study_area_id) o, basic.opportunity_group g 
 		WHERE o.category_group = g.GROUP 
 		AND g.TYPE = 'poi'; 
-	END IF; 
 
-	/*Prepare AOI categories*/
-	SELECT ARRAY_AGG(o.category) 
-	INTO aoi_categories
-	FROM basic.active_opportunities(user_id_input, active_study_area_id) o, basic.opportunity_group g 
-	WHERE o.category_group = g.GROUP 
-	AND g.TYPE = 'aoi'; 
+		/*Get aoi categories*/
+		SELECT ARRAY_AGG(o.category) 
+		INTO aoi_categories
+		FROM basic.active_opportunities(user_id_input, active_study_area_id) o, basic.opportunity_group g 
+		WHERE o.category_group = g.GROUP 
+		AND g.TYPE = 'aoi';
+
+	END IF; 
 
 	/*Check if POI scenario*/
 	IF scenario_id_input <> 0 THEN 

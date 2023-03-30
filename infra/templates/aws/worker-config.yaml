@@ -36,11 +36,11 @@ Parameters:
 Mappings: 
   workerTypeToEC2:
     goat-heavy-worker:
-      AMI: ami-0892090684721b24f
+      AMI: ami-03bd62afb7e503106
       InstanceType: t2.xlarge
       MaxSize: 7
     goat-superheavy-worker:
-      AMI: ami-0892090684721b24f
+      AMI: ami-03bd62afb7e503106
       InstanceType: d3.4xlarge
       MaxSize: 5
   
@@ -81,8 +81,10 @@ Resources:
           Fn::Base64:
             Fn::Sub: '#!/bin/bash -xe
 
-              cd /home/ubuntu/goat
+              cd /home/goat && git fetch origin && git checkout dev && git merge origin/dev
               
+              echo "CELERY_QUEUES=${workerType}" >> .env             
+
               docker-compose up -d --force-recreate worker
               '
     
@@ -113,7 +115,7 @@ Resources:
       PolicyType: TargetTrackingScaling
       AutoScalingGroupName: !Ref autoScalingGroup
       TargetTrackingConfiguration:
-        TargetValue: 1.0
+        TargetValue: 0.9
         CustomizedMetricSpecification:
             MetricName: Messages
             Namespace: RabbitMQ

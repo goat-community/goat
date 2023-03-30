@@ -44,8 +44,8 @@ spec:
               servicePort: 80
           - path: /rabbitmq/*
             backend:
-              serviceName: goat-rabbitmq-management-service
-              servicePort: 80
+              serviceName: goat-rabbitmq-service
+              servicePort: 15672
           - path: /*
             backend:
               serviceName: goat-client
