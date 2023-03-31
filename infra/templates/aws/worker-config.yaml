@@ -36,11 +36,11 @@ Parameters:
 Mappings: 
   workerTypeToEC2:
     goat-heavy-worker:
-      AMI: ami-03bd62afb7e503106
+      AMI: ami-0ef90e158492696d9
       InstanceType: t2.xlarge
       MaxSize: 7
     goat-superheavy-worker:
-      AMI: ami-03bd62afb7e503106
+      AMI: ami-0ef90e158492696d9
       InstanceType: d3.4xlarge
       MaxSize: 5
   
@@ -79,14 +79,14 @@ Resources:
             Value: goat-worker
         UserData:
           Fn::Base64:
-            Fn::Sub: '#!/bin/bash -xe
+            Fn::Sub: "#!/bin/bash -xe
 
               cd /home/goat && git fetch origin && git checkout dev && git merge origin/dev
-              
-              echo "CELERY_QUEUES=${workerType}" >> .env             
+
+              echo 'CELERYD_OPTS=\"--concurrency=1 --queues=${workerType}\"' >> .env
 
               docker-compose up -d --force-recreate worker
-              '
+            "
     
   autoScalingGroup:
     DependsOn: launchTemplate
