@@ -1015,7 +1015,8 @@ export default {
       const currentResolution = this.map.getView().getResolution();
       if (
         (this.selectedPoisAois.length > 0) &
-        (currentResolution > this.poisAoisLayer.getMinZoom())
+        (currentResolution > this.poisAoisLayer.getMinZoom() &&
+          this.poisAoisLayer.getMinZoom() !== -Infinity)
       ) {
         this.visibilityPoiSnackbar = {
           state: true,
