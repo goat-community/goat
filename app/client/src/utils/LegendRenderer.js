@@ -131,7 +131,7 @@ class LegendRenderer {
     for (let i = 0; i < words.length; i++) {
       let testLine = line + words[i] + " ";
       let testWidth = testLine.length;
-      if (testWidth > 20 && i > 0) {
+      if (testWidth > 30 && i > 0) {
         wrappedText.push(line);
         line = words[i] + " ";
         // lineNumber++;
