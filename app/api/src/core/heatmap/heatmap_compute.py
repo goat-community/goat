@@ -796,9 +796,12 @@ class ComputeHeatmap(BaseHeatmap):
         # Loop through all calculation objects and create a payload for each one
         payloads = []
         # R5 Authorization credentials
-        user, password = (
-            base64.b64decode(settings.R5_AUTHORIZATION.split(" ")[1]).decode("utf-8").split(":")
-        )
+        if settings.R5_AUTHORIZATION is None:
+            user, password = "", ""
+        else:
+            user, password = (
+                base64.b64decode(settings.R5_AUTHORIZATION.split(" ")[1]).decode("utf-8").split(":")
+            )
         for idx, value in enumerate(obj["calculation_ids"]):
             payload = R5TravelTimePayloadTemplate.copy()
             payload["h3_index"] = value
@@ -1054,7 +1057,7 @@ class ComputeHeatmap(BaseHeatmap):
         """
         data = None
         retry_count = 0
-        while data is None and retry_count < 15:
+        while data is None and retry_count < 30:
             try:
                 async with client.post(
                     settings.R5_API_URL + "/analysis", json=payload
@@ -1062,12 +1065,18 @@ class ComputeHeatmap(BaseHeatmap):
                     response.raise_for_status()
                     if response.status == 202:
                         # throw exception to retry. 202 means that the request is still being processed
+                        content = await response.content.read()
+                        if content is not None and len(content) == 33: 
+                            # 33 is the length of the string "Building network...". Reset the retry count if this is the case
+                            retry_count = 0
+                            print ("Building network...")
+                            await asyncio.sleep(8)
                         raise ClientError("Request still being processed")
                     data = await response.content.read()
-            except ClientError:
+            except ClientError as e:
                 # sleep a little and try again for
                 retry_count += 1
-                await asyncio.sleep(3)
+                await asyncio.sleep(4)
 
         if data is None:
             print_warning(f"Could not fetch travel time for {payload['h3_index']}")

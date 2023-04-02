@@ -978,10 +978,7 @@ const GROUPED_CATEGORIES = {
   bus_stop: true,
   tram_stop: true,
   subway_entrance: true,
-  rail_station: true,
-  bike_sharing: true,
-  car_sharing: true,
-  charging_station: true
+  rail_station: true
 };
 
 const GROUPED_MIN_ZOOM = 16;

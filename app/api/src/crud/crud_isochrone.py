@@ -458,7 +458,7 @@ class CRUDIsochrone:
             elif isochrone_type == IsochroneTypeEnum.multi.value:
                 if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
                     regions = read_postgis(
-                        f"SELECT * FROM basic.sub_study_area WHERE id = ANY(ARRAY[{list(map(int, obj_in.starting_point.region))}])",
+                        f"SELECT name, geom FROM basic.sub_study_area WHERE id = ANY(ARRAY[{list(map(int, obj_in.starting_point.region))}])",
                         legacy_engine,
                     )
                 else:
@@ -490,13 +490,11 @@ class CRUDIsochrone:
 
                     intersected_regions.append(isochrone_clip)
 
-                # intersect the original region shapes if the user has selected to draw the regions
-                # study areas already have the population count from DB so no need to intersect
-                if obj_in.starting_point.region_type == IsochroneMultiRegionType.DRAW:
-                    regions["region"] = regions.apply(
-                        lambda x: "{}_x_{}".format(x["name"], "total"), axis=1
-                    )
-                    intersected_regions.append(regions)
+                # intersect the original region shapes as well
+                regions["region"] = regions.apply(
+                    lambda x: "{}_x_{}".format(x["name"], "total"), axis=1
+                )
+                intersected_regions.append(regions)
 
                 intersected_regions = pd.concat(intersected_regions, ignore_index=True)
                 # intersect the clipped isochrone shapes with the opportunity data
@@ -522,6 +520,9 @@ class CRUDIsochrone:
                         remove_keys(population_count, ["total"]),
                         max_minute=obj_in.settings.travel_time,
                     )
+                    population_reached["population"] = [
+                        int(x) for x in population_reached["population"]
+                    ]
                     if population_count.get("total") and population_count.get("total").get(
                         "population"
                     ):
