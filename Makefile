@@ -143,7 +143,7 @@ S3_BUCKET?=plan4better-cloud-functions # S3 Bucket to store the cloud formation 
 AWS_DEFAULT_REGION?=eu-central-1
 WORKER_TYPE?=goat-heavy-worker
 
-# target: make deploy-worker -e WORKER_TYPE=goat-heavy-worker | goat-superheavy-worker
+# target: make deploy-worker -e WORKER_TYPE=goat-heavy-worker | goat-superheavy-worker -e NAMESPACE=dev
 .PHONY: deploy-worker
 deploy-worker:
 	@echo "Deploying the cloud formation goat-worker-$(NAMESPACE) to AWS"
