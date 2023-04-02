@@ -67,7 +67,7 @@ const getters = {
 };
 
 const actions = {
-  [GET_POIS_AOIS]({ state }, map_width) {
+  [GET_POIS_AOIS]({ state }) {
     return new Promise((resolve, reject) => {
       ApiService.get_(`/pois-aois/visualization?return_type=geobuf`, {
         responseType: "arraybuffer",
@@ -95,7 +95,6 @@ const actions = {
             if (olFeatures.length > 45000) {
               state.poisAoisLayer.setMinZoom(14);
             }
-            console.log(map_width);
           }
         })
         .catch(({ response }) => {

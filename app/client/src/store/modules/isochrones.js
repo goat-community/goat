@@ -125,7 +125,8 @@ const state = {
     railway_service: 100,
     high_speed_rail_service: 101,
     long_distance_trains: 102,
-    inter_regional_rail_service: 103
+    inter_regional_rail_service: 103,
+    coach_service: 200
   },
   transitRouteTypeExtensions: [
     {
@@ -139,6 +140,10 @@ const state = {
     {
       type: "inter_regional_rail_service",
       color: "#e055ce"
+    },
+    {
+      type: "coach_service",
+      color: "#fae2a0"
     }
     /*
     ferry: 4,
