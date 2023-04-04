@@ -8,6 +8,13 @@
     "service": "api",
     "workspaceFolder": "/app",
     "shutdownAction": "none",
+    "mounts": [
+        "source=${localWorkspaceFolder}/../..,target=/goat,type=bind,consistency=cached"
+    ],
+    "remoteEnv": {
+        "GIT_WORK_TREE": "/goat",
+        "GIT_DIR": "/goat/.git"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
