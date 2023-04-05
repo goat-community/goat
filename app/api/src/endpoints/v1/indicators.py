@@ -1,7 +1,8 @@
+import binascii
 import json
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
@@ -42,6 +43,9 @@ from src.workers.read_heatmap import (
 from src.workers.celery_app import celery_app
 from celery.result import AsyncResult
 
+from src.workers.isochrone import task_calculate_isochrone
+
+
 router = APIRouter()
 
 
@@ -57,10 +61,15 @@ async def calculate_isochrone(
     """
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
-    result = await crud.isochrone.calculate(db, isochrone_in, current_user)
-    if isochrone_in.output.type.value == IsochroneOutputType.NETWORK.value:
-        result = return_geojson_or_geobuf(result, "geojson")
-    return result
+    
+    study_area = await crud.user.get_active_study_area(db, current_user)
+    study_area_bounds = study_area['bounds']
+    isochrone_in = json.loads(isochrone_in.json())
+    current_user = json.loads(current_user.json())
+    
+    task = task_calculate_isochrone.delay(isochrone_in, current_user, study_area_bounds)
+    task_id = f"isochrone-{task.id}"
+    return {"task_id": task_id}
 
 
 @router.post("/isochrone/multi/count-pois", response_class=JSONResponse)
@@ -238,11 +247,22 @@ async def get_indicators_result(
     return_type: ReturnType = Query(..., description="Return type of the response"),
 ):
     """Fetch result for given task_id"""
+    
+    task_type = "other"
+    if "isochrone-" in task_id:
+        task_type = "isochrone"
+        task_id = task_id.replace("isochrone-", "")
+    
     result = AsyncResult(task_id, app=celery_app)
     if result.ready():
         try:
-            result = return_geojson_or_geobuf(result.get(), return_type.value)
-            return result
+            task_results = result.get()
+            if task_type == "isochrone":
+                response = Response(bytes(binascii.unhexlify(bytes(task_results, 'utf-8'))), media_type="application/octet-stream")
+                return response
+            else:
+                result = return_geojson_or_geobuf(result.get(), return_type.value)
+                return result
         except Exception as e:
             raise HTTPException(status_code=500, detail="Task failed")
 
