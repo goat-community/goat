@@ -161,7 +161,7 @@ async def read_heatmap_async(current_user, settings):
 
         difference_quantiles = (
             population_result["population_class"] - modified_gausian_result["agg_class"]
-        )
+        ).round()
 
         result = {
             "h3_grid_ids": modified_gausian_result["h3_grid_ids"],
