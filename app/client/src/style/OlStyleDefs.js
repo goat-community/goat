@@ -439,7 +439,7 @@ function poisEditShadowStyle(color, radius) {
 
 let poisEditStyleCache = {};
 export function poisEditStyle(feature, resolution, type) {
-  const isGrouped = feature.get("grouped");
+  // const isGrouped = feature.get("grouped");
   const category = feature.get("category");
   if (["MultiPolygon", "Polygon"].includes(feature.getGeometry().getType())) {
     return [];
@@ -453,14 +453,14 @@ export function poisEditStyle(feature, resolution, type) {
     return [];
   }
 
-  if (GROUPED_CATEGORIES[category]) {
-    const zoom = mapStore.state.map.getView().getZoomForResolution(resolution);
-    if (
-      (isGrouped && zoom > GROUPED_MIN_ZOOM) ||
-      (!isGrouped && zoom <= GROUPED_MIN_ZOOM)
-    )
-      return [];
-  }
+  // if (GROUPED_CATEGORIES[category]) {
+  //   const zoom = mapStore.state.map.getView().getZoomForResolution(resolution);
+  //   if (
+  //     (isGrouped && zoom > GROUPED_MIN_ZOOM) ||
+  //     (!isGrouped && zoom <= GROUPED_MIN_ZOOM)
+  //   )
+  //     return [];
+  // }
 
   const poiIconConf = appStore.state.poiIcons[category];
 

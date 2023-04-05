@@ -146,9 +146,9 @@ WORKER_TYPE?=goat-heavy-worker
 # target: make deploy-worker -e WORKER_TYPE=goat-heavy-worker | goat-superheavy-worker -e NAMESPACE=dev
 .PHONY: deploy-worker
 deploy-worker:
-	@echo "Deploying the cloud formation goat-worker-$(NAMESPACE) to AWS"
+	@echo "Deploying the cloud formation $(WORKER_TYPE) to AWS"
 	aws cloudformation deploy \
-	--stack-name goat-worker-$(NAMESPACE) \
+	--stack-name $(WORKER_TYPE) \
 	--template-file infra/templates/aws/worker-config.yaml \
 	--capabilities CAPABILITY_IAM \
 	--region $(AWS_DEFAULT_REGION) \
@@ -158,4 +158,4 @@ deploy-worker:
 	--parameter-overrides workerType=${WORKER_TYPE} \
 	--tags app=goat resource=worker
 
-	@echo "Done deploying the goat-worker-$(NAMESPACE) to AWS"
+	@echo "Done deploying the $(WORKER_TYPE) to AWS"
