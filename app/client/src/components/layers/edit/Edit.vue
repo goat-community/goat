@@ -810,9 +810,6 @@ export default {
     poisAois() {
       // Add remove features.
       if (this.selectedLayer && this.selectedLayer["name"] === "poi") {
-        if (this.selectedLayer.getSource().getFeatures().length > 45000) {
-          this.selectedLayer.setMinZoom(14);
-        }
         this.syncPoiFeatures();
       }
     }
@@ -2412,10 +2409,10 @@ export default {
     }),
     ...mapGetters("poisaois", {
       poisAoisLayer: "poisAoisLayer",
-      poisAois: "poisAois",
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
     }),
     ...mapFields("poisaois", {
+      poisAois: "poisAois",
       selectedPoisAois: "selectedPoisAois"
     }),
     ...mapFields("scenarios", {

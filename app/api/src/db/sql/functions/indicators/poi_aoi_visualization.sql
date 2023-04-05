@@ -58,7 +58,7 @@ BEGIN
 	FROM basic.poi p
 	WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 	AND p.uid NOT IN (SELECT UNNEST(excluded_pois_id))
-	AND p.geom && buffer_geom_study_area
+	AND ST_Intersects(p.geom, buffer_geom_study_area)
 	AND p.category NOT IN (SELECT UNNEST(data_upload_poi_categories));
 	
 	RETURN query 
@@ -68,7 +68,7 @@ BEGIN
 	WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 	AND p.data_upload_id IN (SELECT UNNEST(active_upload_ids))
 	AND p.uid NOT IN (SELECT UNNEST(excluded_pois_id))
-	AND p.geom && buffer_geom_study_area;
+	AND ST_Intersects(p.geom, buffer_geom_study_area);
 	
 	RETURN query 
 	/*No scenarios nor aoi_user is implemented at the moment*/
@@ -84,7 +84,7 @@ BEGIN
 		p.edit_type, p.geom  
 		FROM customer.poi_modified p
 		WHERE p.category IN (SELECT UNNEST(all_poi_categories))
-		AND p.geom && buffer_geom_study_area
+		AND ST_Intersects(p.geom, buffer_geom_study_area)
 		AND p.scenario_id = scenario_id_input; 
 	   	
 		RETURN query
@@ -93,7 +93,7 @@ BEGIN
 		FROM basic.poi p
 		WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 		AND p.uid IN (SELECT UNNEST(excluded_pois_id))
-		AND p.geom && buffer_geom_study_area
+		AND ST_Intersects(p.geom, buffer_geom_study_area)
 		AND p.category NOT IN (SELECT UNNEST(data_upload_poi_categories));
 	
 		RETURN query 
@@ -103,11 +103,10 @@ BEGIN
 		WHERE p.category IN (SELECT UNNEST(all_poi_categories))
 		AND p.data_upload_id IN (SELECT UNNEST(active_upload_ids))
 		AND p.uid IN (SELECT UNNEST(excluded_pois_id))
-		AND p.geom && buffer_geom_study_area;
+		AND ST_Intersects(p.geom, buffer_geom_study_area);
 	END IF; 
 END ;
 $function$;
-
 
 /*
 Modus should be default, scenario, comparison

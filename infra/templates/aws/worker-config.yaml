@@ -36,13 +36,13 @@ Parameters:
 Mappings: 
   workerTypeToEC2:
     goat-heavy-worker:
-      AMI: ami-0ef90e158492696d9
+      AMI: ami-0dbe9ad9e556d9035
       InstanceType: t2.xlarge
       MaxSize: 7
     goat-superheavy-worker:
-      AMI: ami-0ef90e158492696d9
-      InstanceType: d3.4xlarge
-      MaxSize: 5
+      AMI: ami-0dbe9ad9e556d9035
+      InstanceType: r5.4xlarge
+      MaxSize: 1
   
 
 Outputs:
