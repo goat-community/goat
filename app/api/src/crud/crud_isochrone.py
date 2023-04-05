@@ -520,6 +520,9 @@ class CRUDIsochrone:
                         remove_keys(population_count, ["total"]),
                         max_minute=obj_in.settings.travel_time,
                     )
+                    population_reached["population"] = [
+                        int(x) for x in population_reached["population"]
+                    ]
                     if population_count.get("total") and population_count.get("total").get(
                         "population"
                     ):

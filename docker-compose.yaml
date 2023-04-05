@@ -147,6 +147,7 @@ services:
       - redis
       - rabbit
       - flower
+      - r5-conveyal-ui
     env_file:
       - .env
     environment:
@@ -187,50 +188,50 @@ services:
       proxy:
 
 
-  # mongo:
-  #   image: mongo:4
-  #   container_name: ${COMPOSE_PROJECT_NAME}_r5_mongo
-  #   hostname: ${COMPOSE_PROJECT_NAME}_r5_mongo
-  #   restart: always
-  #   ports: 
-  #     - "27017:27017"
-  #   volumes:
-  #     - mongodb_r5_data:/data/db:rw
-  #   networks:
-  #     proxy:
+  mongo:
+    image: mongo:4
+    container_name: ${COMPOSE_PROJECT_NAME}_r5_mongo
+    hostname: ${COMPOSE_PROJECT_NAME}_r5_mongo
+    restart: always
+    ports: 
+      - "27017:27017"
+    volumes:
+      - mongodb_r5_data:/data/db:rw
+    networks:
+      proxy:
 
-  # r5:
-  #   image: majkshkurti/conveyal-r5:6.4-p1
-  #   container_name: ${COMPOSE_PROJECT_NAME}_r5
-  #   hostname: ${COMPOSE_PROJECT_NAME}_r5
-  #   depends_on:
-  #     - mongo
-  #   environment:
-  #     WAIT_HOSTS: ${COMPOSE_PROJECT_NAME}_r5_mongo:27017
-  #     JVM_HEAP_GB: 14
-  #   links:
-  #     - mongo
-  #   ports:
-  #     - "7070:7070"
-  #     - "7080:7080"
-  #   volumes:
-  #     - ./r5-cache:/r5/cache
-  #   networks:
-  #     proxy:
+  r5:
+    image: majkshkurti/conveyal-r5:6.4-p1
+    container_name: ${COMPOSE_PROJECT_NAME}_r5
+    hostname: r5
+    depends_on:
+      - mongo
+    environment:
+      WAIT_HOSTS: ${COMPOSE_PROJECT_NAME}_r5_mongo:27017
+      JVM_HEAP_GB: ${R5_JVM_HEAP_GB}
+    links:
+      - mongo
+    ports:
+      - "7070:7070"
+      - "7080:7080"
+    volumes:
+      - ./r5-cache:/r5/cache
+    networks:
+      proxy:
 
-  # r5-conveyal-ui:
-  #   container_name: conveyal_ui
-  #   hostname: conveyal_ui
-  #   image: majkshkurti/analysis-ui:latest
-  #   depends_on:
-  #     - r5
-  #   links:
-  #     - r5
-  #   ports:
-  #     - "4000:3000"
-  #   volumes: # (paths relative to the Compose file)
-  #     - ./app/config/conveyal.ui.properties:/app/.env:ro
-  #   networks:
-  #     proxy:
+  r5-conveyal-ui:
+    container_name: conveyal_ui
+    hostname: conveyal_ui
+    image: majkshkurti/analysis-ui:latest
+    depends_on:
+      - r5
+    links:
+      - r5
+    ports:
+      - "4000:3000"
+    volumes: # (paths relative to the Compose file)
+      - ./app/config/conveyal.ui.properties:/app/.env:ro
+    networks:
+      proxy:
   
 

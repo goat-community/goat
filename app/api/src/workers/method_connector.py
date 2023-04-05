@@ -23,9 +23,13 @@ async def create_traveltime_matrices_async(current_super_user, parameters):
     current_super_user = models.User(**current_super_user)
     parameters = TravelTimeMatrixParametersSingleBulk(**parameters)
     compute_heatmap = ComputeHeatmap(current_user=current_super_user)
-    calculation_object = await compute_heatmap.create_calculation_object(
-        isochrone_dto=parameters.isochrone_dto, bulk_id=parameters.bulk_id
-    )
+    try: 
+        calculation_object = await compute_heatmap.create_calculation_object(
+            isochrone_dto=parameters.isochrone_dto, bulk_id=parameters.bulk_id
+        )
+    except Exception as e:
+        print(e)
+        return "Could not create calculation object"
     mode = parameters.isochrone_dto.mode
     if mode == IsochroneMode.TRANSIT or mode == IsochroneMode.CAR:
         await compute_heatmap.compute_traveltime_motorized_transport(

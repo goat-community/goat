@@ -26,7 +26,7 @@ class HeatmapCalculationResolution(int, Enum):
     """H3 Resolution Calculation."""
 
     active_mobility = 10
-    motorized_transport = 9
+    motorized_transport = 8
 
 
 class HeatmapMode(Enum):

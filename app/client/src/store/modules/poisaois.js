@@ -6,7 +6,6 @@ import { geobufToFeatures } from "../../utils/MapUtils";
 
 const state = {
   poisAoisLayer: null,
-  poisAoisGroupingLayer: null,
   poisAois: {},
   rawPoisAois: {},
   rawGroupPoisAois: {},
@@ -68,7 +67,7 @@ const getters = {
 };
 
 const actions = {
-  [GET_POIS_AOIS]({ state }, map_width) {
+  [GET_POIS_AOIS]({ state }) {
     return new Promise((resolve, reject) => {
       ApiService.get_(`/pois-aois/visualization?return_type=geobuf`, {
         responseType: "arraybuffer",
@@ -95,11 +94,7 @@ const actions = {
 
             if (olFeatures.length > 45000) {
               state.poisAoisLayer.setMinZoom(14);
-
-              state.poisAoisGroupingLayer.setMinZoom(14);
-              state.poisAoisGroupingLayer.setMaxZoom(16);
             }
-            console.log(map_width);
           }
         })
         .catch(({ response }) => {
