@@ -110,11 +110,11 @@ export function geometryToWKT(geometry, featureProjection, dataProjection) {
   return wktGeom;
 }
 
-export function wktToFeature(wkt, srsName) {
+export function wktToFeature(wkt, featureProjection, dataProjection) {
   const format = new WKT();
   const feature = format.readFeature(wkt, {
-    dataProjection: srsName,
-    featureProjection: srsName
+    dataProjection: dataProjection,
+    featureProjection: featureProjection
   });
   return feature;
 }

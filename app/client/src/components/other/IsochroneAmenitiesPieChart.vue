@@ -2,6 +2,7 @@
 import { Pie } from "vue-chartjs";
 import { mapGetters } from "vuex";
 import { EventBus } from "../../EventBus";
+import { mapFields } from "vuex-map-fields";
 
 export default {
   extends: Pie,
@@ -25,7 +26,9 @@ export default {
         }
       ];
       const calculation = this.selectedCalculations[this.calculationIndex];
-      const calculationData = calculation.surfaceData.accessibility;
+      const calculationId = calculation.id;
+      const calculationData =
+        calculation.surfaceData.accessibility["opportunities"];
       // Add only amenities
       let keys = [];
       let config = [];
@@ -39,7 +42,9 @@ export default {
       keys.forEach(amenity => {
         if (calculationData[amenity]) {
           datasets[0].data.push(
-            calculationData[amenity][this.isochroneRange - 1]
+            calculationData[amenity][
+              this.calculationTravelTime[calculationId - 1] - 1
+            ]
           );
           datasets[0].backgroundColor.push(
             config[amenity].color[0] || "rgb(54, 162, 235)"
@@ -78,6 +83,12 @@ export default {
       },
       deep: true
     },
+    calculationTravelTime: {
+      handler: function() {
+        this.renderPieChart();
+      },
+      deep: true
+    },
     isochroneRange: function() {
       this.renderPieChart();
     },
@@ -93,7 +104,11 @@ export default {
       selectedCalculations: "selectedCalculations",
       isochroneRange: "isochroneRange",
       chartDatasetType: "chartDatasetType",
-      preDefCalculationColors: "preDefCalculationColors"
+      preDefCalculationColors: "preDefCalculationColors",
+      calculationTravelTime: "calculationTravelTime"
+    }),
+    ...mapFields("isochrones", {
+      calculationTravelTime: "calculationTravelTime"
     }),
     ...mapGetters("poisaois", {
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys",

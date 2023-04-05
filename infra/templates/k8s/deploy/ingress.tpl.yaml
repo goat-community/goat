@@ -38,6 +38,14 @@ spec:
             backend:
               serviceName: goat-api
               servicePort: 80
+          - path: /flower/*
+            backend:
+              serviceName: goat-celery-flower-service
+              servicePort: 80
+          - path: /rabbitmq/*
+            backend:
+              serviceName: goat-rabbitmq-service
+              servicePort: 15672
           - path: /*
             backend:
               serviceName: goat-client

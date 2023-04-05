@@ -7,10 +7,10 @@ def file_migration():
     """Temporary script to execute data migration from the database to parquet files."""
 
     input_config = {
-        "mask_config": "SELECT ST_Union(buffer_geom_heatmap) as geom FROM basic.study_area",
+        "mask_config": "SELECT ST_Union(geom) as geom FROM basic.study_area",
         "h3_bulk_resolution": 6,
         "h3_child_resolution": 10,
-        "mask_buffer_distance": 0,
+        "mask_buffer_distance": 6000,
         "layer_config": {
             "original": {
                 "poi": "SELECT * FROM basic.poi",
@@ -25,7 +25,7 @@ def file_migration():
             },
         },
         "upload_to_s3": True,
-        "s3_folder": "release_1/opportunity",
+        "s3_folder": "prod",
     }
 
     mask_config = input_config["mask_config"]

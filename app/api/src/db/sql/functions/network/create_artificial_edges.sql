@@ -1,5 +1,5 @@
-CREATE OR REPLACE FUNCTION basic.create_artificial_edges(sql_network TEXT, point geometry, snap_distance integer, new_node_id integer, line_part1_id integer)
-RETURNS TABLE(wid integer, id integer, COST float, reverse_cost float, length_m float, SOURCE integer, target integer, fraction float, geom geometry)
+CREATE OR REPLACE FUNCTION basic.create_artificial_edges(sql_network text, point geometry, snap_distance integer, new_node_id integer, line_part1_id integer)
+ RETURNS TABLE(wid integer, id integer, cost double precision, reverse_cost double precision, length_m double precision, source integer, target integer, fraction double precision, geom geometry)
  LANGUAGE plpgsql
 AS $function$
 DECLARE
@@ -47,15 +47,10 @@ BEGIN
 		rec.reverse_cost * (length_part2 / total_length_m) AS reverse_cost,
 		length_part2, rec.vid AS SOURCE, rec.target, rec.fraction AS fraction, line_part2 AS geom
 	)
-	SELECT p.wid, p.id, p.COST, p.reverse_cost, p.length_m, p.SOURCE, p.target, p.fraction, p.geom 
-	FROM pair_artificial p
-	WHERE p.COST <> 0;
+	SELECT p.wid, p.id, p.COST, p.reverse_cost, p.length_m, p.SOURCE, p.target, p.fraction, 
+	CASE WHEN ST_Geometrytype(p.geom) = 'ST_Point' THEN ST_MAKELINE(p.geom, p.geom) ELSE p.geom END AS geom
+	FROM pair_artificial p;
+	--WHERE p.COST <> 0;
 END 
-$function$;
-/*This function create two artificial edges at starting point 
-SELECT * 
-FROM basic.create_artificial_edges(
-	basic.query_edges_routing(ST_ASTEXT(ST_BUFFER(ST_POINT(11.670883790338209, 48.129792632018706),0.0018)),'default',NULL,1.33,'walking_standard',FALSE),
-	ST_SETSRID(ST_POINT(11.670883790338209, 48.129792632018706), 4326), 100, 1, 1
-); 
- */
+$function$
+;

@@ -30,14 +30,12 @@ export default {
       return color;
     },
     renderLineChart: function() {
-      const accessibilityData = this.selectedCalculations[0].surfaceData
-        .accessibility;
-      const accessibilityKeys = Object.keys(accessibilityData);
-      let labels = [...accessibilityData[accessibilityKeys[0]].keys()];
-      labels = labels.map(num => num + 1);
+      let labels = this.selectedCalculations[0].config.settings.travel_time;
+      labels = [...Array(labels).keys()];
       const datasets = [];
       this.selectedCalculations.forEach((calculation, index) => {
-        const calculationData = calculation.surfaceData.accessibility;
+        const calculationData =
+          calculation.surfaceData.accessibility["opportunities"];
         if (this.chartDatasetType === 0) {
           // add only population data
           datasets.push({
@@ -178,8 +176,11 @@ export default {
       },
       deep: true
     },
-    calculationTravelTime: function() {
-      this.renderLineChart();
+    calculationTravelTime: {
+      handler: function() {
+        this.renderLineChart();
+      },
+      deep: true
     },
     chartDatasetType: function() {
       this.renderLineChart();

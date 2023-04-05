@@ -69,7 +69,7 @@ async def test_calculate_isochrone_single_default_bulk(
     for point in isochrone_points:
         data.update(point)
         r = await client.post(
-            f"{settings.API_V1_STR}/isochrones/single",
+            f"{settings.API_V1_STR}/indicators/isochrone/single",
             headers=superuser_token_headers,
             json=data,
         )
@@ -104,7 +104,7 @@ async def test_calculate_isochrone_single_scenario(
     )
     isochrone_scenario_comparision["scenario_id"] = scenario.id
     r = await client.post(
-        f"{settings.API_V1_STR}/isochrones/single",
+        f"{settings.API_V1_STR}/indicators/isochrone/single",
         headers=superuser_token_headers,
         json=isochrone_scenario_comparision,
     )
@@ -138,7 +138,7 @@ async def test_calculate_isochrone_single_walking_wheelchair(
     data["routing_profile"] = "walking_wheelchair"
     data.update(isochrone_points[0])
     r = await client.post(
-        f"{settings.API_V1_STR}/isochrones/single",
+        f"{settings.API_V1_STR}/isochrone/single",
         headers=superuser_token_headers,
         json=data,
     )
@@ -155,7 +155,7 @@ async def test_calculate_isochrone_single_cycling_standard(
     data["routing_profile"] = "cycling_standard"
     data.update(isochrone_points[0])
     r = await client.post(
-        f"{settings.API_V1_STR}/isochrones/single",
+        f"{settings.API_V1_STR}/isochrone/single",
         headers=superuser_token_headers,
         json=data,
     )
@@ -172,7 +172,7 @@ async def test_calculate_isochrone_single_cycling_pedelec(
     data["routing_profile"] = "cycling_pedelec"
     data.update(isochrone_points[0])
     r = await client.post(
-        f"{settings.API_V1_STR}/isochrones/single",
+        f"{settings.API_V1_STR}/isochrone/single",
         headers=superuser_token_headers,
         json=data,
     )
@@ -190,7 +190,7 @@ async def test_convert_geojson_to_shapefile_and_xlsx(
     zip_mime_type = mimetypes.guess_type("x.zip")[0]
     for export_type in export_types:
         r = await client.post(
-            f"{settings.API_V1_STR}/isochrones/export/",
+            f"{settings.API_V1_STR}/isochrone/export/",
             json=geojson_payload,
             params={"return_type": export_type.value},
             headers=superuser_token_headers,

@@ -112,25 +112,15 @@ class WayModified(EdgeBase, table=True):
     creation_date: Optional[datetime] = Field(
         sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     )
-    way_id: Optional[int] = Field(index=True, default=None, foreign_key="basic.edge.id")
+    way_id: Optional[int] = Field(index=True, default=None)
     scenario_id: Optional[int] = Field(
         sa_column=Column(
             Integer, ForeignKey("customer.scenario.id", ondelete="CASCADE"), index=True
         )
     )
     outdated: Optional[bool] = Field(sa_column=Column(Boolean, default=False))
-
     scenario: Optional["Scenario"] = Relationship(back_populates="ways_modified")
-    # TODO: FIX children parent relations (reminder: edge_id foreign key might be wrong)
-    # children: List["WayModified"] = Relationship(
-    #     sa_relationship_kwargs=dict(
-    #         cascade="all",
-    #         backref=backref("parent", remote_side="WayModified.id"),
-    #     )
-    # )
 
-    # def append(self, child: "WayModified"):
-    #     self.children.append(child)
 
 
 Index("idx_way_modified_geom", WayModified.__table__.c.geom, postgresql_using="gist")

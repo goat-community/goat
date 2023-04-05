@@ -170,18 +170,27 @@ class Settings(BaseSettings):
     MAX_FEATURES_PER_TILE: int = 10000
     DEFAULT_MINZOOM: int = 0
     DEFAULT_MAXZOOM: int = 22
-
     # R5 config
     R5_HOST: str = None
-
     R5_MONGO_DB_URL: Optional[str] = None
-
     @validator("R5_MONGO_DB_URL", pre=True)
     def r5_mongodb_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         # mongodb://172.17.0.1:27017/analysis
         return f'mongodb://{values.get("R5_HOST")}:27017/analysis'
 
+    R5_API_PORT: Optional[int] = 80
     R5_API_URL: Optional[str] = None
+    @validator("R5_API_URL", pre=True)
+    def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        return f'http://{values.get("R5_HOST")}:{values.get("R5_API_PORT")}/api'
+
+    R5_AUTHORIZATION: str = None
+
+    @validator("R5_AUTHORIZATION", pre=True)
+    def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        if v:
+            return f"Basic {v}="
+        return None
 
     # path_traveltime_matrices
     TRAVELTIME_MATRICES_PATH: str = "/app/src/cache/traveltime_matrices"
@@ -206,33 +215,9 @@ class Settings(BaseSettings):
             }
         else:
             return {}
+    
+    CELERY_TASK_TIME_LIMIT: Optional[int] = 60 # seconds
 
-    @validator("R5_API_URL", pre=True)
-    def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        return f'http://{values.get("R5_HOST")}/api'
-
-    R5_AUTHORIZATION: str = None
-
-    @validator("R5_AUTHORIZATION", pre=True)
-    def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        return f"Basic {v}="
-
-    # AWS Client 
-    # AWS_BUCKET_NAME: str = None
-    # AWS_ACCESS_KEY_ID: str = None
-    # AWS_SECRET_ACCESS_KEY: str = None
-    # AWS_DEFAULT_REGION: str = None
-    # S3_CLIENT: Optional[Any] = None
-    # @validator("S3_CLIENT", pre=True)
-    # def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-    #     if isinstance(v, str):
-    #         return v
-    #     return boto3.client(
-    #         's3',
-    #         aws_access_key_id=values.get("AWS_ACCESS_KEY_ID"),
-    #         aws_secret_access_key=values.get("AWS_SECRET_ACCESS_KEY"),
-    #         region_name=values.get("AWS_DEFAULT_REGION")
-    #     )
         
     OPENROUTESERVICE_API_KEY: Optional[str] = None
     GEOAPIFY_API_KEY: Optional[str] = None

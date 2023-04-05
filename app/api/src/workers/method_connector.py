@@ -13,17 +13,23 @@ from src.schemas.data_preparation import (
     OpportunityMatrixParametersSingleBulk,
     TravelTimeMatrixParametersSingleBulk,
 )
-from src.schemas.heatmap import HeatmapSettings, HeatmapType
+from src.schemas.heatmap import HeatmapSettings, HeatmapType, HeatmapConfigAggregatedData
+from src.schemas.indicators import CalculateOevGueteklassenParameters
 from src.schemas.isochrone import IsochroneMode
+from src.crud.crud_indicator import indicator
 
 
 async def create_traveltime_matrices_async(current_super_user, parameters):
     current_super_user = models.User(**current_super_user)
     parameters = TravelTimeMatrixParametersSingleBulk(**parameters)
     compute_heatmap = ComputeHeatmap(current_user=current_super_user)
-    calculation_object = await compute_heatmap.create_calculation_object(
-        isochrone_dto=parameters.isochrone_dto, bulk_id=parameters.bulk_id
-    )
+    try: 
+        calculation_object = await compute_heatmap.create_calculation_object(
+            isochrone_dto=parameters.isochrone_dto, bulk_id=parameters.bulk_id
+        )
+    except Exception as e:
+        print(e)
+        return "Could not create calculation object"
     mode = parameters.isochrone_dto.mode
     if mode == IsochroneMode.TRANSIT or mode == IsochroneMode.CAR:
         await compute_heatmap.compute_traveltime_motorized_transport(
@@ -63,8 +69,13 @@ async def create_opportunity_matrices_async(user, parameters):
     # Compute base data
     if parameters.compute_base_data == True:
         for opportunity_type in opportunity_types:
+
+            opportunity_type_read = opportunity_type
+            if opportunity_type == "population":
+                opportunity_type_read = "population_grouped"
+
             opportunities_base = opportunity.read_base_data(
-                layer=opportunity_type,
+                layer=opportunity_type_read,
                 h3_indexes=[bulk_id],
                 bbox_wkt=bulk_geom.wkt,
                 s3_folder=parameters.s3_folder,
@@ -145,25 +156,45 @@ async def read_heatmap_async(current_user, settings):
 
         # Population calculation
         settings.heatmap_type = HeatmapType.aggregated_data
-        settings.heatmap_config = {"source": "population"}
+        settings.heatmap_config = HeatmapConfigAggregatedData(**{"source": "population"})
         population_result = heatmap.read(settings)
 
         difference_quantiles = (
-            population_result["aggregated_data_quantiles"] - modified_gausian_result["agg_classes"]
+            population_result["population_class"] - modified_gausian_result["agg_class"]
         )
 
         result = {
             "h3_grid_ids": modified_gausian_result["h3_grid_ids"],
             "h3_polygons": modified_gausian_result["h3_polygons"],
-            "agg_class": modified_gausian_result["agg_classes"],
-            "population_class": population_result["aggregated_data_quantiles"],
+            "agg_class": modified_gausian_result["agg_class"],
+            "population_class": population_result["population_class"],
             "difference_class": difference_quantiles,
         }
 
     else:
         result = heatmap.read(settings)
 
-    #todo: Can be extended to other formats in the future based on return type
+    # todo: Can be extended to other formats in the future based on return type
     result = heatmap.to_geojson(result)
 
     return result
+
+
+async def read_pt_station_count_async(current_user, payload):
+    current_user = models.User(**current_user)
+    station_count_features = await indicator.count_pt_service_stations(**payload)
+    return station_count_features
+
+
+async def read_pt_oev_gueteklassen_async(current_user, payload):
+    current_user = models.User(**current_user)
+    payload = CalculateOevGueteklassenParameters(**payload)
+    oev_gueteklassen_features = await indicator.compute_oev_gueteklassen(
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+        weekday=payload.weekday,
+        study_area_ids=payload.study_area_ids,
+        station_config=payload.station_config,
+    )
+
+    return oev_gueteklassen_features

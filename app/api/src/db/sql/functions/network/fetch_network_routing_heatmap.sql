@@ -51,8 +51,8 @@ BEGIN
 	FROM temporal.'||vertices_table_name||' v, buffer_starting_points s  
 	WHERE ST_Intersects(v.geom, s.geom);'; 
 	
-	EXECUTE 'DROP TABLE IF EXISTS '||artificial_table_name;
-	EXECUTE 'DROP TABLE IF EXISTS '||vertices_table_name;
+	EXECUTE 'DROP TABLE IF EXISTS temporal.'||artificial_table_name;
+	EXECUTE 'DROP TABLE IF EXISTS temporal.'||vertices_table_name;
 
 	/*Fetch Network*/
 	RETURN query EXECUTE 

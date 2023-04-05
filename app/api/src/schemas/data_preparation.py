@@ -48,15 +48,17 @@ class OpportunityMatrixParametersSingleBulk(OpportunityMatrixParameters):
 class ConnectivityMatrixParameters(BaseModel):
     mode: str
     profile: str
-    study_area_id: int
-    max_time: int
+    bulk_id: list[str]
+    max_traveltime: int
+    s3_folder: Optional[str] = ""
 
 
 ConnectivityMatrixExample = {
     "mode": "walking",
     "profile": "standard",
-    "study_area_id": 91620000,
-    "max_time": 20,
+    "bulk_id": ["861f8d55fffffff"],
+    "max_traveltime": 20,
+    "s3_folder": "test",
 }
 
 

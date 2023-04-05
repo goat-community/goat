@@ -547,30 +547,29 @@ class ComputeHeatmap(BaseHeatmap):
                 pass
 
     async def compute_connectivity_matrix(
-        self, mode: str, profile: str, study_area_id: int, max_time: int
+        self, mode: str, profile: str, bulk_id: str, max_traveltime: int, s3_folder: str = ""
     ):
 
         directory = self.get_connectivity_path(mode, profile)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        h6_hexagons = self.read_h3_grids_study_areas(6, 0, [study_area_id])
-        for h6_id in h6_hexagons:
-            travel_time_path = self.get_traveltime_path(mode, profile, h6_id)
-            try:
-                traveltime_h6 = np.load(travel_time_path, allow_pickle=True)
-            except FileNotFoundError:
-                print_warning(f"File not found: {travel_time_path}")
-                continue
-
+        matrix = await self.download_travel_time_matrices(bulk_id, mode, profile, s3_folder)
+        
+        if matrix is not None:
             areas = heatmap_cython.calculate_areas_from_pixles(
-                traveltime_h6["travel_times"], list(range(1, max_time + 1))
+                matrix["travel_times"], list(range(1, max_traveltime + 1))
             )
-            grid_ids = h3_to_int(traveltime_h6["grid_ids"])
+            grid_ids = h3_to_int(matrix["grid_ids"])
 
-            file_name = os.path.join(directory, f"{h6_id}.npz")
+            file_name = os.path.join(directory, f"{bulk_id}.npz")
             np.savez(file_name, grid_ids=grid_ids, areas=areas)
-            print_info(f"Com: {file_name}")
-            pass
+            await self.upload_npz_to_s3(
+                bulk_id,
+                local_folder=directory,
+                s3_folder=s3_folder
+                + f"/connectivity_matrices/{mode}/{profile}",
+            )
+      
 
     async def compute_traveltime_active_mobility(
         self,
@@ -687,7 +686,11 @@ class ComputeHeatmap(BaseHeatmap):
             extent = extents[idx]
             starting_point_obj = starting_point_objs[idx]
             # Get start vertex
-            start_id = np.array([unordered_map[v] for v in [start_vertex]])
+            try:
+                start_id = np.array([unordered_map[v] for v in [start_vertex]])
+            except Exception as e:
+                print(e)
+                continue
             # Run Dijkstra
             start_time = time.time()
             distances = dijkstra(start_id, adj_list, isochrone_dto.settings.travel_time)
@@ -704,6 +707,8 @@ class ComputeHeatmap(BaseHeatmap):
                 geom_array,
                 distances,
                 node_coords,
+                isochrone_dto.settings.speed / 3.6, 
+                isochrone_dto.settings.travel_time,
             )
             try:
                 grid = filter_r5_grid(
@@ -791,9 +796,12 @@ class ComputeHeatmap(BaseHeatmap):
         # Loop through all calculation objects and create a payload for each one
         payloads = []
         # R5 Authorization credentials
-        user, password = (
-            base64.b64decode(settings.R5_AUTHORIZATION.split(" ")[1]).decode("utf-8").split(":")
-        )
+        if settings.R5_AUTHORIZATION is None:
+            user, password = "", ""
+        else:
+            user, password = (
+                base64.b64decode(settings.R5_AUTHORIZATION.split(" ")[1]).decode("utf-8").split(":")
+            )
         for idx, value in enumerate(obj["calculation_ids"]):
             payload = R5TravelTimePayloadTemplate.copy()
             payload["h3_index"] = value
@@ -840,7 +848,7 @@ class ComputeHeatmap(BaseHeatmap):
                 results = await asyncio.gather(*api_calls)
                 for result in results:
                     h3_grid_id = result["h3_index"]
-                    grid = result["grid"]
+                    grid = result.get("grid")
                     status = "success"
                     if grid == None:
                         status = "failed"
@@ -857,8 +865,12 @@ class ComputeHeatmap(BaseHeatmap):
                     metadata["status"].append(status)
                     metadata["geometry"].append(Point(result["fromLon"], result["fromLat"]))
 
+        if len(traveltimeobjs["travel_times"]) == 0:
+            print_warning(f"Could not compute travel times for {bulk_id}")
+            return
         # Save results to npz file
         print_info(f"Saving travel times for {bulk_id}")
+
         save_traveltime_matrix(
             bulk_id=bulk_id, traveltimeobjs=traveltimeobjs, output_dir=output_dir
         )
@@ -874,6 +886,52 @@ class ComputeHeatmap(BaseHeatmap):
 
         print_info(f"Computed travel times for {bulk_id} in {time.time() - start} seconds")
         return traveltimeobjs
+
+    async def download_travel_time_matrices(self, bulk_id: str, mode: str, profile: str, s3_folder: str = ""):
+        """Downloads travel time matrices from S3 bucket if not exists."""
+
+        file_name = f"{bulk_id}.npz"
+        dir_profile = os.path.join(
+            settings.TRAVELTIME_MATRICES_PATH, mode, profile
+        )
+        file_path = os.path.join(
+            dir_profile,
+            file_name,
+        )
+        if s3_folder != "" and not os.path.exists(file_path):
+            # check if file exists in S3
+            if settings.S3_CLIENT:
+                print_info(f"File {bulk_id}.npz not found locally. Checking S3...")
+                try:
+                    s3_path = os.path.join(
+                        f"{s3_folder}/traveltime_matrices/{mode}",
+                        profile,
+                        file_name,
+                    )
+                    if not os.path.exists(dir_profile):
+                        os.makedirs(dir_profile, exist_ok=True)
+                    settings.S3_CLIENT.download_file(
+                        settings.AWS_BUCKET_NAME,
+                        s3_path,
+                        file_path,
+                    )
+                except Exception as e:
+                    print_warning(f"File {bulk_id}.npz not found in S3. Skipping...")
+              
+            else:
+                print_warning(f"File {bulk_id}.npz not found locally. Skipping...")
+
+        try:
+            matrix = np.load(
+                file_path,
+                allow_pickle=True,
+            )
+            return matrix
+        except FileNotFoundError:
+            print_warning(f"Cant load file {file_path}. Skipping...")
+
+        
+
 
     async def read_travel_time_matrices(
         self, bulk_id: str, isochrone_dto: IsochroneDTO, s3_folder: str = ""
@@ -901,7 +959,7 @@ class ComputeHeatmap(BaseHeatmap):
             )  # in meters
         else:
             # todo: find a better way to do this
-            max_travel_distance = 75000  # in meters FOR MOTORIZED MODES
+            max_travel_distance = 20000  # in meters FOR MOTORIZED MODES
 
         edge_length = h3.edge_length(resolution=bulk_resolution, unit="m")
         distance_in_neightbors = math.ceil(max_travel_distance / edge_length)
@@ -1003,7 +1061,7 @@ class ComputeHeatmap(BaseHeatmap):
         """
         data = None
         retry_count = 0
-        while data is None and retry_count < 15:
+        while data is None and retry_count < 30:
             try:
                 async with client.post(
                     settings.R5_API_URL + "/analysis", json=payload
@@ -1011,21 +1069,32 @@ class ComputeHeatmap(BaseHeatmap):
                     response.raise_for_status()
                     if response.status == 202:
                         # throw exception to retry. 202 means that the request is still being processed
+                        content = await response.content.read()
+                        if content is not None and len(content) == 33: 
+                            # 33 is the length of the string "Building network...". Reset the retry count if this is the case
+                            retry_count = 0
+                            print ("Building network...")
+                            await asyncio.sleep(8)
                         raise ClientError("Request still being processed")
                     data = await response.content.read()
-            except ClientError:
+            except ClientError as e:
                 # sleep a little and try again for
                 retry_count += 1
-                await asyncio.sleep(3)
+                await asyncio.sleep(4)
 
         if data is None:
             print_warning(f"Could not fetch travel time for {payload['h3_index']}")
             payload["grid"] = None
             return payload
         grid = decode_r5_grid(data)
-        grid = filter_r5_grid(
-            grid, travel_time_percentile, travel_time_limit
-        )  # TODO: compare the travel time result with the one from conveyal to see if they are the same
+        try:
+            grid = filter_r5_grid(
+                grid, travel_time_percentile, travel_time_limit
+            )  # TODO: compare the travel time result with the one from conveyal to see if they are the same
+        except Exception as e:
+            print_warning(f"Error while filtering travel time grid: {e}")
+            grid = None
+            return payload
         payload["grid"] = grid
         print_info(f"Fetched travel time for {payload['h3_index']}")
         return payload

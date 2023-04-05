@@ -49,8 +49,6 @@ jobs:
       name: ${{ needs.release.outputs.env_name }}
     needs: [release]
     env:
-
-    
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
@@ -72,6 +70,11 @@ jobs:
       BACKEND_CORS_ORIGIN: ${{ secrets.BACKEND_CORS_ORIGIN }}
       RABBITMQ_DEFAULT_USER: ${{ secrets.RABBITMQ_DEFAULT_USER }}
       RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_DEFAULT_PASS }}
+      CELERY_RESULT_EXPIRES: ${{ vars.CELERY_RESULT_EXPIRES }}
+      CELERY_TASK_TIME_LIMIT: ${{ vars.CELERY_TASK_TIME_LIMIT }}
+      API_REPLICAS: ${{ vars.API_REPLICAS }}
+      WORKER_REPLICAS: ${{ vars.WORKER_REPLICAS }}
+      WORKER_MEMORY_LIMIT: ${{ vars.WORKER_MEMORY_LIMIT }}
     steps:
       - uses: actions/checkout@v2
       - uses: aws-actions/configure-aws-credentials@v1
@@ -90,13 +93,17 @@ jobs:
           output: ' '
       - name: Deploy postgres-service
         run: make deploy -e COMPONENT=postgres
-      - name: Deploy rabbitmq-service
+      - name: Deploy rabbitmq
         run: make deploy -e COMPONENT=rabbitmq
-      - name: Deploy redis-service
+      - name: Deploy redis
         run: make deploy -e COMPONENT=redis
+      - name: Deploy celery-flower
+        run: make deploy -e COMPONENT=celery-flower
       - name: Deploy changed client
         if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'trigger build')
         run: make deploy -e COMPONENT=client
       - name: Deploy changed api
         if: contains(steps.get_file_changes.outputs.files, 'app/api') || contains(github.event.head_commit.message, 'trigger build')
         run: make deploy -e COMPONENT=api
+      - name: Deploy changed ingress
+        run : make deploy -e COMPONENT=ingress

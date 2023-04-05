@@ -69,7 +69,7 @@ export default {
       const isochrone_calculation_id =
         me.calculation.data[0].isochrone_calculation_id;
       ApiService.get_(
-        `/isochrones/export/${isochrone_calculation_id}?return_type=${me.selected}`,
+        `/indicators/isochrone/export/${isochrone_calculation_id}?return_type=${me.selected}`,
         { responseType: "blob" }
       )
         .then(response => {

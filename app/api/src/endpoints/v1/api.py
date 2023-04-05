@@ -5,7 +5,6 @@ from src.endpoints.v1 import (
     data_preparation,
     geostores,
     indicators,
-    isochrones,
     layer_library,
     layers,
     login,
@@ -35,7 +34,6 @@ api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(customizations.router, prefix="/customizations", tags=["Customizations"])
 api_router.include_router(utils.router, prefix="/utils", tags=["Utils"])
 api_router.include_router(upload.router, prefix="/custom-data", tags=["Custom Data"])
-api_router.include_router(isochrones.router, prefix="/isochrones", tags=["Isochrones"])
 api_router.include_router(indicators.router, prefix="/indicators", tags=["Indicators"])
 api_router.include_router(scenarios.router, prefix="/scenarios", tags=["Scenarios"])
 api_router.include_router(poi_aoi.router, prefix="/pois-aois", tags=["POIs and AOIs"])

@@ -2,6 +2,7 @@
 import { Radar } from "vue-chartjs";
 import { mapGetters } from "vuex";
 import { EventBus } from "../../EventBus";
+import { mapFields } from "vuex-map-fields";
 
 export default {
   extends: Radar,
@@ -27,7 +28,8 @@ export default {
       const datasets = [];
 
       this.selectedCalculations.forEach(calculation => {
-        const calculationData = calculation.surfaceData.accessibility;
+        const calculationData =
+          calculation.surfaceData.accessibility["opportunities"];
         // add only amenities
         const data = [];
         let keys = [];
@@ -38,7 +40,11 @@ export default {
         }
         keys.forEach(amenity => {
           if (calculationData[amenity]) {
-            data.push(calculationData[amenity][this.isochroneRange - 1]);
+            data.push(
+              calculationData[amenity][
+                this.calculationTravelTime[calculation.id - 1] - 1
+              ]
+            );
           }
         });
         datasets.push({
@@ -86,6 +92,12 @@ export default {
       },
       deep: true
     },
+    calculationTravelTime: {
+      handler: function() {
+        this.renderRadarChart();
+      },
+      deep: true
+    },
     isochroneRange: function() {
       this.renderRadarChart();
     },
@@ -101,7 +113,11 @@ export default {
       selectedCalculations: "selectedCalculations",
       isochroneRange: "isochroneRange",
       chartDatasetType: "chartDatasetType",
-      preDefCalculationColors: "preDefCalculationColors"
+      preDefCalculationColors: "preDefCalculationColors",
+      calculationTravelTime: "calculationTravelTime"
+    }),
+    ...mapFields("isochrones", {
+      calculationTravelTime: "calculationTravelTime"
     }),
     ...mapGetters("poisaois", {
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys",

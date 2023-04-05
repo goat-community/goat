@@ -544,15 +544,21 @@ export default {
         source: new VectorSource(),
         style: poisAoisStyle
       });
+
       this.map.addLayer(vector);
       this.poisAoisLayer = vector;
 
-      const extent = this.map.getView().calculateExtent(this.map.getSize());
+      // const extent = this.map.getView().calculateExtent(this.map.getSize());
 
-      const topLeft = this.map.getPixelFromCoordinate([extent[0], extent[3]]);
+      const boundaries = this.studyArea[0].get("bounds");
+
+      const topLeft = this.map.getPixelFromCoordinate([
+        boundaries[0],
+        boundaries[3]
+      ]);
       const bottomRight = this.map.getPixelFromCoordinate([
-        extent[2],
-        extent[1]
+        boundaries[2],
+        boundaries[1]
       ]);
 
       // Calculate width and height in pixels
@@ -825,6 +831,7 @@ export default {
     setupMapClick() {
       const me = this;
       const map = me.map;
+      this.mapStore = map;
       me.mapClickListenerKey = map.on("click", evt => {
         me.closePopup();
         if (me.activeInteractions.length > 0) {
@@ -996,7 +1003,8 @@ export default {
       const currentResolution = this.map.getView().getResolution();
       if (
         (this.selectedPoisAois.length > 0) &
-        (currentResolution > this.poisAoisLayer.getMinZoom())
+        (currentResolution > this.poisAoisLayer.getMinZoom() &&
+          this.poisAoisLayer.getMinZoom() !== -Infinity)
       ) {
         this.visibilityPoiSnackbar = {
           state: true,
@@ -1118,12 +1126,14 @@ export default {
       subStudyAreaLayer: "subStudyAreaLayer",
       selectedEditLayer: "selectedEditLayer",
       isMapillaryBtnDisabled: "isMapillaryBtnDisabled",
-      miniViewerVisible: "miniViewerVisible"
+      miniViewerVisible: "miniViewerVisible",
+      mapStore: "map"
     }),
     ...mapFields("poisaois", {
       poisAoisLayer: "poisAoisLayer",
       selectedPoisAois: "selectedPoisAois",
       rawPoisAois: "rawPoisAois",
+      rawGroupPoisAois: "rawGroupPoisAois",
       poisAois: "poisAois"
     }),
     ...mapGetters("map", {
@@ -1204,6 +1214,7 @@ export default {
             .getSource()
             .addFeatures(this.rawPoisAois[item.value]);
         }
+
         poisAois[item.value] = true;
       });
       this.poisAois = poisAois;

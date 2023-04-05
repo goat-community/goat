@@ -27,6 +27,13 @@ spec:
         - image: redis:7-alpine
           imagePullPolicy: IfNotPresent
           name: goat-redis
+          resources:
+            requests:
+              memory: 700Mi
+              cpu: 600m
+            limits:
+              memory: 2Gi
+              cpu: 2
           ports:
             - containerPort: 6379
 ---

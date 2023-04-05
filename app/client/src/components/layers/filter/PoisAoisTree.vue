@@ -147,7 +147,6 @@ export default {
   data() {
     return {
       open: [],
-      expanded: true,
       showIndicatorOptionsDialog: false,
       showDataUploadDialog: false,
       showIconPickerDialog: false,
@@ -167,13 +166,6 @@ export default {
       }
       this.selectedIcon = icon;
       this.showIconPickerDialog = true;
-    },
-    toggleTreeview() {
-      this.open.length
-        ? (this.open = [])
-        : this.branches.forEach(element => this.open.push(element.id));
-      // this.expanded = !this.expanded;
-      // this.$refs.mytreeview.updateAll(this.expanded);
     },
     isSensitivityEnabled(item) {
       if (this.aoisConfig[item.value]) {
@@ -215,11 +207,6 @@ export default {
     })
   },
   watch: {
-    isMapBusy(value) {
-      if (value) {
-        this.toggleTreeview();
-      }
-    },
     open() {
       console.log("opened....");
     },

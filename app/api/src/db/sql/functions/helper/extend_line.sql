@@ -32,11 +32,11 @@ BEGIN
 	newpoint_B = ST_TRANSLATE(end_geom, sin(azimuth_B) * extend_distance, cos(azimuth_B) * extend_distance);
 	
 	IF point_to_extend = 'start' THEN
-		new_line = st_addpoint(geom,newpoint_a, 0);
+		new_line = st_addpoint(geom, newpoint_a, 0);
 	ELSEIF point_to_extend = 'end' THEN 
-		new_line = st_addpoint(geom,newpoint_b, -1);
+		new_line = st_addpoint(geom, newpoint_b, -1);
 	ELSEIF point_to_extend = 'both' THEN 
-		new_line = st_addpoint(st_addpoint(geom,newpoint_B),newpoint_A,0);
+		new_line = st_addpoint(st_addpoint(geom,newpoint_B), newpoint_A, 0);
 	ELSE 
 		RAISE EXCEPTION 'Please specify a valid point_to_extend type.';
 	END IF; 

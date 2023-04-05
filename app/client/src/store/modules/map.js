@@ -35,6 +35,7 @@ const state = {
   bldEntranceLayer: null,
   editLayer: null,
   selectedEditLayer: null,
+  visualizationEditLayer: null,
   indicatorCancelToken: null,
   isMapillaryBtnDisabled: false,
   miniViewerVisible: false,
@@ -61,13 +62,13 @@ const state = {
       padding: 5 // in mm.
     },
     layouts: [
-      {
-        name: "A4 portrait",
-        format: "a4",
-        orientation: "portrait",
-        size: [210, 297],
-        padding: 5 // in mm.
-      },
+      // {
+      //   name: "A4 portrait",
+      //   format: "a4",
+      //   orientation: "portrait",
+      //   size: [210, 297],
+      //   padding: 5 // in mm.
+      // },
       {
         name: "A4 landscape",
         format: "a4",
@@ -75,13 +76,13 @@ const state = {
         size: [297, 210],
         padding: 5 // in mm.
       },
-      {
-        name: "A3 portrait",
-        format: "a3",
-        orientation: "portrait",
-        size: [297, 410],
-        padding: 10 // in mm.
-      },
+      // {
+      //   name: "A3 portrait",
+      //   format: "a3",
+      //   orientation: "portrait",
+      //   size: [297, 410],
+      //   padding: 10 // in mm.
+      // },
       {
         name: "A3 landscape",
         format: "a3",
@@ -138,6 +139,7 @@ const getters = {
   bldEntranceLayer: state => state.bldEntranceLayer,
   editLayer: state => state.editLayer,
   selectedEditLayer: state => state.selectedEditLayer,
+  visualizationEditLayer: state => state.visualizationEditLayer,
   isMapillaryBtnDisabled: state => state.isMapillaryBtnDisabled,
   miniViewerVisible: state => state.miniViewerVisible,
   print: state => state.print,
