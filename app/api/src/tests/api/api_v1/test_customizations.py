@@ -15,7 +15,7 @@ pytestmark = pytest.mark.asyncio
 
 
 # get user customization
-async def test_get_customizations(
+async def test_get_customizations_me(
     client: AsyncClient, superuser_token_headers: Dict[str, str]
 ) -> None:
     r = await client.get(
@@ -84,6 +84,83 @@ async def test_superuser_get_normal_user_setting(
     assert isinstance(all_customizations["poi_groups"], list)
 
 
-# TODO: test_superuser_update_normal_user_setting
+
+async def test_superuser_update_normal_user_setting(
+    client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
+) -> None:
+    # Create a random user
+    user = await create_random_user(db=db)
+    
+    # Create settings for the user
+    await dynamic_customization.build_main_setting_json(db=db, current_user=user)
+    
+    # Get the main settings and modify it
+    user_settings = request_examples["create"]
+    user_settings["map"]["zoom"] = 10
+    
+    r = await client.post(
+        f"{settings.API_V1_STR}/customizations/{user.id}/{user.active_study_area_id}",
+        headers=superuser_token_headers,
+        json=user_settings,
+    )
+    
+    assert 200 <= r.status_code < 300
+    
+    # Check that the settings have been updated
+    
+    r = await client.get(
+        f"{settings.API_V1_STR}/customizations/{user.id}/{user.active_study_area_id}",
+        headers=superuser_token_headers,
+    )
+    assert 200 <= r.status_code < 300
+    updated_settings = r.json()
+    assert updated_settings["map"]["zoom"] == 10
+
+
+
 # TODO: test_superuser_delete_normal_user_setting
-# TODO: test_normal_user_get_normal_user_setting
+
+async def test_superuser_delete_normal_user_setting(
+    client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
+) -> None:
+    # Create a random user
+    user = await create_random_user(db=db)
+    
+    # Create settings for the user
+    await dynamic_customization.build_main_setting_json(db=db, current_user=user)
+    
+    # Create poi settings
+    obj_dict = jsonable_encoder(request_examples["user_customization_insert"]["poi"]["value"])
+
+    await dynamic_customization.insert_opportunity_setting(
+        db=db,
+        current_user=user,
+        insert_settings=obj_dict
+    )
+    
+    # Delete the settings
+    r = await client.delete(
+        f"{settings.API_V1_STR}/customizations/{user.id}/{user.active_study_area_id}/poi",
+        headers=superuser_token_headers,
+    )
+    assert 200 <= r.status_code < 300
+
+
+        
+async def test_normal_user_get_normal_user_setting(
+    client: AsyncClient, normaluser_token_headers: Dict[str, str], db: AsyncSession
+) -> None:
+    # Create a random user
+    user = await create_random_user(db=db)
+    
+    # Create settings for the user
+    await dynamic_customization.build_main_setting_json(db=db, current_user=user)
+    
+    
+    # Get the settings of other user
+    r = await client.get(
+        f"{settings.API_V1_STR}/customizations/{user.id}/{user.active_study_area_id}",
+        headers=normaluser_token_headers,
+    )
+    response = r.json()
+    assert r.status_code == 403
