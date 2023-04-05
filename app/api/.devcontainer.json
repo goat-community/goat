@@ -23,7 +23,9 @@
                 "ms-vscode.cpptools",
                 "twxs.cmake",
                 "ms-vscode.cmake-tools",
-                "njpwerner.autodocstring"
+                "njpwerner.autodocstring",
+                "donjayamanne.githistory",
+                "ms-python.black-formatter"
             ],
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
