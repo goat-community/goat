@@ -173,7 +173,8 @@ async def read_heatmap_async(current_user, settings):
 
     else:
         result = heatmap.read(settings)
-        result["agg_class"] = result["agg_class"].round()
+        #TODO: Find the best place where to round the results as this should be done at the very end
+        #result["agg_class"] = result["agg_class"].round()
 
     # todo: Can be extended to other formats in the future based on return type
     result = heatmap.to_geojson(result)
