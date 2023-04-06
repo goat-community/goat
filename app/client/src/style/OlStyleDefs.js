@@ -491,8 +491,8 @@ export function poisEditStyle(feature, resolution, type) {
   if (!poiIconConf || !poiIconConf.icon) {
     return [];
   }
-  let radiusBasedOnZoom = 20;
-  let offsetInYDir = -20;
+  let radiusBasedOnZoom = 18;
+  let offsetInYDir = -18;
 
   const icon = poiIconConf.icon;
   if (!poisEditStyleCache[icon + color]) {
@@ -1031,8 +1031,8 @@ export function poisAoisStyle(feature, resolution) {
   if (!poiIconConf || !poiIconConf.icon) {
     return [];
   }
-  let radiusBasedOnZoom = 20;
-  let offsetInYDir = -20;
+  let radiusBasedOnZoom = 17;
+  let offsetInYDir = -17;
   poisAoisStyleCache[icon + color] = new OlStyle({
     image: new OlFontSymbol({
       form: "marker", //"none|circle|poi|bubble|marker|coma|shield|blazon|bookmark|hexagon|diamond|triangle|sign|ban|lozenge|square a form that will enclose the glyph, default none",
