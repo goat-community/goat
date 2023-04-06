@@ -6,7 +6,6 @@ import { geobufToFeatures } from "../../utils/MapUtils";
 
 const state = {
   poisAoisLayer: null,
-  poisAoisGroupingLayer: null,
   poisAois: {},
   rawPoisAois: {},
   rawGroupPoisAois: {},
@@ -95,9 +94,6 @@ const actions = {
 
             if (olFeatures.length > 45000) {
               state.poisAoisLayer.setMinZoom(14);
-
-              state.poisAoisGroupingLayer.setMinZoom(14);
-              state.poisAoisGroupingLayer.setMaxZoom(16);
             }
           }
         })

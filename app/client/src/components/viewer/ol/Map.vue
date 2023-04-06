@@ -545,20 +545,8 @@ export default {
         style: poisAoisStyle
       });
 
-      const vectorgrouped = new VectorImageLayer({
-        name: "pois_aois_layer",
-        type: "VECTOR",
-        displayInLayerList: false,
-        queryable: true,
-        zIndex: 99,
-        source: new VectorSource(),
-        style: poisAoisStyle
-      });
-
       this.map.addLayer(vector);
-      this.map.addLayer(vectorgrouped);
       this.poisAoisLayer = vector;
-      this.poisAoisGroupingLayer = vectorgrouped;
 
       // const extent = this.map.getView().calculateExtent(this.map.getSize());
 
@@ -1146,8 +1134,7 @@ export default {
       selectedPoisAois: "selectedPoisAois",
       rawPoisAois: "rawPoisAois",
       rawGroupPoisAois: "rawGroupPoisAois",
-      poisAois: "poisAois",
-      poisAoisGroupingLayer: "poisAoisGroupingLayer"
+      poisAois: "poisAois"
     }),
     ...mapGetters("map", {
       studyArea: "studyArea",
@@ -1220,7 +1207,6 @@ export default {
     // this should be watched here as it might be that poisAoisTree component is not rendered yet.
     selectedPoisAois(selected) {
       const poisAois = {};
-      this.poisAoisGroupingLayer.getSource().clear();
       this.poisAoisLayer.getSource().clear();
       selected.forEach(item => {
         if (item.value in this.rawPoisAois) {
@@ -1229,11 +1215,6 @@ export default {
             .addFeatures(this.rawPoisAois[item.value]);
         }
 
-        if (item.value in this.rawGroupPoisAois) {
-          this.poisAoisGroupingLayer
-            .getSource()
-            .addFeatures(this.rawGroupPoisAois[item.value]);
-        }
         poisAois[item.value] = true;
       });
       this.poisAois = poisAois;

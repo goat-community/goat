@@ -848,7 +848,7 @@ class ComputeHeatmap(BaseHeatmap):
                 results = await asyncio.gather(*api_calls)
                 for result in results:
                     h3_grid_id = result["h3_index"]
-                    grid = result["grid"]
+                    grid = result.get("grid")
                     status = "success"
                     if grid == None:
                         status = "failed"
@@ -865,8 +865,12 @@ class ComputeHeatmap(BaseHeatmap):
                     metadata["status"].append(status)
                     metadata["geometry"].append(Point(result["fromLon"], result["fromLat"]))
 
+        if len(traveltimeobjs["travel_times"]) == 0:
+            print_warning(f"Could not compute travel times for {bulk_id}")
+            return
         # Save results to npz file
         print_info(f"Saving travel times for {bulk_id}")
+
         save_traveltime_matrix(
             bulk_id=bulk_id, traveltimeobjs=traveltimeobjs, output_dir=output_dir
         )
@@ -955,7 +959,7 @@ class ComputeHeatmap(BaseHeatmap):
             )  # in meters
         else:
             # todo: find a better way to do this
-            max_travel_distance = 75000  # in meters FOR MOTORIZED MODES
+            max_travel_distance = 20000  # in meters FOR MOTORIZED MODES
 
         edge_length = h3.edge_length(resolution=bulk_resolution, unit="m")
         distance_in_neightbors = math.ceil(max_travel_distance / edge_length)
@@ -1083,9 +1087,14 @@ class ComputeHeatmap(BaseHeatmap):
             payload["grid"] = None
             return payload
         grid = decode_r5_grid(data)
-        grid = filter_r5_grid(
-            grid, travel_time_percentile, travel_time_limit
-        )  # TODO: compare the travel time result with the one from conveyal to see if they are the same
+        try:
+            grid = filter_r5_grid(
+                grid, travel_time_percentile, travel_time_limit
+            )  # TODO: compare the travel time result with the one from conveyal to see if they are the same
+        except Exception as e:
+            print_warning(f"Error while filtering travel time grid: {e}")
+            grid = None
+            return payload
         payload["grid"] = grid
         print_info(f"Fetched travel time for {payload['h3_index']}")
         return payload
