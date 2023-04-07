@@ -33,5 +33,5 @@ async def superuser_token_headers(client: AsyncClient) -> Dict[str, str]:
     return await get_superuser_token_headers(client)
 
 @pytest_asyncio.fixture(scope="module")
-async def normal_user_token_headers(client: AsyncClient, db: AsyncSession) -> Dict[str, str]:
+async def normaluser_token_headers(client: AsyncClient, db: AsyncSession) -> Dict[str, str]:
     return await get_user_token_headers(client=client, db=db)
