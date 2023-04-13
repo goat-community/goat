@@ -186,18 +186,18 @@ async def test_calculate_isochrone_single_cycling_pedelec(
 async def test_convert_geojson_to_shapefile_and_xlsx(
     client: AsyncClient, superuser_token_headers: Dict[str, str]
 ) -> None:
-    export_types = [IsochroneExportType.xlsx, IsochroneExportType.shp]
-    geojson_payload = request_examples["geojson_to_export"]
     zip_mime_type = mimetypes.guess_type("x.zip")[0]
-    for export_type in export_types:
-        r = await client.post(
-            f"{settings.API_V1_STR}/isochrone/export/",
-            json=geojson_payload,
-            params={"return_type": export_type.value},
-            headers=superuser_token_headers,
-        )
-        assert 200 <= r.status_code < 300
-        assert r.headers["content-type"] == zip_mime_type
+    for example in request_examples["to_export"].values():
+        for export_type in IsochroneExportType:
+            print(export_type.value)
+            r = await client.post(
+                f"{settings.API_V1_STR}/indicators/isochrone/export",
+                json=example["value"],
+                params={"return_type": export_type.value},
+                headers=superuser_token_headers,
+            )
+            assert 200 <= r.status_code < 300
+            assert r.headers["content-type"] == zip_mime_type
 
 test_payloads = {
     "reached_network_default_geojson": {"mode":"walking","settings":{"travel_time":20,"speed":5,"walking_profile":"standard"},"starting_point":{"input":[{"lat":48.17414317972603,"lon":11.5058719230466}]},"scenario":{"id":0,"modus":"default"},"output":{"type":"grid","resolution":13}},
@@ -205,8 +205,10 @@ test_payloads = {
     "multi_count_pois_study_area": {"mode":"walking","settings":{"travel_time":20,"speed":5,"walking_profile":"standard"},"starting_point":{"input":["nursery"],"region_type":"study_area","region":["95","105"]},"scenario":{"id":0,"modus":"default"},"output":{"type":"grid","resolution":13}},
     "multi_count_pois_draw":{"mode":"walking","settings":{"travel_time":20,"speed":5,"walking_profile":"standard"},"starting_point":{"input":["nursery"],"region_type":"draw","region":["POLYGON((11.497258198370304 48.16147474742104,11.547536667106236 48.163870221958376,11.540354028715388 48.13607583948297,11.497258198370304 48.12936459519315,11.477865074715016 48.14709955093468,11.497258198370304 48.16147474742104))"]},"scenario":{"id":0,"modus":"default"},"output":{"type":"grid","resolution":13}},
     "outside_of_study_area_and_gets_error": {"mode":"walking","settings":{"travel_time":20,"speed":5,"walking_profile":"standard"},"starting_point":{"input":[{"lat":48.13128218306605,"lon":11.336367098415318}]},"scenario":{"id":0,"modus":"default"},"output":{"type":"grid","resolution":13}},
-
+    "multi_isochrone_calculation_with_pois_as_start_points":{"mode":"walking","settings":{"travel_time":20,"speed":5,"walking_profile":"standard"},"starting_point":{"input":["nursery"],"region_type":"study_area","region":["97","105","144"]},"scenario":{"id":0,"modus":"default"},"output":{"type":"grid","resolution":13}},
+    "multi_isochrone_calculation_with_pois_and_scenario":{"mode":"walking","settings":{"travel_time":20,"speed":5,"walking_profile":"standard"},"starting_point":{"input":["nursery"],"region_type":"study_area","region":["97","105","144"]},"scenario":{"id":0,"modus":"scenario"},"output":{"type":"grid","resolution":13}},    
 }
+
 
 async def isochrone_set_request(
     client: AsyncClient, superuser_token_headers: dict[str, str], data: dict
@@ -273,15 +275,19 @@ async def test_calculate_isochrone_multi_count_pois_study_area(
     data = test_payloads["multi_count_pois_study_area"]
     await isochrone_test_base(client, superuser_token_headers, data)
 
-# TODO: Calculate isochrone reached network comparision geojson
-# TODO: Calculate isochrone reached network comparision geobuf
-# TODO: Calculate isochrone multi isochrone calculation with coordinates as start points
-# TODO: Calculate isochrone multi isochrone calculation with pois as start points
-#‌ TODO: Calculate isochrone multi isochrone calculation with pois and scenario
+# Calculate isochrone multi isochrone calculation with pois as start points
+async def test_calculate_isochrone_multi_isochrone_calculation_with_pois_as_start_points(
+    client: AsyncClient, superuser_token_headers: dict[str, str]
+) -> None:
+    data = test_payloads["multi_isochrone_calculation_with_pois_as_start_points"]
+    await isochrone_test_base(client, superuser_token_headers, data)
 
-# TODO: Isochrone export geojson
-# TODO: Isochrone export shapefile
-# TODO: Isochrone export xlsx
+#‌ Calculate isochrone multi isochrone calculation with pois and scenario
+async def test_calculate_isochrone_multi_isochrone_calculation_with_pois_and_scenario(
+    client: AsyncClient, superuser_token_headers: dict[str, str]
+) -> None:
+    data = test_payloads["multi_isochrone_calculation_with_pois_and_scenario"]
+    await isochrone_test_base(client, superuser_token_headers, data)
 
 
 # User calculates isochrone outside of study area and gets error
@@ -291,3 +297,18 @@ async def test_calculate_isochrone_outside_of_study_area_and_gets_error(
     data = test_payloads["outside_of_study_area_and_gets_error"]
     task_request = await isochrone_set_request(client, normaluser_token_headers, data)
     assert task_request.status_code == 403
+    
+
+
+# TODO: Calculate isochrone reached network comparision geojson
+# TODO: Calculate isochrone reached network comparision geobuf
+#### This is maybe NOT implemented yet. In client we do it in separate requests.
+
+
+# TODO: Calculate isochrone multi isochrone calculation with coordinates as start points
+#### This is NOT implemented at client yet.
+
+# TODO: Isochrone export geojson
+# TODO: Isochrone export shapefile
+# TODO: Isochrone export xlsx
+### Already tested
