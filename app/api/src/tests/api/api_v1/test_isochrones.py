@@ -27,14 +27,14 @@ pytestmark = pytest.mark.asyncio
 
 
 isochrone_points = [
-    {"x": 11.575306697287969, "y": 48.13697276799013},
-    {"x": 11.649267515328072, "y": 48.11170160691228},
-    {"x": 11.421973933692033, "y": 48.15037785861503},
-    {"x": 11.502205510052336, "y": 48.192828373724126},
-    {"x": 11.639844580841398, "y": 48.14919321406106},
-    {"x": 11.41444174652473, "y": 48.16160500680954},
-    {"x": 11.646678404267888, "y": 48.09628548434259},
-    {"x": 11.526252711275939, "y": 48.14774225930469},
+    {"lon": 11.575306697287969, "lat": 48.13697276799013},
+    {"lon": 11.649267515328072, "lat": 48.11170160691228},
+    {"lon": 11.421973933692033, "lat": 48.15037785861503},
+    {"lon": 11.502205510052336, "lat": 48.192828373724126},
+    {"lon": 11.639844580841398, "lat": 48.14919321406106},
+    {"lon": 11.41444174652473, "lat": 48.16160500680954},
+    {"lon": 11.646678404267888, "lat": 48.09628548434259},
+    {"lon": 11.526252711275939, "lat": 48.14774225930469},
 ]
 
 isochrone_scenario_new_bridge = {
@@ -63,21 +63,51 @@ isochrone_scenario_comparision = {
 }
 
 
-async def test_calculate_isochrone_single_default_bulk(
+async def isochrone_set_request(
+    client: AsyncClient, superuser_token_headers: dict[str, str], data: dict
+) -> None:
+    r = await client.post(
+        f"{settings.API_V1_STR}/indicators/isochrone",
+        headers=superuser_token_headers,
+        json=data,
+    )
+    return r
+
+async def isochrone_get_results(
+    client: AsyncClient, superuser_token_headers: dict[str, str], task_id: str
+) -> None:
+    r = await client.get(
+        f"{settings.API_V1_STR}/indicators/result/{task_id}",
+        headers=superuser_token_headers,
+        params={"return_type": "geojson"},
+    )
+    return r
+
+async def isochrone_test_base(
+    client: AsyncClient, superuser_token_headers: dict[str, str], data: dict
+) -> None:
+    task_request = await isochrone_set_request(client, superuser_token_headers, data)
+    assert task_request.status_code == 200
+    task_id = task_request.json()["task_id"]
+
+    for i in range(40):
+        task_results = await isochrone_get_results(client, superuser_token_headers, task_id)
+        assert task_results.status_code >= 200 and task_results.status_code < 300
+        if task_results.status_code == 200:
+            break
+        else:
+            await asyncio.sleep(1)
+
+    assert task_results.status_code == 200
+
+async def test_calculate_isochrone_single_default(
     client: AsyncClient, superuser_token_headers: Dict[str, str]
 ) -> None:
-    data = request_examples["single_isochrone"]["default"]["value"]
+    data = request_examples["isochrone"]["single_walking_default"]["value"]
     for point in isochrone_points:
-        data.update(point)
-        r = await client.post(
-            f"{settings.API_V1_STR}/indicators/isochrone/single",
-            headers=superuser_token_headers,
-            json=data,
-        )
-        response = r.json()
-        assert 200 <= r.status_code < 300
-        assert len(response["features"]) > 0
-        assert len(response["features"][0]["geometry"]["coordinates"][0][0]) > 3
+        data["starting_point"].update(point)
+        await isochrone_test_base(client, superuser_token_headers, data)
+
 
 
 async def test_calculate_isochrone_single_scenario(
@@ -210,42 +240,7 @@ test_payloads = {
 }
 
 
-async def isochrone_set_request(
-    client: AsyncClient, superuser_token_headers: dict[str, str], data: dict
-) -> None:
-    r = await client.post(
-        f"{settings.API_V1_STR}/indicators/isochrone",
-        headers=superuser_token_headers,
-        json=data,
-    )
-    return r
 
-async def isochrone_get_results(
-    client: AsyncClient, superuser_token_headers: dict[str, str], task_id: str
-) -> None:
-    r = await client.get(
-        f"{settings.API_V1_STR}/indicators/result/{task_id}",
-        headers=superuser_token_headers,
-        params={"return_type": "geojson"},
-    )
-    return r
-
-async def isochrone_test_base(
-    client: AsyncClient, superuser_token_headers: dict[str, str], data: dict
-) -> None:
-    task_request = await isochrone_set_request(client, superuser_token_headers, data)
-    assert task_request.status_code == 200
-    task_id = task_request.json()["task_id"]
-
-    for i in range(40):
-        task_results = await isochrone_get_results(client, superuser_token_headers, task_id)
-        assert task_results.status_code >= 200 and task_results.status_code < 300
-        if task_results.status_code == 200:
-            break
-        else:
-            await asyncio.sleep(1)
-
-    assert task_results.status_code == 200
 
 # Calculate isochrone reached network default geojson
 async def test_calculate_isochrone_reached_network_default_geojson(
