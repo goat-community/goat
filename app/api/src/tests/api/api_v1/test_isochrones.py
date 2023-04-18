@@ -63,7 +63,7 @@ isochrone_scenario_comparision = {
 }
 
 
-async def isochrone_set_request(
+async def isochrone_request(
     client: AsyncClient, superuser_token_headers: dict[str, str], data: dict
 ) -> None:
     r = await client.post(
@@ -73,32 +73,12 @@ async def isochrone_set_request(
     )
     return r
 
-async def isochrone_get_results(
-    client: AsyncClient, superuser_token_headers: dict[str, str], task_id: str
-) -> None:
-    r = await client.get(
-        f"{settings.API_V1_STR}/indicators/result/{task_id}",
-        headers=superuser_token_headers,
-        params={"return_type": "geojson"},
-    )
-    return r
-
 async def isochrone_test_base(
     client: AsyncClient, superuser_token_headers: dict[str, str], data: dict
 ) -> None:
-    task_request = await isochrone_set_request(client, superuser_token_headers, data)
-    assert task_request.status_code == 200
-    task_id = task_request.json()["task_id"]
-
-    for i in range(40):
-        task_results = await isochrone_get_results(client, superuser_token_headers, task_id)
-        assert task_results.status_code >= 200 and task_results.status_code < 300
-        if task_results.status_code == 200:
-            break
-        else:
-            await asyncio.sleep(1)
-
-    assert task_results.status_code == 200
+    task_results = await isochrone_request(client, superuser_token_headers, data)
+    assert task_results.status_code >= 200 and task_results.status_code < 300
+    return task_results
 
 async def test_calculate_isochrone_single_default(
     client: AsyncClient, superuser_token_headers: Dict[str, str]
@@ -135,7 +115,7 @@ async def test_calculate_isochrone_single_scenario(
     )
     isochrone_scenario_comparision["scenario_id"] = scenario.id
     r = await client.post(
-        f"{settings.API_V1_STR}/indicators/isochrone/single",
+        f"{settings.API_V1_STR}/indicators/isochrone",
         headers=superuser_token_headers,
         json=isochrone_scenario_comparision,
     )
@@ -290,7 +270,7 @@ async def test_calculate_isochrone_outside_of_study_area_and_gets_error(
     client: AsyncClient, normaluser_token_headers: dict[str, str]
 ) -> None:
     data = test_payloads["outside_of_study_area_and_gets_error"]
-    task_request = await isochrone_set_request(client, normaluser_token_headers, data)
+    task_request = await isochrone_request(client, normaluser_token_headers, data)
     assert task_request.status_code == 403
     
 

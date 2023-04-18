@@ -67,9 +67,14 @@ async def calculate_isochrone(
     isochrone_in = json.loads(isochrone_in.json())
     current_user = json.loads(current_user.json())
     
-    task = task_calculate_isochrone.delay(isochrone_in, current_user, study_area_bounds)
-    task_id = f"isochrone-{task.id}"
-    return {"task_id": task_id}
+    
+    if not settings.CELERY_BROKER_URL:
+        # FOR TESTING TIME ONLY
+        return task_calculate_isochrone(isochrone_in, current_user, study_area_bounds)
+    else:
+        task = task_calculate_isochrone.delay(isochrone_in, current_user, study_area_bounds)
+        task_id = f"isochrone-{task.id}"
+        return {"task_id": task_id}
 
 
 @router.post("/isochrone/multi/count-pois", response_class=JSONResponse)
