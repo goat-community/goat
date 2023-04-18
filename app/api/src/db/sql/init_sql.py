@@ -25,8 +25,8 @@ def sql_function_entities():
         sql_function_entities.append(pg_function_entitity)
     return sql_function_entities
 
-def sql_trigger_entities():
 
+def sql_trigger_entities():
     triger_paths = Path(str(Path().resolve()) + "/src/db/sql/triggers").glob("*.sql")
     triger_paths = sorted_path_by_dependency(triger_paths)
     sql_trigger_entities = []
@@ -37,7 +37,7 @@ def sql_trigger_entities():
     return sql_trigger_entities
 
 
-def downgrade_functions():
+def downgrade_functions_legacy():
     sql_function_entities_ = sql_function_entities()
     sql_function_entities_.reverse()
     for function in sql_function_entities_:
@@ -46,7 +46,23 @@ def downgrade_functions():
             legacy_engine.execute(text(statement.text))
         except UndefinedFunction as e:
             print(e)
-            
+
+
+def downgrade_functions():
+    # Drop all functions in the schema 'basic'
+    stmt_list_functions = text(
+        "SELECT proname FROM pg_proc WHERE pronamespace = 'basic'::regnamespace"
+    )
+    functions = legacy_engine.execute(stmt_list_functions).fetchall()
+    functions = [f[0] for f in functions]
+    for function in functions:
+        print(f"dropping {function}()")
+        statement = f"DROP FUNCTION IF EXISTS basic.{function} CASCADE;"
+        try:
+            legacy_engine.execute(text(statement))
+        except UndefinedFunction as e:
+            print(e)
+    print(f"{len(functions)} functions dropped!")
 
 
 def upgrade_functions():
