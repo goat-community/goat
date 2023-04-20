@@ -24,5 +24,9 @@ class CRUDStudyArea(CRUDBase[models.StudyArea, models.StudyArea, models.StudyAre
 
         return await crud_study_area_geostore.create(db, obj_in=study_area_geostore)
 
-
 study_area = CRUDStudyArea(models.StudyArea)
+
+class CRUDSubStudyArea(CRUDBase[models.SubStudyArea, models.SubStudyArea, models.SubStudyArea]):
+    pass
+
+sub_study_area = CRUDSubStudyArea(models.SubStudyArea)
