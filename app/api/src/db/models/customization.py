@@ -25,6 +25,9 @@ class CustomizationBase(SQLModel):
     setting: dict
     role_id: int
 
+    class Config:
+        search_fields = ["type"]
+
 
 class Customization(CustomizationBase, table=True):
     __tablename__ = "customization"
