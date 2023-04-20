@@ -102,13 +102,20 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         extra_fields: List[Any] = [],
         ordering: str = None,
         query: str = None,
+        fields: list = None,
     ) -> List[ModelType]:
-        statement = select(self.model).offset(skip).limit(limit)
+        if fields:
+            statement = select(*[getattr(self.model, field) for field in fields])
+        else:
+            statement = select(self.model)
+        statement = statement.offset(skip).limit(limit)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         statement = self.order_by(statement, ordering)
         statement = self.search(statement, query)
         result = await db.execute(statement)
-        return result.scalars().all()
+        rows = result.fetchall()
+        return [dict(row) for row in rows]
+        # return result.scalars().all()
 
     async def get_multi_by_key(
         self,
@@ -141,7 +148,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db_obj: ModelType,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
-
         if isinstance(obj_in, dict):
             update_data = obj_in
             fields = obj_in.keys()
