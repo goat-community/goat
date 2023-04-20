@@ -113,9 +113,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         statement = self.order_by(statement, ordering)
         statement = self.search(statement, query)
         result = await db.execute(statement)
-        rows = result.fetchall()
-        return [dict(row) for row in rows]
-        # return result.scalars().all()
+        # return rows
+        if fields:
+            rows = result.fetchall()
+            return [self.model(**dict(row)) for row in rows]
+        else:
+            return result.scalars().all()
 
     async def get_multi_by_key(
         self,
