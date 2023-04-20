@@ -27,6 +27,9 @@ class Geostore(SQLModel, table=True):
         back_populates="geostores",
         link_model=StudyAreaGeostore
     )
+    
+    class Config:
+        search_fields = ["name"]
 
 
 UniqueConstraint(Geostore.__table__.c.name)

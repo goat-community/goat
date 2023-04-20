@@ -17,9 +17,13 @@ async def list_geostores(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    ordering: str = None,
+    q: str = None,
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-    geostores = await crud.geostore.get_multi(db, skip=skip, limit=limit)
+    geostores = await crud.geostore.get_multi(
+        db, skip=skip, limit=limit, ordering=ordering, query=q
+    )
     if not geostores:
         raise HTTPException(status_code=404, detail="there is no (more) geostores.")
     return geostores
@@ -68,7 +72,6 @@ async def delete_geostores(
     db: AsyncSession = Depends(deps.get_db),
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-
     return await crud.geostore.remove_multi(db, ids=id)
 
 
