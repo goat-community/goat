@@ -39,16 +39,24 @@ async def create_organization(
 @router.get("/", response_model=List[models.Organization])
 async def read_organizations(
     db: AsyncSession = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
+    skip: int = 0,
+    limit: int = 100,
+    ordering: str = None,
+    q: str = None,
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Retrieve organizations.
     """
-    is_superuser = crud.user.is_superuser(current_user)
-    if not is_superuser:
-        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
 
-    organizations = await crud.organization.get_multi(db, extra_fields=[models.Organization.users])
+    organizations = await crud.organization.get_multi(
+        db,
+        extra_fields=[models.Organization.users],
+        skip=skip,
+        limit=limit,
+        ordering=ordering,
+        query=q,
+    )
     return organizations
 
 

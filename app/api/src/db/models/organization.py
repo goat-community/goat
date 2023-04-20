@@ -18,3 +18,6 @@ class Organization(SQLModel, table=True):
     )
 
     users: List["User"] = Relationship(back_populates="organization")
+    
+    class Config:
+        search_fields = ["name"]
