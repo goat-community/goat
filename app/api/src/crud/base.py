@@ -46,7 +46,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         search_objects = list()
         for field in self.model.Config.search_fields:
             column = getattr(self.model, field)
-            containes = column.ilike(query.lower())
+            query = f"%{query.lower()}%"
+            containes = column.ilike(query)
             search_objects.append(containes)
         statement = statement.filter(or_(*search_objects))
         return statement
