@@ -57,6 +57,9 @@ class StudyArea(SQLModel, table=True):
     opportunity_user_configs: List["OpportunityUserConfig"] = Relationship(back_populates="study_area")
     geostores: List["Geostore"] = Relationship(back_populates="study_areas", link_model=StudyAreaGeostore)
     _validate_geom = validator("geom", pre=True, allow_reuse=True)(dump_geom)
+    
+    class Config:
+        search_fields = ["name"]
 
 
 Index("idx_study_area_geom", StudyArea.__table__.c.geom, postgresql_using="gist")
@@ -81,6 +84,9 @@ class SubStudyArea(SQLModel, table=True):
     study_area_id: int = Field(foreign_key="basic.study_area.id", index=True, nullable=False)
 
     study_area: "StudyArea" = Relationship(back_populates="sub_study_areas")
+    
+    class Config:
+        search_fields = ["name"]
 
 
 Index("idx_sub_study_area_geom", SubStudyArea.__table__.c.geom, postgresql_using="gist")

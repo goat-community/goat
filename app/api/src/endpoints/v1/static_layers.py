@@ -34,9 +34,12 @@ async def get_static_vector_layer_intersected_by_study_area(
     if return_type == ReturnType.geobuf.value:
         _return_type = "db_geobuf"
     sql_query = text(
-        SQLReturnTypes[_return_type].value % StaticTableSQLActive[layer_name.value].value
+        SQLReturnTypes[_return_type].value
+        % StaticTableSQLActive[layer_name.value].value
     )
-    result = await db.execute(sql_query, {"study_area_id": current_user.active_study_area_id})
+    result = await db.execute(
+        sql_query, {"study_area_id": current_user.active_study_area_id}
+    )
 
     return return_geojson_or_geobuf(result.fetchall()[0][0], _return_type)
 
@@ -45,23 +48,25 @@ async def get_static_vector_layer_intersected_by_study_area(
 async def get_static_table_all_features(
     *,
     db: AsyncSession = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+    ordering: str = None,
+    q: str = None,
     current_user: models.User = Depends(deps.get_current_active_superuser),
     layer_name: AllowedVectorTables,
 ):
     """Return all features from selected layer with some selected columns"""
     if layer_name.value == "sub_study_area":
-        results = await db.execute(
-            select(
-                models.SubStudyArea.id,
-                models.SubStudyArea.study_area_id,
-                models.SubStudyArea.name,
-                models.SubStudyArea.population,
-            )
-        )
-    elif layer_name.value == "study_area":
-        results = await db.execute(
-            select(models.StudyArea.id, models.StudyArea.name, models.StudyArea.population)
+        fields = ["id", "study_area_id", "name", "population"]
+        fields = None
+        results = await crud.sub_study_area.get_multi(
+            db, skip=skip, limit=limit, ordering=ordering, query=q, fields=fields
         )
 
-    results = results.fetchall()
+    elif layer_name.value == "study_area":
+        fields = ["id", "name", "population"]
+        results = await crud.study_area.get_multi(
+            db, skip=skip, limit=limit, ordering=ordering, query=q, fields=fields
+        )
+
     return jsonable_encoder(results)
