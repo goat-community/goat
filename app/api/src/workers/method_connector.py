@@ -23,7 +23,7 @@ async def create_traveltime_matrices_async(current_super_user, parameters):
     current_super_user = models.User(**current_super_user)
     parameters = TravelTimeMatrixParametersSingleBulk(**parameters)
     compute_heatmap = ComputeHeatmap(current_user=current_super_user)
-    try: 
+    try:
         calculation_object = await compute_heatmap.create_calculation_object(
             isochrone_dto=parameters.isochrone_dto, bulk_id=parameters.bulk_id
         )
@@ -69,7 +69,6 @@ async def create_opportunity_matrices_async(user, parameters):
     # Compute base data
     if parameters.compute_base_data == True:
         for opportunity_type in opportunity_types:
-
             opportunity_type_read = opportunity_type
             if opportunity_type == "population":
                 opportunity_type_read = "population_grouped"
@@ -173,11 +172,11 @@ async def read_heatmap_async(current_user, settings):
 
     else:
         result = heatmap.read(settings)
-        #TODO: Find the best place where to round the results as this should be done at the very end
-        #result["agg_class"] = result["agg_class"].round()
+        # TODO: Find the best place where to round the results as this should be done at the very end
+        # result["agg_class"] = result["agg_class"].round()
 
     # todo: Can be extended to other formats in the future based on return type
-    result = heatmap.to_geojson(result)
+    result = heatmap.to_geojson(result, settings)
 
     return result
 
