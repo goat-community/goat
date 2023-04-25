@@ -26,6 +26,7 @@ from src.schemas.isochrone import (
     IsochroneDTO,
     IsochroneMultiCountPois,
     IsochroneOutputType,
+    IsochroneTypeEnum,
     request_examples,
 )
 from src.utils import return_geojson_or_geobuf
@@ -41,6 +42,10 @@ from src.workers.read_heatmap import (
 )
 from src.workers.celery_app import celery_app
 from celery.result import AsyncResult
+from src.schemas.utils import (
+    validate_poi_limit_multi_isochrone,
+    POIExceededException,
+)
 
 router = APIRouter()
 
@@ -55,8 +60,20 @@ async def calculate_isochrone(
     """
     Calculate isochrone indicator.
     """
+
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
+    if isochrone_in.origin_type == IsochroneTypeEnum.multi and not crud.user.is_superuser(
+        current_user
+    ):
+        isochorne_multi_count_pois = isochrone_in.to_multi_count_pois()
+        isochorne_multi_count_pois.user_id = current_user.id
+        isochorne_multi_count_pois.active_upload_ids = current_user.active_data_upload_ids
+        try:
+            await validate_poi_limit_multi_isochrone(isochorne_multi_count_pois, db)
+        except POIExceededException as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
     result = await crud.isochrone.calculate(db, isochrone_in, current_user)
     if isochrone_in.output.type.value == IsochroneOutputType.NETWORK.value:
         result = return_geojson_or_geobuf(result, "geojson")

@@ -9,6 +9,12 @@ from pydantic import BaseModel, Field, root_validator
 Body of the request
 """
 
+isochrone_poi_count_limit = [
+    {"speed_limit": 10, "poi_count_limit": 1000},
+    {"speed_limit": 20, "poi_count_limit": 300},
+    {"speed_limit": 25, "poi_count_limit": 200},
+]
+
 
 class IsochroneTypeEnum(str, Enum):
     single = "single_isochrone"
@@ -262,7 +268,6 @@ class IsochroneDTO(BaseModel):
                 IsochroneAccessMode.BICYCLE.value,
             ]
         ):
-
             raise ValueError(
                 "Resolution must be between 9 and 14 for walking and cycling isochrones"
             )
@@ -339,6 +344,35 @@ class IsochroneDTO(BaseModel):
             raise ValueError("Region is not specified for multi-isochrone")
 
         return values
+
+    @property
+    def origin_type(self):
+        """
+        Represents if the isochrone is a single or multi-isochrone calculation
+        Origin stands for the starting point of the isochrone
+        """
+        if len(self.starting_point.input) == 1 and isinstance(
+            self.starting_point.input[0], IsochroneStartingPointCoord
+        ):
+            return IsochroneTypeEnum.single
+        else:
+            return IsochroneTypeEnum.multi
+
+    def to_multi_count_pois(self, user_id: int = None):
+        isochrone_multi_count_pois = {
+            "scenario_id": self.scenario.id,
+            "amenities": self.starting_point.input,
+            "minutes": self.settings.travel_time,
+            "modus": self.scenario.modus.value,
+            "region": self.starting_point.region,
+            "region_type": self.starting_point.region_type.value,
+            "speed": self.settings.speed,
+        }
+        if user_id is not None:
+            isochrone_multi_count_pois["user_id"] = user_id
+
+        return IsochroneMultiCountPois(**isochrone_multi_count_pois)
+
 
 # R5
 R5AvailableDates = {
