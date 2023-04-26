@@ -284,8 +284,8 @@ class CRUDDynamicCustomization:
     ):
         # Check if there is a default category
         category = list(insert_settings.keys())[0]
-        existing_user_setting = await crud.opportunity_user_config.get_by_key(
-            db=db, key="category", value=category
+        existing_user_setting = await crud.opportunity_user_config.get_by_multi_keys(
+            db=db, keys={"user_id": current_user.id, "category": category, "study_area_id": current_user.active_study_area_id}
         )
 
         if existing_user_setting == []:

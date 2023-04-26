@@ -27,7 +27,7 @@
           v-if="layer.get('name') === 'pt_station_count'"
         >
           <div
-            v-for="(value, name, idx) in transitRouteTypesByName"
+            v-for="(value, name, idx) in transitRouteLegend"
             :key="idx"
             style="display: flex;"
           >
@@ -205,7 +205,8 @@ export default {
     }),
     ...mapGetters("isochrones", {
       transitRouteTypes: "transitRouteTypes",
-      transitRouteTypesByName: "transitRouteTypesByName"
+      transitRouteTypesByName: "transitRouteTypesByName",
+      transitRouteLegend: "transitRouteLegend"
     }),
     ...mapFields("map", {
       vectorTileStyles: "vectorTileStyles",
