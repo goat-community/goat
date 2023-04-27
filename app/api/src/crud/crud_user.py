@@ -4,11 +4,12 @@ from geoalchemy2.shape import from_shape, to_shape
 from shapely.geometry import Polygon
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-
+from shapely import Point
 from src.core.security import get_password_hash, verify_password
 from src.crud.base import CRUDBase
 from src.db import models
 from src.schemas.user import UserCreate, UserUpdate
+from src.schemas.isochrone import IsochroneStartingPointCoord
 
 
 class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
@@ -36,7 +37,6 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
     async def update(
         self, db: AsyncSession, *, db_obj: models.User, obj_in: Union[UserUpdate, Dict[str, Any]]
     ) -> models.User:
-
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
@@ -96,6 +96,24 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
         if len(role) > 0:
             return True
         return False
+
+    async def user_study_area_starting_point_access(
+        self, db: AsyncSession, user_id: int, points: list[IsochroneStartingPointCoord]
+    ) -> bool:
+        user = await self.get(db, id=user_id, extra_fields=[models.User.study_areas])
+
+        points = [Point(point.lon, point.lat) for point in points]
+        study_area_geoms = [study_area.shape_of_geom for study_area in user.study_areas]
+        for point in points:
+            for study_area in study_area_geoms:
+                if study_area.contains(point):
+                    break
+            else:
+                # if no study area contains the point, return False
+                return False
+
+        # if all if statements breaked (i.e. all points are in a study area), return True
+        return True
 
 
 user = CRUDUser(models.User)
