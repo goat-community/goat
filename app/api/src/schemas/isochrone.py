@@ -417,7 +417,7 @@ request_examples = {
             "value": {
                 "mode": "cycling",
                 "settings": {
-                    "travel_time": "10",
+                    "travel_time": "15",
                     "speed": "10",
                     "cycling_profile": "standard",
                 },

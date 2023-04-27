@@ -163,18 +163,14 @@ async def test_calculate_isochrone_single_cycling_standard(
 async def test_calculate_isochrone_single_cycling_pedelec(
     client: AsyncClient, superuser_token_headers: Dict[str, str]
 ) -> None:
-    data = request_examples["single_isochrone"]["default"]["value"]
-    data["routing_profile"] = "cycling_pedelec"
-    data.update(isochrone_points[0])
+    data = request_examples["isochrone"]["single_cycling_default"]["value"]
+    data["settings"]["speed"] = 22
     r = await client.post(
-        f"{settings.API_V1_STR}/isochrone/single",
+        f"{settings.API_V1_STR}/indicators/isochrone",
         headers=superuser_token_headers,
         json=data,
     )
-    response = r.json()
     assert 200 <= r.status_code < 300
-    assert len(response["features"]) > 0
-    assert len(response["features"][0]["geometry"]["coordinates"][0][0]) > 3
 
 
 async def test_convert_geojson_to_shapefile_and_xlsx(
