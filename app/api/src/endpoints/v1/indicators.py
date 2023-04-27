@@ -61,16 +61,19 @@ async def calculate_isochrone(
     """
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
-    
+
     study_area = await crud.user.get_active_study_area(db, current_user)
-    study_area_bounds = study_area['bounds']
+    study_area_bounds = study_area["bounds"]
     isochrone_in = json.loads(isochrone_in.json())
     current_user = json.loads(current_user.json())
-    
-    
+
     if not settings.CELERY_BROKER_URL:
         # FOR TESTING TIME ONLY
-        return task_calculate_isochrone(isochrone_in, current_user, study_area_bounds)
+        isochrone_hex_string = task_calculate_isochrone(
+            isochrone_in, current_user, study_area_bounds
+        )
+        iscohrone_r5_binary = binascii.unhexlify(isochrone_hex_string)
+        return Response(content=iscohrone_r5_binary, media_type="application/octet-stream")
     else:
         task = task_calculate_isochrone.delay(isochrone_in, current_user, study_area_bounds)
         task_id = f"isochrone-{task.id}"
@@ -252,18 +255,21 @@ async def get_indicators_result(
     return_type: ReturnType = Query(..., description="Return type of the response"),
 ):
     """Fetch result for given task_id"""
-    
+
     task_type = "other"
     if "isochrone-" in task_id:
         task_type = "isochrone"
         task_id = task_id.replace("isochrone-", "")
-    
+
     result = AsyncResult(task_id, app=celery_app)
     if result.ready():
         try:
             task_results = result.get()
             if task_type == "isochrone":
-                response = Response(bytes(binascii.unhexlify(bytes(task_results, 'utf-8'))), media_type="application/octet-stream")
+                response = Response(
+                    bytes(binascii.unhexlify(bytes(task_results, "utf-8"))),
+                    media_type="application/octet-stream",
+                )
                 return response
             else:
                 result = return_geojson_or_geobuf(result.get(), return_type.value)
