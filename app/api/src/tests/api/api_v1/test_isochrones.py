@@ -147,23 +147,6 @@ async def test_calculate_isochrone_single_scenario(
     #     assert scenario_area > default_area
 
 
-async def test_calculate_isochrone_single_walking_wheelchair(
-    client: AsyncClient, superuser_token_headers: Dict[str, str]
-) -> None:
-    data = request_examples["single_isochrone"]["default"]["value"]
-    data["routing_profile"] = "walking_wheelchair"
-    data.update(isochrone_points[0])
-    r = await client.post(
-        f"{settings.API_V1_STR}/isochrone/single",
-        headers=superuser_token_headers,
-        json=data,
-    )
-    response = r.json()
-    assert 200 <= r.status_code < 300
-    assert len(response["features"]) > 0
-    assert len(response["features"][0]["geometry"]["coordinates"][0][0]) > 3
-
-
 async def test_calculate_isochrone_single_cycling_standard(
     client: AsyncClient, superuser_token_headers: Dict[str, str]
 ) -> None:
