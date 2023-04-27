@@ -262,7 +262,6 @@ class IsochroneDTO(BaseModel):
                 IsochroneAccessMode.BICYCLE.value,
             ]
         ):
-
             raise ValueError(
                 "Resolution must be between 9 and 14 for walking and cycling isochrones"
             )
@@ -340,6 +339,7 @@ class IsochroneDTO(BaseModel):
 
         return values
 
+
 # R5
 R5AvailableDates = {
     0: "2022-05-16",
@@ -401,6 +401,25 @@ request_examples = {
                     "travel_time": "10",
                     "speed": "5",
                     "walking_profile": "standard",
+                },
+                "starting_point": {
+                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                },
+                "scenario": {"id": 0, "modus": "default"},
+                "output": {
+                    "type": "grid",
+                    "resolution": "12",
+                },
+            },
+        },
+        "single_cycling_default": {
+            "summary": "Single Cycling Isochrone with Default Profile",
+            "value": {
+                "mode": "cycling",
+                "settings": {
+                    "travel_time": "10",
+                    "speed": "10",
+                    "cycling_profile": "standard",
                 },
                 "starting_point": {
                     "input": [{"lat": 48.1502132, "lon": 11.5696284}],

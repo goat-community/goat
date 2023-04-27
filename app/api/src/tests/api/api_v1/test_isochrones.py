@@ -3,7 +3,6 @@ import mimetypes
 from collections import defaultdict
 from typing import Dict
 
-import pyproj
 import pytest
 from httpx import AsyncClient
 from shapely.geometry import shape
@@ -94,9 +93,7 @@ async def test_calculate_isochrone_single_default(
 async def test_calculate_isochrone_single_scenario(
     client: AsyncClient, superuser_token_headers: Dict[str, str], db: AsyncSession
 ) -> None:
-    superuser = await crud.user.get_by_key(
-        db, key="email", value=settings.FIRST_SUPERUSER_EMAIL
-    )
+    superuser = await crud.user.get_by_key(db, key="email", value=settings.FIRST_SUPERUSER_EMAIL)
     obj_scenario = models.Scenario(
         scenario_name=random_lower_string(),
         user_id=superuser[0].id,
@@ -119,9 +116,7 @@ async def test_calculate_isochrone_single_scenario(
     request = request_examples["isochrone"]["single_walking_default"]["value"]
     request["scenario"]["id"] = scenario.id
     request["scenario"]["modus"] = "comparison"
-    request["starting_point"]["input"] = [
-        {"lat": 48.153338885122594, "lon": 11.602886678839361}
-    ]
+    request["starting_point"]["input"] = [{"lat": 48.153338885122594, "lon": 11.602886678839361}]
     r = await client.post(
         f"{settings.API_V1_STR}/indicators/isochrone",
         headers=superuser_token_headers,
@@ -172,18 +167,14 @@ async def test_calculate_isochrone_single_walking_wheelchair(
 async def test_calculate_isochrone_single_cycling_standard(
     client: AsyncClient, superuser_token_headers: Dict[str, str]
 ) -> None:
-    data = request_examples["single_isochrone"]["default"]["value"]
-    data["routing_profile"] = "cycling_standard"
-    data.update(isochrone_points[0])
+    data = request_examples["isochrone"]["single_cycling_default"]["value"]
+    # data.update(isochrone_points[0])
     r = await client.post(
-        f"{settings.API_V1_STR}/isochrone/single",
+        f"{settings.API_V1_STR}/indicators/isochrone",
         headers=superuser_token_headers,
         json=data,
     )
-    response = r.json()
     assert 200 <= r.status_code < 300
-    assert len(response["features"]) > 0
-    assert len(response["features"][0]["geometry"]["coordinates"][0][0]) > 3
 
 
 async def test_calculate_isochrone_single_cycling_pedelec(
@@ -224,18 +215,14 @@ test_payloads = {
     "reached_network_default_geojson": {
         "mode": "walking",
         "settings": {"travel_time": 20, "speed": 5, "walking_profile": "standard"},
-        "starting_point": {
-            "input": [{"lat": 48.17414317972603, "lon": 11.5058719230466}]
-        },
+        "starting_point": {"input": [{"lat": 48.17414317972603, "lon": 11.5058719230466}]},
         "scenario": {"id": 0, "modus": "default"},
         "output": {"type": "grid", "resolution": 13},
     },
     "reached_network_scenario_geojson": {
         "mode": "walking",
         "settings": {"travel_time": 20, "speed": 5, "walking_profile": "standard"},
-        "starting_point": {
-            "input": [{"lat": 48.150184567895735, "lon": 11.55799774461109}]
-        },
+        "starting_point": {"input": [{"lat": 48.150184567895735, "lon": 11.55799774461109}]},
         "scenario": {"id": 0, "modus": "scenario"},
         "output": {"type": "grid", "resolution": 13},
     },
@@ -266,9 +253,7 @@ test_payloads = {
     "outside_of_study_area_and_gets_error": {
         "mode": "walking",
         "settings": {"travel_time": 20, "speed": 5, "walking_profile": "standard"},
-        "starting_point": {
-            "input": [{"lat": 48.13128218306605, "lon": 11.336367098415318}]
-        },
+        "starting_point": {"input": [{"lat": 48.13128218306605, "lon": 11.336367098415318}]},
         "scenario": {"id": 0, "modus": "default"},
         "output": {"type": "grid", "resolution": 13},
     },
