@@ -1,11 +1,13 @@
 import os
 from math import exp
+import tempfile
 from time import time
 
 import numpy as np
 from numba import njit
+from osgeo import ogr
 
-from src.utils import delete_file
+from src.utils import delete_file, without_keys
 
 ii32 = np.iinfo(np.int32)
 example_weights_max = np.array([ii32.max], dtype=np.float32)
@@ -348,3 +350,70 @@ def read_population_modified_sql(scenario_id: int):
 
     return sql
 
+
+def heatmap_togeopackage(results):
+    h3_grid_ids = results["h3_grid_ids"]
+    h3_polygons = results["h3_polygons"]
+    properties = without_keys(results, ["h3_grid_ids", "h3_polygons"])
+    
+    
+    # Set up the GeoPackage driver and create a new file
+    driver = ogr.GetDriverByName('GPKG')
+    filename = tempfile.NamedTemporaryFile(suffix='.gpkg').name
+    ds = driver.CreateDataSource(filename)
+    
+    # Create a new layer in the GeoPackage file
+    layer_name = 'heatmap'
+    layer = ds.CreateLayer(layer_name, srs=None)
+    
+    
+    # Define the layer schema
+    field_defn = ogr.FieldDefn('int', ogr.OFTInteger64)
+    layer.CreateField(field_defn)
+    
+    for key in properties.keys():
+        if '_class' in key:
+            field_defn = ogr.FieldDefn(key, ogr.OFSTInt16)
+        else:
+            field_defn = ogr.FieldDefn(key, ogr.OFTReal)
+        layer.CreateField(field_defn)
+    
+    
+    feature_defn = layer.GetLayerDefn()
+    
+    for i , h3_grid_id in enumerate(h3_grid_ids):
+        
+        # Create ring of h3 polygon
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+        for point in h3_polygons[i]:
+            ring.AddPoint(point[0], point[1])
+        
+        # Create h3 polygon
+        poly = ogr.Geometry(ogr.wkbPolygon)
+        poly.AddGeometry(ring)
+        
+        # Create feature and set id
+        feature = ogr.Feature(feature_defn)
+        feature.SetField('id', int(h3_grid_id))
+        
+        # Set properties
+        for key, arr in properties.items():
+            value = arr[i]
+            if arr.dtype.kind in ["f", "c"]:
+                value = float(value)
+            elif arr.dtype.kind in ["i", "u"]:
+                value = int(value)
+            else:
+                # Skip if not a number
+                continue
+            
+            feature.SetField(key, value)
+        
+        
+        feature.SetGeometry(poly)
+        layer.CreateFeature(feature)
+        
+    return ds        
+        
+        
+        
