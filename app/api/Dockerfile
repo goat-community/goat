@@ -51,5 +51,8 @@ ARG INSTALL_DEV=false
 RUN bash -c "if [ $INSTALL_DEV == 'True' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
 COPY . /app
 
+# Install gdal binaries
+RUN apt-get install -y python3-dev libgdal-dev gdal-bin
+
 
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
