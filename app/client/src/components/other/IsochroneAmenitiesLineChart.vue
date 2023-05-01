@@ -30,8 +30,12 @@ export default {
       return color;
     },
     renderLineChart: function() {
-      let labels = this.selectedCalculations[0].config.settings.travel_time;
+      const calculation_ = this.selectedCalculations[0];
+      let labels = calculation_.config.settings.travel_time;
       labels = [...Array(labels).keys()];
+      if (calculation_.routing === "buffer") {
+        labels = labels.map(label => label * 50);
+      }
       const datasets = [];
       this.selectedCalculations.forEach((calculation, index) => {
         const calculationData =
@@ -117,7 +121,10 @@ export default {
                 },
                 scaleLabel: {
                   display: true,
-                  labelString: this.$t("isochrones.tableData.travelTime")
+                  labelString:
+                    this.selectedCalculations[0].routing === "buffer"
+                      ? "Distance (m)"
+                      : this.$t("isochrones.tableData.travelTime")
                 }
               }
             ]
