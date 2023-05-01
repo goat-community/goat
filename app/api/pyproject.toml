@@ -57,6 +57,7 @@ asgiref = "^3.6.0"
 asyncio = "^3.4.3"
 aiohttp = "^3.8.4"
 boto3 = "^1.26.79"
+gdal = "3.2.2.1"
 
 
 [tool.poetry.dev-dependencies]
