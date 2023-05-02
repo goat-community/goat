@@ -41,6 +41,7 @@ class IsochroneMode(Enum):
     CYCLING = "cycling"
     TRANSIT = "transit"
     CAR = "car"
+    BUFFER = "buffer"
 
 
 class IsochroneWalkingProfile(Enum):
@@ -105,10 +106,16 @@ class IsochroneDecayFunction(BaseModel):
 
 class IsochroneSettings(BaseModel):
     # === SETTINGS FOR WALKING AND CYCLING ===#
-    travel_time: int = Field(
+    travel_time: Optional[int] = Field(
         10,
         gt=0,
         description="Travel time in **minutes**",
+    )
+    buffer_distance: Optional[int] = Field(
+        1000,
+        gt=50,
+        le=3000,
+        description="Buffer distance in **meters**",
     )
     speed: Optional[float] = Field(
         5,
@@ -262,10 +269,16 @@ class IsochroneDTO(BaseModel):
                 IsochroneAccessMode.BICYCLE.value,
             ]
         ):
-
             raise ValueError(
                 "Resolution must be between 9 and 14 for walking and cycling isochrones"
             )
+
+        # validate to check if buffer_distance is provided for "BUFFER" mode
+        if (
+            values["mode"].value == IsochroneMode.BUFFER.value
+            and not values["settings"].buffer_distance
+        ):
+            raise ValueError("Buffer distance is required for buffer catchment area")
 
         # Validation check on grid resolution and number of steps for geojson for public transport isochrones
         if (
@@ -339,6 +352,7 @@ class IsochroneDTO(BaseModel):
             raise ValueError("Region is not specified for multi-isochrone")
 
         return values
+
 
 # R5
 R5AvailableDates = {
@@ -459,6 +473,21 @@ request_examples = {
                 "output": {
                     "type": "grid",
                     "resolution": "9",
+                },
+            },
+        },
+        "single_buffer_catchment": {
+            "summary": "Single Buffer Catchment",
+            "value": {
+                "mode": "buffer",
+                "settings": {"buffer_distance": "2000"},
+                "starting_point": {
+                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                },
+                "scenario": {"id": 0, "modus": "default"},
+                "output": {
+                    "type": "grid",
+                    "resolution": "12",
                 },
             },
         },

@@ -588,8 +588,8 @@ export function buildingStyleWithNoPopulation() {
 export function deletedStyle() {
   const style = new OlStyle({
     stroke: new OlStroke({
-      color: "#FF0000",
-      width: 4,
+      color: "RGBA(255, 0, 0, 128)",
+      width: 1,
       lineDash: [5, 5]
     })
   });
