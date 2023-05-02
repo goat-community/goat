@@ -14,7 +14,7 @@ from functools import wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import IO, Any, Dict, List, Optional
-
+from math import radians, cos
 import emails
 import geobuf
 import geopandas
@@ -477,15 +477,25 @@ def buffer(starting_points_gdf, buffer_distance, increment):
     geopandas.GeoDataFrame. The buffered points
 
     """
+    epsg_3857 = pyproj.CRS("EPSG:3857")
+    proj_3857 = pyproj.Proj(epsg_3857)
+    proj_factors = proj_3857.get_factors(
+        starting_points_gdf.iloc[0][0].x, starting_points_gdf.iloc[0][0].y
+    )
+    # Parallel scale is the ratio of the scale factor at the given latitude to the scale factor at the equator.
+    # This is not accurate for very large distances, but should be good enough for our purposes.
+    scale_factor = proj_factors.parallel_scale
     starting_points_gdf = starting_points_gdf.to_crs(epsg=3857)
     results = {}
     steps = []
     incremental_shapes = []
     full_shapes = []
 
-    for i in range(increment, buffer_distance, increment):
+    for i in range(increment, buffer_distance + increment, increment):
         steps.append(i // increment)
-        union_geom = starting_points_gdf.buffer(i).unary_union
+        # multiply the buffer distance by the scale factor to account for the distortion of the projection.
+        # the distance is in meters, on a sphere.
+        union_geom = starting_points_gdf.buffer(i * scale_factor).unary_union
         full_shapes.append(union_geom)
 
     full_gdf = geopandas.GeoDataFrame({"geometry": full_shapes, "steps": steps})
