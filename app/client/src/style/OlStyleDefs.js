@@ -518,7 +518,8 @@ export function poisEditStyle(feature, resolution, type) {
           color: color,
           width: 2
         })
-      })
+      }),
+      zIndex: 10
     });
   }
 
@@ -550,7 +551,8 @@ export function waysNewRoadStyle(type) {
     stroke: new OlStroke({
       color: type === "visualization" ? "rgba(79, 79, 79, 0.64)" : "#6495ED",
       width: 4
-    })
+    }),
+    zIndex: 8
   });
   return [style];
 }
@@ -560,23 +562,26 @@ export function waysNewBridgeStyle(type) {
     stroke: new OlStroke({
       color: type === "visualization" ? "rgba(79, 79, 79, 0.64)" : "#FFA500",
       width: 4
-    })
+    }),
+    zIndex: 8
   });
   return [style];
 }
 
-export function buildingStyleWithPopulation() {
+export function buildingStyleWithPopulation(type) {
   return new OlStyle({
     fill: new OlFill({
-      color: "rgb(0,128,0, 0.7)"
-    })
+      color: type === "visualization" ? "rgb(0,128,0, 0.7)" : "#FFA500"
+    }),
+    zIndex: 9
   });
 }
 export function buildingStyleWithNoPopulation() {
   return new OlStyle({
     fill: new OlFill({
       color: "#FF0000"
-    })
+    }),
+    zIndex: 9
   });
 }
 
@@ -661,7 +666,17 @@ export function editStyleFn(type) {
       if (isCompleted === true && hasEntranceFeature === true) {
         strokeOpt.color = "rgb(0,128,0, 0.7)";
         fillOpt.color = "rgb(0,128,0, 0.7)";
+      } else {
+        strokeOpt.color =
+          type === "visualization"
+            ? "rgba(79, 79, 79, 0.64)"
+            : "rgb(235, 64, 52, 0.7)";
+        fillOpt.color =
+          type === "visualization"
+            ? "rgba(79, 79, 79, 0.64)"
+            : "rgb(235, 64, 52, 0.7)";
       }
+
       const area = getArea(feature.getGeometry());
       const building_levels = feature.get("building_levels") || 0;
       const population = feature.get("population");
