@@ -214,6 +214,37 @@ const getters = {
     }
     return obj;
   },
+  transitRouteLegend: (state, getters, rootState) => {
+    let obj = {};
+    const routing = rootState.app.appConfig.routing.filter(
+      r => r.type === "transit"
+    );
+    if (routing.length > 0) {
+      const transitModes = [
+        ...routing[0].transit_modes
+        // ...state.transitRouteTypeExtensions
+      ];
+      transitModes.forEach(t => {
+        const typeNr = state.transitRouteTypes[t.type];
+        obj[typeNr] = {
+          name: t.type,
+          color: t.color,
+          icon: t.icon
+        };
+      });
+    }
+    const transitRouteTypesByNr = obj;
+    let return_obj = {};
+    Object.keys(transitRouteTypesByNr).forEach(nr => {
+      const type = transitRouteTypesByNr[nr];
+      return_obj[type.name] = {
+        id: nr,
+        color: type.color,
+        icon: type.icon
+      };
+    });
+    return return_obj;
+  },
   transitRouteTypesByName: (state, getters) => {
     const transitRouteTypesByNr = getters.transitRouteTypesByNr;
     let obj = {};
