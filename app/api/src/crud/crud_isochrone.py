@@ -366,6 +366,10 @@ class CRUDIsochrone:
         result = None
         network = None
         step_size = 1
+        max_value = 0
+        if obj_in.settings.travel_time != None:
+            max_value = obj_in.settings.travel_time
+
         if len(obj_in.starting_point.input) == 1 and isinstance(
             obj_in.starting_point.input[0], IsochroneStartingPointCoord
         ):
@@ -432,6 +436,7 @@ class CRUDIsochrone:
                     geometry=gpd.points_from_xy(x, y), crs="EPSG:4326"
                 )
                 starting_point_geom = str(starting_points_gdf["geometry"].to_wkt().to_list())
+                max_value = obj_in.settings.buffer_distance // 50
             else:
                 starting_point_geom = Point(
                     obj_in.starting_point.input[0].lon, obj_in.starting_point.input[0].lat
@@ -561,7 +566,7 @@ class CRUDIsochrone:
                 # population count
                 for region, population_count in regions_count.items():
                     population_reached = self.restructure_dict(
-                        remove_keys(population_count, ["total"])
+                        remove_keys(population_count, ["total"]), max_value=max_value
                     )
                     population_reached["population"] = [
                         int(x) for x in population_reached["population"]
