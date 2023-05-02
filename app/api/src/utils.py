@@ -14,7 +14,7 @@ from functools import wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import IO, Any, Dict, List, Optional
-
+from math import radians, cos
 import emails
 import geobuf
 import geopandas
@@ -252,11 +252,14 @@ def encode_r5_grid(grid_data: Any) -> bytes:
     header_bin = array.tobytes()
     # - reshape the data
     grid_size = grid_data["width"] * grid_data["height"]
-    data = grid_data["data"].reshape(grid_data["depth"], grid_size)
-    reshaped_data = np.array([])
-    for i in range(grid_data["depth"]):
-        reshaped_data = np.append(reshaped_data, np.diff(data[i], prepend=0))
-    data = reshaped_data.astype(np.int32)
+    if len(grid_data["data"]) == 0:
+        data = np.array([], dtype=np.int32)
+    else:
+        data = grid_data["data"].reshape(grid_data["depth"], grid_size)
+        reshaped_data = np.array([])
+        for i in range(grid_data["depth"]):
+            reshaped_data = np.append(reshaped_data, np.diff(data[i], prepend=0))
+        data = reshaped_data.astype(np.int32)
     z_diff_bin = data.tobytes()
 
     # - encode metadata
@@ -459,6 +462,61 @@ def coordinate_from_pixel(input, zoom, round_int=False, web_mercator=False):
     return [x, y]
 
 
+def buffer(starting_points_gdf, buffer_distance, increment):
+    """
+    Incrementally buffer a set of points
+
+    Parameters
+    ----------
+    starting_points_gdf : geopandas.GeoDataFrame. The starting points to buffer
+    buffer_distance : float. The initial buffer distance
+    increment : float. The increment to add to the buffer distance
+
+    Returns
+    -------
+    geopandas.GeoDataFrame. The buffered points
+
+    """
+    epsg_3857 = pyproj.CRS("EPSG:3857")
+    proj_3857 = pyproj.Proj(epsg_3857)
+    proj_factors = proj_3857.get_factors(
+        starting_points_gdf.iloc[0][0].x, starting_points_gdf.iloc[0][0].y
+    )
+    # Parallel scale is the ratio of the scale factor at the given latitude to the scale factor at the equator.
+    # This is not accurate for very large distances, but should be good enough for our purposes.
+    scale_factor = proj_factors.parallel_scale
+    starting_points_gdf = starting_points_gdf.to_crs(epsg=3857)
+    results = {}
+    steps = []
+    incremental_shapes = []
+    full_shapes = []
+
+    for i in range(increment, buffer_distance + increment, increment):
+        steps.append(i // increment)
+        # multiply the buffer distance by the scale factor to account for the distortion of the projection.
+        # the distance is in meters, on a sphere.
+        union_geom = starting_points_gdf.buffer(i * scale_factor).unary_union
+        full_shapes.append(union_geom)
+
+    full_gdf = geopandas.GeoDataFrame({"geometry": full_shapes, "steps": steps})
+    full_gdf.set_crs(epsg=3857, inplace=True)
+    full_gdf = full_gdf.to_crs(epsg=4326)
+    results["full"] = full_gdf
+
+    for i in range(len(full_shapes)):
+        if i == 0:
+            incremental_shapes.append(full_shapes[i])
+        else:
+            incremental_shapes.append(full_shapes[i].difference(full_shapes[i - 1]))
+
+    incremental_gdf = geopandas.GeoDataFrame({"geometry": incremental_shapes, "steps": steps})
+    incremental_gdf.set_crs(epsg=3857, inplace=True)
+    incremental_gdf = incremental_gdf.to_crs(epsg=4326)
+    results["incremental"] = incremental_gdf
+
+    return results
+
+
 def coordinate_to_pixel(input, zoom, return_dict=True, round_int=False, web_mercator=False):
     """
     Convert coordinate to pixel coordinate
@@ -520,7 +578,6 @@ def geometry_to_pixel(geometry, zoom):
         )
     if geometry["type"] == "LineString":
         for coordinate in geometry["coordinates"]:
-
             pixel_coordinates.append(
                 np.unique(
                     np.array(
@@ -655,7 +712,6 @@ def print_warning(message: str):
 
 
 def tablify(s):
-
     # Replace file suffix dot with underscore
 
     s = s.replace(".", "_")
