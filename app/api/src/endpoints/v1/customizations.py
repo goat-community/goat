@@ -82,21 +82,17 @@ async def delete_user_settings(
     return update_settings
 
 
-@router.get("{user_id}/{study_area_id}", response_class=JSONResponse)
+@router.get("/{user_id}/{study_area_id}", response_class=JSONResponse)
 async def get_user_settings(
     *,
     db: AsyncSession = Depends(deps.get_db),
     study_area_id: int = None,
     user_id: int = None,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Get customization settings for user.
     """
-    is_superuser = crud.user.is_superuser(user=current_user)
-
-    if user_id != current_user.id and not is_superuser:
-        raise HTTPException(status_code=400, detail="The user cannot get another user's settings")
     customizations = await crud.customization.get_multi(db)
     settings = {}
     for customization in customizations:
@@ -148,6 +144,7 @@ async def update_user_settings(
                 setting=user_customizations[user_customization_key],
                 user_id=user_id,
                 customization_id=customization.id,
+                study_area_id=study_area_id,
             )
             if user_customization is not None and len(user_customization) > 0:
                 del user_customization_in.id
@@ -182,7 +179,7 @@ async def delete_user_setting(
     customization = await CRUDBase(models.Customization).get_by_key(
         db, key="type", value=customization
     )
-    if customization is None:
+    if not customization:
         raise HTTPException(status_code=400, detail="Customization not found")
     else:
         customization = customization[0]

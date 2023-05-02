@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import pyproj
 import requests
 from fastapi import Response
@@ -40,6 +41,7 @@ from src.schemas.isochrone import (
     R5TravelTimePayloadTemplate,
 )
 from src.utils import (
+    buffer,
     decode_r5_grid,
     delete_dir,
     encode_r5_grid,
@@ -49,20 +51,21 @@ from src.utils import (
 
 
 class CRUDIsochrone:
-    def restructure_dict(self, original_dict, max_minute=None):
+    def restructure_dict(self, original_dict, max_value=None, step=1):
         """
-        Restructures a dictionary of counts of various categories at different minutes
-        into a dictionary of cumulative counts of categories at each minute.
+        Restructures a dictionary of counts of various categories at different steps
+        into a dictionary of cumulative counts of categories at each step.
 
         Args:
         - original_dict (dict): A dictionary of the form {minute: {category: count, ...}, ...},
         where minute is an integer, category is a string, and count is an integer.
-        - max_minute (int): The maximum minute to consider. If None, the maximum minute is
+        - max_value (int): The maximum step (e.g minute) to consider. If None, the maximum value is
         automatically determined from the original dictionary.
+        - step (int): The step size. For example, if step=1, the cumulative counts are computed
 
         Returns:
         - new_dict (dict): A dictionary of the form {category: [count1, count2, ...]},
-        where count1, count2, ... are the cumulative counts of the category at each minute.
+        where count1, count2, ... are the cumulative counts of the category at each step.
 
         Example usage:
         original_dict = {
@@ -74,24 +77,24 @@ class CRUDIsochrone:
         # Output: {"atm": [3, 6], "post": [4, 8], "park": [0, 300]}
 
         In the returned dictionary, the root keys are the categories from the original dictionary,
-        and each value is a list of the cumulative counts of the category at each minute.
+        and each value is a list of the cumulative counts of the category at each step.
         """
-        # Find the maximum minute and collect all categories
+        # Find the maximum step and collect all categories
         if len(original_dict) == 0:
             return {}
-        if max_minute is None:
-            max_minute = max(original_dict.keys())
+        if max_value is None:
+            max_value = max(original_dict.keys())
         categories = set()
-        for minute_dict in original_dict.values():
-            categories.update(minute_dict.keys())
+        for steps_dict in original_dict.values():
+            categories.update(steps_dict.keys())
 
         # Convert the original dictionary to a 2D NumPy array
-        arr = np.zeros((len(categories), max_minute))
+        arr = np.zeros((len(categories), max_value // step))
 
         for i, category in enumerate(categories):
-            for j in range(max_minute):
-                if j + 1 in original_dict:
-                    arr[i, j] = original_dict[j + 1].get(category, 0)
+            for index, j in enumerate(range(0, max_value, step)):
+                if j + step in original_dict:
+                    arr[i, index] = original_dict[j + step].get(category, 0)
 
         # Compute the cumulative sum along the rows
         cumulative_arr = arr.cumsum(axis=1)
@@ -99,7 +102,7 @@ class CRUDIsochrone:
         # Convert the result back to a dictionary
         new_dict = {category: [] for category in categories}
         for i, category in enumerate(categories):
-            for j in range(max_minute):
+            for j in range(max_value):
                 if j < cumulative_arr.shape[1]:
                     new_dict[category].append(cumulative_arr[i, j])
                 else:
@@ -111,7 +114,6 @@ class CRUDIsochrone:
     async def read_network(
         self, db, obj_in: IsochroneDTO, current_user, isochrone_type, table_prefix=None
     ) -> Any:
-
         sql_text = ""
         if isochrone_type == IsochroneTypeEnum.single.value:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
@@ -225,7 +227,6 @@ class CRUDIsochrone:
         return_type,
         geojson_dictionary: dict,
     ) -> Any:
-
         features = geojson_dictionary["features"]
         # Remove the payload and set to true to use it later
         geojson_dictionary = True
@@ -339,6 +340,7 @@ class CRUDIsochrone:
             "region_geom": None,
             "study_area_ids": None,
         }
+
         if obj_in.starting_point.region_type.value == IsochroneMultiRegionType.STUDY_AREA.value:
             obj_in_data["study_area_ids"] = [
                 int(study_area_id) for study_area_id in obj_in.starting_point.region
@@ -363,6 +365,7 @@ class CRUDIsochrone:
         grid = None
         result = None
         network = None
+        step_size = 1
         if len(obj_in.starting_point.input) == 1 and isinstance(
             obj_in.starting_point.input[0], IsochroneStartingPointCoord
         ):
@@ -384,7 +387,7 @@ class CRUDIsochrone:
                 obj_in.output.resolution,
             )
         # == Public transport isochrone ==
-        else:
+        elif obj_in.mode.value in [IsochroneMode.TRANSIT.value]:
             starting_point_geom = Point(
                 obj_in.starting_point.input[0].lon, obj_in.starting_point.input[0].lat
             ).wkt
@@ -418,9 +421,47 @@ class CRUDIsochrone:
             )
             grid = decode_r5_grid(response.content)
 
-        isochrone_shapes = generate_jsolines(
-            grid=grid, travel_time=obj_in.settings.travel_time, percentile=5
-        )
+        if obj_in.mode.value in [IsochroneMode.BUFFER.value]:
+            if isochrone_type == IsochroneTypeEnum.multi.value:
+                starting_points = await self.starting_points_opportunities(
+                    current_user, db, obj_in
+                )
+                x = starting_points[0][0]
+                y = starting_points[0][1]
+                starting_points_gdf = gpd.GeoDataFrame(
+                    geometry=gpd.points_from_xy(x, y), crs="EPSG:4326"
+                )
+                starting_point_geom = str(starting_points_gdf["geometry"].to_wkt().to_list())
+            else:
+                starting_point_geom = Point(
+                    obj_in.starting_point.input[0].lon, obj_in.starting_point.input[0].lat
+                ).wkt
+                starting_points = [
+                    Point(data.lon, data.lat) for data in obj_in.starting_point.input
+                ]
+                starting_points_gdf = gpd.GeoDataFrame(geometry=starting_points, crs="EPSG:4326")
+            isochrone_shapes = buffer(
+                starting_points_gdf=starting_points_gdf,
+                buffer_distance=obj_in.settings.buffer_distance,
+                increment=50,
+            )
+            group_by_column = "steps"
+            grid = {
+                "surface": [],
+                "data": [],
+                "width": 0,
+                "height": 0,
+                "west": 0,
+                "north": 0,
+                "zoom": 0,
+                "depth": 1,
+                "version": 0,
+            }
+        else:
+            isochrone_shapes = generate_jsolines(
+                grid=grid, travel_time=obj_in.settings.travel_time, percentile=5
+            )
+            group_by_column = "minute"
         if obj_in.output.type.value != IsochroneOutputType.NETWORK.value:
             # Opportunity intersect
             opportunity_user_args = {
@@ -436,20 +477,22 @@ class CRUDIsochrone:
                 )
 
                 # Poi
-                poi_count = opportunity_count.count_poi(group_by_column="minute")
+                poi_count = opportunity_count.count_poi(group_by_column=group_by_column)
                 # Population
-                population_count = opportunity_count.count_population(group_by_columns=["minute"])
+                population_count = opportunity_count.count_population(
+                    group_by_columns=[group_by_column]
+                )
 
                 opportunities = [poi_count, population_count]
                 if obj_in.mode.value != IsochroneMode.TRANSIT.value:
                     # Aoi
                     aoi_count = opportunity_count.count_aoi(
-                        group_by_columns=["minute", "category"]
+                        group_by_columns=[group_by_column, "category"]
                     )
                     opportunities.append(aoi_count)
 
                 opportunities = merge_dicts(*opportunities)
-                opportunities = self.restructure_dict(opportunities)
+                opportunities = self.restructure_dict(opportunities, step=step_size)
                 grid["accessibility"] = {
                     "starting_points": starting_point_geom,
                     "opportunities": opportunities,
@@ -483,8 +526,9 @@ class CRUDIsochrone:
                     # clip the isochrone shapes to the regions
                     isochrone_clip = clip(isochrone_shapes["incremental"], region["geometry"])
                     # adds a column which combines the region id and the isochrone minute to avoid calling the opportunity intersect multiple times within the loop
+
                     isochrone_clip["region"] = isochrone_clip.apply(
-                        lambda x: "{}_x_{}".format(region["name"], x.minute), axis=1
+                        lambda x: "{}_x_{}".format(region["name"], x.get(group_by_column)), axis=1
                     )
                     isochrone_clip.set_crs(epsg=4326, inplace=True)
 
@@ -517,8 +561,7 @@ class CRUDIsochrone:
                 # population count
                 for region, population_count in regions_count.items():
                     population_reached = self.restructure_dict(
-                        remove_keys(population_count, ["total"]),
-                        max_minute=obj_in.settings.travel_time,
+                        remove_keys(population_count, ["total"])
                     )
                     population_reached["population"] = [
                         int(x) for x in population_reached["population"]
@@ -538,6 +581,12 @@ class CRUDIsochrone:
                 grid["accessibility"] = {
                     "starting_points": starting_point_geom,
                     "opportunities": dict(opportunities),
+                }
+            if obj_in.mode.value == IsochroneMode.BUFFER.value:
+                grid["accessibility"]["buffer"] = {
+                    "steps": 50,  # in meters
+                    "distance": obj_in.settings.buffer_distance,
+                    "geojson": isochrone_shapes["full"].to_json(),
                 }
             grid_encoded = encode_r5_grid(grid)
             result = Response(bytes(grid_encoded))
