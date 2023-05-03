@@ -12,11 +12,10 @@
     "@commitlint/config-conventional": "^17.6.1",
     "commitizen": "^4.3.0",
     "eslint": "^7.32.0",
-    "eslint-config-custom": "workspace:*",
     "husky": "^8.0.3",
     "prettier": "^2.5.1",
     "turbo": "latest"
   },
   "packageManager": "pnpm@7.15.0",
-  "name": "client-v2"
+  "name": "p4b-client-monorepo"
 }

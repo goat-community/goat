@@ -1,7 +1,21 @@
 VersionInfo.ts
 
-.next
 .turbo
 coverage
 dist
 compiled
+node_modules
+.next
+public
+**/**/node_modules
+**/**/.next
+**/**/public
+
+*.lock
+*.log
+
+.gitignore
+.npmignore
+.prettierignore
+.DS_Store
+.eslintignore

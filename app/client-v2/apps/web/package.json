@@ -9,6 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@deck.gl/aggregation-layers": "^8.9.12",
+    "@deck.gl/core": "^8.9.12",
+    "@deck.gl/geo-layers": "^8.9.12",
+    "@deck.gl/json": "^8.9.12",
+    "@deck.gl/layers": "^8.9.12",
+    "@deck.gl/mapbox": "^8.9.12",
+    "@deck.gl/react": "^8.9.12",
+    "deck.gl": "^8.9.12",
     "next": "latest",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -18,7 +26,7 @@
     "@types/node": "^17.0.12",
     "@types/react": "^18.0.22",
     "@types/react-dom": "^18.0.7",
-    "eslint-config-custom": "workspace:*",
+    "@p4b/config": "*",
     "tsconfig": "workspace:*",
     "typescript": "^4.5.3"
   }
