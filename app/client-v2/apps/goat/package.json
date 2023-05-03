@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "@p4b/goat",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -16,18 +16,23 @@
     "@deck.gl/layers": "^8.9.12",
     "@deck.gl/mapbox": "^8.9.12",
     "@deck.gl/react": "^8.9.12",
+    "@emotion/react": "^11.10.8",
+    "@emotion/styled": "^11.10.8",
+    "@mui/material": "^5.12.3",
+    "@p4b/ui": "*",
     "deck.gl": "^8.9.12",
     "next": "latest",
+    "next-auth": "^4.22.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "ui": "workspace:*"
+    "tss-react": "^4.8.3"
   },
   "devDependencies": {
+    "@p4b/config": "*",
+    "@p4b/tsconfig": "*",
     "@types/node": "^17.0.12",
     "@types/react": "^18.0.22",
     "@types/react-dom": "^18.0.7",
-    "@p4b/config": "*",
-    "tsconfig": "workspace:*",
     "typescript": "^4.5.3"
   }
 }

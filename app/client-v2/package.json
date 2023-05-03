@@ -5,7 +5,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "prepare": "husky install"
+    "prepare": "cd ../../ && husky install ./app/client-v2/.husky",
+    "goat": "turbo run dev --filter=goat"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.1",

@@ -1,5 +1,5 @@
 {
-  "name": "ui",
+  "name": "@p4b/ui",
   "version": "0.0.0",
   "main": "./index.tsx",
   "types": "./index.tsx",
@@ -8,12 +8,17 @@
     "lint": "eslint \"**/*.ts*\""
   },
   "devDependencies": {
+    "@p4b/config": "*",
+    "@p4b/tsconfig": "*",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "eslint": "^7.32.0",
-    "@p4b/config": "*",
-    "react": "^17.0.2",
-    "tsconfig": "workspace:*",
-    "typescript": "^4.5.2"
+    "react": "^18.2.0",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.10.8",
+    "@emotion/styled": "^11.10.8",
+    "@mui/material": "^5.12.3"
   }
 }
