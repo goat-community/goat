@@ -11,6 +11,8 @@
   "devDependencies": {
     "@commitlint/cli": "^17.6.1",
     "@commitlint/config-conventional": "^17.6.1",
+    "@deploysentinel/playwright": "^0.3.4",
+    "@playwright/test": "^1.33.0",
     "commitizen": "^4.3.0",
     "eslint": "^7.32.0",
     "husky": "^8.0.3",
