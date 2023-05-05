@@ -1,3 +1,4 @@
+import time
 import pyximport
 
 pyximport.install()
@@ -58,7 +59,6 @@ class BaseHeatmap:
     def read_h3_grids_study_areas(
         self, resolution: int, buffer_size: int, study_area_ids: list[int] = []
     ) -> list[str]:
-
         """Reads grid ids for study areas.
 
         Args:
@@ -130,7 +130,6 @@ class ReadHeatmap(BaseHeatmap):
         self,
         heatmap_settings: HeatmapSettings,
     ) -> list[dict]:
-
         bulk_ids = self.read_bulk_ids(heatmap_settings.study_area_ids)
         grid_array, h_polygons = self.read_hexagons(
             heatmap_settings.study_area_ids, heatmap_settings.resolution
@@ -168,7 +167,6 @@ class ReadHeatmap(BaseHeatmap):
                 CalculationTypes.comparison,
                 CalculationTypes.scenario,
             ]:
-
                 opportunities_modified = gpd.read_postgis(
                     heatmap_core.read_population_modified_sql(heatmap_settings.scenario.id),
                     legacy_engine,
@@ -201,7 +199,6 @@ class ReadHeatmap(BaseHeatmap):
             return result
 
         else:
-
             matrix_base_path = os.path.join(
                 settings.OPPORTUNITY_MATRICES_PATH, heatmap_settings.mode.value, profile
             )
@@ -803,6 +800,12 @@ class ReadHeatmap(BaseHeatmap):
             )
         geojson = {"type": "FeatureCollection", "features": features}
         return geojson
+
+    def to_geopackage(self, results):
+        start_time = time.time()
+        results = heatmap_core.heatmap_togeopackage(results)
+        print("to_geopackage time", time.time() - start_time)
+        return results
 
 
 read_heatmap = ReadHeatmap
