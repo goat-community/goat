@@ -11,11 +11,12 @@ from src.crud.base import CRUDBase
 from src.core.config import settings
 from src.db import models
 from src.endpoints import deps
+import io
 from src.resources.enums import (
     IsochroneExportType,
     ReturnType,
 )
-from src.schemas.heatmap import HeatmapSettings
+from src.schemas.heatmap import HeatmapSettings, ReturnTypeHeatmap
 from src.schemas.heatmap import request_examples as heatmap_request_examples
 from src.schemas.indicators import (
     CalculateOevGueteklassenParameters,
@@ -28,7 +29,7 @@ from src.schemas.isochrone import (
     IsochroneOutputType,
     request_examples,
 )
-from src.utils import return_geojson_or_geobuf
+from src.utils import delete_file, return_geojson_or_geobuf
 from src.workers.method_connector import (
     read_heatmap_async,
     read_pt_oev_gueteklassen_async,
@@ -125,6 +126,15 @@ async def calculate_heatmap(
         )
     else:
         results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
+        if heatmap_settings["return_type"] == ReturnTypeHeatmap.geopackage.value:
+            with open(results.name, "rb") as f:
+                file_content = io.BytesIO(f.read())
+                delete_file(results.name)
+                return StreamingResponse(
+                    file_content,
+                    media_type="application/octet-stream",
+                    headers={"Content-Disposition": "attachment; filename=heatmap.gpkg"},
+                )
         return return_geojson_or_geobuf(results, return_type="geobuf")
     return {"task_id": task.id}
 
