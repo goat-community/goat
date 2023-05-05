@@ -1,0 +1,22 @@
+{
+  "name": "translations",
+  "version": "0.0.1",
+  "main": "./index.tsx",
+  "types": "./index.tsx",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint \"**/*.ts*\""
+  },
+  "devDependencies": {
+    "@p4b/config": "*",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "eslint": "^7.32.0",
+    "react": "^17.0.2",
+    "typescript": "^4.5.2"
+  },
+  "dependencies": {
+    "i18next": "^22.4.15",
+    "react-i18next": "^12.2.2"
+  }
+}

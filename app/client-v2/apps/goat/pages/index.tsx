@@ -1,4 +1,6 @@
 import Head from "next/head";
+import { Translator, LocaleSwitcher } from "translations";
+
 
 export default function Home() {
   return (
@@ -6,7 +8,10 @@ export default function Home() {
       <Head>
         <title>Goat</title>
       </Head>
-      <h1>Goat</h1>
+      <h1>
+        <Translator text="hello" />
+        <LocaleSwitcher />
+      </h1>
     </>
   );
 }
