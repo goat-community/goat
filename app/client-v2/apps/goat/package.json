@@ -21,7 +21,7 @@
     "@mui/material": "^5.12.3",
     "@p4b/ui": "*",
     "deck.gl": "^8.9.12",
-    "next": "latest",
+    "next": "13.4.0",
     "next-auth": "^4.22.1",
     "next-i18next": "^13.2.2",
     "react": "^18.2.0",
