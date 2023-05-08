@@ -6,7 +6,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "cd ../../ && husky install ./app/client-v2/.husky",
-    "goat": "turbo run dev --filter=goat"
+    "goat": "turbo run dev --filter=goat",
+    "build-keycloak-theme": "cd packages && pnpm build && keycloakify"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.1",
