@@ -6,7 +6,7 @@ const { PageStory } = createPageStory({
 });
 
 export default {
-    title: "login/Login",
+    title: "keycloak/Login",
     component: PageStory,
 } as ComponentMeta<typeof PageStory>;
 

@@ -1,5 +1,5 @@
 {
-  "name": "storybook",
+  "name": "@p4b/storybook",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -22,14 +22,20 @@
     "typescript": "5.0.4"
   },
   "devDependencies": {
-    "@storybook/addon-essentials": "^7.0.8",
-    "@storybook/addon-interactions": "^7.0.8",
-    "@storybook/addon-links": "^7.0.8",
-    "@storybook/blocks": "^7.0.8",
-    "@storybook/nextjs": "^7.0.8",
-    "@storybook/react": "^7.0.8",
-    "@storybook/testing-library": "^0.0.14-next.2",
+    "@storybook/addon-actions": "^7.0.9",
+    "@storybook/addon-docs": "^7.0.9",
+    "@storybook/addon-essentials": "^7.0.9",
+    "@storybook/addon-interactions": "^7.0.9",
+    "@storybook/addon-links": "^7.0.9",
+    "@storybook/blocks": "^7.0.9",
+    "@storybook/manager-api": "^7.0.9",
+    "@storybook/nextjs": "^7.0.9",
+    "@storybook/node-logger": "^7.0.9",
+    "@storybook/react": "^7.0.9",
+    "@storybook/testing-library": "^0.1.0",
+    "@storybook/theming": "^7.0.9",
     "eslint-plugin-storybook": "^0.6.12",
-    "storybook": "^7.0.8"
+    "storybook": "^7.0.9",
+    "storybook-dark-mode": "^3.0.0"
   }
 }

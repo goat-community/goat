@@ -8,7 +8,7 @@ const { PageStory } = createPageStory({
 });
 
 export default {
-    title: "login/LoginResetPassword",
+    title: "keycloak/LoginResetPassword",
     component: PageStory,
 } as ComponentMeta<typeof PageStory>;
 
