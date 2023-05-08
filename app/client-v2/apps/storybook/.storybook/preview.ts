@@ -12,8 +12,8 @@ const preview: Preview = {
       },
     },
     darkMode: {
-      light: lightTheme,
       dark: darkTheme,
+      light: lightTheme
     },
     viewport: {
       viewports: {
