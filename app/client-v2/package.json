@@ -1,0 +1,24 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "prepare": "cd ../../ && husky install ./app/client-v2/.husky",
+    "goat": "turbo run dev --filter=goat"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.6.1",
+    "@commitlint/config-conventional": "^17.6.1",
+    "@deploysentinel/playwright": "^0.3.4",
+    "@playwright/test": "^1.33.0",
+    "commitizen": "^4.3.0",
+    "eslint": "^7.32.0",
+    "husky": "^8.0.3",
+    "prettier": "^2.5.1",
+    "turbo": "latest"
+  },
+  "packageManager": "pnpm@7.15.0",
+  "name": "p4b-client-monorepo"
+}
