@@ -39,6 +39,18 @@
             "console": "integratedTerminal",
             "justMyCode": false
         },
+        {            
+            "name": "DB: Manage functions and triggers",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/db/sql/init_sql.py",
+            "console": "integratedTerminal",
+            "args": [
+                "update", 
+                "-m", "functions"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
         {
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",

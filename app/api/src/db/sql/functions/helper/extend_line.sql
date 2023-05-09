@@ -41,6 +41,11 @@ BEGIN
 		RAISE EXCEPTION 'Please specify a valid point_to_extend type.';
 	END IF; 
 
+	If new_line IS NULL THEN 
+		RAISE NOTICE 'The new line is NULL. Please check the input parameters.';
+		new_line = geom;
+	END IF; 
+
 	RETURN new_line;
 END
 $function$

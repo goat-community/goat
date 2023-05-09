@@ -68,7 +68,9 @@
                       </template>
                     </v-select>
                   </v-col>
-                  <template v-if="!['transit', 'car'].includes(routing)">
+                  <template
+                    v-if="!['transit', 'car', 'buffer'].includes(routing)"
+                  >
                     <v-col class="d-flex mb-0 pb-2" cols="12" sm="6">
                       <v-text-field
                         :label="$t(`isochrones.options.speed`)"
@@ -85,6 +87,23 @@
                       ></v-text-field>
                     </v-col>
                   </template>
+                  <!-- <template v-if="['buffer'].includes(routing)">
+                    <v-col class="d-flex mb-0 pb-2" cols="12" sm="6">
+                      <v-text-field
+                        :label="$t(`isochrones.options.bufferDistance`)"
+                        type="number"
+                        step="50"
+                        min="50"
+                        max="3000"
+                        ref="input"
+                        :rules="[distanceRule]"
+                        v-model="bufferDistance"
+                        suffix="m"
+                        hide-details
+                        class="mb-1"
+                      ></v-text-field>
+                    </v-col>
+                  </template> -->
                   <template v-if="['transit', 'car'].includes(routing)">
                     <!-- DATE -->
                     <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
@@ -648,7 +667,9 @@
 
                           <template
                             v-if="
-                              !['transit', 'car'].includes(calculation.routing)
+                              !['transit', 'car', 'buffer'].includes(
+                                calculation.routing
+                              )
                             "
                           >
                             <v-icon small class="text-xs-center mx-2"
@@ -682,6 +703,14 @@
                                 )
                               }}</span
                             >
+                          </template>
+                          <template v-if="calculation.routing === 'buffer'">
+                            <span
+                              class="pl-1 ml-1 text-xs-center"
+                              style="border-left: 1px solid #424242"
+                            >
+                              50 - 3000 m
+                            </span>
                           </template>
 
                           <span
@@ -720,6 +749,7 @@
                           v-if="
                             ![
                               'transit',
+                              'buffer',
                               'cycling_standard',
                               'cycling_pedelec'
                             ].includes(calculation.routing) &&
@@ -815,17 +845,24 @@
                           <p
                             style="font-size: 12px; font-weight: 400; margin-bottom: 0; padding-top: 25px; width: fit-content; text-align: center; line-height: 115%;"
                           >
-                            {{
-                              $t("isochrones.tableData.travelTimeSlider").split(
-                                " "
-                              )[0]
-                            }}
-                            <br />
-                            {{
-                              $t("isochrones.tableData.travelTimeSlider").split(
-                                " "
-                              )[1]
-                            }}
+                            <template v-if="calculation.routing !== 'buffer'">
+                              {{
+                                $t(
+                                  "isochrones.tableData.travelTimeSlider"
+                                ).split(" ")[0]
+                              }}
+                              <br />
+                              {{
+                                $t(
+                                  "isochrones.tableData.travelTimeSlider"
+                                ).split(" ")[1]
+                              }}
+                            </template>
+                            <template v-else>
+                              Distance
+                              <br />
+                              (m)
+                            </template>
                           </p>
                         </div>
                       </v-col>
@@ -842,7 +879,8 @@
                           :max="getMaxIsochroneRange"
                           :label="
                             traveltimeLabel(
-                              calculationTravelTime[calculation.id - 1]
+                              calculationTravelTime[calculation.id - 1],
+                              calculation.routing
                             )
                           "
                           @input="
@@ -947,6 +985,11 @@ export default {
       if (val > 20) return "Please enter a number not greater than 20";
       return true;
     },
+    distanceRule: val => {
+      if (val < 50) return "Please enter a number greater than 50";
+      if (val > 3000) return "Please enter a number not greater than 3000";
+      return true;
+    },
     isIsochroneBusy: false,
     isIsochroneCalculationTypeElVisible: true,
     isIsochroneStartElVisible: true,
@@ -986,7 +1029,7 @@ export default {
     getMaxIsochroneRange() {
       let maxIsochroneRange = 60;
       const walkingCyclingCalculations = this.selectedCalculations.filter(
-        c => !["transit", "car"].includes(c.routing)
+        c => !["transit", "car", "buffer"].includes(c.routing)
       );
       if (walkingCyclingCalculations.length > 0) {
         maxIsochroneRange = 20;
@@ -1017,6 +1060,7 @@ export default {
       time: "time",
       speed: "speed",
       routing: "routing",
+      // bufferDistance: "bufferDistance",
       calculations: "calculations",
       isochroneLayer: "isochroneLayer",
       isochroneOverlayLayer: "isochroneOverlayLayer",
@@ -1076,7 +1120,10 @@ export default {
     }
   },
   methods: {
-    traveltimeLabel(time) {
+    traveltimeLabel(time, mode) {
+      if (mode === "buffer") {
+        time = time * 50; // converts to meters
+      }
       if (time < 10) {
         return "0" + time;
       } else {
@@ -1118,7 +1165,6 @@ export default {
         selectedCalculation.additionalData[type] &&
         selectedCalculation.additionalData[type].data
       ) {
-        // Invoked from isochrone drag event
         selectedCalculation.additionalData[type].data.forEach(feature => {
           if (this.isochroneLayer.getSource().hasFeature(feature)) {
             this.isochroneLayer.getSource().removeFeature(feature);
@@ -1487,14 +1533,20 @@ export default {
           region.push(geometryToWKT(geometry));
         }
       });
+      let routing_profile = this.routing;
+      let speed = this.speed;
+      if (this.routing === "buffer") {
+        routing_profile = "walking_standard";
+        speed = 5;
+      }
       ApiService.post(`/indicators/isochrone/multi/count-pois`, {
         region_type: this.multiIsochroneMethod,
         region,
         scenario_id: this.activeScenario || 0, //TODO: Get scenario id
         modus: this.calculationMode.active,
-        routing_profile: this.routing,
+        routing_profile,
         minutes: this.time,
-        speed: this.speed,
+        speed,
         amenities: this.selectedPoisOnlyKeys
       })
         .then(response => {
@@ -1592,11 +1644,20 @@ export default {
       let _routing = this.routing; //store selected routing for later use
       let _type = this.type; //store selected type for later use
       let mode = routing;
+      const isochroneRange = this.isochroneRange;
       //-- SETTINGS --//
-      let settings = {
-        travel_time: 20, //TODO: Make this configurable
-        speed: this.speed
-      };
+      let settings = {};
+      if (mode === "buffer") {
+        settings = {
+          buffer_distance: 3000,
+          travel_time: 60
+        };
+      } else {
+        settings = {
+          travel_time: 20, //TODO: Make this configurable
+          speed: this.speed
+        };
+      }
       if (routing.includes("walking") || routing.includes("cycling")) {
         routing = routing.split("_");
         if (routing[0] === "walking") {
@@ -1722,6 +1783,7 @@ export default {
           output
         });
       }
+
       this.isMapBusy = true;
       this.isIsochroneBusy = true;
       const promiseArray = [];
@@ -1753,16 +1815,15 @@ export default {
           results.forEach((response, index) => {
             if (response.data) {
               const payload = payloads[index];
-              const isochroneSurface = parseTimesData(response.data);
+              let catchmentFeature;
+              let rawData;
               let singleValuedSurface = {};
-              if (isochroneSurface.depth === 1) {
-                singleValuedSurface = isochroneSurface;
-                singleValuedSurface["surface"] = isochroneSurface.data;
+              rawData = parseTimesData(response.data);
+              if (rawData.depth === 1) {
+                singleValuedSurface = rawData;
+                singleValuedSurface["surface"] = rawData.data;
               } else {
-                singleValuedSurface = computeSingleValuedSurface(
-                  isochroneSurface,
-                  5
-                );
+                singleValuedSurface = computeSingleValuedSurface(rawData, 5);
               }
               const {
                 surface,
@@ -1773,18 +1834,29 @@ export default {
                 zoom
                 // eslint-disable-next-line no-undef
               } = singleValuedSurface;
-              const isochronePolygon = jsolines({
-                surface,
-                width,
-                height,
-                cutoff: this.isochroneRange,
-                project: ([x, y]) => {
-                  const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-                  return [ll.lon, ll.lat];
-                },
-                excludeHoles: true
-              });
-              let olFeatures = geojsonToFeature(isochronePolygon, {
+              if (mode === "buffer") {
+                const rawDataFeatures = JSON.parse(
+                  rawData["accessibility"]["buffer"]["geojson"]
+                );
+                catchmentFeature = rawDataFeatures.features.filter(
+                  feature => feature.properties.steps == isochroneRange
+                );
+                singleValuedSurface = rawData;
+              } else {
+                catchmentFeature = jsolines({
+                  surface,
+                  width,
+                  height,
+                  cutoff: this.isochroneRange,
+                  project: ([x, y]) => {
+                    const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+                    return [ll.lon, ll.lat];
+                  },
+                  excludeHoles: true
+                });
+              }
+
+              let olFeatures = geojsonToFeature(catchmentFeature, {
                 dataProjection: "EPSG:4326",
                 featureProjection: "EPSG:3857"
               });
@@ -1792,7 +1864,7 @@ export default {
                 type: _type,
                 routing: _routing,
                 config: payload,
-                rawData: isochroneSurface,
+                rawData: rawData,
                 surfaceData: singleValuedSurface,
                 feature: olFeatures[0],
                 stroke: {
@@ -1842,6 +1914,20 @@ export default {
                       dashSpace: 0
                     });
                     this.calculationTravelTime.push(10);
+                    const notBufferCalculations = this.selectedCalculations.filter(
+                      calculation => calculation.routing !== "buffer"
+                    );
+                    const bufferCalculations = this.selectedCalculations.filter(
+                      calculation => calculation.routing === "buffer"
+                    );
+                    if (
+                      (notBufferCalculations.length > 0 &&
+                        calculation.routing === "buffer") ||
+                      (bufferCalculations.length > 0 &&
+                        calculation.routing !== "buffer")
+                    ) {
+                      this.selectedCalculations = [];
+                    }
                     if (this.selectedCalculations.length === 2) {
                       // Remove first calculation if length is already 2
                       this.selectedCalculations.shift();
@@ -1941,7 +2027,7 @@ export default {
             const calculation = this.selectedCalculations.find(
               c => c.id === calculationId
             );
-            if (calculation.config.mode !== "transit") {
+            if (!["transit", "buffer"].includes(calculation.config.mode)) {
               const lonLat = toLonLat(evt.coordinate);
               const pixel = toPixel(lonLat, calculation.surfaceData.zoom);
               const x = Math.floor(pixel.x - calculation.surfaceData.west);
@@ -2039,18 +2125,32 @@ export default {
                 zoom
                 // eslint-disable-next-line no-undef
               } = singleValuedSurface;
-              const isochronePolygon = jsolines({
-                surface,
-                width,
-                height,
-                cutoff: this.calculationTravelTime[calculation[0].id - 1],
-                project: ([x, y]) => {
-                  const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-                  return [ll.lon, ll.lat];
-                },
-                excludeHoles: true
-              });
-              let olFeatures = geojsonToFeature(isochronePolygon, {
+              let catchmentFeature;
+              if (calculation[0].config.mode === "buffer") {
+                const rawData = isochroneSurface;
+                const rawDataFeatures = JSON.parse(
+                  rawData["accessibility"]["buffer"]["geojson"]
+                );
+                catchmentFeature = rawDataFeatures.features.filter(
+                  feature =>
+                    feature.properties.steps ==
+                    this.calculationTravelTime[calculation[0].id - 1]
+                );
+                singleValuedSurface = rawData;
+              } else {
+                catchmentFeature = jsolines({
+                  surface,
+                  width,
+                  height,
+                  cutoff: this.calculationTravelTime[calculation[0].id - 1],
+                  project: ([x, y]) => {
+                    const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+                    return [ll.lon, ll.lat];
+                  },
+                  excludeHoles: true
+                });
+              }
+              let olFeatures = geojsonToFeature(catchmentFeature, {
                 dataProjection: "EPSG:4326",
                 featureProjection: "EPSG:3857"
               });
@@ -2126,6 +2226,20 @@ export default {
           }
         );
       } else {
+        const notBufferCalculations = this.selectedCalculations.filter(
+          calculation => calculation.routing !== "buffer"
+        );
+        const bufferCalculations = this.selectedCalculations.filter(
+          calculation => calculation.routing === "buffer"
+        );
+        if (
+          (notBufferCalculations.length > 0 &&
+            calculation.routing === "buffer") ||
+          (bufferCalculations.length > 0 && calculation.routing !== "buffer")
+        ) {
+          this.selectedCalculations = [];
+        }
+
         this.lastActivatedIsochrone = calculation.id;
         if (this.selectedCalculations.length === 2) {
           // Remove first calculation if length is already 2

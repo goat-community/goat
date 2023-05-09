@@ -43,6 +43,7 @@ GROUP_ORDER = [
     "indicator",
 ]
 
+
 # Used for output, Doesn't fetch database
 class LayerGroupBase(BaseModel):
     buildings_landuse: Optional[List[str]] = []
@@ -57,12 +58,11 @@ class LayerGroupBase(BaseModel):
         """
         Convert me to listing config to save into databse
         """
-        out_config = {"layer_groups": []}
+        out_config = []
         for group in GROUP_ORDER:
-            data = {}
-            data[group] = getattr(self, group)
-            out_config["layer_groups"].append(data)
-
+            value = getattr(self, group)
+            if value:
+                out_config.append({group: value})
         return out_config
 
 

@@ -1,4 +1,6 @@
-CREATE OR REPLACE FUNCTION basic.network_modification(scenario_id_input integer)
+
+
+CREATE OR REPLACE FUNCTION basic.network_modification(scenario_id_input  integer)
  RETURNS SETOF integer
  LANGUAGE plpgsql
 AS $function$
@@ -16,7 +18,7 @@ BEGIN
 	WHERE e.scenario_id = scenario_id_input;
 	DELETE FROM basic.node n 
 	WHERE n.scenario_id = scenario_id_input; 
-	DROP TABLE IF EXISTS drawn_features, existing_network, intersection_existing_network, drawn_features_union, new_network, delete_extended_part, vertices_to_assign; 
+	DROP TABLE IF EXISTS split_drawn_features, drawn_features, existing_network, intersection_existing_network, drawn_features_union, new_network, delete_extended_part, vertices_to_assign; 
 		
 	DROP TABLE IF EXISTS modified_attributes_only;
 	CREATE TEMP TABLE modified_attributes_only AS 
@@ -43,12 +45,28 @@ BEGIN
 	/*Round start and end point for snapping*/
 	DROP TABLE IF EXISTS snapped_drawn_features; 
  	CREATE TEMP TABLE snapped_drawn_features AS 
-	SELECT d.id AS did, st_startpoint(d.geom) geom, 's' AS point_type, FALSE AS snapped, NULL::integer AS node_id 
-	FROM drawn_features d
-	UNION ALL 
-	SELECT d.id AS did, st_endpoint(d.geom) geom, 'e' AS point_type, FALSE AS snapped, NULL AS node_id  
-	FROM drawn_features d; 
-
+ 	WITH start_end_point AS 
+ 	(
+		SELECT d.id AS did, st_startpoint(d.geom) geom, 's' AS point_type, FALSE AS snapped, NULL::integer AS node_id 
+		FROM drawn_features d
+		UNION ALL 
+		SELECT d.id AS did, st_endpoint(d.geom) geom, 'e' AS point_type, FALSE AS snapped, NULL AS node_id  
+		FROM drawn_features d
+	),
+	clusters AS 
+	(
+		SELECT did, geom, ST_ClusterDBSCAN(geom, eps := 0.00001, minpoints := 1) OVER() AS cid, point_type
+		FROM start_end_point
+	),
+	grouped AS 
+	(
+		SELECT ARRAY_AGG(did) AS did, ST_CENTROID(ST_COLLECT(geom)) AS geom, ARRAY_AGG(point_type)::text[] AS point_types
+		FROM clusters 
+		GROUP BY cid 
+	)
+	SELECT UNNEST(did) AS did, geom, UNNEST(point_types) AS point_type, FALSE AS snapped, NULL::integer AS node_id, ARRAY_LENGTH(point_types, 1) AS group_size   
+	FROM grouped; 
+	
 	ALTER TABLE snapped_drawn_features ADD COLUMN id serial; 
 	CREATE INDEX ON snapped_drawn_features USING GIST(geom);
 	CREATE INDEX ON snapped_drawn_features (id);
@@ -68,7 +86,6 @@ BEGIN
 		LIMIT 1
 	) s;
 	CREATE INDEX ON snapped_to_node USING GIST(node_geom); 	
-
 
 	UPDATE snapped_drawn_features d
 	SET geom = node_geom, snapped = TRUE, node_id = s.node_id 
@@ -98,7 +115,7 @@ BEGIN
 	FROM snapped_to_edge s 
 	WHERE s.did = d.did 
 	AND d.point_type = s.point_type;  
-
+	
 	/*Snapping to each other*/
 	DROP TABLE IF EXISTS snapped_to_each_other; 
 	CREATE TEMP TABLE snapped_to_each_other AS  
@@ -113,8 +130,13 @@ BEGIN
 		ORDER BY r.geom <-> ST_CLOSESTPOINT(n.geom, r.geom)
 		LIMIT 1
 	) s
-	WHERE r.snapped = False;
-	
+	WHERE r.snapped = FALSE
+	AND r.group_size = 1
+	UNION ALL 
+	SELECT s.id, s.did, s.point_type, s.geom, s.geom
+	FROM snapped_drawn_features s
+	WHERE s.group_size > 1; 
+
 	/*Update based on snapped to each other*/
 	UPDATE snapped_drawn_features d
 	SET geom = closest_point_edge, snapped = True
@@ -264,7 +286,7 @@ BEGIN
 	ELSE 
 		CREATE TEMP TABLE split_drawn_features AS
 		SELECT id AS did, basic.split_by_drawn_lines(id::integer, geom) AS geom, way_type, surface, wheelchair, lit, foot, bicycle, scenario_id, original_id  
-		FROM drawn_features
+		FROM drawn_features x
 		WHERE (way_type IS NULL OR way_type <> 'bridge')
 		UNION ALL 
 		SELECT id AS did, geom, way_type, surface, wheelchair, lit, foot, bicycle, scenario_id, original_id  
@@ -323,7 +345,7 @@ BEGIN
 	ALTER TABLE existing_network ADD COLUMN id serial;
 	ALTER TABLE existing_network ADD PRIMARY KEY(id);
 	CREATE INDEX ON existing_network USING GIST(geom);
-	
+
 	/*Assign vertices that where snapped to new features*/
 	UPDATE new_network n
 	SET SOURCE = s.node_id
@@ -341,20 +363,31 @@ BEGIN
 	AND ST_ASTEXT(st_endpoint(n.geom)) = ST_ASTEXT(s.geom); 
 
 	/*Create new vertices*/
-	DROP TABLE IF EXISTS loop_vertices; 
-	CREATE TEMP TABLE loop_vertices AS 
-	SELECT d.geom, ARRAY_AGG(id)::integer[] new_network_ids , ARRAY_AGG(point_type)::text[] AS point_types  
-	FROM 
-	(
-		SELECT st_startpoint(geom) geom, e.id, 's' AS point_type 
+	DROP TABLE IF EXISTS loop_vertices;
+	CREATE TEMP TABLE loop_vertices AS
+	WITH start_end_point AS 
+ 	(
+		SELECT e.id, st_startpoint(geom) geom, 's' AS point_type 
 		FROM new_network e 
 		WHERE SOURCE IS NULL 
 		UNION ALL 
-		SELECT st_endpoint(geom) geom, e.id, 'e' AS point_type 
+		SELECT e.id, st_endpoint(geom) geom, 'e' AS point_type 
 		FROM new_network e 
 		WHERE target IS NULL 
-	) d
-	GROUP BY d.geom;
+	),
+	clusters AS 
+	(
+		SELECT s.id, s.geom, ST_ClusterDBSCAN(geom, eps := 0.000001, minpoints := 1) OVER() AS cid, point_type
+		FROM start_end_point s
+	),
+	grouped AS 
+	(
+		SELECT ST_CENTROID(ST_COLLECT(geom)) AS geom, ARRAY_AGG(point_type)::text[] AS point_types, ARRAY_AGG(id)::integer[] new_network_ids
+		FROM clusters c
+		GROUP BY cid 
+	)
+	SELECT geom, point_types, new_network_ids
+	FROM grouped; 
 
 	DROP TABLE IF EXISTS new_vertices;  
 	CREATE TEMP TABLE new_vertices 
@@ -441,6 +474,7 @@ BEGIN
 	WHERE e.id = n.id 
 	AND n.point_type = 'e';
 
+
 	DROP TABLE IF EXISTS network_to_add;
 	CREATE TEMP TABLE network_to_add AS 
 	SELECT original_id, class_id, surface, foot, bicycle, geom, SOURCE, target, lit_classified, wheelchair_classified, impedance_surface  
@@ -525,3 +559,4 @@ BEGIN
 	*/
 END
 $function$;
+
