@@ -18,6 +18,7 @@ class ComputePoiUser(SQLModel):
 
 class HeatmapBulkResolution(int, Enum):
     """H3 Resolution Bulk."""
+
     active_mobility = 6
     motorized_transport = 6
 
@@ -33,12 +34,15 @@ class HeatmapMode(Enum):
     walking = "walking"
     cycling = "cycling"
     transit = "transit"
-    
+
+
 class HeatmapProfile(Enum):
     standard = "standard"
 
+
 class AggregatingDataSource(Enum):
     population = "population"
+
 
 class HeatmapType(Enum):
     modified_gaussian = "modified_gaussian"
@@ -56,6 +60,8 @@ class ReturnTypeHeatmap(Enum):
     geobuf = "geobuf"
     pbf = "pbf"
     shapefile = "shapefile"
+    geopackage = "geopackage"
+    kml = "kml"
 
 
 class AnalysisUnit(Enum):
@@ -92,8 +98,9 @@ class HeatmapClosestAverage(HeatmapBase):
 class HeatmapConfigConnectivity(BaseModel):
     max_traveltime: int = Field(None, le=60)
 
+
 class HeatmapConfigAggregatedData(BaseModel):
-    source : AggregatingDataSource
+    source: AggregatingDataSource
 
 
 class HeatmapSettingsBase(BaseModel):
@@ -103,6 +110,7 @@ class HeatmapSettingsBase(BaseModel):
     heatmap_config: dict
     analysis_unit: AnalysisUnit
     analysis_unit_size: Optional[int] = Field(10, description="Size of the analysis")
+    return_type: ReturnTypeHeatmap = "geojson"
     scenario: Optional[IsochroneScenario] = Field(
         {
             "id": 1,
@@ -111,8 +119,10 @@ class HeatmapSettingsBase(BaseModel):
         description="Isochrone scenario parameters. Only supported for POIs and Building scenario at the moment",
     )
 
+
 class HeatmapSettingsAggregatedData(HeatmapSettingsBase):
     heatmap_config: HeatmapConfigAggregatedData
+
 
 class HeatmapSettings0(HeatmapSettingsBase):
     """Setting for different heatmap types"""
@@ -126,13 +136,13 @@ class HeatmapSettings0(HeatmapSettingsBase):
         IsochroneCyclingProfile.STANDARD.value,
         description="Cycling profile.",
     )
-    
+
     heatmap_type: HeatmapType = Field(
         HeatmapType.modified_gaussian, description="Type of heatmap to compute"
     )
+
     @validator("heatmap_config")
     def heatmap_config_schema_connectivity(cls, value, values):
-
         if values["heatmap_type"] != HeatmapType.connectivity:
             return value
         else:
@@ -170,7 +180,10 @@ class HeatmapSettings0(HeatmapSettingsBase):
 class HeatmapSettings(BaseModel):
     def __new__(cls, *args, **kwargs):
         heatmap_type = kwargs.get("heatmap_type")
-        if heatmap_type == HeatmapType.aggregated_data.value or heatmap_type == HeatmapType.aggregated_data:
+        if (
+            heatmap_type == HeatmapType.aggregated_data.value
+            or heatmap_type == HeatmapType.aggregated_data
+        ):
             return HeatmapSettingsAggregatedData(*args, **kwargs)
         else:
             return HeatmapSettings0(*args, **kwargs)
@@ -394,7 +407,11 @@ request_examples = {
                     "discount_supermarket": {"weight": 1, "max_count": 1, "max_traveltime": 20},
                     "general_practitioner": {"weight": 1, "max_count": 1, "max_traveltime": 20},
                     "swimming_pool_outdoor": {"weight": 1, "max_count": 1, "max_traveltime": 20},
-                    "hauptschule_mittelschule": {"weight": 1, "max_count": 1, "max_traveltime": 20},
+                    "hauptschule_mittelschule": {
+                        "weight": 1,
+                        "max_count": 1,
+                        "max_traveltime": 20,
+                    },
                 },
             },
         },
@@ -459,7 +476,7 @@ request_examples = {
             "heatmap_config": {"max_traveltime": 10},
         },
     },
-    "aggregated_data_heatmap_10":{
+    "aggregated_data_heatmap_10": {
         "summary": "Aggregated data with hexagon resolution 10",
         "value": {
             "study_area_ids": [91620000],
@@ -470,9 +487,7 @@ request_examples = {
             "heatmap_type": "aggregated_data",
             "analysis_unit": "hexagon",
             "resolution": 10,
-            "heatmap_config": {
-                "source": "population"  
-            },
+            "heatmap_config": {"source": "population"},
         },
     },
     "modified_gaussian_population_6": {

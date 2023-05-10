@@ -1,3 +1,5 @@
+import base64
+import binascii
 import json
 import logging
 import math
@@ -1041,3 +1043,27 @@ def downsample_array(arr, new_shape, method="sum"):
         downsampled_arr = reshaped_arr.sum(axis=(1, 3))
 
     return downsampled_arr
+
+
+def hexlify_file(file_path: str):
+    with open(file_path, "rb") as f:
+        return binascii.hexlify(f.read()).decode("utf-8")
+
+
+def heatmap_meta_to_response(meta_data: dict):
+    if meta_data["data_type"] == "geojson":
+        return meta_data["data"]
+    else:
+        if meta_data["hexlified"]:
+            # Unhexlify the data
+            data = binascii.unhexlify(meta_data["data"])
+        else:
+            # Read the data from the file path
+            with open(meta_data["data"], "rb") as f:
+                data = f.read()
+
+        return Response(
+            data,
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={meta_data['file_name']}"},
+        )

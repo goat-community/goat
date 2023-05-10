@@ -28,7 +28,7 @@ from src.schemas.isochrone import (
     IsochroneOutputType,
     request_examples,
 )
-from src.utils import return_geojson_or_geobuf
+from src.utils import return_geojson_or_geobuf, heatmap_meta_to_response
 from src.workers.method_connector import (
     read_heatmap_async,
     read_pt_oev_gueteklassen_async,
@@ -123,10 +123,13 @@ async def calculate_heatmap(
             current_user=current_user,
             heatmap_settings=heatmap_settings,
         )
+        return {"task_id": task.id}
+    
     else:
         results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
-        return return_geojson_or_geobuf(results, return_type="geobuf")
-    return {"task_id": task.id}
+        return heatmap_meta_to_response(results)
+
+    
 
 
 @router.get("/pt-station-count")

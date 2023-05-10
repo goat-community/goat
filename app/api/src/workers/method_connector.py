@@ -4,9 +4,11 @@ import h3
 from shapely import Polygon
 
 from src.core.config import settings
+from src.core import config
 from src.core.opportunity import Opportunity
 from src.core.heatmap.heatmap_compute import ComputeHeatmap
 from src.core.heatmap.heatmap_read import ReadHeatmap
+from src.core.heatmap.heatmap_core import convert_geojson_to_others_ogr2ogr
 from src.db import models
 from src.db.session import legacy_engine
 from src.schemas.data_preparation import (
@@ -17,13 +19,14 @@ from src.schemas.heatmap import HeatmapSettings, HeatmapType, HeatmapConfigAggre
 from src.schemas.indicators import CalculateOevGueteklassenParameters
 from src.schemas.isochrone import IsochroneMode
 from src.crud.crud_indicator import indicator
+from src.utils import hexlify_file
 
 
 async def create_traveltime_matrices_async(current_super_user, parameters):
     current_super_user = models.User(**current_super_user)
     parameters = TravelTimeMatrixParametersSingleBulk(**parameters)
     compute_heatmap = ComputeHeatmap(current_user=current_super_user)
-    try: 
+    try:
         calculation_object = await compute_heatmap.create_calculation_object(
             isochrone_dto=parameters.isochrone_dto, bulk_id=parameters.bulk_id
         )
@@ -69,7 +72,6 @@ async def create_opportunity_matrices_async(user, parameters):
     # Compute base data
     if parameters.compute_base_data == True:
         for opportunity_type in opportunity_types:
-
             opportunity_type_read = opportunity_type
             if opportunity_type == "population":
                 opportunity_type_read = "population_grouped"
@@ -140,10 +142,10 @@ async def create_connectivity_matrices_async(current_super_user, parameters):
 
 async def read_heatmap_async(current_user, settings):
     current_user = models.User(**current_user)
-    settings = HeatmapSettings(**settings)
+    heatmap_settings = HeatmapSettings(**settings)
     heatmap = ReadHeatmap(current_user=current_user)
 
-    if settings.heatmap_type == HeatmapType.modified_gaussian_population:
+    if heatmap_settings.heatmap_type == HeatmapType.modified_gaussian_population:
         """
         This is a special case where we need to call the modified gaussian calculation twice.
         The first time we calculate the modified gaussian and the second time we calculate the population.
@@ -151,13 +153,13 @@ async def read_heatmap_async(current_user, settings):
         todo: This should be refactored in the future to be more generic
         """
         # Modified gaussian calculation
-        settings.heatmap_type = HeatmapType.modified_gaussian
-        modified_gausian_result = heatmap.read(settings)
+        heatmap_settings.heatmap_type = HeatmapType.modified_gaussian
+        modified_gausian_result = heatmap.read(heatmap_settings)
 
         # Population calculation
-        settings.heatmap_type = HeatmapType.aggregated_data
-        settings.heatmap_config = HeatmapConfigAggregatedData(**{"source": "population"})
-        population_result = heatmap.read(settings)
+        heatmap_settings.heatmap_type = HeatmapType.aggregated_data
+        heatmap_settings.heatmap_config = HeatmapConfigAggregatedData(**{"source": "population"})
+        population_result = heatmap.read(heatmap_settings)
 
         difference_quantiles = (
             population_result["population_class"] - modified_gausian_result["agg_class"]
@@ -172,14 +174,32 @@ async def read_heatmap_async(current_user, settings):
         }
 
     else:
-        result = heatmap.read(settings)
-        #TODO: Find the best place where to round the results as this should be done at the very end
-        #result["agg_class"] = result["agg_class"].round()
+        result = heatmap.read(heatmap_settings)
+        # TODO: Find the best place where to round the results as this should be done at the very end
+        # result["agg_class"] = result["agg_class"].round()
 
     # todo: Can be extended to other formats in the future based on return type
     result = heatmap.to_geojson(result)
+    if heatmap_settings.return_type.value != "geojson":
+        result = convert_geojson_to_others_ogr2ogr(
+            result, "Heatmap", heatmap_settings.return_type.value
+        )
 
-    return result
+    return_data = {
+        "data": result,
+        "data_type": heatmap_settings.return_type.value,
+        "file_name": "heatmap",
+        "hexlified": False,
+    }
+    if return_data["data_type"] != "geojson":
+        file_suffix = return_data["data"].split(".")[-1]
+        return_data["file_name"] = f"heatmap.{file_suffix}"
+
+    if config.settings.CELERY_BROKER_URL:
+        return_data["data"] = hexlify_file(result)
+        return_data["hexlified"] = True
+
+    return return_data
 
 
 async def read_pt_station_count_async(current_user, payload):
