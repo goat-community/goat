@@ -8,6 +8,13 @@
     "service": "api",
     "workspaceFolder": "/app",
     "shutdownAction": "none",
+    "mounts": [
+        "source=${localWorkspaceFolder}/../..,target=/goat,type=bind,consistency=cached"
+    ],
+    "remoteEnv": {
+        "GIT_WORK_TREE": "/goat",
+        "GIT_DIR": "/goat/.git"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
@@ -16,7 +23,9 @@
                 "ms-vscode.cpptools",
                 "twxs.cmake",
                 "ms-vscode.cmake-tools",
-                "njpwerner.autodocstring"
+                "njpwerner.autodocstring",
+                "donjayamanne.githistory",
+                "ms-python.black-formatter"
             ],
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",

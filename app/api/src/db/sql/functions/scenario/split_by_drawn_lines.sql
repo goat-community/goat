@@ -10,7 +10,8 @@ CREATE OR REPLACE FUNCTION basic.split_by_drawn_lines(id_input integer, input_ge
 		does_intersect = (
 			SELECT TRUE 
 			FROM drawn_features d 
-			WHERE ST_Intersects(d.geom, (SELECT geom FROM drawn_features WHERE id = id_input))
+			WHERE ST_Intersects(basic.extend_line(d.geom, 0.00001, 'both'), 
+			(SELECT geom FROM drawn_features WHERE id = id_input))
 			LIMIT 1
 		); 
 		

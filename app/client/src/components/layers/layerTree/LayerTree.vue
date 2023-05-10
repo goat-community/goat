@@ -205,6 +205,8 @@ import { EventBus } from "../../../EventBus";
 import InLegend from "../../viewer/ol/controls/InLegend";
 import LayerOrder from "../layerOrder/LayerOrder";
 import StyleDialog from "../../styling/StyleDialog";
+// import { Style, Fill } from "ol/style";
+import { Feature } from "ol";
 import Legend from "../../viewer/ol/controls/Legend";
 import ImportExternalLayers from "../importLayers/ImportExternalLayers.vue";
 
@@ -487,7 +489,58 @@ export default {
       }
       this.currentItem = item;
     },
+    opacityToHex(opacity, hexpart) {
+      // Convert the opacity to a 8-bit integer between 0 and 255
+      const alpha = Math.round(opacity * 255);
+      // Convert the alpha value to a hex string
+      const hex = alpha.toString(16).padStart(2, "0");
+      // Return the hex string with an alpha channel
+      return `#${hexpart}${hex}`;
+    },
+    setFillOpacity(style, opacity) {
+      // Get the fill style from the style
+      // style[0].getImage().setOpacity(opacity);
+      style[0].setFill("#000000");
+      // console.log(
+      //   style[0],
+      //
+      // );
+      style[0]
+        .getImage()
+        .getFill()
+        .setColor(
+          this.opacityToHex(
+            opacity,
+            style[0]
+              .getImage()
+              .getFill()
+              .getColor()
+              .slice(1)
+          )
+        );
+      console.log(style[0]);
+      // if (fill instanceof Fill) {
+      //   // Get the color of the fill style and split it into RGBA components
+      //   const color = fill.getColor();
+      //   // eslint-disable-next-line
+      //   const [r, g, b, a] = color;
+      //   // Set the new opacity value
+      //   const newColor = [r, g, b, opacity];
+      //   // Update the fill color with the new opacity value
+      //   fill.setColor(newColor);
+      // }
+      return style[0];
+    },
     changeLayerOpacity(value, layer) {
+      if (layer.get("type") == "MVT") {
+        const layerStyleFn = layer.getStyle();
+        const feature = new Feature();
+        const resolution = 10;
+        const layerStyle = layerStyleFn(feature, resolution);
+
+        let new_style = this.setFillOpacity(layerStyle, value);
+        layer.setStyle(new_style);
+      }
       layer.setOpacity(value);
     },
     // Importing built in layers from a local js file
