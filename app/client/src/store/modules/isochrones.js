@@ -199,10 +199,7 @@ const getters = {
       r => r.type === "transit"
     );
     if (routing.length > 0) {
-      const transitModes = [
-        ...routing[0].transit_modes,
-        ...state.transitRouteTypeExtensions
-      ];
+      const transitModes = [...routing[0].transit_modes];
       transitModes.forEach(t => {
         const typeNr = state.transitRouteTypes[t.type];
         obj[typeNr] = {
