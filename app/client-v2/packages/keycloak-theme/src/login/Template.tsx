@@ -4,6 +4,7 @@ import { type TemplateProps } from "keycloakify/login/TemplateProps";
 import { useGetClassName } from "keycloakify/login/lib/useGetClassName";
 import { assert } from "keycloakify/tools/assert";
 import { clsx } from "keycloakify/tools/clsx";
+import React from "react";
 
 import type { I18n } from "./i18n";
 import type { KcContext } from "./kcContext";
@@ -116,7 +117,7 @@ export default function Template(props: TemplateProps<KcContext, I18n>) {
                     <label id="kc-attempted-username">{auth?.attemptedUsername}</label>
                     <a id="reset-login" href={url.loginRestartFlowUrl}>
                       <div className="kc-login-tooltip">
-                        <i className={getClassName("kcResetFlowIcon")}></i>
+                        <i className={getClassName("kcResetFlowIcon")} />
                         <span className="kc-tooltip-text">{msg("restartLoginTooltip")}</span>
                       </div>
                     </a>
@@ -132,7 +133,7 @@ export default function Template(props: TemplateProps<KcContext, I18n>) {
                   <label id="kc-attempted-username">{auth?.attemptedUsername}</label>
                   <a id="reset-login" href={url.loginRestartFlowUrl}>
                     <div className="kc-login-tooltip">
-                      <i className={getClassName("kcResetFlowIcon")}></i>
+                      <i className={getClassName("kcResetFlowIcon")} />
                       <span className="kc-tooltip-text">{msg("restartLoginTooltip")}</span>
                     </div>
                   </a>
@@ -148,14 +149,10 @@ export default function Template(props: TemplateProps<KcContext, I18n>) {
               message !== undefined &&
               (message.type !== "warning" || !isAppInitiatedAction) && (
                 <div className={clsx("alert", `alert-${message.type}`)}>
-                  {message.type === "success" && (
-                    <span className={getClassName("kcFeedbackSuccessIcon")}></span>
-                  )}
-                  {message.type === "warning" && (
-                    <span className={getClassName("kcFeedbackWarningIcon")}></span>
-                  )}
-                  {message.type === "error" && <span className={getClassName("kcFeedbackErrorIcon")}></span>}
-                  {message.type === "info" && <span className={getClassName("kcFeedbackInfoIcon")}></span>}
+                  {message.type === "success" && <span className={getClassName("kcFeedbackSuccessIcon")} />}
+                  {message.type === "warning" && <span className={getClassName("kcFeedbackWarningIcon")} />}
+                  {message.type === "error" && <span className={getClassName("kcFeedbackErrorIcon")} />}
+                  {message.type === "info" && <span className={getClassName("kcFeedbackInfoIcon")} />}
                   <span
                     className="kc-feedback-text"
                     dangerouslySetInnerHTML={{

@@ -11,10 +11,12 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@p4b/ui": "*",
+    "@p4b/keycloak-theme": "*",
     "@types/node": "^17.0.12",
     "@types/react": "18.2.4",
     "@types/react-dom": "18.2.3",
-    "eslint": "8.39.0",
+    "eslint": "8.40.0",
     "eslint-config-next": "^13.3.4",
     "next": "13.4.0",
     "react": "^18.2.0",
