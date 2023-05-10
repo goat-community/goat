@@ -364,7 +364,9 @@ def convert_geojson_to_others_ogr2ogr(
             "extra_options": "-mapFieldType Integer64=Real",
         },
         "geobuf": {"output_suffix": ".fgb", "format_name": "FlatGeobuf"},
+        "xlsx": {"output_suffix": ".xlsx", "format_name": "XLSX"},
     }
+    
     output_suffix = options[output_format]["output_suffix"]
     format_name = options[output_format]["format_name"]
     extra_options = options[output_format].get("extra_options", "")

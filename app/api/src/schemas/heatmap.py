@@ -62,6 +62,7 @@ class ReturnTypeHeatmap(Enum):
     shapefile = "shapefile"
     geopackage = "geopackage"
     kml = "kml"
+    xlsx = "xlsx"
 
 
 class AnalysisUnit(Enum):
