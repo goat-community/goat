@@ -1,55 +1,112 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Fallback, { type PageProps } from "keycloakify/login";
 import { lazy, Suspense } from "react";
-import React from "react";
 
-import "./KcApp.css";
+import { makeStyles } from "../theme";
 import { useI18n } from "./i18n";
 import type { KcContext } from "./kcContext";
 
 const Template = lazy(() => import("./Template"));
-
-// You can uncomment this to see the values passed by the main app before redirecting.
-//import { foo, bar } from "./valuesTransferredOverUrl";
-//console.log(`Values passed by the main app in the URL parameter:`, { foo, bar });
-
+const DefaultTemplate = lazy(() => import("keycloakify/login/Template"));
 const Login = lazy(() => import("./pages/Login"));
-
-// This is like adding classes to theme.properties
-// https://github.com/keycloak/keycloak/blob/11.0.3/themes/src/main/resources/theme/keycloak/login/theme.properties
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const classes: PageProps<any, any>["classes"] = {
-  // NOTE: The classes are defined in ./KcApp.css
-  kcHtmlClass: "my-root-class",
-  kcHeaderWrapperClass: "my-color my-font",
-};
 
 export default function KcApp(props: { kcContext: KcContext }) {
   const { kcContext } = props;
 
   const i18n = useI18n({ kcContext });
 
+  const { classes } = useStyles();
+
   if (i18n === null) {
-    //NOTE: Text resources for the current language are still being downloaded, we can't display anything yet.
-    //We could display a loading progress but it's usually a matter of milliseconds.
     return null;
   }
-
-  /*
-   * Examples assuming i18n.currentLanguageTag === "en":
-   * i18n.msg("access-denied") === <span>Access denied</span>
-   * i18n.msg("foo") === <span>foo in English</span>
-   */
+  const pageProps: Omit<PageProps<any, typeof i18n>, "kcContext"> = {
+    i18n,
+    Template,
+    doUseDefaultCss: false,
+    classes: {
+      kcHtmlClass: classes.kcHtmlClass,
+    },
+  };
 
   return (
     <Suspense>
       {(() => {
         switch (kcContext.pageId) {
           case "login.ftl":
-            return <Login {...{ kcContext, i18n, Template, classes }} doUseDefaultCss={true} />;
+            return <Login kcContext={kcContext} {...pageProps} />;
           default:
-            return <Fallback {...{ kcContext, i18n, classes }} Template={Template} doUseDefaultCss={true} />;
+            return (
+              <Fallback
+                kcContext={kcContext}
+                i18n={i18n}
+                Template={DefaultTemplate}
+                doUseDefaultCss={true}
+                classes={{
+                  kcHtmlClass: classes.kcHtmlClass,
+                  kcLoginClass: classes.kcLoginClass,
+                  kcFormCardClass: classes.kcFormCardClass,
+                  kcButtonPrimaryClass: classes.kcButtonPrimaryClass,
+                  kcInputClass: classes.kcInputClass,
+                }}
+              />
+            );
         }
       })()}
     </Suspense>
   );
 }
+
+const useStyles = makeStyles({ name: { KcApp } })((theme) => ({
+  kcLoginClass: {
+    "& #kc-locale": {
+      zIndex: 5,
+    },
+  },
+  kcHtmlClass: {
+    "& body": {
+      fontFamily: theme.typography.fontFamily,
+    },
+    background: `${theme.colors.useCases.surfaces.background}`,
+    "& a": {
+      color: `${theme.colors.useCases.typography.textFocus}`,
+    },
+    "& #kc-current-locale-link": {
+      color: `${theme.colors.palette.light.greyVariant3}`,
+    },
+    "& label": {
+      fontSize: 14,
+      color: theme.colors.palette.light.greyVariant3,
+      fontWeight: "normal",
+    },
+    "& #kc-page-title": {
+      ...theme.typography.variants["page heading"].style,
+      color: theme.colors.palette.dark.main,
+    },
+    "& #kc-header-wrapper": {
+      visibility: "hidden",
+    },
+  },
+  kcFormCardClass: {
+    borderRadius: 10,
+  },
+  kcButtonPrimaryClass: {
+    backgroundColor: "unset",
+    backgroundImage: "unset",
+    borderColor: `${theme.colors.useCases.typography.textFocus}`,
+    borderWidth: "2px",
+    borderRadius: `20px`,
+    color: `${theme.colors.useCases.typography.textFocus}`,
+    textTransform: "uppercase",
+  },
+  kcInputClass: {
+    borderRadius: "unset",
+    border: "unset",
+    boxShadow: "unset",
+    borderBottom: `1px solid ${theme.colors.useCases.typography.textTertiary}`,
+    "&:focus": {
+      borderColor: "unset",
+      borderBottom: `1px solid ${theme.colors.useCases.typography.textFocus}`,
+    },
+  },
+}));

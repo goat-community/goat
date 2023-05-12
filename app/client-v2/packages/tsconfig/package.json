@@ -3,10 +3,7 @@
   "sideEffects": false,
   "version": "0.0.0",
   "private": true,
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
+  "main": "index.js",
   "files": [
     "base.json",
     "nextjs.json",

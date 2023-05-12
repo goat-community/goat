@@ -3,7 +3,6 @@ import type { Attribute } from "keycloakify/login/kcContext/KcContext";
 import { useFormValidation } from "keycloakify/login/lib/useFormValidation";
 import { clsx } from "keycloakify/tools/clsx";
 import { useEffect, Fragment } from "react";
-import React from "react";
 
 import type { I18n } from "../../i18n";
 

@@ -1,5 +1,4 @@
 import type { DeepPartial } from "keycloakify/tools/DeepPartial";
-import React from "react";
 
 import KcApp from "./KcApp";
 import { getKcContext, type KcContext } from "./kcContext";

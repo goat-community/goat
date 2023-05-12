@@ -5,12 +5,17 @@
   "description": "P4B Keycloak theme",
   "scripts": {
     "postinstall": "copy-keycloak-resources-to-public",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "craco start",
+    "build": "craco build",
     "build-keycloak-theme": "pnpm build && keycloakify"
   },
   "keywords": [],
   "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/material": "^5.13.0",
+    "@p4b/ui": "*",
     "evt": "^2.4.15",
     "jwt-decode": "^3.1.2",
     "keycloak-js": "^21.0.1",
@@ -21,6 +26,7 @@
     "tsafe": "^1.6.0"
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "@p4b/config": "*",
     "@p4b/tsconfig": "*",
     "@storybook/react": "^7.0.9",
@@ -32,16 +38,9 @@
     "storybook": "^7.0.9",
     "typescript": "^4.9.3"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
+  ]
 }

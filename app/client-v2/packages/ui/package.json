@@ -7,11 +7,25 @@
   "scripts": {
     "lint": "eslint \"**/*.ts*\""
   },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    }
+  },
   "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/material": "^5.13.0",
+    "color": "^4.2.3",
+    "evt": "^2.4.15",
+    "memoizee": "^0.4.15",
+    "minimal-polyfills": "^2.2.2",
+    "powerhooks": "^0.26.8",
     "react": "^18.2.0",
-    "@emotion/react": "^11.10.8",
-    "@emotion/styled": "^11.10.8",
-    "@mui/material": "^5.12.3"
+    "run-exclusive": "^2.2.18",
+    "tsafe": "^1.6.0",
+    "tss-react": "^4.8.3"
   },
   "devDependencies": {
     "@p4b/config": "*",

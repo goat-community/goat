@@ -1,36 +1,52 @@
-// Copy pasted from: https://github.com/InseeFrLab/keycloakify/blob/main/src/login/Template.tsx
-import { usePrepareTemplate } from "keycloakify/lib/usePrepareTemplate";
-import { type TemplateProps } from "keycloakify/login/TemplateProps";
-import { useGetClassName } from "keycloakify/login/lib/useGetClassName";
-import { assert } from "keycloakify/tools/assert";
-import { clsx } from "keycloakify/tools/clsx";
-import React from "react";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+/* eslint-disable react/display-name */
+
+/* eslint-disable jsx-a11y/anchor-is-valid */
+import { usePrepareTemplate } from "keycloakify/lib/usePrepareTemplate";
+import { type TemplateProps as GenericTemplateProps } from "keycloakify/login/TemplateProps";
+import { useGetClassName } from "keycloakify/login/lib/useGetClassName";
+import { useConstCallback } from "powerhooks/useConstCallback";
+import { memo } from "react";
+import { symToStr } from "tsafe/symToStr";
+
+import { Alert } from "@p4b/ui/components/Alert";
+import { Card } from "@p4b/ui/components/Card";
+import { useDomRect, useWindowInnerSize } from "@p4b/ui/lib";
+
+import { ThemeProvider, makeStyles, IconButton, Text } from "../theme";
 import type { I18n } from "./i18n";
 import type { KcContext } from "./kcContext";
 
-export default function Template(props: TemplateProps<KcContext, I18n>) {
-  const {
-    displayInfo = false,
-    displayMessage = true,
-    displayRequiredFields = false,
-    displayWide = false,
-    showAnotherWayIfPresent = true,
-    headerNode,
-    showUsernameNode = null,
-    infoNode = null,
-    kcContext,
-    i18n,
+type TemplateProps = GenericTemplateProps<KcContext, I18n>;
+
+export default function Template(props: TemplateProps) {
+  return (
+    <ThemeProvider>
+      <ContextualizedTemplate {...props} />
+    </ThemeProvider>
+  );
+}
+
+function ContextualizedTemplate(props: TemplateProps) {
+  const { kcContext, doUseDefaultCss, classes: classes_props, children } = props;
+
+  const { ref: rootRef } = useDomRect();
+
+  const { windowInnerWidth, windowInnerHeight } = useWindowInnerSize();
+
+  const { classes, cx } = useStyles({
+    windowInnerWidth,
+    aspectRatio: windowInnerWidth / windowInnerHeight,
+    windowInnerHeight,
+  });
+
+  const { getClassName } = useGetClassName({
     doUseDefaultCss,
-    classes,
-    children,
-  } = props;
+    classes: classes_props,
+  });
 
-  const { getClassName } = useGetClassName({ doUseDefaultCss, classes });
-
-  const { msg, changeLocale, labelBySupportedLanguageTag, currentLanguageTag } = i18n;
-
-  const { realm, locale, auth, url, message, isAppInitiatedAction } = kcContext;
+  const { url } = kcContext;
 
   const { isReady } = usePrepareTemplate({
     doFetchDefaultThemeResources: doUseDefaultCss,
@@ -50,62 +66,209 @@ export default function Template(props: TemplateProps<KcContext, I18n>) {
   }
 
   return (
-    <div className={getClassName("kcLoginClass")}>
-      <div id="kc-header" className={getClassName("kcHeaderClass")}>
-        <div id="kc-header-wrapper" className={getClassName("kcHeaderWrapperClass")}>
-          {msg("loginTitleHtml", realm.displayNameHtml)}
-        </div>
-      </div>
+    <div ref={rootRef} className={cx(classes.root, getClassName("kcLoginClass"))}>
+      <section className={classes.betweenHeaderAndFooter}>
+        <Page {...props} className={classes.page}>
+          {children}
+        </Page>
+      </section>
+    </div>
+  );
+}
 
-      <div
-        className={clsx(
-          getClassName("kcFormCardClass"),
-          displayWide && getClassName("kcFormCardAccountClass")
-        )}>
-        <header className={getClassName("kcFormHeaderClass")}>
-          {realm.internationalizationEnabled &&
-            (assert(locale !== undefined), true) &&
-            locale.supported.length > 1 && (
-              <div id="kc-locale">
-                <div id="kc-locale-wrapper" className={getClassName("kcLocaleWrapperClass")}>
-                  <div className="kc-dropdown" id="kc-locale-dropdown">
-                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                    <a href="#" id="kc-current-locale-link">
-                      {labelBySupportedLanguageTag[currentLanguageTag]}
-                    </a>
-                    <ul>
-                      {locale.supported.map(({ languageTag }) => (
-                        <li key={languageTag} className="kc-dropdown-item">
-                          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                          <a href="#" onClick={() => changeLocale(languageTag)}>
-                            {labelBySupportedLanguageTag[languageTag]}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            )}
-          {!(auth !== undefined && auth.showUsername && !auth.showResetCredentials) ? (
+const useStyles = makeStyles<{
+  windowInnerWidth: number;
+  aspectRatio: number;
+  windowInnerHeight: number;
+}>()((theme) => ({
+  root: {
+    height: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: theme.colors.useCases.surfaces.background,
+  },
+
+  header: {
+    width: "100%",
+    paddingRight: "2%",
+    height: 64,
+  },
+  betweenHeaderAndFooter: {
+    flex: 1,
+    overflow: "hidden",
+    backgroundSize: "auto 90%",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  },
+  page: {
+    height: "100%",
+    overflow: "auto",
+  },
+}));
+
+const { Page } = (() => {
+  type Props = { className: string } & Pick<
+    TemplateProps,
+    | "displayInfo"
+    | "displayMessage"
+    | "displayRequiredFields"
+    | "displayWide"
+    | "showAnotherWayIfPresent"
+    | "headerNode"
+    | "showUsernameNode"
+    | "infoNode"
+    | "kcContext"
+    | "i18n"
+    | "children"
+    | "doUseDefaultCss"
+  >;
+
+  const Page = memo((props: Props) => {
+    const {
+      className,
+      displayInfo = false,
+      displayMessage = true,
+      displayRequiredFields = false,
+      displayWide = false,
+      showAnotherWayIfPresent = true,
+      headerNode,
+      showUsernameNode = null,
+      infoNode = null,
+      kcContext,
+      doUseDefaultCss,
+      i18n,
+      children,
+    } = props;
+
+    const {
+      ref: containerRef,
+      domRect: { height: containerHeight },
+    } = useDomRect();
+    const {
+      ref: paperRef,
+      domRect: { height: paperHeight },
+    } = useDomRect();
+
+    const { classes, cx } = useStyles({
+      isPaperBiggerThanContainer: paperHeight > containerHeight,
+    });
+    return (
+      <div ref={containerRef} className={cx(classes.root, className)}>
+        <Card ref={paperRef} className={classes.paper}>
+          {kcContext.pageId === "login.ftl" && (
+            <div className={classes.crossButtonWrapper}>
+              <div style={{ flex: 1 }} />
+              <IconButton iconId="close" onClick={() => window.history.back()} />
+            </div>
+          )}
+          <Head
+            kcContext={kcContext}
+            displayRequiredFields={displayRequiredFields}
+            headerNode={headerNode}
+            showUsernameNode={showUsernameNode}
+            i18n={i18n}
+            doUseDefaultCss={doUseDefaultCss}
+          />
+          <Main
+            kcContext={kcContext}
+            displayMessage={displayMessage}
+            showAnotherWayIfPresent={showAnotherWayIfPresent}
+            displayWide={displayWide}
+            displayInfo={displayInfo}
+            infoNode={infoNode}
+            i18n={i18n}
+            doUseDefaultCss={doUseDefaultCss}>
+            {children}
+          </Main>
+        </Card>
+      </div>
+    );
+  });
+
+  const useStyles = makeStyles<{ isPaperBiggerThanContainer: boolean }>({
+    name: { Page },
+  })((theme, { isPaperBiggerThanContainer }) => ({
+    root: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: isPaperBiggerThanContainer ? undefined : "center",
+    },
+    paper: {
+      padding: theme.spacing(5),
+      width: 490,
+      height: "fit-content",
+      marginBottom: theme.spacing(4),
+      borderRadius: 8,
+    },
+    alert: {
+      alignItems: "center",
+    },
+    crossButtonWrapper: {
+      display: "flex",
+    },
+  }));
+
+  const { Head } = (() => {
+    type Props = Pick<
+      TemplateProps,
+      | "displayRequiredFields"
+      | "headerNode"
+      | "showUsernameNode"
+      | "i18n"
+      | "classes"
+      | "doUseDefaultCss"
+      | "kcContext"
+    >;
+
+    const Head = memo((props: Props) => {
+      const {
+        kcContext,
+        displayRequiredFields,
+        headerNode,
+        showUsernameNode,
+        i18n,
+        classes: classes_props,
+        doUseDefaultCss,
+      } = props;
+
+      const { msg } = i18n;
+
+      const { classes, cx } = useStyles();
+
+      const { getClassName } = useGetClassName({
+        doUseDefaultCss,
+        classes: classes_props,
+      });
+
+      return (
+        <header>
+          {!(
+            kcContext.auth !== undefined &&
+            kcContext.auth.showUsername &&
+            !kcContext.auth.showResetCredentials
+          ) ? (
             displayRequiredFields ? (
               <div className={getClassName("kcContentWrapperClass")}>
-                <div className={clsx(getClassName("kcLabelWrapperClass"), "subtitle")}>
+                <div className={cx(getClassName("kcLabelWrapperClass"), "subtitle")}>
                   <span className="subtitle">
                     <span className="required">*</span>
                     {msg("requiredFields")}
                   </span>
                 </div>
                 <div className="col-md-10">
-                  <h1 id="kc-page-title">{headerNode}</h1>
+                  <Text className={classes.root} typo="section heading">
+                    {headerNode!}
+                  </Text>
                 </div>
               </div>
             ) : (
-              <h1 id="kc-page-title">{headerNode}</h1>
+              <Text className={classes.root} typo="section heading">
+                {headerNode!}
+              </Text>
             )
           ) : displayRequiredFields ? (
             <div className={getClassName("kcContentWrapperClass")}>
-              <div className={clsx(getClassName("kcLabelWrapperClass"), "subtitle")}>
+              <div className={cx(getClassName("kcLabelWrapperClass"), "subtitle")}>
                 <span className="subtitle">
                   <span className="required">*</span> {msg("requiredFields")}
                 </span>
@@ -114,8 +277,8 @@ export default function Template(props: TemplateProps<KcContext, I18n>) {
                 {showUsernameNode}
                 <div className={getClassName("kcFormGroupClass")}>
                   <div id="kc-username">
-                    <label id="kc-attempted-username">{auth?.attemptedUsername}</label>
-                    <a id="reset-login" href={url.loginRestartFlowUrl}>
+                    <label id="kc-attempted-username">{kcContext.auth?.attemptedUsername}</label>
+                    <a id="reset-login" href={kcContext.url.loginRestartFlowUrl}>
                       <div className="kc-login-tooltip">
                         <i className={getClassName("kcResetFlowIcon")} />
                         <span className="kc-tooltip-text">{msg("restartLoginTooltip")}</span>
@@ -130,8 +293,8 @@ export default function Template(props: TemplateProps<KcContext, I18n>) {
               {showUsernameNode}
               <div className={getClassName("kcFormGroupClass")}>
                 <div id="kc-username">
-                  <label id="kc-attempted-username">{auth?.attemptedUsername}</label>
-                  <a id="reset-login" href={url.loginRestartFlowUrl}>
+                  <label id="kc-attempted-username">{kcContext.auth?.attemptedUsername}</label>
+                  <a id="reset-login" href={kcContext.url.loginRestartFlowUrl}>
                     <div className="kc-login-tooltip">
                       <i className={getClassName("kcResetFlowIcon")} />
                       <span className="kc-tooltip-text">{msg("restartLoginTooltip")}</span>
@@ -142,65 +305,129 @@ export default function Template(props: TemplateProps<KcContext, I18n>) {
             </>
           )}
         </header>
+      );
+    });
+
+    const useStyles = makeStyles({
+      name: `${symToStr({ Template })}${symToStr({ Head })}`,
+    })((theme) => ({
+      root: {
+        textAlign: "center",
+        marginTop: theme.spacing(3),
+        marginBottom: theme.spacing(3),
+      },
+    }));
+
+    return { Head };
+  })();
+
+  const { Main } = (() => {
+    type Props = Pick<
+      TemplateProps,
+      | "displayMessage"
+      | "children"
+      | "showAnotherWayIfPresent"
+      | "displayWide"
+      | "displayInfo"
+      | "infoNode"
+      | "i18n"
+      | "kcContext"
+      | "doUseDefaultCss"
+      | "classes"
+    >;
+
+    const Main = memo((props: Props) => {
+      const {
+        displayMessage,
+        showAnotherWayIfPresent,
+        displayInfo,
+        displayWide,
+        kcContext,
+        children,
+        infoNode,
+        i18n,
+        doUseDefaultCss,
+        classes: classes_props,
+      } = props;
+
+      const onTryAnotherWayClick = useConstCallback(() => {
+        document.forms["kc-select-try-another-way-form" as never].submit();
+        return false;
+      });
+
+      const { getClassName } = useGetClassName({
+        doUseDefaultCss,
+        classes: classes_props,
+      });
+
+      const { msg } = i18n;
+
+      const { classes, cx } = useStyles();
+
+      return (
         <div id="kc-content">
           <div id="kc-content-wrapper">
-            {/* App-initiated actions should not see warning messages about the need to complete the action during login. */}
+            {/* App-initiated actions should not see warning messages about the need to complete the action during login.*/}
             {displayMessage &&
-              message !== undefined &&
-              (message.type !== "warning" || !isAppInitiatedAction) && (
-                <div className={clsx("alert", `alert-${message.type}`)}>
-                  {message.type === "success" && <span className={getClassName("kcFeedbackSuccessIcon")} />}
-                  {message.type === "warning" && <span className={getClassName("kcFeedbackWarningIcon")} />}
-                  {message.type === "error" && <span className={getClassName("kcFeedbackErrorIcon")} />}
-                  {message.type === "info" && <span className={getClassName("kcFeedbackInfoIcon")} />}
-                  <span
-                    className="kc-feedback-text"
-                    dangerouslySetInnerHTML={{
-                      __html: message.summary,
-                    }}
-                  />
-                </div>
+              kcContext.message !== undefined &&
+              (kcContext.message.type !== "warning" || !kcContext.isAppInitiatedAction) && (
+                <Alert className={classes.alert} severity={kcContext.message.type}>
+                  <Text typo="label 2">
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: kcContext.message.summary,
+                      }}
+                    />
+                  </Text>
+                </Alert>
               )}
             {children}
-            {auth !== undefined && auth.showTryAnotherWayLink && showAnotherWayIfPresent && (
-              <form
-                id="kc-select-try-another-way-form"
-                action={url.loginAction}
-                method="post"
-                className={clsx(displayWide && getClassName("kcContentWrapperClass"))}>
-                <div
-                  className={clsx(
-                    displayWide && [
-                      getClassName("kcFormSocialAccountContentClass"),
-                      getClassName("kcFormSocialAccountClass"),
-                    ]
-                  )}>
-                  <div className={getClassName("kcFormGroupClass")}>
-                    <input type="hidden" name="tryAnotherWay" value="on" />
-                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                    <a
-                      href="#"
-                      id="try-another-way"
-                      onClick={() => {
-                        document.forms["kc-select-try-another-way-form" as never].submit();
-                        return false;
-                      }}>
-                      {msg("doTryAnotherWay")}
-                    </a>
+            {kcContext.auth !== undefined &&
+              kcContext.auth.showTryAnotherWayLink &&
+              showAnotherWayIfPresent && (
+                <form
+                  id="kc-select-try-another-way-form"
+                  action={kcContext.url.loginAction}
+                  method="post"
+                  className={cx(displayWide && getClassName("kcContentWrapperClass"))}>
+                  <div
+                    className={cx(
+                      displayWide && [
+                        getClassName("kcFormSocialAccountContentClass"),
+                        getClassName("kcFormSocialAccountClass"),
+                      ]
+                    )}>
+                    <div className={cx(getClassName("kcFormGroupClass"))}>
+                      <input type="hidden" name="tryAnotherWay" value="on" />
+                      <a href="#" id="try-another-way" onClick={onTryAnotherWayClick}>
+                        {msg("doTryAnotherWay")}
+                      </a>
+                    </div>
                   </div>
-                </div>
-              </form>
-            )}
+                </form>
+              )}
             {displayInfo && (
-              <div id="kc-info" className={getClassName("kcSignUpClass")}>
-                <div id="kc-info-wrapper" className={getClassName("kcInfoAreaWrapperClass")}>
+              <div id="kc-info" className={cx(getClassName("kcSignUpClass"))}>
+                <div id="kc-info-wrapper" className={cx(getClassName("kcInfoAreaWrapperClass"))}>
                   {infoNode}
                 </div>
               </div>
             )}
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
+      );
+    });
+
+    const useStyles = makeStyles({
+      name: `${symToStr({ Template })}${symToStr({ Main })}`,
+    })(() => ({
+      alert: {
+        alignItems: "center",
+      },
+    }));
+
+    return { Main };
+  })();
+
+  return { Page };
+})();

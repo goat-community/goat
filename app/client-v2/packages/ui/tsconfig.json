@@ -3,6 +3,10 @@
   "compilerOptions": {
     "resolveJsonModule": true
   },
-  "include": ["."],
+  "include": [
+    "../../apps/goat/next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
   "exclude": ["dist", "build", "node_modules"]
 }
