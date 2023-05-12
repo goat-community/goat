@@ -30,6 +30,9 @@
   "devDependencies": {
     "@p4b/config": "*",
     "@p4b/tsconfig": "*",
+    "@storybook/addons": "^7.0.9",
+    "@storybook/react": "^7.0.9",
+    "@storybook/types": "^7.0.9",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "eslint": "^8.40.0",

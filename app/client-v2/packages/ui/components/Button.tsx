@@ -259,30 +259,6 @@ export function createButton<IconId extends string = never>(params?: {
           "&.MuiButton-text": {
             color: textColor,
           },
-          //NOTE: If the position of the button is relative (the default)
-          //it goes hover everything not positioned, we have to mess with z-index and
-          //we don't want that.
-          //The relative positioning is needed for the touch ripple effect.
-          //If we dont have position relative the effect is not restricted to the
-          //button: https://user-images.githubusercontent.com/6702424/157982515-c97dfa81-b09a-4323-beb9-d1e92e7ebe4d.mov
-          //The solution is set 'position: relative' only when the ripple effect is supposed to be visible.
-          //This explain the following awful rules.
-          //The expected result is: https://user-images.githubusercontent.com/6702424/157984062-27e544c3-f86f-47b8-b141-c5f61b8a2880.mov
-
-          //NOTE WILLIAM: In this example I set the position
-          //to relative when the mouse is inside the element.
-          //Before it was set when the element was active witch
-          //meant that the touch ripple effect would be suddenly
-          //interrupted when the mouse button goes up, witch
-          //was not very satisfying aesthetic wise.
-          //May it also be noted that I have used a parameter instead of
-          //:hover, because if we trigger the touch ripple effect and move the
-          //mouse outside the element before the effect has had time to
-          //finish, it produces the same unsatisfying interruption effect.
-          //So I set the parameter using an async function wrapped in
-          //a run exclusive, that delays the setting of the position slightly
-          //when the mouse moves outside the element.
-
           position: isMouseIn ? "relative" : "unset",
           "& .MuiTouchRipple-root": {
             display: isMouseIn ? "unset" : "none",
