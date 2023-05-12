@@ -5,6 +5,7 @@
     persistent
     no-click-animation
     hide-overlay
+    :retain-focus="false"
     v-model="dialog"
     content-class="v-dialog"
   >
@@ -46,7 +47,6 @@
             :label="$t(`weekday`)"
             item-value="value"
             item-text="text"
-            hide-details
           >
             <template slot="selection" slot-scope="{ item }">
               <v-row>
