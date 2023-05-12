@@ -10,7 +10,7 @@ import {
   defaultPalette,
   createDefaultColorUseCases,
 } from "@p4b/ui/lib";
-import { createMakeAndWithStyles } from "@p4b/ui/tss";
+import { createMakeAndWithStyles } from "@p4b/ui/lib/tss";
 
 export const { ThemeProvider, useTheme } = createThemeProvider({
   getTypographyDesc: ({ windowInnerWidth, browserFontSizeFactor, windowInnerHeight }) => {
