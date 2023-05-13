@@ -378,7 +378,7 @@ def convert_geojson_to_others_ogr2ogr(
     with open(geojson_temp_file, "w") as f:
         f.write(json.dumps(input_geojson))
 
-    command_to_convert = f"/usr/bin/ogr2ogr -f {format_name} -nln {destination_layer_name} {extra_options} {output_temp_file} {geojson_temp_file}"
+    command_to_convert = f"ogr2ogr -f {format_name} -nln {destination_layer_name} {extra_options} {output_temp_file} {geojson_temp_file}"
     subprocess.check_output(
         command_to_convert, shell=True
     )  # Use check output to raise error if command fails
