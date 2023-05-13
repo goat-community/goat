@@ -18,24 +18,27 @@
       />
       <measure class="mb-2" v-show="!miniViewOlMap" :color="appColor.primary" />
       <!-- toggle-streetview -->
-      <v-tooltip right>
-        <template v-slot:activator="{ on }">
-          <v-btn
-            style="z-index: 1;"
-            fab
-            dark
-            x-small
-            v-show="!miniViewOlMap"
-            :color="appColor.primary"
-            @click="showMiniViewer"
-            :loading="isMapillaryBtnDisabled"
-            v-on="on"
-          >
-            <v-icon dark>streetview</v-icon>
-          </v-btn>
-        </template>
-        <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
-      </v-tooltip>
+      <div class="mb-2">
+        <v-tooltip right>
+          <template v-slot:activator="{ on }">
+            <v-btn
+              style="z-index: 1;"
+              fab
+              dark
+              x-small
+              v-show="!miniViewOlMap"
+              :color="appColor.primary"
+              @click="showMiniViewer"
+              :loading="isMapillaryBtnDisabled"
+              v-on="on"
+            >
+              <v-icon dark>streetview</v-icon>
+            </v-btn>
+          </template>
+          <span>{{ $t(`map.tooltips.toggleStreetView`) }}</span>
+        </v-tooltip>
+      </div>
+      <zoom-map v-show="!miniViewOlMap" :color="appColor.primary" />
     </div>
 
     <progress-status />
@@ -338,14 +341,15 @@ import FullScreen from "./controls/Fullscreen";
 import Measure from "./controls/Measure";
 import Search from "./controls/Search.vue";
 import DoubleClickZoom from "ol/interaction/DoubleClickZoom";
+import Zoom from "./controls/Zoom.vue";
 
 import { defaults as defaultControls, Attribution } from "ol/control";
 import { defaults as defaultInteractions } from "ol/interaction";
 
 import { debounce } from "../../../utils/Helpers";
 // Context menu
-import ContextMenu from "ol-contextmenu/dist/ol-contextmenu";
-import "ol-contextmenu/dist/ol-contextmenu.min.css";
+// import ContextMenu from "ol-contextmenu/dist/ol-contextmenu";
+// import "ol-contextmenu/dist/ol-contextmenu.min.css";
 
 // Indicators Chart
 import { GET_POIS_AOIS } from "../../../store/actions.type";
@@ -357,6 +361,7 @@ export default {
     "background-switcher": BackgroundSwitcher,
     "full-screen": FullScreen,
     "search-map": Search,
+    "zoom-map": Zoom,
     measure: Measure
   },
   name: "app-ol-map",
@@ -468,9 +473,6 @@ export default {
       },
       { once: true }
     );
-
-    // Setup context menu (right-click)
-    me.setupContentMenu();
     // Event bus setup for managing interactions
     EventBus.$on("ol-interaction-activated", startedInteraction => {
       me.activeInteractions.push(startedInteraction);
@@ -818,36 +820,36 @@ export default {
     /**
      * Right click menu .
      */
-    setupContentMenu() {
-      const contextMenu = new ContextMenu({
-        width: 170,
-        defaultItems: true // defaultItems are (for now) Zoom In/Zoom Out
-      });
+    // setupContentMenu() {
+    //   const contextMenu = new ContextMenu({
+    //     width: 170,
+    //     defaultItems: true // defaultItems are (for now) Zoom In/Zoom Out
+    //   });
 
-      // Rename default items
-      for (let item of contextMenu.getDefaultItems()) {
-        if (item.text === "Zoom In") {
-          item.text = this.$t("map.contextMenu.zoomIn");
-          item.label = "zoomIn";
-        } else if (item.text === "Zoom Out") {
-          item.text = this.$t("map.contextMenu.zoomOut");
-          item.label = "zoomOut";
-        }
-      }
+    //   // Rename default items
+    //   for (let item of contextMenu.getDefaultItems()) {
+    //     if (item.text === "Zoom In") {
+    //       item.text = this.$t("map.contextMenu.zoomIn");
+    //       item.label = "zoomIn";
+    //     } else if (item.text === "Zoom Out") {
+    //       item.text = this.$t("map.contextMenu.zoomOut");
+    //       item.label = "zoomOut";
+    //     }
+    //   }
 
-      this.setContextMenu(contextMenu);
-      this.map.addControl(contextMenu);
+    //   this.setContextMenu(contextMenu);
+    //   this.map.addControl(contextMenu);
 
-      // Before open event
-      contextMenu.on("beforeopen", () => {
-        let defaultItems = contextMenu.getDefaultItems();
-        defaultItems.forEach(defaultItem => {
-          defaultItem.text = this.$t(`map.contextMenu.${defaultItem.label}`);
-        });
-        contextMenu.clear();
-        contextMenu.extend(defaultItems);
-      });
-    },
+    //   // Before open event
+    //   contextMenu.on("beforeopen", () => {
+    //     let defaultItems = contextMenu.getDefaultItems();
+    //     defaultItems.forEach(defaultItem => {
+    //       defaultItem.text = this.$t(`map.contextMenu.${defaultItem.label}`);
+    //     });
+    //     contextMenu.clear();
+    //     contextMenu.extend(defaultItems);
+    //   });
+    // },
 
     /**
      * Map click event for Module.
@@ -1286,5 +1288,33 @@ div.ol-control button {
   line-height: 1.375em;
   color: #000;
   text-shadow: 0 0 2px #fff;
+}
+
+.ol-control {
+  background-color: transparent;
+}
+
+.ol-control:hover {
+  background-color: transparent;
+}
+
+.ol-control button {
+  background-color: rgb(43, 179, 129);
+  border-color: rgb(43, 179, 129);
+  border-radius: 50%;
+  font-size: 23px;
+  box-shadow: 0px 3px 5px -1px rgba(0, 0, 0, 0.2),
+    0px 6px 10px 0px rgba(0, 0, 0, 0.14), 0px 1px 18px 0px rgba(0, 0, 0, 0.12);
+}
+
+.ol-control button::selection,
+.ol-control button:hover {
+  background-color: rgb(43, 179, 129);
+  border-color: rgb(43, 179, 129);
+}
+
+.ol-zoom {
+  left: 20px;
+  top: 25%;
 }
 </style>
