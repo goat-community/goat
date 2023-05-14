@@ -28,7 +28,7 @@ from src.schemas.isochrone import (
     IsochroneOutputType,
     request_examples,
 )
-from src.utils import return_geojson_or_geobuf, heatmap_meta_to_response
+from src.utils import return_geojson_or_geobuf, read_results
 from src.workers.method_connector import (
     read_heatmap_async,
     read_pt_oev_gueteklassen_async,
@@ -127,7 +127,7 @@ async def calculate_heatmap(
     
     else:
         results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
-        return heatmap_meta_to_response(results)
+        return read_results(results)
 
     
 
@@ -244,8 +244,8 @@ async def get_indicators_result(
     result = AsyncResult(task_id, app=celery_app)
     if result.ready():
         try:
-            result = return_geojson_or_geobuf(result.get(), return_type.value)
-            return result
+            result = result.get()
+            return read_results(result, return_type.value)
         except Exception as e:
             raise HTTPException(status_code=500, detail="Task failed")
 
