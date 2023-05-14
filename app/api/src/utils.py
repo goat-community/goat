@@ -38,6 +38,7 @@ from starlette import status
 from starlette.responses import Response
 
 from src.core.config import settings
+from src.core.heatmap.heatmap_core import convert_geojson_to_others_ogr2ogr
 from src.resources.enums import MaxUploadFileSize, MimeTypes
 
 
@@ -1067,3 +1068,35 @@ def heatmap_meta_to_response(meta_data: dict):
             media_type="application/octet-stream",
             headers={"Content-Disposition": f"attachment; filename={meta_data['file_name']}"},
         )
+
+def read_results(results, return_type=None):
+    """
+    results_example = {
+        "data": geojson_result,
+        "return_type": heatmap_settings.return_type.value,
+        "hexlified": False,
+        "data_source": "heatmap",
+    }
+    return geojson or binary content based on return_type
+    """
+    if not return_type:
+        return_type = results["return_type"]
+    if results["data_source"] == "heatmap":
+        data = results["data"]
+    elif results["data_source"] == "isochrone":
+        if results["return_type"] == "grid":
+            if results["hexlified"]:
+                data = binascii.unhexlify(results["data"]["grid"])
+            else:
+                data = results["data"]["grid"]
+            return Response(data, media_type="application/octet-stream")
+        else:
+            data = results["data"]["geojson"]
+    
+    if results["return_type"] == "geojson":
+        return data
+    else:
+        converted_data = convert_geojson_to_others_ogr2ogr(input_geojson=data, destination_layer_name=results["data_source"], output_format=return_type )
+        file_name = f"{results['data_source']}.{converted_data['output_suffix']}"
+        # TODO: define the media type based on the output_format
+        return Response(converted_data, media_type="application/octet-stream", headers={"Content-Disposition": f"attachment; filename={file_name}"})
