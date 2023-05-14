@@ -460,7 +460,7 @@ request_examples = {
                 "starting_point": {
                     "input": ["nursery"],
                     "region_type": "study_area",
-                    "region": [27],
+                    "region": [27, 144],
                 },
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
