@@ -13,7 +13,7 @@ const preview: Preview = {
     },
     darkMode: {
       dark: darkTheme,
-      light: lightTheme
+      light: lightTheme,
     },
     viewport: {
       viewports: {
@@ -54,6 +54,11 @@ const preview: Preview = {
         },
       },
     },
+    options: {
+      storySort: {
+        order: ["introduction", "foundations", "components", "pages"],
+      },
+    }
   },
 };
 

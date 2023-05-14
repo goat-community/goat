@@ -2,10 +2,10 @@ import type { StorybookConfig } from "@storybook/nextjs";
 
 const config: StorybookConfig = {
   stories: [
-    "../../../packages/keycloak-theme/src/**/*.mdx",
-    "../../../packages/keycloak-theme/src/**/*.stories.@(js|jsx|ts|tsx)",
-    // "../../../packages/ui/stories/*.mdx",
-    // "../../../packages/ui/stories/*.stories.@(js|jsx|ts|tsx)",
+    "../../../packages/keycloak-theme/src/stories/*.mdx",
+    "../../../packages/keycloak-theme/src/stories/*.stories.@(js|jsx|ts|tsx)",
+    "../../../packages/ui/stories/**/*.mdx",
+    "../../../packages/ui/stories/**/*.stories.@(js|jsx|ts|tsx)",
   ],
   addons: [
     "@storybook/addon-links",
@@ -13,12 +13,12 @@ const config: StorybookConfig = {
     "@storybook/addon-interactions",
     "storybook-dark-mode",
   ],
+  docs: {
+    autodocs: 'tag'
+  },
   framework: {
     name: "@storybook/nextjs",
     options: {},
-  },
-  docs: {
-    autodocs: "tag",
   },
   staticDirs: ["../public", "../../../packages/keycloak-theme/public"],
 };

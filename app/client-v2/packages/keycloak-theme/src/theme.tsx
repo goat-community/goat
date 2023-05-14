@@ -1,5 +1,6 @@
 import CloseSharp from "@mui/icons-material/CloseSharp";
 
+import "@p4b/ui/assets/fonts/mulish/font.css";
 import { createButton } from "@p4b/ui/components/Button";
 import { createIcon } from "@p4b/ui/components/Icon";
 import { createIconButton } from "@p4b/ui/components/IconButton";
@@ -21,13 +22,13 @@ export const { ThemeProvider, useTheme } = createThemeProvider({
     });
 
     return {
-      fontFamily: '"Work Sans", sans-serif',
+      fontFamily: '"Mulish", sans-serif',
       rootFontSizePx: typographyDesc.rootFontSizePx,
       variants: {
         ...typographyDesc.variants,
         "display heading": {
           ...typographyDesc.variants["display heading"],
-          fontFamily: "Marianne, sans-serif",
+          fontFamily: "Mulish, sans-serif",
         },
       },
     };

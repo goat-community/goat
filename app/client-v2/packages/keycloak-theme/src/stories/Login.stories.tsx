@@ -1,14 +1,13 @@
 import type { StoryFn, Meta } from "@storybook/react";
-import React from "react";
 
-import { createPageStory } from "../createPageStory";
+import { createPageStory } from "../login/createPageStory";
 
 const { PageStory } = createPageStory({
   pageId: "login.ftl",
 });
 
 export default {
-  title: "keycloak/Login",
+  title: "Pages/Auth/Login",
   component: PageStory,
 } as Meta<typeof PageStory>;
 
