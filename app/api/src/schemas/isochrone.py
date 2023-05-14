@@ -339,6 +339,23 @@ class IsochroneDTO(BaseModel):
 
         return values
 
+    @property
+    def is_multi(self):
+        """Check if multi-isochrone"""
+        starting_point_type_is_coord = isinstance(
+            self.starting_point.input[0], IsochroneStartingPointCoord
+        )
+
+        if len(self.starting_point.input) > 1 and starting_point_type_is_coord:
+            return False
+        else:
+            return True
+
+    @property
+    def is_single(self):
+        """Check if single-isochrone"""
+        return not self.is_multi
+
 
 # R5
 R5AvailableDates = {
