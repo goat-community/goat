@@ -1051,24 +1051,6 @@ def hexlify_file(file_path: str):
         return binascii.hexlify(f.read()).decode("utf-8")
 
 
-def heatmap_meta_to_response(meta_data: dict):
-    if meta_data["data_type"] == "geojson":
-        return meta_data["data"]
-    else:
-        if meta_data["hexlified"]:
-            # Unhexlify the data
-            data = binascii.unhexlify(meta_data["data"])
-        else:
-            # Read the data from the file path
-            with open(meta_data["data"], "rb") as f:
-                data = f.read()
-
-        return Response(
-            data,
-            media_type="application/octet-stream",
-            headers={"Content-Disposition": f"attachment; filename={meta_data['file_name']}"},
-        )
-
 def read_results(results, return_type=None):
     """
     results_example = {
