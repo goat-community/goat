@@ -127,7 +127,9 @@ class CRUDLayer:
             for c in cols.copy():
                 if c not in include_cols:
                     del cols[c]
-        colstring = ", ".join(list(cols))
+
+        # Add double quote to avoid problem with capital letters in column names
+        colstring = ", ".join([f'"{c}"' for c in cols])
 
         segSize = bbox.right - bbox.left
         sql_query = f"""
