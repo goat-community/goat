@@ -110,7 +110,6 @@ class CRUDIsochrone:
     def read_network(
         self, db, obj_in: IsochroneDTO, current_user, isochrone_type, table_prefix=None
     ) -> Any:
-
         sql_text = ""
         if isochrone_type == IsochroneTypeEnum.single.value:
             sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
@@ -143,9 +142,7 @@ class CRUDIsochrone:
                 x = [point.lon for point in obj_in.starting_point.input]
                 y = [point.lat for point in obj_in.starting_point.input]
             else:
-                starting_points = self.starting_points_opportunities(
-                    current_user, db, obj_in
-                )
+                starting_points = self.starting_points_opportunities(current_user, db, obj_in)
                 x = starting_points[0][0]
                 y = starting_points[0][1]
         else:
@@ -224,7 +221,6 @@ class CRUDIsochrone:
         return_type,
         geojson_dictionary: dict,
     ) -> Any:
-
         features = geojson_dictionary["features"]
         # Remove the payload and set to true to use it later
         geojson_dictionary = True
@@ -537,10 +533,32 @@ class CRUDIsochrone:
                     "opportunities": dict(opportunities),
                 }
             grid_encoded = encode_r5_grid(grid)
-            result = grid_encoded
+            if isochrone_type == IsochroneTypeEnum.single.value:
+                geojson_result = self.build_geojson_single(isochrone_shapes, opportunities)
+            elif isochrone_type == IsochroneTypeEnum.multi.value:
+                geojson_result = self.build_geojson_multi(isochrone_shapes, population_reached)
+
+            result = {
+                "grid": grid_encoded,
+                "geojson": geojson_result,
+            }
         else:
             result = network
         return result
+
+    def build_geojson_single(self, isochrone_shapes, opportunities):
+        geojson = json.loads(isochrone_shapes["full"].to_json())
+        for key, opportunity in opportunities.items():
+            for cnt, value in enumerate(opportunity):
+                geojson["features"][cnt]["properties"][key] = value
+        return geojson
+
+    def build_geojson_multi(self, isochrone_shapes, population_reached):
+        geojson = json.loads(isochrone_shapes["full"].to_json())
+        population = population_reached["population"]
+        for cnt, value in enumerate(population):
+            geojson["features"][cnt]["properties"]["population_reached"] = value
+        return geojson
 
 
 isochrone = CRUDIsochrone()

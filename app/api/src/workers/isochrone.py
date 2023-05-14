@@ -4,6 +4,7 @@ from src.workers.celery_app import celery_app
 from src.schemas.isochrone import IsochroneDTO
 from src.db import models
 import binascii
+from src.core.config import settings
 
 
 @celery_app.task()
@@ -13,5 +14,7 @@ def task_calculate_isochrone(isochrone_in, current_user, study_area_bounds):
     db = sync_session()
     result = crud.isochrone.calculate(db, isochrone_in, current_user, study_area_bounds)
     db.close()
-    result = binascii.hexlify(bytes(result)).decode('utf-8')
+    if settings.CELERY_BROKER_URL:
+        # if we are using celery, we need to convert the numpy array to a string
+        result["grid"] = binascii.hexlify(bytes(result["grid"])).decode("utf-8")
     return result
