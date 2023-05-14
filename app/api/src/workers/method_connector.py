@@ -179,25 +179,13 @@ async def read_heatmap_async(current_user, settings):
         # result["agg_class"] = result["agg_class"].round()
 
     # todo: Can be extended to other formats in the future based on return type
-    result = heatmap.to_geojson(result)
-    if heatmap_settings.return_type.value != "geojson":
-        result = convert_geojson_to_others_ogr2ogr(
-            result, "Heatmap", heatmap_settings.return_type.value
-        )
-
+    geojson_result = heatmap.to_geojson(result)
     return_data = {
-        "data": result,
-        "data_type": heatmap_settings.return_type.value,
-        "file_name": "heatmap",
+        "data": geojson_result,
+        "return_type": heatmap_settings.return_type.value,
         "hexlified": False,
+        "data_source": "heatmap",
     }
-    if return_data["data_type"] != "geojson":
-        file_suffix = return_data["data"].split(".")[-1]
-        return_data["file_name"] = f"heatmap.{file_suffix}"
-
-    if config.settings.CELERY_BROKER_URL:
-        return_data["data"] = hexlify_file(result)
-        return_data["hexlified"] = True
 
     return return_data
 
