@@ -140,6 +140,25 @@ const IsochroneUtils = {
       zoom
       // eslint-disable-next-line no-undef
     } = calculation.surfaceData;
+    const mode = calculation.config.mode;
+    if (mode === "buffer") {
+      let rawData = calculation["rawData"];
+      const rawDataFeatures = JSON.parse(
+        rawData["accessibility"]["buffer"]["geojson"]
+      );
+      const catchmentFeature = rawDataFeatures.features.filter(
+        feature => feature.properties.steps == timeRange
+      );
+      if (catchmentFeature.length == 0) {
+        return;
+      }
+      let olFeatures = geojsonToFeature(catchmentFeature[0], {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857"
+      });
+      calculation.feature.setGeometry(olFeatures[0].getGeometry());
+      return;
+    }
     const isochronePolygon = jsolines({
       surface,
       width,

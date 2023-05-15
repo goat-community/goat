@@ -309,7 +309,6 @@ def test_quantile(n):
 
 
 def save_traveltime_matrix(bulk_id: int, traveltimeobjs: dict, output_dir: str):
-
     # Convert to numpy arrays
     for key in traveltimeobjs.keys():
         # Check if str then obj type
@@ -347,4 +346,6 @@ def read_population_modified_sql(scenario_id: int):
     """
 
     return sql
+
+
 

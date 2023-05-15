@@ -810,9 +810,6 @@ export default {
     poisAois() {
       // Add remove features.
       if (this.selectedLayer && this.selectedLayer["name"] === "poi") {
-        if (this.selectedLayer.getSource().getFeatures().length > 45000) {
-          this.selectedLayer.setMinZoom(14);
-        }
         this.syncPoiFeatures();
       }
     }
@@ -882,7 +879,7 @@ export default {
         name: "Edit Layer",
         displayInLayerList: false,
         source: new VectorSource({ wrapX: false }),
-        zIndex: 10,
+        // zIndex: 10,
         style: getEditStyle("editable"),
         queryable: true
       });
@@ -899,7 +896,6 @@ export default {
         displayInLayerList: false,
         source: new VectorSource({ wrapX: false }),
         style: getEditStyle("visualization"),
-        zIndex: 10,
         queryable: true
       });
       visualizationEditLayer
@@ -1042,30 +1038,41 @@ export default {
                 if (layer === "other") {
                   features.forEach(feature => {
                     if (feature.get("oneway") !== undefined) {
+                      this.visualizationEditLayer.setZIndex(9);
                       feature.setId(`way_${feature.getId()}`);
                       feature.set("layerName", "way");
                     } else if (feature.get("building_id") !== undefined) {
+                      this.visualizationEditLayer.setZIndex(9);
                       feature.setId(`building_${feature.getId()}`);
                       feature.set("layerName", "building");
                     } else if (feature.get("opening_hours") !== undefined) {
+                      this.visualizationEditLayer.setZIndex(10);
                       feature.setId(`poi_${feature.getId()}`);
                       feature.set("layerName", "poi");
                     }
                   });
                   this.visualizationEditLayer.getSource().addFeatures(features);
                 } else {
+                  console.log(index);
                   if (index === 1 && layer === "building") {
+                    this.editLayer.setZIndex(9);
                     layer = "population";
                     this.bldEntranceLayer.getSource().clear();
                     this.bldEntranceLayer.getSource().addFeatures(features);
                     return;
                   }
+
+                  if (layer === "way") {
+                    this.editLayer.setZIndex(9);
+                  }
+
                   features.forEach(feature => {
                     feature.setId(`${layer}_${feature.getId()}`);
                     feature.set("layerName", layer);
                   });
                   this.editLayer.getSource().addFeatures(features);
                   if (layer === "poi") {
+                    this.editLayer.setZIndex(10);
                     this.poiModifiedFeatures = features;
                     this.turnOnAndLockPoiTreeNode(features, "add");
                   }
@@ -2412,10 +2419,10 @@ export default {
     }),
     ...mapGetters("poisaois", {
       poisAoisLayer: "poisAoisLayer",
-      poisAois: "poisAois",
       selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
     }),
     ...mapFields("poisaois", {
+      poisAois: "poisAois",
       selectedPoisAois: "selectedPoisAois"
     }),
     ...mapFields("scenarios", {

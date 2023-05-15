@@ -46,10 +46,12 @@ async def update_group_layers_in_study_area_setting(
     if not study_area:
         raise HTTPException(status_code=404, detail="study area not found.")
 
-    setting = pydantify_config(study_area.setting, validate=False)  # Convert Settings to Pydantic
-    setattr(setting, group_name, layers)  # Set new settings
-    listed_settings = setting.listify_config()  # Convert Back to list settings
-    study_area.setting = listed_settings
+    setting = study_area.setting.copy()
+    layer_groups = pydantify_config(setting, validate=False)  # Convert Settings to Pydantic
+    setattr(layer_groups, group_name, layers)  # Set new settings
+    listed_layer_groups = layer_groups.listify_config()  # Convert Back to list settings
+    setting["layer_groups"] = listed_layer_groups
+    study_area.setting = setting  # To trigger update
 
     new_study_area = await crud.study_area.update(db=db, db_obj=study_area, obj_in=study_area)
     try:

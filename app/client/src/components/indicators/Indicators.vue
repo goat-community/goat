@@ -213,6 +213,8 @@ export default {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
       this.styleDialogStatus = value;
     });
+
+    this.updateLayerMaxResolution();
   },
   computed: {
     ...mapGetters("app", {
@@ -222,7 +224,8 @@ export default {
       unCalculatedDataUploadIds: "unCalculatedDataUploadIds"
     }),
     ...mapGetters("poisaois", {
-      selectedPoisOnlyKeys: "selectedPoisOnlyKeys"
+      selectedPoisOnlyKeys: "selectedPoisOnlyKeys",
+      selectedAoisOnlyKeys: "selectedAoisOnlyKeys"
     }),
     ...mapGetters("scenarios", {
       activeScenario: "activeScenario"
@@ -314,7 +317,7 @@ export default {
           this.indicatorCancelToken = null;
         }
         layer.getSource().refresh();
-        this.checkIfIndicatorNeedsPois(layer);
+        this.checkIfIndicatorNeedsPoisAois(layer);
         layer.set("showOptions", true);
       }
       if (
@@ -335,7 +338,7 @@ export default {
       }
       indicatorLayers.forEach(layer => {
         if (layer.getVisible()) {
-          this.checkIfIndicatorNeedsPois(layer);
+          this.checkIfIndicatorNeedsPoisAois(layer);
           if (this.indicatorCancelToken instanceof Function) {
             this.indicatorCancelToken("cancelled");
             this.indicatorCancelToken = null;
@@ -354,7 +357,7 @@ export default {
           this.updateIndicators[group].forEach(indicatorName => {
             this.indicatorLayers.forEach(layer => {
               if (layer.get("name") === indicatorName && layer.getVisible()) {
-                this.checkIfIndicatorNeedsPois(layer);
+                this.checkIfIndicatorNeedsPoisAois(layer);
                 if (this.indicatorCancelToken instanceof Function) {
                   this.indicatorCancelToken("cancelled");
                   this.indicatorCancelToken = null;
@@ -398,10 +401,11 @@ export default {
           this.isRecomputingIndicator = false;
         });
     },
-    checkIfIndicatorNeedsPois(layer) {
+    checkIfIndicatorNeedsPoisAois(layer) {
       this.toggleSnackbar({ state: false });
       if (
         this.selectedPoisOnlyKeys.length === 0 &&
+        this.selectedAoisOnlyKeys.length === 0 &&
         this.indicatorsWithAmenities.includes(layer.get("name"))
       ) {
         this.toggleSnackbar({

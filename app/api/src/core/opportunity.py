@@ -120,14 +120,15 @@ class Opportunity:
         if layer not in self.layers_modifiable:
             raise ValueError(f"Layer {layer} not in modifiable layers {self.layers_modifiable}.")
 
-        sql_query = f"""SELECT * FROM customer.{layer}_modified p WHERE p.scenario_id = {scenario_id} """
+        sql_query = (
+            f"""SELECT * FROM customer.{layer}_modified p WHERE p.scenario_id = {scenario_id} """
+        )
 
         if layer == "poi":
             sql_query += f""" AND p.edit_type IN (SELECT UNNEST(ARRAY{edit_type}::text[]))"""
 
         if bbox_wkt is not None:
             sql_query += f""" AND ST_Intersects('SRID=4326;{bbox_wkt}'::geometry, p.geom)"""
-
 
         modified_gdf = read_postgis(
             sql_query,
@@ -202,7 +203,10 @@ class Opportunity:
             ).iloc[0][0]
         # - Get the poi categories for one entrance and multiple entrances.
         # Returns {'true': [restaurant, shop...], 'false': [bus_stop, train_station...]}
-        poi_categories = pd.read_sql(f"SELECT * FROM basic.poi_categories({user_id})", db,).iloc[
+        poi_categories = pd.read_sql(
+            f"SELECT * FROM basic.poi_categories({user_id})",
+            db,
+        ).iloc[
             0
         ][0]
         poi_multiple_entrances = poi_categories["true"]
@@ -418,9 +422,10 @@ class OpportunityIsochroneCount(OpportunityIntersect):
         poi_multiple_entrances_gdf = poi_gdf[poi_gdf["entrance_type"] == "multiple"]
 
         agg_func = {}
-        if group_by_column == "minute":
+        if group_by_column == "minute" or group_by_column == "steps":
             # relevant for isochrone inputs
-            agg_func = {"minute": "mean"}
+            agg_func_ = {"minute": "mean", "steps": "min"}
+            agg_func = agg_func_[group_by_column]
         else:
             # case when a multi entrance poi is in multiple shapes
             agg_func = {group_by_column: "_".join}
@@ -428,10 +433,10 @@ class OpportunityIsochroneCount(OpportunityIntersect):
         poi_multiple_entrances_gdf_grouped = (
             poi_multiple_entrances_gdf.groupby(["category", "name"]).agg(agg_func).reset_index()
         )
-        if group_by_column == "minute":
-            poi_multiple_entrances_gdf_grouped["minute"] = poi_multiple_entrances_gdf_grouped[
-                "minute"
-            ].astype(int)
+        if group_by_column == "minute" or group_by_column == "steps":
+            poi_multiple_entrances_gdf_grouped[
+                group_by_column
+            ] = poi_multiple_entrances_gdf_grouped[group_by_column].astype(int)
 
         poi_multiple_entrances_gdf_grouped = poi_multiple_entrances_gdf_grouped.groupby(
             [group_by_column, "category"]
@@ -455,7 +460,7 @@ class OpportunityIsochroneCount(OpportunityIntersect):
         population_gdf_grouped = population_gdf_join.groupby(group_by_columns).agg(
             {"population": "sum"}
         )
-        for (key, value) in population_gdf_grouped.iterrows():
+        for key, value in population_gdf_grouped.iterrows():
             population_count[key]["population"] = value["population"]
 
         return dict(population_count)
