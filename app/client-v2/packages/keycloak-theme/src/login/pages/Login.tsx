@@ -178,7 +178,6 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
                 />
                 <Button
                   ref={submitButtonRef}
-                  tabIndex={3}
                   className={classes.buttonSubmit}
                   name="login"
                   type="submit"
@@ -217,7 +216,9 @@ const useStyles = makeStyles({ name: { Login } })((theme) => ({
     justifyContent: "flex-end",
   },
   buttonSubmit: {
-    marginLeft: theme.spacing(2),
+    width: "100%",
+    marginTop: theme.spacing(2),
+    marginLeft: theme.spacing(0),
   },
   linkToRegisterWrapper: {
     marginTop: theme.spacing(5),
