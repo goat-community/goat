@@ -81,6 +81,14 @@ class IsochroneOutputType(Enum):
     GEOJSON = "geojson"
     NETWORK = "network"
 
+    CSV = "csv"
+    GEOBUF = "geobuf"
+    PBF = "pbf"
+    SHAPEFILE = "shapefile"
+    GEOPACKAGE = "geopackage"
+    KML = "kml"
+    XLSX = "xlsx"
+
 
 class IsochroneDecayFunctionType(Enum):
     LOGISTIC = "logistic"
