@@ -1051,6 +1051,7 @@ def hexlify_file(file_path: str):
     with open(file_path, "rb") as f:
         return binascii.hexlify(f.read()).decode("utf-8")
 
+
 def convert_geojson_to_others_ogr2ogr(
     input_geojson: dict, destination_layer_name: str, output_format: str
 ):
@@ -1066,7 +1067,7 @@ def convert_geojson_to_others_ogr2ogr(
         "geobuf": {"output_suffix": "fgb", "format_name": "FlatGeobuf"},
         "xlsx": {"output_suffix": "xlsx", "format_name": "XLSX"},
     }
-    
+
     output_suffix = options[output_format]["output_suffix"]
     format_name = options[output_format]["format_name"]
     extra_options = options[output_format].get("extra_options", "")
@@ -1085,11 +1086,12 @@ def convert_geojson_to_others_ogr2ogr(
     delete_file(geojson_temp_file)
     output_data = open(output_temp_file, "rb").read()
     delete_file(output_temp_file)
-    
+
     return {
         "data": output_data,
         "output_suffix": output_suffix,
     }
+
 
 def read_results(results, return_type=None):
     """
@@ -1111,14 +1113,28 @@ def read_results(results, return_type=None):
                 data = binascii.unhexlify(results["data"]["grid"])
             else:
                 data = results["data"]["grid"]
-            return Response(data, media_type="application/octet-stream", headers={"Content-Disposition": "attachment; filename=grid.bin"})
+            return Response(
+                data,
+                media_type="application/octet-stream",
+                headers={"Content-Disposition": "attachment; filename=grid.bin"},
+            )
+        elif results["return_type"] == "network":
+            return results["data"]["network"]
         else:
             data = results["data"]["geojson"]
-    
+
     if results["return_type"] == "geojson":
         return data
     else:
-        converted_data = convert_geojson_to_others_ogr2ogr(input_geojson=data, destination_layer_name=results["data_source"], output_format=return_type )
+        converted_data = convert_geojson_to_others_ogr2ogr(
+            input_geojson=data,
+            destination_layer_name=results["data_source"],
+            output_format=return_type,
+        )
         file_name = f"{results['data_source']}.{converted_data['output_suffix']}"
         # TODO: define the media type based on the output_format
-        return Response(converted_data["data"], media_type="application/octet-stream", headers={"Content-Disposition": f"attachment; filename={file_name}"})
+        return Response(
+            converted_data["data"],
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={file_name}"},
+        )
