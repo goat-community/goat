@@ -74,18 +74,10 @@ async def calculate_isochrone(
     isochrone_in = json.loads(isochrone_in.json())
     current_user = json.loads(current_user.json())
 
-    if isochrone_in["output"]["type"] == "network":
-        # As network is fast, we won't use celery for it
-        return task_calculate_isochrone(
-            isochrone_in, current_user, study_area_bounds
-        )
-
     if not settings.CELERY_BROKER_URL:
-        results = task_calculate_isochrone(
-            isochrone_in, current_user, study_area_bounds
-        )
+        results = task_calculate_isochrone(isochrone_in, current_user, study_area_bounds)
         return read_results(results)
-    
+
     else:
         task = task_calculate_isochrone.delay(isochrone_in, current_user, study_area_bounds)
         task_id = f"isochrone-{task.id}"
@@ -153,12 +145,10 @@ async def calculate_heatmap(
             heatmap_settings=heatmap_settings,
         )
         return {"task_id": task.id}
-    
+
     else:
         results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
         return read_results(results)
-
-    
 
 
 @router.get("/pt-station-count")
