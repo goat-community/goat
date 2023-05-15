@@ -422,7 +422,7 @@ class CRUDIsochrone:
 
         if obj_in.mode.value in [IsochroneMode.BUFFER.value]:
             if isochrone_type == IsochroneTypeEnum.multi.value:
-                starting_points = await self.starting_points_opportunities(
+                starting_points = self.starting_points_opportunities(
                     current_user, db, obj_in
                 )
                 x = starting_points[0][0]
