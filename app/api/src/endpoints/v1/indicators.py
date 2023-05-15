@@ -74,13 +74,18 @@ async def calculate_isochrone(
     isochrone_in = json.loads(isochrone_in.json())
     current_user = json.loads(current_user.json())
 
-    if not settings.CELERY_BROKER_URL:
-        # FOR TESTING TIME ONLY
-        isochrone_hex_string = task_calculate_isochrone(
+    if isochrone_in["output"]["type"] == "network":
+        # As network is fast, we won't use celery for it
+        return task_calculate_isochrone(
             isochrone_in, current_user, study_area_bounds
         )
-        iscohrone_r5_binary = binascii.unhexlify(isochrone_hex_string)
-        return Response(content=iscohrone_r5_binary, media_type="application/octet-stream")
+
+    if not settings.CELERY_BROKER_URL:
+        results = task_calculate_isochrone(
+            isochrone_in, current_user, study_area_bounds
+        )
+        return read_results(results)
+    
     else:
         task = task_calculate_isochrone.delay(isochrone_in, current_user, study_area_bounds)
         task_id = f"isochrone-{task.id}"
