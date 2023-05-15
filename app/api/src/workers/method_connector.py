@@ -8,7 +8,6 @@ from src.core import config
 from src.core.opportunity import Opportunity
 from src.core.heatmap.heatmap_compute import ComputeHeatmap
 from src.core.heatmap.heatmap_read import ReadHeatmap
-from src.core.heatmap.heatmap_core import convert_geojson_to_others_ogr2ogr
 from src.db import models
 from src.db.session import legacy_engine
 from src.schemas.data_preparation import (

@@ -1,8 +1,5 @@
-import json
 import os
 from math import exp
-import subprocess
-import tempfile
 from time import time
 
 import numpy as np
@@ -351,42 +348,4 @@ def read_population_modified_sql(scenario_id: int):
     return sql
 
 
-def convert_geojson_to_others_ogr2ogr(
-    input_geojson: dict, destination_layer_name: str, output_format: str
-):
-    options = {
-        "geopackage": {"output_suffix": "gpkg", "format_name": "GPKG"},
-        "shapefile": {"output_suffix": "shp", "format_name": "ESRI Shapefile"},
-        "csv": {"output_suffix": "csv", "format_name": "CSV"},
-        "kml": {
-            "output_suffix": "kml",
-            "format_name": "KML",
-            "extra_options": "-mapFieldType Integer64=Real",
-        },
-        "geobuf": {"output_suffix": "fgb", "format_name": "FlatGeobuf"},
-        "xlsx": {"output_suffix": "xlsx", "format_name": "XLSX"},
-    }
-    
-    output_suffix = options[output_format]["output_suffix"]
-    format_name = options[output_format]["format_name"]
-    extra_options = options[output_format].get("extra_options", "")
 
-    temp_file_base_name = tempfile.mktemp()
-    geojson_temp_file = temp_file_base_name + ".geojson"
-    output_temp_file = temp_file_base_name + f".{output_suffix}"
-
-    with open(geojson_temp_file, "w") as f:
-        f.write(json.dumps(input_geojson))
-
-    command_to_convert = f"ogr2ogr -f {format_name} -nln {destination_layer_name} {extra_options} {output_temp_file} {geojson_temp_file}"
-    subprocess.check_output(
-        command_to_convert, shell=True
-    )  # Use check output to raise error if command fails
-    delete_file(geojson_temp_file)
-    output_data = open(output_temp_file, "rb").read()
-    delete_file(output_temp_file)
-    
-    return {
-        "data": output_data,
-        "output_suffix": output_suffix,
-    }
