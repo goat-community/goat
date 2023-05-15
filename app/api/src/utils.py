@@ -1111,7 +1111,7 @@ def read_results(results, return_type=None):
                 data = binascii.unhexlify(results["data"]["grid"])
             else:
                 data = results["data"]["grid"]
-            return Response(data, media_type="application/octet-stream")
+            return Response(data, media_type="application/octet-stream", headers={"Content-Disposition": "attachment; filename=grid.bin"})
         else:
             data = results["data"]["geojson"]
     
@@ -1121,4 +1121,4 @@ def read_results(results, return_type=None):
         converted_data = convert_geojson_to_others_ogr2ogr(input_geojson=data, destination_layer_name=results["data_source"], output_format=return_type )
         file_name = f"{results['data_source']}.{converted_data['output_suffix']}"
         # TODO: define the media type based on the output_format
-        return Response(converted_data, media_type="application/octet-stream", headers={"Content-Disposition": f"attachment; filename={file_name}"})
+        return Response(converted_data["data"], media_type="application/octet-stream", headers={"Content-Disposition": f"attachment; filename={file_name}"})
