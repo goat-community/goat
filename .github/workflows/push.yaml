@@ -32,7 +32,9 @@ jobs:
             echo "::set-output name=env_name::main"
           elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
             echo "::set-output name=env_name::staging"
-          else
+          elif [ "${{ github.ref }}" = "refs/heads/v2" ]; then
+            echo "::set-output name=env_name::v2"
+          else          
              echo "::set-output name=env_name::dev"
           fi         
           
