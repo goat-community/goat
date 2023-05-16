@@ -12,6 +12,7 @@ const preview: Preview = {
       },
     },
     darkMode: {
+      current: 'light',
       dark: darkTheme,
       light: lightTheme,
     },

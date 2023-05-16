@@ -1,4 +1,5 @@
 module.exports = {
+  output: "standalone",
   reactStrictMode: true,
-  transpilePackages: ["ui"],
+  transpilePackages: ["@p4b/ui", "@p4b/tsconfig", "@p4b/config"],
 };

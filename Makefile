@@ -104,8 +104,8 @@ build-docker-image: app/$(COMPONENT)/Dockerfile
 
 # target: build-client-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client
 .PHONY: build-client-docker-image
-build-client-docker-image: app/$(COMPONENT)/Dockerfile
-	$(DOCKER) build -f app/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/$(COMPONENT) --build-arg FONTAWESOME_NPM_AUTH_TOKEN=$(FONTAWESOME_NPM_AUTH_TOKEN)
+build-client-docker-image: app/client-v2/apps/$(COMPONENT)/Dockerfile
+	$(DOCKER) build -f app/client-v2/apps/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/client-v2
 
 
 # target: make release-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client

@@ -3,10 +3,11 @@ version: "3.9"
 networks:
   proxy:
 
+
 volumes:
   postgres_data:
     name: ${COMPOSE_PROJECT_NAME}_postgres_data
-  mongodb_r5_data: 
+  mongodb_r5_data:
     name: ${COMPOSE_PROJECT_NAME}_mongodb_r5_data
 
 services:
@@ -22,35 +23,32 @@ services:
     networks:
       proxy:
 
+
   client:
     image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:client-${PROJECT_VERSION}
     build:
-      dockerfile: Dockerfile
-      context: ./app/client
-      target: develop-stage
-      args:
-        - FONTAWESOME_NPM_AUTH_TOKEN=${FONTAWESOME_NPM_AUTH_TOKEN}
+      dockerfile: apps/goat/Dockerfile
+      context: ./app/client-v2
     container_name: ${COMPOSE_PROJECT_NAME}_client
     hostname: ${COMPOSE_PROJECT_NAME}_client
-    env_file:
-      - .env
-    stdin_open: true
-    tty: true
-    environment:
-      - HOST=0.0.0.0
-      - CHOKIDAR_USEPOLLING=true
-    command: npm run serve
-    volumes:
-      - /app/node_modules
-      - ./app/client:/app
-
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_client.loadbalancer.server.port=80"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/`)"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_client.entrypoints=web"
+    ports:
+      - 3001:3000
     networks:
       proxy:
+
+
+  storybook:
+    image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:storybook-${PROJECT_VERSION}
+    build:
+      dockerfile: apps/storybook/Dockerfile
+      context: ./app/client-v2
+    container_name: ${COMPOSE_PROJECT_NAME}_storybook
+    hostname: ${COMPOSE_PROJECT_NAME}_storybook
+    ports:
+      - 80:80
+    networks:
+      proxy:
+
 
   api:
     image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:api-${PROJECT_VERSION}
@@ -85,6 +83,7 @@ services:
     networks:
       proxy:
 
+
   db:
     image: postgis/postgis:14-3.2
     container_name: ${COMPOSE_PROJECT_NAME}_db
@@ -107,6 +106,7 @@ services:
     networks:
       proxy:
 
+
   pgadmin:
     image: dpage/pgadmin4:6.7
     container_name: ${COMPOSE_PROJECT_NAME}_pgadmin
@@ -127,11 +127,13 @@ services:
       - "5050:5050"
     networks:
       proxy:
-  
+
+
   redis:
     image: redis:7-alpine
     networks:
       proxy:
+
 
   worker:
     image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:api-${PROJECT_VERSION}
@@ -160,7 +162,8 @@ services:
     command: bash -c "/etc/init.d/celeryd start; tail -f /dev/null"
     networks:
       proxy:
-  
+
+
   flower:
     image: mher/flower
     environment:
@@ -171,10 +174,10 @@ services:
     depends_on:
       - rabbit
 
-    
     networks:
       proxy:
-  
+
+
   rabbit:
     image: goatcommunity/rabbitmq:latest
     ports:
@@ -193,12 +196,13 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}_r5_mongo
     hostname: ${COMPOSE_PROJECT_NAME}_r5_mongo
     restart: always
-    ports: 
+    ports:
       - "27017:27017"
     volumes:
       - mongodb_r5_data:/data/db:rw
     networks:
       proxy:
+
 
   r5:
     image: majkshkurti/conveyal-r5:6.4-p1
@@ -219,6 +223,7 @@ services:
     networks:
       proxy:
 
+
   r5-conveyal-ui:
     container_name: conveyal_ui
     hostname: conveyal_ui
@@ -229,9 +234,10 @@ services:
       - r5
     ports:
       - "4000:3000"
-    volumes: # (paths relative to the Compose file)
+    volumes:
+      # (paths relative to the Compose file)
       - ./app/config/conveyal.ui.properties:/app/.env:ro
     networks:
       proxy:
-  
+
 
