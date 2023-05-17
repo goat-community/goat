@@ -51,7 +51,7 @@ export type MuiIconLike = (props: {
 export type SvgComponentLike = ElementType;
 
 function isMuiIcon(Component: MuiIconLike | SvgComponentLike): Component is MuiIconLike {
-  return "type" in (Component as any);
+  return "type" in (Component as MuiIconLike);
 }
 
 export function createIcon<IconId extends string>(componentByIconId: {
@@ -59,7 +59,7 @@ export function createIcon<IconId extends string>(componentByIconId: {
 }) {
   const useStyles = makeStyles<{ size: IconSizeName }>()((theme, { size }) => ({
     root: {
-      color: "inherit",
+      color: theme.colors.palette.blueInfo.main,
       // https://stackoverflow.com/a/24626986/3731798
       //"verticalAlign": "top",
       //"display": "inline-block"
