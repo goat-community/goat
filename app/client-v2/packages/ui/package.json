@@ -29,8 +29,8 @@
     "tss-react": "^4.8.3"
   },
   "devDependencies": {
-    "@p4b/config": "*",
-    "@p4b/tsconfig": "*",
+    "@p4b/config": "workspace:*",
+    "@p4b/tsconfig": "workspace:*",
     "@storybook/addons": "^7.0.9",
     "@storybook/react": "^7.0.9",
     "@storybook/types": "^7.0.9",
