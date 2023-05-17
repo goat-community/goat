@@ -34,21 +34,25 @@ spec:
             backend:
               serviceName: ssl-redirect
               servicePort: use-annotation
-          - path: /api/*
+          - path: /api*
             backend:
               serviceName: goat-api
               servicePort: 80
-          - path: /flower/*
+          - path: /flower*
             backend:
               serviceName: goat-celery-flower-service
               servicePort: 80
-          - path: /rabbitmq/*
+          - path: /rabbitmq*
             backend:
               serviceName: goat-rabbitmq-service
               servicePort: 15672
-          - path: /storybook/*
+          - path: /storybook*
             backend:
               serviceName: goat-storybook-service
+              servicePort: 80
+          - path: /docs*
+            backend:
+              serviceName: goat-docs-service
               servicePort: 80
           - path: /*
             backend:

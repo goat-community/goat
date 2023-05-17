@@ -107,6 +107,10 @@ build-docker-image: app/$(COMPONENT)/Dockerfile
 build-client-docker-image: app/client-v2/apps/$(COMPONENT)/Dockerfile
 	$(DOCKER) build -f app/client-v2/apps/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/client-v2
 
+# target: make build-docs-docker-image
+.PHONY: build-docs-docker-image
+build-docs-docker-image: docs/Dockerfile
+	$(DOCKER) build -f docs/Dockerfile --pull -t $(DOCKER_IMAGE) docs
 
 # target: make release-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client
 .PHONY: release-docker-image
@@ -116,6 +120,11 @@ release-docker-image: docker-login build-docker-image
 # target: make release-client-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: release-client-docker-image
 release-client-docker-image: docker-login build-client-docker-image
+	$(DOCKER) push $(DOCKER_IMAGE)
+
+# target: make release-docs-docker-image -e VERSION=some_git_sha_comit
+.PHONY: release-docs-docker-image
+release-docs-docker-image: docker-login build-docs-docker-image
 	$(DOCKER) push $(DOCKER_IMAGE)
 
 # target: make after-success
