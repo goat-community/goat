@@ -7,12 +7,11 @@
     "build": "storybook build"
   },
   "dependencies": {
-    "@p4b/keycloak-theme": "*",
-    "@p4b/ui": "*",
+    "@p4b/keycloak-theme": "workspace:*",
+    "@p4b/ui": "workspace:*",
     "next": "13.4.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "5.0.4"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@p4b/config": "*",
@@ -36,6 +35,7 @@
     "eslint-plugin-storybook": "^0.6.12",
     "storybook": "^7.0.9",
     "storybook-addon-designs": "7.0.0-beta.2",
-    "storybook-dark-mode": "^3.0.0"
+    "storybook-dark-mode": "^3.0.0",
+    "typescript": "^5.0.4"
   }
 }
