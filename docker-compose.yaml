@@ -45,7 +45,20 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}_storybook
     hostname: ${COMPOSE_PROJECT_NAME}_storybook
     ports:
-      - 80:80
+      - 3002:80
+    networks:
+      proxy:
+
+
+  docs:
+    image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:docs-${PROJECT_VERSION}
+    build:
+      dockerfile: Dockerfile
+      context: ./docs
+    container_name: ${COMPOSE_PROJECT_NAME}_docs
+    hostname: ${COMPOSE_PROJECT_NAME}_docs
+    ports:
+      - 3003:80
     networks:
       proxy:
 
