@@ -39,7 +39,7 @@ export const Card = memo(
 
 const useStyles = makeStyles({ name: { Card } })((theme) => ({
   root: {
-    borderRadius: 8,
+    borderRadius: 4,
     boxShadow: theme.shadows[1],
     backgroundColor: theme.colors.useCases.surfaces.surface1,
     "&:hover": {

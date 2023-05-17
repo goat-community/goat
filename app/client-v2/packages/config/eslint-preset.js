@@ -22,6 +22,7 @@ module.exports = {
         "@next/next/no-img-element": "off",
         "@next/next/no-html-link-for-pages": "off",
         "jsx-a11y/role-supports-aria-props": "off",
+        "@typescript-eslint/no-explicit-any": "off",
         "react/jsx-curly-brace-presence": ["error", { props: "never", children: "never" }],
         "react/self-closing-comp": ["error", { component: true, html: true }],
         "@typescript-eslint/no-unused-vars": [
@@ -35,6 +36,12 @@ module.exports = {
             },
         ],
         "unused-imports/no-unused-imports": "error",
+        "prettier/prettier": [
+          "error",
+          {
+            "endOfLine": "auto"
+          }
+        ]
     },
     overrides: [
         {
