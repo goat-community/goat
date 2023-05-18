@@ -446,6 +446,7 @@ const useStyles = makeStyles<{
 })((theme, { hasError, rootHeight }) => ({
   muiAutocomplete: {
     minWidth: 145,
+    color: "red",
   },
   muiTextField: {
     "& .MuiFormHelperText-root": {
