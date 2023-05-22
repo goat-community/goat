@@ -1,6 +1,6 @@
 {
   "name": "@p4b/goat",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,18 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@deck.gl/aggregation-layers": "^8.9.12",
-    "@deck.gl/core": "^8.9.12",
-    "@deck.gl/geo-layers": "^8.9.12",
-    "@deck.gl/json": "^8.9.12",
-    "@deck.gl/layers": "^8.9.12",
-    "@deck.gl/mapbox": "^8.9.12",
-    "@deck.gl/react": "^8.9.12",
-    "@emotion/react": "^11.10.8",
-    "@emotion/styled": "^11.10.8",
-    "@mui/material": "^5.12.3",
-    "@p4b/ui": "*",
-    "deck.gl": "^8.9.12",
+    "@p4b/ui": "workspace:*",
     "next": "13.4.0",
     "next-auth": "^4.22.1",
     "next-i18next": "^13.2.2",
@@ -29,12 +18,12 @@
     "tss-react": "^4.8.3"
   },
   "devDependencies": {
-    "@p4b/config": "*",
-    "@p4b/tsconfig": "*",
+    "@p4b/config": "workspace:*",
+    "@p4b/tsconfig": "workspace:*",
     "@playwright/test": "^1.33.0",
     "@types/node": "^20.1.5",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "typescript": "^4.5.3"
+    "typescript": "^5.0.4"
   }
 }
