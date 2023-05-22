@@ -223,6 +223,7 @@ request_examples = {
             "heatmap_type": "modified_gaussian",
             "analysis_unit": "hexagon",
             "resolution": 10,
+            "return_type": "geojson",
             "heatmap_config": {
                 "poi": {
                     "atm": {"weight": 1, "sensitivity": 250000, "max_traveltime": 20},
@@ -245,6 +246,7 @@ request_examples = {
             "heatmap_type": "connectivity",
             "analysis_unit": "hexagon",
             "resolution": 6,
+            "return_type": "geojson",
             "heatmap_config": {
                 "max_traveltime": 20,
             },
@@ -262,6 +264,7 @@ request_examples = {
             "heatmap_type": "connectivity",
             "analysis_unit": "hexagon",
             "resolution": 6,
+            "return_type": "geojson",
             "heatmap_config": {
                 "max_traveltime": 60,
             },
@@ -280,6 +283,7 @@ request_examples = {
             "heatmap_type": "modified_gaussian",
             "analysis_unit": "hexagon",
             "resolution": 9,
+            "return_type": "geojson",
             "heatmap_config": {
                 "poi": {
                     "atm": {"weight": 1, "sensitivity": 250000, "max_traveltime": 20},
@@ -302,6 +306,7 @@ request_examples = {
             "heatmap_type": "modified_gaussian",
             "analysis_unit": "hexagon",
             "resolution": 6,
+            "return_type": "geojson",
             "heatmap_config": {
                 "poi": {
                     "atm": {"weight": 1, "sensitivity": 250000, "max_traveltime": 20},
@@ -324,6 +329,7 @@ request_examples = {
             "heatmap_type": "combined_cumulative_modified_gaussian",
             "analysis_unit": "hexagon",
             "resolution": 6,
+            "return_type": "geojson",
             "heatmap_config": {
                 "poi": {
                     "atm": {
@@ -361,6 +367,7 @@ request_examples = {
             "heatmap_type": "closest_average",
             "analysis_unit": "hexagon",
             "resolution": 10,
+            "return_type": "geojson",
             "heatmap_config": {
                 "poi": {
                     "atm": {"weight": 1, "max_count": 1, "max_traveltime": 20},
@@ -430,6 +437,7 @@ request_examples = {
             "heatmap_type": "closest_average",
             "analysis_unit": "hexagon",
             "resolution": 9,
+            "return_type": "geojson",
             "heatmap_config": {
                 "poi": {
                     "atm": {"weight": 1, "max_count": 1, "max_traveltime": 20},
@@ -452,6 +460,7 @@ request_examples = {
             "heatmap_type": "closest_average",
             "analysis_unit": "hexagon",
             "resolution": 6,
+            "return_type": "geojson",
             "heatmap_config": {
                 "poi": {
                     "atm": {"weight": 1, "max_count": 1, "max_traveltime": 20},
@@ -474,6 +483,7 @@ request_examples = {
             "heatmap_type": "connectivity",
             "analysis_unit": "hexagon",
             "resolution": 10,
+            "return_type": "geojson",
             "heatmap_config": {"max_traveltime": 10},
         },
     },
@@ -504,6 +514,7 @@ request_examples = {
             "heatmap_type": "modified_gaussian_population",
             "analysis_unit": "hexagon",
             "resolution": 6,
+            "return_type": "geojson",
             "heatmap_config": {
                 "poi": {
                     "atm": {
