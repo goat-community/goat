@@ -59,7 +59,7 @@ export function createIcon<IconId extends string>(componentByIconId: {
 }) {
   const useStyles = makeStyles<{ size: IconSizeName }>()((theme, { size }) => ({
     root: {
-      color: theme.colors.palette.dark.greyVariant4,
+      color: theme.colors.palette.dark.light,
       // https://stackoverflow.com/a/24626986/3731798
       //"verticalAlign": "top",
       //"display": "inline-block"
