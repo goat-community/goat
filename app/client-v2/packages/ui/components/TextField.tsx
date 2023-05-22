@@ -24,7 +24,7 @@ import { makeStyles } from "../lib/ThemeProvider";
 import { getBrowser } from "../tools/getBrowser";
 import { useNonPostableEvtLike } from "../tools/useNonPostableEvtLike";
 import { CircularProgress } from "./CircularProgress";
-import { createIcon } from "./Icon";
+import { createIcon } from "./Icon/Icon";
 import { createIconButton } from "./IconButton";
 import { Text } from "./Text/TextBase";
 import { Tooltip } from "./Tooltip";
