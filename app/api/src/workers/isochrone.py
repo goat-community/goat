@@ -23,7 +23,7 @@ def task_calculate_isochrone(isochrone_in, current_user, study_area_bounds):
     }
     if settings.CELERY_BROKER_URL:
         # if we are using celery, we need to convert the numpy array to a string
-        result["data"]["grid"] = binascii.hexlify(bytes(result["grid"])).decode("utf-8")
+        result["data"]["grid"] = binascii.hexlify(bytes(result["data"]["grid"])).decode("utf-8")
         result["hexlified"] = True
 
     return result
