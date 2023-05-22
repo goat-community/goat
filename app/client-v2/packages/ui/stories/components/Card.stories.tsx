@@ -2,8 +2,9 @@ import { Box } from "@mui/material";
 import type { Meta, StoryObj } from "@storybook/react";
 import type { ReactNode } from "react";
 
-import { Card } from "../../components/Card";
-import { Text } from "../theme";
+import { Card } from "../../components/Card/Card";
+import { CardContent } from "../../components/Card/CardContent";
+import { CardMedia } from "../../components/Card/CardMedia";
 import { ThemeProvider } from "../theme";
 
 const meta: Meta<typeof Card> = {
@@ -18,6 +19,11 @@ const meta: Meta<typeof Card> = {
     },
     className: {
       control: false,
+    },
+    width: {
+      control: {
+        type: "number",
+      },
     },
   },
   args: {
@@ -49,15 +55,79 @@ const imageAboveDevider: ReactNode = (
   />
 );
 
-export const Simple: Story = {
+export const EmptyCard: Story = {
   args: {
-    children: <Text typo="body 1">Card Content</Text>,
+    children: "Simple Card",
   },
 };
 
-export const AboveDivider: Story = {
+export const EmptyCardWithMedia: Story = {
   args: {
-    children: <Text typo="body 1">Smaple Media Card</Text>,
-    aboveDivider: imageAboveDevider,
+    children: "Simple Card",
+    aboveDivider: (
+      <CardMedia
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQy9x3wyV5OWYWA8XxBJKMlH2QvuSSOIdOItRK1jgXSQ&s"
+        alt="sampleCard"
+      />
+    ),
+  },
+};
+
+export const CardFile: Story = {
+  args: {
+    children: (
+      <CardContent
+        chips={["hello", "world", "how are you"]}
+        description="Hello_world.pdf"
+        icon="file"
+        title="Test 1"
+      />
+    ),
+    width: 268,
+  },
+};
+
+export const CardProject: Story = {
+  args: {
+    children: (
+      <CardContent
+        chips={["hello", "world", "how are you"]}
+        info={{
+          author: "Someone Anyone",
+          date: "19 May 2023",
+        }}
+        title="Test 1"
+      />
+    ),
+    aboveDivider: (
+      <CardMedia
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQy9x3wyV5OWYWA8XxBJKMlH2QvuSSOIdOItRK1jgXSQ&s"
+        alt="sampleCard"
+      />
+    ),
+    width: 268,
+  },
+};
+
+export const CardBlog: Story = {
+  args: {
+    children: (
+      <CardContent
+        chips={["hello", "world", "how are you"]}
+        description="It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
+        info={{
+          author: "Someone Anyone",
+          date: "19 May 2023",
+        }}
+        title="Test 1"
+      />
+    ),
+    aboveDivider: (
+      <CardMedia
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQy9x3wyV5OWYWA8XxBJKMlH2QvuSSOIdOItRK1jgXSQ&s"
+        alt="sampleCard"
+      />
+    ),
+    width: 268,
   },
 };

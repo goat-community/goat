@@ -14,7 +14,7 @@ import { assert } from "tsafe/assert";
 import { id } from "tsafe/id";
 
 import { makeStyles } from "../lib/ThemeProvider";
-import type { IconProps } from "./Icon";
+import type { IconProps } from "./Icon/Icon";
 
 export type IconButtonProps<IconId extends string = never> =
   | IconButtonProps.Clickable<IconId>

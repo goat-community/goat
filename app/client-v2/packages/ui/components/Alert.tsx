@@ -7,7 +7,7 @@ import { useReducer, memo } from "react";
 import type { ReactNode } from "react";
 
 import { makeStyles } from "../lib/ThemeProvider";
-import { createIcon } from "./Icon";
+import { createIcon } from "./Icon/Icon";
 import { createIconButton } from "./IconButton";
 import { Text } from "./Text/TextBase";
 

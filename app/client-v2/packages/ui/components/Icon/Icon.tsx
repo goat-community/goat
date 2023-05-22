@@ -7,8 +7,8 @@ import type { ForwardedRef, MouseEventHandler, ElementType } from "react";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 
-import { makeStyles } from "../lib/ThemeProvider";
-import type { IconSizeName } from "../lib/icon";
+import { makeStyles } from "../../lib/ThemeProvider";
+import type { IconSizeName } from "../../lib/icon";
 
 /**
  * Size:

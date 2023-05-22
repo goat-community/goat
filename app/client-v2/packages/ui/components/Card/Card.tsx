@@ -4,11 +4,12 @@ import { forwardRef, memo } from "react";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 
-import { makeStyles } from "../lib/ThemeProvider";
+import { makeStyles } from "../../lib/ThemeProvider";
 
 export type CardProps = {
   className?: string;
   aboveDivider?: ReactNode;
+  width?: number;
   children: ReactNode;
 };
 
@@ -17,6 +18,7 @@ export const Card = memo(
     const {
       className,
       aboveDivider,
+      width,
       children,
       //For the forwarding, rest should be empty (typewise)
       ...rest
@@ -29,7 +31,7 @@ export const Card = memo(
     const { classes, cx } = useStyles();
 
     return (
-      <div ref={ref} className={cx(classes.root, className)} {...rest}>
+      <div ref={ref} className={cx(classes.root, className)} {...rest} style={{ width: width }}>
         {aboveDivider !== undefined && <div className={classes.aboveDivider}>{aboveDivider}</div>}
         <div className={classes.belowDivider}>{children}</div>
       </div>
@@ -49,8 +51,6 @@ const useStyles = makeStyles({ name: { Card } })((theme) => ({
     flexDirection: "column",
   },
   aboveDivider: {
-    padding: theme.spacing({ topBottom: 3, rightLeft: 4 }),
-    borderBottom: `1px solid ${theme.colors.useCases.typography.textTertiary}`,
     boxSizing: "border-box",
   },
   belowDivider: {

@@ -4,7 +4,7 @@ import type { Param0 } from "tsafe";
 
 import "../assets/fonts/mulish/font.css";
 import { createButton } from "../components/Button";
-import { createIcon } from "../components/Icon";
+import { createIcon } from "../components/Icon/Icon";
 import { createIconButton } from "../components/IconButton";
 import { createText } from "../components/Text";
 import { createThemeProvider, defaultGetTypographyDesc } from "../lib";
