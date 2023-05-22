@@ -1108,7 +1108,7 @@ def read_results(results, return_type=None):
     if results["data_source"] == "heatmap":
         data = results["data"]
     elif results["data_source"] == "isochrone":
-        if results["return_type"] == "grid":
+        if return_type == "grid":
             if results["hexlified"]:
                 data = binascii.unhexlify(results["data"]["grid"])
             else:
@@ -1118,12 +1118,12 @@ def read_results(results, return_type=None):
                 media_type="application/octet-stream",
                 headers={"Content-Disposition": "attachment; filename=grid.bin"},
             )
-        elif results["return_type"] == "network":
+        elif return_type == "network":
             return results["data"]["network"]
         else:
             data = results["data"]["geojson"]
 
-    if results["return_type"] == "geojson":
+    if return_type == "geojson":
         return data
     else:
         converted_data = convert_geojson_to_others_ogr2ogr(
