@@ -1052,12 +1052,39 @@ def hexlify_file(file_path: str):
         return binascii.hexlify(f.read()).decode("utf-8")
 
 
+def zip_shape_file(shapefile_path: str, destination_name: str):
+    # Extract the directory path and base filename
+    shapefile_dir = os.path.dirname(shapefile_path)
+    shapefile_name = os.path.basename(shapefile_path)
+
+    # Create the zip file
+    zipfile_path = os.path.join(shapefile_dir, shapefile_name.replace(".shp", ".zip"))
+    with zipfile.ZipFile(zipfile_path, "w") as zipf:
+        for ext in [".shp", ".shx", ".dbf", ".prj"]:
+            file_path = os.path.join(shapefile_dir, shapefile_name.replace(".shp", ext))
+            # write_path = os.path.join(destination_name, destination_name + ext)
+            write_path = destination_name + ext
+            zipf.write(file_path, write_path)
+
+
+def delete_shape_file(shapefile_path: str):
+    for ext in [".shp", ".shx", ".dbf", ".prj"]:
+        file_path = os.path.join(
+            os.path.dirname(shapefile_path), shapefile_path.replace(".shp", ext)
+        )
+        delete_file(file_path)
+
+
 def convert_geojson_to_others_ogr2ogr(
     input_geojson: dict, destination_layer_name: str, output_format: str
 ):
     options = {
         "geopackage": {"output_suffix": "gpkg", "format_name": "GPKG"},
-        "shapefile": {"output_suffix": "shp", "format_name": "ESRI Shapefile"},
+        "shapefile": {
+            "output_suffix": "shp",
+            "format_name": "ESRI Shapefile",
+            "extra_options": "-lco ENCODING=UTF-8",
+        },
         "csv": {"output_suffix": "csv", "format_name": "CSV"},
         "kml": {
             "output_suffix": "kml",
@@ -1079,11 +1106,18 @@ def convert_geojson_to_others_ogr2ogr(
     with open(geojson_temp_file, "w") as f:
         f.write(json.dumps(input_geojson))
 
-    command_to_convert = f"ogr2ogr -f {format_name} -nln {destination_layer_name} {extra_options} {output_temp_file} {geojson_temp_file}"
+    command_to_convert = f'ogr2ogr -f "{format_name}" -nln {destination_layer_name} {extra_options} {output_temp_file} {geojson_temp_file}'
     subprocess.check_output(
         command_to_convert, shell=True
     )  # Use check output to raise error if command fails
     delete_file(geojson_temp_file)
+
+    if output_format == "shapefile":
+        zip_shape_file(output_temp_file, destination_layer_name)
+        delete_shape_file(output_temp_file)
+        output_temp_file = output_temp_file.replace(".shp", ".zip")
+        output_suffix = "zip"
+
     output_data = open(output_temp_file, "rb").read()
     delete_file(output_temp_file)
 
