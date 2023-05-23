@@ -89,8 +89,7 @@ async def calculate_isochrone(
         task = task_calculate_isochrone.delay(
             isochrone_in, current_user, study_area_bounds
         )
-        task_id = f"isochrone-{task.id}"
-        return {"task_id": task_id}
+        return {"task_id": task.id}
 
 
 @router.post("/isochrone/multi/count-pois", response_class=JSONResponse)
@@ -286,11 +285,6 @@ async def get_indicators_result(
     ),
 ):
     """Fetch result for given task_id"""
-
-    task_type = "other"
-    if "isochrone-" in task_id:
-        task_type = "isochrone"
-        task_id = task_id.replace("isochrone-", "")
 
     result = AsyncResult(task_id, app=celery_app)
     if result.ready():
