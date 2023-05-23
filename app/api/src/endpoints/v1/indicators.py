@@ -29,6 +29,7 @@ from src.schemas.isochrone import (
     IsochroneOutputType,
     request_examples,
 )
+from src.schemas.utils import validate_return_type
 from src.utils import return_geojson_or_geobuf, read_results
 from src.workers.method_connector import (
     read_heatmap_async,
@@ -295,7 +296,15 @@ async def get_indicators_result(
     if result.ready():
         try:
             result = result.get()
+            try:
+                validate_return_type(result, return_type.value)
+            except ValueError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                )
             return read_results(result, return_type.value)
+        except HTTPException as e:
+            raise e
         except Exception as e:
             raise HTTPException(status_code=500, detail="Task failed")
 
