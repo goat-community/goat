@@ -76,7 +76,7 @@
               >
                 <v-icon
                   v-ripple
-                  style="color: #b0b0b0; margin-top: 3px; cursor: pointer"
+                  style="color: #b0b0b0; margin-top: 3px; cursor: pointer; margin-bottom: 12px;"
                   dark
                   @click="openStyleDialog(layer)"
                 >
@@ -93,6 +93,10 @@
                 }"
               >
                 <v-slider
+                  v-if="
+                    layer.get('type').toUpperCase() !== 'MVT' ||
+                      layer.get('group') !== 'additional_data'
+                  "
                   :value="layer.getOpacity()"
                   class="mx-5"
                   step="0.05"
@@ -155,7 +159,7 @@
               <v-flex class="xs2" style="text-align: center">
                 <v-icon
                   v-ripple
-                  style="color: #b0b0b0; margin-top: 3px; cursor: pointer"
+                  style="color: #b0b0b0; margin-top: 3px; cursor: pointer;"
                   dark
                   @click="openStyleDialog(layer)"
                 >
@@ -230,6 +234,13 @@ export default {
     getVisibleLayers: {
       //Get visible layers
       get: function() {
+        console.log(
+          this.allLayers.filter(
+            layer =>
+              layer.getVisible() === true &&
+              !["basemap", "indicator"].includes(layer.get("group"))
+          )
+        );
         return this.allLayers.filter(
           layer =>
             layer.getVisible() === true &&

@@ -48,6 +48,35 @@ new Vue({
   i18n,
   store,
   vuetify,
+  data: {
+    loaded: false
+  },
+  beforeCreate() {
+    let currentlang =
+      navigator.language.split("-")[0] ||
+      process.env.VUE_APP_I18N_LOCALE ||
+      "en";
+    this.$i18n.locale = currentlang;
+    this.$i18n.fallbackLocale = "en";
+    this.$i18n.setLocaleMessage(currentlang, this.$i18n.messages[currentlang]);
+
+    // Wait for the translations to be loaded before rendering the app
+    this.$i18n.locale = currentlang;
+    this.$i18n.watch(() => {
+      if (this.$i18n.locale !== currentlang || this.loaded) {
+        return;
+      }
+      this.loaded = true;
+      new Vue({
+        el: "#app",
+        router,
+        i18n,
+        store,
+        vuetify,
+        render: h => h(App)
+      });
+    });
+  },
   render: h => h(App)
 });
 
