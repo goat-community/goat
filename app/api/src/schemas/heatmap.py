@@ -55,14 +55,13 @@ class HeatmapType(Enum):
 
 
 class ReturnTypeHeatmap(Enum):
-    geojson = "geojson"
-    csv = "csv"
-    geobuf = "geobuf"
-    pbf = "pbf"
-    shapefile = "shapefile"
-    geopackage = "geopackage"
-    kml = "kml"
-    xlsx = "xlsx"
+    GEOJSON = "geojson"
+    CSV = "csv"
+    GEOBUF = "geobuf"
+    SHAPEFILE = "shapefile"
+    GEOPACKAGE = "geopackage"
+    KML = "kml"
+    XLSX = "xlsx"
 
 
 class AnalysisUnit(Enum):

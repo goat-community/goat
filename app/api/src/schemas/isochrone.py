@@ -83,7 +83,6 @@ class IsochroneOutputType(Enum):
 
     CSV = "csv"
     GEOBUF = "geobuf"
-    PBF = "pbf"
     SHAPEFILE = "shapefile"
     GEOPACKAGE = "geopackage"
     KML = "kml"
