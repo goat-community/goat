@@ -8,7 +8,7 @@ import { Icon } from "../Icon/IconBase";
 import { ChipList } from "../Lists/ChipList";
 import { Text } from "../Text/TextBase";
 
-export type CardProps<IconId extends string> = {
+export type CardContentProps<IconId extends string> = {
   className?: string;
   title: string;
   description?: string;
@@ -21,7 +21,7 @@ export type CardProps<IconId extends string> = {
 };
 
 export const CardContent = memo(
-  forwardRef<any, CardProps<"home" | "help" | "file">>((props) => {
+  forwardRef<any, CardContentProps<"home" | "help" | "file">>((props) => {
     const {
       className,
       title,

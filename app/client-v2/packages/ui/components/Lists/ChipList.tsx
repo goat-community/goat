@@ -1,36 +1,58 @@
-// Copyright (c) 2020 GitHub user u/garronej
 import { Chip } from "@mui/material";
-import { forwardRef, memo } from "react";
-import type { Equals } from "tsafe";
-import { assert } from "tsafe/assert";
+import { forwardRef, memo, useEffect, useRef } from "react";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 
-export type CardProps = {
+export type ChipListProps = {
   className?: string;
   chips: string[];
 };
 
 export const ChipList = memo(
-  forwardRef<any, CardProps>((props) => {
-    const {
-      className,
-      chips,
-      //For the forwarding, rest should be empty (typewise)
-      ...rest
-    } = props;
+  forwardRef<any, ChipListProps>((props, ref) => {
+    const { className, chips } = props;
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
-    //For the forwarding, rest should be empty (typewise),
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    assert<Equals<typeof rest, {}>>();
+    useEffect(() => {
+      const handleOverflow = () => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const chipsContainer = container.firstChild as HTMLElement;
+
+        if (chipsContainer) {
+          const chips = Array.from(chipsContainer.children) as HTMLElement[];
+
+          chips.forEach((chip) => {
+            const chipRect = chip.getBoundingClientRect();
+            const isChipFullyVisible =
+              chipRect.left >= containerRect.left && chipRect.right <= containerRect.right;
+
+            chip.style.display = isChipFullyVisible ? "flex" : "none";
+          });
+        }
+      };
+
+      handleOverflow();
+
+      window.addEventListener("resize", handleOverflow);
+
+      return () => {
+        window.removeEventListener("resize", handleOverflow);
+      };
+    }, []);
 
     const { classes, cx } = useStyles();
 
     return (
-      <div className={cx(classes.chips, className)}>
-        {chips.map((chip: string, index: number) => (
-          <Chip className={classes.chip} key={index} label={chip} />
-        ))}
+      <div className={className} ref={containerRef} style={{ overflowX: "auto" }}>
+        <div style={{ display: "flex" }} className={classes.chips}>
+          {chips.map((chip: string, index: number) => (
+            <Chip key={index} label={chip} className={classes.chip} />
+          ))}
+          <Chip label="..." className={classes.chip} />
+        </div>
       </div>
     );
   })
@@ -39,31 +61,7 @@ export const ChipList = memo(
 const useStyles = makeStyles({ name: { ChipList } })((theme) => ({
   chips: {
     display: "flex",
-    paddingBottom: "4px",
     width: "100%",
-    overflowX: "auto",
-    overflowY: "hidden",
-    scrollbarWidth: "thin",
-    scrollbarColor: "transparent transparent",
-    "&::-webkit-scrollbar": {
-      height: "4px",
-    },
-    "&::-webkit-scrollbar-thumb": {
-      backgroundColor: theme.colors.useCases.surfaces.background,
-    },
-    "&::-moz-scrollbar": {
-      width: "4px",
-    },
-    "&::-moz-scrollbar-thumb": {
-      backgroundColor: theme.colors.useCases.surfaces.background,
-    },
-    "&::-ms-scrollbar": {
-      height: "4px",
-    },
-    "&::-ms-scrollbar-thumb": {
-      backgroundColor: theme.colors.useCases.surfaces.background,
-    },
-    borderRadius: "20pxpx",
   },
   chip: {
     backgroundColor: theme.colors.useCases.surfaces.background,
@@ -71,3 +69,5 @@ const useStyles = makeStyles({ name: { ChipList } })((theme) => ({
     padding: "7px 6px",
   },
 }));
+
+export default ChipList;

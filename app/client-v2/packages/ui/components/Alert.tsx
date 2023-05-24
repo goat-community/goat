@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 
 import { makeStyles } from "../lib/ThemeProvider";
 import { createIcon } from "./Icon/Icon";
-import { createIconButton } from "./IconButton";
+import { createIconButton } from "./Icon/IconButton";
 import { Text } from "./Text/TextBase";
 
 export type AlertProps = {
