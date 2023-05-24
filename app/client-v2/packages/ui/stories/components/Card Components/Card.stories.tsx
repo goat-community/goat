@@ -83,7 +83,7 @@ export const CardFile: Story = {
         title="Test 1"
       />
     ),
-    width: 468,
+    width: 268,
   },
 };
 
