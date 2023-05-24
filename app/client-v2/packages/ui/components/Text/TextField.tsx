@@ -20,14 +20,14 @@ import type { ReturnType } from "tsafe";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 
-import { makeStyles } from "../lib/ThemeProvider";
-import { getBrowser } from "../tools/getBrowser";
-import { useNonPostableEvtLike } from "../tools/useNonPostableEvtLike";
-import { CircularProgress } from "./CircularProgress";
-import { createIcon } from "./Icon/Icon";
-import { createIconButton } from "./IconButton";
-import { Text } from "./Text/TextBase";
-import { Tooltip } from "./Tooltip";
+import { makeStyles } from "../../lib/ThemeProvider";
+import { getBrowser } from "../../tools/getBrowser";
+import { useNonPostableEvtLike } from "../../tools/useNonPostableEvtLike";
+import { CircularProgress } from "../CircularProgress";
+import { createIcon } from "../Icon/Icon";
+import { createIconButton } from "../Icon/IconButton";
+import { Tooltip } from "../Tooltip";
+import { Text } from "./TextBase";
 
 export type TextFieldProps = {
   className?: string;

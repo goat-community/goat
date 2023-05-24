@@ -2,10 +2,10 @@ import { Box } from "@mui/material";
 import type { Meta, StoryObj } from "@storybook/react";
 import type { ReactNode } from "react";
 
-import { Card } from "../../components/Card/Card";
-import { CardContent } from "../../components/Card/CardContent";
-import { CardMedia } from "../../components/Card/CardMedia";
-import { ThemeProvider } from "../theme";
+import { Card } from "../../../components/Card/Card";
+import { CardContent } from "../../../components/Card/CardContent";
+import { CardMedia } from "../../../components/Card/CardMedia";
+import { ThemeProvider } from "../../theme";
 
 const meta: Meta<typeof Card> = {
   component: Card,
@@ -77,13 +77,13 @@ export const CardFile: Story = {
   args: {
     children: (
       <CardContent
-        chips={["hello", "world", "how are you"]}
+        chips={["hello", "wo", "how are you"]}
         description="Hello_world.pdf"
         icon="file"
         title="Test 1"
       />
     ),
-    width: 268,
+    width: 468,
   },
 };
 

@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { ThemeProvider } from "../theme";
-import { Icon } from "../theme";
+import { ThemeProvider } from "../../theme";
+import { IconButton } from "../../theme";
 
-const meta: Meta<typeof Icon> = {
-  component: Icon,
+const meta: Meta<typeof IconButton> = {
+  component: IconButton,
   tags: ["autodocs"],
   argTypes: {
     iconId: {
@@ -19,6 +19,24 @@ const meta: Meta<typeof Icon> = {
       control: {
         type: "select",
       },
+    },
+    iconClassName: {
+      control: false,
+    },
+    disabled: {
+      control: { type: "boolean" },
+    },
+    autoFocus: {
+      control: { type: "boolean" },
+    },
+    tabIndex: {
+      control: { type: "number" },
+    },
+    name: {
+      control: { type: "text" },
+    },
+    id: {
+      control: { type: "text" },
     },
   },
   args: {
@@ -35,7 +53,7 @@ const meta: Meta<typeof Icon> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Icon>;
+type Story = StoryObj<typeof IconButton>;
 
 export const Default: Story = {
   args: {

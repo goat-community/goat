@@ -5,14 +5,14 @@ import { assert } from "tsafe/assert";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 
-export type CardProps = {
+export type CardMediaProps = {
   src: string;
   alt?: string;
   className?: string;
 };
 
 export const CardMedia = memo(
-  forwardRef<any, CardProps>((props) => {
+  forwardRef<any, CardMediaProps>((props) => {
     const {
       src,
       alt,

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { ThemeProvider } from "../theme";
-import { Text } from "../theme";
+import { ThemeProvider } from "../../theme";
+import { Text } from "../../theme";
 
 const meta: Meta<typeof Text> = {
   component: Text,
