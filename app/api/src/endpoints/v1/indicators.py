@@ -14,9 +14,9 @@ from src.db import models
 from src.endpoints import deps
 from src.resources.enums import (
     IsochroneExportType,
-    ReturnType,
+    IndicatorResultsReturnType,
 )
-from src.schemas.heatmap import HeatmapSettings
+from src.schemas.heatmap import HeatmapSettings, ReturnTypeHeatmap
 from src.schemas.heatmap import request_examples as heatmap_request_examples
 from src.schemas.indicators import (
     CalculateOevGueteklassenParameters,
@@ -280,7 +280,7 @@ async def calculate_oev_gueteklassen(
 async def get_indicators_result(
     task_id: str,
     current_user: models.User = Depends(deps.get_current_active_user),
-    return_type: IsochroneOutputType = Query(
+    return_type: IndicatorResultsReturnType = Query(
         ..., description="Return type of the response"
     ),
 ):
