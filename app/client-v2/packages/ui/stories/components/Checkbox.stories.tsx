@@ -39,12 +39,24 @@ export const Primary: Story = {
     color: "primary",
     defaultChecked: true,
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-43052&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
 
 export const Secondary: Story = {
   args: {
     color: "secondary",
     defaultChecked: true,
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-43052&t=m1TtlHDKRmJk5wCK-0",
+    },
   },
 };
 
@@ -53,12 +65,24 @@ export const Error: Story = {
     color: "error",
     defaultChecked: true,
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-43052&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
 
 export const Info: Story = {
   args: {
     color: "info",
     defaultChecked: true,
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-43052&t=m1TtlHDKRmJk5wCK-0",
+    },
   },
 };
 
@@ -67,6 +91,12 @@ export const Success: Story = {
     color: "success",
     defaultChecked: true,
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-43052&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
 
 export const Warning: Story = {
@@ -74,11 +104,23 @@ export const Warning: Story = {
     color: "warning",
     defaultChecked: true,
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-43052&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
 
 export const Default: Story = {
   args: {
     color: "default",
     defaultChecked: true,
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-43052&t=m1TtlHDKRmJk5wCK-0",
+    },
   },
 };

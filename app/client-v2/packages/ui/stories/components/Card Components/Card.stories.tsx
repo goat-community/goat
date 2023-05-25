@@ -85,6 +85,12 @@ export const CardFile: Story = {
     ),
     width: 268,
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=11581-140623&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
 
 export const CardProject: Story = {
@@ -106,6 +112,12 @@ export const CardProject: Story = {
       />
     ),
     width: 268,
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=11581-140621&t=m1TtlHDKRmJk5wCK-0",
+    },
   },
 };
 
@@ -129,5 +141,11 @@ export const CardBlog: Story = {
       />
     ),
     width: 268,
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=11581-140622&t=m1TtlHDKRmJk5wCK-0",
+    },
   },
 };
