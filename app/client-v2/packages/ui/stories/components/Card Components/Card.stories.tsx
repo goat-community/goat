@@ -2,9 +2,9 @@ import { Box } from "@mui/material";
 import type { Meta, StoryObj } from "@storybook/react";
 import type { ReactNode } from "react";
 
-import { Card } from "../../../components/Card/Card";
-import { CardContent } from "../../../components/Card/CardContent";
-import { CardMedia } from "../../../components/Card/CardMedia";
+import { Card } from "../../../components/Card";
+import { CardContent } from "../../../components/Card";
+import { CardMedia } from "../../../components/Card";
 import { ThemeProvider } from "../../theme";
 
 const meta: Meta<typeof Card> = {
