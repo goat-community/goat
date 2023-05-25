@@ -42,4 +42,10 @@ export const Simple: Story = {
   args: {
     // color: "primary",
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6590-48770&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
