@@ -11,7 +11,7 @@ import { memo } from "react";
 import { symToStr } from "tsafe/symToStr";
 
 import { Alert } from "@p4b/ui/components/Alert";
-import { Card } from "@p4b/ui/components/Card/Card";
+import { Card } from "@p4b/ui/components/Card";
 import { useDomRect, useWindowInnerSize } from "@p4b/ui/lib";
 
 import { ThemeProvider, makeStyles, IconButton, Text } from "../theme";
