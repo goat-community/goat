@@ -42,12 +42,24 @@ export const Warning: Story = {
     children: <Text typo="body 1">Alert message text</Text>,
     severity: "warning",
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6595-48211&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
 
 export const Info: Story = {
   args: {
     ...Warning.args,
     severity: "info",
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6595-48211&t=m1TtlHDKRmJk5wCK-0",
+    },
   },
 };
 
@@ -56,11 +68,23 @@ export const Error: Story = {
     ...Warning.args,
     severity: "error",
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6595-48211&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
 
 export const Success: Story = {
   args: {
     ...Warning.args,
     severity: "success",
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6595-48211&t=m1TtlHDKRmJk5wCK-0",
+    },
   },
 };

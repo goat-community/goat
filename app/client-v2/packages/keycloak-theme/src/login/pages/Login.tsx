@@ -12,7 +12,7 @@ import { useStateRef } from "powerhooks/useStateRef";
 import { useState, type FormEventHandler } from "react";
 
 import { Checkbox } from "@p4b/ui/components/Checkbox";
-import { TextField } from "@p4b/ui/components/TextField";
+import { TextField } from "@p4b/ui/components/Text/TextField";
 import { useSplashScreen } from "@p4b/ui/lib";
 import { getBrowser } from "@p4b/ui/tools/getBrowser";
 

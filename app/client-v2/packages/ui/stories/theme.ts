@@ -1,11 +1,13 @@
+import CorporateFareIcon from "@mui/icons-material/CorporateFare";
 import HelpIcon from "@mui/icons-material/Help";
 import HomeIcon from "@mui/icons-material/Home";
+import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import type { Param0 } from "tsafe";
 
 import "../assets/fonts/mulish/font.css";
 import { createButton } from "../components/Button";
-import { createIcon } from "../components/Icon";
-import { createIconButton } from "../components/IconButton";
+import { createIcon } from "../components/Icon/Icon";
+import { createIconButton } from "../components/Icon/IconButton";
 import { createText } from "../components/Text";
 import { createThemeProvider, defaultGetTypographyDesc } from "../lib";
 
@@ -24,6 +26,8 @@ export const { ThemeProvider, StoryProvider, useTheme } = createThemeProvider({
 export const { Icon } = createIcon({
   help: HelpIcon,
   home: HomeIcon,
+  coorperate: CorporateFareIcon,
+  powerOff: PowerSettingsNewIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];

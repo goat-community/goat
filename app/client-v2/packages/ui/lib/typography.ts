@@ -288,21 +288,21 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       ...(() => {
         if (windowInnerWidth >= breakpointsValues.xl) {
           return {
-            fontSizeRem: 1,
-            lineHeightRem: 1.475,
+            fontSizeRem: 1.063,
+            lineHeightRem: 1.625,
           };
         }
 
         if (windowInnerWidth >= breakpointsValues.lg) {
           return {
-            fontSizeRem: 0.875,
-            lineHeightRem: 1.28,
+            fontSizeRem: 1,
+            lineHeightRem: 1.5,
           };
         }
 
         return {
-          fontSizeRem: 0.75,
-          lineHeightRem: 1,
+          fontSizeRem: 0.875,
+          lineHeightRem: 1.313,
         };
       })(),
     },
@@ -312,21 +312,21 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       ...(() => {
         if (windowInnerWidth >= breakpointsValues.xl) {
           return {
-            fontSizeRem: 0.875,
-            lineHeightRem: 1.28,
+            fontSizeRem: 1,
+            lineHeightRem: 1.5,
           };
         }
 
         if (windowInnerWidth >= breakpointsValues.lg) {
           return {
-            fontSizeRem: 0.75,
-            lineHeightRem: 1,
+            fontSizeRem: 0.875,
+            lineHeightRem: 1.313,
           };
         }
 
         return {
-          fontSizeRem: 0.625,
-          lineHeightRem: 0.69,
+          fontSizeRem: 0.688,
+          lineHeightRem: 1.125,
         };
       })(),
     },
@@ -337,14 +337,14 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
         if (windowInnerWidth >= breakpointsValues.xl) {
           return {
             fontSizeRem: 0.875,
-            lineHeightRem: 1.28,
+            lineHeightRem: 1.313,
           };
         }
 
         if (windowInnerWidth >= breakpointsValues.lg) {
           return {
-            fontSizeRem: 0.75,
-            lineHeightRem: 1,
+            fontSizeRem: 0.688,
+            lineHeightRem: 1.125,
           };
         }
 

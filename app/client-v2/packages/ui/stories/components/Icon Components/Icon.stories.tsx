@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { ThemeProvider } from "../theme";
-import { Icon } from "../theme";
+import { ThemeProvider } from "../../theme";
+import { Icon } from "../../theme";
 
 const meta: Meta<typeof Icon> = {
   component: Icon,
@@ -42,12 +42,24 @@ export const Default: Story = {
     iconId: "help",
     size: "default",
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6594-47648&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
 
 export const ExtraSmall: Story = {
   args: {
     iconId: "help",
     size: "extra small",
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6594-47648&t=m1TtlHDKRmJk5wCK-0",
+    },
   },
 };
 
@@ -56,6 +68,12 @@ export const Small: Story = {
     iconId: "help",
     size: "small",
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6594-47648&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
 
 export const Medium: Story = {
@@ -63,11 +81,23 @@ export const Medium: Story = {
     iconId: "help",
     size: "medium",
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6594-47648&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
 };
 
 export const Large: Story = {
   args: {
     iconId: "help",
     size: "large",
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6594-47648&t=m1TtlHDKRmJk5wCK-0",
+    },
   },
 };
