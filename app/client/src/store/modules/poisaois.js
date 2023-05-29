@@ -89,6 +89,7 @@ const actions = {
                 state.rawPoisAois[oneFeature.get("category")].push(oneFeature);
               } else {
                 state.rawPoisAois[oneFeature.get("category")] = [];
+                state.rawPoisAois[oneFeature.get("category")].push(oneFeature);
               }
             });
 
@@ -125,6 +126,9 @@ const actions = {
                 );
               } else {
                 state.rawGroupPoisAois[oneFeature.get("category")] = [];
+                state.rawGroupPoisAois[oneFeature.get("category")].push(
+                  oneFeature
+                );
               }
             });
           }
