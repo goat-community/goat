@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Sidebar } from "../../components/Sidebar";
+import { DashboardSidebar } from "../../components/DashboardSidebar";
 import { ThemeProvider } from "../theme";
 
-const meta: Meta<typeof Sidebar> = {
-  component: Sidebar,
+const meta: Meta<typeof DashboardSidebar> = {
+  component: DashboardSidebar,
   decorators: [
     (Story) => (
       <ThemeProvider>
@@ -15,7 +15,7 @@ const meta: Meta<typeof Sidebar> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Sidebar>;
+type Story = StoryObj<typeof DashboardSidebar>;
 
 export const Default: Story = {
   args: {

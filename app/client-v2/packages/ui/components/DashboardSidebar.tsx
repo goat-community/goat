@@ -21,7 +21,7 @@ export type SidebarProps = {
   items: { link: string; iconId: "home" | "help" | "folder" | "settings"; placeholder: string }[];
 };
 
-export function Sidebar(props: SidebarProps) {
+export function DashboardSidebar(props: SidebarProps) {
   const { extended, items } = props;
   const { classes, cx } = useStyles();
 
@@ -49,7 +49,7 @@ export function Sidebar(props: SidebarProps) {
   );
 }
 
-const useStyles = makeStyles({ name: { Sidebar } })((theme) => ({
+const useStyles = makeStyles({ name: { DashboardSidebar } })((theme) => ({
   root: {
     backgroundColor: theme.colors.palette.light.light,
     width: SIDEBAR_WIDTH,
