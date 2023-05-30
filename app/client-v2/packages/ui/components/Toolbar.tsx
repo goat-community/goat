@@ -2,6 +2,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import InfoIcon from "@mui/icons-material/Info";
 import { Link, Stack, Typography } from "@mui/material";
 
+import { GOATLogoDarkSvg } from "../assets/svg/GOATLogoDark";
 import { TOOLBAR_HEIGHT } from "../constants/toolbar";
 import { makeStyles } from "../lib/ThemeProvider";
 import { createIcon } from "./Icon";
@@ -26,9 +27,7 @@ export function Toolbar(props: ToolbarProps) {
       justifyContent="space-between"
       alignItems="center"
       padding="21.5px">
-      <Typography color="white" variant="h1">
-        GOAT
-      </Typography>
+      <GOATLogoDarkSvg width={144} height={36} />
       <Typography color="white" variant="h3">
         Search bar goes here
       </Typography>
