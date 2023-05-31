@@ -3,7 +3,6 @@ import InfoIcon from "@mui/icons-material/Info";
 import { Link, Stack, Typography } from "@mui/material";
 
 import { GOATLogoDarkSvg } from "../assets/svg/GOATLogoDark";
-import { TOOLBAR_HEIGHT } from "../constants/toolbar";
 import { makeStyles } from "../lib/ThemeProvider";
 import { createIcon } from "./Icon";
 
@@ -21,16 +20,9 @@ export function Toolbar(props: ToolbarProps) {
   const { classes, cx } = useStyles();
 
   return (
-    <Stack
-      className={cx(classes.root)}
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      padding="21.5px">
+    <Stack className={cx(classes.root)} direction="row" justifyContent="space-between" alignItems="center">
       <GOATLogoDarkSvg width={144} height={36} />
-      <Typography color="white" variant="h3">
-        Search bar goes here
-      </Typography>
+      <Typography variant="h3">Search bar goes here</Typography>
       <Stack direction="row" alignItems="center" spacing="32px">
         {items?.map(({ link, iconId }) => (
           <Link href={link} key={iconId}>
@@ -46,9 +38,10 @@ const useStyles = makeStyles({ name: { Toolbar } })((theme) => ({
   root: {
     position: "fixed",
     backgroundColor: theme.colors.palette.dark.light,
-    height: TOOLBAR_HEIGHT,
+    height: 52,
     top: 0,
     left: 0,
     right: 0,
+    padding: theme.spacing(4),
   },
 }));
