@@ -41,6 +41,7 @@ class IsochroneMode(Enum):
     CYCLING = "cycling"
     TRANSIT = "transit"
     CAR = "car"
+    BUFFER = "buffer"
 
 
 class IsochroneWalkingProfile(Enum):
@@ -80,6 +81,13 @@ class IsochroneOutputType(Enum):
     GEOJSON = "geojson"
     NETWORK = "network"
 
+    CSV = "csv"
+    GEOBUF = "geobuf"
+    SHAPEFILE = "shapefile"
+    GEOPACKAGE = "geopackage"
+    KML = "kml"
+    XLSX = "xlsx"
+
 
 class IsochroneDecayFunctionType(Enum):
     LOGISTIC = "logistic"
@@ -105,10 +113,16 @@ class IsochroneDecayFunction(BaseModel):
 
 class IsochroneSettings(BaseModel):
     # === SETTINGS FOR WALKING AND CYCLING ===#
-    travel_time: int = Field(
+    travel_time: Optional[int] = Field(
         10,
         gt=0,
         description="Travel time in **minutes**",
+    )
+    buffer_distance: Optional[int] = Field(
+        1000,
+        gt=50,
+        le=3000,
+        description="Buffer distance in **meters**",
     )
     speed: Optional[float] = Field(
         5,
@@ -262,10 +276,16 @@ class IsochroneDTO(BaseModel):
                 IsochroneAccessMode.BICYCLE.value,
             ]
         ):
-
             raise ValueError(
                 "Resolution must be between 9 and 14 for walking and cycling isochrones"
             )
+
+        # validate to check if buffer_distance is provided for "BUFFER" mode
+        if (
+            values["mode"].value == IsochroneMode.BUFFER.value
+            and not values["settings"].buffer_distance
+        ):
+            raise ValueError("Buffer distance is required for buffer catchment area")
 
         # Validation check on grid resolution and number of steps for geojson for public transport isochrones
         if (
@@ -340,6 +360,24 @@ class IsochroneDTO(BaseModel):
 
         return values
 
+    @property
+    def is_multi(self):
+        """Check if multi-isochrone"""
+        starting_point_type_is_coord = isinstance(
+            self.starting_point.input[0], IsochroneStartingPointCoord
+        )
+
+        if len(self.starting_point.input) > 1 and starting_point_type_is_coord:
+            return False
+        else:
+            return True
+
+    @property
+    def is_single(self):
+        """Check if single-isochrone"""
+        return not self.is_multi
+
+
 # R5
 R5AvailableDates = {
     0: "2022-05-16",
@@ -412,6 +450,25 @@ request_examples = {
                 },
             },
         },
+        "single_cycling_default": {
+            "summary": "Single Cycling Isochrone with Default Profile",
+            "value": {
+                "mode": "cycling",
+                "settings": {
+                    "travel_time": "15",
+                    "speed": "10",
+                    "cycling_profile": "standard",
+                },
+                "starting_point": {
+                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                },
+                "scenario": {"id": 0, "modus": "default"},
+                "output": {
+                    "type": "grid",
+                    "resolution": "12",
+                },
+            },
+        },
         "pois_multi_isochrone": {
             "summary": "Multi Isochrone with Pois",
             "value": {
@@ -424,7 +481,7 @@ request_examples = {
                 "starting_point": {
                     "input": ["nursery"],
                     "region_type": "study_area",
-                    "region": [27],
+                    "region": [27, 144],
                 },
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
@@ -459,6 +516,21 @@ request_examples = {
                 "output": {
                     "type": "grid",
                     "resolution": "9",
+                },
+            },
+        },
+        "single_buffer_catchment": {
+            "summary": "Single Buffer Catchment",
+            "value": {
+                "mode": "buffer",
+                "settings": {"buffer_distance": "2000"},
+                "starting_point": {
+                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                },
+                "scenario": {"id": 0, "modus": "default"},
+                "output": {
+                    "type": "grid",
+                    "resolution": "12",
                 },
             },
         },

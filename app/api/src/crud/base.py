@@ -86,6 +86,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def get_by_multi_keys(
         self, db: AsyncSession, *, keys: Dict[str, Any], extra_fields: List[Any] = []
     ) -> List[ModelType]:
+        """
+        Example of usage:
+        get_by_multi_keys(db, keys={"name": "John", "age": 2})
+        """
+        
         statement = select(self.model)
         for key, value in keys.items():
             statement = statement.where(getattr(self.model, key) == value)

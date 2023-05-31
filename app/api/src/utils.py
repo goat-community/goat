@@ -1,3 +1,5 @@
+import base64
+import binascii
 import json
 import logging
 import math
@@ -6,6 +8,8 @@ import random
 import re
 import shutil
 import string
+import subprocess
+import tempfile
 import time
 import uuid
 import zipfile
@@ -14,7 +18,7 @@ from functools import wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import IO, Any, Dict, List, Optional
-
+from math import radians, cos
 import emails
 import geobuf
 import geopandas
@@ -252,11 +256,14 @@ def encode_r5_grid(grid_data: Any) -> bytes:
     header_bin = array.tobytes()
     # - reshape the data
     grid_size = grid_data["width"] * grid_data["height"]
-    data = grid_data["data"].reshape(grid_data["depth"], grid_size)
-    reshaped_data = np.array([])
-    for i in range(grid_data["depth"]):
-        reshaped_data = np.append(reshaped_data, np.diff(data[i], prepend=0))
-    data = reshaped_data.astype(np.int32)
+    if len(grid_data["data"]) == 0:
+        data = np.array([], dtype=np.int32)
+    else:
+        data = grid_data["data"].reshape(grid_data["depth"], grid_size)
+        reshaped_data = np.array([])
+        for i in range(grid_data["depth"]):
+            reshaped_data = np.append(reshaped_data, np.diff(data[i], prepend=0))
+        data = reshaped_data.astype(np.int32)
     z_diff_bin = data.tobytes()
 
     # - encode metadata
@@ -459,6 +466,61 @@ def coordinate_from_pixel(input, zoom, round_int=False, web_mercator=False):
     return [x, y]
 
 
+def buffer(starting_points_gdf, buffer_distance, increment):
+    """
+    Incrementally buffer a set of points
+
+    Parameters
+    ----------
+    starting_points_gdf : geopandas.GeoDataFrame. The starting points to buffer
+    buffer_distance : float. The initial buffer distance
+    increment : float. The increment to add to the buffer distance
+
+    Returns
+    -------
+    geopandas.GeoDataFrame. The buffered points
+
+    """
+    epsg_3857 = pyproj.CRS("EPSG:3857")
+    proj_3857 = pyproj.Proj(epsg_3857)
+    proj_factors = proj_3857.get_factors(
+        starting_points_gdf.iloc[0][0].x, starting_points_gdf.iloc[0][0].y
+    )
+    # Parallel scale is the ratio of the scale factor at the given latitude to the scale factor at the equator.
+    # This is not accurate for very large distances, but should be good enough for our purposes.
+    scale_factor = proj_factors.parallel_scale
+    starting_points_gdf = starting_points_gdf.to_crs(epsg=3857)
+    results = {}
+    steps = []
+    incremental_shapes = []
+    full_shapes = []
+
+    for i in range(increment, buffer_distance + increment, increment):
+        steps.append(i // increment)
+        # multiply the buffer distance by the scale factor to account for the distortion of the projection.
+        # the distance is in meters, on a sphere.
+        union_geom = starting_points_gdf.buffer(i * scale_factor).unary_union
+        full_shapes.append(union_geom)
+
+    full_gdf = geopandas.GeoDataFrame({"geometry": full_shapes, "steps": steps})
+    full_gdf.set_crs(epsg=3857, inplace=True)
+    full_gdf = full_gdf.to_crs(epsg=4326)
+    results["full"] = full_gdf
+
+    for i in range(len(full_shapes)):
+        if i == 0:
+            incremental_shapes.append(full_shapes[i])
+        else:
+            incremental_shapes.append(full_shapes[i].difference(full_shapes[i - 1]))
+
+    incremental_gdf = geopandas.GeoDataFrame({"geometry": incremental_shapes, "steps": steps})
+    incremental_gdf.set_crs(epsg=3857, inplace=True)
+    incremental_gdf = incremental_gdf.to_crs(epsg=4326)
+    results["incremental"] = incremental_gdf
+
+    return results
+
+
 def coordinate_to_pixel(input, zoom, return_dict=True, round_int=False, web_mercator=False):
     """
     Convert coordinate to pixel coordinate
@@ -520,7 +582,6 @@ def geometry_to_pixel(geometry, zoom):
         )
     if geometry["type"] == "LineString":
         for coordinate in geometry["coordinates"]:
-
             pixel_coordinates.append(
                 np.unique(
                     np.array(
@@ -655,7 +716,6 @@ def print_warning(message: str):
 
 
 def tablify(s):
-
     # Replace file suffix dot with underscore
 
     s = s.replace(".", "_")
@@ -985,3 +1045,130 @@ def downsample_array(arr, new_shape, method="sum"):
         downsampled_arr = reshaped_arr.sum(axis=(1, 3))
 
     return downsampled_arr
+
+
+def hexlify_file(file_path: str):
+    with open(file_path, "rb") as f:
+        return binascii.hexlify(f.read()).decode("utf-8")
+
+
+def zip_shape_file(shapefile_path: str, destination_name: str):
+    # Extract the directory path and base filename
+    shapefile_dir = os.path.dirname(shapefile_path)
+    shapefile_name = os.path.basename(shapefile_path)
+
+    # Create the zip file
+    zipfile_path = os.path.join(shapefile_dir, shapefile_name.replace(".shp", ".zip"))
+    with zipfile.ZipFile(zipfile_path, "w") as zipf:
+        for ext in [".shp", ".shx", ".dbf", ".prj"]:
+            file_path = os.path.join(shapefile_dir, shapefile_name.replace(".shp", ext))
+            # write_path = os.path.join(destination_name, destination_name + ext)
+            write_path = destination_name + ext
+            zipf.write(file_path, write_path)
+
+
+def delete_shape_file(shapefile_path: str):
+    for ext in [".shp", ".shx", ".dbf", ".prj"]:
+        file_path = os.path.join(
+            os.path.dirname(shapefile_path), shapefile_path.replace(".shp", ext)
+        )
+        delete_file(file_path)
+
+
+def convert_geojson_to_others_ogr2ogr(
+    input_geojson: dict, destination_layer_name: str, output_format: str
+):
+    options = {
+        "geopackage": {"output_suffix": "gpkg", "format_name": "GPKG"},
+        "shapefile": {
+            "output_suffix": "shp",
+            "format_name": "ESRI Shapefile",
+            "extra_options": "-lco ENCODING=UTF-8",
+        },
+        "csv": {"output_suffix": "csv", "format_name": "CSV"},
+        "kml": {
+            "output_suffix": "kml",
+            "format_name": "KML",
+            "extra_options": "-mapFieldType Integer64=Real",
+        },
+        "geobuf": {"output_suffix": "fgb", "format_name": "FlatGeobuf"},
+        "xlsx": {"output_suffix": "xlsx", "format_name": "XLSX"},
+    }
+
+    output_suffix = options[output_format]["output_suffix"]
+    format_name = options[output_format]["format_name"]
+    extra_options = options[output_format].get("extra_options", "")
+
+    temp_file_base_name = tempfile.mktemp()
+    geojson_temp_file = temp_file_base_name + ".geojson"
+    output_temp_file = temp_file_base_name + f".{output_suffix}"
+
+    with open(geojson_temp_file, "w") as f:
+        f.write(json.dumps(input_geojson))
+
+    command_to_convert = f'ogr2ogr -f "{format_name}" -nln {destination_layer_name} {extra_options} {output_temp_file} {geojson_temp_file}'
+    subprocess.check_output(
+        command_to_convert, shell=True
+    )  # Use check output to raise error if command fails
+    delete_file(geojson_temp_file)
+
+    if output_format == "shapefile":
+        zip_shape_file(output_temp_file, destination_layer_name)
+        delete_shape_file(output_temp_file)
+        output_temp_file = output_temp_file.replace(".shp", ".zip")
+        output_suffix = "zip"
+
+    output_data = open(output_temp_file, "rb").read()
+    delete_file(output_temp_file)
+
+    return {
+        "data": output_data,
+        "output_suffix": output_suffix,
+    }
+
+
+def read_results(results, return_type=None):
+    """
+    results_example = {
+        "data": geojson_result,
+        "return_type": heatmap_settings.return_type.value,
+        "hexlified": False,
+        "data_source": "heatmap",
+    }
+    return geojson or binary content based on return_type
+    """
+    if not return_type:
+        return_type = results["return_type"]
+    if results["data_source"] == "heatmap":
+        data = results["data"]
+    elif results["data_source"] == "isochrone":
+        if return_type == "grid":
+            if results["hexlified"]:
+                data = binascii.unhexlify(results["data"]["grid"])
+            else:
+                data = results["data"]["grid"]
+            return Response(
+                data,
+                media_type="application/octet-stream",
+                headers={"Content-Disposition": "attachment; filename=grid.bin"},
+            )
+        elif return_type == "network":
+            return results["data"]["network"]
+        else:
+            data = results["data"]["geojson"]
+
+    if return_type == "geojson":
+        return data
+    else:
+        converted_data = convert_geojson_to_others_ogr2ogr(
+            input_geojson=data,
+            destination_layer_name=results["data_source"],
+            output_format=return_type,
+        )
+        file_name = f"{results['data_source']}.{converted_data['output_suffix']}"
+        # TODO: define the media type based on the output_format
+        return Response(
+            converted_data["data"],
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={file_name}"},
+        )
