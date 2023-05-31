@@ -4,6 +4,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import { Fade, Link, Stack, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
+import { useState } from "react";
 
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_EXTENDED } from "../constants/sidebar";
 import { makeStyles } from "../lib/ThemeProvider";
@@ -17,20 +18,27 @@ const { Icon } = createIcon({
 });
 
 export type SidebarProps = {
-  extended: boolean;
   items: { link: string; iconId: "home" | "help" | "folder" | "settings"; placeholder: string }[];
 };
 
 export function DashboardSidebar(props: SidebarProps) {
-  const { extended, items } = props;
+  const { items } = props;
   const { classes, cx } = useStyles();
 
+  const [hover, setHover] = useState(false);
+
+  const handleHover = () => {
+    setTimeout(() => {
+      setHover((currHover) => !currHover);
+    }, 100);
+  };
+
   return (
-    <Box className={cx(classes.root, { [classes.extended]: extended })}>
+    <Box className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
       {items?.map(({ link, iconId, placeholder }) => (
-        <Box key={link} className={cx(classes.item, { [classes.extended_item]: extended })}>
+        <Box key={link} className={cx(classes.item, { [classes.itemHover]: hover })}>
           <Link href={link}>
-            {extended ? (
+            {hover ? (
               <Fade in={true}>
                 <Stack direction="row" spacing="14px" alignItems="center">
                   <Icon iconId={iconId} />
@@ -52,6 +60,7 @@ export function DashboardSidebar(props: SidebarProps) {
 const useStyles = makeStyles({ name: { DashboardSidebar } })((theme) => ({
   root: {
     backgroundColor: theme.colors.palette.light.light,
+    cursor: "pointer",
     width: SIDEBAR_WIDTH,
     left: 0,
     top: 0,
@@ -60,9 +69,9 @@ const useStyles = makeStyles({ name: { DashboardSidebar } })((theme) => ({
     transition: "width 0.4s ease",
     display: "flex",
     flexDirection: "column",
-  },
-  extended: {
-    width: SIDEBAR_WIDTH_EXTENDED,
+    "&:hover": {
+      width: SIDEBAR_WIDTH_EXTENDED,
+    },
   },
   item: {
     height: 48,
@@ -72,7 +81,7 @@ const useStyles = makeStyles({ name: { DashboardSidebar } })((theme) => ({
     justifyContent: "center",
     alignItems: "center",
   },
-  extended_item: {
+  itemHover: {
     justifyContent: "flex-start",
     padding: "0 15px",
   },
