@@ -21,14 +21,14 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
 
   return (
     <nav className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
-      <List sx={{ "& .MuiListItem-root": { paddingLeft: 0, paddingRight: 0 } }}>
+      <List>
         {items?.map(({ link, icon, placeholder }) => (
           <ListItem disablePadding key={link}>
             <ListItemButton>
               <ListItemIcon>{icon()}</ListItemIcon>
               {hover ? (
                 <Fade in={true}>
-                  <Typography fontSize="14px" color="dark.greyVariant4" marginLeft={-1.5}>
+                  <Typography variant="subtitle1" color="textSecondary" marginLeft={-2.5}>
                     {placeholder}
                   </Typography>
                 </Fade>
