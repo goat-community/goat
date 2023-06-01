@@ -1,11 +1,10 @@
 /* eslint-disable react/self-closing-comp */
 
 /* eslint-disable react/display-name */
-import React from "react";
 import { memo } from "react";
 
 //NOTE: Generated with https://svg2jsx.com/
-export const GOATLogoSvg = memo((props: { className?: string }) => {
+export const GOATLogoIconOnlyGreen = memo((props: { className?: string }) => {
   const { className } = props;
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 336.38 340.16">

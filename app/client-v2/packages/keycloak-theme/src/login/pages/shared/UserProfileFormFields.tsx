@@ -1,22 +1,47 @@
+import { Box, Link } from "@mui/material";
+import { Stepper, Step, StepLabel } from "@mui/material";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import type { ClassKey } from "keycloakify/login/TemplateProps";
 import type { Attribute } from "keycloakify/login/kcContext/KcContext";
 import { useFormValidation } from "keycloakify/login/lib/useFormValidation";
-import { clsx } from "keycloakify/tools/clsx";
-import { useEffect, Fragment } from "react";
+import { useMemo, useEffect, Fragment } from "react";
+import { capitalize } from "tsafe/capitalize";
 
+import { Checkbox } from "@p4b/ui/components/Checkbox";
+import type { AttributeOptions } from "@p4b/ui/components/Text/TextField";
+import { TextField } from "@p4b/ui/components/Text/TextField";
+
+import { Text, makeStyles } from "../../../theme";
+import { regExpStrToEmailDomains } from "../../emailDomainAcceptListHelper";
 import type { I18n } from "../../i18n";
+import { getCountries } from "../../i18n";
+
+interface Steps {
+  [key: number]: string[];
+}
 
 export type UserProfileFormFieldsProps = {
   kcContext: Parameters<typeof useFormValidation>[0]["kcContext"];
   i18n: I18n;
   getClassName: (classKey: ClassKey) => string;
   onIsFormSubmittableValueChange: (isFormSubmittable: boolean) => void;
+  activeStep: number;
+  steps: Steps;
   BeforeField?: (props: { attribute: Attribute }) => JSX.Element | null;
   AfterField?: (props: { attribute: Attribute }) => JSX.Element | null;
+  getIncrementedTabIndex: () => number;
 };
 
 export function UserProfileFormFields(props: UserProfileFormFieldsProps) {
-  const { kcContext, onIsFormSubmittableValueChange, i18n, getClassName, BeforeField, AfterField } = props;
+  const {
+    kcContext,
+    onIsFormSubmittableValueChange,
+    i18n,
+    activeStep,
+    steps,
+    getClassName,
+    getIncrementedTabIndex,
+  } = props;
 
   const { advancedMsg } = i18n;
 
@@ -28,145 +53,383 @@ export function UserProfileFormFields(props: UserProfileFormFieldsProps) {
     kcContext,
     i18n,
   });
+  const { msg, advancedMsgStr } = i18n;
+
+  const { classes } = useStyles();
+
+  // check if first step values are valid
+
+  // Order attributesWithPassword like steps
+  const attributesWithPasswordOrdered = useMemo(() => {
+    const attributesWithPasswordOrdered: Attribute[] = [];
+    for (const step of Object.values(steps)) {
+      for (const attributeName of step) {
+        const attribute = attributesWithPassword.find(({ name }) => name === attributeName);
+        if (attribute !== undefined) {
+          attributesWithPasswordOrdered.push(attribute);
+        }
+      }
+    }
+    return attributesWithPasswordOrdered;
+  }, [attributesWithPassword, steps]);
 
   useEffect(() => {
     onIsFormSubmittableValueChange(isFormSubmittable);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFormSubmittable]);
+  }, [isFormSubmittable, onIsFormSubmittableValueChange]);
 
-  let currentGroup = "";
+  const areAllFieldsRequired = useMemo(
+    () => attributesWithPasswordOrdered.every(({ required }) => required),
+    [attributesWithPasswordOrdered]
+  );
+
+  // Terms and conditions checkbox
+  const termsAndConditions = attributesWithPasswordOrdered.find(
+    ({ name }) => name === "terms_and_conditions"
+  );
+  if (termsAndConditions !== undefined) {
+    attributesWithPasswordOrdered.splice(attributesWithPasswordOrdered.indexOf(termsAndConditions), 1);
+  }
+  const handleTermsAndConditionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = "";
+    if (event.target.checked) {
+      newValue = Date.now().toString();
+    }
+    formValidationDispatch({
+      action: "update value",
+      name: "terms_and_conditions",
+      newValue,
+    });
+  };
+
+  // Subscribe to newsletter checkbox
+  const subscribeToNewsletter = attributesWithPasswordOrdered.find(
+    ({ name }) => name === "subscribe_to_newsletter"
+  );
+  if (subscribeToNewsletter !== undefined) {
+    attributesWithPasswordOrdered.splice(attributesWithPasswordOrdered.indexOf(subscribeToNewsletter), 1);
+  }
+  const handleSubscribeToNewsletterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = "";
+    if (event.target.checked) {
+      newValue = Date.now().toString();
+    }
+    formValidationDispatch({
+      action: "update value",
+      name: "subscribe_to_newsletter",
+      newValue,
+    });
+  };
+
+  // Options Dropdown for all fields that have a predefined list of values
+  const attributeOptions = useMemo(() => {
+    const options: { [key: string]: AttributeOptions } = {};
+    attributesWithPasswordOrdered.forEach((attribute) => {
+      if (attribute.validators.options !== undefined) {
+        // EdgeCase: Check if attributes.name is country
+        // For country attributes we are getting the options from library
+        if (attribute.name === "country") {
+          const countries = getCountries(i18n.currentLanguageTag);
+          options[attribute.name] = countries;
+        } else {
+          // translate options
+          const options_i18n: AttributeOptions = [];
+          attribute.validators.options.options.forEach((element: string) => {
+            const option = advancedMsgStr(element);
+            options_i18n.push({
+              value: element,
+              label: option,
+            });
+          });
+          options[attribute.name] = options_i18n;
+        }
+      }
+    });
+    return options;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.currentLanguageTag]);
+
+  // // Steps
+  // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // const [isStep1Valid, setIsStep1Valid] = useState(false);
+
+  // const handleStep1Validation = () => {
+  //   if (activeStep === 0) {
+  //     const fieldStates: boolean[] = [];
+  //     steps[1].forEach((attributeName: string) => {
+  //       const attribute = kcContext.profile.attributes.find(
+  //         ({ name }: { name: string }) => name === attributeName
+  //       );
+  //       const value = fieldStateByAttributeName[attributeName]?.value;
+  //       if (!fieldStateByAttributeName.hasOwnProperty(attributeName)) {
+  //         fieldStates.push(true);
+  //         return;
+  //       }
+  //       const isRequired = attribute?.required;
+  //       const displayableErrors = fieldStateByAttributeName[attributeName].displayableErrors;
+
+  //       if ((isRequired && value === "") || displayableErrors.length > 0) {
+  //         fieldStates.push(false);
+  //       } else {
+  //         fieldStates.push(true);
+  //       }
+  //     });
+  //     if (fieldStates.every((state) => state === true)) {
+  //       setIsStep1Valid(true);
+  //     } else {
+  //       setIsStep1Valid(false);
+  //     }
+  //   }
+  // };
 
   return (
     <>
-      {attributesWithPassword.map((attribute, i) => {
-        const { group = "", groupDisplayHeader = "", groupDisplayDescription = "" } = attribute;
+      <Stepper activeStep={activeStep}>
+        {Object.keys(steps).map((label) => (
+          <Step sx={{ paddingRight: 0 }} key={label}>
+            <StepLabel> </StepLabel>
+          </Step>
+        ))}
+      </Stepper>
 
+      {attributesWithPasswordOrdered.map((attribute, i) => {
         const { value, displayableErrors } = fieldStateByAttributeName[attribute.name];
 
-        const formGroupClassName = clsx(
-          getClassName("kcFormGroupClass"),
-          displayableErrors.length !== 0 && getClassName("kcFormGroupErrorClass")
-        );
+        // find which step is attribute.name
+        let isVisible = false;
+        if (steps[activeStep + 1].includes(attribute.name) && attribute.name !== "username") {
+          isVisible = true;
+        }
 
         return (
           <Fragment key={i}>
-            {group !== currentGroup && (currentGroup = group) !== "" && (
-              <div className={formGroupClassName}>
-                <div className={getClassName("kcContentWrapperClass")}>
-                  <label id={`header-${group}`} className={getClassName("kcFormGroupHeader")}>
-                    {advancedMsg(groupDisplayHeader) || currentGroup}
-                  </label>
-                </div>
-                {groupDisplayDescription !== "" && (
-                  <div className={getClassName("kcLabelWrapperClass")}>
-                    <label id={`description-${group}`} className={getClassName("kcLabelClass")}>
-                      {advancedMsg(groupDisplayDescription)}
-                    </label>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {BeforeField && <BeforeField attribute={attribute} />}
-
-            <div className={formGroupClassName}>
-              <div className={getClassName("kcLabelWrapperClass")}>
-                <label htmlFor={attribute.name} className={getClassName("kcLabelClass")}>
+            <TextField
+              type={(() => {
+                switch (attribute.name) {
+                  case "password-confirm":
+                  case "password":
+                    return "password";
+                  default:
+                    return "text";
+                }
+              })()}
+              // show or hide if attribute.name is in steps
+              id={attribute.name}
+              name={attribute.name}
+              defaultValue={value}
+              className={isVisible ? classes.show : classes.hide}
+              aria-invalid={displayableErrors.length !== 0}
+              disabled={attribute.readOnly}
+              autoComplete={attribute.autocomplete}
+              onBlur={() => {
+                if (attribute.name === "username")
+                  // don't validate username onBlur
+                  return;
+                if (attribute.name === "email") {
+                  formValidationDispatch({
+                    action: "focus lost",
+                    name: "username",
+                  });
+                }
+                formValidationDispatch({
+                  action: "focus lost",
+                  name: attribute.name,
+                });
+              }}
+              options={(() => {
+                // check if attribute.name is in attributeOptions
+                if (attribute.name in attributeOptions) {
+                  return attributeOptions[attribute.name];
+                }
+                return undefined;
+              })()}
+              inputProps_aria-label={attribute.name}
+              inputProps_tabIndex={attribute.name === "username" ? -1 : getIncrementedTabIndex()}
+              onValueBeingTypedChange={({ value }) => {
+                console.log("onValueBeingTypedChange", value);
+                if (attribute.name === "username")
+                  // don't validate username while typing
+                  return;
+                if (attribute.name === "email") {
+                  formValidationDispatch({
+                    action: "update value",
+                    name: "username",
+                    newValue: value,
+                  });
+                }
+                formValidationDispatch({
+                  action: "update value",
+                  name: attribute.name,
+                  newValue: value,
+                });
+              }}
+              inputProps_autoFocus={i === 0}
+              inputProps_spellCheck={false}
+              transformValueBeingTyped={(() => {
+                switch (attribute.name) {
+                  case "firstName":
+                  case "lastName":
+                    return capitalize;
+                  default:
+                    return undefined;
+                }
+              })()}
+              label={
+                <>
                   {advancedMsg(attribute.displayName ?? "")}
-                </label>
-                {attribute.required && <>*</>}
-              </div>
-              <div className={getClassName("kcInputWrapperClass")}>
-                {(() => {
-                  const { options } = attribute.validators;
+                  &nbsp;
+                  {!areAllFieldsRequired && attribute.required && "*"}
+                </>
+              }
+              helperText={(() => {
+                const displayableErrors = fieldStateByAttributeName[attribute.name].displayableErrors.filter(
+                  ({ validatorName }) => !(validatorName === "pattern" && attribute.name === "email")
+                );
 
-                  if (options !== undefined) {
-                    return (
-                      <select
-                        id={attribute.name}
-                        name={attribute.name}
-                        onChange={(event) =>
-                          formValidationDispatch({
-                            action: "update value",
-                            name: attribute.name,
-                            newValue: event.target.value,
-                          })
-                        }
-                        onBlur={() =>
-                          formValidationDispatch({
-                            action: "focus lost",
-                            name: attribute.name,
-                          })
-                        }
-                        value={value}>
-                        {options.options.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    );
+                if (displayableErrors.length !== 0) {
+                  return displayableErrors.map(({ errorMessage }, i) => (
+                    <span key={i}>{errorMessage}&nbsp;</span>
+                  ));
+                }
+
+                switch (attribute.name) {
+                  case "email":
+                    return msg("allowedEmailDomains");
+                  case "password": {
+                    // prettier-ignore
+                    const { min } = attribute.validators.length ?? {};
+                    if (min === undefined) {
+                      break;
+                    }
+
+                    // prettier-ignore
+                    return msg("minimumLength", `${parseInt(min)}`);
                   }
+                }
 
-                  return (
-                    <input
-                      type={(() => {
-                        switch (attribute.name) {
-                          case "password-confirm":
-                          case "password":
-                            return "password";
-                          default:
-                            return "text";
-                        }
-                      })()}
-                      id={attribute.name}
-                      name={attribute.name}
-                      value={value}
-                      onChange={(event) =>
-                        formValidationDispatch({
-                          action: "update value",
-                          name: attribute.name,
-                          newValue: event.target.value,
-                        })
-                      }
-                      onBlur={() =>
-                        formValidationDispatch({
-                          action: "focus lost",
-                          name: attribute.name,
-                        })
-                      }
-                      className={getClassName("kcInputClass")}
-                      aria-invalid={displayableErrors.length !== 0}
-                      disabled={attribute.readOnly}
-                      autoComplete={attribute.autocomplete}
-                    />
-                  );
-                })()}
-                {displayableErrors.length !== 0 &&
-                  (() => {
-                    const divId = `input-error-${attribute.name}`;
+                {
+                  // prettier-ignore
+                  const { pattern } = attribute.validators;
 
-                    return (
-                      <>
-                        <style>{`#${divId} > span: { display: block; }`}</style>
-                        <span
-                          id={divId}
-                          className={getClassName("kcInputErrorMessageClass")}
-                          style={{
-                            position: displayableErrors.length === 1 ? "absolute" : undefined,
-                          }}
-                          aria-live="polite">
-                          {displayableErrors.map(({ errorMessage }) => errorMessage)}
-                        </span>
-                      </>
-                    );
-                  })()}
-              </div>
-            </div>
-            {AfterField && <AfterField attribute={attribute} />}
+                  if (pattern !== undefined) {
+                    const { "error-message": errorMessageKey } = pattern;
+
+                    // prettier-ignore
+                    return errorMessageKey !== undefined ?
+                                            advancedMsg(errorMessageKey) :
+                                            msg("mustRespectPattern");
+                  }
+                }
+
+                return undefined;
+              })()}
+              // prettier-ignore
+              questionMarkHelperText={(() => {
+                                const { pattern } = attribute.validators.pattern ?? {};
+
+                                // prettier-ignore
+                                return pattern === undefined ?
+                                    undefined :
+                                    attribute.name === "email" ?
+                                        (() => {
+
+                                            try {
+                                                return regExpStrToEmailDomains(pattern).join(", ");
+                                            } catch {
+                                                return pattern;
+                                            }
+
+                                        })() :
+                                        fieldStateByAttributeName[attribute.name].displayableErrors.length === 0 ?
+                                            pattern :
+                                            undefined;
+                            })()}
+              // prettier-ignore
+              inputProps_aria-invalid={fieldStateByAttributeName[attribute.name].displayableErrors.length !== 0}
+            />
           </Fragment>
         );
       })}
+      {/* Terms and Conditions */}
+      {termsAndConditions && activeStep == 1 && (
+        <div className={classes.acceptTermsWrapper}>
+          <div className="checkbox">
+            <FormControlLabel
+              control={
+                <Checkbox
+                  id="terms_and_conditions"
+                  name="terms_and_conditions"
+                  tabIndex={3}
+                  color="primary"
+                  onChange={handleTermsAndConditionChange}
+                />
+              }
+              label={
+                <Box
+                  sx={{
+                    display: "flex",
+                  }}>
+                  <Text typo="body 2" color="secondary">
+                    {msg("accept")}
+                    <Link
+                      sx={{
+                        marginLeft: "2px",
+                      }}
+                      href="https://plan4better.de/en/privacy/"
+                      target="_blank">
+                      {msg("terms")}
+                    </Link>
+                  </Text>
+                </Box>
+              }
+            />
+          </div>
+        </div>
+      )}
+      {/* Subscribe To Newsletter */}
+      {subscribeToNewsletter && activeStep == 1 && (
+        <div className={classes.subscribeToNewsletterWrapper}>
+          <div className="checkbox">
+            <FormControlLabel
+              control={
+                <Checkbox
+                  id="subscribe_to_newsletter"
+                  name="subscribe_to_newsletter"
+                  className={getClassName("kcInputClass")}
+                  tabIndex={3}
+                  color="primary"
+                  onChange={handleSubscribeToNewsletterChange}
+                />
+              }
+              label={
+                <Box
+                  sx={{
+                    display: "flex",
+                  }}>
+                  <Text typo="body 2" color="secondary">
+                    {msg("subscribeToNewsletter")}
+                  </Text>
+                </Box>
+              }
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }
+
+const useStyles = makeStyles({ name: { UserProfileFormFields } })((theme) => ({
+  acceptTermsWrapper: {
+    display: "flex",
+    marginTop: theme.spacing(2),
+  },
+  subscribeToNewsletterWrapper: {
+    display: "flex",
+    marginTop: theme.spacing(0),
+  },
+  // We use show/hide to avoid the "jumping" effect when the component is mounted/unmounted
+  show: {},
+  hide: {
+    display: "none",
+  },
+}));

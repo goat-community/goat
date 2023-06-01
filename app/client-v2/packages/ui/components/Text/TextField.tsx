@@ -6,7 +6,7 @@
 import Help from "@mui/icons-material/Help";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import Autocomplete from "@mui/material/Autocomplete";
+import { MenuItem } from "@mui/material";
 import InputAdornment from "@mui/material/InputAdornment";
 import MuiTextField from "@mui/material/TextField";
 import type { NonPostableEvtLike } from "evt";
@@ -28,6 +28,9 @@ import { createIcon } from "../Icon/Icon";
 import { createIconButton } from "../Icon/IconButton";
 import { Tooltip } from "../Tooltip";
 import { Text } from "./TextBase";
+
+export type AttributeOption = string | { value: string; label: string };
+export type AttributeOptions = AttributeOption[];
 
 export type TextFieldProps = {
   className?: string;
@@ -85,10 +88,7 @@ export type TextFieldProps = {
   /** Only applies if doRenderAsTextArea is true */
   rows?: number;
   /** NOTE: If length 0 it's assumed loading */
-  options?: string[];
-
-  //NOTE: freeSolo only takes effects if options is provided.
-  freeSolo?: boolean;
+  options?: AttributeOptions;
 
   autoComplete?:
     | "on"
@@ -187,7 +187,6 @@ export const TextField = memo((props: TextFieldProps) => {
     rows,
     doIndentOnTab = false,
     options,
-    freeSolo = false,
     ...completedPropsRest
   } = props;
 
@@ -362,7 +361,6 @@ export const TextField = memo((props: TextFieldProps) => {
     }
   );
 
-  const onInputChange = useConstCallback((_: any, value: string) => transformAndSetValue(value));
   const onChange = useConstCallback(({ target }: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     transformAndSetValue(target.value)
   );
@@ -381,48 +379,16 @@ export const TextField = memo((props: TextFieldProps) => {
     </Text>
   );
 
-  if (options !== undefined) {
-    assert(type === "text");
-
-    return (
-      <Autocomplete
-        freeSolo={freeSolo}
-        className={cx(classes.muiAutocomplete, className)}
-        inputValue={value}
-        onInputChange={onInputChange}
-        options={options}
-        id={htmlId}
-        renderInput={(params) => (
-          <MuiTextField
-            {...params}
-            className={classes.muiTextField}
-            multiline={doRenderAsTextArea}
-            ref={ref}
-            variant="standard"
-            error={hasError}
-            helperText={helperTextNode}
-            InputProps={{ ...params.InputProps, ...InputProps }}
-            onBlur={onMuiTextfieldBlur}
-            onKeyDown={onKeyDown}
-            onFocus={onFocus}
-            name={name}
-            inputProps={{ ...inputProps, ...params.inputProps }}
-            {...completedPropsRest}
-          />
-        )}
-      />
-    );
-  }
-
   return (
     <MuiTextField
       className={cx(classes.muiTextField, className)}
       multiline={doRenderAsTextArea}
       rows={!doRenderAsTextArea ? undefined : rows}
       ref={ref}
-      variant="standard"
+      variant="outlined"
       type={type !== "password" ? type : isPasswordShown ? "text" : "password"}
       value={value}
+      select={options !== undefined}
       error={hasError}
       helperText={helperTextNode}
       InputProps={InputProps}
@@ -433,8 +399,29 @@ export const TextField = memo((props: TextFieldProps) => {
       id={htmlId}
       name={name}
       inputProps={inputProps}
-      {...completedPropsRest}
-    />
+      SelectProps={{
+        sx: {
+          maxHeight: "350px",
+        },
+      }}
+      {...completedPropsRest}>
+      {options !== undefined &&
+        options.map((option: string | AttributeOption) => {
+          if (typeof option === "string") {
+            return (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            );
+          } else {
+            return (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            );
+          }
+        })}
+    </MuiTextField>
   );
 });
 

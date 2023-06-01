@@ -3,6 +3,8 @@
 /* eslint-disable react/display-name */
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
+import { Box } from "@mui/material";
+import Grid from "@mui/material/Unstable_Grid2";
 import { usePrepareTemplate } from "keycloakify/lib/usePrepareTemplate";
 import { type TemplateProps as GenericTemplateProps } from "keycloakify/login/TemplateProps";
 import { useGetClassName } from "keycloakify/login/lib/useGetClassName";
@@ -12,9 +14,10 @@ import { symToStr } from "tsafe/symToStr";
 
 import { Alert } from "@p4b/ui/components/Alert";
 import { Card } from "@p4b/ui/components/Card";
+import { useIsDarkModeEnabled } from "@p4b/ui/lib";
 import { useDomRect, useWindowInnerSize } from "@p4b/ui/lib";
 
-import { ThemeProvider, makeStyles, IconButton, Text } from "../theme";
+import { ThemeProvider, makeStyles, Text } from "../theme";
 import type { I18n } from "./i18n";
 import type { KcContext } from "./kcContext";
 
@@ -34,8 +37,9 @@ function ContextualizedTemplate(props: TemplateProps) {
   const { ref: rootRef } = useDomRect();
 
   const { windowInnerWidth, windowInnerHeight } = useWindowInnerSize();
+  const { isDarkModeEnabled } = useIsDarkModeEnabled();
 
-  const { classes, cx } = useStyles({
+  const { classes } = useStyles({
     windowInnerWidth,
     aspectRatio: windowInnerWidth / windowInnerHeight,
     windowInnerHeight,
@@ -51,11 +55,6 @@ function ContextualizedTemplate(props: TemplateProps) {
   const { isReady } = usePrepareTemplate({
     doFetchDefaultThemeResources: doUseDefaultCss,
     url,
-    stylesCommon: [
-      "node_modules/patternfly/dist/css/patternfly.min.css",
-      "node_modules/patternfly/dist/css/patternfly-additions.min.css",
-      "lib/zocial/zocial.css",
-    ],
     styles: ["css/login.css"],
     htmlClassName: getClassName("kcHtmlClass"),
     bodyClassName: undefined,
@@ -66,12 +65,51 @@ function ContextualizedTemplate(props: TemplateProps) {
   }
 
   return (
-    <div ref={rootRef} className={cx(classes.root, getClassName("kcLoginClass"))}>
-      <section className={classes.betweenHeaderAndFooter}>
-        <Page {...props} className={classes.page}>
-          {children}
-        </Page>
-      </section>
+    <div ref={rootRef}>
+      <Box component="main" className={classes.main}>
+        <Grid container className={classes.gridContainer}>
+          <Grid xs={12} lg={6} className={classes.gridLeft}>
+            <Box
+              component="header"
+              sx={{
+                left: 0,
+                p: 3,
+                position: "fixed",
+                top: 0,
+                width: "100%",
+              }}>
+              <Box
+                component="a"
+                href="https://www.plan4better.de/"
+                target="_blank"
+                sx={{
+                  display: "inline-flex",
+                  width: 160,
+                }}>
+                <img
+                  width="100%"
+                  src={`https://assets.plan4better.de/img/logo/plan4better_${
+                    isDarkModeEnabled ? "white" : "standard"
+                  }.svg`}
+                  alt="Plan4Better Logo"
+                />
+              </Box>
+            </Box>
+            <Page {...props} className={classes.page}>
+              {children}
+            </Page>
+          </Grid>
+          <Grid xs={12} lg={6} className={classes.gridRight}>
+            <Box sx={{ p: 3, width: 350 }} component="div">
+              <img
+                width="100%"
+                src="https://assets.plan4better.de/img/logo/goat_white.svg"
+                alt="Plan4Better Logo"
+              />
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
     </div>
   );
 }
@@ -81,24 +119,37 @@ const useStyles = makeStyles<{
   aspectRatio: number;
   windowInnerHeight: number;
 }>()((theme) => ({
-  root: {
+  main: {
+    display: "flex",
+    flex: "1 1 auto",
+  },
+  gridContainer: {
+    flex: "1 1 auto",
+  },
+  gridLeft: {
     height: "100vh",
     display: "flex",
     flexDirection: "column",
     backgroundColor: theme.colors.useCases.surfaces.background,
   },
-
-  header: {
-    width: "100%",
-    paddingRight: "2%",
-    height: 64,
+  gridRight: {
+    alignItems: "center",
+    background:
+      "radial-gradient(50% 50% at 50% 50%, rgba(40,54,72,0.8) 0%, rgba(40,54,72,0.9) 100%), url(https://assets.plan4better.de/img/login/artwork_1.png) no-repeat center",
+    backgroundSize: "cover",
+    color: "white",
+    display: "flex",
+    justifyContent: "center",
+    "& img": {
+      maxWidth: "100%",
+    },
   },
-  betweenHeaderAndFooter: {
-    flex: 1,
-    overflow: "hidden",
-    backgroundSize: "auto 90%",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
+  header: {
+    left: 0,
+    p: 3,
+    position: "fixed",
+    top: 0,
+    width: "100%",
   },
   page: {
     height: "100%",
@@ -155,12 +206,6 @@ const { Page } = (() => {
     return (
       <div ref={containerRef} className={cx(classes.root, className)}>
         <Card ref={paperRef} className={classes.paper}>
-          {kcContext.pageId === "login.ftl" && (
-            <div className={classes.crossButtonWrapper}>
-              <div style={{ flex: 1 }} />
-              <IconButton iconId="close" onClick={() => window.history.back()} />
-            </div>
-          )}
           <Head
             kcContext={kcContext}
             displayRequiredFields={displayRequiredFields}
@@ -198,7 +243,7 @@ const { Page } = (() => {
       width: 490,
       height: "fit-content",
       marginBottom: theme.spacing(4),
-      borderRadius: 8,
+      borderRadius: 4,
     },
     alert: {
       alignItems: "center",
@@ -312,9 +357,9 @@ const { Page } = (() => {
       name: `${symToStr({ Template })}${symToStr({ Head })}`,
     })((theme) => ({
       root: {
-        textAlign: "center",
+        textAlign: "left",
         marginTop: theme.spacing(3),
-        marginBottom: theme.spacing(3),
+        marginBottom: theme.spacing(6),
       },
     }));
 
@@ -407,8 +452,8 @@ const { Page } = (() => {
                 </form>
               )}
             {displayInfo && (
-              <div id="kc-info" className={cx(getClassName("kcSignUpClass"))}>
-                <div id="kc-info-wrapper" className={cx(getClassName("kcInfoAreaWrapperClass"))}>
+              <div id="kc-info">
+                <div id="kc-info-wrapper" className={classes.infoNode}>
                   {infoNode}
                 </div>
               </div>
@@ -420,9 +465,15 @@ const { Page } = (() => {
 
     const useStyles = makeStyles({
       name: `${symToStr({ Template })}${symToStr({ Main })}`,
-    })(() => ({
+    })((theme) => ({
       alert: {
         alignItems: "center",
+      },
+      infoNode: {
+        "& div": {
+          marginTop: theme.spacing(3),
+          textAlign: "left",
+        },
       },
     }));
 

@@ -9,6 +9,10 @@ import type { KcContext } from "./kcContext";
 const Template = lazy(() => import("./Template"));
 const DefaultTemplate = lazy(() => import("keycloakify/login/Template"));
 const Login = lazy(() => import("./pages/Login"));
+const RegisterUserProfile = lazy(() => import("./pages/RegisterUserProfile"));
+const LoginVerifyEmail = lazy(() => import("./pages/LoginVerifyEmail"));
+const LoginResetPassword = lazy(() => import("./pages/LoginResetPassword"));
+const Info = lazy(() => import("./pages/Info"));
 
 export default function KcApp(props: { kcContext: KcContext }) {
   const { kcContext } = props;
@@ -35,6 +39,14 @@ export default function KcApp(props: { kcContext: KcContext }) {
         switch (kcContext.pageId) {
           case "login.ftl":
             return <Login kcContext={kcContext} {...pageProps} />;
+          case "register-user-profile.ftl":
+            return <RegisterUserProfile kcContext={kcContext} {...pageProps} />;
+          case "login-verify-email.ftl":
+            return <LoginVerifyEmail kcContext={kcContext} {...pageProps} />;
+          case "login-reset-password.ftl":
+            return <LoginResetPassword kcContext={kcContext} {...pageProps} />;
+          case "info.ftl":
+            return <Info kcContext={kcContext} {...pageProps} />;
           default:
             return (
               <Fallback

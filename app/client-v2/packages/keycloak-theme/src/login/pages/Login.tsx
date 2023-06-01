@@ -182,7 +182,7 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
                   name="login"
                   type="submit"
                   disabled={isLoginButtonDisabled}>
-                  {msgStr("doLogIn")}
+                  {msgStr("continue")}
                 </Button>
               </div>
             </form>

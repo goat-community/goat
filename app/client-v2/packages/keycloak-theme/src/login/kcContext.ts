@@ -13,10 +13,92 @@ export const { getKcContext } = createGetKcContext({
         //When we test the login page we do it in english
         currentLanguageTag: "en",
       },
+
       //Uncomment the following line for hiding the Alert message
-      //"message": undefined
+      //message: undefined,
       //Uncomment the following line for showing an Error message
-      //message: { type: "error", summary: "This is an error" }
+      message: { type: "error", summary: "This is an error" },
+    },
+    {
+      locale: {
+        currentLanguageTag: "en",
+      },
+      pageId: "register-user-profile.ftl",
+      recaptchaRequired: true,
+      recaptchaSiteKey: "6Lfr41UmAAAAAMXV9Q2YVZJ8ND0OYs48mCIFAi8h",
+      profile: {
+        attributes: [
+          {
+            required: true,
+            value: undefined,
+            name: "username",
+          },
+          {
+            value: undefined,
+            name: "terms_and_conditions",
+            required: true,
+          },
+          {
+            value: undefined,
+            name: "subscribe_to_newsletter",
+            required: false,
+          },
+          // {
+          //   // eslint-disable-next-line no-template-curly-in-string
+          //   displayName: "country",
+          //   autocomplete: "off",
+          //   validators: {
+          //     options: {
+          //       options: ["al", "de", "fr", "us", "en"],
+          //     },
+          //   },
+          //   annotations: {},
+          //   required: true,
+          //   groupAnnotations: {},
+          //   readOnly: false,
+          //   name: "country",
+          // },
+          {
+            // eslint-disable-next-line no-template-curly-in-string
+            displayName: "profession",
+            autocomplete: "off",
+            validators: {
+              options: {
+                options: ["student", "employee", "self_employed", "other"],
+              },
+            },
+            annotations: {},
+            required: true,
+            groupAnnotations: {},
+            readOnly: false,
+            name: "profession",
+          },
+          {
+            // eslint-disable-next-line no-template-curly-in-string
+            displayName: "domain",
+            autocomplete: "off",
+            validators: {
+              options: {
+                options: [
+                  "transport_planning",
+                  "urban_planning",
+                  "gis",
+                  "architecture",
+                  "location_planning",
+                  "civil_engineering",
+                  "politics",
+                  "other",
+                ],
+              },
+            },
+            annotations: {},
+            required: true,
+            groupAnnotations: {},
+            readOnly: false,
+            name: "domain",
+          },
+        ],
+      },
     },
   ],
 });

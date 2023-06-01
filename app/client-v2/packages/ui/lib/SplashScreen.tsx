@@ -15,7 +15,7 @@ import * as runExclusive from "run-exclusive";
 import { id } from "tsafe/id";
 import { createMakeStyles, keyframes } from "tss-react";
 
-import { GOATLogoSvg } from "../assets/svg/GOATLogo";
+import { GOATLogoIconOnlyGreen } from "../assets/svg/GOATLogoIconOnlyGreen";
 import type { ReactComponent } from "../tools/ReactComponent";
 import type { Theme } from "./ThemeProvider";
 
@@ -332,7 +332,7 @@ export function createGOATSplashScreenLogo(params: { useTheme(): Theme }) {
   // eslint-disable-next-line react/display-name
   const GOATSplashScreenLogo = memo(() => {
     const { classes } = useStyles();
-    return <GOATLogoSvg className={classes.root} />;
+    return <GOATLogoIconOnlyGreen className={classes.root} />;
   });
 
   const useStyles = makeStyles({ name: { GOATSplashScreenLogo } })((theme) => ({

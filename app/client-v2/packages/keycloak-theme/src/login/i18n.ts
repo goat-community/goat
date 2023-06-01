@@ -1,20 +1,52 @@
+import countries from "i18n-iso-countries";
+import de from "i18n-iso-countries/langs/de.json";
+import en from "i18n-iso-countries/langs/en.json";
 import { createUseI18n } from "keycloakify/login";
 
+countries.registerLocale(en);
+countries.registerLocale(de);
+
 export const { useI18n } = createUseI18n({
-  // NOTE: Here you can override the default i18n messages
-  // or define new ones that, for example, you would have
-  // defined in the Keycloak admin UI for UserProfile
-  // https://user-images.githubusercontent.com/6702424/182050652-522b6fe6-8ee5-49df-aca3-dba2d33f24a5.png
   en: {
     alphanumericalCharsOnly: "Only alphanumerical characters",
     gender: "Gender",
-    // Here we overwrite the default english value for the message "doForgotPassword"
-    // that is "Forgot Password?" see: https://github.com/InseeFrLab/keycloakify/blob/f0ae5ea908e0aa42391af323b6d5e2fd371af851/src/lib/i18n/generated_messages/18.0.1/login/en.ts#L17
     doForgotPassword: "I forgot my password",
     doLogIn: "Sign in",
-    doRegister: "Create an account",
+    doRegister: "Create account",
     noAccount: "New user?",
+    alreadyHaveAccount: "Already have an account?",
     or: "Or",
+    next: "Next",
+    back: "Back",
+    goBack: "Go back",
+    continue: "Continue",
+    getStarted: "Get started!",
+    accept: "I accept the ",
+    terms: "Terms & conditions",
+    subscribeToNewsletter: "Subscribe to our newsletter",
+    formNotFilledProperly: "Form not filled properly",
+    allowedEmailDomains: "allowed email domains",
+    minimumLength: "Minimum length",
+    mustRespectPattern: "Must respect the pattern",
+    profession: "Profession",
+    student: "Student",
+    employee: "Employee",
+    self_employed: "Self-employed",
+    transport_planning: "Transport planning",
+    urban_planning: "Urban planning",
+    gis: "GIS",
+    domain: "Domain",
+    architecture: "Architecture",
+    location_planning: "Location planning",
+    civil_engineering: "Civil engineering",
+    politics: "Politics",
+    other: "Other",
+    // Email Verify
+    verifyEmail: "Verify your email address",
+    resendEmail: "Resend Email",
+    emailVerifyInstruction:
+      'To get started, click on the activation link in the email we have sent you. If you haven\'t received the verification email, please check your "spam" folder.',
+    proceedWithAction: "Click here to proceed",
   },
   de: {
     alphanumericalCharsOnly: "Nur alphanumerische Zeichen",
@@ -22,9 +54,51 @@ export const { useI18n } = createUseI18n({
     doForgotPassword: "Ich habe mein Passwort vergessen",
     doLogIn: "Anmelden",
     doRegister: "Benutzerkonto erstellen",
+    alreadyHaveAccount: "Haben Sie bereits ein Konto?",
     noAccount: "Neuer Benutzer?",
     or: "Oder",
+    next: "Weiter",
+    back: "Zurück",
+    goBack: "Zurück",
+    continue: "Weiter",
+    getStarted: "Los geht's!",
+    accept: "Ich akzeptiere die ",
+    terms: "Nutzungsbedingungen",
+    subscribeToNewsletter: "Abonnieren Sie unseren Newsletter",
+    formNotFilledProperly: "Formular nicht richtig ausgefüllt",
+    allowedEmailDomains: "erlaubte E-Mail-Domains",
+    minimumLength: "Mindestlänge",
+    mustRespectPattern: "Muss dem Muster entsprechen",
+    profession: "Beruf",
+    student: "Student",
+    employee: "Angestellter",
+    self_employed: "Selbstständig",
+    transport_planning: "Verkehrsplanung",
+    urban_planning: "Stadtplanung",
+    gis: "GIS",
+    domain: "Domain",
+    architecture: "Architektur",
+    location_planning: "Standortplanung",
+    civil_engineering: "Bauingenieurwesen",
+    politics: "Politik",
+    other: "Andere",
+    // Email Verify
+    verifyEmail: "Bestätigen Sie Ihre E-Mail-Adresse",
+    resendEmail: "E-Mail erneut senden",
+    emailVerifyInstruction:
+      'Um loszulegen, klicken Sie auf den Aktivierungslink in der E-Mail, die wir Ihnen geschickt haben. Wenn Sie die Bestätigungs-E-Mail nicht erhalten haben, überprüfen Sie bitte Ihren "Spam"-Ordner.',
+    proceedWithAction: "Klicken Sie hier, um fortzufahren",
   },
 });
 
+export const getCountries = (locale: string) => {
+  return Object.entries(countries.getNames(locale, { select: "official" })).map((entry) => {
+    return {
+      value: entry[0],
+      label: entry[1],
+    };
+  });
+};
+
 export type I18n = NonNullable<ReturnType<typeof useI18n>>;
+export type Countries = ReturnType<typeof getCountries>;
