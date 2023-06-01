@@ -24,6 +24,8 @@
     "minimal-polyfills": "^2.2.2",
     "powerhooks": "^0.26.8",
     "react": "^18.2.0",
+    "react-swipeable-views": "^0.14.0",
+    "react-swipeable-views-utils": "^0.14.0",
     "run-exclusive": "^2.2.18",
     "tsafe": "^1.6.0",
     "tss-react": "^4.8.3"

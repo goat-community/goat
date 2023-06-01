@@ -162,54 +162,42 @@ export function createButton<IconId extends string = never>(params?: {
     disabled: boolean;
     isMouseIn: boolean;
   }>({ name: { Button } })((theme, { variant, disabled, isMouseIn }) => {
-    const textColor =
-      theme.colors.useCases.typography[
-        disabled
-          ? "textDisabled"
-          : (() => {
-              switch (variant) {
-                case "primary":
-                  return "textFocus";
-                case "secondary":
-                case "ternary":
-                  return "textPrimary";
-              }
-            })()
-      ];
+    const textColor = disabled
+      ? theme.colors.useCases.typography["textDisabled"]
+      : (() => {
+          switch (variant) {
+            case "primary":
+              return theme.colors.useCases.typography["textFocus"];
+            case "secondary":
+              return theme.colors.useCases.typography["textPrimary"];
+            case "ternary":
+              return theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main;
+          }
+        })();
 
     const hoverTextColor = (() => {
-      switch (theme.isDarkModeEnabled) {
-        case true:
-          return theme.colors.palette[
-            (() => {
-              switch (variant) {
-                case "primary":
-                  return "light";
-                case "secondary":
-                case "ternary":
-                  return "dark";
-              }
-            })()
-          ].main;
-        case false:
-          return theme.colors.palette.light.main;
+      switch (variant) {
+        case "primary":
+          return theme.colors.palette["light"].main;
+        case "secondary":
+          return theme.colors.palette["light"].main;
+        case "ternary":
+          return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main;
       }
     })();
 
     return {
       root: (() => {
-        const hoverBackgroundColor =
-          theme.colors.useCases.buttons[
-            (() => {
-              switch (variant) {
-                case "primary":
-                  return "actionHoverPrimary";
-                case "secondary":
-                case "ternary":
-                  return "actionHoverSecondary";
-              }
-            })()
-          ];
+        const hoverBackgroundColor = (() => {
+          switch (variant) {
+            case "primary":
+              return theme.colors.useCases.buttons["actionHoverPrimary"];
+            case "secondary":
+              return theme.colors.useCases.buttons["actionHoverSecondary"];
+            case "ternary":
+              return theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main;
+          }
+        })();
 
         const paddingSpacingTopBottom = 2;
 
@@ -238,7 +226,7 @@ export function createButton<IconId extends string = never>(params?: {
                   case "secondary":
                     return "transparent";
                   case "ternary":
-                    return theme.colors.useCases.surfaces.background;
+                    return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main;
                 }
               })(),
           borderRadius: approxHeight / 2,

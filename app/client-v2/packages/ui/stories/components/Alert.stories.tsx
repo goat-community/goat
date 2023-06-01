@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react/dist";
 
 import { Alert } from "../../components/Alert";
 import { Text } from "../theme";
