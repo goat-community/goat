@@ -1,10 +1,12 @@
 import { Box } from "@mui/material";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react/dist";
 import type { ReactNode } from "react";
 
 import { Card } from "../../../components/Card";
 import { CardContent } from "../../../components/Card";
 import { CardMedia } from "../../../components/Card";
+import { Text } from "../../../components/Text/TextBase";
+import { Button } from "../../theme";
 import { ThemeProvider } from "../../theme";
 
 const meta: Meta<typeof Card> = {
@@ -146,6 +148,25 @@ export const CardBlog: Story = {
     design: {
       type: "figma",
       url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=11581-140622&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
+};
+
+export const AddCard: Story = {
+  args: {
+    children: (
+      <Button>
+        <Text typo="label 1">+</Text>
+        <Text typo="label 2">New</Text>
+      </Button>
+    ),
+    width: 268,
+    transparentBg: true,
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=11581-140620&t=HR0djJcCsGmFmiKK-0",
     },
   },
 };

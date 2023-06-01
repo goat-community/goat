@@ -59,13 +59,31 @@ export const ChipList = memo(
   })
 );
 
+function blendHexColorWithOpacity(hexColor: string, opacity: number) {
+  // Remove the '#' character from the hex color
+  const normalizedHexColor = hexColor.replace("#", "");
+
+  // Convert the opacity to its hexadecimal equivalent
+  const opacityHex = Math.round(opacity * 255)
+    .toString(16)
+    .padStart(2, "0");
+
+  // Combine the opacity hex value with the original hex color
+  const blendedHexColor = `#${normalizedHexColor}${opacityHex}`;
+
+  return blendedHexColor;
+}
+
 const useStyles = makeStyles({ name: { ChipList } })((theme) => ({
   chips: {
     display: "flex",
     width: "100%",
   },
   chip: {
-    backgroundColor: theme.colors.useCases.surfaces.background,
+    backgroundColor: blendHexColorWithOpacity(
+      theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant2,
+      0.3
+    ),
     marginRight: "8px",
     padding: "7px 6px",
     fontStyle: "italic",
