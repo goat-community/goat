@@ -1,5 +1,4 @@
-import { Fade, Link, Stack, Typography } from "@mui/material";
-import Box from "@mui/material/Box";
+import { Fade, List, ListItem, ListItemButton, ListItemIcon, Typography } from "@mui/material";
 import { useState } from "react";
 
 import { makeStyles } from "../lib/ThemeProvider";
@@ -21,26 +20,26 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
   };
 
   return (
-    <Box className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
-      {items?.map(({ link, icon, placeholder }) => (
-        <Box key={link} className={cx(classes.item, { [classes.itemHover]: hover })}>
-          <Link href={link}>
-            {hover ? (
-              <Fade in={true}>
-                <Stack direction="row" spacing="14px" alignItems="center">
-                  {icon()}
-                  <Typography fontSize="14px" color="#103361">
+    <nav className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
+      <List>
+        {items?.map(({ link, icon, placeholder }) => (
+          <ListItem disablePadding key={link}>
+            <ListItemButton>
+              <ListItemIcon>{icon()}</ListItemIcon>
+              {hover ? (
+                <Fade in={true}>
+                  <Typography variant="subtitle1" color="textSecondary" marginLeft={-2.5}>
                     {placeholder}
                   </Typography>
-                </Stack>
-              </Fade>
-            ) : (
-              <>{icon()}</>
-            )}
-          </Link>
-        </Box>
-      ))}
-    </Box>
+                </Fade>
+              ) : (
+                <></>
+              )}
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </nav>
   );
 }
 
@@ -60,17 +59,5 @@ const useStyles = (props: DashboardSidebarProps) =>
       "&:hover": {
         width: props.extended_width,
       },
-    },
-    item: {
-      height: 48,
-      marginBottom: 4,
-      width: "100%",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    itemHover: {
-      justifyContent: "flex-start",
-      padding: "0 15px",
     },
   }));
