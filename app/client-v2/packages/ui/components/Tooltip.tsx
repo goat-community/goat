@@ -1,43 +1,18 @@
-// Copyright (c) 2020 GitHub user u/garronej
+import Tooltip, { type TooltipProps, tooltipClasses } from "@mui/material/Tooltip";
+import { styled } from "@mui/material/styles";
 
-/* eslint-disable react/display-name */
-import MuiTooltip from "@mui/material/Tooltip";
-import { memo } from "react";
-import type { ReactNode, ReactElement } from "react";
+export default function CustomizedTooltip(props: TooltipProps) {
+  return <CustomizedTooltips {...props}>{props.children}</CustomizedTooltips>;
+}
 
-import { makeStyles } from "../lib/ThemeProvider";
-import { Text } from "./Text/TextBase";
-
-export type TooltipProps = {
-  title: NonNullable<ReactNode> | undefined;
-  children: ReactElement;
-  enterDelay?: number;
-};
-
-export const Tooltip = memo((props: TooltipProps) => {
-  const { title, children, enterDelay } = props;
-
-  const { classes } = useStyles();
-
-  if (title === undefined) {
-    return children;
-  }
-
-  return (
-    <MuiTooltip
-      title={
-        <Text className={classes.root} typo="caption">
-          {title}
-        </Text>
-      }
-      enterDelay={enterDelay}>
-      {children}
-    </MuiTooltip>
-  );
-});
-
-const useStyles = makeStyles({ name: { Tooltip } })((theme) => ({
-  root: {
-    color: theme.colors.palette.light.light,
+const CustomizedTooltips = styled(({ className, ...props }: TooltipProps) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.arrow}`]: {
+    color: theme.palette.grey[200],
+  },
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: theme.palette.grey[200],
+    color: theme.palette.text.secondary,
   },
 }));

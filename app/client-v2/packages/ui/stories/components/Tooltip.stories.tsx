@@ -1,31 +1,25 @@
 import { Typography } from "@mui/material";
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { Tooltip } from "../../components/Tooltip";
+import CustomizedTooltips from "../../components/Tooltip";
 import { ThemeProvider } from "../theme";
 
-const meta: Meta<typeof Tooltip> = {
-  component: Tooltip,
+const meta: Meta<typeof CustomizedTooltips> = {
+  component: CustomizedTooltips,
   tags: ["autodocs"],
   argTypes: {
     title: {
       control: { type: "text" },
     },
+    placement: {
+      options: ["top", "bottom", "left"],
+      control: { type: "radio" },
+    },
     children: {
       control: false,
     },
-    enterDelay: {
-      control: { type: "number" },
-    },
   },
-  args: {
-    title: "Tooltip",
-    children: (
-      <Typography variant="h2" color="#000">
-        Make sure to follow us
-      </Typography>
-    ),
-  },
+  args: {},
   decorators: [
     (Story) => (
       <ThemeProvider>
@@ -36,16 +30,56 @@ const meta: Meta<typeof Tooltip> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Tooltip>;
+type Story = StoryObj<typeof CustomizedTooltips>;
 
-export const Simple: Story = {
+export const Top: Story = {
+  // diffrent args for each anchor direction
   args: {
-    // color: "primary",
+    title: "Top tooltip",
+    placement: "top",
+    arrow: true,
+    children: (
+      <Typography display="inline" variant="h5" color="primary">
+        Top
+      </Typography>
+    ),
   },
-  parameters: {
-    design: {
-      type: "figma",
-      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6590-48770&t=m1TtlHDKRmJk5wCK-0",
-    },
+};
+
+export const Left: Story = {
+  args: {
+    title: "Left tooltip",
+    placement: "left",
+    arrow: true,
+    children: (
+      <Typography display="inline" variant="h5" color="primary">
+        Left
+      </Typography>
+    ),
+  },
+};
+
+export const Bottom: Story = {
+  args: {
+    title: "Bottom tooltip",
+    placement: "bottom",
+    arrow: true,
+    children: (
+      <Typography display="inline" variant="h5" color="primary">
+        Bottom
+      </Typography>
+    ),
+  },
+};
+
+export const ArrowLess: Story = {
+  args: {
+    title: "Arrow less tooltip",
+    placement: "top",
+    children: (
+      <Typography display="inline" variant="h5" color="primary">
+        Arrow less
+      </Typography>
+    ),
   },
 };
