@@ -28,7 +28,6 @@ export const Card = memo(
     } = props;
 
     const theme = useTheme();
-    console.log(theme);
     //For the forwarding, rest should be empty (typewise),
     // eslint-disable-next-line @typescript-eslint/ban-types
     assert<Equals<typeof rest, {}>>();
