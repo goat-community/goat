@@ -11,7 +11,7 @@ export const { useI18n } = createUseI18n({
     alphanumericalCharsOnly: "Only alphanumerical characters",
     gender: "Gender",
     doForgotPassword: "I forgot my password",
-    doLogIn: "Sign in",
+    doLogIn: "Log in",
     doRegister: "Create account",
     noAccount: "New user?",
     alreadyHaveAccount: "Already have an account?",
@@ -47,6 +47,8 @@ export const { useI18n } = createUseI18n({
     emailVerifyInstruction:
       'To get started, click on the activation link in the email we have sent you. If you haven\'t received the verification email, please check your "spam" folder.',
     proceedWithAction: "Click here to proceed",
+    emailForgotInstruction:
+      "Simply enter the email address associated with your account below, and we’ll email you a link to reset your password",
   },
   de: {
     alphanumericalCharsOnly: "Nur alphanumerische Zeichen",
@@ -88,6 +90,8 @@ export const { useI18n } = createUseI18n({
     emailVerifyInstruction:
       'Um loszulegen, klicken Sie auf den Aktivierungslink in der E-Mail, die wir Ihnen geschickt haben. Wenn Sie die Bestätigungs-E-Mail nicht erhalten haben, überprüfen Sie bitte Ihren "Spam"-Ordner.',
     proceedWithAction: "Klicken Sie hier, um fortzufahren",
+    emailForgotInstruction:
+      "Geben Sie einfach die E-Mail-Adresse ein, die mit Ihrem Konto verbunden ist, und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts zu.",
   },
 });
 

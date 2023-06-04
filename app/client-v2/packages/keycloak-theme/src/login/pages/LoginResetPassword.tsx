@@ -1,79 +1,73 @@
-import { useGetClassName } from "keycloakify/login/lib/useGetClassName";
+import { Link } from "@mui/material";
 import type { PageProps } from "keycloakify/login/pages/PageProps";
-import { clsx } from "keycloakify/tools/clsx";
 
+import { TextField } from "@p4b/ui/components/Text/TextField";
+
+import { Button, makeStyles, Text } from "../../theme";
 import type { I18n } from "../i18n";
 import type { KcContext } from "../kcContext";
 
 export default function LoginResetPassword(
   props: PageProps<Extract<KcContext, { pageId: "login-reset-password.ftl" }>, I18n>
 ) {
-  const { kcContext, i18n, doUseDefaultCss, Template, classes } = props;
+  const { kcContext, i18n, doUseDefaultCss, Template } = props;
 
-  const { getClassName } = useGetClassName({
-    doUseDefaultCss,
-    classes,
-  });
-
-  const { url, realm, auth } = kcContext;
+  const { url, auth } = kcContext;
 
   const { msg, msgStr } = i18n;
+  const { classes } = useStyles();
 
   return (
     <Template
-      {...{ kcContext, i18n, doUseDefaultCss, classes }}
+      {...{ kcContext, i18n, doUseDefaultCss }}
       displayMessage={false}
-      headerNode={msg("emailForgotTitle")}
-      infoNode={msg("emailInstruction")}>
-      <form
-        id="kc-reset-password-form"
-        className={getClassName("kcFormClass")}
-        action={url.loginAction}
-        method="post">
-        <div className={getClassName("kcFormGroupClass")}>
-          <div className={getClassName("kcLabelWrapperClass")}>
-            <label htmlFor="username" className={getClassName("kcLabelClass")}>
-              {!realm.loginWithEmailAllowed
-                ? msg("username")
-                : !realm.registrationEmailAsUsername
-                ? msg("usernameOrEmail")
-                : msg("email")}
-            </label>
-          </div>
-          <div className={getClassName("kcInputWrapperClass")}>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              className={getClassName("kcInputClass")}
-              autoFocus
-              defaultValue={auth !== undefined && auth.showUsername ? auth.attemptedUsername : undefined}
-            />
-          </div>
-        </div>
-        <div className={clsx(getClassName("kcFormGroupClass"), getClassName("kcFormSettingClass"))}>
-          <div id="kc-form-options" className={getClassName("kcFormOptionsClass")}>
-            <div className={getClassName("kcFormOptionsWrapperClass")}>
-              <span>
-                <a href={url.loginUrl}>{msg("backToLogin")}</a>
-              </span>
+      headerNode={msg("emailForgotTitle")}>
+      <Text typo="body 2" color="primary">
+        {msg("emailForgotInstruction")}
+      </Text>
+      <div className={classes.root}>
+        <form id="kc-reset-password-form" action={url.loginAction} method="post">
+          <TextField
+            defaultValue={auth !== undefined && auth.showUsername ? auth.attemptedUsername : undefined}
+            id="username"
+            name="username"
+            inputProps_aria-label="username"
+            inputProps_tabIndex={1}
+            inputProps_autoFocus={true}
+            inputProps_spellCheck={false}
+            label={msg("email")}
+            autoComplete="off"
+          />
+          <div>
+            <div id="kc-form-buttons">
+              <Button className={classes.buttonSubmit} type="submit" variant="primary">
+                {msgStr("doSubmit")}
+              </Button>
+            </div>
+            <div id="kc-form-options" className={classes.linkToLogin}>
+              <Link underline="hover" href={url.loginUrl}>
+                {msg("backToLogin")}
+              </Link>
             </div>
           </div>
-
-          <div id="kc-form-buttons" className={getClassName("kcFormButtonsClass")}>
-            <input
-              className={clsx(
-                getClassName("kcButtonClass"),
-                getClassName("kcButtonPrimaryClass"),
-                getClassName("kcButtonBlockClass"),
-                getClassName("kcButtonLargeClass")
-              )}
-              type="submit"
-              value={msgStr("doSubmit")}
-            />
-          </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </Template>
   );
 }
+
+const useStyles = makeStyles({ name: { LoginResetPassword } })((theme) => ({
+  root: {
+    "& .MuiTextField-root": {
+      width: "100%",
+      marginTop: theme.spacing(5),
+    },
+  },
+  buttonSubmit: {
+    width: "100%",
+    marginTop: theme.spacing(6),
+  },
+  linkToLogin: {
+    marginTop: theme.spacing(5),
+  },
+}));
