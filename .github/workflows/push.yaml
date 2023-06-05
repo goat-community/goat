@@ -8,6 +8,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
@@ -21,6 +23,11 @@ jobs:
         uses: trilom/file-changes-action@v1.2.4
         with:
           output: ' '
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
       - name: Release changed client
         if: contains(steps.get_file_changes.outputs.files, 'app/client-v2') || contains(github.event.head_commit.message, 'trigger build')
         run: make release-client-docker-image -e COMPONENT=goat && make release-client-docker-image -e COMPONENT=storybook && make release-keycloak-theme
