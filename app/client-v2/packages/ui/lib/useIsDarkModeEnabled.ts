@@ -6,7 +6,8 @@ import { createUseGlobalState } from "powerhooks/useGlobalState";
 
 const { useIsDarkModeEnabled, $isDarkModeEnabled } = createUseGlobalState({
   name: "isDarkModeEnabled",
-  initialState: window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches,
+  // initialState: window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches,
+  initialState: "light",
   doPersistAcrossReloads: true,
 });
 
