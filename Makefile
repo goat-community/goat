@@ -107,13 +107,9 @@ build-docker-image: app/$(COMPONENT)/Dockerfile
 build-client-docker-image: app/client-v2/apps/$(COMPONENT)/Dockerfile
 	$(DOCKER) build -f app/client-v2/apps/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/client-v2
 
-# target: build-keycloak-theme
+# target: release-keycloak-theme
 release-keycloak-theme: 
-	npx pnpm install --global pnpm
-	cd app/client-v2/packages/keycloak-theme
-	print("Current directory: $(pwd)")
-	pnpm install
-	pnpm run build-keycloak-theme && \
+	cd app/client-v2/packages/keycloak-theme &&	pnpm install && pnpm run build-keycloak-theme && \
     if [ "$(NAMESPACE)" = "dev" ] || [ "$(NAMESPACE)" = "v2" ]; then \
         mv build_keycloak/target/*.jar p4b-keycloak-theme-dev.jar; \
     else \
