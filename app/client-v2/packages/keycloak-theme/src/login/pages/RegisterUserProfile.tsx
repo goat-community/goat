@@ -1,5 +1,4 @@
 import Link from "@mui/material/Link";
-import { useGetClassName } from "keycloakify/login/lib/useGetClassName";
 import type { PageProps } from "keycloakify/login/pages/PageProps";
 import { useRef, useState } from "react";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -28,7 +27,7 @@ export default function RegisterUserProfile(
   props: PageProps<Extract<KcContext, { pageId: "register-user-profile.ftl" }>, I18n>
 ) {
   const { isDarkModeEnabled } = useIsDarkModeEnabled();
-  const { kcContext, i18n, doUseDefaultCss, Template, classes: classes_props } = props;
+  const { kcContext, i18n, doUseDefaultCss, Template } = props;
   const { url, messagesPerField, recaptchaRequired, recaptchaSiteKey } = kcContext;
   const { msg, msgStr } = i18n;
   const [activeStep, setActiveStep] = useState(0);
@@ -36,15 +35,8 @@ export default function RegisterUserProfile(
   const [isCaptchaValid, setIsCaptchaValid] = useState(false);
   const captchaRef = useRef(null);
 
-  const { classes, cx, css } = useStyles({
+  const { classes } = useStyles({
     activeStep,
-  });
-  const { getClassName } = useGetClassName({
-    doUseDefaultCss,
-    classes: {
-      ...classes_props,
-      kcFormGroupClass: cx(classes_props?.kcFormGroupClass, css({ marginBottom: 20 })),
-    },
   });
 
   const getIncrementedTabIndex = (() => {
@@ -63,7 +55,6 @@ export default function RegisterUserProfile(
   return (
     <Template
       {...{ kcContext, i18n, doUseDefaultCss }}
-      classes={classes_props}
       displayInfo={true}
       displayMessage={messagesPerField.exists("global")}
       displayRequiredFields={false}
@@ -86,13 +77,12 @@ export default function RegisterUserProfile(
           activeStep={activeStep}
           steps={steps}
           i18n={i18n}
-          getClassName={getClassName}
           getIncrementedTabIndex={getIncrementedTabIndex}
         />
 
         {recaptchaRequired && (
-          <div className="form-group">
-            <div className={getClassName("kcInputWrapperClass")}>
+          <div>
+            <div>
               <ReCAPTCHA
                 id="recaptcha"
                 hl={i18n.currentLanguageTag}

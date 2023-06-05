@@ -256,6 +256,9 @@ importers:
       react-google-recaptcha:
         specifier: ^2.1.0
         version: 2.1.0(react@18.2.0)
+      rfc4648:
+        specifier: ^1.5.2
+        version: 1.5.2
       tsafe:
         specifier: ^1.6.0
         version: 1.6.0
@@ -340,6 +343,12 @@ importers:
       react:
         specifier: ^18.2.0
         version: 18.2.0
+      react-swipeable-views:
+        specifier: ^0.14.0
+        version: 0.14.0(react@18.2.0)
+      react-swipeable-views-utils:
+        specifier: ^0.14.0
+        version: 0.14.0(react@18.2.0)
       run-exclusive:
         specifier: ^2.2.18
         version: 2.2.18
@@ -1764,6 +1773,12 @@ packages:
   /@babel/regjsgen@0.8.0:
     resolution: {integrity: sha512-x/rqGMdzj+fWZvCOYForTghzbtqPDZ5gPwaoNGHdgDfF2QA/XZbCBp4Moo5scrkAMPhB7z26XM/AaHuIJdgauA==}
     dev: true
+
+  /@babel/runtime@7.0.0:
+    resolution: {integrity: sha512-7hGhzlcmg01CvH1EHdSPVXYX1aJ8KCEyz6I9xYIi/asDtzBPMyMhVibhM/K6g/5qnKBwjZtp10bNZIEFTRW1MA==}
+    dependencies:
+      regenerator-runtime: 0.12.1
+    dev: false
 
   /@babel/runtime@7.21.5:
     resolution: {integrity: sha512-8jI69toZqqcsnqGGqwGS4Qb1VwLOEp4hz+CXPywcvjs60u3B4Pom/U/7rm4W8tMOYEB+E9wgD0mW1l3r8qlI9Q==}
@@ -11104,6 +11119,10 @@ packages:
       - supports-color
     dev: false
 
+  /keycode@2.2.1:
+    resolution: {integrity: sha512-Rdgz9Hl9Iv4QKi8b0OlCRQEzp4AgVxyCtz5S/+VIHezDmrDhkp2N2TqBWOLz0/gbeREXOOiI9/4b8BY9uw2vFg==}
+    dev: false
+
   /kind-of@6.0.3:
     resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
     engines: {node: '>=0.10.0'}
@@ -13662,6 +13681,17 @@ packages:
     resolution: {integrity: sha512-/6UZ2qgEyH2aqzYZgQPxEnz33NJ2gNsnHA2o5+o4wW9bLM/JYQitNP9xPhsXwC08hMMovfGe/8retsdDsczPRg==}
     dev: true
 
+  /react-event-listener@0.6.6(react@18.2.0):
+    resolution: {integrity: sha512-+hCNqfy7o9wvO6UgjqFmBzARJS7qrNoda0VqzvOuioEpoEXKutiKuv92dSz6kP7rYLmyHPyYNLesi5t/aH1gfw==}
+    peerDependencies:
+      react: ^16.3.0
+    dependencies:
+      '@babel/runtime': 7.21.5
+      prop-types: 15.8.1
+      react: 18.2.0
+      warning: 4.0.3
+    dev: false
+
   /react-google-recaptcha@2.1.0(react@18.2.0):
     resolution: {integrity: sha512-K9jr7e0CWFigi8KxC3WPvNqZZ47df2RrMAta6KmRoE4RUi7Ys6NmNjytpXpg4HI/svmQJLKR+PncEPaNJ98DqQ==}
     peerDependencies:
@@ -13849,6 +13879,42 @@ packages:
       - webpack-plugin-serve
     dev: true
 
+  /react-swipeable-views-core@0.14.0:
+    resolution: {integrity: sha512-0W/e9uPweNEOSPjmYtuKSC/SvKKg1sfo+WtPdnxeLF3t2L82h7jjszuOHz9C23fzkvLfdgkaOmcbAxE9w2GEjA==}
+    engines: {node: '>=6.0.0'}
+    dependencies:
+      '@babel/runtime': 7.0.0
+      warning: 4.0.3
+    dev: false
+
+  /react-swipeable-views-utils@0.14.0(react@18.2.0):
+    resolution: {integrity: sha512-W+fXBOsDqgFK1/g7MzRMVcDurp3LqO3ksC8UgInh2P/tKgb5DusuuB1geKHFc6o1wKl+4oyER4Zh3Lxmr8xbXA==}
+    engines: {node: '>=6.0.0'}
+    dependencies:
+      '@babel/runtime': 7.0.0
+      keycode: 2.2.1
+      prop-types: 15.8.1
+      react-event-listener: 0.6.6(react@18.2.0)
+      react-swipeable-views-core: 0.14.0
+      shallow-equal: 1.2.1
+    transitivePeerDependencies:
+      - react
+    dev: false
+
+  /react-swipeable-views@0.14.0(react@18.2.0):
+    resolution: {integrity: sha512-wrTT6bi2nC3JbmyNAsPXffUXLn0DVT9SbbcFr36gKpbaCgEp7rX/OFxsu5hPc/NBsUhHyoSRGvwqJNNrWTwCww==}
+    engines: {node: '>=6.0.0'}
+    peerDependencies:
+      react: ^15.3.0 || ^16.0.0 || ^17.0.0
+    dependencies:
+      '@babel/runtime': 7.0.0
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-swipeable-views-core: 0.14.0
+      react-swipeable-views-utils: 0.14.0(react@18.2.0)
+      warning: 4.0.3
+    dev: false
+
   /react-transition-group@4.4.5(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-pZcd1MCJoiKiBR2NRxeCRg13uCXbydPnmB4EOeRrY7480qNWO8IIgQG6zlDkm6uRMsURXPuKq0GWtiM59a5Q6g==}
     peerDependencies:
@@ -13983,6 +14049,10 @@ packages:
   /regenerate@1.4.2:
     resolution: {integrity: sha512-zrceR/XhGYU/d/opr2EKO7aRHUeiBI8qjtfHqADTwZd6Szfy16la6kqD0MIUs5z5hx6AaKa+PixpPrR289+I0A==}
     dev: true
+
+  /regenerator-runtime@0.12.1:
+    resolution: {integrity: sha512-odxIc1/vDlo4iZcfXqRYFj0vpXFNoGdKMAUieAlFYO6m/nl5e9KR/beGf41z4a1FI+aQgtjhuaSlDxQ0hmkrHg==}
+    dev: false
 
   /regenerator-runtime@0.13.11:
     resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
@@ -14507,6 +14577,10 @@ packages:
     dependencies:
       kind-of: 6.0.3
     dev: true
+
+  /shallow-equal@1.2.1:
+    resolution: {integrity: sha512-S4vJDjHHMBaiZuT9NPb616CSmLf618jawtv3sufLl6ivK8WocjAo58cXwbRV1cgqxH0Qbv+iUt6m05eqEa2IRA==}
+    dev: false
 
   /shebang-command@1.2.0:
     resolution: {integrity: sha512-EV3L1+UQWGor21OmnvojK36mhg+TyIKDh3iFBKBohr5xeXIhNBcx8oWdgkTEEQ+BEFFYdLRuqMfd5L84N1V5Vg==}
@@ -15993,6 +16067,12 @@ packages:
     dependencies:
       makeerror: 1.0.12
     dev: true
+
+  /warning@4.0.3:
+    resolution: {integrity: sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==}
+    dependencies:
+      loose-envify: 1.4.0
+    dev: false
 
   /watchpack@2.4.0:
     resolution: {integrity: sha512-Lcvm7MGST/4fup+ifyKi2hjyIAwcdI4HRgtvTpIUxBRhB+RFtUh8XtDOxUfctVCnhVi+QQj49i91OyvzkJl6cg==}

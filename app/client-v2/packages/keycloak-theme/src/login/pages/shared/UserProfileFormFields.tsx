@@ -1,7 +1,6 @@
 import { Box, Link } from "@mui/material";
 import { Stepper, Step, StepLabel } from "@mui/material";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import type { ClassKey } from "keycloakify/login/TemplateProps";
 import type { Attribute } from "keycloakify/login/kcContext/KcContext";
 import { useFormValidation } from "keycloakify/login/lib/useFormValidation";
 import { useMemo, useEffect, Fragment } from "react";
@@ -23,25 +22,17 @@ interface Steps {
 export type UserProfileFormFieldsProps = {
   kcContext: Parameters<typeof useFormValidation>[0]["kcContext"];
   i18n: I18n;
-  getClassName: (classKey: ClassKey) => string;
   onIsFormSubmittableValueChange: (isFormSubmittable: boolean) => void;
-  activeStep: number;
-  steps: Steps;
+  activeStep?: number;
+  steps?: Steps;
   BeforeField?: (props: { attribute: Attribute }) => JSX.Element | null;
   AfterField?: (props: { attribute: Attribute }) => JSX.Element | null;
   getIncrementedTabIndex: () => number;
 };
 
 export function UserProfileFormFields(props: UserProfileFormFieldsProps) {
-  const {
-    kcContext,
-    onIsFormSubmittableValueChange,
-    i18n,
-    activeStep,
-    steps,
-    getClassName,
-    getIncrementedTabIndex,
-  } = props;
+  const { kcContext, onIsFormSubmittableValueChange, i18n, activeStep, steps, getIncrementedTabIndex } =
+    props;
 
   const { advancedMsg } = i18n;
 
@@ -56,11 +47,10 @@ export function UserProfileFormFields(props: UserProfileFormFieldsProps) {
   const { msg, advancedMsgStr } = i18n;
 
   const { classes } = useStyles();
-
-  // check if first step values are valid
-
-  // Order attributesWithPassword like steps
   const attributesWithPasswordOrdered = useMemo(() => {
+    if (steps === undefined) {
+      return attributesWithPassword;
+    }
     const attributesWithPasswordOrdered: Attribute[] = [];
     for (const step of Object.values(steps)) {
       for (const attributeName of step) {
@@ -183,20 +173,29 @@ export function UserProfileFormFields(props: UserProfileFormFieldsProps) {
 
   return (
     <>
-      <Stepper activeStep={activeStep}>
-        {Object.keys(steps).map((label) => (
-          <Step sx={{ paddingRight: 0 }} key={label}>
-            <StepLabel> </StepLabel>
-          </Step>
-        ))}
-      </Stepper>
+      {activeStep !== undefined && steps !== undefined && (
+        <Stepper activeStep={activeStep}>
+          {Object.keys(steps).map((label) => (
+            <Step sx={{ paddingRight: 0 }} key={label}>
+              <StepLabel> </StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+      )}
 
       {attributesWithPasswordOrdered.map((attribute, i) => {
         const { value, displayableErrors } = fieldStateByAttributeName[attribute.name];
 
         // find which step is attribute.name
         let isVisible = false;
-        if (steps[activeStep + 1].includes(attribute.name) && attribute.name !== "username") {
+        if (
+          activeStep !== undefined &&
+          steps !== undefined &&
+          steps[activeStep + 1].includes(attribute.name) &&
+          attribute.name !== "username"
+        ) {
+          isVisible = true;
+        } else if ((activeStep === undefined || steps === undefined) && attribute.name !== "username") {
           isVisible = true;
         }
 
@@ -350,7 +349,7 @@ export function UserProfileFormFields(props: UserProfileFormFieldsProps) {
         );
       })}
       {/* Terms and Conditions */}
-      {termsAndConditions && activeStep == 1 && (
+      {termsAndConditions && (activeStep == 1 || activeStep === undefined) && (
         <div className={classes.acceptTermsWrapper}>
           <div className="checkbox">
             <FormControlLabel
@@ -386,7 +385,7 @@ export function UserProfileFormFields(props: UserProfileFormFieldsProps) {
         </div>
       )}
       {/* Subscribe To Newsletter */}
-      {subscribeToNewsletter && activeStep == 1 && (
+      {subscribeToNewsletter && (activeStep == 1 || activeStep === undefined) && (
         <div className={classes.subscribeToNewsletterWrapper}>
           <div className="checkbox">
             <FormControlLabel
@@ -394,7 +393,6 @@ export function UserProfileFormFields(props: UserProfileFormFieldsProps) {
                 <Checkbox
                   id="subscribe_to_newsletter"
                   name="subscribe_to_newsletter"
-                  className={getClassName("kcInputClass")}
                   tabIndex={3}
                   color="primary"
                   onChange={handleSubscribeToNewsletterChange}

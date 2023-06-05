@@ -143,19 +143,17 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
               <div className={classes.rememberMeForgotPasswordWrapper}>
                 <div>
                   {realm.rememberMe && !usernameEditDisabled && (
-                    <div className="checkbox">
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            tabIndex={3}
-                            defaultChecked={!!login.rememberMe}
-                            name="rememberMe"
-                            color="primary"
-                          />
-                        }
-                        label={<Text typo="body 2">{msg("rememberMe")!}</Text>}
-                      />
-                    </div>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          tabIndex={3}
+                          defaultChecked={!!login.rememberMe}
+                          name="rememberMe"
+                          color="primary"
+                        />
+                      }
+                      label={<Text typo="body 2">{msg("rememberMe")!}</Text>}
+                    />
                   )}
                 </div>
                 <div className={classes.forgotPassword}>

@@ -10,7 +10,7 @@ const KcLoginThemeApp = lazy(() => import("./login/KcApp"));
 //   pageId: "login.ftl",
 // });
 const { PageStory } = createPageStoryLogin({
-  pageId: "login.ftl",
+  pageId: "login-reset-password.ftl",
 });
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
