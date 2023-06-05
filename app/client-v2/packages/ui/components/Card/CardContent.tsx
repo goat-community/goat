@@ -37,10 +37,10 @@ export const CardContent = memo(
     // eslint-disable-next-line @typescript-eslint/ban-types
     assert<Equals<typeof rest, {}>>();
 
-    const { classes } = useStyles();
+    const { classes, cx } = useStyles();
 
     return (
-      <div className={className}>
+      <div className={cx(className, classes.wrapper)}>
         {info ? (
           <Text typo="body 2">
             {info.author} • {info.date}
@@ -118,5 +118,9 @@ const useStyles = makeStyles({ name: { CardContent } })((theme) => ({
     backgroundColor: theme.colors.useCases.surfaces.background,
     marginRight: "8px",
     padding: "7px 6px",
+  },
+  wrapper: {
+    padding: theme.spacing(4),
+    paddingTop: theme.spacing(3),
   },
 }));

@@ -1,10 +1,10 @@
 // import Head from "next/head";
 import React from "react";
 
-import { makeStyles } from "../../lib/ThemeProvider";
-import { SlideShow } from "../SlideShow";
+import { makeStyles } from "../../../lib/ThemeProvider";
+import { SlideShow } from "../../SlideShow";
+import NewsLetterSection from "../home/NewsLetterSection";
 import CardList, { type CardType } from "./CardList";
-import NewsLetterSection from "./NewsLetterSection";
 
 interface CardsDataArray {
   content: CardType<"file">;
