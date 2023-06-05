@@ -111,6 +111,7 @@ build-client-docker-image: app/client-v2/apps/$(COMPONENT)/Dockerfile
 release-keycloak-theme: 
 	npx pnpm install --global pnpm
 	cd app/client-v2/packages/keycloak-theme
+	print("Current directory: $(pwd)")
 	pnpm install
 	pnpm run build-keycloak-theme && \
     if [ "$(NAMESPACE)" = "dev" ] || [ "$(NAMESPACE)" = "v2" ]; then \
