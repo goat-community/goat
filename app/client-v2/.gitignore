@@ -38,3 +38,4 @@ yarn-error.log*
 # others
 build_keycloak
 storybook-static
+*.jar
