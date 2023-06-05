@@ -107,6 +107,20 @@ build-docker-image: app/$(COMPONENT)/Dockerfile
 build-client-docker-image: app/client-v2/apps/$(COMPONENT)/Dockerfile
 	$(DOCKER) build -f app/client-v2/apps/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/client-v2
 
+# target: build-keycloak-theme
+release-keycloak-theme: 
+	cd app/client-v2/packages/keycloak-theme
+	pnpm install
+	pnpm run build-keycloak-theme && \
+    if [ "$(NAMESPACE)" = "dev" ] || [ "$(NAMESPACE)" = "v2" ]; then \
+        mv build_keycloak/target/*.jar p4b-keycloak-theme-dev.jar; \
+    else \
+        mv build_keycloak/target/*.jar p4b-keycloak-theme.jar; \
+    fi && \
+	aws s3 cp p4b-keycloak-theme*.jar s3://plan4better-assets/other/keycloak/
+
+
+
 # target: make build-docs-docker-image
 .PHONY: build-docs-docker-image
 build-docs-docker-image: docs/Dockerfile
