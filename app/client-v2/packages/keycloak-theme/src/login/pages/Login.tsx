@@ -80,10 +80,10 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
           <div className={classes.linkToRegisterWrapper}>
             <Text typo="body 2" color="secondary">
               {msg("noAccount")!}
+              <Link href={url.registrationUrl} className={classes.registerLink} underline="hover">
+                {msg("doRegister")}
+              </Link>
             </Text>
-            <Link href={url.registrationUrl} className={classes.registerLink} underline="hover">
-              {msg("doRegister")}
-            </Link>
           </div>
         )
       }>
