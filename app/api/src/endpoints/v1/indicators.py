@@ -219,7 +219,7 @@ async def count_pt_service_stations(
         results = await read_pt_station_count_async(
             current_user=current_user, payload=payload, return_type=return_type.value
         )
-        return return_geojson_or_geobuf(results, return_type="geobuf")
+        return read_results(results)
     return {"task_id": task.id}
 
 
@@ -228,6 +228,9 @@ async def calculate_oev_gueteklassen(
     *,
     current_user: models.User = Depends(deps.get_current_active_user),
     params: CalculateOevGueteklassenParameters = Body(..., example=oev_gueteklasse_config_example),
+    return_type: ReturnTypeHeatmap = Query(
+        default=ReturnTypeHeatmap.GEOJSON, description="Return type of the response"
+    ),
 ):
     """
     ÖV-Güteklassen (The public transport quality classes) is an indicator for access to public transport.
@@ -256,10 +259,13 @@ async def calculate_oev_gueteklassen(
         task = read_pt_oev_gueteklassen_task.delay(
             current_user=current_user,
             payload=payload,
+            return_type=return_type.value,
         )
     else:
-        results = await read_pt_oev_gueteklassen_async(current_user=current_user, payload=payload)
-        return return_geojson_or_geobuf(results, return_type="geobuf")
+        results = await read_pt_oev_gueteklassen_async(
+            current_user=current_user, payload=payload, return_type=return_type.value
+        )
+        return read_results(results)
     return {"task_id": task.id}
 
 

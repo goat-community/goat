@@ -205,7 +205,7 @@ async def read_pt_station_count_async(current_user, payload, return_type):
     return return_data
 
 
-async def read_pt_oev_gueteklassen_async(current_user, payload):
+async def read_pt_oev_gueteklassen_async(current_user, payload, return_type):
     current_user = models.User(**current_user)
     payload = CalculateOevGueteklassenParameters(**payload)
     oev_gueteklassen_features = await indicator.compute_oev_gueteklassen(
@@ -215,5 +215,13 @@ async def read_pt_oev_gueteklassen_async(current_user, payload):
         study_area_ids=payload.study_area_ids,
         station_config=payload.station_config,
     )
+    return_data = {
+        "data": {
+            "geojson": oev_gueteklassen_features,
+        },
+        "return_type": return_type,
+        "hexlified": False,
+        "data_source": "pt_oev_gueteklassen",
+    }
 
-    return oev_gueteklassen_features
+    return return_data
