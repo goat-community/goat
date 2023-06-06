@@ -18,10 +18,15 @@ def findkeys(node, kv):
 def validate_return_type(results, return_type=None):
     if return_type is None:
         return_type = results["return_type"]
+
     allowed_return_types = {
         "heatmap": {member.value for member in ReturnTypeHeatmap},
         "isochrone": {member.value for member in IsochroneOutputType},
     }
     data_source = results["data_source"]
+    if data_source not in allowed_return_types.keys():
+        data_source = "heatmap"
     if return_type not in allowed_return_types[data_source]:
-        raise ValueError(f"Invalid return type '{return_type}' for data source '{data_source}'. ")
+        raise ValueError(
+            f"Invalid return type '{return_type}' for data source '{results['data_source']}'. "
+        )
