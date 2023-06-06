@@ -178,6 +178,9 @@ async def count_pt_service_stations(
     study_area_id: Optional[int] = Query(
         default=None, description="Study area id (Default: User active study area)"
     ),
+    return_type: ReturnTypeHeatmap = Query(
+        default=ReturnTypeHeatmap.GEOJSON, description="Return type of the response"
+    ),
 ):
     """
     Return the number of trips for every route type on every station given a time period and weekday.
@@ -210,9 +213,12 @@ async def count_pt_service_stations(
         task = read_pt_station_count_task.delay(
             current_user=current_user,
             payload=payload,
+            return_type=return_type.value,
         )
     else:
-        results = await read_pt_station_count_async(current_user=current_user, payload=payload)
+        results = await read_pt_station_count_async(
+            current_user=current_user, payload=payload, return_type=return_type.value
+        )
         return return_geojson_or_geobuf(results, return_type="geobuf")
     return {"task_id": task.id}
 
@@ -271,17 +277,17 @@ async def get_indicators_result(
     if result.ready():
         try:
             result = result.get()
-            try:
-                validate_return_type(result, return_type.value)
-            except ValueError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
-                )
-            return read_results(result, return_type.value)
-        except HTTPException as e:
-            raise e
         except Exception as e:
             raise HTTPException(status_code=500, detail="Task failed")
+
+        try:
+            validate_return_type(result, return_type.value)
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+        except HTTPException as e:
+            raise e
+        return read_results(result, return_type.value)
 
     elif result.failed():
         raise HTTPException(status_code=500, detail="Task failed")
