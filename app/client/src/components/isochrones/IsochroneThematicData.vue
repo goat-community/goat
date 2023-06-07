@@ -607,7 +607,7 @@ export default {
         // Update new calculation
         this.updateIsochroneSurface(newSelection[newSelection.length - 1]);
       }
-      console.log(newSelection);
+      
       if (this.selectedCalculations[0].type == "multiple") {
         this.resultViewType = 0;
       }
