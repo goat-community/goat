@@ -1085,14 +1085,22 @@ def convert_geojson_to_others_ogr2ogr(
             "format_name": "ESRI Shapefile",
             "extra_options": "-lco ENCODING=UTF-8",
         },
-        "csv": {"output_suffix": "csv", "format_name": "CSV"},
+        "csv": {
+            "output_suffix": "csv",
+            "format_name": "CSV",
+            "extra_options": "-lco GEOMETRY=AS_WKT",
+        },
         "kml": {
             "output_suffix": "kml",
             "format_name": "KML",
             "extra_options": "-mapFieldType Integer64=Real",
         },
         "geobuf": {"output_suffix": "fgb", "format_name": "FlatGeobuf"},
-        "xlsx": {"output_suffix": "xlsx", "format_name": "XLSX"},
+        "xlsx": {
+            "output_suffix": "xlsx",
+            "format_name": "XLSX",
+            "extra_options": "-lco GEOMETRY=AS_WKT",
+        },
     }
 
     output_suffix = options[output_format]["output_suffix"]
