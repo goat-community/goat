@@ -587,7 +587,7 @@ class CRUDIsochrone:
         if isochrone_type == IsochroneTypeEnum.single.value:
             geojson_result = self.build_geojson_single(isochrone_shapes, opportunities)
         elif isochrone_type == IsochroneTypeEnum.multi.value:
-            geojson_result = self.build_geojson_multi(isochrone_shapes, population_reached)
+            geojson_result = self.build_geojson_multi(isochrone_shapes, opportunities)
 
         result = {
             "grid": grid_encoded,
@@ -603,11 +603,24 @@ class CRUDIsochrone:
                 geojson["features"][cnt]["properties"][key] = value
         return geojson
 
-    def build_geojson_multi(self, isochrone_shapes, population_reached):
+    def build_geojson_multi(self, isochrone_shapes, opportunities):
+        sub_study_area_to_feature_name = lambda x: f"population_count_{x.replace('.','_')}"
         geojson = json.loads(isochrone_shapes["full"].to_json())
-        population = population_reached["population"]
-        for cnt, value in enumerate(population):
-            geojson["features"][cnt]["properties"]["population_reached"] = value
+        population_keys = list(opportunities.keys())
+        sub_study_area_feature_name = dict(
+            [(key, sub_study_area_to_feature_name(key)) for key in population_keys]
+        )
+        for cnt, value in enumerate(geojson["features"]):
+            total_population_ = 0
+            geojson["features"][cnt]["properties"]["total_population"] = 0
+            for key in population_keys:
+                feature_name = sub_study_area_feature_name[key]
+                sub_study_area_population_count = opportunities[key]["reached_population"][cnt]
+                geojson["features"][cnt]["properties"][
+                    feature_name
+                ] = sub_study_area_population_count
+                total_population_ += sub_study_area_population_count
+            geojson["features"][cnt]["properties"]["total_population"] = total_population_
         return geojson
 
 
