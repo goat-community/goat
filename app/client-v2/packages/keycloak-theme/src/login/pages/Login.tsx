@@ -13,8 +13,6 @@ import { useState, type FormEventHandler } from "react";
 
 import { Checkbox } from "@p4b/ui/components/Checkbox";
 import { TextField } from "@p4b/ui/components/Text/TextField";
-import { useSplashScreen } from "@p4b/ui/lib";
-import { getBrowser } from "@p4b/ui/tools/getBrowser";
 
 import { makeStyles, Text, Button } from "../../theme";
 import type { I18n } from "../i18n";
@@ -48,22 +46,6 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
   const usernameInputRef = useStateRef<HTMLInputElement>(null);
   const passwordInputRef = useStateRef<HTMLInputElement>(null);
   const submitButtonRef = useStateRef<HTMLButtonElement>(null);
-
-  const { areTextInputsDisabled } = (function useClosure() {
-    const [areTextInputsDisabled, setAreTextInputsDisabled] = useState(() => getBrowser() === "safari");
-
-    useSplashScreen({
-      onHidden: () => {
-        if (!areTextInputsDisabled) {
-          return;
-        }
-        setAreTextInputsDisabled(false);
-        usernameInputRef.current!.focus();
-      },
-    });
-
-    return { areTextInputsDisabled };
-  })();
 
   return (
     <Template
@@ -107,14 +89,13 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
             <form onSubmit={onSubmit} action={url.loginAction} method="post">
               <div>
                 <TextField
-                  disabled={usernameEditDisabled || areTextInputsDisabled}
+                  disabled={usernameEditDisabled}
                   defaultValue={login.username ?? ""}
                   id="username"
                   name="username"
                   inputProps_ref={usernameInputRef}
                   inputProps_aria-label="username"
                   inputProps_tabIndex={1}
-                  inputProps_autoFocus={!areTextInputsDisabled}
                   inputProps_spellCheck={false}
                   label={
                     !realm.loginWithEmailAllowed
@@ -128,7 +109,6 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
               </div>
               <div>
                 <TextField
-                  disabled={areTextInputsDisabled}
                   type="password"
                   defaultValue={""}
                   id="password"
