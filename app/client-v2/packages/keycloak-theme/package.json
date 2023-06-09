@@ -1,6 +1,6 @@
 {
   "name": "@p4b/keycloak-theme",
-  "homepage": "https://starter.keycloakify.dev",
+  "homepage": "https://auth.plan4better.de",
   "version": "0.0.1",
   "description": "P4B Keycloak theme",
   "scripts": {

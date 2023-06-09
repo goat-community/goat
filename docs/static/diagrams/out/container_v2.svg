@@ -1,24 +1,30 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="1298px" preserveAspectRatio="none" style="width:1428px;height:1298px;background:#FFFFFF;" version="1.1" viewBox="0 0 1428 1298" width="1428px" zoomAndPan="magnify"><defs/><g><rect fill="none" height="26.2969" id="_title" style="stroke:none;stroke-width:1.0;" width="246" x="584" y="5"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="236" x="589" y="22.9951">Container Diagram (C4 Model)</text><!--MD5=[575edd5936f6f92dcb72b4d9c417533a]
-cluster a1--><g id="cluster_a1"><rect fill="none" height="730.5" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="272" x="7" y="274.7969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="130" x="78" y="311.6484">Authentication</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="112" y="326.5605">[System]</text></g><!--MD5=[c26638a81821cf585a88e29a60357529]
-cluster s1--><g id="cluster_s1"><rect fill="none" height="739" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="287" x="319" y="266.2969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="118" x="403.5" y="303.1484">Authorization</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="431.5" y="318.0605">[System]</text></g><!--MD5=[6263a3a756bfed72f50c9e30d30aff15]
-cluster a2--><g id="cluster_a2"><rect fill="none" height="629" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="776" x="646" y="663.2969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="96" x="986" y="700.1484">Application</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="1003" y="715.0605">[System]</text></g><!--MD5=[e29493a8775effcafa538aa0485107d1]
-entity auth--><g id="elem_auth"><rect fill="#438DD5" height="163.4531" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="205" x="50.5" y="408.7969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="116" y="429.9355">«container»</text><image height="48" width="48" x="129" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACsklEQVR4Xu2XT0ocQRTGvVsfYC7gAbyAB8gB4sqVuMvCRZbusgruAm5ciBgICCIIgiEJRASh86M/eBT9OlWvq0oUdPgW3W96pn7z1ftTszV8PH9V2vKhl9U7UElvAGizf7F9+N3Hg+oPhI6+3flgUP2BcOj06o+PB9Uf6MPx9dfLXz4eVH+gy9u/Bye3Ph5UZ6C9LzfjOLJr/q2gegKxWdC02DN0BJI3Leks9QE6Pruf0bBrIOKZfzivViAWJouhscoiQh8iWNcem4BY8ubnIzQ4pAiW/H54stsK1QPhhGisL3PxkklNxqR5oxJraYlSJRD2jNPLEkWZtPPph394lZqA2DKLiG/385V/eJUqgRA05K/dcp3uYLXqgZQ0tmXKaF60H/9wXPVAiBRO249MSm2rUBPQMNWa5Q0X7ZnUCjRMPtl4Vy+o69FSB6Bh8kYXwC22aYiDZ5J1QBqZ9OLFfqMp5uPg8ikaFf4VsaJA1BRfR6kvokizxTbu7wcfB8t/MFUIyMYWFcSm4BDS6QLJM7xB7BfcMsMPNbWGvEkhIIkvkvm2tqRblgcO/zIZDWWxKawAMuV/4v+kplA8sq0GYjsWM9eEQ6w984kI3hRphjogdT9lKLsgca1OrZedGFV6KOjraqBh8kCZpNFhIkJ81qYzVbmoGqBnVQ0QlZWOi1RKoMW3gqoBsjQap85EMulsZMGx4RASBSIVqBGrHWzAJyWyoXCrtplpRUUVgDBfzTdSsXlpN318phwQX6GfTvm0/Gjc1Wzxb3nlgNRCNMXGqfFgFYZpkNkss4lmQ01Zzw5qE4krzXVY8AulygGl4ruURrakVkVQ6kJzzYaa1Zr6lp4pFmAUSBKTJgPaTMcuExEeMO7Z5A9u+jogSempVSUNBxv72s3UpLhqgJ5V70AlvTqgf2H6uTXfTevfAAAAAElFTkSuQmCC" y="432.7656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="30" x="138" y="495.6172">API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="66" x="120" y="510.5293">[Keycloak]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="151" y="526.3545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="181" x="60.5" y="542.6514">Handles authentication for</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="133" y="558.9482">GOAT</text></g><!--MD5=[263a8629702241d41d1d44763e07634b]
-entity authdb--><g id="elem_authdb"><path d="M66,819.2969 C66,809.2969 153,809.2969 153,809.2969 C153,809.2969 240,809.2969 240,819.2969 L240,971.75 C240,981.75 153,981.75 153,981.75 C153,981.75 66,981.75 66,971.75 L66,819.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M66,819.2969 C66,829.2969 153,829.2969 153,829.2969 C153,829.2969 240,829.2969 240,819.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="116" y="844.4355">«container»</text><image height="48" width="48" x="129" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="847.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="83" x="111.5" y="910.1172">Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="113" y="925.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="151" y="940.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="138" x="82" y="957.1514">Holds user data and</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="154" x="76" y="973.4482">keycloak configuration</text></g><!--MD5=[2d3c5e0b954a749fced3fb92086cf371]
-entity author--><g id="elem_author"><rect fill="#438DD5" height="179.75" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="220" x="343" y="400.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="416" y="421.4355">«container»</text><image height="48" width="48" x="429" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACUElEQVR4Xu2XMUoEQRBFvVsfwAt4AC/gATyARkZiZmBguJmRmAkmBiIrCAuysCAoKiiCMH62mGa2qrq6a3oGhd3PD3aH6a431TXVPVvh4O5feUte+ltvgHKuBdo+uod3Th7oh7zB6z5A+5Onye3L/PW70YTrl9O3vfOZHFhiHxDCvH/9cISEbmYfPXLmAMLsFAlMyEEJ2XTxKeex7QDCSlEYem7UzWp0Xd61cwAdXsybZYnEKyVJOrt+llMZdgAdXy0oBlIVWr6sUP5yKsN9gFxaJyBUMRZLNaJykFZDAu2ePqJQkJis0XI4SCsC6s5DJZiyDgSUVCP2ioDY+4i/CCHj6kC4tTu4UipQs9o+MkBD5YaUAoKwfDI6B0Jj5ePqRI1RBVI3Fg6E8XxcnVDOmJZfbSV3Xw4Eaj6oTghpZF3udByIj6gTpcd4SFlGYwHhzaB+Y/TMRmubK0DxxGMIj4tI8cyqmmZD+zByQ8K5ygIKuQzREmDhMRGCGVZfK6kqIFpvewm8yixZSHdFPHEoPgOVi1JuAaUSQI+Swu0t1GIGKJUDu7/1E2U9A5SKOgaQetxWgNTdYwwguW/oQEHrrYMDyXK2gMKymHAOjH2F2i6ftSPZilK2P7STQKo5RUeyX7PGXejBgAzJeQyvARC6C+oPNRe3MzmP4eGB4hEn9lg5j2EfUMnWwYCm2sHZsA8otbEw0QchLZn9WSjtAwrOL/xU9zPsBgrLj/zUoYCE3OAGuZOXuA9QNH38Y+9D8wUBfuBvP47oKqAxvAHKeQOU8y9QdXNx2ULofAAAAABJRU5ErkJggg==" y="424.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="30" x="438" y="487.1172">API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="130" x="388" y="502.0293">[Python and FastAPI]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="451" y="517.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="200" x="353" y="534.1514">It manages the subscriptions</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="144" x="379" y="550.4482">and features that are</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="167" x="369.5" y="566.7451">accessible by the users.</text></g><!--MD5=[16b9548f44a0e814c7c2afed2a6528fc]
-entity authordb--><g id="elem_authordb"><path d="M343,819.2969 C343,809.2969 453,809.2969 453,809.2969 C453,809.2969 563,809.2969 563,819.2969 L563,971.75 C563,981.75 453,981.75 453,981.75 C453,981.75 343,981.75 343,971.75 L343,819.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M343,819.2969 C343,829.2969 453,829.2969 453,829.2969 C453,829.2969 563,829.2969 563,819.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="416" y="844.4355">«container»</text><image height="48" width="48" x="429" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="847.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="83" x="411.5" y="910.1172">Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="413" y="925.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="451" y="940.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="200" x="353" y="957.1514">Holds the user data and their</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="97" x="404.5" y="973.4482">subscriptions.</text></g><!--MD5=[61e1faea918c873f307ee5e790a7431e]
-entity applicationapi--><g id="elem_applicationapi"><rect fill="#438DD5" height="196.0469" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="213" x="936.5" y="797.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="1006" y="818.4355">«container»</text><image height="48" width="48" x="1019" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACUElEQVR4Xu2XMUoEQRBFvVsfwAt4AC/gATyARkZiZmBguJmRmAkmBiIrCAuysCAoKiiCMH62mGa2qrq6a3oGhd3PD3aH6a431TXVPVvh4O5feUte+ltvgHKuBdo+uod3Th7oh7zB6z5A+5Onye3L/PW70YTrl9O3vfOZHFhiHxDCvH/9cISEbmYfPXLmAMLsFAlMyEEJ2XTxKeex7QDCSlEYem7UzWp0Xd61cwAdXsybZYnEKyVJOrt+llMZdgAdXy0oBlIVWr6sUP5yKsN9gFxaJyBUMRZLNaJykFZDAu2ePqJQkJis0XI4SCsC6s5DJZiyDgSUVCP2ioDY+4i/CCHj6kC4tTu4UipQs9o+MkBD5YaUAoKwfDI6B0Jj5ePqRI1RBVI3Fg6E8XxcnVDOmJZfbSV3Xw4Eaj6oTghpZF3udByIj6gTpcd4SFlGYwHhzaB+Y/TMRmubK0DxxGMIj4tI8cyqmmZD+zByQ8K5ygIKuQzREmDhMRGCGVZfK6kqIFpvewm8yixZSHdFPHEoPgOVi1JuAaUSQI+Swu0t1GIGKJUDu7/1E2U9A5SKOgaQetxWgNTdYwwguW/oQEHrrYMDyXK2gMKymHAOjH2F2i6ftSPZilK2P7STQKo5RUeyX7PGXejBgAzJeQyvARC6C+oPNRe3MzmP4eGB4hEn9lg5j2EfUMnWwYCm2sHZsA8otbEw0QchLZn9WSjtAwrOL/xU9zPsBgrLj/zUoYCE3OAGuZOXuA9QNH38Y+9D8wUBfuBvP47oKqAxvAHKeQOU8y9QdXNx2ULofAAAAABJRU5ErkJggg==" y="821.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="30" x="1028" y="884.1172">API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="130" x="978" y="899.0293">[Python and FastAPI]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="1041" y="914.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="189" x="946.5" y="931.1514">It bundles the analyses and</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="185" x="948.5" y="947.4482">map specific features such</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="178" x="952" y="963.7451">as the indicators, projects</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="113" x="986.5" y="980.042">and much more.</text></g><!--MD5=[4da1a7c9c0edb2823027a65420f34db0]
-entity applicationdb--><g id="elem_applicationdb"><path d="M678,1102.2969 C678,1092.2969 788,1092.2969 788,1092.2969 C788,1092.2969 898,1092.2969 898,1102.2969 L898,1254.75 C898,1264.75 788,1264.75 788,1264.75 C788,1264.75 678,1264.75 678,1254.75 L678,1102.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M678,1102.2969 C678,1112.2969 788,1112.2969 788,1112.2969 C788,1112.2969 898,1112.2969 898,1102.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="751" y="1127.4355">«container»</text><image height="48" width="48" x="764" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="1130.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="185" x="695.5" y="1193.1172">Application Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="748" y="1208.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="786" y="1223.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="200" x="688" y="1240.1514">Holds the application specific</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="752" y="1256.4482">base data.</text></g><!--MD5=[e2bd88612500d533a317d787f8e99024]
-entity organizationdb--><g id="elem_organizationdb"><path d="M933,1102.2969 C933,1092.2969 1043,1092.2969 1043,1092.2969 C1043,1092.2969 1153,1092.2969 1153,1102.2969 L1153,1254.75 C1153,1264.75 1043,1264.75 1043,1264.75 C1043,1264.75 933,1264.75 933,1254.75 L933,1102.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M933,1102.2969 C933,1112.2969 1043,1112.2969 1043,1112.2969 C1043,1112.2969 1153,1112.2969 1153,1102.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="1006" y="1127.4355">«container»</text><image height="48" width="48" x="1019" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="1130.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="200" x="943" y="1193.1172">Organization Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="1003" y="1208.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="1041" y="1223.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="191" x="945.5" y="1240.1514">Holds the Organization data</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="172" x="957" y="1256.4482">in a multi-tenant manner.</text></g><!--MD5=[cb62c053fa32d0b8c4977658f81499ee]
-entity r5--><g id="elem_r5"><rect fill="#438DD5" height="179.75" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="209" x="1188.5" y="1088.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="1256" y="1109.4355">«container»</text><image height="48" width="48" x="1269" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACsklEQVR4Xu2XT0ocQRTGvVsfYC7gAbyAB8gB4sqVuMvCRZbusgruAm5ciBgICCIIgiEJRASh86M/eBT9OlWvq0oUdPgW3W96pn7z1ftTszV8PH9V2vKhl9U7UElvAGizf7F9+N3Hg+oPhI6+3flgUP2BcOj06o+PB9Uf6MPx9dfLXz4eVH+gy9u/Bye3Ph5UZ6C9LzfjOLJr/q2gegKxWdC02DN0BJI3Leks9QE6Pruf0bBrIOKZfzivViAWJouhscoiQh8iWNcem4BY8ubnIzQ4pAiW/H54stsK1QPhhGisL3PxkklNxqR5oxJraYlSJRD2jNPLEkWZtPPph394lZqA2DKLiG/385V/eJUqgRA05K/dcp3uYLXqgZQ0tmXKaF60H/9wXPVAiBRO249MSm2rUBPQMNWa5Q0X7ZnUCjRMPtl4Vy+o69FSB6Bh8kYXwC22aYiDZ5J1QBqZ9OLFfqMp5uPg8ikaFf4VsaJA1BRfR6kvokizxTbu7wcfB8t/MFUIyMYWFcSm4BDS6QLJM7xB7BfcMsMPNbWGvEkhIIkvkvm2tqRblgcO/zIZDWWxKawAMuV/4v+kplA8sq0GYjsWM9eEQ6w984kI3hRphjogdT9lKLsgca1OrZedGFV6KOjraqBh8kCZpNFhIkJ81qYzVbmoGqBnVQ0QlZWOi1RKoMW3gqoBsjQap85EMulsZMGx4RASBSIVqBGrHWzAJyWyoXCrtplpRUUVgDBfzTdSsXlpN318phwQX6GfTvm0/Gjc1Wzxb3nlgNRCNMXGqfFgFYZpkNkss4lmQ01Zzw5qE4krzXVY8AulygGl4ruURrakVkVQ6kJzzYaa1Zr6lp4pFmAUSBKTJgPaTMcuExEeMO7Z5A9u+jogSempVSUNBxv72s3UpLhqgJ5V70AlvTqgf2H6uTXfTevfAAAAAElFTkSuQmCC" y="1112.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="132" x="1227" y="1175.1172">Routing Engine</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="93" x="1246.5" y="1190.0293">[CONVEYAL R5]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="1291" y="1205.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="141" x="1220.5" y="1222.1514">Java engine handling</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="185" x="1198.5" y="1238.4482">travel-time calculation logic</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="130" x="1228" y="1254.7451">for public transport</text></g><!--MD5=[8fc3522a43f8c7199df5e09e5bb0188e]
-entity user--><g id="elem_user"><ellipse cx="598" cy="70.9125" fill="#08427B" rx="27.6156" ry="27.6156" style="stroke:#073B6F;stroke-width:0.5;"/><rect fill="#08427B" height="85.1875" rx="27.6156" ry="27.6156" style="stroke:#073B6F;stroke-width:0.5;" width="203" x="496.5" y="98.5282"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="57" x="569.5" y="119.6668">«person»</text><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="41" x="577.5" y="137.3485">User</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="596" y="154.117"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="183" x="506.5" y="170.4139">A user of GOAT application</text></g><!--MD5=[0bd1c934b33aeea3edcba088a0f9a0f6]
-link auth to authdb--><g id="link_auth_authdb"><path d="M153,571.8769 C153,637.8769 153,731.3369 153,800.6569 " fill="none" id="auth-to-authdb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="153,808.9869,156,800.9869,150,800.9869,153,808.9869" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="154" y="622.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="39" x="182" y="636.4043">[JDBC]</text></g><!--MD5=[11c67a07b886e18ff62bcdb52eca0895]
-link author to authordb--><g id="link_author_authordb"><path d="M453,580.7369 C453,646.1169 453,734.5769 453,800.8669 " fill="none" id="author-to-authordb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="453,809.2469,456,801.2469,450,801.2469,453,809.2469" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="454" y="622.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="85" x="459" y="636.4043">[SQLAlchemy]</text></g><!--MD5=[196989d5e8e30e8e2251e3798272290f]
-link applicationapi to applicationdb--><g id="link_applicationapi_applicationdb"><path d="M957.98,993.4269 C949.58,1002.8769 941.14,1012.2969 933,1021.2969 C913.84,1042.4769 893.05,1065.0769 873.34,1086.3169 " fill="none" id="applicationapi-to-applicationdb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="867.82,1092.2669,875.4634,1088.4487,871.0682,1084.3644,867.82,1092.2669" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="926" y="1041.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="85" x="931" y="1055.4043">[SQLAlchemy]</text></g><!--MD5=[20777d7c78f8a7e9e8265c04c6993587]
-link applicationapi to organizationdb--><g id="link_applicationapi_organizationdb"><path d="M1043,993.3969 C1043,1022.6869 1043,1054.7669 1043,1083.8169 " fill="none" id="applicationapi-to-organizationdb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="1043,1091.9269,1046,1083.9269,1040,1083.9269,1043,1091.9269" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="1044" y="1041.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="85" x="1049" y="1055.4043">[SQLAlchemy]</text></g><!--MD5=[d7238f84ee201f8e3c4d16cc3d5af6b6]
-reverse link a1 to s1--><g id="link_a1_s1"><path d="M44.1781,273.9117 C47.4955,271.5292 51.0655,269.2259 54.8712,267.0018 C62.4825,262.5537 71.0364,258.4225 80.3983,254.6084 C99.1221,246.9803 121.0777,240.6205 145.1873,235.5305 C193.4066,225.3503 250.2419,220.2488 307.0713,220.2356 C363.9006,220.2225 420.7241,225.2978 468.9195,235.4714 C493.0173,240.5582 514.958,246.9196 533.664,254.5567 C538.3405,256.466 542.8148,258.4551 547.0701,260.5238 C549.1978,261.5582 551.2707,262.6126 553.2868,263.6868 C554.2948,264.224 555.2886,264.7661 556.2679,265.3132 C556.7576,265.5868 557.2436,265.8616 557.726,266.1376 " fill="none" id="a1-backto-s1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="44.1781,273.9117,52.426,271.6818,48.926,266.8084,44.1781,273.9117" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="238.5" y="225.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="96" x="238" y="239.4043">[HTTP (Private)]</text></g><!--MD5=[16f6db7514d803ecfa5327f96ad9f806]
-link s1 to a2--><g id="link_s1_a2"><path d="M606.0369,549.1467 C606.3498,551.3986 606.6696,553.7004 606.9959,556.0491 C612.2175,593.6281 619.1088,643.2206 626,692.8119 C632.8913,742.4031 639.7825,791.9931 645.0041,829.5672 C645.3304,831.9156 645.6502,834.217 645.9631,836.4686 " fill="none" id="s1-to-a2" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="645.9631,836.4686,647.8334,828.1318,641.8905,828.9577,645.9631,836.4686" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="618.5" y="622.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="96" x="618" y="636.4043">[HTTP (Private)]</text></g><!--MD5=[3e60abc49c51d8c4681898ee7710a496]
-link applicationapi to r5--><g id="link_applicationapi_r5"><path d="M1129.39,993.3969 C1154.95,1022.1269 1182.9,1053.5469 1208.35,1082.1469 " fill="none" id="applicationapi-to-r5" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="1213.74,1088.2069,1210.672,1080.2327,1206.1852,1084.2162,1213.74,1088.2069" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="1183.5" y="1041.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="96" x="1183" y="1055.4043">[HTTP (Private)]</text></g><!--MD5=[5832abe547fabf263b6c69be307ccbfc]
-link user to s1--><g id="link_user_s1"><path d="M598,183.5169 C598,196.8494 598,211.5305 598,227.0264 C598,234.7744 598,242.7261 598,250.8148 C598,254.8591 598,258.9377 598,263.0422 C598,264.0684 598,265.0961 598,266.1254 " fill="none" id="user-to-s1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="598,266.1254,601,258.1254,595,258.1254,598,266.1254" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="100" x="599" y="232.4355">HTTPS (Public)</text></g><!--MD5=[ce9a0c1b0beaa7ebb998b04d47f55410]
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="1235px" preserveAspectRatio="none" style="width:1440px;height:1235px;background:#FFFFFF;" version="1.1" viewBox="0 0 1440 1235" width="1440px" zoomAndPan="magnify"><defs/><g><rect fill="none" height="26.2969" id="_title" style="stroke:none;stroke-width:1.0;" width="246" x="590.2317" y="5"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="236" x="595.2317" y="22.9951">Container Diagram (C4 Model)</text><!--MD5=[84dda40acb3410cad7262261daba2aaf]
+cluster c1--><g id="cluster_c1"><rect fill="none" height="321" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="243" x="199.4633" y="233.2969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="142" x="249.9633" y="270.1484">Web Application</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="289.9633" y="285.0605">[System]</text></g><!--MD5=[575edd5936f6f92dcb72b4d9c417533a]
+cluster a1--><g id="cluster_a1"><rect fill="none" height="603.5" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="272" x="19.4633" y="621.7969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="130" x="90.4633" y="658.6484">Authentication</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="124.4633" y="673.5605">[System]</text></g><!--MD5=[c26638a81821cf585a88e29a60357529]
+cluster s1--><g id="cluster_s1"><rect fill="none" height="621" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="287" x="331.4633" y="604.2969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="118" x="415.9633" y="641.1484">Authorization</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="443.9633" y="656.0605">[System]</text></g><!--MD5=[6263a3a756bfed72f50c9e30d30aff15]
+cluster a2--><g id="cluster_a2"><rect fill="none" height="624" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="776" x="658.4633" y="605.2969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="152" x="970.4633" y="642.1484">GOAT Application</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="1015.4633" y="657.0605">[System]</text></g><!--MD5=[4a65e84059005d12693a083370a06717]
+entity client--><g id="elem_client"><rect fill="#438DD5" height="163.4531" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="175" x="242.9633" y="367.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="293.4633" y="388.4355">«container»</text><image height="48" width="48" x="306.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADHUlEQVR4Xu2YT4oVMRDG5245gBd4B5gLzAE8gK5ciTsXs3D5dq7EneDGhcgThAEZGBhQVFAEof3oH68oq5J0Rtt/0OHj0Z1UJV/qX9LvpNx5+U/hJHf9XWyElrARWsJ/Tuju48vzZ9f6PX34Jo96SMCE82gHo4R2D15//PJtcu1w9blKS50a8pKX77/euvcqS1YxSog17j+9ErOzRxf7F+9YTDbwYtavB4lJWCp6fX7xKc9ZxRAhzZsn1aZhSb+96lfyXvLJ4YP6B400ROj2/q1mrEaDLIRTBAyTZVCXwfJQxhAhUenMCKcpuc8gxdZ+MlYgZCGshzxa5jBfmRA2128eIj7kKcK5Grwd9YwhQmxR+RL6QwbpoSNWrREZQ4QEzShj8Ezm40f6sRDWgpOWt7RaP8sEqmKoeItNWlLRr5DnrGKBkCyBI6xpARmDJFdayVqCdi/wbIVAYtK1+q4H9YQSldEkJCo+fYhZEps6qSWzFoAuQUMASd1mE8tOPNUJWWnxe9IWIYHNbFLZRuwFixKSgCogFfOXprKzJcc+qBBCJ58AZqTJBbh4eKdYrSKQEQ7lW9NirWohjYT85gLwFA2uMkm4AugVO2VhDzv48lAkxJ5aRRln2Y45E0Iz3U6pNN3suJsRYls3IlQ1tulmr0VCHZcxRPORbp3T7DL6+y4rx73ldIuEirtRBOmfCGrLeT+PBXXoBxVC5Vg8WNhoWcElkrxbSXv/Oh2jJ6S9HS/ZWaBOqMwOshqtSS2NmZfOrAUojHiKvUndl9lWjJYOIUAp84ESjg7x3s0nBtCredyToGmHHSpggZABf/mzabAd1j1cgerY5AK5HD+7WFIGk1UEOxb4cAvXjzxtFUOEWkUMTuGClq+q61/QOnfQcIX1VhxRzxgi9IuXfAycLVfFCoTsrtIqLesT6syIp/ofiv39BAwRIsvCuW0nAP2SIagP6SJFf/VEyxgiVNwnzm7+5GidAOa+/Y9/NrTCK2OUkAyAU6y1rsan6e8YVcVB85RxQuBs/hxTAi8uQOU8/31/WP0xbISWsBFawkZoCd8BxQnrYvxstngAAAAASUVORK5CYII=" y="391.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="50" x="305.4633" y="454.1172">Client</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="118" x="271.4633" y="469.0293">[React.js &amp; Next.js]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="328.4633" y="484.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="151" x="252.9633" y="501.1514">Frontend of the GOAT</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="74" x="293.4633" y="517.4482">application</text></g><!--MD5=[e29493a8775effcafa538aa0485107d1]
+entity auth--><g id="elem_auth"><rect fill="#438DD5" height="163.4531" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="205" x="62.9633" y="755.7969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="128.4633" y="776.9355">«container»</text><image height="48" width="48" x="141.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACsklEQVR4Xu2XT0ocQRTGvVsfYC7gAbyAB8gB4sqVuMvCRZbusgruAm5ciBgICCIIgiEJRASh86M/eBT9OlWvq0oUdPgW3W96pn7z1ftTszV8PH9V2vKhl9U7UElvAGizf7F9+N3Hg+oPhI6+3flgUP2BcOj06o+PB9Uf6MPx9dfLXz4eVH+gy9u/Bye3Ph5UZ6C9LzfjOLJr/q2gegKxWdC02DN0BJI3Leks9QE6Pruf0bBrIOKZfzivViAWJouhscoiQh8iWNcem4BY8ubnIzQ4pAiW/H54stsK1QPhhGisL3PxkklNxqR5oxJraYlSJRD2jNPLEkWZtPPph394lZqA2DKLiG/385V/eJUqgRA05K/dcp3uYLXqgZQ0tmXKaF60H/9wXPVAiBRO249MSm2rUBPQMNWa5Q0X7ZnUCjRMPtl4Vy+o69FSB6Bh8kYXwC22aYiDZ5J1QBqZ9OLFfqMp5uPg8ikaFf4VsaJA1BRfR6kvokizxTbu7wcfB8t/MFUIyMYWFcSm4BDS6QLJM7xB7BfcMsMPNbWGvEkhIIkvkvm2tqRblgcO/zIZDWWxKawAMuV/4v+kplA8sq0GYjsWM9eEQ6w984kI3hRphjogdT9lKLsgca1OrZedGFV6KOjraqBh8kCZpNFhIkJ81qYzVbmoGqBnVQ0QlZWOi1RKoMW3gqoBsjQap85EMulsZMGx4RASBSIVqBGrHWzAJyWyoXCrtplpRUUVgDBfzTdSsXlpN318phwQX6GfTvm0/Gjc1Wzxb3nlgNRCNMXGqfFgFYZpkNkss4lmQ01Zzw5qE4krzXVY8AulygGl4ruURrakVkVQ6kJzzYaa1Zr6lp4pFmAUSBKTJgPaTMcuExEeMO7Z5A9u+jogSempVSUNBxv72s3UpLhqgJ5V70AlvTqgf2H6uTXfTevfAAAAAElFTkSuQmCC" y="779.7656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="114" x="108.4633" y="842.6172">Keycloak API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="66" x="132.4633" y="857.5293">[Keycloak]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="163.4633" y="873.3545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="181" x="72.9633" y="889.6514">Handles authentication for</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="145.4633" y="905.9482">GOAT</text></g><!--MD5=[263a8629702241d41d1d44763e07634b]
+entity authdb--><g id="elem_authdb"><path d="M78.4633,1039.2969 C78.4633,1029.2969 165.4633,1029.2969 165.4633,1029.2969 C165.4633,1029.2969 252.4633,1029.2969 252.4633,1039.2969 L252.4633,1191.75 C252.4633,1201.75 165.4633,1201.75 165.4633,1201.75 C165.4633,1201.75 78.4633,1201.75 78.4633,1191.75 L78.4633,1039.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M78.4633,1039.2969 C78.4633,1049.2969 165.4633,1049.2969 165.4633,1049.2969 C165.4633,1049.2969 252.4633,1049.2969 252.4633,1039.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="128.4633" y="1064.4355">«container»</text><image height="48" width="48" x="141.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="1067.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="83" x="123.9633" y="1130.1172">Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="125.4633" y="1145.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="163.4633" y="1160.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="138" x="94.4633" y="1177.1514">Holds user data and</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="154" x="88.4633" y="1193.4482">keycloak configuration</text></g><!--MD5=[2d3c5e0b954a749fced3fb92086cf371]
+entity author--><g id="elem_author"><rect fill="#438DD5" height="198.375" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="220" x="374.4633" y="738.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="447.4633" y="759.4355">«container»</text><image height="48" width="48" x="460.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACUElEQVR4Xu2XMUoEQRBFvVsfwAt4AC/gATyARkZiZmBguJmRmAkmBiIrCAuysCAoKiiCMH62mGa2qrq6a3oGhd3PD3aH6a431TXVPVvh4O5feUte+ltvgHKuBdo+uod3Th7oh7zB6z5A+5Onye3L/PW70YTrl9O3vfOZHFhiHxDCvH/9cISEbmYfPXLmAMLsFAlMyEEJ2XTxKeex7QDCSlEYem7UzWp0Xd61cwAdXsybZYnEKyVJOrt+llMZdgAdXy0oBlIVWr6sUP5yKsN9gFxaJyBUMRZLNaJykFZDAu2ePqJQkJis0XI4SCsC6s5DJZiyDgSUVCP2ioDY+4i/CCHj6kC4tTu4UipQs9o+MkBD5YaUAoKwfDI6B0Jj5ePqRI1RBVI3Fg6E8XxcnVDOmJZfbSV3Xw4Eaj6oTghpZF3udByIj6gTpcd4SFlGYwHhzaB+Y/TMRmubK0DxxGMIj4tI8cyqmmZD+zByQ8K5ygIKuQzREmDhMRGCGVZfK6kqIFpvewm8yixZSHdFPHEoPgOVi1JuAaUSQI+Swu0t1GIGKJUDu7/1E2U9A5SKOgaQetxWgNTdYwwguW/oQEHrrYMDyXK2gMKymHAOjH2F2i6ftSPZilK2P7STQKo5RUeyX7PGXejBgAzJeQyvARC6C+oPNRe3MzmP4eGB4hEn9lg5j2EfUMnWwYCm2sHZsA8otbEw0QchLZn9WSjtAwrOL/xU9zPsBgrLj/zUoYCE3OAGuZOXuA9QNH38Y+9D8wUBfuBvP47oKqAxvAHKeQOU8y9QdXNx2ULofAAAAABJRU5ErkJggg==" y="762.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="138" x="412.4633" y="825.1172">Authorization &amp;</text><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="119" x="424.9633" y="843.7422">Accounts API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="130" x="419.4633" y="858.6543">[Python and FastAPI]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="482.4633" y="874.4795"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="200" x="384.4633" y="890.7764">It manages the subscriptions</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="144" x="410.4633" y="907.0732">and features that are</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="167" x="400.9633" y="923.3701">accessible by the users.</text></g><!--MD5=[16b9548f44a0e814c7c2afed2a6528fc]
+entity authordb--><g id="elem_authordb"><path d="M374.4633,1039.2969 C374.4633,1029.2969 484.4633,1029.2969 484.4633,1029.2969 C484.4633,1029.2969 594.4633,1029.2969 594.4633,1039.2969 L594.4633,1191.75 C594.4633,1201.75 484.4633,1201.75 484.4633,1201.75 C484.4633,1201.75 374.4633,1201.75 374.4633,1191.75 L374.4633,1039.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M374.4633,1039.2969 C374.4633,1049.2969 484.4633,1049.2969 484.4633,1049.2969 C484.4633,1049.2969 594.4633,1049.2969 594.4633,1039.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="447.4633" y="1064.4355">«container»</text><image height="48" width="48" x="460.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="1067.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="172" x="398.4633" y="1130.1172">Accounts Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="444.4633" y="1145.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="482.4633" y="1160.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="200" x="384.4633" y="1177.1514">Holds the user data and their</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="97" x="435.9633" y="1193.4482">subscriptions.</text></g><!--MD5=[61e1faea918c873f307ee5e790a7431e]
+entity applicationapi--><g id="elem_applicationapi"><rect fill="#438DD5" height="196.0469" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="213" x="948.9633" y="739.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="1018.4633" y="760.4355">«container»</text><image height="48" width="48" x="1031.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACUElEQVR4Xu2XMUoEQRBFvVsfwAt4AC/gATyARkZiZmBguJmRmAkmBiIrCAuysCAoKiiCMH62mGa2qrq6a3oGhd3PD3aH6a431TXVPVvh4O5feUte+ltvgHKuBdo+uod3Th7oh7zB6z5A+5Onye3L/PW70YTrl9O3vfOZHFhiHxDCvH/9cISEbmYfPXLmAMLsFAlMyEEJ2XTxKeex7QDCSlEYem7UzWp0Xd61cwAdXsybZYnEKyVJOrt+llMZdgAdXy0oBlIVWr6sUP5yKsN9gFxaJyBUMRZLNaJykFZDAu2ePqJQkJis0XI4SCsC6s5DJZiyDgSUVCP2ioDY+4i/CCHj6kC4tTu4UipQs9o+MkBD5YaUAoKwfDI6B0Jj5ePqRI1RBVI3Fg6E8XxcnVDOmJZfbSV3Xw4Eaj6oTghpZF3udByIj6gTpcd4SFlGYwHhzaB+Y/TMRmubK0DxxGMIj4tI8cyqmmZD+zByQ8K5ygIKuQzREmDhMRGCGVZfK6kqIFpvewm8yixZSHdFPHEoPgOVi1JuAaUSQI+Swu0t1GIGKJUDu7/1E2U9A5SKOgaQetxWgNTdYwwguW/oQEHrrYMDyXK2gMKymHAOjH2F2i6ftSPZilK2P7STQKo5RUeyX7PGXejBgAzJeQyvARC6C+oPNRe3MzmP4eGB4hEn9lg5j2EfUMnWwYCm2sHZsA8otbEw0QchLZn9WSjtAwrOL/xU9zPsBgrLj/zUoYCE3OAGuZOXuA9QNH38Y+9D8wUBfuBvP47oKqAxvAHKeQOU8y9QdXNx2ULofAAAAABJRU5ErkJggg==" y="763.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="86" x="1012.4633" y="826.1172">GOAT API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="130" x="990.4633" y="841.0293">[Python and FastAPI]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="1053.4633" y="856.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="189" x="958.9633" y="873.1514">It bundles the analyses and</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="185" x="960.9633" y="889.4482">map specific features such</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="178" x="964.4633" y="905.7451">as the indicators, projects</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="113" x="998.9633" y="922.042">and much more.</text></g><!--MD5=[4da1a7c9c0edb2823027a65420f34db0]
+entity applicationdb--><g id="elem_applicationdb"><path d="M690.4633,1039.2969 C690.4633,1029.2969 800.4633,1029.2969 800.4633,1029.2969 C800.4633,1029.2969 910.4633,1029.2969 910.4633,1039.2969 L910.4633,1191.75 C910.4633,1201.75 800.4633,1201.75 800.4633,1201.75 C800.4633,1201.75 690.4633,1201.75 690.4633,1191.75 L690.4633,1039.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M690.4633,1039.2969 C690.4633,1049.2969 800.4633,1049.2969 800.4633,1049.2969 C800.4633,1049.2969 910.4633,1049.2969 910.4633,1039.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="763.4633" y="1064.4355">«container»</text><image height="48" width="48" x="776.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="1067.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="185" x="707.9633" y="1130.1172">Application Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="760.4633" y="1145.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="798.4633" y="1160.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="200" x="700.4633" y="1177.1514">Holds the application specific</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="764.4633" y="1193.4482">base data.</text></g><!--MD5=[e2bd88612500d533a317d787f8e99024]
+entity organizationdb--><g id="elem_organizationdb"><path d="M945.4633,1039.2969 C945.4633,1029.2969 1055.4633,1029.2969 1055.4633,1029.2969 C1055.4633,1029.2969 1165.4633,1029.2969 1165.4633,1039.2969 L1165.4633,1191.75 C1165.4633,1201.75 1055.4633,1201.75 1055.4633,1201.75 C1055.4633,1201.75 945.4633,1201.75 945.4633,1191.75 L945.4633,1039.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M945.4633,1039.2969 C945.4633,1049.2969 1055.4633,1049.2969 1055.4633,1049.2969 C1055.4633,1049.2969 1165.4633,1049.2969 1165.4633,1039.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="1018.4633" y="1064.4355">«container»</text><image height="48" width="48" x="1031.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="1067.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="200" x="955.4633" y="1130.1172">Organization Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="1015.4633" y="1145.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="1053.4633" y="1160.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="191" x="957.9633" y="1177.1514">Holds the Organization data</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="172" x="969.4633" y="1193.4482">in a multi-tenant manner.</text></g><!--MD5=[cb62c053fa32d0b8c4977658f81499ee]
+entity r5--><g id="elem_r5"><rect fill="#438DD5" height="179.75" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="209" x="1200.9633" y="1025.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="1268.4633" y="1046.4355">«container»</text><image height="48" width="48" x="1281.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACsklEQVR4Xu2XT0ocQRTGvVsfYC7gAbyAB8gB4sqVuMvCRZbusgruAm5ciBgICCIIgiEJRASh86M/eBT9OlWvq0oUdPgW3W96pn7z1ftTszV8PH9V2vKhl9U7UElvAGizf7F9+N3Hg+oPhI6+3flgUP2BcOj06o+PB9Uf6MPx9dfLXz4eVH+gy9u/Bye3Ph5UZ6C9LzfjOLJr/q2gegKxWdC02DN0BJI3Leks9QE6Pruf0bBrIOKZfzivViAWJouhscoiQh8iWNcem4BY8ubnIzQ4pAiW/H54stsK1QPhhGisL3PxkklNxqR5oxJraYlSJRD2jNPLEkWZtPPph394lZqA2DKLiG/385V/eJUqgRA05K/dcp3uYLXqgZQ0tmXKaF60H/9wXPVAiBRO249MSm2rUBPQMNWa5Q0X7ZnUCjRMPtl4Vy+o69FSB6Bh8kYXwC22aYiDZ5J1QBqZ9OLFfqMp5uPg8ikaFf4VsaJA1BRfR6kvokizxTbu7wcfB8t/MFUIyMYWFcSm4BDS6QLJM7xB7BfcMsMPNbWGvEkhIIkvkvm2tqRblgcO/zIZDWWxKawAMuV/4v+kplA8sq0GYjsWM9eEQ6w984kI3hRphjogdT9lKLsgca1OrZedGFV6KOjraqBh8kCZpNFhIkJ81qYzVbmoGqBnVQ0QlZWOi1RKoMW3gqoBsjQap85EMulsZMGx4RASBSIVqBGrHWzAJyWyoXCrtplpRUUVgDBfzTdSsXlpN318phwQX6GfTvm0/Gjc1Wzxb3nlgNRCNMXGqfFgFYZpkNkss4lmQ01Zzw5qE4krzXVY8AulygGl4ruURrakVkVQ6kJzzYaa1Zr6lp4pFmAUSBKTJgPaTMcuExEeMO7Z5A9u+jogSempVSUNBxv72s3UpLhqgJ5V70AlvTqgf2H6uTXfTevfAAAAAElFTkSuQmCC" y="1049.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="132" x="1239.4633" y="1112.1172">Routing Engine</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="93" x="1258.9633" y="1127.0293">[CONVEYAL R5]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="1303.4633" y="1142.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="141" x="1232.9633" y="1159.1514">Java engine handling</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="185" x="1210.9633" y="1175.4482">travel-time calculation logic</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="185" x="1212.9633" y="1191.7451">for public transport and car</text></g><!--MD5=[8fc3522a43f8c7199df5e09e5bb0188e]
+entity user--><g id="elem_user"><rect fill="#08427B" height="133.1875" rx="2.5" ry="2.5" style="stroke:#073B6F;stroke-width:0.5;" width="212" x="101.4633" y="44.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="57" x="178.9633" y="65.4355">«person»</text><image height="48" width="48" x="183.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACbklEQVR4Xu1Wq04FMRS8cj+BT+AXsDgMHwAfQILGXUWQgMQQggRDgsBgSLiWgEIREhRIEAjsMum5dLtzetreXgKE7GTUbh/TOY921CyP/xRH+tPvchCU4yAox0FQjt8gaHF9b2XreGnjYGF1R/+dlfWCsP3uyeTt/aMNcPfwDHF6cDkrBcEPkhLi6OJGTylkjSDEKKFGUK2pRhDiwvvHUBe7iKDN/fOnl1esCBuQJfQX2/DOBqBbz726fWzdymfX93Ba786CYHV6XT0ggbDu1rZP6S9kaU09QUhVmiMIfZIjFgILyiwo438O2sWeIOv0iKAfU5hAAp9G2h4P6l49QYgrD3eAt9kxUfiIIC/53xcoaj1B48NLHu4QGptYmhAeI1EKoQAWZEUahmfHaFCFSuUSdLviKtNH0ZVvGRkC9lByIDSkCfVBKzdaUOM8wJbQDim+TIjZTLImIuJYGbTaZkRQIS2fkHC6u5STBcEeLIfzeSYeFfiFE8MtiID/iXMLaeWo7k4QVreaHmJvhaCQiD4v6oBUw5HCkZ2gaBUIMC199CzTORdqmgqyEqJ19vioYSZclLeHXL1hTBECNAhvMyYiiCW9sQ260VSQdSH46tVFWw7fOBLH9hGYCrI2k9SBGv4xIxAy2chKU997U4J848q+D0sgiWI9KFhQNGRiY8LnmeCvtsRenaBoxiXMq4PYoFtA+Lzpyh5mwgxPcbj8Ki2BXKXISNoo7L3cqYnzp3OI6G1KzAiycrAO/1EQyKvOAf200swLsl7+FYhe78S8oMa1IlQmGkk1EawSNU2hoJ/kICjHQVCOg6AcB0E5fgLPSUakWeua4wAAAABJRU5ErkJggg==" y="68.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="41" x="186.9633" y="131.1172">User</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="205.4633" y="147.8857"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="192" x="111.4633" y="164.1826">A user of the GOAT platform</text></g><!--MD5=[0bd1c934b33aeea3edcba088a0f9a0f6]
+link auth to authdb--><g id="link_auth_authdb"><path d="M165.4633,918.8669 C165.4633,950.6969 165.4633,987.4869 165.4633,1020.5069 " fill="none" id="auth-to-authdb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="165.4633,1028.8169,168.4633,1020.8169,162.4633,1020.8169,165.4633,1028.8169" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="166.4633" y="978.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="39" x="194.4633" y="992.4043">[JDBC]</text></g><!--MD5=[11c67a07b886e18ff62bcdb52eca0895]
+link author to authordb--><g id="link_author_authordb"><path d="M484.4633,936.3769 C484.4633,963.7669 484.4633,993.4369 484.4633,1020.5569 " fill="none" id="author-to-authordb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="484.4633,1028.8869,487.4633,1020.8869,481.4633,1020.8869,484.4633,1028.8869" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="485.4633" y="978.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="85" x="490.4633" y="992.4043">[SQLAlchemy]</text></g><!--MD5=[196989d5e8e30e8e2251e3798272290f]
+link applicationapi to applicationdb--><g id="link_applicationapi_applicationdb"><path d="M965.5633,935.6069 C939.3233,964.0069 910.7533,994.9269 884.8633,1022.9469 " fill="none" id="applicationapi-to-applicationdb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="879.3833,1028.8769,887.0124,1025.0302,882.602,1020.9623,879.3833,1028.8769" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="936.4633" y="978.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="85" x="941.4633" y="992.4043">[SQLAlchemy]</text></g><!--MD5=[20777d7c78f8a7e9e8265c04c6993587]
+link applicationapi to organizationdb--><g id="link_applicationapi_organizationdb"><path d="M1055.4633,935.6069 C1055.4633,963.2869 1055.4633,993.3769 1055.4633,1020.8269 " fill="none" id="applicationapi-to-organizationdb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="1055.4633,1028.8769,1058.4633,1020.8769,1052.4633,1020.8769,1055.4633,1028.8769" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="1056.4633" y="978.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="85" x="1061.4633" y="992.4043">[SQLAlchemy]</text></g><!--MD5=[d7238f84ee201f8e3c4d16cc3d5af6b6]
+reverse link a1 to s1--><g id="link_a1_s1"><path d="M291.8673,653.3443 C292.1089,653.5702 292.3493,653.7973 292.5886,654.0254 C293.5458,654.9379 294.4844,655.8675 295.4048,656.8135 C299.0863,660.5974 302.4762,664.6433 305.5969,668.9017 C311.8384,677.4183 317.0028,686.7848 321.2685,696.6052 C323.4013,701.5154 325.3095,706.539 327.0153,711.6267 C327.8682,714.1706 328.6705,716.7304 329.425,719.3001 C329.8022,720.5849 330.1675,721.8722 330.5212,723.1612 C330.698,723.8056 330.872,724.4505 331.043,725.0958 C331.1286,725.4184 331.2134,725.7411 331.2975,726.0638 C331.3396,726.2252 331.3815,726.3866 331.4232,726.548 " fill="none" id="a1-backto-s1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="291.8673,653.3443,295.6611,660.9998,299.7594,656.6176,291.8673,653.3443" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[d9c5b6bdac8464bd695ddc15bfa839da]
+reverse link s1 to a1--><g id="link_s1_a1"><path d="M331.2975,726.0638 C331.2134,725.7411 331.1286,725.4184 331.043,725.0958 C330.872,724.4505 330.698,723.8056 330.5212,723.1612 C330.1675,721.8722 329.8022,720.5849 329.425,719.3001 C328.6705,716.7304 327.8682,714.1706 327.0153,711.6267 C325.3095,706.539 323.4013,701.5154 321.2685,696.6052 C317.0028,686.7848 311.8384,677.4183 305.5969,668.9017 C302.4762,664.6433 299.0863,660.5974 295.4048,656.8135 C294.4844,655.8675 293.5458,654.9379 292.5886,654.0254 C292.3493,653.7973 292.1089,653.5702 291.8673,653.3443 C291.7464,653.2313 291.6253,653.1186 291.504,653.0061 " fill="none" id="s1-backto-a1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="331.2975,726.0638,332.183,717.5658,326.3769,719.079,331.2975,726.0638" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[3e60abc49c51d8c4681898ee7710a496]
+link applicationapi to r5--><g id="link_applicationapi_r5"><path d="M1143.6033,935.6069 C1168.1733,962.7269 1194.8333,992.1569 1219.2833,1019.1569 " fill="none" id="applicationapi-to-r5" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="1224.7933,1025.2369,1221.6556,1017.2899,1217.2039,1021.3125,1224.7933,1025.2369" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="99" x="1195.4633" y="985.4355">HTTP (Private)</text></g><!--MD5=[de2f59d8b18ce2aae4f81aad63aa8429]
+link user to c1--><g id="link_user_c1"><path d="M207.4633,177.3769 C207.4633,189.4094 207.4633,202.575 207.4633,216.4127 C207.4633,219.8721 207.4633,223.3736 207.4633,226.9098 C207.4633,228.6779 207.4633,230.4548 207.4633,232.2394 " fill="none" id="user-to-c1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="207.4633,232.2394,210.4633,224.2394,204.4633,224.2394,207.4633,232.2394" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[874b3de16a77b9c2118cf0bdb2b0d732]
+link c1 to a1--><g id="link_c1_a1"><path d="M199.4311,453.78 C199.3069,453.8439 199.1814,453.9085 199.0547,453.9739 C198.8011,454.1046 198.5425,454.2383 198.2788,454.375 C197.2242,454.9218 196.0892,455.5161 194.8795,456.1574 C192.46,457.4399 189.7417,458.9099 186.7693,460.5616 C174.8796,467.1681 158.9246,476.6806 141.7733,488.7219 C107.4708,512.8044 68.3833,547.0019 47.4633,588.2969 C22.8683,636.8469 17.6383,697.6844 18.6696,746.9519 C18.7985,753.1103 19.0252,759.088 19.3242,764.8382 C19.3616,765.557 19.4001,766.2723 19.4397,766.9839 " fill="none" id="c1-to-a1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="19.4397,766.9839,21.9907,758.8296,16,759.1628,19.4397,766.9839" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[96a39c5300fc3b233c46d74b7bd95ed2]
+link c1 to s1--><g id="link_c1_s1"><path d="M216.1858,554.7272 C216.373,555.0991 216.5627,555.4696 216.7551,555.8386 C217.1398,556.5766 217.535,557.3084 217.941,558.0338 C218.753,559.4846 219.608,560.9094 220.5079,562.3048 C222.3079,565.0956 224.2877,567.7688 226.4633,570.2969 C243.7933,590.4369 265.4833,568.7369 283.4633,588.2969 C302.2858,608.7669 315.2358,634.1813 324.0636,660.8667 C326.2706,667.5381 328.2199,674.2889 329.9389,681.0618 C330.3687,682.755 330.7841,684.4496 331.1855,686.1446 " fill="none" id="c1-to-s1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="331.1855,686.1446,332.2613,677.6686,326.4228,679.0512,331.1855,686.1446" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[a4d0d68bc6e6395aef2c46ef2dee7b11]
+reverse link a2 to s1--><g id="link_a2_s1"><path d="M658.2975,726.0638 C658.2134,725.7411 658.1286,725.4184 658.043,725.0958 C657.872,724.4505 657.698,723.8056 657.5212,723.1612 C657.1675,721.8722 656.8022,720.5849 656.425,719.3001 C655.6705,716.7304 654.8682,714.1706 654.0153,711.6267 C652.3095,706.539 650.4013,701.5154 648.2685,696.6052 C644.0028,686.7848 638.8384,677.4183 632.5969,668.9017 C629.4762,664.6433 626.0863,660.5974 622.4048,656.8135 C621.4844,655.8675 620.5458,654.9379 619.5886,654.0254 C619.3493,653.7973 619.1089,653.5702 618.8673,653.3443 C618.7464,653.2313 618.6253,653.1186 618.504,653.0061 " fill="none" id="a2-backto-s1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="658.2975,726.0638,659.183,717.5658,653.3769,719.079,658.2975,726.0638" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[765e21e76607fc25233c8f8e85ecc2e5]
+link a2 to s1--><g id="link_a2_s1"><path d="M658.2975,726.0638 C658.2134,725.7411 658.1286,725.4184 658.043,725.0958 C657.872,724.4505 657.698,723.8056 657.5212,723.1612 C657.1675,721.8722 656.8022,720.5849 656.425,719.3001 C655.6705,716.7304 654.8682,714.1706 654.0153,711.6267 C652.3095,706.539 650.4013,701.5154 648.2685,696.6052 C644.0028,686.7848 638.8384,677.4183 632.5969,668.9017 C629.4762,664.6433 626.0863,660.5974 622.4048,656.8135 C621.4844,655.8675 620.5458,654.9379 619.5886,654.0254 C619.3493,653.7973 619.1089,653.5702 618.8673,653.3443 C618.7464,653.2313 618.6253,653.1186 618.504,653.0061 " fill="none" id="a2-to-s1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="618.504,653.0061,622.3345,660.6433,626.4117,656.2414,618.504,653.0061" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[ba2bbf2dff486aa7f694a87064c88ab2]
 @startuml
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
@@ -32,30 +38,36 @@ link user to s1--><g id="link_user_s1"><path d="M598,183.5169 C598,196.8494 598,
 !include DEVICONS/postgresql.puml
 !include DEVICONS/mongodb.puml
 !include DEVICONS/java.puml
+!include DEVICONS/javascript.puml
+!include DEVICONS/react.puml
 
 title Container Diagram (C4 Model)
 
 
 SHOW_PERSON_OUTLINE()
-Person(user, "User", "A user of GOAT application")
+Person(user, "User", "A user of the GOAT platform", $sprite="users")
 
+
+System_Boundary(c1, "Web Application"){
+    Container(client, "Client", "React.js & Next.js", "Frontend of the GOAT application", $sprite="react")
+}
 
 System_Boundary(a1, "Authentication"){
-    Container(auth, "API", "Keycloak", "Handles authentication for GOAT", $sprite="java")
+    Container(auth, "Keycloak API", "Keycloak", "Handles authentication for GOAT", $sprite="java")
     ContainerDb(authdb, "Database", "PostgreSQL", "Holds user data and keycloak configuration", $sprite="postgresql")
 }
 
 System_Boundary(s1, "Authorization"){
-    Container(author, "API", "Python and FastAPI", "It manages the subscriptions and features that are accessible by the users.", $sprite="python")
-    ContainerDb(authordb, "Database", "PostgreSQL", "Holds the user data and their subscriptions.", $sprite="postgresql")
+    Container(author, "Authorization & Accounts API", "Python and FastAPI", "It manages the subscriptions and features that are accessible by the users.", $sprite="python")
+    ContainerDb(authordb, "Accounts Database", "PostgreSQL", "Holds the user data and their subscriptions.", $sprite="postgresql")
 }
 
-System_Boundary(a2, "Application"){
-    Container(applicationapi, "API", "Python and FastAPI", "It bundles the analyses and map specific features such as the indicators, projects and much more.", $sprite="python")
+System_Boundary(a2, "GOAT Application"){
+    Container(applicationapi, "GOAT API", "Python and FastAPI", "It bundles the analyses and map specific features such as the indicators, projects and much more.", $sprite="python")
     ContainerDb(applicationdb, "Application Database", "PostgreSQL", "Holds the application specific base data.", $sprite="postgresql")
     ContainerDb(organizationdb, "Organization Database", "PostgreSQL", "Holds the Organization data in a multi-tenant manner.", $sprite="postgresql")
-    Container(r5, "Routing Engine", "CONVEYAL R5", "Java engine handling travel-time calculation logic for public transport", $sprite="java")
-}
+    Container(r5, "Routing Engine", "CONVEYAL R5", "Java engine handling travel-time calculation logic for public transport and car", $sprite="java")
+} 
 
 
 ' ' Make a relation between auth and authdb
@@ -63,11 +75,14 @@ Rel(auth, authdb, "Reads/Writes", "JDBC")
 Rel(author, authordb, "Reads/Writes", "SQLAlchemy")
 Rel(applicationapi, applicationdb, "Reads/Writes", "SQLAlchemy")
 Rel(applicationapi, organizationdb, "Reads/Writes", "SQLAlchemy")
-Rel_L(s1, a1, "Reads/Writes", "HTTP (Private)")
-Rel(s1, a2, "Reads/Writes", "HTTP (Private)")
-Rel(applicationapi, r5, "Reads/Writes", "HTTP (Private)")
-Rel(user, s1, "HTTPS (Public)")
-
+Rel_L(s1, a1, "")
+Rel_L(a1, s1, "")
+Rel(applicationapi, r5, "HTTP (Private)")
+Rel(user, c1, "")
+Rel(c1, a1, "")
+Rel(c1, s1, "")
+Rel_L(s1, a2, "")
+Rel_R(a2, s1, "")
 
 @enduml
 
@@ -117,6 +132,10 @@ skinparam database {
 }
 
 skinparam queue {
+    StereotypeFontSize 12
+}
+
+skinparam participant {
     StereotypeFontSize 12
 }
 
@@ -236,6 +255,7 @@ skinparam package {
 
 
 
+
 skinparam rectangle<<boundary>> {
     FontColor #444444
     BackgroundColor transparent
@@ -258,6 +278,16 @@ skinparam person<<boundary>> {
 }
 skinparam actor<<boundary>> {
     FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam participant<<boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam sequencebox<<boundary>> {
+    FontColor #444444
     BackgroundColor transparent
     BorderColor #444444
 }
@@ -286,6 +316,16 @@ skinparam person<<enterprise_boundary>> {
 }
 skinparam actor<<enterprise_boundary>> {
     FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam participant<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam sequencebox<<enterprise_boundary>> {
+    FontColor #444444
     BackgroundColor transparent
     BorderColor #444444
 }
@@ -318,6 +358,16 @@ skinparam actor<<system_boundary>> {
     BackgroundColor transparent
     BorderColor #444444
 }
+skinparam participant<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam sequencebox<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+}
 skinparam package<<system_boundary>>StereotypeFontColor transparent
 skinparam rectangle<<system_boundary>>StereotypeFontColor transparent
 
@@ -344,6 +394,16 @@ skinparam person<<container_boundary>> {
 }
 skinparam actor<<container_boundary>> {
     FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam participant<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam sequencebox<<container_boundary>> {
+    FontColor #444444
     BackgroundColor transparent
     BorderColor #444444
 }
@@ -415,6 +475,18 @@ skinparam actor<<person>> {
     BackgroundColor #08427B
     BorderColor #073B6F
 }
+skinparam participant<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam sequencebox<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
 
 skinparam rectangle<<external_person>> {
     StereotypeFontColor #FFFFFF
@@ -443,6 +515,18 @@ skinparam person<<external_person>> {
 skinparam actor<<external_person>> {
     StereotypeFontColor #686868
     FontColor #686868
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam participant<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam sequencebox<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
     BackgroundColor #686868
     BorderColor #8A8A8A
 }
@@ -477,6 +561,18 @@ skinparam actor<<system>> {
     BackgroundColor #1168BD
     BorderColor #3C7FC0
 }
+skinparam participant<<system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #1168BD
+    BorderColor #3C7FC0
+}
+skinparam sequencebox<<system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #1168BD
+    BorderColor #3C7FC0
+}
 
 skinparam rectangle<<external_system>> {
     StereotypeFontColor #FFFFFF
@@ -508,6 +604,18 @@ skinparam actor<<external_system>> {
     BackgroundColor #999999
     BorderColor #8A8A8A
 }
+skinparam participant<<external_system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #999999
+    BorderColor #8A8A8A
+}
+skinparam sequencebox<<external_system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #999999
+    BorderColor #8A8A8A
+}
 
 
 skinparam rectangle<<system_boundary>> {
@@ -532,6 +640,16 @@ skinparam person<<system_boundary>> {
 }
 skinparam actor<<system_boundary>> {
     FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam participant<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam sequencebox<<system_boundary>> {
+    FontColor #444444
     BackgroundColor transparent
     BorderColor #444444
 }
@@ -561,6 +679,16 @@ skinparam person<<enterprise_boundary>> {
 }
 skinparam actor<<enterprise_boundary>> {
     FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam participant<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam sequencebox<<enterprise_boundary>> {
+    FontColor #444444
     BackgroundColor transparent
     BorderColor #444444
 }
@@ -809,6 +937,18 @@ skinparam actor<<person>> {
     BackgroundColor #08427B
     BorderColor #073B6F
 }
+skinparam participant<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam sequencebox<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
 
 
 skinparam rectangle<<external_person>> {
@@ -841,7 +981,18 @@ skinparam actor<<external_person>> {
     BackgroundColor #686868
     BorderColor #8A8A8A
 }
-
+skinparam participant<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam sequencebox<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
 
 
 
@@ -898,6 +1049,18 @@ skinparam actor<<container>> {
     BackgroundColor #438DD5
     BorderColor #3C7FC0
 }
+skinparam participant<<container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #438DD5
+    BorderColor #3C7FC0
+}
+skinparam sequencebox<<container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #438DD5
+    BorderColor #3C7FC0
+}
 
 skinparam rectangle<<external_container>> {
     StereotypeFontColor #FFFFFF
@@ -929,6 +1092,18 @@ skinparam actor<<external_container>> {
     BackgroundColor #B3B3B3
     BorderColor #A6A6A6
 }
+skinparam participant<<external_container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #B3B3B3
+    BorderColor #A6A6A6
+}
+skinparam sequencebox<<external_container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #B3B3B3
+    BorderColor #A6A6A6
+}
 
 
 skinparam rectangle<<container_boundary>> {
@@ -956,9 +1131,18 @@ skinparam actor<<container_boundary>> {
     BackgroundColor transparent
     BorderColor #444444
 }
+skinparam participant<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+}
+skinparam sequencebox<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+}
 skinparam package<<container_boundary>>StereotypeFontColor transparent
 skinparam rectangle<<container_boundary>>StereotypeFontColor transparent
-
 
 
 
@@ -1348,6 +1532,112 @@ sprite $java [48x48/16] {
 
 
 skinparam folderBackgroundColor<<DEV JAVA>> White
+sprite $javascript [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000111110000000000146765300000000000
+000000000000008FFFFF100000006DFFFFFFFFB500000000
+000000000000008FFFFF1000003DFFFFFFFFFFFB00000000
+000000000000008FFFFF100003FFFFFFFFFFFFF700000000
+000000000000008FFFFF10000DFFFFFFFFFFFFF200000000
+000000000000008FFFFF10006FFFFFF842358EE000000000
+000000000000008FFFFF1000BFFFFF300000002000000000
+000000000000008FFFFF1000DFFFFE000000000000000000
+000000000000008FFFFF1000DFFFFF200000000000000000
+000000000000008FFFFF1000BFFFFFE40000000000000000
+000000000000008FFFFF10006FFFFFFFB400000000000000
+000000000000008FFFFF10000DFFFFFFFFE7100000000000
+000000000000008FFFFF100002EFFFFFFFFFE60000000000
+000000000000008FFFFF1000001CFFFFFFFFFFA000000000
+000000000000008FFFFF100000005CFFFFFFFFFA00000000
+000000000000008FFFFF10000000003AFFFFFFFF30000000
+000000000000008FFFFF10000000000019FFFFFF90000000
+000000000000009FFFFF000000000000006FFFFFD0000000
+00000000000000BFFFFF000000000000000EFFFFE0000000
+00000000000000FFFFFD000000000000000FFFFFD0000000
+00000000000009FFFFF900002A300000007FFFFFA0000000
+00000004A768CFFFFFF500006FFEA7657CFFFFFF40000000
+00000007FFFFFFFFFFD00000AFFFFFFFFFFFFFFB00000000
+00000009FFFFFFFFFF300000EFFFFFFFFFFFFFD100000000
+0000000CFFFFFFFFF5000001FFFFFFFFFFFFFA1000000000
+0000000BFFFFFFE81000000016BFFFFFFFE9300000000000
+000000000244310000000000000023443100000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<DEV JAVASCRIPT>> White
+sprite $react [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000686300000000003686000000000000000
+00000000000002EFFFFC30000003CFFFFD10000000000000
+0000000000000CF7249FF800009FF9427FB0000000000000
+0000000000002FB00001CFB01CFC20000AF1000000000000
+0000000000005F60000008FDDF90000005F4000000000000
+0000000000006F400000008FF800000004F6000000000000
+0000000000006F40000000CFFC00000003F6000000000000
+0000000000005F5000000AF99FB0000005F5000000000000
+0000000000003F7000007FB00BF7000007F3000000000000
+0000000000000FA00246FFA99AFF73100AF1000000000000
+0000000000000EFCFFFFFFFFFFFFFFFECEE0000000000000
+00000000004BFFFFC9DF82211228FD9BEFFE920000000000
+000000004CFFC9F802FD00000000DF307F9CFFB300000000
+00000008FF9200ED0BF3001441003FC0DE0029FF70000000
+0000009FC200009F8FA004EFFE400AF8F900002CF8000000
+000003FC0000002FFF201EFFFFE102FFF2000001CF200000
+000008F40000000BF9004FFFFFF4009FB00000004F700000
+000008F40000000CF9004FFFFFF4009FC00000004F800000
+000003FC0000003FFF200EFFFFE002FFF2000000CF300000
+0000008FD300009F8FA004EFFE400AF7F900002CF9000000
+00000007FFA300EE0BF4000440004FB0DE002AFF80000000
+000000003BFFDAF802FD00000000DF207FACFFC400000000
+000000000029EFFFC9DF83222238FDACFFFFB40000000000
+0000000000000EEBEFFFFFFFFFFFFFFFCEE0000000000000
+0000000000001FA00036FF9889FF63100AF0000000000000
+0000000000004F7000006FB00BF6000007F3000000000000
+0000000000005F5000000AF99FA0000005F5000000000000
+0000000000006F40000000CFFC00000004F6000000000000
+0000000000006F400000008FF800000004F6000000000000
+0000000000004F60000009FDDF90000006F4000000000000
+0000000000001FB00002CFB01BFC20000BF2000000000000
+0000000000000BF724AFF800008FF9427FC0000000000000
+00000000000001DFFFFB30000003CFFFFE20000000000000
+000000000000000465200000000003686000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<DEV REACT>> White
 
 title Container Diagram (C4 Model)
 
@@ -1383,6 +1673,18 @@ skinparam actor<<person>> {
     BackgroundColor #08427B
     BorderColor #073B6F
 }
+skinparam participant<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam sequencebox<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
 
   
 skinparam rectangle<<external_person>> {
@@ -1415,37 +1717,56 @@ skinparam actor<<external_person>> {
     BackgroundColor #686868
     BorderColor #8A8A8A
 }
+skinparam participant<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam sequencebox<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
 
-person "== User\n\nA user of GOAT application" <<person>> as user 
+rectangle "<$users>\n== User\n\nA user of the GOAT platform" <<person>> as user 
 
+
+  rectangle "== Web Application\n<size:12>[System]</size>" <<system_boundary>><<boundary>> as c1 {
+      rectangle "<$react>\n== Client\n//<size:12>[React.js & Next.js]</size>//\n\nFrontend of the GOAT application" <<container>> as client
+}
 
   rectangle "== Authentication\n<size:12>[System]</size>" <<system_boundary>><<boundary>> as a1 {
-    rectangle "<$java>\n== API\n//<size:12>[Keycloak]</size>//\n\nHandles authentication for GOAT" <<container>> as auth 
-    database "<$postgresql>\n== Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds user data and keycloak configuration" <<container>> as authdb 
+      rectangle "<$java>\n== Keycloak API\n//<size:12>[Keycloak]</size>//\n\nHandles authentication for GOAT" <<container>> as auth
+      database "<$postgresql>\n== Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds user data and keycloak configuration" <<container>> as authdb
 }
 
   rectangle "== Authorization\n<size:12>[System]</size>" <<system_boundary>><<boundary>> as s1 {
-    rectangle "<$python>\n== API\n//<size:12>[Python and FastAPI]</size>//\n\nIt manages the subscriptions and features that are accessible by the users." <<container>> as author 
-    database "<$postgresql>\n== Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds the user data and their subscriptions." <<container>> as authordb 
+      rectangle "<$python>\n== Authorization & Accounts API\n//<size:12>[Python and FastAPI]</size>//\n\nIt manages the subscriptions and features that are accessible by the users." <<container>> as author
+      database "<$postgresql>\n== Accounts Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds the user data and their subscriptions." <<container>> as authordb
 }
 
-  rectangle "== Application\n<size:12>[System]</size>" <<system_boundary>><<boundary>> as a2 {
-    rectangle "<$python>\n== API\n//<size:12>[Python and FastAPI]</size>//\n\nIt bundles the analyses and map specific features such as the indicators, projects and much more." <<container>> as applicationapi 
-    database "<$postgresql>\n== Application Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds the application specific base data." <<container>> as applicationdb 
-    database "<$postgresql>\n== Organization Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds the Organization data in a multi-tenant manner." <<container>> as organizationdb 
-    rectangle "<$java>\n== Routing Engine\n//<size:12>[CONVEYAL R5]</size>//\n\nJava engine handling travel-time calculation logic for public transport" <<container>> as r5 
-}
+  rectangle "== GOAT Application\n<size:12>[System]</size>" <<system_boundary>><<boundary>> as a2 {
+      rectangle "<$python>\n== GOAT API\n//<size:12>[Python and FastAPI]</size>//\n\nIt bundles the analyses and map specific features such as the indicators, projects and much more." <<container>> as applicationapi
+      database "<$postgresql>\n== Application Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds the application specific base data." <<container>> as applicationdb
+      database "<$postgresql>\n== Organization Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds the Organization data in a multi-tenant manner." <<container>> as organizationdb
+      rectangle "<$java>\n== Routing Engine\n//<size:12>[CONVEYAL R5]</size>//\n\nJava engine handling travel-time calculation logic for public transport and car" <<container>> as r5
+} 
 
 
 auth - ->> authdb : **Reads/Writes**\n//<size:12>[JDBC]</size>//
 author - ->> authordb : **Reads/Writes**\n//<size:12>[SQLAlchemy]</size>//
 applicationapi - ->> applicationdb : **Reads/Writes**\n//<size:12>[SQLAlchemy]</size>//
 applicationapi - ->> organizationdb : **Reads/Writes**\n//<size:12>[SQLAlchemy]</size>//
-s1 -LEFT->> a1 : **Reads/Writes**\n//<size:12>[HTTP (Private)]</size>//
-s1 - ->> a2 : **Reads/Writes**\n//<size:12>[HTTP (Private)]</size>//
-applicationapi - ->> r5 : **Reads/Writes**\n//<size:12>[HTTP (Private)]</size>//
-user - ->> s1 : **HTTPS (Public)**
-
+s1 -LEFT->> a1 : <size:0>.</size>
+a1 -LEFT->> s1 : <size:0>.</size>
+applicationapi - ->> r5 : **HTTP (Private)**
+user - ->> c1 : <size:0>.</size>
+c1 - ->> a1 : <size:0>.</size>
+c1 - ->> s1 : <size:0>.</size>
+s1 -LEFT->> a2 : <size:0>.</size>
+a2 -RIGHT->> s1 : <size:0>.</size>
 
 @enduml
 
