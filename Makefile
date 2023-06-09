@@ -110,17 +110,11 @@ build-client-docker-image: app/client-v2/apps/$(COMPONENT)/Dockerfile
 # target: release-keycloak-theme
 .PHONY: release-keycloak-theme
 release-keycloak-theme:
-	cd app/client-v2/packages/keycloak-theme && pnpm install && pnpm run build-keycloak-theme && \
-    if [ "$(NAMESPACE)" = "dev" ] || [ "$(NAMESPACE)" = "v2" ]; then \
-		echo "Building dev keycloak theme" && \
-        mv build_keycloak/target/*.jar p4b-keycloak-theme-dev.jar && \
-		aws s3 cp p4b-keycloak-theme-dev.jar s3://plan4better-assets/other/keycloak/; \
-    else \
-		echo "Building prod keycloak theme" && \
-        mv build_keycloak/target/*.jar p4b-keycloak-theme.jar && \
-		aws s3 cp p4b-keycloak-theme.jar s3://plan4better-assets/other/keycloak/; \
-    fi
-
+	echo "Releasing keycloak theme" && \
+	cd app/client-v2/packages/keycloak-theme && pnpm install && \
+    KEYCLOAKIFY_ARTIFACT_ID="p4b-keycloak-theme$(if $(filter $(NAMESPACE),dev v2),-dev)" KEYCLOAKIFY_GROUP_ID="com.plan4better.auth$(if $(filter $(NAMESPACE),dev v2),.dev.keycloak,.keycloak)" pnpm run build-keycloak-theme && \
+    mv build_keycloak/target/*.jar p4b-keycloak-theme$(if $(filter $(NAMESPACE),dev v2),-dev).jar && \
+    aws s3 cp p4b-keycloak-theme$(if $(filter $(NAMESPACE),dev v2),-dev).jar s3://plan4better-assets/other/keycloak/
 
 # target: make build-docs-docker-image
 .PHONY: build-docs-docker-image
