@@ -180,7 +180,9 @@ async def read_heatmap_async(current_user, settings):
     # todo: Can be extended to other formats in the future based on return type
     geojson_result = heatmap.to_geojson(result)
     return_data = {
-        "data": geojson_result,
+        "data": {
+            "geojson": geojson_result,
+        },
         "return_type": heatmap_settings.return_type.value,
         "hexlified": False,
         "data_source": "heatmap",
@@ -189,13 +191,21 @@ async def read_heatmap_async(current_user, settings):
     return return_data
 
 
-async def read_pt_station_count_async(current_user, payload):
+async def read_pt_station_count_async(current_user, payload, return_type):
     current_user = models.User(**current_user)
     station_count_features = await indicator.count_pt_service_stations(**payload)
-    return station_count_features
+    return_data = {
+        "data": {
+            "geojson": station_count_features,
+        },
+        "return_type": return_type,
+        "hexlified": False,
+        "data_source": "pt_station_count",
+    }
+    return return_data
 
 
-async def read_pt_oev_gueteklassen_async(current_user, payload):
+async def read_pt_oev_gueteklassen_async(current_user, payload, return_type):
     current_user = models.User(**current_user)
     payload = CalculateOevGueteklassenParameters(**payload)
     oev_gueteklassen_features = await indicator.compute_oev_gueteklassen(
@@ -205,5 +215,13 @@ async def read_pt_oev_gueteklassen_async(current_user, payload):
         study_area_ids=payload.study_area_ids,
         station_config=payload.station_config,
     )
+    return_data = {
+        "data": {
+            "geojson": oev_gueteklassen_features,
+        },
+        "return_type": return_type,
+        "hexlified": False,
+        "data_source": "pt_oev_gueteklassen",
+    }
 
-    return oev_gueteklassen_features
+    return return_data

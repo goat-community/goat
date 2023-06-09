@@ -46,9 +46,12 @@ class MaxUploadFileSize(int, Enum):
 class IsochroneExportType(str, Enum):
     """Supported files types for export."""
 
-    geojson = "GeoJSON"
-    shp = "ESRI Shapefile"
-    xlsx = "XLSX"
+    CSV = "csv"
+    GEOBUF = "geobuf"
+    SHAPEFILE = "shapefile"
+    GEOPACKAGE = "geopackage"
+    KML = "kml"
+    XLSX = "xlsx"
 
 
 class CalculationTypes(str, Enum):

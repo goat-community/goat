@@ -64,15 +64,11 @@ async def calculate_isochrone(
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
 
     if isochrone_in.is_single:
-        user_access_starting_point = (
-            await crud.user.user_study_area_starting_point_access(
-                db, current_user.id, isochrone_in.starting_point.input
-            )
+        user_access_starting_point = await crud.user.user_study_area_starting_point_access(
+            db, current_user.id, isochrone_in.starting_point.input
         )
         if not user_access_starting_point:
-            raise HTTPException(
-                detail="User has no access to starting point", status_code=403
-            )
+            raise HTTPException(detail="User has no access to starting point", status_code=403)
 
     study_area = await crud.user.get_active_study_area(db, current_user)
     study_area_bounds = study_area["bounds"]
@@ -80,15 +76,11 @@ async def calculate_isochrone(
     current_user = json.loads(current_user.json())
 
     if not settings.CELERY_BROKER_URL:
-        results = task_calculate_isochrone(
-            isochrone_in, current_user, study_area_bounds
-        )
+        results = task_calculate_isochrone(isochrone_in, current_user, study_area_bounds)
         return read_results(results)
 
     else:
-        task = task_calculate_isochrone.delay(
-            isochrone_in, current_user, study_area_bounds
-        )
+        task = task_calculate_isochrone.delay(isochrone_in, current_user, study_area_bounds)
         return {"task_id": task.id}
 
 
@@ -120,20 +112,21 @@ async def export_isochrones(
     current_user: models.User = Depends(deps.get_current_active_user),
     geojson: Dict = Body(..., examples=request_examples["to_export"]),
     return_type: IsochroneExportType = Query(
-        description="Return type of the response", default=IsochroneExportType.geojson
+        description="Return type of the response", default=IsochroneExportType.CSV
     ),
 ) -> Any:
     """
     Export isochrones from GeoJSON data.
     """
 
-    file_response = await crud.isochrone.export_isochrone(
-        db=db,
-        current_user=current_user,
-        return_type=return_type.value,
-        geojson_dictionary=geojson,
-    )
-    return file_response
+    result = {
+        "data": {"geojson": geojson},
+        "return_type": return_type.value,
+        "hexlified": False,
+        "data_source": "isochrone",
+    }
+
+    return read_results(result)
 
 
 @router.post("/heatmap")
@@ -155,9 +148,7 @@ async def calculate_heatmap(
         return {"task_id": task.id}
 
     else:
-        results = await read_heatmap_async(
-            current_user=current_user, settings=heatmap_settings
-        )
+        results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
         return read_results(results)
 
 
@@ -187,14 +178,15 @@ async def count_pt_service_stations(
     study_area_id: Optional[int] = Query(
         default=None, description="Study area id (Default: User active study area)"
     ),
+    return_type: ReturnTypeHeatmap = Query(
+        default=ReturnTypeHeatmap.GEOJSON, description="Return type of the response"
+    ),
 ):
     """
     Return the number of trips for every route type on every station given a time period and weekday.
     """
     if start_time >= end_time:
-        raise HTTPException(
-            status_code=422, detail="Start time must be before end time"
-        )
+        raise HTTPException(status_code=422, detail="Start time must be before end time")
 
     is_superuser = crud.user.is_superuser(current_user)
     if study_area_id is not None and not is_superuser:
@@ -221,12 +213,13 @@ async def count_pt_service_stations(
         task = read_pt_station_count_task.delay(
             current_user=current_user,
             payload=payload,
+            return_type=return_type.value,
         )
     else:
         results = await read_pt_station_count_async(
-            current_user=current_user, payload=payload
+            current_user=current_user, payload=payload, return_type=return_type.value
         )
-        return return_geojson_or_geobuf(results, return_type="geobuf")
+        return read_results(results)
     return {"task_id": task.id}
 
 
@@ -234,8 +227,9 @@ async def count_pt_service_stations(
 async def calculate_oev_gueteklassen(
     *,
     current_user: models.User = Depends(deps.get_current_active_user),
-    params: CalculateOevGueteklassenParameters = Body(
-        ..., example=oev_gueteklasse_config_example
+    params: CalculateOevGueteklassenParameters = Body(..., example=oev_gueteklasse_config_example),
+    return_type: ReturnTypeHeatmap = Query(
+        default=ReturnTypeHeatmap.GEOJSON, description="Return type of the response"
     ),
 ):
     """
@@ -244,9 +238,7 @@ async def calculate_oev_gueteklassen(
     The calculation in an automated process from the data in the electronic timetable (GTFS).
     """
     if params.start_time >= params.end_time:
-        raise HTTPException(
-            status_code=422, detail="Start time must be before end time"
-        )
+        raise HTTPException(status_code=422, detail="Start time must be before end time")
 
     is_superuser = crud.user.is_superuser(current_user)
 
@@ -267,12 +259,13 @@ async def calculate_oev_gueteklassen(
         task = read_pt_oev_gueteklassen_task.delay(
             current_user=current_user,
             payload=payload,
+            return_type=return_type.value,
         )
     else:
         results = await read_pt_oev_gueteklassen_async(
-            current_user=current_user, payload=payload
+            current_user=current_user, payload=payload, return_type=return_type.value
         )
-        return return_geojson_or_geobuf(results, return_type="geobuf")
+        return read_results(results)
     return {"task_id": task.id}
 
 
@@ -290,17 +283,17 @@ async def get_indicators_result(
     if result.ready():
         try:
             result = result.get()
-            try:
-                validate_return_type(result, return_type.value)
-            except ValueError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
-                )
-            return read_results(result, return_type.value)
-        except HTTPException as e:
-            raise e
         except Exception as e:
             raise HTTPException(status_code=500, detail="Task failed")
+
+        try:
+            validate_return_type(result, return_type.value)
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+        except HTTPException as e:
+            raise e
+        return read_results(result, return_type.value)
 
     elif result.failed():
         raise HTTPException(status_code=500, detail="Task failed")
