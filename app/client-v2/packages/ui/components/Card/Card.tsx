@@ -10,9 +10,14 @@ import { useTheme } from "../../stories/theme";
 export type CardProps = {
   className?: string;
   aboveDivider?: ReactNode;
-  width?: number;
+  width?: number | string;
   children: ReactNode;
-  transparentBg?: boolean;
+  transparentBg?:
+    | {
+        color: string;
+      }
+    | boolean;
+  noHover?: boolean;
 };
 
 export const Card = memo(
@@ -23,6 +28,7 @@ export const Card = memo(
       width,
       children,
       transparentBg,
+      noHover = false,
       //For the forwarding, rest should be empty (typewise)
       ...rest
     } = props;
@@ -34,7 +40,7 @@ export const Card = memo(
 
     const isDarkModeEnabled = theme.isDarkModeEnabled;
 
-    const { classes, cx } = useStyles();
+    const { classes, cx } = useStyles({ noHoverEffect: noHover });
 
     function blendHexColorWithOpacity(hexColor: string, opacity: number) {
       // Remove the '#' character from the hex color
@@ -47,20 +53,34 @@ export const Card = memo(
 
       // Combine the opacity hex value with the original hex color
       const blendedHexColor = `#${normalizedHexColor}${opacityHex}`;
-
+      console.log(blendedHexColor);
       return blendedHexColor;
+    }
+
+    ////////////////////////////////// To use in helpers
+    function isObject(variable: any) {
+      return typeof variable === "object" && variable !== null && !Array.isArray(variable);
     }
 
     // const backgroundColorIfTransparent = blendHexColorWithOpacity(theme.colors.palette.focus[isDarkModeEnabled ? "light" : "main"], 0.08)
     const grayLight3 = theme.colors.palette[isDarkModeEnabled ? "dark" : "light"].greyVariant2;
-    const backgroundColorIfTransparent = blendHexColorWithOpacity(grayLight3, 0.12);
+    // const backgroundColorIfTransparent = blendHexColorWithOpacity(grayLight3, 0.12);
+
+    const backgroundColorIfTransparent = () => {
+      // let type = typeof transparentBg;
+      if (transparentBg && typeof transparentBg !== "boolean" && isObject(transparentBg)) {
+        return blendHexColorWithOpacity(transparentBg.color, 0.12);
+      } else {
+        return blendHexColorWithOpacity(grayLight3, 0.12);
+      }
+    };
 
     return (
       <div
         ref={ref}
         className={cx(classes.root, className)}
         {...rest}
-        style={{ width: width, backgroundColor: transparentBg ? backgroundColorIfTransparent : undefined }}>
+        style={{ width: width, backgroundColor: transparentBg ? backgroundColorIfTransparent() : undefined }}>
         {aboveDivider !== undefined && <div className={classes.aboveDivider}>{aboveDivider}</div>}
         <div className={classes.belowDivider}>{children}</div>
       </div>
@@ -68,13 +88,13 @@ export const Card = memo(
   })
 );
 
-const useStyles = makeStyles({ name: { Card } })((theme) => ({
+const useStyles = makeStyles<{ noHoverEffect: boolean }>({ name: { Card } })((theme, { noHoverEffect }) => ({
   root: {
     borderRadius: 4,
     boxShadow: theme.shadows[1],
     backgroundColor: theme.colors.useCases.surfaces.surface1,
     "&:hover": {
-      boxShadow: theme.shadows[6],
+      boxShadow: !noHoverEffect ? theme.shadows[6] : "",
     },
     display: "flex",
     flexDirection: "column",
@@ -83,8 +103,8 @@ const useStyles = makeStyles({ name: { Card } })((theme) => ({
     boxSizing: "border-box",
   },
   belowDivider: {
-    padding: theme.spacing(4),
-    paddingTop: theme.spacing(3),
+    // padding: theme.spacing(4),
+    // paddingTop: theme.spacing(3),
     flex: 1,
     display: "flex",
     flexDirection: "column",

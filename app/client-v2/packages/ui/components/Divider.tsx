@@ -6,6 +6,7 @@ import { assert } from "tsafe/assert";
 import { makeStyles } from "../lib/ThemeProvider";
 
 export type DividerProps = {
+  className?: string;
   width: string;
   color: "main" | "light" | "gray";
 };
@@ -13,6 +14,7 @@ export type DividerProps = {
 export const Divider = memo(
   forwardRef<any, DividerProps>((props) => {
     const {
+      className,
       width,
       color,
       //For the forwarding, rest should be empty (typewise)
@@ -27,7 +29,7 @@ export const Divider = memo(
 
     return (
       <>
-        <div className={cx(classes.root, classes[color])} style={{ width: width }} />
+        <div className={cx(classes.root, classes[color], className)} style={{ width: width }} />
       </>
     );
   })
