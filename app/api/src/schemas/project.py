@@ -33,10 +33,18 @@ dummy_one_project = {
         "bearing": 0,
         "pitch": 0
     },
+    "reports": [
+        {
+            "id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p1",
+            "name": "My new report 1",
+            "description": "My new report description 1"
+        }
+    ],
     "layers": [
         {
             "id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p1",
-            "type": "indicator",
+            "type": "feature_layer",
+            "feature_layer_type": "indicator",
             "data_type": "mvt",
             "name": "heatmap_connectivity",
             "group": "My Layers 1",
@@ -68,7 +76,8 @@ dummy_one_project = {
         },
         {
             "id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p2",
-            "type": "indicator",
+            "type": "feature_layer",
+            "feature_layer_type": "indicator",
             "data_type": "binary",
             "name": "isochrone",
             "group": "My Layers 1",
@@ -113,7 +122,9 @@ dummy_one_project = {
         },
         {
             "id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p4",
-            "type": "scenario",
+            "type": "feature_layer",
+            "feature_layer_type": "indicator",
+            "data_type": "mvt",
             "name": "scenario_building",
             "group": "My Layers 1",
             "label": "My new Building Layer 1",
@@ -144,7 +155,7 @@ dummy_one_project = {
         },
         {
             "id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6",
-            "type": "static",
+            "type": "standard",
             "data_type": "wms",
             "name": "noise",
             "group": "My Layers 1",
@@ -162,7 +173,7 @@ dummy_one_project = {
         },
         {
             "id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p7",
-            "type": "static",
+            "type": "standard",
             "data_type": "geojson",
             "name": "starting_point",
             "group": "My Layers 1",
@@ -183,8 +194,11 @@ dummy_one_project = {
             "group": "My buildings",
             "label": "My new MVT",
             "scenario_id": 10,
-            "opportunity_ids": [
-                1
+            "opportunities": [
+                {
+                    "id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p10",
+                    "query": "area>50"
+                }
             ],
             "url": "https://tiles.plan4better.de/api/building/{z}/{x}/{y}.pbf",
             "min_zoom": 0,
@@ -208,10 +222,15 @@ dummy_one_project = {
             "opportunities": [
                 {
                     "id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p10",
+                    "query": "category=restaurant,bar"
+                }
+            ],
+            "active_opportunities": [
+                {
+                    "id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p10",
                     "query": "category=restaurant"
                 }
             ],
-            "categories": {},
             "url": "https://tiles.plan4better.de/api/poi/{z}/{x}/{y}.pbf",
             "style_url": "https://assets.plan4better.de/api/style/5.json",
             "translation_urls": {
