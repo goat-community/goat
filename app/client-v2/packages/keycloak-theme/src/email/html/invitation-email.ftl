@@ -12,7 +12,7 @@
     <tr>
       <td>
         <div style="${properties.titleStyle}">
-          <h2>${kcSanitize(msg("invitationEmailTitle", email, realmName, orgName, inviterName, link))?no_esc}</h2>
+          <h2>${msg("invitationEmailTitle")}</h2>
         </div>
       </td>
     </tr>
