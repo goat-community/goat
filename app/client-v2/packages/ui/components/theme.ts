@@ -1,7 +1,10 @@
 import CorporateFareIcon from "@mui/icons-material/CorporateFare";
+import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
+import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import HelpIcon from "@mui/icons-material/Help";
 import HomeIcon from "@mui/icons-material/Home";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
+import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import type { Param0 } from "tsafe";
 
 import "../assets/fonts/mulish/font.css";
@@ -28,6 +31,9 @@ export const { Icon } = createIcon({
   home: HomeIcon,
   coorperate: CorporateFareIcon,
   powerOff: PowerSettingsNewIcon,
+  rocketLaunch: RocketLaunchIcon,
+  run: DirectionsRunIcon,
+  bus: DirectionsBusIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];

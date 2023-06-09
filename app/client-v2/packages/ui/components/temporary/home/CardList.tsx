@@ -1,12 +1,12 @@
 import React from "react";
 
-import { makeStyles } from "../../lib/ThemeProvider";
-import { CardContent } from "../Card";
-import { CardMedia } from "../Card";
-import { Card } from "../Card/Card";
-import { Divider } from "../Divider";
-import { Button } from "../theme";
-import { Text } from "../theme";
+import { makeStyles } from "../../../lib/ThemeProvider";
+import { CardContent } from "../../Card";
+import { CardMedia } from "../../Card";
+import { Card } from "../../Card/Card";
+import { Divider } from "../../Divider";
+import { Button } from "../../theme";
+import { Text } from "../../theme";
 
 export interface CardType<IconId extends string> {
   title: string;
@@ -83,7 +83,7 @@ const CardList = (props: CardListProps) => {
 const useStyles = makeStyles({ name: { CardList } })((theme) => ({
   cardList: {
     display: "flex",
-    gap: "24px",
+    gap: theme.spacing(4),
     justifyContent: "space-between",
     marginBottom: "57px",
   },
@@ -93,7 +93,7 @@ const useStyles = makeStyles({ name: { CardList } })((theme) => ({
   },
   buttons: {
     display: "flex",
-    gap: "16px",
+    gap: theme.spacing(3),
   },
   button: {
     border: "none",

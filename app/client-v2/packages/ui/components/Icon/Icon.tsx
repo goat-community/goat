@@ -37,6 +37,7 @@ import type { IconSizeName } from "../../lib/icon";
 export type IconProps<IconId extends string = string> = {
   iconId: IconId;
   className?: string;
+  wrapped?: "circle" | "square";
   /** default default */
   size?: IconSizeName;
   onClick?: MouseEventHandler<SVGSVGElement>;
@@ -57,40 +58,51 @@ function isMuiIcon(Component: MuiIconLike | SvgComponentLike): Component is MuiI
 export function createIcon<IconId extends string>(componentByIconId: {
   readonly [iconId in IconId]: MuiIconLike | SvgComponentLike;
 }) {
-  const useStyles = makeStyles<{ size: IconSizeName }>()((theme, { size }) => ({
-    root: {
-      color: theme.colors.palette.dark.greyVariant4,
-      // https://stackoverflow.com/a/24626986/3731798
-      //"verticalAlign": "top",
-      //"display": "inline-block"
-      verticalAlign: "top",
-      fontSize: theme.iconSizesInPxByName[size],
-      width: "1em",
-      height: "1em",
-    },
-  }));
+  const useStyles = makeStyles<{ size: IconSizeName; wrapped: "circle" | "square" | undefined }>()(
+    (theme, { size, wrapped }) => ({
+      root: {
+        color: theme.colors.palette.dark.greyVariant4,
+        // https://stackoverflow.com/a/24626986/3731798
+        //"verticalAlign": "top",
+        //"display": "inline-block"
+        verticalAlign: "top",
+        fontSize: theme.iconSizesInPxByName[size],
+        width: "1em",
+        height: "1em",
+      },
+      iconWrapper: {
+        padding: wrapped ? "4px" : "",
+        backgroundColor: wrapped ? `${theme.colors.palette.focus.main}14` : "",
+        borderRadius: wrapped === "circle" ? "50%" : 4,
+      },
+    })
+  );
 
   const Icon = memo(
     forwardRef<SVGSVGElement, IconProps<IconId>>((props, ref) => {
-      const { iconId, className, size = "default", onClick, ...rest } = props;
+      const { iconId, wrapped, className, size = "default", onClick, ...rest } = props;
 
       //For the forwarding, rest should be empty (typewise),
       assert<Equals<typeof rest, {}>>();
 
-      const { classes, cx } = useStyles({ size });
+      const { classes, cx } = useStyles({ size, wrapped });
 
       const Component: MuiIconLike | SvgComponentLike = componentByIconId[iconId];
 
       return isMuiIcon(Component) ? (
-        <Component ref={ref} className={cx(classes.root, className)} onClick={onClick} {...rest} />
+        <div className={classes.iconWrapper}>
+          <Component ref={ref} className={cx(classes.root, className)} onClick={onClick} {...rest} />
+        </div>
       ) : (
-        <SvgIcon
-          ref={ref}
-          onClick={onClick}
-          className={cx(classes.root, className)}
-          component={Component}
-          {...rest}
-        />
+        <div className={classes.iconWrapper}>
+          <SvgIcon
+            ref={ref}
+            onClick={onClick}
+            className={cx(classes.root, className)}
+            component={Component}
+            {...rest}
+          />
+        </div>
       );
     })
   );

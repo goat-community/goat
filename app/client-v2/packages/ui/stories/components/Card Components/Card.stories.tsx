@@ -155,10 +155,12 @@ export const CardBlog: Story = {
 export const AddCard: Story = {
   args: {
     children: (
-      <Button>
-        <Text typo="label 1">+</Text>
-        <Text typo="label 2">New</Text>
-      </Button>
+      <div style={{ margin: "20px" }}>
+        <Button>
+          <Text typo="label 1">+</Text>
+          <Text typo="label 2">New</Text>
+        </Button>
+      </div>
     ),
     width: 268,
     transparentBg: true,

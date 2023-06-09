@@ -122,7 +122,7 @@ const useStyles = makeStyles({ name: { SlideShow } })((theme) => ({
     top: "0",
     width: "100%",
     height: "100%",
-    padding: "48px",
+    padding: theme.spacing(6) + theme.spacing(3),
   },
   steppers: {
     width: "100%",
@@ -131,7 +131,7 @@ const useStyles = makeStyles({ name: { SlideShow } })((theme) => ({
     bottom: "0",
     display: "flex",
     justifyContent: "center",
-    paddingBottom: "48px",
+    paddingBottom: theme.spacing(6) + theme.spacing(3),
   },
   imageBox: {
     width: "100%",
@@ -144,11 +144,11 @@ const useStyles = makeStyles({ name: { SlideShow } })((theme) => ({
   title: {
     fontWeight: "bold",
     color: theme.colors.palette.light.main,
-    paddingBottom: "24px",
+    paddingBottom: theme.spacing(4),
   },
   description: {
     color: theme.colors.palette.light.main,
-    paddingBottom: "24px",
+    paddingBottom: theme.spacing(4),
   },
   dot: {
     backgroundColor: theme.colors.palette.light.main,
