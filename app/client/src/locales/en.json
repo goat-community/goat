@@ -386,6 +386,7 @@
       "transit": "Transit",
       "walk": "Walk",
       "bicycle": "Bicycle",
+      "buffer": "Buffer",
       "car": "Car",
       "car_park": "Car park"
     },
@@ -1071,7 +1072,9 @@
       "liveliness": "Walking environment",
       "data_quality": "Data Quality",
       "comfort": "Comfort",
-      "walkability": ["TOTAL WALKABILITY SCORE"],
+      "walkability": [
+        "TOTAL WALKABILITY SCORE"
+      ],
       "scale_label_indicators": "Indicators",
       "scale_label_index": "Index",
       "sidewalk": "Sidewalk availability",

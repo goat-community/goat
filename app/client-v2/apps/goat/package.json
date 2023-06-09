@@ -1,0 +1,29 @@
+{
+  "name": "@p4b/goat",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@p4b/ui": "workspace:*",
+    "next": "13.4.0",
+    "next-auth": "^4.22.1",
+    "next-i18next": "^13.2.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tss-react": "^4.8.3"
+  },
+  "devDependencies": {
+    "@p4b/config": "workspace:*",
+    "@p4b/tsconfig": "workspace:*",
+    "@playwright/test": "^1.33.0",
+    "@types/node": "^20.1.5",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.4"
+  }
+}

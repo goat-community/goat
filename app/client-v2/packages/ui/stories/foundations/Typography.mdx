@@ -1,0 +1,65 @@
+import { Meta, Typeset } from '@storybook/blocks';
+import { useDarkMode } from "storybook-dark-mode";
+import { StoryProvider, useTheme } from "../theme";
+
+<Meta
+    decorators={[
+        Story => (
+            <StoryProvider dark={useDarkMode()}>
+                <Story />
+            </StoryProvider>
+        ),
+    ]}
+/>
+
+
+export const typography = {
+  type: {
+    primary: '"Mulish", sans-serif',
+  },
+  weight: {
+    light: '300',
+    regular: '400',
+    medium: '500',
+    bold: '700',
+  },
+  size: {
+    s1: 12,
+    s2: 14,
+    s3: 16,
+    m1: 20,
+    m2: 24,
+    m3: 28,
+    l1: 32,
+    l2: 40,
+    l3: 48,
+  },
+};
+
+export const SampleText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+
+# Typography
+Mulish is a minimalist Sans Serif typeface, designed for both display and text typography
+
+**Font:** Mulish
+
+**Weights:** 300(light) 400(regular), 500(medium), 700(bold)
+
+
+## Styles
+<Typeset
+  fontSizes={[
+    Number(typography.size.s1),
+    Number(typography.size.s2),
+    Number(typography.size.s3),
+    Number(typography.size.m1),
+    Number(typography.size.m2),
+    Number(typography.size.m3),
+    Number(typography.size.l1),
+    Number(typography.size.l2),
+    Number(typography.size.l3),
+  ]}
+  fontWeight={typography.weight.bold}
+  sampleText={SampleText}
+  fontFamily={typography.type.primary}
+/>

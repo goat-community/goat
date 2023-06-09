@@ -84,24 +84,28 @@
               'trip_cnt'
             )"
             :key="idx"
-            style="display: flex; align-items: center; margin: 5px 0;"
           >
             <div
-              v-if="transitRouteTypesByNr[routeType].color"
-              :style="
-                `width:45px;height:23px;margin-right: 20px;background-color: ${transitRouteTypesByNr[routeType].color};`
-              "
-            ></div>
-            <p style="margin: 0">
-              {{
-                $t(
-                  `indicators.ptRouteTypes.${transitRouteTypesByNr[routeType].name}`
-                )
-              }}:
-              {{
-                tripCnt && timeDelta > 0 ? Math.round(tripCnt / timeDelta) : 0
-              }}
-            </p>
+              v-if="routeType in transitRouteTypesByNr"
+              style="display: flex; align-items: center; margin: 5px 0;"
+            >
+              <div
+                v-if="transitRouteTypesByNr[routeType].color"
+                :style="
+                  `width:45px;height:23px;margin-right: 20px;background-color: ${transitRouteTypesByNr[routeType].color};`
+                "
+              ></div>
+              <p style="margin: 0">
+                {{
+                  $t(
+                    `indicators.ptRouteTypes.${transitRouteTypesByNr[routeType].name}`
+                  )
+                }}:
+                {{
+                  tripCnt && timeDelta > 0 ? Math.round(tripCnt / timeDelta) : 0
+                }}
+              </p>
+            </div>
           </div>
         </template>
         <!-- INDICATOR: ÖV-Güteklassen -->
@@ -410,6 +414,15 @@ export default {
       me.createWmsWmtsPopup();
       EventBus.$on("toggleLayerVisiblity", this.showNonVisibleLayersInfo);
     }, 200);
+
+    // this.updateMapZoomLevel()
+
+    //event to check for page zoom level changes
+    // window
+    //   .matchMedia("(resolution: 1dppx)")
+    //   .addListener(this.updateMapZoomLevel);
+
+    // this.updateMapZoomLevel(window.matchMedia("(resolution: 1dppx)"));
   },
   created() {
     var me = this;
@@ -671,6 +684,17 @@ export default {
         }
       }
     },
+
+    /**
+     * Change view level of map based in the page zoom level
+     */
+    // updateMapZoomLevel(e) {
+    //   const pageZoomLevel = e.matches ? 100 : 200; // calculate the page zoom level based on the devicePixelRatio
+    //   console.log(e.matches);
+    //   this.mapZoomLevel = this.map
+    //     .getView()
+    //     .setZoom(this.map.getView().getZoom() / (pageZoomLevel / 100)); // calculate the new map zoom level
+    // },
 
     /**
      * Show popup for the get info module.

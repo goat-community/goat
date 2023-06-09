@@ -22,6 +22,7 @@ from src.endpoints.v1 import (
     upload,
     users,
     utils,
+    projects,
 )
 
 api_router = APIRouter()
@@ -43,6 +44,7 @@ api_router.include_router(
 api_router.include_router(
     static_layers_extra.router, prefix="/config/layers/vector", tags=["Manage extra layers"]
 )
+api_router.include_router(projects.router, prefix="/projects", tags=["Projects"])
 
 # LAYER: Vector tile endpoints.
 layer_tiles_prefix = "/layers/tiles"

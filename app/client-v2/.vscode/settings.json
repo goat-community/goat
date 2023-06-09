@@ -1,0 +1,7 @@
+{
+  "eslint.workingDirectories": [
+    { "pattern": "apps/*/" },
+    { "pattern": "packages/*/" }
+  ],
+  "colorize.languages": ["typescript", "javascript", "css", "scss"]
+}

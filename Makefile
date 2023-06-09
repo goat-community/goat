@@ -104,9 +104,28 @@ build-docker-image: app/$(COMPONENT)/Dockerfile
 
 # target: build-client-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client
 .PHONY: build-client-docker-image
-build-client-docker-image: app/$(COMPONENT)/Dockerfile
-	$(DOCKER) build -f app/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/$(COMPONENT) --build-arg FONTAWESOME_NPM_AUTH_TOKEN=$(FONTAWESOME_NPM_AUTH_TOKEN)
+build-client-docker-image: app/client-v2/apps/$(COMPONENT)/Dockerfile
+	$(DOCKER) build -f app/client-v2/apps/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/client-v2
 
+# target: release-keycloak-theme
+.PHONY: release-keycloak-theme
+release-keycloak-theme:
+	cd app/client-v2/packages/keycloak-theme && pnpm install && pnpm run build-keycloak-theme && \
+    if [ "$(NAMESPACE)" = "dev" ] || [ "$(NAMESPACE)" = "v2" ]; then \
+		echo "Building dev keycloak theme" && \
+        mv build_keycloak/target/*.jar p4b-keycloak-theme-dev.jar && \
+		aws s3 cp p4b-keycloak-theme-dev.jar s3://plan4better-assets/other/keycloak/; \
+    else \
+		echo "Building prod keycloak theme" && \
+        mv build_keycloak/target/*.jar p4b-keycloak-theme.jar && \
+		aws s3 cp p4b-keycloak-theme.jar s3://plan4better-assets/other/keycloak/; \
+    fi
+
+
+# target: make build-docs-docker-image
+.PHONY: build-docs-docker-image
+build-docs-docker-image: docs/Dockerfile
+	$(DOCKER) build -f docs/Dockerfile --pull -t $(DOCKER_IMAGE) docs
 
 # target: make release-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client
 .PHONY: release-docker-image
@@ -116,6 +135,11 @@ release-docker-image: docker-login build-docker-image
 # target: make release-client-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client|geoserver|print|mapproxy
 .PHONY: release-client-docker-image
 release-client-docker-image: docker-login build-client-docker-image
+	$(DOCKER) push $(DOCKER_IMAGE)
+
+# target: make release-docs-docker-image -e VERSION=some_git_sha_comit
+.PHONY: release-docs-docker-image
+release-docs-docker-image: docker-login build-docs-docker-image
 	$(DOCKER) push $(DOCKER_IMAGE)
 
 # target: make after-success

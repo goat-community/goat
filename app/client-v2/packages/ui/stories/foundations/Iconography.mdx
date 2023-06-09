@@ -1,0 +1,28 @@
+import { Meta, Title, IconGallery, IconItem } from "@storybook/blocks";
+import { useDarkMode } from "storybook-dark-mode";
+
+import { CloseSharp } from "../../lib/icons";
+import { StoryProvider, useTheme } from "../theme";
+
+<Meta
+  decorators={[
+    (Story) => (
+      <StoryProvider dark={useDarkMode()}>
+        <Story />
+      </StoryProvider>
+    ),
+  ]}
+/>
+
+# Iconography
+
+Using system icons can improve our products by visually conveying actions, status, content, or concepts.
+It is important to use icons purposefully in order to promote clarity and reduce the amount of cognitive effort required to understand our products.
+
+Design system icons are sourced from [Material Design](https://material.io/resources/icons/?style=baseline)
+
+<IconGallery>
+  <IconItem name="Close Sharp">
+    <CloseSharp />
+  </IconItem>
+</IconGallery>
