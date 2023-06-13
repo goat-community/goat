@@ -24,6 +24,7 @@ import geobuf
 import geopandas
 import h3
 import numpy as np
+import pandas as pd
 import pyproj
 from emails.template import JinjaTemplate
 from fastapi import HTTPException, UploadFile
@@ -1075,9 +1076,24 @@ def delete_shape_file(shapefile_path: str):
         delete_file(file_path)
 
 
+def move_first_column_csv_to_last(csv_path: str):
+    df = pd.read_csv(csv_path)
+    cols = df.columns.tolist()
+    cols = cols[1:] + cols[:1]
+    df = df[cols]
+    df.to_csv(csv_path, index=False)
+
+
+def convert_csv_to_xlsx(csv_path: str):
+    xlsx_path = csv_path.replace(".csv", ".xlsx")
+    df = pd.read_csv(csv_path)
+    df.to_excel(xlsx_path, index=False)
+
+
 def convert_geojson_to_others_ogr2ogr(
     input_geojson: dict, destination_layer_name: str, output_format: str
 ):
+    temp_file_base_name = tempfile.mktemp()
     options = {
         "geopackage": {"output_suffix": "gpkg", "format_name": "GPKG"},
         "shapefile": {
@@ -1096,18 +1112,21 @@ def convert_geojson_to_others_ogr2ogr(
             "extra_options": "-mapFieldType Integer64=Real",
         },
         "geobuf": {"output_suffix": "fgb", "format_name": "FlatGeobuf"},
-        "xlsx": {
-            "output_suffix": "xlsx",
-            "format_name": "XLSX",
-            "extra_options": "-lco GEOMETRY=AS_WKT",
-        },
+        # "xlsx": {
+        #     "output_suffix": "xlsx",
+        #     "format_name": "XLSX",
+        #     "extra_options": "-lco GEOMETRY=AS_WKT",
+        # },
     }
+    if output_format == "xlsx":
+        convert_format = "csv"
+    else:
+        convert_format = output_format
 
-    output_suffix = options[output_format]["output_suffix"]
-    format_name = options[output_format]["format_name"]
-    extra_options = options[output_format].get("extra_options", "")
+    output_suffix = options[convert_format]["output_suffix"]
+    format_name = options[convert_format]["format_name"]
+    extra_options = options[convert_format].get("extra_options", "")
 
-    temp_file_base_name = tempfile.mktemp()
     geojson_temp_file = temp_file_base_name + ".geojson"
     output_temp_file = temp_file_base_name + f".{output_suffix}"
 
@@ -1119,6 +1138,15 @@ def convert_geojson_to_others_ogr2ogr(
         command_to_convert, shell=True
     )  # Use check output to raise error if command fails
     delete_file(geojson_temp_file)
+
+    if convert_format == "csv":
+        move_first_column_csv_to_last(output_temp_file)
+
+    if output_format == "xlsx":
+        convert_csv_to_xlsx(output_temp_file)
+        delete_file(output_temp_file)
+        output_temp_file = output_temp_file.replace(".csv", ".xlsx")
+        output_suffix = "xlsx"
 
     if output_format == "shapefile":
         zip_shape_file(output_temp_file, destination_layer_name)

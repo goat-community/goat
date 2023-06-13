@@ -1,3 +1,4 @@
+from functools import cache
 import io
 import json
 import os
@@ -604,23 +605,28 @@ class CRUDIsochrone:
         return geojson
 
     def build_geojson_multi(self, isochrone_shapes, opportunities):
-        sub_study_area_to_feature_name = lambda x: f"population_count_{x.replace('.','_')}"
+        @cache
+        def sub_study_area_to_feature_name(sub_study_area, feature):
+            return f"{feature}_{sub_study_area}"
+
         geojson = json.loads(isochrone_shapes["full"].to_json())
         population_keys = list(opportunities.keys())
-        sub_study_area_feature_name = dict(
-            [(key, sub_study_area_to_feature_name(key)) for key in population_keys]
-        )
-        for cnt, value in enumerate(geojson["features"]):
-            total_population_ = 0
-            geojson["features"][cnt]["properties"]["total_population"] = 0
+
+        for cnt in range(len(geojson["features"])):
             for key in population_keys:
-                feature_name = sub_study_area_feature_name[key]
+                feature_name = sub_study_area_to_feature_name(key, "total_population")
+                sub_study_area_total_population = opportunities[key]["total_population"]
+                geojson["features"][cnt]["properties"][
+                    feature_name
+                ] = sub_study_area_total_population
+
+            for key in population_keys:
+                feature_name = sub_study_area_to_feature_name(key, "reached_population")
                 sub_study_area_population_count = opportunities[key]["reached_population"][cnt]
                 geojson["features"][cnt]["properties"][
                     feature_name
                 ] = sub_study_area_population_count
-                total_population_ += sub_study_area_population_count
-            geojson["features"][cnt]["properties"]["total_population"] = total_population_
+
         return geojson
 
 
