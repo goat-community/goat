@@ -73,7 +73,7 @@ const config = {
         // Plugin Options for loading OpenAPI files
         specs: [
           {
-            spec: 'https://v2.goat.plan4better.de/api/v1/openapi.json', //https://v2.goat.plan4better.de/api/v1/openapi.json
+            spec: './openapi.json', //https://v2.goat.plan4better.de/api/v1/openapi.json
             route: '/api/',
           },
         ],
@@ -112,7 +112,7 @@ const config = {
       navbar: {
         logo: {
           alt: "Plan4Better",
-          src: "https://plan4better.de/images/logo.png",
+          src: "https://assets.plan4better.de/img/logo/plan4better_standard.svg",
         },
         items: [
           {
