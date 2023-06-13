@@ -15,7 +15,7 @@ from sqlmodel import (
 )
 
 if TYPE_CHECKING:
-    from .aoi import AoiUser
+    from .legacy.aoi import AoiUser
     from .poi import PoiUser
     from .user import User
     from .study_area import StudyArea

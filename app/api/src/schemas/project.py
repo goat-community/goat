@@ -1,4 +1,125 @@
-import uuid
+
+from uuid import UUID
+from .report import ReportProject
+from sqlmodel import Field
+from pydantic import BaseModel, validator
+from typing import Optional, List, Union, TYPE_CHECKING
+from .layer import (
+    # LayerProject,
+    FeatureLayerAnalysisUnitProject,
+    FeatureLayerIndicatorProject,
+    FeatureLayerOpportunityProject,
+    FeatureLayerStandardProject,
+    TableLayerProject,
+    TileLayerProject,
+    ImageryLayerProject,
+)
+from enum import Enum
+if TYPE_CHECKING:
+    from .content import ContentBase, ContentUpdateBase
+
+################################################################################
+# Project DTOs
+################################################################################
+class ProjectContentType(str, Enum):
+    """Content types that can be stored in a project."""
+
+    layer = "layer"
+    report = "report"
+    style = "style"
+
+class InitialViewState(BaseModel):
+    """Model to show the initial view state of a project."""
+
+    latitude: float = Field(
+        ..., description="Latitude", ge=-90, le=90
+    )
+    longitude: float = Field(
+        ..., description="Longitude", ge=-180, le=180
+    )
+    zoom: int = Field(
+        ..., description="Zoom level", ge=0, le=20
+    )
+    min_zoom: int = Field(
+        ..., description="Minimum zoom level", ge=0, le=20
+    )
+    max_zoom: int = Field(
+        ..., description="Maximum zoom level", ge=0, le=20
+    )
+    bearing: int = Field(
+        ..., description="Bearing", ge=0, le=360
+    )
+    pitch: int = Field(..., description="Pitch", ge=0, le=60)
+
+    @validator("max_zoom")
+    def check_max_zoom(cls, max_zoom, values):
+        min_zoom = values.get("min_zoom")
+        if min_zoom is not None and max_zoom < min_zoom:
+            raise ValueError("max_zoom should be greater than or equal to min_zoom")
+        return max_zoom
+
+    @validator("min_zoom")
+    def check_min_zoom(cls, min_zoom, values):
+        max_zoom = values.get("max_zoom")
+        if max_zoom is not None and min_zoom > max_zoom:
+            raise ValueError("min_zoom should be less than or equal to max_zoom")
+        return min_zoom
+
+
+class ProjectAttributesBase(BaseModel):
+    initial_view_state: InitialViewState = Field(
+        ..., description="Initial view state of the project"
+    )
+    reports: Optional[List[ReportProject]] = Field(
+        None, description="List of reports contained in the project"
+    )
+    layers: Optional[
+        List[
+            Union[
+                FeatureLayerAnalysisUnitProject,
+                FeatureLayerIndicatorProject,
+                FeatureLayerOpportunityProject,
+                FeatureLayerStandardProject,
+                TableLayerProject,
+                TileLayerProject,
+                ImageryLayerProject,
+            ]
+        ]
+    ] = Field(None, description="List of layers contained in the project")
+
+
+class ProjectCreate(ContentBase, ProjectAttributesBase):
+    pass
+
+
+class ProjectRead(ContentBase, ProjectAttributesBase):
+    id: UUID = Field(..., description="Project ID")
+
+
+class ProjectUpdate(ContentUpdateBase):
+    initial_view_state: Optional[InitialViewState] = Field(
+        ..., description="Initial view state of the project"
+    )
+    reports: Optional[List[ReportProject]] = Field(
+        None, description="List of reports contained in the project"
+    )
+    layers: Optional[
+        List[
+            Union[
+                FeatureLayerAnalysisUnitProject,
+                FeatureLayerIndicatorProject,
+                FeatureLayerOpportunityProject,
+                FeatureLayerStandardProject,
+                TableLayerProject,
+                TileLayerProject,
+                ImageryLayerProject,
+            ]
+        ]
+    ] = Field(None, description="List of layers contained in the project")
+
+
+
+import uuid 
 dummy_one_project = {
     "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
     "name": "My new project",

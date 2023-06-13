@@ -1,56 +1,36 @@
-from datetime import datetime
 from typing import Optional
+from uuid import UUID
+from sqlmodel import Column, Field, ForeignKey, Integer, SQLModel, text, Text, Boolean, ARRAY
+from typing import List
 
-from sqlmodel import (
-    BigInteger,
-    Column,
-    DateTime,
-    Field,
-    ForeignKey,
-    Integer,
-    SQLModel,
-    text,
-)
 
-class UserRole(SQLModel, table=True):
-    __tablename__ = "user_role"
+class LayerProjectLink(SQLModel, table=True):
+    __tablename__ = "layer_project"
     __table_args__ = {"schema": "customer"}
 
     id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
-    user_id: Optional[int] = Field(
-        sa_column=Column(Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False, index=True)
+    style_id: UUID = Field(
+        sa_column=Column(Text, ForeignKey("customer.style.id")),
+        description="Style ID of the layer",
     )
-    role_id: Optional[int] = Field(
-        sa_column=Column(Integer, ForeignKey("customer.role.id", ondelete="CASCADE"), nullable=False, index=True)
+    layer_id: UUID = Field(
+        sa_column=Column(Text, ForeignKey("customer.layer.id")), description="Layer ID"
     )
-
-class UserStudyArea(SQLModel, table=True):
-    __tablename__ = "user_study_area"
-    __table_args__ = {"schema": "customer"}
-
-    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
-    creation_date: Optional[datetime] = Field(
-        sa_column=Column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
+    project_id: UUID = Field(
+        sa_column=Column(Text, ForeignKey("customer.project.id")), description="Project ID"
     )
-    user_id: int = Field(
-        sa_column=Column(
-            Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
-        ),
+    active: bool = Field(
+        sa_column=Column(Boolean, nullable=False),
+        description="Layer is active or not in the project",
     )
-    study_area_id: int = Field(
-        sa_column=Column(
-            Integer, ForeignKey("basic.study_area.id", ondelete="CASCADE"), nullable=False
-        )
+    style_id: Optional[UUID] = Field(
+        sa_column=Column(Text, ForeignKey("customer.style.id"), nullable=True),
+        description="Style ID of the layer",
     )
-
-class StudyAreaGeostore(SQLModel, table=True):
-    __tablename__ = "study_area_geostore"
-    __table_args__ = {"schema": "customer"}
-
-    id: Optional[int] = Field(sa_column=Column(Integer, primary_key=True, autoincrement=True))
-    study_area_id: int = Field(
-        sa_column=Column(Integer, ForeignKey("basic.study_area.id", ondelete="CASCADE"), nullable=False, index=True)
+    active_style_rule: Optional[List[bool]] = Field(
+        sa_column=Column(ARRAY(Boolean), nullable=True),
+        description="Array with the active style rules for the respective style in the style",
     )
-    geostore_id: int = Field(
-        sa_column=Column(Integer, ForeignKey("customer.geostore.id", ondelete="CASCADE"), nullable=False, index=True)
+    query: Optional[str] = Field(
+        sa_column=Column(Text, nullable=True), description="Query to filter the layer data"
     )

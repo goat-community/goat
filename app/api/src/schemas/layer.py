@@ -32,6 +32,8 @@ from src.core.config import settings
 from src.resources.enums import MimeTypes
 
 
+
+# TODO: Refactor this part to use with the new schemas further down
 # =========================VECTOR TILE SCHEMAS=========================
 class VectorTileLayer(BaseModel, metaclass=abc.ABCMeta):
     """Layer's Abstract BaseClass.
@@ -171,3 +173,389 @@ class Registry:
 
 
 registry = Registry()
+
+
+#########################################################
+# =========================NEW SCHEMAS=========================
+#########################################################
+from typing import List, Optional
+from sqlmodel import (
+    ForeignKey,
+    Column,
+    Field,
+    SQLModel,
+    Text,
+    Integer,
+)
+from uuid import UUID
+from enum import Enum
+from pydantic import BaseModel
+from src.schemas.content import ContentUpdateBase
+from src.db.models.layer import FeatureLayerBase, LayerBase, GeospatialAttributes
+
+class OpportunityType(str, Enum):
+    """Opportunity types."""
+
+    aoi = "aoi"
+    poi = "poi"
+    population = "population"
+
+class LayerType(str, Enum):
+    """Layer types that are supported."""
+
+    feature_layer = "feature_layer"
+    imagery_layer = "imagery_layer"
+    tile_layer = "tile_layer"
+    table = "table"
+
+
+class FeatureLayerType(str, Enum):
+    """Feature layer types."""
+
+    standard = "standard"
+    indicator = "indicator"
+    opportunity = "opportunity"
+    scenario = "scenario"
+    analysis_unit = "analysis_unit"
+
+
+class IndicatorType(str, Enum):
+    """Indicator types."""
+
+    single_isochrone = "isochrone"
+    multi_isochrone = "multi_isochrone"
+    heatmap = "heatmap"
+    oev_gueteklasse = "oev_gueteklasse"
+    public_transport_frequency = "public_transport_frequency"
+
+
+class ScenarioType(str, Enum):
+    """Scenario types."""
+
+    building = "building"
+    poi = "poi"
+    aoi = "aoi"
+    way = "way"
+
+
+class FeatureLayerDataType(str, Enum):
+    """Feature layer data types."""
+
+    geojson = "geojson"
+    shapefile = "shapefile"
+    geopackage = "geopackage"
+    geobuf = "geobuf"
+    csv = "csv"
+    xlsx = "xlsx"
+    kml = "kml"
+    mvt = "mvt"
+    wfs = "wfs"
+    binary = "binary"
+
+
+class ImageryLayerDataType(str, Enum):
+    """Imagery layer data types."""
+
+    wms = "wms"
+
+
+class TileLayerDataType(str, Enum):
+    """Tile layer data types."""
+
+    xyz = "xyz"
+    wmts = "wmts"
+    mvt = "mvt"
+
+
+class TableDataType(str, Enum):
+    """Table data types."""
+
+    csv = "csv"
+    xlsx = "xlsx"
+    json = "json"
+
+class Opportunity(BaseModel):
+    """Model to show the opportunity data sets."""
+
+    id: UUID = Field(..., description="Layer ID of the opportunity data sets")
+    name: str = Field(..., description="Opportunity name")
+    opportunity_type: OpportunityType = Field(..., description="Opportunity type")
+    query: Optional[str] = Field(None, description="Opportunity query to filter the data")
+
+
+################################################################################
+# Layer Base DTOs
+################################################################################
+
+
+class LayerUpdateBase(ContentUpdateBase):
+    """Base model for layer updates."""
+
+    group: Optional[str] = Field(None, description="Layer group name")
+    data_source_id: Optional[int] = Field(None, description="Data source")
+    data_reference_year: Optional[int] = Field(None, description="Data reference year")
+
+
+################################################################################
+# Feature Layer DTOs
+################################################################################
+
+class FeatureLayerReadBase(FeatureLayerBase):
+    id: UUID = Field(..., description="Layer UUID")
+
+
+class FeatureLayerUpdateBase(LayerUpdateBase, GeospatialAttributes):
+    """Base model for feature layer updates."""
+
+    style_id: Optional[UUID] = Field(None, description="Style ID of the layer")
+    size: Optional[int] = Field(None, description="Size of the layer in bytes")
+
+
+class LayerProjectAttributesBase(BaseModel):
+    """Base model for the additional attributes of layers in a project."""
+
+    active: bool = Field(
+        ...,
+        description="Layer is active or not in the project",
+    )
+    data_source_name: str = Field(
+        ...,
+        description="Data source name",
+    )
+
+
+class FeatureLayerProjectBase(FeatureLayerBase, LayerProjectAttributesBase):
+    """Model for feature layer that are in projects."""
+
+    id: UUID = Field(..., description="Layer UUID")
+    style_id: UUID = Field(
+        ...,
+        description="Style ID of the layer",
+    )
+    active_style_rule: List[bool] = Field(
+        ...,
+        description="Array with the active style rules for the respective style in the style",
+    )
+    query: Optional[str] = Field(None, description="Query to filter the layer data")
+
+
+# Feature Layer Standard
+class FeatureLayerStandardCreate(FeatureLayerBase):
+    pass
+
+
+class FeatureLayerStandardRead(FeatureLayerReadBase):
+    pass
+
+
+class FeatureLayerStandardUpdate(FeatureLayerUpdateBase):
+    pass
+
+
+class FeatureLayerStandardProject(FeatureLayerProjectBase):
+    pass
+
+
+# Feature Layer Indicator
+class FeatureLayerIndicatorAttributesBase(BaseModel):
+    """Base model for additional attributes feature layer indicator."""
+
+    indicator_type: IndicatorType = Field(..., description="Indicator type")
+    payload: dict = Field(..., description="Used Request payload to compute the indicator")
+    opportunities: Optional[List[UUID]] = Field(
+        None, description="Opportunity data sets that are used to intersect with the indicator"
+    )
+
+
+class FeatureLayerIndicatorCreate(FeatureLayerBase, FeatureLayerIndicatorAttributesBase):
+    """Model to create feature layer indicator."""
+
+    pass
+
+
+class FeatureLayerIndicatorRead(FeatureLayerReadBase, FeatureLayerIndicatorAttributesBase):
+    """Model to read a feature layer indicator."""
+
+    pass
+
+
+class FeatureLayerIndicatorUpdate(FeatureLayerUpdateBase):
+    """Model to update a feature layer indicator."""
+
+    payload: Optional[dict] = Field(
+        None, description="Used Request payload to compute the indicator"
+    )
+    opportunities: Optional[List[UUID]] = Field(
+        None, description="Opportunity data sets that are used to intersect with the indicator"
+    )
+
+
+class FeatureLayerIndicatorProject(FeatureLayerProjectBase, FeatureLayerIndicatorAttributesBase):
+    """Model for feature layer indicator in a project."""
+
+    pass
+
+
+# Feature Layer Opportunity
+class FeatureLayerOpportunityAttributesBase(BaseModel):
+    """Base model for feature layer opportunity."""
+
+    scenario_id: Optional[int] = Field(
+        None, description="Scenario ID if there is a scenario associated with this layer"
+    )
+
+
+class FeatureLayerOpportunityCreate(FeatureLayerBase, FeatureLayerOpportunityAttributesBase):
+    pass
+
+
+class FeatureLayerOpportunityRead(FeatureLayerReadBase, FeatureLayerOpportunityAttributesBase):
+    pass
+
+
+class FeatureLayerOpportunityUpdate(FeatureLayerUpdateBase, FeatureLayerOpportunityAttributesBase):
+    pass
+
+
+class FeatureLayerOpportunityProject(
+    FeatureLayerProjectBase, FeatureLayerOpportunityAttributesBase
+):
+    pass
+
+
+# Feature Layer Scenario
+class FeatureLayerScenarioAttributesBase(BaseModel):
+    """Base model for additional attributes feature layer scenario."""
+
+    scenario_id: int = Field(..., description="Scenario ID of the scenario layer.")
+    scenario_type: ScenarioType = Field(..., description="Scenario type")
+
+
+class FeatureLayerScenarioCreate(FeatureLayerBase, FeatureLayerScenarioAttributesBase):
+    """Model to create feature layer scenario."""
+
+    pass
+
+
+class FeatureLayerScenarioRead(FeatureLayerReadBase, FeatureLayerScenarioAttributesBase):
+    """Model to read a feature layer scenario."""
+
+    pass
+
+
+class FeatureLayerScenarioUpdate(FeatureLayerUpdateBase):
+    """Model to update a feature layer scenario."""
+
+    pass
+
+
+# Feature Layer Analysis Unit
+class FeatureLayerAnalysisUnitCreate(FeatureLayerBase):
+    pass
+
+
+class FeatureLayerAnalysisUnitRead(FeatureLayerReadBase):
+    pass
+
+
+class FeatureLayerAnalysisUnitUpdate(FeatureLayerUpdateBase):
+    pass
+
+
+class FeatureLayerAnalysisUnitProject(FeatureLayerProjectBase):
+    pass
+
+
+################################################################################
+# Imagery Layer DTOs
+################################################################################
+
+
+class ImageryLayerAttributesBase(BaseModel):
+    """Base model for additional attributes imagery layer."""
+
+    url: str = Field(..., description="Layer URL")
+    data_type: ImageryLayerDataType = Field(..., description="Content data type")
+    legend_urls: List[str] = Field(..., description="Layer legend URLs")
+
+
+class ImageryLayerCreate(LayerBase, GeospatialAttributes, ImageryLayerAttributesBase):
+    """Model to create a imagery layer."""
+
+    pass
+
+
+class ImageryLayerRead(LayerBase, GeospatialAttributes, ImageryLayerAttributesBase):
+    """Model to read a imagery layer."""
+
+    id: UUID = Field(..., description="Layer UUID")
+
+
+class ImageryLayerUpdate(LayerUpdateBase):
+    """Model to"""
+
+    url: Optional[str] = Field(None, description="Layer URL")
+    legend_urls: Optional[List[str]] = Field(None, description="Layer legend URLs")
+
+
+class ImageryLayerProject(LayerBase, ImageryLayerAttributesBase, LayerProjectAttributesBase):
+    """Model for imagery layer in a project."""
+
+    id: UUID = Field(..., description="Layer UUID")
+
+
+################################################################################
+# Tile Layer DTOs
+################################################################################
+
+
+class TileLayerAttributesBase(BaseModel):
+    """Base model for additional attributes tile layer."""
+
+    url: str = Field(..., description="Layer URL")
+    data_type: TileLayerDataType = Field(..., description="Content data type")
+
+
+class TileLayerCreate(LayerBase, GeospatialAttributes, TileLayerAttributesBase):
+    """Model to create a tile layer."""
+
+    pass
+
+
+class TileLayerRead(LayerBase, GeospatialAttributes, TileLayerAttributesBase):
+    """Model to read a tile layer."""
+
+    id: UUID = Field(..., description="Layer UUID")
+
+
+class TileLayerUpdate(LayerUpdateBase):
+    """Model to update a tile layer."""
+
+    url: Optional[str] = Field(None, description="Layer URL")
+
+
+class TileLayerProject(LayerBase, TileLayerAttributesBase, LayerProjectAttributesBase):
+    """Model for tile layer in a project."""
+
+    id: UUID = Field(..., description="Layer UUID")
+
+
+################################################################################
+# Table Layer DTOs
+################################################################################
+
+
+class TableLayerCreate(LayerBase):
+    pass
+
+
+class TableLayerRead(LayerBase):
+    id: UUID = Field(..., description="Layer UUID")
+
+
+class TableLayerUpdate(LayerUpdateBase):
+    pass
+
+
+class TableLayerProject(LayerBase, LayerProjectAttributesBase):
+    id: UUID = Field(..., description="Layer UUID")
