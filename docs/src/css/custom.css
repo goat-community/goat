@@ -6,10 +6,14 @@
 
 /* You can override the default Infima variables here. */
 :root {
+  --ifm-background-color:#ff0000;
   --ifm-color-primary: #2e8555;
+  --ifm-footer-background-color: #283648;
   --ifm-color-primary-dark: #29784c;
   --ifm-color-primary-darker: #277148;
   --ifm-color-primary-darkest: #205d3b;
+  --ifm-footer-link-color: #fff;
+  --ifm-footer-title-color: #fff;
   --ifm-color-primary-light: #33925d;
   --ifm-color-primary-lighter: #359962;
   --ifm-color-primary-lightest: #3cad6e;
@@ -18,13 +22,80 @@
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
+
+[data-theme='light'] {
+  --ifm-background-color: #F8F7F3;
+  --ifm-navbar-background-color: #F8F7F3;
+  --ifm-color-primary: #2BB381;
+  --ifm-color-secondary: #F8F7F3;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+
+html[data-theme='dark'] {
+  --ifm-background-color:#314157;
+  --ifm-footer-background-color: #283648;
+  --ifm-card-background-color: #283648;
+  --ifm-navbar-background-color: #283648;
+  --ifm-color-primary: #2BB381;
+  --ifm-color-secondary: #F8F7F3;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .menu {
+  background-color: #283648;
+}
+
+[data-theme='light'] .footer__copyright {
+  color: #F8F7F3;
+}
+
+.subscription_button {
+  background-color: #ffffff; 
+  cursor: pointer;
+  border: none; 
+  padding: 8px 22px; 
+  font-size: 15px; 
+  color: #283648;
+  transition: all 0.3s ease-in-out;
+  border-radius: 24px;
+}
+
+.subscription_button:hover {
+  background-color: #cacaca; 
+}
+
+.input_subscription {
+  padding: 12px;
+  width: 100%;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  background-color: transparent;
+  border: 1px solid #99a2af8a;
+  outline: none;
+  color: #99a2af8a;
+}
+
+[data-theme='light'] .menu-content, [data-theme='light'] .rygJf{
+  background-color: #F8F7F3;
+}
+
+/* [data-theme='light'] .cqVkUp, [data-theme='dark'] .cqVkUp {
+  padding: 0;
+} */
+ 
+[data-theme='light'] .fMZBAB, .cBEcqm{
+  background-color: #283648;
+} 
+
+[data-theme='dark'] .menu-content, [data-theme='dark'] .cMEczu{
+  background-color: #283648;
+}
+
+[data-theme='light'] .eKEMWz, [data-theme='dark'] .jOwgVr, [data-theme='dark'] .eDeKjd {
+  background-color: #283648;
+}
+
+html[data-theme='dark'] .navbar .navbar__logo {
+  content: url(https://assets.plan4better.de/img/logo/plan4better_white.svg)
 }
