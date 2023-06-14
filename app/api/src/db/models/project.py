@@ -10,6 +10,7 @@ from sqlmodel import (
 )
 from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
+from ._base_class import UUIDAutoBase
 
 if TYPE_CHECKING:
     from .report import Report
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
     from schemas.project import InitialViewState
 
 
-class Project(SQLModel, table=True):
+class Project(UUIDAutoBase, table=True):
     __tablename__ = "project"
     __table_args__ = {"schema": "customer"}
 

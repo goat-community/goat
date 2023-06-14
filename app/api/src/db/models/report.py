@@ -1,7 +1,6 @@
-from pydantic import Field
 from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Column, text, ForeignKey, Relationship, Text, SQLModel
+from sqlmodel import Column, text, ForeignKey, Relationship, Text, SQLModel, Field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -21,7 +20,7 @@ class ReportBase(SQLModel):
     report: dict = Field(sa_column=Column(JSONB), description="Report object in JSON Format")
 
 
-class Report(ReportBase):
+class Report(ReportBase, table=True):
     __tablename__ = "report"
     __table_args__ = {"schema": "customer"}
 

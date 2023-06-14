@@ -1,7 +1,6 @@
-from pydantic import Field
 from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Column, text, ForeignKey, Text, Relationship, SQLModel
+from sqlmodel import Column, ForeignKey, Text, Relationship, SQLModel, Field
 from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -17,7 +16,7 @@ class StyleBase(SQLModel):
     )
 
 
-class Style(StyleBase):
+class Style(StyleBase, table=True):
     __tablename__ = "style"
     __table_args__ = {"schema": "customer"}
 
