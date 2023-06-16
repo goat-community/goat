@@ -26,8 +26,10 @@ import axios from "axios";
 import store from "../store";
 
 /**
+ *
  * Factory, which creates OpenLayers layer instances according to a given config
  * object.
+ *
  */
 
 function addHeatmapToMap(response, lConf, source) {
