@@ -22,7 +22,13 @@ const SubscriptionStatusCard = (props: SubscriptionStatusCardProps) => {
     <>
       <Card width="100%" className={classes.settingSection} noHover={true}>
         <div className={classes.headerSection}>
-          <Icon iconId={sectionData.icon} wrapped="circle" size="large" className={classes.icon} />{" "}
+          <Icon
+            iconId={sectionData.icon}
+            size="medium"
+            bgVariant="focus"
+            iconVariant="focus"
+            wrapped="circle"
+          />
           <Text typo="body 1" className={classes.title}>
             {sectionData.title}
           </Text>

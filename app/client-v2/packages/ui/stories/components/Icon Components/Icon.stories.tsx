@@ -8,22 +8,38 @@ const meta: Meta<typeof Icon> = {
   tags: ["autodocs"],
   argTypes: {
     iconId: {
-      options: ["help", "home"],
-      control: { type: "radio" },
+      options: ["help", "home", "coorperate", "powerOff", "rocketLaunch", "run", "bus", "file"],
+      control: {
+        type: "select",
+      },
+    },
+    wrapped: {
+      options: ["circle", "square"],
+      control: {
+        type: "select",
+      },
     },
     className: {
       control: false,
     },
     size: {
-      options: ["extra small", "small", "medium", "large", "default"],
+      options: ["small", "default", "extra small", "medium", "large"],
       control: {
         type: "select",
       },
     },
-  },
-  args: {
-    iconId: "help",
-    size: "medium",
+    bgVariant: {
+      options: ["focus", "secondary", "gray"],
+      control: {
+        type: "select",
+      },
+    },
+    iconVariant: {
+      options: ["white", "secondary", "focus"],
+      control: {
+        type: "select",
+      },
+    },
   },
   decorators: [
     (Story) => (

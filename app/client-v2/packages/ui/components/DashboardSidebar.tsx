@@ -7,10 +7,11 @@ export type DashboardSidebarProps = {
   items: { link: string; icon: () => JSX.Element; placeholder: string }[];
   width: number;
   extended_width: number;
+  children: React.ReactNode;
 };
 
 export function DashboardSidebar(props: DashboardSidebarProps) {
-  const { items } = props;
+  const { items, children } = props;
   const { classes, cx } = useStyles(props)();
 
   const [hover, setHover] = useState(false);
@@ -20,26 +21,29 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
   };
 
   return (
-    <nav className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
-      <List>
-        {items?.map(({ link, icon, placeholder }) => (
-          <ListItem disablePadding key={link}>
-            <ListItemButton>
-              <ListItemIcon>{icon()}</ListItemIcon>
-              {hover ? (
-                <Fade in={true}>
-                  <Typography variant="subtitle1" color="textSecondary" marginLeft={-2.5}>
-                    {placeholder}
-                  </Typography>
-                </Fade>
-              ) : (
-                <></>
-              )}
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </nav>
+    <>
+      <nav className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
+        <List>
+          {items?.map(({ link, icon, placeholder }, indx) => (
+            <ListItem disablePadding key={indx}>
+              <ListItemButton>
+                <ListItemIcon>{icon()}</ListItemIcon>
+                {hover ? (
+                  <Fade in={true}>
+                    <Typography variant="subtitle1" color="textSecondary" marginLeft={-2.5}>
+                      {placeholder}
+                    </Typography>
+                  </Fade>
+                ) : (
+                  <></>
+                )}
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </nav>
+      {children}
+    </>
   );
 }
 

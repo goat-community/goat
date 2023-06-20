@@ -13,7 +13,7 @@ export type BannerProps = {
 };
 
 const Banner = memo(
-  forwardRef<any, BannerProps>((props) => {
+  forwardRef<any, BannerProps>((props, ref) => {
     const {
       className,
       children,

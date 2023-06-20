@@ -32,10 +32,26 @@ type Story = StoryObj<typeof DashboardSidebar>;
 export const Default: Story = {
   args: {
     items: [
-      { link: "https://google.com", icon: () => <Icon iconId="home" />, placeholder: "Home" },
-      { link: "https://google.com", icon: () => <Icon iconId="folder" />, placeholder: "Content" },
-      { link: "https://google.com", icon: () => <Icon iconId="settings" />, placeholder: "Settings" },
-      { link: "https://google.com", icon: () => <Icon iconId="help" />, placeholder: "Help" },
+      {
+        link: "https://google.com",
+        icon: () => <Icon iconId="home" iconVariant="gray" />,
+        placeholder: "Home",
+      },
+      {
+        link: "https://google.com",
+        icon: () => <Icon iconId="folder" iconVariant="gray" />,
+        placeholder: "Content",
+      },
+      {
+        link: "https://google.com",
+        icon: () => <Icon iconId="settings" iconVariant="gray" />,
+        placeholder: "Settings",
+      },
+      {
+        link: "https://google.com",
+        icon: () => <Icon iconId="help" iconVariant="gray" />,
+        placeholder: "Help",
+      },
     ],
     width: 60,
     extended_width: 200,

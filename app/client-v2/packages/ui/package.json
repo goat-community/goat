@@ -17,6 +17,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.13.0",
+    "@mui/x-data-grid": "^6.7.0",
     "color": "^4.2.3",
     "config": "^3.3.9",
     "evt": "^2.4.15",

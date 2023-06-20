@@ -4,11 +4,12 @@ import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 
 import { makeStyles } from "../../lib/ThemeProvider";
-import { Icon } from "../Icon/IconBase";
 import { ChipList } from "../Lists/ChipList";
 import { Text } from "../Text/TextBase";
+import { Icon } from "../theme";
+import type { IconId } from "../theme";
 
-export type CardContentProps<IconId extends string> = {
+export type CardContentProps = {
   className?: string;
   title: string;
   description?: string;
@@ -21,7 +22,7 @@ export type CardContentProps<IconId extends string> = {
 };
 
 export const CardContent = memo(
-  forwardRef<any, CardContentProps<"home" | "help" | "file">>((props) => {
+  forwardRef<any, CardContentProps>((props, ref) => {
     const {
       className,
       title,
@@ -48,9 +49,9 @@ export const CardContent = memo(
         ) : null}
         <div className={classes.iconTitle}>
           {icon ? (
-            <div className={classes.icon}>
-              <Icon className={classes.iconSize} iconId={icon} />
-            </div>
+            <span className={classes.icon}>
+              <Icon iconId={icon} wrapped="circle" size="default" bgVariant="focus" iconVariant="focus" />
+            </span>
           ) : null}
           <Text typo="body 1">{title}</Text>
         </div>
@@ -67,10 +68,10 @@ export const CardContent = memo(
 
 const useStyles = makeStyles({ name: { CardContent } })((theme) => ({
   icon: {
-    padding: "5px 7px",
-    background: theme.colors.useCases.surfaces.background,
-    width: "fit-content",
-    borderRadius: 4,
+    // padding: "5px 7px",
+    // background: theme.colors.useCases.surfaces.background,
+    // width: "fit-content",
+    // borderRadius: 4,
     marginRight: "8px",
   },
   iconTitle: {

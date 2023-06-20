@@ -114,7 +114,7 @@ export function createText<TypographyVariantNameCustom extends string = never>(p
                 overflow: "hidden",
                 userSelect: "none",
                 pointerEvents: "none",
-                fontWeight: fixedSize_fontWeight,
+                fontWeight: `${fixedSize_fontWeight}`,
                 "@media speech": {
                   display: "none",
                 },

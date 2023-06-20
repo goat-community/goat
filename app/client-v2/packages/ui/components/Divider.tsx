@@ -12,7 +12,7 @@ export type DividerProps = {
 };
 
 export const Divider = memo(
-  forwardRef<any, DividerProps>((props) => {
+  forwardRef<any, DividerProps>((props, ref) => {
     const {
       className,
       width,

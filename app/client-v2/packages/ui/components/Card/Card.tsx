@@ -53,7 +53,6 @@ export const Card = memo(
 
       // Combine the opacity hex value with the original hex color
       const blendedHexColor = `#${normalizedHexColor}${opacityHex}`;
-      console.log(blendedHexColor);
       return blendedHexColor;
     }
 

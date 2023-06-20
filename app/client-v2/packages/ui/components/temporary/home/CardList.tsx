@@ -37,8 +37,6 @@ export interface CardListProps {
 const CardList = (props: CardListProps) => {
   const { title, buttons, cards } = props;
 
-  console.log(buttons);
-
   const { classes, cx } = useStyles();
 
   return (

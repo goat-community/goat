@@ -26,9 +26,11 @@ const meta: Meta<typeof TextField> = {
 export default meta;
 type Story = StoryObj<typeof TextField>;
 
-export const Primary: Story = {
+export const Small: Story = {
   args: {
     // color: "primary",
+    size: "small",
+    label: "Small",
   },
   parameters: {
     design: {
@@ -41,6 +43,8 @@ export const Primary: Story = {
 export const Secondary: Story = {
   args: {
     // color: "textPrimary",
+    size: "medium",
+    label: "medium",
   },
   parameters: {
     design: {

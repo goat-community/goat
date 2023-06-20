@@ -38,6 +38,7 @@ export type TextFieldProps = {
   name?: string;
   /** Default text */
   type?: "text" | "password" | "email";
+  size?: "small" | "medium";
   /** Will overwrite value when updated */
   defaultValue?: string;
   inputProps_ref?: RefObject<HTMLInputElement>;
@@ -169,6 +170,7 @@ export const TextField = memo((props: TextFieldProps) => {
     onEnterKeyDown,
     className,
     type = "text",
+    size = "medium",
     isCircularProgressShown = false,
     helperText,
     id: htmlId,
@@ -392,6 +394,7 @@ export const TextField = memo((props: TextFieldProps) => {
       error={hasError}
       helperText={helperTextNode}
       InputProps={InputProps}
+      size={size}
       onBlur={onMuiTextfieldBlur}
       onChange={onChange}
       onKeyDown={onKeyDown}

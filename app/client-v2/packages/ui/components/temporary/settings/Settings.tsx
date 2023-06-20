@@ -10,8 +10,8 @@ import SubscriptionSettings from "./subscription/SubscriptionSettings";
 
 const Settings = () => {
   const [currentSetting, setCurrentSetting] = useState<{ children: React.ReactNode; value: string }>({
-    children: <SubscriptionSettings />,
-    value: "Subscription",
+    children: <Organization />,
+    value: "Organization",
   });
 
   const { classes, cx } = useStyles();
@@ -103,6 +103,9 @@ const useStyles = makeStyles({ name: { Settings } })((theme) => ({
   },
   sideBarSection: {
     minWidth: "268px",
+    "@media (max-width: 1268px)": {
+      minWidth: "168px",
+    },
   },
 }));
 
