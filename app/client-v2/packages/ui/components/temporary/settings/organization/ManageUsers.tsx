@@ -203,8 +203,9 @@ const ManageUsers = () => {
                   Send an invitation via email <br /> The receiver will get a link with 72 hours of expiration
                 </Text>
                 <div className={classes.formInputs}>
-                  <TextField type="email" label="Email address" />
+                  <TextField size="small" type="email" label="Email address" />
                   <SelectField
+                    size="small"
                     defaultValue="editor"
                     label="Permission"
                     options={[
@@ -364,7 +365,7 @@ const useStyles = makeStyles({ name: { ManageUsers } })((theme) => ({
     marginBottom: theme.spacing(5),
   },
   userDataContainer: {
-    border: `1px solid ${theme.colors.palette.light.greyVariant1}`,
+    border: `1px solid ${theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant1}`,
     padding: theme.spacing(3),
     borderRadius: 4,
   },

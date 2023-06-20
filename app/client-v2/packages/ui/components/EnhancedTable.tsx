@@ -113,6 +113,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
             </TableSortLabel>
           </TableCell>
         ))}
+        <TableCell className={classes.tableCell} padding="checkbox" />
       </TableRow>
     </TableHead>
   );
@@ -250,7 +251,7 @@ export default function EnhancedTable(props: EnhanceTableProps) {
                     selected={isItemSelected}
                     sx={{ cursor: "pointer" }}>
                     {checkbox ? (
-                      <TableCell padding="checkbox">
+                      <TableCell className={classes.tableCell} padding="checkbox">
                         <Checkbox
                           color="primary"
                           onClick={(event) => handleClick(event, row.name)}
@@ -263,14 +264,20 @@ export default function EnhancedTable(props: EnhanceTableProps) {
                     ) : null}
                     {rowKeys &&
                       rowKeys.map((key, index) => (
-                        <TableCell key={index} component="th" id={labelId} scope="row" padding="none">
+                        <TableCell
+                          className={classes.tableCell}
+                          key={index}
+                          component="th"
+                          id={labelId}
+                          scope="row"
+                          padding="none">
                           <Text className={classes.tableCellText} typo="body 2">
                             {row[key]}
                           </Text>
                         </TableCell>
                       ))}
                     {more ? (
-                      <TableCell padding="none">
+                      <TableCell className={classes.tableCell} padding="none">
                         <IconButton
                           onClick={(e) => openDialogInitializer(e, index)}
                           iconId="moreVert"
@@ -326,6 +333,7 @@ const useStyles = makeStyles({
   name: { EnhancedTable },
 })((theme) => ({
   tableRow: {
+    border: "none",
     backgroundColor: "transparent",
     "&:nth-of-type": {},
     "&:nth-of-type(odd)": {
@@ -342,15 +350,18 @@ const useStyles = makeStyles({
       backgroundColor: "transparent",
       color: theme.colors.useCases.typography[theme.isDarkModeEnabled ? "textSecondary" : "textPrimary"],
       fontWeight: "bold",
-      borderBottom: `0.5px solid ${theme.colors.palette.light.greyVariant1}`,
+      borderBottom: `0.5px solid ${
+        theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant1
+      }`,
     },
     [`&.${tableCellClasses.body}`]: {
       fontSize: 14,
-      borderColor: theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main,
+      border: "none",
     },
   },
   tableContainer: {
     boxShadow: "none",
+    backgroundImage: "none",
     backgroundColor: "transparent",
   },
   tableCellText: {

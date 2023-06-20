@@ -88,7 +88,7 @@ const Table = memo(
           <TableBody>
             {rows.map((row, indx) => (
               <TableRow className={classes.tableRow} key={indx}>
-                <TableCell padding="checkbox">
+                <TableCell className={classes.tableCell} padding="checkbox">
                   <Checkbox color="primary" defaultChecked />
                 </TableCell>
                 {/* { Object.keys(currObj).map((k)=>(
@@ -101,7 +101,7 @@ const Table = memo(
                     </TableCell>
                   ))}
 
-                <TableCell padding="none">
+                <TableCell className={classes.tableCell} padding="none">
                   <IconButton
                     ref={iconButtonRefs[indx]}
                     onClick={(e) => openDialogInitializer(e, indx)}
@@ -119,7 +119,6 @@ const Table = memo(
             ref={dialogRef}
             anchorEl={anchorEl}
             onClick={closeTablePopover}
-            className={classes.customDialog}
             title={dialog ? dialog.title : "unknown"}
             width="444px"
             direction="right"
@@ -135,11 +134,8 @@ const Table = memo(
 const useStyles = makeStyles<{ left: boolean | string; top: boolean | string }>({
   name: { Table },
 })((theme, { left, top }) => ({
-  customDialog: {
-    top: `${top ? top : "0"}`,
-    left: `${left ? left : "0"}`,
-  },
   tableRow: {
+    border: "none",
     backgroundColor: "transparent",
     "&:nth-of-type": {},
     "&:nth-of-type(odd)": {
@@ -156,15 +152,23 @@ const useStyles = makeStyles<{ left: boolean | string; top: boolean | string }>(
       backgroundColor: "transparent",
       color: theme.colors.useCases.typography[theme.isDarkModeEnabled ? "textSecondary" : "textPrimary"],
       fontWeight: "bold",
-      borderBottom: `0.5px solid ${theme.colors.palette.light.greyVariant1}`,
+      borderBottom: `0.5px solid ${
+        theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant1
+      }`,
     },
     [`&.${tableCellClasses.body}`]: {
       fontSize: 14,
-      borderColor: theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main,
+      border: "none",
     },
   },
   tableContainer: {
     boxShadow: "none",
+    backgroundImage: "none",
+    backgroundColor: "transparent",
+  },
+  tableCellText: {
+    padding: theme.spacing(3),
+    fontSize: "12px",
   },
 }));
 
