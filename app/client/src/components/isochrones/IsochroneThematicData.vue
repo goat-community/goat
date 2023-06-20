@@ -422,7 +422,7 @@ export default {
           if (keys.length > 0) {
             let sumPois = {};
             keys.forEach(poiKey => {
-              sumPois[poiKey] = pois[poiKey][selectedTime - 1];
+              sumPois[poiKey] = pois[poiKey][selectedTime];
             });
             if (sumPois) {
               //Loop through  amenities
@@ -607,7 +607,7 @@ export default {
         // Update new calculation
         this.updateIsochroneSurface(newSelection[newSelection.length - 1]);
       }
-      
+
       if (this.selectedCalculations[0].type == "multiple") {
         this.resultViewType = 0;
       }
@@ -625,9 +625,11 @@ export default {
 .toolbar-icons:hover {
   cursor: pointer;
 }
+
 .thematic-data {
   transition: height 0.1s linear;
 }
+
 .colorPalettePicker {
   width: 50px;
   border-radius: 0px;
