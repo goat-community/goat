@@ -340,7 +340,7 @@ export default {
               headers: {
                 "Content-Type": "application/json"
               },
-              traveltime: this.calculationTravelTime[calculation.id - 1] // this is needed on Promise.all to get the correct traveltime
+              traveltime // this is needed on Promise.all to get the correct traveltime
             }
           )
         );
