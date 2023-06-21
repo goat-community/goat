@@ -31,8 +31,9 @@ export default {
     },
     renderLineChart: function() {
       const calculation_ = this.selectedCalculations[0];
-      let labels = calculation_.config.settings.travel_time;
+      let labels = calculation_.config.settings.travel_time + 1;
       labels = [...Array(labels).keys()];
+      labels.shift();
       if (calculation_.routing === "buffer") {
         labels = labels.map(label => label * 50);
       }

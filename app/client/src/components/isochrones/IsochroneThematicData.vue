@@ -159,7 +159,12 @@
               <v-btn small :disabled="selectedPoisOnlyKeys.length < 1">
                 <v-icon small>fa-solid fa-location-dot</v-icon>
               </v-btn>
-              <v-btn small :disabled="selectedAoisOnlyKeys.length < 1">
+              <v-btn
+                small
+                :disabled="
+                  selectedAoisOnlyKeys.length < 1 || resultViewType === 2
+                "
+              >
                 <i
                   class="v-icon notranslate fa-brands fa-square-pied-piper theme--light"
                   style="font-size: 16px;"
@@ -199,13 +204,13 @@ import { mapGetters, mapMutations } from "vuex";
 import IsochroneUtils from "../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
 import { mapFields } from "vuex-map-fields";
-import { featuresToGeojson } from "../../utils/MapUtils";
+// import { featuresToGeojson } from "../../utils/MapUtils";
 import IsochroneAmenitiesLineChart from "../other/IsochroneAmenitiesLineChart.vue";
 import IsochroneAmenitiesPieChart from "../other/IsochroneAmenitiesPieChart.vue";
 import IsochroneAmenitiesRadarChartVue from "../other/IsochroneAmenitiesRadarChart.vue";
 import { saveAs } from "file-saver";
 import { debounce, numberSeparator } from "../../utils/Helpers";
-import ApiService from "../../services/api.service";
+import axios from "axios";
 import JSZip from "jszip";
 import {
   calculateCalculationsLength,
@@ -277,7 +282,22 @@ export default {
     downloadIsochrone(type) {
       const promiseArray = [];
       this.selectedCalculations.forEach(calculation => {
+        switch (type) {
+          case "GeoJSON":
+            type = "geojson";
+            break;
+          case "ESRI Shapefile":
+            type = "shapefile";
+            break;
+          case "XLSX":
+            type = "xlsx";
+            break;
+          default:
+            break;
+        }
         const feature = calculation.feature.clone();
+        const taskId = calculation.taskId;
+        const axiosInstance = axios.create();
         const reached_opportunities = {};
         const accessibility =
           calculation.surfaceData.accessibility["opportunities"];
@@ -306,21 +326,21 @@ export default {
           reached_opportunities
         };
         feature.setProperties(properties);
-        const geojsonPayload = featuresToGeojson(
-          [feature],
-          "EPSG:3857",
-          "EPSG:4326"
-        );
+        // const geojsonPayload = featuresToGeojson(
+        //   [feature],
+        //   "EPSG:3857",
+        //   "EPSG:4326"
+        // );
         promiseArray.push(
-          ApiService.post(
-            `/indicators/isochrone/export?return_type=${type}`,
-            geojsonPayload,
+          axiosInstance.get(
+            `./indicators/result/${taskId}?return_type=${type}`,
+            // geojsonPayload,
             {
               responseType: "blob",
               headers: {
                 "Content-Type": "application/json"
               },
-              traveltime // this is needed on Promise.all to get the correct traveltime
+              traveltime: this.calculationTravelTime[calculation.id - 1] // this is needed on Promise.all to get the correct traveltime
             }
           )
         );
@@ -422,7 +442,7 @@ export default {
           if (keys.length > 0) {
             let sumPois = {};
             keys.forEach(poiKey => {
-              sumPois[poiKey] = pois[poiKey][selectedTime];
+              sumPois[poiKey] = pois[poiKey][selectedTime - 1];
             });
             if (sumPois) {
               //Loop through  amenities
