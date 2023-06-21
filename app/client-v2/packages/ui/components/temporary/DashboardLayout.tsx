@@ -2,7 +2,6 @@ import React from "react";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 import { DashboardSidebar } from "../DashboardSidebar";
-import { Icon } from "../theme";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -14,22 +13,22 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const sidebarItems = [
     {
       link: "https://google.com",
-      icon: () => <Icon iconId="home" iconVariant="gray" />,
+      icon: "home",
       placeholder: "Home",
     },
     {
       link: "https://google.com",
-      icon: () => <Icon iconId="folder" iconVariant="gray" />,
+      icon: "folder",
       placeholder: "Content",
     },
     {
       link: "https://google.com",
-      icon: () => <Icon iconId="settings" iconVariant="gray" />,
+      icon: "settings",
       placeholder: "Settings",
     },
     {
       link: "https://google.com",
-      icon: () => <Icon iconId="help" iconVariant="gray" />,
+      icon: "help",
       placeholder: "Help",
     },
   ];
