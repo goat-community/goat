@@ -1111,12 +1111,6 @@ def convert_geojson_to_others_ogr2ogr(
             "format_name": "KML",
             "extra_options": "-mapFieldType Integer64=Real",
         },
-        # "geobuf": {"output_suffix": "pbf", "format_name": "Geobuf"},
-        # "xlsx": {
-        #     "output_suffix": "xlsx",
-        #     "format_name": "XLSX",
-        #     "extra_options": "-lco GEOMETRY=AS_WKT",
-        # },
     }
     if output_format == "xlsx":
         convert_format = "csv"
