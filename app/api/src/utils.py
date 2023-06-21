@@ -1111,7 +1111,7 @@ def convert_geojson_to_others_ogr2ogr(
             "format_name": "KML",
             "extra_options": "-mapFieldType Integer64=Real",
         },
-        "geobuf": {"output_suffix": "fgb", "format_name": "FlatGeobuf"},
+        # "geobuf": {"output_suffix": "pbf", "format_name": "Geobuf"},
         # "xlsx": {
         #     "output_suffix": "xlsx",
         #     "format_name": "XLSX",
@@ -1193,6 +1193,14 @@ def read_results(results, return_type=None):
             data,
             media_type="application/octet-stream",
             headers={"Content-Disposition": "attachment; filename=grid.bin"},
+        )
+        
+    elif return_type == "geobuf":
+        data = geobuf.encode(data["geojson"])
+        return Response(
+            data,
+            media_type=MimeTypes.geobuf.value,
+            headers={"Content-Disposition": f"attachment; filename={results['data_source']}.pbf"},
         )
 
     else:
