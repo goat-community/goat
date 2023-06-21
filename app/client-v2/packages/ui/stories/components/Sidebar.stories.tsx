@@ -1,19 +1,7 @@
-import FolderIcon from "@mui/icons-material/Folder";
-import HelpIcon from "@mui/icons-material/Help";
-import HomeIcon from "@mui/icons-material/Home";
-import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { DashboardSidebar } from "../../components/DashboardSidebar";
-import { createIcon } from "../../components/Icon";
 import { ThemeProvider } from "../theme";
-
-const { Icon } = createIcon({
-  help: HelpIcon,
-  home: HomeIcon,
-  settings: SettingsSuggestIcon,
-  folder: FolderIcon,
-});
 
 const meta: Meta<typeof DashboardSidebar> = {
   component: DashboardSidebar,
@@ -34,22 +22,22 @@ export const Default: Story = {
     items: [
       {
         link: "https://google.com",
-        icon: () => <Icon iconId="home" iconVariant="gray" />,
+        icon: "home",
         placeholder: "Home",
       },
       {
         link: "https://google.com",
-        icon: () => <Icon iconId="folder" iconVariant="gray" />,
+        icon: "folder",
         placeholder: "Content",
       },
       {
         link: "https://google.com",
-        icon: () => <Icon iconId="settings" iconVariant="gray" />,
+        icon: "settingsSuggested",
         placeholder: "Settings",
       },
       {
         link: "https://google.com",
-        icon: () => <Icon iconId="help" iconVariant="gray" />,
+        icon: "help",
         placeholder: "Help",
       },
     ],

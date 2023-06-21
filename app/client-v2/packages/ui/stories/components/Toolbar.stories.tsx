@@ -1,5 +1,5 @@
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import InfoIcon from "@mui/icons-material/Info";
+import ForwardIcon from "@mui/icons-material/Forward";
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { createIcon } from "../../components/Icon/Icon";
@@ -7,7 +7,7 @@ import { Toolbar } from "../../components/Toolbar";
 import { ThemeProvider } from "../theme";
 
 const { Icon } = createIcon({
-  info: InfoIcon,
+  info: ForwardIcon,
   profile: AccountCircleIcon,
 });
 
@@ -28,8 +28,8 @@ type Story = StoryObj<typeof Toolbar>;
 export const Default: Story = {
   args: {
     items: [
-      { link: "https://google.com", icon: () => <Icon iconId="profile" /> },
-      { link: "https://google.com", icon: () => <Icon iconId="info" /> },
+      { link: "https://google.com", icon: () => <Icon iconId="profile" size="medium" iconVariant="gray2" /> },
+      { link: "https://google.com", icon: () => <Icon iconId="info" size="medium" iconVariant="gray2" /> },
     ],
     height: 52,
   },

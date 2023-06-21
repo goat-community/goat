@@ -15,7 +15,9 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PersonIcon from "@mui/icons-material/Person";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
+import SearchIcon from "@mui/icons-material/Search";
 import SettingsIcon from "@mui/icons-material/Settings";
+import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import type { Param0 } from "tsafe";
 
 import "../assets/fonts/mulish/font.css";
@@ -56,6 +58,8 @@ export const { Icon } = createIcon({
   warnOutlined: ErrorOutlineIcon,
   check: CheckCircleIcon,
   email: EmailIcon,
+  search: SearchIcon,
+  settingsSuggested: SettingsSuggestIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];

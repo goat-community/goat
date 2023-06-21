@@ -44,7 +44,7 @@ export type IconProps<IconId extends string = string> = {
   size?: IconSizeName;
   bgVariant?: "focus" | "secondary" | "gray" | "gray2";
   bgOpacity?: number;
-  iconVariant?: "white" | "secondary" | "focus" | "gray";
+  iconVariant?: "white" | "secondary" | "focus" | "gray" | "gray2";
   onClick?: MouseEventHandler<SVGSVGElement>;
 };
 
@@ -84,6 +84,8 @@ function getBgColor(key: "focus" | "secondary" | "gray" | "white" | "gray2", the
       return theme.colors.palette.light.greyVariant4;
     case "gray2":
       return theme.colors.palette.light.greyVariant2;
+    case "white":
+      return theme.colors.palette.light.main;
     default:
       return "light";
   }
@@ -96,7 +98,7 @@ export function createIcon<IconId extends string>(componentByIconId: {
     size: IconSizeName;
     wrapped: "circle" | "square" | undefined;
     bgVariant: "focus" | "secondary" | "gray" | "gray2";
-    iconVariant: "white" | "secondary" | "focus" | "gray";
+    iconVariant: "white" | "secondary" | "focus" | "gray" | "gray2";
     bgOpacity: number;
   }>()((theme, { size, wrapped, bgVariant, iconVariant, bgOpacity }) => ({
     root: {

@@ -53,3 +53,18 @@ export const Secondary: Story = {
     },
   },
 };
+
+export const InputWithSearch: Story = {
+  args: {
+    // color: "textPrimary",
+    size: "small",
+    iconId: "search",
+    filled: true,
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6570-48313&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
+};
