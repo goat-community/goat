@@ -50,10 +50,36 @@
                     @change="toggleLayerVisibility(layer)"
                   ></v-checkbox>
                 </v-flex>
-                <v-flex xs9 class="light-text">
+                <v-flex xs8 class="light-text">
                   <h4 class="pl-2">
                     {{ translate("layerName", layer.get("name")) }}
                   </h4>
+                </v-flex>
+                <v-flex xs2 class="light-text">
+                  <v-menu offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn
+                        :disabled="!layer.getVisible()"
+                        fab
+                        icon
+                        class="elevation-0"
+                        v-on="on"
+                        v-bind="attrs"
+                        small
+                      >
+                        <v-icon small>fa-solid fa-download</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item
+                        v-for="(type, index) in downloadTypes"
+                        @click="downloadIndicator(type, layer)"
+                        :key="index"
+                      >
+                        <v-list-item-title>{{ type }}</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
                 </v-flex>
                 <v-flex xs1>
                   <v-icon
@@ -182,6 +208,8 @@ import InLegend from "../viewer/ol/controls/InLegend.vue";
 import ApiService from "../../services/api.service";
 import { GET_USER_CUSTOM_DATA } from "../../store/actions.type";
 import DocumentationDialog from "../other/DocumentationDialog.vue";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 export default {
   mixins: [Mapable, Legend, LayerTree],
   components: {
@@ -207,7 +235,16 @@ export default {
     styleDialogStatus: false,
     timePickerDialogStatus: false,
     showDocumentationDialog: false,
-    selectedDocumentationLayer: null
+    selectedDocumentationLayer: null,
+    downloadTypes: [
+      "GeoJson",
+      "CSV",
+      "Geobuf",
+      "Shapefile",
+      "GeoPackage",
+      "KML",
+      "XLSX"
+    ]
   }),
   mounted() {
     EventBus.$on("updateStyleDialogStatusForLayerOrder", value => {
@@ -235,6 +272,9 @@ export default {
     }),
     ...mapFields("app", {
       isRecomputingIndicator: "isRecomputingIndicator"
+    }),
+    ...mapFields("indicators", {
+      active_indicator_taskId: "active_indicator_taskId"
     })
   },
   methods: {
@@ -434,6 +474,36 @@ export default {
     openDocumentation(layer) {
       this.showDocumentationDialog = true;
       this.selectedDocumentationLayer = layer;
+    },
+    downloadIndicator(type, layer) {
+      const baseUrl_ = "indicators";
+      const requestUrl = `${baseUrl_}/result/${
+        this.active_indicator_taskId
+      }?return_type=${type.toLowerCase()}`;
+
+      let promise = ApiService.get_(requestUrl, {
+        responseType: "blob",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      promise
+        .then(data => {
+          const zip = new JSZip();
+          zip.file(
+            `indicator-export_${layer.get("name")}.${type.toLowerCase()}`,
+            data.data
+          );
+
+          zip.generateAsync({ type: "blob" }).then(function(content) {
+            // Save the zip file
+            saveAs(content, `indicator-export_${layer.get("name")}.zip`);
+          });
+        })
+        .catch(err => {
+          console.log(err);
+        });
     }
   },
   watch: {

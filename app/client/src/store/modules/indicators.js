@@ -1,6 +1,7 @@
 import { getField, updateField } from "vuex-map-fields";
 
 const state = {
+  active_indicator_taskId: null,
   pt_oev_gueteklasse: {
     config: {
       groups: {
