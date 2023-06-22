@@ -50,16 +50,18 @@
                     @change="toggleLayerVisibility(layer)"
                   ></v-checkbox>
                 </v-flex>
-                <v-flex xs8 class="light-text">
+                <v-flex xs7 class="light-text">
                   <h4 class="pl-2">
                     {{ translate("layerName", layer.get("name")) }}
                   </h4>
                 </v-flex>
-                <v-flex xs2 class="light-text">
+                <v-row xs2 class="light-text pr-2 justify-end">
                   <v-menu offset-y>
                     <template v-slot:activator="{ on, attrs }">
                       <v-btn
-                        :disabled="!layer.getVisible()"
+                        :disabled="
+                          !layer.getVisible() || !active_indicator_taskId
+                        "
                         fab
                         icon
                         class="elevation-0"
@@ -80,7 +82,7 @@
                       </v-list-item>
                     </v-list>
                   </v-menu>
-                </v-flex>
+                </v-row>
                 <v-flex xs1>
                   <v-icon
                     v-show="layer.getVisible()"
