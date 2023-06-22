@@ -26,9 +26,11 @@ const meta: Meta<typeof TextField> = {
 export default meta;
 type Story = StoryObj<typeof TextField>;
 
-export const Primary: Story = {
+export const Small: Story = {
   args: {
     // color: "primary",
+    size: "small",
+    label: "Small",
   },
   parameters: {
     design: {
@@ -41,6 +43,23 @@ export const Primary: Story = {
 export const Secondary: Story = {
   args: {
     // color: "textPrimary",
+    size: "medium",
+    label: "medium",
+  },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6570-48313&t=m1TtlHDKRmJk5wCK-0",
+    },
+  },
+};
+
+export const InputWithSearch: Story = {
+  args: {
+    // color: "textPrimary",
+    size: "small",
+    iconId: "search",
+    filled: true,
   },
   parameters: {
     design: {

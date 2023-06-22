@@ -12,7 +12,7 @@ export type CardMediaProps = {
 };
 
 export const CardMedia = memo(
-  forwardRef<any, CardMediaProps>((props) => {
+  forwardRef<HTMLElement, CardMediaProps>((props, ref) => {
     const {
       src,
       alt,

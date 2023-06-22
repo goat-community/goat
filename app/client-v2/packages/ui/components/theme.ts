@@ -1,10 +1,23 @@
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CloseIcon from "@mui/icons-material/Close";
 import CorporateFareIcon from "@mui/icons-material/CorporateFare";
 import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
+import EmailIcon from "@mui/icons-material/Email";
+import ErrorIcon from "@mui/icons-material/Error";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import FolderIcon from "@mui/icons-material/Folder";
 import HelpIcon from "@mui/icons-material/Help";
 import HomeIcon from "@mui/icons-material/Home";
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import PersonIcon from "@mui/icons-material/Person";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
+import SearchIcon from "@mui/icons-material/Search";
+import SettingsIcon from "@mui/icons-material/Settings";
+import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import type { Param0 } from "tsafe";
 
 import "../assets/fonts/mulish/font.css";
@@ -22,7 +35,7 @@ export const { ThemeProvider, StoryProvider, useTheme } = createThemeProvider({
       browserFontSizeFactor,
       windowInnerHeight,
     }),
-    fontFamily: '"Mulish", sans-serif',
+    fontFamily: "'Mulish', sans-serif",
   }),
 });
 
@@ -34,6 +47,19 @@ export const { Icon } = createIcon({
   rocketLaunch: RocketLaunchIcon,
   run: DirectionsRunIcon,
   bus: DirectionsBusIcon,
+  file: InsertDriveFileIcon,
+  close: CloseIcon,
+  user: PersonIcon,
+  filter: FilterListIcon,
+  folder: FolderIcon,
+  settings: SettingsIcon,
+  moreVert: MoreVertIcon,
+  warn: ErrorIcon,
+  warnOutlined: ErrorOutlineIcon,
+  check: CheckCircleIcon,
+  email: EmailIcon,
+  search: SearchIcon,
+  settingsSuggested: SettingsSuggestIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];

@@ -18,7 +18,7 @@ export function createText<TypographyVariantNameCustom extends string = never>(p
   type TextProps = {
     className?: string | null;
     typo: TypographyVariantNameCustom | TypographyDesc.VariantNameBase;
-    color?: "primary" | "secondary" | "disabled" | "focus";
+    color?: "primary" | "secondary" | "disabled" | "focus" | undefined;
     children: NonNullable<React.ReactNode>;
     htmlComponent?: TypographyDesc.HtmlComponent;
     componentProps?: JSX.IntrinsicElements[TypographyDesc.HtmlComponent];
@@ -114,7 +114,7 @@ export function createText<TypographyVariantNameCustom extends string = never>(p
                 overflow: "hidden",
                 userSelect: "none",
                 pointerEvents: "none",
-                fontWeight: fixedSize_fontWeight,
+                fontWeight: `${fixedSize_fontWeight}`,
                 "@media speech": {
                   display: "none",
                 },

@@ -29,7 +29,7 @@ export namespace ButtonProps {
     className?: string;
 
     /** Defaults to "primary" */
-    variant?: "primary" | "secondary" | "ternary";
+    variant?: "primary" | "secondary" | "ternary" | "warning" | "noBorder";
 
     children: React.ReactNode;
 
@@ -172,6 +172,10 @@ export function createButton<IconId extends string = never>(params?: {
               return theme.colors.useCases.typography["textPrimary"];
             case "ternary":
               return theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main;
+            case "noBorder":
+              return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].greyVariant3;
+            case "warning":
+              return theme.muiTheme.palette.warning.main;
           }
         })();
 
@@ -183,6 +187,10 @@ export function createButton<IconId extends string = never>(params?: {
           return theme.colors.palette["light"].main;
         case "ternary":
           return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main;
+        case "noBorder":
+          return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main;
+        case "warning":
+          return theme.muiTheme.palette.warning.light;
       }
     })();
 
@@ -196,6 +204,10 @@ export function createButton<IconId extends string = never>(params?: {
               return theme.colors.useCases.buttons["actionHoverSecondary"];
             case "ternary":
               return theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main;
+            case "noBorder":
+              return "transparent";
+            case "warning":
+              return theme.muiTheme.palette.warning.main;
           }
         })();
 
@@ -207,7 +219,10 @@ export function createButton<IconId extends string = never>(params?: {
             case "secondary":
               return 2;
             case "ternary":
+            case "noBorder":
               return 0;
+            default:
+              return 2;
           }
         })();
 
@@ -224,6 +239,8 @@ export function createButton<IconId extends string = never>(params?: {
                 switch (variant) {
                   case "primary":
                   case "secondary":
+                  case "noBorder":
+                  case "warning":
                     return "transparent";
                   case "ternary":
                     return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main;
@@ -237,6 +254,10 @@ export function createButton<IconId extends string = never>(params?: {
           ...theme.spacing.rightLeft(
             "padding",
             (() => {
+              if (variant === "noBorder") {
+                return 1;
+              }
+
               if (theme.windowInnerWidth >= breakpointsValues.xl) {
                 return 3;
               }

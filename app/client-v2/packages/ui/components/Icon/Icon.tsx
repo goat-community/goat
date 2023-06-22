@@ -8,7 +8,9 @@ import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 
 import { makeStyles } from "../../lib/ThemeProvider";
+import type { Theme } from "../../lib/ThemeProvider";
 import type { IconSizeName } from "../../lib/icon";
+import { changeColorOpacity } from "../../tools/changeColorOpacity";
 
 /**
  * Size:
@@ -40,6 +42,9 @@ export type IconProps<IconId extends string = string> = {
   wrapped?: "circle" | "square";
   /** default default */
   size?: IconSizeName;
+  bgVariant?: "focus" | "secondary" | "gray" | "gray2";
+  bgOpacity?: number;
+  iconVariant?: "white" | "secondary" | "focus" | "gray" | "gray2";
   onClick?: MouseEventHandler<SVGSVGElement>;
 };
 
@@ -51,41 +56,93 @@ export type MuiIconLike = (props: {
 
 export type SvgComponentLike = ElementType;
 
+// function blendHexColorWithOpacity(hexColor: string, opacity: number) {
+//   // Remove the '#' character from the hex color
+//   const normalizedHexColor = hexColor.replace("#", "");
+
+//   // Convert the opacity to its hexadecimal equivalent
+//   const opacityHex = Math.round(opacity * 255)
+//     .toString(16)
+//     .padStart(2, "0");
+
+//   // Combine the opacity hex value with the original hex color
+//   const blendedHexColor = `#${normalizedHexColor}${opacityHex}`;
+//   return blendedHexColor;
+// }
+
 function isMuiIcon(Component: MuiIconLike | SvgComponentLike): Component is MuiIconLike {
   return "type" in (Component as MuiIconLike);
+}
+
+function getBgColor(key: "focus" | "secondary" | "gray" | "white" | "gray2", theme: Theme): string {
+  switch (key) {
+    case "focus":
+      return theme.colors.palette.focus.main;
+    case "secondary":
+      return theme.colors.palette.light.main;
+    case "gray":
+      return theme.colors.palette.light.greyVariant4;
+    case "gray2":
+      return theme.colors.palette.light.greyVariant2;
+    case "white":
+      return theme.colors.palette.light.main;
+    default:
+      return "light";
+  }
 }
 
 export function createIcon<IconId extends string>(componentByIconId: {
   readonly [iconId in IconId]: MuiIconLike | SvgComponentLike;
 }) {
-  const useStyles = makeStyles<{ size: IconSizeName; wrapped: "circle" | "square" | undefined }>()(
-    (theme, { size, wrapped }) => ({
-      root: {
-        color: theme.colors.palette.dark.greyVariant4,
-        // https://stackoverflow.com/a/24626986/3731798
-        //"verticalAlign": "top",
-        //"display": "inline-block"
-        verticalAlign: "top",
-        fontSize: theme.iconSizesInPxByName[size],
-        width: "1em",
-        height: "1em",
-      },
-      iconWrapper: {
-        padding: wrapped ? "4px" : "",
-        backgroundColor: wrapped ? `${theme.colors.palette.focus.main}14` : "",
-        borderRadius: wrapped === "circle" ? "50%" : 4,
-      },
-    })
-  );
+  const useStyles = makeStyles<{
+    size: IconSizeName;
+    wrapped: "circle" | "square" | undefined;
+    bgVariant: "focus" | "secondary" | "gray" | "gray2";
+    iconVariant: "white" | "secondary" | "focus" | "gray" | "gray2";
+    bgOpacity: number;
+  }>()((theme, { size, wrapped, bgVariant, iconVariant, bgOpacity }) => ({
+    root: {
+      color: getBgColor(iconVariant, theme),
+      verticalAlign: "top",
+      fontSize: theme.iconSizesInPxByName[size],
+      width: "1em",
+      position: "relative",
+    },
+    iconWrapper: {
+      // backgroundColor: wrapped ? `${theme.colors.palette.focus.main}14` : "",
+      // width: 'fit-content',
+      // height: 'fit-content',
+      // borderRadius: wrapped === "circle" ? "50%" : 4,
+      padding: wrapped ? "4px" : "",
+      display: "flex",
+      alignItems: "center",
+      width: "fit-content",
+      height: "fit-content",
+      borderRadius: wrapped === "circle" ? "50%" : 4,
+      backgroundColor: wrapped
+        ? changeColorOpacity({ color: getBgColor(bgVariant, theme), opacity: bgOpacity })
+        : "", //theme.colors.palette.focus.main
+    },
+  }));
 
   const Icon = memo(
     forwardRef<SVGSVGElement, IconProps<IconId>>((props, ref) => {
-      const { iconId, wrapped, className, size = "default", onClick, ...rest } = props;
+      const {
+        iconId,
+        wrapped,
+        bgOpacity = 0.08,
+        className,
+        size = "default",
+        onClick,
+        bgVariant = "focus",
+        iconVariant = "focus",
+        ...rest
+      } = props;
 
       //For the forwarding, rest should be empty (typewise),
       assert<Equals<typeof rest, {}>>();
 
-      const { classes, cx } = useStyles({ size, wrapped });
+      const { classes, cx } = useStyles({ size, wrapped, bgVariant, iconVariant, bgOpacity });
 
       const Component: MuiIconLike | SvgComponentLike = componentByIconId[iconId];
 

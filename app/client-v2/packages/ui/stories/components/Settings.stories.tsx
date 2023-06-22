@@ -6,6 +6,7 @@ import { ThemeProvider } from "../theme";
 const meta: Meta<typeof Settings> = {
   component: Settings,
   tags: ["autodocs"],
+  title: "Pages/Dashboard/Settings",
   argTypes: {
     severity: {
       options: ["warning", "info", "error", "success"],

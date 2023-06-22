@@ -27,6 +27,8 @@ import { CircularProgress } from "../CircularProgress";
 import { createIcon } from "../Icon/Icon";
 import { createIconButton } from "../Icon/IconButton";
 import { Tooltip } from "../Tooltip";
+import type { IconId } from "../theme";
+import { Icon as NormalIcon } from "../theme";
 import { Text } from "./TextBase";
 
 export type AttributeOption = string | { value: string; label: string };
@@ -38,6 +40,7 @@ export type TextFieldProps = {
   name?: string;
   /** Default text */
   type?: "text" | "password" | "email";
+  size?: "small" | "medium";
   /** Will overwrite value when updated */
   defaultValue?: string;
   inputProps_ref?: RefObject<HTMLInputElement>;
@@ -52,6 +55,7 @@ export type TextFieldProps = {
    * */
   "inputProps_aria-invalid"?: boolean;
   InputProps_endAdornment?: ReactNode;
+  iconId?: IconId;
   /** Only use when getIsValidValue isn't used */
   disabled?: boolean;
   /** Return false to e.preventDefault() and e.stopPropagation() */
@@ -82,6 +86,8 @@ export type TextFieldProps = {
   doOnlyValidateInputAfterFistFocusLost?: boolean;
   /** Default false */
   isCircularProgressShown?: boolean;
+  placeholder?: string;
+  filled?: boolean;
   selectAllTextOnFocus?: boolean;
   /** Default false */
   doRenderAsTextArea?: boolean;
@@ -168,7 +174,11 @@ export const TextField = memo((props: TextFieldProps) => {
     onEscapeKeyDown,
     onEnterKeyDown,
     className,
+    iconId,
+    placeholder,
+    filled = false,
     type = "text",
+    size = "medium",
     isCircularProgressShown = false,
     helperText,
     id: htmlId,
@@ -260,6 +270,7 @@ export const TextField = memo((props: TextFieldProps) => {
   const { classes, cx } = useStyles({
     hasError,
     rootHeight,
+    filled,
   });
 
   const [isPasswordShown, toggleIsPasswordShown] = useReducer((v: boolean) => !v, false);
@@ -307,6 +318,11 @@ export const TextField = memo((props: TextFieldProps) => {
 
   const InputProps = useMemo(
     () => ({
+      startAdornment: iconId ? (
+        <InputAdornment position="start">
+          <NormalIcon iconId={iconId} iconVariant="gray" />
+        </InputAdornment>
+      ) : null,
       endAdornment:
         InputProps_endAdornment ?? isCircularProgressShown ? (
           <InputAdornment position="end">
@@ -382,18 +398,21 @@ export const TextField = memo((props: TextFieldProps) => {
   return (
     <MuiTextField
       className={cx(classes.muiTextField, className)}
+      sx={{ borderBottom: "none" }}
       multiline={doRenderAsTextArea}
       rows={!doRenderAsTextArea ? undefined : rows}
       ref={ref}
-      variant="outlined"
+      variant={filled ? "filled" : "outlined"}
       type={type !== "password" ? type : isPasswordShown ? "text" : "password"}
       value={value}
       select={options !== undefined}
       error={hasError}
       helperText={helperTextNode}
       InputProps={InputProps}
+      size={size}
       onBlur={onMuiTextfieldBlur}
       onChange={onChange}
+      placeholder={placeholder}
       onKeyDown={onKeyDown}
       onFocus={onFocus}
       id={htmlId}
@@ -428,9 +447,10 @@ export const TextField = memo((props: TextFieldProps) => {
 const useStyles = makeStyles<{
   hasError: boolean;
   rootHeight: number;
+  filled: boolean;
 }>({
   name: { TextField },
-})((theme, { hasError, rootHeight }) => ({
+})((theme, { hasError, rootHeight, filled }) => ({
   muiAutocomplete: {
     minWidth: 145,
     color: "red",
@@ -465,11 +485,36 @@ const useStyles = makeStyles<{
       })(),
     },
     "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
-      borderBottomWidth: 1,
+      borderBottomWidth: filled ? 0 : 1,
     },
     "& .MuiInput-underline:after": {
-      borderBottomWidth: 1,
+      borderBottomWidth: filled ? 0 : 1,
     },
+    "& .css-1oemyht-MuiInputBase-root-MuiFilledInput-root:before": {
+      border: "none",
+    },
+    "& .css-1wmvkxj-MuiInputBase-root-MuiFilledInput-root:before": {
+      border: "none",
+    },
+    "& .css-1oemyht-MuiInputBase-root-MuiFilledInput-root:after": {
+      border: "none",
+    },
+    "& .css-1wmvkxj-MuiInputBase-root-MuiFilledInput-root:after": {
+      border: "none",
+    },
+    "& .css-1leu81r-MuiInputBase-input-MuiFilledInput-input": {
+      paddingTop: "6px",
+      paddingBottom: "6px",
+    },
+    "& .css-p1g58z-MuiInputBase-input-MuiFilledInput-input": {
+      paddingTop: "6px",
+      paddingBottom: "6px",
+    },
+    ".css-1ohy0c1-MuiInputAdornment-root.MuiInputAdornment-positionStart.css-1ohy0c1-MuiInputAdornment-root:not(.MuiInputAdornment-hiddenLabel)":
+      {
+        margin: "0",
+        marginRight: theme.spacing(2),
+      },
   },
   helperText: {
     color: hasError
