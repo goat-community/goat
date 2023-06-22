@@ -1353,6 +1353,7 @@ export default {
                   routing: _routing,
                   config: payload,
                   rawData: rawData,
+                  taskId: taskId,
                   surfaceData: singleValuedSurface,
                   feature: olFeatures[0],
                   stroke: {
