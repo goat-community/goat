@@ -5,8 +5,7 @@ import { assert } from "tsafe/assert";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 import { ChipList } from "../Lists/ChipList";
-import { Text } from "../Text/TextBase";
-import { Icon } from "../theme";
+import { Icon, Text } from "../theme";
 import type { IconId } from "../theme";
 
 export type CardContentProps = {
@@ -43,7 +42,7 @@ export const CardContent = memo(
     return (
       <div className={cx(className, classes.wrapper)}>
         {info ? (
-          <Text typo="body 2">
+          <Text typo="body 2" color="secondary">
             {info.author} • {info.date}
           </Text>
         ) : null}
@@ -53,10 +52,12 @@ export const CardContent = memo(
               <Icon iconId={icon} wrapped="circle" size="default" bgVariant="focus" iconVariant="focus" />
             </span>
           ) : null}
-          <Text typo="body 1">{title}</Text>
+          <Text typo="body 1" color="primary">
+            {title}
+          </Text>
         </div>
         {description ? (
-          <Text typo="body 2" className={classes.description}>
+          <Text typo="body 2" color="secondary" className={classes.description}>
             {description}
           </Text>
         ) : null}
