@@ -1,5 +1,3 @@
-ubuntu-bionic-18.04-cloudimg-console.log
-.vagrant
 /app/database/data/*
 /app/database/scripts/db
 !/app/data/.gitkeep
@@ -52,6 +50,8 @@ r5-cache
 !/app/api/src/cache/opportunity_matrices/public_transport/.gitkeep
 /app/api/src/cache/
 /app/api/tmp/
+
+/docs/.docusaurus
 
 # Unit test / coverage reports 
 .coverage

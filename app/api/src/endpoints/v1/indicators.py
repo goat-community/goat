@@ -1,7 +1,8 @@
+import binascii
 import json
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
@@ -13,9 +14,9 @@ from src.db import models
 from src.endpoints import deps
 from src.resources.enums import (
     IsochroneExportType,
-    ReturnType,
+    IndicatorResultsReturnType,
 )
-from src.schemas.heatmap import HeatmapSettings
+from src.schemas.heatmap import HeatmapSettings, ReturnTypeHeatmap
 from src.schemas.heatmap import request_examples as heatmap_request_examples
 from src.schemas.indicators import (
     CalculateOevGueteklassenParameters,
@@ -28,7 +29,8 @@ from src.schemas.isochrone import (
     IsochroneOutputType,
     request_examples,
 )
-from src.utils import return_geojson_or_geobuf
+from src.schemas.utils import validate_return_type
+from src.utils import return_geojson_or_geobuf, read_results
 from src.workers.method_connector import (
     read_heatmap_async,
     read_pt_oev_gueteklassen_async,
@@ -41,6 +43,9 @@ from src.workers.read_heatmap import (
 )
 from src.workers.celery_app import celery_app
 from celery.result import AsyncResult
+
+from src.workers.isochrone import task_calculate_isochrone
+
 
 router = APIRouter()
 
@@ -57,10 +62,26 @@ async def calculate_isochrone(
     """
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
-    result = await crud.isochrone.calculate(db, isochrone_in, current_user)
-    if isochrone_in.output.type.value == IsochroneOutputType.NETWORK.value:
-        result = return_geojson_or_geobuf(result, "geojson")
-    return result
+
+    if isochrone_in.is_single:
+        user_access_starting_point = await crud.user.user_study_area_starting_point_access(
+            db, current_user.id, isochrone_in.starting_point.input
+        )
+        if not user_access_starting_point:
+            raise HTTPException(detail="User has no access to starting point", status_code=403)
+
+    study_area = await crud.user.get_active_study_area(db, current_user)
+    study_area_bounds = study_area["bounds"]
+    isochrone_in = json.loads(isochrone_in.json())
+    current_user = json.loads(current_user.json())
+
+    if not settings.CELERY_BROKER_URL:
+        results = task_calculate_isochrone(isochrone_in, current_user, study_area_bounds)
+        return read_results(results)
+
+    else:
+        task = task_calculate_isochrone.delay(isochrone_in, current_user, study_area_bounds)
+        return {"task_id": task.id}
 
 
 @router.post("/isochrone/multi/count-pois", response_class=JSONResponse)
@@ -91,20 +112,21 @@ async def export_isochrones(
     current_user: models.User = Depends(deps.get_current_active_user),
     geojson: Dict = Body(..., examples=request_examples["to_export"]),
     return_type: IsochroneExportType = Query(
-        description="Return type of the response", default=IsochroneExportType.geojson
+        description="Return type of the response", default=IsochroneExportType.CSV
     ),
 ) -> Any:
     """
     Export isochrones from GeoJSON data.
     """
 
-    file_response = await crud.isochrone.export_isochrone(
-        db=db,
-        current_user=current_user,
-        return_type=return_type.value,
-        geojson_dictionary=geojson,
-    )
-    return file_response
+    result = {
+        "data": {"geojson": geojson},
+        "return_type": return_type.value,
+        "hexlified": False,
+        "data_source": "isochrone",
+    }
+
+    return read_results(result)
 
 
 @router.post("/heatmap")
@@ -123,10 +145,11 @@ async def calculate_heatmap(
             current_user=current_user,
             heatmap_settings=heatmap_settings,
         )
+        return {"task_id": task.id}
+
     else:
         results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
-        return return_geojson_or_geobuf(results, return_type="geobuf")
-    return {"task_id": task.id}
+        return read_results(results)
 
 
 @router.get("/pt-station-count")
@@ -147,10 +170,16 @@ async def count_pt_service_stations(
         le=86400,
     ),
     weekday: Optional[int] = Query(
-        description="Weekday (1 = Monday, 7 = Sunday) (Default: Monday)", default=1, ge=1, le=7
+        description="Weekday (1 = Monday, 7 = Sunday) (Default: Monday)",
+        default=1,
+        ge=1,
+        le=7,
     ),
     study_area_id: Optional[int] = Query(
         default=None, description="Study area id (Default: User active study area)"
+    ),
+    return_type: ReturnTypeHeatmap = Query(
+        default=ReturnTypeHeatmap.GEOJSON, description="Return type of the response"
     ),
 ):
     """
@@ -184,10 +213,13 @@ async def count_pt_service_stations(
         task = read_pt_station_count_task.delay(
             current_user=current_user,
             payload=payload,
+            return_type=return_type.value,
         )
     else:
-        results = await read_pt_station_count_async(current_user=current_user, payload=payload)
-        return return_geojson_or_geobuf(results, return_type="geobuf")
+        results = await read_pt_station_count_async(
+            current_user=current_user, payload=payload, return_type=return_type.value
+        )
+        return read_results(results)
     return {"task_id": task.id}
 
 
@@ -196,6 +228,9 @@ async def calculate_oev_gueteklassen(
     *,
     current_user: models.User = Depends(deps.get_current_active_user),
     params: CalculateOevGueteklassenParameters = Body(..., example=oev_gueteklasse_config_example),
+    return_type: ReturnTypeHeatmap = Query(
+        default=ReturnTypeHeatmap.GEOJSON, description="Return type of the response"
+    ),
 ):
     """
     ÖV-Güteklassen (The public transport quality classes) is an indicator for access to public transport.
@@ -224,10 +259,13 @@ async def calculate_oev_gueteklassen(
         task = read_pt_oev_gueteklassen_task.delay(
             current_user=current_user,
             payload=payload,
+            return_type=return_type.value,
         )
     else:
-        results = await read_pt_oev_gueteklassen_async(current_user=current_user, payload=payload)
-        return return_geojson_or_geobuf(results, return_type="geobuf")
+        results = await read_pt_oev_gueteklassen_async(
+            current_user=current_user, payload=payload, return_type=return_type.value
+        )
+        return read_results(results)
     return {"task_id": task.id}
 
 
@@ -235,16 +273,27 @@ async def calculate_oev_gueteklassen(
 async def get_indicators_result(
     task_id: str,
     current_user: models.User = Depends(deps.get_current_active_user),
-    return_type: ReturnType = Query(..., description="Return type of the response"),
+    return_type: IndicatorResultsReturnType = Query(
+        ..., description="Return type of the response"
+    ),
 ):
     """Fetch result for given task_id"""
+
     result = AsyncResult(task_id, app=celery_app)
     if result.ready():
         try:
-            result = return_geojson_or_geobuf(result.get(), return_type.value)
-            return result
+            result = result.get()
         except Exception as e:
             raise HTTPException(status_code=500, detail="Task failed")
+
+        try:
+            validate_return_type(result, return_type.value)
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+        except HTTPException as e:
+            raise e
+        return read_results(result, return_type.value)
 
     elif result.failed():
         raise HTTPException(status_code=500, detail="Task failed")

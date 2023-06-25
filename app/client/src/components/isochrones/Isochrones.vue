@@ -487,7 +487,7 @@
                             fab
                             dark
                             v-on="on"
-                            class="mb-4 elevation-0"
+                            class="elevation-0"
                             color="red"
                             @click="stopIsochroneCalculation"
                           >
@@ -540,7 +540,7 @@
                             fab
                             dark
                             v-on="on"
-                            class="mb-4 elevation-0"
+                            class="elevation-0"
                             color="red"
                             @click="stopIsochroneCalculation"
                           >
@@ -1023,7 +1023,9 @@ export default {
       { text: "saturday", value: 5 },
       { text: "sunday", value: 6 }
     ],
-    locationIQ: "https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4"
+    locationIQ: "https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4",
+    maxTries: 21,
+    isochroneCancelToken: null
   }),
   computed: {
     getMaxIsochroneRange() {
@@ -1264,6 +1266,353 @@ export default {
       this.map.addLayer(vector);
       this.isochroneLayer = vector;
     },
+
+    /**
+     * Get Isochrone based on task id
+     * proj, current_try, lConf, source
+     */
+    isochroneGet(taskId, currentTry, mode, payload) {
+      const returnType = "grid";
+      const axiosInstance = axios.create();
+      const CancelToken = axios.CancelToken;
+      if (this.maxTries > currentTry) {
+        let promise = axiosInstance.get(
+          `./indicators/result/${taskId}?return_type=${returnType}`,
+          {
+            responseType: "arraybuffer",
+            cancelToken: new CancelToken(c => {
+              // An executor function receives a cancel function as a parameter
+              this.isochroneCancelToken = c;
+            })
+          }
+        );
+        promise
+          .then(response => {
+            if (response.status === 202) {
+              setTimeout(() => {
+                if (this.isochroneCancelToken != null) {
+                  this.isochroneGet(taskId, currentTry + 1, mode, payload);
+                } else {
+                  this.isIsochroneBusy = false;
+                  this.isMapBusy = false;
+                }
+              }, 1000);
+            } else {
+              if (response.data) {
+                let catchmentFeature;
+                let rawData;
+                let singleValuedSurface = {};
+                let _routing = this.routing;
+                let _type = this.type;
+                const isochroneRange = this.isochroneRange;
+                rawData = parseTimesData(response.data);
+                this.isMapBusy = false;
+
+                if (rawData.depth === 1) {
+                  singleValuedSurface = rawData;
+                  singleValuedSurface["surface"] = rawData.data;
+                } else {
+                  singleValuedSurface = computeSingleValuedSurface(rawData, 5);
+                }
+                const {
+                  surface,
+                  width,
+                  height,
+                  west,
+                  north,
+                  zoom
+                  // eslint-disable-next-line no-undef
+                } = singleValuedSurface;
+                if (mode === "buffer") {
+                  const rawDataFeatures = JSON.parse(
+                    rawData["accessibility"]["buffer"]["geojson"]
+                  );
+                  catchmentFeature = rawDataFeatures.features.filter(
+                    feature => feature.properties.steps == isochroneRange
+                  );
+                  singleValuedSurface = rawData;
+                } else {
+                  catchmentFeature = jsolines({
+                    surface,
+                    width,
+                    height,
+                    cutoff: this.isochroneRange,
+                    project: ([x, y]) => {
+                      const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+                      return [ll.lon, ll.lat];
+                    },
+                    excludeHoles: true
+                  });
+                }
+                let olFeatures = geojsonToFeature(catchmentFeature, {
+                  dataProjection: "EPSG:4326",
+                  featureProjection: "EPSG:3857"
+                });
+                let calculation = {
+                  type: _type,
+                  routing: _routing,
+                  config: payload,
+                  rawData: rawData,
+                  taskId: taskId,
+                  surfaceData: singleValuedSurface,
+                  feature: olFeatures[0],
+                  stroke: {
+                    color: "#000000",
+                    width: 2
+                  }
+                };
+                if (_type == "single") {
+                  //Geocode
+                  const axiosInstance = axios.create();
+                  delete axiosInstance.defaults.headers.common["Authorization"];
+                  axiosInstance
+                    .get(
+                      `${this.locationIQ}&lat=${payload.starting_point.input[0].lat}&lon=${payload.starting_point.input[0].lon}&format=json`
+                    )
+                    .then(response => {
+                      if (
+                        response.status === 200 &&
+                        response.data.display_name
+                      ) {
+                        const address = response.data.display_name;
+                        calculation.position = address;
+                      }
+                    })
+                    .catch(() => {
+                      calculation.position = "Unknown";
+                    })
+                    .finally(() => {
+                      this.isMapBusy = false;
+                      this.isIsochroneBusy = false;
+                      const calculationNumber = this.calculations.length + 1;
+                      calculation.id = calculationNumber;
+                      const isochroneCalculationUid =
+                        olFeatures[0].get("isochrone_calculation_id") ||
+                        calculationNumber;
+                      olFeatures[0].setId(
+                        "isochrone_feature_" + isochroneCalculationUid
+                      );
+                      olFeatures[0].set("calculationNumber", calculationNumber);
+                      this.calculationColors.push(
+                        this.preDefCalculationColors[
+                          this.findColor(calculationNumber) - 1
+                        ]
+                      );
+                      this.calculationSrokeObjects.push({
+                        color: "#00000000",
+                        width: 2,
+                        dashWidth: 0,
+                        dashSpace: 0
+                      });
+                      this.calculationTravelTime.push(10);
+                      const notBufferCalculations = this.selectedCalculations.filter(
+                        calculation => calculation.routing !== "buffer"
+                      );
+                      const bufferCalculations = this.selectedCalculations.filter(
+                        calculation => calculation.routing === "buffer"
+                      );
+                      if (
+                        (notBufferCalculations.length > 0 &&
+                          calculation.routing === "buffer") ||
+                        (bufferCalculations.length > 0 &&
+                          calculation.routing !== "buffer")
+                      ) {
+                        this.selectedCalculations = [];
+                      }
+                      if (this.selectedCalculations.length === 2) {
+                        // Remove first calculation if length is already 2
+                        this.selectedCalculations.shift();
+                      }
+                      this.calculations.unshift(calculation);
+                      this.selectedCalculations.push(calculation);
+                      this.isochroneResultWindow = true;
+                      this.isOptionsElVisible = false;
+                    });
+                } else {
+                  this.isIsochroneBusy = false;
+                  const calculationNumber = this.calculations.length + 1;
+                  calculation.id = calculationNumber;
+                  const isochroneCalculationUid =
+                    olFeatures[0].get("isochrone_calculation_id") ||
+                    calculationNumber;
+                  olFeatures[0].setId(
+                    "isochrone_feature_" + isochroneCalculationUid
+                  );
+                  olFeatures[0].set("calculationNumber", calculationNumber);
+                  calculation.position = "multiIsochroneCalculation";
+                  this.calculationColors.push(
+                    this.preDefCalculationColors[
+                      this.findColor(calculationNumber) - 1
+                    ]
+                  );
+                  this.calculationSrokeObjects.push({
+                    color: "#00000000",
+                    width: 2,
+                    dashWidth: 0,
+                    dashSpace: 0,
+                    status: false
+                  });
+                  this.calculationTravelTime.push(10);
+                  this.calculations.unshift(calculation);
+                  this.selectedCalculations = [];
+                  this.selectedCalculations.push(calculation);
+                  this.isochroneResultWindow = true;
+                  this.isOptionsElVisible = false;
+                }
+              }
+            }
+          })
+          .catch(() => {
+            this.isIsochroneBusy = false;
+            this.isMapBusy = false;
+          });
+      }
+    },
+
+    /**
+     * Update isochrone change
+     *
+     */
+
+    updateIsochrone(
+      taskId,
+      currentTry,
+      calculation,
+      lonLatCoordinate,
+      feature,
+      oldLon,
+      oldLat,
+      payload
+    ) {
+      const returnType = "grid";
+      const axiosInstance = axios.create();
+      const CancelToken = axios.CancelToken;
+      if (this.maxTries > currentTry) {
+        let promise = axiosInstance.get(
+          `./indicators/result/${taskId}?return_type=${returnType}`,
+          {
+            responseType: "arraybuffer",
+            cancelToken: new CancelToken(c => {
+              // An executor function receives a cancel function as a parameter
+              this.isochroneCancelToken = c;
+            })
+          }
+        );
+        promise
+          .then(response => {
+            if (response.status === 202) {
+              setTimeout(() => {
+                if (this.isochroneCancelToken != null) {
+                  this.updateIsochrone(
+                    taskId,
+                    currentTry + 1,
+                    calculation,
+                    lonLatCoordinate,
+                    feature,
+                    oldLon,
+                    oldLat,
+                    payload
+                  );
+                } else {
+                  payload.starting_point.input[0].lon = oldLon;
+                  payload.starting_point.input[0].lat = oldLat;
+                  feature
+                    .getGeometry()
+                    .setCoordinates(
+                      fromLonLat([
+                        payload.starting_point.input[0].lon,
+                        payload.starting_point.input[0].lat
+                      ])
+                    );
+                  this.isIsochroneBusy = false;
+                  this.isMapBusy = false;
+                }
+              }, 1000);
+            } else {
+              const isochroneSurface = parseTimesData(response.data);
+              let singleValuedSurface = {};
+              if (isochroneSurface.depth === 1) {
+                singleValuedSurface = isochroneSurface;
+                singleValuedSurface["surface"] = isochroneSurface.data;
+              } else {
+                singleValuedSurface = computeSingleValuedSurface(
+                  isochroneSurface,
+                  5
+                );
+              }
+              const {
+                surface,
+                width,
+                height,
+                west,
+                north,
+                zoom
+                // eslint-disable-next-line no-undef
+              } = singleValuedSurface;
+              let catchmentFeature;
+              if (calculation[0].config.mode === "buffer") {
+                const rawData = isochroneSurface;
+                const rawDataFeatures = JSON.parse(
+                  rawData["accessibility"]["buffer"]["geojson"]
+                );
+                catchmentFeature = rawDataFeatures.features.filter(
+                  feature =>
+                    feature.properties.steps ==
+                    this.calculationTravelTime[calculation[0].id - 1]
+                );
+                singleValuedSurface = rawData;
+              } else {
+                catchmentFeature = jsolines({
+                  surface,
+                  width,
+                  height,
+                  cutoff: this.calculationTravelTime[calculation[0].id - 1],
+                  project: ([x, y]) => {
+                    const ll = fromPixel({ x: x + west, y: y + north }, zoom);
+                    return [ll.lon, ll.lat];
+                  },
+                  excludeHoles: true
+                });
+              }
+              let olFeatures = geojsonToFeature(catchmentFeature, {
+                dataProjection: "EPSG:4326",
+                featureProjection: "EPSG:3857"
+              });
+
+              calculation[0].rawData = isochroneSurface;
+              calculation[0].surfaceData = singleValuedSurface;
+
+              delete axiosInstance.defaults.headers.common["Authorization"];
+              axiosInstance
+                .get(
+                  `${this.locationIQ}&lat=${lonLatCoordinate[1]}&lon=${lonLatCoordinate[0]}&format=json`
+                )
+                .then(response => {
+                  if (response.status === 200 && response.data.display_name) {
+                    const address = response.data.display_name;
+                    calculation[0].position = address;
+                  }
+                })
+                .catch(() => {
+                  calculation[0].position = "Unknown";
+                })
+                .finally(() => {
+                  this.isMapBusy = false;
+                  this.isIsochroneBusy = false;
+                  calculation[0].feature.setGeometry(
+                    olFeatures[0].getGeometry()
+                  );
+                  this.adjustStartingPoint(calculation[0], feature);
+                });
+            }
+          })
+          .catch(() => {
+            this.isIsochroneBusy = false;
+            this.isMapBusy = false;
+          });
+      }
+    },
+
     /**
      * Creates a vector layer for the isochrone calculations results and adds it to the
      * map and store.
@@ -1641,10 +1990,10 @@ export default {
      */
     calculateIsochrone(startPoint) {
       let routing = this.routing;
-      let _routing = this.routing; //store selected routing for later use
-      let _type = this.type; //store selected type for later use
+      // let _routing = this.routing; //store selected routing for later use
+      // let _type = this.type; //store selected type for later use
       let mode = routing;
-      const isochroneRange = this.isochroneRange;
+      // const isochroneRange = this.isochroneRange;
       //-- SETTINGS --//
       let settings = {};
       if (mode === "buffer") {
@@ -1795,13 +2144,15 @@ export default {
           new Promise((resolve, reject) => {
             axiosInstance
               .post(`./indicators/isochrone`, payload, {
-                responseType: "arraybuffer",
                 cancelToken: new CancelToken(c => {
                   // An executor function receives a cancel function as a parameter
                   this.cancelRequestTokens.push(c);
                 })
               })
               .then(response => {
+                if (response.data) {
+                  this.isochroneGet(response.data.task_id, 1, mode, payload);
+                }
                 resolve(response);
               })
               .catch(e => {
@@ -1810,194 +2161,6 @@ export default {
           })
         );
       });
-      Promise.all(promiseArray)
-        .then(results => {
-          results.forEach((response, index) => {
-            if (response.data) {
-              const payload = payloads[index];
-              let catchmentFeature;
-              let rawData;
-              let singleValuedSurface = {};
-              rawData = parseTimesData(response.data);
-              if (rawData.depth === 1) {
-                singleValuedSurface = rawData;
-                singleValuedSurface["surface"] = rawData.data;
-              } else {
-                singleValuedSurface = computeSingleValuedSurface(rawData, 5);
-              }
-              const {
-                surface,
-                width,
-                height,
-                west,
-                north,
-                zoom
-                // eslint-disable-next-line no-undef
-              } = singleValuedSurface;
-              if (mode === "buffer") {
-                const rawDataFeatures = JSON.parse(
-                  rawData["accessibility"]["buffer"]["geojson"]
-                );
-                catchmentFeature = rawDataFeatures.features.filter(
-                  feature => feature.properties.steps == isochroneRange
-                );
-                singleValuedSurface = rawData;
-              } else {
-                catchmentFeature = jsolines({
-                  surface,
-                  width,
-                  height,
-                  cutoff: this.isochroneRange,
-                  project: ([x, y]) => {
-                    const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-                    return [ll.lon, ll.lat];
-                  },
-                  excludeHoles: true
-                });
-              }
-
-              let olFeatures = geojsonToFeature(catchmentFeature, {
-                dataProjection: "EPSG:4326",
-                featureProjection: "EPSG:3857"
-              });
-              let calculation = {
-                type: _type,
-                routing: _routing,
-                config: payload,
-                rawData: rawData,
-                surfaceData: singleValuedSurface,
-                feature: olFeatures[0],
-                stroke: {
-                  color: "#000000",
-                  width: 2
-                }
-              };
-
-              if (_type == "single") {
-                //Geocode
-                const axiosInstance = axios.create();
-                delete axiosInstance.defaults.headers.common["Authorization"];
-                axiosInstance
-                  .get(
-                    `${this.locationIQ}&lat=${startPoint.y}&lon=${startPoint.x}&format=json`
-                  )
-                  .then(response => {
-                    if (response.status === 200 && response.data.display_name) {
-                      const address = response.data.display_name;
-                      calculation.position = address;
-                    }
-                  })
-                  .catch(() => {
-                    calculation.position = "Unknown";
-                  })
-                  .finally(() => {
-                    this.isMapBusy = false;
-                    this.isIsochroneBusy = false;
-                    const calculationNumber = this.calculations.length + 1;
-                    calculation.id = calculationNumber;
-                    const isochroneCalculationUid =
-                      olFeatures[0].get("isochrone_calculation_id") ||
-                      calculationNumber;
-                    olFeatures[0].setId(
-                      "isochrone_feature_" + isochroneCalculationUid
-                    );
-                    olFeatures[0].set("calculationNumber", calculationNumber);
-                    this.calculationColors.push(
-                      this.preDefCalculationColors[
-                        this.findColor(calculationNumber) - 1
-                      ]
-                    );
-                    this.calculationSrokeObjects.push({
-                      color: "#00000000",
-                      width: 2,
-                      dashWidth: 0,
-                      dashSpace: 0
-                    });
-                    this.calculationTravelTime.push(10);
-                    const notBufferCalculations = this.selectedCalculations.filter(
-                      calculation => calculation.routing !== "buffer"
-                    );
-                    const bufferCalculations = this.selectedCalculations.filter(
-                      calculation => calculation.routing === "buffer"
-                    );
-                    if (
-                      (notBufferCalculations.length > 0 &&
-                        calculation.routing === "buffer") ||
-                      (bufferCalculations.length > 0 &&
-                        calculation.routing !== "buffer")
-                    ) {
-                      this.selectedCalculations = [];
-                    }
-                    if (this.selectedCalculations.length === 2) {
-                      // Remove first calculation if length is already 2
-                      this.selectedCalculations.shift();
-                    }
-                    this.calculations.unshift(calculation);
-                    this.selectedCalculations.push(calculation);
-                    this.isochroneResultWindow = true;
-                    this.isOptionsElVisible = false;
-                  });
-              } else {
-                const calculationNumber = this.calculations.length + 1;
-                calculation.id = calculationNumber;
-                const isochroneCalculationUid =
-                  olFeatures[0].get("isochrone_calculation_id") ||
-                  calculationNumber;
-                olFeatures[0].setId(
-                  "isochrone_feature_" + isochroneCalculationUid
-                );
-                olFeatures[0].set("calculationNumber", calculationNumber);
-                calculation.position = "multiIsochroneCalculation";
-                this.calculationColors.push(
-                  this.preDefCalculationColors[
-                    this.findColor(calculationNumber) - 1
-                  ]
-                );
-                this.calculationSrokeObjects.push({
-                  color: "#00000000",
-                  width: 2,
-                  dashWidth: 0,
-                  dashSpace: 0,
-                  status: false
-                });
-                this.calculationTravelTime.push(10);
-                this.calculations.unshift(calculation);
-                this.selectedCalculations = [];
-                this.selectedCalculations.push(calculation);
-                this.isochroneResultWindow = true;
-                this.isOptionsElVisible = false;
-              }
-            }
-          });
-        })
-        .catch(error => {
-          if (error && error.message === "cancelled") {
-            return;
-          }
-          const calculationNumber = this.calculations.length + 1;
-          this.isochroneLayer
-            .getSource()
-            .getFeatures()
-            .forEach(feature => {
-              if (feature.get("calculationNumber") === calculationNumber) {
-                this.isochroneLayer.getSource().removeFeature(feature);
-              }
-            });
-          setTimeout(() => {
-            this.toggleSnackbar({
-              type: "error", //success or error
-              message: this.$t("map.snackbarMessages.calculateIsochroneError"),
-              state: true,
-              timeout: 2500
-            });
-          }, 200);
-        })
-        .finally(() => {
-          this.multiIsochroneSelectionLayer.getSource().clear();
-          this.isMapBusy = false;
-          this.isIsochroneBusy = false;
-          this.clear();
-        });
     },
     /**
      * Map pointer move event .
@@ -2098,108 +2261,27 @@ export default {
           this.toggleIsochroneAdditionalData("network", calculation);
           axiosInstance
             .post(`./indicators/isochrone`, payload, {
-              responseType: "arraybuffer",
               cancelToken: new CancelToken(c => {
                 // An executor function receives a cancel function as a parameter
                 this.cancelRequestTokens.push(c);
               })
             })
             .then(response => {
-              const isochroneSurface = parseTimesData(response.data);
-              let singleValuedSurface = {};
-              if (isochroneSurface.depth === 1) {
-                singleValuedSurface = isochroneSurface;
-                singleValuedSurface["surface"] = isochroneSurface.data;
-              } else {
-                singleValuedSurface = computeSingleValuedSurface(
-                  isochroneSurface,
-                  5
+              if (response.data) {
+                this.updateIsochrone(
+                  response.data.task_id,
+                  1,
+                  calculation,
+                  lonLatCoordinate,
+                  feature,
+                  oldLon,
+                  oldLat,
+                  payload
                 );
               }
-              const {
-                surface,
-                width,
-                height,
-                west,
-                north,
-                zoom
-                // eslint-disable-next-line no-undef
-              } = singleValuedSurface;
-              let catchmentFeature;
-              if (calculation[0].config.mode === "buffer") {
-                const rawData = isochroneSurface;
-                const rawDataFeatures = JSON.parse(
-                  rawData["accessibility"]["buffer"]["geojson"]
-                );
-                catchmentFeature = rawDataFeatures.features.filter(
-                  feature =>
-                    feature.properties.steps ==
-                    this.calculationTravelTime[calculation[0].id - 1]
-                );
-                singleValuedSurface = rawData;
-              } else {
-                catchmentFeature = jsolines({
-                  surface,
-                  width,
-                  height,
-                  cutoff: this.calculationTravelTime[calculation[0].id - 1],
-                  project: ([x, y]) => {
-                    const ll = fromPixel({ x: x + west, y: y + north }, zoom);
-                    return [ll.lon, ll.lat];
-                  },
-                  excludeHoles: true
-                });
-              }
-              let olFeatures = geojsonToFeature(catchmentFeature, {
-                dataProjection: "EPSG:4326",
-                featureProjection: "EPSG:3857"
-              });
-
-              calculation[0].rawData = isochroneSurface;
-              calculation[0].surfaceData = singleValuedSurface;
-
-              delete axiosInstance.defaults.headers.common["Authorization"];
-              axiosInstance
-                .get(
-                  `${this.locationIQ}&lat=${lonLatCoordinate[1]}&lon=${lonLatCoordinate[0]}&format=json`
-                )
-                .then(response => {
-                  if (response.status === 200 && response.data.display_name) {
-                    const address = response.data.display_name;
-                    calculation[0].position = address;
-                  }
-                })
-                .catch(() => {
-                  calculation[0].position = "Unknown";
-                })
-                .finally(() => {
-                  this.isMapBusy = false;
-                  this.isIsochroneBusy = false;
-                  calculation[0].feature.setGeometry(
-                    olFeatures[0].getGeometry()
-                  );
-                  this.adjustStartingPoint(calculation[0], feature);
-                });
             })
-            .catch(e => {
+            .catch(() => {
               // revert
-              payload.starting_point.input[0].lon = oldLon;
-              payload.starting_point.input[0].lat = oldLat;
-              feature
-                .getGeometry()
-                .setCoordinates(fromLonLat([oldLon, oldLat]));
-              this.toggleSnackbar({
-                type: "error",
-                message: this.$t(
-                  `map.snackbarMessages.${
-                    e.message === "cancelled"
-                      ? "calculateIsochroneCancelled"
-                      : "calculateIsochroneError"
-                  }`
-                ),
-                state: true,
-                timeout: 2500
-              });
               this.isMapBusy = false;
               this.isIsochroneBusy = false;
             });
@@ -2333,6 +2415,12 @@ export default {
             this.isochroneLayer.getSource().removeFeature(feature);
           }
         });
+
+      if (this.isochroneCancelToken instanceof Function) {
+        this.isochroneCancelToken("cancelled");
+        this.isochroneCancelToken = null;
+      }
+
       this.cancelRequestTokens.forEach(cancelRequestToken => {
         if (cancelRequestToken instanceof Function) {
           cancelRequestToken("cancelled");
@@ -2489,22 +2577,28 @@ export default {
   color: "#4A4A4A";
   cursor: pointer;
 }
+
 .result-icons:hover {
   color: #30c2ff;
 }
+
 .delete-icon:hover {
   color: #ff6060;
 }
+
 .v-data-table td,
 .v-data-table th {
   padding: 0 5px;
 }
+
 .v-data-table th {
   font-size: 14px;
 }
+
 .v-data-table td {
   font-size: 13px;
 }
+
 .legend {
   height: 20px;
   border-radius: 4px;
@@ -2521,6 +2615,7 @@ export default {
 .activeIcon {
   color: #30c2ff;
 }
+
 .v-input--selection-controls {
   margin-top: 0px;
   padding-top: 0px;
@@ -2558,15 +2653,19 @@ export default {
   width: 1px;
   z-index: 100;
 }
+
 .hover-tooltip.in {
   opacity: 1;
 }
+
 .hover-tooltip-top .tooltip-arrow {
   border-top-color: white;
 }
+
 .tooltip-inner {
   border: 2px solid white;
 }
+
 .isochroneColor {
   width: 35px;
   height: 15px;
@@ -2579,6 +2678,7 @@ export default {
   height: 5px;
   border-radius: 10px;
 }
+
 .v-slider__thumb {
   height: 14px;
   width: 14px;
