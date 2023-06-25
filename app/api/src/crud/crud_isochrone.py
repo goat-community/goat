@@ -1,3 +1,4 @@
+from functools import cache
 import io
 import json
 import os
@@ -13,7 +14,6 @@ import pandas as pd
 import geopandas as gpd
 import pyproj
 import requests
-from fastapi import Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from geopandas import GeoDataFrame, GeoSeries, clip, read_postgis
@@ -111,7 +111,7 @@ class CRUDIsochrone:
         # Step 5: Return the newly created dictionary
         return new_dict
 
-    async def read_network(
+    def read_network(
         self, db, obj_in: IsochroneDTO, current_user, isochrone_type, table_prefix=None
     ) -> Any:
         sql_text = ""
@@ -146,9 +146,7 @@ class CRUDIsochrone:
                 x = [point.lon for point in obj_in.starting_point.input]
                 y = [point.lat for point in obj_in.starting_point.input]
             else:
-                starting_points = await self.starting_points_opportunities(
-                    current_user, db, obj_in
-                )
+                starting_points = self.starting_points_opportunities(current_user, db, obj_in)
                 x = starting_points[0][0]
                 y = starting_points[0][1]
         else:
@@ -204,7 +202,7 @@ class CRUDIsochrone:
             )
 
             db.add(obj_starting_point)
-            await db.commit()
+            db.commit()
 
         # return edges_network and obj_starting_point
         edges_network.astype(
@@ -326,7 +324,7 @@ class CRUDIsochrone:
         result = await db.execute(sql, obj_in_data)
         return result.fetchall()[0][0]
 
-    async def starting_points_opportunities(
+    def starting_points_opportunities(
         self, current_user, db: AsyncSession, obj_in: IsochroneDTO
     ) -> Any:
         obj_in_data = {
@@ -352,12 +350,12 @@ class CRUDIsochrone:
             """SELECT x, y 
             FROM basic.starting_points_multi_isochrones(:user_id, :modus, :minutes, :speed, :amenities, :scenario_id, :active_upload_ids, :region_geom, :study_area_ids)"""
         )
-        starting_points = await db.execute(sql_starting_points, obj_in_data)
+        starting_points = db.execute(sql_starting_points, obj_in_data)
         starting_points = starting_points.fetchall()
         return starting_points
 
-    async def calculate(
-        self, db: AsyncSession, obj_in: IsochroneDTO, current_user: models.User
+    def calculate(
+        self, db: AsyncSession, obj_in: IsochroneDTO, current_user: models.User, study_area_bounds
     ) -> Any:
         """
         Calculate the isochrone for a given location and time
@@ -379,7 +377,7 @@ class CRUDIsochrone:
 
         # == Walking and cycling isochrone ==
         if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
-            network, starting_ids, starting_point_geom = await self.read_network(
+            network, starting_ids, starting_point_geom = self.read_network(
                 db, obj_in, current_user, isochrone_type
             )
             network = network.iloc[1:, :]
@@ -409,8 +407,6 @@ class CRUDIsochrone:
             payload["egressModes"] = obj_in.settings.egress_mode.value.upper()
             payload["fromLat"] = obj_in.starting_point.input[0].lat
             payload["fromLon"] = obj_in.starting_point.input[0].lon
-            study_area = await crud.user.get_active_study_area(db, current_user)
-            study_area_bounds = study_area["bounds"]
             payload["bounds"] = {
                 "north": study_area_bounds[3],
                 "south": study_area_bounds[1],
@@ -427,9 +423,7 @@ class CRUDIsochrone:
 
         if obj_in.mode.value in [IsochroneMode.BUFFER.value]:
             if isochrone_type == IsochroneTypeEnum.multi.value:
-                starting_points = await self.starting_points_opportunities(
-                    current_user, db, obj_in
-                )
+                starting_points = self.starting_points_opportunities(current_user, db, obj_in)
                 x = starting_points[0][0]
                 y = starting_points[0][1]
                 starting_points_gdf = gpd.GeoDataFrame(
@@ -467,137 +461,173 @@ class CRUDIsochrone:
                 grid=grid, travel_time=obj_in.settings.travel_time, percentile=5
             )
             group_by_column = "minute"
-        if obj_in.output.type.value != IsochroneOutputType.NETWORK.value:
-            # Opportunity intersect
-            opportunity_user_args = {
-                "user_id": current_user.id,
-                "user_active_upload_ids": current_user.active_data_upload_ids,
-                "scenario_id": obj_in.scenario.id,
+        # Opportunity intersect
+        opportunity_user_args = {
+            "user_id": current_user.id,
+            "user_active_upload_ids": current_user.active_data_upload_ids,
+            "scenario_id": obj_in.scenario.id,
+        }
+        if isochrone_type == IsochroneTypeEnum.single.value:
+            start = time.time()
+            opportunity_count = OpportunityIsochroneCount(
+                input_geometries=isochrone_shapes["incremental"],
+                **opportunity_user_args,
+            )
+
+            # Poi
+            poi_count = opportunity_count.count_poi(group_by_column=group_by_column)
+            # Population
+            population_count = opportunity_count.count_population(
+                group_by_columns=[group_by_column]
+            )
+
+            opportunities = [poi_count, population_count]
+            if obj_in.mode.value != IsochroneMode.TRANSIT.value:
+                # Aoi
+                aoi_count = opportunity_count.count_aoi(
+                    group_by_columns=[group_by_column, "category"]
+                )
+                opportunities.append(aoi_count)
+
+            opportunities = merge_dicts(*opportunities)
+            opportunities = self.restructure_dict(opportunities, step=step_size)
+            grid["accessibility"] = {
+                "starting_points": starting_point_geom,
+                "opportunities": opportunities,
             }
-            if isochrone_type == IsochroneTypeEnum.single.value:
-                start = time.time()
-                opportunity_count = OpportunityIsochroneCount(
-                    input_geometries=isochrone_shapes["incremental"],
-                    **opportunity_user_args,
+            print(f"Opportunity intersect took {time.time() - start} seconds")
+        elif isochrone_type == IsochroneTypeEnum.multi.value:
+            if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
+                regions = read_postgis(
+                    f"SELECT name, geom FROM basic.sub_study_area WHERE id = ANY(ARRAY[{list(map(int, obj_in.starting_point.region))}])",
+                    legacy_engine,
                 )
-
-                # Poi
-                poi_count = opportunity_count.count_poi(group_by_column=group_by_column)
-                # Population
-                population_count = opportunity_count.count_population(
-                    group_by_columns=[group_by_column]
-                )
-
-                opportunities = [poi_count, population_count]
-                if obj_in.mode.value != IsochroneMode.TRANSIT.value:
-                    # Aoi
-                    aoi_count = opportunity_count.count_aoi(
-                        group_by_columns=[group_by_column, "category"]
-                    )
-                    opportunities.append(aoi_count)
-
-                opportunities = merge_dicts(*opportunities)
-                opportunities = self.restructure_dict(opportunities, step=step_size)
-                grid["accessibility"] = {
-                    "starting_points": starting_point_geom,
-                    "opportunities": opportunities,
-                }
-                print(f"Opportunity intersect took {time.time() - start} seconds")
-            elif isochrone_type == IsochroneTypeEnum.multi.value:
-                if obj_in.starting_point.region_type == IsochroneMultiRegionType.STUDY_AREA:
-                    regions = read_postgis(
-                        f"SELECT name, geom FROM basic.sub_study_area WHERE id = ANY(ARRAY[{list(map(int, obj_in.starting_point.region))}])",
-                        legacy_engine,
-                    )
+            else:
+                # if there is only one region, name is polygon, otherwise it is the index + 1
+                if len(obj_in.starting_point.region) == 1:
+                    name = "polygon"
                 else:
-                    # if there is only one region, name is polygon, otherwise it is the index + 1
-                    if len(obj_in.starting_point.region) == 1:
-                        name = "polygon"
-                    else:
-                        name = np.arange(1, len(obj_in.starting_point.region) + 1)
-                    # name is the list index + 1 as currently there is no name for the user drawn regions
-                    regions = GeoDataFrame(
-                        {
-                            "name": name,
-                            "geom": (GeoSeries.from_wkt(obj_in.starting_point.region)),
-                        }
-                    )
-                    regions.set_geometry("geom", inplace=True)
-                    regions.set_crs(epsg=4326, inplace=True)
-                if "geometry" not in regions.columns:
-                    regions.rename_geometry("geometry", inplace=True)
-                intersected_regions = []
-                for idx, region in regions.iterrows():
-                    # clip the isochrone shapes to the regions
-                    isochrone_clip = clip(isochrone_shapes["incremental"], region["geometry"])
-                    # adds a column which combines the region id and the isochrone minute to avoid calling the opportunity intersect multiple times within the loop
-
-                    isochrone_clip["region"] = isochrone_clip.apply(
-                        lambda x: "{}_x_{}".format(region["name"], x.get(group_by_column)), axis=1
-                    )
-                    isochrone_clip.set_crs(epsg=4326, inplace=True)
-
-                    intersected_regions.append(isochrone_clip)
-
-                # intersect the original region shapes as well
-                regions["region"] = regions.apply(
-                    lambda x: "{}_x_{}".format(x["name"], "total"), axis=1
+                    name = np.arange(1, len(obj_in.starting_point.region) + 1)
+                # name is the list index + 1 as currently there is no name for the user drawn regions
+                regions = GeoDataFrame(
+                    {
+                        "name": name,
+                        "geom": (GeoSeries.from_wkt(obj_in.starting_point.region)),
+                    }
                 )
-                intersected_regions.append(regions)
+                regions.set_geometry("geom", inplace=True)
+                regions.set_crs(epsg=4326, inplace=True)
+            if "geometry" not in regions.columns:
+                regions.rename_geometry("geometry", inplace=True)
+            intersected_regions = []
+            for idx, region in regions.iterrows():
+                # clip the isochrone shapes to the regions
+                isochrone_clip = clip(isochrone_shapes["incremental"], region["geometry"])
+                # adds a column which combines the region id and the isochrone minute to avoid calling the opportunity intersect multiple times within the loop
 
-                intersected_regions = pd.concat(intersected_regions, ignore_index=True)
-                # intersect the clipped isochrone shapes with the opportunity data
-                opportunity_count = OpportunityIsochroneCount(
-                    input_geometries=intersected_regions,
-                    **opportunity_user_args,
+                isochrone_clip["region"] = isochrone_clip.apply(
+                    lambda x: "{}_x_{}".format(region["name"], x.get(group_by_column)), axis=1
                 )
-                population_count = opportunity_count.count_population(group_by_columns=["region"])
-                # split the dictionary based on region groups
-                regions_count = {}
-                for key, count_value in population_count.items():
-                    region, count_key = key.split("_x_")
-                    if count_key != "total":
-                        count_key = int(count_key)
-                    if region not in regions_count:
-                        regions_count[region] = {}
-                    regions_count[region][count_key] = count_value
+                isochrone_clip.set_crs(epsg=4326, inplace=True)
 
-                opportunities = defaultdict(dict)
-                # population count
-                for region, population_count in regions_count.items():
-                    population_reached = self.restructure_dict(
-                        remove_keys(population_count, ["total"]), max_value=max_value
-                    )
-                    population_reached["population"] = [
-                        int(x) for x in population_reached["population"]
-                    ]
-                    if population_count.get("total") and population_count.get("total").get(
-                        "population"
-                    ):
-                        total_population = int(population_count.get("total")["population"])
-                    else:
-                        total_population = regions.query(f'name == "{region}"').iloc[0][
-                            "population"
-                        ]
+                intersected_regions.append(isochrone_clip)
 
-                    opportunities[region]["total_population"] = int(total_population)
-                    opportunities[region]["reached_population"] = population_reached["population"]
+            # intersect the original region shapes as well
+            regions["region"] = regions.apply(
+                lambda x: "{}_x_{}".format(x["name"], "total"), axis=1
+            )
+            intersected_regions.append(regions)
 
-                grid["accessibility"] = {
-                    "starting_points": starting_point_geom,
-                    "opportunities": dict(opportunities),
-                }
-            if obj_in.mode.value == IsochroneMode.BUFFER.value:
-                grid["accessibility"]["buffer"] = {
-                    "steps": 50,  # in meters
-                    "distance": obj_in.settings.buffer_distance,
-                    "geojson": isochrone_shapes["full"].to_json(),
-                }
-            grid_encoded = encode_r5_grid(grid)
-            result = Response(bytes(grid_encoded))
-        else:
-            result = network
+            intersected_regions = pd.concat(intersected_regions, ignore_index=True)
+            # intersect the clipped isochrone shapes with the opportunity data
+            opportunity_count = OpportunityIsochroneCount(
+                input_geometries=intersected_regions,
+                **opportunity_user_args,
+            )
+            population_count = opportunity_count.count_population(group_by_columns=["region"])
+            # split the dictionary based on region groups
+            regions_count = {}
+            for key, count_value in population_count.items():
+                region, count_key = key.split("_x_")
+                if count_key != "total":
+                    count_key = int(count_key)
+                if region not in regions_count:
+                    regions_count[region] = {}
+                regions_count[region][count_key] = count_value
+
+            opportunities = defaultdict(dict)
+            # population count
+            for region, population_count in regions_count.items():
+                population_reached = self.restructure_dict(
+                    remove_keys(population_count, ["total"]), max_value=max_value
+                )
+                population_reached["population"] = [
+                    int(x) for x in population_reached["population"]
+                ]
+                if population_count.get("total") and population_count.get("total").get(
+                    "population"
+                ):
+                    total_population = int(population_count.get("total")["population"])
+                else:
+                    total_population = regions.query(f'name == "{region}"').iloc[0]["population"]
+
+                opportunities[region]["total_population"] = int(total_population)
+                opportunities[region]["reached_population"] = population_reached["population"]
+
+            grid["accessibility"] = {
+                "starting_points": starting_point_geom,
+                "opportunities": dict(opportunities),
+            }
+        if obj_in.mode.value == IsochroneMode.BUFFER.value:
+            grid["accessibility"]["buffer"] = {
+                "steps": 50,  # in meters
+                "distance": obj_in.settings.buffer_distance,
+                "geojson": isochrone_shapes["full"].to_json(),
+            }
+        grid_encoded = encode_r5_grid(grid)
+        if isochrone_type == IsochroneTypeEnum.single.value:
+            geojson_result = self.build_geojson_single(isochrone_shapes, opportunities)
+        elif isochrone_type == IsochroneTypeEnum.multi.value:
+            geojson_result = self.build_geojson_multi(isochrone_shapes, opportunities)
+
+        result = {
+            "grid": grid_encoded,
+            "geojson": geojson_result,
+            "network": network,
+        }
         return result
+
+    def build_geojson_single(self, isochrone_shapes, opportunities):
+        geojson = json.loads(isochrone_shapes["full"].to_json())
+        for key, opportunity in opportunities.items():
+            for cnt, value in enumerate(opportunity):
+                geojson["features"][cnt]["properties"][key] = value
+        return geojson
+
+    def build_geojson_multi(self, isochrone_shapes, opportunities):
+        @cache
+        def sub_study_area_to_feature_name(sub_study_area, feature):
+            return f"{feature}_{sub_study_area}"
+
+        geojson = json.loads(isochrone_shapes["full"].to_json())
+        population_keys = list(opportunities.keys())
+
+        for cnt in range(len(geojson["features"])):
+            for key in population_keys:
+                feature_name = sub_study_area_to_feature_name(key, "total_population")
+                sub_study_area_total_population = opportunities[key]["total_population"]
+                geojson["features"][cnt]["properties"][
+                    feature_name
+                ] = sub_study_area_total_population
+
+            for key in population_keys:
+                feature_name = sub_study_area_to_feature_name(key, "reached_population")
+                sub_study_area_population_count = opportunities[key]["reached_population"][cnt]
+                geojson["features"][cnt]["properties"][
+                    feature_name
+                ] = sub_study_area_population_count
+
+        return geojson
 
 
 isochrone = CRUDIsochrone()

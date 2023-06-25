@@ -22,12 +22,15 @@ import scenarioStore from "../store/modules/scenarios";
 import poisAoisStore from "../store/modules/poisaois";
 import indicatorsStore from "../store/modules/indicators";
 import mapStore from "../store/modules/map";
+import indicators from "../store/modules/indicators";
 import axios from "axios";
 import store from "../store";
 
 /**
+ *
  * Factory, which creates OpenLayers layer instances according to a given config
  * object.
+ *
  */
 
 function addHeatmapToMap(response, lConf, source) {
@@ -89,6 +92,7 @@ function heatmapGet(taskId, proj, current_try, lConf, source) {
           }, 1000);
         } else {
           if (response.data) {
+            indicators.state.active_indicator_taskId = taskId;
             addHeatmapToMap(response, lConf, source);
           }
         }
