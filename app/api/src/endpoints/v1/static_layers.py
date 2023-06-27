@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import crud
 from src.crud.base import CRUDBase
 from src.db import models
-from src.db.models.config_validation import *
+from src.db.models.legacy.config_validation import *
 from src.endpoints import deps
 from src.resources.enums import (
     AllowedVectorTables,

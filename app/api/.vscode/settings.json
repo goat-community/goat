@@ -22,7 +22,7 @@
   },
   "editor.formatOnSave": true,
   "peacock.remoteColor": "#1857a4",
-  "python.formatting.provider": "black",
+  "python.formatting.provider": "none",
   "python.formatting.blackArgs": [
     "--line-length=99"
   ],
@@ -33,7 +33,8 @@
   "[python]": {
     "editor.codeActionsOnSave": {
       "source.organizeImports": true
-    }
+    },
+    "editor.defaultFormatter": "ms-python.black-formatter"
   },
   "files.associations": {
     "iosfwd": "cpp",

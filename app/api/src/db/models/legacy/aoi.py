@@ -16,8 +16,8 @@ from sqlmodel import (
 )
 from sqlalchemy.dialects.postgresql import JSONB
 if TYPE_CHECKING:
-    from .data_upload import DataUpload
-    from .scenario import Scenario
+    from ..data_upload import DataUpload
+    from ..scenario import Scenario
 
 
 class AoiBase(SQLModel):

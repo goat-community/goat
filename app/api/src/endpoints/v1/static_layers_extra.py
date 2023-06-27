@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
 from src.db import models
-from src.db.models.config_validation import *
+from src.db.models.legacy.config_validation import *
 from src.db.session import legacy_engine
 from src.endpoints import deps
 from src.schemas.data_frame import validate_data_frame

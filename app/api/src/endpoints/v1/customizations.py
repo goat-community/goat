@@ -9,7 +9,7 @@ from src import crud, schemas
 from src.crud.base import CRUDBase
 from src.crud.crud_customization import customization, dynamic_customization
 from src.db import models
-from src.db.models.config_validation import *
+from src.db.models.legacy.config_validation import *
 from src.endpoints import deps
 from src.resources.enums import SettingToModify
 from src.schemas.customization import request_examples

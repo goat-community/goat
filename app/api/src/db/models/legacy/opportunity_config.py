@@ -38,7 +38,6 @@ class OpportunityGroup(SQLModel, table=True):
         back_populates="opportunity_group"
     )
 
-
 UniqueConstraint(OpportunityGroup.__table__.c.group)
 
 
