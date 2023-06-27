@@ -37,6 +37,7 @@
     "storybook": "^7.0.9",
     "storybook-addon-designs": "7.0.0-beta.2",
     "storybook-dark-mode": "^3.0.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "file-system-cache": "2.0.0"
   }
 }
