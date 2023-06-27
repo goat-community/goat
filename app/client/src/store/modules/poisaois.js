@@ -93,7 +93,7 @@ const actions = {
               }
             });
 
-            if (olFeatures.length > 45000) {
+            if (olFeatures.length > 50000) {
               state.poisAoisLayer.setMinZoom(14);
             }
           }
