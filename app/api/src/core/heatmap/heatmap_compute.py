@@ -26,7 +26,7 @@ from src.core.config import settings
 from src.core.heatmap.heatmap_core import save_traveltime_matrix
 from src.core.isochrone import network_to_grid, prepare_network_isochrone, dijkstra, construct_adjacency_list_
 from src.core.heatmap.heatmap_read import BaseHeatmap
-from src.db.session import async_session, legacy_engine
+from src.db.session import async_session, legacy_engine, sync_session
 from src.schemas.heatmap import (
     BulkTravelTime,
     HeatmapBulkResolution,
@@ -642,15 +642,15 @@ class ComputeHeatmap(BaseHeatmap):
         starting_ids = np.array(valid_starting_ids)
         isochrone_dto.starting_point.input = starting_point_objs
         # Read network
-        db = async_session()
-        network = await isochrone.read_network(
+        db = sync_session()
+        network = isochrone.read_network(
             db=db,
             obj_in=isochrone_dto,
             current_user=self.current_user,
             isochrone_type=IsochroneTypeEnum.heatmap.value,
             table_prefix=random_table_prefix,
         )
-        await db.close()
+        db.close()
         network = network[0]
         network = network.iloc[1:, :]
 
