@@ -17,7 +17,8 @@ const NewsLetterSection = () => {
         </Text>
       </div>
       <div className={classes.formSection}>
-        <TextField label="Name" /> <TextField className={classes.textField} label="Email" />{" "}
+        <TextField size="small" label="Name" />{" "}
+        <TextField size="small" className={classes.textField} label="Email" />{" "}
         <Button className={classes.button} variant="ternary">
           Subscribe
         </Button>

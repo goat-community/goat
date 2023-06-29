@@ -11,10 +11,12 @@ import FolderIcon from "@mui/icons-material/Folder";
 import HelpIcon from "@mui/icons-material/Help";
 import HomeIcon from "@mui/icons-material/Home";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import LocalPhoneIcon from "@mui/icons-material/LocalPhone";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PersonIcon from "@mui/icons-material/Person";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
+import RoomIcon from "@mui/icons-material/Room";
 import SearchIcon from "@mui/icons-material/Search";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
@@ -60,6 +62,8 @@ export const { Icon } = createIcon({
   email: EmailIcon,
   search: SearchIcon,
   settingsSuggested: SettingsSuggestIcon,
+  phone: LocalPhoneIcon,
+  marker: RoomIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];

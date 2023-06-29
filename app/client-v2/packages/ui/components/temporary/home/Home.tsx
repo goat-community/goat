@@ -3,6 +3,7 @@ import React from "react";
 
 import { makeStyles } from "../../../lib/ThemeProvider";
 import { SlideShow } from "../../SlideShow";
+import DashboardLayout from "../DashboardLayout";
 import NewsLetterSection from "../home/NewsLetterSection";
 import CardList, { type CardType } from "./CardList";
 
@@ -208,14 +209,14 @@ const Home = () => {
   const { classes, cx } = useStyles();
 
   return (
-    <>
+    <DashboardLayout>
       {/* <Head>
         <title>Dashboard - Home</title>
         <meta name="description" content="Data Dashboard" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head> */}
-      <div className={classes.container}>
+      <div>
         <SlideShow images={slideShowImages} height={328} width="100%" />
         {tempCardInfo.map((cardSection: CardDataType, index: number) => (
           <CardList
@@ -227,7 +228,7 @@ const Home = () => {
         ))}
         <NewsLetterSection />
       </div>
-    </>
+    </DashboardLayout>
   );
 };
 
@@ -239,19 +240,19 @@ const useStyles = makeStyles({ name: { Home } })((theme) => ({
     borderTopLeftRadius: 4,
     objectFit: "cover",
   },
-  container: {
-    width: "60%",
-    margin: "0 auto",
-    "@media (max-width: 1714px)": {
-      width: "70%",
-    },
-    "@media (max-width: 1500px)": {
-      width: "80%",
-    },
-    "@media (max-width: 1268px)": {
-      width: "90%",
-    },
-  },
+  // container: {
+  //   width: "60%",
+  //   margin: "0 auto",
+  //   "@media (max-width: 1714px)": {
+  //     width: "70%",
+  //   },
+  //   "@media (max-width: 1500px)": {
+  //     width: "80%",
+  //   },
+  //   "@media (max-width: 1268px)": {
+  //     width: "90%",
+  //   },
+  // },
 }));
 
 export default Home;

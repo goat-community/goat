@@ -48,6 +48,8 @@ const useStyles = (props: ToolbarProps) =>
       left: 0,
       right: 0,
       padding: theme.spacing(4),
+      zIndex: "100",
+      boxShadow: "0px 2px 4px -1px rgba(0, 0, 0, 0.12)",
     },
     logoSize: {
       width: "144px",

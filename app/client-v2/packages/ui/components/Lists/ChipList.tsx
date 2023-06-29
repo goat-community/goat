@@ -87,6 +87,7 @@ const useStyles = makeStyles({ name: { ChipList } })((theme) => ({
     marginRight: "8px",
     padding: "7px 6px",
     fontStyle: "italic",
+    fontSize: "11px",
   },
 }));
 

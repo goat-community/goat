@@ -64,6 +64,8 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
 const useStyles = (props: DashboardSidebarProps) =>
   makeStyles({ name: { DashboardSidebar } })((theme) => ({
     root: {
+      zIndex: "20",
+      paddingTop: "52px",
       backgroundColor: theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].light,
       cursor: "pointer",
       width: props.width,
@@ -74,6 +76,7 @@ const useStyles = (props: DashboardSidebarProps) =>
       transition: "width 0.4s ease",
       display: "flex",
       flexDirection: "column",
+      boxShadow: "0px 2px 4px -1px rgba(0, 0, 0, 0.12)",
       "&:hover": {
         width: props.extended_width,
       },

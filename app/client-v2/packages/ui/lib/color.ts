@@ -61,7 +61,7 @@ export function createDefaultColorUseCases(params: Param0<CreateColorUseCase<Pal
   return {
     typography: {
       textPrimary: palette[isDarkModeEnabled ? "light" : "dark"].main,
-      textSecondary: palette[isDarkModeEnabled ? "dark" : "light"].greyVariant4,
+      textSecondary: isDarkModeEnabled ? palette.light.greyVariant2 : palette.light.greyVariant4,
       textTertiary: palette[isDarkModeEnabled ? "dark" : "light"].greyVariant2,
       textDisabled: palette[isDarkModeEnabled ? "dark" : "light"].greyVariant2,
       textFocus: palette.focus[isDarkModeEnabled ? "light" : "main"],
