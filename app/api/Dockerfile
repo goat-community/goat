@@ -1,4 +1,4 @@
-FROM python:3.9-bullseye
+FROM python:3.11.4-bullseye
 # create directory for the app user
 RUN mkdir -p /app
 WORKDIR /app/
@@ -48,7 +48,7 @@ RUN curl -sSL https://raw.githubusercontent.com/celery/celery/master/extra/gener
 COPY ./pyproject.toml ./poetry.lock* /app/
 # Allow installing dev dependencies to run tests
 ARG INSTALL_DEV=false
-RUN bash -c "if [ $INSTALL_DEV == 'True' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
+RUN bash -c "if [ $INSTALL_DEV == 'True' ] ; then poetry install --no-root ; else poetry install --no-root --only main ; fi"
 COPY . /app
 
 
