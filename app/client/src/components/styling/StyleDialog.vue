@@ -5,6 +5,7 @@
     persistent
     no-click-animation
     hide-overlay
+    :retain-focus="false"
     v-model="dialog"
     content-class="v-dialog"
   >

@@ -8,6 +8,21 @@ class ReturnType(str, Enum):
     geobuf = "geobuf"
 
 
+class IndicatorResultsReturnType(str, Enum):
+    """Combination of Heatmap and Isochrone Return Types"""
+
+    GRID = "grid"
+    GEOJSON = "geojson"
+    NETWORK = "network"
+
+    CSV = "csv"
+    GEOBUF = "geobuf"
+    SHAPEFILE = "shapefile"
+    GEOPACKAGE = "geopackage"
+    KML = "kml"
+    XLSX = "xlsx"
+
+
 class VectorType(str, Enum):
     """Vector Type Enums."""
 
@@ -31,9 +46,12 @@ class MaxUploadFileSize(int, Enum):
 class IsochroneExportType(str, Enum):
     """Supported files types for export."""
 
-    geojson = "GeoJSON"
-    shp = "ESRI Shapefile"
-    xlsx = "XLSX"
+    CSV = "csv"
+    GEOBUF = "geobuf"
+    SHAPEFILE = "shapefile"
+    GEOPACKAGE = "geopackage"
+    KML = "kml"
+    XLSX = "xlsx"
 
 
 class CalculationTypes(str, Enum):
@@ -187,6 +205,7 @@ class SystemStatus(str, Enum):
     maintenance = "maintenance"
     running = "running"
 
+
 class OpportunityHeatmapTypes(str, Enum):
     """Opportunity type for the heatmap."""
 
@@ -198,6 +217,7 @@ class OpportunityHeatmapTypes(str, Enum):
 
 class MigrationTables(str, Enum):
     """Migration Tables."""
+
     poi = "poi"
     aoi = "aoi"
     study_area = "study_area"

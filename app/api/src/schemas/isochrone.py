@@ -81,6 +81,13 @@ class IsochroneOutputType(Enum):
     GEOJSON = "geojson"
     NETWORK = "network"
 
+    CSV = "csv"
+    GEOBUF = "geobuf"
+    SHAPEFILE = "shapefile"
+    GEOPACKAGE = "geopackage"
+    KML = "kml"
+    XLSX = "xlsx"
+
 
 class IsochroneDecayFunctionType(Enum):
     LOGISTIC = "logistic"
@@ -353,6 +360,23 @@ class IsochroneDTO(BaseModel):
 
         return values
 
+    @property
+    def is_multi(self):
+        """Check if multi-isochrone"""
+        starting_point_type_is_coord = isinstance(
+            self.starting_point.input[0], IsochroneStartingPointCoord
+        )
+
+        if len(self.starting_point.input) > 1 and starting_point_type_is_coord:
+            return False
+        else:
+            return True
+
+    @property
+    def is_single(self):
+        """Check if single-isochrone"""
+        return not self.is_multi
+
 
 # R5
 R5AvailableDates = {
@@ -426,6 +450,25 @@ request_examples = {
                 },
             },
         },
+        "single_cycling_default": {
+            "summary": "Single Cycling Isochrone with Default Profile",
+            "value": {
+                "mode": "cycling",
+                "settings": {
+                    "travel_time": "15",
+                    "speed": "10",
+                    "cycling_profile": "standard",
+                },
+                "starting_point": {
+                    "input": [{"lat": 48.1502132, "lon": 11.5696284}],
+                },
+                "scenario": {"id": 0, "modus": "default"},
+                "output": {
+                    "type": "grid",
+                    "resolution": "12",
+                },
+            },
+        },
         "pois_multi_isochrone": {
             "summary": "Multi Isochrone with Pois",
             "value": {
@@ -438,7 +481,7 @@ request_examples = {
                 "starting_point": {
                     "input": ["nursery"],
                     "region_type": "study_area",
-                    "region": [27],
+                    "region": [27, 144],
                 },
                 "scenario": {"id": 0, "modus": "default"},
                 "output": {
