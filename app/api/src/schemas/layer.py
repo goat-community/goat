@@ -179,26 +179,12 @@ registry = Registry()
 # =========================NEW SCHEMAS=========================
 #########################################################
 from typing import List, Optional
-from sqlmodel import (
-    ForeignKey,
-    Column,
-    Field,
-    SQLModel,
-    Text,
-    Integer,
-)
 from uuid import UUID
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field 
 from src.schemas.content import ContentUpdateBase
 from src.db.models.layer import FeatureLayerBase, LayerBase, GeospatialAttributes
 
-class OpportunityType(str, Enum):
-    """Opportunity types."""
-
-    aoi = "aoi"
-    poi = "poi"
-    population = "population"
 
 class LayerType(str, Enum):
     """Layer types that are supported."""
@@ -214,9 +200,8 @@ class FeatureLayerType(str, Enum):
 
     standard = "standard"
     indicator = "indicator"
-    opportunity = "opportunity"
     scenario = "scenario"
-    analysis_unit = "analysis_unit"
+    street_network = "street_network"
 
 
 class IndicatorType(str, Enum):
@@ -232,13 +217,12 @@ class IndicatorType(str, Enum):
 class ScenarioType(str, Enum):
     """Scenario types."""
 
-    building = "building"
-    poi = "poi"
-    aoi = "aoi"
-    way = "way"
+    point = "point"
+    polygon = "polygon"
+    network_street = "network_street"
 
 
-class FeatureLayerDataType(str, Enum):
+class FeatureLayerExportType(str, Enum):
     """Feature layer data types."""
 
     geojson = "geojson"
@@ -274,15 +258,6 @@ class TableDataType(str, Enum):
     xlsx = "xlsx"
     json = "json"
 
-class Opportunity(BaseModel):
-    """Model to show the opportunity data sets."""
-
-    id: UUID = Field(..., description="Layer ID of the opportunity data sets")
-    name: str = Field(..., description="Opportunity name")
-    opportunity_type: OpportunityType = Field(..., description="Opportunity type")
-    query: Optional[str] = Field(None, description="Opportunity query to filter the data")
-
-
 ################################################################################
 # Layer Base DTOs
 ################################################################################
@@ -291,9 +266,9 @@ class Opportunity(BaseModel):
 class LayerUpdateBase(ContentUpdateBase):
     """Base model for layer updates."""
 
-    group: Optional[str] = Field(None, description="Layer group name")
-    data_source_id: Optional[int] = Field(None, description="Data source")
-    data_reference_year: Optional[int] = Field(None, description="Data reference year")
+    group: str | None = Field(None, description="Layer group name")
+    data_source_id: int | None = Field(None, description="Data source")
+    data_reference_year: int | None = Field(None, description="Data reference year")
 
 
 ################################################################################
@@ -307,8 +282,8 @@ class FeatureLayerReadBase(FeatureLayerBase):
 class FeatureLayerUpdateBase(LayerUpdateBase, GeospatialAttributes):
     """Base model for feature layer updates."""
 
-    style_id: Optional[UUID] = Field(None, description="Style ID of the layer")
-    size: Optional[int] = Field(None, description="Size of the layer in bytes")
+    style_id: UUID | None = Field(None, description="Style ID of the layer")
+    size: int | None = Field(None, description="Size of the layer in bytes")
 
 
 class LayerProjectAttributesBase(BaseModel):
@@ -328,6 +303,7 @@ class FeatureLayerProjectBase(FeatureLayerBase, LayerProjectAttributesBase):
     """Model for feature layer that are in projects."""
 
     id: UUID = Field(..., description="Layer UUID")
+    group: str | None = Field(..., description="Layer group name")
     style_id: UUID = Field(
         ...,
         description="Style ID of the layer",
@@ -336,7 +312,7 @@ class FeatureLayerProjectBase(FeatureLayerBase, LayerProjectAttributesBase):
         ...,
         description="Array with the active style rules for the respective style in the style",
     )
-    query: Optional[str] = Field(None, description="Query to filter the layer data")
+    query: str | None = Field(None, description="Query to filter the layer data")
 
 
 # Feature Layer Standard
@@ -362,7 +338,7 @@ class FeatureLayerIndicatorAttributesBase(BaseModel):
 
     indicator_type: IndicatorType = Field(..., description="Indicator type")
     payload: dict = Field(..., description="Used Request payload to compute the indicator")
-    opportunities: Optional[List[UUID]] = Field(
+    opportunities: List[UUID] | None = Field(
         None, description="Opportunity data sets that are used to intersect with the indicator"
     )
 
@@ -382,10 +358,10 @@ class FeatureLayerIndicatorRead(FeatureLayerReadBase, FeatureLayerIndicatorAttri
 class FeatureLayerIndicatorUpdate(FeatureLayerUpdateBase):
     """Model to update a feature layer indicator."""
 
-    payload: Optional[dict] = Field(
+    payload: dict | None = Field(
         None, description="Used Request payload to compute the indicator"
     )
-    opportunities: Optional[List[UUID]] = Field(
+    opportunities: List[UUID] | None = Field(
         None, description="Opportunity data sets that are used to intersect with the indicator"
     )
 
@@ -393,33 +369,6 @@ class FeatureLayerIndicatorUpdate(FeatureLayerUpdateBase):
 class FeatureLayerIndicatorProject(FeatureLayerProjectBase, FeatureLayerIndicatorAttributesBase):
     """Model for feature layer indicator in a project."""
 
-    pass
-
-
-# Feature Layer Opportunity
-class FeatureLayerOpportunityAttributesBase(BaseModel):
-    """Base model for feature layer opportunity."""
-
-    scenario_id: Optional[int] = Field(
-        None, description="Scenario ID if there is a scenario associated with this layer"
-    )
-
-
-class FeatureLayerOpportunityCreate(FeatureLayerBase, FeatureLayerOpportunityAttributesBase):
-    pass
-
-
-class FeatureLayerOpportunityRead(FeatureLayerReadBase, FeatureLayerOpportunityAttributesBase):
-    pass
-
-
-class FeatureLayerOpportunityUpdate(FeatureLayerUpdateBase, FeatureLayerOpportunityAttributesBase):
-    pass
-
-
-class FeatureLayerOpportunityProject(
-    FeatureLayerProjectBase, FeatureLayerOpportunityAttributesBase
-):
     pass
 
 
@@ -447,24 +396,6 @@ class FeatureLayerScenarioUpdate(FeatureLayerUpdateBase):
     """Model to update a feature layer scenario."""
 
     pass
-
-
-# Feature Layer Analysis Unit
-class FeatureLayerAnalysisUnitCreate(FeatureLayerBase):
-    pass
-
-
-class FeatureLayerAnalysisUnitRead(FeatureLayerReadBase):
-    pass
-
-
-class FeatureLayerAnalysisUnitUpdate(FeatureLayerUpdateBase):
-    pass
-
-
-class FeatureLayerAnalysisUnitProject(FeatureLayerProjectBase):
-    pass
-
 
 ################################################################################
 # Imagery Layer DTOs
@@ -494,8 +425,8 @@ class ImageryLayerRead(LayerBase, GeospatialAttributes, ImageryLayerAttributesBa
 class ImageryLayerUpdate(LayerUpdateBase):
     """Model to"""
 
-    url: Optional[str] = Field(None, description="Layer URL")
-    legend_urls: Optional[List[str]] = Field(None, description="Layer legend URLs")
+    url: str | None = Field(None, description="Layer URL")
+    legend_urls: List[str] | None = Field(None, description="Layer legend URLs")
 
 
 class ImageryLayerProject(LayerBase, ImageryLayerAttributesBase, LayerProjectAttributesBase):
@@ -531,7 +462,7 @@ class TileLayerRead(LayerBase, GeospatialAttributes, TileLayerAttributesBase):
 class TileLayerUpdate(LayerUpdateBase):
     """Model to update a tile layer."""
 
-    url: Optional[str] = Field(None, description="Layer URL")
+    url: str | None = Field(None, description="Layer URL")
 
 
 class TileLayerProject(LayerBase, TileLayerAttributesBase, LayerProjectAttributesBase):

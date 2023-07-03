@@ -35,7 +35,7 @@ class Report(ReportBase, table=True):
     )
     project_id: UUID = Field(
         sa_column=Column(
-            Text, ForeignKey("customer.project.id", ondelete="CASCADE"), nullable=False
+            Text, ForeignKey("customer.project.content_id", ondelete="CASCADE"), nullable=False
         ),
         description="Project ID that contains the report. This is mandatory for reports as they are always contained in a project.",
     )

@@ -1,9 +1,7 @@
-from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 from sqlmodel import (
     ForeignKey,
     Column,
-    DateTime,
     Field,
     SQLModel,
     Text,
@@ -12,7 +10,7 @@ from sqlmodel import (
     Relationship,
 )
 from uuid import UUID
-from ._base_class import UUIDAutoBase, DateTimeBase
+from ._base_class import DateTimeBase
 from sqlalchemy.orm import mapper, relationship
 if TYPE_CHECKING:
     from .style import Style
@@ -25,10 +23,11 @@ if TYPE_CHECKING:
 
 # TODO: Trigger to update the date when the content is updated
 class ContentBase(SQLModel):
+    """Base model for content."""
     name: str = Field(sa_column=Column(Text, nullable=False), description="Content name")
-    description: Optional[str] = Field(sa_column=Column(Text), description="Content description")
-    tags: Optional[List[str]] = Field(sa_column=ARRAY(Text()), description="Content tags")
-    thumbnail_url: Optional[str] = Field(
+    description: str | None = Field(sa_column=Column(Text), description="Content description")
+    tags: List[str] | None = Field(sa_column=Column(ARRAY(Text()), nullable=True), description="Content tags")
+    thumbnail_url: str | None = Field(
         sa_column=Column(Text), description="Content thumbnail URL"
     )
     content_type: "ContentType" = Field(
@@ -44,10 +43,14 @@ class ContentBase(SQLModel):
     )
 
 
-class Content(UUIDAutoBase, DateTimeBase, ContentBase, table=True):
+class Content(DateTimeBase, ContentBase, table=True):
+    """Content model."""
     __tablename__ = "content"
     __table_args__ = {"schema": "customer"}
 
+    id: UUID | None = Field(
+        sa_column=Column(Text, primary_key=True, nullable=False, server_default=text("uuid_generate_v4()"))
+    )
     user_id: UUID = Field(
         sa_column=Column(
             Text,
@@ -71,3 +74,5 @@ class Content(UUIDAutoBase, DateTimeBase, ContentBase, table=True):
     report: "Report" = Relationship(
         back_populates="content", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
+
+
