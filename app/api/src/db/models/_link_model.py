@@ -23,10 +23,6 @@ class LayerProjectLink(SQLModel, table=True):
         sa_column=Column(Text, ForeignKey("customer.style.content_id"), nullable=True),
         description="Style ID of the layer",
     )
-    active_style_rule: List[bool] | None = Field(
-        sa_column=Column(ARRAY(Boolean), nullable=True),
-        description="Array with the active style rules for the respective style in the style",
-    )
     query: str | None = Field(
         sa_column=Column(Text, nullable=True), description="Query to filter the layer data"
     )

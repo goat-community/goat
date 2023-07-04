@@ -7,5 +7,6 @@ from .layer import Layer
 from .scenario import Scenario
 from .scenario_feature import ScenarioFeature
 from .data_store import DataStore
+from .analysis_request import AnalysisRequest
 from ._link_model import LayerProjectLink, ScenarioScenarioFeatureLink
 

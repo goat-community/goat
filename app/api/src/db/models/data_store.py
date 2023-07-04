@@ -20,7 +20,7 @@ class DataStoreBase(SQLModel):
 
 
 class DataStore(DataStoreBase, DateTimeBase, table=True):
-    """Content model."""
+    """Data store model."""
     __tablename__ = "data_store"
     __table_args__ = {"schema": "customer"}
 

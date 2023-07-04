@@ -28,6 +28,7 @@ if TYPE_CHECKING:
         ScenarioType,
         LayerType,
     )
+    from .analysis_request import AnalysisRequest
 
 
 class GeospatialAttributes(SQLModel):
@@ -145,4 +146,5 @@ class Layer(FeatureLayerBase, table=True):
     style: "Style" = Relationship(back_populates="layers")
     scenario_features: List["ScenarioFeature"] = Relationship(back_populates="original_layer")
     data_store: "DataStore" = Relationship(back_populates="layers")
+    analysis_requests: List["AnalysisRequest"] = Relationship(back_populates="layer")
     
