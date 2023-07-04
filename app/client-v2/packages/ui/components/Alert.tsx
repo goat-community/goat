@@ -7,9 +7,9 @@ import { useReducer, memo } from "react";
 import type { ReactNode } from "react";
 
 import { makeStyles } from "../lib/ThemeProvider";
-import { createIcon } from "./Icon/Icon";
-import { createIconButton } from "./Icon/IconButton";
-import { Text } from "./Text/TextBase";
+import { createIcon } from "./DataDisplay";
+import { createIconButton } from "./DataDisplay/IconButton";
+import { Text } from "./theme";
 
 export type AlertProps = {
   className?: string;

@@ -1,5 +1,5 @@
 import { makeStyles } from "../../../../lib/ThemeProvider";
-import { Card } from "../../../Card";
+import { Card } from "../../../Surfaces";
 import { Icon, Text } from "../../../theme";
 import type { IconId } from "../../../theme";
 

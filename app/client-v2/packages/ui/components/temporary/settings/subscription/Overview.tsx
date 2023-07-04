@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
-import Banner from "../../../Banner";
+import Banner from "../../../Surfaces/Banner";
 import { Button, Text } from "../../../theme";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import type { SubscriptionStatusCardDataType } from "./SubscriptionStatusCard";

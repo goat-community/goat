@@ -13,7 +13,7 @@ import { memo } from "react";
 import { symToStr } from "tsafe/symToStr";
 
 import { Alert } from "@p4b/ui/components/Alert";
-import { Card } from "@p4b/ui/components/Card";
+import { Card } from "@p4b/ui/components/Surfaces";
 import { useIsDarkModeEnabled } from "@p4b/ui/lib";
 import { useDomRect, useWindowInnerSize } from "@p4b/ui/lib";
 

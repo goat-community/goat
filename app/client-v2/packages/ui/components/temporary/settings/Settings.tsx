@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { makeStyles } from "../../../lib/ThemeProvider";
-import { Divider } from "../../Divider";
+import { Divider } from "../../DataDisplay/Divider";
 import { Text } from "../../theme";
 import DashboardLayout from "../DashboardLayout";
 import Organization from "./organization/Organization";

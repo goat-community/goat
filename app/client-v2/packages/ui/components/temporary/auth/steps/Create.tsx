@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
-import { Card } from "../../../Card";
-import { SelectField } from "../../../SelectField";
-import { TextField } from "../../../Text/TextField";
+import { SelectField } from "../../../Inputs/SelectField";
+import { TextField } from "../../../Inputs/TextField";
+import { Card } from "../../../Surfaces";
 import { Button, Text } from "../../../theme";
 
 export default function Create() {

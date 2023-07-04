@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
-import Banner from "../../../Banner";
 import Dialog from "../../../Dialog";
-import { TextField } from "../../../Text/TextField";
+import { TextField } from "../../../Inputs/TextField";
+import Banner from "../../../Surfaces/Banner";
 import { Icon, Text, Button } from "../../../theme";
 import type { IconId } from "../../../theme";
 import SubscriptionStatusCard from "../subscription/SubscriptionStatusCard";

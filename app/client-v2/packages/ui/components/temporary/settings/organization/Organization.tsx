@@ -1,5 +1,5 @@
 import { makeStyles } from "../../../../lib/ThemeProvider";
-import { Tabs } from "../../../Tabs";
+import { Tabs } from "../../../Navigation/Tabs";
 import ManageUsers from "./ManageUsers";
 import Overview from "./Overview";
 

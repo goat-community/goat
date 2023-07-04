@@ -19,6 +19,7 @@ export const defaultPalette = {
     main: "#2BB381",
     light: "#2BB381",
     light2: "#60D3A2",
+    dark: "#1A6B4D",
   },
   dark: {
     main: "#283648",
@@ -133,6 +134,7 @@ export function createMuiPaletteOptions(params: {
     primary: {
       main: palette.focus[isDarkModeEnabled ? "light" : "main"],
       light: palette.focus.light2,
+      dark: palette.focus.dark,
     },
     secondary: {
       main: useCases.typography.textPrimary,

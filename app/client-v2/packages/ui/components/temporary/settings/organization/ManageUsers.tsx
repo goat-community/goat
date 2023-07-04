@@ -2,14 +2,14 @@ import { useState } from "react";
 import React from "react";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
-import Banner from "../../../Banner";
-import { Card } from "../../../Card";
+import { EnhancedTable } from "../../../DataDisplay";
+import Table from "../../../DataDisplay/Table";
 import Dialog from "../../../Dialog";
-import EnhancedTable from "../../../EnhancedTable";
+import { SelectField } from "../../../Inputs/SelectField";
+import { TextField } from "../../../Inputs/TextField";
 import Modal from "../../../Modal";
-import { SelectField } from "../../../SelectField";
-import Table from "../../../Table";
-import { TextField } from "../../../Text/TextField";
+import { Card } from "../../../Surfaces";
+import Banner from "../../../Surfaces/Banner";
 import { Icon, Button, Text } from "../../../theme";
 
 interface RowsType extends Object {

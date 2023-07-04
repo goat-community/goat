@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 // @ts-ignore
 import ReCAPTCHA from "react-google-recaptcha";
 
-import { Tooltip } from "@p4b/ui/components/Tooltip";
+import { Tooltip } from "@p4b/ui/components/DataDisplay/Tooltip";
 import { useIsDarkModeEnabled } from "@p4b/ui/lib";
 
 import { makeStyles, Button, Text } from "../../theme";

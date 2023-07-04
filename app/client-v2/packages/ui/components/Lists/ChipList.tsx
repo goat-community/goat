@@ -2,7 +2,7 @@ import { Chip } from "@mui/material";
 import { forwardRef, memo, useEffect, useRef } from "react";
 
 import { makeStyles } from "../../lib/ThemeProvider";
-import { Text } from "../Text/TextBase";
+import { Text } from "../theme";
 
 export type ChipListProps = {
   className?: string;

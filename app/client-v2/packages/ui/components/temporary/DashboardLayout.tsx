@@ -3,10 +3,10 @@ import ForwardIcon from "@mui/icons-material/Forward";
 import React from "react";
 
 import { makeStyles } from "../../lib/ThemeProvider";
-import { DashboardSidebar } from "../DashboardSidebar";
-import Footer from "../Footer";
-import { createIcon } from "../Icon";
-import { Toolbar } from "../Toolbar";
+import { createIcon } from "../DataDisplay";
+import { DashboardSidebar } from "../Navigation/DashboardSidebar";
+import Footer from "../Navigation/Footer";
+import { Toolbar } from "../Navigation/Toolbar";
 import type { IconId } from "../theme";
 
 interface DashboardLayoutProps {
@@ -113,7 +113,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     <>
       <Toolbar height={52} items={items} />
       <DashboardSidebar items={sidebarItems} width={60} extended_width={200}>
-        <div className={classes.container}>{children}</div>
+        <div>
+          <div className={classes.container}>{children}</div>
+        </div>
       </DashboardSidebar>
       <Footer
         links={footerLinks}
@@ -125,11 +127,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
 const useStyles = makeStyles({ name: { DashboardLayout } })((theme) => ({
   container: {
-    width: "1344px",
     minHeight: "100vh",
     margin: "0 auto",
+    width: "1268px",
     marginTop: "52px",
-    paddingLeft: "200px",
+    paddingLeft: "90px",
     "@media (max-width: 1714px)": {
       width: "90%",
     },

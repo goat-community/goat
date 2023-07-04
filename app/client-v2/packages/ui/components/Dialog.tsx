@@ -35,14 +35,16 @@ const Dialog = memo(
           vertical: "top",
           horizontal: direction,
         }}>
-        <div className={classes.card}>
-          <div className={classes.header}>
-            {/* header */}
-            {title ? <Text typo="navigation label">{title}</Text> : null}
-            <span onClick={onClick}>
-              <IconButton className={classes.xButton} type="submit" size="small" iconId="close" />
-            </span>
-          </div>
+        <div className={cx(classes.card, className)}>
+          {title ? (
+            <div className={classes.header}>
+              {/* header */}
+              <Text typo="navigation label">{title}</Text>
+              <span onClick={onClick}>
+                <IconButton className={classes.xButton} type="submit" size="small" iconId="close" />
+              </span>
+            </div>
+          ) : null}
           <div>
             {/* header */}
             {children}

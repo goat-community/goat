@@ -1,8 +1,8 @@
 import React from "react";
 
 import { makeStyles } from "../../../lib/ThemeProvider";
-import { Card } from "../../Card";
-import { TextField } from "../../Text/TextField";
+import { TextField } from "../../Inputs/TextField";
+import { Card } from "../../Surfaces";
 import { Text } from "../../theme";
 import { Button } from "../../theme";
 

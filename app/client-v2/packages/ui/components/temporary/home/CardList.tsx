@@ -1,10 +1,10 @@
 import React from "react";
 
 import { makeStyles } from "../../../lib/ThemeProvider";
-import { CardContent } from "../../Card";
-import { CardMedia } from "../../Card";
-import { Card } from "../../Card/Card";
-import { Divider } from "../../Divider";
+import { Divider } from "../../DataDisplay";
+import { CardContent } from "../../Surfaces";
+import { CardMedia } from "../../Surfaces";
+import { Card } from "../../Surfaces/Card";
 import { Button } from "../../theme";
 import { Text } from "../../theme";
 
@@ -21,7 +21,7 @@ export interface CardType<IconId extends string> {
 
 interface CardsDataArray {
   content: CardType<"file">;
-  media: boolean | { image: string };
+  media: false | { image: string };
 }
 
 export interface CardListProps {

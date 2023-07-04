@@ -18,7 +18,7 @@ import { makeStyles } from "../lib/ThemeProvider";
 import { breakpointsValues } from "../lib/breakpoints";
 import { variantNameUsedForMuiButton } from "../lib/typography";
 import { pxToNumber } from "../tools/pxToNumber";
-import type { IconProps } from "./Icon/Icon";
+import type { IconProps } from "./DataDisplay";
 
 export type ButtonProps<IconId extends string = never> =
   | ButtonProps.Regular<IconId>
