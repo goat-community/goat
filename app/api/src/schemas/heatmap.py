@@ -81,6 +81,7 @@ class HeatmapBaseSpeed(Enum):
 class HeatmapBase(BaseModel):
     max_traveltime: int
     weight: int
+    visible: bool = False
 
 
 class HeatmapConfigGravity(HeatmapBase):
