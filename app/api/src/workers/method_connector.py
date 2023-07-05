@@ -173,22 +173,14 @@ async def read_heatmap_async(current_user, settings):
         }
 
     else:
-        result = heatmap.read(heatmap_settings)
+        result = heatmap.read(settings)
         # TODO: Find the best place where to round the results as this should be done at the very end
         # result["agg_class"] = result["agg_class"].round()
 
     # todo: Can be extended to other formats in the future based on return type
-    geojson_result = heatmap.to_geojson(result)
-    return_data = {
-        "data": {
-            "geojson": geojson_result,
-        },
-        "return_type": heatmap_settings.return_type.value,
-        "hexlified": False,
-        "data_source": "heatmap",
-    }
+    result = heatmap.to_geojson(result, settings)
 
-    return return_data
+    return result
 
 
 async def read_pt_station_count_async(current_user, payload, return_type):
