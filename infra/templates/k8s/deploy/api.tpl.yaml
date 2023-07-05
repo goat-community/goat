@@ -42,6 +42,9 @@ spec:
           imagePullPolicy: Always
           name: goat-api
           resources:
+            requests:
+              memory: 700Mi
+              cpu: 600m
             limits:
               memory: 4Gi
               cpu: 2
@@ -112,6 +115,9 @@ spec:
             - name: persistent-storage
               mountPath: /app/src/cache
           resources:
+            requests:
+              memory: 700Mi
+              cpu: 600m
             limits:
               memory: ${WORKER_MEMORY_LIMIT}Gi
               cpu: 2
