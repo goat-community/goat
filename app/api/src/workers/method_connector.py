@@ -139,9 +139,9 @@ async def create_connectivity_matrices_async(current_super_user, parameters):
     await compute_heatmap.compute_connectivity_matrix(**parameters)
 
 
-async def read_heatmap_async(current_user, settings):
+async def read_heatmap_async(current_user, heatmap_settings):
     current_user = models.User(**current_user)
-    heatmap_settings = HeatmapSettings(**settings)
+    #heatmap_settings = HeatmapSettings(**settings)
     heatmap = ReadHeatmap(current_user=current_user)
 
     if heatmap_settings.heatmap_type == HeatmapType.modified_gaussian_population:
@@ -173,13 +173,20 @@ async def read_heatmap_async(current_user, settings):
         }
 
     else:
-        result = heatmap.read(settings)
+        result = heatmap.read(heatmap_settings)
         # TODO: Find the best place where to round the results as this should be done at the very end
         # result["agg_class"] = result["agg_class"].round()
 
     # todo: Can be extended to other formats in the future based on return type
-    result = heatmap.to_geojson(result, settings)
-
+    geojson_result = heatmap.to_geojson(result, heatmap_settings)
+    result = {
+        "data": {
+            "geojson": geojson_result,
+        },
+        "return_type": heatmap_settings.return_type.value,
+        "hexlified": False,
+        "data_source": "heatmap",
+    }
     return result
 
 
