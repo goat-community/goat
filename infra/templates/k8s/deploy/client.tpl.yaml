@@ -30,6 +30,13 @@ spec:
           name: goat-client
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 200m
+            limits:
+              memory: 1Gi
+              cpu: 500m
 ---
 apiVersion: v1
 kind: Service

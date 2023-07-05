@@ -32,6 +32,13 @@ spec:
                 name: goat-celery-flower-config
           ports:
             - containerPort: 5555
+          resources:
+            limits:
+              cpu: 200m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
