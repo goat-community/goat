@@ -133,7 +133,7 @@ async def calculate_heatmap(
     Calculate a heatmap for a given set of parameters.
     """
     current_user = json.loads(current_user.json())
-    heatmap_settings = json.loads(heatmap_settings.json())
+    #heatmap_settings = json.loads(heatmap_settings.json())
     if settings.CELERY_BROKER_URL:
         task = read_heatmap_task.delay(
             current_user=current_user,
@@ -142,7 +142,7 @@ async def calculate_heatmap(
         return {"task_id": task.id}
 
     else:
-        results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
+        results = await read_heatmap_async(current_user=current_user, heatmap_settings=heatmap_settings)
         return read_results(results)
 
 
