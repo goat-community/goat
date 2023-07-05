@@ -97,23 +97,4 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
             return True
         return False
 
-    async def user_study_area_starting_point_access(
-        self, db: AsyncSession, user_id: int, points: list[IsochroneStartingPointCoord]
-    ) -> bool:
-        user = await self.get(db, id=user_id, extra_fields=[models.User.study_areas])
-
-        points = [Point(point.lon, point.lat) for point in points]
-        study_area_geoms = [study_area.shape_of_geom for study_area in user.study_areas]
-        for point in points:
-            for study_area in study_area_geoms:
-                if study_area.contains(point):
-                    break
-            else:
-                # if no study area contains the point, return False
-                return False
-
-        # if all if statements breaked (i.e. all points are in a study area), return True
-        return True
-
-
 user = CRUDUser(models.User)
