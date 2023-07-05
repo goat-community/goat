@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 from enum import Enum
-from pydantic import BaseModel, Field 
+from pydantic import BaseModel, Field
 from src.schemas.content import ContentUpdateBase
 from src.db.models.layer import FeatureLayerBase, LayerBase, GeospatialAttributes
 
@@ -33,10 +33,12 @@ class IndicatorType(str, Enum):
     oev_gueteklasse = "oev_gueteklasse"
     public_transport_frequency = "public_transport_frequency"
 
+
 class AnalysisType(str, Enum):
     """Analysis types."""
 
     intersects = "intersects"
+
 
 class ScenarioType(str, Enum):
     """Scenario types."""
@@ -44,6 +46,8 @@ class ScenarioType(str, Enum):
     point = "point"
     polygon = "polygon"
     network_street = "network_street"
+
+# TODO: Differentiate the types here into import and export types?
 
 
 class FeatureLayerExportType(str, Enum):
@@ -56,6 +60,9 @@ class FeatureLayerExportType(str, Enum):
     csv = "csv"
     xlsx = "xlsx"
     kml = "kml"
+
+
+class FeatureLayerServeType(str, Enum):
     mvt = "mvt"
     wfs = "wfs"
     binary = "binary"
@@ -65,13 +72,15 @@ class ImageryLayerDataType(str, Enum):
     """Imagery layer data types."""
 
     wms = "wms"
+    xyz = "xyz"
+    wmts = "wmts"
+
+# Rename to Vector tiles?
 
 
 class TileLayerDataType(str, Enum):
     """Tile layer data types."""
 
-    xyz = "xyz"
-    wmts = "wmts"
     mvt = "mvt"
 
 
@@ -132,10 +141,6 @@ class FeatureLayerProjectBase(FeatureLayerBase, LayerProjectAttributesBase):
         ...,
         description="Style ID of the layer",
     )
-    active_style_rule: List[bool] = Field(
-        ...,
-        description="Array with the active style rules for the respective style in the style",
-    )
     query: str | None = Field(None, description="Query to filter the layer data")
 
 
@@ -161,7 +166,8 @@ class FeatureLayerIndicatorAttributesBase(BaseModel):
     """Base model for additional attributes feature layer indicator."""
 
     indicator_type: IndicatorType = Field(..., description="Indicator type")
-    payload: dict = Field(..., description="Used Request payload to compute the indicator")
+    payload: dict = Field(...,
+                          description="Used Request payload to compute the indicator")
     opportunities: List[UUID] | None = Field(
         None, description="Opportunity data sets that are used to intersect with the indicator"
     )
