@@ -1,10 +1,4 @@
 [tool.poetry]
-name = "app"
-version = "1.0.0"
-description = ""
-authors = ["Admin <administrator@plan4better.de>"]
-
-[tool.poetry]
 name = "goat_api"
 version = "2.0.0"
 description = "Core API for GOAT service spatial data and different indicators."
