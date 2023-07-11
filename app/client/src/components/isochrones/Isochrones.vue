@@ -104,7 +104,7 @@
                       ></v-text-field>
                     </v-col>
                   </template> -->
-                  <template v-if="['transit', 'car'].includes(routing)">
+                  <template v-if="['transit'].includes(routing)">
                     <!-- DATE -->
                     <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
                       <v-select
