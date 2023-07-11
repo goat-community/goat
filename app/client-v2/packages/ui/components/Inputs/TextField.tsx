@@ -38,7 +38,7 @@ export type TextFieldProps = {
   name?: string;
   /** Default text */
   type?: "text" | "password" | "email";
-  size?: "small" | "medium" | "verySmall";
+  size?: "small" | "medium";
   InputPropsClass?: {
     className?: string;
   };
@@ -403,9 +403,6 @@ export const TextField = memo((props: TextFieldProps) => {
       className={cx(classes.muiTextField, className)}
       sx={{
         borderBottom: "none",
-        "&.css-94zh71-MuiInputBase-input-MuiOutlinedInput-input": {
-          padding: size === "verySmall" ? "2px" : "",
-        },
       }}
       multiline={doRenderAsTextArea}
       rows={!doRenderAsTextArea ? undefined : rows}
@@ -417,7 +414,7 @@ export const TextField = memo((props: TextFieldProps) => {
       error={hasError}
       helperText={helperTextNode}
       InputProps={InputProps}
-      size={size !== "verySmall" ? size : "medium"}
+      size={size}
       onBlur={onMuiTextfieldBlur}
       onChange={onChange}
       placeholder={placeholder}

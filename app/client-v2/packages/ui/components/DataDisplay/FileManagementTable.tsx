@@ -9,12 +9,12 @@ import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import { visuallyHidden } from "@mui/utils";
+import { isValidElement, useEffect } from "react";
 import * as React from "react";
 
 import { changeColorOpacity } from "../../lib";
 import { makeStyles } from "../../lib/ThemeProvider";
-import { Text } from "../theme";
-import { IconButton } from "../theme";
+import { Text, Icon, IconButton } from "../theme";
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -41,7 +41,7 @@ function getComparator<Key extends keyof any>(
 // stableSort() brings sort stability to non-modern browsers (notably IE11). If you
 // only support modern browsers you can replace stableSort(exampleArray, exampleComparator)
 // with exampleArray.slice().sort(exampleComparator)
-function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number) {
+function stableSort<T extends Rows>(array: readonly T[], comparator: (a: T, b: T) => number) {
   const stabilizedThis = array.map((el, index) => [el, index] as [T, number]);
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
@@ -104,19 +104,28 @@ function FileManagementHead(props: FileManagementHeadProps) {
   );
 }
 
+type Rows = { name: React.ReactNode; [key: string]: any };
+
 type FileManagementProps = {
-  rows: { name: React.ReactNode; [key: string]: any }[];
+  rows: Rows[];
   hover?: boolean;
   columnNames: {
     id: string;
     numeric: boolean;
     label: string;
   }[];
-  openDialog?: React.Dispatch<React.SetStateAction<object | null>>;
+  openDialog?: React.Dispatch<
+    React.SetStateAction<{
+      [x: string]: string | number;
+      [x: number]: string | number;
+    } | null>
+  >;
   modal?: { body: React.ReactNode; action: React.ReactNode; header: React.ReactNode } | null;
   openModal?: React.Dispatch<React.SetStateAction<object | null>>;
   setDialogAnchor?: React.Dispatch<React.SetStateAction<HTMLButtonElement | null>>;
   more?: boolean;
+  currPath: string[];
+  setPath: (value: string[]) => void;
 };
 
 export function FileManagementTable(props: FileManagementProps) {
@@ -129,6 +138,8 @@ export function FileManagementTable(props: FileManagementProps) {
     openDialog,
     more = true,
     hover = false,
+    currPath,
+    setPath,
     ...rest
   } = props;
 
@@ -139,10 +150,17 @@ export function FileManagementTable(props: FileManagementProps) {
   const [order, setOrder] = React.useState<Order>("asc");
   const [orderBy, setOrderBy] = React.useState(rowKeys[0]);
   const [selected, setSelected] = React.useState<(string | number)[]>([]);
-  const [modalStatus, setModalStatus] = React.useState<boolean>(false);
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(20);
+  const [rowOnPath, setRowOnPath] = React.useState<Rows[] | null>(rows);
   const { classes } = useStyles();
+
+  useEffect(() => {
+    switchPath({
+      direction: "change",
+      changePath: currPath,
+    });
+  }, [currPath]);
 
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof ObjectKeys) => {
     const isAsc = orderBy === property && order === "asc";
@@ -161,18 +179,99 @@ export function FileManagementTable(props: FileManagementProps) {
 
   const isSelected = (name: string | number) => selected.indexOf(name) !== -1;
 
-  function handleRowClick(row: { [x: string]: string | number; [x: number]: string | number }) {
-    if (openModal && !React.isValidElement(row.name)) {
-      openModal(row);
-    } else {
+  function findElementWithNestedPath(rows: Rows[], targetPath: string[]) {
+    let files: Rows[] = [];
+
+    rows.map((row) => {
+      if (JSON.stringify(row.path) === JSON.stringify(targetPath)) {
+        files.push(row);
+      }
+      if (row.files) {
+        const nestedResult = findElementWithNestedPath(row.files, targetPath);
+        if (nestedResult) {
+          files = [...files, ...nestedResult];
+        }
+      }
+    });
+
+    if (files.length) {
+      return files;
+    }
+    return null;
+  }
+
+  function findSiblingsWithNestedPath(rows: Rows[], targetPath: string[]) {
+    const targetElement = findElementWithNestedPath(rows, targetPath);
+    if (!targetElement) {
+      return [];
+    }
+    return targetElement;
+  }
+
+  function switchPath(props: {
+    direction: "back" | "enter" | "change";
+    currPath?: string[];
+    changePath?: string[];
+    folderName?: string;
+  }) {
+    let newPath: string[] = [];
+
+    switch (props.direction) {
+      case "back":
+        if (props.currPath) {
+          newPath = [...props.currPath];
+          newPath.pop();
+          setPath(newPath);
+          break;
+        }
+      case "enter":
+        if (props.folderName && props.currPath) {
+          newPath = [...props.currPath];
+          newPath.push(props.folderName);
+          setPath(newPath);
+        }
+        break;
+      case "change":
+        if (props.changePath) {
+          newPath = props.changePath;
+          setPath(newPath);
+        }
+        break;
+    }
+
+    if (newPath.length) {
+      const siblings = findSiblingsWithNestedPath(rows, newPath);
+      setRowOnPath(siblings.flat(Infinity));
     }
   }
 
-  function openDialogInitializer(event: React.MouseEvent<HTMLButtonElement>, indx: number) {
+  function handleRowClick(row: Rows) {
+    if (openModal && !React.isValidElement(row.name) && row.name !== "...") {
+      openModal(row);
+    } else {
+      if (row.files) {
+        switchPath({
+          direction: "enter",
+          currPath: row.path,
+          folderName: row.stringName,
+        });
+      } else if (row.name === "..." && currPath.length > 1) {
+        switchPath({
+          direction: "back",
+          currPath: currPath,
+        });
+      }
+    }
+  }
+
+  function openDialogInitializer(
+    event: React.MouseEvent<HTMLButtonElement>,
+    row: { [x: string]: string | number; [x: number]: string | number }
+  ) {
     if (setDialogAnchor) {
       setDialogAnchor(event.currentTarget);
       if (openDialog) {
-        openDialog(rows[indx]);
+        openDialog(row);
       }
     }
   }
@@ -180,14 +279,13 @@ export function FileManagementTable(props: FileManagementProps) {
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-  const visibleRows = React.useMemo(
-    () =>
-      stableSort(rows, getComparator(order, orderBy)).slice(
-        page * rowsPerPage,
-        page * rowsPerPage + rowsPerPage
-      ),
-    [order, orderBy, page, rowsPerPage]
-  );
+  const visibleRows: Rows[] = React.useMemo(() => {
+    const stable_sort = stableSort(rowOnPath ? rowOnPath : [], getComparator(order, orderBy)).slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+    return stable_sort;
+  }, [order, orderBy, page, rowsPerPage, rowOnPath]);
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -203,8 +301,54 @@ export function FileManagementTable(props: FileManagementProps) {
               rowCount={rows.length}
             />
             <TableBody>
+              <TableRow
+                className={classes.tableRow}
+                onClick={() => handleRowClick({ name: "..." })}
+                hover={hover}
+                role="checkbox"
+                tabIndex={-1}
+                sx={{ cursor: "pointer" }}>
+                <TableCell
+                  className={classes.tableCell}
+                  sx={{ padding: "12px" }}
+                  component="th"
+                  id="go-back"
+                  scope="row"
+                  padding="none">
+                  <Text className={classes.tableCellText} typo="body 2">
+                    <Icon iconId="moreHorizontal" iconVariant="gray" />
+                  </Text>
+                </TableCell>
+                <TableCell
+                  className={classes.tableCell}
+                  component="th"
+                  id="go-back"
+                  scope="row"
+                  padding="none"
+                />
+                <TableCell
+                  className={classes.tableCell}
+                  component="th"
+                  id="go-back"
+                  scope="row"
+                  padding="none"
+                />
+                <TableCell
+                  className={classes.tableCell}
+                  component="th"
+                  id="go-back"
+                  scope="row"
+                  padding="none"
+                />
+                <TableCell
+                  className={classes.tableCell}
+                  component="th"
+                  id="go-back"
+                  scope="row"
+                  padding="none"
+                />
+              </TableRow>
               {visibleRows.map((row, index) => {
-                const isItemSelected = isSelected(row.name);
                 const labelId = `enhanced-table-checkbox-${index}`;
 
                 return (
@@ -212,30 +356,59 @@ export function FileManagementTable(props: FileManagementProps) {
                     className={classes.tableRow}
                     hover={hover}
                     role="checkbox"
-                    aria-checked={isItemSelected}
                     tabIndex={-1}
                     key={index}
-                    selected={isItemSelected}
                     sx={{ cursor: "pointer" }}>
-                    {rowKeys &&
-                      rowKeys.map((key, index) => (
-                        <TableCell
-                          onClick={() => handleRowClick(row)}
-                          className={classes.tableCell}
-                          key={index}
-                          component="th"
-                          id={labelId}
-                          scope="row"
-                          padding="none">
-                          <Text className={classes.tableCellText} typo="body 2">
-                            {row[key]}
-                          </Text>
-                        </TableCell>
-                      ))}
+                    <TableCell
+                      onClick={() => handleRowClick(row)}
+                      className={classes.tableCell}
+                      component="th"
+                      id={labelId}
+                      scope="row"
+                      padding="none">
+                      {isValidElement(row.name) ? (
+                        row.name
+                      ) : (
+                        <Text className={classes.tableCellText} typo="body 2">
+                          {row.name}
+                        </Text>
+                      )}
+                    </TableCell>
+                    <TableCell
+                      onClick={() => handleRowClick(row)}
+                      className={classes.tableCell}
+                      component="th"
+                      id={labelId}
+                      scope="row"
+                      padding="none">
+                      {row.type}
+                    </TableCell>
+                    <TableCell
+                      onClick={() => handleRowClick(row)}
+                      className={classes.tableCell}
+                      component="th"
+                      id={labelId}
+                      scope="row"
+                      padding="none">
+                      <Text className={classes.tableCellText} typo="body 2">
+                        {row.modified}
+                      </Text>
+                    </TableCell>
+                    <TableCell
+                      onClick={() => handleRowClick(row)}
+                      className={classes.tableCell}
+                      component="th"
+                      id={labelId}
+                      scope="row"
+                      padding="none">
+                      <Text className={classes.tableCellText} typo="body 2">
+                        {row.size}
+                      </Text>
+                    </TableCell>
                     {more ? (
                       <TableCell className={classes.tableCell} padding="none">
                         <IconButton
-                          onClick={(e) => openDialogInitializer(e, index)}
+                          onClick={(e) => openDialogInitializer(e, row)}
                           iconId="moreVert"
                           size="medium"
                         />
@@ -308,7 +481,6 @@ const useStyles = makeStyles({
   },
   tableCellText: {
     padding: 0,
-    fontSize: "12px",
   },
   tableCellHeaderText: {
     fontWeight: "bold",

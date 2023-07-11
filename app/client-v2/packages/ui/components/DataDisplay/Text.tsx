@@ -19,7 +19,7 @@ export function createText<TypographyVariantNameCustom extends string = never>(p
     className?: string | null;
     typo: TypographyVariantNameCustom | TypographyDesc.VariantNameBase;
     color?: "primary" | "secondary" | "disabled" | "focus" | undefined;
-    children: NonNullable<React.ReactNode>;
+    children: React.ReactNode;
     htmlComponent?: TypographyDesc.HtmlComponent;
     componentProps?: JSX.IntrinsicElements[TypographyDesc.HtmlComponent];
 

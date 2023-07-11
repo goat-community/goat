@@ -1,25 +1,51 @@
 import { useState } from "react";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
+import Modal from "../../../Modal";
 import { ToggleTabs } from "../../../Navigation/ToggleTabs";
 import { Card } from "../../../Surfaces";
-import { Button, Text, Icon } from "../../../theme";
+import { Button, Text, Icon, IconButton } from "../../../theme";
 import DashboardLayout from "../../DashboardLayout";
+import CreateContent from "./CreateContent";
 
-const HeaderCard = () => {
+interface HeaderCardProps {
+  path: string[];
+  setPath: (value: string[]) => void;
+}
+
+const HeaderCard = (props: HeaderCardProps) => {
+  const { path, setPath } = props;
+
   const { classes } = useStyles();
   const [value, setValue] = useState<string | null>("formatLeft");
+  const [addContent, setAddContent] = useState(false);
+
+  function handlePathChange(indx: number) {
+    const newPath = [...path];
+    setPath(newPath.slice(0, indx + 1));
+  }
 
   return (
     <Card noHover={true} width="100%" className={classes.headerCard}>
       <div className={classes.headerContainer}>
         <div className={classes.headerPath}>
           <Text typo="section heading" className={classes.headerText}>
-            Library
+            Content
           </Text>
           <span style={{ display: "flex", alignItems: "center" }}>
-            <Icon iconId="home" className={classes.icon} size="small" iconVariant="gray" />{" "}
-            <Text typo="body 2">Home</Text> <Text typo="body 2">/</Text>
+            <span className={classes.path}>
+              {path.map((singlePath, indx) => (
+                <span key={indx} className={classes.path}>
+                  <Text
+                    typo="body 2"
+                    className={classes.pathFile}
+                    color={indx === path.length - 1 ? "primary" : "secondary"}>
+                    <span onClick={() => handlePathChange(indx)}>{singlePath}</span>
+                  </Text>
+                  {indx !== path.length - 1 ? <Text typo="body 2">/</Text> : null}
+                </span>
+              ))}
+            </span>
           </span>
         </div>
         <div className={classes.headerActions}>
@@ -27,7 +53,7 @@ const HeaderCard = () => {
             <Button variant="noBorder">
               <Icon iconId="newFolder" className={classes.icon} size="small" iconVariant="gray" /> New folder
             </Button>
-            <Button variant="noBorder" className={classes.headerText}>
+            <Button variant="noBorder" className={classes.headerText} onClick={() => setAddContent(true)}>
               <Icon iconId="newFile" className={classes.icon} size="small" iconVariant="gray" /> Add content
             </Button>
           </span>
@@ -47,6 +73,20 @@ const HeaderCard = () => {
           />
         </div>
       </div>
+      <Modal
+        width="444px"
+        open={addContent}
+        changeOpen={() => setAddContent(false)}
+        header={
+          <div className={classes.modalHeader}>
+            <Text typo="section heading" className={classes.modalHeadertext}>
+              Add content
+            </Text>
+            <IconButton onClick={() => setAddContent(false)} iconId="close" />
+          </div>
+        }>
+        <CreateContent modalState={setAddContent} />
+      </Modal>
     </Card>
   );
 };
@@ -64,16 +104,24 @@ const useStyles = makeStyles({ name: { DashboardLayout } })((theme) => ({
   },
   headerText: {
     fontWeight: 800,
-    width: "fit-content",
+    // width: "fit-content",
   },
   headerPath: {
-    width: "30%",
+    width: "60%",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: "100px",
+  },
+  path: {
+    display: "flex",
+    alignItems: "center",
+    gap: theme.spacing(2),
+  },
+  pathFile: {
+    cursor: "pointer",
   },
   headerActions: {
-    width: "30%",
+    width: "40%",
     display: "flex",
     alignItems: "center",
     justifyContent: "end",
@@ -81,6 +129,14 @@ const useStyles = makeStyles({ name: { DashboardLayout } })((theme) => ({
   },
   icon: {
     marginRight: "10px",
+  },
+  modalHeadertext: {
+    fontWeight: "500",
+  },
+  modalHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 }));
 

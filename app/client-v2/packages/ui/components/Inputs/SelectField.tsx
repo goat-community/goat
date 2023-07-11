@@ -16,7 +16,7 @@ export type SelectFieldProps = {
   className?: string;
   updateChange?: (value: string) => void;
   options: { name: string; value: string }[];
-  defaultValue: string;
+  defaultValue?: string;
   label: string;
   size: "small" | "medium";
 };
@@ -27,7 +27,7 @@ export const SelectField = memo(
       className,
       updateChange,
       options,
-      defaultValue,
+      defaultValue = "",
       label,
       size = "medium",
       //For the forwarding, rest should be empty (typewise)
@@ -50,15 +50,14 @@ export const SelectField = memo(
 
     return (
       <>
-        <Box sx={{ minWidth: 120 }}>
-          <FormControl fullWidth>
+        <Box sx={{ minWidth: 120 }} className={className}>
+          <FormControl fullWidth size={size}>
             <InputLabel id="demo-simple-select-label">{label}</InputLabel>
             <Select
               labelId="demo-simple-select-label"
               id="demo-simple-select"
               value={values ? values : defaultValue}
               label={label}
-              size={size}
               onChange={handleChange}>
               {options.map((option) => (
                 <MenuItem value={option.value} key={option.value}>

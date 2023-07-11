@@ -205,7 +205,7 @@ export function createButton<IconId extends string = never>(params?: {
             case "ternary":
               return theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main;
             case "noBorder":
-              return "transparent";
+              return `${theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant1}80`;
             case "warning":
               return theme.muiTheme.palette.warning.main;
           }
@@ -233,20 +233,34 @@ export function createButton<IconId extends string = never>(params?: {
 
         return {
           textTransform: "unset" as const,
-          backgroundColor: disabled
-            ? theme.colors.useCases.buttons.actionDisabledBackground
-            : (() => {
-                switch (variant) {
-                  case "primary":
-                  case "secondary":
-                  case "noBorder":
-                  case "warning":
-                    return "transparent";
-                  case "ternary":
-                    return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main;
+          backgroundColor: (() => {
+            switch (variant) {
+              case "noBorder":
+                return "transparent";
+                break;
+              case "primary":
+              case "secondary":
+              case "warning":
+                if (disabled) {
+                  theme.colors.useCases.buttons.actionDisabledBackground;
+                } else {
+                  return "transparent";
                 }
-              })(),
-          borderRadius: approxHeight / 2,
+              case "ternary":
+                if (disabled) {
+                  theme.colors.useCases.buttons.actionDisabledBackground;
+                } else {
+                  return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main;
+                }
+            }
+          })(),
+          borderRadius: () => {
+            if (variant === "noBorder") {
+              return "1px";
+            } else {
+              approxHeight / 2;
+            }
+          },
           borderWidth,
           borderStyle: "solid",
           borderColor: disabled ? "transparent" : hoverBackgroundColor,

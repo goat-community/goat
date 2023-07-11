@@ -33,4 +33,10 @@ export const Default: Story = {
     ],
     height: 52,
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=12355%3A135783&mode=dev",
+    },
+  },
 };

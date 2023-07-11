@@ -1,10 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 
-import { GOATLogoIconOnlyGreen } from "../../../../assets/svg/GOATLogoIconOnlyGreen";
 import { makeStyles } from "../../../../lib/ThemeProvider";
-import { Icon, Text } from "../../../theme";
+import Modal from "../../../Modal";
+import { Icon, Text, IconButton } from "../../../theme";
+import DownloadModal from "./DownloadModal";
+import ShareModal from "./ShareModal";
 
-const MoreMenu = () => {
+interface MoreMenuProps {
+  rowInfo: { name: React.ReactNode; type: React.ReactNode; modified: string; size: string } | null;
+}
+
+const MoreMenu = (props: MoreMenuProps) => {
+  const [selectedOption, setSelectedOption] = useState<{ name: string; icon: React.ReactNode } | null>(null);
+  const { rowInfo } = props;
   const { classes, cx } = useStyles();
 
   const defaultOptions = [
@@ -16,10 +24,6 @@ const MoreMenu = () => {
       {
         name: "View",
         icon: <Icon size="small" iconId="view" className={classes.icon} />,
-      },
-      {
-        name: "Info",
-        icon: <GOATLogoIconOnlyGreen className={cx(classes.goatIconSize, classes.icon)} />,
       },
     ],
     [
@@ -48,12 +52,19 @@ const MoreMenu = () => {
     ],
   ];
 
+  interface ComponentOptions {
+    [key: string]: React.ReactElement<any, any>;
+  }
+  const componentOptions: ComponentOptions = {
+    Download: <DownloadModal name={rowInfo ? rowInfo.name : ""} changeState={setSelectedOption} />,
+    Share: <ShareModal name={rowInfo ? rowInfo.name : ""} changeState={setSelectedOption} />,
+  };
   return (
     <div>
       {defaultOptions.map((options, index) => (
         <div key={index} className={classes.section}>
           {options.map((option, indx) => (
-            <div key={indx} className={classes.option}>
+            <div key={indx} className={classes.option} onClick={() => setSelectedOption(option)}>
               {/* <span className={classes.icon}>{option.icon}</span> */}
               {option.icon}
               <Text typo="label 2">{option.name}</Text>
@@ -61,6 +72,27 @@ const MoreMenu = () => {
           ))}
         </div>
       ))}
+      <Modal
+        width="444px"
+        header={
+          <div className={classes.modalHeader}>
+            <Text typo="section heading" className={classes.headerText}>
+              {selectedOption ? selectedOption.name : ""}
+            </Text>
+            <IconButton onClick={() => setSelectedOption(null)} iconId="close" />
+          </div>
+        }
+        // title={selectedOption ? selectedOption.name : ""}
+        open={selectedOption ? true : false}
+        changeOpen={() => setSelectedOption(null)}>
+        {
+          componentOptions[
+            selectedOption !== null && ["Download", "Share"].includes(selectedOption.name)
+              ? selectedOption.name
+              : "Download"
+          ]
+        }
+      </Modal>
     </div>
   );
 };
@@ -85,6 +117,14 @@ const useStyles = makeStyles({ name: { MoreMenu } })((theme) => ({
   goatIconSize: {
     width: "20px",
     height: "20px",
+  },
+  modalHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerText: {
+    fontWeight: "normal",
   },
 }));
 

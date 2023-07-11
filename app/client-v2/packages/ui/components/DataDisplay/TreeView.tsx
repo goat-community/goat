@@ -83,47 +83,45 @@ export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
   };
 
   const renderTree = (nodes: TreeNode) => (
-    <>
-      <StyledTreeItem
-        key={nodes.id}
-        className={classes.label}
-        nodeId={nodes.id}
-        label={
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={checked.includes(nodes.id)}
-                indeterminate={
-                  nodes.children &&
-                  nodes.children.some((child) => checked.includes(child.id)) &&
-                  !checked.includes(nodes.id)
-                }
-                onChange={(event) => {
-                  handleToggle(event, nodes.id);
-                  handleParentCheck(nodes);
-                }}
-              />
-            }
-            label={
-              <span style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-                <Text typo="body 1">{nodes.name}</Text>
-                {nodes.count ? (
-                  <Text typo="body 3" className={classes.count}>
-                    {nodes.count}
-                  </Text>
-                ) : null}
-              </span>
-            }
-          />
-        }>
-        {Array.isArray(nodes.children) ? nodes.children.map((childNode) => renderTree(childNode)) : null}
-      </StyledTreeItem>
-    </>
+    <StyledTreeItem
+      key={nodes.id}
+      className={classes.label}
+      nodeId={nodes.id}
+      label={
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={checked.includes(nodes.id)}
+              indeterminate={
+                nodes.children &&
+                nodes.children.some((child) => checked.includes(child.id)) &&
+                !checked.includes(nodes.id)
+              }
+              onChange={(event) => {
+                handleToggle(event, nodes.id);
+                handleParentCheck(nodes);
+              }}
+            />
+          }
+          label={
+            <span style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+              <Text typo="body 1">{nodes.name}</Text>
+              {nodes.count ? (
+                <Text typo="body 3" className={classes.count}>
+                  {nodes.count}
+                </Text>
+              ) : null}
+            </span>
+          }
+        />
+      }>
+      {Array.isArray(nodes.children) ? nodes.children.map((childNode, index) => renderTree(childNode)) : null}
+    </StyledTreeItem>
   );
 
   return (
     <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}>
-      {treeData.map((data) => renderTree(data))}
+      {treeData.map((data, index) => renderTree(data))}
     </TreeView>
   );
 };

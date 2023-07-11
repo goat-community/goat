@@ -42,7 +42,7 @@ export const Warning: Story = {
   parameters: {
     design: {
       type: "figma",
-      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=10520-71026&t=wp26gbfVi2Dqh0qt-0",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=11581%3A140792&mode=dev",
     },
   },
 };

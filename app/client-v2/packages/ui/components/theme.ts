@@ -21,6 +21,8 @@ import HomeIcon from "@mui/icons-material/Home";
 import InfoIcon from "@mui/icons-material/Info";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import LocalPhoneIcon from "@mui/icons-material/LocalPhone";
+import LockIcon from "@mui/icons-material/Lock";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -70,6 +72,7 @@ export const { Icon } = createIcon({
   folder: FolderIcon,
   settings: SettingsIcon,
   moreVert: MoreVertIcon,
+  moreHorizontal: MoreHorizIcon,
   warn: ErrorIcon,
   warnOutlined: ErrorOutlineIcon,
   check: CheckCircleIcon,
@@ -92,6 +95,7 @@ export const { Icon } = createIcon({
   delete: DeleteIcon,
   reply: ReplyIcon,
   download: DownloadIcon,
+  lock: LockIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];

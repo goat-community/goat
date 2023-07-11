@@ -30,7 +30,7 @@ export const ImageLeft: Story = {
   parameters: {
     design: {
       type: "figma",
-      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-36744&t=m1TtlHDKRmJk5wCK-0",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=12044%3A133253&mode=dev",
     },
   },
 };
@@ -46,7 +46,7 @@ export const ImageRight: Story = {
   parameters: {
     design: {
       type: "figma",
-      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-36744&t=m1TtlHDKRmJk5wCK-0",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=12044%3A133253&mode=dev",
     },
   },
 };
@@ -62,7 +62,7 @@ export const ImageAsBackground: Story = {
   parameters: {
     design: {
       type: "figma",
-      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-36744&t=m1TtlHDKRmJk5wCK-0",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=12044%3A133253&mode=dev",
     },
   },
 };
@@ -76,7 +76,7 @@ export const EntireBannerAsImage: Story = {
   parameters: {
     design: {
       type: "figma",
-      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=6543-36744&t=m1TtlHDKRmJk5wCK-0",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=12044%3A133253&mode=dev",
     },
   },
 };

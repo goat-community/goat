@@ -45,4 +45,10 @@ export const Primary: Story = {
       },
     ],
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=6579%3A45052&mode=dev",
+    },
+  },
 };

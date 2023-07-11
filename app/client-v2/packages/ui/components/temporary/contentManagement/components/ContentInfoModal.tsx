@@ -30,7 +30,7 @@ const ContentInfoModal = (props: ContentInfoModalProps) => {
               <TextField
                 label=""
                 defaultValue="Study1_3994"
-                size="verySmall"
+                size="small"
                 className={classes.inputWrapper}
                 InputPropsClass={{
                   className: classes.inputModal,

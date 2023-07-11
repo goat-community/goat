@@ -39,7 +39,7 @@ const useStyles = makeStyles({ name: { Divider } })((theme) => ({
   root: {
     height: "1px",
     opacity: "0.08",
-    margin: "25px 0",
+    margin: "16px 0",
   },
   main: {
     backgroundColor: theme.isDarkModeEnabled

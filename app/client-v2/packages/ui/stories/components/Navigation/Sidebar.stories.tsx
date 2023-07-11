@@ -44,4 +44,10 @@ export const Default: Story = {
     width: 60,
     extended_width: 200,
   },
+  parameters: {
+    design: {
+      type: "figma",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=12355%3A135784&mode=dev",
+    },
+  },
 };

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Provider } from "react-redux";
 
 import { makeStyles } from "../../../lib/ThemeProvider";
 import { FileManagementTable, Chip } from "../../DataDisplay";
@@ -11,91 +12,222 @@ import ContentInfoModal from "./components/ContentInfoModal";
 import HeaderCard from "./components/HeaderCard";
 import MoreMenu from "./components/MoreMenu";
 import TreeViewFilter from "./components/TreeViewFilter";
+import { store } from "./state/store";
 
 const ContentManagement = () => {
+  return (
+    <Provider store={store}>
+      <DashboardLayout>
+        <ContentManagementComponent />
+      </DashboardLayout>
+    </Provider>
+  );
+};
+
+const ContentManagementComponent = () => {
   const { classes } = useStyles();
   const [modalContent, setModalContent] = useState<object | null>(null);
-  const [dialogContent, setDialogContent] = useState<object | null>(null);
+  const [dialogContent, setDialogContent] = useState<{
+    name: React.ReactNode;
+    type: React.ReactNode;
+    modified: string;
+    size: string;
+  } | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
   const rows = [
     {
       name: (
-        <span className={classes.folder}>
+        <Text className={classes.folder} typo="body 2">
           <span className={classes.icon}>
             <Icon iconId="folder" />
           </span>
           Report_Final_Version
-        </span>
+        </Text>
       ),
       type: <Chip label="Layer" textDesign="italic" variant="Border" />,
       modified: "23 Jun 19",
       size: "30 kb",
+      path: ["home"],
+      stringName: "Report_Final_Version",
+      files: [
+        {
+          name: "Project_XYZ_Conclusion",
+          type: <Chip label="Project" textDesign="italic" variant="Border" />,
+          modified: "23 Jun 19",
+          size: "30 kb",
+          path: ["home", "Report_Final_Version"],
+        },
+        {
+          name: "Data_Analysis_2023_Q1",
+          type: <Chip label="Image" textDesign="italic" variant="Border" />,
+          modified: "23 Jun 19",
+          size: "30 kb",
+          path: ["home", "Report_Final_Version"],
+        },
+        {
+          name: "Experiment_Results_Phase2",
+          type: <Chip label="Report" textDesign="italic" variant="Border" />,
+          modified: "23 Jun 19",
+          size: "30 kb",
+          path: ["home", "Report_Final_Version"],
+        },
+      ],
+    },
+    {
+      name: (
+        <Text className={classes.folder} typo="body 2">
+          <span className={classes.icon}>
+            <Icon iconId="folder" />
+          </span>
+          plan_4_better
+        </Text>
+      ),
+      type: <Chip label="Layer" textDesign="italic" variant="Border" />,
+      modified: "23 Jun 19",
+      size: "30 kb",
+      path: ["home"],
+      stringName: "plan_4_better",
+      files: [
+        {
+          name: "Project_XYZ_Conclusion",
+          type: <Chip label="Project" textDesign="italic" variant="Border" />,
+          modified: "23 Jun 19",
+          size: "30 kb",
+          path: ["home", "plan_4_better"],
+        },
+        {
+          name: "Data_Analysis_2023_Q1",
+          type: <Chip label="Image" textDesign="italic" variant="Border" />,
+          modified: "23 Jun 19",
+          size: "30 kb",
+          path: ["home", "plan_4_better"],
+        },
+        {
+          name: "Experiment_Results_Phase2",
+          type: <Chip label="Report" textDesign="italic" variant="Border" />,
+          modified: "23 Jun 19",
+          size: "30 kb",
+          path: ["home", "plan_4_better"],
+        },
+      ],
+    },
+    {
+      name: (
+        <Text className={classes.folder} typo="body 2">
+          <span className={classes.icon}>
+            <Icon iconId="folder" />
+          </span>
+          example_proj
+        </Text>
+      ),
+      type: <Chip label="Layer" textDesign="italic" variant="Border" />,
+      modified: "23 Jun 19",
+      size: "30 kb",
+      path: ["home"],
+      stringName: "example_proj",
+      files: [
+        {
+          name: "Project_XYZ_Conclusion",
+          type: <Chip label="Project" textDesign="italic" variant="Border" />,
+          modified: "23 Jun 19",
+          size: "30 kb",
+          path: ["home", "example_proj"],
+        },
+        {
+          name: (
+            <Text className={classes.folder} typo="body 2">
+              <span className={classes.icon}>
+                <Icon iconId="folder" />
+              </span>
+              april_2023
+            </Text>
+          ),
+          type: <Chip label="Layer" textDesign="italic" variant="Border" />,
+          modified: "23 Jun 19",
+          size: "30 kb",
+          path: ["home", "example_proj"],
+          stringName: "april_2023",
+          files: [
+            {
+              name: "Project_XYZ_Conclusion",
+              type: <Chip label="Project" textDesign="italic" variant="Border" />,
+              modified: "23 Jun 19",
+              size: "30 kb",
+              path: ["home", "example_proj", "april_2023"],
+            },
+            {
+              name: "Data_Analysis_2023_Q1",
+              type: <Chip label="Image" textDesign="italic" variant="Border" />,
+              modified: "23 Jun 19",
+              size: "30 kb",
+              path: ["home", "example_proj", "april_2023"],
+            },
+            {
+              name: "Experiment_Results_Phase2",
+              type: <Chip label="Report" textDesign="italic" variant="Border" />,
+              modified: "23 Jun 19",
+              size: "30 kb",
+              path: ["home", "example_proj", "april_2023"],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: "Report_Final_Version",
+      type: <Chip label="Layer" textDesign="italic" variant="Border" />,
+      modified: "23 Jun 19",
+      path: ["home"],
+      size: "30 kb",
     },
     {
       name: "Project_XYZ_Conclusion",
       type: <Chip label="Project" textDesign="italic" variant="Border" />,
       modified: "23 Jun 19",
+      path: ["home"],
       size: "30 kb",
     },
     {
       name: "Data_Analysis_2023_Q1",
       type: <Chip label="Image" textDesign="italic" variant="Border" />,
       modified: "23 Jun 19",
+      path: ["home"],
       size: "30 kb",
     },
     {
       name: "Experiment_Results_Phase2",
       type: <Chip label="Report" textDesign="italic" variant="Border" />,
       modified: "23 Jun 19",
+      path: ["home"],
       size: "30 kb",
     },
     {
       name: "Report_Final_Version",
       type: <Chip label="Layer" textDesign="italic" variant="Border" />,
       modified: "23 Jun 19",
+      path: ["home"],
       size: "30 kb",
     },
     {
       name: "Project_XYZ_Conclusion",
       type: <Chip label="Project" textDesign="italic" variant="Border" />,
       modified: "23 Jun 19",
+      path: ["home"],
       size: "30 kb",
     },
     {
       name: "Data_Analysis_2023_Q1",
       type: <Chip label="Image" textDesign="italic" variant="Border" />,
       modified: "23 Jun 19",
+      path: ["home"],
       size: "30 kb",
     },
     {
       name: "Experiment_Results_Phase2",
       type: <Chip label="Report" textDesign="italic" variant="Border" />,
       modified: "23 Jun 19",
-      size: "30 kb",
-    },
-    {
-      name: "Report_Final_Version",
-      type: <Chip label="Layer" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      size: "30 kb",
-    },
-    {
-      name: "Project_XYZ_Conclusion",
-      type: <Chip label="Project" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      size: "30 kb",
-    },
-    {
-      name: "Data_Analysis_2023_Q1",
-      type: <Chip label="Image" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      size: "30 kb",
-    },
-    {
-      name: "Experiment_Results_Phase2",
-      type: <Chip label="Report" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
+      path: ["home"],
       size: "30 kb",
     },
   ];
@@ -165,11 +297,15 @@ const ContentManagement = () => {
     },
   ];
 
+  const [path, setPath] = useState<string[]>(["home"]);
+
   const modal = modalContent
     ? {
         header: (
           <div className={classes.modalHeader}>
-            <Text typo="section heading">Info</Text>
+            <Text typo="section heading" className={classes.modalHeadertext}>
+              Info
+            </Text>
             <IconButton onClick={() => setModalContent(null)} iconId="close" />
           </div>
         ),
@@ -187,7 +323,7 @@ const ContentManagement = () => {
 
   const dialog = {
     width: "133px",
-    body: <MoreMenu />,
+    body: <MoreMenu rowInfo={dialogContent} />,
   };
 
   function closeTablePopover() {
@@ -196,8 +332,8 @@ const ContentManagement = () => {
   }
 
   return (
-    <DashboardLayout>
-      <HeaderCard />
+    <>
+      <HeaderCard path={path} setPath={setPath} />
       <div className={classes.container}>
         <TreeViewFilter />
         <Card noHover={true} className={classes.tableCard}>
@@ -209,6 +345,8 @@ const ContentManagement = () => {
             setDialogAnchor={setAnchorEl}
             openDialog={setDialogContent}
             openModal={setModalContent}
+            currPath={path}
+            setPath={setPath}
           />
           {anchorEl ? (
             <Dialog
@@ -235,7 +373,7 @@ const ContentManagement = () => {
           ) : null}
         </Card>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 
@@ -266,6 +404,9 @@ const useStyles = makeStyles({ name: { DashboardLayout } })((theme) => ({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  modalHeadertext: {
+    fontWeight: "500",
   },
   modalListItem: {
     display: "flex",

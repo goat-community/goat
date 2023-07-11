@@ -17,14 +17,14 @@ export type CreateColorUseCase<
 export const defaultPalette = {
   focus: {
     main: "#2BB381",
-    light: "#2BB381",
+    light: "#80D1B3",
     light2: "#60D3A2",
     dark: "#1A6B4D",
   },
   dark: {
     main: "#283648",
-    light: "#314157",
-    greyVariant1: "#1c2b3b",
+    light: "#647183",
+    greyVariant1: "#18202B",
     greyVariant2: "#1E2F41",
     greyVariant3: "#425066",
     greyVariant4: "#6A7C91",

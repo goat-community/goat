@@ -154,6 +154,12 @@ export const EnhancedTableSimple: Story = () => {
 };
 
 EnhancedTableSimple.args = {};
+EnhancedTableSimple.parameters = {
+  design: {
+    type: "figma",
+    url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=6594%3A46294&mode=dev",
+  },
+};
 
 export const EnhancedTableWithoutCheckbox: Story = () => {
   return (
@@ -237,6 +243,12 @@ export const EnhancedTableWithoutCheckbox: Story = () => {
 };
 
 EnhancedTableWithoutCheckbox.args = {};
+EnhancedTableWithoutCheckbox.parameters = {
+  design: {
+    type: "figma",
+    url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=6594%3A46294&mode=dev",
+  },
+};
 
 export const EnhancedTableWithoutMoreButton: Story = () => {
   return (
@@ -320,6 +332,12 @@ export const EnhancedTableWithoutMoreButton: Story = () => {
 };
 
 EnhancedTableWithoutMoreButton.args = {};
+EnhancedTableWithoutMoreButton.parameters = {
+  design: {
+    type: "figma",
+    url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=6594%3A46294&mode=dev",
+  },
+};
 
 export const EnhancedTableWithoutCheckboxesAndMoreButton: Story = () => {
   return (
@@ -404,6 +422,12 @@ export const EnhancedTableWithoutCheckboxesAndMoreButton: Story = () => {
 };
 
 EnhancedTableWithoutCheckboxesAndMoreButton.args = {};
+EnhancedTableWithoutCheckboxesAndMoreButton.parameters = {
+  design: {
+    type: "figma",
+    url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=6594%3A46294&mode=dev",
+  },
+};
 
 export const TableForFileManagement: Story = () => {
   const rows = [
@@ -515,3 +539,9 @@ export const TableForFileManagement: Story = () => {
 };
 
 TableForFileManagement.args = {};
+TableForFileManagement.parameters = {
+  design: {
+    type: "figma",
+    url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=6594%3A46294&mode=dev",
+  },
+};

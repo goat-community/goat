@@ -8,3 +8,4 @@ export * from "./Table";
 export * from "./Text";
 export * from "./Tooltip";
 export * from "./TreeView";
+export * from "./FileUploadProgress";

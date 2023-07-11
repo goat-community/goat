@@ -42,6 +42,7 @@ const useStyles = makeStyles<{ width: string }>({
 })((theme, { width }) => ({
   box: {
     position: "absolute",
+    borderRadius: theme.spacing(1),
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
