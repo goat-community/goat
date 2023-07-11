@@ -11,6 +11,7 @@
 node_modules
 .env
 /.vscode
+/.idea
 r5-cache
 /app/api/app/app/exts/cpp/build
 __pycache__
@@ -53,7 +54,7 @@ r5-cache
 
 /docs/.docusaurus
 
-# Unit test / coverage reports 
+# Unit test / coverage reports
 .coverage
 coverage.xml
 cache*
