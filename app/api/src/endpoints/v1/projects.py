@@ -4,12 +4,13 @@ from fastapi import Depends, HTTPException, APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import JSONResponse
 
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.schemas.project import dummy_projects
 from fastapi import Query
 import uuid
 
 router = APIRouter()
+
 
 @router.get("", response_class=JSONResponse)
 async def list_projects(
@@ -28,7 +29,6 @@ async def read_project_by_id(
     for project in dummy_projects:
         if project["id"] == id:
             return project
-
 
 
 # @router.post("", response_class=JSONResponse)
@@ -51,7 +51,7 @@ async def read_project_by_id(
 #     project_in_db = await crud.project.get(db, id=id)
 #     if not project_in_db:
 #         raise HTTPException(status_code=404, detail="project not found.")
-    
+
 #     project = await crud.project.update(db, db_obj=project_in_db, obj_in=project_in)
 #     return project
 

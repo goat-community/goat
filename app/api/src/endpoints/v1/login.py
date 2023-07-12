@@ -10,7 +10,7 @@ from src.core import security
 from src.core.config import settings
 from src.core.security import get_password_hash
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.utils import generate_token, send_email, verify_token
 
 router = APIRouter()

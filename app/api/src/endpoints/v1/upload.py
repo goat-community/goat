@@ -13,7 +13,7 @@ from starlette import status
 from src import crud, schemas
 from src.crud.crud_customization import dynamic_customization
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.resources.enums import MaxUploadFileSize
 from src.schemas.upload import request_examples
 from src.utils import delete_file
@@ -67,7 +67,6 @@ async def upload_custom_pois(
     poi_category=Body(..., example=request_examples["poi_category"]),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
-
     """Handle uploaded custom pois."""
     defined_uuid = uuid.uuid4().hex
     file_name = defined_uuid + os.path.splitext(file.filename)[1]
@@ -83,7 +82,7 @@ async def upload_custom_pois(
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail="The uploaded file size is to big the largest allowd size is %s MB."
-                % round(MaxUploadFileSize.max_upload_poi_file_size / 1024.0 ** 2, 2),
+                % round(MaxUploadFileSize.max_upload_poi_file_size / 1024.0**2, 2),
             )
 
         temp.write(chunk)
@@ -114,7 +113,6 @@ async def delete_all_custom_pois(
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
-
     """Delete custom pois."""
     data_upload_ids = await crud.data_upload.get_by_key(db, key="user_id", value=current_user.id)
 
@@ -133,7 +131,6 @@ async def delete_custom_pois(
     data_upload_id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
-
     """Delete custom pois."""
     data_upload_obj = await crud.data_upload.get_by_multi_keys(
         db, keys={"id": data_upload_id, "user_id": current_user.id}
