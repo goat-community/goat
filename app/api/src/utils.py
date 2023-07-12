@@ -19,14 +19,11 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import IO, Any, Dict, List, Optional
 from math import radians, cos
-import emails
-import geobuf
 import geopandas
 import h3
 import numpy as np
 import pandas as pd
 import pyproj
-from emails.template import JinjaTemplate
 from fastapi import HTTPException, UploadFile
 from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
@@ -50,21 +47,7 @@ def send_email_(
     html_template: str = "",
     environment: Dict[str, Any] = {},
 ) -> None:
-    assert settings.EMAILS_ENABLED, "no provided configuration for email variables"
-    message = emails.Message(
-        subject=JinjaTemplate(subject_template),
-        html=JinjaTemplate(html_template),
-        mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
-    )
-    smtp_options = {"host": settings.SMTP_HOST.upper(), "port": settings.SMTP_PORT}
-    if settings.SMTP_TLS:
-        smtp_options["tls"] = True
-    if settings.SMTP_USER:
-        smtp_options["user"] = settings.SMTP_USER
-    if settings.SMTP_PASSWORD:
-        smtp_options["password"] = settings.SMTP_PASSWORD
-    response = message.send(to=email_to, render=environment, smtp=smtp_options)
-    logging.info(f"send email result: {response}")
+    pass
 
 
 def send_test_email(email_to: str) -> None:
@@ -191,14 +174,7 @@ def return_geojson_or_geobuf(
     Return geojson or geobuf
     """
 
-    if return_type == "geojson":
-        return json.loads(json.dumps(features))
-    elif return_type == "geobuf":
-        return Response(bytes(geobuf.encode(features)), media_type=MimeTypes.geobuf.value)
-    elif return_type == "db_geobuf":
-        return Response(bytes(features))
-    else:
-        raise HTTPException(status_code=400, detail="Invalid return type")
+    pass
 
 
 def to_feature_collection(
@@ -1188,7 +1164,7 @@ def read_results(results, return_type=None):
             media_type="application/octet-stream",
             headers={"Content-Disposition": "attachment; filename=grid.bin"},
         )
-        
+
     elif return_type == "geobuf":
         data = geobuf.encode(data["geojson"])
         return Response(
