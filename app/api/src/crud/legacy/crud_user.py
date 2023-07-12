@@ -8,7 +8,7 @@ from shapely import Point
 from src.core.security import get_password_hash, verify_password
 from src.crud.base import CRUDBase
 from src.db import models
-from src.schemas.user import UserCreate, UserUpdate
+from src.schemas.legacy.user import UserCreate, UserUpdate
 from src.schemas.isochrone import IsochroneStartingPointCoord
 
 
@@ -16,7 +16,9 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
     async def create(self, db: AsyncSession, *, obj_in: UserCreate) -> models.User:
         db_obj = models.User.from_orm(obj_in)
         db_obj.hashed_password = get_password_hash(obj_in.password)
-        roles = await db.execute(select(models.Role).filter(models.Role.name.in_(obj_in.roles)))
+        roles = await db.execute(
+            select(models.Role).filter(models.Role.name.in_(obj_in.roles))
+        )
         db_obj.roles = roles.scalars().all()
 
         # combine study_area_ids with active_study_area_id
@@ -26,7 +28,9 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
         user_study_area_ids.update(obj_in.study_areas)
 
         study_areas = await db.execute(
-            select(models.StudyArea).filter(models.StudyArea.id.in_(user_study_area_ids))
+            select(models.StudyArea).filter(
+                models.StudyArea.id.in_(user_study_area_ids)
+            )
         )
         db_obj.study_areas = study_areas.scalars().all()
         db.add(db_obj)
@@ -35,7 +39,11 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
         return db_obj
 
     async def update(
-        self, db: AsyncSession, *, db_obj: models.User, obj_in: Union[UserUpdate, Dict[str, Any]]
+        self,
+        db: AsyncSession,
+        *,
+        db_obj: models.User,
+        obj_in: Union[UserUpdate, Dict[str, Any]],
     ) -> models.User:
         if isinstance(obj_in, dict):
             update_data = obj_in
@@ -53,7 +61,9 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
             del update_data["roles"]
         if update_data.get("study_areas") or update_data.get("study_areas") == []:
             study_areas = await db.execute(
-                select(models.StudyArea).filter(models.StudyArea.id.in_(obj_in.study_areas))
+                select(models.StudyArea).filter(
+                    models.StudyArea.id.in_(obj_in.study_areas)
+                )
             )
             db_obj.study_areas = study_areas.scalars().all()
             del update_data["study_areas"]
@@ -74,9 +84,13 @@ class CRUDUser(CRUDBase[models.User, UserCreate, UserUpdate]):
         return user
 
     async def get_active_study_area(self, db: AsyncSession, user: models.User):
-        study_area = await CRUDBase(models.StudyArea).get(db, id=user.active_study_area_id)
+        study_area = await CRUDBase(models.StudyArea).get(
+            db, id=user.active_study_area_id
+        )
 
-        world_extent = Polygon([[-180, 85], [-180, -85], [180, -85], [180, 85], [-180, 85]])
+        world_extent = Polygon(
+            [[-180, 85], [-180, -85], [180, -85], [180, 85], [-180, 85]]
+        )
         study_area_geom = to_shape(study_area.geom)
         buffer_geom_heatmap = to_shape(study_area.buffer_geom_heatmap)
 

@@ -6,7 +6,7 @@ from src.db import models
 from src.resources.enums import LanguageEnum
 
 
-class UserBase(models.UserBase):
+class UserBase(models.user.UserBase):
     roles: List[str] = []
     study_areas: List[int] = []
 

@@ -1,19 +1,20 @@
 from typing import TYPE_CHECKING, List
 from sqlmodel import (
     Relationship,
-    Text, 
+    Text,
     Field,
     Column,
     SQLModel,
 )
 from uuid import UUID
+from ._base_class import UuidToStr
 
 if TYPE_CHECKING:
     from .content import Content
     from .scenario import Scenario
 
 
-class User(SQLModel, table=True):
+class User(SQLModel, UuidToStr, table=True):
     __tablename__ = "user"
     __table_args__ = {"schema": "customer"}
 
