@@ -6,7 +6,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "cd ../../ && husky install ./app/client-v2/.husky",
-    "goat": "turbo run dev --filter=goat",
+    "goat": "dotenv -- turbo run dev --filter=goat",
     "storybook": "turbo run dev --filter=storybook",
     "build-storybook": "turbo run build --filter=storybook"
   },
@@ -21,7 +21,8 @@
     "install": "^0.13.0",
     "prettier": "^2.8.8",
     "syncpack": "^9.8.6",
-    "turbo": "latest"
+    "turbo": "latest",
+    "dotenv-cli": "7.2.1"
   },
   "packageManager": "pnpm@7.15.0",
   "name": "p4b-client-monorepo"
