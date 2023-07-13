@@ -1,7 +1,7 @@
 import Head from "next/head";
 import React from "react";
 
-import MapByStyle from "../components/MapByStyle";
+import Map from "../components/Map";
 
 export default function Home() {
   return (
@@ -15,8 +15,7 @@ export default function Home() {
       <main>
         <h1>Map Demo</h1>
 
-        {/*<CustomMap />*/}
-        <MapByStyle style="edge" />
+        <Map />
       </main>
     </>
   );

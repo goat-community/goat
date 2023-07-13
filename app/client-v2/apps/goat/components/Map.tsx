@@ -1,109 +1,39 @@
 import "mapbox-gl/dist/mapbox-gl.css";
-import React from "react";
-import Map, { Layer, Source } from "react-map-gl";
+import React, { useEffect, useState } from "react";
+import ReactMapGL, { Layer, Source } from "react-map-gl";
 import { useSelector } from "react-redux";
 
 const MAPBOX_TOKEN =
   "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA";
 
-const demoJson = {
-  id: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-  name: "My new project",
-  description: "My new project description",
-  thumbnail_url: "https://assets.plan4better.de/api/thumbnail/1.png",
-  tags: ["tag1", "tag2"],
-  created_by: "elias.pajares@plan4better.de",
-  updated_by: "elias.pajares@plan4better.de",
-  created_at: "2021-03-03T09:00:00.000000Z",
-  updated_at: "2021-03-03T09:00:00.000000Z",
-  shared_with: [
-    {
-      group_id: 1,
-      group_name: "My Group 1",
-      image_url: "https://assets.plan4better.de/api/thumbnail/1.png",
-    },
-    {
-      group_id: 2,
-      group_name: "My Group 2",
-      image_url: "https://assets.plan4better.de/api/thumbnail/2.png",
-    },
-  ],
-  initial_view_state: {
-    latitude: 48.1502132,
-    longitude: 11.5696284,
-    zoom: 10,
-    min_zoom: 0,
-    max_zoom: 20,
-    bearing: 0,
-    pitch: 0,
-  },
-  reports: [],
-  layers: [
-    // {
-    //   id: "123e4567-e89b-12d3-a456-426614174000",
-    //   name: "Edge Layer",
-    //   group: "Example Group 1",
-    //   description: "This is an example for a streets layer (line)",
-    //   type: "tile_layer",
-    //   created_at: "2023-07-11T00:00:00",
-    //   created_by: "example_user",
-    //   updated_at: "2023-07-11T00:00:00",
-    //   updated_by: "example_user",
-    //   active: "True",
-    //   data_source_name: "Example Data Source",
-    //   data_reference_year: 2020,
-    //   url: "https://api.mapbox.com/v4/eliaspajares.cljxyjs6x02672oqimtbmde3u-92yjl/{z}/{x}/{y}.mvt?access_token=pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
-    //   style:
-    //     "https://api.mapbox.com/styles/v1/eliaspajares/cljxzoemb003y01qr59fx3mpq?access_token=pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
-    //   data_type: "mvt",
-    // },
-    // {
-    //   id: "123e4567-e89b-12d3-a456-426614174001",
-    //   name: "POI Layer",
-    //   group: "Opportunities",
-    //   description: "This is an example for a point layer (point of interests)",
-    //   type: "tile_layer",
-    //   created_at: "2023-07-11T00:00:00",
-    //   created_by: "example_user",
-    //   updated_at: "2023-07-11T00:00:00",
-    //   updated_by: "example_user",
-    //   active: "True",
-    //   data_source_name: "Example Data Source",
-    //   data_reference_year: 2020,
-    //   url: "https://api.mapbox.com/v4/eliaspajares.cljxyaynj02532aqi9rh1kz0g-77qff/{z}/{x}/{y}.mvt?access_token=pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
-    //   style:
-    //     "https://api.mapbox.com/styles/v1/eliaspajares/cljxz3bl1003v01qy7k5m0apj?access_token=pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
-    //   data_type: "mvt",
-    // },
-    {
-      id: "123e4567-e89b-12d3-a456-426614174002",
-      name: "AOI Layer",
-      group: "Opportunities",
-      description: "This is an example for a areas of interest layer (polygon)",
-      type: "tile_layer",
-      created_at: "2023-07-11T00:00:00",
-      created_by: "example_user",
-      updated_at: "2023-07-11T00:00:00",
-      updated_by: "example_user",
-      active: "False",
-      data_source_name: "Example Data Source",
-      data_reference_year: 2021,
-      url: "https://api.mapbox.com/v4/eliaspajares.cljxc2rek01ow2alyl0cy0y2j-63c9z/{z}/{x}/{y}.mvt?access_token=pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
-      style:
-        "https://api.mapbox.com/styles/v1/eliaspajares/cljyel7yl005r01pfcd4h0epj?access_token=pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
-      data_type: "mvt",
-    },
-  ],
-};
+export default function Map() {
+  const { demoJson } = useSelector((state) => state.mapReducer);
 
-export default function CustomMap() {
-  const { test } = useSelector((state) => state.mapReducer);
+  const [layers, setLayers] = useState([]);
 
-  console.log("test", test);
+  useEffect(() => {
+    if (demoJson) {
+      const fetchLayers = async () => {
+        const layerPromises = demoJson.layers.map(async (layer) => {
+          const styleResponse = await fetch(layer.style);
+          const styleJson = await styleResponse.json();
+          return {
+            ...layer,
+            style: styleJson,
+          };
+        });
+        const resolvedLayers = await Promise.all(layerPromises);
+
+        setLayers(resolvedLayers);
+      };
+
+      fetchLayers();
+    }
+  }, [demoJson]);
 
   return (
     <div className="map-wrap">
-      <Map
+      <ReactMapGL
         initialViewState={{
           longitude: demoJson.initial_view_state.longitude,
           latitude: demoJson.initial_view_state.latitude,
@@ -112,38 +42,16 @@ export default function CustomMap() {
           pitch: demoJson.initial_view_state.pitch,
         }}
         style={{ width: "100%", height: "100%" }}
-        mapStyle="https://api.maptiler.com/maps/topo-v2/style.json?key=169weMz7cpAoQfwWeK8n"
+        // mapStyle="https://api.maptiler.com/maps/topo-v2/style.json?key=169weMz7cpAoQfwWeK8n"
+        mapStyle="mapbox://styles/mapbox/streets-v11"
         mapboxAccessToken={MAPBOX_TOKEN}>
-        {demoJson.layers.map((layer) => {
-          console.log("layer", layer);
-
-          return (
-            <Source key={layer.id} id={layer.id} type="vector" tiles={[layer.url]}>
-              <Layer
-                id="aoi"
-                type="fill"
-                source-layer="aoi"
-                paint={{
-                  "fill-color": "gray",
-                  "fill-opacity": 0.3,
-                }}
-                // paint={{
-                //   "fill-color": [
-                //     "match",
-                //     ["get", "category"],
-                //     ["forest"],
-                //     "hsl(137, 37%, 30%)",
-                //     ["park"],
-                //     "hsl(135, 69%, 70%)",
-                //     "#000000",
-                //   ],
-                //   "fill-opacity": 0.3,
-                // }}
-              />
-            </Source>
-          );
-        })}
-      </Map>
+        {layers.map((layer) => (
+          <Source key={layer.id} id={layer.id} type="vector" tiles={[layer.url]}>
+            {/*<Source key={layer.id} id={layer.id} type="vector" url={layer.style.sources.composite.url}>*/}
+            <Layer {...layer.style.layers[0]} />
+          </Source>
+        ))}
+      </ReactMapGL>
     </div>
   );
 }

@@ -255,7 +255,7 @@ export default function MapByStyle({ style }) {
         mapStyle="mapbox://styles/mapbox/streets-v11"
         // mapStyle="https://api.maptiler.com/maps/topo-v2/style.json?key=169weMz7cpAoQfwWeK8n"
         mapboxAccessToken={MAPBOX_TOKEN}>
-        <Source id="poi" type="vector" url={stylesObj[style].sources.composite.url}>
+        <Source id={stylesObj[style].id} type="vector" url={stylesObj[style].sources.composite.url}>
           <Layer {...stylesObj[style].layers[0]} />
         </Source>
       </Map>
