@@ -2,7 +2,7 @@ from typing import List
 from uuid import UUID
 from enum import Enum
 from pydantic import BaseModel, Field, ValidationError, validator
-from src.schemas.content import ContentUpdateBase
+from src.schemas.content import ContentUpdateBase, ContentBase
 from src.db.models.layer import (
     FeatureLayerBase,
     LayerBase,
@@ -104,6 +104,13 @@ class TableDataType(str, Enum):
     json = "json"
 
 
+class ContentBaseAttributes(BaseModel):
+    name: str = Field(..., description="Content name")
+    description: str | None = Field(None, description="Content description")
+    tags: List[str] | None = Field(None, description="Content tags")
+    thumbnail_url: str | None = Field(None, description="Content thumbnail URL")
+
+
 ################################################################################
 # Layer Base for Read
 ################################################################################
@@ -182,19 +189,19 @@ class FeatureLayerProjectBase(FeatureLayerBase, LayerProjectAttributesBase):
 
 
 # Feature Layer Standard
-class FeatureLayerStandardCreate(FeatureLayerBase):
+class IFeatureLayerStandardCreate(ContentBase, FeatureLayerBase):
     pass
 
 
-class FeatureLayerStandardRead(FeatureLayerReadBase):
+class IFeatureLayerStandardRead(ContentBase, FeatureLayerReadBase):
     pass
 
 
-class FeatureLayerStandardUpdate(FeatureLayerUpdateBase):
+class IFeatureLayerStandardUpdate(ContentBase, FeatureLayerUpdateBase):
     pass
 
 
-class FeatureLayerStandardProject(FeatureLayerProjectBase):
+class FeatureLayerStandardProject(ContentBase, FeatureLayerProjectBase):
     pass
 
 
@@ -395,7 +402,7 @@ def get_layer_class(class_type: str, **kwargs):
         "tile_layer": TileLayerCreate,
         "imagery_layer": ImageryLayerCreate,
         "feature_layer": {
-            "standard": FeatureLayerStandardCreate,
+            "standard": IFeatureLayerStandardCreate,
             "indicator": FeatureLayerIndicatorCreate,
             "scenario": FeatureLayerScenarioCreate,
         },
@@ -445,7 +452,7 @@ def build_layer_object(data: dict):
         "tile_layer": TileLayerCreate,
         "imagery_layer": ImageryLayerCreate,
         "feature_layer": {
-            "standard": FeatureLayerStandardCreate,
+            "standard": IFeatureLayerStandardCreate,
             "indicator": FeatureLayerIndicatorCreate,
             "scenario": FeatureLayerScenarioCreate,
         },
