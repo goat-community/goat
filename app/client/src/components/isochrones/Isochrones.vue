@@ -2163,7 +2163,7 @@ export default {
       });
     },
     /**
-     * Map pointer move event .
+     * MapDemo pointer move event .
      */
     setupMapPointerMove() {
       this.mapPointerMoveListenerKey = this.map.on("pointermove", evt => {

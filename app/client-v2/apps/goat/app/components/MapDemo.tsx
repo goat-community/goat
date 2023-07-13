@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 const MAPBOX_TOKEN =
   "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA";
 
-export default function Map() {
+export default function MapDemo() {
   const { demoJson } = useSelector((state) => state.mapReducer);
 
   const [layers, setLayers] = useState([]);
