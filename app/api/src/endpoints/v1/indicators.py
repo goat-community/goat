@@ -11,7 +11,7 @@ from src import crud
 from src.crud.base import CRUDBase
 from src.core.config import settings
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.resources.enums import (
     IsochroneExportType,
     IndicatorResultsReturnType,

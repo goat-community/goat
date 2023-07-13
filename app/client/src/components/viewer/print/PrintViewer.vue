@@ -123,7 +123,7 @@ export default {
       return dateString;
     },
     /**
-     * Map viewport width in mm
+     * MapDemo viewport width in mm
      */
     getMapWidth() {
       const sheetWidth = this.print.layout.size[0];
@@ -135,7 +135,7 @@ export default {
       return viewPortWidth;
     },
     /**
-     * Map viewport height in mm
+     * MapDemo viewport height in mm
      */
     getMapHeight() {
       const sheetHeight = this.print.layout.size[1];

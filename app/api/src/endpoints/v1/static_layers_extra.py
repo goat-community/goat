@@ -7,7 +7,7 @@ from src import crud
 from src.db import models
 from src.db.models.legacy.config_validation import *
 from src.db.session import legacy_engine
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.schemas.data_frame import validate_data_frame
 from src.utils import (
     convert_postgist_to_4326,
@@ -25,7 +25,6 @@ async def upload_static_layer(
     current_user: models.User = Depends(deps.get_current_active_superuser),
     upload_file: UploadFile,
 ):
-
     try:
         data_frame = geopandas_read_file(upload_file)
     except HTTPException as e:
@@ -94,7 +93,6 @@ async def update_static_layer_data(
     current_user: models.User = Depends(deps.get_current_active_superuser),
     upload_file: UploadFile,
 ):
-
     static_layer = await crud.static_layer.get(db, id=layer_id)
     if not static_layer:
         raise HTTPException(status_code=404, detail="static layer not found.")

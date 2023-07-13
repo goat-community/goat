@@ -1,6 +1,6 @@
 <template>
   <div id="ol-map-container">
-    <!-- Map Controls -->
+    <!-- MapDemo Controls -->
     <div style="position:absolute;left:20px;top:10px;">
       <search-map
         :viewbox="
@@ -302,7 +302,7 @@
 
 <script>
 import Vue from "vue";
-import Map from "ol/Map";
+import MapDemo from "ol/Map";
 import View from "ol/View";
 
 // ol imports
@@ -333,7 +333,7 @@ import axios from "axios";
 import { mapMutations, mapGetters } from "vuex";
 import { mapFields } from "vuex-map-fields";
 
-//Map Controls
+//MapDemo Controls
 import OverlayPopup from "./controls/Overlay";
 import MapLoadingProgressStatus from "./controls/MapLoadingProgressStatus";
 import BackgroundSwitcher from "./controls/BackgroundSwitcher";
@@ -602,7 +602,7 @@ export default {
     },
 
     /**
-     * Map hover used for helper tooltips.
+     * MapDemo hover used for helper tooltips.
      */
     setupMapHover() {
       const me = this;
@@ -784,7 +784,7 @@ export default {
     },
 
     /**
-     * Map pointer move event .
+     * MapDemo pointer move event .
      */
     setupMapPointerMove() {
       this.mapPointerMoveListenerKey = this.map.on("pointermove", evt => {
@@ -852,7 +852,7 @@ export default {
     // },
 
     /**
-     * Map click event for Module.
+     * MapDemo click event for Module.
      */
     setupMapClick() {
       const me = this;

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from src import schemas
 from src.crud.crud_scenario import scenario as crud_scenario
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.resources.enums import ReturnType
 from src.schemas.msg import Msg
 from src.schemas.scenario import ScenarioWithBrokenField, request_examples

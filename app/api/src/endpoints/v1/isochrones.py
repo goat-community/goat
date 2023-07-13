@@ -10,7 +10,7 @@ import binascii
 from src import crud
 from src.workers.isochrone import task_calculate_isochrone
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.resources.enums import IsochroneExportType
 from src.schemas.isochrone import (
     IsochroneDTO,
@@ -36,25 +36,29 @@ async def calculate_isochrone(
     """
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
-    
+
     study_area = await crud.user.get_active_study_area(db, current_user)
-    study_area_bounds = study_area['bounds']
+    study_area_bounds = study_area["bounds"]
     isochrone_in = json.loads(isochrone_in.json())
     current_user = json.loads(current_user.json())
-    
+
     task = task_calculate_isochrone.delay(isochrone_in, current_user, study_area_bounds)
     return {"task_id": task.id}
+
 
 @router.get("/task/{task_id}")
 async def get_task(
     task_id: str,
     current_user: models.User = Depends(deps.get_current_active_user),
-    ):
+):
     task = task_calculate_isochrone.AsyncResult(task_id)
     if task.ready():
         try:
             result = task.get()
-            response = Response(bytes(binascii.unhexlify(bytes(result, 'utf-8'))), media_type="application/octet-stream")
+            response = Response(
+                bytes(binascii.unhexlify(bytes(result, "utf-8"))),
+                media_type="application/octet-stream",
+            )
             return response
         except Exception as e:
             raise HTTPException(status_code=500, detail="Task failed")
@@ -67,6 +71,7 @@ async def get_task(
             "details": "Task is still running, please try again later",
         }
         return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content=content)
+
 
 @router.post("/multi/count-pois", response_class=JSONResponse)
 async def count_pois_multi_isochrones(

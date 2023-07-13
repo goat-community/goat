@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, schemas
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 
 router = APIRouter()
 
@@ -69,7 +69,6 @@ async def delete_layer_libraries(
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-
     return await crud.layer_library.remove_multi_by_key(db, key="name", values=name)
 
 
@@ -133,5 +132,4 @@ async def delete_style_libraries(
     db: AsyncSession = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-
     return await crud.style_library.remove_multi_by_key(db, key="name", values=name)
