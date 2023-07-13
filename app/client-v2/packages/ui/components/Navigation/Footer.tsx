@@ -7,19 +7,18 @@ import type { IconId } from "../theme";
 
 export type FooterProps = {
   className?: string;
-  children?: React.ReactNode;
   links: { header: string; links: { name: string; underline?: boolean; icon?: IconId }[] }[];
   text: string;
 };
 
 const Footer = memo(
   forwardRef<any, FooterProps>((props, ref) => {
-    const { className, children, links, text } = props;
+    const { className, links, text } = props;
 
     const { classes, cx } = useStyles();
 
     return (
-      <div className={classes.root}>
+      <div className={cx(classes.root, className)}>
         <div className={classes.info}>
           <P4BLogo width={100} />
           <Text typo="caption" className={classes.footerText}>

@@ -4,7 +4,7 @@ import { makeStyles } from "../../../../lib/ThemeProvider";
 import Modal from "../../../Modal";
 import { ToggleTabs } from "../../../Navigation/ToggleTabs";
 import { Card } from "../../../Surfaces";
-import { Button, Text, Icon, IconButton } from "../../../theme";
+import { Button, Text, IconButton } from "../../../theme";
 import DashboardLayout from "../../DashboardLayout";
 import CreateContent from "./CreateContent";
 
@@ -50,11 +50,15 @@ const HeaderCard = (props: HeaderCardProps) => {
         </div>
         <div className={classes.headerActions}>
           <span style={{ display: "flex", gap: "10px" }}>
-            <Button variant="noBorder">
-              <Icon iconId="newFolder" className={classes.icon} size="small" iconVariant="gray" /> New folder
+            <Button variant="noBorder" startIcon="newFolder">
+              New folder
             </Button>
-            <Button variant="noBorder" className={classes.headerText} onClick={() => setAddContent(true)}>
-              <Icon iconId="newFile" className={classes.icon} size="small" iconVariant="gray" /> Add content
+            <Button
+              variant="noBorder"
+              className={classes.headerText}
+              onClick={() => setAddContent(true)}
+              startIcon="newFile">
+              Add content
             </Button>
           </span>
           <ToggleTabs

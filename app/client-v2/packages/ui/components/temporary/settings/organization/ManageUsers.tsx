@@ -3,10 +3,8 @@ import React from "react";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
 import { EnhancedTable } from "../../../DataDisplay";
-import Table from "../../../DataDisplay/Table";
 import Dialog from "../../../Dialog";
-import { SelectField } from "../../../Inputs/SelectField";
-import { TextField } from "../../../Inputs/TextField";
+import { SelectField, TextField, Switch } from "../../../Inputs";
 import Modal from "../../../Modal";
 import { Card } from "../../../Surfaces";
 import Banner from "../../../Surfaces/Banner";
@@ -22,11 +20,57 @@ interface RowsType extends Object {
 
 const ManageUsers = () => {
   const { classes } = useStyles();
+
+  // Component States
   const [userInDialog, setUserInDialog] = useState<RowsType | null>();
   const [addUserDialog, setAddUserDialog] = useState(false);
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
   const [ismodalVisible, setModalVisible] = useState<boolean>(false);
-  // const open = Boolean(anchorEl);
+  const [extensions, setExtensions] = useState<
+    {
+      id: string;
+      extension: string;
+      studyarea: string;
+      maxPlaces: number;
+      checked: boolean;
+      placesLeft: number;
+    }[]
+  >([
+    {
+      id: "1",
+      extension: "Active mobility",
+      studyarea: "Greater Munich",
+      maxPlaces: 3,
+      placesLeft: 1,
+      // available: "1 of 3 seats available",
+      checked: false,
+    },
+    {
+      id: "2",
+      extension: "Motorised mobility",
+      studyarea: "Greater Munich",
+      maxPlaces: 3,
+      placesLeft: 0,
+      checked: false,
+    },
+    {
+      id: "3",
+      extension: "Active mobility",
+      studyarea: "Berlin",
+      maxPlaces: 3,
+      placesLeft: 2,
+      checked: false,
+    },
+    {
+      id: "4",
+      extension: "Active mobility",
+      studyarea: "London",
+      maxPlaces: 3,
+      placesLeft: 3,
+      checked: false,
+    },
+  ]);
+
   const columnNames = [
     {
       id: "name",
@@ -52,18 +96,6 @@ const ManageUsers = () => {
       id: "added",
       numeric: false,
       label: "Added",
-    },
-  ];
-
-  const extensionColumns = ["Extensions", "Study Area"];
-  const extensionRows: { extension: string; studyarea: string }[] = [
-    {
-      extension: "Active mobility",
-      studyarea: "Greater Munich",
-    },
-    {
-      extension: "Motorised mobility",
-      studyarea: "Greater Munich",
     },
   ];
 
@@ -136,6 +168,36 @@ const ManageUsers = () => {
     },
   ];
 
+  // Functions
+
+  /**
+   * Updates the state of the extensions array based on the provided element name and checked value
+   * @param {React.ChangeEvent<HTMLInputElement>} event - The change event object.
+   * @param {boolean} checked - The new checked state of the switch.
+   * @param {string | undefined} elementName - The name of the element associated with the switch.
+   */
+
+  function handleSwitch(
+    event: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+    elementName: string | undefined
+  ) {
+    if (elementName) {
+      extensions.forEach((ext, index) => {
+        if (ext.id === elementName) {
+          const newExtensionState = extensions;
+          if (checked) {
+            newExtensionState[index].placesLeft--;
+          } else {
+            newExtensionState[index].placesLeft++;
+          }
+          newExtensionState[index].checked = !ext.checked;
+          setExtensions([...newExtensionState]);
+        }
+      });
+    }
+  }
+
   function openAddUserDialog(event: React.MouseEvent<HTMLButtonElement>) {
     setAnchorEl(event.currentTarget);
     setAddUserDialog(true);
@@ -173,6 +235,7 @@ const ManageUsers = () => {
             <Button onClick={openAddUserDialog} className={classes.searchButton}>
               Invite user
             </Button>
+            {/* Invite User Dialog */}
             {addUserDialog ? (
               <Dialog
                 title="Invite team mate"
@@ -230,10 +293,12 @@ const ManageUsers = () => {
         </div>
       </div>
       <Card noHover={true} className={classes.tableCard}>
+        {/* ManageUsers Table */}
         <EnhancedTable
           rows={rows}
           columnNames={columnNames}
           openDialog={setUserInDialog}
+          // User Info Dialog
           dialog={{
             title: userInDialog ? userInDialog.name : "unknown",
             action: (
@@ -276,8 +341,29 @@ const ManageUsers = () => {
                     </Text>{" "}
                     <Text typo="label 2">{userInDialog ? userInDialog?.role : ""}</Text>
                   </span>
+                  <span className={classes.userDataText}>
+                    <Text typo="body 2" className={classes.userDataTitle}>
+                      Status:{" "}
+                    </Text>{" "}
+                    <Text typo="label 2">{userInDialog ? userInDialog?.status : ""}</Text>
+                  </span>
                 </div>
-                <Table minWidth="100%" rows={extensionRows} columnNames={extensionColumns} />
+                {extensions.map((extension, indx) => (
+                  <div key={indx} className={classes.switcher}>
+                    <Switch
+                      checked={extension.checked}
+                      onChecked={handleSwitch}
+                      elementName={extension.id}
+                      disabled={!extension.placesLeft && !extension.checked}
+                    />
+                    <Text typo="body 1">
+                      {extension.extension} - {extension.studyarea}
+                    </Text>
+                    <Text typo="caption" color="secondary">
+                      {extension.placesLeft} of {extension.maxPlaces} seats available
+                    </Text>
+                  </div>
+                ))}
               </div>
             ),
           }}
@@ -294,6 +380,7 @@ const ManageUsers = () => {
         image="https://s3-alpha-sig.figma.com/img/630a/ef8f/d732bcd1f3ef5d6fe31bc6f94ddfbca8?Expires=1687132800&Signature=aJvQ22UUlmvNjDlrgzV6MjJK~YgohUyT9mh8onGD-HhU5yMI0~ThWZUGVn562ihhRYqlyiR5Rskno84OseNhAN21WqKNOZnAS0TyT3SSUP4t4AZJOmeuwsl2EcgElMzcE0~Qx2X~LWxor1emexxTlWntivbnUeS6qv1DIPwCferjYIwWsiNqTm7whk78HUD1-26spqW3AXVbTtwqz3B8q791QigocHaK9b4f-Ulrk3lsmp8BryHprwgetHlToFNlYYR-SqPFrEeOKNQuEDKH0QzgGv3TX7EfBNL0kgP3Crued~JNth-lIEPCjlDRnFQyNpSiLQtf9r2tH9xIsKA~XQ__&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4"
         imageSide="right"
       />
+      {/* Confirm User Removal */}
       <Modal
         width="444px"
         open={ismodalVisible}
@@ -310,7 +397,7 @@ const ManageUsers = () => {
         }
         header={
           <Text className={classes.modalHeader} typo="object heading">
-            <Icon iconId="warn" iconVariant="focus" /> Attention
+            <Icon iconId="warn" iconVariant="warning" /> Attention
           </Text>
         }>
         <Text typo="body 1">
@@ -391,6 +478,11 @@ const useStyles = makeStyles({ name: { ManageUsers } })((theme) => ({
   },
   buttonSmall: {
     padding: "3px 10px",
+  },
+  switcher: {
+    display: "flex",
+    alignItems: "center",
+    gap: theme.spacing(1),
   },
 }));
 

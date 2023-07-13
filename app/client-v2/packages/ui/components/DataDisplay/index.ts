@@ -7,5 +7,6 @@ export * from "./IconButton";
 export * from "./Table";
 export * from "./Text";
 export * from "./Tooltip";
-export * from "./TreeView";
+export * from "./TreeViewWithCheckboxes";
 export * from "./FileUploadProgress";
+export * from "./TreeView";

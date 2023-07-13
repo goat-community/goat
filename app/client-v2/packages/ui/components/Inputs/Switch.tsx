@@ -3,21 +3,30 @@ import * as React from "react";
 
 interface SwitchProps {
   defaultChecked?: boolean;
+  elementName?: string;
   checked: boolean;
-  onChecked: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => void;
+  onChecked: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean, elementName?: string) => void;
+  disabled?: boolean;
 }
 
-const Switch = (props: SwitchProps) => {
-  const { defaultChecked = false, checked, onChecked } = props;
+/**
+ * A custom switch component.
+ * @param {SwitchProps} props - The props for the switch component.
+ * @returns The switch component.
+ */
+
+export const Switch = (props: SwitchProps) => {
+  const { defaultChecked = false, checked, onChecked, elementName, disabled = false } = props;
 
   return (
     <MUISwitch
       checked={checked}
-      onChange={onChecked}
+      disabled={disabled}
+      onChange={(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) =>
+        onChecked(event, checked, elementName ? elementName : "")
+      }
       aria-label="Switch demo"
       defaultChecked={defaultChecked}
     />
   );
 };
-
-export default Switch;

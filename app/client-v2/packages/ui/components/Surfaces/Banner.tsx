@@ -1,6 +1,7 @@
 import React, { forwardRef, memo } from "react";
 
 import { Card } from ".";
+import { GOATLogoGreenSvg } from "../../assets/svg/GOATLogoGreen";
 import { makeStyles } from "../../lib/ThemeProvider";
 
 export type BannerProps = {
@@ -14,16 +15,7 @@ export type BannerProps = {
 
 const Banner = memo(
   forwardRef<any, BannerProps>((props, ref) => {
-    const {
-      className,
-      children,
-      imageSide = "right",
-      content,
-      image,
-      actions,
-
-      ...rest
-    } = props;
+    const { className, children, imageSide = "right", content, image, actions, ...rest } = props;
 
     const { classes, cx } = useStyles({
       imageSide,
@@ -32,8 +24,6 @@ const Banner = memo(
 
     return (
       <Card className={classes.card} width="100%" noHover={true}>
-        {" "}
-        {/* Hug (210px) */}
         <div className={classes.bannerCard}>
           {imageSide !== "full" ? (
             <>
@@ -42,15 +32,26 @@ const Banner = memo(
                 <div>{actions}</div>
               </div>
               {imageSide === "fullBehind" ? (
-                <div className={classes.overlay} />
+                <div />
               ) : (
                 <div className={classes.image}>
-                  <div className={classes.overlay} />
+                  <span
+                    style={{
+                      position: "absolute",
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}>
+                    <GOATLogoGreenSvg height={100} width={200} opacity={1} />
+                  </span>
+                  <div />
                 </div>
               )}
             </>
           ) : (
-            <div className={classes.overlay} />
+            <div />
           )}
         </div>
       </Card>
@@ -76,7 +77,7 @@ const useStyles = makeStyles<{
   name: { Banner },
 })((theme, { imageSide, image }) => ({
   card: {
-    backgroundColor: theme.colors.palette.dark.light,
+    backgroundColor: theme.colors.palette.dark.main,
     position: "relative",
   },
   bannerCard: {
@@ -95,11 +96,8 @@ const useStyles = makeStyles<{
       top: "0",
       width: "100%",
       height: "100%",
-      backgroundImage:
-        image && imageSide && !["full", "fullBehind"].includes(imageSide) ? `url("${image}")` : "",
-      "-webkit-filter": "grayscale(90%)" /* Safari 6.0 - 9.0 */,
-      filter: "grayscale(90%)",
-      backgroundPosition: "7% 30%",
+      background:
+        "radial-gradient(50% 50% at 50% 50%, rgba(40,54,72,0.8) 0%, rgba(40,54,72,0.9) 100%), url(https://assets.plan4better.de/img/login/artwork_1.png) no-repeat center",
     },
   },
   container: {
@@ -111,14 +109,14 @@ const useStyles = makeStyles<{
     color: "white",
     zIndex: "100",
   },
-  overlay: {
-    position: "absolute",
-    top: "0",
-    left: "0",
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(40, 54, 72, 0.8)",
-  },
+  // overlay: {
+  //   position: "absolute",
+  //   top: "0",
+  //   left: "0",
+  //   width: "100%",
+  //   height: "100%",
+  //   backgroundColor: "rgba(40, 54, 72, 0.8)",
+  // },
 }));
 
 export default Banner;

@@ -16,7 +16,7 @@ const AuthTemplate = (props: AuthTemplateProps) => {
   return (
     <div className={classes.root}>
       <Grid container className={classes.gridContainer}>
-        <Grid xs={12} lg={6} className={classes.gridLeft}>
+        <Grid xs={12} lg={5.5} className={classes.gridLeft}>
           <Box
             component="header"
             sx={{
@@ -25,25 +25,11 @@ const AuthTemplate = (props: AuthTemplateProps) => {
               position: "fixed",
               top: 0,
               width: "100%",
-            }}>
-            <Box
-              component="a"
-              href="https://www.plan4better.de/"
-              target="_blank"
-              sx={{
-                display: "inline-flex",
-                width: 160,
-              }}>
-              <img
-                width="100%"
-                src="https://assets.plan4better.de/img/logo/plan4better_standard.svg"
-                alt="Plan4Better Logo"
-              />
-            </Box>
-          </Box>
+            }}
+          />
           <div className={classes.child}>{children}</div>
         </Grid>
-        <Grid xs={12} lg={6} className={classes.gridRight}>
+        <Grid xs={12} lg={6.5} className={classes.gridRight}>
           <Box sx={{ p: 3, width: 350 }} component="div">
             <img
               width="100%"
@@ -70,7 +56,7 @@ const useStyles = makeStyles({ name: { AuthTemplate } })((theme) => ({
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    backgroundColor: theme.colors.useCases.surfaces.background,
+    backgroundColor: theme.colors.palette.dark.main,
   },
   image: {
     width: "50%",

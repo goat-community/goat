@@ -19,6 +19,9 @@ interface CardDataType {
 }
 
 const Home = () => {
+  const { classes, cx } = useStyles();
+
+  // Project Dumb Data
   const tempCardInfo: CardDataType[] = [
     {
       buttons: ["See all"],
@@ -206,8 +209,6 @@ const Home = () => {
     },
   ];
 
-  const { classes, cx } = useStyles();
-
   return (
     <DashboardLayout>
       {/* <Head>
@@ -240,19 +241,6 @@ const useStyles = makeStyles({ name: { Home } })((theme) => ({
     borderTopLeftRadius: 4,
     objectFit: "cover",
   },
-  // container: {
-  //   width: "60%",
-  //   margin: "0 auto",
-  //   "@media (max-width: 1714px)": {
-  //     width: "70%",
-  //   },
-  //   "@media (max-width: 1500px)": {
-  //     width: "80%",
-  //   },
-  //   "@media (max-width: 1268px)": {
-  //     width: "90%",
-  //   },
-  // },
 }));
 
 export default Home;

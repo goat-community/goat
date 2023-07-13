@@ -18,6 +18,16 @@ import Dialog from "../Dialog";
 import { Text } from "../theme";
 import { IconButton } from "../theme";
 
+// SORTING FUNCTIONS
+
+/**
+ * A comparator function used for sorting an array of objects in descending order based on a specific property.
+ * @param {T} a - The first object to compare.
+ * @param {T} b - The second object to compare.
+ * @param {keyof T} orderBy - The property of the objects to sort by.
+ * @returns {number} - Returns -1 if b[orderBy] is less than a[orderBy], 1 if b[orderBy] is greater than a[orderBy], or 0 if they are equal.
+ */
+
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
     return -1;
@@ -30,6 +40,13 @@ function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
 
 type Order = "asc" | "desc";
 
+/**
+ * Returns a comparator function based on the given order and orderBy parameters.
+ * @param {Order} order - The order in which to sort the items (asc or desc).
+ * @param {Key} orderBy - The key to sort the items by.
+ * @returns A comparator function that can be used to sort an array of objects.
+ */
+
 function getComparator<Key extends keyof any>(
   order: Order,
   orderBy: Key
@@ -39,10 +56,13 @@ function getComparator<Key extends keyof any>(
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-// Since 2020 all major browsers ensure sort stability with Array.prototype.sort().
-// stableSort() brings sort stability to non-modern browsers (notably IE11). If you
-// only support modern browsers you can replace stableSort(exampleArray, exampleComparator)
-// with exampleArray.slice().sort(exampleComparator)
+/**
+ * Sorts an array in a stable manner using a custom comparator function.
+ * @param {readonly T[]} array - The array to be sorted.
+ * @param {(a: T, b: T) => number} comparator - The function used to compare elements in the array.
+ * @returns {T[]} - The sorted array.
+ */
+
 function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number) {
   const stabilizedThis = array.map((el, index) => [el, index] as [T, number]);
   stabilizedThis.sort((a, b) => {
@@ -70,13 +90,21 @@ interface EnhancedTableProps {
   checkbox: boolean;
 }
 
+/**
+ * Renders the table head component for an enhanced table.
+ * @param {EnhancedTableProps} props - The props for the EnhancedTableHead component.
+ * @returns The rendered table head component.
+ */
 function EnhancedTableHead(props: EnhancedTableProps) {
   const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort, columns, checkbox } = props;
+
+  const { classes } = useStyles({ dense: undefined, alternativeColors: false, checkbox });
+
+  // functions
+
   const createSortHandler = (property: any) => (event: React.MouseEvent<unknown>) => {
     onRequestSort(event, property);
   };
-
-  const { classes } = useStyles({ dense: undefined, alternativeColors: false, checkbox });
 
   return (
     <TableHead>
@@ -137,6 +165,11 @@ type EnhanceTableProps = {
   more?: boolean;
 };
 
+/**
+ * Renders an enhanced table component with customizable props.
+ * @param {EnhanceTableProps} props - The props object containing the necessary data for rendering the table.
+ * @returns The rendered enhanced table component.
+ */
 export function EnhancedTable(props: EnhanceTableProps) {
   const {
     rows,
@@ -151,18 +184,21 @@ export function EnhancedTable(props: EnhanceTableProps) {
     ...rest
   } = props;
 
-  type ObjectKeys = keyof (typeof rows)[0];
+  const { classes } = useStyles({ dense, alternativeColors, checkbox });
 
+  // Here we get the keys of the row so that we can render it
+  type ObjectKeys = keyof (typeof rows)[0];
   const rowKeys: ObjectKeys[] = Object.keys(rows[0]) as ObjectKeys[];
 
+  // Component State
   const [order, setOrder] = React.useState<Order>("asc");
   const [orderBy, setOrderBy] = React.useState(rowKeys[0]);
   const [selected, setSelected] = React.useState<(string | number)[]>([]);
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const { classes } = useStyles({ dense, alternativeColors, checkbox });
+  const [rowsPerPage, setRowsPerPage] = React.useState(25);
 
+  // functions
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof ObjectKeys) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -205,10 +241,13 @@ export function EnhancedTable(props: EnhanceTableProps) {
 
   const isSelected = (name: string | number) => selected.indexOf(name) !== -1;
 
-  function openDialogInitializer(event: React.MouseEvent<HTMLButtonElement>, indx: number) {
+  function openDialogInitializer(
+    event: React.MouseEvent<HTMLButtonElement>,
+    row: { [x: string]: string | number; [x: number]: string | number }
+  ) {
     setAnchorEl(event.currentTarget);
     if (openDialog) {
-      openDialog(rows[indx]);
+      openDialog(row);
     }
   }
 
@@ -290,7 +329,7 @@ export function EnhancedTable(props: EnhanceTableProps) {
                     {more ? (
                       <TableCell className={classes.tableCell} padding="none">
                         <IconButton
-                          onClick={(e) => openDialogInitializer(e, index)}
+                          onClick={(e) => openDialogInitializer(e, row)}
                           iconId="moreVert"
                           // iconVariant="gray"
                           size="medium"
@@ -330,7 +369,7 @@ export function EnhancedTable(props: EnhanceTableProps) {
           anchorEl={anchorEl}
           onClick={closeTablePopover}
           title={dialog ? dialog.title : "unknown"}
-          width="444px"
+          width="523px"
           direction="right"
           action={dialog?.action}>
           {dialog ? dialog.body : ""}

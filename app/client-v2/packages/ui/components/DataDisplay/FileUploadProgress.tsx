@@ -14,6 +14,12 @@ export type FileUploadProgressProps = {
   finished?: boolean;
 };
 
+/**
+ * A memoized functional component that represents the progress of a file upload.
+ * @param {FileUploadProgressProps} props - The props for the component.
+ * @param {React.Ref<HTMLElement>} ref - The ref for the component.
+ * @returns {React.ReactElement} - The rendered component.
+ */
 export const FileUploadProgress = memo(
   forwardRef<HTMLElement, FileUploadProgressProps>((props, ref) => {
     const {

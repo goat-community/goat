@@ -30,9 +30,9 @@ export const defaultPalette = {
     greyVariant4: "#6A7C91",
   },
   light: {
-    main: "#F8F7F3",
-    light: "#FDFDFC",
-    greyVariant1: "#E6E6E6",
+    main: "#FAFAFA",
+    light: "#fafafa",
+    greyVariant1: "#f2f2f3",
     greyVariant2: "#C9C9C9",
     greyVariant3: "#9E9E9E",
     greyVariant4: "#747474",

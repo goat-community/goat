@@ -49,7 +49,14 @@ export const CardContent = memo(
         <div className={classes.iconTitle}>
           {icon ? (
             <span className={classes.icon}>
-              <Icon iconId={icon} wrapped="circle" size="default" bgVariant="focus" iconVariant="focus" />
+              <Icon
+                iconId={icon}
+                wrapped="circle"
+                size="small"
+                bgVariant="focus"
+                iconVariant="white"
+                bgOpacity={0.5}
+              />
             </span>
           ) : null}
           <Text typo="body 1" color="primary">

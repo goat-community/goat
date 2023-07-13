@@ -1,5 +1,3 @@
-import React from "react";
-
 import { makeStyles } from "../../../lib/ThemeProvider";
 import { Divider } from "../../DataDisplay";
 import { CardContent } from "../../Surfaces";
@@ -28,10 +26,6 @@ export interface CardListProps {
   title: string;
   buttons: string[];
   cards?: CardsDataArray[];
-}
-
-{
-  /* <Button><Text typo="label 1">+</Text><Text typo="label 2">New</Text></Button> */
 }
 
 const CardList = (props: CardListProps) => {

@@ -16,10 +16,15 @@ const DropFieldFileInput = (props: DropFieldProps) => {
   const { onContentAdded, onUploadFinish } = props;
 
   const { classes } = useStyles();
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [file, setFile] = useState<FileList>();
+
+  // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Component States
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [file, setFile] = useState<FileList>();
+
+  // Functions
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragOver(true);

@@ -1,5 +1,4 @@
 import { Box } from "@mui/material";
-import React from "react";
 
 interface P4BLogoProps {
   absolute?: boolean;

@@ -87,13 +87,13 @@ const useStyles = makeStyles({ name: { Settings } })((theme) => ({
     padding: `${theme.spacing(1)}px ${theme.spacing(4)}px`,
     cursor: "pointer",
     "&:hover": {
-      backgroundColor: theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant1 + "50",
+      backgroundColor: theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant2 + "50",
     },
   },
   selectedSidebarText: {
     padding: `${theme.spacing(1)}px ${theme.spacing(4)}px`,
     cursor: "pointer",
-    backgroundColor: theme.colors.palette.focus.light + "14",
+    backgroundColor: theme.colors.palette.focus.main + "14",
   },
   hr: {
     margin: `${theme.spacing(1)}px 0`,

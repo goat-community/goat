@@ -31,17 +31,19 @@ export const ToggleTabs = memo(
       ...rest
     } = props;
 
+    const { classes } = useStyles();
+
     //For the forwarding, rest should be empty (typewise),
     // eslint-disable-next-line @typescript-eslint/ban-types
     assert<Equals<typeof rest, {}>>();
 
+    // Component States
     const [value, setValue] = useState("1");
 
+    // Functions
     const handleChange = (event: React.SyntheticEvent, newValue: string) => {
       onResultChange(newValue);
     };
-
-    const { classes } = useStyles();
 
     return (
       <ToggleButtonGroup value={defaultValue ? defaultValue : ""} exclusive onChange={handleChange}>

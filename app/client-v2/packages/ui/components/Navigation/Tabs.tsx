@@ -25,17 +25,19 @@ export const Tabs = memo(
       ...rest
     } = props;
 
+    const { classes } = useStyles();
+
     //For the forwarding, rest should be empty (typewise),
     // eslint-disable-next-line @typescript-eslint/ban-types
     assert<Equals<typeof rest, {}>>();
 
+    // Component States
     const [value, setValue] = useState("1");
 
+    // functions
     const handleChange = (event: React.SyntheticEvent, newValue: string) => {
       setValue(newValue);
     };
-
-    const { classes } = useStyles();
 
     return (
       <Box sx={{ width: "100%", typography: "body1" }} className={className}>

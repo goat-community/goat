@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
 import Modal from "../../../Modal";
 import { Icon, Text, IconButton } from "../../../theme";
 import DownloadModal from "./DownloadModal";
+import MoveModal from "./MoveModal";
 import ShareModal from "./ShareModal";
 
 interface MoreMenuProps {
@@ -11,54 +12,87 @@ interface MoreMenuProps {
 }
 
 const MoreMenu = (props: MoreMenuProps) => {
-  const [selectedOption, setSelectedOption] = useState<{ name: string; icon: React.ReactNode } | null>(null);
   const { rowInfo } = props;
+
   const { classes, cx } = useStyles();
 
+  // Component States
+  const [selectedOption, setSelectedOption] = useState<{
+    name: string;
+    icon: React.ReactNode;
+    value: string;
+  } | null>(null);
+
+  // Options to show in the More Menu
   const defaultOptions = [
     [
       {
+        value: "Info",
         name: "Info",
         icon: <Icon size="small" iconId="info" className={classes.icon} />,
       },
       {
+        value: "View",
         name: "View",
         icon: <Icon size="small" iconId="view" className={classes.icon} />,
       },
     ],
     [
       {
+        value: "Duplicate",
         name: "Duplicate",
         icon: <Icon size="small" iconId="duplicate" className={classes.icon} />,
       },
       {
+        value: "Move",
         name: "Move",
         icon: <Icon size="small" iconId="moveFile" className={classes.icon} />,
       },
       {
+        value: "Delete",
         name: "Delete",
         icon: <Icon size="small" iconId="delete" className={classes.icon} />,
       },
     ],
     [
       {
+        value: "Share",
         name: "Share",
         icon: <Icon size="small" iconId="reply" className={classes.icon} />,
       },
       {
+        value: "Download",
         name: "Download",
         icon: <Icon size="small" iconId="download" className={classes.icon} />,
       },
     ],
   ];
 
+  useEffect(() => {
+    console.log(selectedOption);
+  }, [selectedOption]);
+
   interface ComponentOptions {
     [key: string]: React.ReactElement<any, any>;
   }
+
+  /**
+   * Defines a componentOptions object that contains different modals for various actions.
+   * @param {ComponentOptions} componentOptions - The options for different modals.
+   * @returns None
+   */
   const componentOptions: ComponentOptions = {
     Download: <DownloadModal name={rowInfo ? rowInfo.name : ""} changeState={setSelectedOption} />,
-    Share: <ShareModal name={rowInfo ? rowInfo.name : ""} changeState={setSelectedOption} />,
+    Share: (
+      <ShareModal
+        name={rowInfo ? rowInfo.name : ""}
+        changeState={setSelectedOption}
+        modalState={selectedOption}
+      />
+    ),
+    Move: <MoveModal changeState={setSelectedOption} />,
   };
+
   return (
     <div>
       {defaultOptions.map((options, index) => (
@@ -82,13 +116,12 @@ const MoreMenu = (props: MoreMenuProps) => {
             <IconButton onClick={() => setSelectedOption(null)} iconId="close" />
           </div>
         }
-        // title={selectedOption ? selectedOption.name : ""}
         open={selectedOption ? true : false}
         changeOpen={() => setSelectedOption(null)}>
         {
           componentOptions[
-            selectedOption !== null && ["Download", "Share"].includes(selectedOption.name)
-              ? selectedOption.name
+            selectedOption !== null && ["Download", "Share", "Move"].includes(selectedOption.value)
+              ? selectedOption.value
               : "Download"
           ]
         }

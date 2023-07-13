@@ -4,7 +4,7 @@ import { Text, Button } from "../../../theme";
 
 interface DownloadModalProps {
   name: React.ReactNode;
-  changeState: (value: { name: string; icon: React.ReactNode } | null) => void;
+  changeState: (value: { name: string; icon: React.ReactNode; value: string } | null) => void;
 }
 
 const DownloadModal = (props: DownloadModalProps) => {
@@ -12,6 +12,8 @@ const DownloadModal = (props: DownloadModalProps) => {
 
   const { classes } = useStyles();
 
+  // Dumb Data
+  // options to put in the select
   const staticData = [
     {
       name: "URL",

@@ -1,139 +1,99 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { TreeView, TreeItem } from "@mui/lab";
-import { Checkbox, FormControlLabel } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import React, { useState, useEffect } from "react";
+import { TreeView as MUITreeView, TreeItem } from "@mui/lab";
+import * as React from "react";
+import { memo } from "react";
 
 import { makeStyles } from "../../lib/ThemeProvider";
-import { Text } from "../theme";
 
-// Custom styled TreeItem to adjust the padding
-const StyledTreeItem = styled(TreeItem)(({ theme }) => ({
-  "& .MuiTreeItem-content": {
-    paddingTop: theme.spacing(0.5),
-    paddingBottom: theme.spacing(0.5),
-  },
-  "& .MuiTreeItem-content:hover, & .MuiTreeItem-content:focus, & .MuiTreeItem-content:active, & .MuiTreeItem-content.Mui-selected":
-    {
-      backgroundColor: "transparent",
-    },
-}));
+export type TreeViewProps = {
+  className?: string;
+  nodes: TreeNode[];
+  getSelected?: (node: TreeNode) => void;
+};
 
 interface TreeNode {
   id: string;
-  name: string;
+  name: React.ReactNode;
   count?: string;
   children?: TreeNode[];
 }
 
-interface TreeViewProps {
-  treeData: TreeNode[];
-  checkbox?: boolean;
-  selected: string[];
-  changeSelected: (value: string[]) => void;
-}
+/**
+ * A memoized component that renders a tree view.
+ * @param {TreeViewProps} props - The props for the TreeView component.
+ * @returns The rendered TreeView component.
+ */
 
-export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
-  const { treeData, checkbox = true, selected, changeSelected } = props;
-  const [checked, setChecked] = useState<string[]>([]);
+export const TreeView = memo((props: TreeViewProps) => {
+  const { className, nodes, getSelected } = props;
 
   const { classes } = useStyles();
 
-  useEffect(() => {
-    if (!selected.length && checked.length) {
-      setChecked([]);
+  // functions
+  function handleItemClick(node: TreeNode) {
+    if (getSelected) {
+      getSelected(node);
     }
-  }, [selected]);
+  }
 
-  const handleToggle = (event: React.ChangeEvent<HTMLInputElement>, nodeId: string) => {
-    if (checked.includes(nodeId)) {
-      setChecked(checked.filter((id) => id !== nodeId));
-      changeSelected(checked.filter((id) => id !== nodeId));
-    } else {
-      setChecked([...checked, nodeId]);
-      changeSelected([...checked, nodeId]);
-    }
-  };
+  /**
+   * Recursively renders a list of tree nodes as React components.
+   * @param {TreeNode[]} list - The list of tree nodes to render.
+   * @returns {React.ReactNode} - The rendered React components.
+   */
 
-  const handleParentCheck = (parent: TreeNode) => {
-    if ("children" in parent) {
-      const checkedChildrenIds = getAllChildrenIds(parent);
-      const allChecked = checkedChildrenIds.every((id) => checked.includes(id));
-
-      if (allChecked) {
-        setChecked(checked.filter((id) => !checkedChildrenIds.includes(id)));
-        changeSelected(checked.filter((id) => !checkedChildrenIds.includes(id)));
-      } else {
-        setChecked([...checked, ...checkedChildrenIds]);
-        changeSelected([...checked, ...checkedChildrenIds]);
-      }
-    }
-  };
-
-  const getAllChildrenIds = (node: TreeNode): string[] => {
-    let childrenIds: string[] = [];
-    if (node.children) {
-      childrenIds = node.children.map((child) => child.id).flat();
-      node.children.forEach((child) => {
-        childrenIds.push(...getAllChildrenIds(child));
-      });
-    }
-    return childrenIds;
-  };
-
-  const renderTree = (nodes: TreeNode) => (
-    <StyledTreeItem
-      key={nodes.id}
-      className={classes.label}
-      nodeId={nodes.id}
-      label={
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={checked.includes(nodes.id)}
-              indeterminate={
-                nodes.children &&
-                nodes.children.some((child) => checked.includes(child.id)) &&
-                !checked.includes(nodes.id)
-              }
-              onChange={(event) => {
-                handleToggle(event, nodes.id);
-                handleParentCheck(nodes);
-              }}
+  function returnItems(list: TreeNode[]): React.ReactNode {
+    return (
+      <>
+        {list.map((item) => (
+          <div key={item.id}>
+            <TreeItem
+              className={classes.treeItem}
+              onClick={() => handleItemClick(item)}
+              nodeId={item.id}
+              label={item.name}
             />
-          }
-          label={
-            <span style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-              <Text typo="body 1">{nodes.name}</Text>
-              {nodes.count ? (
-                <Text typo="body 3" className={classes.count}>
-                  {nodes.count}
-                </Text>
-              ) : null}
-            </span>
-          }
-        />
-      }>
-      {Array.isArray(nodes.children) ? nodes.children.map((childNode, index) => renderTree(childNode)) : null}
-    </StyledTreeItem>
-  );
+            {item.children ? returnItems(item.children) : null}
+          </div>
+        ))}
+      </>
+    );
+  }
 
   return (
-    <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}>
-      {treeData.map((data, index) => renderTree(data))}
-    </TreeView>
+    <MUITreeView
+      className={className}
+      aria-label="file system navigator"
+      defaultCollapseIcon={<ExpandMoreIcon />}
+      defaultExpandIcon={<ChevronRightIcon />}
+      sx={{ maxHeight: 200, flexGrow: 1, maxWidth: 400, overflowY: "auto" }}>
+      {nodes.map((node) => (
+        <div key={node.id}>
+          <TreeItem
+            className={classes.treeItem}
+            onClick={() => handleItemClick(node)}
+            nodeId={node.id}
+            label={node.name}>
+            {node.children ? returnItems(node.children) : null}
+          </TreeItem>
+        </div>
+      ))}
+    </MUITreeView>
   );
-};
+});
 
-const useStyles = makeStyles({ name: { TreeViewWithCheckboxes } })((theme) => ({
-  label: {
-    "&:hover": {
-      background: "transparent",
-    },
-  },
-  count: {
-    fontStyle: "italic",
-    color: theme.colors.palette.dark.greyVariant4,
+const useStyles = makeStyles({ name: { TreeView } })((theme) => ({
+  treeItem: {
+    "& .MuiTreeItem-content:hover, & .MuiTreeItem-content:focus, & .MuiTreeItem-content:active, & .MuiTreeItem-content.Mui-selected":
+      {
+        background: theme.colors.palette.light.greyVariant1,
+      },
+    "& .css-1kj19pu-MuiTreeItem-content.Mui-selected:hover, & .css-1kj19pu-MuiTreeItem-content.Mui-selected.Mui-focused ":
+      {
+        background: theme.colors.palette.light.greyVariant1,
+      },
   },
 }));
+
+TreeView.displayName = "Stepper";

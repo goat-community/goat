@@ -18,10 +18,10 @@ export type DialogProps = {
 const Dialog = memo(
   forwardRef<HTMLElement, DialogProps>((props, ref) => {
     const { className, children, title, action, width, direction, onClick, anchorEl, ...rest } = props;
+
     const { classes, cx } = useStyles({ width });
 
     return (
-      // <Card ref={ref} className={cx(classes.card, className)} width={width} noHover={true}>
       <Popover
         className={classes.popover}
         open={true}
@@ -58,7 +58,6 @@ const Dialog = memo(
           ) : null}
         </div>
       </Popover>
-      // </Card>
     );
   })
 );
@@ -69,7 +68,7 @@ const useStyles = makeStyles<{ width: string }>({
   card: {
     backgroundColor: theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].light,
     maxHeight: "500px",
-    padding: `${theme.spacing(3)}px ${theme.spacing(5)}px`,
+    padding: `16px 32px`,
   },
   header: {
     display: "flex",

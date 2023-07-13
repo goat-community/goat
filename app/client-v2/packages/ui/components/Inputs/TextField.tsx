@@ -520,6 +520,18 @@ const useStyles = makeStyles<{
         margin: "0",
         marginRight: theme.spacing(2),
       },
+    "& .css-1ab69dk-MuiInputBase-root-MuiFilledInput-root:before": {
+      border: "none",
+    },
+    "& .css-1ab69dk-MuiInputBase-root-MuiFilledInput-root:after": {
+      border: "none",
+    },
+    "& .css-1ab69dk-MuiInputBase-root-MuiFilledInput-root:hover:not(.Mui-disabled, .Mui-error):before": {
+      border: "none",
+    },
+    "& .css-1oemyht-MuiInputBase-root-MuiFilledInput-root:hover:not(.Mui-disabled,.Mui-error):before": {
+      border: "none",
+    },
   },
   helperText: {
     color: hasError

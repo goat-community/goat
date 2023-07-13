@@ -47,7 +47,13 @@ export const Alert = memo((props: AlertProps) => {
       action={
         doDisplayCross ? <IconButton iconId="closeSharp" aria-label="close" onClick={close} /> : undefined
       }>
-      {typeof children === "string" ? <Text typo="label 2">{children}</Text> : children}
+      {typeof children === "string" ? (
+        <Text typo="label 2" color="primary">
+          {children}
+        </Text>
+      ) : (
+        children
+      )}
     </MuiAlert>
   );
 });

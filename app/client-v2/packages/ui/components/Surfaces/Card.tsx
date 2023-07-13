@@ -102,8 +102,6 @@ const useStyles = makeStyles<{ noHoverEffect: boolean }>({ name: { Card } })((th
     boxSizing: "border-box",
   },
   belowDivider: {
-    // padding: theme.spacing(4),
-    // paddingTop: theme.spacing(3),
     flex: 1,
     display: "flex",
     flexDirection: "column",

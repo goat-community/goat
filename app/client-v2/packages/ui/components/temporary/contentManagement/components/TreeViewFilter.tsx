@@ -6,45 +6,47 @@ import { Card } from "../../../Surfaces";
 import { Button } from "../../../theme";
 
 const TreeViewFilter = () => {
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const { classes } = useStyles();
+
+  // Component States
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
   const treeData = [
     {
-      id: "node1",
-      name: "Node 1",
+      id: "layers",
+      name: "Layers",
       count: "(100)",
       children: [
         {
-          id: "node1-1",
-          name: "Node 1.1",
+          id: "feature",
+          name: "Feature",
           count: "(72)",
         },
         {
-          id: "node1-2",
-          name: "Node 1.2",
+          id: "imagery",
+          name: "Imagery",
           count: "(28)",
         },
       ],
     },
     {
-      id: "node2",
-      name: "Node 2",
+      id: "reports",
+      name: "Reports",
       count: "(43)",
     },
     {
-      id: "node3",
-      name: "Node 3",
+      id: "projects",
+      name: "Projects",
       count: "(10)",
       children: [
         {
-          id: "node3-1",
-          name: "Node 3.1",
+          id: "project_one",
+          name: "Project_one",
           count: "(6)",
           children: [
             {
-              id: "node3-1-1",
-              name: "Node 3.1.1",
+              id: "project_two",
+              name: "Project_Twosadddsadsdfsaad",
               count: "(4)",
             },
           ],
@@ -53,6 +55,7 @@ const TreeViewFilter = () => {
     },
   ];
 
+  // Functions
   function clearFilters() {
     setSelectedFilters([]);
   }

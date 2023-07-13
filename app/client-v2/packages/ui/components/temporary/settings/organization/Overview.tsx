@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useRef } from "react";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
 import Dialog from "../../../Dialog";
@@ -10,7 +10,6 @@ import SubscriptionStatusCard from "../subscription/SubscriptionStatusCard";
 
 const Overview = () => {
   // User state management
-  const [showOrganisationSettings, setShowOrganisationSettings] = useState(false);
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
 
   // styling related

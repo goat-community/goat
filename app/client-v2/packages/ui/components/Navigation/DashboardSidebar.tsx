@@ -14,13 +14,24 @@ export type DashboardSidebarProps = {
   children: React.ReactNode;
 };
 
+/**
+ * A functional component that renders a dashboard sidebar.
+ * @param {DashboardSidebarProps} props - The props object containing the items and children.
+ * @returns The rendered dashboard sidebar component.
+ */
+
 export function DashboardSidebar(props: DashboardSidebarProps) {
   const { items, children } = props;
+
+  // styling
   const { classes, cx } = useStyles(props)();
   const theme = useTheme();
+
+  // Component States
   const [hover, setHover] = useState(false);
   const [active, setActive] = useState<string | null>(items[0].placeholder);
 
+  // functions
   const handleHover = () => {
     setHover((currHover) => !currHover);
   };
@@ -65,7 +76,7 @@ const useStyles = (props: DashboardSidebarProps) =>
     root: {
       zIndex: "20",
       paddingTop: "52px",
-      backgroundColor: theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].light,
+      backgroundColor: theme.colors.useCases.surfaces.surface2,
       cursor: "pointer",
       width: props.width,
       left: 0,
@@ -75,14 +86,14 @@ const useStyles = (props: DashboardSidebarProps) =>
       transition: "width 0.4s ease",
       display: "flex",
       flexDirection: "column",
-      boxShadow: "0px 2px 4px -1px rgba(0, 0, 0, 0.12)",
+      boxShadow: "0px 1px 5px 0px #0000001F, 0px 2px 2px 0px #00000024, 0px 3px 1px -2px #00000033",
       "&:hover": {
         width: props.extended_width,
       },
     },
     itemList: {
       "&:hover": {
-        backgroundColor: theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant1,
+        backgroundColor: `${theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant2}aa`,
       },
     },
   }));

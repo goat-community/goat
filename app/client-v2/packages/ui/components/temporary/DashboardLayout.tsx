@@ -110,7 +110,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   ];
 
   return (
-    <>
+    <div className={classes.background}>
       <Toolbar height={52} items={items} />
       <DashboardSidebar items={sidebarItems} width={60} extended_width={200}>
         <div>
@@ -121,16 +121,19 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         links={footerLinks}
         text="Lörem ipsum od ohet dilogi. Bell trabel, samuligt, ohöbel utom diska. Jinesade bel när feras redorade i belogi. FAR paratyp i muvåning, och pesask vyfisat. Viktiga poddradio har un mad och inde."
       />
-    </>
+    </div>
   );
 };
 
 const useStyles = makeStyles({ name: { DashboardLayout } })((theme) => ({
+  background: {
+    backgroundColor: theme.colors.useCases.surfaces.surface2,
+  },
   container: {
     minHeight: "100vh",
     margin: "0 auto",
     width: "1268px",
-    marginTop: "52px",
+    paddingTop: "105px",
     paddingLeft: "90px",
     "@media (max-width: 1714px)": {
       width: "90%",

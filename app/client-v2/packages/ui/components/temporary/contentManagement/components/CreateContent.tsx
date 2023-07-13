@@ -16,7 +16,16 @@ const CreateContent = (props: CreateContentProps) => {
   const { modalState } = props;
 
   const { classes } = useStyles();
+
+  // refs
   const stepperElem = useRef<{ handleComplete: () => void } | null>(null);
+
+  // Input related
+  const [uploadType, setUploadType] = useState<string | string[]>("");
+  const [urlValue, setUrlValue] = useState("");
+  const [saveFormat, setSaveFormat] = useState<string | string[]>("");
+  const [uploadFile, setUploadFile] = useState<FileList>();
+  const [progressUpload, setProgressUpload] = useState<boolean>(false);
 
   // dumb data
   const layerTypes = [
@@ -50,13 +59,7 @@ const CreateContent = (props: CreateContentProps) => {
     },
   ];
 
-  // Input related
-  const [uploadType, setUploadType] = useState("");
-  const [urlValue, setUrlValue] = useState("");
-  const [saveFormat, setSaveFormat] = useState("");
-  const [uploadFile, setUploadFile] = useState<FileList>();
-  const [progressUpload, setProgressUpload] = useState<boolean>(false);
-
+  // Add Content steps in case the chosen layer type is URL
   let steps = [
     {
       label: "Choose format",
@@ -138,6 +141,7 @@ const CreateContent = (props: CreateContentProps) => {
     },
   ];
 
+  // Add content steps in case we chose to import via local types (type !== url)
   const uploadLocallySteps = [
     {
       label: "Choose format",
@@ -189,8 +193,7 @@ const CreateContent = (props: CreateContentProps) => {
     }
   }, [uploadType, progressUpload]);
 
-  // const [steps, setSteps] = useState<{ label: string; status: string; child: React.ReactNode }[]>([
-
+  //functions
   const simpleActions = (
     <div className={classes.buttons}>
       <Button variant="noBorder" onClick={() => modalState(false)}>

@@ -1,5 +1,3 @@
-import React from "react";
-
 import AuthTemplate from "./AuthTemplate";
 import Create from "./steps/Create";
 

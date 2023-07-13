@@ -110,7 +110,7 @@ export function createButton<IconId extends string = never>(params?: {
       const IconWd = useGuaranteedMemo(
         // eslint-disable-next-line react/display-name
         () => (props: { iconId: IconId }) =>
-          <Icon iconId={props.iconId} className={classes.icon} size="default" />,
+          <Icon iconId={props.iconId} className={classes.icon} size="small" />,
         [disabled, classes.icon]
       );
 
@@ -173,7 +173,7 @@ export function createButton<IconId extends string = never>(params?: {
             case "ternary":
               return theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main;
             case "noBorder":
-              return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].greyVariant3;
+              return `${theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].greyVariant3}E6`;
             case "warning":
               return theme.muiTheme.palette.warning.main;
           }
@@ -232,6 +232,7 @@ export function createButton<IconId extends string = never>(params?: {
           pxToNumber(theme.typography.variants[variantNameUsedForMuiButton].style.lineHeight);
 
         return {
+          fontWeight: "500",
           textTransform: "unset" as const,
           backgroundColor: (() => {
             switch (variant) {
@@ -254,13 +255,7 @@ export function createButton<IconId extends string = never>(params?: {
                 }
             }
           })(),
-          borderRadius: () => {
-            if (variant === "noBorder") {
-              return "1px";
-            } else {
-              approxHeight / 2;
-            }
-          },
+          borderRadius: variant === "noBorder" ? "1px" : approxHeight / 2,
           borderWidth,
           borderStyle: "solid",
           borderColor: disabled ? "transparent" : hoverBackgroundColor,

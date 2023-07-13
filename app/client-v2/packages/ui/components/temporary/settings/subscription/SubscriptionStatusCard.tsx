@@ -26,7 +26,7 @@ const SubscriptionStatusCard = (props: SubscriptionStatusCardProps) => {
             iconId={sectionData.icon}
             size="medium"
             bgVariant="focus"
-            iconVariant="focus"
+            iconVariant="primary"
             wrapped="circle"
           />
           <Text typo="body 1" className={classes.title}>

@@ -16,6 +16,7 @@ import FileCopyIcon from "@mui/icons-material/FileCopy";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import FolderIcon from "@mui/icons-material/Folder";
 import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
+import GroupsIcon from "@mui/icons-material/Groups";
 import HelpIcon from "@mui/icons-material/Help";
 import HomeIcon from "@mui/icons-material/Home";
 import InfoIcon from "@mui/icons-material/Info";
@@ -94,6 +95,7 @@ export const { Icon } = createIcon({
   reply: ReplyIcon,
   download: DownloadIcon,
   lock: LockIcon,
+  team: GroupsIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];

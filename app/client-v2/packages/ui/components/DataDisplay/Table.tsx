@@ -26,6 +26,12 @@ export type TableProps = {
   openDialog?: Dispatch<SetStateAction<object | null>>;
 };
 
+/**
+ * A memoized functional component that renders a table.
+ * @param {TableProps} props - The props object containing the necessary data for rendering the table.
+ * @param {React.Ref<HTMLElement>} ref - The ref object for accessing the table element.
+ * @returns The rendered table component.
+ */
 const Table = memo(
   forwardRef<HTMLElement, TableProps>((props, ref) => {
     // Table Props
@@ -41,6 +47,9 @@ const Table = memo(
       ...rest
     } = props;
 
+    // refs
+    const dialogRef = useRef<HTMLDivElement>(null);
+
     // component state management
     const [dialogCoords, setDialogCoords] = useState<{ left: string; top: string } | null>(null);
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
@@ -50,9 +59,10 @@ const Table = memo(
 
     // related to styling
     const { classes, cx } = useStyles(dialogCoords ? dialogCoords : { left: false, top: false });
-    const dialogRef = useRef<HTMLDivElement>(null);
 
+    // Here we get the keys of the row so that we can render it
     type ObjectKeys = keyof (typeof rows)[0];
+    const rowKeys: ObjectKeys[] = Object.keys(rows[0]) as ObjectKeys[];
 
     function openDialogInitializer(event: React.MouseEvent<HTMLButtonElement>, indx: number) {
       setAnchorEl(event.currentTarget);
@@ -68,8 +78,6 @@ const Table = memo(
         openDialog(null);
       }
     }
-
-    const rowKeys: ObjectKeys[] = Object.keys(rows[0]) as ObjectKeys[];
 
     return (
       <TableContainer className={classes.tableContainer} component={Paper}>

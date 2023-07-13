@@ -5,17 +5,18 @@ import { changeColorOpacity } from "../../lib";
 import { makeStyles } from "../../lib/ThemeProvider";
 
 interface ChipProps {
+  className: string;
   variant: "filled" | "Border" | "filledWithBorder";
   textDesign: "normal" | "italic";
-  label: React.ReactNode;
+  label: React.ReactNode; // JSX Element
 }
 
 export const Chip = (props: ChipProps) => {
-  const { variant = "filled", textDesign = "normal", label } = props;
+  const { variant = "filled", textDesign = "normal", label, className } = props;
 
-  const { classes } = useStyles({ variant, textDesign });
+  const { classes, cx } = useStyles({ variant, textDesign });
 
-  return <MUIChip className={classes.chip} label={label} />;
+  return <MUIChip className={cx(classes.chip, className)} label={label} />;
 };
 
 const useStyles = makeStyles<{

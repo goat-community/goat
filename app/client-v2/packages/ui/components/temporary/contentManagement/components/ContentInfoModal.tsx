@@ -18,8 +18,11 @@ interface ContentInfoModalProps {
 
 const ContentInfoModal = (props: ContentInfoModalProps) => {
   const { sampleModalData, containingProjects } = props;
-  const [editMode, setEditMode] = useState(false);
+
   const { classes } = useStyles();
+
+  // Component States
+  const [editMode, setEditMode] = useState(false);
 
   return (
     <div>

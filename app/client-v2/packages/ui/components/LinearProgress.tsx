@@ -10,7 +10,8 @@ interface LinearProgress {
 export default function LinearProgress(props: LinearProgress) {
   const { finished, defaultValue } = props;
 
-  const [progress, setProgress] = React.useState(0);
+  // Component States
+  const [progress, setProgress] = React.useState<number>(0);
 
   React.useEffect(() => {
     if (!defaultValue) {

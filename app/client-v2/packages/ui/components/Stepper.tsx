@@ -10,45 +10,33 @@ import { forwardRef } from "react";
 
 import { makeStyles } from "../lib/ThemeProvider";
 
+type Steps = { label: string; child: React.ReactNode };
 interface StepperProps {
   className?: string;
-  steps: { label: string; child: React.ReactNode }[];
+  steps: Steps[];
   customActions?: React.ReactNode;
 }
 // React.forwardRef(({ actionButtons, ...props }, ref)
 const Stepper = forwardRef((props: StepperProps, ref) => {
   const { className, steps, customActions } = props;
   const { classes } = useStyles();
+
+  // Component States
   const [activeStep, setActiveStep] = React.useState(0);
   const [completed, setCompleted] = React.useState<{
     [k: number]: boolean;
   }>({});
 
-  const totalSteps = () => {
-    return steps.length;
-  };
-
-  const completedSteps = () => {
-    return Object.keys(completed).length;
-  };
-
-  const isLastStep = () => {
-    return activeStep === totalSteps() - 1;
-  };
-
-  const allStepsCompleted = () => {
-    return completedSteps() === totalSteps();
-  };
-
+  // Functions
   const handleNext = () => {
     const newActiveStep =
-      isLastStep() && !allStepsCompleted()
+      isLastStep(activeStep, steps) && !allStepsCompleted(completed, steps)
         ? // It's the last step, but not all steps have been completed,
           // find the first step that has been completed
           steps.findIndex((step, i) => !(i in completed))
         : activeStep + 1;
 
-    if (isPrevCompleted()) {
+    if (isPrevCompleted(completed, activeStep)) {
       setActiveStep(newActiveStep);
     }
   };
@@ -58,7 +46,7 @@ const Stepper = forwardRef((props: StepperProps, ref) => {
   };
 
   const handleStep = (step: number) => () => {
-    if (isPrevCompleted() || completed[step]) {
+    if (isPrevCompleted(completed, activeStep) || completed[step]) {
       setActiveStep(step);
     }
   };
@@ -75,13 +63,6 @@ const Stepper = forwardRef((props: StepperProps, ref) => {
     setCompleted({});
   };
 
-  const isPrevCompleted = () => {
-    if (completed[activeStep]) {
-      return true;
-    }
-    return false;
-  };
-
   useImperativeHandle(ref, () => ({
     handleComplete,
   }));
@@ -90,7 +71,7 @@ const Stepper = forwardRef((props: StepperProps, ref) => {
     <Box sx={{ width: "100%" }}>
       <MUIStepper nonLinear activeStep={activeStep} className={className}>
         {steps.map((step, index) => (
-          <Step key={index} completed={completed[index]}>
+          <Step className={classes.root} key={index} completed={completed[index]}>
             <StepButton color="inherit" onClick={handleStep(index)}>
               <p style={{ fontSize: "14px", margin: "0" }}>{step.label}</p>
             </StepButton>
@@ -98,7 +79,7 @@ const Stepper = forwardRef((props: StepperProps, ref) => {
         ))}
       </MUIStepper>
       <div>
-        {allStepsCompleted() ? (
+        {allStepsCompleted(completed, steps) ? (
           <React.Fragment>
             <Typography sx={{ mt: 2, mb: 1 }}>All steps completed - you&apos;re finished</Typography>
             <Box sx={{ display: "flex", flexDirection: "row", pt: 2 }}>
@@ -125,7 +106,7 @@ const Stepper = forwardRef((props: StepperProps, ref) => {
                     </Typography>
                   ) : (
                     <Button onClick={handleComplete}>
-                      {completedSteps() === totalSteps() - 1 ? "Finish" : "Complete Step"}
+                      {completedSteps(completed) === totalSteps(steps) - 1 ? "Finish" : "Complete Step"}
                     </Button>
                   ))}
               </Box>
@@ -140,8 +121,36 @@ const Stepper = forwardRef((props: StepperProps, ref) => {
 });
 
 const useStyles = makeStyles({ name: { Stepper } })((theme) => ({
-  root: {},
+  root: {
+    "& .css-1e7c4pk-MuiStepIcon-text": {
+      fill: "#fff",
+    },
+  },
 }));
+
+// helper functions
+const totalSteps = (steps: Steps[]) => {
+  return steps.length;
+};
+
+const completedSteps = (completed: { [k: number]: boolean }) => {
+  return Object.keys(completed).length;
+};
+
+const isLastStep = (activeStep: number, steps: Steps[]) => {
+  return activeStep === totalSteps(steps) - 1;
+};
+
+const allStepsCompleted = (completed: { [k: number]: boolean }, steps: Steps[]) => {
+  return completedSteps(completed) === totalSteps(steps);
+};
+
+const isPrevCompleted = (completed: { [k: number]: boolean }, activeStep: number) => {
+  if (completed[activeStep]) {
+    return true;
+  }
+  return false;
+};
 
 Stepper.displayName = "Stepper";
 

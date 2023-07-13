@@ -7,8 +7,23 @@ import { Card } from "../../../Surfaces";
 import { Button, Text } from "../../../theme";
 
 export default function Create() {
-  const [isLoginButtonDisabled, setIsLoginButtonDisabled] = useState(true);
-  const [selectedIndustry, setSelectedIndustry] = useState("gis");
+  const { classes } = useStyles();
+
+  // refs
+  const organizationInputRef = useRef<HTMLInputElement>(null);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Component States
+  const [selectedIndustry, setSelectedIndustry] = useState<string | string[]>("gis");
+
+  useEffect(() => {
+    console.log(selectedIndustry && organizationInputRef?.current?.value === "");
+  }, [selectedIndustry, organizationInputRef?.current?.value]);
+
+  // functions
+  const onSubmit = () => {
+    console.log("submit");
+  };
 
   const Industries = [
     {
@@ -28,19 +43,6 @@ export default function Create() {
       value: "Architecture",
     },
   ];
-
-  const onSubmit = () => {
-    console.log("submit");
-  };
-
-  const { classes } = useStyles();
-
-  const organizationInputRef = useRef<HTMLInputElement>(null);
-  const submitButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    console.log(selectedIndustry && organizationInputRef?.current?.value === "");
-  }, [selectedIndustry, organizationInputRef?.current?.value]);
 
   return (
     <>
@@ -66,7 +68,7 @@ export default function Create() {
                     inputProps_spellCheck={false}
                     label="Organization name"
                     autoComplete="off"
-                    size="small"
+                    size="medium"
                   />
                   <Text typo="body 3" className={classes.inputMessage}>
                     Select a recognisable name for your teammates
@@ -75,19 +77,14 @@ export default function Create() {
                 <div>
                   <SelectField
                     updateChange={setSelectedIndustry}
-                    size="small"
+                    size="medium"
                     options={Industries}
-                    defaultValue={selectedIndustry}
+                    defaultValue={[selectedIndustry].flat().join(", ")}
                     label="Industry"
                   />
                 </div>
                 <div className={classes.buttonsWrapper}>
                   <input type="hidden" name="credentialId" />
-                  {/* {...(auth?.selectedCredential !== undefined
-                        ? {
-                            value: auth.selectedCredential,
-                          }
-                        : {})} */}
                   <Button
                     ref={submitButtonRef}
                     className={classes.buttonSubmit}
