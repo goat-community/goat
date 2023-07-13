@@ -309,7 +309,6 @@ def test_quantile(n):
 
 
 def save_traveltime_matrix(bulk_id: int, traveltimeobjs: dict, output_dir: str):
-
     # Convert to numpy arrays
     for key in traveltimeobjs.keys():
         # Check if str then obj type
@@ -336,15 +335,21 @@ def read_population_modified_sql(scenario_id: int):
     sql = f"""
     WITH pop AS
     (
-    SELECT p.*
-    FROM basic.population p, UNNEST(basic.modified_buildings({scenario_id})) m
-    WHERE p.building_id = m.m
+        SELECT p.id, p.population, p.demography, p.geom, sub_study_area_id, building_id
+        FROM basic.population p, UNNEST(basic.modified_buildings({scenario_id})) m
+        WHERE p.building_id = m.m
     )
     SELECT p.id, CASE WHEN b.edit_type = 'd' THEN -p.population ELSE p.population END AS population,
     p.geom, demography, sub_study_area_id, b.edit_type
     FROM pop p, customer.building_modified b
     WHERE p.building_id = b.building_id
+    UNION ALL 
+    SELECT p.id, p.population, p.geom, NULL, sub_study_area_id, 'n'
+    FROM customer.population_modified p
+    WHERE p.scenario_id = {scenario_id};
     """
 
     return sql
+
+
 

@@ -65,13 +65,13 @@ class FileMigration:
         Returns:
             [GeoDataFrame]: Returns a GeoDataFrame with the mask geometries as polygons
         """
-        if Path(mask_config).is_file():
-            mask_geom = gpd.read_file(mask_config)
-        else:
-            try:
-                mask_geom = gpd.GeoDataFrame.from_postgis(mask_config, db)
-            except Exception as e:
-                print_warning(f"Error while reading mask geometry")
+        # if Path(mask_config).is_file():
+        #     mask_geom = gpd.read_file(mask_config)
+        # else:
+        try:
+            mask_geom = gpd.GeoDataFrame.from_postgis(mask_config, db)
+        except Exception as e:
+            print_warning(f"Error while reading mask geometry")
         mask_gdf = gpd.GeoDataFrame.from_features(mask_geom, crs="EPSG:4326")
         mask_gdf = mask_gdf.to_crs("EPSG:3857")
         mask_gdf.geometry = mask_gdf.geometry.buffer(buffer_distance)
@@ -423,12 +423,16 @@ class FileMigration:
 
     def run(self):
         """Run the export"""
-        print_info("EXPORTING H3 ANALYSIS UNIT")
-        self._export_analysis_units_h3()
-        print_info("PREPARING MASK")
-        mask_gdf = self.prepare_mask(self.mask_config, self.mask_buffer_distance, self.db)
-        print_info("CREATING H3 INDEXES")
-        h3_indexes_gdf = self._create_h3_index_mask(mask_gdf)
-        print_info("EXPORTING LAYERS")
-        self._export(h3_indexes_gdf)
+        
+        if 'analysis_unit' in self.layer_config.keys():
+            print_info("EXPORTING H3 ANALYSIS UNIT")
+            self._export_analysis_units_h3()
+        
+        if 'original' in self.layer_config.keys() or 'grid' in self.layer_config.keys():
+            print_info("PREPARING MASK")
+            mask_gdf = self.prepare_mask(self.mask_config, self.mask_buffer_distance, self.db)
+            print_info("CREATING H3 INDEXES")
+            h3_indexes_gdf = self._create_h3_index_mask(mask_gdf)
+            print_info("EXPORTING LAYERS")
+            self._export(h3_indexes_gdf)
         print_info("DONE")

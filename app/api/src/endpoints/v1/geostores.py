@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from src import crud, schemas
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 
 router = APIRouter()
 
@@ -68,7 +68,6 @@ async def delete_geostores(
     db: AsyncSession = Depends(deps.get_db),
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
 ):
-
     return await crud.geostore.remove_multi(db, ids=id)
 
 

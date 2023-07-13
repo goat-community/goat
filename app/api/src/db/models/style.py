@@ -1,7 +1,7 @@
 from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Column, ForeignKey, Text, Relationship, SQLModel, Field
-from typing import List, TYPE_CHECKING
+from sqlmodel import Column, ForeignKey, Text, Relationship, SQLModel, Field, text
+from typing import List, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .content import Content
@@ -31,9 +31,5 @@ class Style(StyleBase, table=True):
     )
 
     # Relationships
-    content: "Content" = Relationship(
-        back_populates="style"
-    )
-    layers: List["Layer"] = Relationship(
-        back_populates="style"
-    )
+    content: "Content" = Relationship(back_populates="style")
+    layers: List["Layer"] = Relationship(back_populates="style")

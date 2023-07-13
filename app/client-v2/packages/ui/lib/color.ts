@@ -57,8 +57,9 @@ export const defaultPalette = {
 
 /* eslint-disable */
 export function createDefaultColorUseCases(params: Param0<CreateColorUseCase<PaletteBase, any>>) {
-  const { isDarkModeEnabled, palette } = params;
-
+  const { palette } = params;
+  // const { isDarkModeEnabled } = params;
+  const isDarkModeEnabled = false;
   return {
     typography: {
       textPrimary: palette[isDarkModeEnabled ? "light" : "dark"].main,

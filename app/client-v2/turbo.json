@@ -1,18 +1,35 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [
-  ],
+  "globalDependencies": ["**/.env"],
   "pipeline": {
     "build": {
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**"
-      ]
+      "outputs": ["dist/**", ".next/**"]
     },
-    "lint": {},
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "start": {
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^lint", "^build"],
+      "outputs": []
+    },
+    "generate": {
+      "dependsOn": ["^generate"]
+    },
+    "lint": {
+      "outputs": []
+    },
+    "clean": {
+      "outputs": []
     }
-  }
+  },
+  "globalEnv": [
+    "NEXT_PUBLIC_APP_URL",
+    "KEYCLOAK_ID",
+    "KEYCLOAK_SECRET",
+    "KEYCLOAK_ISSUER"
+  ]
 }

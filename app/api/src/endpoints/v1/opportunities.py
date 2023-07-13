@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 
 router = APIRouter()
 

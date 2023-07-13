@@ -1,20 +1,15 @@
 from enum import Enum
 from uuid import UUID
 from pydantic import Field, BaseModel
-from typing import List, Optional, TYPE_CHECKING
-from db.models.report import Report
-from db.models.report import ReportBase
+from typing import List
+from db.models.report import Report, ReportBase
 from .content import ContentUpdateBase, ContentType
 
 
-class ReportDataType(str, Enum):
-    """Report export types."""
+class ReportExportType(str, Enum):
 
     pdf = "pdf"
     png = "png"
-    # docx = "docx"
-    # pptx = "pptx"
-    # md = "md"
     html = "html"
 
 
@@ -31,13 +26,12 @@ class ReportRead(Report):
 
 
 class ReportProject(BaseModel):
-    """Base model for styles."""
 
-    id: Optional[UUID] = Field(..., description="Content ID")
-    name: Optional[str] = Field(..., description="Content name")
-    description: Optional[str] = Field(None, description="Content description")
-    tags: Optional[List[str]] = Field(None, description="Content tags")
-    thumbnail_url: Optional[str] = Field(..., description="Content thumbnail URL")
+    id: UUID | None = Field(..., description="Content ID")
+    name: str | None = Field(..., description="Content name")
+    description: str | None = Field(None, description="Content description")
+    tags: List[str] | None = Field(None, description="Content tags")
+    thumbnail_url: str | None = Field(..., description="Content thumbnail URL")
     content_type: ContentType = Field(..., description="Content type")
     user_id: UUID = Field(
         ...,

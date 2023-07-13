@@ -1,0 +1,42 @@
+from typing import TYPE_CHECKING
+from sqlmodel import (
+    ForeignKey,
+    Column,
+    Field,
+    SQLModel,
+    Text,
+    text,
+    Integer,
+    Relationship,
+)
+from uuid import UUID
+from sqlalchemy.dialects.postgresql import JSONB
+from src.schemas.layer import ScenarioType
+from ._base_class import DateTimeBase
+if TYPE_CHECKING:
+    from .layer import Layer
+
+class ScenarioFeature(DateTimeBase, table=True):
+    """Layer model."""
+    __tablename__ = "scenario_feature"
+    __table_args__ = {"schema": "customer"}
+
+    id: UUID | None = Field(
+        sa_column=Column(Text, primary_key=True, nullable=False, server_default=text("uuid_generate_v4()"))
+    )
+    feature_id: int = Field(
+        sa_column=Column(Integer, nullable=False),
+        description="Feature ID of the modified feature"
+    )
+    original_layer_id: str = Field(
+        sa_column=Column(Text, ForeignKey("customer.layer.content_id")), description="Layer ID of the modified layer"
+    )
+    scenario_type: ScenarioType = Field(
+        sa_column=Column(Text, nullable=False), description="Type of the scenario"
+    )
+    modification: dict = Field(
+        sa_column=Column(JSONB), description="Modification object in JSON format"
+    )
+
+    # Relationships
+    original_layer: "Layer" = Relationship(back_populates="scenario_features")

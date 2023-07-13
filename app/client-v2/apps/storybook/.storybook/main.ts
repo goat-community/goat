@@ -1,6 +1,9 @@
 import type { StorybookConfig } from "@storybook/nextjs";
 
 const config: StorybookConfig = {
+  core: {
+    disableTelemetry: true
+  },
   stories: [
     "../../../packages/keycloak-theme/src/stories/*.mdx",
     "../../../packages/keycloak-theme/src/stories/*.stories.@(js|jsx|ts|tsx)",

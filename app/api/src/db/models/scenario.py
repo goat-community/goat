@@ -10,24 +10,28 @@ from sqlmodel import (
     SQLModel,
     Text,
     text,
+    SQLModel,
 )
 from uuid import UUID
-from ._base_class import UUIDAutoBase, DateTimeBase
+from ._base_class import DateTimeBase
 
 if TYPE_CHECKING:
     from .user import User
     from .layer import Layer
 
 
-class Scenario(UUIDAutoBase, DateTimeBase, table=True):
+class Scenario(DateTimeBase, table=True):
     __tablename__ = "scenario"
     __table_args__ = {"schema": "customer"}
 
+    id: Optional[UUID] = Field(
+        sa_column=Column(Text, primary_key=True, nullable=False, server_default=text("uuid_generate_v4()"))
+    )
     name: str = Field(sa_column=Column(Text, nullable=False))
     user_id: UUID = Field(
         default=None,
         sa_column=Column(
-            Integer, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
+            Text, ForeignKey("customer.user.id", ondelete="CASCADE"), nullable=False
         ),
     )
 

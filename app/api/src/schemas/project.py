@@ -1,14 +1,10 @@
 
 from uuid import UUID
 from .report import ReportProject
-from sqlmodel import Field
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field
 from typing import Optional, List, Union, TYPE_CHECKING
 from .layer import (
-    # LayerProject,
-    FeatureLayerAnalysisUnitProject,
     FeatureLayerIndicatorProject,
-    FeatureLayerOpportunityProject,
     FeatureLayerStandardProject,
     TableLayerProject,
     TileLayerProject,
@@ -22,14 +18,12 @@ if TYPE_CHECKING:
 # Project DTOs
 ################################################################################
 class ProjectContentType(str, Enum):
-    """Content types that can be stored in a project."""
 
     layer = "layer"
     report = "report"
     style = "style"
 
 class InitialViewState(BaseModel):
-    """Model to show the initial view state of a project."""
 
     latitude: float = Field(
         ..., description="Latitude", ge=-90, le=90
@@ -70,22 +64,19 @@ class ProjectAttributesBase(BaseModel):
     initial_view_state: InitialViewState = Field(
         ..., description="Initial view state of the project"
     )
-    reports: Optional[List[ReportProject]] = Field(
+    reports: List[ReportProject] | None = Field(
         None, description="List of reports contained in the project"
     )
-    layers: Optional[
-        List[
+    layers: List[
             Union[
-                FeatureLayerAnalysisUnitProject,
                 FeatureLayerIndicatorProject,
-                FeatureLayerOpportunityProject,
                 FeatureLayerStandardProject,
                 TableLayerProject,
                 TileLayerProject,
                 ImageryLayerProject,
             ]
-        ]
-    ] = Field(None, description="List of layers contained in the project")
+    
+    ] | None= Field(None, description="List of layers contained in the project")
 
 
 class ProjectCreate(ContentBase, ProjectAttributesBase):
@@ -100,22 +91,18 @@ class ProjectUpdate(ContentUpdateBase):
     initial_view_state: Optional[InitialViewState] = Field(
         ..., description="Initial view state of the project"
     )
-    reports: Optional[List[ReportProject]] = Field(
+    reports: List[ReportProject] | None = Field(
         None, description="List of reports contained in the project"
     )
-    layers: Optional[
-        List[
+    layers: List[
             Union[
-                FeatureLayerAnalysisUnitProject,
                 FeatureLayerIndicatorProject,
-                FeatureLayerOpportunityProject,
                 FeatureLayerStandardProject,
                 TableLayerProject,
                 TileLayerProject,
                 ImageryLayerProject,
             ]
-        ]
-    ] = Field(None, description="List of layers contained in the project")
+    ] | None = Field(None, description="List of layers contained in the project")
 
 
 

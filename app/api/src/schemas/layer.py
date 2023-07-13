@@ -1,204 +1,20 @@
-# MIT License
-
-# Copyright (c) 2020 Development Seed
-# Copyright (c) 2021 Plan4Better
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-import abc
-from dataclasses import dataclass
-from typing import Any, ClassVar, Dict, List, Optional
-
-from pydantic import BaseModel, Field
-from pydantic.class_validators import root_validator
-from pydantic.networks import AnyHttpUrl
-
-from src.core.config import settings
-from src.resources.enums import MimeTypes
-
-
-
-# TODO: Refactor this part to use with the new schemas further down
-# =========================VECTOR TILE SCHEMAS=========================
-class VectorTileLayer(BaseModel, metaclass=abc.ABCMeta):
-    """Layer's Abstract BaseClass.
-    Attributes:
-        id (str): Layer's name.
-        bounds (list): Layer's bounds (left, bottom, right, top).
-        minzoom (int): Layer's min zoom level.
-        maxzoom (int): Layer's max zoom level.
-        tileurl (str, optional): Layer's tiles url.
-
-    """
-
-    id: str
-    bounds: List[float] = [-180, -90, 180, 90]
-    minzoom: int = settings.DEFAULT_MINZOOM
-    maxzoom: int = settings.DEFAULT_MAXZOOM
-    tileurl: Optional[str]
-
-
-class VectorTileTable(VectorTileLayer):
-    """Table Reader.
-    Attributes:
-        id (str): Layer's name.
-        bounds (list): Layer's bounds (left, bottom, right, top).
-        minzoom (int): Layer's min zoom level.
-        maxzoom (int): Layer's max zoom level.
-        tileurl (str, optional): Layer's tiles url.
-        type (str): Layer's type.
-        schema (str): Table's database schema (e.g public).
-        geometry_type (str): Table's geometry type (e.g polygon).
-        geometry_column (str): Name of the geomtry column in the table.
-        properties (Dict): Properties available in the table.
-    """
-
-    type: str = "Table"
-    dbschema: str = Field(..., alias="schema")
-    table: str
-    geometry_type: str
-    geometry_column: str
-    properties: Dict[str, str]
-
-
-class VectorTileFunction(VectorTileTable):
-    """Function Reader.
-    Attributes:
-        id (str): Layer's name.
-        bounds (list): Layer's bounds (left, bottom, right, top).
-        minzoom (int): Layer's min zoom level.
-        maxzoom (int): Layer's max zoom level.
-        tileurl (str, optional): Layer's tiles url.
-        type (str): Layer's type.
-        function_name (str): Nane of the SQL function to call. Defaults to `id`.
-        sql (str): Valid SQL function which returns Tile data.
-        options (list, optional): options available for the SQL function.
-    """
-
-    type: str = "Function"
-    sql: str
-    function_name: Optional[str]
-    options: Optional[List[Dict[str, Any]]]
-
-    @root_validator
-    def function_name_default(cls, values):
-        """Define default function's name to be same as id."""
-        function_name = values.get("function_name")
-        if function_name is None:
-            values["function_name"] = values.get("id")
-        return values
-
-    @classmethod
-    def from_file(cls, id: str, infile: str, **kwargs: Any):
-        """load sql from file"""
-        with open(infile) as f:
-            sql = f.read()
-
-        return cls(id=id, sql=sql, **kwargs)
-
-
-class TileMatrixSetLink(BaseModel):
-    """
-    TileMatrixSetLink model.
-
-    Based on http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
-
-    """
-
-    href: AnyHttpUrl
-    rel: str = "item"
-    type: MimeTypes = MimeTypes.json
-
-    class Config:
-        """Config for model."""
-
-        use_enum_values = True
-
-
-class TileMatrixSetRef(BaseModel):
-    """
-    TileMatrixSetRef model.
-
-    Based on http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
-
-    """
-
-    id: str
-    title: str
-    links: List[TileMatrixSetLink]
-
-
-class TileMatrixSetList(BaseModel):
-    """
-    TileMatrixSetList model.
-
-    Based on http://docs.opengeospatial.org/per/19-069.html#_tilematrixsets
-
-    """
-
-    tileMatrixSets: List[TileMatrixSetRef]
-
-
-@dataclass
-class Registry:
-    """function registry"""
-
-    funcs: ClassVar[Dict[str, VectorTileFunction]] = {}
-
-    @classmethod
-    def get(cls, key: str):
-        """lookup function by name"""
-        return cls.funcs.get(key)
-
-    @classmethod
-    def register(cls, *args: VectorTileFunction):
-        """register function(s)"""
-        for func in args:
-            cls.funcs[func.id] = func
-
-
-registry = Registry()
-
-
-#########################################################
-# =========================NEW SCHEMAS=========================
-#########################################################
-from typing import List, Optional
-from sqlmodel import (
-    ForeignKey,
-    Column,
-    Field,
-    SQLModel,
-    Text,
-    Integer,
-)
+from typing import List
 from uuid import UUID
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ValidationError, validator
 from src.schemas.content import ContentUpdateBase
-from src.db.models.layer import FeatureLayerBase, LayerBase, GeospatialAttributes
+from src.db.models.layer import (
+    FeatureLayerBase,
+    LayerBase,
+    GeospatialAttributes,
+    layer_base_example,
+    feature_layer_base_example,
+    geospatial_attributes_example,
+)
 
-class OpportunityType(str, Enum):
-    """Opportunity types."""
+from geoalchemy2 import WKBElement
+from geoalchemy2.shape import to_shape
 
-    aoi = "aoi"
-    poi = "poi"
-    population = "population"
 
 class LayerType(str, Enum):
     """Layer types that are supported."""
@@ -214,9 +30,8 @@ class FeatureLayerType(str, Enum):
 
     standard = "standard"
     indicator = "indicator"
-    opportunity = "opportunity"
     scenario = "scenario"
-    analysis_unit = "analysis_unit"
+    street_network = "street_network"
 
 
 class IndicatorType(str, Enum):
@@ -229,16 +44,24 @@ class IndicatorType(str, Enum):
     public_transport_frequency = "public_transport_frequency"
 
 
+class AnalysisType(str, Enum):
+    """Analysis types."""
+
+    intersects = "intersects"
+
+
 class ScenarioType(str, Enum):
     """Scenario types."""
 
-    building = "building"
-    poi = "poi"
-    aoi = "aoi"
-    way = "way"
+    point = "point"
+    polygon = "polygon"
+    network_street = "network_street"
 
 
-class FeatureLayerDataType(str, Enum):
+# TODO: Differentiate the types here into import and export types?
+
+
+class FeatureLayerExportType(str, Enum):
     """Feature layer data types."""
 
     geojson = "geojson"
@@ -248,6 +71,9 @@ class FeatureLayerDataType(str, Enum):
     csv = "csv"
     xlsx = "xlsx"
     kml = "kml"
+
+
+class FeatureLayerServeType(str, Enum):
     mvt = "mvt"
     wfs = "wfs"
     binary = "binary"
@@ -257,13 +83,16 @@ class ImageryLayerDataType(str, Enum):
     """Imagery layer data types."""
 
     wms = "wms"
+    xyz = "xyz"
+    wmts = "wmts"
+
+
+# Rename to Vector tiles?
 
 
 class TileLayerDataType(str, Enum):
     """Tile layer data types."""
 
-    xyz = "xyz"
-    wmts = "wmts"
     mvt = "mvt"
 
 
@@ -274,13 +103,28 @@ class TableDataType(str, Enum):
     xlsx = "xlsx"
     json = "json"
 
-class Opportunity(BaseModel):
-    """Model to show the opportunity data sets."""
 
-    id: UUID = Field(..., description="Layer ID of the opportunity data sets")
-    name: str = Field(..., description="Opportunity name")
-    opportunity_type: OpportunityType = Field(..., description="Opportunity type")
-    query: Optional[str] = Field(None, description="Opportunity query to filter the data")
+################################################################################
+# Layer Base for Read
+################################################################################
+
+
+class ReadBase(BaseModel):
+    extent: dict
+    content_id: UUID = Field(..., description="Content ID of the layer", alias="id")
+
+    @validator("extent", pre=True)
+    def wkt_to_geojson(cls, v):
+        if v and isinstance(v, WKBElement):
+            return to_shape(v).__geo_interface__
+        else:
+            return v
+
+    # @validator("id", pre=True)
+    # def populate_id(cls, v, values):
+    #     return values.get("content_id")
+    class Config:
+        allow_population_by_field_name = True
 
 
 ################################################################################
@@ -291,24 +135,24 @@ class Opportunity(BaseModel):
 class LayerUpdateBase(ContentUpdateBase):
     """Base model for layer updates."""
 
-    group: Optional[str] = Field(None, description="Layer group name")
-    data_source_id: Optional[int] = Field(None, description="Data source")
-    data_reference_year: Optional[int] = Field(None, description="Data reference year")
+    group: str | None = Field(None, description="Layer group name")
+    data_reference_year: int | None = Field(None, description="Data reference year")
 
 
 ################################################################################
 # Feature Layer DTOs
 ################################################################################
 
-class FeatureLayerReadBase(FeatureLayerBase):
-    id: UUID = Field(..., description="Layer UUID")
+
+class FeatureLayerReadBase(FeatureLayerBase, ReadBase):
+    pass
 
 
 class FeatureLayerUpdateBase(LayerUpdateBase, GeospatialAttributes):
     """Base model for feature layer updates."""
 
-    style_id: Optional[UUID] = Field(None, description="Style ID of the layer")
-    size: Optional[int] = Field(None, description="Size of the layer in bytes")
+    style_id: UUID | None = Field(None, description="Style ID of the layer")
+    size: int | None = Field(None, description="Size of the layer in bytes")
 
 
 class LayerProjectAttributesBase(BaseModel):
@@ -318,25 +162,23 @@ class LayerProjectAttributesBase(BaseModel):
         ...,
         description="Layer is active or not in the project",
     )
-    data_source_name: str = Field(
+    data_source: str = Field(
         ...,
         description="Data source name",
     )
+    data_reference_year: int | None
 
 
 class FeatureLayerProjectBase(FeatureLayerBase, LayerProjectAttributesBase):
     """Model for feature layer that are in projects."""
 
     id: UUID = Field(..., description="Layer UUID")
+    group: str | None = Field(..., description="Layer group name")
     style_id: UUID = Field(
         ...,
         description="Style ID of the layer",
     )
-    active_style_rule: List[bool] = Field(
-        ...,
-        description="Array with the active style rules for the respective style in the style",
-    )
-    query: Optional[str] = Field(None, description="Query to filter the layer data")
+    query: str | None = Field(None, description="Query to filter the layer data")
 
 
 # Feature Layer Standard
@@ -362,9 +204,16 @@ class FeatureLayerIndicatorAttributesBase(BaseModel):
 
     indicator_type: IndicatorType = Field(..., description="Indicator type")
     payload: dict = Field(..., description="Used Request payload to compute the indicator")
-    opportunities: Optional[List[UUID]] = Field(
+    opportunities: List[UUID] | None = Field(
         None, description="Opportunity data sets that are used to intersect with the indicator"
     )
+
+
+feature_layer_indicator_attributes_example = {
+    "indicator_type": "isochrone",
+    "payload": {},
+    "opportunities": [],
+}
 
 
 class FeatureLayerIndicatorCreate(FeatureLayerBase, FeatureLayerIndicatorAttributesBase):
@@ -382,10 +231,8 @@ class FeatureLayerIndicatorRead(FeatureLayerReadBase, FeatureLayerIndicatorAttri
 class FeatureLayerIndicatorUpdate(FeatureLayerUpdateBase):
     """Model to update a feature layer indicator."""
 
-    payload: Optional[dict] = Field(
-        None, description="Used Request payload to compute the indicator"
-    )
-    opportunities: Optional[List[UUID]] = Field(
+    payload: dict | None = Field(None, description="Used Request payload to compute the indicator")
+    opportunities: List[UUID] | None = Field(
         None, description="Opportunity data sets that are used to intersect with the indicator"
     )
 
@@ -396,39 +243,19 @@ class FeatureLayerIndicatorProject(FeatureLayerProjectBase, FeatureLayerIndicato
     pass
 
 
-# Feature Layer Opportunity
-class FeatureLayerOpportunityAttributesBase(BaseModel):
-    """Base model for feature layer opportunity."""
-
-    scenario_id: Optional[int] = Field(
-        None, description="Scenario ID if there is a scenario associated with this layer"
-    )
-
-
-class FeatureLayerOpportunityCreate(FeatureLayerBase, FeatureLayerOpportunityAttributesBase):
-    pass
-
-
-class FeatureLayerOpportunityRead(FeatureLayerReadBase, FeatureLayerOpportunityAttributesBase):
-    pass
-
-
-class FeatureLayerOpportunityUpdate(FeatureLayerUpdateBase, FeatureLayerOpportunityAttributesBase):
-    pass
-
-
-class FeatureLayerOpportunityProject(
-    FeatureLayerProjectBase, FeatureLayerOpportunityAttributesBase
-):
-    pass
-
-
 # Feature Layer Scenario
 class FeatureLayerScenarioAttributesBase(BaseModel):
     """Base model for additional attributes feature layer scenario."""
 
     scenario_id: int = Field(..., description="Scenario ID of the scenario layer.")
     scenario_type: ScenarioType = Field(..., description="Scenario type")
+
+
+feature_layer_scenario_attributes_example = {
+    "scenario_id": 1,
+    "scenario_type": "point",
+    "feature_layer_type": "scenario",
+}
 
 
 class FeatureLayerScenarioCreate(FeatureLayerBase, FeatureLayerScenarioAttributesBase):
@@ -449,23 +276,6 @@ class FeatureLayerScenarioUpdate(FeatureLayerUpdateBase):
     pass
 
 
-# Feature Layer Analysis Unit
-class FeatureLayerAnalysisUnitCreate(FeatureLayerBase):
-    pass
-
-
-class FeatureLayerAnalysisUnitRead(FeatureLayerReadBase):
-    pass
-
-
-class FeatureLayerAnalysisUnitUpdate(FeatureLayerUpdateBase):
-    pass
-
-
-class FeatureLayerAnalysisUnitProject(FeatureLayerProjectBase):
-    pass
-
-
 ################################################################################
 # Imagery Layer DTOs
 ################################################################################
@@ -479,23 +289,34 @@ class ImageryLayerAttributesBase(BaseModel):
     legend_urls: List[str] = Field(..., description="Layer legend URLs")
 
 
+imagery_layer_attributes_example = {
+    "url": "https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wms?request=GetCapabilities&service=WMS",
+    "data_type": "wms",
+    "legend_urls": [
+        "https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wms?request=GetLegendGraphic&service=WMS&layer=Actueel_ortho25&format=image/png&width=20&height=20",
+        "https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wms?request=GetLegendGraphic&service=WMS&layer=Actueel_ortho25&format=image/png&width=20&height=20",
+    ],
+    "type": "imagery_layer",
+}
+
+
 class ImageryLayerCreate(LayerBase, GeospatialAttributes, ImageryLayerAttributesBase):
     """Model to create a imagery layer."""
 
     pass
 
 
-class ImageryLayerRead(LayerBase, GeospatialAttributes, ImageryLayerAttributesBase):
+class ImageryLayerRead(LayerBase, GeospatialAttributes, ImageryLayerAttributesBase, ReadBase):
     """Model to read a imagery layer."""
 
-    id: UUID = Field(..., description="Layer UUID")
+    pass
 
 
 class ImageryLayerUpdate(LayerUpdateBase):
     """Model to"""
 
-    url: Optional[str] = Field(None, description="Layer URL")
-    legend_urls: Optional[List[str]] = Field(None, description="Layer legend URLs")
+    url: str | None = Field(None, description="Layer URL")
+    legend_urls: List[str] | None = Field(None, description="Layer legend URLs")
 
 
 class ImageryLayerProject(LayerBase, ImageryLayerAttributesBase, LayerProjectAttributesBase):
@@ -516,22 +337,29 @@ class TileLayerAttributesBase(BaseModel):
     data_type: TileLayerDataType = Field(..., description="Content data type")
 
 
+tile_layer_attributes_example = {
+    "url": "https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wmts?request=GetCapabilities&service=WMTS",
+    "data_type": "mvt",
+    "type": "tile_layer",
+}
+
+
 class TileLayerCreate(LayerBase, GeospatialAttributes, TileLayerAttributesBase):
     """Model to create a tile layer."""
 
     pass
 
 
-class TileLayerRead(LayerBase, GeospatialAttributes, TileLayerAttributesBase):
+class TileLayerRead(LayerBase, GeospatialAttributes, TileLayerAttributesBase, ReadBase):
     """Model to read a tile layer."""
 
-    id: UUID = Field(..., description="Layer UUID")
+    pass
 
 
 class TileLayerUpdate(LayerUpdateBase):
     """Model to update a tile layer."""
 
-    url: Optional[str] = Field(None, description="Layer URL")
+    url: str | None = Field(None, description="Layer URL")
 
 
 class TileLayerProject(LayerBase, TileLayerAttributesBase, LayerProjectAttributesBase):
@@ -549,8 +377,8 @@ class TableLayerCreate(LayerBase):
     pass
 
 
-class TableLayerRead(LayerBase):
-    id: UUID = Field(..., description="Layer UUID")
+class TableLayerRead(LayerBase, ReadBase):
+    pass
 
 
 class TableLayerUpdate(LayerUpdateBase):
@@ -559,3 +387,136 @@ class TableLayerUpdate(LayerUpdateBase):
 
 class TableLayerProject(LayerBase, LayerProjectAttributesBase):
     id: UUID = Field(..., description="Layer UUID")
+
+
+def get_layer_class(class_type: str, **kwargs):
+    layer_creator_class = {
+        "table": TableLayerCreate,
+        "tile_layer": TileLayerCreate,
+        "imagery_layer": ImageryLayerCreate,
+        "feature_layer": {
+            "standard": FeatureLayerStandardCreate,
+            "indicator": FeatureLayerIndicatorCreate,
+            "scenario": FeatureLayerScenarioCreate,
+        },
+    }
+    try:
+        layer_type = kwargs["type"]
+    except KeyError:
+        raise ValidationError("Layer type is required")
+
+    layer_class = layer_creator_class[layer_type]
+    if layer_type == "feature_layer":
+        try:
+            feature_layer_type = kwargs["feature_layer_type"]
+        except KeyError:
+            raise ValidationError("Feature layer type is required")
+
+        layer_class = layer_class[feature_layer_type]
+
+    layer_class_name = layer_class.__name__
+    if class_type == "read":
+        layer_class_name = layer_class_name.replace("Create", "Read")
+    elif class_type == "update":
+        layer_class_name = layer_class_name.replace("Create", "Update")
+    elif class_type == "create":
+        pass
+    else:
+        raise ValueError(f"Layer class type ({class_type}) is invalid")
+
+    return globals()[layer_class_name]
+
+
+class LayerCreate(BaseModel):
+    def __new__(cls, *args, **kwargs):
+        layer_create_class = get_layer_class("create", **kwargs)
+        return layer_create_class(**kwargs)
+
+
+class LayerRead(BaseModel):
+    def __new__(cls, *args, **kwargs):
+        layer_read_class = get_layer_class("read", **kwargs)
+        return layer_read_class(**kwargs)
+
+
+def build_layer_object(data: dict):
+    layer_class = {
+        "table": TableLayerCreate,
+        "tile_layer": TileLayerCreate,
+        "imagery_layer": ImageryLayerCreate,
+        "feature_layer": {
+            "standard": FeatureLayerStandardCreate,
+            "indicator": FeatureLayerIndicatorCreate,
+            "scenario": FeatureLayerScenarioCreate,
+        },
+    }
+    layer_type = data["type"]
+    if layer_type == "feature_layer":
+        layer_class = layer_class[layer_type][data["feature_layer_type"]]
+    else:
+        layer_class = layer_class[layer_type]
+
+    return layer_class(**data)
+
+
+def read_layer(layer_in, creator_layer):
+    creator_class_name = creator_layer.__class__.__name__
+    read_class_name = creator_class_name.replace("Create", "Read")
+    read_class = globals()[read_class_name]
+    return read_class.from_orm(layer_in)
+
+
+request_examples = {
+    "create": {
+        "table_layer": {
+            "summary": "Table Layer",
+            "value": {
+                **layer_base_example,
+                "type": "table",
+            },
+        },
+        "layer_standard": {
+            "summary": "Layer Standard",
+            "value": {
+                **feature_layer_base_example,
+                **geospatial_attributes_example,
+                **layer_base_example,
+            },
+        },
+        "layer_indicator": {
+            "summary": "Layer Indicator",
+            "value": {
+                **feature_layer_base_example,
+                **geospatial_attributes_example,
+                **layer_base_example,
+                **feature_layer_indicator_attributes_example,
+                "feature_layer_type": "indicator",
+            },
+        },
+        "layer_scenario": {
+            "summary": "Layer Scenario",
+            "value": {
+                **feature_layer_base_example,
+                **geospatial_attributes_example,
+                **layer_base_example,
+                **feature_layer_scenario_attributes_example,
+            },
+        },
+        "imagery_layer": {
+            "summary": "Imagery Layer",
+            "value": {
+                **layer_base_example,
+                **geospatial_attributes_example,
+                **imagery_layer_attributes_example,
+            },
+        },
+        "tile_layer": {
+            "summary": "Tile Layer",
+            "value": {
+                **layer_base_example,
+                **geospatial_attributes_example,
+                **tile_layer_attributes_example,
+            },
+        },
+    },
+}

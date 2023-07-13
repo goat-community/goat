@@ -1,3 +1,5 @@
+import base64
+import binascii
 import json
 import logging
 import math
@@ -6,6 +8,8 @@ import random
 import re
 import shutil
 import string
+import subprocess
+import tempfile
 import time
 import uuid
 import zipfile
@@ -15,13 +19,11 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import IO, Any, Dict, List, Optional
 from math import radians, cos
-import emails
-import geobuf
 import geopandas
 import h3
 import numpy as np
+import pandas as pd
 import pyproj
-from emails.template import JinjaTemplate
 from fastapi import HTTPException, UploadFile
 from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
@@ -45,21 +47,7 @@ def send_email_(
     html_template: str = "",
     environment: Dict[str, Any] = {},
 ) -> None:
-    assert settings.EMAILS_ENABLED, "no provided configuration for email variables"
-    message = emails.Message(
-        subject=JinjaTemplate(subject_template),
-        html=JinjaTemplate(html_template),
-        mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL),
-    )
-    smtp_options = {"host": settings.SMTP_HOST.upper(), "port": settings.SMTP_PORT}
-    if settings.SMTP_TLS:
-        smtp_options["tls"] = True
-    if settings.SMTP_USER:
-        smtp_options["user"] = settings.SMTP_USER
-    if settings.SMTP_PASSWORD:
-        smtp_options["password"] = settings.SMTP_PASSWORD
-    response = message.send(to=email_to, render=environment, smtp=smtp_options)
-    logging.info(f"send email result: {response}")
+    pass
 
 
 def send_test_email(email_to: str) -> None:
@@ -186,14 +174,7 @@ def return_geojson_or_geobuf(
     Return geojson or geobuf
     """
 
-    if return_type == "geojson":
-        return json.loads(json.dumps(features))
-    elif return_type == "geobuf":
-        return Response(bytes(geobuf.encode(features)), media_type=MimeTypes.geobuf.value)
-    elif return_type == "db_geobuf":
-        return Response(bytes(features))
-    else:
-        raise HTTPException(status_code=400, detail="Invalid return type")
+    pass
 
 
 def to_feature_collection(
@@ -1041,3 +1022,167 @@ def downsample_array(arr, new_shape, method="sum"):
         downsampled_arr = reshaped_arr.sum(axis=(1, 3))
 
     return downsampled_arr
+
+
+def hexlify_file(file_path: str):
+    with open(file_path, "rb") as f:
+        return binascii.hexlify(f.read()).decode("utf-8")
+
+
+def zip_shape_file(shapefile_path: str, destination_name: str):
+    # Extract the directory path and base filename
+    shapefile_dir = os.path.dirname(shapefile_path)
+    shapefile_name = os.path.basename(shapefile_path)
+
+    # Create the zip file
+    zipfile_path = os.path.join(shapefile_dir, shapefile_name.replace(".shp", ".zip"))
+    with zipfile.ZipFile(zipfile_path, "w") as zipf:
+        for ext in [".shp", ".shx", ".dbf", ".prj"]:
+            file_path = os.path.join(shapefile_dir, shapefile_name.replace(".shp", ext))
+            # write_path = os.path.join(destination_name, destination_name + ext)
+            write_path = destination_name + ext
+            zipf.write(file_path, write_path)
+
+
+def delete_shape_file(shapefile_path: str):
+    for ext in [".shp", ".shx", ".dbf", ".prj"]:
+        file_path = os.path.join(
+            os.path.dirname(shapefile_path), shapefile_path.replace(".shp", ext)
+        )
+        delete_file(file_path)
+
+
+def move_first_column_csv_to_last(csv_path: str):
+    df = pd.read_csv(csv_path)
+    cols = df.columns.tolist()
+    cols = cols[1:] + cols[:1]
+    df = df[cols]
+    df.to_csv(csv_path, index=False)
+
+
+def convert_csv_to_xlsx(csv_path: str):
+    xlsx_path = csv_path.replace(".csv", ".xlsx")
+    df = pd.read_csv(csv_path)
+    df.to_excel(xlsx_path, index=False)
+
+
+def convert_geojson_to_others_ogr2ogr(
+    input_geojson: dict, destination_layer_name: str, output_format: str
+):
+    temp_file_base_name = tempfile.mktemp()
+    options = {
+        "geopackage": {"output_suffix": "gpkg", "format_name": "GPKG"},
+        "shapefile": {
+            "output_suffix": "shp",
+            "format_name": "ESRI Shapefile",
+            "extra_options": "-lco ENCODING=UTF-8",
+        },
+        "csv": {
+            "output_suffix": "csv",
+            "format_name": "CSV",
+            "extra_options": "-lco GEOMETRY=AS_WKT",
+        },
+        "kml": {
+            "output_suffix": "kml",
+            "format_name": "KML",
+            "extra_options": "-mapFieldType Integer64=Real",
+        },
+    }
+    if output_format == "xlsx":
+        convert_format = "csv"
+    else:
+        convert_format = output_format
+
+    output_suffix = options[convert_format]["output_suffix"]
+    format_name = options[convert_format]["format_name"]
+    extra_options = options[convert_format].get("extra_options", "")
+
+    geojson_temp_file = temp_file_base_name + ".geojson"
+    output_temp_file = temp_file_base_name + f".{output_suffix}"
+
+    with open(geojson_temp_file, "w") as f:
+        f.write(json.dumps(input_geojson))
+
+    command_to_convert = f'ogr2ogr -f "{format_name}" -nln {destination_layer_name} {extra_options} {output_temp_file} {geojson_temp_file}'
+    subprocess.check_output(
+        command_to_convert, shell=True
+    )  # Use check output to raise error if command fails
+    delete_file(geojson_temp_file)
+
+    if convert_format == "csv":
+        move_first_column_csv_to_last(output_temp_file)
+
+    if output_format == "xlsx":
+        convert_csv_to_xlsx(output_temp_file)
+        delete_file(output_temp_file)
+        output_temp_file = output_temp_file.replace(".csv", ".xlsx")
+        output_suffix = "xlsx"
+
+    if output_format == "shapefile":
+        zip_shape_file(output_temp_file, destination_layer_name)
+        delete_shape_file(output_temp_file)
+        output_temp_file = output_temp_file.replace(".shp", ".zip")
+        output_suffix = "zip"
+
+    output_data = open(output_temp_file, "rb").read()
+    delete_file(output_temp_file)
+
+    return {
+        "data": output_data,
+        "output_suffix": output_suffix,
+    }
+
+
+def read_results(results, return_type=None):
+    """
+    results_example = {
+        "data": geojson_result,
+        "return_type": heatmap_settings.return_type.value,
+        "hexlified": False,
+        "data_source": "heatmap",
+    }
+    return geojson or binary content based on return_type
+    """
+    if not return_type:
+        return_type = results["return_type"]
+
+    data = results["data"]
+
+    if return_type == "geojson":
+        return data["geojson"]
+
+    elif return_type == "network":
+        return data["network"]
+
+    elif return_type == "grid":
+        if results["hexlified"]:
+            data = binascii.unhexlify(data["grid"])
+        else:
+            data = data["grid"]
+        return Response(
+            data,
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": "attachment; filename=grid.bin"},
+        )
+
+    elif return_type == "geobuf":
+        data = geobuf.encode(data["geojson"])
+        return Response(
+            data,
+            media_type=MimeTypes.geobuf.value,
+            headers={"Content-Disposition": f"attachment; filename={results['data_source']}.pbf"},
+        )
+
+    else:
+        converted_data = convert_geojson_to_others_ogr2ogr(
+            input_geojson=data["geojson"],
+            destination_layer_name=results["data_source"],
+            output_format=return_type,
+        )
+        file_name = f"{results['data_source']}.{converted_data['output_suffix']}"
+        # TODO: define the media type based on the output_format
+        return Response(
+            converted_data["data"],
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={file_name}"},
+        )

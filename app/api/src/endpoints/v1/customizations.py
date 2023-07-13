@@ -10,7 +10,7 @@ from src.crud.base import CRUDBase
 from src.crud.crud_customization import customization, dynamic_customization
 from src.db import models
 from src.db.models.legacy.config_validation import *
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.resources.enums import SettingToModify
 from src.schemas.customization import request_examples
 
@@ -203,7 +203,6 @@ async def list_base_customizations(
     q: str = None,
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
-
     settings = await crud.customization.get_multi(
         db, skip=skip, limit=limit, ordering=ordering, query=q
     )
@@ -218,7 +217,6 @@ async def get_base_customization_by_id(
     id: int,
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
-
     customization = await crud.customization.get(db, id=id)
     if not customization:
         raise HTTPException(
@@ -236,7 +234,6 @@ async def create_base_customization(
     customization_in: models.CustomizationBase,
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
-
     customization = await crud.customization.create(db, obj_in=customization_in)
     return customization
 

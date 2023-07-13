@@ -9,7 +9,7 @@ from src import crud
 from src.crud.base import CRUDBase
 from src.db import models
 from src.db.models.legacy.config_validation import *
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.resources.enums import (
     AllowedVectorTables,
     ReturnType,

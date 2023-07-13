@@ -159,7 +159,12 @@
               <v-btn small :disabled="selectedPoisOnlyKeys.length < 1">
                 <v-icon small>fa-solid fa-location-dot</v-icon>
               </v-btn>
-              <v-btn small :disabled="selectedAoisOnlyKeys.length < 1">
+              <v-btn
+                small
+                :disabled="
+                  selectedAoisOnlyKeys.length < 1 || resultViewType === 2
+                "
+              >
                 <i
                   class="v-icon notranslate fa-brands fa-square-pied-piper theme--light"
                   style="font-size: 16px;"
@@ -199,13 +204,13 @@ import { mapGetters, mapMutations } from "vuex";
 import IsochroneUtils from "../../utils/IsochroneUtils";
 import { Draggable } from "draggable-vue-directive";
 import { mapFields } from "vuex-map-fields";
-import { featuresToGeojson } from "../../utils/MapUtils";
+// import { featuresToGeojson } from "../../utils/MapUtils";
 import IsochroneAmenitiesLineChart from "../other/IsochroneAmenitiesLineChart.vue";
 import IsochroneAmenitiesPieChart from "../other/IsochroneAmenitiesPieChart.vue";
 import IsochroneAmenitiesRadarChartVue from "../other/IsochroneAmenitiesRadarChart.vue";
 import { saveAs } from "file-saver";
 import { debounce, numberSeparator } from "../../utils/Helpers";
-import ApiService from "../../services/api.service";
+import axios from "axios";
 import JSZip from "jszip";
 import {
   calculateCalculationsLength,
@@ -235,7 +240,15 @@ export default {
     },
     downloadDialogState: false,
     selectedCalculationForDownload: null,
-    isochroneDownloadTypes: ["GeoJSON", "ESRI Shapefile", "XLSX"]
+    isochroneDownloadTypes: [
+      "GeoJson",
+      "CSV",
+      "Geobuf",
+      "Shapefile",
+      "GeoPackage",
+      "KML",
+      "XLSX"
+    ]
   }),
   methods: {
     ...mapMutations("map", {
@@ -277,50 +290,20 @@ export default {
     downloadIsochrone(type) {
       const promiseArray = [];
       this.selectedCalculations.forEach(calculation => {
-        const feature = calculation.feature.clone();
-        const reached_opportunities = {};
-        const accessibility =
-          calculation.surfaceData.accessibility["opportunities"];
+        const taskId = calculation.taskId;
+        const axiosInstance = axios.create();
         const traveltime = this.calculationTravelTime[calculation.id - 1];
-        if (calculation.type === "single") {
-          Object.keys(accessibility).forEach(category => {
-            reached_opportunities[category] =
-              accessibility[category][traveltime - 1];
-          });
-        } else {
-          Object.keys(accessibility).forEach(studyAreaId => {
-            reached_opportunities[studyAreaId] = {
-              reached_population:
-                accessibility[studyAreaId]["reached_population"][
-                  traveltime - 1
-                ],
-              total_population: accessibility[studyAreaId]["total_population"]
-            };
-          });
-        }
-        const properties = {
-          isochrone_calculation_id: calculation.id,
-          traveltime,
-          modus: calculation.config.scenario.modus,
-          routing_profile: calculation.routing,
-          reached_opportunities
-        };
-        feature.setProperties(properties);
-        const geojsonPayload = featuresToGeojson(
-          [feature],
-          "EPSG:3857",
-          "EPSG:4326"
-        );
+
         promiseArray.push(
-          ApiService.post(
-            `/indicators/isochrone/export?return_type=${type}`,
-            geojsonPayload,
+          axiosInstance.get(
+            `./indicators/result/${taskId}?return_type=${type.toLowerCase()}`,
+            // geojsonPayload,
             {
               responseType: "blob",
               headers: {
                 "Content-Type": "application/json"
               },
-              traveltime // this is needed on Promise.all to get the correct traveltime
+              traveltime
             }
           )
         );
@@ -329,12 +312,28 @@ export default {
         .then(responses => {
           const zip = new JSZip();
           responses.forEach((response, index) => {
-            const traveltime = response.config.traveltime || 0;
-            const exportName = `isochrone-export_${index}_${traveltime}-min.zip`;
-            if (responses.length === 1) {
-              saveAs(response.data, exportName);
+            if (["Shapefile", "XLSX"].includes(type)) {
+              const exportName = `isochrone-export_${index}-min.zip`;
+              if (responses.length === 1) {
+                saveAs(response.data, exportName);
+              }
+              zip.file(exportName, response.data, { blob: true });
+            } else {
+              const exportName = `isochrone-export${index}-min.zip`;
+              if (responses.length === 1) {
+                const zip = new JSZip();
+                zip.file(
+                  `isochrone-export${index}.${type.toLowerCase()}`,
+                  response.data
+                );
+
+                zip.generateAsync({ type: "blob" }).then(function(content) {
+                  // Save the zip file
+                  saveAs(content, exportName);
+                });
+              }
+              zip.file(exportName, response.data, { blob: true });
             }
-            zip.file(exportName, response.data, { blob: true });
           });
           if (responses.length > 1) {
             zip.generateAsync({ type: "blob" }).then(function(content) {
@@ -607,6 +606,10 @@ export default {
         // Update new calculation
         this.updateIsochroneSurface(newSelection[newSelection.length - 1]);
       }
+
+      if (this.selectedCalculations[0].type == "multiple") {
+        this.resultViewType = 0;
+      }
     }
   },
   mounted() {
@@ -621,9 +624,11 @@ export default {
 .toolbar-icons:hover {
   cursor: pointer;
 }
+
 .thematic-data {
   transition: height 0.1s linear;
 }
+
 .colorPalettePicker {
   width: 50px;
   border-radius: 0px;

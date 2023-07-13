@@ -17,7 +17,7 @@ from starlette.responses import JSONResponse
 from src import crud
 from src.core.config import settings
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.schemas.msg import Msg
 from src.schemas.r5 import (
     R5ProjectCreateDTO,
@@ -98,11 +98,9 @@ async def get_projects_for_region(
 async def region_create(
     *,
     db: AsyncSession = Depends(deps.get_r5_mongo_db),
-    region_in: R5RegionCreateDTO = Body(...,
-                                        example=request_examples["region"]["create"]),
+    region_in: R5RegionCreateDTO = Body(..., example=request_examples["region"]["create"]),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
-
     """
     Create new region.
     """
@@ -167,8 +165,7 @@ async def get_project(
 async def project_create(
     *,
     db: AsyncSession = Depends(deps.get_r5_mongo_db),
-    project_in: R5ProjectCreateDTO = Body(...,
-                                          example=request_examples["project"]["create"]),
+    project_in: R5ProjectCreateDTO = Body(..., example=request_examples["project"]["create"]),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
@@ -182,8 +179,7 @@ async def project_create(
 async def project_update(
     *,
     db: AsyncSession = Depends(deps.get_r5_mongo_db),
-    project_in: R5ProjectUpdateDTO = Body(...,
-                                          example=request_examples["project"]["update"]),
+    project_in: R5ProjectUpdateDTO = Body(..., example=request_examples["project"]["update"]),
     current_user: models.User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
@@ -255,7 +251,7 @@ async def create_bundle(
             "feedGroup": feed_group.file,
             "regionId": region_id,
         },
-        headers=headers
+        headers=headers,
     )
     return response.json()
 
@@ -269,6 +265,5 @@ async def delete_bundle(
     """
     Delete bundle.
     """
-    response = requests.delete(settings.R5_API_URL +
-                               "/bundle/" + bundle_id, headers=headers)
+    response = requests.delete(settings.R5_API_URL + "/bundle/" + bundle_id, headers=headers)
     return response.json()
