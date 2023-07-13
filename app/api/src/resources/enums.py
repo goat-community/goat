@@ -95,10 +95,10 @@ class R5DecayFunctionType(str, Enum):
 class StaticTableSQLActive(str, Enum):
     """Static Table SQL that can be requested by study_area_id."""
 
-    study_area = """            
+    study_area = """
         SELECT * FROM basic.study_area WHERE id = :study_area_id
     """
-    sub_study_area = """            
+    sub_study_area = """
         SELECT * FROM basic.sub_study_area WHERE study_area_id = :study_area_id
     """
 
@@ -106,7 +106,7 @@ class StaticTableSQLActive(str, Enum):
 class SQLReturnTypes(str, Enum):
     """Allowed Vector Tables Enums."""
 
-    db_geobuf = f"""
+    db_geobuf = """
     WITH make_geobuf AS
     (
         %s
@@ -114,8 +114,8 @@ class SQLReturnTypes(str, Enum):
     SELECT ST_AsGeobuf(g.*, 'geom')
     FROM make_geobuf g;
     """
-    geojson = f"""
-    WITH make_geojson AS 
+    geojson = """
+    WITH make_geojson AS
     (
         %s
     )
@@ -123,10 +123,10 @@ class SQLReturnTypes(str, Enum):
     (
         'type', 'FeatureCollection',
         'features', json_agg(ST_AsGeoJSON(g.*)::json)
-    ) 
-    FROM make_geojson g; 
+    )
+    FROM make_geojson g;
     """
-    geobuf = f"""WITH make_geojson AS 
+    geobuf = """WITH make_geojson AS
     (
         %s
     )
@@ -134,8 +134,8 @@ class SQLReturnTypes(str, Enum):
     (
         'type', 'FeatureCollection',
         'features', json_agg(ST_AsGeoJSON(g.*)::json)
-    ) 
-    FROM make_geojson g; 
+    )
+    FROM make_geojson g;
     """
 
 

@@ -1,12 +1,14 @@
 from typing import TYPE_CHECKING, List
-from sqlmodel import (
-    Relationship,
-    Text,
-    Field,
-    Column,
-    SQLModel,
-)
 from uuid import UUID
+
+from sqlmodel import (
+    Column,
+    Field,
+    Relationship,
+    SQLModel,
+    Text,
+)
+
 from ._base_class import UuidToStr
 
 if TYPE_CHECKING:

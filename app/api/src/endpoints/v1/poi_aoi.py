@@ -1,12 +1,12 @@
 from typing import Any, Optional
 
-from fastapi import APIRouter, Body, Depends, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src import crud
 from src.db import models
 from src.endpoints.legacy import deps
-from src.resources.enums import CalculationTypes, ReturnType
+from src.resources.enums import ReturnType
 from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()

@@ -106,7 +106,6 @@ def pixelate_geom(geom, isochrone_resolution):
 
         # Calculate the width and height on the resolution of the polygon pixelate
         polygon_pixelate_resolution = 15  # todo: make this a parameter
-        area_per_pixel = 5  # todo: area in square meters of a pixel
         bl = coordinate_to_pixel(  # bottom left
             [bounds[0], bounds[1]],
             zoom=polygon_pixelate_resolution,
@@ -314,7 +313,7 @@ class ComputeHeatmap(BaseHeatmap):
             )
             # Get all stops within bulk cell, buffer and clip. This approach avoids calculating places that are not reachable within the max walk time
             station_clip_calcualtion_grid_gdf = read_postgis(
-                f"""SELECT st_intersection(st_union(st_transform(st_buffer(st_transform(st.stop_loc, 3857),{pt_stop_buffer}),4326)), 'SRID=4326;{h3_grid_gdf.unary_union.wkt}'::geometry) AS geom 
+                f"""SELECT st_intersection(st_union(st_transform(st_buffer(st_transform(st.stop_loc, 3857),{pt_stop_buffer}),4326)), 'SRID=4326;{h3_grid_gdf.unary_union.wkt}'::geometry) AS geom
                 FROM gtfs.stops st WHERE ST_Intersects(st.stop_loc, 'SRID=4326;{h3_grid_gdf.unary_union.wkt}'::geometry)
                 """,
                 legacy_engine,
@@ -434,7 +433,7 @@ class ComputeHeatmap(BaseHeatmap):
             for key in opportunity_matrix.keys():
                 opportunity_matrix[key].append([])
             idx_opportunity_category = len(opportunity_categories) - 1
-            for index, opportunity in opportunity_group.iterrows():
+            for _index, opportunity in opportunity_group.iterrows():
                 uid = opportunity.get("uid") or opportunity.get("id")
                 name = opportunity.get("name") or ""
                 category = opportunity["category"]
@@ -537,7 +536,7 @@ class ComputeHeatmap(BaseHeatmap):
                     bulk_id,
                     opportunity_type,
                 )
-                for root, dirs, files in os.walk(dir):
+                for _root, _dirs, files in os.walk(dir):
                     for file in files:
                         settings.S3_CLIENT.upload_file(
                             f"{dir}/{file}", settings.AWS_BUCKET_NAME, f"{s3_folder_path}/{file}"
@@ -554,7 +553,7 @@ class ComputeHeatmap(BaseHeatmap):
         if not os.path.exists(directory):
             os.makedirs(directory)
         matrix = await self.download_travel_time_matrices(bulk_id, mode, profile, s3_folder)
-        
+
         if matrix is not None:
             areas = heatmap_cython.calculate_areas_from_pixles(
                 matrix["travel_times"], list(range(1, max_traveltime + 1))
@@ -569,7 +568,7 @@ class ComputeHeatmap(BaseHeatmap):
                 s3_folder=s3_folder
                 + f"/connectivity_matrices/{mode}/{profile}",
             )
-      
+
 
     async def compute_traveltime_active_mobility(
         self,
@@ -597,7 +596,7 @@ class ComputeHeatmap(BaseHeatmap):
 
         # Check if there are no starting points
         if len(obj["starting_point_objs"]) == 0:
-            print_info(f"No starting points for section.")
+            print_info("No starting points for section.")
             return
         # Prepare starting points using routing network
         db = async_session()
@@ -620,7 +619,7 @@ class ComputeHeatmap(BaseHeatmap):
         await db.close()
 
         if len(starting_ids) == 0:
-            print_info(f"No starting points for section.")
+            print_info("No starting points for section.")
             return
 
         # Sort out invalid starting points (no network edge found)
@@ -684,7 +683,7 @@ class ComputeHeatmap(BaseHeatmap):
             # Assign variables
             grid_id = grid_ids[idx]
             extent = extents[idx]
-            starting_point_obj = starting_point_objs[idx]
+            starting_point_objs[idx]
             # Get start vertex
             try:
                 start_id = np.array([unordered_map[v] for v in [start_vertex]])
@@ -707,14 +706,14 @@ class ComputeHeatmap(BaseHeatmap):
                 geom_array,
                 distances,
                 node_coords,
-                isochrone_dto.settings.speed / 3.6, 
+                isochrone_dto.settings.speed / 3.6,
                 isochrone_dto.settings.travel_time,
             )
             try:
                 grid = filter_r5_grid(
                     grid, percentile=5, travel_time_limit=isochrone_dto.settings.travel_time
                 )
-            except Exception as e:
+            except Exception:
                 print("Could not filter grid")
             # Assign grid_id and rename data to travel_times
             grid["grid_ids"] = grid_id
@@ -836,7 +835,7 @@ class ComputeHeatmap(BaseHeatmap):
             for i in range(0, len(payloads), parallel_requests):
                 api_calls = []
                 batch = payloads[i : i + parallel_requests]
-                for index, payload in enumerate(batch):
+                for _index, payload in enumerate(batch):
                     api_calls.append(
                         self.fetch_r5_travel_time(
                             payload=payload,
@@ -850,7 +849,7 @@ class ComputeHeatmap(BaseHeatmap):
                     h3_grid_id = result["h3_index"]
                     grid = result.get("grid")
                     status = "success"
-                    if grid == None:
+                    if grid is None:
                         status = "failed"
                         continue
 
@@ -915,9 +914,9 @@ class ComputeHeatmap(BaseHeatmap):
                         s3_path,
                         file_path,
                     )
-                except Exception as e:
+                except Exception:
                     print_warning(f"File {bulk_id}.npz not found in S3. Skipping...")
-              
+
             else:
                 print_warning(f"File {bulk_id}.npz not found locally. Skipping...")
 
@@ -930,7 +929,7 @@ class ComputeHeatmap(BaseHeatmap):
         except FileNotFoundError:
             print_warning(f"Cant load file {file_path}. Skipping...")
 
-        
+
 
 
     async def read_travel_time_matrices(
@@ -1005,7 +1004,7 @@ class ComputeHeatmap(BaseHeatmap):
                             s3_path,
                             file_path,
                         )
-                    except Exception as e:
+                    except Exception:
                         print_warning(f"File {key}.npz not found in S3. Skipping...")
                         continue
                 else:
@@ -1070,14 +1069,14 @@ class ComputeHeatmap(BaseHeatmap):
                     if response.status == 202:
                         # throw exception to retry. 202 means that the request is still being processed
                         content = await response.content.read()
-                        if content is not None and len(content) == 33: 
+                        if content is not None and len(content) == 33:
                             # 33 is the length of the string "Building network...". Reset the retry count if this is the case
                             retry_count = 0
                             print ("Building network...")
                             await asyncio.sleep(8)
                         raise ClientError("Request still being processed")
                     data = await response.content.read()
-            except ClientError as e:
+            except ClientError:
                 # sleep a little and try again for
                 retry_count += 1
                 await asyncio.sleep(4)

@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from src.db.session import async_session
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

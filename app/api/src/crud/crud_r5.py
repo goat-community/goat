@@ -1,9 +1,8 @@
 import datetime
-import uuid
 from typing import Any, List
 
 from bson.objectid import ObjectId
-from fastapi import Form, HTTPException, UploadFile
+from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from src.schemas.r5 import (

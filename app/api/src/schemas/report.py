@@ -1,13 +1,14 @@
 from enum import Enum
-from uuid import UUID
-from pydantic import Field, BaseModel
 from typing import List
+from uuid import UUID
+
 from db.models.report import Report, ReportBase
-from .content import ContentUpdateBase, ContentType
+from pydantic import BaseModel, Field
+
+from .content import ContentType, ContentUpdateBase
 
 
 class ReportExportType(str, Enum):
-
     pdf = "pdf"
     png = "png"
     html = "html"
@@ -26,7 +27,6 @@ class ReportRead(Report):
 
 
 class ReportProject(BaseModel):
-
     id: UUID | None = Field(..., description="Content ID")
     name: str | None = Field(..., description="Content name")
     description: str | None = Field(None, description="Content description")

@@ -1,26 +1,27 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
+from uuid import UUID
+
 from sqlmodel import (
-    ForeignKey,
+    ARRAY,
     Column,
     Field,
+    ForeignKey,
+    Relationship,
     SQLModel,
     Text,
     text,
-    ARRAY,
-    Relationship,
 )
-from uuid import UUID
+
 from ._base_class import DateTimeBase, UuidToStr
-from sqlalchemy.orm import mapper, relationship
 
 if TYPE_CHECKING:
-    from .style import Style
-    from .report import Report
-    from .layer import Layer
-    from .project import Project
-    from .user import User
     from src.schemas.content import ContentType
 
+    from .layer import Layer
+    from .project import Project
+    from .report import Report
+    from .style import Style
+    from .user import User
 
 
 # TODO: Trigger to update the date when the content is updated
@@ -33,7 +34,6 @@ class ContentBase(SQLModel):
         sa_column=Column(ARRAY(Text()), nullable=True), description="Content tags"
     )
     thumbnail_url: str | None = Field(sa_column=Column(Text), description="Content thumbnail URL")
-
 
     @classmethod
     def update_forward_refs(cls):

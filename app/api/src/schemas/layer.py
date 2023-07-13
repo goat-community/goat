@@ -1,47 +1,24 @@
+from enum import Enum
 from typing import List
 from uuid import UUID
-from enum import Enum
-from pydantic import BaseModel, Field, ValidationError, validator
-from src.schemas.content import ContentUpdateBase, ContentBase
-from src.db.models.layer import (
-    FeatureLayerBase,
-    LayerBase,
-    GeospatialAttributes,
-    layer_base_example,
-    feature_layer_base_example,
-    geospatial_attributes_example,
-)
 
 from geoalchemy2 import WKBElement
 from geoalchemy2.shape import to_shape
+from pydantic import BaseModel, Field, ValidationError, validator
 
-
-class LayerType(str, Enum):
-    """Layer types that are supported."""
-
-    feature_layer = "feature_layer"
-    imagery_layer = "imagery_layer"
-    tile_layer = "tile_layer"
-    table = "table"
-
-
-class FeatureLayerType(str, Enum):
-    """Feature layer types."""
-
-    standard = "standard"
-    indicator = "indicator"
-    scenario = "scenario"
-    street_network = "street_network"
-
-
-class IndicatorType(str, Enum):
-    """Indicator types."""
-
-    single_isochrone = "isochrone"
-    multi_isochrone = "multi_isochrone"
-    heatmap = "heatmap"
-    oev_gueteklasse = "oev_gueteklasse"
-    public_transport_frequency = "public_transport_frequency"
+from src.db.models.layer import (
+    FeatureLayerBase,
+    GeospatialAttributes,
+    ImageryLayerDataType,
+    IndicatorType,
+    LayerBase,
+    ScenarioType,
+    TileLayerDataType,
+    feature_layer_base_example,
+    geospatial_attributes_example,
+    layer_base_example,
+)
+from src.schemas.content import ContentBase, ContentUpdateBase
 
 
 class AnalysisType(str, Enum):
@@ -50,50 +27,10 @@ class AnalysisType(str, Enum):
     intersects = "intersects"
 
 
-class ScenarioType(str, Enum):
-    """Scenario types."""
-
-    point = "point"
-    polygon = "polygon"
-    network_street = "network_street"
-
-
 # TODO: Differentiate the types here into import and export types?
 
 
-class FeatureLayerExportType(str, Enum):
-    """Feature layer data types."""
-
-    geojson = "geojson"
-    shapefile = "shapefile"
-    geopackage = "geopackage"
-    geobuf = "geobuf"
-    csv = "csv"
-    xlsx = "xlsx"
-    kml = "kml"
-
-
-class FeatureLayerServeType(str, Enum):
-    mvt = "mvt"
-    wfs = "wfs"
-    binary = "binary"
-
-
-class ImageryLayerDataType(str, Enum):
-    """Imagery layer data types."""
-
-    wms = "wms"
-    xyz = "xyz"
-    wmts = "wmts"
-
-
 # Rename to Vector tiles?
-
-
-class TileLayerDataType(str, Enum):
-    """Tile layer data types."""
-
-    mvt = "mvt"
 
 
 class TableDataType(str, Enum):

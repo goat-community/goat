@@ -1,35 +1,97 @@
-from typing import TYPE_CHECKING, Any, List, Union, Optional
+from enum import Enum
+from typing import TYPE_CHECKING, Any, List, Optional, Union
+from uuid import UUID
+
+from geoalchemy2 import Geometry
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import (
-    ForeignKey,
+    ARRAY,
     Column,
     Field,
-    SQLModel,
-    Text,
-    text,
-    ARRAY,
+    ForeignKey,
     Integer,
     Relationship,
+    SQLModel,
+    Text,
 )
-from uuid import UUID
-from sqlalchemy.dialects.postgresql import JSONB
-from geoalchemy2 import Geometry
+
 from ._base_class import UuidToStr
 
 if TYPE_CHECKING:
+    from .analysis_request import AnalysisRequest
     from .content import Content
-    from .style import Style
+    from .data_store import DataStore
     from .scenario import Scenario
     from .scenario_feature import ScenarioFeature
-    from .data_store import DataStore
-    from src.schemas.layer import (
-        FeatureLayerType,
-        ImageryLayerDataType,
-        TileLayerDataType,
-        IndicatorType,
-        ScenarioType,
-        LayerType,
-    )
-    from .analysis_request import AnalysisRequest
+    from .style import Style
+
+
+class FeatureLayerType(str, Enum):
+    """Feature layer types."""
+
+    standard = "standard"
+    indicator = "indicator"
+    scenario = "scenario"
+    street_network = "street_network"
+
+
+class FeatureLayerExportType(str, Enum):
+    """Feature layer data types."""
+
+    geojson = "geojson"
+    shapefile = "shapefile"
+    geopackage = "geopackage"
+    geobuf = "geobuf"
+    csv = "csv"
+    xlsx = "xlsx"
+    kml = "kml"
+
+
+class FeatureLayerServeType(str, Enum):
+    mvt = "mvt"
+    wfs = "wfs"
+    binary = "binary"
+
+
+class ImageryLayerDataType(str, Enum):
+    """Imagery layer data types."""
+
+    wms = "wms"
+    xyz = "xyz"
+    wmts = "wmts"
+
+
+class IndicatorType(str, Enum):
+    """Indicator types."""
+
+    single_isochrone = "isochrone"
+    multi_isochrone = "multi_isochrone"
+    heatmap = "heatmap"
+    oev_gueteklasse = "oev_gueteklasse"
+    public_transport_frequency = "public_transport_frequency"
+
+
+class LayerType(str, Enum):
+    """Layer types that are supported."""
+
+    feature_layer = "feature_layer"
+    imagery_layer = "imagery_layer"
+    tile_layer = "tile_layer"
+    table = "table"
+
+
+class ScenarioType(str, Enum):
+    """Scenario types."""
+
+    point = "point"
+    polygon = "polygon"
+    network_street = "network_street"
+
+
+class TileLayerDataType(str, Enum):
+    """Tile layer data types."""
+
+    mvt = "mvt"
 
 
 class GeospatialAttributes(SQLModel):
@@ -141,7 +203,7 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
         sa_column=Column(ARRAY(Text()), nullable=True),
         description="Layer legend URLs for imagery layers.",
     )
-    indicator_type: Optional["IndicatorType"] = Field(
+    indicator_type: Optional[IndicatorType] = Field(
         sa_column=Column(Text, nullable=True),
         description="If it is an indicator layer, the indicator type",
     )
@@ -178,26 +240,6 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
     scenario_features: List["ScenarioFeature"] = Relationship(back_populates="original_layer")
     data_store: "DataStore" = Relationship(back_populates="layers")
     analysis_requests: List["AnalysisRequest"] = Relationship(back_populates="layer")
-
-    @classmethod
-    def update_forward_refs(cls):
-        from src.schemas.layer import (
-            FeatureLayerType,
-            ImageryLayerDataType,
-            TileLayerDataType,
-            IndicatorType,
-            ScenarioType,
-            LayerType,
-        )
-
-        super().update_forward_refs(
-            LayerType=LayerType,
-            FeatureLayerType=FeatureLayerType,
-            ImageryLayerDataType=ImageryLayerDataType,
-            TileLayerDataType=TileLayerDataType,
-            IndicatorType=IndicatorType,
-            ScenarioType=ScenarioType,
-        )
 
     @property
     def id(self) -> str:

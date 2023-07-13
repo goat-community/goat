@@ -15,7 +15,7 @@ class DBMigration(DBMigrationBase):
         Args:
             legacy_engine (_type_): Sync SQLAlchemy engine.
             study_area_ids (list[int]): List of study area ids.
-        """        
+        """
         super().__init__(legacy_engine=legacy_engine)
         self.study_area_ids = study_area_ids
 
@@ -28,14 +28,14 @@ class DBMigration(DBMigrationBase):
 
         Raises:
             Exception: If the schema of the old table does not match the schema of the foreign table.
-        """        
+        """
         stmt = text(
             f"""
                 SELECT column_name, udt_name
                 FROM {self.information_schema}.columns
                 WHERE table_schema = '{self.schema}'
                 AND table_name   = '{table_name}'
-                EXCEPT      
+                EXCEPT
                 SELECT column_name, udt_name
                 FROM {self.information_schema_bridge}.columns
                 WHERE table_schema = '{self.schema_foreign}'
@@ -49,7 +49,7 @@ class DBMigration(DBMigrationBase):
             raise Exception(
                 f"Schema of table {table_name} does not match the schema of the foreign table."
             )
-        else: 
+        else:
             print_info(f"Schema of table {table_name} matches the schema of the foreign table.")
 
     def prepare_migration_table(self, table_name: MigrationTables, column_names: list[str], column_types: list[str], index_columns: list[str]):
@@ -60,7 +60,7 @@ class DBMigration(DBMigrationBase):
             column_names (list[str]): Column names.
             column_types (list[str]): Column types.
             index_columns (list[str]): Index columns. It will create the default PostgreSQL index for the specified columns together.
-        """        
+        """
 
         # Create columns for migration table.
         columns_type = ""
@@ -83,7 +83,7 @@ class DBMigration(DBMigrationBase):
         """
         self.legacy_engine.execute(text(sql_index))
 
-    def get_column_from_table(self, table_name: MigrationTables) -> list[list[str]]:   
+    def get_column_from_table(self, table_name: MigrationTables) -> list[list[str]]:
 
         """Gets the column names and their types from the table.
 
@@ -92,7 +92,7 @@ class DBMigration(DBMigrationBase):
 
         Returns:
             list[list[str]]: Nested list with column names and their types.
-        """        
+        """
 
         # Get columns of table and their types.
         get_columns = text(
@@ -115,7 +115,7 @@ class DBMigration(DBMigrationBase):
 
         Returns:
             str: SQL query part.
-        """        
+        """
 
         sql_on_condition = ""
         for column in columns_to_match:
@@ -134,13 +134,13 @@ class DBMigration(DBMigrationBase):
 
         Returns:
             str: SQL query.
-        """        
+        """
 
         # Custom logic for each supported table.
         if table_name == MigrationTables.study_area.value:
             sql_select_query = f"""
                 SELECT *
-                FROM {self.schema_bridge}.{table_name} 
+                FROM {self.schema_bridge}.{table_name}
                 WHERE id = {study_area_id}
             """
         elif table_name == MigrationTables.sub_study_area.value:
@@ -156,9 +156,9 @@ class DBMigration(DBMigrationBase):
                 WHERE s.id = {study_area_id}
                 AND ST_Intersects(s.geom, p.geom)
             """
-        else: 
+        else:
             raise Exception(f"Table {table_name} is not supported for migration.")
-        
+
         return sql_select_query
 
 
@@ -169,14 +169,14 @@ class DBMigration(DBMigrationBase):
             table_name (MigrationTables): Table name.
             columns_to_match (list[str]): Define the column names that are used to match the rows via 'and' condition.
             columns_to_exclude (list[str], optional): Specify the columns that should be excluded for the update. Defaults to [].
-        """ 
+        """
 
         # Get columns of table and their types.
         columns = self.get_column_from_table(table_name)
 
         # Create the On condition for the SQL join.
         sql_on_condition = self.create_on_condition(columns_to_match)
-        
+
         # Create the Where condition for the SQL join.
         # TODO: Add different logic for geometry type and work on performance. Hausdorff distance?
         sql_where_condition = ""
@@ -184,24 +184,24 @@ class DBMigration(DBMigrationBase):
         column_names = []
         for column in columns:
             column_name, data_type = column
-            
+
             # Check if column is in the list of columns to exclude then avoid the check and set check type to be excluded.
             if column_name in columns_to_exclude:
                 sql_select_condition += f"new_data.{column_name}, 'excluded' AS {column_name}_check,"
-            
+
             elif column_name == "id":
                 sql_select_condition += f"old_data.{column_name}, 'excluded' AS {column_name}_check,"
 
             # Check if column is a geometry column and use ST_ASTEXT to compare the geometry.
-            elif data_type == "geometry":   
+            elif data_type == "geometry":
                 sql_select_condition += f"""
-                    new_data.{column_name}, CASE WHEN ST_ASTEXT(old_data.{column_name}) <> ST_ASTEXT(new_data.{column_name}) 
-                    THEN 'changed' ELSE 'unchanged' 
+                    new_data.{column_name}, CASE WHEN ST_ASTEXT(old_data.{column_name}) <> ST_ASTEXT(new_data.{column_name})
+                    THEN 'changed' ELSE 'unchanged'
                     END AS {column_name}_check,
                 """
                 sql_where_condition += f"ST_ASTEXT(old_data.{column_name}) <> ST_ASTEXT(new_data.{column_name}) OR "
             # If column is not a geometry column then use the <> operator to compare the values.
-            else:     
+            else:
                 sql_select_condition += f"""
                     new_data.{column_name}, CASE WHEN old_data.{column_name} <> new_data.{column_name}
                     THEN 'changed' ELSE 'unchanged'
@@ -214,7 +214,7 @@ class DBMigration(DBMigrationBase):
         sql_where_condition = sql_where_condition[:-4]
 
         # Create the empty migration table.
-        data_types = [] 
+        data_types = []
         for column in columns:
             data_types.append(column[1])
             data_types.append("text")
@@ -228,22 +228,22 @@ class DBMigration(DBMigrationBase):
             f"""
                 INSERT INTO {self.schema_bridge}.{table_name}_to_migrate ({', '.join(column_names)}, action)
                 SELECT {sql_select_condition} 'update' as action
-                FROM {self.schema}.{table_name} old_data 
+                FROM {self.schema}.{table_name} old_data
                 LEFT JOIN ({select_relevant_rows}) new_data
-                ON {sql_on_condition} 
+                ON {sql_on_condition}
                 AND ({sql_where_condition})
                 WHERE new_data.{columns_to_match[0]} IS NOT NULL;
             """
         )
         self.legacy_engine.execute(stmt)
-            
+
     def prepare_rows_to_insert(self, table_name: MigrationTables, columns_to_match: list[str], study_area_id: int):
         """Select the new rows and inserts them into the migration table.
 
         Args:
             table_name (MigrationTables): Table name.
             columns_to_match (list[str]): Define the column names that are used to match the rows via 'and' condition.
-        """        
+        """
         # Get columns of table and their types.
         columns = self.get_column_from_table(table_name)
 
@@ -260,7 +260,7 @@ class DBMigration(DBMigrationBase):
                 SELECT new_data.*, 'insert' as action
                 FROM  ({select_relevant_rows}) new_data
                 LEFT JOIN {self.schema}.{table_name} old_data
-                ON {sql_on_condition} 
+                ON {sql_on_condition}
                 WHERE old_data.{columns_to_match[0]} IS NULL;
             """
         )
@@ -278,7 +278,7 @@ class DBMigration(DBMigrationBase):
         Raises:
             Exception: Raises expection when the user does answer with n.
             Exception: Raises expection when the user does answer with n or y.
-        """        
+        """
 
         print_info(f"Starting migration for table {table_name}...")
 
@@ -300,27 +300,27 @@ class DBMigration(DBMigrationBase):
             print_info("Starting migration...")
         else:
             raise Exception("Please answer with y or n.")
-        
+
 
         # Get columns of table and their types.
         columns = self.get_column_from_table(table_name)
 
-        # Insert new data from migration table 
+        # Insert new data from migration table
         stmt = text(
             f"""
                 INSERT INTO {self.schema}.{table_name} ({', '.join([column[0] for column in columns])})
                 SELECT {', '.join([column[0] for column in columns])}
                 FROM {self.schema_bridge}.{table_name}_to_migrate
-                WHERE action = 'insert'; 
+                WHERE action = 'insert';
             """
         )
         self.legacy_engine.execute(stmt)
-    
+
         # Update existing data from migration table
         # Build the SET part of the SQL statement. Make sure to only update the columns that have changed.
         update_column_sql = ""
         for column in columns:
-            update_column_sql += f"""{column[0]} = CASE WHEN migration_table.{column[0]}_check IN ('unchanged', 'excluded') THEN {self.schema}.{table_name}.{column[0]} ELSE migration_table.{column[0]} END,""" 
+            update_column_sql += f"""{column[0]} = CASE WHEN migration_table.{column[0]}_check IN ('unchanged', 'excluded') THEN {self.schema}.{table_name}.{column[0]} ELSE migration_table.{column[0]} END,"""
         update_column_sql = update_column_sql[:-1]
 
         # Combine the SQL statement parts.

@@ -10,8 +10,8 @@ class CRUDCheckData():
             capture_exception(e)
 
         if result.scalars().first() is not None:
-            return True  
+            return True
         else:
             return False
-  
+
 check_data = CRUDCheckData()

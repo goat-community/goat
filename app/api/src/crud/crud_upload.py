@@ -1,17 +1,11 @@
 import os
 import random
 import shutil
-import ssl
-import uuid
-from typing import Any
 
 from fastapi import HTTPException, UploadFile
-from fastapi.encoders import jsonable_encoder
 from geoalchemy2.shape import to_shape
 from geopandas import read_file as gpd_read_file
-from geopandas import read_postgis as gpd_read_postgis
-from sqlalchemy import and_, delete, false, text, update
-from sqlalchemy.dialects import postgresql
+from sqlalchemy import and_, delete, text, update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm.attributes import flag_modified
@@ -22,7 +16,6 @@ from src.db import models
 from src.db.models.config_validation import PoiCategory, check_dict_schema
 from src.db.session import legacy_engine
 from src.resources.enums import UploadFileTypes
-from src.schemas.upload import request_examples
 from src.utils import clean_unpacked_zip, delete_file
 
 
@@ -231,7 +224,7 @@ class CRUDUploadFile:
                 hex_color = "#%06x" % random.randint(0, 0xFFFFFF)
                 new_setting = {poi_category: {"icon": "fas fa-question", "color": [hex_color]}}
 
-                if check_dict_schema(PoiCategory, new_setting) == False:
+                if check_dict_schema(PoiCategory, new_setting) is False:
                     raise HTTPException(status_code=400, detail="Invalid JSON-schema")
 
                 await crud.dynamic_customization.insert_opportunity_setting(
@@ -297,7 +290,7 @@ class CRUDUploadFile:
                 )
 
             await db.commit()
-        except Exception as e:
+        except Exception:
             await db.rollback()
             raise HTTPException(
                 status_code=400, detail="Could not delete %s data." % category_name
@@ -316,12 +309,12 @@ class CRUDUploadFile:
 
         data_upload_ids_obj = current_user.active_data_upload_ids
 
-        if obj_in.state == False and data_upload_obj.id in data_upload_ids_obj:
+        if obj_in.state is False and data_upload_obj.id in data_upload_ids_obj:
             try:
                 data_upload_ids_obj.remove(obj_in.data_upload_id)
             except ValueError:
                 print("Data upload doesn't exist")
-        elif obj_in.state == True and data_upload_obj.id not in data_upload_ids_obj:
+        elif obj_in.state is True and data_upload_obj.id not in data_upload_ids_obj:
             data_upload_ids_obj.append(obj_in.data_upload_id)
         else:
             return current_user

@@ -1,5 +1,5 @@
 from src.db import models
-from src.tests.utils.utils import random_lower_string
+from src.legacy.utils.utils import random_lower_string
 from src.crud.crud_study_area import study_area as crud_study_area
 from src.crud.crud_opportunity_config import opportunity_group as crud_opportunity_group
 

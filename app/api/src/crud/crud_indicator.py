@@ -56,11 +56,11 @@ class CRUDIndicator:
             fetched_stations = read_sql(
                 f"""
                     SELECT trip_cnt, ST_TRANSFORM(geom, 3857) as geom
-                    FROM basic.count_public_transport_services_station({study_area_id}, 
-                    '{timedelta(seconds=start_time)}', 
-                    '{timedelta(seconds=end_time)}', 
-                    {weekday}, 
-                    {max_buffer_distance}, 
+                    FROM basic.count_public_transport_services_station({study_area_id},
+                    '{timedelta(seconds=start_time)}',
+                    '{timedelta(seconds=end_time)}',
+                    {weekday},
+                    {max_buffer_distance},
                     ARRAY[{list(station_config["groups"].keys())}])
                 """,
                 con=db_sync_engine,

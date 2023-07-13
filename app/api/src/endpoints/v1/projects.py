@@ -1,12 +1,10 @@
-from typing import List
 
-from fastapi import Depends, HTTPException, APIRouter
+from fastapi import Depends, APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import JSONResponse
 
 from src.endpoints.legacy import deps
 from src.schemas.project import dummy_projects
-from fastapi import Query
 import uuid
 
 router = APIRouter()

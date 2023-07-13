@@ -70,8 +70,8 @@ class FileMigration:
         # else:
         try:
             mask_geom = gpd.GeoDataFrame.from_postgis(mask_config, db)
-        except Exception as e:
-            print_warning(f"Error while reading mask geometry")
+        except Exception:
+            print_warning("Error while reading mask geometry")
         mask_gdf = gpd.GeoDataFrame.from_features(mask_geom, crs="EPSG:4326")
         mask_gdf = mask_gdf.to_crs("EPSG:3857")
         mask_gdf.geometry = mask_gdf.geometry.buffer(buffer_distance)
@@ -155,7 +155,7 @@ class FileMigration:
             query_sql = f"""
                 WITH h3_grid AS (
                     SELECT ST_SETSRID(ST_GEOMFROMTEXT(geom_text), 4326) AS geom, grid_id
-                    FROM (SELECT UNNEST(ARRAY[{clip}]) AS geom_text, UNNEST(ARRAY[{group_by}]) AS grid_id) x 
+                    FROM (SELECT UNNEST(ARRAY[{clip}]) AS geom_text, UNNEST(ARRAY[{group_by}]) AS grid_id) x
                 )
                 SELECT grid_id, g.*
                 FROM h3_grid
@@ -188,7 +188,7 @@ class FileMigration:
             gpd.GeoDataFrame: Returns a GeoDataFrame with the export metadata
         """
         status = "success"
-        for index, row in h3_indexes_gdf.iterrows():
+        for _index, row in h3_indexes_gdf.iterrows():
             print_info(f"Processing original export for H3 index {row['grid_id']}")
             h3_output_file_dir = Path(self.output_dir, "original", row["grid_id"])
             h3_output_file_dir.mkdir(parents=True, exist_ok=True)
@@ -205,33 +205,33 @@ class FileMigration:
                         # for poi layer, convert tags to str type. Parquet doesn't support dict type for some reason TODO: fix this
                         if layer_name == "poi":
                             h3_gdf["tags"] = h3_gdf["tags"].astype(str)
-                        
+
                         export_gdfs.append(h3_gdf)
                         if layer_name == "population":
-                            # Create empty geodataframe for grouped data 
+                            # Create empty geodataframe for grouped data
                             h3_gdf_to_group = gpd.GeoDataFrame()
-                            # Get h3 index population apply the h3 index of resolution 10 
+                            # Get h3 index population apply the h3 index of resolution 10
                             h3_gdf_to_group["grid_id"] = h3_gdf.apply(lambda x: h3.geo_to_h3(x["geom"].y, x["geom"].x, 10), axis=1)
-    
+
                             # Group by h3 index of resolution 10 and sum the population
                             h3_gdf_to_group["population"] = h3_gdf["population"]
                             h3_gdf_grouped = h3_gdf_to_group.groupby(["grid_id"]).agg({"population": "sum"}).reset_index()
 
-                            # Add geometry to the grouped data using points from xy 
+                            # Add geometry to the grouped data using points from xy
                             h3_gdf_grouped["geom"] = h3_gdf_grouped.apply(lambda x: Point(reversed(h3.h3_to_geo(str(x["grid_id"])))), axis=1)
                             h3_gdf_grouped = gpd.GeoDataFrame(h3_gdf_grouped, geometry="geom")
                             h3_gdf_grouped.set_crs(epsg=4326, inplace=True)
-                            # Convert h3 to integer 
+                            # Convert h3 to integer
                             h3_gdf_grouped["grid_id_integer"] = h3_gdf_grouped["grid_id"].apply(lambda x: h3.string_to_h3(x))
                             h3_gdf_grouped = h3_gdf_grouped.drop(columns=["grid_id"])
                             h3_gdf_grouped = h3_gdf_grouped.rename(columns={"grid_id_integer": "grid_id"})
 
                             filenames.append("population_grouped.parquet")
                             export_gdfs.append(h3_gdf_grouped)
-                        
+
                         for export_gdf, filename in zip(export_gdfs, filenames):
                             export_gdf.to_parquet(h3_output_file_dir / filename)
-                            if self.upload_to_s3 == True:
+                            if self.upload_to_s3 is True:
                                 # Save to S3
                                 self.boto3.upload_file(
                                     "{}/{}".format(h3_output_file_dir, filename),
@@ -243,7 +243,7 @@ class FileMigration:
                                 status = "success"
                             else:
                                 status = "no_data"
-                except Exception as e:
+                except Exception:
                     message = f'Processing {layer_name} for H3 index {row["grid_id"]}'
                     print_warning(message)
                     status = "error"
@@ -327,7 +327,7 @@ class FileMigration:
                             **{"grid_id": arr_grid_id, "value": arr_value},
                         )
 
-                        if self.upload_to_s3 == True:
+                        if self.upload_to_s3 is True:
                             # Save to S3
                             self.boto3.upload_file(
                                 "{}/{}".format(h3_output_file_dir, filename + ".npz"),
@@ -339,7 +339,7 @@ class FileMigration:
                         status = "success"
                     else:
                         status = "no_data"
-                except Exception as e:
+                except Exception:
                     message = f"Processing {layer_name} for H3 index {parent_id}"
                     print_warning(message)
                     status = "error"
@@ -353,7 +353,7 @@ class FileMigration:
 
         base_path = settings.ANALYSIS_UNIT_PATH  # 9222/h3/10
         study_areas = self._read_from_postgis(self.layer_config["analysis_unit"]["h3"])
-        for idx, study_area in study_areas.iterrows():
+        for _idx, study_area in study_areas.iterrows():
             for resolution in range(self.h3_bulk_resolution, self.h3_child_resolution + 1):
                 grid = create_h3_grid(
                     geometry=study_area["geom"],
@@ -389,17 +389,17 @@ class FileMigration:
                         layer_input[export_type][layer_name] = gpd.read_file(layer_source)
                     else:
                         layer_input[export_type][layer_name] = layer_source
-                
+
         #TODO: Fix metadata creation
         # Create metadata dataframe
         export_metadata_gdf = h3_indexes_gdf.assign(
             **{k: "" for k in self.layer_config["original"].keys()}
         )
         export_metadata_gdf.set_index("grid_id", inplace=True)
-       
+
         # Export data
         export_metadata_gdf = self._export_original(h3_indexes_gdf, export_metadata_gdf, layer_input["original"])
-        export_metadata_gdf = self._export_grid(h3_indexes_gdf, export_metadata_gdf, layer_input["grid"])      
+        export_metadata_gdf = self._export_grid(h3_indexes_gdf, export_metadata_gdf, layer_input["grid"])
 
         # Export data
         # export_metadata_gdf = self._export_original(
@@ -417,17 +417,17 @@ class FileMigration:
         )
         export_metadata_gdf.to_csv(
             Path(self.output_dir, f"metadata_{strftime('%d-%b-%Y-%H-%M-%S')}.csv"),
-            columns=list(set(export_metadata_gdf.columns) - set(["geometry"])),
+            columns=list(set(export_metadata_gdf.columns) - {"geometry"}),
             index=True,
         )
 
     def run(self):
         """Run the export"""
-        
+
         if 'analysis_unit' in self.layer_config.keys():
             print_info("EXPORTING H3 ANALYSIS UNIT")
             self._export_analysis_units_h3()
-        
+
         if 'original' in self.layer_config.keys() or 'grid' in self.layer_config.keys():
             print_info("PREPARING MASK")
             mask_gdf = self.prepare_mask(self.mask_config, self.mask_buffer_distance, self.db)

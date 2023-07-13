@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import Dict, List, Optional, Union
+from typing import List, Optional
 
-from pydantic import BaseModel, Field, root_validator, validator
+from pydantic import BaseModel, Field, validator
 from sqlmodel import SQLModel
 
 from src.schemas.isochrone import (

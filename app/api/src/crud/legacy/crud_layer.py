@@ -3,10 +3,8 @@ from typing import Any
 import morecantile
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
-from fastapi import HTTPException
 from src.core.config import settings
 from src.schemas.layer import VectorTileFunction, VectorTileTable
-from src.db import models 
 
 class CRUDLayer:
     # === FETCH TABLES AND FUNCTIONS ===#

@@ -23,7 +23,6 @@ import h3
 
 from src.schemas.isochrone import (
     IsochroneDTO,
-    IsochroneMode,
     IsochroneWalkingProfile,
     request_examples,
 )
@@ -95,7 +94,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                     layer.class_id.notin_(excluded_ids_list),
                     or_(layer.foot.notin_(excluded_foot_list), layer.foot.is_(None)),
                     layer.geom.ST_Intersects(polygon),
-                    layer.scenario_id == None,
+                    layer.scenario_id is None,
                 )
             )
 
@@ -148,7 +147,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
             select(layer).where(and_(layer.scenario_id == scenario_id, layer.id.in_(feature_ids)))
         )
         features_in_db = features_in_db.scalars().fetchall()
-            
+
         return {"msg": "Features deleted successfully"}
 
     async def create_scenario_features(
@@ -219,7 +218,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                         feature_dict[key] = value
                 feature_obj = layer.from_orm(layer(**feature_dict))
                 features_in_db.append(feature_obj)
-            except Exception as e:
+            except Exception:
                 raise HTTPException(status_code=400, detail="Invalid feature")
 
         db.add_all(features_in_db)
@@ -281,7 +280,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
                         feature_dict[key] = value.value
                     else:
                         feature_dict[key] = value
-            except Exception as e:
+            except Exception:
                 raise HTTPException(status_code=400, detail="Invalid feature")
 
             features_obj[feature.id] = feature_dict
@@ -311,13 +310,13 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
 
         for feature in features_in_db:
             await db.refresh(feature)
-        
+
         # Recalculate opportunity matrices for poi_modified and population_modified
         if layer_name.value in ("poi_modified"):
             await self.compute_scenario_opportunity_matrices(
                 scenario_id, layer_name.value.split("_")[0], features_in_db, current_user
             )
-            
+
         return features_in_db
 
     async def remove_multi_by_id_and_userid(
@@ -328,7 +327,7 @@ class CRUDScenario(CRUDBase[models.Scenario, schemas.ScenarioCreate, schemas.Sce
         )
         await db.execute(statement)
         await db.commit()
-        if statement.is_delete == True:
+        if statement.is_delete is True:
             # Remove scenario cache
             for id in ids:
                 scenario_dir = f"{settings.CACHE_PATH}/user/scenario/{id}"

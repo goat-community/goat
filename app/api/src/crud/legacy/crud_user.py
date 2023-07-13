@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from geoalchemy2.shape import from_shape, to_shape
 from shapely.geometry import Polygon

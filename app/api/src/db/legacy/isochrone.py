@@ -1,24 +1,20 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from geoalchemy2 import Geometry
 from sqlmodel import (
     Column,
     DateTime,
     Field,
     Float,
     ForeignKey,
-    Index,
     Integer,
     Relationship,
     SQLModel,
     Text,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 
 if TYPE_CHECKING:
-    from .edge import Edge
     from .scenario import Scenario
     from .user import User
 

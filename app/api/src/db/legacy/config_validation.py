@@ -1,4 +1,4 @@
-from schema import And, Optional, Schema, SchemaError, Use
+from schema import And, Optional, Schema, SchemaError
 
 
 # Function to check if dict schema is valid
