@@ -8,7 +8,7 @@ from starlette.responses import StreamingResponse
 
 from src import schemas
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.utils import send_test_email
 
 router = APIRouter()

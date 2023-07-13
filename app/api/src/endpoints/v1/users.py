@@ -14,7 +14,7 @@ from src import crud, schemas
 from src.core.config import settings
 from src.crud.base import CRUDBase
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.schemas import Msg
 from src.schemas.user import request_examples
 from src.utils import generate_token, send_email, to_feature_collection, verify_token

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from src import crud
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.resources.enums import CalculationTypes, ReturnType
 from src.utils import return_geojson_or_geobuf
 

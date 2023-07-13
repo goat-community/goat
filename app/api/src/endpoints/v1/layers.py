@@ -37,9 +37,9 @@ from starlette.routing import NoMatchFound
 from starlette.templating import Jinja2Templates
 
 from src.core.config import settings
-from src.crud.crud_layer import layer as crud_layer
+from src.crud.legacy.crud_layer import layer as crud_layer
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.resources import tms as custom_tms
 from src.resources.enums import MimeTypes
 from src.schemas.layer import (

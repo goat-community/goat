@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import settings
 from src.core.heatmap.heatmap_compute import ComputeHeatmap
 from src.db import models
-from src.endpoints import deps
+from src.endpoints.legacy import deps
 from src.schemas import data_preparation as schemas
 from src.workers import heatmap_active_mobility, heatmap_motorized_transport, method_connector
 
@@ -49,9 +49,8 @@ async def get_bulk_ids_for_study_area(
     *,
     db: AsyncSession = Depends(deps.get_db),
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
-    parameters: schemas.BulkIdParameters = Body(..., example=schemas.BulkIdParametersExample)
+    parameters: schemas.BulkIdParameters = Body(..., example=schemas.BulkIdParametersExample),
 ):
-
     crud_compute_heatmap = ComputeHeatmap(current_super_user)
     return await crud_compute_heatmap.get_bulk_ids(**parameters.dict())
 
@@ -62,7 +61,7 @@ async def create_traveltime_matrices(
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
     parameters: schemas.TravelTimeMatrixParameters = Body(
         ..., examples=schemas.examples["travel_time_matrix"]
-    )
+    ),
 ):
     parameters = json.loads(parameters.json())
     parameters_serialized = parameters.copy()
@@ -71,12 +70,10 @@ async def create_traveltime_matrices(
         parameters_serialized["bulk_id"] = bulk_id
         if settings.CELERY_BROKER_URL:
             if parameters["isochrone_dto"]["mode"] != "transit":
-
                 heatmap_active_mobility.create_traveltime_matrices_sync.delay(
                     current_super_user, parameters_serialized
                 )
             else:
-
                 heatmap_motorized_transport.create_r5_traveltime_matrices_sync.delay(
                     current_super_user, parameters_serialized
                 )
@@ -93,7 +90,7 @@ async def create_opportunity_matrices(
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
     parameters: schemas.OpportunityMatrixParameters = Body(
         ..., examples=schemas.examples["opportunity_matrix"]
-    )
+    ),
 ):
     parameters = json.loads(parameters.json())
     parameters_serialized = parameters.copy()
@@ -117,7 +114,7 @@ async def create_connectivity_matrices(
     current_super_user: models.User = Depends(deps.get_current_active_superuser),
     parameters: schemas.ConnectivityMatrixParameters = Body(
         ..., example=schemas.ConnectivityMatrixExample
-    )
+    ),
 ):
     parameters = json.loads(parameters.json())
     parameters_serialized = parameters.copy()
@@ -132,5 +129,5 @@ async def create_connectivity_matrices(
             await method_connector.create_connectivity_matrices_async(
                 current_super_user, parameters_serialized
             )
-    
+
     return JSONResponse("Ok")
