@@ -32,7 +32,6 @@ from src.core.config import settings
 from src.resources.enums import MimeTypes
 
 
-
 # TODO: Refactor this part to use with the new schemas further down
 # =========================VECTOR TILE SCHEMAS=========================
 class VectorTileLayer(BaseModel, metaclass=abc.ABCMeta):

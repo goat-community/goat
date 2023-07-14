@@ -25,15 +25,20 @@
                 "ms-vscode.cmake-tools",
                 "njpwerner.autodocstring",
                 "donjayamanne.githistory",
-                "ms-python.black-formatter"
+                "ms-python.black-formatter",
+                "charliermarsh.ruff",
+                "github.copilot-nightly"
             ],
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
-                "python.formatting.provider": "black"
+                "python.formatting.provider": "black",
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                    "source.fixAll": true
+                }
             }
         }
     },
-    "postCreateCommand": "bash scripts/post-create.sh",
     "runServices": [
         "api"
     ]

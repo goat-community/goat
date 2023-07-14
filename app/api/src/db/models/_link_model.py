@@ -1,8 +1,7 @@
 from uuid import UUID
-from sqlmodel import Column, Field, ForeignKey, Integer, SQLModel, text, Text, Boolean, ARRAY
-from typing import List
+from sqlmodel import Column, Field, ForeignKey, Integer, SQLModel, Text, Boolean
 
-# TODO: Add relations 
+# TODO: Add relations
 class LayerProjectLink(SQLModel, table=True):
     __tablename__ = "layer_project"
     __table_args__ = {"schema": "customer"}
@@ -38,4 +37,3 @@ class ScenarioScenarioFeatureLink(SQLModel, table=True):
     scenario_feature_id: UUID = Field(
         sa_column=Column(Text, ForeignKey("customer.scenario_feature.id")), description="Scenario Feature ID"
     )
-    

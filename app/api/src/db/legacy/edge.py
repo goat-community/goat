@@ -1,9 +1,8 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from geoalchemy2 import Geometry
 from sqlalchemy import SmallInteger
-from sqlalchemy.orm import backref
 from sqlmodel import (
     JSON,
     BigInteger,
@@ -22,7 +21,6 @@ from sqlmodel import (
 )
 
 if TYPE_CHECKING:
-    from .isochrone import IsochroneEdge
     from .node import Node
     from .scenario import Scenario
 

@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from geoalchemy2.shape import from_shape, to_shape
-from sqlalchemy import update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.sql import and_, delete, func, select
@@ -9,7 +8,6 @@ from sqlalchemy.sql import and_, delete, func, select
 from src import crud
 from src.crud.base import CRUDBase
 from src.db import models
-from src.db.models import study_area
 from src.db.models.config_validation import *
 from src.db.models.customization import Customization
 from src.utils import web_mercator_to_wgs84, wgs84_to_web_mercator
@@ -61,28 +59,28 @@ class CRUDDynamicCustomization:
             if getattr(layer, key) is not None:
                 layer_attributes[key] = getattr(layer, key)
 
-        if getattr(layer, "style_library") is not None:
-            if getattr(layer.style_library, "style") is not None:
-                layer_attributes["style"] = getattr(layer.style_library, "style")
-                if getattr(layer.style_library, "translation") is not None:
-                    layer_attributes["translation"] = getattr(layer.style_library, "translation")
+        if layer.style_library is not None:
+            if layer.style_library.style is not None:
+                layer_attributes["style"] = layer.style_library.style
+                if layer.style_library.translation is not None:
+                    layer_attributes["translation"] = layer.style_library.translation
 
-        if getattr(layer, "date") is not None and getattr(layer, "source") is not None:
+        if layer.date is not None and layer.source is not None:
             source_obj = {}
-            source_obj["date"] = getattr(layer, "date")
-            source_obj["source"] = getattr(layer, "source")
+            source_obj["date"] = layer.date
+            source_obj["source"] = layer.source
 
-            if getattr(layer, "date_1") is not None and getattr(layer, "source_1") is not None:
-                source_obj["date"] = source_obj["date"] + "," + getattr(layer, "date_1")
-                source_obj["source"] = source_obj["source"] + "," + getattr(layer, "source_1")
+            if layer.date_1 is not None and layer.source_1 is not None:
+                source_obj["date"] = source_obj["date"] + "," + layer.date_1
+                source_obj["source"] = source_obj["source"] + "," + layer.source_1
 
             layer_attributes["attributes"] = source_obj
 
-        if getattr(layer, "type") == "BING" and getattr(layer, "special_attribute") is not None:
-            layer_attributes["imagery_set"] = getattr(layer, "special_attribute")["imagery_set"]
+        if layer.type == "BING" and layer.special_attribute is not None:
+            layer_attributes["imagery_set"] = layer.special_attribute["imagery_set"]
 
         layer_obj = {layer_name: layer_attributes}
-        if check_dict_schema(LayerCategory, layer_obj) == False:
+        if check_dict_schema(LayerCategory, layer_obj) is False:
             HTTPException(
                 status_code=400, detail="For %s the layer object is not valid." % layer_name
             )
@@ -98,7 +96,7 @@ class CRUDDynamicCustomization:
             layers.append(category_obj)
 
         group_obj = {group_name: {"icon": list_groups[group_name], "children": layers}}
-        if check_dict_schema(LayerGroup, group_obj) == False:
+        if check_dict_schema(LayerGroup, group_obj) is False:
             HTTPException(
                 status_code=400, detail="For %s the group object is not valid." % group_name
             )
@@ -133,7 +131,7 @@ class CRUDDynamicCustomization:
             else:
                 continue
 
-        if check_dict_schema(LayerGroups, {"layer_groups": combined_group_objs}) == False:
+        if check_dict_schema(LayerGroups, {"layer_groups": combined_group_objs}) is False:
             HTTPException(status_code=400, detail="The layer group object is not valid.")
 
         return combined_group_objs
@@ -199,7 +197,7 @@ class CRUDDynamicCustomization:
         )
         combined_poi_settings = combined_poi_settings.first()
 
-        if check_dict_schema(PoiGroups, {"poi_groups": combined_poi_settings[0]}) == False:
+        if check_dict_schema(PoiGroups, {"poi_groups": combined_poi_settings[0]}) is False:
             HTTPException(status_code=400, detail="Build POI groups are invalid.")
 
         combined_aoi_settings = await db.execute(
@@ -209,9 +207,9 @@ class CRUDDynamicCustomization:
         )
         combined_aoi_settings = combined_aoi_settings.first()
 
-        if check_dict_schema(PoiGroups, {"aoi_groups": combined_aoi_settings[0]}) == False:
+        if check_dict_schema(PoiGroups, {"aoi_groups": combined_aoi_settings[0]}) is False:
             HTTPException(status_code=400, detail="Build POI groups are invalid.")
-        
+
 
         # Combine settings for layers
         combined_layer_groups = await self.merge_layer_groups(
@@ -220,7 +218,7 @@ class CRUDDynamicCustomization:
             default_settings["layer_groups"],
             study_area_settings["layer_groups"],
         )
-        
+
 
         # TODO: Manage other settings then layers and POIs
         # Loop through default_settings and merge settings
@@ -235,11 +233,11 @@ class CRUDDynamicCustomization:
         combined_settings["layer_groups"] = combined_layer_groups
         combined_settings["aoi_groups"] = combined_aoi_settings[0]
         combined_settings["poi_groups"] = combined_poi_settings[0]
-        
+
         # Added geostores to settings
         study_area_obj = await crud.study_area.get(db, id=current_user.active_study_area_id, extra_fields=[models.StudyArea.geostores])
         combined_settings["geostores"] = jsonable_encoder(study_area_obj.geostores)
-        
+
         # Remove transit modes that are not operating in study area from settings
         transit = {}
         for index_mode, mode in enumerate(combined_settings["routing"]):
@@ -247,7 +245,7 @@ class CRUDDynamicCustomization:
                 transit = mode
                 index_transit = index_mode
                 break
-        
+
         if transit != {}:
             filtered_transit_modes = []
             for transit_type in transit["transit_modes"]:
@@ -269,7 +267,7 @@ class CRUDDynamicCustomization:
 
                 if result is not None:
                     filtered_transit_modes.append(transit_type)
-        
+
             combined_settings["routing"][index_transit]["transit_modes"] = filtered_transit_modes
 
         return combined_settings

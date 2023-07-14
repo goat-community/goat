@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import crud, schemas
 from src.crud.base import CRUDBase
-from src.crud.crud_customization import customization, dynamic_customization
+from src.crud.crud_customization import dynamic_customization
 from src.db import models
 from src.db.models.legacy.config_validation import *
 from src.endpoints.legacy import deps
@@ -46,7 +46,7 @@ async def insert_user_settings(
     """
     obj_dict = jsonable_encoder(obj_in)
     if setting_type.value == "poi_groups":
-        if check_dict_schema(PoiCategory, obj_dict) == False:
+        if check_dict_schema(PoiCategory, obj_dict) is False:
             raise HTTPException(status_code=400, detail="Invalid JSON-schema")
 
     await dynamic_customization.insert_opportunity_setting(

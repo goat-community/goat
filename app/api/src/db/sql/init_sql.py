@@ -5,15 +5,14 @@ import textwrap
 from pathlib import Path
 
 from alembic_utils.pg_function import PGFunction
-from alembic_utils.pg_trigger import PGTrigger
-from alembic_utils.pg_view import PGView
 from psycopg2.errors import UndefinedFunction
 from sqlalchemy import text
 
 from src.core.config import settings
 from src.db.session import legacy_engine
 from src.db.sql.utils import report, sorted_path_by_dependency
-from src.utils import print_info, print_hashtags
+from src.utils import print_hashtags, print_info
+
 
 def sql_function_entities():
     sql_function_entities = []
@@ -36,6 +35,7 @@ def sql_trigger_entities():
         sql_trigger_entities.append(pg_trigger_entity)
     return sql_trigger_entities
 
+
 def drop_functions():
     # Drop all functions in the schema 'basic'
     stmt_list_functions = text(
@@ -55,6 +55,7 @@ def drop_functions():
             print(e)
     print_info(f"{len(functions)} functions dropped!")
 
+
 def add_functions():
     sql_function_entities_ = sql_function_entities()
     for function in sql_function_entities_:
@@ -63,6 +64,7 @@ def add_functions():
             function_name = function.literal_signature.split("(")[0][1:-1]
             print_info(f"Adding {function_name}()")
     print_info(f"{len(sql_function_entities_)} functions added!")
+
 
 def drop_triggers():
     sql_trigger_entities_ = sql_trigger_entities()
@@ -78,6 +80,7 @@ def drop_triggers():
 
     print_info(f"{len(sql_trigger_entities_)} triggers dropped!")
 
+
 def add_triggers():
     sql_trigger_entities_ = sql_trigger_entities()
     for trigger in sql_trigger_entities_:
@@ -87,17 +90,20 @@ def add_triggers():
             print_info(f"Adding {trigger_name}()")
     print_info(f"{len(sql_trigger_entities_)} triggers added!")
 
+
 def update_functions():
     # It will drop all functions and add them again
     drop_functions()
     print_hashtags()
     add_functions()
 
+
 def update_triggers():
     # It will drop all triggers and add them again
     drop_triggers()
     print_hashtags()
     add_triggers()
+
 
 def run(args):
     action = args.action
@@ -110,10 +116,12 @@ def run(args):
         print_hashtags()
         # Execute the function with the name of the action and material
         globals()[f"{action}_{material}"]()
-        
+
         print_hashtags()
         print_info(f"{action.title()} {material} complete!")
         print_hashtags()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="add and drop sql functions and triggers",
@@ -126,8 +134,8 @@ def main():
                 python src/db/sql/init_sql.py drop -m triggers
                 pyhton src/db/sql/init_sql.py update -m functions
                 python src/db/sql/init_sql.py report
-            
-            Update will execute drop and add. 
+
+            Update will execute drop and add.
         """
         ),
     )

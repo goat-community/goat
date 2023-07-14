@@ -1,7 +1,7 @@
 from src.db.models import Geostore
 from pydantic import validator
 import requests
-from src.tests.utils.utils import random_lower_string
+from src.legacy.utils.utils import random_lower_string
 
 
 class RequestExamples:

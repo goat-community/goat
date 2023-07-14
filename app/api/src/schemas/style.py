@@ -1,6 +1,8 @@
-from pydantic import Field
 from uuid import UUID
-from src.db.models.style import StyleBase, Style
+
+from pydantic import Field
+
+from src.db.models.style import Style, StyleBase
 
 
 class StyleCreate(StyleBase):

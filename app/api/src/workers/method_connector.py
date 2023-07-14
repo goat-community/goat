@@ -1,10 +1,8 @@
-import os
 
 import h3
 from shapely import Polygon
 
 from src.core.config import settings
-from src.core import config
 from src.core.opportunity import Opportunity
 from src.core.heatmap.heatmap_compute import ComputeHeatmap
 from src.core.heatmap.heatmap_read import ReadHeatmap
@@ -18,7 +16,6 @@ from src.schemas.heatmap import HeatmapSettings, HeatmapType, HeatmapConfigAggre
 from src.schemas.indicators import CalculateOevGueteklassenParameters
 from src.schemas.isochrone import IsochroneMode
 from src.crud.crud_indicator import indicator
-from src.utils import hexlify_file
 
 
 async def create_traveltime_matrices_async(current_super_user, parameters):
@@ -69,7 +66,7 @@ async def create_opportunity_matrices_async(user, parameters):
     if travel_time_matrices is None:
         return "No travel time matrices found for bulk_id: {bulk_id}"
     # Compute base data
-    if parameters.compute_base_data == True:
+    if parameters.compute_base_data is True:
         for opportunity_type in opportunity_types:
             opportunity_type_read = opportunity_type
             if opportunity_type == "population":

@@ -1,7 +1,6 @@
 from typing import Any, Dict
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
@@ -15,11 +14,8 @@ from src.resources.enums import IsochroneExportType
 from src.schemas.isochrone import (
     IsochroneDTO,
     IsochroneMultiCountPois,
-    IsochroneOutputType,
     request_examples,
 )
-from src.db.session import sync_session
-from src.utils import return_geojson_or_geobuf
 
 router = APIRouter()
 
@@ -60,7 +56,7 @@ async def get_task(
                 media_type="application/octet-stream",
             )
             return response
-        except Exception as e:
+        except Exception:
             raise HTTPException(status_code=500, detail="Task failed")
 
     elif task.failed():

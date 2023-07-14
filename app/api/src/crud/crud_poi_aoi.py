@@ -22,11 +22,11 @@ class CRUDPoiAoi:
         attributes = 'uid, id, category, name, geom, opening_hours, street, housenumber, zipcode, edit_type'
 
         query = f"""
-        SELECT {attributes}, NULL as grouped 
+        SELECT {attributes}, NULL as grouped
         FROM basic.poi_aoi_visualization(:user_id, :scenario_id, :active_upload_ids, :active_study_area_id, FALSE)
-        UNION ALL 
+        UNION ALL
         SELECT NULL AS uid, row_number() over() AS id, category, name, ST_CENTROID(ST_COLLECT(ST_ClusterWithin(geom, 0.001))) AS geom,
-        NULL, NULL, NULL, NULL, NULL, true  
+        NULL, NULL, NULL, NULL, NULL, true
         FROM basic.poi_aoi_visualization(:user_id, :scenario_id, :active_upload_ids, :active_study_area_id, TRUE)
         GROUP BY category, name
         """
@@ -43,7 +43,7 @@ class CRUDPoiAoi:
                 "active_study_area_id": current_user.active_study_area_id
             },
         )
-        return result.fetchall()[0][0] 
+        return result.fetchall()[0][0]
 
 
 poi_aoi = CRUDPoiAoi()

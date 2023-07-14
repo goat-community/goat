@@ -1,5 +1,4 @@
-import http
-from typing import List, Union
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession

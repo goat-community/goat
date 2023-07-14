@@ -1,8 +1,9 @@
 import logging
 import os
+from contextlib import asynccontextmanager
 
 import sentry_sdk
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI, Request
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -12,20 +13,32 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src import run_time_method_calls
 from src.core.config import settings
-from src.db.session import r5_mongo_db_client
+from src.db.session import r5_mongo_db_client, session_manager
 from src.endpoints.v2.api import router as api_router_v2
 
 
-sentry_sdk.init(
-    dsn=settings.SENTRY_DSN,
-    environment=os.getenv("NAMESPACE", "dev"),
-    traces_sample_rate=0.2,
-)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Starting up...")
+    session_manager.init(settings.ASYNC_SQLALCHEMY_DATABASE_URI)
+    logger = logging.getLogger("uvicorn.access")
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    logger.addHandler(handler)
+    print("App is starting...")
+    if not os.environ.get("DISABLE_NUMBA_STARTUP_CALL") == "True":
+        await run_time_method_calls.call_isochrones_startup(app=app)
+    yield
+    print("Shutting down...")
+    await session_manager.close()
+    r5_mongo_db_client.close()
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     redoc_url="/api/redoc",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    lifespan=lifespan,
 )
 
 
@@ -54,24 +67,11 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 
-@app.on_event("startup")
-async def startup_event():
-    logger = logging.getLogger("uvicorn.access")
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-    logger.addHandler(handler)
-    print("App is starting...")
-
-    if not os.environ.get("DISABLE_NUMBA_STARTUP_CALL") == "True":
-        await run_time_method_calls.call_isochrones_startup(app=app)
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Application shutdown: de-register the database connection."""
-    print("App is shutting down...")
-    r5_mongo_db_client.close()
-
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+    environment=os.getenv("NAMESPACE", "dev"),
+    traces_sample_rate=0.2,
+)
 
 try:
     app.add_middleware(SentryAsgiMiddleware)
@@ -84,21 +84,6 @@ except Exception:
 def ping():
     """Health check."""
     return {"ping": "pong!"}
-
-
-# @app.get("/api/status", description="Status Check", tags=["Health Check"])
-# async def status_check(db: AsyncSession = Depends(deps.get_db)):
-#     """Status check."""
-#     try:
-#         results = await crud.system.get_by_key(db, key="type", value="status")
-#         results = results[0]
-#     except Exception as e:
-#         return JSONResponse(status_code=503, content={"message": "Service Unavailable"})
-
-#     if results.setting.get("status") == "maintenance":
-#         return JSONResponse(status_code=503, content={"message": "Service Unavailable"})
-#     else:
-#         return {"status": "ok"}
 
 
 # Calling this endpoint to see if the setup works. If yes, an error message will show in Sentry dashboard

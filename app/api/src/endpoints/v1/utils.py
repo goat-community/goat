@@ -1,10 +1,8 @@
 from typing import Any
 
-import httpx
 import requests
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic.networks import EmailStr
-from starlette.responses import StreamingResponse
 
 from src import schemas
 from src.db import models

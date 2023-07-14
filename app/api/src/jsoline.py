@@ -288,7 +288,7 @@ def calculate_jsolines(
         for hole in holes:
             # Only accept holes that are at least 2-dimensional.
             # Workaroudn (x+y) to avoid float to str type conversion in numba
-            vertices = list(set([(x + y) for x, y in hole[0]]))
+            vertices = list({(x + y) for x, y in hole[0]})
 
             if len(vertices) >= 3:
                 # NB this is checking whether the first coordinate of the hole is inside

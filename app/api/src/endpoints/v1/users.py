@@ -1,14 +1,11 @@
 import datetime
 import json
-from typing import Any, List, Union
+from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from pydantic.networks import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm.collections import InstrumentedList
-from sqlalchemy.sql import select
 
 from src import crud, schemas
 from src.core.config import settings
@@ -218,7 +215,7 @@ async def activate_demo_user(
             detail="The activation token is invalid.",
         )
     user = await crud.user.get_by_key(db, key="email", value=email)
-    if user and len(user) > 0 and user[0].is_active == False:
+    if user and len(user) > 0 and user[0].is_active is False:
         user = user[0]
         user = await CRUDBase(models.User).update(db, db_obj=user, obj_in={"is_active": True})
         send_email(

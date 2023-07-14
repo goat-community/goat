@@ -1,6 +1,5 @@
 from src.db.migration.db_migration_base import DBMigrationBase
-from src.resources.enums import MigrationTables
-from src.utils import print_info, print_warning, print_hashtags
+from src.utils import print_info
 from src.db.session import legacy_engine
 from sqlalchemy import text
 
@@ -12,12 +11,12 @@ class DBNetworkMigration(DBMigrationBase):
 
         Args:
             legacy_engine (_type_): Sync SQLAlchemy engine.
-        """        
+        """
         super().__init__(legacy_engine=legacy_engine)
 
     def network_migration(self):
 
-        # Get network size 
+        # Get network size
         edge_max_id = self.legacy_engine.execute(text(f"SELECT max(id) FROM {self.schema_bridge}.edge")).fetchone()[0]
         node_max_id  = self.legacy_engine.execute(text(f"SELECT max(id) FROM {self.schema_bridge}.node")).fetchone()[0]
 
@@ -45,4 +44,4 @@ class DBNetworkMigration(DBMigrationBase):
 
 
 db_network_migration = DBNetworkMigration(legacy_engine=legacy_engine).network_migration()
-        
+

@@ -1,12 +1,15 @@
-from typing import TYPE_CHECKING, List, Union
-from sqlmodel import Column, Field, SQLModel, Text, Relationship, text, ForeignKey
-from sqlalchemy.dialects.postgresql import JSONB
+from typing import TYPE_CHECKING, Union
 from uuid import UUID
+
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlmodel import Column, Field, ForeignKey, Relationship, SQLModel, Text, text
+
 from ._base_class import DateTimeBase
 
 if TYPE_CHECKING:
+    from src.schemas.layer import AnalysisType, IndicatorType
+
     from .layer import Layer
-    from src.schemas.layer import IndicatorType, AnalysisType
 
 
 class AnalysisRequestBase(SQLModel):

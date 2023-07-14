@@ -2,13 +2,11 @@ import asyncio
 import heapq
 import math
 import time
-from multiprocessing import Pool
 from time import time
 
 import numpy as np
 from numba import njit
 from numba.core import types
-from numba.pycc import CC
 from numba.typed import Dict, List
 from scipy import spatial
 
@@ -374,14 +372,14 @@ def prepare_network_isochrone(edge_network_input):
     edges_target = edge_network["target"].to_numpy()
     edges_cost = edge_network["cost"].to_numpy()
     edges_reverse_cost = edge_network["reverse_cost"].to_numpy()
-    start_time = time()
+    time()
     geom_address, geom_array = get_geom_array(edge_network["geom"])
-    end_time = time()
+    time()
     # print(f"Convert geom array time: \t {end_time - start_time} s")
     edges_length = np.array(edge_network["length"])
-    start_time = time()
+    time()
     unordered_map, node_coords = remap_edges(edges_source, edges_target, geom_address, geom_array)
-    end_time = time()
+    time()
     # print(f"Remap edges time: \t\t {end_time-start_time} s")
 
     extent = get_extent(geom_array)
@@ -413,7 +411,7 @@ def network_to_grid(
     geom_array,
     distances,
     node_coords,
-    speed, 
+    speed,
     max_traveltime,
 ):
     # minx, miny, maxx, maxy
@@ -478,7 +476,12 @@ def network_to_grid(
 
 
 def compute_isochrone(
-    edge_network_input, start_vertices, travel_time, speed, zoom: int = 10, return_network: bool = True
+    edge_network_input,
+    start_vertices,
+    travel_time,
+    speed,
+    zoom: int = 10,
+    return_network: bool = True,
 ):
     """
     Compute isochrone for a given start vertices
@@ -519,12 +522,12 @@ def compute_isochrone(
         geom_array,
         distances,
         node_coords,
-        speed, 
+        speed,
         travel_time,
     )
 
     # Convert network to geojson
-    if return_network == True:
+    if return_network is True:
         edges_length = range(len(edges_source))
         network = {
             "type": "FeatureCollection",
@@ -533,7 +536,9 @@ def compute_isochrone(
                     "type": "Feature",
                     "geometry": {
                         "type": "LineString",
-                        "coordinates": geom_array[geom_address[idx] : geom_address[idx + 1], :].tolist(),
+                        "coordinates": geom_array[
+                            geom_address[idx] : geom_address[idx + 1], :
+                        ].tolist(),
                     },
                     "properties": {"cost": distances[edges_target[idx]]},
                 }
@@ -549,17 +554,11 @@ def compute_isochrone(
 
 async def main():
     edges_network, starting_ids, obj_in = await get_sample_network(minutes=5)
-    edge_network = edge_network.iloc[1:, :]
-    grid_data = compute_isochrone(
-        edges_network,
-        starting_ids,
-        travel_time=5,
-        zoom=12,
-        speed=1.333
-    )
+    edge_network.iloc[1:, :]
+    compute_isochrone(edges_network, starting_ids, travel_time=5, zoom=12, speed=1.333)
 
 
 if __name__ == "__main__":
-    from src.tests.utils.isochrone import get_sample_network
+    from src.legacy.utils.isochrone import get_sample_network
 
     asyncio.run(main())

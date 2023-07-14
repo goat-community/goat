@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from geoalchemy2 import Geometry
 from pydantic import validator
@@ -15,7 +15,6 @@ from sqlmodel import (
     Text,
 )
 
-from src.db.models import data_upload
 from shapely.wkb import loads
 from geoalchemy2.shape import to_shape
 

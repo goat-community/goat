@@ -1,8 +1,7 @@
-import binascii
 import json
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette.responses import JSONResponse
@@ -26,11 +25,10 @@ from src.schemas.indicators import (
 from src.schemas.isochrone import (
     IsochroneDTO,
     IsochroneMultiCountPois,
-    IsochroneOutputType,
     request_examples,
 )
 from src.schemas.utils import validate_return_type
-from src.utils import return_geojson_or_geobuf, read_results
+from src.utils import read_results
 from src.workers.method_connector import (
     read_heatmap_async,
     read_pt_oev_gueteklassen_async,
@@ -283,7 +281,7 @@ async def get_indicators_result(
     if result.ready():
         try:
             result = result.get()
-        except Exception as e:
+        except Exception:
             raise HTTPException(status_code=500, detail="Task failed")
 
         try:

@@ -1,7 +1,8 @@
+from typing import TYPE_CHECKING, List
 from uuid import UUID
+
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Column, ForeignKey, Text, Relationship, SQLModel, Field, text
-from typing import List, TYPE_CHECKING, Optional
+from sqlmodel import Column, Field, ForeignKey, Relationship, SQLModel, Text
 
 if TYPE_CHECKING:
     from .content import Content

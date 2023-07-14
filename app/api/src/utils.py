@@ -1,7 +1,5 @@
-import base64
 import binascii
 import json
-import logging
 import math
 import os
 import random
@@ -18,7 +16,7 @@ from functools import wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import IO, Any, Dict, List, Optional
-from math import radians, cos
+
 import geopandas
 import h3
 import numpy as np
@@ -28,6 +26,7 @@ from fastapi import HTTPException, UploadFile
 from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
+from httpx import AsyncClient
 from jose import jwt
 from numba import njit
 from rich import print as print
@@ -654,7 +653,7 @@ def delete_file(file_path: str) -> None:
     """Delete file from disk."""
     try:
         os.remove(file_path)
-    except OSError as e:
+    except OSError:
         pass
 
 
@@ -662,7 +661,7 @@ def delete_dir(dir_path: str) -> None:
     """Delete file from disk."""
     try:
         shutil.rmtree(dir_path)
-    except OSError as e:
+    except OSError:
         pass
 
 
@@ -818,7 +817,7 @@ def _cover_polygon_h3(polygon: Polygon, resolution: int, intersect_with_centroid
     Return the set of H3 cells at the specified resolution which completely cover the input polygon.
     """
     result_set = set()
-    if intersect_with_centroid == False:
+    if intersect_with_centroid is False:
         # Hexes for vertices
         vertex_hexes = [
             h3.geo_to_h3(t[1], t[0], resolution) for t in list(polygon.exterior.coords)
@@ -1186,3 +1185,15 @@ def read_results(results, return_type=None):
             media_type="application/octet-stream",
             headers={"Content-Disposition": f"attachment; filename={file_name}"},
         )
+
+
+async def get_superuser_token_headers(client: AsyncClient) -> Dict[str, str]:
+    login_data = {
+        "username": settings.FIRST_SUPERUSER_EMAIL,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    r = await client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    tokens = r.json()
+    a_token = tokens["access_token"]
+    headers = {"Authorization": f"Bearer {a_token}"}
+    return headers

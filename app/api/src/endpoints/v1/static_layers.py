@@ -1,12 +1,10 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src import crud
-from src.crud.base import CRUDBase
 from src.db import models
 from src.db.models.legacy.config_validation import *
 from src.endpoints.legacy import deps

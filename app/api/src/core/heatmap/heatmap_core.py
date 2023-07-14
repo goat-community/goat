@@ -343,7 +343,7 @@ def read_population_modified_sql(scenario_id: int):
     p.geom, demography, sub_study_area_id, b.edit_type
     FROM pop p, customer.building_modified b
     WHERE p.building_id = b.building_id
-    UNION ALL 
+    UNION ALL
     SELECT p.id, p.population, p.geom, NULL, sub_study_area_id, 'n'
     FROM customer.population_modified p
     WHERE p.scenario_id = {scenario_id};

@@ -74,7 +74,7 @@ class BuildingModified(BuildingBase, table=True):
             nullable=False,
         ),
     )
-    population: Optional[float] = Field(sa_column=Column(Float(53)))    
+    population: Optional[float] = Field(sa_column=Column(Float(53)))
     scenario: "Scenario" = Relationship(back_populates="buildings_modified")
     populations_modified: Optional[List["PopulationModified"]] = Relationship(
         back_populates="building_modified"

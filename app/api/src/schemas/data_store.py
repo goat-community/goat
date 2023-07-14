@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING
 from enum import Enum
-from src.db.models.data_store import DataStoreBase, DataStore
+
+from src.db.models.data_store import DataStore, DataStoreBase
+
 
 class DataStoreType(str, Enum):
     """Data store type."""
@@ -8,11 +9,14 @@ class DataStoreType(str, Enum):
     postgis = "postgis"
     external = "external"
 
+
 class DataStoreCreate(DataStoreBase):
     pass
 
+
 class DataStoreUpdate(DataStoreBase):
     pass
+
 
 class DataStoreRead(DataStore):
     pass

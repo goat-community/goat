@@ -1,9 +1,8 @@
-from sentry_sdk import HttpTransport
 from src.db import models
 from pydantic import root_validator
 from .utils import findkeys
 from fastapi import HTTPException
-from src.tests.utils.utils import random_lower_string
+from src.legacy.utils.utils import random_lower_string
 from datetime import datetime
 
 
@@ -180,7 +179,6 @@ class CreateStyleLibrary(models.StyleLibrary):
         # Search for incomplete translations
         incomplete_translations = []
         for key in translation.keys():
-
             # Is this keyword have translations for all detected languages?
             if all_languages - set(translation[key].keys()):
                 incomplete_translations.append(key)

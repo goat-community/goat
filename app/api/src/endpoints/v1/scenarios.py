@@ -105,7 +105,7 @@ async def delete_scenario(
     """
     Delete scenario.
     """
-    result = await crud_scenario.remove_multi_by_id_and_userid(db, ids=id, user_id=current_user.id)
+    await crud_scenario.remove_multi_by_id_and_userid(db, ids=id, user_id=current_user.id)
     return
 
 

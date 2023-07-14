@@ -31,7 +31,7 @@ class DBMigrationBase:
 
     def upgrade_postgres_fdw(self):
         """Create postgres_fdw extension on database if not exists.
-        """        
+        """
         postgres_fdw = PGExtension(schema="public", signature="postgres_fdw")
         statement = postgres_fdw.to_sql_statement_create()
         try:
@@ -42,7 +42,7 @@ class DBMigrationBase:
 
     def downgrade_postgres_fdw(self):
         """Drop postgres_fdw extension on database if exists.
-        """        
+        """
         postgres_fdw = PGExtension(schema="public", signature="postgres_fdw")
         statement = postgres_fdw.to_sql_statement_drop()
         self.legacy_engine.execute(text(statement.text))
@@ -51,7 +51,7 @@ class DBMigrationBase:
         self,
     ):
         """Create foreign server on database.
-        """        
+        """
         create_foreign_server = text(
             f"""
             CREATE SERVER {self.db_name_foreign}
@@ -77,7 +77,7 @@ class DBMigrationBase:
     def upgrade_mapping_user(
         self,
     ):
-        """Create user mapping on database for foreign server."""        
+        """Create user mapping on database for foreign server."""
         create_mapping_user = text(
             f"""CREATE USER MAPPING FOR {settings.POSTGRES_USER}
                 SERVER {self.db_name_foreign}
@@ -100,7 +100,7 @@ class DBMigrationBase:
 
         Args:
             schema (str): Schema name.
-        """        
+        """
         create_foreign_schema = f"CREATE SCHEMA IF NOT EXISTS {schema};"
         self.legacy_engine.execute(text(create_foreign_schema))
 
@@ -116,7 +116,7 @@ class DBMigrationBase:
         Args:
             schema_bridge (str): Local schema name where foreign tables are added.
             schema_foreign (str): Foreign schema name.
-        """        
+        """
         self.upgrade_schema(schema_bridge)
         create_foreign_table = f"""IMPORT FOREIGN SCHEMA {schema_foreign}
         FROM SERVER {self.db_name_foreign} INTO {schema_bridge};"""
@@ -127,7 +127,7 @@ class DBMigrationBase:
         self,
     ):
         """Imports the tables from the foreign schema into the bridge schema.
-        """        
+        """
         # Information schema is needed for the foreign tables
         self.create_bridge(self.information_schema_bridge, self.information_schema)
         # Read specified schema from foreign database
@@ -138,7 +138,7 @@ class DBMigrationBase:
 
         Args:
             table_name (Union[str, list[str]]): Table name or list of table names.
-        """        
+        """
         if type(table_name) == str:
             table_names = [table_name]
         else:
@@ -152,7 +152,7 @@ class DBMigrationBase:
 
     def initialize(self):
         """Initialize the migration.
-        """        
+        """
         self.upgrade_postgres_fdw()
         self.downgrade_foreign_server()
         self.upgrade_foreign_server()

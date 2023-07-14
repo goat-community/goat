@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import TYPE_CHECKING, List, Optional
 
 from sqlmodel import Column, Field, Integer, Relationship, SQLModel, Text

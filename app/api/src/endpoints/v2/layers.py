@@ -1,11 +1,11 @@
-from src.schemas.layer import request_examples, LayerCreate, LayerRead
-from src.db.models.layer import Layer
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from fastapi import APIRouter, Body, Depends
+
 from src.crud.crud_layer import layer as crud_layer
-from pydantic import ValidationError
-from src.endpoints.deps import create_content, get_db
 from src.db.models.content import Content
+from src.db.models.layer import Layer
 from src.db.session import AsyncSession
+from src.endpoints.deps import create_content, get_db
+from src.schemas.layer import LayerCreate, LayerRead, request_examples
 
 router = APIRouter()
 

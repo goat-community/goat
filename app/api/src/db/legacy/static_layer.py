@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Optional
 import sqlalchemy
 from sqlalchemy.dialects import postgresql
 from sqlmodel import (
-    ARRAY,
     Column,
     DateTime,
     Field,
@@ -14,7 +13,6 @@ from sqlmodel import (
     Relationship,
     SQLModel,
     String,
-    Text,
     text,
 )
 

@@ -1,12 +1,11 @@
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from sqlmodel import (
     Column,
     Field,
     Integer,
     SQLModel,
-    Text,
-    text
+    Text
 )
 
 from sqlalchemy.dialects.postgresql import JSONB
