@@ -19,7 +19,7 @@ const meta: Meta<typeof ToggleTabs> = {
 export default meta;
 type Story = StoryObj<typeof ToggleTabs>;
 
-export const Warning: Story = {
+export const Simple: Story = {
   args: {
     tabs: [
       {

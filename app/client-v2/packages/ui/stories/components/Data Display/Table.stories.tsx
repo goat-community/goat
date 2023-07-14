@@ -535,7 +535,21 @@ export const TableForFileManagement: Story = () => {
     },
   ];
 
-  return <FileManagementTable hover={true} columnNames={columnNames} rows={rows} />;
+  let currPath = ["home"];
+
+  function setPath(value: string[]) {
+    currPath = value;
+  }
+
+  return (
+    <FileManagementTable
+      currPath={currPath}
+      setPath={setPath}
+      hover={true}
+      columnNames={columnNames}
+      rows={rows}
+    />
+  );
 };
 
 TableForFileManagement.args = {};

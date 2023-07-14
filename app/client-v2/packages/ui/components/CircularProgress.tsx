@@ -1,35 +1,51 @@
-// Copyright (c) 2020 GitHub user u/garronej
+import type { Meta, StoryObj } from "@storybook/react";
 
-/* eslint-disable react/display-name */
-import MuiCircularProgress from "@mui/material/CircularProgress";
-import { memo } from "react";
+import { CircularProgress } from "../../components/CircularProgress";
+import { ThemeProvider } from "../theme";
 
-import { makeStyles } from "../lib/ThemeProvider";
-
-export type CircularProgressProps = {
-  className?: string;
-  size?: number;
-  color?: "primary" | "textPrimary";
+const meta: Meta<typeof CircularProgress> = {
+  component: CircularProgress,
+  tags: ["autodocs"],
+  argTypes: {
+    color: {
+      options: ["primary", "textPrimary"],
+      control: { type: "radio" },
+    },
+    className: {
+      control: false,
+    },
+    size: { control: { type: "number" } },
+  },
+  args: {
+    color: "primary",
+  },
+  decorators: [
+    (Story) => (
+      <ThemeProvider>
+        <Story />
+      </ThemeProvider>
+    ),
+  ],
 };
 
-export const CircularProgress = memo((props: CircularProgressProps) => {
-  const { className, size = 40, color = "primary" } = props;
+export default meta;
+type Story = StoryObj<typeof CircularProgress>;
 
-  const { classes, cx } = useStyles({ color });
-
-  return (
-    <MuiCircularProgress
-      color={color === "textPrimary" ? undefined : color}
-      className={cx(classes.root, className)}
-      size={size}
-    />
-  );
-});
-
-const useStyles = makeStyles<Pick<Required<CircularProgressProps>, "color">>({
-  name: { CircularProgress },
-})((theme, { color }) => ({
-  root: {
-    color: color !== "textPrimary" ? undefined : theme.colors.useCases.typography.textPrimary,
+export const Primary: Story = {
+  args: {
+    color: "primary",
   },
-}));
+};
+
+export const Secondary: Story = {
+  args: {
+    color: "textPrimary",
+  },
+};
+
+export const CustomSize: Story = {
+  args: {
+    color: "primary",
+    size: 20,
+  },
+};
