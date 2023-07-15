@@ -134,7 +134,9 @@
               </div>
 
               <template
-                v-if="!['transit', 'car'].includes(calculation.routing)"
+                v-if="
+                  !['transit', 'car', 'buffer'].includes(calculation.routing)
+                "
               >
                 <div>
                   <v-icon small class="text-xs-center mx-2"
