@@ -6,7 +6,6 @@ import { useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
 import { Tooltip } from "@p4b/ui/components/Tooltip";
-import { useIsDarkModeEnabled } from "@p4b/ui/lib";
 
 import { makeStyles, Button, Text } from "../../theme";
 import type { I18n } from "../i18n";
@@ -26,7 +25,7 @@ const steps: Steps = {
 export default function RegisterUserProfile(
   props: PageProps<Extract<KcContext, { pageId: "register-user-profile.ftl" }>, I18n>
 ) {
-  const { isDarkModeEnabled } = useIsDarkModeEnabled();
+  const isDarkModeEnabled = false;
   const { kcContext, i18n, doUseDefaultCss, Template } = props;
   const { url, messagesPerField, recaptchaRequired, recaptchaSiteKey } = kcContext;
   const { msg, msgStr } = i18n;

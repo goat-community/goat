@@ -1,3 +1,5 @@
+"use client";
+
 // Copyright (c) 2020 GitHub user u/garronej
 
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -21,7 +23,6 @@ import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 
 import { makeStyles } from "../../lib/ThemeProvider";
-import { getBrowser } from "../../tools/getBrowser";
 import { useNonPostableEvtLike } from "../../tools/useNonPostableEvtLike";
 import { CircularProgress } from "../CircularProgress";
 import { createIcon } from "../Icon/Icon";
@@ -468,21 +469,6 @@ const useStyles = makeStyles<{
     },
     "&:focus": {
       outline: "unset",
-    },
-    "& input:-webkit-autofill": {
-      ...(() => {
-        switch (getBrowser()) {
-          case "chrome":
-          case "safari":
-            return {
-              WebkitTextFillColor:
-                theme.colors.useCases.typography[theme.isDarkModeEnabled ? "textPrimary" : "textSecondary"],
-              WebkitBoxShadow: `0 0 0 1000px ${theme.colors.useCases.surfaces.surface1} inset`,
-            };
-          default:
-            return {};
-        }
-      })(),
     },
     "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
       borderBottomWidth: filled ? 0 : 1,

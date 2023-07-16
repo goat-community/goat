@@ -9,8 +9,6 @@ import type { TypographyOptions as MuiTypographyOptions } from "@mui/material/st
 import { id } from "tsafe/id";
 import { objectKeys } from "tsafe/objectKeys";
 
-import { breakpointsValues } from "./breakpoints";
-
 export type { ChromeFontSize } from "powerhooks/ViewPortAdapter";
 export { chromeFontSizesFactors } from "powerhooks/ViewPortAdapter";
 
@@ -77,37 +75,16 @@ export type ComputedTypography<CustomVariantName extends string> = {
   };
 };
 
-export type GetTypographyDesc<CustomVariantName extends string> = (params: {
-  windowInnerWidth: number;
-  windowInnerHeight: number;
-  browserFontSizeFactor: number;
-}) => TypographyDesc<CustomVariantName>;
+export type GetTypographyDesc<CustomVariantName extends string> = () => TypographyDesc<CustomVariantName>;
 
-export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
-  windowInnerWidth,
-  browserFontSizeFactor,
-}) => ({
+export const defaultGetTypographyDesc: GetTypographyDesc<never> = () => ({
   fontFamily: "sans-serif",
-  rootFontSizePx: 16 * browserFontSizeFactor,
+  rootFontSizePx: 16,
   variants: {
     "display heading": {
       htmlComponent: "h1",
       fontWeight: id<TypographyDesc.FontWeightProperty>("bold"),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 2.8,
-            lineHeightRem: 3.25,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 2.25,
-            lineHeightRem: 2.5,
-          };
-        }
-
         return {
           fontSizeRem: 1.75,
           lineHeightRem: 2.5,
@@ -118,20 +95,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "h2",
       fontWeight: id<TypographyDesc.FontWeightProperty>("bold"),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 2.25,
-            lineHeightRem: 2.5,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 1.75,
-            lineHeightRem: 2.25,
-          };
-        }
-
         return {
           fontSizeRem: 1.125,
           lineHeightRem: 1.25,
@@ -142,20 +105,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "h3",
       fontWeight: id<TypographyDesc.FontWeightProperty>("normal"),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 1.75,
-            lineHeightRem: 2.25,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 1.5,
-            lineHeightRem: 2,
-          };
-        }
-
         return {
           fontSizeRem: 1,
           lineHeightRem: 1.475,
@@ -166,20 +115,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "h4",
       fontWeight: id<TypographyDesc.FontWeightProperty>("bold"),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 1.5,
-            lineHeightRem: 2,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 1.25,
-            lineHeightRem: 1.7,
-          };
-        }
-
         return {
           fontSizeRem: 0.875,
           lineHeightRem: 1.28,
@@ -190,20 +125,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "h5",
       fontWeight: id<TypographyDesc.FontWeightProperty>(600),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 1.25,
-            lineHeightRem: 1.7,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 1.125,
-            lineHeightRem: 1.25,
-          };
-        }
-
         return {
           fontSizeRem: 0.875,
           lineHeightRem: 1.28,
@@ -214,20 +135,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "h5",
       fontWeight: id<TypographyDesc.FontWeightProperty>(500),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 1.25,
-            lineHeightRem: 1.7,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 1.125,
-            lineHeightRem: 1.25,
-          };
-        }
-
         return {
           fontSizeRem: 0.875,
           lineHeightRem: 1.28,
@@ -238,20 +145,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "h6",
       fontWeight: id<TypographyDesc.FontWeightProperty>(500),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 1,
-            lineHeightRem: 1.475,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 0.875,
-            lineHeightRem: 1.28,
-          };
-        }
-
         return {
           fontSizeRem: 0.75,
           lineHeightRem: 1,
@@ -262,20 +155,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "h6",
       fontWeight: id<TypographyDesc.FontWeightProperty>(500),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 0.875,
-            lineHeightRem: 1.28,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 0.75,
-            lineHeightRem: 1,
-          };
-        }
-
         return {
           fontSizeRem: 0.625,
           lineHeightRem: 0.69,
@@ -286,20 +165,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "p",
       fontWeight: id<TypographyDesc.FontWeightProperty>("normal"),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 1.063,
-            lineHeightRem: 1.625,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 1,
-            lineHeightRem: 1.5,
-          };
-        }
-
         return {
           fontSizeRem: 0.875,
           lineHeightRem: 1.313,
@@ -310,20 +175,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "p",
       fontWeight: id<TypographyDesc.FontWeightProperty>("normal"),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 1,
-            lineHeightRem: 1.5,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 0.875,
-            lineHeightRem: 1.313,
-          };
-        }
-
         return {
           fontSizeRem: 0.688,
           lineHeightRem: 1.125,
@@ -334,20 +185,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "p",
       fontWeight: "normal",
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 0.875,
-            lineHeightRem: 1.313,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 0.688,
-            lineHeightRem: 1.125,
-          };
-        }
-
         return {
           fontSizeRem: 0.625,
           lineHeightRem: 0.69,
@@ -358,20 +195,6 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = ({
       htmlComponent: "p",
       fontWeight: id<TypographyDesc.FontWeightProperty>("normal"),
       ...(() => {
-        if (windowInnerWidth >= breakpointsValues.xl) {
-          return {
-            fontSizeRem: 0.75,
-            lineHeightRem: 1,
-          };
-        }
-
-        if (windowInnerWidth >= breakpointsValues.lg) {
-          return {
-            fontSizeRem: 0.625,
-            lineHeightRem: 0.69,
-          };
-        }
-
         return {
           fontSizeRem: 0.45,
           lineHeightRem: 0.75,

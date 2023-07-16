@@ -1,3 +1,5 @@
+"use client";
+
 import { Chip } from "@mui/material";
 import { forwardRef, memo, useEffect, useRef } from "react";
 

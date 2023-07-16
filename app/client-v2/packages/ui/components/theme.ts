@@ -31,12 +31,8 @@ import { createThemeProvider, defaultGetTypographyDesc } from "../lib";
 
 export const { ThemeProvider, StoryProvider, useTheme } = createThemeProvider({
   isReactStrictModeEnabled: false,
-  getTypographyDesc: ({ windowInnerWidth, browserFontSizeFactor, windowInnerHeight }) => ({
-    ...defaultGetTypographyDesc({
-      windowInnerWidth,
-      browserFontSizeFactor,
-      windowInnerHeight,
-    }),
+  getTypographyDesc: () => ({
+    ...defaultGetTypographyDesc(),
     fontFamily: "'Mulish', sans-serif",
   }),
 });
