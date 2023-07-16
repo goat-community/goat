@@ -1,8 +1,6 @@
 // Copyright (c) 2020 GitHub user u/garronej
 import { assert } from "tsafe/assert";
 
-import { breakpointsValues } from "./breakpoints";
-
 export interface Spacing {
   (value: number): number;
   (params: Record<"topBottom" | "rightLeft", number | string>): string;
@@ -20,15 +18,10 @@ export interface Spacing {
 export type SpacingConfig = (params: {
   /** Assert positive integer */
   factorOrExplicitNumberOfPx: number | `${number}px`;
-  windowInnerWidth: number;
   rootFontSizePx: number;
 }) => number;
 
-export const defaultSpacingConfig: SpacingConfig = ({
-  factorOrExplicitNumberOfPx,
-  windowInnerWidth,
-  rootFontSizePx,
-}) => {
+export const defaultSpacingConfig: SpacingConfig = ({ factorOrExplicitNumberOfPx, rootFontSizePx }) => {
   if (typeof factorOrExplicitNumberOfPx === "string") {
     const match = factorOrExplicitNumberOfPx.match(/^([+-]?([0-9]*[.])?[0-9]+)px$/);
 
@@ -52,40 +45,6 @@ export const defaultSpacingConfig: SpacingConfig = ({
 
       if (factor > 6) {
         return (factor - 5) * callee(6);
-      }
-
-      if (windowInnerWidth >= breakpointsValues.xl) {
-        switch (factor) {
-          case 1:
-            return 0.25;
-          case 2:
-            return 0.5;
-          case 3:
-            return 1;
-          case 4:
-            return 1.5;
-          case 5:
-            return 2;
-          case 6:
-            return 2.5;
-        }
-      }
-
-      if (windowInnerWidth >= breakpointsValues.lg) {
-        switch (factor) {
-          case 1:
-            return 0.25;
-          case 2:
-            return 0.5;
-          case 3:
-            return 1;
-          case 4:
-            return 1;
-          case 5:
-            return 1.5;
-          case 6:
-            return 2;
-        }
       }
 
       switch (factor) {

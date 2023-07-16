@@ -14,8 +14,7 @@ import { symToStr } from "tsafe/symToStr";
 
 import { Alert } from "@p4b/ui/components/Alert";
 import { Card } from "@p4b/ui/components/Card";
-import { useIsDarkModeEnabled } from "@p4b/ui/lib";
-import { useDomRect, useWindowInnerSize } from "@p4b/ui/lib";
+import { useDomRect } from "@p4b/ui/lib";
 
 import { ThemeProvider, makeStyles, Text } from "../theme";
 import type { I18n } from "./i18n";
@@ -36,14 +35,9 @@ function ContextualizedTemplate(props: TemplateProps) {
 
   const { ref: rootRef } = useDomRect();
 
-  const { windowInnerWidth, windowInnerHeight } = useWindowInnerSize();
-  const { isDarkModeEnabled } = useIsDarkModeEnabled();
+  const isDarkModeEnabled = false;
 
-  const { classes } = useStyles({
-    windowInnerWidth,
-    aspectRatio: windowInnerWidth / windowInnerHeight,
-    windowInnerHeight,
-  });
+  const { classes } = useStyles();
 
   const { getClassName } = useGetClassName({
     doUseDefaultCss,
@@ -114,11 +108,7 @@ function ContextualizedTemplate(props: TemplateProps) {
   );
 }
 
-const useStyles = makeStyles<{
-  windowInnerWidth: number;
-  aspectRatio: number;
-  windowInnerHeight: number;
-}>()((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   main: {
     display: "flex",
     flex: "1 1 auto",

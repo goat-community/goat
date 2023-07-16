@@ -1,3 +1,5 @@
+"use client";
+
 // Copyright (c) 2020 GitHub user u/garronej
 
 /* eslint-disable @typescript-eslint/no-namespace */
@@ -15,7 +17,6 @@ import { capitalize } from "tsafe/capitalize";
 import { id } from "tsafe/id";
 
 import { makeStyles } from "../lib/ThemeProvider";
-import { breakpointsValues } from "../lib/breakpoints";
 import { variantNameUsedForMuiButton } from "../lib/typography";
 import { pxToNumber } from "../tools/pxToNumber";
 import type { IconProps } from "./Icon/Icon";
@@ -256,10 +257,6 @@ export function createButton<IconId extends string = never>(params?: {
             (() => {
               if (variant === "noBorder") {
                 return 1;
-              }
-
-              if (theme.windowInnerWidth >= breakpointsValues.xl) {
-                return 3;
               }
 
               return 4;
