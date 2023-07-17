@@ -1,13 +1,15 @@
+"use client";
+
 import { makeStyles } from "@/lib/theme";
 
 import Box from "@p4b/ui/components/Box";
 import Grid from "@p4b/ui/components/Grid";
 
-interface AuthTemplateProps {
+interface OnboardingLayoutProps {
   children: React.ReactNode;
 }
 
-const AuthTemplate = (props: AuthTemplateProps) => {
+const OnboardingLayout = (props: OnboardingLayoutProps) => {
   const { children } = props;
 
   const { classes } = useStyles();
@@ -56,7 +58,7 @@ const AuthTemplate = (props: AuthTemplateProps) => {
   );
 };
 
-const useStyles = makeStyles({ name: { AuthTemplate } })((theme) => ({
+const useStyles = makeStyles({ name: { OnboardingLayout } })((theme) => ({
   root: {
     display: "flex",
   },
@@ -96,4 +98,4 @@ const useStyles = makeStyles({ name: { AuthTemplate } })((theme) => ({
   },
 }));
 
-export default AuthTemplate;
+export default OnboardingLayout;
