@@ -14,7 +14,7 @@ declare module "next-auth" {
       family_name: string;
       email: string;
       id: string;
-      org_name?: string;
+      org_id?: string;
       telephone?: string;
     };
     error: string;
