@@ -15,6 +15,7 @@ declare module "next-auth" {
       email: string;
       id: string;
       org_id?: string;
+      org_name?: string;
       telephone?: string;
     };
     error: string;
@@ -31,6 +32,7 @@ declare module "next-auth" {
     telephone: string;
     preferred_username: string;
     org_name: string;
+    org_id: string;
     given_name: string;
     family_name: string;
     email: string;
@@ -65,6 +67,7 @@ declare module "next-auth" {
     telephone: string;
     preferred_username: string;
     org_name: string;
+    org_id: string;
     given_name: string;
     family_name: string;
     email: string;

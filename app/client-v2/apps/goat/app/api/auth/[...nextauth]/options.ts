@@ -60,6 +60,11 @@ const keycloak = KeycloakProvider({
 
 export const options: NextAuthOptions = {
   providers: [keycloak],
+  pages: {
+    signIn: "/auth/login",
+    signOut: "/auth/logout",
+    error: "/auth/error",
+  },
   callbacks: {
     async signIn({ user, account }) {
       if (account && user) {
