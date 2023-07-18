@@ -1,15 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import MapByLayer from "../../components/MapByLayer";
-import { ThemeProvider } from "../theme";
+import MapByLayer from "../../../components/MapByLayer";
+import { ThemeProvider } from "../../theme";
 
 const meta: Meta<typeof MapByLayer> = {
   component: MapByLayer,
-  tags: ["autodocs"],
   argTypes: {
     layer: {
-      options: ["aoi", "poi", "edge"],
-      control: false,
+      options: ["Vector tile Point", "Polygon", "Line"],
+      control: { type: "radio" },
+      mapping: {
+        "Vector tile Point": "poi",
+        Polygon: "aoi",
+        Line: "edge",
+      },
     },
   },
   parameters: {
@@ -31,17 +35,7 @@ const meta: Meta<typeof MapByLayer> = {
 export default meta;
 type Story = StoryObj<typeof MapByLayer>;
 
-export const Polygon: Story = {
-  args: { layer: "aoi" },
-  parameters: {},
-};
-
-export const VectorTilePoint: Story = {
+export const MapLayer: Story = {
   args: { layer: "poi" },
-  parameters: {},
-};
-
-export const Line: Story = {
-  args: { layer: "edge" },
   parameters: {},
 };
