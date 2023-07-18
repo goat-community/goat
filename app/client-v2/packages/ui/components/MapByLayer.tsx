@@ -249,8 +249,6 @@ export type MapProps = {
 export default function MapByStyle(props: MapProps) {
   const { layer } = props;
 
-  console.log('layer', layer)
-
   return (
     <div style={{ width: "100%", height: "100vh" }}>
       <Map
