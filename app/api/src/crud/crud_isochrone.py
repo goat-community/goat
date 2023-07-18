@@ -41,6 +41,7 @@ from src.schemas.isochrone import (
     IsochroneStartingPointCoord,
     IsochroneTypeEnum,
     R5AvailableDates,
+    R5ProjectIDCarOnly,
     R5TravelTimePayloadTemplate,
 )
 from src.utils import (
@@ -392,17 +393,23 @@ class CRUDIsochrone:
                 obj_in.output.resolution,
             )
         # == Public transport isochrone ==
-        elif obj_in.mode.value in [IsochroneMode.TRANSIT.value]:
+        elif obj_in.mode.value in [IsochroneMode.TRANSIT.value, IsochroneMode.CAR.value]:
             starting_point_geom = Point(
                 obj_in.starting_point.input[0].lon, obj_in.starting_point.input[0].lat
             ).wkt
 
             weekday = obj_in.settings.weekday
             payload = R5TravelTimePayloadTemplate.copy()
-            payload["accessModes"] = obj_in.settings.access_mode.value.upper()
-            payload["transitModes"] = ",".join(
-                x.value.upper() for x in obj_in.settings.transit_modes
-            )
+
+            if obj_in.mode.value == IsochroneMode.CAR.value:
+                payload["transitModes"] = ""
+                payload["accessModes"] = "CAR"
+                payload["projectId"] = R5ProjectIDCarOnly
+            else:
+                payload["transitModes"] = ",".join(
+                    x.value.upper() for x in obj_in.settings.transit_modes
+                )
+                payload["accessModes"] = "WALK"
             payload["date"] = R5AvailableDates[weekday]
             payload["fromTime"] = obj_in.settings.from_time
             payload["toTime"] = obj_in.settings.to_time
