@@ -21,6 +21,9 @@ from pandas.io.sql import read_sql
 from shapely.geometry import Point, shape
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
+import geopandas as gpd
+from shapely.geometry import Polygon
+from pyproj import Transformer
 
 from src import crud
 from src.core.config import settings
@@ -407,6 +410,26 @@ class CRUDIsochrone:
             payload["egressModes"] = obj_in.settings.egress_mode.value.upper()
             payload["fromLat"] = obj_in.starting_point.input[0].lat
             payload["fromLon"] = obj_in.starting_point.input[0].lon
+
+
+            # Buffer the extend of the study area by 30km to ensure that the isochrone covers the entire study area
+            poly = Polygon([(study_area_bounds[0], study_area_bounds[1]), (study_area_bounds[0], study_area_bounds[3]), (study_area_bounds[2], study_area_bounds[3]), (study_area_bounds[2], study_area_bounds[1])])
+                        # Create a GeoDataFrame from the Polygon
+            gdf = gpd.GeoDataFrame({'geometry': [poly]}, crs="EPSG:4326")
+
+            # Transform to Web Mercator
+            gdf = gdf.to_crs("EPSG:3857")
+
+            # Buffer by 30km
+            gdf['geometry'] = gdf.geometry.buffer(30000)
+
+            # Transform back to WGS84
+            gdf = gdf.to_crs("EPSG:4326")
+
+            # Get the extent of the resulting buffered geometry
+            study_area_bounds = tuple(list(gdf.total_bounds))
+
+            # You can now use g (which is a GeoSeries containing the buffered polygon)
             payload["bounds"] = {
                 "north": study_area_bounds[3],
                 "south": study_area_bounds[1],
