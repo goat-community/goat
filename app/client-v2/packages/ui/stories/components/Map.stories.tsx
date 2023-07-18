@@ -31,17 +31,17 @@ const meta: Meta<typeof MapByLayer> = {
 export default meta;
 type Story = StoryObj<typeof MapByLayer>;
 
-export const AOI: Story = {
+export const Polygon: Story = {
   args: { layer: "aoi" },
   parameters: {},
 };
 
-export const POI: Story = {
+export const VectorTilePoint: Story = {
   args: { layer: "poi" },
   parameters: {},
 };
 
-export const EDGE: Story = {
+export const Line: Story = {
   args: { layer: "edge" },
   parameters: {},
 };
