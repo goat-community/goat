@@ -1024,7 +1024,7 @@ export default {
       { text: "sunday", value: 6 }
     ],
     locationIQ: "https://api.locationiq.com/v1/reverse.php?key=ca068d7840bca4",
-    maxTries: 21,
+    maxTries: 61,
     isochroneCancelToken: null
   }),
   computed: {
