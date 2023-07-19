@@ -59,7 +59,7 @@ function addHeatmapToMap(response, lConf, source) {
   source.addFeatures(olFeatures);
 }
 
-const max_tries = 21;
+const max_tries = 60;
 let heatmapGetCancelToken = null;
 function heatmapGet(taskId, proj, current_try, lConf, source) {
   if (current_try < max_tries) {
