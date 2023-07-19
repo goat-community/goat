@@ -9,9 +9,10 @@ from src.db.models.scenario import Scenario as ScenarioModel
 class ScenarioBase(BaseModel):
     scenario_id: int
 
+
 class ScenarioWithBrokenField(ScenarioModel):
     broken: bool = False
-    
+
 
 # -----------------------------------------------------------------------------
 class ScenarioLayersEnum(Enum):

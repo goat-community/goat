@@ -184,7 +184,7 @@ class ReadHeatmap(BaseHeatmap):
                     opportunities_modified_grouped = (
                         opportunities_modified.groupby("h3_index").sum().reset_index()
                     )
-                    for index, row in opportunities_modified_grouped.iterrows():
+                    for _index, row in opportunities_modified_grouped.iterrows():
                         aggregated_data_reordered[grid_array == row["h3_index"]] += row[
                             "population"
                         ]
@@ -338,7 +338,7 @@ class ReadHeatmap(BaseHeatmap):
                     relation_sizes_dict[cat] = np.concatenate(
                         np.concatenate(relation_sizes_dict[cat], axis=None), axis=None
                     )
-                except Exception as e:
+                except Exception:
                     failed_categories.append(cat)
             else:
                 grid_ids_dict[cat] = np.array([], np.int64)

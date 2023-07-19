@@ -5,7 +5,7 @@ import uuid
 from tempfile import NamedTemporaryFile
 from typing import IO, Any
 
-from fastapi import APIRouter, Body, Depends, Header, HTTPException, UploadFile
+from fastapi import APIRouter, Body, Depends, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.future import select
 from starlette import status

@@ -62,9 +62,9 @@ def list_functions():
     query = """
     SELECT
     routine_name
-    FROM 
+    FROM
         information_schema.routines
-    WHERE 
+    WHERE
         routine_type = 'FUNCTION'
     AND
         routine_schema = :functions_schema;
@@ -103,16 +103,16 @@ def report():
             print("- ", fn)
     print()
     if functools:
-        rich.print(f"[bold red]# in db but not in files:[/bold red]")
+        rich.print("[bold red]# in db but not in files:[/bold red]")
         for fn in functions:
             rich.print(f"[orange1]- {fn}[/orange1]")
     else:
-        rich.print(f"[bold green]All database function names found in files.[/bold green]")
+        rich.print("[bold green]All database function names found in files.[/bold green]")
 
     print()
     if not_in_db:
-        rich.print(f"[bold red]## in files but not in db:[/bold red]")
+        rich.print("[bold red]## in files but not in db:[/bold red]")
         for fn in not_in_db:
             rich.print(f"- {fn[0]}/[orange1]{fn[1]}[/orange1]")
     else:
-        rich.print(f"[bold green]All function file names found in database.[/bold green]")
+        rich.print("[bold green]All function file names found in database.[/bold green]")

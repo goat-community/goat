@@ -12,12 +12,8 @@ import {
 import { createMakeAndWithStyles } from "@p4b/ui/lib/tss";
 
 export const { ThemeProvider, useTheme } = createThemeProvider({
-  getTypographyDesc: ({ windowInnerWidth, browserFontSizeFactor, windowInnerHeight }) => {
-    const typographyDesc = defaultGetTypographyDesc({
-      windowInnerWidth,
-      browserFontSizeFactor,
-      windowInnerHeight,
-    });
+  getTypographyDesc: () => {
+    const typographyDesc = defaultGetTypographyDesc();
 
     return {
       fontFamily: '"Mulish", sans-serif',

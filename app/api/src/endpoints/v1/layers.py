@@ -21,7 +21,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path as directoryPath
@@ -52,10 +51,10 @@ from src.schemas.layer import registry as FunctionRegistry
 from src.schemas.mapbox import TileJSON
 
 try:
-    from importlib.resources import files as resources_files  # type: ignore
+    pass  # type: ignore
 except ImportError:
     # Try backported to PY<39 `importlib_resources`.
-    from importlib_resources import files as resources_files  # type: ignore
+    pass  # type: ignore
 
 templates = Jinja2Templates(directory=directoryPath(settings.LAYER_TEMPLATES_DIR))  # type: ignore
 
@@ -175,13 +174,11 @@ class VectorTilerFactory:
         ):
             """Return vector tile."""
             qs_key_to_remove = ["tilematrixsetid"]
-            kwargs = dict(
-                [
-                    (key, value)
+            kwargs = {
+                key: value
                     for (key, value) in request.query_params._list
                     if key.lower() not in qs_key_to_remove
-                ]
-            )
+            }
 
             content = await crud_layer.tile_from_table(db, tile, tms, layer, **kwargs)
             return Response(bytes(content), media_type=MimeTypes.pbf.value)
@@ -216,13 +213,11 @@ class VectorTilerFactory:
             }
             tile_endpoint = self.url_for(request, "tile", **path_params)
             qs_key_to_remove = ["tilematrixsetid", "minzoom", "maxzoom"]
-            query_params = dict(
-                [
-                    (key, value)
+            query_params = {
+                key: value
                     for (key, value) in request.query_params._list
                     if key.lower() not in qs_key_to_remove
-                ]
-            )
+            }
 
             if query_params:
                 tile_endpoint += f"?{urlencode(query_params)}"

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, MetaData, String, Table, select, text
+from sqlalchemy import Column, MetaData, String, Table, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.schema import DropTable
 

@@ -6,7 +6,7 @@ import rich
 
 from src.core.config import settings
 from src.schemas.isochrone import request_examples
-from src.tests.utils.utils import get_superuser_token_headers
+from src.utils import get_superuser_token_headers
 
 
 async def run_calculate_isochrone_single_default(
@@ -22,8 +22,7 @@ async def run_calculate_isochrone_single_default(
                     headers = {}
                     if settings.R5_AUTHORIZATION:
                         headers["Authorization"] = settings.R5_AUTHORIZATION
-                    requests.get(settings.R5_API_URL, verify=False,
-                                 timeout=3, headers=headers)
+                    requests.get(settings.R5_API_URL, verify=False, timeout=3, headers=headers)
                 except:
                     rich.print(
                         f"[orange3]Coudn't reach R5! So skip call:[/orange3] [bold]{isochrone_mode}[/bold]"

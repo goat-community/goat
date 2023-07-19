@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from geoalchemy2 import Geometry
 from sqlmodel import (
@@ -70,7 +70,7 @@ class PoiModified(PoiBase, table=True):
     )
     outdated: Optional[bool] = Field(sa_column=Column(Boolean, default=False))
     scenario: Optional["Scenario"] = Relationship(back_populates="pois_modified")
-    
+
 
 Index("idx_poi_modified_geom", PoiModified.__table__.c.geom, postgresql_using="gist")
 

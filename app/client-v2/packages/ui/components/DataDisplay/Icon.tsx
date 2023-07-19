@@ -44,7 +44,7 @@ export type IconProps<IconId extends string = string> = {
   size?: IconSizeName;
   bgVariant?: "focus" | "secondary" | "gray" | "gray2";
   bgOpacity?: number;
-  iconVariant?: "white" | "secondary" | "focus" | "gray" | "gray2" | "warning" | "main";
+  iconVariant?: "white" | "secondary" | "focus" | "gray" | "gray2" | "warning" | "main" | "error" | "success";
   onClick?: MouseEventHandler<SVGSVGElement>;
 };
 
@@ -61,12 +61,14 @@ function isMuiIcon(Component: MuiIconLike | SvgComponentLike): Component is MuiI
 }
 
 function getBgColor(
-  key: "focus" | "secondary" | "gray" | "white" | "gray2" | "warning" | "main",
+  key: "focus" | "secondary" | "gray" | "white" | "gray2" | "warning" | "main" | "error" | "success",
   theme: Theme
 ): string {
   switch (key) {
     case "focus":
       return theme.colors.palette.focus.main;
+    case "success":
+      return theme.colors.palette.greenSuccess.main;
     case "secondary":
       return theme.colors.palette.light.main;
     case "gray":
@@ -79,6 +81,8 @@ function getBgColor(
       return theme.colors.palette.orangeWarning.main;
     case "main":
       return theme.colors.palette.dark.main;
+    case "error":
+      return theme.colors.palette.redError.main;
     default:
       return "light";
   }
@@ -91,7 +95,16 @@ export function createIcon<IconId extends string>(componentByIconId: {
     size: IconSizeName;
     wrapped: "circle" | "square" | undefined;
     bgVariant: "focus" | "secondary" | "gray" | "gray2";
-    iconVariant: "white" | "secondary" | "focus" | "gray" | "gray2" | "warning" | "main";
+    iconVariant:
+      | "white"
+      | "secondary"
+      | "focus"
+      | "gray"
+      | "gray2"
+      | "warning"
+      | "main"
+      | "error"
+      | "success";
     bgOpacity: number;
   }>()((theme, { size, wrapped, bgVariant, iconVariant, bgOpacity }) => ({
     root: {

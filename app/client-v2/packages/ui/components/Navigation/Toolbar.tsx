@@ -16,13 +16,16 @@ export function Toolbar(props: ToolbarProps) {
   return (
     <Stack className={cx(classes.root)} direction="row" justifyContent="space-between" alignItems="center">
       <GOATLogoGreenSvg className={classes.logoSize} />
-      <TextField
-        size="small"
-        iconId="search"
-        placeholder="Search..."
-        className={classes.searchInput}
-        filled={true}
-      />
+      <div>
+        <TextField
+          size="small"
+          iconId="search"
+          hiddenLabel={true}
+          placeholder="Search..."
+          className={classes.searchInput}
+          filled={true}
+        />
+      </div>
       <Stack direction="row" alignItems="center" sx={{ paddingY: "6px" }}>
         {items?.map(({ link, icon }, index) => (
           <Link
@@ -55,7 +58,7 @@ const useStyles = (props: ToolbarProps) =>
       height: "36px",
     },
     searchInput: {
-      paddingY: "6px",
+      // paddingY: "6px",
       width: "440px",
       border: "none",
     },

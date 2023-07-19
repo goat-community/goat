@@ -42,7 +42,7 @@ export const defaultPalette = {
     light: "#FEECEB",
   },
   greenSuccess: {
-    main: "#29CC2F",
+    main: "#2E7D32",
     light: "#EEFAEE",
   },
   orangeWarning: {

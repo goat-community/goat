@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy.dialects.postgresql import JSONB
@@ -15,8 +14,7 @@ from sqlmodel import (
 )
 
 if TYPE_CHECKING:
-    from .data_upload import DataUpload
-    from .scenario import Scenario
+    pass
 
 
 class StyleLibrary(SQLModel, table=True):

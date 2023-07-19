@@ -16,17 +16,8 @@ import { changeColorOpacity } from "../../lib";
 import { makeStyles } from "../../lib/ThemeProvider";
 import Dialog from "../Dialog";
 import { Text } from "../theme";
-import { IconButton } from "../theme";
 
 // SORTING FUNCTIONS
-
-/**
- * A comparator function used for sorting an array of objects in descending order based on a specific property.
- * @param {T} a - The first object to compare.
- * @param {T} b - The second object to compare.
- * @param {keyof T} orderBy - The property of the objects to sort by.
- * @returns {number} - Returns -1 if b[orderBy] is less than a[orderBy], 1 if b[orderBy] is greater than a[orderBy], or 0 if they are equal.
- */
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -40,13 +31,6 @@ function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
 
 type Order = "asc" | "desc";
 
-/**
- * Returns a comparator function based on the given order and orderBy parameters.
- * @param {Order} order - The order in which to sort the items (asc or desc).
- * @param {Key} orderBy - The key to sort the items by.
- * @returns A comparator function that can be used to sort an array of objects.
- */
-
 function getComparator<Key extends keyof any>(
   order: Order,
   orderBy: Key
@@ -55,13 +39,6 @@ function getComparator<Key extends keyof any>(
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
-
-/**
- * Sorts an array in a stable manner using a custom comparator function.
- * @param {readonly T[]} array - The array to be sorted.
- * @param {(a: T, b: T) => number} comparator - The function used to compare elements in the array.
- * @returns {T[]} - The sorted array.
- */
 
 function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number) {
   const stabilizedThis = array.map((el, index) => [el, index] as [T, number]);
@@ -88,15 +65,21 @@ interface EnhancedTableProps {
     label: string;
   }[];
   checkbox: boolean;
+  action: React.ReactNode | null;
 }
 
-/**
- * Renders the table head component for an enhanced table.
- * @param {EnhancedTableProps} props - The props for the EnhancedTableHead component.
- * @returns The rendered table head component.
- */
 function EnhancedTableHead(props: EnhancedTableProps) {
-  const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort, columns, checkbox } = props;
+  const {
+    onSelectAllClick,
+    order,
+    orderBy,
+    numSelected,
+    rowCount,
+    onRequestSort,
+    columns,
+    checkbox,
+    action = null,
+  } = props;
 
   const { classes } = useStyles({ dense: undefined, alternativeColors: false, checkbox });
 
@@ -132,7 +115,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
               active={orderBy === headCell.id}
               direction={orderBy === headCell.id ? order : "asc"}
               onClick={createSortHandler(headCell.id)}>
-              <Text className={classes.tableCellHeaderText} typo="body 1">
+              <Text className={classes.tableCellHeaderText} typo="body 2">
                 {headCell.label}
               </Text>
               {orderBy === headCell.id ? (
@@ -143,7 +126,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
             </TableSortLabel>
           </TableCell>
         ))}
-        <TableCell className={classes.tableCell} padding="checkbox" />
+        {action ? <TableCell className={classes.tableCell} padding="checkbox" /> : null}
       </TableRow>
     </TableHead>
   );
@@ -162,7 +145,7 @@ type EnhanceTableProps = {
   openDialog?: React.Dispatch<React.SetStateAction<object | null>>;
   dialog?: { title: string; body: React.ReactNode; action: React.ReactNode };
   checkbox?: boolean;
-  more?: boolean;
+  action?: React.ReactNode | null;
 };
 
 /**
@@ -178,7 +161,7 @@ export function EnhancedTable(props: EnhanceTableProps) {
     dense,
     dialog,
     checkbox = true,
-    more = true,
+    action = null,
     alternativeColors = true,
     hover = false,
     ...rest
@@ -241,11 +224,8 @@ export function EnhancedTable(props: EnhanceTableProps) {
 
   const isSelected = (name: string | number) => selected.indexOf(name) !== -1;
 
-  function openDialogInitializer(
-    event: React.MouseEvent<HTMLButtonElement>,
-    row: { [x: string]: string | number; [x: number]: string | number }
-  ) {
-    setAnchorEl(event.currentTarget);
+  function openDialogInitializer(row: { [x: string]: string | number; [x: number]: string | number }) {
+    // setAnchorEl(event.currentTarget);
     if (openDialog) {
       openDialog(row);
     }
@@ -284,6 +264,7 @@ export function EnhancedTable(props: EnhanceTableProps) {
               onRequestSort={handleRequestSort}
               rowCount={rows.length}
               checkbox={checkbox}
+              action={action}
             />
             <TableBody>
               {visibleRows.map((row, index) => {
@@ -318,6 +299,7 @@ export function EnhancedTable(props: EnhanceTableProps) {
                           className={classes.tableCell}
                           key={index}
                           component="th"
+                          align={columnNames[index].numeric ? "right" : "left"}
                           id={labelId}
                           scope="row"
                           padding="none">
@@ -326,20 +308,11 @@ export function EnhancedTable(props: EnhanceTableProps) {
                           </Text>
                         </TableCell>
                       ))}
-                    {more ? (
+                    {action ? (
                       <TableCell className={classes.tableCell} padding="none">
-                        <IconButton
-                          onClick={(e) => openDialogInitializer(e, row)}
-                          iconId="moreVert"
-                          // iconVariant="gray"
-                          size="medium"
-                        />
+                        <div onClick={() => openDialogInitializer(row)}>{action}</div>
                       </TableCell>
                     ) : null}
-                    {/* <TableCell align="right">{row.calories}</TableCell>
-                    <TableCell align="right">{row.fat}</TableCell>
-                    <TableCell align="right">{row.carbs}</TableCell>
-                    <TableCell align="right">{row.protein}</TableCell> */}
                   </TableRow>
                 );
               })}
@@ -428,6 +401,6 @@ const useStyles = makeStyles<{ dense?: boolean | undefined; alternativeColors: b
   },
   tableCellHeaderText: {
     fontWeight: "bold",
-    paddingLeft: checkbox ? theme.spacing(3) : 0,
+    paddingLeft: theme.spacing(3),
   },
 }));

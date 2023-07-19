@@ -48,12 +48,8 @@ import { createText } from "./DataDisplay/Text";
 
 export const { ThemeProvider, StoryProvider, useTheme } = createThemeProvider({
   isReactStrictModeEnabled: false,
-  getTypographyDesc: ({ windowInnerWidth, browserFontSizeFactor, windowInnerHeight }) => ({
-    ...defaultGetTypographyDesc({
-      windowInnerWidth,
-      browserFontSizeFactor,
-      windowInnerHeight,
-    }),
+  getTypographyDesc: () => ({
+    ...defaultGetTypographyDesc(),
     fontFamily: "'Mulish', sans-serif",
   }),
 });

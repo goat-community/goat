@@ -1,6 +1,7 @@
-from multiprocessing.sharedctypes import Value
-from typing import Any, Optional, List
-from pydantic import BaseModel, Field, root_validator, validator
+from typing import List, Optional
+
+from pydantic import BaseModel, validator
+
 from src.resources.enums import ReturnType
 
 station_config_example = {
@@ -75,7 +76,7 @@ oev_gueteklasse_config_example = {
 class CalculateLocalAccessibilityAggregated(BaseModel):
     poi_category: str
 
+
 local_accessibility_aggregated_example = {
     "poi_category": "restaurant",
 }
-

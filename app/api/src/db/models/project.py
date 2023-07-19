@@ -1,20 +1,21 @@
 from typing import TYPE_CHECKING, List
+from uuid import UUID
+
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import (
-    ForeignKey,
     Column,
     Field,
+    ForeignKey,
+    Relationship,
     SQLModel,
     Text,
-    text,
-    Relationship,
 )
-from uuid import UUID
-from sqlalchemy.dialects.postgresql import JSONB
 
 if TYPE_CHECKING:
-    from .report import Report
-    from .content import Content
     from schemas.project import InitialViewState
+
+    from .content import Content
+    from .report import Report
 
 
 class Project(SQLModel, table=True):

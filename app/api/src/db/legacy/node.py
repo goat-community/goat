@@ -1,8 +1,7 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from geoalchemy2 import Geometry
 from sqlmodel import (
-    ARRAY,
     BigInteger,
     Column,
     Field,
@@ -11,7 +10,6 @@ from sqlmodel import (
     Integer,
     Relationship,
     SQLModel,
-    Text,
 )
 
 if TYPE_CHECKING:

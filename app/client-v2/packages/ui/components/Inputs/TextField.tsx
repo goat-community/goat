@@ -21,7 +21,6 @@ import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 
 import { makeStyles } from "../../lib/ThemeProvider";
-import { getBrowser } from "../../tools/getBrowser";
 import { useNonPostableEvtLike } from "../../tools/useNonPostableEvtLike";
 import { CircularProgress } from "../CircularProgress";
 import { createIcon, createIconButton, Tooltip } from "../DataDisplay";
@@ -89,6 +88,7 @@ export type TextFieldProps = {
   isCircularProgressShown?: boolean;
   placeholder?: string;
   filled?: boolean;
+  hiddenLabel?: boolean;
   selectAllTextOnFocus?: boolean;
   /** Default false */
   doRenderAsTextArea?: boolean;
@@ -178,6 +178,7 @@ export const TextField = memo((props: TextFieldProps) => {
     iconId,
     placeholder,
     filled = false,
+    hiddenLabel = false,
     type = "text",
     size = "medium",
     isCircularProgressShown = false,
@@ -407,6 +408,7 @@ export const TextField = memo((props: TextFieldProps) => {
       multiline={doRenderAsTextArea}
       rows={!doRenderAsTextArea ? undefined : rows}
       ref={ref}
+      hiddenLabel={hiddenLabel}
       variant={filled ? "filled" : "outlined"}
       type={type !== "password" ? type : isPasswordShown ? "text" : "password"}
       value={value}
@@ -474,62 +476,19 @@ const useStyles = makeStyles<{
     "&:focus": {
       outline: "unset",
     },
-    "& input:-webkit-autofill": {
-      ...(() => {
-        switch (getBrowser()) {
-          case "chrome":
-          case "safari":
-            return {
-              WebkitTextFillColor:
-                theme.colors.useCases.typography[theme.isDarkModeEnabled ? "textPrimary" : "textSecondary"],
-              WebkitBoxShadow: `0 0 0 1000px ${theme.colors.useCases.surfaces.surface1} inset`,
-            };
-          default:
-            return {};
-        }
-      })(),
-    },
     "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
       borderBottomWidth: filled ? 0 : 1,
     },
     "& .MuiInput-underline:after": {
       borderBottomWidth: filled ? 0 : 1,
     },
-    "& .css-1oemyht-MuiInputBase-root-MuiFilledInput-root:before": {
+    "& .mui-1ab69dk-MuiInputBase-root-MuiFilledInput-root:before": {
       border: "none",
     },
-    "& .css-1wmvkxj-MuiInputBase-root-MuiFilledInput-root:before": {
+    "& .mui-1ab69dk-MuiInputBase-root-MuiFilledInput-root:hover:not(.Mui-disabled, .Mui-error):before": {
       border: "none",
     },
-    "& .css-1oemyht-MuiInputBase-root-MuiFilledInput-root:after": {
-      border: "none",
-    },
-    "& .css-1wmvkxj-MuiInputBase-root-MuiFilledInput-root:after": {
-      border: "none",
-    },
-    "& .css-1leu81r-MuiInputBase-input-MuiFilledInput-input": {
-      paddingTop: "6px",
-      paddingBottom: "6px",
-    },
-    "& .css-p1g58z-MuiInputBase-input-MuiFilledInput-input": {
-      paddingTop: "6px",
-      paddingBottom: "6px",
-    },
-    ".css-1ohy0c1-MuiInputAdornment-root.MuiInputAdornment-positionStart.css-1ohy0c1-MuiInputAdornment-root:not(.MuiInputAdornment-hiddenLabel)":
-      {
-        margin: "0",
-        marginRight: theme.spacing(2),
-      },
-    "& .css-1ab69dk-MuiInputBase-root-MuiFilledInput-root:before": {
-      border: "none",
-    },
-    "& .css-1ab69dk-MuiInputBase-root-MuiFilledInput-root:after": {
-      border: "none",
-    },
-    "& .css-1ab69dk-MuiInputBase-root-MuiFilledInput-root:hover:not(.Mui-disabled, .Mui-error):before": {
-      border: "none",
-    },
-    "& .css-1oemyht-MuiInputBase-root-MuiFilledInput-root:hover:not(.Mui-disabled,.Mui-error):before": {
+    "& .mui-1ab69dk-MuiInputBase-root-MuiFilledInput-root:after": {
       border: "none",
     },
   },

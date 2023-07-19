@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
 set -x
 
-mypy app
-black app --check
-isort --recursive --check-only app
-flake8
+poetry run ruff src tests 
+poetry run black --check src tests

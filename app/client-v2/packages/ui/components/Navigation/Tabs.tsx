@@ -40,7 +40,7 @@ export const Tabs = memo(
     };
 
     return (
-      <Box sx={{ width: "100%", typography: "body1" }} className={className}>
+      <Box sx={{ width: "100%", typography: "14px" }} className={className}>
         <TabContext initialSelectedIndex="1" value={value}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <TabList onChange={handleChange} aria-label="lab API tabs example">
@@ -63,6 +63,7 @@ export const Tabs = memo(
 const useStyles = makeStyles({ name: { Tabs } })((theme) => ({
   tab: {
     padding: theme.spacing(2),
+    fontSize: "14px",
   },
   tabPandel: {
     padding: "0",

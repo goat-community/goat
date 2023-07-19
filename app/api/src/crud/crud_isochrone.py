@@ -6,13 +6,11 @@ import shutil
 import time
 import uuid
 from collections import defaultdict
-from errno import ELOOP
 from typing import Any
 
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-import pyproj
 import requests
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
@@ -22,7 +20,6 @@ from shapely.geometry import Point, shape
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
 
-from src import crud
 from src.core.config import settings
 from src.core.isochrone import compute_isochrone
 from src.core.opportunity import OpportunityIsochroneCount
@@ -34,7 +31,6 @@ from src.schemas.isochrone import (
     IsochroneDTO,
     IsochroneMode,
     IsochroneMultiRegionType,
-    IsochroneOutputType,
     IsochroneStartingPointCoord,
     IsochroneTypeEnum,
     R5AvailableDates,
@@ -116,15 +112,15 @@ class CRUDIsochrone:
     ) -> Any:
         sql_text = ""
         if isochrone_type == IsochroneTypeEnum.single.value:
-            sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+            sql_text = """SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
             FROM basic.fetch_network_routing(ARRAY[:x],ARRAY[:y], :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
             """
         elif isochrone_type == IsochroneTypeEnum.multi.value:
-            sql_text = f"""SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
+            sql_text = """SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
             FROM basic.fetch_network_routing_multi(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile)
             """
         elif isochrone_type == IsochroneTypeEnum.heatmap.value:
-            sql_text = f"""
+            sql_text = """
             SELECT id, source, target, cost, reverse_cost, coordinates_3857 as geom, length_3857 AS length, starting_ids, starting_geoms
             FROM basic.fetch_network_routing_heatmap(:x,:y, :max_cutoff, :speed, :modus, :scenario_id, :routing_profile, :table_prefix)
             """
@@ -292,7 +288,6 @@ class CRUDIsochrone:
                 translation_dict["attributes"] for c in list(gdf[translation_dict["traveltime"]])
             ]
             gdf_transposed[1:].to_excel(writer, sheet_name="Results")
-            workbook = writer.book
             worksheet = writer.sheets["Results"]
             worksheet.set_column(0, 0, 35, None)
             worksheet.set_column(1, gdf.shape[0], 25, None)
@@ -347,7 +342,7 @@ class CRUDIsochrone:
             obj_in_data["region_geom"] = obj_in.starting_point.region[0]
 
         sql_starting_points = text(
-            """SELECT x, y 
+            """SELECT x, y
             FROM basic.starting_points_multi_isochrones(:user_id, :modus, :minutes, :speed, :amenities, :scenario_id, :active_upload_ids, :region_geom, :study_area_ids)"""
         )
         starting_points = db.execute(sql_starting_points, obj_in_data)
@@ -365,7 +360,7 @@ class CRUDIsochrone:
         network = None
         step_size = 1
         max_value = 0
-        if obj_in.settings.travel_time != None:
+        if obj_in.settings.travel_time is not None:
             max_value = obj_in.settings.travel_time
 
         if len(obj_in.starting_point.input) == 1 and isinstance(
@@ -520,7 +515,7 @@ class CRUDIsochrone:
             if "geometry" not in regions.columns:
                 regions.rename_geometry("geometry", inplace=True)
             intersected_regions = []
-            for idx, region in regions.iterrows():
+            for _idx, region in regions.iterrows():
                 # clip the isochrone shapes to the regions
                 isochrone_clip = clip(isochrone_shapes["incremental"], region["geometry"])
                 # adds a column which combines the region id and the isochrone minute to avoid calling the opportunity intersect multiple times within the loop

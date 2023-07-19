@@ -1,7 +1,8 @@
-from uuid import UUID
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Column, text, ForeignKey, Relationship, Text, SQLModel, Field
 from typing import TYPE_CHECKING
+from uuid import UUID
+
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlmodel import Column, Field, ForeignKey, Relationship, SQLModel, Text
 
 if TYPE_CHECKING:
     from .content import Content
@@ -41,5 +42,7 @@ class Report(ReportBase, table=True):
     )
 
     # Relationships
-    content: "Content" = Relationship(back_populates="report", )
+    content: "Content" = Relationship(
+        back_populates="report",
+    )
     project: "Project" = Relationship(back_populates="reports")

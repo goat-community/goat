@@ -1,11 +1,13 @@
+from enum import Enum
 from typing import List
 from uuid import UUID
-from enum import Enum
+
 from pydantic import BaseModel, Field
-from src.db.models.content import ContentBase, Content
+
+from src.db.models.content import Content, ContentBase
+
 
 class ContentType(str, Enum):
-
     project = "project"
     layer = "layer"
     report = "report"

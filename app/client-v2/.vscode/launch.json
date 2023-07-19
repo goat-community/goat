@@ -12,6 +12,29 @@
         "uriFormat": "%s",
         "action": "debugWithChrome"
       }
-    }
+    },
+    {
+      "name": "GOAT Debug (Server-Side)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm run goat"
+    },
+    {
+      "name": "GOAT Debug (Client)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "GOAT Debug (Full Stack)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm run goat",
+      "serverReadyAction": {
+        "pattern": "started server on .+, url: (https?://.+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
+      }
+    },
   ]
 }

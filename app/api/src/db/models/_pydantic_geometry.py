@@ -6,7 +6,6 @@ from typing import Dict, Optional, Union
 
 import geoalchemy2.shape
 from geoalchemy2 import WKBElement
-from pydantic import BaseModel, Field, validator
 from shapely.geometry import Point, shape
 from shapely.geometry.base import BaseGeometry
 

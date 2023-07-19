@@ -449,7 +449,7 @@ export function FileManagementTable(props: FileManagementProps) {
                         <IconButton
                           onClick={(e) => openDialogInitializer(e, row)}
                           iconId="moreVert"
-                          size="medium"
+                          size="large"
                         />
                       </TableCell>
                     ) : null}

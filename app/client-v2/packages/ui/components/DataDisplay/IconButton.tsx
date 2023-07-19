@@ -1,3 +1,5 @@
+"use client";
+
 // Copyright (c) 2020 GitHub user u/garronej
 
 /* eslint-disable @typescript-eslint/no-namespace */
