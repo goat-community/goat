@@ -16,14 +16,17 @@
     "@deploysentinel/playwright": "^0.3.4",
     "@playwright/test": "^1.33.0",
     "commitizen": "^4.3.0",
+    "dotenv-cli": "7.2.1",
     "eslint": "^8.40.0",
     "husky": "^8.0.3",
     "install": "^0.13.0",
     "prettier": "^2.8.8",
     "syncpack": "^9.8.6",
-    "turbo": "latest",
-    "dotenv-cli": "7.2.1"
+    "turbo": "latest"
   },
   "packageManager": "pnpm@7.15.0",
-  "name": "p4b-client-monorepo"
+  "name": "p4b-client-monorepo",
+  "dependencies": {
+    "react-map-gl": "^7.1.2"
+  }
 }
