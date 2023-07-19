@@ -57,8 +57,10 @@ importers:
       react-dom: ^18.2.0
       react-map-gl: ^7.1.2
       react-redux: ^8.1.1
+      swr: ^2.2.0
       tss-react: latest
       typescript: ^5.0.4
+      zod: ^3.21.4
     dependencies:
       '@emotion/cache': 11.11.0
       '@emotion/react': 11.11.1_i73ekzlbntu7jol6ph2fvy4mga
@@ -79,7 +81,9 @@ importers:
       react-dom: 18.2.0_react@18.2.0
       react-map-gl: 7.1.2_dpimhpj3xwialnzqhpaxofqs74
       react-redux: 8.1.1_oh6ueir3je3gfvdwt5xbrbexr4
-      tss-react: 4.8.7_xo5t6f4ryb2nvjgwj2cxjowrye
+      swr: 2.2.0_react@18.2.0
+      tss-react: 4.8.8_xo5t6f4ryb2nvjgwj2cxjowrye
+      zod: 3.21.4
     devDependencies:
       '@p4b/config': link:../../packages/config
       '@p4b/tsconfig': link:../../packages/tsconfig
@@ -7306,7 +7310,7 @@ packages:
   /axios/1.4.0:
     resolution: {integrity: sha512-S4XCWMEmzvo64T9GfvQDOXgYRDJ/wsSZc7Jvdgx5u1sd0JwsuPLqb3SYmusag+edF6ziyMensPVqLTSc1PiSEA==}
     dependencies:
-      follow-redirects: 1.15.2_debug@4.3.4
+      follow-redirects: 1.15.2
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -10596,6 +10600,16 @@ packages:
     engines: {node: '>=0.4.0'}
     dev: true
 
+  /follow-redirects/1.15.2:
+    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dev: false
+
   /follow-redirects/1.15.2_debug@4.3.4:
     resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
     engines: {node: '>=4.0'}
@@ -10606,6 +10620,7 @@ packages:
         optional: true
     dependencies:
       debug: 4.3.4
+    dev: true
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -17431,6 +17446,15 @@ packages:
       stable: 0.1.8
     dev: true
 
+  /swr/2.2.0_react@18.2.0:
+    resolution: {integrity: sha512-AjqHOv2lAhkuUdIiBu9xbuettzAzWXmCEcLONNKJRba87WAefz8Ca9d6ds/SzrPc235n1IxWYdhJ2zF3MNUaoQ==}
+    peerDependencies:
+      react: ^16.11.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
+      use-sync-external-store: 1.2.0_react@18.2.0
+    dev: false
+
   /symbol-tree/3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
     dev: true
@@ -17871,8 +17895,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  /tss-react/4.8.7_xo5t6f4ryb2nvjgwj2cxjowrye:
-    resolution: {integrity: sha512-nF/A2U/uW3K3K5fDusmoEawPY0ioupBpeNZf6FLraUtki23OtqlkOyUWpWzKknYyWrXnSZnpujY9pJmgE8zPZA==}
+  /tss-react/4.8.8_xo5t6f4ryb2nvjgwj2cxjowrye:
+    resolution: {integrity: sha512-V57AU6J42LLhYhRGSxDVi9VLUaoQtV6y2Kb1e0uqabe3w61G9R8gkUiX4DHZUReboRY9rwExPWz0LVZIgqQ98Q==}
     peerDependencies:
       '@emotion/react': ^11.4.1
       '@emotion/server': ^11.4.0
