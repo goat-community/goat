@@ -1,93 +1,32 @@
-import type { User } from "next-auth";
+import type { DefaultUser, DefaultSession } from "next-auth";
+import "next-auth/jwt";
 
 declare module "next-auth" {
-  /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `Provider` React Context
-   */
-  interface Session {
-    user: {
-      sub: string;
-      email_verified: boolean;
-      name: string;
-      preferred_username: string;
-      given_name: string;
-      family_name: string;
-      email: string;
-      id: string;
-      org_id?: string;
-      org_name?: string;
-      telephone?: string;
-    };
-    error: string;
-    accessToken: string;
+  interface User extends DefaultUser {
+    org_id?: string;
   }
-  /**
-   * The shape of the user object returned in the OAuth providers' `profile` callback,
-   * or the second parameter of the `session` callback, when using a database.
-   */
-  interface User {
-    sub: string;
-    email_verified: boolean;
-    name: string;
-    telephone: string;
-    preferred_username: string;
-    org_name: string;
-    org_id: string;
-    given_name: string;
-    family_name: string;
-    email: string;
-    id: string;
+  interface Session extends DefaultSession {
+    user?: User;
+    error?: "RefreshAccessTokenError";
   }
-  /**
-   * Usually contains information about the provider being used
-   * and also extends `TokenSet`, which is different tokens returned by OAuth Providers.
-   */
-  interface Account {
-    provider: string;
-    type: string;
-    id: string;
+  interface KeycloakTokenSet {
     access_token: string;
-    accessTokenExpires?: any;
     refresh_token: string;
     id_token: string;
-    expires_at: number;
+    expires_in: number;
     refresh_expires_in: number;
-    refresh_token: string;
-    token_type: string;
-    id_token: string;
-    "not-before-policy": number;
-    session_state: string;
-    scope: string;
-  }
-  /** The OAuth profile returned from your provider */
-  interface Profile {
-    sub: string;
-    email_verified: boolean;
-    name: string;
-    telephone: string;
-    preferred_username: string;
-    org_name: string;
-    org_id: string;
-    given_name: string;
-    family_name: string;
-    email: string;
   }
 }
-
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `getToken`, when using JWT sessions */
   interface JWT {
-    name: string;
-    email: string;
-    sub: string;
-    name: string;
-    email: string;
-    sub: string;
-    accessToken: string;
-    refreshToken: string;
-    accessTokenExpired: number;
-    refreshTokenExpired: number;
-    user: User;
-    error: string;
+    provider: string;
+    access_token: string;
+    refresh_token: string;
+    id_token: string;
+    expires_at: number;
+    user_roles?: string[];
+    org_id?: string;
+    error?: "RefreshAccessTokenError";
   }
 }
