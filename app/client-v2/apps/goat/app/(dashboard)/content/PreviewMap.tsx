@@ -1,3 +1,5 @@
+"use client";
+
 import ContentPage from "@/app/(dashboard)/content/page";
 import { makeStyles } from "@/lib/theme";
 import "mapbox-gl/dist/mapbox-gl.css";
