@@ -9,6 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/cache": "latest",
+    "@emotion/react": "latest",
+    "@emotion/styled": "latest",
+    "@mui/icons-material": "latest",
+    "@mui/material": "latest",
     "@p4b/ui": "workspace:*",
     "@reduxjs/toolkit": "^1.9.5",
     "@types/mapbox-gl": "^2.7.11",
@@ -16,19 +21,16 @@
     "geojson": "^0.5.0",
     "mapbox-gl": "^2.15.0",
     "maplibre-gl": "^3.1.0",
-    "next": "v13.4.10-canary.8",
+    "next": "v13.4.10",
     "next-auth": "^4.22.1",
     "next-i18next": "^13.2.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-map-gl": "^7.1.2",
     "react-redux": "^8.1.1",
-    "@emotion/cache": "latest",
-    "@emotion/react": "latest",
-    "@emotion/styled": "latest",
-    "@mui/icons-material": "latest",
-    "@mui/material": "latest",
-    "tss-react": "latest"
+    "swr": "^2.2.0",
+    "tss-react": "latest",
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@p4b/config": "workspace:*",
