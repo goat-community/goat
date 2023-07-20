@@ -14,7 +14,7 @@ export const { ThemeProvider, useTheme } = createThemeProvider({
 
     return {
       fontFamily: '"Mulish", sans-serif',
-      rootFontSizePx: typographyDesc.rootFontSizePx,
+      rootFontSizePx: 16,
       variants: {
         ...typographyDesc.variants,
         "display heading": {

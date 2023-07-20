@@ -51,6 +51,7 @@ export const { ThemeProvider, StoryProvider, useTheme } = createThemeProvider({
   getTypographyDesc: () => ({
     ...defaultGetTypographyDesc(),
     fontFamily: "'Mulish', sans-serif",
+    rootFontSizePx: 16,
   }),
 });
 

@@ -86,8 +86,8 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = () => ({
       fontWeight: id<TypographyDesc.FontWeightProperty>("bold"),
       ...(() => {
         return {
-          fontSizeRem: 1.75,
-          lineHeightRem: 2.5,
+          fontSizeRem: 2.8,
+          lineHeightRem: 3.25,
         };
       })(),
     },
@@ -96,8 +96,8 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = () => ({
       fontWeight: id<TypographyDesc.FontWeightProperty>("bold"),
       ...(() => {
         return {
-          fontSizeRem: 1.125,
-          lineHeightRem: 1.25,
+          fontSizeRem: 2.25,
+          lineHeightRem: 2.5,
         };
       })(),
     },
@@ -116,8 +116,8 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = () => ({
       fontWeight: id<TypographyDesc.FontWeightProperty>("bold"),
       ...(() => {
         return {
-          fontSizeRem: 0.875,
-          lineHeightRem: 1.28,
+          fontSizeRem: 1.5,
+          lineHeightRem: 2,
         };
       })(),
     },
@@ -126,8 +126,8 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = () => ({
       fontWeight: id<TypographyDesc.FontWeightProperty>(600),
       ...(() => {
         return {
-          fontSizeRem: 0.875,
-          lineHeightRem: 1.28,
+          fontSizeRem: 1.25,
+          lineHeightRem: 1.7,
         };
       })(),
     },
@@ -136,8 +136,8 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = () => ({
       fontWeight: id<TypographyDesc.FontWeightProperty>(500),
       ...(() => {
         return {
-          fontSizeRem: 0.875,
-          lineHeightRem: 1.28,
+          fontSizeRem: 1.25,
+          lineHeightRem: 1.7,
         };
       })(),
     },
@@ -146,8 +146,8 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = () => ({
       fontWeight: id<TypographyDesc.FontWeightProperty>(500),
       ...(() => {
         return {
-          fontSizeRem: 0.75,
-          lineHeightRem: 1,
+          fontSizeRem: 1,
+          lineHeightRem: 1.475,
         };
       })(),
     },
@@ -156,8 +156,8 @@ export const defaultGetTypographyDesc: GetTypographyDesc<never> = () => ({
       fontWeight: id<TypographyDesc.FontWeightProperty>(500),
       ...(() => {
         return {
-          fontSizeRem: 0.625,
-          lineHeightRem: 0.69,
+          fontSizeRem: 0.875,
+          lineHeightRem: 1.28,
         };
       })(),
     },
