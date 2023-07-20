@@ -23,14 +23,14 @@ export default function ToggleButtons(props: ToggleButtonsType) {
 
   return (
     <ToggleButtonGroup
-      color="primary"
+      color="secondary"
       value={val}
       exclusive
       onChange={(e, newVal) => setVal(newVal)}
       aria-label="Platform"
       className={className || ''}
     >
-      {items?.map(item => <ToggleButton value={item.value}>{item.icon}</ToggleButton>)}
+      {items?.map(item => <ToggleButton key={`toggleButton-${item.value}`} value={item.value}>{item.icon}</ToggleButton>)}
     </ToggleButtonGroup>
   );
 }

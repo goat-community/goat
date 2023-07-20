@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react';
-import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
 
@@ -22,17 +21,24 @@ export default function BasicBreadcrumbs(props: BreadcrumbsType) {
   return (
     <div role="presentation" onClick={eventHandler}>
       <Breadcrumbs aria-label="breadcrumb">
-        <Link underline="hover" color="inherit" href="/">
-          MUI
+        <Link
+          underline="hover"
+          href="/"
+        >
+          Home
         </Link>
         <Link
           underline="hover"
-          color="inherit"
           href="/"
         >
-          Core
+          Folder XYZ
         </Link>
-        <Typography color="text.primary">Breadcrumbs</Typography>
+        <Link
+          underline="hover"
+          href="/"
+        >
+          Link
+        </Link>
       </Breadcrumbs>
     </div>
   );
