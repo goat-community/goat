@@ -3,7 +3,7 @@
 /* eslint-disable react/display-name */
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import { Box } from "@mui/material";
+import { Box, Card } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
 import { usePrepareTemplate } from "keycloakify/lib/usePrepareTemplate";
 import { type TemplateProps as GenericTemplateProps } from "keycloakify/login/TemplateProps";
@@ -13,7 +13,6 @@ import { memo } from "react";
 import { symToStr } from "tsafe/symToStr";
 
 import { Alert } from "@p4b/ui/components/Alert";
-import { Card } from "@p4b/ui/components/Card";
 import { useDomRect } from "@p4b/ui/lib";
 
 import { ThemeProvider, makeStyles, Text } from "../theme";

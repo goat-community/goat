@@ -6,7 +6,6 @@ import Dialog from "../../Dialog";
 import Modal from "../../Modal";
 import { Card } from "../../Surfaces";
 import { Icon, Text, IconButton, Button } from "../../theme";
-import DashboardLayout from "../DashboardLayout";
 import ContentInfoModal from "./components/ContentInfoModal";
 import HeaderCard from "./components/HeaderCard";
 import MoreMenu from "./components/MoreMenu";
@@ -14,9 +13,9 @@ import TreeViewFilter from "./components/TreeViewFilter";
 
 const ContentManagement = () => {
   return (
-    <DashboardLayout>
+    <div>
       <ContentManagementComponent />
-    </DashboardLayout>
+    </div>
   );
 };
 
@@ -377,7 +376,7 @@ const ContentManagementComponent = () => {
   );
 };
 
-const useStyles = makeStyles({ name: { DashboardLayout } })((theme) => ({
+const useStyles = makeStyles({ name: { ContentManagementComponent } })((theme) => ({
   container: {
     display: "flex",
     gap: theme.spacing(3),

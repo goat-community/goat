@@ -246,7 +246,7 @@ export type MapProps = {
   layer: string;
 };
 
-export default function MapByStyle(props: MapProps) {
+export default function MapByLayer(props: MapProps) {
   const { layer } = props;
 
   console.log(layer);
