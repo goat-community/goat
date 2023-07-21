@@ -1,3 +1,4 @@
+import AuthCheck from "@/components/AuthCheck";
 import ThemeRegistry from "@/lib/ThemeRegistry";
 import AuthProvider from "@/lib/context/AuthProvider";
 import Provider from "@/lib/context/StoreProvider";
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Provider>
           <AuthProvider>
+            <AuthCheck />
             <ThemeRegistry>{children}</ThemeRegistry>
           </AuthProvider>
         </Provider>
