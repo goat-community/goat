@@ -69,7 +69,7 @@ export const Slideshow: Story = {
   parameters: {
     design: {
       type: "figma",
-      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=11533-159301&t=HR0djJcCsGmFmiKK-0",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=12355%3A135730&mode=dev",
     },
   },
 };
@@ -104,7 +104,7 @@ export const OnlyTitle: Story = {
   parameters: {
     design: {
       type: "figma",
-      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=11533-159301&t=HR0djJcCsGmFmiKK-0",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=12355%3A135730&mode=dev",
     },
   },
 };
@@ -143,7 +143,7 @@ export const OnlyDescription: Story = {
   parameters: {
     design: {
       type: "figma",
-      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=11533-159301&t=HR0djJcCsGmFmiKK-0",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=12355%3A135730&mode=dev",
     },
   },
 };
@@ -174,7 +174,7 @@ export const PlainSlideshow: Story = {
   parameters: {
     design: {
       type: "figma",
-      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?type=design&node-id=11533-159301&t=HR0djJcCsGmFmiKK-0",
+      url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=12355%3A135730&mode=dev",
     },
   },
 };

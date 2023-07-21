@@ -2,8 +2,8 @@
 
 import { makeStyles } from "@/lib/theme";
 
-import Footer from "@p4b/ui/components/Footer";
-import { Toolbar } from "@p4b/ui/components/Toolbar";
+import Footer from "@p4b/ui/components/Navigation/Footer";
+import { Toolbar } from "@p4b/ui/components/Navigation/Toolbar";
 import { Icon } from "@p4b/ui/components/theme";
 import type { IconId } from "@p4b/ui/components/theme";
 

@@ -51,15 +51,15 @@ export const defaultSpacingConfig: SpacingConfig = ({ factorOrExplicitNumberOfPx
         case 1:
           return 0.25;
         case 2:
-          return 0.25;
-        case 3:
           return 0.5;
+        case 3:
+          return 1;
         case 4:
-          return 1;
-        case 5:
-          return 1;
-        case 6:
           return 1.5;
+        case 5:
+          return 2;
+        case 6:
+          return 2.875;
       }
 
       assert(false);

@@ -2,9 +2,7 @@ import CloseSharp from "@mui/icons-material/CloseSharp";
 
 import "@p4b/ui/assets/fonts/mulish/font.css";
 import { createButton } from "@p4b/ui/components/Button";
-import { createIcon } from "@p4b/ui/components/Icon";
-import { createIconButton } from "@p4b/ui/components/Icon/IconButton";
-import { createText } from "@p4b/ui/components/Text";
+import { createText, createIconButton, createIcon } from "@p4b/ui/components/DataDisplay";
 import {
   createThemeProvider,
   defaultGetTypographyDesc,

@@ -1,11 +1,11 @@
 "use client";
 
 import { makeStyles } from "@/lib/theme";
+import { TextField } from "@mui/material";
 import "mapbox-gl/dist/mapbox-gl.css";
 import React from "react";
 
 import BasicAccordion from "@p4b/ui/components/BasicAccordion";
-import { TextField } from "@p4b/ui/components/Text/TextField";
 
 const useStyles = () =>
   makeStyles({ name: { PreviewMenu } })(() => ({

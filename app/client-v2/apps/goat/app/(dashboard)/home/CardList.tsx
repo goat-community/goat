@@ -2,10 +2,8 @@
 
 import { makeStyles } from "@/lib/theme";
 
-import { CardContent } from "@p4b/ui/components/Card";
-import { CardMedia } from "@p4b/ui/components/Card";
-import { Card } from "@p4b/ui/components/Card/Card";
-import { Divider } from "@p4b/ui/components/Divider";
+import { Divider } from "@p4b/ui/components/DataDisplay/Divider";
+import { CardContent, CardMedia, Card } from "@p4b/ui/components/Surfaces";
 import { Button } from "@p4b/ui/components/theme";
 import { Text } from "@p4b/ui/components/theme";
 

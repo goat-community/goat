@@ -12,7 +12,7 @@ import { useStateRef } from "powerhooks/useStateRef";
 import { useState, type FormEventHandler } from "react";
 
 import { Checkbox } from "@p4b/ui/components/Checkbox";
-import { TextField } from "@p4b/ui/components/Text/TextField";
+import { TextField } from "@p4b/ui/components/Inputs";
 
 import { makeStyles, Text, Button } from "../../theme";
 import type { I18n } from "../i18n";

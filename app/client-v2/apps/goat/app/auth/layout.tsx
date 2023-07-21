@@ -3,8 +3,8 @@
 import { makeStyles } from "@/lib/theme";
 
 import Box from "@p4b/ui/components/Box";
-import { Card } from "@p4b/ui/components/Card";
 import Grid from "@p4b/ui/components/Grid";
+import { Card } from "@p4b/ui/components/Surfaces";
 
 interface AuthLayoutProps {
   children: React.ReactNode;

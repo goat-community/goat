@@ -7,9 +7,9 @@ import { useReducer, memo } from "react";
 import type { ReactNode } from "react";
 
 import { makeStyles } from "../lib/ThemeProvider";
-import { createIcon } from "./Icon/Icon";
-import { createIconButton } from "./Icon/IconButton";
-import { Text } from "./Text/TextBase";
+import { createIcon } from "./DataDisplay";
+import { createIconButton } from "./DataDisplay/IconButton";
+import { Text } from "./theme";
 
 export type AlertProps = {
   className?: string;
@@ -47,7 +47,13 @@ export const Alert = memo((props: AlertProps) => {
       action={
         doDisplayCross ? <IconButton iconId="closeSharp" aria-label="close" onClick={close} /> : undefined
       }>
-      {typeof children === "string" ? <Text typo="label 2">{children}</Text> : children}
+      {typeof children === "string" ? (
+        <Text typo="label 2" color="primary">
+          {children}
+        </Text>
+      ) : (
+        children
+      )}
     </MuiAlert>
   );
 });

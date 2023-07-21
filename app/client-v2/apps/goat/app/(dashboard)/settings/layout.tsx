@@ -4,7 +4,7 @@ import { makeStyles } from "@/lib/theme";
 import { Text } from "@/lib/theme";
 import { useState } from "react";
 
-import { Divider } from "@p4b/ui/components/Divider";
+import { Divider } from "@p4b/ui/components/DataDisplay/Divider";
 
 import Organization from "./organization/page";
 import PrivacyPreferences from "./privacy-preference/page";
