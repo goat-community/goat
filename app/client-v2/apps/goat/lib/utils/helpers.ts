@@ -11,3 +11,23 @@ export function filterSearch<T extends Record<string, any>>(
   }
   return allArray;
 }
+
+export function makeArrayUnique<T>(arr: T[], key: keyof T): T[] {
+  const uniqueSet = new Set();
+  const uniqueArray: T[] = [];
+
+  arr.forEach((obj) => {
+    const uniqueValue = criterion(obj, key);
+
+    if (!uniqueSet.has(uniqueValue)) {
+      uniqueSet.add(uniqueValue);
+      uniqueArray.push(obj);
+    }
+  });
+
+  return uniqueArray;
+}
+
+function criterion<T>(person: T, key: keyof T) {
+  return person[key];
+}

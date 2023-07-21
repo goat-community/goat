@@ -1,29 +1,28 @@
 "use client";
 
-import HeaderStack from "@/app/(dashboard)/content/HeaderStack";
-import PreviewMap from "@/app/(dashboard)/content/PreviewMap";
-import PreviewMenu from "@/app/(dashboard)/content/PreviewMenu";
+import HeaderStack from "@/app/(dashboard)/content/preview/HeaderStack";
+import PreviewMap from "@/app/(dashboard)/content/preview/PreviewMap";
+import PreviewMenu from "@/app/(dashboard)/content/preview/PreviewMenu";
 import { makeStyles } from "@/lib/theme";
 
-const useStyles = () =>
-  makeStyles({ name: { PreviewManagement } })(() => ({
-    root: {
-      position: "relative",
-      width: "100%",
-      minHeight: "100vh",
-      marginTop: "100px",
-    },
-    container: {
-      padding: "18px 0",
-      display: "flex",
-      justifyContent: "space-between",
-      gap: "16px",
-      height: "732px",
-    },
-  }));
+const useStyles = makeStyles({ name: { PreviewManagement } })(() => ({
+  root: {
+    position: "relative",
+    width: "100%",
+    minHeight: "100vh",
+    marginTop: "100px",
+  },
+  container: {
+    padding: "18px 0",
+    display: "flex",
+    justifyContent: "space-between",
+    gap: "16px",
+    height: "732px",
+  },
+}));
 
 export default function PreviewManagement() {
-  const { classes, cx } = useStyles()();
+  const { classes, cx } = useStyles();
   // const theme = useTheme();
 
   const mapProps = {

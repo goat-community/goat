@@ -71,7 +71,7 @@ export function AutoComplete(props: AutoComplete) {
         disableCloseOnSelect
         size={size}
         renderOption={(props, option, { selected }) => (
-          <li {...props}>
+          <li {...props} key={option.value}>
             <Checkbox checked={selected} icon={icon} checkedIcon={checkedIcon} />
             {option.label}
           </li>

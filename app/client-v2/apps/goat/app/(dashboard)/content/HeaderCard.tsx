@@ -101,7 +101,6 @@ const useStyles = makeStyles({ name: { HeaderCard } })((theme) => ({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
   },
   headerText: {
     fontWeight: 800,

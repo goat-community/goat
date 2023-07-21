@@ -13,33 +13,32 @@ import Box from "@p4b/ui/components/Box";
 import BasicBreadcrumbs from "@p4b/ui/components/BreadCrumbs";
 import ToggleButtons from "@p4b/ui/components/ToggleButtons";
 
-const useStyles = () =>
-  makeStyles({ name: { HeaderStack } })((theme) => ({
-    header: {
-      backgroundColor: theme.muiTheme.palette.background.paper,
-      height: "56px",
-      padding: theme.spacing(4),
-      zIndex: "100",
-      boxShadow: "0px 2px 4px -1px rgba(0, 0, 0, 0.12)",
-    },
-    title: {
-      fontSize: "24px",
-      fontStyle: "normal",
-      fontWeight: 800,
-      lineHeight: "133.4%",
-      color: "#09241A",
-    },
-    breadcrumbsWrapper: {
-      display: "flex",
-      alignItems: "center",
-      gap: "16px",
-    },
-  }));
+const useStyles = makeStyles({ name: { HeaderStack } })((theme) => ({
+  header: {
+    backgroundColor: theme.muiTheme.palette.background.paper,
+    height: "56px",
+    padding: theme.spacing(4),
+    zIndex: "100",
+    boxShadow: "0px 2px 4px -1px rgba(0, 0, 0, 0.12)",
+  },
+  title: {
+    fontSize: "24px",
+    fontStyle: "normal",
+    fontWeight: 800,
+    lineHeight: "133.4%",
+    color: "#09241A",
+  },
+  breadcrumbsWrapper: {
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
+  },
+}));
 
 export default function HeaderStack() {
   const [mode, setMode] = useState("map");
-  const { classes, cx } = useStyles()();
-  // const theme = useTheme();
+  const { classes, cx } = useStyles();
+
   const router = useRouter();
 
   const buttons = [
