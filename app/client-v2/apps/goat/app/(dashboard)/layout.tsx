@@ -44,6 +44,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     },
   ];
 
+  
   const footerLinks: { header: string; links: { name: string; underline?: boolean; icon?: IconId }[] }[] = [
     {
       header: "Navigate",
