@@ -1,11 +1,10 @@
+import { Tooltip } from "@mui/material";
 import Link from "@mui/material/Link";
 import type { PageProps } from "keycloakify/login/pages/PageProps";
 import { useRef, useState } from "react";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import ReCAPTCHA from "react-google-recaptcha";
-
-import { Tooltip } from "@p4b/ui/components/Tooltip";
 
 import { makeStyles, Button, Text } from "../../theme";
 import type { I18n } from "../i18n";

@@ -2,7 +2,7 @@ import { Link, Stack } from "@mui/material";
 
 import { GOATLogoGreenSvg } from "../../assets/svg/GOATLogoGreen";
 import { makeStyles } from "../../lib/ThemeProvider";
-import { TextField } from "../Inputs/TextField";
+import { TextField } from "../Inputs";
 
 export type ToolbarProps = {
   items: { link: string; icon: () => JSX.Element }[];

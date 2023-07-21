@@ -2,10 +2,9 @@ import { useState } from "react";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
 import Modal from "../../../Modal";
-import { ToggleTabs } from "../../../Navigation/ToggleTabs";
+import { ToggleTabs } from "../../../Navigation";
 import { Card } from "../../../Surfaces";
 import { Button, Text, IconButton } from "../../../theme";
-import DashboardLayout from "../../DashboardLayout";
 import CreateContent from "./CreateContent";
 
 interface HeaderCardProps {
@@ -95,7 +94,7 @@ const HeaderCard = (props: HeaderCardProps) => {
   );
 };
 
-const useStyles = makeStyles({ name: { DashboardLayout } })((theme) => ({
+const useStyles = makeStyles({ name: { HeaderCard } })((theme) => ({
   headerCard: {
     marginBottom: theme.spacing(3),
   },

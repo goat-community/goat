@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react/dist";
 
-import { SelectField } from "../../../components/Inputs/SelectField";
+import { SelectField } from "../../../components/Inputs";
 import { ThemeProvider } from "../../theme";
 
 const meta: Meta<typeof SelectField> = {

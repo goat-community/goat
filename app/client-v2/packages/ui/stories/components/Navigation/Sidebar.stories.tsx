@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { DashboardSidebar } from "../../../components/Navigation/DashboardSidebar";
+import { DashboardSidebar } from "../../../components/Navigation";
 import { ThemeProvider } from "../../theme";
 
 const meta: Meta<typeof DashboardSidebar> = {
