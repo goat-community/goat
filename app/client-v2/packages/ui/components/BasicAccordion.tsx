@@ -40,7 +40,7 @@ export default function BasicAccordion(props: BasicAccordionTypes) {
           id="panel1a-header"
           className={cx(classes.content)}
         >
-          <Typography>{ title }</Typography>
+          <Typography>{title}</Typography>
         </AccordionSummary>
         <AccordionDetails className={cx(classes.content)}>
           {children}

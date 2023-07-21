@@ -1,6 +1,5 @@
 "use client";
 
-import ContentPage from "@/app/(dashboard)/content/page";
 import { makeStyles } from "@/lib/theme";
 import "mapbox-gl/dist/mapbox-gl.css";
 import React from "react";
@@ -22,7 +21,7 @@ export type PreviewMapType = {
 };
 
 const useStyles = () =>
-  makeStyles({ name: { ContentPage } })(() => ({
+  makeStyles({ name: { PreviewMap } })(() => ({
     root: {
       width: "100%",
       height: "100%",

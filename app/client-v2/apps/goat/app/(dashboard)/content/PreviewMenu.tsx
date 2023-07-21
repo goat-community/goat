@@ -12,7 +12,7 @@ const useStyles = () =>
     root: {
       width: "280px",
       borderRadius: "4px",
-      border: "1px solid var(--light-primary-shades-8-p, rgba(43, 179, 129, 0.08))",
+      border: "1px solid rgba(43, 179, 129, 0.08)",
       boxShadow: "0px 2px 4px -1px rgba(0, 0, 0, 0.12)",
       background: "#FAFAFA",
       padding: "16px",

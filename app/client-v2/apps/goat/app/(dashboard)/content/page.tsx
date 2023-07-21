@@ -6,7 +6,7 @@ import PreviewMenu from "@/app/(dashboard)/content/PreviewMenu";
 import { makeStyles } from "@/lib/theme";
 
 const useStyles = () =>
-  makeStyles({ name: { ContentPage } })((theme) => ({
+  makeStyles({ name: { ContentPage } })(() => ({
     root: {
       position: "relative",
       width: "100%",
