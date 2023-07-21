@@ -1,5 +1,7 @@
 "use client";
 
+import GridContainer from "@/components/grid/GridContainer";
+import SingleGrid from "@/components/grid/SingleGrid";
 import { makeStyles } from "@/lib/theme";
 
 import { SlideShow } from "@p4b/ui/components/SlideShow";
@@ -210,27 +212,24 @@ const Home = () => {
   ];
 
   return (
-    <div className={classes.homePage}>
-      <SlideShow images={slideShowImages} height={328} width="100%" />
-      {tempCardInfo.map((cardSection: CardDataType, index: number) => (
-        <CardList
-          title={cardSection.title}
-          cards={cardSection.cards}
-          buttons={cardSection.buttons}
-          key={index}
-        />
-      ))}
-      <NewsLetterSection />
-    </div>
+    <GridContainer>
+      <SingleGrid span={4}>
+        <SlideShow images={slideShowImages} height={328} width="100%" />
+        {tempCardInfo.map((cardSection: CardDataType, index: number) => (
+          <CardList
+            title={cardSection.title}
+            cards={cardSection.cards}
+            buttons={cardSection.buttons}
+            key={index}
+          />
+        ))}
+        <NewsLetterSection />
+      </SingleGrid>
+    </GridContainer>
   );
 };
 
 const useStyles = makeStyles({ name: { Home } })(() => ({
-  homePage: {
-    width: "81%",
-    marginRight: "6%",
-    marginLeft: "13%",
-  },
   media: {
     width: "100%",
     height: "100px",

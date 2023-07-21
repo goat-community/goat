@@ -1,5 +1,7 @@
 "use client";
 
+import GridContainer from "@/components/grid/GridContainer";
+import SingleGrid from "@/components/grid/SingleGrid";
 import { useState } from "react";
 
 import { FileManagementTable, Chip } from "@p4b/ui/components/DataDisplay";
@@ -326,48 +328,56 @@ const ContentManagement = () => {
   }
 
   return (
-    <div>
-      <HeaderCard path={path} setPath={setPath} />
-      <div className={classes.container}>
-        <TreeViewFilter />
-        <Card noHover={true} className={classes.tableCard}>
-          <FileManagementTable
-            hover={true}
-            columnNames={columnNames}
-            rows={rows}
-            modal={modal}
-            setDialogAnchor={setAnchorEl}
-            openDialog={setDialogContent}
-            openModal={setModalContent}
-            currPath={path}
-            setPath={setPath}
-          />
-          {anchorEl ? (
-            <Dialog
-              anchorEl={anchorEl}
-              className={classes.moreInfoDialog}
-              onClick={closeTablePopover}
-              // title={dialog ? dialog.title : undefined}
-              width={dialog?.width ? dialog.width : "444px"}
-              direction="right"
-              // action={dialog?.action}
-            >
-              {dialog ? dialog.body : ""}
-            </Dialog>
-          ) : null}
-          {modal && modalContent ? (
-            <Modal
-              width="444px"
-              open={modalContent ? true : false}
-              changeOpen={() => setModalContent(null)}
-              header={modal.header}
-              action={modal.action}>
-              {modal.body}
-            </Modal>
-          ) : null}
-        </Card>
-      </div>
-    </div>
+    <>
+      <GridContainer>
+        <SingleGrid span={4}>
+          <HeaderCard path={path} setPath={setPath} />
+        </SingleGrid>
+      </GridContainer>
+      <GridContainer>
+        <SingleGrid span={1}>
+          <TreeViewFilter />
+        </SingleGrid>
+        <SingleGrid span={3}>
+          <Card noHover={true} className={classes.tableCard}>
+            <FileManagementTable
+              hover={true}
+              columnNames={columnNames}
+              rows={rows}
+              modal={modal}
+              setDialogAnchor={setAnchorEl}
+              openDialog={setDialogContent}
+              openModal={setModalContent}
+              currPath={path}
+              setPath={setPath}
+            />
+            {anchorEl ? (
+              <Dialog
+                anchorEl={anchorEl}
+                className={classes.moreInfoDialog}
+                onClick={closeTablePopover}
+                // title={dialog ? dialog.title : undefined}
+                width={dialog?.width ? dialog.width : "444px"}
+                direction="right"
+                // action={dialog?.action}
+              >
+                {dialog ? dialog.body : ""}
+              </Dialog>
+            ) : null}
+            {modal && modalContent ? (
+              <Modal
+                width="444px"
+                open={modalContent ? true : false}
+                changeOpen={() => setModalContent(null)}
+                header={modal.header}
+                action={modal.action}>
+                {modal.body}
+              </Modal>
+            ) : null}
+          </Card>
+        </SingleGrid>
+      </GridContainer>
+    </>
   );
 };
 
@@ -384,9 +394,6 @@ const useStyles = makeStyles({ name: { ContentManagement } })((theme) => ({
     padding: theme.spacing(3),
   },
   tableCard: {
-    flexGrow: "1",
-    width: "60%",
-    marginRight: "6%",
     padding: theme.spacing(3),
   },
   folder: {

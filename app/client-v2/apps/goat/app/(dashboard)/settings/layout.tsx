@@ -1,5 +1,7 @@
 "use client";
 
+import GridContainer from "@/components/grid/GridContainer";
+import SingleGrid from "@/components/grid/SingleGrid";
 import { makeStyles } from "@/lib/theme";
 import { Text } from "@/lib/theme";
 import { useState } from "react";
@@ -19,61 +21,65 @@ const Settings = () => {
   const { classes, cx } = useStyles();
 
   return (
-    <div className={classes.wrapper}>
-      <div className={classes.sideBarSection}>
-        <span
-          onClick={() =>
-            setCurrentSetting({
-              children: <Organization />,
-              value: "Organization",
-            })
-          }>
-          <Text
-            typo="body 2"
-            className={
-              currentSetting.value === "Organization" ? classes.selectedSidebarText : classes.SidebarText
+    <GridContainer>
+      <SingleGrid span={1}>
+        <div>
+          <span
+            onClick={() =>
+              setCurrentSetting({
+                children: <Organization />,
+                value: "Organization",
+              })
             }>
-            Organization
-          </Text>
-        </span>
-        <Divider width="100%" color="main" className={classes.hr} />
-        <span
-          onClick={() =>
-            setCurrentSetting({
-              children: <SubscriptionSettings />,
-              value: "Subscription",
-            })
-          }>
-          <Text
-            typo="body 2"
-            className={
-              currentSetting.value === "Subscription" ? classes.selectedSidebarText : classes.SidebarText
+            <Text
+              typo="body 2"
+              className={
+                currentSetting.value === "Organization" ? classes.selectedSidebarText : classes.SidebarText
+              }>
+              Organization
+            </Text>
+          </span>
+          <Divider width="100%" color="main" className={classes.hr} />
+          <span
+            onClick={() =>
+              setCurrentSetting({
+                children: <SubscriptionSettings />,
+                value: "Subscription",
+              })
             }>
-            Subscription
-          </Text>
-        </span>
-        <Divider width="100%" color="main" className={classes.hr} />
-        <span
-          onClick={() =>
-            setCurrentSetting({
-              children: <PrivacyPreferences />,
-              value: "Privacy preferences",
-            })
-          }>
-          <Text
-            typo="body 2"
-            className={
-              currentSetting.value === "Privacy preferences"
-                ? classes.selectedSidebarText
-                : classes.SidebarText
+            <Text
+              typo="body 2"
+              className={
+                currentSetting.value === "Subscription" ? classes.selectedSidebarText : classes.SidebarText
+              }>
+              Subscription
+            </Text>
+          </span>
+          <Divider width="100%" color="main" className={classes.hr} />
+          <span
+            onClick={() =>
+              setCurrentSetting({
+                children: <PrivacyPreferences />,
+                value: "Privacy preferences",
+              })
             }>
-            Privacy preferences
-          </Text>
-        </span>
-        <Divider width="100%" color="main" className={classes.hr} />
-      </div>
-      <div className={classes.mainSection}>{currentSetting.children}</div>
-    </div>
+            <Text
+              typo="body 2"
+              className={
+                currentSetting.value === "Privacy preferences"
+                  ? classes.selectedSidebarText
+                  : classes.SidebarText
+              }>
+              Privacy preferences
+            </Text>
+          </span>
+          <Divider width="100%" color="main" className={classes.hr} />
+        </div>
+      </SingleGrid>
+      <SingleGrid span={3}>
+        <div>{currentSetting.children}</div>
+      </SingleGrid>
+    </GridContainer>
   );
 };
 
@@ -97,15 +103,6 @@ const useStyles = makeStyles({ name: { Settings } })((theme) => ({
   },
   hr: {
     margin: `${theme.spacing(1)}px 0`,
-  },
-  mainSection: {
-    // width: "60%",
-    marginRight: "6%",
-    width: "60%",
-  },
-  sideBarSection: {
-    marginLeft: "13%",
-    width: "19%",
   },
 }));
 
