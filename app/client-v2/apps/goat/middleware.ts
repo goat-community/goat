@@ -10,10 +10,10 @@ export default withAuth(
       return NextResponse.redirect(url);
     }
 
-    if (!request.nextauth.token?.user?.org_id) {
-      const url = new URL("/auth/organization", request.url);
-      return NextResponse.redirect(url);
-    }
+    // if (!request.nextauth.token?.user?.org_id) {
+    //   const url = new URL("/auth/organization", request.url);
+    //   return NextResponse.redirect(url);
+    // }
   },
   {
     callbacks: {
