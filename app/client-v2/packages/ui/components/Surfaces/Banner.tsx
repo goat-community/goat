@@ -23,7 +23,7 @@ const Banner = memo(
     });
 
     return (
-      <Card className={classes.card} width="100%" noHover={true}>
+      <Card className={cx(classes.card, className)} width="100%" noHover={true}>
         <div className={classes.bannerCard}>
           {imageSide !== "full" ? (
             <>
@@ -44,7 +44,7 @@ const Banner = memo(
                       justifyContent: "center",
                       alignItems: "center",
                     }}>
-                    <GOATLogoGreenSvg height={100} width={200} opacity={1} />
+                    <GOATLogoGreenSvg height={100} width={200} />
                   </span>
                   <div />
                 </div>
@@ -92,6 +92,7 @@ const useStyles = makeStyles<{
     "&::before": {
       content: '""',
       position: "absolute",
+      borderRadius: 4,
       left: "0",
       top: "0",
       width: "100%",

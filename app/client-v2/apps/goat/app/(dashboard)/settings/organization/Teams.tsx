@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 
 import { TextField } from "@p4b/ui/components/Inputs";
+import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Icon, Text } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
@@ -40,7 +41,7 @@ const Teams = () => {
   }
 
   return (
-    <div>
+    <div className={classes.container}>
       <div className={classes.headWrapper}>
         <div className={classes.head}>
           <Icon
@@ -82,6 +83,18 @@ const Teams = () => {
           </Text>
         </div>
       )}
+      <Banner
+        className={classes.banner}
+        actions={<Button>Subscribe Now</Button>}
+        content={
+          <Text className={classes.bannerText} typo="body 1">
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean
+            massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.{" "}
+          </Text>
+        }
+        image="https://s3-alpha-sig.figma.com/img/630a/ef8f/d732bcd1f3ef5d6fe31bc6f94ddfbca8?Expires=1687132800&Signature=aJvQ22UUlmvNjDlrgzV6MjJK~YgohUyT9mh8onGD-HhU5yMI0~ThWZUGVn562ihhRYqlyiR5Rskno84OseNhAN21WqKNOZnAS0TyT3SSUP4t4AZJOmeuwsl2EcgElMzcE0~Qx2X~LWxor1emexxTlWntivbnUeS6qv1DIPwCferjYIwWsiNqTm7whk78HUD1-26spqW3AXVbTtwqz3B8q791QigocHaK9b4f-Ulrk3lsmp8BryHprwgetHlToFNlYYR-SqPFrEeOKNQuEDKH0QzgGv3TX7EfBNL0kgP3Crued~JNth-lIEPCjlDRnFQyNpSiLQtf9r2tH9xIsKA~XQ__&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4"
+        imageSide="right"
+      />
       {/* {teams ? teams.map((team) => team.name) : null} */}
     </div>
   );
@@ -102,6 +115,7 @@ const useStyles = makeStyles({ name: { Teams } })((theme) => ({
   },
   createTeam: {
     marginTop: "22px",
+    marginBottom: theme.spacing(5) + theme.spacing(3),
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -115,6 +129,8 @@ const useStyles = makeStyles({ name: { Teams } })((theme) => ({
     alignItems: "center",
     gap: theme.spacing(2),
     marginBottom: theme.spacing(3),
+    paddingTop: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
   },
   buttons: {
     display: "flex",
@@ -133,7 +149,6 @@ const useStyles = makeStyles({ name: { Teams } })((theme) => ({
     width: "131px",
   },
   container: {
-    padding: `0px ${theme.spacing(3)}px`,
     marginBottom: theme.spacing(2),
   },
   searchInput: {
@@ -175,6 +190,9 @@ const useStyles = makeStyles({ name: { Teams } })((theme) => ({
     display: "flex",
     alignItems: "center",
     gap: theme.spacing(1),
+  },
+  banner: {
+    marginTop: theme.spacing(5),
   },
 }));
 

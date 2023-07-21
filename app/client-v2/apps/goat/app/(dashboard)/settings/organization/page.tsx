@@ -1,6 +1,5 @@
-import { makeStyles } from "@/lib/theme";
-
 import { Tabs } from "@p4b/ui/components/Navigation/Tabs";
+import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 import ManageUsers from "./ManageUsers";
 import Overview from "./Overview";
@@ -41,6 +40,9 @@ const useStyles = makeStyles({ name: { Organization } })((theme) => ({
   },
   tabs: {
     padding: "0",
+    "& .mui-prpvj4": {
+      borderColor: `${theme.colors.palette.light.greyVariant2}80`,
+    },
   },
   bannerText: {
     color: "white",

@@ -61,7 +61,7 @@ const TreeViewFilter = () => {
   }
 
   return (
-    <Card className={classes.treeView} noHover={true} width="280px">
+    <Card className={classes.treeView} noHover={true} width="100%">
       <div className={classes.wrapper}>
         <TreeViewWithCheckboxes
           selected={selectedFilters}
