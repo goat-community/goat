@@ -21,8 +21,8 @@ jobs:
         uses: trilom/file-changes-action@v1.2.4
         with:
           output: ' '
-      - name: Show changed files
-        run: echo ${{steps.get_file_changes.outputs.files}}
+#      - name: Show changed files
+#        run: echo ${{steps.get_file_changes.outputs.files}}
       - name: Build changed client
         if: contains(steps.get_file_changes.outputs.files, 'app/client')
         run: make build-docker-image-pr -e COMPONENT=client
