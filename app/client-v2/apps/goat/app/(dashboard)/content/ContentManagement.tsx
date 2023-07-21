@@ -326,7 +326,7 @@ const ContentManagement = () => {
   }
 
   return (
-    <>
+    <div>
       <HeaderCard path={path} setPath={setPath} />
       <div className={classes.container}>
         <TreeViewFilter />
@@ -367,7 +367,7 @@ const ContentManagement = () => {
           ) : null}
         </Card>
       </div>
-    </>
+    </div>
   );
 };
 
@@ -385,6 +385,8 @@ const useStyles = makeStyles({ name: { ContentManagement } })((theme) => ({
   },
   tableCard: {
     flexGrow: "1",
+    width: "60%",
+    marginRight: "6%",
     padding: theme.spacing(3),
   },
   folder: {

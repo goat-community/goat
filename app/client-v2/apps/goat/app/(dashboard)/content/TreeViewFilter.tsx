@@ -76,6 +76,8 @@ const TreeViewFilter = () => {
 
 const useStyles = makeStyles({ name: { TreeViewFilter } })((theme) => ({
   treeView: {
+    width: "19%",
+    marginLeft: "13%",
     padding: theme.spacing(3),
   },
   wrapper: {

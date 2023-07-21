@@ -2,7 +2,8 @@
 
 import { makeStyles } from "@/lib/theme";
 import { Text } from "@/lib/theme";
-import { useState } from "react";
+import { filterSearch, makeArrayUnique } from "@/lib/utils/helpers";
+import { useState, useEffect } from "react";
 
 import { Chip } from "@p4b/ui/components/DataDisplay";
 import { EnhancedTable } from "@p4b/ui/components/DataDisplay/EnhancedTable";
@@ -27,21 +28,22 @@ const ManageUsers = () => {
   const { classes } = useStyles();
 
   // Component States
-  const [userInDialog, setUserInDialog] = useState<RowsType | boolean>();
+  const [userInDialog, setUserInDialog] = useState<RowsType | null>();
   const [ismodalVisible, setModalVisible] = useState<boolean>(false);
   const [isAddUser, setAddUser] = useState<boolean>(false);
   const [email, setEmail] = useState("");
-  const [rows, setRows] = useState<RowsType[]>([
+  const [searchWord, setSearchWord] = useState<string>("");
+  const [rawRows, setRawRows] = useState<RowsType[]>([
     {
       name: "Luca William Silva",
-      email: "john.wloremipsum@gmail.com",
+      email: "john.wlsdasadm@gmail.com",
       role: "Admin",
       status: <Chip className={classes.chip} label="Active" variant="Border" color="success" icon="check" />,
       Added: "23 Jun 19",
     },
     {
       name: "Fenix William Silva",
-      email: "john.wloremipsum@gmail.com",
+      email: "john.werwxsam@gmail.com",
       role: "Admin",
       status: (
         <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
@@ -50,7 +52,7 @@ const ManageUsers = () => {
     },
     {
       name: "Adam William Silva",
-      email: "john.wloremipsum@gmail.com",
+      email: "john.ghjfgpsum@gmail.com",
       role: "Admin",
       status: (
         <Chip className={classes.chip} label="Expired" variant="Border" color="warning" icon="warnOutlined" />
@@ -59,14 +61,14 @@ const ManageUsers = () => {
     },
     {
       name: "John William Silva",
-      email: "john.wloremipsum@gmail.com",
+      email: "john.zxcsadum@gmail.com",
       role: "Admin",
       status: <Chip className={classes.chip} label="Active" variant="Border" color="success" icon="check" />,
       Added: "23 Jun 19",
     },
     {
       name: "John William Silva",
-      email: "john.wloremipsum@gmail.com",
+      email: "john.wawewdssum@gmail.com",
       role: "Admin",
       status: (
         <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
@@ -75,7 +77,7 @@ const ManageUsers = () => {
     },
     {
       name: "John William Silva",
-      email: "john.wloremipsum@gmail.com",
+      email: "john.wiuywefipsum@gmail.com",
       role: "Admin",
       status: (
         <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
@@ -83,6 +85,7 @@ const ManageUsers = () => {
       Added: "23 Jun 19",
     },
   ]);
+  const [rows, setRows] = useState<RowsType[]>([]);
 
   const columnNames = [
     {
@@ -112,7 +115,19 @@ const ManageUsers = () => {
     },
   ];
 
-  // const rows: RowsType[] =
+  useEffect(() => {
+    console.log(searchWord);
+    if (searchWord !== "") {
+      let newArr = [
+        ...filterSearch(rawRows, "name", searchWord),
+        ...filterSearch(rawRows, "email", searchWord),
+      ];
+      newArr = makeArrayUnique(newArr, "email");
+      setRows(newArr);
+    } else {
+      setRows(rawRows);
+    }
+  }, [searchWord, rawRows]);
 
   // Functions
 
@@ -122,12 +137,14 @@ const ManageUsers = () => {
       email: email,
       role: "Admin",
       status: (
-        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="check" />
+        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
       ),
       Added: "23 Jun 19",
     };
-    setRows([...rows, newUserInvite]);
-    setModalVisible(false);
+    // rawRows.push(newUserInvite);
+    setRawRows([...rawRows, newUserInvite]);
+    setSearchWord("");
+    setAddUser(false);
   }
 
   function openModal() {
@@ -135,13 +152,27 @@ const ManageUsers = () => {
   }
 
   function closeModal() {
-    setUserInDialog(false);
+    setUserInDialog(null);
     setModalVisible(false);
   }
 
   function editUserRole(role: "Admin" | "User" | "Editor", user: RowsType | undefined) {
     if (user) {
-      console.log(user, role);
+      const modifiedUsers = rows.map((row) => {
+        if (row.email === user.email) {
+          row.role = role;
+        }
+        return row;
+      });
+      setRows(modifiedUsers);
+    }
+  }
+
+  function removeUser(user: RowsType | undefined) {
+    if (user) {
+      const modifiedUsers = rows.filter((row) => row.email !== user.email);
+      setRawRows(modifiedUsers);
+      closeModal();
     }
   }
 
@@ -162,7 +193,13 @@ const ManageUsers = () => {
           </Text>
         </div>
         <div className={classes.search}>
-          <TextField className={classes.searchInput} type="text" label="Search" size="small" />
+          <TextField
+            className={classes.searchInput}
+            type="text"
+            label="Search"
+            size="small"
+            onValueBeingTypedChange={({ value }) => setSearchWord(value)}
+          />
           <Icon iconId="filter" size="medium" iconVariant="gray" />
           <div style={{ position: "relative" }}>
             <Button onClick={() => setAddUser(true)} className={classes.searchButton}>
@@ -200,12 +237,18 @@ const ManageUsers = () => {
       </div>
       <Card noHover={true} className={classes.tableCard}>
         {/* ManageUsers Table */}
-        <EnhancedTable
-          rows={rows}
-          columnNames={columnNames}
-          openDialog={setUserInDialog}
-          action={<IconButton type="submit" iconId="moreVert" size="medium" />}
-        />
+        {rows.length ? (
+          <EnhancedTable
+            rows={rows}
+            columnNames={columnNames}
+            openDialog={setUserInDialog}
+            action={<IconButton type="submit" iconId="moreVert" size="medium" />}
+          />
+        ) : (
+          <Text typo="body 1" color="secondary">
+            No results
+          </Text>
+        )}
       </Card>
       <Banner
         actions={<Button>Subscribe Now</Button>}
@@ -222,14 +265,14 @@ const ManageUsers = () => {
       <Modal
         width="523px"
         open={userInDialog ? true : false}
-        changeOpen={setUserInDialog}
+        changeOpen={() => setUserInDialog(null)}
         action={
           ismodalVisible ? (
             <>
               <Button onClick={closeModal} variant="noBorder">
                 CANCEL
               </Button>
-              <Button onClick={closeModal} variant="noBorder">
+              <Button onClick={() => removeUser(userInDialog ? userInDialog : undefined)} variant="noBorder">
                 CONFIRM
               </Button>
             </>
@@ -247,9 +290,9 @@ const ManageUsers = () => {
           ) : (
             <div className={classes.modalHeader2}>
               <Text typo="subtitle" className={classes.headerText}>
-                {typeof userInDialog !== "boolean" ? userInDialog?.name : ""}
+                {userInDialog?.name}
               </Text>
-              <IconButton onClick={() => setUserInDialog(false)} iconId="close" />
+              <IconButton onClick={() => setUserInDialog(null)} iconId="close" />
             </div>
           )
         }>
@@ -278,12 +321,8 @@ const useStyles = makeStyles({ name: { ManageUsers } })((theme) => ({
     alignItems: "center",
     gap: theme.spacing(2),
     marginBottom: theme.spacing(3),
-  },
-  buttons: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "end",
-    gap: theme.spacing(2),
+    paddingTop: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
   },
   search: {
     display: "flex",
@@ -305,12 +344,6 @@ const useStyles = makeStyles({ name: { ManageUsers } })((theme) => ({
   tableCard: {
     padding: theme.spacing(3),
     marginBottom: theme.spacing(5),
-  },
-  formInputs: {
-    marginTop: theme.spacing(3),
-    display: "flex",
-    flexDirection: "column",
-    gap: theme.spacing(2),
   },
   modalHeader: {
     display: "flex",

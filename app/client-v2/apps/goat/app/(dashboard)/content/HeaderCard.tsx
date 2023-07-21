@@ -26,7 +26,7 @@ const HeaderCard = (props: HeaderCardProps) => {
   }
 
   return (
-    <Card noHover={true} width="100%" className={classes.headerCard}>
+    <Card noHover={true} width="81%" className={classes.headerCard}>
       <div className={classes.headerContainer}>
         <div className={classes.headerPath}>
           <Text typo="page heading" className={classes.headerText}>
@@ -95,13 +95,14 @@ const HeaderCard = (props: HeaderCardProps) => {
 const useStyles = makeStyles({ name: { HeaderCard } })((theme) => ({
   headerCard: {
     marginBottom: theme.spacing(3),
+    marginLeft: "13%",
+    marginRight: "5%",
   },
   headerContainer: {
     padding: `${theme.spacing(2)}px ${theme.spacing(3)}px`,
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
   },
   headerText: {
     fontWeight: 800,

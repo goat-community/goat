@@ -80,7 +80,7 @@ const Settings = () => {
 const useStyles = makeStyles({ name: { Settings } })((theme) => ({
   wrapper: {
     display: "flex",
-    gap: theme.spacing(4),
+    gap: "1%",
   },
   SidebarText: {
     // padding: theme.spacing(1) theme.spacing(4),
@@ -99,13 +99,13 @@ const useStyles = makeStyles({ name: { Settings } })((theme) => ({
     margin: `${theme.spacing(1)}px 0`,
   },
   mainSection: {
-    flexGrow: "1",
+    // width: "60%",
+    marginRight: "6%",
+    width: "60%",
   },
   sideBarSection: {
-    minWidth: "268px",
-    "@media (max-width: 1268px)": {
-      minWidth: "168px",
-    },
+    marginLeft: "13%",
+    width: "19%",
   },
 }));
 
