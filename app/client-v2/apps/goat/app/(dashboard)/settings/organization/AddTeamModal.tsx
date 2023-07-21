@@ -35,8 +35,14 @@ const AddTeamModal = (props: AddTeamModalProps) => {
         participants: selectedOption,
         createdAt: "23 Jun 19",
       });
+      setSelectedOption([]);
       setVisibility(false);
     }
+  }
+
+  function handleClose() {
+    setVisibility(false);
+    setSelectedOption([]);
   }
 
   return (
@@ -46,7 +52,7 @@ const AddTeamModal = (props: AddTeamModalProps) => {
       changeOpen={setVisibility}
       action={
         <>
-          <Button onClick={() => setVisibility(false)} variant="noBorder">
+          <Button onClick={handleClose} variant="noBorder">
             CANCEL
           </Button>
           <Button onClick={saveTeam} variant="noBorder">
@@ -59,7 +65,7 @@ const AddTeamModal = (props: AddTeamModalProps) => {
           <Text typo="subtitle" className={classes.modalHeadertext}>
             New team
           </Text>
-          <IconButton onClick={() => setVisibility(false)} iconId="close" />
+          <IconButton onClick={handleClose} iconId="close" />
         </div>
       }>
       <TeamModalBody

@@ -19,15 +19,16 @@ export interface Team {
 const Teams = () => {
   const [ismodalVisible, setModalVisible] = useState<boolean>(false);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [searchWord, setSearchWord] = useState<string>("");
 
   const { classes } = useStyles();
 
   function addTeam(team: Team) {
     setTeams([...teams, team]);
+    setSearchWord("");
   }
 
   function editTeam(team: Team) {
-    console.log(team);
     const updatedTeams = teams.map((singleTeam) => {
       if (singleTeam.name === team.name) {
         return team;
@@ -55,7 +56,13 @@ const Teams = () => {
           </Text>
         </div>
         <div className={classes.search}>
-          <TextField className={classes.searchInput} type="text" label="Search" size="small" />
+          <TextField
+            className={classes.searchInput}
+            type="text"
+            label="Search"
+            size="small"
+            onValueBeingTypedChange={({ value }) => setSearchWord(value)}
+          />
           <Icon iconId="filter" size="medium" iconVariant="gray" />
           <div style={{ position: "relative" }}>
             <Button className={classes.searchButton} onClick={() => setModalVisible(true)}>
@@ -66,7 +73,7 @@ const Teams = () => {
         <AddTeamModal visibility={ismodalVisible} setVisibility={setModalVisible} addTeam={addTeam} />
       </div>
       {teams.length ? (
-        <TeamsTable rows={teams} editTeam={editTeam} />
+        <TeamsTable rawRows={teams} editTeam={editTeam} searchText={searchWord} />
       ) : (
         <div className={classes.createTeam}>
           <img src="/assets/illustrations/teams.svg" alt="" />

@@ -1,3 +1,4 @@
+import { filterSearch } from "@/lib/utils/helpers";
 import React, { useState, useEffect } from "react";
 
 import { EnhancedTable } from "@p4b/ui/components/DataDisplay";
@@ -12,16 +13,18 @@ import TeamModalBody from "./TeamModalBody";
 import type { Team } from "./Teams";
 
 interface TeamsTableProps {
-  rows: Team[];
+  rawRows: Team[];
   editTeam: (value: Team) => void;
+  searchText?: string;
 }
 
 const TeamsTable = (props: TeamsTableProps) => {
-  const { rows, editTeam } = props;
+  const { rawRows, editTeam, searchText } = props;
 
   const [userInDialog, setUserInDialog] = useState<Team | boolean>();
   const [selectedOption, setSelectedOption] = useState<Option[] | null>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
+  const [rows, setRows] = useState<Team[]>([]);
 
   const { classes } = useStyles();
 
@@ -45,18 +48,33 @@ const TeamsTable = (props: TeamsTableProps) => {
 
   useEffect(() => {
     if (userInDialog && typeof userInDialog !== "boolean") {
-      const team = rows.find((row) => row.name === userInDialog.name);
-      setSelectedOption(team ? team.participants : null);
-      setTeamName(team ? team.name : "");
+      const team = rawRows.find((row) => row.name === userInDialog.name);
+
+      if (team) {
+        const selectedOptions = selectedOption
+          ? selectedOption.filter((teams) => teams.selected)
+          : team.participants.filter((teams) => teams.selected);
+        if (JSON.stringify(selectedOptions) !== JSON.stringify(selectedOption)) {
+          setSelectedOption(selectedOptions);
+        }
+        setTeamName(team.name);
+      }
     }
-  }, [userInDialog]);
+  }, [userInDialog, selectedOption, searchText]);
+
+  useEffect(() => {
+    setRows(filterSearch(rawRows, "name", searchText ? searchText : ""));
+  }, [searchText, rawRows]);
 
   function saveEditTeam() {
     if (userInDialog && typeof userInDialog !== "boolean") {
-      const team = rows.find((row) => row.name === userInDialog.name);
+      const team = rawRows.find((row) => row.name === userInDialog.name);
       if (team) {
-        team.participants = selectedOption;
-        team.name = teamName;
+        const selectedOptions = selectedOption
+          ? selectedOption.filter((teams) => teams.selected)
+          : team.participants.filter((teams) => teams.selected);
+        team.participants = selectedOptions;
+        team.name = teamName ? teamName : "";
         editTeam(team);
         setUserInDialog(false);
       }
@@ -65,22 +83,28 @@ const TeamsTable = (props: TeamsTableProps) => {
 
   return (
     <Card noHover={true} className={classes.tableCard}>
-      <EnhancedTable
-        rows={[
-          ...rows.map((row) => ({
-            name: row.name,
-            count: row.participants.length,
-            createdAt: row.createdAt,
-          })),
-        ]}
-        dense={false}
-        alternativeColors={false}
-        columnNames={columnNames}
-        openDialog={setUserInDialog}
-        action={<IconButton type="submit" iconId="edit" size="medium" iconVariant="focus" />}
-        checkbox={false}
-        hover={true}
-      />
+      {rows && rows.length ? (
+        <EnhancedTable
+          rows={[
+            ...rows.map((row) => ({
+              name: row.name,
+              count: row.participants.length,
+              createdAt: row.createdAt,
+            })),
+          ]}
+          dense={false}
+          alternativeColors={false}
+          columnNames={columnNames}
+          openDialog={setUserInDialog}
+          action={<IconButton type="submit" iconId="edit" size="medium" iconVariant="focus" />}
+          checkbox={false}
+          hover={true}
+        />
+      ) : (
+        <Text typo="body 1" color="secondary">
+          No results
+        </Text>
+      )}
       <Modal
         header={
           <div className={classes.modalHeader}>

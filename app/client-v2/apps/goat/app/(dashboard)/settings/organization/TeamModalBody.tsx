@@ -3,7 +3,7 @@ import React from "react";
 import { Checkbox } from "@p4b/ui/components/Checkbox";
 import { Chip } from "@p4b/ui/components/DataDisplay";
 import { AutoComplete, TextField } from "@p4b/ui/components/Inputs";
-import { Text, Button } from "@p4b/ui/components/theme";
+import { Text } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 import type { Option } from "./AddTeamModal";
@@ -126,16 +126,7 @@ const TeamModalBody = (props: TeamModalBodyProps) => {
                     </Text>
                   </div>
                 </div>
-                {typeof option.selected === "boolean" && option.selected ? (
-                  <Chip label="invited" />
-                ) : (
-                  <Button
-                    variant="noBorder"
-                    onClick={() => removeUser(option)}
-                    className={classes.orangeButton}>
-                    Remove user
-                  </Button>
-                )}
+                <Chip label="invited" />
                 {/* <IconButton iconId="edit" type="submit" iconVariant="focus" onClick={enterAccessSettings} /> */}
               </div>
             ))}

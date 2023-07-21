@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
 import { Switch } from "@p4b/ui/components/Inputs";
+import { SelectField } from "@p4b/ui/components/Inputs";
 import { Text } from "@p4b/ui/components/theme";
-import { IconButton } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 import type { RowsType } from "./ManageUsers";
@@ -10,10 +10,11 @@ import type { RowsType } from "./ManageUsers";
 interface UserInfoModal {
   ismodalVisible: boolean;
   userInDialog: RowsType | boolean;
+  editUserRole: (role: "Admin" | "User" | "Editor", user: RowsType | undefined) => void;
 }
 
 const UserInfoModal = (props: UserInfoModal) => {
-  const { ismodalVisible, userInDialog } = props;
+  const { ismodalVisible, userInDialog, editUserRole } = props;
 
   const { classes } = useStyles();
 
@@ -61,6 +62,21 @@ const UserInfoModal = (props: UserInfoModal) => {
       checked: false,
     },
   ]);
+
+  const organizationRoles = [
+    {
+      name: "User",
+      value: "User",
+    },
+    {
+      name: "Editor",
+      value: "Editor",
+    },
+    {
+      name: "Admin",
+      value: "Admin",
+    },
+  ];
 
   // Function
 
@@ -137,10 +153,15 @@ const UserInfoModal = (props: UserInfoModal) => {
               <Text typo="body 2" className={classes.userDataTitle}>
                 Organisation role:{" "}
               </Text>{" "}
-              <Text typo="label 1" className={classes.userDataValue}>
-                {typeof userInDialog !== "boolean" ? userInDialog?.role : ""}
-              </Text>
-              <IconButton type="submit" iconId="edit" size="small" />
+              <SelectField
+                options={organizationRoles}
+                label="Role"
+                size="small"
+                defaultValue={typeof userInDialog !== "boolean" ? userInDialog?.role : ""}
+                updateChange={(value: string) =>
+                  editUserRole(value, typeof userInDialog !== "boolean" ? userInDialog : undefined)
+                }
+              />
             </span>
             <span className={classes.userDataText}>
               <Text typo="body 2" className={classes.userDataTitle}>

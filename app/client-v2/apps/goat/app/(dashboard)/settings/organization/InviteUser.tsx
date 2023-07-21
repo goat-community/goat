@@ -4,7 +4,13 @@ import { TextField } from "@p4b/ui/components/Inputs";
 import { Text, Icon } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
-const InviteUser = () => {
+interface InviteUserProps {
+  setEmail: (value: string) => void;
+}
+
+const InviteUser = (props: InviteUserProps) => {
+  const { setEmail } = props;
+
   const { classes } = useStyles();
 
   return (
@@ -24,7 +30,12 @@ const InviteUser = () => {
         Send an invitation via email <br /> The receiver will get a link with 72 hours of expiration
       </Text>
       <div className={classes.formInputs}>
-        <TextField size="small" type="email" label="Email address" />
+        <TextField
+          size="small"
+          type="email"
+          label="Email address"
+          onValueBeingTypedChange={({ value }) => setEmail(value)}
+        />
       </div>
     </div>
   );

@@ -30,36 +30,8 @@ const ManageUsers = () => {
   const [userInDialog, setUserInDialog] = useState<RowsType | boolean>();
   const [ismodalVisible, setModalVisible] = useState<boolean>(false);
   const [isAddUser, setAddUser] = useState<boolean>(false);
-
-  const columnNames = [
-    {
-      id: "name",
-      numeric: false,
-      label: "Name",
-    },
-    {
-      id: "email",
-      numeric: false,
-      label: "E-mail",
-    },
-    {
-      id: "role",
-      numeric: false,
-      label: "Role",
-    },
-    {
-      id: "status",
-      numeric: false,
-      label: "Status",
-    },
-    {
-      id: "added",
-      numeric: false,
-      label: "Added",
-    },
-  ];
-
-  const rows: RowsType[] = [
+  const [email, setEmail] = useState("");
+  const [rows, setRows] = useState<RowsType[]>([
     {
       name: "Luca William Silva",
       email: "john.wloremipsum@gmail.com",
@@ -110,9 +82,53 @@ const ManageUsers = () => {
       ),
       Added: "23 Jun 19",
     },
+  ]);
+
+  const columnNames = [
+    {
+      id: "name",
+      numeric: false,
+      label: "Name",
+    },
+    {
+      id: "email",
+      numeric: false,
+      label: "E-mail",
+    },
+    {
+      id: "role",
+      numeric: false,
+      label: "Role",
+    },
+    {
+      id: "status",
+      numeric: false,
+      label: "Status",
+    },
+    {
+      id: "added",
+      numeric: false,
+      label: "Added",
+    },
   ];
 
+  // const rows: RowsType[] =
+
   // Functions
+
+  function sendInvitation() {
+    const newUserInvite = {
+      name: "Luca William Silva",
+      email: email,
+      role: "Admin",
+      status: (
+        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="check" />
+      ),
+      Added: "23 Jun 19",
+    };
+    setRows([...rows, newUserInvite]);
+    setModalVisible(false);
+  }
 
   function openModal() {
     setModalVisible(true);
@@ -121,6 +137,12 @@ const ManageUsers = () => {
   function closeModal() {
     setUserInDialog(false);
     setModalVisible(false);
+  }
+
+  function editUserRole(role: "Admin" | "User" | "Editor", user: RowsType | undefined) {
+    if (user) {
+      console.log(user, role);
+    }
   }
 
   return (
@@ -157,7 +179,9 @@ const ManageUsers = () => {
                     <Button variant="noBorder" onClick={() => setAddUser(false)}>
                       CANCEL
                     </Button>
-                    <Button variant="noBorder">SEND INVITATION</Button>
+                    <Button variant="noBorder" onClick={sendInvitation}>
+                      SEND INVITATION
+                    </Button>
                   </>
                 }
                 header={
@@ -168,7 +192,7 @@ const ManageUsers = () => {
                     <IconButton onClick={() => setAddUser(false)} iconId="close" />
                   </div>
                 }>
-                <InviteUser />
+                <InviteUser setEmail={setEmail} />
               </Modal>
             ) : null}
           </div>
@@ -229,7 +253,11 @@ const ManageUsers = () => {
             </div>
           )
         }>
-        <UserInfoModal ismodalVisible={ismodalVisible} userInDialog={userInDialog ? userInDialog : false} />
+        <UserInfoModal
+          ismodalVisible={ismodalVisible}
+          userInDialog={userInDialog ? userInDialog : false}
+          editUserRole={editUserRole}
+        />
       </Modal>
     </div>
   );
