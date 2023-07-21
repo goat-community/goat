@@ -7,8 +7,8 @@ import { useMemo, useEffect, Fragment } from "react";
 import { capitalize } from "tsafe/capitalize";
 
 import { Checkbox } from "@p4b/ui/components/Checkbox";
-import type { AttributeOptions } from "@p4b/ui/components/Text/TextField";
-import { TextField } from "@p4b/ui/components/Text/TextField";
+import type { AttributeOptions } from "@p4b/ui/components/Inputs";
+import { TextField } from "@p4b/ui/components/Inputs";
 
 import { Text, makeStyles } from "../../../theme";
 import { regExpStrToEmailDomains } from "../../emailDomainAcceptListHelper";

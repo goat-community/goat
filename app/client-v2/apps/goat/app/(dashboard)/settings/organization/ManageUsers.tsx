@@ -4,17 +4,18 @@ import { makeStyles } from "@/lib/theme";
 import { Text } from "@/lib/theme";
 import { useState } from "react";
 
-import Banner from "@p4b/ui/components/Banner";
-import { Card } from "@p4b/ui/components/Card";
-import Dialog from "@p4b/ui/components/Dialog";
-import EnhancedTable from "@p4b/ui/components/EnhancedTable";
+import { Chip } from "@p4b/ui/components/DataDisplay";
+import { EnhancedTable } from "@p4b/ui/components/DataDisplay/EnhancedTable";
+import { TextField } from "@p4b/ui/components/Inputs/TextField";
 import Modal from "@p4b/ui/components/Modal";
-import { SelectField } from "@p4b/ui/components/SelectField";
-import Table from "@p4b/ui/components/Table";
-import { TextField } from "@p4b/ui/components/Text/TextField";
-import { Icon, Button } from "@p4b/ui/components/theme";
+import Banner from "@p4b/ui/components/Surfaces/Banner";
+import { Card } from "@p4b/ui/components/Surfaces/Card";
+import { Icon, Button, IconButton } from "@p4b/ui/components/theme";
 
-interface RowsType {
+import InviteUser from "./InviteUser";
+import UserInfoModal from "./UserInfoModal";
+
+export interface RowsType {
   name: string;
   email: string;
   role: string;
@@ -24,11 +25,65 @@ interface RowsType {
 
 const ManageUsers = () => {
   const { classes } = useStyles();
-  const [userInDialog, setUserInDialog] = useState<RowsType | null>();
-  const [addUserDialog, setAddUserDialog] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+
+  // Component States
+  const [userInDialog, setUserInDialog] = useState<RowsType | boolean>();
   const [ismodalVisible, setModalVisible] = useState<boolean>(false);
-  // const open = Boolean(anchorEl);
+  const [isAddUser, setAddUser] = useState<boolean>(false);
+  const [email, setEmail] = useState("");
+  const [rows, setRows] = useState<RowsType[]>([
+    {
+      name: "Luca William Silva",
+      email: "john.wloremipsum@gmail.com",
+      role: "Admin",
+      status: <Chip className={classes.chip} label="Active" variant="Border" color="success" icon="check" />,
+      Added: "23 Jun 19",
+    },
+    {
+      name: "Fenix William Silva",
+      email: "john.wloremipsum@gmail.com",
+      role: "Admin",
+      status: (
+        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
+      ),
+      Added: "23 Jun 19",
+    },
+    {
+      name: "Adam William Silva",
+      email: "john.wloremipsum@gmail.com",
+      role: "Admin",
+      status: (
+        <Chip className={classes.chip} label="Expired" variant="Border" color="warning" icon="warnOutlined" />
+      ),
+      Added: "23 Jun 19",
+    },
+    {
+      name: "John William Silva",
+      email: "john.wloremipsum@gmail.com",
+      role: "Admin",
+      status: <Chip className={classes.chip} label="Active" variant="Border" color="success" icon="check" />,
+      Added: "23 Jun 19",
+    },
+    {
+      name: "John William Silva",
+      email: "john.wloremipsum@gmail.com",
+      role: "Admin",
+      status: (
+        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
+      ),
+      Added: "23 Jun 19",
+    },
+    {
+      name: "John William Silva",
+      email: "john.wloremipsum@gmail.com",
+      role: "Admin",
+      status: (
+        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
+      ),
+      Added: "23 Jun 19",
+    },
+  ]);
+
   const columnNames = [
     {
       id: "name",
@@ -57,99 +112,37 @@ const ManageUsers = () => {
     },
   ];
 
-  const extensionColumns = ["Extensions", "Study Area"];
-  const extensionRows: { extension: string; studyarea: string }[] = [
-    {
-      extension: "Active mobility",
-      studyarea: "Greater Munich",
-    },
-    {
-      extension: "Motorised mobility",
-      studyarea: "Greater Munich",
-    },
-  ];
+  // const rows: RowsType[] =
 
-  const rows: RowsType[] = [
-    {
+  // Functions
+
+  function sendInvitation() {
+    const newUserInvite = {
       name: "Luca William Silva",
-      email: "john.wloremipsum@gmail.com",
+      email: email,
       role: "Admin",
       status: (
-        <Button startIcon="check" className={classes.buttonSmall}>
-          Active
-        </Button>
+        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="check" />
       ),
       Added: "23 Jun 19",
-    },
-    {
-      name: "Fenix William Silva",
-      email: "john.wloremipsum@gmail.com",
-      role: "Admin",
-      status: (
-        <Button variant="secondary" startIcon="email" className={classes.buttonSmall}>
-          Invite sent
-        </Button>
-      ),
-      Added: "23 Jun 19",
-    },
-    {
-      name: "Adam William Silva",
-      email: "john.wloremipsum@gmail.com",
-      role: "Admin",
-      status: (
-        <Button variant="warning" startIcon="warnOutlined" className={classes.buttonSmall}>
-          Expired
-        </Button>
-      ),
-      Added: "23 Jun 19",
-    },
-    {
-      name: "John William Silva",
-      email: "john.wloremipsum@gmail.com",
-      role: "Admin",
-      status: (
-        <Button startIcon="check" className={classes.buttonSmall}>
-          Active
-        </Button>
-      ),
-      Added: "23 Jun 19",
-    },
-    {
-      name: "John William Silva",
-      email: "john.wloremipsum@gmail.com",
-      role: "Admin",
-      status: (
-        <Button variant="secondary" startIcon="email" className={classes.buttonSmall}>
-          Invite sent
-        </Button>
-      ),
-      Added: "23 Jun 19",
-    },
-    {
-      name: "John William Silva",
-      email: "john.wloremipsum@gmail.com",
-      role: "Admin",
-      status: (
-        <Button variant="secondary" startIcon="email" className={classes.buttonSmall}>
-          Invite sent
-        </Button>
-      ),
-      Added: "23 Jun 19",
-    },
-  ];
-
-  function openAddUserDialog(event: React.MouseEvent<HTMLButtonElement>) {
-    setAnchorEl(event.currentTarget);
-    setAddUserDialog(true);
-  }
-
-  function handleAddUserClose() {
-    setAnchorEl(null);
-    setAddUserDialog(false);
+    };
+    setRows([...rows, newUserInvite]);
+    setModalVisible(false);
   }
 
   function openModal() {
     setModalVisible(true);
+  }
+
+  function closeModal() {
+    setUserInDialog(false);
+    setModalVisible(false);
+  }
+
+  function editUserRole(role: "Admin" | "User" | "Editor", user: RowsType | undefined) {
+    if (user) {
+      console.log(user, role);
+    }
   }
 
   return (
@@ -172,117 +165,46 @@ const ManageUsers = () => {
           <TextField className={classes.searchInput} type="text" label="Search" size="small" />
           <Icon iconId="filter" size="medium" iconVariant="gray" />
           <div style={{ position: "relative" }}>
-            <Button onClick={openAddUserDialog} className={classes.searchButton}>
+            <Button onClick={() => setAddUser(true)} className={classes.searchButton}>
               Invite user
             </Button>
-            {addUserDialog ? (
-              <Dialog
-                title="Invite team mate"
+            {/* Invite User Dialog */}
+            {isAddUser ? (
+              <Modal
                 width="444px"
-                direction="right"
-                anchorEl={anchorEl}
+                open={isAddUser}
+                changeOpen={setAddUser}
                 action={
-                  <div className={classes.buttons}>
-                    <Button variant="noBorder" onClick={handleAddUserClose}>
+                  <>
+                    <Button variant="noBorder" onClick={() => setAddUser(false)}>
                       CANCEL
                     </Button>
-                    <Button variant="noBorder">SEND INVITATION</Button>
-                  </div>
+                    <Button variant="noBorder" onClick={sendInvitation}>
+                      SEND INVITATION
+                    </Button>
+                  </>
                 }
-                onClick={handleAddUserClose}>
-                <div className={classes.head}>
-                  <Icon
-                    iconId="user"
-                    wrapped="circle"
-                    bgVariant="gray2"
-                    bgOpacity={0.6}
-                    iconVariant="secondary"
-                    size="small"
-                  />
-                  <Text typo="body 1">Organization name</Text>
-                </div>
-                <Text typo="body 3">
-                  Send an invitation via email <br /> The receiver will get a link with 72 hours of expiration
-                </Text>
-                <div className={classes.formInputs}>
-                  <TextField size="small" type="email" label="Email address" />
-                  <SelectField
-                    size="small"
-                    defaultValue="editor"
-                    label="Permission"
-                    options={[
-                      {
-                        name: "Editor",
-                        value: "editor",
-                      },
-                      {
-                        name: "Admin",
-                        value: "admin",
-                      },
-                      {
-                        name: "Guest",
-                        value: "guest",
-                      },
-                    ]}
-                  />
-                </div>
-              </Dialog>
+                header={
+                  <div className={classes.modalHeader2}>
+                    <Text typo="subtitle" className={classes.headerText}>
+                      Invite user
+                    </Text>
+                    <IconButton onClick={() => setAddUser(false)} iconId="close" />
+                  </div>
+                }>
+                <InviteUser setEmail={setEmail} />
+              </Modal>
             ) : null}
           </div>
         </div>
       </div>
       <Card noHover={true} className={classes.tableCard}>
+        {/* ManageUsers Table */}
         <EnhancedTable
           rows={rows}
           columnNames={columnNames}
           openDialog={setUserInDialog}
-          dialog={{
-            title: userInDialog ? userInDialog.name : "unknown",
-            action: (
-              <div style={{ textAlign: "right" }}>
-                <Button onClick={openModal} variant="noBorder">
-                  REMOVE USER
-                </Button>
-              </div>
-            ),
-            body: (
-              <div>
-                <div className={classes.userDataContainer}>
-                  <span className={classes.userDataText}>
-                    <Text typo="body 2" className={classes.userDataTitle}>
-                      Name:{" "}
-                    </Text>{" "}
-                    <Text typo="label 2">{userInDialog ? userInDialog?.name : ""}</Text>
-                  </span>
-                  <span className={classes.userDataText}>
-                    <Text typo="body 2" className={classes.userDataTitle}>
-                      E-mail:{" "}
-                    </Text>{" "}
-                    <Text typo="label 2">{userInDialog ? userInDialog?.email : ""}</Text>
-                  </span>
-                  <span className={classes.userDataText}>
-                    <Text typo="body 2" className={classes.userDataTitle}>
-                      Added in:{" "}
-                    </Text>{" "}
-                    <Text typo="label 2">{userInDialog ? userInDialog?.Added : ""}</Text>
-                  </span>
-                  <span className={classes.userDataText}>
-                    <Text typo="body 2" className={classes.userDataTitle}>
-                      Last Active:{" "}
-                    </Text>{" "}
-                    <Text typo="label 2">3 days ago</Text>
-                  </span>
-                  <span className={classes.userDataText}>
-                    <Text typo="body 2" className={classes.userDataTitle}>
-                      Organisation role:{" "}
-                    </Text>{" "}
-                    <Text typo="label 2">{userInDialog ? userInDialog?.role : ""}</Text>
-                  </span>
-                </div>
-                <Table minWidth="100%" rows={extensionRows} columnNames={extensionColumns} />
-              </div>
-            ),
-          }}
+          action={<IconButton type="submit" iconId="moreVert" size="medium" />}
         />
       </Card>
       <Banner
@@ -296,28 +218,46 @@ const ManageUsers = () => {
         image="https://s3-alpha-sig.figma.com/img/630a/ef8f/d732bcd1f3ef5d6fe31bc6f94ddfbca8?Expires=1687132800&Signature=aJvQ22UUlmvNjDlrgzV6MjJK~YgohUyT9mh8onGD-HhU5yMI0~ThWZUGVn562ihhRYqlyiR5Rskno84OseNhAN21WqKNOZnAS0TyT3SSUP4t4AZJOmeuwsl2EcgElMzcE0~Qx2X~LWxor1emexxTlWntivbnUeS6qv1DIPwCferjYIwWsiNqTm7whk78HUD1-26spqW3AXVbTtwqz3B8q791QigocHaK9b4f-Ulrk3lsmp8BryHprwgetHlToFNlYYR-SqPFrEeOKNQuEDKH0QzgGv3TX7EfBNL0kgP3Crued~JNth-lIEPCjlDRnFQyNpSiLQtf9r2tH9xIsKA~XQ__&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4"
         imageSide="right"
       />
+      {/* Confirm User Removal */}
       <Modal
-        width="444px"
-        open={ismodalVisible}
-        changeOpen={setModalVisible}
+        width="523px"
+        open={userInDialog ? true : false}
+        changeOpen={setUserInDialog}
         action={
-          <>
-            <Button onClick={() => setModalVisible(false)} variant="noBorder">
-              CANCEL
+          ismodalVisible ? (
+            <>
+              <Button onClick={closeModal} variant="noBorder">
+                CANCEL
+              </Button>
+              <Button onClick={closeModal} variant="noBorder">
+                CONFIRM
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => openModal()} variant="noBorder">
+              REMOVE USER
             </Button>
-            <Button onClick={() => setModalVisible(false)} variant="noBorder">
-              CONFIRM
-            </Button>
-          </>
+          )
         }
         header={
-          <Text className={classes.modalHeader} typo="object heading">
-            <Icon iconId="warn" iconVariant="focus" /> Attention
-          </Text>
+          ismodalVisible ? (
+            <Text className={classes.modalHeader} typo="subtitle">
+              <Icon iconId="warn" iconVariant="warning" /> Attention
+            </Text>
+          ) : (
+            <div className={classes.modalHeader2}>
+              <Text typo="subtitle" className={classes.headerText}>
+                {typeof userInDialog !== "boolean" ? userInDialog?.name : ""}
+              </Text>
+              <IconButton onClick={() => setUserInDialog(false)} iconId="close" />
+            </div>
+          )
         }>
-        <Text typo="body 1">
-          By removing a user they won&apos;t be able to access any projects under your organisation
-        </Text>
+        <UserInfoModal
+          ismodalVisible={ismodalVisible}
+          userInDialog={userInDialog ? userInDialog : false}
+          editUserRole={editUserRole}
+        />
       </Modal>
     </div>
   );
@@ -366,20 +306,6 @@ const useStyles = makeStyles({ name: { ManageUsers } })((theme) => ({
     padding: theme.spacing(3),
     marginBottom: theme.spacing(5),
   },
-  userDataContainer: {
-    border: `1px solid ${theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant1}`,
-    padding: theme.spacing(3),
-    borderRadius: 4,
-  },
-  userDataText: {
-    display: "flex",
-    gap: theme.spacing(1),
-    alignItems: "center",
-    marginBottom: theme.spacing(2),
-  },
-  userDataTitle: {
-    fontWeight: "800",
-  },
   formInputs: {
     marginTop: theme.spacing(3),
     display: "flex",
@@ -391,8 +317,18 @@ const useStyles = makeStyles({ name: { ManageUsers } })((theme) => ({
     alignItems: "center",
     gap: theme.spacing(1),
   },
-  buttonSmall: {
-    padding: "3px 10px",
+  modalHeader2: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  chip: {
+    "& .mui-6od3lo-MuiChip-label": {
+      padding: "4px",
+    },
+  },
+  headerText: {
+    fontWeight: "normal",
   },
 }));
 

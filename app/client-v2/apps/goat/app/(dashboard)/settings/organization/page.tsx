@@ -1,9 +1,10 @@
 import { makeStyles } from "@/lib/theme";
 
-import { Tabs } from "@p4b/ui/components/Tabs";
+import { Tabs } from "@p4b/ui/components/Navigation/Tabs";
 
 import ManageUsers from "./ManageUsers";
 import Overview from "./Overview";
+import Teams from "./Teams";
 
 const Organization = () => {
   const { classes, cx } = useStyles();
@@ -18,7 +19,7 @@ const Organization = () => {
       name: "Manage users",
     },
     {
-      child: <div>overview</div>,
+      child: <Teams />,
       name: "Teams",
     },
     {

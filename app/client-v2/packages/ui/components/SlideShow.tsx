@@ -42,23 +42,27 @@ export const SlideShow = memo(
     // eslint-disable-next-line @typescript-eslint/ban-types
     assert<Equals<typeof rest, {}>>();
 
+    // Styling related
     const { classes, cx } = useStyles();
-
     const theme = useTheme();
+
+    // Component States
     const [activeStep, setActiveStep] = React.useState(0);
+
     const maxSteps = images.length;
 
-    const handleNext = () => {
-      setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    };
-
-    const handleBack = () => {
-      setActiveStep((prevActiveStep) => prevActiveStep - 1);
-    };
-
+    // Functions
     const handleStepChange = (step: number) => {
       setActiveStep(step);
     };
+
+    // const handleNext = () => {
+    //   setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    // };
+
+    // const handleBack = () => {
+    //   setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    // };
 
     return (
       <Box sx={{ width: width, height: height, flexGrow: 1, position: "relative", marginBottom: "57px" }}>

@@ -249,19 +249,25 @@ export type MapProps = {
 export default function MapByStyle(props: MapProps) {
   const { layer } = props;
 
-  console.log(layer)
+  console.log(layer);
 
   const sourcesObj = {
-    'poi':  <Source id={stylesObj['poi'].id} type="vector" url={stylesObj['poi'].sources.composite.url}>
-            <Layer {...stylesObj['poi'].layers[0]} />
-          </Source>,
-    'aoi':  <Source id={stylesObj['aoi'].id} type="vector" url={stylesObj['aoi'].sources.composite.url}>
-            <Layer {...stylesObj['aoi'].layers[0]} />
-          </Source>,
-    'edge': <Source id={stylesObj['edge'].id} type="vector" url={stylesObj['edge'].sources.composite.url}>
-            <Layer {...stylesObj['edge'].layers[0]} />
-          </Source>
-  }
+    poi: (
+      <Source id={stylesObj["poi"].id} type="vector" url={stylesObj["poi"].sources.composite.url}>
+        <Layer {...stylesObj["poi"].layers[0]} />
+      </Source>
+    ),
+    aoi: (
+      <Source id={stylesObj["aoi"].id} type="vector" url={stylesObj["aoi"].sources.composite.url}>
+        <Layer {...stylesObj["aoi"].layers[0]} />
+      </Source>
+    ),
+    edge: (
+      <Source id={stylesObj["edge"].id} type="vector" url={stylesObj["edge"].sources.composite.url}>
+        <Layer {...stylesObj["edge"].layers[0]} />
+      </Source>
+    ),
+  };
 
   return (
     <div style={{ width: "100%", height: "100vh" }}>
@@ -274,10 +280,9 @@ export default function MapByStyle(props: MapProps) {
         style={{ width: "100%", height: "100%" }}
         mapStyle="mapbox://styles/mapbox/streets-v11"
         mapboxAccessToken={MAPBOX_TOKEN}>
-
-        {layer === 'poi' && sourcesObj.poi}
-        {layer === 'aoi' && sourcesObj.aoi}
-        {layer === 'edge' && sourcesObj.edge}
+        {layer === "poi" && sourcesObj.poi}
+        {layer === "aoi" && sourcesObj.aoi}
+        {layer === "edge" && sourcesObj.edge}
       </Map>
     </div>
   );

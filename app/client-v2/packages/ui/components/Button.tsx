@@ -19,7 +19,7 @@ import { id } from "tsafe/id";
 import { makeStyles } from "../lib/ThemeProvider";
 import { variantNameUsedForMuiButton } from "../lib/typography";
 import { pxToNumber } from "../tools/pxToNumber";
-import type { IconProps } from "./Icon/Icon";
+import type { IconProps } from "./DataDisplay";
 
 export type ButtonProps<IconId extends string = never> =
   | ButtonProps.Regular<IconId>
@@ -111,7 +111,7 @@ export function createButton<IconId extends string = never>(params?: {
       const IconWd = useGuaranteedMemo(
         // eslint-disable-next-line react/display-name
         () => (props: { iconId: IconId }) =>
-          <Icon iconId={props.iconId} className={classes.icon} size="default" />,
+          <Icon iconId={props.iconId} className={classes.icon} size="small" />,
         [disabled, classes.icon]
       );
 
@@ -174,7 +174,7 @@ export function createButton<IconId extends string = never>(params?: {
             case "ternary":
               return theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main;
             case "noBorder":
-              return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].greyVariant3;
+              return `${theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].greyVariant3}E6`;
             case "warning":
               return theme.muiTheme.palette.warning.main;
           }
@@ -206,7 +206,7 @@ export function createButton<IconId extends string = never>(params?: {
             case "ternary":
               return theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main;
             case "noBorder":
-              return "transparent";
+              return `${theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant1}80`;
             case "warning":
               return theme.muiTheme.palette.warning.main;
           }
@@ -233,21 +233,31 @@ export function createButton<IconId extends string = never>(params?: {
           pxToNumber(theme.typography.variants[variantNameUsedForMuiButton].style.lineHeight);
 
         return {
+          fontWeight: "500",
+          fontSize: "14px",
           textTransform: "unset" as const,
-          backgroundColor: disabled
-            ? theme.colors.useCases.buttons.actionDisabledBackground
-            : (() => {
-                switch (variant) {
-                  case "primary":
-                  case "secondary":
-                  case "noBorder":
-                  case "warning":
-                    return "transparent";
-                  case "ternary":
-                    return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main;
+          backgroundColor: (() => {
+            switch (variant) {
+              case "noBorder":
+                return "transparent";
+                break;
+              case "primary":
+              case "secondary":
+              case "warning":
+                if (disabled) {
+                  theme.colors.useCases.buttons.actionDisabledBackground;
+                } else {
+                  return "transparent";
                 }
-              })(),
-          borderRadius: approxHeight / 2,
+              case "ternary":
+                if (disabled) {
+                  theme.colors.useCases.buttons.actionDisabledBackground;
+                } else {
+                  return theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main;
+                }
+            }
+          })(),
+          borderRadius: variant === "noBorder" ? "1px" : approxHeight / 2,
           borderWidth,
           borderStyle: "solid",
           borderColor: disabled ? "transparent" : hoverBackgroundColor,

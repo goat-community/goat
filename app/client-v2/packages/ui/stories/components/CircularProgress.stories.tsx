@@ -42,3 +42,10 @@ export const Secondary: Story = {
     color: "textPrimary",
   },
 };
+
+export const CustomSize: Story = {
+  args: {
+    color: "primary",
+    size: 20,
+  },
+};

@@ -17,21 +17,22 @@ export type CreateColorUseCase<
 export const defaultPalette = {
   focus: {
     main: "#2BB381",
-    light: "#2BB381",
+    light: "#80D1B3",
     light2: "#60D3A2",
+    dark: "#1A6B4D",
   },
   dark: {
     main: "#283648",
-    light: "#314157",
-    greyVariant1: "#1c2b3b",
+    light: "#647183",
+    greyVariant1: "#18202B",
     greyVariant2: "#1E2F41",
     greyVariant3: "#425066",
     greyVariant4: "#6A7C91",
   },
   light: {
-    main: "#F8F7F3",
-    light: "#FDFDFC",
-    greyVariant1: "#E6E6E6",
+    main: "#FAFAFA",
+    light: "#fafafa",
+    greyVariant1: "#f2f2f3",
     greyVariant2: "#C9C9C9",
     greyVariant3: "#9E9E9E",
     greyVariant4: "#747474",
@@ -41,7 +42,7 @@ export const defaultPalette = {
     light: "#FEECEB",
   },
   greenSuccess: {
-    main: "#29CC2F",
+    main: "#2E7D32",
     light: "#EEFAEE",
   },
   orangeWarning: {
@@ -134,6 +135,7 @@ export function createMuiPaletteOptions(params: {
     primary: {
       main: palette.focus[isDarkModeEnabled ? "light" : "main"],
       light: palette.focus.light2,
+      dark: palette.focus.dark,
     },
     secondary: {
       main: useCases.typography.textPrimary,

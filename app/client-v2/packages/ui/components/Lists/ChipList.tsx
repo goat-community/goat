@@ -4,16 +4,26 @@ import { Chip } from "@mui/material";
 import { forwardRef, memo, useEffect, useRef } from "react";
 
 import { makeStyles } from "../../lib/ThemeProvider";
-import { Text } from "../Text/TextBase";
+import { Text } from "../theme";
 
 export type ChipListProps = {
   className?: string;
   chips: string[];
 };
 
+/**
+ * A memoized functional component that renders a list of chips.
+ * @param {ChipListProps} props - The component props.
+ * @param {React.Ref<any>} ref - The ref object for the component.
+ * @returns The rendered component.
+ */
 export const ChipList = memo(
   forwardRef<any, ChipListProps>((props, ref) => {
     const { className, chips } = props;
+
+    const { classes, cx } = useStyles();
+
+    // refs
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -45,8 +55,6 @@ export const ChipList = memo(
         window.removeEventListener("resize", handleOverflow);
       };
     }, []);
-
-    const { classes, cx } = useStyles();
 
     return (
       <div className={className} ref={containerRef} style={{ overflowX: "auto" }}>

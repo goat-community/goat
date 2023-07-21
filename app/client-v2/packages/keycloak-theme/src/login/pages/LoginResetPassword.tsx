@@ -1,7 +1,7 @@
 import { Link } from "@mui/material";
 import type { PageProps } from "keycloakify/login/pages/PageProps";
 
-import { TextField } from "@p4b/ui/components/Text/TextField";
+import { TextField } from "@p4b/ui/components/Inputs/TextField";
 
 import { Button, makeStyles, Text } from "../../theme";
 import type { I18n } from "../i18n";

@@ -2,8 +2,8 @@
 
 import { makeStyles } from "@/lib/theme";
 
-import Footer from "@p4b/ui/components/Footer";
-import { Toolbar } from "@p4b/ui/components/Toolbar";
+import Footer from "@p4b/ui/components/Navigation/Footer";
+import { Toolbar } from "@p4b/ui/components/Navigation/Toolbar";
 import { Icon } from "@p4b/ui/components/theme";
 import type { IconId } from "@p4b/ui/components/theme";
 
@@ -109,7 +109,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     <>
       <Toolbar height={52} items={items} />
       <DashboardSidebar items={sidebarItems} width={60} extended_width={200}>
-        <div className={classes.container}>{children}</div>
+        <div className={cx(classes.container)}>{children}</div>
       </DashboardSidebar>
       <Footer
         links={footerLinks}
@@ -121,11 +121,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
 const useStyles = makeStyles({ name: { DashboardLayout } })(() => ({
   container: {
-    width: "1344px",
+    width: "1168px",
     minHeight: "100vh",
     margin: "0 auto",
     marginTop: "52px",
-    paddingLeft: "200px",
     "@media (max-width: 1714px)": {
       width: "90%",
     },

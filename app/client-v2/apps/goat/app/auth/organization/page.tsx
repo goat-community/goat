@@ -5,8 +5,7 @@ import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useState, useRef } from "react";
 
-import { SelectField } from "@p4b/ui/components/SelectField";
-import { TextField } from "@p4b/ui/components/Text/TextField";
+import { SelectField, TextField } from "@p4b/ui/components/Inputs";
 import { Button, Text } from "@p4b/ui/components/theme";
 
 export default function OrganizationCreate() {
