@@ -1,8 +1,8 @@
 "use client";
 
-import HeaderStack from "@/app/(dashboard)/content/HeaderStack";
-import PreviewMap from "@/app/(dashboard)/content/PreviewMap";
-import PreviewMenu from "@/app/(dashboard)/content/PreviewMenu";
+import HeaderStack from "@/app/(dashboard)/content/preview/HeaderStack";
+import PreviewMap from "@/app/(dashboard)/content/preview/PreviewMap";
+import PreviewMenu from "@/app/(dashboard)/content/preview/PreviewMenu";
 import { makeStyles } from "@/lib/theme";
 
 const useStyles = () =>
