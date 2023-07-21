@@ -1,3 +1,9 @@
+import ContentManagement from "./ContentManagement";
+
 export default function ContentPage() {
-  return <div>Contents Page</div>;
+  return (
+    <div>
+      <ContentManagement />
+    </div>
+  );
 }

@@ -108,3 +108,16 @@ export const DialogOnRight: Story = () => {
 
 DialogOnLeft.args = {};
 DialogOnRight.args = {};
+
+DialogOnLeft.parameters = {
+  design: {
+    type: "figma",
+    url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=6586%3A47137&mode=dev",
+  },
+};
+DialogOnRight.parameters = {
+  design: {
+    type: "figma",
+    url: "https://www.figma.com/file/tu6pPILBRSUuy3Hbu8Lphk/Goat-3.0?node-id=6586%3A47137&mode=dev",
+  },
+};

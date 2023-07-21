@@ -1,14 +1,10 @@
 "use client";
 
 import { makeStyles } from "@/lib/theme";
-import { Text } from "@/lib/theme";
-import { useTheme } from "@/lib/theme";
 import { Fade, List, ListItem, ListItemButton, ListItemIcon } from "@mui/material";
-import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { Icon } from "@p4b/ui/components/theme";
+import { Icon, Text, useTheme } from "@p4b/ui/components/theme";
 import type { IconId } from "@p4b/ui/components/theme";
 
 export type DashboardSidebarProps = {
@@ -18,35 +14,47 @@ export type DashboardSidebarProps = {
   children: React.ReactNode;
 };
 
+/**
+ * A functional component that renders a dashboard sidebar.
+ * @param {DashboardSidebarProps} props - The props object containing the items and children.
+ * @returns The rendered dashboard sidebar component.
+ */
+
 export function DashboardSidebar(props: DashboardSidebarProps) {
   const { items, children } = props;
-  const router = useRouter();
+
+  // styling
   const { classes, cx } = useStyles(props)();
   const theme = useTheme();
+
+  // Component States
   const [hover, setHover] = useState(false);
-  const pathname = usePathname();
+  const [active, setActive] = useState<string | null>(items[0].placeholder);
+
+  // functions
   const handleHover = () => {
     setHover((currHover) => !currHover);
   };
+
   return (
     <>
       <nav className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
         <List>
           {items?.map(({ link, icon, placeholder }, indx) => (
-            <ListItem onClick={() => router.push(link)} disablePadding key={indx}>
+            <ListItem onClick={() => setActive(placeholder)} disablePadding key={indx}>
               <ListItemButton className={classes.itemList}>
-                <ListItemIcon sx={{ marginRight: "10px" }}>
+                <ListItemIcon>
                   <Icon
                     size="default"
                     iconId={icon}
                     iconVariant={
-                      pathname.includes(link) ? "focus" : theme.isDarkModeEnabled ? "white" : "gray"
+                      active === placeholder ? "focus" : theme.isDarkModeEnabled ? "white" : "gray"
                     }
                   />
                 </ListItemIcon>
                 {hover ? (
                   <Fade in={true}>
-                    <Text typo="body 2" color={pathname.startsWith(link) ? "focus" : "primary"}>
+                    <Text typo="body 2" color={active === placeholder ? "focus" : "primary"}>
                       {placeholder}
                     </Text>
                   </Fade>
@@ -68,7 +76,7 @@ const useStyles = (props: DashboardSidebarProps) =>
     root: {
       zIndex: "20",
       paddingTop: "52px",
-      backgroundColor: theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].light,
+      backgroundColor: theme.colors.useCases.surfaces.surface2,
       cursor: "pointer",
       width: props.width,
       left: 0,
@@ -78,14 +86,14 @@ const useStyles = (props: DashboardSidebarProps) =>
       transition: "width 0.4s ease",
       display: "flex",
       flexDirection: "column",
-      boxShadow: "0px 2px 4px -1px rgba(0, 0, 0, 0.12)",
+      boxShadow: "0px 1px 5px 0px #0000001F, 0px 2px 2px 0px #00000024, 0px 3px 1px -2px #00000033",
       "&:hover": {
         width: props.extended_width,
       },
     },
     itemList: {
       "&:hover": {
-        backgroundColor: theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant1,
+        backgroundColor: `${theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant2}aa`,
       },
     },
   }));

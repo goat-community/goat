@@ -1,42 +1,60 @@
 import { makeStyles } from "@/lib/theme";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import Banner from "@p4b/ui/components/Banner";
+import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Text } from "@p4b/ui/components/theme";
 
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import type { SubscriptionStatusCardDataType } from "./SubscriptionStatusCard";
 
-const Overview = () => {
+const Subscription = () => {
   const { classes } = useStyles();
-  const [isDemo, setIsDemo] = useState<boolean | null>(null);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatusCardDataType>({
+
+  const [subscriptionDetails, setSubscriptionDetails] = useState<SubscriptionStatusCardDataType>({
     icon: "rocketLaunch",
     title: "Starter",
     listItems: [
       <Text typo="body 2" key={1}>
-        2 of 12 seats available
+        Next payment: 23 July 2024
+      </Text>,
+      <Text typo="body 2" key={2}>
+        Annual payment cycle: 23 July 2023 - 23 July 2024
+      </Text>,
+      <Text typo="body 2" key={3}>
+        2 of 12 editors seat available
+      </Text>,
+      <Text typo="body 2" key={4}>
+        Region: Greater Munich
       </Text>,
     ],
     action: (
-      <Button className={classes.button} variant="secondary">
-        Manage seats
+      <Button className={classes.button} variant="primary">
+        Add seats
       </Button>
     ),
   });
 
-  const extensions: SubscriptionStatusCardDataType[] = [
+  const subscriptionExtensions: SubscriptionStatusCardDataType[] = [
     {
       icon: "run",
       title: "Active mobility",
       listItems: [
         <Text typo="body 2" key={1}>
-          Great Munich Area - 6 of 10 editors available
+          Next payment: 23 July 2024
+        </Text>,
+        <Text typo="body 2" key={2}>
+          Annual payment cycle: 23 July 2023 - 23 July 2024
+        </Text>,
+        <Text typo="body 2" key={3}>
+          2 of 12 editors seat available
+        </Text>,
+        <Text typo="body 2" key={4}>
+          Region: Greater Munich
         </Text>,
       ],
       action: (
-        <Button className={classes.button} variant="secondary">
-          Manage seats
+        <Button className={classes.button} variant="primary">
+          Add seats
         </Button>
       ),
     },
@@ -45,27 +63,31 @@ const Overview = () => {
       title: "Motorised mobility",
       listItems: [
         <Text typo="body 2" key={1}>
-          Great Munich Area - 4 of 10 editors available
+          Next payment: 23 July 2024
+        </Text>,
+        <Text typo="body 2" key={2}>
+          Annual payment cycle: 23 July 2023 - 23 July 2024
+        </Text>,
+        <Text typo="body 2" key={3}>
+          2 of 12 editors seat available
+        </Text>,
+        <Text typo="body 2" key={4}>
+          Region: Greater Munich
         </Text>,
       ],
       action: (
-        <Button className={classes.button} variant="secondary">
-          Manage seats
+        <Button className={classes.button} variant="primary">
+          Add seats
         </Button>
       ),
     },
   ];
 
-  useEffect(() => {
-    setIsDemo(false);
-  });
-
   return (
     <div>
-      {[subscriptionStatus, ...extensions].map((extension, indx) => (
+      {[subscriptionDetails, ...subscriptionExtensions].map((extension, indx) => (
         <SubscriptionStatusCard sectionData={extension} key={indx} />
       ))}
-      <div className={classes.extensionButtonWrapper}>{!isDemo ? <Button>Add extensions</Button> : null}</div>
       <Banner
         actions={<Button>Subscribe Now</Button>}
         content={
@@ -81,7 +103,7 @@ const Overview = () => {
   );
 };
 
-const useStyles = makeStyles({ name: { Overview } })((theme) => ({
+const useStyles = makeStyles({ name: { Subscription } })((theme) => ({
   settingSection: {
     padding: theme.spacing(2),
   },
@@ -104,4 +126,4 @@ const useStyles = makeStyles({ name: { Overview } })((theme) => ({
   },
 }));
 
-export default Overview;
+export default Subscription;

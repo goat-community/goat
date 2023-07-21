@@ -1,6 +1,6 @@
 import { makeStyles } from "@/lib/theme";
 
-import { Card } from "@p4b/ui/components/Card";
+import { Card } from "@p4b/ui/components/Surfaces/Card";
 import { Icon, Text } from "@p4b/ui/components/theme";
 import type { IconId } from "@p4b/ui/components/theme";
 

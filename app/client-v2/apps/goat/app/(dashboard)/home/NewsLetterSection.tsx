@@ -2,8 +2,8 @@
 
 import { makeStyles } from "@/lib/theme";
 
-import { Card } from "@p4b/ui/components/Card";
-import { TextField } from "@p4b/ui/components/Text/TextField";
+import { TextField } from "@p4b/ui/components/Inputs";
+import { Card } from "@p4b/ui/components/Surfaces";
 import { Text } from "@p4b/ui/components/theme";
 import { Button } from "@p4b/ui/components/theme";
 

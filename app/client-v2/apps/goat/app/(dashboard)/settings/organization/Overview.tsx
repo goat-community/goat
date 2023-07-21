@@ -1,9 +1,9 @@
 import { makeStyles } from "@/lib/theme";
 import React, { useRef } from "react";
 
-import Banner from "@p4b/ui/components/Banner";
 import Dialog from "@p4b/ui/components/Dialog";
-import { TextField } from "@p4b/ui/components/Text/TextField";
+import { TextField } from "@p4b/ui/components/Inputs/TextField";
+import Banner from "@p4b/ui/components/Surfaces/Banner";
 import type { IconId } from "@p4b/ui/components/theme";
 import { Icon, Button, Text } from "@p4b/ui/components/theme";
 

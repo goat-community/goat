@@ -17,8 +17,10 @@ export type ModalProps = {
 const Modal = memo(
   forwardRef<HTMLElement, ModalProps>((props, ref) => {
     const { className, width, children, open, changeOpen, header, action, ...rest } = props;
+
     const { classes, cx } = useStyles({ width });
-    // const handleOpen = () => setOpen(true);
+
+    // Functions
     const handleClose = () => changeOpen(false);
 
     return (
@@ -42,6 +44,7 @@ const useStyles = makeStyles<{ width: string }>({
 })((theme, { width }) => ({
   box: {
     position: "absolute",
+    borderRadius: theme.spacing(1),
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
