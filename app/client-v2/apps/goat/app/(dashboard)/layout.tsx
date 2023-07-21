@@ -108,7 +108,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     <>
       <Toolbar height={52} items={items} />
       <DashboardSidebar items={sidebarItems} width={60} extended_width={200}>
-        <div className={classes.container}>{children}</div>
+        <div className={cx(classes.container)}>{children}</div>
       </DashboardSidebar>
       <Footer
         links={footerLinks}
@@ -122,6 +122,12 @@ const useStyles = makeStyles({ name: { DashboardLayout } })(() => ({
   container: {
     minHeight: "100vh",
     marginTop: "52px",
+    "@media (max-width: 1714px)": {
+      width: "90%",
+    },
+    "@media (max-width: 1500px)": {
+      width: "90%",
+    },
     "@media (max-width: 1268px)": {
       paddingLeft: "50px",
     },
