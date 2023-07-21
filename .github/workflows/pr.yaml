@@ -2,7 +2,7 @@ name: PR
 
 on:
   pull_request:
-    branches: [prod, dev, staging, v2]
+    branches: [ prod, dev, staging, v2 ]
 
 jobs:
   build:
@@ -22,13 +22,10 @@ jobs:
         with:
           output: ' '
       - name: Show changed files
-        run: echo ${{ steps.get_file_changes.outputs.files }}
-      - name: Join changed files into a single string
-        id: join_files
-        run: echo "::set-output name=files::${{ steps.get_file_changes.outputs.files.join(' ') }}"
+        run: echo ${{steps.get_file_changes.outputs.files}}
       - name: Build changed client
-        if: contains(steps.join_files.outputs.files, 'app/client')
+        if: contains(steps.get_file_changes.outputs.files, 'app/client')
         run: make build-docker-image-pr -e COMPONENT=client
       - name: Build changed api
-        if: contains(steps.join_files.outputs.files, 'app/api')
+        if: contains(steps.get_file_changes.outputs.files, 'app/api')
         run: make build-docker-image-pr -e COMPONENT=api
