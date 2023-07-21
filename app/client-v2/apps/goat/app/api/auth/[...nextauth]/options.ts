@@ -77,12 +77,13 @@ export const options: NextAuthOptions = {
   callbacks: {
     async session({ session, token }) {
       console.log(`Executing session() with token ${token.expires_at}`);
+      if (token) {
+        session.access_token = token.access_token;
+      }
       session.error = token.error;
-      console.log(session);
       return session;
     },
     async jwt({ token, account, user }) {
-      console.log(token);
       console.log("Executing jwt()");
       if (account && user) {
         // The account and user will be available on first sign in with this provider
