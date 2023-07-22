@@ -1,16 +1,18 @@
 "use client";
 
 import { makeStyles } from "@/lib/theme";
+import { useSession } from "next-auth/react";
 
 import Box from "@p4b/ui/components/Box";
 import Grid from "@p4b/ui/components/Grid";
-import { Card } from "@p4b/ui/components/Surfaces";
+import { Loading } from "@p4b/ui/components/Loading";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
 }
 
 const AuthLayout = (props: AuthLayoutProps) => {
+  const { status, data: session } = useSession();
   const { children } = props;
   const { classes } = useStyles();
 
@@ -45,9 +47,15 @@ const AuthLayout = (props: AuthLayoutProps) => {
 
           <div className={classes.child}>
             <div className={classes.cardContainer}>
-              <Card width={480} noHover={true} className={classes.paper}>
-                {children}
-              </Card>
+              {!status ||
+                (["unauthenticated", "loading"].includes(status) && (
+                  <div className={classes.root}>
+                    <div className={classes.loadingWrapper}>
+                      <Loading />
+                    </div>
+                  </div>
+                ))}
+              {children}
             </div>
           </div>
         </Grid>
@@ -89,13 +97,6 @@ const useStyles = makeStyles({ name: { AuthLayout } })((theme) => ({
     backgroundImage: 'url("https://assets.plan4better.de/img/login/artwork_1.png")',
     height: "100vh",
   },
-  paper: {
-    padding: theme.spacing(5),
-    width: 490,
-    height: "fit-content",
-    marginBottom: theme.spacing(4),
-    borderRadius: 4,
-  },
   gridLeft: {
     height: "100vh",
     display: "flex",
@@ -113,6 +114,12 @@ const useStyles = makeStyles({ name: { AuthLayout } })((theme) => ({
     "& img": {
       maxWidth: "100%",
     },
+  },
+  loadingWrapper: {
+    justifyContent: "center",
+    marginTop: theme.spacing(4),
+    marginBottom: theme.spacing(4),
+    display: "flex",
   },
 }));
 

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export default withAuth(
   function middleware(request: NextRequestWithAuth) {
-    if (!request.nextauth.token) {
+    if (!request.nextauth.token || request.nextauth.token.error === "RefreshAccessTokenError") {
       const url = new URL(`/api/auth/signin`, request.url);
       url.searchParams.set("callbackUrl", encodeURI(request.url));
       return NextResponse.redirect(url);
