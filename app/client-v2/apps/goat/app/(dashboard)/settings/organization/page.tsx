@@ -1,9 +1,9 @@
+import ManageUsers from "@/app/(dashboard)/settings/organization/ManageUsers";
+import Overview from "@/app/(dashboard)/settings/organization/Overview";
+import Teams from "@/app/(dashboard)/settings/organization/Teams";
+
 import { Tabs } from "@p4b/ui/components/Navigation/Tabs";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-import ManageUsers from "./ManageUsers";
-import Overview from "./Overview";
-import Teams from "./Teams";
 
 const Organization = () => {
   const { classes, cx } = useStyles();

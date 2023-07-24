@@ -2,6 +2,7 @@
 
 import { makeStyles } from "@/lib/theme";
 import { Fade, List, ListItem, ListItemButton, ListItemIcon } from "@mui/material";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Icon, Text, useTheme } from "@p4b/ui/components/theme";
@@ -22,6 +23,7 @@ export type DashboardSidebarProps = {
 
 export function DashboardSidebar(props: DashboardSidebarProps) {
   const { items, children } = props;
+  const router = useRouter();
 
   // styling
   const { classes, cx } = useStyles(props)();
@@ -36,12 +38,17 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
     setHover((currHover) => !currHover);
   };
 
+  const handleChangeLink = (link, placeholder) => {
+    setActive(placeholder);
+    router.push(link);
+  };
+
   return (
     <>
       <nav className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
         <List>
           {items?.map(({ link, icon, placeholder }, indx) => (
-            <ListItem onClick={() => setActive(placeholder)} disablePadding key={indx}>
+            <ListItem onClick={() => handleChangeLink(link, placeholder)} disablePadding key={indx}>
               <ListItemButton className={classes.itemList}>
                 <ListItemIcon>
                   <Icon

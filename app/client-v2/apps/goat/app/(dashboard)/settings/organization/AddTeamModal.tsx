@@ -1,11 +1,10 @@
+import type { Team } from "@/app/(dashboard)/settings/organization//Teams";
+import TeamModalBody from "@/app/(dashboard)/settings/organization/TeamModalBody";
 import React, { useState } from "react";
 
 import Modal from "@p4b/ui/components/Modal";
 import { Button, Text, IconButton } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-import TeamModalBody from "./TeamModalBody";
-import type { Team } from "./Teams";
 
 interface AddTeamModalProps {
   visibility: boolean;

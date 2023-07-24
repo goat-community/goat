@@ -1,3 +1,6 @@
+import type { Option } from "@/app/(dashboard)/settings/organization/AddTeamModal";
+import TeamModalBody from "@/app/(dashboard)/settings/organization/TeamModalBody";
+import type { Team } from "@/app/(dashboard)/settings/organization/Teams";
 import { filterSearch } from "@/lib/utils/helpers";
 import React, { useState, useEffect } from "react";
 
@@ -7,10 +10,6 @@ import { Card } from "@p4b/ui/components/Surfaces";
 import { IconButton } from "@p4b/ui/components/theme";
 import { Text, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-import type { Option } from "./AddTeamModal";
-import TeamModalBody from "./TeamModalBody";
-import type { Team } from "./Teams";
 
 interface TeamsTableProps {
   rawRows: Team[];
