@@ -561,9 +561,14 @@ class CRUDIsochrone:
                 population_reached = self.restructure_dict(
                     remove_keys(population_count, ["total"]), max_value=max_value
                 )
-                population_reached["population"] = [
-                    int(x) for x in population_reached["population"]
-                ]
+                # Check if population_reached is empty
+                if population_reached:
+                    population_reached["population"] = [
+                        int(x) for x in population_reached["population"]
+                    ]
+                else:
+                    population_reached["population"] = [0] * (max_value // step_size)
+
                 if population_count.get("total") and population_count.get("total").get(
                     "population"
                 ):
