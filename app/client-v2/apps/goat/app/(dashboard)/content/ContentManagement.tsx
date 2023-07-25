@@ -25,6 +25,7 @@ const ContentManagement = () => {
     size: string;
   } | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [path, setPath] = useState<string[]>(["home"]);
 
   // Dumb Data
   // These are the rows of the table, it is only temporary for now
@@ -289,8 +290,6 @@ const ContentManagement = () => {
       link: "/home",
     },
   ];
-
-  const [path, setPath] = useState<string[]>(["home"]);
 
   // this is the Info Modal
   const modal = modalContent
