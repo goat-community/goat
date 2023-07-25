@@ -90,10 +90,8 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     };
     const organization = await getOrganization(newToken);
     const subscriptions = await getSubscriptions(newToken);
-    if (!organization) throw Error("Unable to retrieve organization");
-    if (!organization || subscriptions.length === 0) throw Error("Unable to retrieve subscriptions");
-    newToken.organization = organization.id;
-    newToken.subscriptions = subscriptions;
+    newToken.organization = organization ? organization.id : null;
+    newToken.subscriptions = subscriptions && subscriptions.length > 0 ? subscriptions : null;
     return newToken;
   } catch (error) {
     console.error("Error refreshing access token: ", error);
@@ -116,7 +114,6 @@ export const options: NextAuthOptions = {
   },
   callbacks: {
     async session({ session, token }) {
-      console.log(`Executing session() with token ${token.expires_at}`);
       if (token) {
         session.access_token = token.access_token;
       }
@@ -128,7 +125,6 @@ export const options: NextAuthOptions = {
       return session;
     },
     async jwt({ token, account, user }) {
-      console.log("Executing jwt()");
       if (account && user) {
         if (!account.access_token) throw Error("Auth Provider missing access token");
         if (!account.refresh_token) throw Error("Auth Provider missing refresh token");
@@ -143,22 +139,14 @@ export const options: NextAuthOptions = {
         };
         const organization = await getOrganization(newToken);
         const subscriptions = await getSubscriptions(newToken);
-        if (!organization) throw Error("Unable to retrieve organization");
-        if (subscriptions.length === 0) throw Error("Unable to retrieve subscriptions");
-        newToken.organization = organization.id;
-        newToken.subscriptions = subscriptions;
+        newToken.organization = organization ? organization.id : null;
+        newToken.subscriptions = subscriptions && subscriptions.length > 0 ? subscriptions : null;
         return newToken;
       }
-      // Return previous token if the access token has not expired yet
       if (Date.now() < token.expires_at * 1000) {
-        // If the access token has not expired yet, return it
-        console.log("token is valid");
         return token;
       }
-      // If the access token has expired, try to refresh it
-      console.log(`\n>>> Old token expired: ${token.expires_at}`);
       const newToken = await refreshAccessToken(token);
-      console.log(`New token acquired: ${newToken.expires_at}`);
       return newToken;
     },
   },

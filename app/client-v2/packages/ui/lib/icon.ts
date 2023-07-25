@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export const iconSizeNames = ["extra small", "small", "default", "medium", "large"] as const;
+export const iconSizeNames = ["extra small", "small", "default", "medium", "large", "extra large"] as const;
 
 export type IconSizeName = (typeof iconSizeNames)[number];
 
@@ -24,6 +24,8 @@ export const defaultGetIconSizeInPx: GetIconSizeInPx = ({ sizeName, rootFontSize
 
       case "large":
         return 1.5;
+      case "extra large":
+        return 2;
     }
   })();
 
