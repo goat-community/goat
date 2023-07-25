@@ -1,13 +1,12 @@
 "use client";
 
+import { DashboardSidebar } from "@/app/(dashboard)/DashboardSidebar";
 import { makeStyles } from "@/lib/theme";
 
 import Footer from "@p4b/ui/components/Navigation/Footer";
 import { Toolbar } from "@p4b/ui/components/Navigation/Toolbar";
 import { Icon } from "@p4b/ui/components/theme";
 import type { IconId } from "@p4b/ui/components/theme";
-
-import { DashboardSidebar } from "./DashboardSidebar";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -122,6 +121,8 @@ const useStyles = makeStyles({ name: { DashboardLayout } })(() => ({
   container: {
     minHeight: "100vh",
     marginTop: "52px",
+    width: "80%",
+    margin: "0 auto",
     "@media (max-width: 1714px)": {
       width: "90%",
     },

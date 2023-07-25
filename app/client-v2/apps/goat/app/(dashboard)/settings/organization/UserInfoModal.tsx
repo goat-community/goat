@@ -1,11 +1,10 @@
+import type { RowsType } from "@/app/(dashboard)/settings/organization/ManageUsers";
 import React, { useState } from "react";
 
 import { Switch } from "@p4b/ui/components/Inputs";
 import { SelectField } from "@p4b/ui/components/Inputs";
 import { Text } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-import type { RowsType } from "./ManageUsers";
 
 interface UserInfoModal {
   ismodalVisible: boolean;

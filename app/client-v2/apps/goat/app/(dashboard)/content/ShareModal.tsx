@@ -1,3 +1,4 @@
+import AccessSettings from "app/(dashboard)/content/AccessSettings";
 import type { Dayjs } from "dayjs";
 import React from "react";
 import { useState } from "react";
@@ -6,8 +7,6 @@ import { Divider } from "@p4b/ui/components/DataDisplay";
 import { Switch, DatePicker, TextField } from "@p4b/ui/components/Inputs";
 import { Text, Icon, IconButton, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-import AccessSettings from "./AccessSettings";
 
 interface ShareModalProps {
   name?: React.ReactNode;

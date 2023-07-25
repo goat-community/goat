@@ -1,5 +1,9 @@
 "use client";
 
+import ContentInfoModal from "@/app/(dashboard)/content/ContentInfoModal";
+import HeaderCard from "@/app/(dashboard)/content/HeaderCard";
+import MoreMenu from "@/app/(dashboard)/content/MoreMenu";
+import TreeViewFilter from "@/app/(dashboard)/content/TreeViewFilter";
 import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
 import { useState } from "react";
@@ -10,11 +14,6 @@ import Modal from "@p4b/ui/components/Modal";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Icon, Text, IconButton, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-import ContentInfoModal from "./ContentInfoModal";
-import HeaderCard from "./HeaderCard";
-import MoreMenu from "./MoreMenu";
-import TreeViewFilter from "./TreeViewFilter";
 
 const ContentManagement = () => {
   const { classes } = useStyles();

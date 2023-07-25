@@ -1,9 +1,8 @@
 import ThemeRegistry from "@/lib/ThemeRegistry";
 import AuthProvider from "@/lib/context/AuthProvider";
 import Provider from "@/lib/context/StoreProvider";
+import "@/styles/globals.css";
 import type { Metadata } from "next";
-
-import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: {
