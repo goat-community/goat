@@ -5,12 +5,12 @@ import { redirect } from "next/navigation";
 
 export default function Login() {
   const { status, data: session } = useSession();
-
-  if (session) {
-    redirect(`/`);
-  }
-  if (status === "unauthenticated") {
+  console.log("session", session);
+  if (status === "unauthenticated" || session?.error === "RefreshAccessTokenError") {
     signIn("keycloak");
+  }
+  if (session && session?.error !== "RefreshAccessTokenError") {
+    redirect(`/`);
   }
 
   return <></>;

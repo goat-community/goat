@@ -1,45 +1,65 @@
 "use client";
 
 import { makeStyles } from "@/lib/theme";
+import { postOrganizationSchema } from "@/lib/validations/organization";
+import { zodResolver } from "@hookform/resolvers/zod";
+import TextField from "@mui/material/TextField";
 import { useSession } from "next-auth/react";
 import { useState, useRef } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import type * as z from "zod";
 
-import { SelectField, TextField } from "@p4b/ui/components/Inputs";
+import { SelectField } from "@p4b/ui/components/Inputs";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Button, Text } from "@p4b/ui/components/theme";
 
+type FormData = z.infer<typeof postOrganizationSchema>;
+
 export default function OrganizationCreate() {
   const { status } = useSession();
-
-  const [selectedIndustry, setSelectedIndustry] = useState("gis");
-
-  const Industries = [
+  const [isBusy, setIsBusy] = useState<boolean>(false);
+  const REGIONS = [
     {
-      name: "Transport Planing",
-      value: "transportPlaning",
-    },
-    {
-      name: "Urban Planing",
-      value: "urbanPlaning",
-    },
-    {
-      name: "GIS",
-      value: "gis",
-    },
-    {
-      name: "Architecture",
-      value: "Architecture",
+      name: "EU",
+      value: "eu",
     },
   ];
 
-  const onSubmit = () => {
-    console.log("submit");
-  };
-
   const { classes } = useStyles();
 
-  const organizationInputRef = useRef<HTMLInputElement>(null);
   const submitButtonRef = useRef<HTMLButtonElement>(null);
+
+  const {
+    handleSubmit,
+    register,
+    formState: { errors, isDirty, isValid },
+  } = useForm<FormData>({
+    mode: "onChange",
+    resolver: zodResolver(postOrganizationSchema),
+    defaultValues: {
+      region: "eu",
+    },
+  });
+
+  async function onSubmit(data: FormData) {
+    console.log("data", data);
+    setIsBusy(true);
+    const response = await fetch(`/api/auth/organizations`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const responseJson = await response.json();
+    setIsBusy(false);
+    if (!response.ok) {
+      toast.error(responseJson.detail);
+      return;
+    }
+    toast.success("Organization created");
+  }
 
   return (
     <>
@@ -49,26 +69,20 @@ export default function OrganizationCreate() {
             <div>
               <Text typo="section heading">Create organization</Text>
             </div>
-            <form onSubmit={onSubmit} method="post">
+            <form onSubmit={handleSubmit(onSubmit)}>
               <TextField
-                disabled={false}
-                id="organizationName"
-                name="organizationName"
-                inputProps_ref={organizationInputRef}
-                inputProps_aria-label="text"
-                inputProps_tabIndex={1}
-                inputProps_spellCheck={false}
-                label="Organization name"
-                autoComplete="off"
+                helperText={errors.name ? errors.name?.message : null}
+                label="Organization Name"
+                id="name"
+                {...register("name")}
+                error={errors.name ? true : false}
               />
-
               <SelectField
-                className={classes.selectField}
-                updateChange={setSelectedIndustry}
-                options={Industries}
-                defaultValue={selectedIndustry}
-                label="Industry"
+                options={REGIONS}
+                defaultValue={REGIONS[0].value}
+                label="Region"
                 size="medium"
+                {...register("region")}
               />
 
               <div className={classes.buttonsWrapper}>
@@ -77,7 +91,8 @@ export default function OrganizationCreate() {
                   className={classes.buttonSubmit}
                   name="login"
                   type="submit"
-                  disabled={selectedIndustry && organizationInputRef?.current?.value !== "" ? false : true}>
+                  loading={isBusy}
+                  disabled={!isDirty || !isValid || isBusy}>
                   Get started!
                 </Button>
               </div>
@@ -105,10 +120,6 @@ const useStyles = makeStyles({ name: { OrganizationCreate } })((theme) => ({
       marginBottom: theme.spacing(6),
     },
   },
-  selectField: {
-    width: "100%",
-    marginTop: theme.spacing(5),
-  },
   buttonsWrapper: {
     marginTop: theme.spacing(4),
     display: "flex",
@@ -118,8 +129,5 @@ const useStyles = makeStyles({ name: { OrganizationCreate } })((theme) => ({
     width: "100%",
     marginTop: theme.spacing(4),
     marginLeft: theme.spacing(0),
-  },
-  divider: {
-    ...theme.spacing.topBottom("margin", 5),
   },
 }));

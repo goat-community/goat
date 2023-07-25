@@ -48,6 +48,7 @@ const AuthLayout = (props: AuthLayoutProps) => {
           <div className={classes.child}>
             <div className={classes.cardContainer}>
               {!status ||
+                session?.error === "RefreshAccessTokenError" ||
                 (["unauthenticated", "loading"].includes(status) && (
                   <div className={classes.root}>
                     <div className={classes.loadingWrapper}>

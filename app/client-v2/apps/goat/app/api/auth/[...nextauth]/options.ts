@@ -25,6 +25,40 @@ async function doFinalSignoutHandshake(token: JWT) {
   }
 }
 
+async function getOrganization(token: JWT) {
+  try {
+    const url = new URL(`api/v1/users/organization`, process.env.API_URL);
+    const res = await fetch(url.href, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token.access_token}`,
+      },
+    });
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error retrieving organization: ", error);
+    return null;
+  }
+}
+
+async function getSubscriptions(token: JWT) {
+  try {
+    const url = new URL(`api/v1/users/subscriptions`, process.env.API_URL);
+    const res = await fetch(url.href, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token.access_token}`,
+      },
+    });
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error retrieving subscriptions: ", error);
+    return [];
+  }
+}
+
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
     const response = await fetch(`${keycloak.options?.issuer}/protocol/openid-connect/token`, {
@@ -54,6 +88,12 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       id_token: tokens.id_token ?? token.id_token,
       provider: keycloak.id,
     };
+    const organization = await getOrganization(newToken);
+    const subscriptions = await getSubscriptions(newToken);
+    if (!organization) throw Error("Unable to retrieve organization");
+    if (!organization || subscriptions.length === 0) throw Error("Unable to retrieve subscriptions");
+    newToken.organization = organization.id;
+    newToken.subscriptions = subscriptions;
     return newToken;
   } catch (error) {
     console.error("Error refreshing access token: ", error);
@@ -80,17 +120,19 @@ export const options: NextAuthOptions = {
       if (token) {
         session.access_token = token.access_token;
       }
+      if (session.user) {
+        session.user.organization = token.organization;
+        session.user.subscriptions = token.subscriptions;
+      }
       session.error = token.error;
       return session;
     },
     async jwt({ token, account, user }) {
       console.log("Executing jwt()");
       if (account && user) {
-        // The account and user will be available on first sign in with this provider
         if (!account.access_token) throw Error("Auth Provider missing access token");
         if (!account.refresh_token) throw Error("Auth Provider missing refresh token");
         if (!account.id_token) throw Error("Auth Provider missing ID token");
-        // Save the access token and refresh token in the JWT on the initial login
         const newToken: JWT = {
           ...token,
           access_token: account.access_token,
@@ -99,6 +141,12 @@ export const options: NextAuthOptions = {
           expires_at: Math.floor(account.expires_at ?? 0),
           provider: account.provider,
         };
+        const organization = await getOrganization(newToken);
+        const subscriptions = await getSubscriptions(newToken);
+        if (!organization) throw Error("Unable to retrieve organization");
+        if (subscriptions.length === 0) throw Error("Unable to retrieve subscriptions");
+        newToken.organization = organization.id;
+        newToken.subscriptions = subscriptions;
         return newToken;
       }
       // Return previous token if the access token has not expired yet
