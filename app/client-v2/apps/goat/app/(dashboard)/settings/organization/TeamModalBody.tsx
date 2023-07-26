@@ -1,4 +1,5 @@
 import React from "react";
+import { v4 } from "uuid";
 
 import { Checkbox } from "@p4b/ui/components/Checkbox";
 import { Chip } from "@p4b/ui/components/DataDisplay";
@@ -111,7 +112,7 @@ const TeamModalBody = (props: TeamModalBodyProps) => {
               User list
             </Text>
             {selectedOption.map((option, indx) => (
-              <div className={classes.useSelectedWrapper} key={indx}>
+              <div className={classes.useSelectedWrapper} key={v4()}>
                 <div className={classes.userSelected}>
                   <Checkbox
                     checked={typeof option.selected === "boolean" ? option.selected : false}

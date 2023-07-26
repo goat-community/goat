@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { v4 } from "uuid";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
 import Modal from "../../../Modal";
@@ -95,10 +96,10 @@ const MoreMenu = (props: MoreMenuProps) => {
 
   return (
     <div>
-      {defaultOptions.map((options, index) => (
-        <div key={index} className={classes.section}>
-          {options.map((option, indx) => (
-            <div key={indx} className={classes.option} onClick={() => setSelectedOption(option)}>
+      {defaultOptions.map((options) => (
+        <div key={v4()} className={classes.section}>
+          {options.map((option) => (
+            <div key={v4()} className={classes.option} onClick={() => setSelectedOption(option)}>
               {/* <span className={classes.icon}>{option.icon}</span> */}
               {option.icon}
               <Text typo="label 2">{option.name}</Text>

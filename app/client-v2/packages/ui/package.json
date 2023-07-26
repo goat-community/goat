@@ -37,7 +37,8 @@
     "react-swipeable-views-utils": "^0.14.0",
     "run-exclusive": "^2.2.18",
     "tsafe": "^1.6.0",
-    "tss-react": "^4.8.3"
+    "tss-react": "^4.8.3",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@p4b/config": "workspace:*",
@@ -47,6 +48,7 @@
     "@storybook/types": "^7.0.9",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@types/uuid": "^9.0.2",
     "eslint": "^8.40.0",
     "typescript": "^5.0.4"
   }

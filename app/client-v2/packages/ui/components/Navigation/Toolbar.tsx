@@ -1,4 +1,5 @@
 import { Link, Stack } from "@mui/material";
+import { v4 } from "uuid";
 
 import { GOATLogoGreenSvg } from "../../assets/svg/GOATLogoGreen";
 import { makeStyles } from "../../lib/ThemeProvider";
@@ -31,7 +32,7 @@ export function Toolbar(props: ToolbarProps) {
           <Link
             className={index !== items.length - 1 ? classes.icon : classes.lastIcon}
             href={link}
-            key={index}>
+            key={v4()}>
             {icon()}
           </Link>
         ))}

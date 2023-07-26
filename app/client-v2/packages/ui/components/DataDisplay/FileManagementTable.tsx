@@ -13,6 +13,7 @@ import TableSortLabel from "@mui/material/TableSortLabel";
 import { visuallyHidden } from "@mui/utils";
 import { isValidElement, useEffect } from "react";
 import * as React from "react";
+import { v4 } from "uuid";
 
 import { changeColorOpacity } from "../../lib";
 import { makeStyles } from "../../lib/ThemeProvider";
@@ -398,7 +399,7 @@ export function FileManagementTable(props: FileManagementProps) {
                     hover={hover}
                     role="checkbox"
                     tabIndex={-1}
-                    key={index}
+                    key={v4()}
                     sx={{ cursor: "pointer" }}>
                     <TableCell
                       onClick={() => handleRowClick(row)}

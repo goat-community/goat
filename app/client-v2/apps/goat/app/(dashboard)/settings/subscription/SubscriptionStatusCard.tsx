@@ -1,4 +1,5 @@
 import { makeStyles } from "@/lib/theme";
+import { v4 } from "uuid";
 
 import { Card } from "@p4b/ui/components/Surfaces/Card";
 import { Icon, Text } from "@p4b/ui/components/theme";
@@ -37,7 +38,7 @@ const SubscriptionStatusCard = (props: SubscriptionStatusCardProps) => {
         <div className={classes.flexWrapper}>
           <ul style={{ paddingLeft: "30px" }}>
             {sectionData.listItems.map((listItam, indx) => (
-              <li style={{ paddingBottom: "12.5px" }} key={indx}>
+              <li style={{ paddingBottom: "12.5px" }} key={v4()}>
                 {listItam}
               </li>
             ))}

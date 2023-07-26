@@ -1,15 +1,16 @@
 "use client";
 
+import { Tooltip } from "@/components/DataDisplay/Tooltip";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { TreeView, TreeItem } from "@mui/lab";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React, { useState, useEffect } from "react";
+import { v4 } from "uuid";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 import { Text } from "../theme";
-import { Tooltip } from "./Tooltip";
 
 // Custom styled TreeItem to adjust the padding
 const StyledTreeItem = styled(TreeItem)(({ theme }) => ({
@@ -162,8 +163,8 @@ export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
 
   return (
     <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}>
-      {treeData.map((data, index) => (
-        <div key={index} className={classes.treeRootNode}>
+      {treeData.map((data) => (
+        <div key={v4()} className={classes.treeRootNode}>
           {renderTree(data, "root")}
         </div>
       ))}

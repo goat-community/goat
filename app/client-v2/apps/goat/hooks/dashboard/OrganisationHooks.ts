@@ -3,6 +3,7 @@ import axios from "axios";
 import useSWR from "swr";
 import { filterSearch, makeArrayUnique } from "@/lib/utils/helpers";
 import type { User } from "manage-users-dashboard";
+import { ORGANIZATION_API_URL } from "@/lib/api/apiConstants";
 
 // Get all users in order to manage them
 export const useUsersData = (searchWord?: string) => {
@@ -10,7 +11,7 @@ export const useUsersData = (searchWord?: string) => {
     return axios(url).then((res) => res.data);
   };
 
-  const { data, error, isLoading } = useSWR("/api/dashboard/organization", UsersFetcher);
+  const { data, error, isLoading } = useSWR(ORGANIZATION_API_URL, UsersFetcher);
   const [rawRows, setRawRows] = useState<User[]>([]);
   const [rows, setRows] = useState<User[]>([]);
 
