@@ -28,6 +28,7 @@
   },
   "globalEnv": [
     "NEXT_PUBLIC_APP_URL",
+    "NEXTAUTH_URL",
     "NEXTAUTH_SECRET",
     "KEYCLOAK_CLIENT_SECRET",
     "KEYCLOAK_CLIENT_ID",
