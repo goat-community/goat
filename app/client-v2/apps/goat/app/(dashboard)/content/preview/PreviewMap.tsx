@@ -5,21 +5,6 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import React from "react";
 import Map, { ScaleControl, NavigationControl } from "react-map-gl";
 
-export type PreviewMapType = {
-  MAP_ACCESS_TOKEN: string;
-  initialViewState: {
-    altitude: number;
-    bearing: number;
-    latitude: number;
-    zoom: number;
-    pitch: number;
-    longitude: number;
-  };
-  mapStyle: string;
-  scaleShow: boolean;
-  navigationControl: boolean;
-};
-
 const useStyles = makeStyles({ name: { PreviewMap } })(() => ({
   root: {
     width: "100%",
@@ -31,20 +16,20 @@ const useStyles = makeStyles({ name: { PreviewMap } })(() => ({
   },
 }));
 
-export default function PreviewMap(props: PreviewMapType) {
-  const { initialViewState, MAP_ACCESS_TOKEN, mapStyle, scaleShow, navigationControl } = props;
+export default function PreviewMap(props: any) {
+  const { initial_view_state, MAP_ACCESS_TOKEN, map_style, scale_show, navigation_control } = props;
 
   const { classes, cx } = useStyles();
 
   return (
     <div className={cx(classes.root)}>
       <Map
-        initialViewState={initialViewState}
+        initialViewState={initial_view_state}
         style={{ width: "100%", height: "100%" }}
-        mapStyle={mapStyle}
+        mapStyle={map_style}
         mapboxAccessToken={MAP_ACCESS_TOKEN}>
-        {scaleShow && <ScaleControl />}
-        {navigationControl && <NavigationControl />}
+        {scale_show && <ScaleControl />}
+        {navigation_control && <NavigationControl />}
       </Map>
     </div>
   );

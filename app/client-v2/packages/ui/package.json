@@ -24,6 +24,7 @@
     "@reduxjs/toolkit": "^1.9.5",
     "@types/react-swipeable-views": "^0.13.2",
     "@types/react-swipeable-views-utils": "^0.13.4",
+    "@uiball/loaders": "^1.3.0",
     "color": "^4.2.3",
     "config": "^3.3.9",
     "dayjs": "^1.11.9",

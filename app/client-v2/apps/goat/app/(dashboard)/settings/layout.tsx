@@ -1,5 +1,8 @@
 "use client";
 
+import Organization from "@/app/(dashboard)/settings/organization/page";
+import PrivacyPreferences from "@/app/(dashboard)/settings/privacy-preference/page";
+import SubscriptionSettings from "@/app/(dashboard)/settings/subscription/SubscriptionSettings";
 import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
 import { makeStyles } from "@/lib/theme";

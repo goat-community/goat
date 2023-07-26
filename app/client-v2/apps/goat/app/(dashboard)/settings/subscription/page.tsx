@@ -1,5 +1,4 @@
 "use client";
-
 import { makeStyles } from "@/lib/theme";
 import axios from "axios";
 import type { SubscriptionCard } from "subscriptions-dashboard";
@@ -7,9 +6,6 @@ import useSWR from "swr";
 
 import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Text } from "@p4b/ui/components/theme";
-
-import SubscriptionStatusCard from "./SubscriptionStatusCard";
-import type { SubscriptionStatusCardDataType } from "./SubscriptionStatusCard";
 
 const Subscription = () => {
   const { classes } = useStyles();

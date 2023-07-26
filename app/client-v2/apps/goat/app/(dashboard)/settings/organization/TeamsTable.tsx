@@ -8,10 +8,6 @@ import { IconButton } from "@p4b/ui/components/theme";
 import { Text, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
-import type { Option } from "./AddTeamModal";
-import TeamModalBody from "./TeamModalBody";
-import type { Team } from "./Teams";
-
 interface TeamsTableProps {
   rawRows: Team[];
   editTeam: (value: Team) => void;

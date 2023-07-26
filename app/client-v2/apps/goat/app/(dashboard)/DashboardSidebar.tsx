@@ -24,6 +24,7 @@ export type DashboardSidebarProps = {
 
 export function DashboardSidebar(props: DashboardSidebarProps) {
   const { items, children } = props;
+  const router = useRouter();
 
   const pathname = usePathname();
 
@@ -38,6 +39,11 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
   // functions
   const handleHover = () => {
     setHover((currHover) => !currHover);
+  };
+
+  const handleChangeLink = (link, placeholder) => {
+    setActive(placeholder);
+    router.push(link);
   };
 
   return (

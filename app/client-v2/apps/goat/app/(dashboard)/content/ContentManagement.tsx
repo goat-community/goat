@@ -1,5 +1,9 @@
 "use client";
 
+import ContentInfoModal from "@/app/(dashboard)/content/ContentInfoModal";
+import HeaderCard from "@/app/(dashboard)/content/HeaderCard";
+import MoreMenu from "@/app/(dashboard)/content/MoreMenu";
+import TreeViewFilter from "@/app/(dashboard)/content/TreeViewFilter";
 import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
 import { useState } from "react";
@@ -11,11 +15,6 @@ import { Card } from "@p4b/ui/components/Surfaces";
 import { Icon, Text, IconButton, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
-import ContentInfoModal from "./ContentInfoModal";
-import HeaderCard from "./HeaderCard";
-import MoreMenu from "./MoreMenu";
-import TreeViewFilter from "./TreeViewFilter";
-
 const ContentManagement = () => {
   const { classes } = useStyles();
   const [modalContent, setModalContent] = useState<object | null>(null);
@@ -26,6 +25,7 @@ const ContentManagement = () => {
     size: string;
   } | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [path, setPath] = useState<string[]>(["home"]);
 
   // Dumb Data
   // These are the rows of the table, it is only temporary for now
@@ -290,8 +290,6 @@ const ContentManagement = () => {
       link: "/home",
     },
   ];
-
-  const [path, setPath] = useState<string[]>(["home"]);
 
   // this is the Info Modal
   const modal = modalContent
