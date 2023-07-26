@@ -1,3 +1,5 @@
+"use client";
+
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { TreeView, TreeItem } from "@mui/lab";
@@ -7,6 +9,7 @@ import React, { useState, useEffect } from "react";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 import { Text } from "../theme";
+import { Tooltip } from "./Tooltip";
 
 // Custom styled TreeItem to adjust the padding
 const StyledTreeItem = styled(TreeItem)(({ theme }) => ({
@@ -120,6 +123,7 @@ export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
       nodeId={nodes.id}
       label={
         <FormControlLabel
+          className={classes.formLabel}
           control={
             <Checkbox
               checked={checked.includes(nodes.id)}
@@ -135,10 +139,12 @@ export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
             />
           }
           label={
-            <span style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-              <Text typo="body 1" className={`tag ${type === "root" ? "nodeTag" : undefined}`}>
-                {nodes.name}
-              </Text>
+            <span style={{ display: "flex", gap: "4px", alignItems: "center", width: "70%" }}>
+              <Tooltip title={nodes.name}>
+                <Text typo="body 1" className={`tag ${type === "root" ? "nodeTag" : ""}`}>
+                  {nodes.name}
+                </Text>
+              </Tooltip>
               {nodes.count ? (
                 <Text typo="body 3" className={classes.count}>
                   {nodes.count}
@@ -170,6 +176,7 @@ const useStyles = makeStyles({ name: { TreeViewWithCheckboxes } })((theme) => ({
     "&:hover": {
       background: "transparent",
     },
+    flexWrap: "wrap",
   },
   count: {
     fontStyle: "italic",
@@ -186,7 +193,16 @@ const useStyles = makeStyles({ name: { TreeViewWithCheckboxes } })((theme) => ({
       textOverflow: "ellipsis",
     },
     "& .css-9se70z-MuiTypography-root": {
-      width: "90%",
+      // width: "90%",
     },
+    "& .mui-3cdohd-MuiTypography-root": {
+      width: "100%",
+    },
+  },
+  formLabel: {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    width: "100%",
   },
 }));

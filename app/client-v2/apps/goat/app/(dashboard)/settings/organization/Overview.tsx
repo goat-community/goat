@@ -1,3 +1,5 @@
+"use client";
+
 import { makeStyles } from "@/lib/theme";
 import React, { useRef } from "react";
 

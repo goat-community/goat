@@ -95,9 +95,12 @@ const useStyles = makeStyles({ name: { ChipList } })((theme) => ({
       0.3
     ),
     marginRight: "8px",
-    padding: "7px 6px",
+    padding: "7px 18px",
     fontStyle: "italic",
     fontSize: "11px",
+    "& .mui-6od3lo-MuiChip-label": {
+      padding: "0",
+    },
   },
 }));
 

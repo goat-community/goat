@@ -1,3 +1,5 @@
+"use client";
+
 import { Table as MUITable } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import TableBody from "@mui/material/TableBody";

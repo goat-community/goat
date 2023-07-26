@@ -125,6 +125,9 @@ const useStyles = makeStyles({ name: { Stepper } })((theme) => ({
     "& .css-1e7c4pk-MuiStepIcon-text": {
       fill: "#fff",
     },
+    "& .mui-1e7c4pk-MuiStepIcon-text": {
+      color: "#fff",
+    },
   },
 }));
 

@@ -26,7 +26,6 @@ export const Switch = (props: SwitchProps) => {
         onChecked(event, checked, elementName ? elementName : "")
       }
       aria-label="Switch demo"
-      defaultChecked={defaultChecked}
     />
   );
 };

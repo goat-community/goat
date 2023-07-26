@@ -4,19 +4,19 @@ import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
 import { makeStyles } from "@/lib/theme";
 import { Text } from "@/lib/theme";
-import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { Divider } from "@p4b/ui/components/DataDisplay/Divider";
 
-import Organization from "./organization/page";
-import PrivacyPreferences from "./privacy-preference/page";
-import SubscriptionSettings from "./subscription/SubscriptionSettings";
+interface SettingsLayoutProps {
+  children: React.ReactNode;
+}
 
-const Settings = () => {
-  const [currentSetting, setCurrentSetting] = useState<{ children: React.ReactNode; value: string }>({
-    children: <Organization />,
-    value: "Organization",
-  });
+const Settings = (props: SettingsLayoutProps) => {
+  const { children } = props;
+
+  const pathname = usePathname();
 
   const { classes, cx } = useStyles();
 
@@ -24,60 +24,48 @@ const Settings = () => {
     <GridContainer>
       <SingleGrid span={1}>
         <div>
-          <span
-            onClick={() =>
-              setCurrentSetting({
-                children: <Organization />,
-                value: "Organization",
-              })
-            }>
-            <Text
-              typo="body 2"
-              className={
-                currentSetting.value === "Organization" ? classes.selectedSidebarText : classes.SidebarText
-              }>
-              Organization
-            </Text>
-          </span>
+          <Link href="/settings/organization" className={classes.link}>
+            <span>
+              <Text
+                typo="body 2"
+                className={
+                  pathname === "/settings/organization" ? classes.selectedSidebarText : classes.SidebarText
+                }>
+                Organization
+              </Text>
+            </span>
+          </Link>
           <Divider width="100%" color="main" className={classes.hr} />
-          <span
-            onClick={() =>
-              setCurrentSetting({
-                children: <SubscriptionSettings />,
-                value: "Subscription",
-              })
-            }>
-            <Text
-              typo="body 2"
-              className={
-                currentSetting.value === "Subscription" ? classes.selectedSidebarText : classes.SidebarText
-              }>
-              Subscription
-            </Text>
-          </span>
+          <Link href="/settings/subscription" className={classes.link}>
+            <span>
+              <Text
+                typo="body 2"
+                className={
+                  pathname === "/settings/subscription" ? classes.selectedSidebarText : classes.SidebarText
+                }>
+                Subscription
+              </Text>
+            </span>
+          </Link>
           <Divider width="100%" color="main" className={classes.hr} />
-          <span
-            onClick={() =>
-              setCurrentSetting({
-                children: <PrivacyPreferences />,
-                value: "Privacy preferences",
-              })
-            }>
-            <Text
-              typo="body 2"
-              className={
-                currentSetting.value === "Privacy preferences"
-                  ? classes.selectedSidebarText
-                  : classes.SidebarText
-              }>
-              Privacy preferences
-            </Text>
-          </span>
+          <Link href="/settings/privacy-preference" className={classes.link}>
+            <span>
+              <Text
+                typo="body 2"
+                className={
+                  pathname === "/settings/privacy-preference"
+                    ? classes.selectedSidebarText
+                    : classes.SidebarText
+                }>
+                Privacy preferences
+              </Text>
+            </span>
+          </Link>
           <Divider width="100%" color="main" className={classes.hr} />
         </div>
       </SingleGrid>
       <SingleGrid span={3}>
-        <div>{currentSetting.children}</div>
+        <div>{children}</div>
       </SingleGrid>
     </GridContainer>
   );
@@ -103,6 +91,9 @@ const useStyles = makeStyles({ name: { Settings } })((theme) => ({
   },
   hr: {
     margin: `${theme.spacing(1)}px 0`,
+  },
+  link: {
+    textDecoration: "none",
   },
 }));
 

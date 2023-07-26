@@ -1,5 +1,9 @@
+"use client";
+
 import { makeStyles } from "@/lib/theme";
-import { useState } from "react";
+import axios from "axios";
+import type { SubscriptionCard } from "subscriptions-dashboard";
+import useSWR from "swr";
 
 import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Text } from "@p4b/ui/components/theme";
@@ -10,84 +14,49 @@ import type { SubscriptionStatusCardDataType } from "./SubscriptionStatusCard";
 const Subscription = () => {
   const { classes } = useStyles();
 
-  const [subscriptionDetails, setSubscriptionDetails] = useState<SubscriptionStatusCardDataType>({
-    icon: "rocketLaunch",
-    title: "Starter",
-    listItems: [
-      <Text typo="body 2" key={1}>
-        Next payment: 23 July 2024
-      </Text>,
-      <Text typo="body 2" key={2}>
-        Annual payment cycle: 23 July 2023 - 23 July 2024
-      </Text>,
-      <Text typo="body 2" key={3}>
-        2 of 12 editors seat available
-      </Text>,
-      <Text typo="body 2" key={4}>
-        Region: Greater Munich
-      </Text>,
-    ],
-    action: (
-      <Button className={classes.button} variant="primary">
-        Add seats
-      </Button>
-    ),
-  });
+  const UsersFetcher = (url: string) => {
+    return axios(url).then((res) => res.data);
+  };
 
-  const subscriptionExtensions: SubscriptionStatusCardDataType[] = [
-    {
-      icon: "run",
-      title: "Active mobility",
-      listItems: [
-        <Text typo="body 2" key={1}>
-          Next payment: 23 July 2024
-        </Text>,
-        <Text typo="body 2" key={2}>
-          Annual payment cycle: 23 July 2023 - 23 July 2024
-        </Text>,
-        <Text typo="body 2" key={3}>
-          2 of 12 editors seat available
-        </Text>,
-        <Text typo="body 2" key={4}>
-          Region: Greater Munich
-        </Text>,
-      ],
+  const { data, error, isLoading } = useSWR("/api/dashboard/subscription", UsersFetcher);
+
+  function getSubscriptionDetails(datas: SubscriptionCard[]) {
+    const visualData: SubscriptionStatusCardDataType[] = datas.map((data) => ({
+      icon: data.icon,
+      title: data.title,
+      listItems: data.listItems.map((item: string, index: number) => (
+        <Text typo="body 2" key={index}>
+          {item}
+        </Text>
+      )),
       action: (
         <Button className={classes.button} variant="primary">
           Add seats
         </Button>
       ),
-    },
-    {
-      icon: "bus",
-      title: "Motorised mobility",
-      listItems: [
-        <Text typo="body 2" key={1}>
-          Next payment: 23 July 2024
-        </Text>,
-        <Text typo="body 2" key={2}>
-          Annual payment cycle: 23 July 2023 - 23 July 2024
-        </Text>,
-        <Text typo="body 2" key={3}>
-          2 of 12 editors seat available
-        </Text>,
-        <Text typo="body 2" key={4}>
-          Region: Greater Munich
-        </Text>,
-      ],
-      action: (
-        <Button className={classes.button} variant="primary">
-          Add seats
-        </Button>
-      ),
-    },
-  ];
+    }));
+    return visualData;
+  }
+
+  function beforeLoadedMessage() {
+    if (isLoading) {
+      return "Loading...";
+    } else if (error) {
+      return "Error";
+    } else {
+      return "No results found!";
+    }
+  }
 
   return (
     <div>
-      {[subscriptionDetails, ...subscriptionExtensions].map((extension, indx) => (
-        <SubscriptionStatusCard sectionData={extension} key={indx} />
-      ))}
+      {!isLoading && !error ? (
+        [...getSubscriptionDetails([data.subscription]), ...getSubscriptionDetails(data.extensions)].map(
+          (extension, indx) => <SubscriptionStatusCard sectionData={extension} key={indx} />
+        )
+      ) : (
+        <p>{beforeLoadedMessage()}</p>
+      )}
       <Banner
         actions={<Button>Subscribe Now</Button>}
         content={

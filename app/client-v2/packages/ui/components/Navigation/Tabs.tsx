@@ -1,4 +1,5 @@
-// Copyright (c) 2020 GitHub user u/garronej
+"use client";
+
 import { TabList, TabPanel, TabContext } from "@mui/lab";
 import { Box, Tab } from "@mui/material";
 import { forwardRef, memo } from "react";

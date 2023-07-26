@@ -2,6 +2,8 @@
 
 import { makeStyles } from "@/lib/theme";
 import { Fade, List, ListItem, ListItemButton, ListItemIcon } from "@mui/material";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { Icon, Text, useTheme } from "@p4b/ui/components/theme";
@@ -23,6 +25,8 @@ export type DashboardSidebarProps = {
 export function DashboardSidebar(props: DashboardSidebarProps) {
   const { items, children } = props;
 
+  const pathname = usePathname();
+
   // styling
   const { classes, cx } = useStyles(props)();
   const theme = useTheme();
@@ -41,28 +45,31 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
       <nav className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
         <List>
           {items?.map(({ link, icon, placeholder }, indx) => (
-            <ListItem onClick={() => setActive(placeholder)} disablePadding key={indx}>
-              <ListItemButton className={classes.itemList}>
-                <ListItemIcon>
-                  <Icon
-                    size="default"
-                    iconId={icon}
-                    iconVariant={
-                      active === placeholder ? "focus" : theme.isDarkModeEnabled ? "white" : "gray"
-                    }
-                  />
-                </ListItemIcon>
-                {hover ? (
-                  <Fade in={true}>
-                    <Text typo="body 2" color={active === placeholder ? "focus" : "primary"}>
-                      {placeholder}
-                    </Text>
-                  </Fade>
-                ) : (
-                  <></>
-                )}
-              </ListItemButton>
-            </ListItem>
+            <Link href={link} className={classes.textName} key={link}>
+              <ListItem onClick={() => setActive(placeholder)} disablePadding key={indx}>
+                <ListItemButton className={classes.itemList}>
+                  <ListItemIcon>
+                    <Icon
+                      size="default"
+                      iconId={icon}
+                      iconVariant={pathname === link ? "focus" : theme.isDarkModeEnabled ? "white" : "gray"}
+                    />
+                  </ListItemIcon>
+                  {hover ? (
+                    <Fade in={true}>
+                      <Text
+                        typo="body 2"
+                        className={classes.textName}
+                        color={pathname === link ? "focus" : "primary"}>
+                        {placeholder}
+                      </Text>
+                    </Fade>
+                  ) : (
+                    <></>
+                  )}
+                </ListItemButton>
+              </ListItem>
+            </Link>
           ))}
         </List>
       </nav>
@@ -95,5 +102,8 @@ const useStyles = (props: DashboardSidebarProps) =>
       "&:hover": {
         backgroundColor: `${theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].greyVariant2}aa`,
       },
+    },
+    textName: {
+      textDecoration: "none",
     },
   }));
