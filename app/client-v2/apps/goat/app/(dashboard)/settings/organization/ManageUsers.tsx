@@ -1,9 +1,10 @@
 "use client";
 
+import { useUsersData, useInviteUserDialog, useUserRemovalDialog } from "@/hooks/dashboard/OrganisationHooks";
 import { makeStyles } from "@/lib/theme";
 import { Text } from "@/lib/theme";
-import { filterSearch, makeArrayUnique } from "@/lib/utils/helpers";
-import { useState, useEffect } from "react";
+import type { User } from "manage-users-dashboard";
+import { useState } from "react";
 
 import { Chip } from "@p4b/ui/components/DataDisplay";
 import { EnhancedTable } from "@p4b/ui/components/DataDisplay/EnhancedTable";
@@ -12,80 +13,19 @@ import Modal from "@p4b/ui/components/Modal";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Card } from "@p4b/ui/components/Surfaces/Card";
 import { Icon, Button, IconButton } from "@p4b/ui/components/theme";
+import type { IconId } from "@p4b/ui/components/theme";
 
 import InviteUser from "./InviteUser";
 import UserInfoModal from "./UserInfoModal";
 
-export interface RowsType {
-  name: string;
-  email: string;
-  role: string;
-  status: React.ReactNode;
-  Added: string;
-}
-
 const ManageUsers = () => {
   const { classes } = useStyles();
 
-  // Component States
-  const [userInDialog, setUserInDialog] = useState<RowsType | null>();
-  const [ismodalVisible, setModalVisible] = useState<boolean>(false);
-  const [isAddUser, setAddUser] = useState<boolean>(false);
-  const [email, setEmail] = useState("");
   const [searchWord, setSearchWord] = useState<string>("");
-  const [rawRows, setRawRows] = useState<RowsType[]>([
-    {
-      name: "Luca William Silva",
-      email: "john.wlsdasadm@gmail.com",
-      role: "Admin",
-      status: <Chip className={classes.chip} label="Active" variant="Border" color="success" icon="check" />,
-      Added: "23 Jun 19",
-    },
-    {
-      name: "Fenix William Silva",
-      email: "john.werwxsam@gmail.com",
-      role: "Admin",
-      status: (
-        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
-      ),
-      Added: "23 Jun 19",
-    },
-    {
-      name: "Adam William Silva",
-      email: "john.ghjfgpsum@gmail.com",
-      role: "Admin",
-      status: (
-        <Chip className={classes.chip} label="Expired" variant="Border" color="warning" icon="warnOutlined" />
-      ),
-      Added: "23 Jun 19",
-    },
-    {
-      name: "John William Silva",
-      email: "john.zxcsadum@gmail.com",
-      role: "Admin",
-      status: <Chip className={classes.chip} label="Active" variant="Border" color="success" icon="check" />,
-      Added: "23 Jun 19",
-    },
-    {
-      name: "John William Silva",
-      email: "john.wawewdssum@gmail.com",
-      role: "Admin",
-      status: (
-        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
-      ),
-      Added: "23 Jun 19",
-    },
-    {
-      name: "John William Silva",
-      email: "john.wiuywefipsum@gmail.com",
-      role: "Admin",
-      status: (
-        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
-      ),
-      Added: "23 Jun 19",
-    },
-  ]);
-  const [rows, setRows] = useState<RowsType[]>([]);
+  const { rawRows, setRawRows, setRows, rows, isLoading, error } = useUsersData(searchWord);
+  const { isAddUser, openInviteDialog, closeInviteDialog, email, setEmail } = useInviteUserDialog();
+  const { userInDialog, isModalVisible, openUserRemovalDialog, closeUserRemovalDialog, setTheUserInDialog } =
+    useUserRemovalDialog();
 
   const columnNames = [
     {
@@ -115,50 +55,23 @@ const ManageUsers = () => {
     },
   ];
 
-  useEffect(() => {
-    console.log(searchWord);
-    if (searchWord !== "") {
-      let newArr = [
-        ...filterSearch(rawRows, "name", searchWord),
-        ...filterSearch(rawRows, "email", searchWord),
-      ];
-      newArr = makeArrayUnique(newArr, "email");
-      setRows(newArr);
-    } else {
-      setRows(rawRows);
-    }
-  }, [searchWord, rawRows]);
-
   // Functions
 
   function sendInvitation() {
-    const newUserInvite = {
+    const newUserInvite: User = {
       name: "Luca William Silva",
       email: email,
       role: "Admin",
-      status: (
-        <Chip className={classes.chip} label="Invite sent" variant="Border" color="main" icon="email" />
-      ),
+      status: "Invite sent",
       Added: "23 Jun 19",
     };
-    // rawRows.push(newUserInvite);
     setRawRows([...rawRows, newUserInvite]);
-    setSearchWord("");
-    setAddUser(false);
+    closeInviteDialog();
   }
 
-  function openModal() {
-    setModalVisible(true);
-  }
-
-  function closeModal() {
-    setUserInDialog(null);
-    setModalVisible(false);
-  }
-
-  function editUserRole(role: "Admin" | "User" | "Editor", user: RowsType | undefined) {
+  function editUserRole(role: "Admin" | "User" | "Editor", user: User | undefined) {
     if (user) {
-      const modifiedUsers = rows.map((row) => {
+      const modifiedUsers = rows.map((row: User) => {
         if (row.email === user.email) {
           row.role = role;
         }
@@ -168,12 +81,54 @@ const ManageUsers = () => {
     }
   }
 
-  function removeUser(user: RowsType | undefined) {
+  function removeUser(user: User | undefined) {
     if (user) {
-      const modifiedUsers = rows.filter((row) => row.email !== user.email);
+      const modifiedUsers = rows.filter((row: User) => row.email !== user.email);
       setRawRows(modifiedUsers);
-      closeModal();
+      closeUserRemovalDialog();
     }
+  }
+
+  function getStatus() {
+    if (isLoading) {
+      return "Loading...";
+    } else if (error) {
+      return "There is an error with the connection, make sure to be connected to a valid network!";
+    } else {
+      return "No Result";
+    }
+  }
+
+  function returnRightFormat(users: User[]): User[] {
+    const usersList = users.map((user: User) => {
+      const modifiedVisualData = user;
+      const label =
+        typeof user.status !== "string" && "props" in user.status ? user.status.props.label : user.status;
+      let color: "main" | "success" | "warning" | "error" | undefined;
+      let icon: IconId | undefined;
+
+      switch (label) {
+        case "Active":
+          color = "success";
+          icon = "check";
+          break;
+        case "Invite sent":
+          color = "main";
+          icon = "email";
+          break;
+        case "Expired":
+          color = "warning";
+          icon = "info";
+          break;
+      }
+
+      modifiedVisualData.status = (
+        <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon} />
+      );
+      return modifiedVisualData;
+    });
+
+    return usersList;
   }
 
   return (
@@ -202,7 +157,7 @@ const ManageUsers = () => {
           />
           <Icon iconId="filter" size="medium" iconVariant="gray" />
           <div style={{ position: "relative" }}>
-            <Button onClick={() => setAddUser(true)} className={classes.searchButton}>
+            <Button onClick={openInviteDialog} className={classes.searchButton}>
               Invite user
             </Button>
             {/* Invite User Dialog */}
@@ -210,10 +165,10 @@ const ManageUsers = () => {
               <Modal
                 width="444px"
                 open={isAddUser}
-                changeOpen={setAddUser}
+                changeOpen={closeInviteDialog}
                 action={
                   <>
-                    <Button variant="noBorder" onClick={() => setAddUser(false)}>
+                    <Button variant="noBorder" onClick={closeInviteDialog}>
                       CANCEL
                     </Button>
                     <Button variant="noBorder" onClick={sendInvitation}>
@@ -226,7 +181,7 @@ const ManageUsers = () => {
                     <Text typo="subtitle" className={classes.headerText}>
                       Invite user
                     </Text>
-                    <IconButton onClick={() => setAddUser(false)} iconId="close" />
+                    <IconButton onClick={closeInviteDialog} iconId="close" />
                   </div>
                 }>
                 <InviteUser setEmail={setEmail} />
@@ -239,14 +194,16 @@ const ManageUsers = () => {
         {/* ManageUsers Table */}
         {rows.length ? (
           <EnhancedTable
-            rows={rows}
+            rows={returnRightFormat([...rows])}
             columnNames={columnNames}
-            openDialog={setUserInDialog}
+            openDialog={(value: object | null) => (value ? setTheUserInDialog(value as User) : undefined)}
             action={<IconButton type="submit" iconId="moreVert" size="medium" />}
+            dense={false}
+            alternativeColors={true}
           />
         ) : (
           <Text typo="body 1" color="secondary">
-            No results
+            {getStatus()}
           </Text>
         )}
       </Card>
@@ -265,11 +222,11 @@ const ManageUsers = () => {
       <Modal
         width="523px"
         open={userInDialog ? true : false}
-        changeOpen={() => setUserInDialog(null)}
+        changeOpen={closeInviteDialog}
         action={
-          ismodalVisible ? (
+          isModalVisible ? (
             <>
-              <Button onClick={closeModal} variant="noBorder">
+              <Button onClick={closeUserRemovalDialog} variant="noBorder">
                 CANCEL
               </Button>
               <Button onClick={() => removeUser(userInDialog ? userInDialog : undefined)} variant="noBorder">
@@ -277,13 +234,15 @@ const ManageUsers = () => {
               </Button>
             </>
           ) : (
-            <Button onClick={() => openModal()} variant="noBorder">
+            <Button
+              onClick={() => (userInDialog ? openUserRemovalDialog(userInDialog) : undefined)}
+              variant="noBorder">
               REMOVE USER
             </Button>
           )
         }
         header={
-          ismodalVisible ? (
+          isModalVisible ? (
             <Text className={classes.modalHeader} typo="subtitle">
               <Icon iconId="warn" iconVariant="warning" /> Attention
             </Text>
@@ -292,12 +251,12 @@ const ManageUsers = () => {
               <Text typo="subtitle" className={classes.headerText}>
                 {userInDialog?.name}
               </Text>
-              <IconButton onClick={() => setUserInDialog(null)} iconId="close" />
+              <IconButton onClick={closeUserRemovalDialog} iconId="close" />
             </div>
           )
         }>
         <UserInfoModal
-          ismodalVisible={ismodalVisible}
+          ismodalVisible={isModalVisible}
           userInDialog={userInDialog ? userInDialog : false}
           editUserRole={editUserRole}
         />

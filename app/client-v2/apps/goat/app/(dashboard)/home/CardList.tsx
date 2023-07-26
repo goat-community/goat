@@ -77,7 +77,7 @@ const useStyles = makeStyles({ name: { CardList } })((theme) => ({
   cardList: {
     display: "flex",
     gap: theme.spacing(4),
-    justifyContent: "space-between",
+    // justifyContent: "space-between",
     marginBottom: "57px",
   },
   headerTitles: {

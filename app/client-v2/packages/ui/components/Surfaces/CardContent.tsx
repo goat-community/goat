@@ -42,7 +42,7 @@ export const CardContent = memo(
     return (
       <div className={cx(className, classes.wrapper)}>
         {info ? (
-          <Text typo="body 2" color="secondary">
+          <Text typo="body 2" color="secondary" className={classes.author}>
             {info.author} • {info.date}
           </Text>
         ) : null}
@@ -85,7 +85,7 @@ const useStyles = makeStyles({ name: { CardContent } })((theme) => ({
   iconTitle: {
     display: "flex",
     margin: "4px",
-    marginBottom: "8px",
+    marginBottom: "12px",
     alignItems: "center",
   },
   iconSize: {
@@ -129,7 +129,10 @@ const useStyles = makeStyles({ name: { CardContent } })((theme) => ({
     padding: "7px 6px",
   },
   wrapper: {
-    padding: theme.spacing(4),
+    padding: theme.spacing(3),
     paddingTop: theme.spacing(3),
+  },
+  author: {
+    paddingBottom: "8px",
   },
 }));

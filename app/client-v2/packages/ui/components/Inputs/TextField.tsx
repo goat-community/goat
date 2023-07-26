@@ -491,6 +491,18 @@ const useStyles = makeStyles<{
     "& .mui-1ab69dk-MuiInputBase-root-MuiFilledInput-root:after": {
       border: "none",
     },
+    "& .mui-13cia9v-MuiInputBase-root-MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: `${theme.colors.palette.dark.main}80`,
+    },
+    "& .mui-13cia9v-MuiInputBase-root-MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+      borderColor: `${theme.colors.palette.dark.main}29`,
+    },
+    "& .mui-5hs7hk-MuiFormLabel-root-MuiInputLabel-root.Mui-disabled": {
+      color: `${theme.colors.palette.dark.main}29`,
+    },
+    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: theme.colors.palette.focus.main,
+    },
   },
   helperText: {
     color: hasError

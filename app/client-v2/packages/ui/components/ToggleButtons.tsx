@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { ToggleButtonGroup, ToggleButton } from '@mui/material';
+import { ToggleButtonGroup, ToggleButton } from "@mui/material";
+import * as React from "react";
 
 export type ToggleButtonsType = {
   items?: {
@@ -11,15 +11,10 @@ export type ToggleButtonsType = {
   className?: string;
   val: string;
   setVal: any;
-}
+};
 
 export default function ToggleButtons(props: ToggleButtonsType) {
-  const {
-    className,
-    items,
-    val,
-    setVal
-  } = props;
+  const { className, items, val, setVal } = props;
 
   return (
     <ToggleButtonGroup
@@ -28,9 +23,12 @@ export default function ToggleButtons(props: ToggleButtonsType) {
       exclusive
       onChange={(e, newVal) => setVal(newVal)}
       aria-label="Platform"
-      className={className || ''}
-    >
-      {items?.map(item => <ToggleButton key={`toggleButton-${item.value}`} value={item.value}>{item.icon}</ToggleButton>)}
+      className={className || ""}>
+      {items?.map((item) => (
+        <ToggleButton key={`toggleButton-${item.value}`} value={item.value}>
+          {item.icon}
+        </ToggleButton>
+      ))}
     </ToggleButtonGroup>
   );
 }

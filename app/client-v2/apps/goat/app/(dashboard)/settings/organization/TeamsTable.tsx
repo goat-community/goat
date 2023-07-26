@@ -1,8 +1,5 @@
-import type { Option } from "@/app/(dashboard)/settings/organization/AddTeamModal";
-import TeamModalBody from "@/app/(dashboard)/settings/organization/TeamModalBody";
-import type { Team } from "@/app/(dashboard)/settings/organization/Teams";
-import { filterSearch } from "@/lib/utils/helpers";
-import React, { useState, useEffect } from "react";
+import { useUserDialog, useTeamSearch } from "@/hooks/dashboard/TeamsHooks";
+import React, { useState } from "react";
 
 import { EnhancedTable } from "@p4b/ui/components/DataDisplay";
 import Modal from "@p4b/ui/components/Modal";
@@ -20,12 +17,25 @@ interface TeamsTableProps {
 const TeamsTable = (props: TeamsTableProps) => {
   const { rawRows, editTeam, searchText } = props;
 
-  const [userInDialog, setUserInDialog] = useState<Team | boolean>();
+  const [userInDialog, setUserInDialog] = useState<Team | boolean>(false);
   const [selectedOption, setSelectedOption] = useState<Option[] | null>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
-  const [rows, setRows] = useState<Team[]>([]);
 
   const { classes } = useStyles();
+
+  const { saveEditTeam } = useUserDialog({
+    rawRows,
+    userInDialog,
+    setUserInDialog,
+    selectedOption,
+    searchText,
+    editTeam,
+    teamName,
+    setTeamName,
+    setSelectedOption,
+  });
+
+  const rows = useTeamSearch(rawRows, searchText);
 
   const columnNames = [
     {
@@ -44,41 +54,6 @@ const TeamsTable = (props: TeamsTableProps) => {
       label: "Creation",
     },
   ];
-
-  useEffect(() => {
-    if (userInDialog && typeof userInDialog !== "boolean") {
-      const team = rawRows.find((row) => row.name === userInDialog.name);
-
-      if (team) {
-        const selectedOptions = selectedOption
-          ? selectedOption.filter((teams) => teams.selected)
-          : team.participants.filter((teams) => teams.selected);
-        if (JSON.stringify(selectedOptions) !== JSON.stringify(selectedOption)) {
-          setSelectedOption(selectedOptions);
-        }
-        setTeamName(team.name);
-      }
-    }
-  }, [userInDialog, selectedOption, searchText]);
-
-  useEffect(() => {
-    setRows(filterSearch(rawRows, "name", searchText ? searchText : ""));
-  }, [searchText, rawRows]);
-
-  function saveEditTeam() {
-    if (userInDialog && typeof userInDialog !== "boolean") {
-      const team = rawRows.find((row) => row.name === userInDialog.name);
-      if (team) {
-        const selectedOptions = selectedOption
-          ? selectedOption.filter((teams) => teams.selected)
-          : team.participants.filter((teams) => teams.selected);
-        team.participants = selectedOptions;
-        team.name = teamName ? teamName : "";
-        editTeam(team);
-        setUserInDialog(false);
-      }
-    }
-  }
 
   return (
     <Card noHover={true} className={classes.tableCard}>

@@ -1,3 +1,5 @@
+"use client";
+
 import SubscriptionStatusCard from "@/app/(dashboard)/settings/subscription/SubscriptionStatusCard";
 import { makeStyles } from "@/lib/theme";
 import React, { useRef } from "react";

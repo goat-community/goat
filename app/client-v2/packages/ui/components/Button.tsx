@@ -231,12 +231,12 @@ export function createButton<IconId extends string = never>(params?: {
           switch (variant) {
             case "primary":
             case "secondary":
-              return 2;
+              return 1;
             case "ternary":
             case "noBorder":
               return 0;
             default:
-              return 2;
+              return 1;
           }
         })();
 
