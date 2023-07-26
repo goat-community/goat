@@ -2,10 +2,9 @@ import ThemeRegistry from "@/lib/ThemeRegistry";
 import AuthProvider from "@/lib/providers/AuthProvider";
 import StoreProvider from "@/lib/providers/StoreProvider";
 import ToastProvider from "@/lib/providers/ToastProvider";
+import "@/styles/globals.css";
 import type { Metadata } from "next";
 import "react-toastify/dist/ReactToastify.css";
-
-import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: {

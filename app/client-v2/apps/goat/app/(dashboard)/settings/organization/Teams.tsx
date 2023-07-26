@@ -1,15 +1,14 @@
 "use client";
 
+import type { Option } from "@/app/(dashboard)/settings/organization/AddTeamModal";
+import AddTeamModal from "@/app/(dashboard)/settings/organization/AddTeamModal";
+import TeamsTable from "@/app/(dashboard)/settings/organization/TeamsTable";
 import React, { useState } from "react";
 
 import { TextField } from "@p4b/ui/components/Inputs";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Icon, Text } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-import type { Option } from "./AddTeamModal";
-import AddTeamModal from "./AddTeamModal";
-import TeamsTable from "./TeamsTable";
 
 export interface Team {
   name: string;

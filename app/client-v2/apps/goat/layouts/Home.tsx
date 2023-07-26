@@ -1,9 +1,9 @@
 "use client";
 
+import { ProTip } from "@/components/Protip";
 import { Container, Box, Typography } from "@mui/material";
 
 import { Copyright } from "../components/Copyright";
-import { ProTip } from "../components/Protip";
 
 export const Home = () => {
   return (
