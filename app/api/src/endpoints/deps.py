@@ -20,6 +20,6 @@ async def get_db_session() -> AsyncSession:
         yield session
 
 
-async def get_current_user(db: AsyncSession = Depends(get_db)) -> User:
-    user = await crud_user.get_first_user(db) or await crud_user.create(db, id=uuid.uuid4())
-    return user
+async def get_current_user() -> User:
+     user = await crud_user.get_first_user() or await crud_user.create(id=uuid.uuid4())
+     return user
