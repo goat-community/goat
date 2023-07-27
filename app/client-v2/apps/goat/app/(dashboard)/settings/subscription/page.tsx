@@ -1,8 +1,9 @@
 "use client";
 
+import SubscriptionCardSkeleton from "@/components/skeletons/subscriptionCardSkeleton";
 import { makeStyles } from "@/lib/theme";
 import axios from "axios";
-import type { SubscriptionCard } from "subscriptions-dashboard";
+import type { SubscriptionCard, SubscriptionStatusCardDataType } from "subscriptions-dashboard";
 import useSWR from "swr";
 import { v4 } from "uuid";
 
@@ -40,7 +41,13 @@ const Subscription = () => {
 
   function beforeLoadedMessage() {
     if (isLoading) {
-      return "Loading...";
+      return (
+        <>
+          <SubscriptionCardSkeleton />
+          <SubscriptionCardSkeleton />
+          <SubscriptionCardSkeleton />
+        </>
+      );
     } else if (error) {
       return "Error";
     } else {
@@ -50,13 +57,11 @@ const Subscription = () => {
 
   return (
     <div>
-      {!isLoading && !error ? (
-        [...getSubscriptionDetails([data.subscription]), ...getSubscriptionDetails(data.extensions)].map(
-          (extension, indx) => <SubscriptionStatusCard sectionData={extension} key={v4()} />
-        )
-      ) : (
-        <p>{beforeLoadedMessage()}</p>
-      )}
+      {!isLoading && !error
+        ? [...getSubscriptionDetails([data.subscription]), ...getSubscriptionDetails(data.extensions)].map(
+            (extension, indx) => <SubscriptionStatusCard sectionData={extension} key={v4()} />
+          )
+        : beforeLoadedMessage()}
       <Banner
         actions={<Button>Subscribe Now</Button>}
         content={

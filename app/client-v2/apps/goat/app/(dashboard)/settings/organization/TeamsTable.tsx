@@ -1,5 +1,6 @@
 import { useUserDialog, useTeamSearch } from "@/hooks/dashboard/TeamsHooks";
 import React, { useState } from "react";
+import type { Team } from "team-organization-dashboard";
 
 import { EnhancedTable } from "@p4b/ui/components/DataDisplay";
 import Modal from "@p4b/ui/components/Modal";
@@ -8,8 +9,8 @@ import { IconButton } from "@p4b/ui/components/theme";
 import { Text, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
+import type { Option } from "../../../../../../packages/types/atomicComponents";
 import TeamModalBody from "./TeamModalBody";
-import type { Team } from "./Teams";
 
 interface TeamsTableProps {
   rawRows: Team[];

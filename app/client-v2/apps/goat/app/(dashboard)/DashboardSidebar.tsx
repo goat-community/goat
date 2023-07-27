@@ -42,11 +42,6 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
     setHover((currHover) => !currHover);
   };
 
-  const handleChangeLink = (link, placeholder) => {
-    setActive(placeholder);
-    router.push(link);
-  };
-
   return (
     <>
       <nav className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>

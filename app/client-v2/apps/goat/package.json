@@ -15,6 +15,7 @@
     "@hookform/resolvers": "^3.1.1",
     "@mui/icons-material": "latest",
     "@mui/material": "latest",
+    "@p4b/types": "workspace:*",
     "@p4b/ui": "workspace:*",
     "@reduxjs/toolkit": "^1.9.5",
     "@types/mapbox-gl": "^2.7.11",
@@ -25,7 +26,6 @@
     "maplibre-gl": "^3.1.0",
     "next": "v13.4.10",
     "next-auth": "^4.22.3",
-    "next-i18next": "^13.2.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.45.2",
@@ -39,6 +39,7 @@
   "devDependencies": {
     "@p4b/config": "workspace:*",
     "@p4b/tsconfig": "workspace:*",
+    "@p4b/types": "workspace:*",
     "@playwright/test": "^1.33.0",
     "@types/node": "^20.1.5",
     "@types/react": "^18.2.0",
