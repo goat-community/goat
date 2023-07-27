@@ -12,7 +12,8 @@ class CRUDUser(CRUDBase):
             obj_in = User(id=id)
         return await super().create(db, obj_in=obj_in)
 
-    async def get_first_user(self, db: AsyncSession):
+    async def get_first_user(self, db: AsyncSession | None = None ):
+        db = db or super().get_db().session
         user = await db.execute(self.model.__table__.select().limit(1))
         return user.first()
 
