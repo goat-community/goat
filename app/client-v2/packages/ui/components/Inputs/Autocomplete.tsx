@@ -4,15 +4,9 @@ import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import * as React from "react";
 
+import type { Option } from "../../../types/atomicComponents/index";
 import { makeStyles } from "../../lib/ThemeProvider";
 import { Checkbox } from "../Checkbox";
-
-type Option = {
-  label: string;
-  value: string;
-} & {
-  [key: string]: string | number | boolean;
-};
 
 interface CustomMultiAutocompleteProps {
   options: Option[];
