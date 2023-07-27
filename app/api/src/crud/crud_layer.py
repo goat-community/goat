@@ -67,12 +67,13 @@ class CRUDLayer(CRUDBase):
     
 
 
-    async def get_layer(self, *, db: AsyncSession | None = None, id):
+    async def get_layer(self, *, db: AsyncSession | None = None, id) -> Layer | None:
         db = db or super().get_db().session
         statement = select(Layer).where(Layer.content_id == str(id))
         layer = await db.execute(statement)
         layer = layer.scalar_one_or_none()
         return layer
+    
 
 
 layer = CRUDLayer(Layer)

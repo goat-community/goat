@@ -458,11 +458,10 @@ class LayerRead(BaseModel):
         return layer_read_class(**kwargs)
 
 
-class LayerRead2(BaseModel):
-    type: LayerType
-    data_store_id: UUID | None 
-    data_source: str | None 
-    data_reference_year: int | None 
+class LayerRead2(ReadBase):
+    content: ContentBase
+
+
 
 request_examples = {
     "create": {

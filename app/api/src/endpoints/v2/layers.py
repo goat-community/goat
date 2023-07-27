@@ -25,13 +25,13 @@ async def create_layer(
     return layer
 
 
-# @router.get("/{layer_id}", response_model=LayerRead)
-# async def read_layer(
-#     async_session: AsyncSession = Depends(get_db),
-#     layer_id: UUID4 = None,
-# ):
-#     layer = await crud_layer.get(async_session, id=layer_id)
-#     return layer
+@router.get("/by_id/{layer_id}", response_model=LayerRead)
+async def read_layer(
+    async_session: AsyncSession = Depends(get_db),
+    layer_id: UUID4 = None,
+):
+    layer = await crud_layer.get(async_session, id=layer_id)
+    return layer
 
 
 @router.get("", response_model=list[LayerRead])
@@ -62,9 +62,19 @@ async def update_layer(
     return layer
 
 
-@router.get("/get-example")
-async def read_layer_allient() -> LayerRead2:
+@router.get("/get_example")
+async def read_layer_allient(async_session: AsyncSession = Depends(get_db),) -> LayerRead2:
+    content_id = UUID4('06b0ca35-c041-479a-a1ee-1cf6bbc81be2')
+    layer = await crud_layer.get_layer(db=async_session, id=content_id)
+    return layer
+
+
+@router.get("/get_example2")
+async def read_layer_allient() -> LayerRead:
     content_id = UUID4('06b0ca35-c041-479a-a1ee-1cf6bbc81be2')
     layer = await crud_layer.get_layer(id=content_id)
-    return layer
- 
+
+    layer_dict = layer.__dict__
+    layer_dict.update(layer.content.__dict__)
+
+    return layer_dict
