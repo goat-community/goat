@@ -53,4 +53,4 @@ class AnalysisRequest(AnalysisRequestBase, DateTimeBase, table=True):
         description="Layer ID",
     )
     # Relationships
-    layer: "Layer" = Relationship(back_populates="analysis_requests")
+    # layer: "Layer" = Relationship(back_populates="analysis_requests")

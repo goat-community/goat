@@ -15,7 +15,7 @@ from src import run_time_method_calls
 from src.core.config import settings
 from src.db.session import r5_mongo_db_client, session_manager
 from src.endpoints.v2.api import router as api_router_v2
-
+from fastapi_async_sqlalchemy import SQLAlchemyMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,6 +54,18 @@ async def swagger_ui_html():
         swagger_ui_parameters={"persistAuthorization": True},
     )
 
+
+
+app.add_middleware(
+    SQLAlchemyMiddleware,
+    db_url=settings.ASYNC_SQLALCHEMY_DATABASE_URI,
+    engine_args={
+        "echo": False,
+        "pool_pre_ping": True,
+        "pool_size": settings.POOL_SIZE,
+        "max_overflow": 64,
+    },
+)
 
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:

@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     AWS_REGION: Optional[str] = "eu-central-1"
     AWS_BUCKET_NAME: Optional[str] = "plan4better-data"
     S3_CLIENT: Optional[Any] = None
+    DB_POOL_SIZE = 83
+    WEB_CONCURRENCY = 9
+    POOL_SIZE = max(DB_POOL_SIZE // WEB_CONCURRENCY, 5)
 
     @validator("S3_CLIENT", pre=True)
     def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:

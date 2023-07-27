@@ -81,9 +81,9 @@ class Content(DateTimeBase, ContentBase, UuidToStr, table=True):
     project: "Project" = Relationship(
         back_populates="content", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
-    layer: "Layer" = Relationship(
-        back_populates="content", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
-    )
+    # layer: "Layer" = Relationship(
+    #     back_populates="content", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    # )
     report: "Report" = Relationship(
         back_populates="content", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )

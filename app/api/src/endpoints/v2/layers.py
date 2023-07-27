@@ -7,7 +7,7 @@ from src.db.models.layer import Layer
 from src.db.models.user import User
 from src.db.session import AsyncSession
 from src.endpoints.deps import get_current_user, get_db
-from src.schemas.layer import LayerCreate, LayerRead, request_examples
+from src.schemas.layer import LayerCreate, LayerRead, request_examples, LayerRead2
 from src.endpoints.helpers import LayerUpdateHelper
 
 router = APIRouter()
@@ -25,13 +25,13 @@ async def create_layer(
     return layer
 
 
-@router.get("/{layer_id}", response_model=LayerRead)
-async def read_layer(
-    async_session: AsyncSession = Depends(get_db),
-    layer_id: UUID4 = None,
-):
-    layer = await crud_layer.get(async_session, id=layer_id)
-    return layer
+# @router.get("/{layer_id}", response_model=LayerRead)
+# async def read_layer(
+#     async_session: AsyncSession = Depends(get_db),
+#     layer_id: UUID4 = None,
+# ):
+#     layer = await crud_layer.get(async_session, id=layer_id)
+#     return layer
 
 
 @router.get("", response_model=list[LayerRead])
@@ -62,9 +62,11 @@ async def update_layer(
     return layer
 
 
-@router.get("")
-async def read_layer(
+@router.get("/get-example")
+async def read_layer_allient(
     async_session: AsyncSession = Depends(get_db),
-) -> LayerRead:
-    layer = await crud_layer.get(async_session, id='06b0ca35-c041-479a-a1ee-1cf6bbc81be2')
+) -> LayerRead2:
+    content_id = UUID4('06b0ca35-c041-479a-a1ee-1cf6bbc81be2')
+    layer = await crud_layer.get_layer(async_session, id=content_id)
     return layer
+ 

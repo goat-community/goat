@@ -5,6 +5,7 @@ from uuid import UUID
 from geoalchemy2 import WKBElement
 from geoalchemy2.shape import to_shape
 from pydantic import BaseModel, Field, ValidationError, validator
+from src.db.models.layer import Layer, LayerType
 
 from src.db.models.layer import (
     FeatureLayerBase,
@@ -456,6 +457,12 @@ class LayerRead(BaseModel):
         layer_read_class = get_layer_class("read", **kwargs)
         return layer_read_class(**kwargs)
 
+
+class LayerRead2(BaseModel):
+    type: LayerType
+    data_store_id: UUID | None 
+    data_source: str | None 
+    data_reference_year: int | None 
 
 request_examples = {
     "create": {

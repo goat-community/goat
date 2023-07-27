@@ -234,12 +234,19 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
 
     # Relationships
 
-    content: "Content" = Relationship(back_populates="layer")
+    # content: "Content" = Relationship(back_populates="layer")
+
+    content: "Content" = Relationship(
+        sa_relationship_kwargs={
+            "lazy": "joined",
+            "primaryjoin": "customer.layer.c.content_id==customer.content.c.id",
+        }
+    )
     scenario: "Scenario" = Relationship(back_populates="layers")
     style: "Style" = Relationship(back_populates="layers")
     scenario_features: List["ScenarioFeature"] = Relationship(back_populates="original_layer")
     data_store: "DataStore" = Relationship(back_populates="layers")
-    analysis_requests: List["AnalysisRequest"] = Relationship(back_populates="layer")
+    # analysis_requests: List["AnalysisRequest"] = Relationship(back_populates="layer")
 
 
 Layer.update_forward_refs()

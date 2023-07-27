@@ -68,12 +68,10 @@ class CRUDLayer(CRUDBase):
 
 
     async def get_layer(self, db, *, id):
-        statement = select([Layer, Content]).join(Content).where(Layer.content_id == str(id))
+        statement = select(Layer).where(Layer.content_id == str(id))
         layer = await db.execute(statement)
-        layer = layer.fetchone()
-        layer_dict = layer.Layer.__dict__
-        layer_dict.update(layer.Content.__dict__)
-        return layer_dict
+        layer = layer.scalar_one_or_none()
+        return layer
 
 
 layer = CRUDLayer(Layer)

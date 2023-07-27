@@ -85,7 +85,7 @@ services:
       - SERVER_HOST=http://${DOMAIN_NAME}
     volumes:
       - ./app/api:/app
-    command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
+    command: sh -c 'uvicorn src.main:app --reload --workers 1 --host 0.0.0.0 --port 5000' # Infinite loop to keep container live doing nothing
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.${COMPOSE_PROJECT_NAME}_api.loadbalancer.server.port=5000"
