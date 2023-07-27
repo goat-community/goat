@@ -63,10 +63,8 @@ async def update_layer(
 
 
 @router.get("/get-example")
-async def read_layer_allient(
-    async_session: AsyncSession = Depends(get_db),
-) -> LayerRead2:
+async def read_layer_allient() -> LayerRead2:
     content_id = UUID4('06b0ca35-c041-479a-a1ee-1cf6bbc81be2')
-    layer = await crud_layer.get_layer(async_session, id=content_id)
+    layer = await crud_layer.get_layer(id=content_id)
     return layer
  

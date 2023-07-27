@@ -1,5 +1,5 @@
 from typing import Any, List
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel.ext.asyncio.session import AsyncSession
 from .base import CRUDBase
 from src.db.models.layer import Layer
 from .crud_content import content as crud_content
@@ -67,7 +67,8 @@ class CRUDLayer(CRUDBase):
     
 
 
-    async def get_layer(self, db, *, id):
+    async def get_layer(self, *, db: AsyncSession | None = None, id):
+        db = db or super().get_db().session
         statement = select(Layer).where(Layer.content_id == str(id))
         layer = await db.execute(statement)
         layer = layer.scalar_one_or_none()
