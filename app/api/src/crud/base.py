@@ -5,8 +5,9 @@ from sqlalchemy import delete, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import RelationshipProperty, selectinload
-
 from src.db.models._base_class import Base
+from fastapi_async_sqlalchemy.middleware import DBSessionMeta
+from fastapi_async_sqlalchemy import db
 
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -22,6 +23,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         * `schema`: A Pydantic model (schema) class
         """
         self.model = model
+        self.db = db
+
+    def get_db(self) -> DBSessionMeta:
+        return self.db
 
     def order_by(self, statement: select, ordering: str):
         if not ordering:
@@ -131,17 +136,19 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         result = await db.execute(statement)
         return result.scalars().all()
 
-    async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:
+    async def create(self, *, obj_in: CreateSchemaType, db: AsyncSession | None = None) -> ModelType:
+        db = db or self.db.session
         db_obj = self.model.from_orm(obj_in)
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
         return db_obj
+    
 
     async def update(
-        self,
-        db: AsyncSession,
+        self,   
         *,
+        db: AsyncSession,
         db_obj: ModelType,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
