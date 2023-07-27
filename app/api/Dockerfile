@@ -1,4 +1,5 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.10-slim-2022-11-25
+# FROM python:3.11.4-bullseye
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.10-2022-11-25
 # create directory for the app user
 RUN mkdir -p /app
 WORKDIR /app/
@@ -27,6 +28,8 @@ ENV CELERY_RESULT_EXPIRES 120
 
 # Install system dependencies
 RUN apt-get update \
+    && apt install -y libglpk-dev  \
+    && apt-get install -y pkg-config \
     && apt-get -y install netcat gcc libpq-dev \
     && apt-get clean
 # Install postgresql-client
@@ -34,6 +37,11 @@ RUN apt install curl ca-certificates gnupg -y && \
     curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg >/dev/null && \
     sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" > /etc/apt/sources.list.d/postgresql.list' && \
     apt update -y && apt-get install postgresql-client-14 -y
+
+RUN pip install --upgrade pip
+RUN pip install --upgrade pip setuptools wheel
+
+
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python && \
     cd /usr/local/bin && \
