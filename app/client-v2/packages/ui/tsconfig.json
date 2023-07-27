@@ -2,6 +2,7 @@
   "extends": "@p4b/tsconfig/react-library.json",
   "compilerOptions": {
     "resolveJsonModule": true,
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
     },

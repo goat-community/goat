@@ -1,6 +1,5 @@
 "use client";
 
-import { Tooltip } from "@/components/DataDisplay/Tooltip";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { TreeView, TreeItem } from "@mui/lab";
@@ -11,6 +10,7 @@ import { v4 } from "uuid";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 import { Text } from "../theme";
+import { Tooltip } from "./Tooltip";
 
 // Custom styled TreeItem to adjust the padding
 const StyledTreeItem = styled(TreeItem)(({ theme }) => ({

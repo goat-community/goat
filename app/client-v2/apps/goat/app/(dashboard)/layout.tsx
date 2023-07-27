@@ -120,9 +120,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 const useStyles = makeStyles({ name: { DashboardLayout } })(() => ({
   container: {
     minHeight: "100vh",
-    marginTop: "52px",
-    width: "80%",
     margin: "0 auto",
+    marginTop: "104px",
+    width: "80%",
     "@media (max-width: 1714px)": {
       width: "90%",
     },
