@@ -7,13 +7,14 @@ const meta: Meta<typeof MapByLayer> = {
   component: MapByLayer,
   argTypes: {
     layer: {
-      options: ["Vector tile Point", "Polygon", "Line", "XYZ"],
+      options: ["Vector tile Point", "Polygon", "Line", "XYZ", "WMS"],
       control: { type: "radio" },
       mapping: {
         "Vector tile Point": "poi",
         Polygon: "aoi",
         Line: "edge",
         XYZ: "xyz",
+        WMS: "wms",
       },
     },
   },
