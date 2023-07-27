@@ -1,9 +1,10 @@
 import ThemeRegistry from "@/lib/ThemeRegistry";
-import AuthProvider from "@/lib/context/AuthProvider";
-import Provider from "@/lib/context/StoreProvider";
+import AuthProvider from "@/lib/providers/AuthProvider";
+import StoreProvider from "@/lib/providers/StoreProvider";
+import ToastProvider from "@/lib/providers/ToastProvider";
+import "@/styles/globals.css";
 import type { Metadata } from "next";
-
-import "../styles/globals.css";
+import "react-toastify/dist/ReactToastify.css";
 
 export const metadata: Metadata = {
   title: {
@@ -17,13 +18,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body style={{ backgroundColor: "#f2f2f3" }}>
-        <Provider>
+        <StoreProvider>
           <AuthProvider>
-            <ThemeRegistry>
-              <div style={{ marginTop: "101px" }}>{children}</div>
-            </ThemeRegistry>
+            <ToastProvider>
+              <ThemeRegistry>{children}</ThemeRegistry>
+            </ToastProvider>
           </AuthProvider>
-        </Provider>
+        </StoreProvider>
       </body>
     </html>
   );

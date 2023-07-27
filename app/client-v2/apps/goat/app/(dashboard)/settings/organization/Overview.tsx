@@ -1,5 +1,6 @@
 "use client";
 
+import SubscriptionStatusCard from "@/app/(dashboard)/settings/subscription/SubscriptionStatusCard";
 import { makeStyles } from "@/lib/theme";
 import React, { useRef } from "react";
 
@@ -8,8 +9,6 @@ import { TextField } from "@p4b/ui/components/Inputs/TextField";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
 import type { IconId } from "@p4b/ui/components/theme";
 import { Icon, Button, Text } from "@p4b/ui/components/theme";
-
-import SubscriptionStatusCard from "../subscription/SubscriptionStatusCard";
 
 const Overview = () => {
   // User state management

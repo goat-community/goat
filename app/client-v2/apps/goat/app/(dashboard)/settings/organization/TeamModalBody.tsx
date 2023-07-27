@@ -1,3 +1,5 @@
+import type { Option } from "@/app/(dashboard)/settings/organization/AddTeamModal";
+import type { Team } from "@/app/(dashboard)/settings/organization/Teams";
 import React from "react";
 import { v4 } from "uuid";
 
@@ -6,9 +8,6 @@ import { Chip } from "@p4b/ui/components/DataDisplay";
 import { AutoComplete, TextField } from "@p4b/ui/components/Inputs";
 import { Text } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-import type { Option } from "./AddTeamModal";
-import type { Team } from "./Teams";
 
 interface TeamModalBodyProps {
   selectedEditRow?: Team;

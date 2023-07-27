@@ -4,6 +4,9 @@ import HeaderStack from "@/app/(dashboard)/content/preview/HeaderStack";
 import PreviewMap from "@/app/(dashboard)/content/preview/PreviewMap";
 import PreviewMenu from "@/app/(dashboard)/content/preview/PreviewMenu";
 import { makeStyles } from "@/lib/theme";
+import mapData from "@/lib/utils/project_layers_demo_update";
+import React from "react";
+import useSWR from "swr";
 
 const useStyles = makeStyles({ name: { PreviewManagement } })(() => ({
   root: {
@@ -21,32 +24,35 @@ const useStyles = makeStyles({ name: { PreviewManagement } })(() => ({
   },
 }));
 
-export default function PreviewManagement() {
-  const { classes, cx } = useStyles();
-  // const theme = useTheme();
+// Function to simulate fetching data asynchronously
+const mapDataFetcher = () => {
+  return new Promise((resolve, reject) => {
+    // Simulate an asynchronous delay (e.g., 1 second)
+    setTimeout(() => {
+      resolve(mapData);
+    }, 1000); // Simulate a 1-second delay
+  });
+};
 
-  const mapProps = {
-    initialViewState: {
-      longitude: 11.831704345197693,
-      latitude: 48.124458667004006,
-      zoom: 10,
-      pitch: 0,
-      bearing: 0,
-      altitude: -1,
-    },
-    MAP_ACCESS_TOKEN:
-      "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA",
-    mapStyle: "mapbox://styles/mapbox/streets-v11",
-    scaleShow: false,
-    navigationControl: false,
-  };
+export default function PreviewManagement() {
+  const { data, error } = useSWR("map", mapDataFetcher);
+
+  const { classes, cx } = useStyles();
+
+  if (error) {
+    return <div>Error fetching data</div>;
+  }
+
+  if (!data) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className={cx(classes.root)}>
       <HeaderStack className={cx(classes.header)} />
       <div className={cx(classes.container)}>
         <PreviewMenu />
-        <PreviewMap {...mapProps} />
+        <PreviewMap {...data} />
       </div>
     </div>
   );

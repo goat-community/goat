@@ -1,3 +1,4 @@
+import CreateContent from "@/app/(dashboard)/content/CreateContent";
 import { useState } from "react";
 import { v4 } from "uuid";
 
@@ -6,8 +7,6 @@ import { ToggleTabs } from "@p4b/ui/components/Navigation/ToggleTabs";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Button, Text, IconButton, Icon } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-import CreateContent from "./CreateContent";
 
 interface HeaderCardProps {
   path: string[];

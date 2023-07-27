@@ -10,7 +10,6 @@ import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Text } from "@p4b/ui/components/theme";
 
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
-import type { SubscriptionStatusCardDataType } from "./SubscriptionStatusCard";
 
 const Subscription = () => {
   const { classes } = useStyles();

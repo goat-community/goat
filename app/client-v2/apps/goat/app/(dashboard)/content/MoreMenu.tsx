@@ -1,13 +1,12 @@
+import DownloadModal from "@/app/(dashboard)/content/DownloadModal";
+import MoveModal from "@/app/(dashboard)/content/MoveModal";
+import ShareModal from "@/app/(dashboard)/content/ShareModal";
 import React, { useState, useEffect } from "react";
 import { v4 } from "uuid";
 
 import Modal from "@p4b/ui/components/Modal";
 import { Icon, Text, IconButton } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-import DownloadModal from "./DownloadModal";
-import MoveModal from "./MoveModal";
-import ShareModal from "./ShareModal";
 
 interface MoreMenuProps {
   rowInfo: { name: React.ReactNode; type: React.ReactNode; modified: string; size: string } | null;

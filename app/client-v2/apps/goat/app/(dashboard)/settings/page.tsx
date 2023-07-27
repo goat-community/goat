@@ -1,3 +1,4 @@
+import "@/styles/globals.css";
 import { redirect } from "next/navigation";
 
 export default async function Organization({}) {

@@ -1,5 +1,6 @@
 import CheckIcon from "@mui/icons-material/Check";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import CorporateFareIcon from "@mui/icons-material/CorporateFare";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
@@ -74,6 +75,7 @@ export const { Icon } = createIcon({
   warn: ErrorIcon,
   warnOutlined: ErrorOutlineIcon,
   check: CheckCircleIcon,
+  checkOutlined: CheckCircleOutlineIcon,
   email: EmailIcon,
   search: SearchIcon,
   settingsSuggested: SettingsSuggestIcon,

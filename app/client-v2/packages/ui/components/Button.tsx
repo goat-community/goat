@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
 /* eslint-disable @typescript-eslint/ban-types */
+import { LoadingButton } from "@mui/lab";
 import MuiButton from "@mui/material/Button";
 import { useCallbackFactory } from "powerhooks/useCallbackFactory";
 import { useGuaranteedMemo } from "powerhooks/useGuaranteedMemo";
@@ -48,6 +49,7 @@ export namespace ButtonProps {
     name?: string;
     htmlId?: string;
     "aria-label"?: string;
+    loading?: boolean;
   };
 
   export type Regular<IconId extends string = never> = Common<IconId> & {
@@ -81,6 +83,7 @@ export function createButton<IconId extends string = never>(params?: {
         autoFocus = false,
         tabIndex,
         name,
+        loading,
         htmlId,
         "aria-label": ariaLabel,
         //For the forwarding, rest should be empty (typewise)
@@ -116,44 +119,54 @@ export function createButton<IconId extends string = never>(params?: {
       );
 
       return (
-        <MuiButton
-          onMouseEnter={handleMousePositionFactory("in")}
-          onMouseLeave={handleMousePositionFactory("out")}
-          ref={ref}
-          className={cx(classes.root, className)}
-          //There is an error in @mui/material types, this should be correct.
-          disabled={disabled}
-          startIcon={startIcon === undefined ? undefined : <IconWd iconId={startIcon} />}
-          endIcon={endIcon === undefined ? undefined : <IconWd iconId={endIcon} />}
-          autoFocus={autoFocus}
-          tabIndex={tabIndex}
-          name={name}
-          id={htmlId}
-          aria-label={ariaLabel}
-          {...(() => {
-            if ("type" in rest) {
-              const { type, ...restRest } = rest;
+        <>
+          {loading ? (
+            <LoadingButton
+              loading={loading}
+              loadingPosition="center"
+              className={cx(classes.root, className)}
+            />
+          ) : (
+            <MuiButton
+              onMouseEnter={handleMousePositionFactory("in")}
+              onMouseLeave={handleMousePositionFactory("out")}
+              ref={ref}
+              className={cx(classes.root, className)}
+              //There is an error in @mui/material types, this should be correct.
+              disabled={disabled}
+              startIcon={startIcon === undefined ? undefined : <IconWd iconId={startIcon} />}
+              endIcon={endIcon === undefined ? undefined : <IconWd iconId={endIcon} />}
+              autoFocus={autoFocus}
+              tabIndex={tabIndex}
+              name={name}
+              id={htmlId}
+              aria-label={ariaLabel}
+              {...(() => {
+                if ("type" in rest) {
+                  const { type, ...restRest } = rest;
 
-              //For the forwarding, rest should be empty (typewise),
-              assert<Equals<typeof restRest, {}>>();
+                  //For the forwarding, rest should be empty (typewise),
+                  assert<Equals<typeof restRest, {}>>();
 
-              return {
-                type,
-                ...restRest,
-              };
-            }
+                  return {
+                    type,
+                    ...restRest,
+                  };
+                }
 
-            const { onClick, href, doOpenNewTabIfHref = href !== undefined, ...restRest } = rest;
+                const { onClick, href, doOpenNewTabIfHref = href !== undefined, ...restRest } = rest;
 
-            return {
-              onClick,
-              href,
-              target: doOpenNewTabIfHref ? "_blank" : undefined,
-              ...restRest,
-            };
-          })()}>
-          {typeof children === "string" ? capitalize(children) : children}
-        </MuiButton>
+                return {
+                  onClick,
+                  href,
+                  target: doOpenNewTabIfHref ? "_blank" : undefined,
+                  ...restRest,
+                };
+              })()}>
+              {typeof children === "string" ? capitalize(children) : children}
+            </MuiButton>
+          )}
+        </>
       );
     })
   );
