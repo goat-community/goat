@@ -64,6 +64,16 @@ class CRUDLayer(CRUDBase):
             # layers_.append(LayerRead(**layer_dict))
             layers_.append(layer_dict)
         return layers_
+    
+
+
+    async def get_layer(self, db, *, id):
+        statement = select([Layer, Content]).join(Content).where(Layer.content_id == str(id))
+        layer = await db.execute(statement)
+        layer = layer.fetchone()
+        layer_dict = layer.Layer.__dict__
+        layer_dict.update(layer.Content.__dict__)
+        return layer_dict
 
 
 layer = CRUDLayer(Layer)

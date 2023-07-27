@@ -60,3 +60,11 @@ async def update_layer(
     db_obj = await crud_layer.get(async_session, id=str(layer_in.content_id))
     layer = await crud_layer.update(async_session, db_obj=db_obj, obj_in=layer_in)
     return layer
+
+
+@router.get("")
+async def read_layer(
+    async_session: AsyncSession = Depends(get_db),
+) -> LayerRead:
+    layer = await crud_layer.get(async_session, id='06b0ca35-c041-479a-a1ee-1cf6bbc81be2')
+    return layer

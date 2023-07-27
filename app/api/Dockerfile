@@ -1,4 +1,4 @@
-FROM python:3.11.4-bullseye
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.10-slim-2022-11-25
 # create directory for the app user
 RUN mkdir -p /app
 WORKDIR /app/
