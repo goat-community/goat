@@ -2,6 +2,7 @@
 
 import { Chip } from "@mui/material";
 import { forwardRef, memo, useEffect, useRef } from "react";
+import { v4 } from "uuid";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 import { Text } from "../theme";
@@ -59,8 +60,8 @@ export const ChipList = memo(
     return (
       <div className={className} ref={containerRef} style={{ overflowX: "auto" }}>
         <div style={{ display: "flex" }} className={classes.chips}>
-          {chips.map((chip: string, index: number) => (
-            <Chip key={index} label={<Text typo="body 3">{chip}</Text>} className={classes.chip} />
+          {chips.map((chip: string) => (
+            <Chip key={v4()} label={<Text typo="body 3">{chip}</Text>} className={classes.chip} />
           ))}
           <Chip label="..." className={classes.chip} />
         </div>

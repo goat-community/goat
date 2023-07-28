@@ -1,20 +1,14 @@
 "use client";
 
-import type { Option } from "@/app/(dashboard)/settings/organization/AddTeamModal";
 import AddTeamModal from "@/app/(dashboard)/settings/organization/AddTeamModal";
 import TeamsTable from "@/app/(dashboard)/settings/organization/TeamsTable";
 import React, { useState } from "react";
+import type { Team } from "team-organization-dashboard";
 
 import { TextField } from "@p4b/ui/components/Inputs";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Icon, Text } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-export interface Team {
-  name: string;
-  participants: Option[];
-  createdAt: string;
-}
 
 const Teams = () => {
   const [ismodalVisible, setModalVisible] = useState<boolean>(false);
@@ -94,7 +88,6 @@ const Teams = () => {
         image="https://s3-alpha-sig.figma.com/img/630a/ef8f/d732bcd1f3ef5d6fe31bc6f94ddfbca8?Expires=1687132800&Signature=aJvQ22UUlmvNjDlrgzV6MjJK~YgohUyT9mh8onGD-HhU5yMI0~ThWZUGVn562ihhRYqlyiR5Rskno84OseNhAN21WqKNOZnAS0TyT3SSUP4t4AZJOmeuwsl2EcgElMzcE0~Qx2X~LWxor1emexxTlWntivbnUeS6qv1DIPwCferjYIwWsiNqTm7whk78HUD1-26spqW3AXVbTtwqz3B8q791QigocHaK9b4f-Ulrk3lsmp8BryHprwgetHlToFNlYYR-SqPFrEeOKNQuEDKH0QzgGv3TX7EfBNL0kgP3Crued~JNth-lIEPCjlDRnFQyNpSiLQtf9r2tH9xIsKA~XQ__&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4"
         imageSide="right"
       />
-      {/* {teams ? teams.map((team) => team.name) : null} */}
     </div>
   );
 };

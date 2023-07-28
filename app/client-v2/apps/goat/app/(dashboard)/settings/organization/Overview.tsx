@@ -1,13 +1,18 @@
 "use client";
 
 import SubscriptionStatusCard from "@/app/(dashboard)/settings/subscription/SubscriptionStatusCard";
+import SubscriptionCardSkeleton from "@/components/skeletons/subscriptionCardSkeleton";
+import { OVERVIEW_API_URL } from "@/lib/api/apiConstants";
 import { makeStyles } from "@/lib/theme";
+import axios from "axios";
 import React, { useRef } from "react";
+import type { SubscriptionCard } from "subscriptions-dashboard";
+import useSWR from "swr";
+import { v4 } from "uuid";
 
 import Dialog from "@p4b/ui/components/Dialog";
 import { TextField } from "@p4b/ui/components/Inputs/TextField";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
-import type { IconId } from "@p4b/ui/components/theme";
 import { Icon, Button, Text } from "@p4b/ui/components/theme";
 
 const Overview = () => {
@@ -18,6 +23,14 @@ const Overview = () => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const { classes } = useStyles();
 
+  const UsersFetcher = (url: string) => {
+    return axios(url).then((res) => res.data);
+  };
+
+  const { data, error, isLoading } = useSWR(OVERVIEW_API_URL, UsersFetcher);
+
+  console.log(data);
+
   function openAddUserDialog(event: React.MouseEvent<HTMLButtonElement>) {
     setAnchorEl(event.currentTarget);
   }
@@ -26,72 +39,82 @@ const Overview = () => {
     setAnchorEl(null);
   };
 
-  const tempOrganisation: {
-    title: string;
-    icon: IconId;
-    listItems: React.ReactNode[];
-    action: React.ReactNode;
-  } = {
-    title: "Organisation name",
-    icon: "coorperate",
-    listItems: [
-      <Text typo="body 2" key={1}>
-        You are admin on this organisation
-      </Text>,
-      <Text typo="body 2" key={2}>
-        12 active team members
-      </Text>,
-      <Text typo="body 2" key={3}>
-        Active regions: Greater Munich, Greater London, Faux Valley, Stadtburg Burg
-      </Text>,
-    ],
-    action: (
-      <div className={classes.buttonWrapper}>
-        <Button onClick={openAddUserDialog} className={classes.button} variant="primary">
-          Manage license
-        </Button>
-        {anchorEl ? (
-          <Dialog
-            anchorEl={anchorEl}
-            ref={dialogRef}
-            onClick={handleAddUserClose}
-            title="Update Oganizaztion Name"
-            width="444px"
-            direction="right"
-            action={
-              <div className={classes.buttons}>
-                <Button variant="noBorder" onClick={handleAddUserClose}>
-                  CANCEL
-                </Button>
-                <Button variant="noBorder">UPDATE</Button>
+  function beforeLoadedMessage() {
+    if (isLoading) {
+      return (
+        <>
+          <SubscriptionCardSkeleton />
+        </>
+      );
+    } else if (error) {
+      return "Error";
+    } else {
+      return "No results found!";
+    }
+  }
+
+  function getOrganizationOverviewDetails(data: SubscriptionCard) {
+    const visualData = {
+      icon: data.icon,
+      title: data.title,
+      listItems: data.listItems.map((item: string) => (
+        <Text typo="body 2" key={v4()}>
+          {item}
+        </Text>
+      )),
+      action: (
+        <div className={classes.buttonWrapper}>
+          <Button onClick={openAddUserDialog} className={classes.button} variant="primary">
+            Manage license
+          </Button>
+          {anchorEl ? (
+            <Dialog
+              anchorEl={anchorEl}
+              ref={dialogRef}
+              onClick={handleAddUserClose}
+              title="Update Oganizaztion Name"
+              width="444px"
+              direction="right"
+              action={
+                <div className={classes.buttons}>
+                  <Button variant="noBorder" onClick={handleAddUserClose}>
+                    CANCEL
+                  </Button>
+                  <Button variant="noBorder">UPDATE</Button>
+                </div>
+              }>
+              <div className={classes.subheader}>
+                <Icon
+                  iconId={data.icon}
+                  size="small"
+                  bgVariant="focus"
+                  iconVariant="secondary"
+                  wrapped="circle"
+                  bgOpacity={0.6}
+                />
+                <Text className={classes.subheaderText} typo="body 1">
+                  {data.title}
+                </Text>
               </div>
-            }>
-            <div className={classes.subheader}>
-              <Icon
-                iconId="home"
-                size="small"
-                bgVariant="focus"
-                iconVariant="secondary"
-                wrapped="circle"
-                bgOpacity={0.6}
-              />
-              <Text className={classes.subheaderText} typo="body 1">
-                Organization name
-              </Text>
-            </div>
-            <div className={classes.formInputs}>
-              <TextField type="text" label="New name" />
-              <TextField type="password" label="Confirm password" />
-            </div>
-          </Dialog>
-        ) : null}
-      </div>
-    ),
-  };
+              <div className={classes.formInputs}>
+                <TextField type="text" label="New name" />
+                <TextField type="password" label="Confirm password" />
+              </div>
+            </Dialog>
+          ) : null}
+        </div>
+      ),
+    };
+    return visualData;
+  }
 
   return (
     <div>
-      <SubscriptionStatusCard sectionData={tempOrganisation} />
+      {!isLoading && !error ? (
+        <SubscriptionStatusCard sectionData={getOrganizationOverviewDetails(data)} key={v4()} />
+      ) : (
+        beforeLoadedMessage()
+      )}
       <Banner
         actions={<Button>Subscribe Now</Button>}
         content={
@@ -103,12 +126,6 @@ const Overview = () => {
         image="https://s3-alpha-sig.figma.com/img/630a/ef8f/d732bcd1f3ef5d6fe31bc6f94ddfbca8?Expires=1687132800&Signature=aJvQ22UUlmvNjDlrgzV6MjJK~YgohUyT9mh8onGD-HhU5yMI0~ThWZUGVn562ihhRYqlyiR5Rskno84OseNhAN21WqKNOZnAS0TyT3SSUP4t4AZJOmeuwsl2EcgElMzcE0~Qx2X~LWxor1emexxTlWntivbnUeS6qv1DIPwCferjYIwWsiNqTm7whk78HUD1-26spqW3AXVbTtwqz3B8q791QigocHaK9b4f-Ulrk3lsmp8BryHprwgetHlToFNlYYR-SqPFrEeOKNQuEDKH0QzgGv3TX7EfBNL0kgP3Crued~JNth-lIEPCjlDRnFQyNpSiLQtf9r2tH9xIsKA~XQ__&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4"
         imageSide="right"
       />
-      {/* {[subscriptionStatus, ...extensions].map((extension, indx) => (
-          ))}
-          <div className={classes.extensionButtonWrapper}>
-            {!isDemo ? <Button>Add extensions</Button> : null}
-          </div>
-           */}
     </div>
   );
 };

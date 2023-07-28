@@ -257,7 +257,7 @@ const stylesObj = {
     data_reference_year: 2020,
     url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=402ce1ca8eb54457bdf65e2b261c5132",
     data_type: "xyz",
-  }
+  },
 };
 
 export type MapProps = {
@@ -289,7 +289,7 @@ export default function MapByLayer(props: MapProps) {
       <Source id={stylesObj["xyz"].id} type="raster" tiles={[stylesObj["xyz"].url]}>
         <Layer type="raster" id={stylesObj["xyz"].id} source={stylesObj["xyz"].id} />
       </Source>
-    )
+    ),
   };
 
   return (

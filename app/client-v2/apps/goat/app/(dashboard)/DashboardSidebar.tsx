@@ -5,6 +5,7 @@ import { Fade, List, ListItem, ListItemButton, ListItemIcon } from "@mui/materia
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { v4 } from "uuid";
 
 import { Icon, Text, useTheme } from "@p4b/ui/components/theme";
 import type { IconId } from "@p4b/ui/components/theme";
@@ -41,18 +42,13 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
     setHover((currHover) => !currHover);
   };
 
-  const handleChangeLink = (link, placeholder) => {
-    setActive(placeholder);
-    router.push(link);
-  };
-
   return (
     <>
       <nav className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
         <List>
-          {items?.map(({ link, icon, placeholder }, indx) => (
+          {items?.map(({ link, icon, placeholder }) => (
             <Link href={link} className={classes.textName} key={link}>
-              <ListItem onClick={() => setActive(placeholder)} disablePadding key={indx}>
+              <ListItem onClick={() => setActive(placeholder)} disablePadding key={v4()}>
                 <ListItemButton className={classes.itemList}>
                   <ListItemIcon>
                     <Icon

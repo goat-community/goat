@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Team } from "../../app/(dashboard)/settings/organization/Teams";
-import { Option } from "../../app/(dashboard)/settings/organization/AddTeamModal";
+import { Team } from "@/app/(dashboard)/settings/organization/Teams";
+import { Option } from "@/app/(dashboard)/settings/organization/AddTeamModal";
 import { filterSearch } from "@/lib/utils/helpers";
 
 interface UseUserDialogProps {
@@ -63,11 +63,5 @@ export function useUserDialog({
 }
 
 export function useTeamSearch(rawRows: Team[], searchText: string | undefined) {
-  const [rows, setRows] = useState<Team[]>([]);
-
-  useEffect(() => {
-    setRows(filterSearch(rawRows, "name", searchText || ""));
-  }, [searchText, rawRows]);
-
-  return rows;
+  return filterSearch(rawRows, "name", searchText || "");
 }

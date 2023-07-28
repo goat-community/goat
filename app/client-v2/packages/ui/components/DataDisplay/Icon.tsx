@@ -149,11 +149,11 @@ export function createIcon<IconId extends string>(componentByIconId: {
       const Component: MuiIconLike | SvgComponentLike = componentByIconId[iconId];
 
       return isMuiIcon(Component) ? (
-        <div className={classes.iconWrapper}>
+        <span className={classes.iconWrapper}>
           <Component ref={ref} className={cx(classes.root, className)} onClick={onClick} {...rest} />
-        </div>
+        </span>
       ) : (
-        <div className={classes.iconWrapper}>
+        <span className={classes.iconWrapper}>
           <SvgIcon
             ref={ref}
             onClick={onClick}
@@ -161,7 +161,7 @@ export function createIcon<IconId extends string>(componentByIconId: {
             component={Component}
             {...rest}
           />
-        </div>
+        </span>
       );
     })
   );

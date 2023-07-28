@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { v4 } from "uuid";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
 import { Divider } from "../../../DataDisplay";
@@ -70,7 +71,7 @@ const ContentInfoModal = (props: ContentInfoModalProps) => {
       </div>
       <Divider width="100%" color="gray" className={classes.divider} />
       {sampleModalData.map((data, indx) => (
-        <div className={classes.modalListItem} key={indx}>
+        <div className={classes.modalListItem} key={v4()}>
           <Text typo="body 2" className={classes.modalListItemTitle}>
             {data.tag}:{" "}
           </Text>

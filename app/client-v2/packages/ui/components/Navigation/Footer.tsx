@@ -1,6 +1,7 @@
 "use client";
 
 import React, { forwardRef, memo } from "react";
+import { v4 } from "uuid";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 import P4BLogo from "../P4BLogo";
@@ -34,15 +35,15 @@ const Footer = memo(
           </div>
         </div>
         <div className={classes.links}>
-          {links.map((link, index) => (
-            <div key={index}>
+          {links.map((link) => (
+            <div key={v4()}>
               <Text typo="body 3" className={classes.headLinks}>
                 {link.header}
               </Text>
-              {link.links.map((itemLink, indx) => (
+              {link.links.map((itemLink) => (
                 <Text
                   typo="caption"
-                  key={indx}
+                  key={v4()}
                   className={cx(classes.linkItem, itemLink.underline ? classes.underline : "")}>
                   {itemLink.icon ? <Icon size="small" iconVariant="white" iconId={itemLink.icon} /> : null}{" "}
                   {itemLink.name}
