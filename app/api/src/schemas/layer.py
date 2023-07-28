@@ -427,21 +427,27 @@ def get_layer_class(class_type: str, **kwargs):
     print('layer_type', layer_type)
 
     layer_class = layer_creator_class[layer_type]
+
     if layer_type == "feature_layer":
         try:
             feature_layer_type = kwargs["feature_layer_type"]
+            
         except KeyError:
             raise ValidationError("Feature layer type is required")
 
         layer_class = layer_class[feature_layer_type]
 
     layer_class_name = layer_class.__name__
+
     if class_type == "read":
         layer_class_name = layer_class_name.replace("Create", "Read")
+
     elif class_type == "update":
         layer_class_name = layer_class_name.replace("Create", "Update")
+
     elif class_type == "create":
         pass
+
     else:
         raise ValueError(f"Layer class type ({class_type}) is invalid")
 

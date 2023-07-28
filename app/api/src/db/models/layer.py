@@ -161,7 +161,7 @@ class FeatureLayerBase(LayerBase, GeospatialAttributes):
 
 
 feature_layer_base_example = {
-    "style_id": "d0f4c0e0-0f0f-4f0f-8f0f-0f0f0f0f0f0f",
+    "style_id": "59832b1c-b098-492d-93e0-2f8360fce755",
     "feature_layer_type": "standard",
     "size": 1000,
 }
