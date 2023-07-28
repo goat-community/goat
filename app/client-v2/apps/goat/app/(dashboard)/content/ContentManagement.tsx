@@ -6,290 +6,327 @@ import MoreMenu from "@/app/(dashboard)/content/MoreMenu";
 import TreeViewFilter from "@/app/(dashboard)/content/TreeViewFilter";
 import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
-import { useState } from "react";
+import { formatDate } from "@/lib/utils/helpers";
+import contentData from "@/lib/utils/template_content";
+import React, { useEffect, useState } from "react";
+import useSWR from "swr";
 
 import { FileManagementTable, Chip } from "@p4b/ui/components/DataDisplay";
 import Dialog from "@p4b/ui/components/Dialog";
 import Modal from "@p4b/ui/components/Modal";
 import { Card } from "@p4b/ui/components/Surfaces";
-import { Icon, Text, IconButton, Button } from "@p4b/ui/components/theme";
+import { Text, IconButton, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
+const contentDataFetcher = () => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(contentData);
+    }, 1000); // Simulate a 1-second delay
+  });
+};
+
+const columnNames = [
+  {
+    id: "name",
+    label: "Name",
+    numeric: false,
+  },
+  {
+    id: "type",
+    label: "Type",
+    numeric: false,
+  },
+  {
+    id: "modified",
+    label: "Modified",
+    numeric: false,
+  },
+  {
+    id: "size",
+    label: "Size",
+    numeric: false,
+  },
+];
+
+//todo check
+const ContainingProjects = [
+  {
+    name: "Proposal_Budget_Revision",
+    link: "/home",
+  },
+  {
+    name: "FINAL_Project1",
+    link: "/home",
+  },
+  {
+    name: "Revision123",
+    link: "/home",
+  },
+];
+
 const ContentManagement = () => {
-  const { classes } = useStyles();
+  const { data, error } = useSWR("content", contentDataFetcher);
+
   const [modalContent, setModalContent] = useState<object | null>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [path, setPath] = useState<string[]>(["home"]);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [rows, setRows] = useState<any[]>([]);
   const [dialogContent, setDialogContent] = useState<{
     name: React.ReactNode;
     type: React.ReactNode;
     modified: string;
     size: string;
   } | null>(null);
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const [path, setPath] = useState<string[]>(["home"]);
 
-  // Dumb Data
-  // These are the rows of the table, it is only temporary for now
-  const rows = [
-    {
-      name: (
-        <Text className={classes.folder} typo="body 2">
-          <span className={classes.icon}>
-            <Icon iconId="folder" />
-          </span>
-          Report_Final_Version
-        </Text>
-      ),
-      type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      size: "30 kb",
-      path: ["home"],
-      stringName: "Report_Final_Version",
-      files: [
-        {
-          name: "Project_XYZ_Conclusion",
-          type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-          modified: "23 Jun 19",
-          size: "30 kb",
-          path: ["home", "Report_Final_Version"],
-        },
-        {
-          name: "Data_Analysis_2023_Q1",
-          type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
-          modified: "23 Jun 19",
-          size: "30 kb",
-          path: ["home", "Report_Final_Version"],
-        },
-        {
-          name: "Experiment_Results_Phase2",
-          type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
-          modified: "23 Jun 19",
-          size: "30 kb",
-          path: ["home", "Report_Final_Version"],
-        },
-      ],
-    },
-    {
-      name: (
-        <Text className={classes.folder} typo="body 2">
-          <span className={classes.icon}>
-            <Icon iconId="folder" />
-          </span>
-          plan_4_better
-        </Text>
-      ),
-      type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      size: "30 kb",
-      path: ["home"],
-      stringName: "plan_4_better",
-      files: [
-        {
-          name: "Project_XYZ_Conclusion",
-          type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-          modified: "23 Jun 19",
-          size: "30 kb",
-          path: ["home", "plan_4_better"],
-        },
-        {
-          name: "Data_Analysis_2023_Q1",
-          type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
-          modified: "23 Jun 19",
-          size: "30 kb",
-          path: ["home", "plan_4_better"],
-        },
-        {
-          name: "Experiment_Results_Phase2",
-          type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
-          modified: "23 Jun 19",
-          size: "30 kb",
-          path: ["home", "plan_4_better"],
-        },
-      ],
-    },
-    {
-      name: (
-        <Text className={classes.folder} typo="body 2">
-          <span className={classes.icon}>
-            <Icon iconId="folder" />
-          </span>
-          example_proj
-        </Text>
-      ),
-      type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      size: "30 kb",
-      path: ["home"],
-      stringName: "example_proj",
-      files: [
-        {
-          name: "Project_XYZ_Conclusion",
-          type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-          modified: "23 Jun 19",
-          size: "30 kb",
-          path: ["home", "example_proj"],
-        },
-        {
-          name: (
-            <Text className={classes.folder} typo="body 2">
-              <span className={classes.icon}>
-                <Icon iconId="folder" />
-              </span>
-              april_2023
-            </Text>
-          ),
-          type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-          modified: "23 Jun 19",
-          size: "30 kb",
-          path: ["home", "example_proj"],
-          stringName: "april_2023",
-          files: [
+  const { classes } = useStyles();
+
+  useEffect(() => {
+    let filteredRows = data?.items;
+
+    if (selectedFilters.length > 0) {
+      filteredRows = filteredRows.filter((item) => selectedFilters.includes(item.type));
+    }
+
+    setRows(
+      filteredRows?.map((item) => {
+        return {
+          name: item?.name,
+          type: <Chip className={classes.chip} label={item?.type} textDesign="italic" variant="Border" />,
+          modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
+          path: ["home"],
+          size: `${item?.metadata?.size} kb`,
+          info: [
             {
-              name: "Project_XYZ_Conclusion",
-              type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-              modified: "23 Jun 19",
-              size: "30 kb",
-              path: ["home", "example_proj", "april_2023"],
+              tag: "Owner",
+              data: `${item?.owner?.first_name} ${item?.owner?.last_name}`,
             },
             {
-              name: "Data_Analysis_2023_Q1",
-              type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
-              modified: "23 Jun 19",
-              size: "30 kb",
-              path: ["home", "example_proj", "april_2023"],
+              tag: "Shared with",
+              data: item?.shared_with?.public?.url,
             },
             {
-              name: "Experiment_Results_Phase2",
-              type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
-              modified: "23 Jun 19",
-              size: "30 kb",
-              path: ["home", "example_proj", "april_2023"],
+              tag: "Type",
+              data: item?.type,
+            },
+            {
+              tag: "Modified",
+              data: item?.metadata?.updated_at,
+            },
+            {
+              tag: "Size",
+              data: `${item?.metadata?.size} kb`,
+            },
+            {
+              tag: "Location",
+              data: "content/project/folderx",
             },
           ],
-        },
-      ],
-    },
-    {
-      name: "Report_Final_Version",
-      type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      path: ["home"],
-      size: "30 kb",
-    },
-    {
-      name: "Project_XYZ_Conclusion",
-      type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      path: ["home"],
-      size: "30 kb",
-    },
-    {
-      name: "Data_Analysis_2023_Q1",
-      type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      path: ["home"],
-      size: "30 kb",
-    },
-    {
-      name: "Experiment_Results_Phase2",
-      type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      path: ["home"],
-      size: "30 kb",
-    },
-    {
-      name: "Report_Final_Version",
-      type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      path: ["home"],
-      size: "30 kb",
-    },
-    {
-      name: "Project_XYZ_Conclusion",
-      type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      path: ["home"],
-      size: "30 kb",
-    },
-    {
-      name: "Data_Analysis_2023_Q1",
-      type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      path: ["home"],
-      size: "30 kb",
-    },
-    {
-      name: "Experiment_Results_Phase2",
-      type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
-      modified: "23 Jun 19",
-      path: ["home"],
-      size: "30 kb",
-    },
-  ];
+        };
+      })
+    );
+  }, [selectedFilters, data]);
 
-  const columnNames = [
-    {
-      id: "name",
-      label: "Name",
-      numeric: false,
-    },
-    {
-      id: "type",
-      label: "Type",
-      numeric: false,
-    },
-    {
-      id: "modified",
-      label: "Modified",
-      numeric: false,
-    },
-    {
-      id: "size",
-      label: "Size",
-      numeric: false,
-    },
-  ];
-
-  const sampleModalData = [
-    {
-      tag: "Owner",
-      data: "User name owner",
-    },
-    {
-      tag: "Shared with",
-      data: "team name, team name, ...",
-    },
-    {
-      tag: "Type",
-      data: "Datat table",
-    },
-    {
-      tag: "Modified",
-      data: "30.02.2022 20:30",
-    },
-    {
-      tag: "Size",
-      data: "30Kb",
-    },
-    {
-      tag: "Location",
-      data: "content/project/folderx",
-    },
-  ];
-
-  const ContainingProjects = [
-    {
-      name: "Proposal_Budget_Revision",
-      link: "/home",
-    },
-    {
-      name: "FINAL_Project1",
-      link: "/home",
-    },
-    {
-      name: "Revision123",
-      link: "/home",
-    },
-  ];
+  //todo remove after
+  // Dumb Data
+  // These are the rows of the table, it is only temporary for now
+  // const rowsDumbData = [
+  //   {
+  //     name: (
+  //       <Text className={classes.folder} typo="body 2">
+  //         <span className={classes.icon}>
+  //           <Icon iconId="folder" />
+  //         </span>
+  //         Report_Final_Version
+  //       </Text>
+  //     ),
+  //     type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     size: "30 kb",
+  //     path: ["home"],
+  //     stringName: "Report_Final_Version",
+  //     files: [
+  //       {
+  //         name: "Project_XYZ_Conclusion",
+  //         type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
+  //         modified: "23 Jun 19",
+  //         size: "30 kb",
+  //         path: ["home", "Report_Final_Version"],
+  //       },
+  //       {
+  //         name: "Data_Analysis_2023_Q1",
+  //         type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
+  //         modified: "23 Jun 19",
+  //         size: "30 kb",
+  //         path: ["home", "Report_Final_Version"],
+  //       },
+  //       {
+  //         name: "Experiment_Results_Phase2",
+  //         type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
+  //         modified: "23 Jun 19",
+  //         size: "30 kb",
+  //         path: ["home", "Report_Final_Version"],
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     name: (
+  //       <Text className={classes.folder} typo="body 2">
+  //         <span className={classes.icon}>
+  //           <Icon iconId="folder" />
+  //         </span>
+  //         plan_4_better
+  //       </Text>
+  //     ),
+  //     type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     size: "30 kb",
+  //     path: ["home"],
+  //     stringName: "plan_4_better",
+  //     files: [
+  //       {
+  //         name: "Project_XYZ_Conclusion",
+  //         type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
+  //         modified: "23 Jun 19",
+  //         size: "30 kb",
+  //         path: ["home", "plan_4_better"],
+  //       },
+  //       {
+  //         name: "Data_Analysis_2023_Q1",
+  //         type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
+  //         modified: "23 Jun 19",
+  //         size: "30 kb",
+  //         path: ["home", "plan_4_better"],
+  //       },
+  //       {
+  //         name: "Experiment_Results_Phase2",
+  //         type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
+  //         modified: "23 Jun 19",
+  //         size: "30 kb",
+  //         path: ["home", "plan_4_better"],
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     name: (
+  //       <Text className={classes.folder} typo="body 2">
+  //         <span className={classes.icon}>
+  //           <Icon iconId="folder" />
+  //         </span>
+  //         example_proj
+  //       </Text>
+  //     ),
+  //     type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     size: "30 kb",
+  //     path: ["home"],
+  //     stringName: "example_proj",
+  //     files: [
+  //       {
+  //         name: "Project_XYZ_Conclusion",
+  //         type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
+  //         modified: "23 Jun 19",
+  //         size: "30 kb",
+  //         path: ["home", "example_proj"],
+  //       },
+  //       {
+  //         name: (
+  //           <Text className={classes.folder} typo="body 2">
+  //             <span className={classes.icon}>
+  //               <Icon iconId="folder" />
+  //             </span>
+  //             april_2023
+  //           </Text>
+  //         ),
+  //         type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
+  //         modified: "23 Jun 19",
+  //         size: "30 kb",
+  //         path: ["home", "example_proj"],
+  //         stringName: "april_2023",
+  //         files: [
+  //           {
+  //             name: "Project_XYZ_Conclusion",
+  //             type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
+  //             modified: "23 Jun 19",
+  //             size: "30 kb",
+  //             path: ["home", "example_proj", "april_2023"],
+  //           },
+  //           {
+  //             name: "Data_Analysis_2023_Q1",
+  //             type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
+  //             modified: "23 Jun 19",
+  //             size: "30 kb",
+  //             path: ["home", "example_proj", "april_2023"],
+  //           },
+  //           {
+  //             name: "Experiment_Results_Phase2",
+  //             type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
+  //             modified: "23 Jun 19",
+  //             size: "30 kb",
+  //             path: ["home", "example_proj", "april_2023"],
+  //           },
+  //         ],
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     name: "Report_Final_Version",
+  //     type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     path: ["home"],
+  //     size: "30 kb",
+  //   },
+  //   {
+  //     name: "Project_XYZ_Conclusion",
+  //     type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     path: ["home"],
+  //     size: "30 kb",
+  //   },
+  //   {
+  //     name: "Data_Analysis_2023_Q1",
+  //     type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     path: ["home"],
+  //     size: "30 kb",
+  //   },
+  //   {
+  //     name: "Experiment_Results_Phase2",
+  //     type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     path: ["home"],
+  //     size: "30 kb",
+  //   },
+  //   {
+  //     name: "Report_Final_Version",
+  //     type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     path: ["home"],
+  //     size: "30 kb",
+  //   },
+  //   {
+  //     name: "Project_XYZ_Conclusion",
+  //     type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     path: ["home"],
+  //     size: "30 kb",
+  //   },
+  //   {
+  //     name: "Data_Analysis_2023_Q1",
+  //     type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     path: ["home"],
+  //     size: "30 kb",
+  //   },
+  //   {
+  //     name: "Experiment_Results_Phase2",
+  //     type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
+  //     modified: "23 Jun 19",
+  //     path: ["home"],
+  //     size: "30 kb",
+  //   },
+  // ];
 
   // this is the Info Modal
   const modal = modalContent
@@ -302,7 +339,9 @@ const ContentManagement = () => {
             <IconButton onClick={() => setModalContent(null)} iconId="close" />
           </div>
         ),
-        body: <ContentInfoModal containingProjects={ContainingProjects} sampleModalData={sampleModalData} />,
+        body: (
+          <ContentInfoModal containingProjects={ContainingProjects} sampleModalData={modalContent.info} />
+        ),
         action: (
           <div className={classes.buttons}>
             <Button variant="noBorder">VIEW</Button>
@@ -314,15 +353,17 @@ const ContentManagement = () => {
       }
     : null;
 
-  // this is the MoreMenu Dialog
-  const dialog = {
-    width: "133px",
-    body: <MoreMenu rowInfo={dialogContent} />,
-  };
-
   function closeTablePopover() {
     setAnchorEl(null);
     setDialogContent(null);
+  }
+
+  if (error) {
+    return <div>Error fetching data</div>;
+  }
+
+  if (!rows?.length) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -334,7 +375,11 @@ const ContentManagement = () => {
       </GridContainer>
       <GridContainer>
         <SingleGrid span={1}>
-          <TreeViewFilter />
+          <TreeViewFilter
+            data={data}
+            selectedFilters={selectedFilters}
+            setSelectedFilters={setSelectedFilters}
+          />
         </SingleGrid>
         <SingleGrid span={3}>
           <Card noHover={true} className={classes.tableCard}>
@@ -342,10 +387,9 @@ const ContentManagement = () => {
               hover={true}
               columnNames={columnNames}
               rows={rows}
-              modal={modal}
               setDialogAnchor={setAnchorEl}
               openDialog={setDialogContent}
-              openModal={setModalContent}
+              setModalContent={setModalContent}
               currPath={path}
               setPath={setPath}
             />
@@ -355,17 +399,17 @@ const ContentManagement = () => {
                 className={classes.moreInfoDialog}
                 onClick={closeTablePopover}
                 // title={dialog ? dialog.title : undefined}
-                width={dialog?.width ? dialog.width : "444px"}
+                width="150px"
                 direction="right"
                 // action={dialog?.action}
               >
-                {dialog ? dialog.body : ""}
+                <MoreMenu rowInfo={dialogContent} />
               </Dialog>
             ) : null}
-            {modal && modalContent ? (
+            {modal ? (
               <Modal
                 width="444px"
-                open={modalContent ? true : false}
+                open={!!modal}
                 changeOpen={() => setModalContent(null)}
                 header={modal.header}
                 action={modal.action}>
