@@ -33,4 +33,4 @@ class Style(StyleBase, table=True):
 
     # Relationships
     content: "Content" = Relationship(back_populates="style")
-    layers: List["Layer"] = Relationship(back_populates="style")
+    # layers: List["Layer"] = Relationship(back_populates="style")

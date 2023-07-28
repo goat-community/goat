@@ -38,4 +38,4 @@ class DataStore(DataStoreBase, DateTimeBase, table=True):
         )
     )
     # Relationships
-    layers: List["Layer"] = Relationship(back_populates="data_store")
+    # layers: List["Layer"] = Relationship(back_populates="data_store")

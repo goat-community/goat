@@ -33,4 +33,4 @@ class Scenario(DateTimeBase, table=True):
     )
 
     user: "User" = Relationship(back_populates="scenarios")
-    layers: List["Layer"] = Relationship(back_populates="scenario")
+    # layers: List["Layer"] = Relationship(back_populates="scenario")
