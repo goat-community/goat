@@ -2,6 +2,7 @@ from fastapi import APIRouter, Body, Depends
 from pydantic import UUID4
 
 from src.crud.crud_layer import layer as crud_layer
+from src.crud.crud_content import content as crud_content
 from src.db.models.content import Content
 from src.db.models.layer import Layer
 from src.db.models.user import User
@@ -9,9 +10,10 @@ from src.db.session import AsyncSession
 from src.endpoints.deps import get_current_user, get_db
 from src.schemas.layer import LayerCreate, LayerRead, request_examples, LayerRead2
 from src.endpoints.helpers import LayerUpdateHelper
+from typing import Annotated
+from src.schemas.content import ContentCreate
 
 router = APIRouter()
-
 
 @router.post("", response_model=LayerRead, status_code=201)
 async def create_layer(
@@ -63,9 +65,9 @@ async def update_layer(
 
 
 @router.get("/get_example")
-async def read_layer_allient(async_session: AsyncSession = Depends(get_db),) -> LayerRead2:
+async def read_layer_allient() -> LayerRead2:
     content_id = UUID4('06b0ca35-c041-479a-a1ee-1cf6bbc81be2')
-    layer = await crud_layer.get_layer(db=async_session, id=content_id)
+    layer = await crud_layer.get_layer(id=content_id)
     return layer
 
 
@@ -78,3 +80,23 @@ async def read_layer_allient() -> LayerRead:
     layer_dict.update(layer.content.__dict__)
 
     return layer_dict
+
+
+
+@router.post("/create_layer_v2")
+async def create_layer_allient_v2(
+    current_user: User = Depends(get_current_user),
+    layer_in: Annotated[dict, Body(..., examples=request_examples["create"])] = None
+ ) -> LayerRead: 
+   
+    data_raw = { "user_id": current_user.id, "content_type": "layer", **layer_in}
+    content_raw = ContentCreate.parse_obj(data_raw)
+    content = await crud_content.create(obj_in=content_raw)
+    
+    layer = await crud_layer.create_layer_v2(layer_in=layer_in, content_id=content.id)
+    print('layer', layer)
+
+    # new_content = ContentCreate(title=layer_in.title, description=layer_in.description, content_type='layer')
+    # layer = await crud_layer.create_layer(obj_in=layer_in, user_id=current_user.id, content_type='layer')
+
+    return layer

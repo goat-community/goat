@@ -20,6 +20,17 @@ class CRUDLayer(CRUDBase):
         layer.update(content.__dict__)
         layer = LayerRead(**layer)
         return layer
+    
+    async def create_layer(self, *, obj_in, db: AsyncSession | None = None, id):
+        db = db or super().get_db().session
+        content = await crud_content.create(db, obj_in=obj_in, content_type="layer")
+        obj_in = Layer(**obj_in.dict())
+        obj_in.content_id = content.id
+        layer = await super().create(db, obj_in=obj_in)
+        layer = layer.__dict__
+        layer.update(content.__dict__)
+        layer = LayerRead(**layer)
+        return layer
 
     async def get(self, db, *, id):
         statement = select([Layer, Content]).join(Content).where(Layer.content_id == str(id))
@@ -74,6 +85,20 @@ class CRUDLayer(CRUDBase):
         layer = layer.scalar_one_or_none()
         return layer
     
+    async def create_layer_v2(self, *, layer_in: dict, content_id: str, db: AsyncSession | None = None) -> Layer:
+        db = db or self.db.session
+        new_layer = Layer(**layer_in)
+        new_layer.content_id = content_id
+        layer = await super().create(obj_in=new_layer)
+        return layer
+    
 
+    async def add_content_to_layer(self, *, content_in: Content, layer_in: Layer, db: AsyncSession | None = None) -> Content:
+        db = db or self.db.session
+        layer_in.content = content_in
+        db.session.add(content_in)
+        await db.session.commit()
+        await db.session.refresh(content_in)
+        return content_in
 
 layer = CRUDLayer(Layer)

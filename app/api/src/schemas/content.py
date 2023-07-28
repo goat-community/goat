@@ -15,7 +15,8 @@ class ContentType(str, Enum):
 
 
 class ContentCreate(ContentBase):
-    pass
+    user_id: str | None
+    content_type: str | None
 
 
 class ContentUpdateBase(BaseModel):
