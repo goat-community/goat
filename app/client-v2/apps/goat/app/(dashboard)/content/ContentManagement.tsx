@@ -82,52 +82,6 @@ const ContentManagement = () => {
 
   const { classes } = useStyles();
 
-  useEffect(() => {
-    let filteredRows = data?.items;
-
-    if (selectedFilters.length > 0) {
-      filteredRows = filteredRows.filter((item) => selectedFilters.includes(item.type));
-    }
-
-    setRows(
-      filteredRows?.map((item) => {
-        return {
-          name: item?.name,
-          type: <Chip className={classes.chip} label={item?.type} textDesign="italic" variant="Border" />,
-          modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
-          path: ["home"],
-          size: `${item?.metadata?.size} kb`,
-          info: [
-            {
-              tag: "Owner",
-              data: `${item?.owner?.first_name} ${item?.owner?.last_name}`,
-            },
-            {
-              tag: "Shared with",
-              data: item?.shared_with?.public?.url,
-            },
-            {
-              tag: "Type",
-              data: item?.type,
-            },
-            {
-              tag: "Modified",
-              data: item?.metadata?.updated_at,
-            },
-            {
-              tag: "Size",
-              data: `${item?.metadata?.size} kb`,
-            },
-            {
-              tag: "Location",
-              data: "content/project/folderx",
-            },
-          ],
-        };
-      })
-    );
-  }, [selectedFilters, data]);
-
   //todo remove after
   // Dumb Data
   // These are the rows of the table, it is only temporary for now
@@ -357,6 +311,52 @@ const ContentManagement = () => {
     setAnchorEl(null);
     setDialogContent(null);
   }
+
+  useEffect(() => {
+    let filteredRows = data?.items;
+
+    if (selectedFilters.length > 0) {
+      filteredRows = filteredRows.filter((item) => selectedFilters.includes(item.type));
+    }
+
+    setRows(
+      filteredRows?.map((item) => {
+        return {
+          name: item?.name,
+          type: <Chip className={classes.chip} label={item?.type} textDesign="italic" variant="Border" />,
+          modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
+          path: ["home"],
+          size: `${item?.metadata?.size} kb`,
+          info: [
+            {
+              tag: "Owner",
+              data: `${item?.owner?.first_name} ${item?.owner?.last_name}`,
+            },
+            {
+              tag: "Shared with",
+              data: item?.shared_with?.public?.url,
+            },
+            {
+              tag: "Type",
+              data: item?.type,
+            },
+            {
+              tag: "Modified",
+              data: item?.metadata?.updated_at,
+            },
+            {
+              tag: "Size",
+              data: `${item?.metadata?.size} kb`,
+            },
+            {
+              tag: "Location",
+              data: "content/project/folderx",
+            },
+          ],
+        };
+      })
+    );
+  }, [selectedFilters, data]);
 
   if (error) {
     return <div>Error fetching data</div>;
