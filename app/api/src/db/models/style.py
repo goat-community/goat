@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class StyleBase(SQLModel):
     """Base model for styles."""
 
-    style: dict = Field(
+    style: dict | None = Field(
         sa_column=Column(JSONB), description="Style object in the geostyler format"
     )
 
@@ -32,5 +32,5 @@ class Style(StyleBase, table=True):
     )
 
     # Relationships
-    content: "Content" = Relationship(back_populates="style")
-    layers: List["Layer"] = Relationship(back_populates="style")
+    # content: "Content" = Relationship(back_populates="style")
+    # layers: List["Layer"] = Relationship(back_populates="style")
