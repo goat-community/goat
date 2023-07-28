@@ -243,7 +243,7 @@ class FeatureLayerScenarioAttributesBase(BaseModel):
 
 
 feature_layer_scenario_attributes_example = {
-    "scenario_id": 1,
+    "scenario_id": None,
     "scenario_type": "point",
     "feature_layer_type": "scenario",
 }

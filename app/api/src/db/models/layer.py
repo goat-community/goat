@@ -243,11 +243,36 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
             "primaryjoin": "customer.layer.c.content_id==customer.content.c.id",
         }
     )
-    scenario: "Scenario" = Relationship(back_populates="layers")
-    style: "Style" = Relationship(back_populates="layers")
+
+    # style: "Style" = Relationship(back_populates="layers")
+
+    style: "Style" = Relationship(
+        sa_relationship_kwargs={
+            "lazy": "joined",
+            "primaryjoin": "customer.layer.c.style_id==customer.style.c.content_id",
+        }
+    )
+
+    # scenario: "Scenario" = Relationship(back_populates="layers")
+
+    scenario: "Scenario" = Relationship(
+        sa_relationship_kwargs={
+            "lazy": "joined",
+            "primaryjoin": "customer.layer.c.scenario_id==customer.scenario.c.id",
+        }
+    )
+
+    # data_store: "DataStore" = Relationship(back_populates="layers")
+
+    data_store: "DataStore" = Relationship(
+        sa_relationship_kwargs={
+            "lazy": "joined",
+            "primaryjoin": "customer.layer.c.data_store_id==customer.data_store.c.id",
+        }
+    )
 
     scenario_features: list["ScenarioFeature"] = Relationship(back_populates="original_layer")
-    data_store: "DataStore" = Relationship(back_populates="layers")
+
     # analysis_requests: List["AnalysisRequest"] = Relationship(back_populates="layer")
 
 

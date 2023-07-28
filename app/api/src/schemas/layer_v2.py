@@ -7,8 +7,12 @@ from src.db.models.style import Style
 from src.db.models.layer import IndicatorType
 from src.schemas.content import ContentUpdate
 from src.db.models.content import Content
-from src.db.models.layer import LayerBase, FeatureLayerBase
+from src.db.models.layer import LayerBase, FeatureLayerBase, ScenarioType, ImageryLayerDataType, TileLayerDataType
 from src.db.models.data_store import DataStore
+from src.db.models.scenario import Scenario
+
+
+
 
 
 ################################################################################
@@ -46,21 +50,15 @@ class LayerUpdateBase(ContentUpdate):
 # Table Layer DTOs
 ################################################################################
 
-class TableLayerCreate(LayerBase):
-    pass
-
 class TableLayerRead(LayerBase, ReadBase):
     content: Content
-
+    data_store: DataStore | None
 class TableLayerUpdate(LayerUpdateBase):
     pass
 
 ################################################################################
 # Feature Layer DTOs
 ################################################################################
-
-class FeatureLayerStandardCreate(LayerBase):
-    pass
 
 class FeatureLayerStandardRead(FeatureLayerCommonRead):
     pass
@@ -78,25 +76,71 @@ class FeatureLayerIndicatorAttributesBase(BaseModel):
     payload: dict | None 
     opportunities: list[UUID] | None 
 
-class FeatureLayerIndicatorCreate(FeatureLayerCommonRead, FeatureLayerIndicatorAttributesBase):
-    """Model to create feature layer indicator."""
-    pass
 
 class FeatureLayerIndicatorRead(FeatureLayerCommonRead, FeatureLayerIndicatorAttributesBase):
     """Model to read a feature layer indicator."""
+    pass
+
+################################################################################
+# Feature Layer Scenario  DTOs
+################################################################################
+
+class FeatureLayerScenarioAttributesBase(BaseModel):
+    """Base model for additional attributes feature layer indicator."""
+    scenario_id: str | None
+    scenario_type: ScenarioType | None
+    scenario: Scenario | None
+
+class FeatureLayerScenarioRead(FeatureLayerCommonRead, FeatureLayerScenarioAttributesBase):
+    """Model to read a feature layer scenario."""
+    pass
+
+class FeatureLayerScenarioUpdate(FeatureLayerCommonRead):
+    """Model to update a feature layer scenario."""
+
+    pass
+
+################################################################################
+#  Imagery  Layer
+################################################################################
+class ImageryLayerAttributesBase(BaseModel):
+    """Base model for additional attributes imagery layer."""
+    url: str 
+    data_type: ImageryLayerDataType 
+    legend_urls: list[str] 
+
+class ImageryLayerRead(LayerBase, ReadBase, ImageryLayerAttributesBase):
+    """Model to read a imagery layer."""
     content: Content
+    data_store: DataStore | None
+
+################################################################################
+# Tile  Layer  DTOs
+################################################################################
+class TileLayerAttributesBase(BaseModel):
+    """Base model for additional attributes tile layer."""
+    url: str 
+    data_type: TileLayerDataType 
+
+class TileLayerRead(LayerBase, ReadBase, TileLayerAttributesBase,):
+    """Model to read a tile layer."""
+    content: Content
+    data_store: DataStore | None
+
+################################################################################
+################################################################################
+################################################################################
 
 def get_layer_class(class_type: str, **kwargs):
-
     layer_creator_class = {
-        "table": TableLayerCreate,
+        "table": TableLayerRead,
         "feature_layer": {
-            "standard": FeatureLayerStandardCreate,
-            "indicator": FeatureLayerIndicatorCreate,
-            # "scenario": FeatureLayerScenarioCreate,
+            "standard": FeatureLayerStandardRead,
+            "indicator": FeatureLayerIndicatorRead,
+            "scenario": FeatureLayerScenarioRead,
         },
-        # "tile_layer": TileLayerCreate,
-        # "imagery_layer": ImageryLayerCreate,
+        "imagery_layer": ImageryLayerRead,
+        "tile_layer": TileLayerRead,
 
     }
 
@@ -119,13 +163,10 @@ def get_layer_class(class_type: str, **kwargs):
 
     layer_class_name = layer_class.__name__
 
-    if class_type == "read":
-        layer_class_name = layer_class_name.replace("Create", "Read")
+    if class_type == "update":
+        layer_class_name = layer_class_name.replace("Read", "Update")
 
-    elif class_type == "update":
-        layer_class_name = layer_class_name.replace("Create", "Update")
-
-    elif class_type == "create":
+    elif class_type == "read":
         pass
 
     else:
