@@ -184,6 +184,7 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
         ),
         description="Layer UUID",
     )
+
     data_store_id: UUID | None = Field(
         sa_column=Column(Text, ForeignKey("customer.data_store.id")),
         description="Data store ID of the layer",

@@ -65,7 +65,6 @@ app.add_middleware(
         # "pool_size": settings.POOL_SIZE,
         # "max_overflow": 64,      
     },
-    
 )
 
 # Set all CORS enabled origins

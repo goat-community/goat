@@ -15,17 +15,6 @@ from src.schemas.content import ContentCreate
 
 router = APIRouter()
 
-@router.post("", response_model=LayerRead, status_code=201)
-async def create_layer(
-    async_session: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    *,
-    layer_in: LayerCreate = Body(..., examples=request_examples["create"]),
-):
-    layer_in.user_id = current_user.id
-    layer = await crud_layer.create(async_session, obj_in=layer_in)
-    return layer
-
 
 @router.get("/by_id/{layer_id}", response_model=LayerRead)
 async def read_layer(
@@ -82,9 +71,11 @@ async def read_layer_allient() -> LayerRead:
     return layer_dict
 
 
+########################Create########################
 
-@router.post("/create_layer_v2")
-async def create_layer_allient_v2(
+
+@router.post("/create_layer")
+async def create_layer(
     current_user: User = Depends(get_current_user),
     layer_in: Annotated[dict, Body(..., examples=request_examples["create"])] = None
  ) -> LayerRead: 
@@ -92,11 +83,6 @@ async def create_layer_allient_v2(
     data_raw = { "user_id": current_user.id, "content_type": "layer", **layer_in}
     content_raw = ContentCreate.parse_obj(data_raw)
     content = await crud_content.create(obj_in=content_raw)
-    
-    layer = await crud_layer.create_layer_v2(layer_in=layer_in, content_id=content.id)
-    print('layer', layer)
+    new_layer = await crud_layer.create_layer(layer_in=layer_in, content_id=content.id)
 
-    # new_content = ContentCreate(title=layer_in.title, description=layer_in.description, content_type='layer')
-    # layer = await crud_layer.create_layer(obj_in=layer_in, user_id=current_user.id, content_type='layer')
-
-    return layer
+    return new_layer

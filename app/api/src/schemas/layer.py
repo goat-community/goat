@@ -423,6 +423,8 @@ def get_layer_class(class_type: str, **kwargs):
         layer_type = kwargs["type"]
     except KeyError:
         raise ValidationError("Layer type is required")
+    
+    print('layer_type', layer_type)
 
     layer_class = layer_creator_class[layer_type]
     if layer_type == "feature_layer":

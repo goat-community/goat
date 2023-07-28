@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlmodel import (
@@ -30,7 +30,7 @@ class ContentBase(SQLModel):
 
     name: str = Field(sa_column=Column(Text, nullable=False), description="Content name")
     description: str | None = Field(sa_column=Column(Text), description="Content description")
-    tags: List[str] | None = Field(
+    tags: list[str] | None = Field(
         sa_column=Column(ARRAY(Text()), nullable=True), description="Content tags"
     )
     thumbnail_url: str | None = Field(sa_column=Column(Text), description="Content thumbnail URL")
