@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 from uuid import UUID
 
 from geoalchemy2 import Geometry
@@ -200,7 +200,7 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
         sa_column=Column(Text, nullable=True),
         description="Data type for imagery layers and tile layers",
     )
-    legend_urls: List[str] | None = Field(
+    legend_urls: list[str] | None = Field(
         sa_column=Column(ARRAY(Text()), nullable=True),
         description="Layer legend URLs for imagery layers.",
     )
@@ -220,7 +220,7 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
         sa_column=Column(JSONB, nullable=True),
         description="Used Request payload to compute the indicator",
     )
-    opportunities: List[UUID] | None = Field(
+    opportunities: list[UUID] | None = Field(
         sa_column=Column(ARRAY(Text()), nullable=True),
         description="Opportunity data sets that are used to intersect with the indicator",
     )
@@ -246,7 +246,7 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
     scenario: "Scenario" = Relationship(back_populates="layers")
     style: "Style" = Relationship(back_populates="layers")
 
-    scenario_features: List["ScenarioFeature"] = Relationship(back_populates="original_layer")
+    scenario_features: list["ScenarioFeature"] = Relationship(back_populates="original_layer")
     data_store: "DataStore" = Relationship(back_populates="layers")
     # analysis_requests: List["AnalysisRequest"] = Relationship(back_populates="layer")
 

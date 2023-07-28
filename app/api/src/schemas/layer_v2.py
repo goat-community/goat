@@ -3,19 +3,20 @@ from pydantic import BaseModel, Field, ValidationError, validator
 from geoalchemy2 import WKBElement
 from geoalchemy2.shape import to_shape
 from uuid import UUID
+from src.db.models.style import Style
+from src.db.models.layer import IndicatorType
 from src.schemas.content import ContentUpdate
 from src.db.models.content import Content
-from src.db.models.layer import LayerBase
+from src.db.models.layer import LayerBase, FeatureLayerBase
+from src.db.models.data_store import DataStore
 
 
 ################################################################################
 # Layer Base for Read
 ################################################################################
 
-
 class ReadBase(BaseModel):
     extent: dict
-    content_id: UUID = Field(..., description="Content ID of the layer", alias="id")
 
     @validator("extent", pre=True)
     def wkt_to_geojson(cls, v):
@@ -26,6 +27,11 @@ class ReadBase(BaseModel):
     class Config:
         allow_population_by_field_name = True
 
+
+class FeatureLayerCommonRead(FeatureLayerBase, ReadBase):
+    content: Content
+    style: Style | None
+    data_store: DataStore | None
 
 
 class LayerUpdateBase(ContentUpdate):
@@ -40,7 +46,6 @@ class LayerUpdateBase(ContentUpdate):
 # Table Layer DTOs
 ################################################################################
 
-
 class TableLayerCreate(LayerBase):
     pass
 
@@ -50,17 +55,46 @@ class TableLayerRead(LayerBase, ReadBase):
 class TableLayerUpdate(LayerUpdateBase):
     pass
 
+################################################################################
+# Feature Layer DTOs
+################################################################################
 
+class FeatureLayerStandardCreate(LayerBase):
+    pass
+
+class FeatureLayerStandardRead(FeatureLayerCommonRead):
+    pass
+
+class FeatureLayerStandardUpdate(LayerUpdateBase):
+    pass
+
+
+################################################################################
+# Feature Layer Indicator  DTOs
+################################################################################
+class FeatureLayerIndicatorAttributesBase(BaseModel):
+    """Base model for additional attributes feature layer indicator."""
+    indicator_type: IndicatorType 
+    payload: dict | None 
+    opportunities: list[UUID] | None 
+
+class FeatureLayerIndicatorCreate(FeatureLayerCommonRead, FeatureLayerIndicatorAttributesBase):
+    """Model to create feature layer indicator."""
+    pass
+
+class FeatureLayerIndicatorRead(FeatureLayerCommonRead, FeatureLayerIndicatorAttributesBase):
+    """Model to read a feature layer indicator."""
+    content: Content
 
 def get_layer_class(class_type: str, **kwargs):
 
     layer_creator_class = {
         "table": TableLayerCreate,
-        # "feature_layer": {
-        #     "standard": IFeatureLayerStandardCreate,
-        #     "indicator": FeatureLayerIndicatorCreate,
-        #     "scenario": FeatureLayerScenarioCreate,
-        # },
+        "feature_layer": {
+            "standard": FeatureLayerStandardCreate,
+            "indicator": FeatureLayerIndicatorCreate,
+            # "scenario": FeatureLayerScenarioCreate,
+        },
         # "tile_layer": TileLayerCreate,
         # "imagery_layer": ImageryLayerCreate,
 
