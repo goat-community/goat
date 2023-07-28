@@ -99,7 +99,7 @@ const MoreMenu = (props: MoreMenuProps) => {
   };
 
   return (
-    <div className={classes.root}>
+    <div>
       {defaultOptions.map((options) => (
         <div key={v4()} className={classes.section}>
           {options.map((option) => (
@@ -129,7 +129,6 @@ const MoreMenu = (props: MoreMenuProps) => {
 };
 
 const useStyles = makeStyles({ name: { MoreMenu } })((theme) => ({
-  root: {},
   option: {
     display: "flex",
     alignItems: "center",
