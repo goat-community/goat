@@ -3,7 +3,7 @@
 import { makeStyles } from "@/lib/theme";
 import { Fade, List, ListItem, ListItemButton, ListItemIcon } from "@mui/material";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Icon, Text, useTheme } from "@p4b/ui/components/theme";

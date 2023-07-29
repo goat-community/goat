@@ -4,8 +4,8 @@ import "next-auth/jwt";
 declare module "next-auth" {
   interface User extends DefaultUser {
     organization?: string;
+    organization_role?: "admin" | "user";
     subscriptions?: string[];
-    user_roles?: string[];
   }
   interface Session extends DefaultSession {
     user?: User;
@@ -28,7 +28,7 @@ declare module "next-auth/jwt" {
     refresh_token: string;
     id_token: string;
     expires_at: number;
-    user_roles?: string[];
+    organization_role?: "admin" | "user";
     organization?: string;
     subscriptions?: string[];
     error?: "RefreshAccessTokenError";

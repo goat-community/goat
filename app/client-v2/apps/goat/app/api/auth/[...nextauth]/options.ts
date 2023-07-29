@@ -1,3 +1,4 @@
+import type { Organization } from "@/lib/validations/organization";
 import type { KeycloakTokenSet, NextAuthOptions } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import KeycloakProvider from "next-auth/providers/keycloak";
@@ -25,7 +26,7 @@ async function doFinalSignoutHandshake(token: JWT) {
   }
 }
 
-async function getOrganization(token: JWT) {
+async function getOrganization(token: JWT): Promise<Organization | null> {
   try {
     const url = new URL(`api/v1/users/organization`, process.env.API_URL);
     const res = await fetch(url.href, {
@@ -89,8 +90,15 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       provider: keycloak.id,
     };
     const organization = await getOrganization(newToken);
+    if (organization) {
+      newToken.organization = organization.id.toString();
+      if (organization.contact_user_id === newToken.sub) {
+        newToken.organization_role = "admin";
+      } else {
+        newToken.organization_role = "user";
+      }
+    }
     const subscriptions = await getSubscriptions(newToken);
-    newToken.organization = organization ? organization.id : null;
     newToken.subscriptions = subscriptions && subscriptions.length > 0 ? subscriptions : null;
     return newToken;
   } catch (error) {
@@ -120,6 +128,7 @@ export const options: NextAuthOptions = {
       if (session.user) {
         session.user.organization = token.organization;
         session.user.subscriptions = token.subscriptions;
+        session.user.organization_role = token.organization_role;
       }
       session.error = token.error;
       return session;
@@ -129,6 +138,7 @@ export const options: NextAuthOptions = {
         if (!account.access_token) throw Error("Auth Provider missing access token");
         if (!account.refresh_token) throw Error("Auth Provider missing refresh token");
         if (!account.id_token) throw Error("Auth Provider missing ID token");
+        console.log(account);
         const newToken: JWT = {
           ...token,
           access_token: account.access_token,
@@ -139,7 +149,14 @@ export const options: NextAuthOptions = {
         };
         const organization = await getOrganization(newToken);
         const subscriptions = await getSubscriptions(newToken);
-        newToken.organization = organization ? organization.id : null;
+        if (organization) {
+          newToken.organization = organization.id.toString();
+          if (organization.contact_user_id === newToken.sub) {
+            newToken.organization_role = "admin";
+          } else {
+            newToken.organization_role = "user";
+          }
+        }
         newToken.subscriptions = subscriptions && subscriptions.length > 0 ? subscriptions : null;
         return newToken;
       }
