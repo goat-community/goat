@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import useSWR from "swr";
+import { ORGANIZATION_API_URL } from "@/lib/api/apiConstants";
 import { filterSearch, makeArrayUnique } from "@/lib/utils/helpers";
+import axios from "axios";
 import type { User } from "manage-users-dashboard";
+import { useState, useEffect } from "react";
+import useSWR from "swr";
 
 // Get all users in order to manage them
 export const useUsersData = (searchWord?: string) => {
@@ -10,7 +11,7 @@ export const useUsersData = (searchWord?: string) => {
     return axios(url).then((res) => res.data);
   };
 
-  const { data, error, isLoading } = useSWR("/api/dashboard/organization", UsersFetcher);
+  const { data, error, isLoading } = useSWR(ORGANIZATION_API_URL, UsersFetcher);
   const [rawRows, setRawRows] = useState<User[]>([]);
   const [rows, setRows] = useState<User[]>([]);
 
@@ -60,9 +61,9 @@ export const useUserRemovalDialog = () => {
     setUserInDialog(null);
   };
 
-  const setTheUserInDialog = (user: User) => {
-    setUserInDialog(user)
-  }
+  const setTheUserInDialog = (user: User | boolean) => {
+    setUserInDialog(user);
+  };
 
   return { userInDialog, isModalVisible, openUserRemovalDialog, closeUserRemovalDialog, setTheUserInDialog };
 };

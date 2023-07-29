@@ -11,6 +11,7 @@ import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import { visuallyHidden } from "@mui/utils";
 import * as React from "react";
+import { v4 } from "uuid";
 
 import { changeColorOpacity } from "../../lib";
 import { makeStyles } from "../../lib/ThemeProvider";
@@ -278,7 +279,7 @@ export function EnhancedTable(props: EnhanceTableProps) {
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
-                    key={index}
+                    key={v4()}
                     selected={isItemSelected}
                     sx={{ cursor: "pointer" }}>
                     {checkbox ? (
@@ -294,18 +295,22 @@ export function EnhancedTable(props: EnhanceTableProps) {
                       </TableCell>
                     ) : null}
                     {rowKeys &&
-                      rowKeys.map((key, index) => (
+                      rowKeys.map((key, indx) => (
                         <TableCell
                           className={classes.tableCell}
-                          key={index}
+                          key={v4()}
                           component="th"
-                          align={columnNames[index].numeric ? "right" : "left"}
+                          align={columnNames[indx].numeric ? "right" : "left"}
                           id={labelId}
                           scope="row"
                           padding="none">
-                          <Text className={classes.tableCellText} typo="body 2">
-                            {row[key]}
-                          </Text>
+                          {["number", "string"].includes(typeof row[key]) ? (
+                            <Text className={classes.tableCellText} typo="body 2">
+                              {row[key]}
+                            </Text>
+                          ) : (
+                            row[key]
+                          )}
                         </TableCell>
                       ))}
                     {action ? (

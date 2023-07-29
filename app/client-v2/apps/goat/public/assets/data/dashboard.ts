@@ -1,4 +1,5 @@
 import { User } from "manage-users-dashboard";
+import type { Organization } from "overview-dashboard-organization";
 import { SubscriptionCard } from "subscriptions-dashboard";
 
 export const manageUsersStatic: User[] = [
@@ -79,3 +80,13 @@ export const extensionSubscriptions: SubscriptionCard[] = [
     ],
   },
 ];
+
+export const organizationOverview: SubscriptionCard = {
+  title: "Organisation name",
+  icon: "coorperate",
+  listItems: [
+    "You are admin on this organisation",
+    "12 active team members",
+    "Active regions: Greater Munich, Greater London, Faux Valley, Stadtburg Burg",
+  ],
+};

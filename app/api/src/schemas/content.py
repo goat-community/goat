@@ -23,7 +23,16 @@ class ContentUpdateBase(BaseModel):
     description: str | None = Field(None, description="Content description")
     tags: List[str] | None = Field(None, description="Content tags")
     thumbnail_url: str | None = Field(None, description="Content thumbnail URL")
-    owner_id: UUID | None = Field(None, description="Content owner ID")
+    user_id: UUID | None = Field(None, description="Content owner ID")
+
+
+content_update_base_example = {
+    "name": "Updated content name",
+    "description": "Updated content description",
+    "tags": ["updated", "content", "tags"],
+    "thumbnail_url": "https://updated-content-thumbnail-url.com",
+    # TODO: "owner_id": "Updated content owner ID",
+}
 
 
 class ContentUpdate(ContentUpdateBase):

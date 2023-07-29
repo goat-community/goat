@@ -1,6 +1,7 @@
 "use client";
 
 import { makeStyles } from "@/lib/theme";
+import { v4 } from "uuid";
 
 import { Divider } from "@p4b/ui/components/DataDisplay/Divider";
 import { CardContent, CardMedia, Card } from "@p4b/ui/components/Surfaces";
@@ -39,8 +40,8 @@ const CardList = (props: CardListProps) => {
       <div className={classes.headerTitles}>
         <div>{title}</div>
         <div className={classes.buttons}>
-          {buttons.map((button, indx) => (
-            <a href="#" className={classes.button} key={indx}>
+          {buttons.map((button) => (
+            <a href="#" className={classes.button} key={v4()}>
               {button}
             </a>
           ))}
@@ -48,9 +49,9 @@ const CardList = (props: CardListProps) => {
       </div>
       <Divider width="100%" color="main" />
       <div className={classes.cardList}>
-        {cards?.map((card, indx) => (
+        {cards?.map((card) => (
           <Card
-            key={indx}
+            key={v4()}
             width={268}
             aboveDivider={card.media ? <CardMedia src={card.media.image} alt="image" /> : false}>
             <CardContent {...card.content} />

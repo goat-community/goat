@@ -2,10 +2,13 @@
 
 import { DashboardSidebar } from "@/app/(dashboard)/DashboardSidebar";
 import { makeStyles } from "@/lib/theme";
+import { signOut } from "next-auth/react";
+import { useState, useRef } from "react";
 
+import { InfoMenu } from "@p4b/ui/components/InfoMenu";
 import Footer from "@p4b/ui/components/Navigation/Footer";
 import { Toolbar } from "@p4b/ui/components/Navigation/Toolbar";
-import { Icon } from "@p4b/ui/components/theme";
+import { Icon, Text, Button } from "@p4b/ui/components/theme";
 import type { IconId } from "@p4b/ui/components/theme";
 
 interface DashboardLayoutProps {
@@ -14,10 +17,61 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { classes, cx } = useStyles();
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const ButtonElement = useRef(null);
 
+  const handleClick = () => {
+    setIsVisible(true);
+  };
+  const handleClose = () => {
+    setIsVisible(false);
+  };
+
+  const menuHeader = (
+    <span style={{ display: "flex", alignItems: "center" }}>
+      <span style={{ marginRight: "5px" }}>
+        <Icon iconId="coorperate" />
+      </span>{" "}
+      <Text typo="body 2">GOAT</Text>
+    </span>
+  );
+
+  const actionHeader = (
+    <Button startIcon="powerOff" onClick={() => signOut()}>
+      Log Out
+    </Button>
+  );
   const items = [
-    { link: "https://google.com", icon: () => <Icon iconId="user" size="medium" iconVariant="gray2" /> },
-    { link: "https://google.com", icon: () => <Icon iconId="help" size="medium" iconVariant="gray2" /> },
+    {
+      link: "https://google.com",
+      icon: () => (
+        <>
+          <div
+            onClick={handleClick}
+            ref={ButtonElement}
+            style={{ padding: "3px 10px", borderRight: "2px solid #ccc" }}>
+            <Icon iconId="user" size="medium" iconVariant="gray2" />
+          </div>
+          <InfoMenu
+            ref={ButtonElement}
+            handleCloseFunction={handleClose}
+            status={isVisible}
+            menuHeader={menuHeader}
+            menuActions={actionHeader}>
+            <Text typo="body 1">randomuser@outlook.com</Text>
+            <Text typo="caption">Admin</Text>
+          </InfoMenu>
+        </>
+      ),
+    },
+    {
+      link: "https://google.com",
+      icon: () => (
+        <div style={{ padding: "3px 10px" }}>
+          <Icon iconId="help" size="medium" iconVariant="gray2" />
+        </div>
+      ),
+    },
   ];
 
   const sidebarItems: { link: string; icon: IconId; placeholder: string }[] = [
@@ -120,9 +174,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 const useStyles = makeStyles({ name: { DashboardLayout } })(() => ({
   container: {
     minHeight: "100vh",
-    marginTop: "52px",
-    width: "80%",
     margin: "0 auto",
+    marginTop: "104px",
+    width: "80%",
     "@media (max-width: 1714px)": {
       width: "90%",
     },

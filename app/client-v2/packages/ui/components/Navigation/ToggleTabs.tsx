@@ -5,6 +5,7 @@ import { forwardRef, memo } from "react";
 import React, { useState } from "react";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
+import { v4 } from "uuid";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 import { Icon } from "../theme";
@@ -48,7 +49,7 @@ export const ToggleTabs = memo(
     return (
       <ToggleButtonGroup value={defaultValue ? defaultValue : ""} exclusive onChange={handleChange}>
         {tabs.map((tab, index) => (
-          <ToggleButton key={index} value={tab.value} aria-label="list">
+          <ToggleButton key={v4()} value={tab.value} aria-label="list">
             <Icon iconVariant="gray" iconId={tab.iconId} />
           </ToggleButton>
         ))}

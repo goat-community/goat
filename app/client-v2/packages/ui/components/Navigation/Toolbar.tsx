@@ -1,4 +1,4 @@
-import { Link, Stack } from "@mui/material";
+import { Stack } from "@mui/material";
 
 import { GOATLogoGreenSvg } from "../../assets/svg/GOATLogoGreen";
 import { makeStyles } from "../../lib/ThemeProvider";
@@ -27,14 +27,15 @@ export function Toolbar(props: ToolbarProps) {
         />
       </div>
       <Stack direction="row" alignItems="center" sx={{ paddingY: "6px" }}>
-        {items?.map(({ link, icon }, index) => (
-          <Link
-            className={index !== items.length - 1 ? classes.icon : classes.lastIcon}
-            href={link}
-            key={index}>
-            {icon()}
-          </Link>
-        ))}
+        {items?.map(
+          ({ link, icon }, index) =>
+            // <Link
+            //   className={index !== items.length - 1 ? classes.icon : classes.lastIcon}
+            //   href={link}
+            //   key={v4()}>
+            icon()
+          // </Link>
+        )}
       </Stack>
     </Stack>
   );

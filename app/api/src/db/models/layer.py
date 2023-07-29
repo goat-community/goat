@@ -241,11 +241,5 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
     data_store: "DataStore" = Relationship(back_populates="layers")
     analysis_requests: List["AnalysisRequest"] = Relationship(back_populates="layer")
 
-    @property
-    def id(self) -> str:
-        return str(self.content_id)
-
-    id: str | None
-
 
 Layer.update_forward_refs()

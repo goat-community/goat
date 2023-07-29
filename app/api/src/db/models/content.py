@@ -42,6 +42,14 @@ class ContentBase(SQLModel):
         super().update_forward_refs(ContentType=ContentType)
 
 
+content_base_example = {
+    "name": "My content",
+    "description": "My content description",
+    "tags": ["tag1", "tag2"],
+    "thumbnail_url": "https://mycontent.com/thumbnail.png",
+}
+
+
 class Content(DateTimeBase, ContentBase, UuidToStr, table=True):
     """Content model."""
 

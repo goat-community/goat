@@ -1,5 +1,6 @@
 import CreateContent from "@/app/(dashboard)/content/CreateContent";
 import { useState } from "react";
+import { v4 } from "uuid";
 
 import Modal from "@p4b/ui/components/Modal";
 import { ToggleTabs } from "@p4b/ui/components/Navigation/ToggleTabs";
@@ -34,7 +35,7 @@ const HeaderCard = (props: HeaderCardProps) => {
           <span style={{ display: "flex", alignItems: "center" }}>
             <span className={classes.path}>
               {path.map((singlePath, indx) => (
-                <span key={indx} className={classes.path}>
+                <span key={v4()} className={classes.path}>
                   {indx === 0 ? <Icon iconId="home" size="small" iconVariant="gray" /> : null}
                   <Text
                     typo="body 2"

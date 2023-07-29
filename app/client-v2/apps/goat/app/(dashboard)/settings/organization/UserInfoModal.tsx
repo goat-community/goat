@@ -1,5 +1,6 @@
-import type { RowsType } from "@/app/(dashboard)/settings/organization/ManageUsers";
+import type { User } from "manage-users-dashboard";
 import React, { useState } from "react";
+import { v4 } from "uuid";
 
 import { Switch } from "@p4b/ui/components/Inputs";
 import { SelectField } from "@p4b/ui/components/Inputs";
@@ -8,8 +9,8 @@ import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface UserInfoModal {
   ismodalVisible: boolean;
-  userInDialog: RowsType | boolean;
-  editUserRole: (role: "Admin" | "User" | "Editor", user: RowsType | undefined) => void;
+  userInDialog: User | boolean;
+  editUserRole: (role: "Admin" | "User" | "Editor", user: User | undefined) => void;
 }
 
 const UserInfoModal = (props: UserInfoModal) => {
@@ -157,7 +158,7 @@ const UserInfoModal = (props: UserInfoModal) => {
                 label="Role"
                 size="small"
                 defaultValue={typeof userInDialog !== "boolean" ? userInDialog?.role : ""}
-                updateChange={(value: string) =>
+                updateChange={(value: "Admin" | "Editor" | "User") =>
                   editUserRole(value, typeof userInDialog !== "boolean" ? userInDialog : undefined)
                 }
               />
@@ -166,9 +167,9 @@ const UserInfoModal = (props: UserInfoModal) => {
               <Text typo="body 2" className={classes.userDataTitle}>
                 Status:{" "}
               </Text>{" "}
-              <Text typo="label 1" className={classes.userDataValue}>
+              <div className={classes.userDataValue}>
                 {typeof userInDialog !== "boolean" ? userInDialog?.status : ""}
-              </Text>
+              </div>
             </span>
           </div>
           <div className={classes.allSwitchers}>
@@ -176,7 +177,7 @@ const UserInfoModal = (props: UserInfoModal) => {
               Extensions:
             </Text>
             {extensions.map((extension, indx) => (
-              <div key={indx} className={classes.switcher}>
+              <div key={v4()} className={classes.switcher}>
                 <Switch
                   checked={extension.checked}
                   onChecked={handleSwitch}

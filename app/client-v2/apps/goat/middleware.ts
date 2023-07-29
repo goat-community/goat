@@ -28,4 +28,5 @@ export default withAuth(
   }
 );
 
-export const config = { matcher: ["/home", "/content", "/help", "/settings", "/auth/organization"] };
+// export const config = { matcher: ["/home", "/content", "/help", "/settings"] };
+export const config = { matcher: [] };

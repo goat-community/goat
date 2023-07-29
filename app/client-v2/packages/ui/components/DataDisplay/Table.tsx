@@ -10,6 +10,7 @@ import TableRow from "@mui/material/TableRow";
 import { forwardRef, memo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import React, { useState, useRef } from "react";
+import { v4 } from "uuid";
 
 import { changeColorOpacity } from "../../lib";
 import { makeStyles } from "../../lib/ThemeProvider";
@@ -97,7 +98,7 @@ const Table = memo(
           </TableHead>
           <TableBody>
             {rows.map((row, indx) => (
-              <TableRow className={classes.tableRow} key={indx}>
+              <TableRow className={classes.tableRow} key={v4()}>
                 <TableCell className={classes.tableCell} padding="checkbox">
                   <Checkbox color="primary" defaultChecked />
                 </TableCell>
@@ -106,7 +107,7 @@ const Table = memo(
                 ))} */}
                 {rowKeys &&
                   rowKeys.map((key, index) => (
-                    <TableCell className={classes.tableCell} component="th" scope="row" key={index}>
+                    <TableCell className={classes.tableCell} component="th" scope="row" key={v4()}>
                       {row[key]}
                     </TableCell>
                   ))}

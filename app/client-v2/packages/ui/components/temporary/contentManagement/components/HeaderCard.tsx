@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { v4 } from "uuid";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
 import Modal from "../../../Modal";
@@ -34,7 +35,7 @@ const HeaderCard = (props: HeaderCardProps) => {
           <span style={{ display: "flex", alignItems: "center" }}>
             <span className={classes.path}>
               {path.map((singlePath, indx) => (
-                <span key={indx} className={classes.path}>
+                <span key={v4()} className={classes.path}>
                   <Text
                     typo="body 2"
                     className={classes.pathFile}

@@ -1,5 +1,6 @@
 import React from "react";
 import { useState } from "react";
+import { v4 } from "uuid";
 
 import { makeStyles } from "../../../../lib/ThemeProvider";
 import { Avatar } from "../../../Avatar";
@@ -138,7 +139,7 @@ const AccessSettings = (props: AccessSettingsProps) => {
       <div style={{ paddingBottom: "23px" }}>
         {accessSettings.map((setting, index) => (
           <>
-            <div key={index} className={classes.visibilitySettings}>
+            <div key={v4()} className={classes.visibilitySettings}>
               <div className={classes.visibility}>
                 <Icon iconId={setting.icon} size="small" />
                 <div>

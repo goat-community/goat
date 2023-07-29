@@ -1,8 +1,8 @@
-import { Tabs } from "@p4b/ui/components/Navigation/Tabs";
+import ManageUsers from "@/app/(dashboard)/settings/organization/ManageUsers";
+import Overview from "@/app/(dashboard)/settings/organization/Overview";
+import Teams from "@/app/(dashboard)/settings/organization/Teams";
 
-import ManageUsers from "./ManageUsers";
-import Overview from "./Overview";
-import Teams from "./Teams";
+import { Tabs } from "@p4b/ui/components/Navigation/Tabs";
 
 const Organization = () => {
   const tabs = [
@@ -24,11 +24,7 @@ const Organization = () => {
     },
   ];
 
-  return (
-    <>
-      <Tabs tabs={tabs} />
-    </>
-  );
+  return <Tabs tabs={tabs} />;
 };
 
 export default Organization;

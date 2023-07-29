@@ -3,6 +3,7 @@
 import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
 import { makeStyles } from "@/lib/theme";
+import { v4 } from "uuid";
 
 import { SlideShow } from "@p4b/ui/components/SlideShow";
 
@@ -191,21 +192,21 @@ const Home = () => {
     {
       imgPath:
         "https://s3-alpha-sig.figma.com/img/780f/4ef5/c934bfac69cba006cec203491b616d85?Expires=1685923200&Signature=IhTpFXcdFrI7Xx9wBP2mnRbKsYiKP2c-r~lwmayIrxsWscWQ0eo7WzG0J5rhY~291iaTghdizAq3qTqkSnov4kvqAPL6YCdslajCk2r7wFZXabXTQnxtDYHGui~bDFp5gu5bFIztlA4ClUWikpjdDu54eT1VBGUID68mt6t~UnLXUVOV-D6S526gcJKMDUt~8bJeCl3knMQrr27-9520~-FNebfh7qI37hScTL9z1ugXKHr2ndqngGsdfAaGQR-iPaXqC2l1W5xEALtFX6KB8HMbLV88hGddnQIVSodwgFKgznxIcWPf48i5DUpebZuq08zMo0~CtvJ44O1QBWQH9g__&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4",
-      label: "Lorem ipsum CTA",
+      label: "Lorem ipsum CTA1",
       description:
         "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim.",
     },
     {
       imgPath:
         "https://s3-alpha-sig.figma.com/img/780f/4ef5/c934bfac69cba006cec203491b616d85?Expires=1685923200&Signature=IhTpFXcdFrI7Xx9wBP2mnRbKsYiKP2c-r~lwmayIrxsWscWQ0eo7WzG0J5rhY~291iaTghdizAq3qTqkSnov4kvqAPL6YCdslajCk2r7wFZXabXTQnxtDYHGui~bDFp5gu5bFIztlA4ClUWikpjdDu54eT1VBGUID68mt6t~UnLXUVOV-D6S526gcJKMDUt~8bJeCl3knMQrr27-9520~-FNebfh7qI37hScTL9z1ugXKHr2ndqngGsdfAaGQR-iPaXqC2l1W5xEALtFX6KB8HMbLV88hGddnQIVSodwgFKgznxIcWPf48i5DUpebZuq08zMo0~CtvJ44O1QBWQH9g__&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4",
-      label: "Lorem ipsum CTA",
+      label: "Lorem ipsum CTA2",
       description:
         "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim.",
     },
     {
       imgPath:
         "https://s3-alpha-sig.figma.com/img/780f/4ef5/c934bfac69cba006cec203491b616d85?Expires=1685923200&Signature=IhTpFXcdFrI7Xx9wBP2mnRbKsYiKP2c-r~lwmayIrxsWscWQ0eo7WzG0J5rhY~291iaTghdizAq3qTqkSnov4kvqAPL6YCdslajCk2r7wFZXabXTQnxtDYHGui~bDFp5gu5bFIztlA4ClUWikpjdDu54eT1VBGUID68mt6t~UnLXUVOV-D6S526gcJKMDUt~8bJeCl3knMQrr27-9520~-FNebfh7qI37hScTL9z1ugXKHr2ndqngGsdfAaGQR-iPaXqC2l1W5xEALtFX6KB8HMbLV88hGddnQIVSodwgFKgznxIcWPf48i5DUpebZuq08zMo0~CtvJ44O1QBWQH9g__&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4",
-      label: "Lorem ipsum CTA",
+      label: "Lorem ipsum CTA3",
       description:
         "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim.",
     },
@@ -215,12 +216,12 @@ const Home = () => {
     <GridContainer>
       <SingleGrid span={4}>
         <SlideShow images={slideShowImages} height={328} width="100%" />
-        {tempCardInfo.map((cardSection: CardDataType, index: number) => (
+        {tempCardInfo.map((cardSection: CardDataType) => (
           <CardList
             title={cardSection.title}
             cards={cardSection.cards}
             buttons={cardSection.buttons}
-            key={index}
+            key={v4()}
           />
         ))}
         <NewsLetterSection />
