@@ -21,6 +21,7 @@
     "@types/mapbox-gl": "^2.7.11",
     "axios": "^1.4.0",
     "cross-env": "^7.0.3",
+    "dayjs": "^1.11.9",
     "geojson": "^0.5.0",
     "mapbox-gl": "^2.15.0",
     "maplibre-gl": "^3.1.0",

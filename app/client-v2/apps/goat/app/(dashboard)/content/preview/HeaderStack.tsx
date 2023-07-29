@@ -62,7 +62,7 @@ export default function HeaderStack() {
   };
 
   const returnHandler = () => {
-    router.push("/home");
+    router.push("/content");
   };
 
   return (

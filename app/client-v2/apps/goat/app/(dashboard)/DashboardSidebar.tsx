@@ -47,8 +47,8 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
       <nav className={cx(classes.root)} onMouseEnter={handleHover} onMouseLeave={handleHover}>
         <List>
           {items?.map(({ link, icon, placeholder }) => (
-            <Link href={link} className={classes.textName} key={link}>
-              <ListItem onClick={() => setActive(placeholder)} disablePadding key={v4()}>
+            <Link href={link} className={classes.textName} key={v4()}>
+              <ListItem onClick={() => setActive(placeholder)} disablePadding>
                 <ListItemButton className={classes.itemList}>
                   <ListItemIcon>
                     <Icon
