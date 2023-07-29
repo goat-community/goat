@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 export function filterSearch<T extends Record<string, any>>(
   allArray: T[],
   searchKey: keyof T,
@@ -31,3 +33,7 @@ export function makeArrayUnique<T>(arr: T[], key: keyof T): T[] {
 function criterion<T>(person: T, key: keyof T) {
   return person[key];
 }
+
+export const formatDate = (date, format) => {
+  return dayjs(date).format(format);
+};

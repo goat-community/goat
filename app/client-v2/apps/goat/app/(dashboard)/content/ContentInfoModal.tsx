@@ -116,8 +116,15 @@ const useStyles = makeStyles({ name: { ContentInfoModal } })((theme) => ({
   },
   modalListItemTitle: {
     fontWeight: "800",
+    width: "100%",
+    maxWidth: "35%",
   },
   modalListItemData: {
+    width: "100%",
+    maxWidth: "60%",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
     color: `${theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main}80`,
   },
   modalSectionTitle: {

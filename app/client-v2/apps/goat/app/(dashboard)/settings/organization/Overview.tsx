@@ -29,8 +29,6 @@ const Overview = () => {
 
   const { data, error, isLoading } = useSWR(OVERVIEW_API_URL, UsersFetcher);
 
-  console.log(data);
-
   function openAddUserDialog(event: React.MouseEvent<HTMLButtonElement>) {
     setAnchorEl(event.currentTarget);
   }

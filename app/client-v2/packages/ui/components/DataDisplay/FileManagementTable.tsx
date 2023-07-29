@@ -11,13 +11,12 @@ import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import { visuallyHidden } from "@mui/utils";
-import { isValidElement, useEffect } from "react";
 import * as React from "react";
-import { v4 } from "uuid";
+import { isValidElement, useEffect } from "react";
 
 import { changeColorOpacity } from "../../lib";
 import { makeStyles } from "../../lib/ThemeProvider";
-import { Text, Icon, IconButton } from "../theme";
+import { Icon, IconButton, Text } from "../theme";
 
 // SORTING FUNCTIONS
 
@@ -150,7 +149,7 @@ type FileManagementProps = {
     } | null>
   >;
   modal?: { body: React.ReactNode; action: React.ReactNode; header: React.ReactNode } | null;
-  openModal?: React.Dispatch<React.SetStateAction<object | null>>;
+  setModalContent?: React.Dispatch<React.SetStateAction<object | null>>;
   setDialogAnchor?: React.Dispatch<React.SetStateAction<HTMLButtonElement | null>>;
   more?: boolean;
   currPath: string[];
@@ -167,9 +166,8 @@ export function FileManagementTable(props: FileManagementProps) {
   const {
     rows,
     columnNames,
-    openModal,
+    setModalContent,
     setDialogAnchor,
-    modal,
     openDialog,
     more = true,
     hover = false,
@@ -288,8 +286,8 @@ export function FileManagementTable(props: FileManagementProps) {
   }
 
   function handleRowClick(row: Rows) {
-    if (openModal && !React.isValidElement(row.name) && row.name !== "...") {
-      openModal(row);
+    if (setModalContent && !React.isValidElement(row.name) && row.name !== "...") {
+      setModalContent(row);
     } else {
       if (row.files) {
         switchPath({
@@ -322,12 +320,15 @@ export function FileManagementTable(props: FileManagementProps) {
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
   const visibleRows: Rows[] = React.useMemo(() => {
-    const stable_sort = stableSort(rowOnPath ? rowOnPath : [], getComparator(order, orderBy)).slice(
+    return stableSort(rowOnPath ? rowOnPath : [], getComparator(order, orderBy)).slice(
       page * rowsPerPage,
       page * rowsPerPage + rowsPerPage
     );
-    return stable_sort;
   }, [order, orderBy, page, rowsPerPage, rowOnPath]);
+
+  useEffect(() => {
+    setRowOnPath(rows);
+  }, [rows.length]);
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -399,7 +400,7 @@ export function FileManagementTable(props: FileManagementProps) {
                     hover={hover}
                     role="checkbox"
                     tabIndex={-1}
-                    key={v4()}
+                    key={index}
                     sx={{ cursor: "pointer" }}>
                     <TableCell
                       onClick={() => handleRowClick(row)}
