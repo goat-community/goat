@@ -64,3 +64,6 @@ NearestNDInterpolate.png
 costs.bin
 .DS_Store
 
+.terraform
+*.tfstate
+*.tfvars
