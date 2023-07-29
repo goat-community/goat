@@ -180,3 +180,32 @@ class LayerRead(BaseModel):
     def __new__(cls, *args, **kwargs):
         layer_read_class = get_layer_class("read", **kwargs)
         return layer_read_class(**kwargs)
+
+
+
+content_update_base_example = {
+    "name": "Updated content name",
+    "description": "Updated content description",
+    "tags": ["updated", "content", "tags"],
+    "thumbnail_url": "https://updated-content-thumbnail-url.com",
+}
+
+layer_update_base_example = {
+    "data_source": "data_source plan4better example",
+    "data_reference_year": 2023,
+    "extent": "MULTIPOLYGON(((0 0, 0 1, 1 1, 1 0, 0 0)), ((2 2, 2 3, 3 3, 3 2, 2 2)))",
+    "user_id": "3d2e5991-741a-4d26-a456-932d61559bb8"
+}
+
+
+request_examples_allient = {
+    "update": {
+        "table_layer": {
+            "summary": "Table Layer",
+            "value": {
+                **layer_update_base_example,
+                **content_update_base_example,
+            },
+        },
+    },
+}

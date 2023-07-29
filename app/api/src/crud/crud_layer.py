@@ -1,25 +1,16 @@
 from typing import Any, List
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .base import CRUDBase
+from src.schemas.content_v2 import ContentUpdate
 from src.db.models.layer import Layer
-from .crud_content import content as crud_content
-from src.schemas.layer import LayerRead
 from src.db.models.content import Content
+from .crud_content import content as crud_content
 
 
 from sqlalchemy import select
 
 
 class CRUDLayer(CRUDBase):
-    async def create(self, db, *, obj_in):
-        content = await crud_content.create(db, obj_in=obj_in, content_type="layer")
-        obj_in = Layer(**obj_in.dict())
-        obj_in.content_id = content.id
-        layer = await super().create(db, obj_in=obj_in)
-        layer = layer.__dict__
-        layer.update(content.__dict__)
-        layer = LayerRead(**layer)
-        return layer
     
     async def get(self, db, *, id):
         statement = select([Layer, Content]).join(Content).where(Layer.content_id == str(id))
@@ -81,5 +72,33 @@ class CRUDLayer(CRUDBase):
         layer = await super().create(obj_in=new_layer)
         return layer
     
+
+    async def update_layer(self, *, current_layer: Layer, layer_in: dict, db: AsyncSession | None = None) -> Layer:
+        db = db or super().get_db().session
+
+        # content_raw = ContentUpdate.parse_obj(layer_in)
+        current_layer.content = Content(**layer_in.dict())
+
+        db.session.add(current_layer)
+        await db.session.commit()
+        await db.session.refresh(current_layer)
+        return current_layer
+
+
+        # content_db_obj = await crud_content.get(db, id=str(obj_in.content_id))
+        # content_in = Content(**layer_in.dict())
+        # content = await crud_content.update(db, db_obj=content_db_obj, obj_in=content_in)
+        # db_obj = select(Layer).where(Layer.content_id == str(obj_in.content_id))
+        # db_obj = await db.execute(db_obj)
+        # db_obj = db_obj.fetchone()[0]
+        # obj_in = Layer(**obj_in.dict())
+        # layer = await super().update(db, db_obj=db_obj, obj_in=obj_in)
+        # layer = layer.__dict__
+        # layer.update(content.__dict__)
+        return layer
+    
+
+        # data_raw = { "user_id": current_user.id, "content_type": "layer", **layer_in}
+
 
 layer = CRUDLayer(Layer)
