@@ -7,10 +7,23 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlmodel import SQLModel
+from src.core.config import ModeEnum
+from sqlalchemy.pool import NullPool, QueuePool
+
 
 from src.core.config import settings
 
-engine = create_async_engine(settings.ASYNC_SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
+engine = create_async_engine(
+    settings.ASYNC_SQLALCHEMY_DATABASE_URI,
+    pool_pre_ping=True,
+    echo=False,
+    future=True,
+    # pool_size=POOL_SIZE,
+    # max_overflow=64,
+    poolclass=NullPool
+    if settings.MODE == ModeEnum.testing
+    else QueuePool,  # Asincio pytest works with NullPool
+)
 legacy_engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, future=False)
 r5_mongo_db_client = AsyncIOMotorClient(str(settings.R5_MONGO_DB_URL))
 

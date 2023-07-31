@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     DB_POOL_SIZE = 83
     WEB_CONCURRENCY = 9
     POOL_SIZE = max(DB_POOL_SIZE // WEB_CONCURRENCY, 5)
+    MODE: ModeEnum = ModeEnum.development
 
     @validator("S3_CLIENT", pre=True)
     def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
