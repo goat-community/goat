@@ -67,3 +67,4 @@ costs.bin
 .terraform
 *.tfstate
 *.tfvars
+*.pkrvars*

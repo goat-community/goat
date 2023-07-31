@@ -11,10 +11,13 @@ locals {
     backup_full_calendar = var.backup_full_calendar
     backup_incr_calendar = var.backup_incr_calendar
 
-    db_admin_password            = var.db_admin_password == null ? "" : var.db_admin_password
+    db_admin_password            = var.admin_password == null ? "" : var.admin_password
     db_backup_s3_bucket          = var.backup_s3_bucket == null ? "" : var.backup_s3_bucket
     db_backup_s3_access_key      = var.backup_s3_access_key == null ? "" : var.backup_s3_access_key
     db_backup_s3_secret_key      = var.backup_s3_secret_key == null ? "" : var.backup_s3_secret_key
+    db_backup_s3_retention_full  = var.backup_s3_retention_full == null ? "" : var.backup_s3_retention_full
+    db_backup_s3_retention_diff  = var.backup_s3_retention_diff == null ? "" : var.backup_s3_retention_diff
+    db_postgres_extra_config     = var.postgres_extra_config == null ? "" : var.postgres_extra_config
     backup_encryption_passphrase = var.backup_encryption_passphrase == null ? "" : var.backup_encryption_passphrase
     mode                         = var.mode == null ? "" : var.mode
 
@@ -31,7 +34,7 @@ locals {
   })
 }
 
-# Render to local file on machine (for debugging purposes)
+# Render to local file on machine (for debugging purposes. !!! DO NOT COMMIT !!!)
 # resource "local_file" "user_data_rendered" {
 #   content  = local.user_data
 #   filename = "${path.module}/user_data_rendered.sh"

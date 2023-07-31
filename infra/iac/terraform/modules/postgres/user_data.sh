@@ -133,27 +133,39 @@ services:
     command: ${mode}
     %{~ endif ~}
     environment:
-      - "DB_INSTANCE_NAME=${db_instance_name}"
+      DB_INSTANCE_NAME: ${db_instance_name}
       %{~ if db_admin_password != "" ~}
-      - "DB_ADMIN_PASSWORD=${db_admin_password}"
+      DB_ADMIN_PASSWORD: ${db_admin_password}
       %{~ endif ~}
       %{~ for database in databases ~}
-      - "DB_DATABASE_${database.id}=${database.id}"
-      - "DB_USERNAME_${database.id}=${database.user}"
-      - "DB_PASSWORD_${database.id}=${database.password}"
+      DB_DATABASE_${database.id}: ${database.id}
+      DB_USERNAME_${database.id}: ${database.user}
+      DB_PASSWORD_${database.id}: ${database.password}
       %{~ endfor ~}
       %{~ if db_backup_s3_bucket != "" && db_backup_s3_access_key != "" && db_backup_s3_secret_key != "" ~}
-      - "DB_BACKUP_S3=1"
-      - "DB_BACKUP_S3_BUCKET=${db_backup_s3_bucket}"
-      - "DB_BACKUP_S3_ACCESS_KEY=${db_backup_s3_access_key}"
-      - "DB_BACKUP_S3_SECRET_KEY=${db_backup_s3_secret_key}"
+      DB_BACKUP_S3: 1
+      DB_BACKUP_S3_BUCKET: ${db_backup_s3_bucket}
+      DB_BACKUP_S3_ACCESS_KEY: ${db_backup_s3_access_key}
+      DB_BACKUP_S3_SECRET_KEY: ${db_backup_s3_secret_key}
+      %{~ endif ~}
+      %{~ if db_backup_s3_retention_full != "" ~}
+      DB_BACKUP_S3_RETENTION_FULL: ${db_backup_s3_retention_full}
+      %{~ endif ~}
+      %{~ if db_backup_s3_retention_diff != "" ~}
+      DB_BACKUP_S3_RETENTION_DIFF: ${db_backup_s3_retention_diff}
       %{~ endif ~}
       %{~ if storage_device_backup != "" ~}
-      - "DB_BACKUP_LOCAL=1"
+      DB_BACKUP_LOCAL: 1
       %{~ endif ~}
       %{~ if backup_encryption_passphrase != "" ~}
-      - "DB_BACKUP_ENCRYPTION_PASSPHRASE=${backup_encryption_passphrase}"
+      DB_BACKUP_ENCRYPTION_PASSPHRASE: ${backup_encryption_passphrase}
       %{~ endif ~}
+      %{~ if db_postgres_extra_config != "" ~}
+      DB_POSTGRES_EXTRA_CONFIG: |
+      
+        ${db_postgres_extra_config}
+      %{~ endif ~}
+
     ports:
       - "5432:5432"
     volumes:

@@ -66,14 +66,26 @@ variable "backup_s3_secret_key" {
 
 variable "backup_full_calendar" {
   type        = string
-  description = "systemd timer spec for full backups"
-  default     = "*-*-* 20:00:00"
+  description = "systemd timer spec for full backups. Defaults every week on Sunday at 20:00:00"
+  default     = "Sun *-*-* 20:00:00"
 }
 
 variable "backup_incr_calendar" {
   type        = string
-  description = "systemd timer spec for incremental backups"
+  description = "systemd timer spec for incremental backups. Defaults every day at 00:55:00"
   default     = "*-*-* *:00:55"
+}
+
+variable "backup_s3_retention_full" {
+  type        = string
+  description = "number of full backups to keep"
+  default     = "2"
+}
+
+variable "backup_s3_retention_diff" {
+  type        = string
+  description = "number of incremental backups to keep"
+  default     = "4"
 }
 
 variable "databases" {
@@ -81,9 +93,16 @@ variable "databases" {
   description = "A list of databases to create when the instance is initialized, for example: `{ id : \"database1\", user : \"user1\", password : \"password1\" }`. Changing `user` and `password` is supported at any time, the provided config is translated into an config for the Solidblocks RDS PostgreSQL module (https://pellepelster.github.io/solidblocks/rds/index.html), please see https://pellepelster.github.io/solidblocks/rds/index.html#databases for more details of the database configuration."
 }
 
-variable "db_admin_password" {
+
+variable "admin_password" {
   type        = string
   description = "password for the database admin user, if not set a random password will be generated"
+  default     = null
+}
+
+variable "postgres_extra_config" {
+  type        = string
+  description = "extra postgres configuration to be added to the postgresql.conf file"
   default     = null
 }
 

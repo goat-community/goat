@@ -22,12 +22,6 @@ variable "aws_secret_key" {
   description = "AWS secret key"
 }
 
-variable "ssh_key_file" {
-  default     = "id_rsa.pub"
-  description = "Path to the SSH public key file"
-}
-
-
 variable "hcloud_postgresql_data_volume" {
   default     = "plan4better-postgres-dev-geonode-data"
   description = "Name of the Hetzner Cloud volume to use for the PostgreSQL data. This volume must exist and it will be attached to the PostgreSQL server."
