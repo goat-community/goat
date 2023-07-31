@@ -51,6 +51,7 @@ class LayerUpdateBase(ContentUpdate):
 ################################################################################
 
 class TableLayerRead(LayerBase, ReadBase):
+    content_id: UUID
     content: Content
     data_store: DataStore | None
 class TableLayerUpdate(LayerUpdateBase):
@@ -72,7 +73,7 @@ class FeatureLayerStandardUpdate(LayerUpdateBase):
 ################################################################################
 class FeatureLayerIndicatorAttributesBase(BaseModel):
     """Base model for additional attributes feature layer indicator."""
-    indicator_type: IndicatorType 
+    indicator_type: IndicatorType | None
     payload: dict | None 
     opportunities: list[UUID] | None 
 
@@ -186,7 +187,7 @@ class LayerRead(BaseModel):
 content_update_base_example = {
     "name": "Updated content name",
     "description": "Updated content description",
-    "tags": ["updated", "content", "tags"],
+    "tags": ["updated", "allient", "allient"],
     "thumbnail_url": "https://updated-content-thumbnail-url.com",
 }
 
@@ -197,6 +198,35 @@ layer_update_base_example = {
     "user_id": "3d2e5991-741a-4d26-a456-932d61559bb8"
 }
 
+feature_layer_update_base_example = {
+    "style_id": "59832b1c-b098-492d-93e0-2f8360fce755",
+    "feature_layer_type": "standard",
+    "size": 2500,
+}
+
+geospatial_attributes_update_example = {
+    "min_zoom": 100,
+    "max_zoom": 200,
+}
+
+imagery_layer_attributes_update_example = {
+    "url": "https://allient.io",
+    "data_type": "wms",
+    "legend_urls": [
+        "https://allient.io",
+        "https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wms?request=GetLegendGraphic&service=WMS&layer=Actueel_ortho25&format=image/png&width=20&height=20",
+    ],
+    "type": "imagery_layer",
+}
+
+
+tile_layer_attributes_update_example = {
+    "url": "https://allient.io",
+    "data_type": "mvt",
+    "type": "tile_layer",
+}
+
+
 
 request_examples_allient = {
     "update": {
@@ -205,6 +235,34 @@ request_examples_allient = {
             "value": {
                 **layer_update_base_example,
                 **content_update_base_example,
+            },
+            "type": "table",
+        },
+        "layer_standard": {
+            "summary": "Layer Standard",
+            "value": {
+                **content_update_base_example,
+                **feature_layer_update_base_example,
+                **geospatial_attributes_update_example,
+                **layer_update_base_example,
+            },
+        },
+        "imagery_layer": {
+            "summary": "Imagery Layer",
+            "value": {
+                **content_update_base_example,
+                **layer_update_base_example,
+                **geospatial_attributes_update_example,
+                **imagery_layer_attributes_update_example,
+            },
+        },
+        "tile_layer": {
+            "summary": "Tile Layer",
+            "value": {
+                **content_update_base_example,
+                **layer_update_base_example,
+                **geospatial_attributes_update_example,
+                **tile_layer_attributes_update_example,
             },
         },
     },

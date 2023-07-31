@@ -65,9 +65,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 statement = statement.options(selectinload(field))
         return statement
 
-    async def get(
-        self, db: AsyncSession, id: Any, extra_fields: List[Any] = []
-    ) -> Optional[ModelType]:
+    async def get( self, *, id: Any, extra_fields: List[Any] = [], db: AsyncSession | None = None ) -> Optional[ModelType]:
+        db = db or self.db.session
         statement = select(self.model).where(self.model.id == id)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         result = await db.execute(statement)
@@ -148,11 +147,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def update(
         self,   
         *,
-        db: AsyncSession,
         db_obj: ModelType,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
+        db: AsyncSession | None = None
     ) -> ModelType:
-
+        db = db or self.db.session
         if isinstance(obj_in, dict):
             update_data = obj_in
             fields = obj_in.keys()

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
 from pydantic import UUID4
+from src.db.models.layer import Layer
 
 from src.crud.crud_layer import layer as crud_layer
 from src.crud.crud_user import user as crud_user
@@ -70,20 +71,22 @@ async def get_layer(
 
 ########################Update########################
 
-@router.put("/update_layer{layer_id}")
+@router.put("/update_layer/{layer_id}")
 async def update_layer(
     layer_id: Annotated[UUID4, Path(title="The ID of the layer to get")],
     layer_in: Annotated[dict, Body(..., examples=request_examples_allient["update"])] = None 
 ) -> LayerRead:
     
-    updated_user = await crud_user.get_user(id=str(layer_in["user_id"]))
+    updated_user = await crud_user.get(id=str(layer_in["user_id"]))
     if not updated_user:
         raise HTTPException(status_code=404, detail="User does not exist") 
 
     current_layer = await crud_layer.get_layer(id=str(layer_id))
     if not current_layer:
         raise HTTPException(status_code=404, detail="Layer not found")
+        
     
-    # layer = await crud_layer.update_layer(current_layer=current_layer, layer_in=layer_in)
+    await crud_layer.update_content_layer(current_layer=current_layer, layer_in=layer_in)
+    layer_updated = await crud_layer.update(db_obj=current_layer, obj_in=Layer(**layer_in))
 
-    return current_layer
+    return layer_updated

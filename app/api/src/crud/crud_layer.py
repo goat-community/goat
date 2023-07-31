@@ -20,18 +20,18 @@ class CRUDLayer(CRUDBase):
         layer_dict.update(layer.Content.__dict__)
         return layer_dict
 
-    async def update(self, db, *, db_obj, obj_in):
-        content_db_obj = await crud_content.get(db, id=str(obj_in.content_id))
-        content_in = Content(**obj_in.dict())
-        content = await crud_content.update(db, db_obj=content_db_obj, obj_in=content_in)
-        db_obj = select(Layer).where(Layer.content_id == str(obj_in.content_id))
-        db_obj = await db.execute(db_obj)
-        db_obj = db_obj.fetchone()[0]
-        obj_in = Layer(**obj_in.dict())
-        layer = await super().update(db, db_obj=db_obj, obj_in=obj_in)
-        layer = layer.__dict__
-        layer.update(content.__dict__)
-        return layer
+    # async def update(self, db, *, db_obj, obj_in):
+    #     content_db_obj = await crud_content.get(db, id=str(obj_in.content_id))
+    #     content_in = Content(**obj_in.dict())
+    #     content = await crud_content.update(db, db_obj=content_db_obj, obj_in=content_in)
+    #     db_obj = select(Layer).where(Layer.content_id == str(obj_in.content_id))
+    #     db_obj = await db.execute(db_obj)
+    #     db_obj = db_obj.fetchone()[0]
+    #     obj_in = Layer(**obj_in.dict())
+    #     layer = await super().update(db, db_obj=db_obj, obj_in=obj_in)
+    #     layer = layer.__dict__
+    #     layer.update(content.__dict__)
+    #     return layer
 
     async def get_multi(
         self,
@@ -73,32 +73,13 @@ class CRUDLayer(CRUDBase):
         return layer
     
 
-    async def update_layer(self, *, current_layer: Layer, layer_in: dict, db: AsyncSession | None = None) -> Layer:
+    async def update_content_layer(self, *, current_layer: Layer, layer_in: dict, db: AsyncSession | None = None) -> Layer | None:
         db = db or super().get_db().session
 
-        # content_raw = ContentUpdate.parse_obj(layer_in)
-        current_layer.content = Content(**layer_in.dict())
+        content_raw = { "content_type": "layer", **layer_in}
+        current_content = await crud_content.get(id=current_layer.content_id)
+        await crud_content.update(db_obj=current_content, obj_in=ContentUpdate.parse_obj(content_raw))
 
-        db.session.add(current_layer)
-        await db.session.commit()
-        await db.session.refresh(current_layer)
-        return current_layer
-
-
-        # content_db_obj = await crud_content.get(db, id=str(obj_in.content_id))
-        # content_in = Content(**layer_in.dict())
-        # content = await crud_content.update(db, db_obj=content_db_obj, obj_in=content_in)
-        # db_obj = select(Layer).where(Layer.content_id == str(obj_in.content_id))
-        # db_obj = await db.execute(db_obj)
-        # db_obj = db_obj.fetchone()[0]
-        # obj_in = Layer(**obj_in.dict())
-        # layer = await super().update(db, db_obj=db_obj, obj_in=obj_in)
-        # layer = layer.__dict__
-        # layer.update(content.__dict__)
-        return layer
-    
-
-        # data_raw = { "user_id": current_user.id, "content_type": "layer", **layer_in}
-
+        
 
 layer = CRUDLayer(Layer)

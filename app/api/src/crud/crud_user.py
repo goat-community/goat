@@ -17,5 +17,4 @@ class CRUDUser(CRUDBase):
         user = await db.execute(self.model.__table__.select().limit(1))
         return user.first()
 
-
 user = CRUDUser(User)
