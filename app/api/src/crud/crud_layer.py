@@ -1,7 +1,7 @@
 from typing import Any, List
 from sqlmodel.ext.asyncio.session import AsyncSession
 from .base import CRUDBase
-from src.schemas.content_v2 import ContentUpdate
+from src.schemas.content import ContentUpdate
 from src.db.models.layer import Layer
 from src.db.models.content import Content
 from .crud_content import content as crud_content
@@ -80,6 +80,6 @@ class CRUDLayer(CRUDBase):
         current_content = await crud_content.get(id=current_layer.content_id)
         await crud_content.update(db_obj=current_content, obj_in=ContentUpdate.parse_obj(content_raw))
 
-        
+
 
 layer = CRUDLayer(Layer)
