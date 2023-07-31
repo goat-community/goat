@@ -16,6 +16,21 @@ router = APIRouter()
 
 ########################Create########################
 
+@router.get("")
+async def get_hero_list(
+    params: Params = Depends(),
+) -> IGetResponsePaginated[IHeroReadWithTeam]:
+    """
+    Gets a paginated list of heroes
+    """
+    heroes = await crud_layer.get_multi_paginated(params=params)
+    return create_response(data=heroes)
+
+
+
+
+
+
 @router.post("/create_layer")
 async def create_layer(
     current_user: User = Depends(get_current_user),
