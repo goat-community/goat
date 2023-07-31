@@ -143,6 +143,34 @@ layer_base_example = {
     "extent": "MULTIPOLYGON(((0 0, 0 1, 1 1, 1 0, 0 0)), ((2 2, 2 3, 3 3, 3 2, 2 2)))",
 }
 
+feature_layer_indicator_attributes_example = {
+    "indicator_type": "isochrone",
+    "payload": {},
+    "opportunities": [],
+}
+
+feature_layer_scenario_attributes_example = {
+    "scenario_id": None,
+    "scenario_type": "point",
+    "feature_layer_type": "scenario",
+}
+
+imagery_layer_attributes_example = {
+    "url": "https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wms?request=GetCapabilities&service=WMS",
+    "data_type": "wms",
+    "legend_urls": [
+        "https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wms?request=GetLegendGraphic&service=WMS&layer=Actueel_ortho25&format=image/png&width=20&height=20",
+        "https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wms?request=GetLegendGraphic&service=WMS&layer=Actueel_ortho25&format=image/png&width=20&height=20",
+    ],
+    "type": "imagery_layer",
+}
+
+tile_layer_attributes_example = {
+    "url": "https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wmts?request=GetCapabilities&service=WMTS",
+    "data_type": "mvt",
+    "type": "tile_layer",
+}
+
 
 # Base models
 class FeatureLayerBase(LayerBase, GeospatialAttributes):

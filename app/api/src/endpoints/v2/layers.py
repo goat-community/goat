@@ -6,10 +6,8 @@ from src.crud.crud_layer import layer as crud_layer
 from src.crud.crud_user import user as crud_user
 from src.crud.crud_content import content as crud_content
 from src.db.models.user import User
-from src.db.session import AsyncSession
-from src.endpoints.deps import get_current_user, get_db
-from src.schemas.layer import request_examples
-from src.schemas.layer_v2 import LayerRead, request_examples_allient
+from src.endpoints.deps import get_current_user
+from src.schemas.layer_v2 import LayerRead, request_examples_update, request_examples
 from src.endpoints.helpers import LayerUpdateHelper
 from typing import Annotated
 from src.schemas.content import ContentCreate
@@ -45,7 +43,7 @@ async def get_layer(
 @router.put("/update_layer/{layer_id}")
 async def update_layer(
     layer_id: Annotated[UUID4, Path(title="The ID of the layer to get")],
-    layer_in: Annotated[dict, Body(..., examples=request_examples_allient["update"])] = None 
+    layer_in: Annotated[dict, Body(..., examples=request_examples_update["update"])] = None 
 ) -> LayerRead:
     
     updated_user = await crud_user.get(id=str(layer_in["user_id"]))
