@@ -1,8 +1,6 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import React from "react";
 import Map, { Layer,  Source } from "react-map-gl";
-import DeckGL from "@deck.gl/react/typed";
-import { _WMSLayer as WMSLayer } from "@deck.gl/geo-layers/typed";
 
 const MAPBOX_TOKEN =
   "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA";
@@ -275,7 +273,7 @@ const stylesObj = {
     active: "True",
     data_source_name: "Example Data Source",
     data_reference_year: 2020,
-    url: "https://www.lfu.bayern.de/gdi/wms/laerm/hauptverkehrsstrassen",
+    url: "https://www.lfu.bayern.de/gdi/wms/laerm/hauptverkehrsstrassen?bbox={bbox-epsg-3857}&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=true&width=256&height=256&layers=mroadbyln2022,mroadbylden2022&styles=",
     legend_urls: [
       "https://www.lfu.bayern.de/gdi/wms/laerm/hauptverkehrsstrassen?request=GetLegendGraphic&version=1.3.0&format=image/png&layer=mroadbyln&SERVICE=WMS&SLD_VERSION=1.1.0&STYLE=&TRANSPARENT=true",
       "https://www.lfu.bayern.de/gdi/wms/laerm/hauptverkehrsstrassen?request=GetLegendGraphic&version=1.3.0&format=image/png&layer=mroadbyln&SERVICE=WMS&SLD_VERSION=1.1.0&STYLE=&TRANSPARENT=true",
@@ -315,29 +313,15 @@ export default function MapByLayer(props: MapProps) {
       </Source>
     ),
     wms: (
-      <DeckGL
-        initialViewState={{
-          latitude: stylesObj[layer].center[1],
-          longitude: stylesObj[layer].center[0],
-          zoom: stylesObj[layer].zoom,
-        }}
-        controller={true}
-        layers={[new WMSLayer({
-          id: stylesObj["wms"].id,
-          data: stylesObj["wms"].url,
-          serviceType: stylesObj["wms"].data_type,
-          layers: ['mroadbyln2022', 'mroadbylden2022']
-        })]}
-      />
+      <Source id={stylesObj["xyz"].id} type="raster" tiles={[stylesObj["wms"].url]} tileSize={256}>
+        <Layer type="raster" id={stylesObj["xyz"].id} source={stylesObj["xyz"].id} />
+      </Source>
     )
   };
 
   return (
     <div style={{ width: "100%", height: "100vh" }}>
-
-      {layer === "wms" ?
-        <>{sourcesObj.wms}</>
-        : <Map
+        <Map
           initialViewState={{
             latitude: stylesObj[layer].center[1],
             longitude: stylesObj[layer].center[0],
@@ -350,8 +334,8 @@ export default function MapByLayer(props: MapProps) {
           {layer === "aoi" && sourcesObj.aoi}
           {layer === "edge" && sourcesObj.edge}
           {layer === "xyz" && sourcesObj.xyz}
+          {layer === "wms" && sourcesObj.wms}
         </Map>
-      }
     </div>
   );
 }
