@@ -82,6 +82,7 @@ boto3 = "^1.26.164"
 h3 = "^3.7.6"
 numba = "^0.57.1"
 fastapi-async-sqlalchemy = "0.3.14"
+fastapi-pagination = {extras = ["sqlalchemy"], version = "^0.11.4"}
 
 
 [tool.poetry.group.dev.dependencies]
