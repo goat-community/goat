@@ -7,7 +7,7 @@ from src.crud.crud_user import user as crud_user
 from src.crud.crud_content import content as crud_content
 from src.db.models.user import User
 from src.endpoints.deps import get_current_user
-from src.schemas.layer_v2 import LayerRead, request_examples_update, request_examples
+from src.schemas.layer import LayerRead, request_examples_update, request_examples
 from src.endpoints.helpers import LayerUpdateHelper
 from typing import Annotated
 from src.schemas.content import ContentCreate
