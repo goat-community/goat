@@ -148,10 +148,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         query: T | Select[T] | None = None,
         db: AsyncSession | None = None,
     ) -> Page[ModelType]:
-        db_session = db_session or self.db.session
+        db = db or self.db.session
         if query is None:
             query = select(self.model)
-        return await paginate(db_session, query, params)
+        return await paginate(db, query, params)
 
     async def create(self, *, obj_in: CreateSchemaType, db: AsyncSession | None = None) -> ModelType:
         db = db or self.db.session
