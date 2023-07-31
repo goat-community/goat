@@ -177,3 +177,10 @@ deploy-worker:
 	--tags app=goat resource=worker
 
 	@echo "Done deploying the $(WORKER_TYPE) to AWS"
+
+run-api-test:
+	docker compose -f docker-compose-api-test.yml up
+
+pytest-docker:
+	docker compose -f docker-compose-api-test.yml exec goat_api pytest
+	

@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import boto3
 from pydantic import AnyHttpUrl, BaseSettings, EmailStr, HttpUrl, PostgresDsn, validator
+from enum import Enum
 
 
 class AsyncPostgresDsn(PostgresDsn):
@@ -12,6 +13,12 @@ class AsyncPostgresDsn(PostgresDsn):
 # For old versions of SQLAlchemy (< 1.4)
 class SyncPostgresDsn(PostgresDsn):
     allowed_schemes = {"postgresql", "postgresql+psycopg2", "postgresql+pg8000"}
+
+
+class ModeEnum(str, Enum):
+    development = "development"
+    production = "production"
+    testing = "testing"
 
 
 class Settings(BaseSettings):
@@ -27,6 +34,7 @@ class Settings(BaseSettings):
     DB_POOL_SIZE = 83
     WEB_CONCURRENCY = 9
     POOL_SIZE = max(DB_POOL_SIZE // WEB_CONCURRENCY, 5)
+    MODE: ModeEnum = ModeEnum.development
 
     @validator("S3_CLIENT", pre=True)
     def assemble_s3_client(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
