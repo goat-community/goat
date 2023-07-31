@@ -57,7 +57,6 @@ async def create_layer(
     content = await crud_content.create(obj_in=content_raw)
     new_layer = await crud_layer.create_layer(layer_in=layer_in, content_id=content.id)
 
-    print('layer', new_layer)
     return new_layer
 
 ########################Get########################
