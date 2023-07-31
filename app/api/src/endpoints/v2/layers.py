@@ -90,3 +90,19 @@ async def update_layer(
     layer_updated = await crud_layer.update(db_obj=current_layer, obj_in=Layer(**layer_in))
 
     return layer_updated
+
+
+
+
+@router.delete("/delete_layer/{layer_id}")
+async def delete_layer(
+    layer_id: Annotated[UUID4, Path(title="The ID of the layer to get")],
+) -> LayerRead:
+    current_layer = await crud_layer.get_layer(id=str(layer_id))
+
+    if not current_layer:
+        raise HTTPException(status_code=404, detail="Layer not found")
+
+    layer = await crud_layer.remove(id=str(layer_id))
+
+    return layer
