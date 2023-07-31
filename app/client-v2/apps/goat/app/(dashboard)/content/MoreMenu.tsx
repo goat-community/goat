@@ -1,7 +1,9 @@
 import DownloadModal from "@/app/(dashboard)/content/DownloadModal";
 import MoveModal from "@/app/(dashboard)/content/MoveModal";
 import ShareModal from "@/app/(dashboard)/content/ShareModal";
-import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { v4 } from "uuid";
 
 import Modal from "@p4b/ui/components/Modal";
 import { Icon, Text, IconButton } from "@p4b/ui/components/theme";
@@ -11,10 +13,12 @@ interface MoreMenuProps {
   rowInfo: { name: React.ReactNode; type: React.ReactNode; modified: string; size: string } | null;
 }
 
+interface ComponentOptions {
+  [key: string]: React.ReactElement<never, never>;
+}
+
 const MoreMenu = (props: MoreMenuProps) => {
   const { rowInfo } = props;
-
-  const { classes, cx } = useStyles();
 
   // Component States
   const [selectedOption, setSelectedOption] = useState<{
@@ -23,7 +27,9 @@ const MoreMenu = (props: MoreMenuProps) => {
     value: string;
   } | null>(null);
 
-  // Options to show in the More Menu
+  const { classes } = useStyles();
+  const router = useRouter();
+
   const defaultOptions = [
     [
       {
@@ -68,19 +74,6 @@ const MoreMenu = (props: MoreMenuProps) => {
     ],
   ];
 
-  useEffect(() => {
-    console.log(selectedOption);
-  }, [selectedOption]);
-
-  interface ComponentOptions {
-    [key: string]: React.ReactElement<any, any>;
-  }
-
-  /**
-   * Defines a componentOptions object that contains different modals for various actions.
-   * @param {ComponentOptions} componentOptions - The options for different modals.
-   * @returns None
-   */
   const componentOptions: ComponentOptions = {
     Download: <DownloadModal name={rowInfo ? rowInfo.name : ""} changeState={setSelectedOption} />,
     Share: (
@@ -93,13 +86,24 @@ const MoreMenu = (props: MoreMenuProps) => {
     Move: <MoveModal changeState={setSelectedOption} />,
   };
 
+  const handleSelectOption = (item) => {
+    setSelectedOption(item);
+
+    if (item.name === "View") {
+      router.push(`/content/preview/[id]`);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedOption(null);
+  };
+
   return (
     <div>
-      {defaultOptions.map((options, index) => (
-        <div key={index} className={classes.section}>
-          {options.map((option, indx) => (
-            <div key={indx} className={classes.option} onClick={() => setSelectedOption(option)}>
-              {/* <span className={classes.icon}>{option.icon}</span> */}
+      {defaultOptions.map((options) => (
+        <div key={v4()} className={classes.section}>
+          {options.map((option) => (
+            <div key={v4()} className={classes.option} onClick={() => handleSelectOption(option)}>
               {option.icon}
               <Text typo="body 1">{option.name}</Text>
             </div>
@@ -111,20 +115,14 @@ const MoreMenu = (props: MoreMenuProps) => {
         header={
           <div className={classes.modalHeader}>
             <Text typo="subtitle" className={classes.headerText}>
-              {selectedOption ? selectedOption.name : ""}
+              {selectedOption?.name || ""}
             </Text>
-            <IconButton onClick={() => setSelectedOption(null)} iconId="close" />
+            <IconButton onClick={handleCloseModal} iconId="close" />
           </div>
         }
-        open={selectedOption ? true : false}
-        changeOpen={() => setSelectedOption(null)}>
-        {
-          componentOptions[
-            selectedOption !== null && ["Download", "Share", "Move"].includes(selectedOption.value)
-              ? selectedOption.value
-              : "Download"
-          ]
-        }
+        open={selectedOption?.name === "Download"}
+        changeOpen={handleCloseModal}>
+        {componentOptions[selectedOption?.value] || "Download"}
       </Modal>
     </div>
   );

@@ -1,15 +1,9 @@
 import { makeStyles } from "@/lib/theme";
+import type { SubscriptionStatusCardDataType } from "subscriptions-dashboard";
+import { v4 } from "uuid";
 
 import { Card } from "@p4b/ui/components/Surfaces/Card";
 import { Icon, Text } from "@p4b/ui/components/theme";
-import type { IconId } from "@p4b/ui/components/theme";
-
-export interface SubscriptionStatusCardDataType {
-  icon: IconId;
-  title: string;
-  listItems: React.ReactNode[];
-  action: React.ReactNode;
-}
 
 interface SubscriptionStatusCardProps {
   sectionData: SubscriptionStatusCardDataType;
@@ -36,8 +30,8 @@ const SubscriptionStatusCard = (props: SubscriptionStatusCardProps) => {
         </div>
         <div className={classes.flexWrapper}>
           <ul style={{ paddingLeft: "30px" }}>
-            {sectionData.listItems.map((listItam, indx) => (
-              <li style={{ paddingBottom: "12.5px" }} key={indx}>
+            {sectionData.listItems.map((listItam: React.ReactNode) => (
+              <li style={{ paddingBottom: "12.5px" }} key={v4()}>
                 {listItam}
               </li>
             ))}

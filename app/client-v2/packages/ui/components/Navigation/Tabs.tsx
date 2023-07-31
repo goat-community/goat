@@ -6,6 +6,7 @@ import { forwardRef, memo } from "react";
 import React, { useState } from "react";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
+import { v4 } from "uuid";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 
@@ -46,12 +47,12 @@ export const Tabs = memo(
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <TabList onChange={handleChange} aria-label="lab API tabs example" className={classes.tabs}>
               {tabs.map((tab, index) => (
-                <Tab label={tab.name} value={`${index + 1}`} key={index} className={classes.tab} />
+                <Tab label={tab.name} value={`${index + 1}`} key={v4()} className={classes.tab} />
               ))}
             </TabList>
           </Box>
           {tabs.map((tab, index) => (
-            <TabPanel value={`${index + 1}`} key={index} className={classes.tabPandel}>
+            <TabPanel value={`${index + 1}`} key={v4()} className={classes.tabPandel}>
               {tab.child}
             </TabPanel>
           ))}

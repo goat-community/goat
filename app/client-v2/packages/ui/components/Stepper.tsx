@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import { useImperativeHandle } from "react";
 import * as React from "react";
 import { forwardRef } from "react";
+import { v4 } from "uuid";
 
 import { makeStyles } from "../lib/ThemeProvider";
 
@@ -71,7 +72,7 @@ const Stepper = forwardRef((props: StepperProps, ref) => {
     <Box sx={{ width: "100%" }}>
       <MUIStepper nonLinear activeStep={activeStep} className={className}>
         {steps.map((step, index) => (
-          <Step className={classes.root} key={index} completed={completed[index]}>
+          <Step className={classes.root} key={v4()} completed={completed[index]}>
             <StepButton color="inherit" onClick={handleStep(index)}>
               <p style={{ fontSize: "14px", margin: "0" }}>{step.label}</p>
             </StepButton>

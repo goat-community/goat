@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { v4 } from "uuid";
 
 import { Divider } from "@p4b/ui/components/DataDisplay";
 import { TextField } from "@p4b/ui/components/Inputs";
@@ -69,8 +70,8 @@ const ContentInfoModal = (props: ContentInfoModalProps) => {
         )}
       </div>
       <Divider width="100%" color="gray" className={classes.divider} />
-      {sampleModalData.map((data, indx) => (
-        <div className={classes.modalListItem} key={indx}>
+      {sampleModalData.map((data) => (
+        <div className={classes.modalListItem} key={v4()}>
           <Text typo="body 2" className={classes.modalListItemTitle}>
             {data.tag}:{" "}
           </Text>
@@ -115,8 +116,15 @@ const useStyles = makeStyles({ name: { ContentInfoModal } })((theme) => ({
   },
   modalListItemTitle: {
     fontWeight: "800",
+    width: "100%",
+    maxWidth: "35%",
   },
   modalListItemData: {
+    width: "100%",
+    maxWidth: "60%",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
     color: `${theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].main}80`,
   },
   modalSectionTitle: {

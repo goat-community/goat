@@ -1,5 +1,6 @@
 "use client";
 
+import SubscriptionCardSkeleton from "@/components/skeletons/SubscriptionCardSkeleton";
 import { useUsersData, useInviteUserDialog, useUserRemovalDialog } from "@/hooks/dashboard/OrganisationHooks";
 import { makeStyles } from "@/lib/theme";
 import { Text } from "@/lib/theme";
@@ -91,7 +92,7 @@ const ManageUsers = () => {
 
   function getStatus() {
     if (isLoading) {
-      return "Loading...";
+      return <SubscriptionCardSkeleton />;
     } else if (error) {
       return "There is an error with the connection, make sure to be connected to a valid network!";
     } else {
@@ -222,7 +223,7 @@ const ManageUsers = () => {
       <Modal
         width="523px"
         open={userInDialog ? true : false}
-        changeOpen={closeInviteDialog}
+        changeOpen={() => setTheUserInDialog(false)}
         action={
           isModalVisible ? (
             <>

@@ -1,11 +1,16 @@
 "use client";
+
+import SubscriptionCardSkeleton from "@/components/skeletons/subscriptionCardSkeleton";
 import { makeStyles } from "@/lib/theme";
 import axios from "axios";
-import type { SubscriptionCard } from "subscriptions-dashboard";
+import type { SubscriptionCard, SubscriptionStatusCardDataType } from "subscriptions-dashboard";
 import useSWR from "swr";
+import { v4 } from "uuid";
 
 import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Text } from "@p4b/ui/components/theme";
+
+import SubscriptionStatusCard from "./SubscriptionStatusCard";
 
 const Subscription = () => {
   const { classes } = useStyles();
@@ -20,8 +25,8 @@ const Subscription = () => {
     const visualData: SubscriptionStatusCardDataType[] = datas.map((data) => ({
       icon: data.icon,
       title: data.title,
-      listItems: data.listItems.map((item: string, index: number) => (
-        <Text typo="body 2" key={index}>
+      listItems: data.listItems.map((item: string) => (
+        <Text typo="body 2" key={v4()}>
           {item}
         </Text>
       )),
@@ -36,7 +41,13 @@ const Subscription = () => {
 
   function beforeLoadedMessage() {
     if (isLoading) {
-      return "Loading...";
+      return (
+        <>
+          <SubscriptionCardSkeleton />
+          <SubscriptionCardSkeleton />
+          <SubscriptionCardSkeleton />
+        </>
+      );
     } else if (error) {
       return "Error";
     } else {
@@ -46,13 +57,11 @@ const Subscription = () => {
 
   return (
     <div>
-      {!isLoading && !error ? (
-        [...getSubscriptionDetails([data.subscription]), ...getSubscriptionDetails(data.extensions)].map(
-          (extension, indx) => <SubscriptionStatusCard sectionData={extension} key={indx} />
-        )
-      ) : (
-        <p>{beforeLoadedMessage()}</p>
-      )}
+      {!isLoading && !error
+        ? [...getSubscriptionDetails([data.subscription]), ...getSubscriptionDetails(data.extensions)].map(
+            (extension, indx) => <SubscriptionStatusCard sectionData={extension} key={v4()} />
+          )
+        : beforeLoadedMessage()}
       <Banner
         actions={<Button>Subscribe Now</Button>}
         content={
