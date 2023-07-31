@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
 from pydantic import UUID4
 from src.db.models.layer import Layer
-from fastapi_pagination import Params
+from fastapi_pagination import Params, Page, paginate
 from src.crud.crud_layer import layer as crud_layer
 from src.crud.crud_user import user as crud_user
 from src.crud.crud_content import content as crud_content
@@ -13,12 +13,7 @@ from typing import Annotated
 from src.schemas.content import ContentCreate
 
 from src.schemas.response import (
-    IDeleteResponseBase,
-    IGetResponseBase,
-    IGetResponsePaginated,
-    IPostResponseBase,
-    IPutResponseBase,
-    create_response,
+    IPaginatedResponse
 )
 
 router = APIRouter()
@@ -28,12 +23,12 @@ router = APIRouter()
 @router.get("")
 async def get_layer_list(
     params: Params = Depends(),
-) -> IGetResponsePaginated[LayerRead]:
+) -> IPaginatedResponse[LayerRead]:
     """
-    Gets a paginated list of heroes
+    Gets a paginated list of layers
     """
-    heroes = await crud_layer.get_multi_paginated(params=params)
-    return create_response(data=heroes)
+    layers = await crud_layer.get_multi_paginated(params=params)
+    return layers
 
 
 
