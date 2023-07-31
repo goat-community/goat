@@ -16,34 +16,6 @@ from src.schemas.content import ContentCreate
 
 router = APIRouter()
 
-
-@router.get("/by_id/{layer_id}", response_model=LayerRead)
-async def read_layer(
-    async_session: AsyncSession = Depends(get_db), 
-    layer_id: UUID4 = None,
-):
-    layer = await crud_layer.get(async_session, id=layer_id)
-    return layer
-
-
-@router.get("", response_model=list[LayerRead])
-async def read_layers(
-    async_session: AsyncSession = Depends(get_db),
-    skip: int = 0,
-    limit: int = 100,
-    ordering: str = None,
-    q: str = None,
-):
-    layers = await crud_layer.get_multi(
-        async_session,
-        skip=skip,
-        limit=limit,
-        ordering=ordering,
-        query=q,
-    )
-    return layers
-
-
 ########################Create########################
 
 @router.post("/create_layer")
