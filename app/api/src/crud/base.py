@@ -7,12 +7,17 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import RelationshipProperty, selectinload
 from src.db.models._base_class import Base
 from fastapi_async_sqlalchemy.middleware import DBSessionMeta
+from fastapi_pagination.ext.async_sqlalchemy import paginate
 from fastapi_async_sqlalchemy import db
+from fastapi_pagination import Params, Page
+from sqlmodel.sql.expression import Select
+from sqlmodel import SQLModel, select, func
 
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
-
+SchemaType = TypeVar("SchemaType", bound=BaseModel)
+T = TypeVar("T", bound=SQLModel)
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def __init__(self, model: Type[ModelType]):
@@ -134,6 +139,19 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         result = await db.execute(statement)
         return result.scalars().all()
+    
+
+    async def get_multi_paginated(
+        self,
+        *,
+        params: Params | None = Params(),
+        query: T | Select[T] | None = None,
+        db: AsyncSession | None = None,
+    ) -> Page[ModelType]:
+        db = db or self.db.session
+        if query is None:
+            query = select(self.model)
+        return await paginate(db, query, params)
 
     async def create(self, *, obj_in: CreateSchemaType, db: AsyncSession | None = None) -> ModelType:
         db = db or self.db.session
