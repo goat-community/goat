@@ -84,98 +84,43 @@ module "postgresql" {
 ## KUBE-HETZNER ##
 ##################
 
-# module "kube-hetzner" {
-#   providers = {
-#     hcloud = hcloud
-#   }
-#   hcloud_token = var.hcloud_token
-#   source = "kube-hetzner/kube-hetzner/hcloud"
-#   ssh_public_key = file("~/.ssh/id_ed25519.pub")
-#   ssh_private_key = file("~/.ssh/id_ed25519")
-#   network_region = "eu-central"
-#   control_plane_nodepools = [
-#     {
-#       name        = "control-plane-fsn1",
-#       server_type = "cpx11",
-#       location    = "fsn1",
-#       labels      = [],
-#       taints      = [],
-#       count       = 1
-#     },
-#     {
-#       name        = "control-plane-nbg1",
-#       server_type = "cpx11",
-#       location    = "nbg1",
-#       labels      = [],
-#       taints      = [],
-#       count       = 1
-#     },
-#     {
-#       name        = "control-plane-hel1",
-#       server_type = "cpx11",
-#       location    = "hel1",
-#       labels      = [],
-#       taints      = [],
-#       count       = 1
-#     }
-#   ]
+module "kube-hetzner" {
+  providers = {
+    hcloud = hcloud
+  }
+  hcloud_token = var.hcloud_token
+  source = "kube-hetzner/kube-hetzner/hcloud"
+  ssh_public_key = file("~/.ssh/id_ed25519.pub")
+  ssh_private_key = file("~/.ssh/id_ed25519")
+  network_region = "eu-central"
+  control_plane_nodepools = [
+    {
+      name        = "control-plane-nbg1",
+      server_type = "cpx11",
+      location    = "nbg1",
+      labels      = [],
+      taints      = [],
+      count       = 1
+    }
+  ]
 
-#   agent_nodepools = [
-#     {
-#       name        = "agent-small",
-#       server_type = "cpx11",
-#       location    = "fsn1",
-#       labels      = [],
-#       taints      = [],
-#       count       = 1
-#     },
-#     {
-#       name        = "agent-large",
-#       server_type = "cpx21",
-#       location    = "nbg1",
-#       labels      = [],
-#       taints      = [],
-#       count       = 1
-#     },
-#     {
-#       name        = "storage",
-#       server_type = "cpx21",
-#       location    = "fsn1",
-#       # Fully optional, just a demo.
-#       labels      = [
-#         "node.kubernetes.io/server-usage=storage"
-#       ],
-#       taints      = [],
-#       count       = 1
+  agent_nodepools = [
+    {
+      name        = "agent-large",
+      server_type = "cpx21",
+      location    = "nbg1",
+      labels      = [],
+      taints      = [],
+      count       = 0
+    }
+  ]
+  load_balancer_type     = "lb11"
+  load_balancer_location = "nbg1"
 
-#     },
-#     {
-#       name        = "egress",
-#       server_type = "cpx11",
-#       location    = "fsn1",
-#       labels = [
-#         "node.kubernetes.io/role=egress"
-#       ],
-#       taints = [
-#         "node.kubernetes.io/role=egress:NoSchedule"
-#       ],
-#       floating_ip = true
-#       count = 1
-#     },
-#     {
-#       name        = "agent-arm-small",
-#       server_type = "cax11",
-#       location    = "fsn1",
-#       labels      = [],
-#       taints      = [],
-#       count       = 1
-#     }
-#   ]
-#   load_balancer_type     = "lb11"
-#   load_balancer_location = "nbg1"
-# }
+  automatically_upgrade_os = false
+}
 
-# output "kubeconfig" {
-#   value     = module.kube-hetzner.kubeconfig
-#   sensitive = true
-# }
+output "kubeconfig" {
+  value     = module.kube-hetzner.kubeconfig
+  sensitive = true
+}
