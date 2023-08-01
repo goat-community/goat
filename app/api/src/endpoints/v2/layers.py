@@ -30,8 +30,6 @@ async def get_layer_list(
     layers = await crud_layer.get_multi_paginated(params=params)
     return layers
 
-
-
 @router.post("/create_layer")
 async def create_layer(
     current_user: User = Depends(get_current_user),
@@ -75,8 +73,6 @@ async def update_layer(
     layer_updated = await crud_layer.update(db_obj=current_layer, obj_in=Layer(**layer_in))
 
     return layer_updated
-
-
 
 
 @router.delete("/delete_layer/{layer_id}")
