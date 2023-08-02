@@ -4,6 +4,7 @@ import i18next from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import resourcesToBackend from "i18next-resources-to-backend";
 import { useEffect, useState } from "react";
+import type { UseTranslationOptions } from "react-i18next";
 import { initReactI18next, useTranslation as useTranslationOrg } from "react-i18next";
 
 import { getOptions, languages } from "./settings";
@@ -17,21 +18,21 @@ i18next
   .use(resourcesToBackend((language, namespace) => import(`./locales/${language}/${namespace}.json`)))
   .init({
     ...getOptions(),
-    lng: undefined, // let detect the language on client side
+    lng: undefined,
     detection: {
       order: ["path", "htmlTag", "cookie", "navigator"],
     },
     preload: runsOnServerSide ? languages : [],
   });
 
-export function useTranslation(lng, ns, options) {
+export function useTranslation(lng?: string, ns?: string, options?: UseTranslationOptions<any>) {
   const ret = useTranslationOrg(ns, options);
   const { i18n } = ret;
   if (runsOnServerSide && lng && i18n.resolvedLanguage !== lng) {
     i18n.changeLanguage(lng);
   } else {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [activeLng, setActiveLng] = useState(i18n.resolvedLanguage);
+    const [activeLng, setActiveLng] = useState<string | undefined>(i18n.resolvedLanguage);
 
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {

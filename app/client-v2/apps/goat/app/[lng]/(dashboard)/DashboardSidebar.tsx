@@ -15,7 +15,6 @@ export type DashboardSidebarProps = {
   width: number;
   extended_width: number;
   children: React.ReactNode;
-  lng: string;
 };
 
 /**
@@ -25,11 +24,10 @@ export type DashboardSidebarProps = {
  */
 
 export function DashboardSidebar(props: DashboardSidebarProps) {
-  const { items, children, lng } = props;
+  const { items, children } = props;
 
   const pathname = usePathname();
 
-  console.log(lng, "lng");
   // styling
   const { classes, cx } = useStyles(props)();
   const theme = useTheme();

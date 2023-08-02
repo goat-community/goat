@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default async function Home({ params: { lng } }) {
-  return redirect(`${lng}/home`);
+export default async function Home() {
+  return redirect(`/home`);
 }
