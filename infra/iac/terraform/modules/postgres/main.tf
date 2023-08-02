@@ -5,9 +5,9 @@ locals {
     postgres_docker_image = var.postgres_docker_image
     storage_device_data   = data.hcloud_volume.data.linux_device
     storage_device_backup = try(data.hcloud_volume.backup[0].linux_device, "")
-    cloud_init_bootstrap = file("${path.module}/../../scripts/cloud_init_bootstrap.sh")
-    cloud_init_storage   = file("${path.module}/../../scripts/lib/storage.sh")
-    cloud_init_lego      = file("${path.module}/../../scripts/lib/lego.sh")
+    cloud_init_bootstrap = file("${path.module}/../../scripts/db/cloud_init_bootstrap.sh")
+    cloud_init_storage   = file("${path.module}/../../scripts/db/lib/storage.sh")
+    cloud_init_lego      = file("${path.module}/../../scripts/db/lib/lego.sh")
     backup_full_calendar = var.backup_full_calendar
     backup_incr_calendar = var.backup_incr_calendar
 
