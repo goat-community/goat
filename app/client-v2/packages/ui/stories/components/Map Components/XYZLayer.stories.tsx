@@ -1,11 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import XYZLayer from "../../../components/XYZLayer";
+import MapL from "../../../map";
 import { ThemeProvider } from "../../theme";
 
-const meta: Meta<typeof XYZLayer> = {
-  component: XYZLayer,
+const meta: Meta<typeof MapL> = {
+  component: MapL,
   argTypes: {},
+  parameters: {
+    controls: {
+      exclude: /.*/g,
+    },
+  },
   decorators: [
     (Story) => (
       <ThemeProvider>
@@ -16,6 +21,6 @@ const meta: Meta<typeof XYZLayer> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof XYZLayer>;
+type Story = StoryObj<typeof MapL>;
 
-export const XYZMapLayer: Story = {};
+export const XYZMapLayer: Story = { args: { layer: "xyz" } };
