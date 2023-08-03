@@ -1,11 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import WMSLayer from "../../../components/WMSLayer";
+import MapL from "../../../map";
 import { ThemeProvider } from "../../theme";
 
-const meta: Meta<typeof WMSLayer> = {
-  component: WMSLayer,
+const meta: Meta<typeof MapL> = {
+  component: MapL,
   argTypes: {},
+  parameters: {
+    controls: {
+      exclude: /.*/g,
+    },
+  },
   decorators: [
     (Story) => (
       <ThemeProvider>
@@ -16,6 +21,8 @@ const meta: Meta<typeof WMSLayer> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof WMSLayer>;
+type Story = StoryObj<typeof MapL>;
 
-export const WMSMapLayer: Story = {};
+export const WMSMapLayer: Story = {
+  args: { layer: "wms" },
+};
