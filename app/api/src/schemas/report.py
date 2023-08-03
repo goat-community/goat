@@ -3,7 +3,7 @@ from uuid import UUID
 
 from src.db.models.report import Report
 from pydantic import Field
-from src.db.models._base_class import ContentBaseAttributes, content_base_example
+from src.db.models._base_class import ContentBaseAttributes
 
 
 class ReportExportType(str, Enum):

@@ -1,5 +1,4 @@
 from typing import Callable, List, Type
-
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from fastapi_pagination import Page
 from fastapi_pagination import Params as PaginationParams
@@ -52,7 +51,7 @@ router = APIRouter()
 
 ### Folder endpoints
 @router.post(
-    "/content/folder",
+    "/folder",
     summary="Create a new folder",
     response_model=FolderRead,
     status_code=201,
@@ -70,7 +69,7 @@ async def create_folder(
 
 
 @router.get(
-    "/content/folder/{folder_id}",
+    "/folder/{folder_id}",
     summary="Retrieve a folder by its ID",
     response_model=FolderRead,
     status_code=200,
@@ -97,7 +96,7 @@ async def read_folder(
 
 
 @router.get(
-    "/content/folder",
+    "/folder",
     summary="Retrieve a list of folders",
     response_model=Page[FolderRead],
     response_model_exclude_none=True,
@@ -126,7 +125,7 @@ async def read_folders(
 
 
 @router.put(
-    "/content/folder/{folder_id}",
+    "/folder/{folder_id}",
     summary="Update a folder with new data",
     response_model=FolderUpdate,
     status_code=200,
@@ -155,7 +154,7 @@ async def update_folder(
 
 
 @router.delete(
-    "/content/folder/{folder_id}",
+    "/folder/{folder_id}",
     summary="Delete a folder and all its contents",
     response_model=None,
     status_code=204,
@@ -275,7 +274,7 @@ async def delete_content_by_id(
 
 ## Layer endpoints
 @router.post(
-    "/content/layer",
+    "/layer",
     summary="Create a new layer",
     response_model=ILayerRead,
     response_model_exclude_none=True,

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Union
 from uuid import UUID
 
 from pydantic import BaseModel, Field, validator
@@ -10,14 +10,9 @@ from .layer import (
     IImageryLayerRead,
     ITableLayerRead,
     ITileLayerRead,
-    content_base_example,
-    request_examples as layer_request_examples,
 )
 from src.db.models.layer import ContentBaseAttributes
-from src.db.models.project import Project
-from .report import IReportRead
-from src.schemas.report import request_examples as report_request_examples
-
+from src.db.models._base_class import DateTimeBase
 
 ################################################################################
 # Project DTOs
@@ -84,8 +79,11 @@ class IProjectCreate(ContentBaseAttributes):
     pass
 
 
-class IProjectRead(ContentBaseAttributes):
+class IProjectRead(ContentBaseAttributes, DateTimeBase):
     id: UUID = Field(..., description="Project ID")
+    initial_view_state: InitialViewState = Field(
+        ..., description="Initial view state of the project"
+    )
     reports: List[dict] | None = Field([], description="List of reports contained in the project")
     layers: List[
         Union[

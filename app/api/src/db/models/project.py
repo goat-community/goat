@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, List
 from uuid import UUID
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as UUID_PG
@@ -12,14 +12,6 @@ from sqlmodel import (
 
 from src.db.models._base_class import DateTimeBase
 from src.db.models.layer import ContentBaseAttributes
-from src.schemas.layer import (
-    IFeatureLayerScenarioRead,
-    IFeatureLayerIndicatorRead,
-    IFeatureLayerStandardRead,
-    ITileLayerRead,
-    IImageryLayerRead,
-    ITableLayerRead,
-)
 
 if TYPE_CHECKING:
     from .report import Report
