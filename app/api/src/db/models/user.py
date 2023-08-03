@@ -6,25 +6,24 @@ from sqlmodel import (
     Field,
     Relationship,
     SQLModel,
-    Text,
 )
 
-from ._base_class import UuidToStr
+from sqlalchemy.dialects.postgresql import UUID as UUID_PG
 
 if TYPE_CHECKING:
-    from .content import Content
     from .scenario import Scenario
+    from .folder import Folder
 
 
-class User(SQLModel, UuidToStr, table=True):
+class User(SQLModel, table=True):
     __tablename__ = "user"
     __table_args__ = {"schema": "customer"}
 
-    id: UUID = Field(sa_column=Column(Text, primary_key=True, nullable=False))
+    id: UUID = Field(sa_column=Column(UUID_PG(as_uuid=True), primary_key=True, nullable=False))
     # Relationships
     scenarios: List["Scenario"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
-    contents: List["Content"] = Relationship(
+    folders: List["Folder"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )

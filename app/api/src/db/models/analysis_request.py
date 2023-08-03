@@ -3,12 +3,12 @@ from uuid import UUID
 
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field, ForeignKey, Relationship, SQLModel, Text, text
+from sqlalchemy.dialects.postgresql import UUID as UUID_PG
 
 from ._base_class import DateTimeBase
 
 if TYPE_CHECKING:
     from src.schemas.layer import AnalysisType, IndicatorType
-
     from .layer import Layer
 
 
@@ -20,7 +20,9 @@ class AnalysisRequestBase(SQLModel):
     )
     layer_id: UUID = Field(
         sa_column=Column(
-            Text, ForeignKey("customer.layer.content_id", ondelete="CASCADE"), index=True
+            UUID_PG(as_uuid=True),
+            ForeignKey("customer.layer.id", ondelete="CASCADE"),
+            index=True,
         ),
         description="Layer ID",
     )
@@ -33,20 +35,20 @@ class AnalysisRequestBase(SQLModel):
 
 
 class AnalysisRequest(AnalysisRequestBase, DateTimeBase, table=True):
-    """Content model."""
+    """Analysis Request model."""
 
     __tablename__ = "analysis_request"
     __table_args__ = {"schema": "customer"}
 
     id: UUID | None = Field(
         sa_column=Column(
-            Text, primary_key=True, nullable=False, server_default=text("uuid_generate_v4()")
+            UUID_PG(as_uuid=True), primary_key=True, nullable=False, server_default=text("uuid_generate_v4()")
         )
     )
     layer_id: UUID = Field(
         sa_column=Column(
-            Text,
-            ForeignKey("customer.layer.content_id", ondelete="CASCADE"),
+            UUID_PG(as_uuid=True),
+            ForeignKey("customer.layer.id", ondelete="CASCADE"),
             nullable=False,
             index=True,
         ),

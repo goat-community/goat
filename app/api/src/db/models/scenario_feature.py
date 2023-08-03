@@ -11,7 +11,7 @@ from sqlmodel import (
     Text,
     text,
 )
-
+from sqlalchemy.dialects.postgresql import UUID as UUID_PG
 from src.schemas.layer import ScenarioType
 
 from ._base_class import DateTimeBase
@@ -28,14 +28,17 @@ class ScenarioFeature(DateTimeBase, table=True):
 
     id: UUID | None = Field(
         sa_column=Column(
-            Text, primary_key=True, nullable=False, server_default=text("uuid_generate_v4()")
+            UUID_PG(as_uuid=True),
+            primary_key=True,
+            nullable=False,
+            server_default=text("uuid_generate_v4()"),
         )
     )
     feature_id: int = Field(
         sa_column=Column(Integer, nullable=False), description="Feature ID of the modified feature"
     )
     original_layer_id: str = Field(
-        sa_column=Column(Text, ForeignKey("customer.layer.content_id")),
+        sa_column=Column(UUID_PG(as_uuid=True), ForeignKey("customer.layer.id")),
         description="Layer ID of the modified layer",
     )
     scenario_type: ScenarioType = Field(

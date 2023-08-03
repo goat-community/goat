@@ -11,10 +11,10 @@ from sqlmodel import (
 )
 
 from ._base_class import DateTimeBase
+from sqlalchemy.dialects.postgresql import UUID as UUID_PG
 
 if TYPE_CHECKING:
     from src.schemas.data_store import DataStoreType
-
     from .layer import Layer
 
 # TODO: Add further attributes for the different data store types
@@ -34,7 +34,7 @@ class DataStore(DataStoreBase, DateTimeBase, table=True):
 
     id: UUID | None = Field(
         sa_column=Column(
-            Text, primary_key=True, nullable=False, server_default=text("uuid_generate_v4()")
+            UUID_PG(as_uuid=True), primary_key=True, nullable=False, server_default=text("uuid_generate_v4()")
         )
     )
     # Relationships

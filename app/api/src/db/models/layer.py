@@ -1,9 +1,8 @@
 from enum import Enum
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 from uuid import UUID
 
 from geoalchemy2 import Geometry
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import (
     ARRAY,
     Column,
@@ -14,16 +13,19 @@ from sqlmodel import (
     SQLModel,
     Text,
 )
-
-from ._base_class import UuidToStr
+from geoalchemy2 import WKBElement
+from geoalchemy2.shape import to_shape
+from pydantic import validator
+from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import UUID as UUID_PG, JSONB
+from src.db.models._base_class import DateTimeBase, ContentBaseAttributes
 
 if TYPE_CHECKING:
     from .analysis_request import AnalysisRequest
-    from .content import Content
     from .data_store import DataStore
     from .scenario import Scenario
     from .scenario_feature import ScenarioFeature
-    from .style import Style
+    from .project import Project
 
 
 class FeatureLayerType(str, Enum):
@@ -103,22 +105,32 @@ class GeospatialAttributes(SQLModel):
     max_zoom: int | None = Field(
         sa_column=Column(Integer, nullable=True), description="Maximum zoom level"
     )
+    extent: str | None = Field(
+        sa_column=Column(
+            Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=True),
+            nullable=True,
+        ),
+        description="Geographical Extent of the layer",
+    )
+
+    @validator("extent", pre=True)
+    def wkt_to_geojson(cls, v):
+        if v and isinstance(v, WKBElement):
+            return to_shape(v).wkt
+        else:
+            return v
 
 
 geospatial_attributes_example = {
     "min_zoom": 0,
     "max_zoom": 10,
+    "extent": "MULTIPOLYGON(((0 0, 0 1, 1 1, 1 0, 0 0)), ((2 2, 2 3, 3 3, 3 2, 2 2)))",
 }
 
 
-class LayerBase(SQLModel):
+class LayerBase(ContentBaseAttributes):
     """Base model for layers."""
 
-    type: "LayerType" = Field(sa_column=Column(Text, nullable=False), description="Layer type")
-    data_store_id: UUID | None = Field(
-        sa_column=Column(Text, ForeignKey("customer.data_store.id")),
-        description="Data store ID of the layer",
-    )
     data_source: str | None = Field(
         sa_column=Column(Text, nullable=True),
         description="Data source of the layer",
@@ -127,70 +139,61 @@ class LayerBase(SQLModel):
         sa_column=Column(Integer, nullable=True),
         description="Data reference year of the layer",
     )
-    extent: str | Any = Field(
-        sa_column=Column(
-            Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=True),
-            nullable=False,
-        ),
-        description="Geographical Extent of the layer",
-    )
 
 
 layer_base_example = {
-    "type": "feature_layer",
     "data_source": "data_source plan4better example",
     "data_reference_year": 2020,
-    "extent": "MULTIPOLYGON(((0 0, 0 1, 1 1, 1 0, 0 0)), ((2 2, 2 3, 3 3, 3 2, 2 2)))",
-}
-
-
-# Base models
-class FeatureLayerBase(LayerBase, GeospatialAttributes):
-    """Base model for feature layers."""
-
-    style_id: UUID = Field(
-        sa_column=Column(Text, ForeignKey("customer.style.id")),
-        description="Style ID of the layer",
-    )
-    feature_layer_type: "FeatureLayerType" = Field(
-        sa_column=Column(Text, nullable=False), description="Feature layer type"
-    )
-    size: int = Field(
-        sa_column=Column(Integer, nullable=False), description="Size of the layer in bytes"
-    )
-
-
-feature_layer_base_example = {
-    "style_id": "d0f4c0e0-0f0f-4f0f-8f0f-0f0f0f0f0f0f",
-    "feature_layer_type": "standard",
-    "size": 1000,
 }
 
 
 # TODO: Relation to check if opportunities_uuids exist in layers
-class Layer(FeatureLayerBase, UuidToStr, table=True):
+class Layer(LayerBase, GeospatialAttributes, DateTimeBase, table=True):
     """Layer model."""
 
     __tablename__ = "layer"
     __table_args__ = {"schema": "customer"}
 
-    type: "LayerType" = Field(sa_column=Column(Text, nullable=False), description="Layer type")
-
-    content_id: UUID | None = Field(
+    id: UUID | None = Field(
         sa_column=Column(
-            Text,
-            ForeignKey("customer.content.id", ondelete="CASCADE"),
+            UUID_PG(as_uuid=True),
             primary_key=True,
+            nullable=False,
+            server_default=text("uuid_generate_v4()"),
         ),
-        description="Layer UUID",
+        description="Layer ID",
     )
+    user_id: UUID = Field(
+        sa_column=Column(
+            UUID_PG(as_uuid=True),
+            ForeignKey("customer.user.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        description="Layer owner ID",
+    )
+    folder_id: UUID = Field(
+        sa_column=Column(
+            UUID_PG(as_uuid=True),
+            ForeignKey("customer.folder.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        description="Layer folder ID",
+    )
+    type: LayerType = Field(sa_column=Column(Text, nullable=False), description="Layer type")
     data_store_id: UUID | None = Field(
-        sa_column=Column(Text, ForeignKey("customer.data_store.id")),
+        sa_column=Column(UUID_PG(as_uuid=True), ForeignKey("customer.data_store.id")),
         description="Data store ID of the layer",
     )
-    style_id: UUID | None = Field(
-        sa_column=Column(Text, ForeignKey("customer.style.content_id")),
-        description="Style ID of the layer",
+    extent: str | None = Field(
+        sa_column=Column(
+            Geometry(geometry_type="MultiPolygon", srid="4326", spatial_index=True),
+            nullable=True,
+        ),
+        description="Geographical Extent of the layer",
+    )
+    style: dict | None = Field(
+        sa_column=Column(JSONB, nullable=True),
+        description="Style of the layer",
     )
     url: str | None = Field(
         sa_column=Column(Text, nullable=True), description="Layer URL for tile and imagery layers"
@@ -207,24 +210,14 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
         sa_column=Column(Text, nullable=True),
         description="If it is an indicator layer, the indicator type",
     )
-    scenario_id: str | None = Field(
-        sa_column=Column(Text, ForeignKey("customer.scenario.id"), nullable=True),
+    scenario_id: UUID | None = Field(
+        sa_column=Column(UUID_PG(as_uuid=True), ForeignKey("customer.scenario.id"), nullable=True),
         description="Scenario ID if there is a scenario associated with this layer",
     )
     scenario_type: Optional["ScenarioType"] = Field(
         sa_column=Column(Text, nullable=True),
         description="Scenario type if the layer is a scenario layer",
     )
-    payload: dict | None = Field(
-        sa_column=Column(JSONB, nullable=True),
-        description="Used Request payload to compute the indicator",
-    )
-    opportunities: List[UUID] | None = Field(
-        sa_column=Column(ARRAY(Text()), nullable=True),
-        description="Opportunity data sets that are used to intersect with the indicator",
-    )
-
-    # Make FeatureLayer attributes nullable
     feature_layer_type: Optional["FeatureLayerType"] = Field(
         sa_column=Column(Text, nullable=True), description="Feature layer type"
     )
@@ -234,12 +227,17 @@ class Layer(FeatureLayerBase, UuidToStr, table=True):
 
     # Relationships
 
-    content: "Content" = Relationship(back_populates="layer")
     scenario: "Scenario" = Relationship(back_populates="layers")
-    style: "Style" = Relationship(back_populates="layers")
     scenario_features: List["ScenarioFeature"] = Relationship(back_populates="original_layer")
     data_store: "DataStore" = Relationship(back_populates="layers")
     analysis_requests: List["AnalysisRequest"] = Relationship(back_populates="layer")
+
+    @validator("extent", pre=True)
+    def wkt_to_geojson(cls, v):
+        if v and isinstance(v, WKBElement):
+            return to_shape(v).wkt
+        else:
+            return v
 
 
 Layer.update_forward_refs()

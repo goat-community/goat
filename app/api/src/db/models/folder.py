@@ -1,25 +1,19 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import List
 from uuid import UUID
-
+from src.db.models._base_class import DateTimeBase
 from sqlmodel import (
     Column,
     Field,
-    ForeignKey,
     Relationship,
     Text,
     text,
 )
-
-from ._base_class import DateTimeBase
 from sqlalchemy.dialects.postgresql import UUID as UUID_PG
+from sqlalchemy import ForeignKey
+from src.db.models.user import User
 
-if TYPE_CHECKING:
-    from .layer import Layer
-    from .user import User
-
-
-class Scenario(DateTimeBase, table=True):
-    __tablename__ = "scenario"
+class Folder(DateTimeBase, table=True):
+    __tablename__ = "folder"
     __table_args__ = {"schema": "customer"}
 
     id: UUID | None = Field(
@@ -30,15 +24,15 @@ class Scenario(DateTimeBase, table=True):
             server_default=text("uuid_generate_v4()"),
         )
     )
-    name: str = Field(sa_column=Column(Text, nullable=False))
     user_id: UUID = Field(
-        default=None,
         sa_column=Column(
             UUID_PG(as_uuid=True),
             ForeignKey("customer.user.id", ondelete="CASCADE"),
             nullable=False,
         ),
+        description="Folder owner ID",
     )
+    name: str = Field(sa_column=Column(Text, nullable=False), description="Folder name")
 
-    user: "User" = Relationship(back_populates="scenarios")
-    layers: List["Layer"] = Relationship(back_populates="scenario")
+    # Relationships
+    user: "User" = Relationship(back_populates="folders")
