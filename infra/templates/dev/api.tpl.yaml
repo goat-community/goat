@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pvc-claim
+  name: pvc-api
 spec:
   accessModes:
     - ReadWriteMany
@@ -69,7 +69,7 @@ spec:
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:
-            claimName: pvc-claim
+            claimName: pvc-api
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -113,7 +113,7 @@ spec:
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:
-            claimName: pvc-claim
+            claimName: pvc-api
 ---
 apiVersion: v1
 kind: Service
