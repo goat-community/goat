@@ -1,61 +1,120 @@
 "use client";
 
-import React, { forwardRef, memo } from "react";
+import React from "react";
 import { v4 } from "uuid";
 
+import { useTranslation } from "../../../../apps/goat/app/i18/client";
 import { makeStyles } from "../../lib/ThemeProvider";
 import P4BLogo from "../P4BLogo";
 import { Text, Icon } from "../theme";
-import type { IconId } from "../theme";
 
 export type FooterProps = {
   className?: string;
-  links: { header: string; links: { name: string; underline?: boolean; icon?: IconId }[] }[];
-  text: string;
+  lng: string;
 };
 
-const Footer = memo(
-  forwardRef<any, FooterProps>((props, ref) => {
-    const { className, links, text } = props;
+const Footer = (props: FooterProps) => {
+  const { className, lng } = props;
 
-    const { classes, cx } = useStyles();
+  const { classes, cx } = useStyles();
 
-    return (
-      <div className={cx(classes.root, className)}>
-        <div className={classes.info}>
-          <P4BLogo width={100} />
-          <Text typo="caption" className={classes.footerText}>
-            {text}
-          </Text>
-          <div className={classes.dots}>
-            <div className={classes.dot} />
-            <div className={classes.dot} />
-            <div className={classes.dot} />
-            <div className={classes.dot} />
-          </div>
-        </div>
-        <div className={classes.links}>
-          {links.map((link) => (
-            <div key={v4()}>
-              <Text typo="body 3" className={classes.headLinks}>
-                {link.header}
-              </Text>
-              {link.links.map((itemLink) => (
-                <Text
-                  typo="caption"
-                  key={v4()}
-                  className={cx(classes.linkItem, itemLink.underline ? classes.underline : "")}>
-                  {itemLink.icon ? <Icon size="small" iconVariant="white" iconId={itemLink.icon} /> : null}{" "}
-                  {itemLink.name}
-                </Text>
-              ))}
-            </div>
-          ))}
+  const { t } = useTranslation(lng, "footer");
+
+  const links = [
+    {
+      header: t("navigate"),
+      links: [
+        {
+          name: "Home it work",
+        },
+        {
+          name: "Pricing",
+        },
+        {
+          name: "Blog",
+        },
+        {
+          name: "Demo",
+        },
+      ],
+    },
+    {
+      header: t("study_areas"),
+      links: [
+        {
+          name: "Germany",
+        },
+        {
+          name: "EU",
+        },
+        {
+          name: "UK",
+        },
+        {
+          name: "Asia",
+        },
+        {
+          name: "Americas",
+        },
+      ],
+    },
+    {
+      header: t("contact"),
+      links: [
+        {
+          icon: "phone",
+          name: "+49 89 2000 708 30",
+          underline: true,
+        },
+        {
+          icon: "email",
+          name: "info@plan4better.de",
+          underline: true,
+        },
+        {
+          icon: "marker",
+          name: "Am Kartoffelgarten 14 c/o WERK1 81671 München Germany",
+          underline: true,
+        },
+      ],
+    },
+  ];
+
+  return (
+    <div className={cx(classes.root, className)}>
+      <div className={classes.info}>
+        <P4BLogo width={100} />
+        <Text typo="caption" className={classes.footerText}>
+          {t("info")}
+        </Text>
+        <div className={classes.dots}>
+          <div className={classes.dot} />
+          <div className={classes.dot} />
+          <div className={classes.dot} />
+          <div className={classes.dot} />
         </div>
       </div>
-    );
-  })
-);
+      <div className={classes.links}>
+        {links.map((link) => (
+          <div key={v4()}>
+            <Text typo="body 3" className={classes.headLinks}>
+              {link.header}
+            </Text>
+            {link.links.map((itemLink) => (
+              <Text
+                typo="caption"
+                key={v4()}
+                className={cx(classes.linkItem, itemLink.underline ? classes.underline : "")}>
+                {itemLink.icon ? <Icon size="small" iconVariant="white" iconId={itemLink.icon} /> : null}{" "}
+                {itemLink.name}
+              </Text>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const useStyles = makeStyles({
   name: { Footer },

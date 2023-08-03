@@ -43,19 +43,12 @@ interface TreeViewProps {
  * @param {TreeViewProps} props - The props for the TreeView component.
  * @returns The rendered TreeView component.
  */
-
 export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
   const { treeData, checkbox = true, selected, changeSelected } = props;
   const { classes } = useStyles();
 
   // Component State
   const [checked, setChecked] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (selected !== undefined && !selected.length && checked.length) {
-      setChecked([]);
-    }
-  }, [selected]);
 
   // functions
   const handleToggle = (event: React.ChangeEvent<HTMLInputElement>, nodeId: string) => {
@@ -80,7 +73,6 @@ export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
    * @param {TreeNode} parent - The parent tree node to handle the check for.
    * @returns None
    */
-
   const handleParentCheck = (parent: TreeNode) => {
     if ("children" in parent) {
       const checkedChildrenIds = getAllChildrenIds(parent);
@@ -105,7 +97,6 @@ export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
    * @param {TreeNode} node - The TreeNode object to retrieve children IDs from.
    * @returns {string[]} An array of strings representing the IDs of all children nodes.
    */
-
   const getAllChildrenIds = (node: TreeNode): string[] => {
     let childrenIds: string[] = [];
     if (node.children) {
@@ -129,9 +120,7 @@ export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
             <Checkbox
               checked={checked.includes(nodes.id)}
               indeterminate={
-                nodes.children &&
-                nodes.children.some((child) => checked.includes(child.id)) &&
-                !checked.includes(nodes.id)
+                nodes?.children?.some((child) => checked.includes(child.id)) && !checked.includes(nodes.id)
               }
               onChange={(event) => {
                 handleToggle(event, nodes.id);
@@ -160,6 +149,12 @@ export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
         : null}
     </StyledTreeItem>
   );
+
+  useEffect(() => {
+    if (selected !== undefined && !selected.length && checked.length) {
+      setChecked([]);
+    }
+  }, [selected]);
 
   return (
     <TreeView defaultCollapseIcon={<ExpandMoreIcon />} defaultExpandIcon={<ChevronRightIcon />}>

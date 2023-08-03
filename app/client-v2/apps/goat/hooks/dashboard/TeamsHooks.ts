@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { Team } from "@/app/(dashboard)/settings/organization/Teams";
-import { Option } from "@/app/(dashboard)/settings/organization/AddTeamModal";
+import type { Option } from "@/app/[lng]/(dashboard)/settings/organization/AddTeamModal";
+import type { Team } from "@/app/[lng]/(dashboard)/settings/organization/Teams";
 import { filterSearch } from "@/lib/utils/helpers";
+import { useEffect } from "react";
 
 interface UseUserDialogProps {
   rawRows: Team[];
   userInDialog: Team | boolean;
-  setUserInDialog: React.Dispatch<React.SetStateAction<Team | boolean>>; 
+  setUserInDialog: React.Dispatch<React.SetStateAction<Team | boolean>>;
   selectedOption: Option[] | null;
   searchText?: string;
   editTeam: (value: Team) => void;
@@ -41,8 +41,6 @@ export function useUserDialog({
       }
     }
   }, [userInDialog, selectedOption, searchText, rawRows]);
-
-  
 
   function saveEditTeam() {
     if (userInDialog && typeof userInDialog !== "boolean") {

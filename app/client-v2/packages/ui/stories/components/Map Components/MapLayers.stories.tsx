@@ -7,13 +7,12 @@ const meta: Meta<typeof MapByLayer> = {
   component: MapByLayer,
   argTypes: {
     layer: {
-      options: ["Vector tile Point", "Polygon", "Line", "XYZ"],
+      options: ["Vector tile Point", "Polygon", "Line"],
       control: { type: "radio" },
       mapping: {
         "Vector tile Point": "poi",
         Polygon: "aoi",
         Line: "edge",
-        XYZ: "xyz",
       },
     },
   },
@@ -37,6 +36,6 @@ export default meta;
 type Story = StoryObj<typeof MapByLayer>;
 
 export const MapLayer: Story = {
-  args: { layer: "poi" },
+  args: { layer: "Vector tile Point" },
   parameters: {},
 };
