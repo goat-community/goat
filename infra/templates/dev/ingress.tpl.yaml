@@ -13,23 +13,31 @@ spec:
   - host: 'dev.goat.plan4better.de'
     http:
       paths:
-        - path: /*
-          backend:
-            serviceName: ssl-redirect
-            servicePort: use-annotation
         - path: /api/*
+          pathType: Prefix
           backend:
-            serviceName: goat-api
-            servicePort: 80
+            service:
+              name: goat-api
+              port:
+                number: 80
         - path: /flower/*
+          pathType: Prefix
           backend:
-            serviceName: goat-celery-flower-service
-            servicePort: 80
+            service:
+              name: goat-celery-flower-service
+              port:
+                number: 80
         - path: /rabbitmq/*
+          pathType: Prefix
           backend:
-            serviceName: goat-rabbitmq-service
-            servicePort: 15672
-        - path: /*
+            service:
+              name: goat-rabbitmq-service
+              port:
+                number: 15672
+        - path: /
+          pathType: Prefix
           backend:
-            serviceName: goat-client
-            servicePort: 80
+            service:
+              name: goat-client
+              port:
+                number: 80
