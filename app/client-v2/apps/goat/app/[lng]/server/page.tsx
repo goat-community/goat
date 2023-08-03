@@ -1,5 +1,5 @@
-import { options } from "@/app/[lng]/api/auth/[...nextauth]/options";
 import UserCard from "@/app/[lng]/components/UserCard";
+import { options } from "@/app/api/auth/[...nextauth]/options";
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 
