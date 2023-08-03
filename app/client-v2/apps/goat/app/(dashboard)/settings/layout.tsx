@@ -18,7 +18,7 @@ const Settings = (props: SettingsLayoutProps) => {
 
   const pathname = usePathname();
 
-  const { classes, cx } = useStyles();
+  const { classes } = useStyles();
 
   return (
     <GridContainer>

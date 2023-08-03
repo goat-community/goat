@@ -1,6 +1,7 @@
 "use client";
 
 import SubscriptionCardSkeleton from "@/components/skeletons/subscriptionCardSkeleton";
+import { SUBSCRIPTION_API_URL } from "@/lib/api/apiConstants";
 import { makeStyles } from "@/lib/theme";
 import axios from "axios";
 import type { SubscriptionCard, SubscriptionStatusCardDataType } from "subscriptions-dashboard";
@@ -12,14 +13,33 @@ import { Button, Text } from "@p4b/ui/components/theme";
 
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 
+const UsersFetcher = (url: string) => {
+  return axios(url)
+    .then((res) => res.data)
+    .catch((error) => {
+      console.error("Error fetching users:", error);
+      throw error;
+    });
+};
+
 const Subscription = () => {
+  const { data, error, isLoading } = useSWR(SUBSCRIPTION_API_URL, UsersFetcher);
+
   const { classes } = useStyles();
 
-  const UsersFetcher = (url: string) => {
-    return axios(url).then((res) => res.data);
-  };
-
-  const { data, error, isLoading } = useSWR("/api/dashboard/subscription", UsersFetcher);
+  async function addSeatHandler() {
+    try {
+      // Replace "ADD_SEATS_API_URL" with the actual endpoint URL to add seats
+      const response = await axios.post(SUBSCRIPTION_API_URL, {
+        /* data for adding seats */
+      });
+      console.log("Seats added successfully!", response);
+      // You can handle the response here if needed
+    } catch (error) {
+      console.error("Error adding seats:", error);
+      // Handle the error here if needed
+    }
+  }
 
   function getSubscriptionDetails(datas: SubscriptionCard[]) {
     const visualData: SubscriptionStatusCardDataType[] = datas.map((data) => ({
@@ -31,7 +51,7 @@ const Subscription = () => {
         </Text>
       )),
       action: (
-        <Button className={classes.button} variant="primary">
+        <Button className={classes.button} variant="primary" onClick={() => addSeatHandler()}>
           Add seats
         </Button>
       ),
@@ -59,7 +79,7 @@ const Subscription = () => {
     <div>
       {!isLoading && !error
         ? [...getSubscriptionDetails([data.subscription]), ...getSubscriptionDetails(data.extensions)].map(
-            (extension, indx) => <SubscriptionStatusCard sectionData={extension} key={v4()} />
+            (extension) => <SubscriptionStatusCard sectionData={extension} key={v4()} />
           )
         : beforeLoadedMessage()}
       <Banner
@@ -67,7 +87,7 @@ const Subscription = () => {
         content={
           <Text className={classes.bannerText} typo="body 1">
             Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean
-            massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.{" "}
+            massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
           </Text>
         }
         image="https://s3-alpha-sig.figma.com/img/630a/ef8f/d732bcd1f3ef5d6fe31bc6f94ddfbca8?Expires=1687132800&Signature=aJvQ22UUlmvNjDlrgzV6MjJK~YgohUyT9mh8onGD-HhU5yMI0~ThWZUGVn562ihhRYqlyiR5Rskno84OseNhAN21WqKNOZnAS0TyT3SSUP4t4AZJOmeuwsl2EcgElMzcE0~Qx2X~LWxor1emexxTlWntivbnUeS6qv1DIPwCferjYIwWsiNqTm7whk78HUD1-26spqW3AXVbTtwqz3B8q791QigocHaK9b4f-Ulrk3lsmp8BryHprwgetHlToFNlYYR-SqPFrEeOKNQuEDKH0QzgGv3TX7EfBNL0kgP3Crued~JNth-lIEPCjlDRnFQyNpSiLQtf9r2tH9xIsKA~XQ__&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4"

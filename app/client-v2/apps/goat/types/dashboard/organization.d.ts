@@ -1,3 +1,5 @@
+import type { IconId } from "@p4b/ui/components/theme";
+
 declare module "manage-users-dashboard" {
   interface User {
     name: string;
