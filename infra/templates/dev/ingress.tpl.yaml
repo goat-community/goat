@@ -13,21 +13,21 @@ spec:
   - host: 'dev.goat.plan4better.de'
     http:
       paths:
-        - path: /api/*
+        - path: /api
           pathType: Prefix
           backend:
             service:
               name: goat-api
               port:
                 number: 80
-        - path: /flower/*
+        - path: /flower
           pathType: Prefix
           backend:
             service:
               name: goat-celery-flower-service
               port:
                 number: 80
-        - path: /rabbitmq/*
+        - path: /rabbitmq
           pathType: Prefix
           backend:
             service:
