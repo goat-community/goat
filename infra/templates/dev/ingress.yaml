@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dev-goat-plan4better-de
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  tls:
+  - hosts:
+    - 'dev.goat.plan4better.de'
+    secretName: dev-goat-plan4better-de-tls
+  rules:
+  - host: 'dev.goat.plan4better.de'
+    http:
+      paths:
+        - path: /*
+          backend:
+            serviceName: ssl-redirect
+            servicePort: use-annotation
+        - path: /api/*
+          backend:
+            serviceName: goat-api
+            servicePort: 80
+        - path: /flower/*
+          backend:
+            serviceName: goat-celery-flower-service
+            servicePort: 80
+        - path: /rabbitmq/*
+          backend:
+            serviceName: goat-rabbitmq-service
+            servicePort: 15672
+        - path: /*
+          backend:
+            serviceName: goat-client
+            servicePort: 80
