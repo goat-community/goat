@@ -129,12 +129,12 @@ after-success:
 build-k8s:
 	rm -f $(K8S_OBJ)
 	make $(K8S_OBJ)
-	@echo "Built infra/templates/k8s/deploy/*.yaml from infra/templates/k8s/deploy/*.tpl.yaml"
+	@echo "Build from $(SRC_DIR)/*.yaml from $(SRC_DIR)/*.tpl.yaml"
 
 # target: make deploy -e COMPONENT=api|client
 .PHONY: deploy
 deploy: setup-kube-config build-k8s
-	$(KCTL) apply -f infra/templates/k8s/deploy/$(COMPONENT).yaml
+	$(KCTL) apply -f $(SRC_DIR)/$(COMPONENT).yaml
 
 #=============================
 # ==== AWS CLOUDFORMATION ====
