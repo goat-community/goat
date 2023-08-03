@@ -15,7 +15,7 @@ from src import run_time_method_calls
 from src.core.config import settings
 from src.db.session import r5_mongo_db_client, session_manager
 from src.endpoints.v2.api import router as api_router_v2
-
+from fastapi_pagination import add_pagination
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -104,3 +104,4 @@ async def item_already_exists_handler(request: Request, exc: IntegrityError):
             "detail": str(exc.__dict__.get("orig")),
         },
     )
+# add_pagination(app)
