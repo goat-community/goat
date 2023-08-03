@@ -102,8 +102,8 @@ jobs:
       - name: Deploy changed client
         if: contains(steps.get_file_changes.outputs.files, 'app/client') || contains(github.event.head_commit.message, 'trigger build')
         run: make deploy -e COMPONENT=client
-      # - name: Deploy changed api
-      #   if: contains(steps.get_file_changes.outputs.files, 'app/api') || contains(github.event.head_commit.message, 'trigger build')
-      #   run: make deploy -e COMPONENT=api
+      - name: Deploy changed api
+        if: contains(steps.get_file_changes.outputs.files, 'app/api') || contains(github.event.head_commit.message, 'trigger build')
+        run: make deploy -e COMPONENT=api
       - name: Deploy changed ingress
         run : make deploy -e COMPONENT=ingress
