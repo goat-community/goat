@@ -81,6 +81,7 @@ aiohttp = "^3.8.4"
 boto3 = "^1.26.164"
 h3 = "^3.7.6"
 numba = "^0.57.1"
+fastapi-pagination = "^0.12.6"
 
 
 [tool.poetry.group.dev.dependencies]
