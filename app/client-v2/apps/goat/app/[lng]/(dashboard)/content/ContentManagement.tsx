@@ -6,9 +6,12 @@ import MoreMenu from "@/app/[lng]/(dashboard)/content/MoreMenu";
 import TreeViewFilter from "@/app/[lng]/(dashboard)/content/TreeViewFilter";
 import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
+import { API } from "@/lib/api/apiConstants";
+import axios from "@/lib/configs/axios";
 import { formatDate } from "@/lib/utils/helpers";
 import contentData from "@/lib/utils/template_content";
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import useSWR from "swr";
 
 import { FileManagementTable, Chip } from "@p4b/ui/components/DataDisplay";
@@ -24,6 +27,16 @@ const contentDataFetcher = () => {
       resolve(contentData);
     }, 1000); // Simulate a 1-second delay
   });
+};
+
+const contentFoldersFetcher = async (url: string) => {
+  try {
+    const res = await axios.get(`${url}?pag=1&size=50`);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 };
 
 const columnNames = [
@@ -66,7 +79,12 @@ const ContainingProjects = [
 ];
 
 const ContentManagement = () => {
-  const { data, error } = useSWR("content", contentDataFetcher);
+  // const { data, error } = useSWR("content", contentDataFetcher);
+  const { data, error, isLoading } = useSWR(API.folder, contentFoldersFetcher);
+  const { folder } = useSelector((state) => state.content);
+  console.log("folder", folder);
+
+  console.log("data", data);
 
   const [modalContent, setModalContent] = useState<object | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -362,7 +380,7 @@ const ContentManagement = () => {
     return <div>Error fetching data</div>;
   }
 
-  if (!rows?.length) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 

@@ -1,35 +1,14 @@
-import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import axios from "axios";
 
-const onRequest = (config: AxiosRequestConfig): AxiosRequestConfig => {
-  console.info(`[request] [${JSON.stringify(config)}]`);
-  return config;
-};
+// Create a new instance of Axios with your desired defaults
+const instance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  headers: {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "*",
+    "Access-Control-Allow-Credentials": "true",
+    Accept: "application/json",
+  },
+});
 
-const onRequestError = (error: AxiosError): Promise<AxiosError> => {
-  console.error(`[request error] [${JSON.stringify(error)}]`);
-  return Promise.reject(error);
-};
-
-const onResponse = (response: AxiosResponse): AxiosResponse => {
-  console.info(`[response] [${JSON.stringify(response)}]`);
-  return response;
-};
-
-const onResponseError = (error: AxiosError): Promise<AxiosError> => {
-  console.error(`[response error] [${JSON.stringify(error)}]`);
-  return Promise.reject(error);
-};
-
-export function setupInterceptorsTo(axiosInstance: AxiosInstance): AxiosInstance {
-  axiosInstance.interceptors.request.use(onRequest, onRequestError);
-  axiosInstance.interceptors.response.use(onResponse, onResponseError);
-  return axiosInstance;
-}
-
-const axiosInstance = axios.create();
-
-// Apply interceptors using the setupInterceptorsTo function
-const instanceWithInterceptors = setupInterceptorsTo(axiosInstance);
-
-export default instanceWithInterceptors;
+export default instance;
