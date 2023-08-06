@@ -54,7 +54,7 @@ resource "hcloud_server" "instance" {
   }
 
   dynamic "network" {
-    for_each = var.network_ip != null ? toset([
+    for_each = var.network_id != null ? toset([
       { network_id : var.network_id, network_ip : var.network_ip }
     ]) : toset([])
 

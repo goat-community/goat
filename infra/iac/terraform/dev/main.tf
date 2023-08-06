@@ -1,3 +1,52 @@
+
+##################
+## KUBE-HETZNER ##
+##################
+
+module "kube-hetzner" {
+  providers = {
+    hcloud = hcloud
+  }
+  hcloud_token    = var.hcloud_token
+  source          = "kube-hetzner/kube-hetzner/hcloud"
+  ssh_public_key  = file(var.kube_hetzner_ssh_public_key)
+  ssh_private_key = file(var.kube_hetzner_ssh_private_key)
+  network_region  = "eu-central"
+  cluster_name    = "dev"
+  control_plane_nodepools = [
+    {
+      name        = "control-plane-nbg1",
+      server_type = "cpx11",
+      location    = "nbg1",
+      labels      = [],
+      taints      = [],
+      count       = 1
+    },
+  ]
+  agent_nodepools = [
+    {
+      name        = "agent-large",
+      server_type = "cpx31",
+      location    = "nbg1",
+      labels      = [],
+      taints      = [],
+      count       = 1
+    }
+  ]
+
+  load_balancer_type       = "lb11"
+  load_balancer_location   = "nbg1"
+  ssh_max_auth_tries       = 15
+  automatically_upgrade_os = false
+  create_kubeconfig        = false
+  kured_version            = "1.13.1"
+}
+
+output "kubeconfig" {
+  value     = module.kube-hetzner.kubeconfig
+  sensitive = true
+}
+
 #####################################
 ## POSTGRESQL SRV (DEV && GEONODE) ##
 #####################################
@@ -78,51 +127,9 @@ module "postgresql" {
   admin_password        = data.aws_secretsmanager_secret_version.db_admin_password.secret_string
   postgres_extra_config = indent(8, file("./config/postgresql.conf"))
   databases             = []
+  network_id = module.kube-hetzner.network_id
 }
 
-##################
-## KUBE-HETZNER ##
-##################
-
-module "kube-hetzner" {
-  providers = {
-    hcloud = hcloud
-  }
-  hcloud_token    = var.hcloud_token
-  source          = "kube-hetzner/kube-hetzner/hcloud"
-  ssh_public_key  = file(var.kube_hetzner_ssh_public_key)
-  ssh_private_key = file(var.kube_hetzner_ssh_private_key)
-  network_region  = "eu-central"
-  cluster_name    = "dev"
-  control_plane_nodepools = [
-    {
-      name        = "control-plane-nbg1",
-      server_type = "cpx11",
-      location    = "nbg1",
-      labels      = [],
-      taints      = [],
-      count       = 1
-    },
-  ]
-  agent_nodepools = [
-    {
-      name        = "agent-large",
-      server_type = "cpx31",
-      location    = "nbg1",
-      labels      = [],
-      taints      = [],
-      count       = 1
-    }
-  ]
-  load_balancer_type       = "lb11"
-  load_balancer_location   = "nbg1"
-  ssh_max_auth_tries       = 15
-  automatically_upgrade_os = false
-  create_kubeconfig        = false
-  kured_version            = "1.13.1"
-}
-
-output "kubeconfig" {
-  value     = module.kube-hetzner.kubeconfig
-  sensitive = true
+output "postgresql_ipv4_address" {
+  value     = module.postgresql.ipv4_address_private
 }
