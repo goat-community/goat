@@ -34,9 +34,9 @@ jobs:
       - name: Release changed storybook
         if: contains(steps.get_file_changes.outputs.files, 'app/client-v2') || contains(github.event.head_commit.message, 'trigger build')
         run: make release-client-docker-image -e COMPONENT=storybook
-      - name: Release keycloak theme
-        if: contains(steps.get_file_changes.outputs.files, 'app/client-v2') || contains(github.event.head_commit.message, 'trigger build')
-        run: make release-keycloak-theme
+      # - name: Release keycloak theme
+      #   if: contains(steps.get_file_changes.outputs.files, 'app/client-v2') || contains(github.event.head_commit.message, 'trigger build')
+      #   run: make release-keycloak-theme
       # - name: Release changed docs
       #   if: contains(steps.get_file_changes.outputs.files, 'docs') || contains(github.event.head_commit.message, 'trigger build')
       #   run: make release-docs-docker-image -e COMPONENT=docs
@@ -115,8 +115,8 @@ jobs:
         uses: trilom/file-changes-action@v1.2.4
         with:
           output: ' '
-      - name: Deploy postgres-service
-        run: make deploy -e COMPONENT=postgres
+      # - name: Deploy postgres-service
+      #   run: make deploy -e COMPONENT=postgres
       # - name: Deploy rabbitmq
       #   run: make deploy -e COMPONENT=rabbitmq
       # - name: Deploy redis
