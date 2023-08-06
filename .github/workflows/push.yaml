@@ -117,12 +117,12 @@ jobs:
           output: ' '
       - name: Deploy postgres-service
         run: make deploy -e COMPONENT=postgres
-      - name: Deploy rabbitmq
-        run: make deploy -e COMPONENT=rabbitmq
-      - name: Deploy redis
-        run: make deploy -e COMPONENT=redis
-      - name: Deploy celery-flower
-        run: make deploy -e COMPONENT=celery-flower
+      # - name: Deploy rabbitmq
+      #   run: make deploy -e COMPONENT=rabbitmq
+      # - name: Deploy redis
+      #   run: make deploy -e COMPONENT=redis
+      # - name: Deploy celery-flower
+      #   run: make deploy -e COMPONENT=celery-flower
       # - name: Deploy changed client
       #   if: contains(steps.get_file_changes.outputs.files, 'app/client-v2') || contains(github.event.head_commit.message, 'trigger build')
       #   run: make deploy -e COMPONENT=goat
