@@ -19,7 +19,7 @@ spec:
   - host: 'v2.goat.plan4better.de'
     http:
       paths:
-        - path: /storybook*
+        - path: /storybook
           pathType: Prefix
           backend:
             service:
