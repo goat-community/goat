@@ -29,6 +29,12 @@ ifeq ($(NAMESPACE), dev)
 	SRC_DIR=$(CWD)/infra/templates/dev
 endif
 
+ifeq ($(NAMESPACE), v2)
+	DOMAIN=v2.goat.plan4better.de
+	SRC_DIR=$(CWD)/infra/templates/v2
+endif
+
+
 DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/$(COMPONENT)-${NAMESPACE}:$(VERSION)
 
 # Build and test tools abstraction

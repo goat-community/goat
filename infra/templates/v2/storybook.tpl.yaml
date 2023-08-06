@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: v2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goat-storybook
+  namespace: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goat-storybook
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  minReadySeconds: 15
+  template:
+    metadata:
+      labels:
+        app: goat-storybook
+    spec:
+      containers:
+        - image: ${DOCKER_IMAGE}
+          imagePullPolicy: IfNotPresent
+          name: goat-storybook
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: goat-storybook-service
+  namespace: v2
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: goat-storybook
