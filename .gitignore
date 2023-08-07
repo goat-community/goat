@@ -19,6 +19,7 @@ __pycache__
 r5-cache
 /app/api/src/cache
 .next
+/.idea
 
 /app/api/src/cache/traveltime_matrices/walking/*
 /app/api/src/cache/traveltime_matrices/cycling/*
@@ -54,7 +55,7 @@ r5-cache
 
 /docs/.docusaurus
 
-# Unit test / coverage reports 
+# Unit test / coverage reports
 .coverage
 coverage.xml
 cache*

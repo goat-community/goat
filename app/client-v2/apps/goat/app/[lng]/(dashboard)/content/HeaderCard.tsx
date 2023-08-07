@@ -3,7 +3,6 @@ import { useState } from "react";
 import { v4 } from "uuid";
 
 import Modal from "@p4b/ui/components/Modal";
-import { ToggleTabs } from "@p4b/ui/components/Navigation/ToggleTabs";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Button, Text, IconButton, Icon } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
@@ -17,7 +16,6 @@ const HeaderCard = (props: HeaderCardProps) => {
   const { path, setPath } = props;
 
   const { classes } = useStyles();
-  const [value, setValue] = useState<string | null>("formatLeft");
   const [addContent, setAddContent] = useState(false);
 
   function handlePathChange(indx: number) {
@@ -30,7 +28,7 @@ const HeaderCard = (props: HeaderCardProps) => {
       <div className={classes.headerContainer}>
         <div className={classes.headerPath}>
           <Text typo="page heading" className={classes.headerText}>
-            Content
+            Library
           </Text>
           <span style={{ display: "flex", alignItems: "center" }}>
             <span className={classes.path}>
@@ -51,27 +49,13 @@ const HeaderCard = (props: HeaderCardProps) => {
         </div>
         <div className={classes.headerActions}>
           <div style={{ display: "flex", gap: "10px" }}>
-            <Button variant="noBorder" startIcon="newFolder">
-              New folder
-            </Button>
             <Button variant="noBorder" onClick={() => setAddContent(true)} startIcon="newFile">
-              Add content
+              New layer
+            </Button>
+            <Button variant="noBorder" startIcon="newFolder">
+              New project
             </Button>
           </div>
-          <ToggleTabs
-            defaultValue={value}
-            onResultChange={setValue}
-            tabs={[
-              {
-                iconId: "formatLeft",
-                value: "formatLeft",
-              },
-              {
-                iconId: "viewModul",
-                value: "viewModul",
-              },
-            ]}
-          />
         </div>
       </div>
       <Modal

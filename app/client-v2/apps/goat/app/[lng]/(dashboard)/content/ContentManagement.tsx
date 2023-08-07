@@ -7,11 +7,15 @@ import TreeViewFilter from "@/app/[lng]/(dashboard)/content/TreeViewFilter";
 import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
 import { API } from "@/lib/api/apiConstants";
-import axios from "@/lib/configs/axios";
+import {
+  contentDataFetcher,
+  contentFoldersFetcher,
+  contentLayersFetcher,
+  contentProjectsFetcher,
+  contentReportsFetcher,
+} from "@/lib/services/dashboard";
 import { formatDate } from "@/lib/utils/helpers";
-import contentData from "@/lib/utils/template_content";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import useSWR from "swr";
 
 import { FileManagementTable, Chip } from "@p4b/ui/components/DataDisplay";
@@ -20,24 +24,6 @@ import Modal from "@p4b/ui/components/Modal";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Text, IconButton, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-const contentDataFetcher = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(contentData);
-    }, 1000); // Simulate a 1-second delay
-  });
-};
-
-const contentFoldersFetcher = async (url: string) => {
-  try {
-    const res = await axios.get(`${url}?pag=1&size=50`);
-    return res.data;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-};
 
 const columnNames = [
   {
@@ -79,12 +65,12 @@ const ContainingProjects = [
 ];
 
 const ContentManagement = () => {
-  // const { data, error } = useSWR("content", contentDataFetcher);
-  const { data, error, isLoading } = useSWR(API.folder, contentFoldersFetcher);
-  const { folder } = useSelector((state) => state.content);
-  console.log("folder", folder);
+  const { data, error } = useSWR("content", contentDataFetcher);
 
-  console.log("data", data);
+  const { data: folderData, error: folderError } = useSWR(API.folder, contentFoldersFetcher);
+  const { data: layerData, error: layerError } = useSWR(API.layer, contentLayersFetcher);
+  const { data: reportData, error: reportError } = useSWR(API.report, contentReportsFetcher);
+  const { data: projectData, error: projectError } = useSWR(API.project, contentProjectsFetcher);
 
   const [modalContent, setModalContent] = useState<object | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -331,56 +317,59 @@ const ContentManagement = () => {
   }
 
   useEffect(() => {
-    let filteredRows = data?.items;
+    if (data?.items) {
+      const filteredRows = data?.items;
 
-    if (selectedFilters.length > 0) {
-      filteredRows = filteredRows.filter((item) => selectedFilters.includes(item.type));
+      //todo check
+      // if (selectedFilters.length > 0) {
+      //   filteredRows = filteredRows.filter((item) => selectedFilters.includes(item.type));
+      // }
+
+      setRows(
+        filteredRows?.map((item) => {
+          return {
+            name: item?.name,
+            type: <Chip className={classes.chip} label={item?.type} textDesign="italic" variant="Border" />,
+            modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
+            path: ["home"],
+            size: `${item?.metadata?.size} kb`,
+            info: [
+              {
+                tag: "Owner",
+                data: `${item?.owner?.first_name} ${item?.owner?.last_name}`,
+              },
+              {
+                tag: "Shared with",
+                data: item?.shared_with?.public?.url,
+              },
+              {
+                tag: "Type",
+                data: item?.type,
+              },
+              {
+                tag: "Modified",
+                data: item?.metadata?.updated_at,
+              },
+              {
+                tag: "Size",
+                data: `${item?.metadata?.size} kb`,
+              },
+              {
+                tag: "Location",
+                data: "content/project/folderx",
+              },
+            ],
+          };
+        })
+      );
     }
-
-    setRows(
-      filteredRows?.map((item) => {
-        return {
-          name: item?.name,
-          type: <Chip className={classes.chip} label={item?.type} textDesign="italic" variant="Border" />,
-          modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
-          path: ["home"],
-          size: `${item?.metadata?.size} kb`,
-          info: [
-            {
-              tag: "Owner",
-              data: `${item?.owner?.first_name} ${item?.owner?.last_name}`,
-            },
-            {
-              tag: "Shared with",
-              data: item?.shared_with?.public?.url,
-            },
-            {
-              tag: "Type",
-              data: item?.type,
-            },
-            {
-              tag: "Modified",
-              data: item?.metadata?.updated_at,
-            },
-            {
-              tag: "Size",
-              data: `${item?.metadata?.size} kb`,
-            },
-            {
-              tag: "Location",
-              data: "content/project/folderx",
-            },
-          ],
-        };
-      })
-    );
   }, [selectedFilters, data]);
 
   if (error) {
     return <div>Error fetching data</div>;
   }
 
-  if (isLoading) {
+  if (!rows?.length) {
     return <div>Loading...</div>;
   }
 
@@ -394,7 +383,10 @@ const ContentManagement = () => {
       <GridContainer>
         <SingleGrid span={1}>
           <TreeViewFilter
-            data={data}
+            folderData={folderData?.items}
+            projectData={projectData?.items}
+            layerData={layerData?.items}
+            reportData={reportData?.items}
             selectedFilters={selectedFilters}
             setSelectedFilters={setSelectedFilters}
           />

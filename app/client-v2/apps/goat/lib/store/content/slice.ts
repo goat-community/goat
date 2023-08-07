@@ -5,7 +5,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const contentSlice = createSlice<any>({
   name: "map",
   initialState: {
-    folder: [],
+    folders: [],
     getFoldersStatus: LOADING_STATUSES.idle,
   },
   reducers: {},
