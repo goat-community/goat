@@ -1028,27 +1028,43 @@ def hexlify_file(file_path: str):
         return binascii.hexlify(f.read()).decode("utf-8")
 
 
-def zip_shape_file(shapefile_path: str, destination_name: str):
-    # Extract the directory path and base filename
-    shapefile_dir = os.path.dirname(shapefile_path)
-    shapefile_name = os.path.basename(shapefile_path)
+def zip_converted_files(temp_file_base_path: str, destination_name: str, file_extension: str):
+    file_extensions = [file_extension, "txt"]
+    if file_extension == "shp":
+        file_extensions.extend(["shx", "dbf", "prj"])
 
     # Create the zip file
-    zipfile_path = os.path.join(shapefile_dir, shapefile_name.replace(".shp", ".zip"))
+    zipfile_path = f"{temp_file_base_path}.zip"
+
     with zipfile.ZipFile(zipfile_path, "w") as zipf:
-        for ext in [".shp", ".shx", ".dbf", ".prj"]:
-            file_path = os.path.join(shapefile_dir, shapefile_name.replace(".shp", ext))
+        for ext in file_extensions:
+            file_path = f"{temp_file_base_path}.{ext}"
             # write_path = os.path.join(destination_name, destination_name + ext)
-            write_path = destination_name + ext
+            if ext == "txt":
+                write_path = "info.txt"
+            else:
+                write_path = f"{destination_name}.{ext}"
+
             zipf.write(file_path, write_path)
 
+    # Clean up the temp files
+    for ext in file_extensions:
+        file_path = f"{temp_file_base_path}.{ext}"
+        os.remove(file_path)
 
-def delete_shape_file(shapefile_path: str):
-    for ext in [".shp", ".shx", ".dbf", ".prj"]:
-        file_path = os.path.join(
-            os.path.dirname(shapefile_path), shapefile_path.replace(".shp", ext)
-        )
-        delete_file(file_path)
+
+def generate_info_file(temp_file_base_path: str):
+    now = datetime.now()
+    info_text = f"""Coordinate Reference System: EPSG:4326
+Date: {now.strftime("%B %d, %Y")}
+Generated with GOAT (https://github.com/goat-community/goat)
+Powered by Plan4Better (https://www.plan4better.com)
+"""
+    file_path = os.path.join(temp_file_base_path + ".txt")
+    with open(file_path, "w") as f:
+        f.write(info_text)
+
+    return file_path
 
 
 def move_first_column_csv_to_last(csv_path: str):
@@ -1063,6 +1079,9 @@ def convert_csv_to_xlsx(csv_path: str):
     xlsx_path = csv_path.replace(".csv", ".xlsx")
     df = pd.read_csv(csv_path)
     df.to_excel(xlsx_path, index=False)
+
+    # Clean up the temp files
+    os.remove(csv_path)
 
 
 def convert_geojson_to_others_ogr2ogr(
@@ -1081,54 +1100,56 @@ def convert_geojson_to_others_ogr2ogr(
             "format_name": "CSV",
             "extra_options": "-lco GEOMETRY=AS_WKT",
         },
+        "xlsx": {
+            "output_suffix": "csv",
+            "format_name": "CSV",
+            "extra_options": "-lco GEOMETRY=AS_WKT",
+        },
         "kml": {
             "output_suffix": "kml",
             "format_name": "KML",
             "extra_options": "-mapFieldType Integer64=Real",
         },
+        "geojson": {"output_suffix": "geojson", "format_name": "GeoJSON"},
     }
-    if output_format == "xlsx":
-        convert_format = "csv"
-    else:
-        convert_format = output_format
 
-    output_suffix = options[convert_format]["output_suffix"]
-    format_name = options[convert_format]["format_name"]
-    extra_options = options[convert_format].get("extra_options", "")
+    output_suffix = options[output_format]["output_suffix"]
+    format_name = options[output_format]["format_name"]
+    extra_options = options[output_format].get("extra_options", "")
 
-    geojson_temp_file = temp_file_base_name + ".geojson"
-    output_temp_file = temp_file_base_name + f".{output_suffix}"
+    geojson_temp_file = f"{temp_file_base_name}.geojson"
+    output_temp_file = f"{temp_file_base_name}.{output_suffix}"
 
     with open(geojson_temp_file, "w") as f:
         f.write(json.dumps(input_geojson))
 
-    command_to_convert = f'ogr2ogr -f "{format_name}" -nln {destination_layer_name} {extra_options} {output_temp_file} {geojson_temp_file}'
-    subprocess.check_output(
-        command_to_convert, shell=True
-    )  # Use check output to raise error if command fails
-    delete_file(geojson_temp_file)
+    if output_format != "geojson":
+        #
+        # Geojson doesn't need to be converted
+        #
+        command_to_convert = f'ogr2ogr -f "{format_name}" -nln {destination_layer_name} {extra_options} {output_temp_file} {geojson_temp_file}'
+        subprocess.check_output(command_to_convert, shell=True)
+        delete_file(geojson_temp_file)
 
-    if convert_format == "csv":
-        move_first_column_csv_to_last(output_temp_file)
+        if output_format in ("csv", "xlsx"):
+            move_first_column_csv_to_last(output_temp_file)
 
-    if output_format == "xlsx":
-        convert_csv_to_xlsx(output_temp_file)
-        delete_file(output_temp_file)
-        output_temp_file = output_temp_file.replace(".csv", ".xlsx")
-        output_suffix = "xlsx"
+        if output_format == "xlsx":
+            convert_csv_to_xlsx(output_temp_file)
+            output_suffix = "xlsx"
 
-    if output_format == "shapefile":
-        zip_shape_file(output_temp_file, destination_layer_name)
-        delete_shape_file(output_temp_file)
-        output_temp_file = output_temp_file.replace(".shp", ".zip")
-        output_suffix = "zip"
+    generate_info_file(temp_file_base_name)
+    zip_converted_files(temp_file_base_name, destination_layer_name, output_suffix)
 
-    output_data = open(output_temp_file, "rb").read()
-    delete_file(output_temp_file)
+    # Read zip file as data and wipe
+    zip_file_path = temp_file_base_name + ".zip"
+    with open(zip_file_path, "rb") as f:
+        data = f.read()
+    delete_file(zip_file_path)
 
     return {
-        "data": output_data,
-        "output_suffix": output_suffix,
+        "data": data,
+        "output_suffix": "zip",
     }
 
 
@@ -1147,10 +1168,7 @@ def read_results(results, return_type=None):
 
     data = results["data"]
 
-    if return_type == "geojson":
-        return data["geojson"]
-
-    elif return_type == "network":
+    if return_type == "network":
         return data["network"]
 
     elif return_type == "grid":
@@ -1178,7 +1196,7 @@ def read_results(results, return_type=None):
             destination_layer_name=results["data_source"],
             output_format=return_type,
         )
-        file_name = f"{results['data_source']}.{converted_data['output_suffix']}"
+        file_name = f"{results['data_source']}-{return_type}.{converted_data['output_suffix']}"
         # TODO: define the media type based on the output_format
         return Response(
             converted_data["data"],

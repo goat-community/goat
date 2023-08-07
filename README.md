@@ -48,3 +48,4 @@ Pajares, E., Jehle, U., Hall, J., Miramontes, M., Wulfhorst, G., 2022. Assessmen
 Jehle, U., Pajares, E., Analyse der Fußwegequalitäten zu Schulen – Entwicklung von Indikatoren auf Basis von OpenData. In: Meinel, G.; Krüger, T.; Behnisch, M.; Ehrhardt, D. (Hrsg.): Flächennutzungsmonitoring XIII: Flächenpolitik - Konzepte - Analysen - Tools. Berlin: Rhombos-Verlag, 2021, (IÖR-Schriften Band 79), S.221-232, https://doi.org/10.26084/13dfns-p020
 
 Pajares, E., 2022. Dissertation: Development, application, and testing of an accessibility instrument for planning active mobility. Technische Universität München. https://mediatum.ub.tum.de/680889?show_id=1688064
+

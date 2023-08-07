@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="0596b8b7-0a75-43ae-91e1-fff0ad5a9682" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/app/api/src/endpoints/v2/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/src/endpoints/v2/api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/client-v2/apps/goat/app/[lng]/(dashboard)/content/ContentManagement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/client-v2/apps/goat/app/[lng]/(dashboard)/content/ContentManagement.tsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubDefaultAccount">
+    <option name="defaultAccountId" value="1627138a-1f08-4f19-83c3-6c617a92f67d" />
+  </component>
+  <component name="GithubProjectSettings">
+    <option name="branchProtectionPatterns">
+      <list>
+        <option value="v2" />
+      </list>
+    </option>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="PackageJsonUpdateNotifier">
+    <dismissed value="$PROJECT_DIR$/app/client-v2/apps/goat/package.json" />
+    <dismissed value="$PROJECT_DIR$/app/client-v2/apps/storybook/package.json" />
+    <dismissed value="$PROJECT_DIR$/app/client-v2/package.json" />
+    <dismissed value="$PROJECT_DIR$/app/client-v2/packages/ui/package.json" />
+    <dismissed value="$PROJECT_DIR$/app/client/package.json" />
+  </component>
+  <component name="ProjectId" id="2SPuVkGTtLmU3dJNVOfZW0j09nG" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "javascript.nodejs.core.library.configured.version": "16.17.1",
+    "javascript.nodejs.core.library.typings.version": "16.18.39",
+    "js.linters.configure.manually.selectedeslint": "true",
+    "last_opened_file_path": "/Users/elitedevsquadn10/WebstormProjects/goat/app/client-v2/apps/goat/lib/store/content",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.standard": "true",
+    "node.js.selected.package.eslint": "/Users/elitedevsquadn10/WebstormProjects/goat/app/client-v2/node_modules/eslint",
+    "node.js.selected.package.standard": "",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "ts.external.directory.path": "/Users/elitedevsquadn10/WebstormProjects/goat/app/client-v2/packages/keycloak-theme/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/app/client-v2/apps/goat/lib/store/content" />
+      <recent name="$PROJECT_DIR$/app/client-v2/apps/goat" />
+      <recent name="$PROJECT_DIR$/app/client-v2/packages/ui/Map/Layers" />
+      <recent name="$PROJECT_DIR$/app/client-v2/apps/goat/app/i18/locales/en" />
+      <recent name="$PROJECT_DIR$/app/client-v2/apps/goat/app" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/app/client-v2/apps/goat/app" />
+      <recent name="$PROJECT_DIR$/app/client-v2/packages/ui" />
+      <recent name="$PROJECT_DIR$/app/client-v2/apps/goat/public" />
+      <recent name="$PROJECT_DIR$/app/client-v2/apps/goat/app/[lng]" />
+      <recent name="$PROJECT_DIR$/app/client-v2/apps/goat/app/(dashboard)/content/preview/[id]" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Docker.docker-compose.yaml: Compose Deployment">
+    <configuration name="docker-compose.yaml: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="sourceFilePath" value="docker-compose.yaml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="docker-compose.yaml.api: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="services">
+            <list>
+              <option value="api" />
+            </list>
+          </option>
+          <option name="sourceFilePath" value="docker-compose.yaml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="docker-compose.yaml.db: Compose Deployment" type="docker-deploy" factoryName="docker-compose.yml" temporary="true" server-name="Docker">
+      <deployment type="docker-compose.yml">
+        <settings>
+          <option name="services">
+            <list>
+              <option value="db" />
+            </list>
+          </option>
+          <option name="sourceFilePath" value="docker-compose.yaml" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="storybook/Dockerfile" type="docker-deploy" factoryName="dockerfile" temporary="true" server-name="Docker">
+      <deployment type="dockerfile">
+        <settings>
+          <option name="containerName" value="" />
+          <option name="sourceFilePath" value="app/client-v2/apps/storybook/Dockerfile" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration name="build" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/app/client-v2/apps/goat/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="build" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Docker.docker-compose.yaml: Compose Deployment" />
+        <item itemvalue="Docker.docker-compose.yaml.api: Compose Deployment" />
+        <item itemvalue="Docker.docker-compose.yaml.db: Compose Deployment" />
+        <item itemvalue="npm.build" />
+        <item itemvalue="Docker.storybook/Dockerfile" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="0596b8b7-0a75-43ae-91e1-fff0ad5a9682" name="Changes" comment="" />
+      <created>1689060563077</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1689060563077</updated>
+      <workItem from="1689060564301" duration="304239000" />
+      <workItem from="1691054786733" duration="33158000" />
+    </task>
+    <task id="LOCAL-00001" summary="Implemented Map libraries,&#10;Implemented State management">
+      <created>1689087077683</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1689087077683</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Create the map based on the JSON from project">
+      <created>1689172665084</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1689172665084</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Added layers by demo">
+      <created>1689238247660</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1689238247660</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Remove unused actions">
+      <created>1689239544944</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1689239544944</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Merge branch 'v2' into setup-map-libraries&#10;&#10;# Conflicts:&#10;#&#9;app/client-v2/apps/goat/pages/_app.tsx&#10;#&#9;app/client-v2/apps/goat/pages/index.tsx">
+      <created>1689241333928</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1689241333928</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Merge branch 'v2' into setup-map-libraries&#10;&#10;# Conflicts:&#10;#&#9;app/client-v2/apps/goat/pages/_app.tsx&#10;#&#9;app/client-v2/apps/goat/pages/index.tsx">
+      <created>1689245697567</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1689245697567</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Changed Provider to StoreProvider">
+      <created>1689247464433</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1689247464433</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Remove unused file">
+      <created>1689250017101</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1689250017101</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Add layers in storyBook">
+      <created>1689601799120</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1689601799120</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Changed story names to Vector tile Point, Line and Polygon">
+      <created>1689661877683</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1689661877683</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Added Controls, all vector, layers with selectbox">
+      <created>1689685343341</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1689685343342</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Add preview to content">
+      <created>1689784222281</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1689784222281</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Add preview to content">
+      <created>1689862990823</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1689862990823</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Fix conflicts">
+      <created>1689863380854</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1689863380854</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Merge branch 'v2' into feature/add-preview-content&#10;&#10;# Conflicts:&#10;#&#9;app/client-v2/apps/goat/middleware.ts&#10;#&#9;app/client-v2/pnpm-lock.yaml">
+      <created>1689863726988</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1689863726988</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Added use client">
+      <created>1689864592090</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1689864592090</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Added use client">
+      <created>1689865089215</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1689865089215</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Added use client">
+      <created>1689865180189</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1689865180189</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Added use client">
+      <created>1689922575641</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1689922575641</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Remove json">
+      <created>1689922621446</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1689922621446</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Changed yaml file">
+      <created>1689923251059</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1689923251059</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Changed yaml file">
+      <created>1689923346808</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1689923346808</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Changed yaml file">
+      <created>1689923667405</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1689923667405</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Merge branch 'v2' into feature/add-preview-content&#10;&#10;# Conflicts:&#10;#&#9;app/client-v2/apps/goat/app/(dashboard)/content/page.tsx">
+      <created>1689937664394</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1689937664394</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Added route content/preview">
+      <created>1689940991782</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1689940991782</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Change useStyles directly">
+      <created>1689943551402</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1689943551402</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Change useStyles directly">
+      <created>1689943992694</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1689943992694</updated>
+    </task>
+    <task id="LOCAL-00028" summary="Change useStyles directly">
+      <created>1689952848322</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1689952848322</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Use absolute paths for all components">
+      <created>1690194288012</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1690194288012</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Added demo jso data for preview map">
+      <created>1690283944651</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1690283944651</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Implemented XYZ layer">
+      <created>1690383655849</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1690383655849</updated>
+    </task>
+    <task id="LOCAL-00032" summary="Implemented WMS layer">
+      <created>1690458831936</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1690458831936</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Added logic for content view and minor fixes">
+      <created>1690538697735</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1690538697735</updated>
+    </task>
+    <task id="LOCAL-00034" summary="Added logic for content view and minor fixes">
+      <created>1690538838950</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1690538838950</updated>
+    </task>
+    <task id="LOCAL-00035" summary="Fix content filters and data by content json">
+      <created>1690551424509</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1690551424509</updated>
+    </task>
+    <task id="LOCAL-00036" summary="Fix content filters and data by content json">
+      <created>1690551576583</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1690551576583</updated>
+    </task>
+    <task id="LOCAL-00037" summary="Merge branch 'v2' into feature/implemented-wms-layer&#10;&#10;# Conflicts:&#10;#&#9;app/client-v2/packages/ui/components/MapByLayer.tsx&#10;#&#9;app/client-v2/pnpm-lock.yaml">
+      <created>1690803866444</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1690803866444</updated>
+    </task>
+    <task id="LOCAL-00038" summary="Changed WMS layer by react map gl">
+      <created>1690815707330</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1690815707330</updated>
+    </task>
+    <task id="LOCAL-00039" summary="Changed WMS  and XYZ layers">
+      <created>1690881948398</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1690881948398</updated>
+    </task>
+    <task id="LOCAL-00040" summary="Changed WMS  and XYZ layers">
+      <created>1690881973053</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1690881973053</updated>
+    </task>
+    <task id="LOCAL-00041" summary="i18n with Next.js 13 and app directory">
+      <created>1690894351080</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1690894351080</updated>
+    </task>
+    <task id="LOCAL-00042" summary="i18n with Next.js 13 and app directory">
+      <created>1690982926919</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1690982926919</updated>
+    </task>
+    <task id="LOCAL-00043" summary="Added dashboard json">
+      <created>1690985017629</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1690985017629</updated>
+    </task>
+    <task id="LOCAL-00044" summary="Added map folder with layers in ui folder">
+      <created>1690992816374</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1690992816374</updated>
+    </task>
+    <task id="LOCAL-00045" summary="Implemented add seat logic">
+      <created>1691055888913</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1691055888913</updated>
+    </task>
+    <task id="LOCAL-00046" summary="Changed api folder">
+      <created>1691057331193</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1691057331193</updated>
+    </task>
+    <task id="LOCAL-00047" summary="Changed api folder">
+      <created>1691057402143</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1691057402143</updated>
+    </task>
+    <task id="LOCAL-00048" summary="Added axios settings , changed fetch for folders">
+      <created>1691163772925</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1691163772925</updated>
+    </task>
+    <option name="localTasksCounter" value="49" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Added Controls, all vector, layers with selectbox" />
+    <MESSAGE value="Add preview to content" />
+    <MESSAGE value="Fix conflicts" />
+    <MESSAGE value="Merge branch 'v2' into feature/add-preview-content&#10;&#10;# Conflicts:&#10;#&#9;app/client-v2/apps/goat/middleware.ts&#10;#&#9;app/client-v2/pnpm-lock.yaml" />
+    <MESSAGE value="Added use client" />
+    <MESSAGE value="Remove json" />
+    <MESSAGE value="Changed yaml file" />
+    <MESSAGE value="Merge branch 'v2' into feature/add-preview-content&#10;&#10;# Conflicts:&#10;#&#9;app/client-v2/apps/goat/app/(dashboard)/content/page.tsx" />
+    <MESSAGE value="Added route content/preview" />
+    <MESSAGE value="Change useStyles directly" />
+    <MESSAGE value="Use absolute paths for all components" />
+    <MESSAGE value="Added demo jso data for preview map" />
+    <MESSAGE value="Implemented XYZ layer" />
+    <MESSAGE value="Implemented WMS layer" />
+    <MESSAGE value="Added logic for content view and minor fixes" />
+    <MESSAGE value="Fix content filters and data by content json" />
+    <MESSAGE value="Merge branch 'v2' into feature/implemented-wms-layer&#10;&#10;# Conflicts:&#10;#&#9;app/client-v2/packages/ui/components/MapByLayer.tsx&#10;#&#9;app/client-v2/pnpm-lock.yaml" />
+    <MESSAGE value="Changed WMS layer by react map gl" />
+    <MESSAGE value="Changed WMS  and XYZ layers" />
+    <MESSAGE value="i18n with Next.js 13 and app directory" />
+    <MESSAGE value="Added dashboard json" />
+    <MESSAGE value="Added map folder with layers in ui folder" />
+    <MESSAGE value="Implemented add seat logic" />
+    <MESSAGE value="Changed api folder" />
+    <MESSAGE value="Added axios settings , changed fetch for folders" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added axios settings , changed fetch for folders" />
+  </component>
+</project>
