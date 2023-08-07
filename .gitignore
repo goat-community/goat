@@ -69,3 +69,4 @@ costs.bin
 *.tfstate
 *.tfvars
 *.pkrvars*
+.idea
