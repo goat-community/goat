@@ -108,6 +108,16 @@ async def read_folders(
     user_id: UUID4 = Depends(get_user_id),
     page_params: PaginationParams = Depends(),
     search: str = Query(None, description="Searches the name of the folder"),
+    order_by: str = Query(
+        None,
+        description="Specify the column name that should be used to order. You can check the Project model to see which column names exist.",
+        example="created_at",
+    ),
+    order: OrderEnum = Query(
+        "ascendent",
+        description="Specify the order to apply. There are the option ascendent or descendent.",
+        example="ascendent",
+    ),
 ):
     """Retrieve a list of folders."""
     query = select(Folder).where(Folder.user_id == user_id)
@@ -116,6 +126,8 @@ async def read_folders(
         query=query,
         page_params=page_params,
         search_text={"name": search} if search else {},
+        order_by=order_by,
+        order=order,
     )
 
     if len(folders.items) == 0:
