@@ -8,15 +8,16 @@ import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
 import { API } from "@/lib/api/apiConstants";
 import {
-  contentDataFetcher,
   contentFoldersFetcher,
   contentLayersFetcher,
   contentProjectsFetcher,
   contentReportsFetcher,
 } from "@/lib/services/dashboard";
 import { formatDate } from "@/lib/utils/helpers";
+import FolderIcon from "@mui/icons-material/Folder";
 import React, { useEffect, useState } from "react";
 import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
 
 import { FileManagementTable, Chip } from "@p4b/ui/components/DataDisplay";
 import Dialog from "@p4b/ui/components/Dialog";
@@ -24,29 +25,6 @@ import Modal from "@p4b/ui/components/Modal";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Text, IconButton, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-const columnNames = [
-  {
-    id: "name",
-    label: "Name",
-    numeric: false,
-  },
-  {
-    id: "type",
-    label: "Type",
-    numeric: false,
-  },
-  {
-    id: "modified",
-    label: "Modified",
-    numeric: false,
-  },
-  {
-    id: "size",
-    label: "Size",
-    numeric: false,
-  },
-];
 
 //todo check
 const ContainingProjects = [
@@ -65,17 +43,16 @@ const ContainingProjects = [
 ];
 
 const ContentManagement = () => {
-  const { data, error } = useSWR("content", contentDataFetcher);
-
   const { data: folderData, error: folderError } = useSWR(API.folder, contentFoldersFetcher);
-  const { data: layerData, error: layerError } = useSWR(API.layer, contentLayersFetcher);
-  const { data: reportData, error: reportError } = useSWR(API.report, contentReportsFetcher);
-  const { data: projectData, error: projectError } = useSWR(API.project, contentProjectsFetcher);
+  const { data: layerData, trigger: layerTrigger } = useSWRMutation(API.layer, contentLayersFetcher);
+  const { data: reportData, trigger: reportTrigger } = useSWRMutation(API.report, contentReportsFetcher);
+  const { data: projectData, trigger: projectTrigger } = useSWRMutation(API.project, contentProjectsFetcher);
 
   const [modalContent, setModalContent] = useState<object | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [path, setPath] = useState<string[]>(["home"]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<object | null>(null);
   const [rows, setRows] = useState<any[]>([]);
   const [dialogContent, setDialogContent] = useState<{
     name: React.ReactNode;
@@ -86,205 +63,33 @@ const ContentManagement = () => {
 
   const { classes } = useStyles();
 
-  //todo remove after
-  // Dumb Data
-  // These are the rows of the table, it is only temporary for now
-  // const rowsDumbData = [
-  //   {
-  //     name: (
-  //       <Text className={classes.folder} typo="body 2">
-  //         <span className={classes.icon}>
-  //           <Icon iconId="folder" />
-  //         </span>
-  //         Report_Final_Version
-  //       </Text>
-  //     ),
-  //     type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     size: "30 kb",
-  //     path: ["home"],
-  //     stringName: "Report_Final_Version",
-  //     files: [
-  //       {
-  //         name: "Project_XYZ_Conclusion",
-  //         type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-  //         modified: "23 Jun 19",
-  //         size: "30 kb",
-  //         path: ["home", "Report_Final_Version"],
-  //       },
-  //       {
-  //         name: "Data_Analysis_2023_Q1",
-  //         type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
-  //         modified: "23 Jun 19",
-  //         size: "30 kb",
-  //         path: ["home", "Report_Final_Version"],
-  //       },
-  //       {
-  //         name: "Experiment_Results_Phase2",
-  //         type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
-  //         modified: "23 Jun 19",
-  //         size: "30 kb",
-  //         path: ["home", "Report_Final_Version"],
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     name: (
-  //       <Text className={classes.folder} typo="body 2">
-  //         <span className={classes.icon}>
-  //           <Icon iconId="folder" />
-  //         </span>
-  //         plan_4_better
-  //       </Text>
-  //     ),
-  //     type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     size: "30 kb",
-  //     path: ["home"],
-  //     stringName: "plan_4_better",
-  //     files: [
-  //       {
-  //         name: "Project_XYZ_Conclusion",
-  //         type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-  //         modified: "23 Jun 19",
-  //         size: "30 kb",
-  //         path: ["home", "plan_4_better"],
-  //       },
-  //       {
-  //         name: "Data_Analysis_2023_Q1",
-  //         type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
-  //         modified: "23 Jun 19",
-  //         size: "30 kb",
-  //         path: ["home", "plan_4_better"],
-  //       },
-  //       {
-  //         name: "Experiment_Results_Phase2",
-  //         type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
-  //         modified: "23 Jun 19",
-  //         size: "30 kb",
-  //         path: ["home", "plan_4_better"],
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     name: (
-  //       <Text className={classes.folder} typo="body 2">
-  //         <span className={classes.icon}>
-  //           <Icon iconId="folder" />
-  //         </span>
-  //         example_proj
-  //       </Text>
-  //     ),
-  //     type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     size: "30 kb",
-  //     path: ["home"],
-  //     stringName: "example_proj",
-  //     files: [
-  //       {
-  //         name: "Project_XYZ_Conclusion",
-  //         type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-  //         modified: "23 Jun 19",
-  //         size: "30 kb",
-  //         path: ["home", "example_proj"],
-  //       },
-  //       {
-  //         name: (
-  //           <Text className={classes.folder} typo="body 2">
-  //             <span className={classes.icon}>
-  //               <Icon iconId="folder" />
-  //             </span>
-  //             april_2023
-  //           </Text>
-  //         ),
-  //         type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-  //         modified: "23 Jun 19",
-  //         size: "30 kb",
-  //         path: ["home", "example_proj"],
-  //         stringName: "april_2023",
-  //         files: [
-  //           {
-  //             name: "Project_XYZ_Conclusion",
-  //             type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-  //             modified: "23 Jun 19",
-  //             size: "30 kb",
-  //             path: ["home", "example_proj", "april_2023"],
-  //           },
-  //           {
-  //             name: "Data_Analysis_2023_Q1",
-  //             type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
-  //             modified: "23 Jun 19",
-  //             size: "30 kb",
-  //             path: ["home", "example_proj", "april_2023"],
-  //           },
-  //           {
-  //             name: "Experiment_Results_Phase2",
-  //             type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
-  //             modified: "23 Jun 19",
-  //             size: "30 kb",
-  //             path: ["home", "example_proj", "april_2023"],
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     name: "Report_Final_Version",
-  //     type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     path: ["home"],
-  //     size: "30 kb",
-  //   },
-  //   {
-  //     name: "Project_XYZ_Conclusion",
-  //     type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     path: ["home"],
-  //     size: "30 kb",
-  //   },
-  //   {
-  //     name: "Data_Analysis_2023_Q1",
-  //     type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     path: ["home"],
-  //     size: "30 kb",
-  //   },
-  //   {
-  //     name: "Experiment_Results_Phase2",
-  //     type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     path: ["home"],
-  //     size: "30 kb",
-  //   },
-  //   {
-  //     name: "Report_Final_Version",
-  //     type: <Chip className={classes.chip} label="Layer" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     path: ["home"],
-  //     size: "30 kb",
-  //   },
-  //   {
-  //     name: "Project_XYZ_Conclusion",
-  //     type: <Chip className={classes.chip} label="Project" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     path: ["home"],
-  //     size: "30 kb",
-  //   },
-  //   {
-  //     name: "Data_Analysis_2023_Q1",
-  //     type: <Chip className={classes.chip} label="Image" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     path: ["home"],
-  //     size: "30 kb",
-  //   },
-  //   {
-  //     name: "Experiment_Results_Phase2",
-  //     type: <Chip className={classes.chip} label="Report" textDesign="italic" variant="Border" />,
-  //     modified: "23 Jun 19",
-  //     path: ["home"],
-  //     size: "30 kb",
-  //   },
-  // ];
+  const columnNames = [
+    {
+      id: "name",
+      label: selectedFolder?.name || "",
+      numeric: false,
+      isSortable: false,
+      icon: FolderIcon,
+    },
+    {
+      id: "type",
+      label: "Type",
+      numeric: false,
+      isSortable: true,
+    },
+    {
+      id: "modified",
+      label: "Modified",
+      numeric: false,
+      isSortable: true,
+    },
+    {
+      id: "size",
+      label: "Size",
+      numeric: false,
+      isSortable: true,
+    },
+  ];
 
   // this is the Info Modal
   const modal = modalContent
@@ -316,62 +121,83 @@ const ContentManagement = () => {
     setDialogContent(null);
   }
 
+  function handleSelectFolder(folder) {
+    setSelectedFolder(folder);
+    layerTrigger(folder.id);
+    projectTrigger(folder.id);
+    reportTrigger(folder.id);
+  }
+
+  function handleAddFolder() {
+    console.log("handleAddFolder");
+  }
+
   useEffect(() => {
-    if (data?.items) {
-      const filteredRows = data?.items;
+    let filteredRows = [];
 
-      //todo check
-      // if (selectedFilters.length > 0) {
-      //   filteredRows = filteredRows.filter((item) => selectedFilters.includes(item.type));
-      // }
-
-      setRows(
-        filteredRows?.map((item) => {
+    if (layerData?.items) {
+      filteredRows.push(
+        ...layerData?.items?.map((item) => {
           return {
+            id: item.id,
             name: item?.name,
-            type: <Chip className={classes.chip} label={item?.type} textDesign="italic" variant="Border" />,
+            type: <Chip className={classes.chip} label="layer" textDesign="italic" variant="Border" />,
             modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
             path: ["home"],
-            size: `${item?.metadata?.size} kb`,
-            info: [
-              {
-                tag: "Owner",
-                data: `${item?.owner?.first_name} ${item?.owner?.last_name}`,
-              },
-              {
-                tag: "Shared with",
-                data: item?.shared_with?.public?.url,
-              },
-              {
-                tag: "Type",
-                data: item?.type,
-              },
-              {
-                tag: "Modified",
-                data: item?.metadata?.updated_at,
-              },
-              {
-                tag: "Size",
-                data: `${item?.metadata?.size} kb`,
-              },
-              {
-                tag: "Location",
-                data: "content/project/folderx",
-              },
-            ],
+            size: `${item?.metadata?.size || ""} kb`,
+            info: [],
           };
         })
       );
     }
-  }, [selectedFilters, data]);
 
-  if (error) {
-    return <div>Error fetching data</div>;
-  }
+    if (projectData?.items) {
+      filteredRows.push(
+        ...projectData?.items?.map((item) => {
+          return {
+            id: item.id,
+            name: item?.name,
+            type: <Chip className={classes.chip} label="project" textDesign="italic" variant="Border" />,
+            modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
+            path: ["home"],
+            size: `${item?.metadata?.size || ""} kb`,
+            info: [],
+          };
+        })
+      );
+    }
 
-  if (!rows?.length) {
-    return <div>Loading...</div>;
-  }
+    if (reportData?.items) {
+      filteredRows.push(
+        ...reportData?.items?.map((item) => {
+          return {
+            id: item.id,
+            name: item?.name,
+            type: <Chip className={classes.chip} label="report" textDesign="italic" variant="Border" />,
+            modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
+            path: ["home"],
+            size: `${item?.metadata?.size || ""} kb`,
+            info: [],
+          };
+        })
+      );
+    }
+
+    if (selectedFilters.length > 0) {
+      filteredRows = filteredRows.filter((item) => selectedFilters.includes(item.id));
+    }
+
+    setRows(filteredRows);
+  }, [selectedFilters, projectData, layerData, reportData]);
+
+  useEffect(() => {
+    if (folderData?.items[0] && selectedFolder === null) {
+      setSelectedFolder(folderData.items[0]);
+      layerTrigger(folderData.items[0].id);
+      projectTrigger(folderData.items[0].id);
+      reportTrigger(folderData.items[0].id);
+    }
+  }, [folderData?.items, selectedFolder]);
 
   return (
     <>
@@ -387,8 +213,10 @@ const ContentManagement = () => {
             projectData={projectData?.items}
             layerData={layerData?.items}
             reportData={reportData?.items}
+            handleSelectFolder={handleSelectFolder}
             selectedFilters={selectedFilters}
             setSelectedFilters={setSelectedFilters}
+            handleAddFolder={handleAddFolder}
           />
         </SingleGrid>
         <SingleGrid span={3}>
