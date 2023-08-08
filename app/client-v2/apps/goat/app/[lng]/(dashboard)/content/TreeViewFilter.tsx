@@ -1,80 +1,43 @@
 import React from "react";
 
-import { TreeViewWithCheckboxes } from "@p4b/ui/components/DataDisplay";
+import { TreeViewWithCheckboxes, TreeView, Divider } from "@p4b/ui/components/DataDisplay";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface ITreeViewFilterProps {
-  data: object;
   selectedFilters: string[];
   setSelectedFilters: (value: string[]) => void;
+  folderData: [] | undefined;
+  projectData: [] | undefined;
+  reportData: [] | undefined;
+  layerData: [] | undefined;
 }
 
 const TreeViewFilter = (props: ITreeViewFilterProps) => {
-  const { data, selectedFilters, setSelectedFilters } = props;
+  const { selectedFilters, setSelectedFilters, projectData, reportData, layerData, folderData } = props;
   const { classes } = useStyles();
 
-  const typeCount = {};
-  data?.items.forEach((item) => {
-    const type = item.type;
-    if (!typeCount[type]) {
-      typeCount[type] = 0;
-    }
-    typeCount[type]++;
-  });
-
-  const outputArr = Object.entries(typeCount).map(([type, count]) => ({
-    id: type,
-    name: type.toUpperCase(),
-    count: `(${count})`,
-    // children: [],
-  }));
-
-  //todo remove after
-  // const treeData = [
-  //   {
-  //     id: "layers",
-  //     name: "Layers",
-  //     count: "(100)",
-  //     children: [
-  //       {
-  //         id: "feature",
-  //         name: "Feature",
-  //         count: "(72)",
-  //       },
-  //       {
-  //         id: "imagery",
-  //         name: "Imagery",
-  //         count: "(28)",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     id: "reports",
-  //     name: "Reports",
-  //     count: "(43)",
-  //   },
-  //   {
-  //     id: "projects",
-  //     name: "Projects",
-  //     count: "(10)",
-  //     children: [
-  //       {
-  //         id: "project_one",
-  //         name: "Project_one",
-  //         count: "(6)",
-  //         children: [
-  //           {
-  //             id: "project_two",
-  //             name: "Project_Twosadddsadsdfsaad",
-  //             count: "(4)",
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //   },
-  // ];
+  const treeData = [
+    {
+      id: "layer",
+      name: "Layers",
+      count: `(${layerData?.length || 0})`,
+      children: layerData ?? [],
+    },
+    {
+      id: "project",
+      name: "Projects",
+      count: `(${projectData?.length || 0})`,
+      children: projectData ?? [],
+    },
+    {
+      id: "report",
+      name: "Reports",
+      count: `(${reportData?.length || 0})`,
+      children: reportData ?? [],
+    },
+  ];
 
   // Functions
   function clearFilters() {
@@ -84,10 +47,14 @@ const TreeViewFilter = (props: ITreeViewFilterProps) => {
   return (
     <Card className={classes.treeView} noHover={true} width="100%">
       <div className={classes.wrapper}>
+        <div className={classes.folderWrapper}>
+          <TreeView nodes={folderData || []} />
+        </div>
+        <Divider color="main" />
         <TreeViewWithCheckboxes
           selected={selectedFilters}
           changeSelected={setSelectedFilters}
-          treeData={outputArr}
+          treeData={treeData}
         />
         {selectedFilters.length ? <Button onClick={clearFilters}>Clear Filters</Button> : null}
       </div>
@@ -104,6 +71,16 @@ const useStyles = makeStyles({ name: { TreeViewFilter } })((theme) => ({
     flexDirection: "column",
     justifyContent: "space-between",
     height: "100%",
+  },
+
+  folderWrapper: {
+    ul: {
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+      height: "100%",
+      gap: "20px",
+    },
   },
 }));
 
