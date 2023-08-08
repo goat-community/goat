@@ -136,9 +136,9 @@ async def create_connectivity_matrices_async(current_super_user, parameters):
     await compute_heatmap.compute_connectivity_matrix(**parameters)
 
 
-async def read_heatmap_async(current_user, settings):
+async def read_heatmap_async(current_user, heatmap_settings):
     current_user = models.User(**current_user)
-    heatmap_settings = HeatmapSettings(**settings)
+    #heatmap_settings = HeatmapSettings(**settings)
     heatmap = ReadHeatmap(current_user=current_user)
 
     if heatmap_settings.heatmap_type == HeatmapType.modified_gaussian_population:
@@ -175,8 +175,8 @@ async def read_heatmap_async(current_user, settings):
         # result["agg_class"] = result["agg_class"].round()
 
     # todo: Can be extended to other formats in the future based on return type
-    geojson_result = heatmap.to_geojson(result)
-    return_data = {
+    geojson_result = heatmap.to_geojson(result, heatmap_settings)
+    result = {
         "data": {
             "geojson": geojson_result,
         },
@@ -184,8 +184,7 @@ async def read_heatmap_async(current_user, settings):
         "hexlified": False,
         "data_source": "heatmap",
     }
-
-    return return_data
+    return result
 
 
 async def read_pt_station_count_async(current_user, payload, return_type):

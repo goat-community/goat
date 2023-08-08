@@ -67,7 +67,7 @@ const getters = {
 };
 
 const actions = {
-  [GET_POIS_AOIS]({ state }) {
+  [GET_POIS_AOIS]({ rootState, state }) {
     return new Promise((resolve, reject) => {
       ApiService.get_(`/pois-aois/visualization?return_type=geobuf`, {
         responseType: "arraybuffer",
@@ -92,8 +92,27 @@ const actions = {
                 state.rawPoisAois[oneFeature.get("category")].push(oneFeature);
               }
             });
-
-            if (olFeatures.length > 45000) {
+            const aoiCategories = [];
+            const aoiGroups = rootState.app.appConfig.aoi_groups;
+            Object.keys(aoiGroups).forEach(key => {
+              const aoiGroup = aoiGroups[key];
+              Object.keys(aoiGroup).forEach(aoiCategory => {
+                const group = aoiGroup[aoiCategory];
+                const children = group.children;
+                children.forEach(child => {
+                  const categoryName = Object.keys(child)[0];
+                  aoiCategories.push(categoryName);
+                });
+              });
+            });
+            let aoiCategoriesCount = 0;
+            olFeatures.forEach(oneFeature => {
+              if (aoiCategories.includes(oneFeature.get("category"))) {
+                aoiCategoriesCount++;
+              }
+            });
+            const poiLength = olFeatures.length - aoiCategoriesCount;
+            if (poiLength > 50000) {
               state.poisAoisLayer.setMinZoom(14);
             }
           }

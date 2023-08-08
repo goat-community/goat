@@ -58,7 +58,6 @@ class BaseHeatmap:
     def read_h3_grids_study_areas(
         self, resolution: int, buffer_size: int, study_area_ids: list[int] = []
     ) -> list[str]:
-
         """Reads grid ids for study areas.
 
         Args:
@@ -130,7 +129,6 @@ class ReadHeatmap(BaseHeatmap):
         self,
         heatmap_settings: HeatmapSettings,
     ) -> list[dict]:
-
         bulk_ids = self.read_bulk_ids(heatmap_settings.study_area_ids)
         grid_array, h_polygons = self.read_hexagons(
             heatmap_settings.study_area_ids, heatmap_settings.resolution
@@ -168,7 +166,6 @@ class ReadHeatmap(BaseHeatmap):
                 CalculationTypes.comparison,
                 CalculationTypes.scenario,
             ]:
-
                 opportunities_modified = gpd.read_postgis(
                     heatmap_core.read_population_modified_sql(heatmap_settings.scenario.id),
                     legacy_engine,
@@ -201,7 +198,6 @@ class ReadHeatmap(BaseHeatmap):
             return result
 
         else:
-
             matrix_base_path = os.path.join(
                 settings.OPPORTUNITY_MATRICES_PATH, heatmap_settings.mode.value, profile
             )
@@ -751,6 +747,7 @@ class ReadHeatmap(BaseHeatmap):
     def to_geojson(
         self,
         results: dict,
+        settings: HeatmapSettings,
     ):
         """
         Convert the results to geojson format
@@ -770,6 +767,7 @@ class ReadHeatmap(BaseHeatmap):
         h3_grid_ids = results["h3_grid_ids"]
         h3_polygons = results["h3_polygons"]
         properties = without_keys(results, ["h3_grid_ids", "h3_polygons"])
+        properties = self.clean_unvisible_properties(properties, settings)
         features = []
         for i in range(len(h3_grid_ids)):
             h3_grid_id = h3_grid_ids[i]
@@ -803,6 +801,18 @@ class ReadHeatmap(BaseHeatmap):
             )
         geojson = {"type": "FeatureCollection", "features": features}
         return geojson
+
+    def clean_unvisible_properties(self, properties, settings):
+        """
+        Checks if the amenity should be visible and removes it from the properties if not
+        To show an amenity add "visible": true to the amenity config
+        """
+        for amenities in settings.heatmap_config.values():
+            for amenity_name, config in amenities.items():
+                if config.get("visible") is not True:
+                    properties.pop(amenity_name, None)
+                    properties.pop(f"{amenity_name}_class", None)
+        return properties
 
 
 read_heatmap = ReadHeatmap

@@ -13,7 +13,7 @@ K8S_CLUSTER?=goat
 NAMESPACE?=$(shell git rev-parse --abbrev-ref HEAD)
 # Build and test directories
 CWD:=$(shell pwd)
-SRC_DIR?=$(CWD)/infra/templates/k8s/deploy
+SRC_DIR?=$(CWD)/infra/templates/aws/k8s/deploy
 
 
 ifeq ($(NAMESPACE), prod)
@@ -26,7 +26,14 @@ endif
 
 ifeq ($(NAMESPACE), dev)
 	DOMAIN=goat-dev.plan4better.de
+	SRC_DIR=$(CWD)/infra/templates/dev
 endif
+
+ifeq ($(NAMESPACE), v2)
+	DOMAIN=v2.goat.plan4better.de
+	SRC_DIR=$(CWD)/infra/templates/v2
+endif
+
 
 DOCKER_IMAGE?=$(REGISTRY)/$(PROJECT)/$(COMPONENT)-${NAMESPACE}:$(VERSION)
 
@@ -146,12 +153,12 @@ after-success:
 build-k8s:
 	rm -f $(K8S_OBJ)
 	make $(K8S_OBJ)
-	@echo "Built infra/templates/k8s/deploy/*.yaml from infra/templates/k8s/deploy/*.tpl.yaml"
+	@echo "Build from $(SRC_DIR)/*.yaml from $(SRC_DIR)/*.tpl.yaml"
 
 # target: make deploy -e COMPONENT=api|client
 .PHONY: deploy
 deploy: setup-kube-config build-k8s
-	$(KCTL) apply -f infra/templates/k8s/deploy/$(COMPONENT).yaml
+	$(KCTL) apply -f $(SRC_DIR)/$(COMPONENT).yaml
 
 #=============================
 # ==== AWS CLOUDFORMATION ====

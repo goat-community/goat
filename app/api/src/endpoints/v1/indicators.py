@@ -60,14 +60,8 @@ async def calculate_isochrone(
     """
     if isochrone_in.scenario.id:
         await deps.check_user_owns_scenario(db, isochrone_in.scenario.id, current_user)
-
-    if isochrone_in.is_single:
-        user_access_starting_point = await crud.user.user_study_area_starting_point_access(
-            db, current_user.id, isochrone_in.starting_point.input
-        )
-        if not user_access_starting_point:
-            raise HTTPException(detail="User has no access to starting point", status_code=403)
-
+        
+    # TODO: Check to remove study area bounds from here. We can have it in the downstream function only. Where it is used. 
     study_area = await crud.user.get_active_study_area(db, current_user)
     study_area_bounds = study_area["bounds"]
     isochrone_in = json.loads(isochrone_in.json())
@@ -137,7 +131,7 @@ async def calculate_heatmap(
     Calculate a heatmap for a given set of parameters.
     """
     current_user = json.loads(current_user.json())
-    heatmap_settings = json.loads(heatmap_settings.json())
+    #heatmap_settings = json.loads(heatmap_settings.json())
     if settings.CELERY_BROKER_URL:
         task = read_heatmap_task.delay(
             current_user=current_user,
@@ -146,7 +140,7 @@ async def calculate_heatmap(
         return {"task_id": task.id}
 
     else:
-        results = await read_heatmap_async(current_user=current_user, settings=heatmap_settings)
+        results = await read_heatmap_async(current_user=current_user, heatmap_settings=heatmap_settings)
         return read_results(results)
 
 

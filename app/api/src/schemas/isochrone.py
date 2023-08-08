@@ -54,7 +54,7 @@ class IsochroneCyclingProfile(Enum):
 class IsochroneAccessMode(Enum):
     WALK = "walk"
     BICYCLE = "bicycle"
-    # CAR = "car" //TODO: not supported yet
+    CAR = "car"
     # CAR_PARK = "car_park" //TODO: not supported yet
 
 
@@ -388,6 +388,7 @@ R5AvailableDates = {
 }
 
 R5ProjectID = "630c0014aad8682ef8461b44"
+R5ProjectIDCarOnly = "64ad9dcf92f18428b858eb2e"
 
 R5TravelTimePayloadTemplate = {
     "accessModes": "WALK",
