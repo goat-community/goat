@@ -51,7 +51,7 @@ initial_view_state_example = {
     "longitude": 11.5696284,
     "zoom": 12,
     "min_zoom": 0,
-    "max_zoom": 22,
+    "max_zoom": 20,
     "bearing": 0,
     "pitch": 0,
 }
