@@ -95,6 +95,12 @@ class TileLayerDataType(str, Enum):
 
     mvt = "mvt"
 
+class FeatureLayerGeometryType(str, Enum):
+    """Feature layer geometry types."""
+
+    point = "point"
+    line = "line"
+    polygon = "polygon"
 
 class GeospatialAttributes(SQLModel):
     """Some general geospatial attributes."""
@@ -221,8 +227,15 @@ class Layer(LayerBase, GeospatialAttributes, DateTimeBase, table=True):
     feature_layer_type: Optional["FeatureLayerType"] = Field(
         sa_column=Column(Text, nullable=True), description="Feature layer type"
     )
+    feature_layer_geometry_type: FeatureLayerGeometryType | None = Field(
+        sa_column=Column(Text, nullable=True), description="Geometry type for feature layers"
+    )
     size: int | None = Field(
         sa_column=Column(Integer, nullable=True), description="Size of the layer in bytes"
+    )
+    attribute_mapping: dict | None = Field(
+        sa_column=Column(JSONB, nullable=True),
+        description="Attribute mapping for feature layers",
     )
 
     # Relationships
