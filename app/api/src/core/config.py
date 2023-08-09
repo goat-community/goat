@@ -113,22 +113,7 @@ class Settings(BaseSettings):
             host=values.get("POSTGRES_SERVER"),
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
-
-    SMTP_TLS: Optional[bool] = True
-    SMTP_PORT: Optional[int] = 587
-    SMTP_HOST: Optional[str] = "smtp.office365.com"
-    SMTP_USER: Optional[str] = None
-    SMTP_PASSWORD: Optional[str] = None
-    EMAILS_FROM_EMAIL: Optional[EmailStr] = None
-    EMAILS_FROM_NAME: Optional[str] = None
-
-    @validator("EMAILS_FROM_NAME")
-    def get_project_name(cls, v: Optional[str], values: Dict[str, Any]) -> str:
-        if not v:
-            return values["PROJECT_NAME"].upper()
-        return v
-
-    EMAIL_TOKEN_EXPIRE_HOURS: int = 2
+    
     SRC_DIR: str = "/app/src"
     CACHE_DIR: str = "/app/src/cache"
     EMAIL_TEMPLATES_DIR: str = "/app/src/templates/email/build"
@@ -141,30 +126,8 @@ class Settings(BaseSettings):
             values.get("SMTP_HOST") and values.get("SMTP_PORT") and values.get("EMAILS_FROM_EMAIL")
         )
 
-    FIRST_ORGANIZATION: str
-    FIRST_SUPERUSER_NAME: str
-    FIRST_SUPERUSER_SURNAME: str
-    FIRST_SUPERUSER_PASSWORD: str
-    FIRST_SUPERUSER_EMAIL: Optional[str] = "administrator@plan4better.de"
-    FIRST_SUPERUSER_STORAGE: Optional[int] = 500000  # In kilobytes
-    FIRST_SUPERUSER_ACTIVE_STUDY_AREA_ID: int = 91620000
-    FIRST_SUPERUSER_ACTIVE_DATA_UPLOAD_IDS: List[int] = []
-    FIRST_SUPERUSER_LIMIT_SCENARIOS: int = 50
-    FIRST_SUPERUSER_LANGUAGE_PREFERENCE: str = "en"
-
-    POSTGRES_DB_FOREIGN: Optional[str] = "goat"
-    POSTGRES_SERVER_FOREIGN: Optional[str] = "localhost"
-    POSTGRES_USER_FOREIGN: Optional[str] = "postgres"
-    POSTGRES_PASSWORD_FOREIGN: Optional[str] = "secret"
-    POSTGRES_OUTER_PORT_FOREIGN: Optional[int] = 5432
-    POSTGRES_SCHEMA_FOREIGN: Optional[str] = "basic"
-
     POSTGRES_FUNCTIONS_SCHEMA: Optional[str] = "basic"
 
-    DEMO_USER_STUDY_AREA_ID: Optional[int] = 91620000  # Munich
-    DEMO_USER_SCENARIO_LIMIT: Optional[int] = 5
-    DEMO_USER_STORAGE: Optional[int] = 0  # In kilobytes
-    DEMO_USER_DEACTIVATION_DAYS: Optional[int] = 30
     # Tile / Table config
     TILE_RESOLUTION: int = 4096
     TILE_BUFFER: int = 256
