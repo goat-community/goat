@@ -85,6 +85,8 @@ interface FileManagementHeadProps {
     id: string;
     numeric: boolean;
     label: string;
+    isSortable: boolean;
+    icon?: any;
   }[];
 }
 
@@ -105,27 +107,47 @@ function FileManagementHead(props: FileManagementHeadProps) {
   return (
     <TableHead>
       <TableRow>
-        {columns.map((headCell) => (
-          <TableCell
-            className={classes.tableCell}
-            key={headCell.id}
-            align={headCell.numeric ? "right" : "left"}
-            sortDirection={orderBy === headCell.id ? order : false}>
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : "asc"}
-              onClick={createSortHandler(headCell.id)}>
-              <Text className={classes.tableCellHeaderText} typo="body 1">
-                {headCell.label}
-              </Text>
-              {orderBy === headCell.id ? (
-                <Box component="span" sx={visuallyHidden}>
-                  {order === "desc" ? "sorted descending" : "sorted ascending"}
+        {columns.map((headCell) => {
+          if (headCell.isSortable) {
+            return (
+              <TableCell
+                className={classes.tableCell}
+                key={headCell.id}
+                align={headCell.numeric ? "right" : "left"}
+                sortDirection={orderBy === headCell.id ? order : false}>
+                <TableSortLabel
+                  active={orderBy === headCell.id}
+                  direction={orderBy === headCell.id ? order : "asc"}
+                  onClick={createSortHandler(headCell.id)}>
+                  <Text className={classes.tableCellHeaderText} typo="body 1">
+                    {headCell.label}
+                  </Text>
+                  {orderBy === headCell.id ? (
+                    <Box component="span" sx={visuallyHidden}>
+                      {order === "desc" ? "sorted descending" : "sorted ascending"}
+                    </Box>
+                  ) : null}
+                </TableSortLabel>
+              </TableCell>
+            );
+          } else {
+            return (
+              <TableCell
+                className={classes.tableCell}
+                key={headCell.id}
+                align={headCell.numeric ? "right" : "left"}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  {headCell.icon ? (
+                    <Box component={headCell.icon} color="inherit" sx={{ mr: 1, color: "#2BB381" }} />
+                  ) : null}
+                  <Text className={classes.tableCellHeaderText} typo="body 1">
+                    {headCell.label}
+                  </Text>
                 </Box>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
+              </TableCell>
+            );
+          }
+        })}
         <TableCell className={classes.tableCell} padding="checkbox" />
       </TableRow>
     </TableHead>
@@ -178,13 +200,9 @@ export function FileManagementTable(props: FileManagementProps) {
 
   const { classes } = useStyles();
 
-  // Here we get the keys of the row so that we can render it
-  type ObjectKeys = keyof (typeof rows)[0];
-  const rowKeys: ObjectKeys[] = Object.keys(rows[0]) as ObjectKeys[];
-
   // Component State
   const [order, setOrder] = React.useState<Order>("asc");
-  const [orderBy, setOrderBy] = React.useState(rowKeys[0]);
+  const [orderBy, setOrderBy] = React.useState(null);
   const [selected, setSelected] = React.useState<(string | number)[]>([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
@@ -328,7 +346,18 @@ export function FileManagementTable(props: FileManagementProps) {
 
   useEffect(() => {
     setRowOnPath(rows);
+
+    if (rows.length) {
+      // Here we get the keys of the row so that we can render it
+      type ObjectKeys = keyof (typeof rows)[0];
+      const rowKeys: ObjectKeys[] = Object.keys(rows[0]) as ObjectKeys[];
+      setOrderBy(rowKeys[0]);
+    }
   }, [rows.length]);
+
+  if (!rows?.length) {
+    return <div>No Items</div>;
+  }
 
   return (
     <Box sx={{ width: "100%" }}>
