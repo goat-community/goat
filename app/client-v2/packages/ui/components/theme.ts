@@ -38,6 +38,9 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import LayersIcon from '@mui/icons-material/Layers';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import type { Param0 } from "tsafe";
 
 import "../assets/fonts/mulish/font.css";
@@ -97,6 +100,9 @@ export const { Icon } = createIcon({
   download: DownloadIcon,
   lock: LockIcon,
   team: GroupsIcon,
+  layers: LayersIcon, 
+  list: FormatListBulletedIcon,
+  report: AssessmentIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];
