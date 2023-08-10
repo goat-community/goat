@@ -29,6 +29,16 @@ export const contentLayersFetcher = async (url: string, { arg }: { arg: string }
   }
 };
 
+export const layerFetcher = async (url: string, { arg }: { arg: string }) => {
+  try {
+    const res = await axios.get(`${url}/${arg}`);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
 export const contentProjectsFetcher = async (url: string, { arg }: { arg: string }) => {
   try {
     const res = await axios.get(`${url}?folder_id=${arg}`);
@@ -46,5 +56,25 @@ export const contentReportsFetcher = async (url: string, { arg }: { arg: string 
   } catch (error) {
     console.error(error);
     return null;
+  }
+};
+
+export const addLayerService = async (url: string, body: object) => {
+  try {
+    const res = await axios.post(`${url}`, body);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
+export const loadLayerService = async (url: string) => {
+  try {
+    const res = await axios.get(`${url}`);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return false;
   }
 };

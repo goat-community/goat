@@ -9,6 +9,7 @@ export type DividerProps = {
   className?: string;
   width: string;
   color: "main" | "light" | "gray";
+  lineColor?: string;
 };
 
 export const Divider = memo(
@@ -17,6 +18,7 @@ export const Divider = memo(
       className,
       width,
       color,
+      lineColor,
       //For the forwarding, rest should be empty (typewise)
       ...rest
     } = props;
@@ -29,7 +31,10 @@ export const Divider = memo(
 
     return (
       <>
-        <div className={cx(classes.root, classes[color], className)} style={{ width: width }} />
+        <div
+          className={cx(classes.root, classes[color], className)}
+          style={{ width: width, backgroundColor: lineColor }}
+        />
       </>
     );
   })
