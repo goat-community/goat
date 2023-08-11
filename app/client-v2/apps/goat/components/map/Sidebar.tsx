@@ -10,6 +10,7 @@ import { useTheme } from "@p4b/ui/components/theme";
 export type MapSidebarItem = {
   icon: ICON_NAME;
   name: string;
+  component?: JSX.Element;
 };
 export type MapSidebarProps = {
   className?: string;
@@ -18,6 +19,8 @@ export type MapSidebarProps = {
   bottomItems?: MapSidebarItem[];
   width: number;
   position: "left" | "right";
+  active?: MapSidebarItem;
+  onClick?: (active: MapSidebarItem) => void;
 };
 
 export type MapSidebarListProps = {
@@ -25,27 +28,39 @@ export type MapSidebarListProps = {
   classes: Record<string, string>;
   justifyContent: CSSProperties["justifyContent"];
   sidebarPosition: MapSidebarProps["position"];
+  active?: MapSidebarItem;
+  onClick?: (active: MapSidebarItem) => void;
 };
 
 const MapSidebarList = (props: MapSidebarListProps) => {
-  const { items, classes, justifyContent, sidebarPosition } = props;
+  const { items, classes, justifyContent, sidebarPosition, active } = props;
   const theme = useTheme();
+
+  const htmlColor = (name: string) => {
+    if (name === active?.name) {
+      return theme.colors.palette.focus.main;
+    }
+    return theme.isDarkModeEnabled ? "white" : "gray";
+  };
+
   return (
     <List
       className={classes.list}
       sx={{
         justifyContent,
       }}>
-      {items.map(({ icon, name }, index) => (
-        <Tooltip title={name} arrow placement={sidebarPosition == "left" ? "right" : "left"}>
-          <ListItem key={icon} disablePadding disableGutters className={classes.listItem}>
-            <ListItemButton className={classes.listButton}>
+      {items.map((item, index) => (
+        <Tooltip title={item.name} arrow placement={sidebarPosition == "left" ? "right" : "left"}>
+          <ListItem key={item.icon} disablePadding disableGutters className={classes.listItem}>
+            <ListItemButton
+              className={classes.listButton}
+              onClick={() => {
+                if (props.onClick) {
+                  props.onClick(item);
+                }
+              }}>
               <ListItemIcon className={classes.listItemIcon}>
-                <FaIcon
-                  iconName={icon}
-                  htmlColor={theme.isDarkModeEnabled ? "white" : "gray"}
-                  fontSize="small"
-                />
+                <FaIcon iconName={item.icon} htmlColor={htmlColor(item.name)} fontSize="small" />
               </ListItemIcon>
             </ListItemButton>
           </ListItem>
@@ -58,7 +73,6 @@ const MapSidebarList = (props: MapSidebarListProps) => {
 export default function MapSidebar(props: MapSidebarProps) {
   const theme = useTheme();
   const { classes, cx } = useStyles({ sidebarWidth: props.width });
-
   return (
     <Drawer
       variant="permanent"
@@ -68,21 +82,27 @@ export default function MapSidebar(props: MapSidebarProps) {
       <Box className={classes.box}>
         <MapSidebarList
           items={props.topItems ?? []}
+          active={props.active}
           classes={classes}
           justifyContent="flex-start"
           sidebarPosition={props.position}
+          onClick={props.onClick}
         />
         <MapSidebarList
           items={props.centerItems ?? []}
+          active={props.active}
           classes={classes}
           justifyContent="center"
           sidebarPosition={props.position}
+          onClick={props.onClick}
         />
         <MapSidebarList
           items={props.bottomItems ?? []}
+          active={props.active}
           classes={classes}
           justifyContent="flex-end"
           sidebarPosition={props.position}
+          onClick={props.onClick}
         />
       </Box>
     </Drawer>
@@ -112,6 +132,7 @@ const useStyles = makeStyles<{ sidebarWidth: number }>({ name: { MapSidebar } })
       display: "flex",
       width: sidebarWidth,
       flexDirection: "column",
+      padding: 0,
     },
     listItem: {
       display: "block",
@@ -122,9 +143,8 @@ const useStyles = makeStyles<{ sidebarWidth: number }>({ name: { MapSidebar } })
       justifyContent: "center",
     },
     listButton: {
-      minHeight: 50,
+      minHeight: 60,
       justifyContent: "center",
-      px: 2.5,
       "&:hover": {
         backgroundColor: theme.colors.useCases.surfaces.surface2,
       },

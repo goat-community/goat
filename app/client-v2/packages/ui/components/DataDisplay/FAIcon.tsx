@@ -10,6 +10,9 @@ import {
   faCompassDrafting,
   faPalette,
   IconDefinition,
+  faSignOut,
+  faBuildingUser,
+  faBuilding,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { SvgIcon, SvgIconProps } from "@mui/material";
@@ -24,6 +27,8 @@ export enum ICON_NAME {
   FILTER = "filter",
   SCENARIO = "scenario",
   STYLE = "style",
+  SIGNOUT = "signout",
+  ORGANIZATION = "organization",
 }
 
 const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
@@ -36,6 +41,8 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.FILTER]: faFilter,
   [ICON_NAME.SCENARIO]: faCompassDrafting,
   [ICON_NAME.STYLE]: faPalette,
+  [ICON_NAME.SIGNOUT]: faSignOut,
+  [ICON_NAME.ORGANIZATION]: faBuilding,
 };
 
 library.add(...Object.values(nameToIcon));
