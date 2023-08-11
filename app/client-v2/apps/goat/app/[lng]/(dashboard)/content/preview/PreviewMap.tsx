@@ -17,7 +17,7 @@ const useStyles = makeStyles({ name: { PreviewMap } })(() => ({
 }));
 
 export default function PreviewMap(props: any) {
-  const { initial_view_state, MAP_ACCESS_TOKEN, map_style, scale_show, navigation_control } = props;
+  const { initial_view_state, map_style, scale_show, navigation_control, children } = props;
 
   const { classes, cx } = useStyles();
 
@@ -26,10 +26,11 @@ export default function PreviewMap(props: any) {
       <Map
         initialViewState={initial_view_state}
         style={{ width: "100%", height: "100%" }}
-        mapStyle={map_style}
-        mapboxAccessToken={MAP_ACCESS_TOKEN}>
+        mapStyle={map_style || "mapbox://styles/mapbox/streets-v11"}
+        mapboxAccessToken={process.env.NEXT_PUBLIC_MAP_TOKEN}>
         {scale_show && <ScaleControl />}
         {navigation_control && <NavigationControl />}
+        {children}
       </Map>
     </div>
   );

@@ -10,7 +10,15 @@ import { Icon, Text, IconButton } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface MoreMenuProps {
-  rowInfo: { name: React.ReactNode; type: React.ReactNode; modified: string; size: string } | null;
+  rowInfo: {
+    id: string;
+    name: React.ReactNode;
+    type: React.ReactNode;
+    modified: string;
+    size: string;
+    info: [];
+    path: [];
+  } | null;
 }
 
 interface ComponentOptions {
@@ -90,7 +98,7 @@ const MoreMenu = (props: MoreMenuProps) => {
     setSelectedOption(item);
 
     if (item.name === "View") {
-      router.push(`/content/preview/[id]`);
+      router.push(`/content/preview/${rowInfo?.id}`);
     }
   };
 

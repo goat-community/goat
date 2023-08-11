@@ -96,6 +96,7 @@ export type TextFieldProps = {
   rows?: number;
   /** NOTE: If length 0 it's assumed loading */
   options?: AttributeOptions;
+  setValueData?: (string) => void;
 
   autoComplete?:
     | "on"
@@ -166,6 +167,7 @@ export const TextField = memo((props: TextFieldProps) => {
   const {
     transformValueBeingTyped,
     defaultValue = "",
+    setValueData,
     getIsValidValue,
     doOnlyValidateInputAfterFistFocusLost = true,
     onValueBeingTypedChange,
@@ -214,6 +216,9 @@ export const TextField = memo((props: TextFieldProps) => {
       }
 
       setValue(transformValueBeingTyped?.(value) ?? value);
+      if (setValueData) {
+        setValueData(transformValueBeingTyped?.(value) ?? value);
+      }
     });
 
     return { value, transformAndSetValue };

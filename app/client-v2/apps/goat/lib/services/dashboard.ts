@@ -11,16 +11,6 @@ export const contentDataFetcher = () => {
 
 export const contentFoldersFetcher = async (url: string) => {
   try {
-    const res = await axios.get(`${url}?pag=1&size=50`);
-    return res.data;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-};
-
-export const contentLayersFetcher = async (url: string) => {
-  try {
     const res = await axios.get(`${url}`);
     return res.data;
   } catch (error) {
@@ -29,9 +19,9 @@ export const contentLayersFetcher = async (url: string) => {
   }
 };
 
-export const contentProjectsFetcher = async (url: string) => {
+export const contentLayersFetcher = async (url: string, { arg }: { arg: string }) => {
   try {
-    const res = await axios.get(`${url}`);
+    const res = await axios.get(`${url}?folder_id=${arg}`);
     return res.data;
   } catch (error) {
     console.error(error);
@@ -39,12 +29,52 @@ export const contentProjectsFetcher = async (url: string) => {
   }
 };
 
-export const contentReportsFetcher = async (url: string) => {
+export const layerFetcher = async (url: string, { arg }: { arg: string }) => {
+  try {
+    const res = await axios.get(`${url}/${arg}`);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+export const contentProjectsFetcher = async (url: string, { arg }: { arg: string }) => {
+  try {
+    const res = await axios.get(`${url}?folder_id=${arg}`);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+export const contentReportsFetcher = async (url: string, { arg }: { arg: string }) => {
+  try {
+    const res = await axios.get(`${url}?folder_id=${arg}`);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+export const addLayerService = async (url: string, body: object) => {
+  try {
+    const res = await axios.post(`${url}`, body);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
+export const loadLayerService = async (url: string) => {
   try {
     const res = await axios.get(`${url}`);
     return res.data;
   } catch (error) {
     console.error(error);
-    return null;
+    return false;
   }
 };
