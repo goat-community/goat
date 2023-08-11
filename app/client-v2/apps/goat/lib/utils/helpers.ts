@@ -37,3 +37,23 @@ function criterion<T>(person: T, key: keyof T) {
 export const formatDate = (date, format) => {
   return dayjs(date).format(format);
 };
+
+export const supportedFileTypes = [
+  "geojson",
+  "shapefile",
+  "geopackage",
+  "geobuf",
+  "csv",
+  "xlsx",
+  "kml",
+  "mvt",
+  "wfs",
+  "binary",
+  "wms",
+  "xyz",
+  "wmts",
+  "mvt",
+  "csv",
+  "xlsx",
+  "json",
+];

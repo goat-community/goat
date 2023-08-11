@@ -1,11 +1,16 @@
+import FileUploadView from "@/app/[lng]/(dashboard)/content/FileUploadView";
 import { loadLayerService } from "@/lib/services/dashboard";
+import { supportedFileTypes } from "@/lib/utils/helpers";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Button } from "@mui/material";
+import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
 import { useState } from "react";
+import { FileUploader } from "react-drag-drop-files";
 
 import { CircularProgress } from "@p4b/ui/components/CircularProgress";
 import { CollapseAlert } from "@p4b/ui/components/CollapseAlert";
@@ -13,6 +18,7 @@ import { Divider } from "@p4b/ui/components/DataDisplay";
 import { TextField } from "@p4b/ui/components/Inputs";
 import Link from "@p4b/ui/components/Link";
 import RadioButtonsGroup from "@p4b/ui/components/RadioButtonsGroup";
+import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -71,7 +77,11 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
   const [url, setUrl] = useState<string>("");
   const [loadedLayerData, setLoadedLayerData] = useState<object | null>(null);
   const [errorOpen, setErrorOpen] = useState<boolean>(false);
+  const [uploadErrorOpen, setUploadErrorOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectedFile, setSelectedFile] = useState<object | null>(null);
+
+  const { classes } = useStyles();
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -79,11 +89,14 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
 
   const resetAddLayerHandler = () => {
     setLoadedLayerData(null);
+    setUploadErrorOpen(false);
+    setSelectedFile(null);
     setUrl("");
     setRadioButtonValue("Imagery");
   };
 
   const addLayerHandler = async () => {
+    //todo change
     const body = {
       folder_id: selectedFolder.id,
       name: "Layer name",
@@ -115,16 +128,64 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
     setLoading(false);
   };
 
+  const dragDropHandler = (file) => {
+    setLoading(true);
+
+    const fileNameParts = file.name.split(".");
+    const fileExtension = fileNameParts[fileNameParts.length - 1].toLowerCase();
+
+    if (!supportedFileTypes.includes(fileExtension)) {
+      setUploadErrorOpen(true);
+      setLoading(false);
+      return;
+    } else {
+      setSelectedFile(file);
+    }
+    setTimeout(() => setLoading(false), 2000);
+  };
+
   return (
-    <Box sx={{ width: "100%" }}>
-      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+    <Box className={classes.root}>
+      <Box className={classes.tabsContainer}>
         <Tabs value={tabValue} onChange={handleChange} aria-label="basic tabs example">
-          <Tab sx={{ width: "50%" }} label="INTERNAL" {...a11yProps(0)} />
-          <Tab sx={{ width: "50%" }} label="EXTERNAL" {...a11yProps(1)} />
+          <Tab className={classes.tab} label="INTERNAL" {...a11yProps(0)} />
+          <Tab className={classes.tab} label="EXTERNAL" {...a11yProps(1)} />
         </Tabs>
       </Box>
-      <CustomTabPanel value={tabValue} index={0}>
-        Item One
+      <CustomTabPanel value={tabValue} index={0} className={classes.dropzone}>
+        {loading ? (
+          <Box className={classes.loading}>
+            <CircularProgress />
+          </Box>
+        ) : selectedFile ? (
+          <Box>
+            <Box className={classes.fileInfo}>
+              <Avatar sx={{ backgroundColor: "#2BB3811F" }}>
+                <UploadFileIcon sx={{ color: "#2BB381" }} />
+              </Avatar>
+              <Typography>{selectedFile.name}</Typography>
+            </Box>
+
+            <Box className={classes.buttonsWrapper}>
+              <Button onClick={resetAddLayerHandler}>RESET</Button>
+              <Button onClick={addLayerHandler}>ADD</Button>
+            </Box>
+          </Box>
+        ) : (
+          <FileUploader
+            handleChange={dragDropHandler}
+            name="file"
+            classes="dropzone-input"
+            children={<FileUploadView />}
+          />
+        )}
+        <CollapseAlert
+          open={uploadErrorOpen}
+          setOpen={setUploadErrorOpen}
+          severity="error"
+          title="Error"
+          description="Make sure you are trying to load a supported file: geojson, shapefile, geopackage, geobuf, csv, xlsx, kml, mvt, wfs, binary, wms, xyz, wmts, mvt, csv, xlsx, json"
+        />
       </CustomTabPanel>
       <CustomTabPanel value={tabValue} index={1}>
         <RadioButtonsGroup
@@ -139,12 +200,7 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
             <Link target="_blank" href={loadedLayerData?.link}>
               {loadedLayerData?.link}
             </Link>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "flex-end",
-                marginY: "10px",
-              }}>
+            <Box className={classes.buttonsWrapper}>
               <Button onClick={resetAddLayerHandler}>RESET</Button>
               <Button onClick={addLayerHandler}>ADD</Button>
             </Box>
@@ -152,22 +208,14 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
         ) : (
           <>
             {loading ? (
-              <Box sx={{ display: "flex", justifyContent: "center" }}>
+              <Box className={classes.loading}>
                 <CircularProgress />
               </Box>
             ) : (
               <>
                 <Typography variant="body1">Paste the URL here:</Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    gap: "10px",
-                    margin: "10px 0",
-                  }}>
-                  <TextField sx={{ width: "100%" }} defaultValue={url} setValueData={setUrl} />
+                <Box className={classes.loadUrlWrapper}>
+                  <TextField className={classes.width100} defaultValue={url} setValueData={setUrl} />
                   <Button type="button" variant="outlined" disabled={!url} onClick={loadUrlHandler}>
                     Load
                   </Button>
@@ -187,3 +235,56 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
     </Box>
   );
 }
+
+const useStyles = makeStyles({ name: { AddLayerManagement } })(() => ({
+  root: {
+    width: "100%",
+  },
+  tabsContainer: {
+    borderBottom: 1,
+    borderColor: "divider",
+  },
+  tab: {
+    width: "50%",
+  },
+  fileInfo: {
+    display: "flex",
+    alignItems: "center",
+    overflow: "hidden",
+    gap: "20px",
+  },
+  loading: {
+    display: "flex",
+    justifyContent: "center",
+  },
+  loadUrlWrapper: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    gap: "10px",
+    margin: "10px 0",
+  },
+  buttonsWrapper: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginY: "10px",
+  },
+  width100: {
+    width: "100%",
+  },
+  dropzone: {
+    label: {
+      textAlign: "center",
+      padding: "24px 5px",
+      border: "3px dashed #eeeeee",
+      backgroundColor: "#fafafa",
+      color: "#bdbdbd",
+      cursor: "pointer",
+      marginBottom: "20px",
+      height: "185px",
+      display: "flex",
+      flexDirection: "column",
+    },
+  },
+}));
