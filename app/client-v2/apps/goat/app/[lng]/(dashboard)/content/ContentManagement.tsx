@@ -8,6 +8,7 @@ import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
 import { API } from "@/lib/api/apiConstants";
 import {
+  addLayerService,
   contentFoldersFetcher,
   contentLayersFetcher,
   contentProjectsFetcher,
@@ -96,7 +97,7 @@ const ContentManagement = () => {
     ? {
         header: (
           <div className={classes.modalHeader}>
-            <Text typo="subtitle" className={classes.modalHeadertext}>
+            <Text typo="subtitle" className={classes.modalHeaderText}>
               Info
             </Text>
             <IconButton onClick={() => setModalContent(null)} iconId="close" />
@@ -130,6 +131,11 @@ const ContentManagement = () => {
 
   function handleAddFolder() {
     console.log("handleAddFolder");
+  }
+
+  async function addLayer(body) {
+    const res = await addLayerService(API.layer, body);
+    await layerTrigger(res.folder_id);
   }
 
   useEffect(() => {
@@ -203,7 +209,7 @@ const ContentManagement = () => {
     <>
       <GridContainer>
         <SingleGrid span={4}>
-          <HeaderCard path={path} setPath={setPath} />
+          <HeaderCard path={path} setPath={setPath} selectedFolder={selectedFolder} addLayer={addLayer} />
         </SingleGrid>
       </GridContainer>
       <GridContainer>
@@ -288,7 +294,7 @@ const useStyles = makeStyles({ name: { ContentManagement } })((theme) => ({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  modalHeadertext: {
+  modalHeaderText: {
     fontWeight: "500",
   },
   modalListItem: {

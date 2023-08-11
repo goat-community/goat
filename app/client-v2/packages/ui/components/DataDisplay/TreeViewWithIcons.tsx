@@ -36,8 +36,7 @@ interface ITreeViewWithIconsProps {
   homeData: [] | undefined;
   organizationData: [] | undefined;
   teamsData: [] | undefined;
-  handleSelectFolder: (value: object) => void;
-  handleAddFolder: (value: object) => void;
+  handleSelectFolder: () => void;
 }
 
 const StyledTreeItemRoot = styled(TreeItem)(({ theme }) => ({

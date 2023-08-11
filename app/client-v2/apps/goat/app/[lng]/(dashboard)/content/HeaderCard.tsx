@@ -1,3 +1,4 @@
+import AddLayerManagement from "@/app/[lng]/(dashboard)/content/AddLayerManagement";
 import CreateContent from "@/app/[lng]/(dashboard)/content/CreateContent";
 import { useState } from "react";
 import { v4 } from "uuid";
@@ -8,15 +9,18 @@ import { Button, Text, IconButton, Icon } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface HeaderCardProps {
+  selectedFolder: object | null;
   path: string[];
   setPath: (value: string[]) => void;
+  addLayer: (value: object) => void;
 }
 
 const HeaderCard = (props: HeaderCardProps) => {
-  const { path, setPath } = props;
+  const { path, setPath, selectedFolder, addLayer } = props;
 
   const { classes } = useStyles();
-  const [addContent, setAddContent] = useState(false);
+  const [addContent, setAddContent] = useState<boolean>(false);
+  const [addLayerMode, setAddLayerMode] = useState<boolean>(false);
 
   function handlePathChange(indx: number) {
     const newPath = [...path];
@@ -49,10 +53,18 @@ const HeaderCard = (props: HeaderCardProps) => {
         </div>
         <div className={classes.headerActions}>
           <div style={{ display: "flex", gap: "10px" }}>
-            <Button variant="noBorder" onClick={() => setAddContent(true)} startIcon="newFile">
+            <Button
+              variant="noBorder"
+              disabled={!selectedFolder}
+              startIcon="newFile"
+              onClick={() => setAddLayerMode(true)}>
               New layer
             </Button>
-            <Button variant="noBorder" startIcon="newFolder">
+            <Button
+              variant="noBorder"
+              startIcon="newFolder"
+              disabled={!selectedFolder}
+              onClick={() => setAddContent(true)}>
               New project
             </Button>
           </div>
@@ -71,6 +83,26 @@ const HeaderCard = (props: HeaderCardProps) => {
           </div>
         }>
         <CreateContent modalState={setAddContent} />
+      </Modal>
+
+      {/*Add Layer Modal*/}
+      <Modal
+        width="444px"
+        open={addLayerMode}
+        changeOpen={() => setAddLayerMode(false)}
+        header={
+          <div className={classes.modalHeader}>
+            <Text typo="section heading" className={classes.modalHeaderText}>
+              Add Layer
+            </Text>
+            <IconButton onClick={() => setAddLayerMode(false)} iconId="close" />
+          </div>
+        }>
+        <AddLayerManagement
+          selectedFolder={selectedFolder}
+          setAddLayerMode={setAddLayerMode}
+          addLayer={addLayer}
+        />
       </Modal>
     </Card>
   );
@@ -115,8 +147,9 @@ const useStyles = makeStyles({ name: { HeaderCard } })((theme) => ({
   icon: {
     marginRight: "10px",
   },
-  modalHeadertext: {
+  modalHeaderText: {
     fontWeight: "500",
+    fontSize: "20px",
   },
   modalHeader: {
     display: "flex",
