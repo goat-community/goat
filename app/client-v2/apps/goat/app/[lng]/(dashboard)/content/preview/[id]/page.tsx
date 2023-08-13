@@ -2,17 +2,16 @@
 
 import PreviewManagement from "@/app/[lng]/(dashboard)/content/preview/PreviewManagement";
 
-type Props = {
+interface IParams {
   params: {
     id: string;
   };
-};
+}
 
-export default function PreviewPage({ params: { id } }: Props) {
-  console.log("id", id);
+export default function PreviewPage({ params: { id } }: IParams) {
   return (
     <div>
-      <PreviewManagement />
+      <PreviewManagement id={id} />
     </div>
   );
 }
