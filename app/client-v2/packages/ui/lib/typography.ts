@@ -9,9 +9,6 @@ import type { TypographyOptions as MuiTypographyOptions } from "@mui/material/st
 import { id } from "tsafe/id";
 import { objectKeys } from "tsafe/objectKeys";
 
-export type { ChromeFontSize } from "powerhooks/ViewPortAdapter";
-export { chromeFontSizesFactors } from "powerhooks/ViewPortAdapter";
-
 export type TypographyDesc<CustomVariantName extends string> = {
   fontFamily: string;
   rootFontSizePx: number;

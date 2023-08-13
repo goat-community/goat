@@ -11,6 +11,7 @@ export type MapSidebarItem = {
   icon: ICON_NAME;
   name: string;
   component?: JSX.Element;
+  link?: string;
 };
 export type MapSidebarProps = {
   className?: string;

@@ -1,13 +1,10 @@
 import Container from "@/components/map/panels/Container";
-import { Button, Typography } from "@mui/material";
+
+import { Text } from "@p4b/ui/components/theme";
 
 const ChartsPanel = () => {
   return (
-    <Container
-      header={<Typography variant="h6">Header</Typography>}
-      body={<Typography variant="body1">Charts</Typography>}
-      action={<Button variant="contained">Action</Button>}
-    />
+    <Container header={<Text typo="page heading">Charts</Text>} body={<Text typo="body 1">Body</Text>} />
   );
 };
 

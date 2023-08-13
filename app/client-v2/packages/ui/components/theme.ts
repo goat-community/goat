@@ -43,7 +43,6 @@ import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import type { Param0 } from "tsafe";
 
-import "../assets/fonts/mulish/font.css";
 import { createButton } from "../components/Button";
 import { createThemeProvider, defaultGetTypographyDesc } from "../lib";
 import { createIcon } from "./DataDisplay/Icon";

@@ -9,7 +9,6 @@ interface ContainerProps {
 
 export default function Container({ header, body, action }: ContainerProps) {
   const { classes, cx } = useStyles();
-
   return (
     <Stack className={classes.root}>
       {header && (

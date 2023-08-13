@@ -3,7 +3,7 @@
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url("https://assets.plan4better.de/fonts/mulish/Mulish-Light.woff2") format("woff2");
+  src: url("./Mulish-Light.woff2") format("woff2");
 }
 
 @font-face {
@@ -11,7 +11,7 @@
   font-style: italic;
   font-weight: 300;
   font-display: swap;
-  src: url("https://assets.plan4better.de/fonts/mulish/Mulish-LightItalic.woff2") format("woff2");
+  src: url("./Mulish-LightItalic.woff2") format("woff2");
 }
 
 @font-face {
@@ -19,7 +19,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("https://assets.plan4better.de/fonts/mulish/Mulish-Regular.woff2") format("woff2");
+  src: url("./Mulish-Regular.woff2") format("woff2");
 }
 
 @font-face {
@@ -27,7 +27,7 @@
   font-style: italic;
   font-weight: 400;
   font-display: swap;
-  src: url("https://assets.plan4better.de/fonts/mulish/Mulish-Italic.woff2") format("woff2");
+  src: url("./Mulish-Italic.woff2") format("woff2");
 }
 
 @font-face {
@@ -35,7 +35,7 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url("https://assets.plan4better.de/fonts/mulish/Mulish-Medium.woff2") format("woff2");
+  src: url("./Mulish-Medium.woff2") format("woff2");
 }
 
 @font-face {
@@ -43,7 +43,7 @@
   font-style: italic;
   font-weight: 500;
   font-display: swap;
-  src: url("https://assets.plan4better.de/fonts/mulish/Mulish-MediumItalic.woff2") format("woff2");
+  src: url("./Mulish-MediumItalic.woff2") format("woff2");
 }
 
 @font-face {
@@ -51,7 +51,7 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url("https://assets.plan4better.de/fonts/mulish/Mulish-SemiBold.woff2") format("woff2");
+  src: url("./Mulish-SemiBold.woff2") format("woff2");
 }
 
 @font-face {
@@ -59,7 +59,7 @@
   font-style: italic;
   font-weight: 600;
   font-display: swap;
-  src: url("https://assets.plan4better.de/fonts/mulish/Mulish-SemiBoldItalic.woff2") format("woff2");
+  src: url("./Mulish-SemiBoldItalic.woff2") format("woff2");
 }
 
 @font-face {
@@ -67,7 +67,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url("https://assets.plan4better.de/fonts/mulish/Mulish-Bold.woff2") format("woff2");
+  src: url("./Mulish-Bold.woff2") format("woff2");
 }
 
 @font-face {
@@ -75,5 +75,5 @@
   font-style: italic;
   font-weight: 700;
   font-display: swap;
-  src: url("https://assets.plan4better.de/fonts/mulish/Mulish-BoldItalic.woff2") format("woff2");
+  src: url("./Mulish-BoldItalic.woff2") format("woff2");
 }

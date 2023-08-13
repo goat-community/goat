@@ -85,7 +85,7 @@ export default function UserInfoMenu() {
           }}
           size="small">
           <Avatar
-            alt={session?.user?.name || ""}
+            alt={session?.user?.name || "User"}
             src={session?.user?.image || "https://assets.plan4better.de/img/no-user-thumb.jpg"}
           />
         </IconButton>

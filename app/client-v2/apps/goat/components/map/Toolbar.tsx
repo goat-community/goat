@@ -21,11 +21,11 @@ export function MapToolbar(props: MapToolbarProps) {
   const { tags, projectTitle, lastSaved } = props;
 
   return (
-    <AppBar className={cx(classes.root)} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+    <AppBar className={cx(classes.root)} sx={{ zIndex: (theme) => theme.zIndex.drawer + 2 }}>
       <Toolbar variant="dense" sx={{ minHeight: props.height, height: props.height }}>
         <GOATLogoIconOnlyGreen className={classes.logo} />
         <Stack direction="row" alignItems="center" className={classes.infoStack}>
-          <Text typo="object heading" className={classes.infoItem}>
+          <Text typo="section heading" className={classes.infoItem}>
             {projectTitle}
           </Text>
           <Divider orientation="vertical" flexItem className={classes.infoItem} />
