@@ -69,6 +69,16 @@ export const addLayerService = async (url: string, body: object) => {
   }
 };
 
+export const deleteLayerService = async (url: string, id: string) => {
+  try {
+    const res = await axios.delete(`${url}/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
 export const loadLayerService = async (url: string) => {
   try {
     const res = await axios.get(`${url}`);

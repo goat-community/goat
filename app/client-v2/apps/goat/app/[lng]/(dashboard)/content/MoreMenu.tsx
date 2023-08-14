@@ -10,15 +10,8 @@ import { Icon, Text, IconButton } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface MoreMenuProps {
-  rowInfo: {
-    id: string;
-    name: React.ReactNode;
-    type: React.ReactNode;
-    modified: string;
-    size: string;
-    info: [];
-    path: [];
-  } | null;
+  rowInfo: object | null;
+  handleDeleteItem: (object) => void;
 }
 
 interface ComponentOptions {
@@ -26,7 +19,7 @@ interface ComponentOptions {
 }
 
 const MoreMenu = (props: MoreMenuProps) => {
-  const { rowInfo } = props;
+  const { rowInfo, handleDeleteItem } = props;
 
   // Component States
   const [selectedOption, setSelectedOption] = useState<{
@@ -44,11 +37,6 @@ const MoreMenu = (props: MoreMenuProps) => {
         value: "Info",
         name: "Info",
         icon: <Icon size="small" iconId="info" className={classes.icon} />,
-      },
-      {
-        value: "View",
-        name: "View",
-        icon: <Icon size="small" iconId="view" className={classes.icon} />,
       },
     ],
     [
@@ -82,6 +70,14 @@ const MoreMenu = (props: MoreMenuProps) => {
     ],
   ];
 
+  if (rowInfo.label === "layer") {
+    defaultOptions[0].push({
+      value: "View",
+      name: "View",
+      icon: <Icon size="small" iconId="view" className={classes.icon} />,
+    });
+  }
+
   const componentOptions: ComponentOptions = {
     Download: <DownloadModal name={rowInfo ? rowInfo.name : ""} changeState={setSelectedOption} />,
     Share: (
@@ -99,6 +95,10 @@ const MoreMenu = (props: MoreMenuProps) => {
 
     if (item.name === "View") {
       router.push(`/content/preview/${rowInfo?.id}`);
+    }
+
+    if (item.name === "Delete") {
+      handleDeleteItem(rowInfo);
     }
   };
 
