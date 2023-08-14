@@ -29,7 +29,7 @@ export default function MapPage() {
   const toolbar: MapToolbarProps = {
     projectTitle: "@project_title",
     lastSaved: "08:35am 03/07/2023",
-    tags: ["Bike Sharing Project", "City of Hamburg"],
+    tags: ["Bike Sharing Project", "City of Munich"],
     height: toolbarHeight,
   };
 
@@ -282,11 +282,11 @@ const useStyles = makeStyles<{ sidebarWidth: number; toolbarHeight: number }>({
       padding: theme.spacing(4),
     },
     leftPanel: {
-      width: 268,
+      width: 300,
       borderLeft: `2px solid ${theme.colors.palette.light.greyVariant1}`,
     },
     rightPanel: {
-      width: 268,
+      width: 300,
       borderRight: `2px solid ${theme.colors.palette.light.greyVariant1}`,
     },
     collapse: {

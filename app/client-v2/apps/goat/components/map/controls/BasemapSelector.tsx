@@ -1,12 +1,12 @@
 import { ArrowPopper } from "@/components/ArrowPoper";
 import { ListTile } from "@/components/common/ListTile";
-import { makeStyles } from "@/lib/theme";
+import { makeStyles, useTheme } from "@/lib/theme";
 import { Close } from "@mui/icons-material";
-import MapIcon from "@mui/icons-material/Map";
 import { Box, IconButton, Paper, Tooltip, Typography } from "@mui/material";
 import Fab from "@mui/material/Fab";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
+import { FaIcon, ICON_NAME } from "@p4b/ui/components/DataDisplay/FAIcon";
 import { Text } from "@p4b/ui/components/theme";
 
 interface Item {
@@ -28,6 +28,7 @@ export function BasemapSelector(props: BasemapSelectorProps) {
   const [open, setOpen] = useState(false);
   const { styles, active, basemapChange } = props;
   const { classes } = useStyles();
+  const theme = useTheme();
 
   return (
     <>
@@ -37,7 +38,11 @@ export function BasemapSelector(props: BasemapSelectorProps) {
           <Paper sx={{ width: 360, overflow: "auto" }}>
             <Box position="absolute" top={5} right={5}>
               <IconButton onClick={() => setOpen(false)}>
-                <Close />
+                <FaIcon
+                  iconName={ICON_NAME.CLOSE}
+                  htmlColor={theme.isDarkModeEnabled ? "white" : "gray"}
+                  fontSize="small"
+                />
               </IconButton>
             </Box>
 
@@ -58,8 +63,8 @@ export function BasemapSelector(props: BasemapSelectorProps) {
         arrow={true}
         onClose={() => setOpen(false)}>
         <Tooltip title="Basemaps" arrow placement="left">
-          <Fab onClick={() => setOpen(!open)} size="large">
-            <MapIcon />
+          <Fab onClick={() => setOpen(!open)} size="large" className={classes.btn}>
+            <FaIcon iconName={ICON_NAME.MAP} fontSize="small" />
           </Fab>
         </Tooltip>
       </ArrowPopper>
@@ -71,5 +76,8 @@ export function BasemapSelector(props: BasemapSelectorProps) {
 const useStyles = makeStyles()((theme) => ({
   title: {
     margin: theme.spacing(3),
+  },
+  btn: {
+    backgroundColor: theme.colors.useCases.surfaces.surface2,
   },
 }));
