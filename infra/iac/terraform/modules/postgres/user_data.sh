@@ -168,6 +168,7 @@ services:
 
     ports:
       - "5432:5432"
+    shm_size: ${docker_shm_size}
     volumes:
       - "/storage/data:/storage/data"
       %{~ if storage_device_backup != "" ~}

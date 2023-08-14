@@ -191,3 +191,9 @@ variable "postgres_docker_image" {
   description = "used for integration tests to inject test versions"
   default     = "goatcommunity/solidblocks-postgres:latest"
 }
+
+variable "docker_shm_size" {
+  type = string
+  description = "docker shm size"
+  default = "128m"
+}

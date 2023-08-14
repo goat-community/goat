@@ -119,6 +119,7 @@ module "postgresql" {
   source                = "../modules/postgres"
   instance_name         = "geonode-dev-db"
   server_type           = "cpx41"
+  docker_shm_size       = "4gb"
   ssh_keys              = [hcloud_ssh_key.db_ssh_key.id]
   data_volume           = data.hcloud_volume.data.id
   backup_s3_bucket      = data.aws_s3_bucket.backup.id
@@ -127,9 +128,9 @@ module "postgresql" {
   admin_password        = data.aws_secretsmanager_secret_version.db_admin_password.secret_string
   postgres_extra_config = indent(8, file("./config/postgresql.conf"))
   databases             = []
-  network_id = module.kube-hetzner.network_id
+  network_id            = module.kube-hetzner.network_id
 }
 
 output "postgresql_ipv4_address" {
-  value     = module.postgresql.ipv4_address_private
+  value = module.postgresql.ipv4_address_private
 }
