@@ -34,7 +34,7 @@ export function MapToolbar(props: MapToolbarProps) {
           </Text>
           {tags &&
             tags.map((tag) => (
-              <Chip variant="Border" label={tag} textDesign="normal" className={classes.infoItem} />
+              <Chip variant="Border" label={tag} key={tag} textDesign="normal" className={classes.infoItem} />
             ))}
         </Stack>
         <Box sx={{ flexGrow: 1 }} />

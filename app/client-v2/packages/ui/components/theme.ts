@@ -1,3 +1,4 @@
+import AssessmentIcon from "@mui/icons-material/Assessment";
 import CheckIcon from "@mui/icons-material/Check";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
@@ -17,11 +18,13 @@ import FileCopyIcon from "@mui/icons-material/FileCopy";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import FolderIcon from "@mui/icons-material/Folder";
 import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import GroupsIcon from "@mui/icons-material/Groups";
 import HelpIcon from "@mui/icons-material/Help";
 import HomeIcon from "@mui/icons-material/Home";
 import InfoIcon from "@mui/icons-material/Info";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import LayersIcon from "@mui/icons-material/Layers";
 import LocalPhoneIcon from "@mui/icons-material/LocalPhone";
 import LockIcon from "@mui/icons-material/Lock";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -38,9 +41,6 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import LayersIcon from '@mui/icons-material/Layers';
-import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import AssessmentIcon from '@mui/icons-material/Assessment';
 import type { Param0 } from "tsafe";
 
 import { createButton } from "../components/Button";
@@ -99,7 +99,7 @@ export const { Icon } = createIcon({
   download: DownloadIcon,
   lock: LockIcon,
   team: GroupsIcon,
-  layers: LayersIcon, 
+  layers: LayersIcon,
   list: FormatListBulletedIcon,
   report: AssessmentIcon,
 });

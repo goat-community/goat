@@ -26,17 +26,32 @@ interface TabPanelProps {
   value: number;
 }
 
+// todo: check this if it's correct
+interface SelectedFolderProps {
+  id: string;
+}
+
+interface LoadedLayerDataProps {
+  link: string;
+}
+
+interface FileProps {
+  name: string;
+}
+
 interface AddLayerManagementProps {
-  selectedFolder: object;
-  setAddLayerMode: (boolean) => void;
+  selectedFolder: SelectedFolderProps;
+  setAddLayerMode: (value: boolean) => void;
   addLayer: (value: object) => void;
 }
 
 function CustomTabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
+  const { classes } = useStyles();
 
   return (
     <div
+      className={classes.dropzone}
       role="tabpanel"
       hidden={value !== index}
       id={`simple-tabpanel-${index}`}
@@ -75,11 +90,11 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
   const [tabValue, setTabValue] = useState<number>(0);
   const [radioButtonValue, setRadioButtonValue] = useState<string>("Imagery");
   const [url, setUrl] = useState<string>("");
-  const [loadedLayerData, setLoadedLayerData] = useState<object | null>(null);
+  const [loadedLayerData, setLoadedLayerData] = useState<LoadedLayerDataProps | null>(null);
   const [errorOpen, setErrorOpen] = useState<boolean>(false);
   const [uploadErrorOpen, setUploadErrorOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [selectedFile, setSelectedFile] = useState<object | null>(null);
+  const [selectedFile, setSelectedFile] = useState<FileProps | null>(null);
 
   const { classes } = useStyles();
 
@@ -128,7 +143,7 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
     setLoading(false);
   };
 
-  const dragDropHandler = (file) => {
+  const dragDropHandler = (file: React.SetStateAction<FileProps>) => {
     setLoading(true);
 
     const fileNameParts = file.name.split(".");
@@ -152,7 +167,7 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
           <Tab className={classes.tab} label="EXTERNAL" {...a11yProps(1)} />
         </Tabs>
       </Box>
-      <CustomTabPanel value={tabValue} index={0} className={classes.dropzone}>
+      <CustomTabPanel value={tabValue} index={0}>
         {loading ? (
           <Box className={classes.loading}>
             <CircularProgress />
@@ -176,6 +191,7 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
             handleChange={dragDropHandler}
             name="file"
             classes="dropzone-input"
+            /* eslint-disable react/no-children-prop */
             children={<FileUploadView />}
           />
         )}
@@ -200,6 +216,7 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
             <Link target="_blank" href={loadedLayerData?.link}>
               {loadedLayerData?.link}
             </Link>
+
             <Box className={classes.buttonsWrapper}>
               <Button onClick={resetAddLayerHandler}>RESET</Button>
               <Button onClick={addLayerHandler}>ADD</Button>
@@ -236,7 +253,7 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
   );
 }
 
-const useStyles = makeStyles({ name: { AddLayerManagement } })(() => ({
+const useStyles = makeStyles()((theme) => ({
   root: {
     width: "100%",
   },
@@ -274,17 +291,15 @@ const useStyles = makeStyles({ name: { AddLayerManagement } })(() => ({
     width: "100%",
   },
   dropzone: {
-    label: {
-      textAlign: "center",
-      padding: "24px 5px",
-      border: "3px dashed #eeeeee",
-      backgroundColor: "#fafafa",
-      color: "#bdbdbd",
-      cursor: "pointer",
-      marginBottom: "20px",
-      height: "185px",
-      display: "flex",
-      flexDirection: "column",
-    },
+    textAlign: "center",
+    padding: "24px 5px",
+    border: "3px dashed #eeeeee",
+    backgroundColor: "#fafafa",
+    color: "#bdbdbd",
+    cursor: "pointer",
+    marginBottom: "20px",
+    height: "185px",
+    display: "flex",
+    flexDirection: "column",
   },
 }));

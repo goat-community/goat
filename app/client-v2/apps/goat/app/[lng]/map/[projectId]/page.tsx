@@ -1,7 +1,9 @@
 "use client";
 
-import MapSidebar, { MapSidebarItem, MapSidebarProps } from "@/components/map/Sidebar";
-import { MapToolbar, MapToolbarProps } from "@/components/map/Toolbar";
+import type { MapSidebarItem, MapSidebarProps } from "@/components/map/Sidebar";
+import MapSidebar from "@/components/map/Sidebar";
+import type { MapToolbarProps } from "@/components/map/Toolbar";
+import { MapToolbar } from "@/components/map/Toolbar";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 // import Attribution from "@/components/map/controls/Attribution";
 import Charts from "@/components/map/panels/Charts";
@@ -17,7 +19,7 @@ import { Box, Collapse, Stack } from "@mui/material";
 import "mapbox-gl/dist/mapbox-gl.css";
 import React, { useEffect, useRef, useState } from "react";
 import Map, { MapProvider } from "react-map-gl";
-import { CSSObject } from "tss-react";
+import type { CSSObject } from "tss-react";
 
 import { ICON_NAME } from "@p4b/ui/components/DataDisplay/FAIcon";
 
@@ -239,7 +241,8 @@ export default function MapPage() {
             }}
             mapStyle={basemaps[activeBasemapIndex[0]].url}
             attributionControl={false}
-            mapboxAccessToken={MAPBOX_TOKEN}></Map>
+            mapboxAccessToken={MAPBOX_TOKEN}
+          />
         </div>
       </div>
     </MapProvider>

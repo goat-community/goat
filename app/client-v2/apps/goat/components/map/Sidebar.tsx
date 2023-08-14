@@ -2,9 +2,10 @@
 
 import { makeStyles } from "@/lib/theme";
 import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, Tooltip } from "@mui/material";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
-import { FaIcon, ICON_NAME } from "@p4b/ui/components/DataDisplay/FAIcon";
+import type { ICON_NAME } from "@p4b/ui/components/DataDisplay/FAIcon";
+import { FaIcon } from "@p4b/ui/components/DataDisplay/FAIcon";
 import { useTheme } from "@p4b/ui/components/theme";
 
 export type MapSidebarItem = {
@@ -51,7 +52,11 @@ const MapSidebarList = (props: MapSidebarListProps) => {
         justifyContent,
       }}>
       {items.map((item, index) => (
-        <Tooltip title={item.name} arrow placement={sidebarPosition == "left" ? "right" : "left"}>
+        <Tooltip
+          key={`${item.icon}_tooltip`}
+          title={item.name}
+          arrow
+          placement={sidebarPosition == "left" ? "right" : "left"}>
           <ListItem key={item.icon} disablePadding disableGutters className={classes.listItem}>
             <ListItemButton
               className={classes.listButton}

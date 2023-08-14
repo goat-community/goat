@@ -1,20 +1,18 @@
-import * as React from "react";
-import { Collapse, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-
 import { Alert, AlertTitle } from "@mui/lab";
+import { Collapse, IconButton } from "@mui/material";
+import * as React from "react";
 
 export type CollapseAlertProps = {
   open: boolean;
   setOpen: (boolean) => void;
   title: string;
   description: string;
-  severity: 'success' | 'info' | 'warning' | 'error';
+  severity: "success" | "info" | "warning" | "error";
 };
 
 export const CollapseAlert = (props: CollapseAlertProps) => {
-
-  const {title, description, setOpen, open, severity} = props
+  const { title, description, setOpen, open, severity } = props;
   return (
     <Collapse in={open}>
       <Alert

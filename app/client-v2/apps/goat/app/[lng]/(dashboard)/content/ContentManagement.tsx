@@ -43,17 +43,25 @@ const ContainingProjects = [
   },
 ];
 
+interface ModalContent {
+  info: string;
+}
+
+interface SelectedFolder {
+  name: string;
+}
+
 const ContentManagement = () => {
   const { data: folderData, error: folderError } = useSWR(API.folder, contentFoldersFetcher);
   const { data: layerData, trigger: layerTrigger } = useSWRMutation(API.layer, contentLayersFetcher);
   const { data: reportData, trigger: reportTrigger } = useSWRMutation(API.report, contentReportsFetcher);
   const { data: projectData, trigger: projectTrigger } = useSWRMutation(API.project, contentProjectsFetcher);
 
-  const [modalContent, setModalContent] = useState<object | null>(null);
+  const [modalContent, setModalContent] = useState<ModalContent | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [path, setPath] = useState<string[]>(["home"]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [selectedFolder, setSelectedFolder] = useState<object | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<SelectedFolder | null>(null);
   const [rows, setRows] = useState<any[]>([]);
   const [dialogContent, setDialogContent] = useState<{
     name: React.ReactNode;

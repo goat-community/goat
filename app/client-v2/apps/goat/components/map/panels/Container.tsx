@@ -1,5 +1,5 @@
 import { makeStyles } from "@/lib/theme";
-import { Box, Divider, Stack } from "@mui/material";
+import { Divider, Stack } from "@mui/material";
 
 interface ContainerProps {
   header?: React.ReactNode;
@@ -16,7 +16,7 @@ export default function Container({ header, body, action }: ContainerProps) {
           {header}
         </Stack>
       )}
-      <Divider></Divider>
+      <Divider />
       {body && (
         <Stack direction="column" className={classes.body}>
           {body}

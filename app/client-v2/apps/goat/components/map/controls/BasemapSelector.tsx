@@ -1,8 +1,7 @@
 import { ArrowPopper } from "@/components/ArrowPoper";
 import { ListTile } from "@/components/common/ListTile";
 import { makeStyles, useTheme } from "@/lib/theme";
-import { Close } from "@mui/icons-material";
-import { Box, IconButton, Paper, Tooltip, Typography } from "@mui/material";
+import { Box, IconButton, Paper, Tooltip } from "@mui/material";
 import Fab from "@mui/material/Fab";
 import { useState } from "react";
 

@@ -1,8 +1,10 @@
 import { Box, ClickAwayListener, Grow } from "@mui/material";
 import Paper from "@mui/material/Paper";
-import MuiPopper, { PopperPlacementType } from "@mui/material/Popper";
+import type { PopperPlacementType } from "@mui/material/Popper";
+import MuiPopper from "@mui/material/Popper";
 import { styled } from "@mui/material/styles";
-import { ReactElement, useState } from "react";
+import type { ReactElement } from "react";
+import { useState } from "react";
 import React from "react";
 
 interface Props {
@@ -107,7 +109,7 @@ export function ArrowPopper({
   disablePortal = true,
   arrow = true,
   open,
-  onClose = () => {},
+  onClose = () => undefined,
   content,
   children,
 }: Props) {

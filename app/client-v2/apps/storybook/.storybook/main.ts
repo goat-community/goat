@@ -2,7 +2,7 @@ import type { StorybookConfig } from "@storybook/nextjs";
 
 const config: StorybookConfig = {
   core: {
-    disableTelemetry: true
+    disableTelemetry: true,
   },
   stories: [
     "../../../packages/keycloak-theme/src/stories/*.mdx",
@@ -16,10 +16,10 @@ const config: StorybookConfig = {
     "@storybook/addon-interactions",
     "@storybook/addon-a11y",
     "storybook-dark-mode",
-    "storybook-addon-designs"
+    "storybook-addon-designs",
   ],
   docs: {
-    autodocs: 'tag'
+    autodocs: "tag",
   },
   framework: {
     name: "@storybook/nextjs",

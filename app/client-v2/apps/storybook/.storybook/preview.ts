@@ -12,7 +12,7 @@ const preview: Preview = {
       },
     },
     darkMode: {
-      current: 'light',
+      current: "light",
       dark: darkTheme,
       light: lightTheme,
     },
@@ -59,7 +59,7 @@ const preview: Preview = {
       storySort: {
         order: ["introduction", "foundations", "components", "pages"],
       },
-    }
+    },
   },
 };
 

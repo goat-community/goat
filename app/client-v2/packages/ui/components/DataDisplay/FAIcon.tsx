@@ -1,4 +1,5 @@
-import { IconName, library } from "@fortawesome/fontawesome-svg-core";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
   faLayerGroup,
   faList,
@@ -9,15 +10,14 @@ import {
   faFilter,
   faCompassDrafting,
   faPalette,
-  IconDefinition,
   faSignOut,
-  faBuildingUser,
   faBuilding,
   faMap,
   faClose,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { SvgIcon, SvgIconProps } from "@mui/material";
+import { SvgIcon } from "@mui/material";
+import type { SvgIconProps } from "@mui/material";
 
 export enum ICON_NAME {
   LAYERS = "layers",
@@ -49,7 +49,6 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.ORGANIZATION]: faBuilding,
   [ICON_NAME.MAP]: faMap,
   [ICON_NAME.CLOSE]: faClose,
-
 };
 
 library.add(...Object.values(nameToIcon));

@@ -1,4 +1,5 @@
-import { createElement, FC, ReactNode } from "react";
+import type { FC, ReactNode } from "react";
+import { createElement } from "react";
 
 interface WrapProps {
   if?: boolean;

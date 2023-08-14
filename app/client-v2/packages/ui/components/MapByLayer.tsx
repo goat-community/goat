@@ -1,6 +1,6 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import React from "react";
-import Map, { Layer,  Source } from "react-map-gl";
+import Map, { Layer, Source } from "react-map-gl";
 
 const MAPBOX_TOKEN =
   "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA";
@@ -264,24 +264,24 @@ export default function MapByLayer(props: MapProps) {
       <Source id={stylesObj["edge"].id} type="vector" url={stylesObj["edge"].sources.composite.url}>
         <Layer {...stylesObj["edge"].layers[0]} />
       </Source>
-    )
+    ),
   };
 
   return (
     <div style={{ width: "100%", height: "100vh" }}>
-        <Map
-          initialViewState={{
-            latitude: stylesObj[layer].center[1],
-            longitude: stylesObj[layer].center[0],
-            zoom: stylesObj[layer].zoom,
-          }}
-          style={{width: "100%", height: "100%"}}
-          mapStyle="mapbox://styles/mapbox/streets-v11"
-          mapboxAccessToken={MAPBOX_TOKEN}>
-          {layer === "poi" && sourcesObj.poi}
-          {layer === "aoi" && sourcesObj.aoi}
-          {layer === "edge" && sourcesObj.edge}
-        </Map>
+      <Map
+        initialViewState={{
+          latitude: stylesObj[layer].center[1],
+          longitude: stylesObj[layer].center[0],
+          zoom: stylesObj[layer].zoom,
+        }}
+        style={{ width: "100%", height: "100%" }}
+        mapStyle="mapbox://styles/mapbox/streets-v11"
+        mapboxAccessToken={MAPBOX_TOKEN}>
+        {layer === "poi" && sourcesObj.poi}
+        {layer === "aoi" && sourcesObj.aoi}
+        {layer === "edge" && sourcesObj.edge}
+      </Map>
     </div>
   );
 }

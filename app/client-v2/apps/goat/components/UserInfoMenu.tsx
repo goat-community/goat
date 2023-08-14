@@ -17,7 +17,7 @@ import { FaIcon, ICON_NAME } from "@p4b/ui/components/DataDisplay/FAIcon";
 import { Text } from "@p4b/ui/components/theme";
 
 export default function UserInfoMenu() {
-  const {status, data: session } = useSession();
+  const { status, data: session } = useSession();
   const { classes } = useStyles();
   const theme = useTheme();
 
