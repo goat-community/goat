@@ -494,4 +494,3 @@ To create a full dump you can do the following.
 `pg_dump -U postgres -h URL -n basic -n customer -n gtfs -Fc -Z 9 --file=dump_full_09102022.dump goat`
 `pg_restore -Fc -j 8 -h <HOST> -U <USER> -d <DBNAME> --no-owner <FILEPATH>`
 
-
