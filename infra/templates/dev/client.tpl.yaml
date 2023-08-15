@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goat-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goat-client
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  minReadySeconds: 15
+  template:
+    metadata:
+      labels:
+        app: goat-client
+    spec:
+      containers:
+        - image: ${DOCKER_IMAGE}
+          imagePullPolicy: IfNotPresent
+          name: goat-client
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: goat-client
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: goat-client

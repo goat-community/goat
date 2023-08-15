@@ -1,26 +1,19 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: ${NAMESPACE}
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: efs-claim-${NAMESPACE}
-  namespace: ${NAMESPACE}
+  name: pvc-api
 spec:
   accessModes:
-    - ReadWriteMany
-  storageClassName: efs-sc
+    - ReadWriteOnce
+  storageClassName: hcloud-volumes
   resources:
     requests:
-      storage: 50Gi
+      storage: 110Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: goat-api
-  namespace: ${NAMESPACE}
 spec:
   replicas: ${API_REPLICAS}
   selector:
@@ -43,8 +36,8 @@ spec:
           name: goat-api
           resources:
             requests:
-              memory: 700Mi
-              cpu: 600m
+              memory: 1Gi
+              cpu: 500m
             limits:
               memory: 4Gi
               cpu: 2
@@ -76,13 +69,12 @@ spec:
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:
-            claimName: efs-claim-${NAMESPACE}
+            claimName: pvc-api
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: goat-worker
-  namespace: ${NAMESPACE}
 spec:
   replicas: ${WORKER_REPLICAS}
   selector:
@@ -115,22 +107,18 @@ spec:
             - name: persistent-storage
               mountPath: /app/src/cache
           resources:
-            requests:
-              memory: 700Mi
-              cpu: 600m
             limits:
               memory: ${WORKER_MEMORY_LIMIT}Gi
               cpu: 2
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:
-            claimName: efs-claim-${NAMESPACE}
+            claimName: pvc-api
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: goat-api
-  namespace: ${NAMESPACE}
 spec:
   ports:
     - port: 80
@@ -143,7 +131,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: api-config
-  namespace: ${NAMESPACE}
   labels:
     app: goat-api
 data:
@@ -152,7 +139,7 @@ data:
   SERVER_HOST: https://${DOMAIN}
   AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
   AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-  POSTGRES_SERVER: postgres-service
+  POSTGRES_SERVER: ${POSTGRES_HOST}
   POSTGRES_DB: ${POSTGRES_DB}
   POSTGRES_USER: ${POSTGRES_USER}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
