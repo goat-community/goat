@@ -1,15 +1,15 @@
 {
   "name": "@p4b/tsconfig",
-  "sideEffects": false,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": true,
   "main": "index.js",
-  "files": [
-    "base.json",
-    "nextjs.json",
-    "react-library.json"
-  ],
+  "scripts": {
+    "clean": "rimraf node_modules"
+  },
   "devDependencies": {
-    "tsconfig-paths": "^4.2.0"
+    "@types/node": "20.4.6",
+    "@types/react": "18.2.18",
+    "@types/react-dom": "18.2.7",
+    "typescript": "5.1.6"
   }
 }

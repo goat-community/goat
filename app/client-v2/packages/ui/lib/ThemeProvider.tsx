@@ -16,7 +16,6 @@ import type { ViewPortAdapterProps } from "powerhooks/ViewPortAdapter";
 import { useGuaranteedMemo } from "powerhooks/useGuaranteedMemo";
 import { useContext, createContext } from "react";
 import type { ReactNode } from "react";
-import React from "react";
 import { capitalize } from "tsafe/capitalize";
 import { id } from "tsafe/id";
 import { createMakeAndWithStyles } from "tss-react";
@@ -277,7 +276,7 @@ export function createThemeProvider<
   })();
 
   function StoryProvider(props: { dark?: boolean; children: ReactNode }) {
-    const { dark = false, children } = props;
+    const { children } = props;
 
     return <ThemeProvider>{children}</ThemeProvider>;
   }

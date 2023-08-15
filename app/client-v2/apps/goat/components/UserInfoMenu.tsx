@@ -13,7 +13,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
-import { FaIcon, ICON_NAME } from "@p4b/ui/components/DataDisplay/FAIcon";
+import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
 import { Text } from "@p4b/ui/components/theme";
 
 export default function UserInfoMenu() {
@@ -22,9 +22,9 @@ export default function UserInfoMenu() {
   const theme = useTheme();
 
   const [open, setOpen] = useState(false);
-  // if (status === "loading" || "unauthenticated") {
-  //   return null;
-  // }
+  if (status === "loading" || "unauthenticated") {
+    return null;
+  }
 
   return (
     <>
@@ -38,7 +38,7 @@ export default function UserInfoMenu() {
                     sx={{
                       bgcolor: `${theme.colors.palette.focus.main}20`,
                     }}>
-                    <FaIcon
+                    <Icon
                       iconName={ICON_NAME.ORGANIZATION}
                       htmlColor={theme.colors.palette.focus.main}
                       fontSize="small"
@@ -59,7 +59,7 @@ export default function UserInfoMenu() {
                   sx={{
                     minWidth: 35,
                   }}>
-                  <FaIcon
+                  <Icon
                     iconName={ICON_NAME.SIGNOUT}
                     htmlColor={theme.colors.useCases.alertSeverity.error.main}
                     fontSize="small"

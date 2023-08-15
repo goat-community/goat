@@ -1,0 +1,12 @@
+{
+    "name": "@p4b/prettier-config",
+    "version": "1.0.0",
+    "private": true,
+    "license": "MIT",
+    "scripts": {
+      "clean": "rimraf node_modules"
+    },
+    "devDependencies": {
+      "prettier": "^2.8.8"
+    }
+  }

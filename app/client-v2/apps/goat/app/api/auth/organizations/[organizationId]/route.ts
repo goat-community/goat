@@ -11,7 +11,7 @@ const routeContextSchema = z.object({
   }),
 });
 
-export async function GET(req: NextRequest, context: z.infer<typeof routeContextSchema>) {
+export async function GET(_req: NextRequest, context: z.infer<typeof routeContextSchema>) {
   try {
     const session = await getServerSession(authOptions);
 

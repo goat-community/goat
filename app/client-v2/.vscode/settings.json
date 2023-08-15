@@ -3,5 +3,6 @@
     { "pattern": "apps/*/" },
     { "pattern": "packages/*/" }
   ],
-  "colorize.languages": ["typescript", "javascript", "css", "scss"]
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.preferences.importModuleSpecifier": "non-relative"
 }

@@ -14,8 +14,8 @@ export type BannerProps = {
 };
 
 const Banner = memo(
-  forwardRef<any, BannerProps>((props, ref) => {
-    const { className, children, imageSide = "right", content, image, actions, ...rest } = props;
+  forwardRef<any, BannerProps>((props) => {
+    const { className, imageSide = "right", content, image, actions} = props;
 
     const { classes, cx } = useStyles({
       imageSide,

@@ -8,19 +8,15 @@
 import { LoadingButton } from "@mui/lab";
 import MuiButton from "@mui/material/Button";
 import { useCallbackFactory } from "powerhooks/useCallbackFactory";
-import { useGuaranteedMemo } from "powerhooks/useGuaranteedMemo";
-import type { FC } from "react";
 import { forwardRef, memo, useState } from "react";
 import * as runExclusive from "run-exclusive";
 import { assert } from "tsafe";
 import type { Equals } from "tsafe/Equals";
 import { capitalize } from "tsafe/capitalize";
-import { id } from "tsafe/id";
 
 import { makeStyles } from "../lib/ThemeProvider";
 import { variantNameUsedForMuiButton } from "../lib/typography";
 import { pxToNumber } from "../tools/pxToNumber";
-import type { IconProps } from "./DataDisplay";
 
 export type ButtonProps<IconId extends string = never> =
   | ButtonProps.Regular<IconId>
@@ -64,12 +60,8 @@ export namespace ButtonProps {
   };
 }
 
-export function createButton<IconId extends string = never>(params?: {
-  Icon(props: IconProps<IconId>): ReturnType<FC>;
-}) {
-  const { Icon } = params ?? {
-    Icon: id<(props: IconProps<IconId>) => JSX.Element>(() => <></>),
-  };
+export function createButton<IconId extends string = never>() {
+
 
   const Button = memo(
     forwardRef<HTMLButtonElement, ButtonProps<IconId>>((props, ref) => {
@@ -111,12 +103,12 @@ export function createButton<IconId extends string = never>(params?: {
         isMouseIn,
       });
 
-      const IconWd = useGuaranteedMemo(
-        // eslint-disable-next-line react/display-name
-        () => (props: { iconId: IconId }) =>
-          <Icon iconId={props.iconId} className={classes.icon} size="small" />,
-        [disabled, classes.icon]
-      );
+      // const IconWd = useGuaranteedMemo(
+      //   // eslint-disable-next-line react/display-name
+      //   () => (props: { iconId: IconId }) =>
+      //     <Icon iconId={props.iconId} className={classes.icon} size="small" />,
+      //   [disabled, classes.icon]
+      // );
 
       return (
         <>
@@ -134,8 +126,10 @@ export function createButton<IconId extends string = never>(params?: {
               className={cx(classes.root, className)}
               //There is an error in @mui/material types, this should be correct.
               disabled={disabled}
-              startIcon={startIcon === undefined ? undefined : <IconWd iconId={startIcon} />}
-              endIcon={endIcon === undefined ? undefined : <IconWd iconId={endIcon} />}
+              // startIcon={startIcon === undefined ? undefined : <IconWd iconId={startIcon} />}
+              startIcon={undefined}
+              // endIcon={endIcon === undefined ? undefined : <IconWd iconId={endIcon} />}
+              endIcon={undefined}
               autoFocus={autoFocus}
               tabIndex={tabIndex}
               name={name}

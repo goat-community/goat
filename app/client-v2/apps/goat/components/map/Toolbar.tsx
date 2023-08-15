@@ -2,11 +2,10 @@
 
 import UserInfoMenu from "@/components/UserInfoMenu";
 import { makeStyles } from "@/lib/theme";
-import { AppBar, Box, Stack, Toolbar } from "@mui/material";
+import { AppBar, Box, Chip, Stack, Toolbar } from "@mui/material";
 import Divider from "@mui/material/Divider";
 
 import { GOATLogoIconOnlyGreen } from "@p4b/ui/assets/svg/GOATLogoIconOnlyGreen";
-import { Chip } from "@p4b/ui/components/DataDisplay";
 import { Text } from "@p4b/ui/components/theme";
 
 export type MapToolbarProps = {
@@ -33,9 +32,7 @@ export function MapToolbar(props: MapToolbarProps) {
             Last saved: {lastSaved}
           </Text>
           {tags &&
-            tags.map((tag) => (
-              <Chip variant="Border" label={tag} key={tag} textDesign="normal" className={classes.infoItem} />
-            ))}
+            tags.map((tag) => <Chip variant="outlined" label={tag} key={tag} className={classes.infoItem} />)}
         </Stack>
         <Box sx={{ flexGrow: 1 }} />
         <UserInfoMenu />

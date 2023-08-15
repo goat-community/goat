@@ -126,7 +126,8 @@ function ButtonList({
     } else {
       newChecked.splice(currentIndex, 1);
     }
-    onChange(newChecked);
+    if (onChange)
+      onChange(newChecked);
   };
   const { classes } = useStyles();
 

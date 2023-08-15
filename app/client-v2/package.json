@@ -1,9 +1,20 @@
 {
+  "name": "p4b-client-monorepo",
+  "version": "0.0.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
+    "clean": "turbo run clean && rimraf node_modules",
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "post-install": "turbo run post-install",
+    "dev": "turbo run dev --parallel",
+    "start": "turbo run start --parallel",
     "lint": "turbo run lint",
+    "test": "turbo run test",
+    "generate": "turbo run generate",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "cd ../../ && husky install ./app/client-v2/.husky",
     "goat": "dotenv -- turbo run dev --filter=goat",
@@ -11,30 +22,22 @@
     "build-storybook": "turbo run build --filter=storybook"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.26.2",
     "@commitlint/cli": "^17.6.1",
     "@commitlint/config-conventional": "^17.6.1",
     "@deploysentinel/playwright": "^0.3.4",
     "@playwright/test": "^1.33.0",
     "commitizen": "^4.3.0",
     "dotenv-cli": "7.2.1",
-    "eslint": "^8.40.0",
     "husky": "^8.0.3",
     "install": "^0.13.0",
-    "prettier": "^2.8.8",
     "syncpack": "^9.8.6",
+    "rimraf": "^5.0.1",
+    "tsx": "^3.12.7",
     "turbo": "latest"
   },
-  "packageManager": "pnpm@7.15.0",
-  "name": "p4b-client-monorepo",
-  "dependencies": {
-    "@deck.gl/geo-layers": "^8.9.22",
-    "@deck.gl/react": "^8.9.22",
-    "accept-language": "^3.0.18",
-    "deck.gl": "^8.9.22",
-    "i18next": "^23.4.1",
-    "i18next-browser-languagedetector": "^7.1.0",
-    "i18next-resources-to-backend": "^1.1.4",
-    "react-i18next": "^13.0.3",
-    "react-map-gl": "^7.1.2"
-  }
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "packageManager": "pnpm@8.1.1"
 }

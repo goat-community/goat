@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Box from "@p4b/ui/components/Box";
 import Grid from "@p4b/ui/components/Grid";
 import { Loading } from "@p4b/ui/components/Loading";
+import Image from "next/image";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -37,8 +38,8 @@ const AuthLayout = (props: AuthLayoutProps) => {
                 display: "inline-flex",
                 width: 160,
               }}>
-              <img
-                width="100%"
+              <Image
+                width="100"
                 src="https://assets.plan4better.de/img/logo/plan4better_standard.svg"
                 alt="Plan4Better Logo"
               />
@@ -62,8 +63,8 @@ const AuthLayout = (props: AuthLayoutProps) => {
         </Grid>
         <Grid xs={12} lg={6} className={classes.gridRight}>
           <Box sx={{ p: 3, width: 350 }} component="div">
-            <img
-              width="100%"
+            <Image
+              width="100"
               src="https://assets.plan4better.de/img/logo/goat_white.svg"
               alt="Plan4Better Logo"
             />

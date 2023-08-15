@@ -1,5 +1,4 @@
 import { Switch as MUISwitch } from "@mui/material";
-import * as React from "react";
 
 interface SwitchProps {
   defaultChecked?: boolean;
@@ -16,7 +15,7 @@ interface SwitchProps {
  */
 
 export const Switch = (props: SwitchProps) => {
-  const { defaultChecked = false, checked, onChecked, elementName, disabled = false } = props;
+  const { checked, onChecked, elementName, disabled = false } = props;
 
   return (
     <MUISwitch

@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function filterSearch<T extends Record<string, any>>(
   allArray: T[],
   searchKey: keyof T,
@@ -34,7 +35,7 @@ function criterion<T>(person: T, key: keyof T) {
   return person[key];
 }
 
-export const formatDate = (date, format) => {
+export const formatDate = (date: string, format: string) => {
   return dayjs(date).format(format);
 };
 

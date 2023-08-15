@@ -1,10 +1,15 @@
 const path = require("path");
-const i18nConfig = require("@p4b/config/next-i18next.config");
 
 /** @type {import("next-i18next").UserConfig} */
 const config = {
-  ...i18nConfig,
-  localePath: path.resolve("./public/static/locales"),
+    i18n: {
+        defaultLocale: "en",
+        locales: [
+            "en",
+            "de",
+        ],
+    },
+    reloadOnPrerender: process.env.NODE_ENV !== "production",
 };
 
 module.exports = config;

@@ -5,9 +5,7 @@ import { assert } from "tsafe/assert";
 
 import { makeStyles } from "../../lib/ThemeProvider";
 import { ChipList } from "../Lists/ChipList";
-import { Icon, Text } from "../theme";
-import type { IconId } from "../theme";
-
+import { Text } from "../theme";
 export type CardContentProps = {
   className?: string;
   title: string;
@@ -17,18 +15,16 @@ export type CardContentProps = {
     author: string;
     date: string;
   };
-  icon?: IconId;
 };
 
 export const CardContent = memo(
-  forwardRef<any, CardContentProps>((props, ref) => {
+  forwardRef<any, CardContentProps>((props) => {
     const {
       className,
       title,
       description,
       chips,
       info,
-      icon,
       //For the forwarding, rest should be empty (typewise)
       ...rest
     } = props;
@@ -47,7 +43,7 @@ export const CardContent = memo(
           </Text>
         ) : null}
         <div className={classes.iconTitle}>
-          {icon ? (
+          {/* {icon ? (
             <span className={classes.icon}>
               <Icon
                 iconId={icon}
@@ -58,7 +54,7 @@ export const CardContent = memo(
                 bgOpacity={0.5}
               />
             </span>
-          ) : null}
+          ) : null} */}
           <Text typo="body 1" color="primary">
             {title}
           </Text>

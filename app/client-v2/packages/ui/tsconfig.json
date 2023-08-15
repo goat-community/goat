@@ -1,16 +1,5 @@
 {
   "extends": "@p4b/tsconfig/react-library.json",
-  "compilerOptions": {
-    "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"]
-    },
-  },
-  "include": [
-    "../../apps/goat/next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
+  "include": ["."],
   "exclude": ["dist", "build", "node_modules"]
 }

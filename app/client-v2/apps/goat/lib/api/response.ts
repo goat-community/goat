@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 export type ApiResponse = ApiSuccessResponse | ApiErrorResponse;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface ApiSuccessResponse<T = { [key: string]: any }> {
   data: T;
 }

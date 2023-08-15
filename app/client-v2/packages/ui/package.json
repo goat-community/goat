@@ -5,7 +5,7 @@
   "types": "./index.tsx",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint \"**/*.ts*\""
+    "clean": "rimraf .turbo node_modules dist"
   },
   "peerDependenciesMeta": {
     "@types/react": {
@@ -45,15 +45,14 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@p4b/config": "workspace:*",
     "@p4b/tsconfig": "workspace:*",
+    "@p4b/types": "workspace:*",
+    "eslint-config-p4b": "workspace:*",
     "@storybook/addons": "^7.0.9",
     "@storybook/react": "^7.0.9",
     "@storybook/types": "^7.0.9",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@types/uuid": "^9.0.2",
-    "eslint": "^8.40.0",
-    "typescript": "^5.0.4"
+    "@types/uuid": "^9.0.2"
   }
 }

@@ -1,5 +1,5 @@
 import "@p4b/ui/assets/fonts/mulish/font.css";
-import { createText } from "@p4b/ui/components/DataDisplay/Text";
+import { createText } from "@p4b/ui/components/Text";
 import {
   createThemeProvider,
   defaultGetTypographyDesc,

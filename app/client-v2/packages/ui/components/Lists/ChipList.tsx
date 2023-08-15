@@ -19,10 +19,10 @@ export type ChipListProps = {
  * @returns The rendered component.
  */
 export const ChipList = memo(
-  forwardRef<any, ChipListProps>((props, ref) => {
+  forwardRef<any, ChipListProps>((props) => {
     const { className, chips } = props;
 
-    const { classes, cx } = useStyles();
+    const { classes } = useStyles();
 
     // refs
     const containerRef = useRef<HTMLDivElement | null>(null);

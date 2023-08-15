@@ -5,8 +5,6 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
 
-import { makeStyles } from "../../lib/ThemeProvider";
-
 interface DatePickerProps {
   onChange: (value: Dayjs | null) => void;
   value: Dayjs | null;
@@ -24,8 +22,6 @@ interface DatePickerProps {
 export function DatePicker(props: DatePickerProps) {
   const { onChange, value = dayjs("2022-04-17"), label, ClassName, size = "medium" } = props;
 
-  const { classes, cx } = useStyles();
-
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DemoContainer components={["MUIDatePicker"]}>
@@ -40,5 +36,3 @@ export function DatePicker(props: DatePickerProps) {
     </LocalizationProvider>
   );
 }
-
-const useStyles = makeStyles({ name: { DatePicker } })((theme) => ({}));

@@ -1,7 +1,6 @@
 import { languages } from "@/app/i18/settings";
 import ThemeRegistry from "@/lib/ThemeRegistry";
 import AuthProvider from "@/lib/providers/AuthProvider";
-import StoreProvider from "@/lib/providers/StoreProvider";
 import ToastProvider from "@/lib/providers/ToastProvider";
 import "@/styles/globals.css";
 import { dir } from "i18next";
@@ -20,17 +19,21 @@ export async function generateStaticParams() {
   return languages.map((lng) => ({ lng }));
 }
 
-export default function RootLayout({ children, params: { lng } }) {
+export default function RootLayout({
+  children,
+  params: { lng },
+}: {
+  children: React.ReactNode;
+  params: { lng: string };
+}) {
   return (
     <html lang={lng} dir={dir(lng)}>
-      <body style={{ backgroundColor: "#f2f2f3" }}>
-        <StoreProvider>
-          <AuthProvider>
-            <ToastProvider>
-              <ThemeRegistry>{children}</ThemeRegistry>
-            </ToastProvider>
-          </AuthProvider>
-        </StoreProvider>
+      <body>
+        <AuthProvider>
+          <ToastProvider>
+            <ThemeRegistry>{children}</ThemeRegistry>
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );

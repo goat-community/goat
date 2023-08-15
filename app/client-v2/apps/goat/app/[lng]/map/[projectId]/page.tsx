@@ -5,7 +5,6 @@ import MapSidebar from "@/components/map/Sidebar";
 import type { MapToolbarProps } from "@/components/map/Toolbar";
 import { MapToolbar } from "@/components/map/Toolbar";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
-// import Attribution from "@/components/map/controls/Attribution";
 import Charts from "@/components/map/panels/Charts";
 import Filter from "@/components/map/panels/Filter";
 import Layer from "@/components/map/panels/Layer";
@@ -21,7 +20,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Map, { MapProvider } from "react-map-gl";
 import type { CSSObject } from "tss-react";
 
-import { ICON_NAME } from "@p4b/ui/components/DataDisplay/FAIcon";
+import { ICON_NAME } from "@p4b/ui/components/Icon";
 
 export default function MapPage() {
   const sidebarWidth = 48;
@@ -251,7 +250,7 @@ export default function MapPage() {
 
 const useStyles = makeStyles<{ sidebarWidth: number; toolbarHeight: number }>({
   name: { MapPage },
-})((theme, { sidebarWidth, toolbarHeight }, classes) => {
+})((theme, { sidebarWidth, toolbarHeight }) => {
   const offsetHeight: CSSObject = {
     height: `calc(100% - ${toolbarHeight}px)`,
     marginTop: toolbarHeight,

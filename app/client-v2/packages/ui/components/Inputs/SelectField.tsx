@@ -10,7 +10,6 @@ import * as React from "react";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 
-import { makeStyles } from "../../lib/ThemeProvider";
 import { Checkbox } from "../Checkbox";
 
 export type SelectFieldProps = {
@@ -32,7 +31,7 @@ export type SelectFieldProps = {
  */
 
 export const SelectField = memo(
-  forwardRef<any, SelectFieldProps>((props, ref) => {
+  forwardRef<any, SelectFieldProps>((props) => {
     const {
       className,
       updateChange,
@@ -45,7 +44,6 @@ export const SelectField = memo(
       //For the forwarding, rest should be empty (typewise)
       ...rest
     } = props;
-    const { classes, cx } = useStyles();
 
     // Component State
     const [values, setValues] = React.useState<string | string[]>(multiple ? [] : "");
@@ -93,5 +91,3 @@ export const SelectField = memo(
     );
   })
 );
-
-const useStyles = makeStyles({ name: { SelectField } })((theme) => ({}));

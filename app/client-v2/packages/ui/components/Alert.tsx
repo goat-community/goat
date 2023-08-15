@@ -1,14 +1,11 @@
 // Copyright (c) 2020 GitHub user u/garronej
 
 /* eslint-disable react/display-name */
-import CloseSharp from "@mui/icons-material/CloseSharp";
 import MuiAlert from "@mui/material/Alert";
 import { useReducer, memo } from "react";
 import type { ReactNode } from "react";
 
 import { makeStyles } from "../lib/ThemeProvider";
-import { createIcon } from "./DataDisplay";
-import { createIconButton } from "./DataDisplay/IconButton";
 import { Text } from "./theme";
 
 export type AlertProps = {
@@ -19,18 +16,14 @@ export type AlertProps = {
   children: NonNullable<ReactNode>;
 };
 
-const { IconButton } = createIconButton(
-  createIcon({
-    closeSharp: CloseSharp,
-  })
-);
+
 
 export const Alert = memo((props: AlertProps) => {
-  const { severity, children, className, doDisplayCross = false } = props;
+  const { severity, children, className } = props;
 
   const { classes, cx } = useStyles({ severity }, { props });
 
-  const [isClosed, close] = useReducer(() => true, false);
+  const [isClosed] = useReducer(() => true, false);
 
   if (isClosed) {
     return null;
@@ -45,7 +38,7 @@ export const Alert = memo((props: AlertProps) => {
         icon: classes.icon,
       }}
       action={
-        doDisplayCross ? <IconButton iconId="closeSharp" aria-label="close" onClick={close} /> : undefined
+         undefined
       }>
       {typeof children === "string" ? (
         <Text typo="label 2" color="primary">

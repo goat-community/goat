@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { v4 } from "uuid";
 
-export const TranslationSwitcher = ({ lng }) => {
+export const TranslationSwitcher = ({ lng }: { lng: string }) => {
   return (
     <div>
       {languages

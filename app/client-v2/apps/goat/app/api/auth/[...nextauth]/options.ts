@@ -19,8 +19,8 @@ async function doFinalSignoutHandshake(token: JWT) {
       logOutUrl.searchParams.set("id_token_hint", token.id_token);
       const { status, statusText } = await fetch(logOutUrl);
       console.log("Completed post-logout handshake", status, statusText);
-    } catch (e: any) {
-      console.error("Unable to perform post-logout handshake", e?.code || e);
+    } catch {
+      console.error("Unable to perform post-logout handshake");
     }
   }
 }

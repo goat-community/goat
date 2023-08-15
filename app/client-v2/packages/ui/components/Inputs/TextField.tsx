@@ -3,9 +3,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 /* eslint-disable react/display-name */
-import Help from "@mui/icons-material/Help";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { MenuItem } from "@mui/material";
 import InputAdornment from "@mui/material/InputAdornment";
 import MuiTextField from "@mui/material/TextField";
@@ -23,9 +20,6 @@ import { assert } from "tsafe/assert";
 import { makeStyles } from "../../lib/ThemeProvider";
 import { useNonPostableEvtLike } from "../../tools/useNonPostableEvtLike";
 import { CircularProgress } from "../CircularProgress";
-import { createIcon, createIconButton, Tooltip } from "../DataDisplay";
-import type { IconId } from "../theme";
-import { Icon as NormalIcon } from "../theme";
 import { Text } from "../theme";
 
 export type AttributeOption = string | { value: string; label: string };
@@ -55,7 +49,6 @@ export type TextFieldProps = {
    * */
   "inputProps_aria-invalid"?: boolean;
   InputProps_endAdornment?: ReactNode;
-  iconId?: IconId;
   /** Only use when getIsValidValue isn't used */
   disabled?: boolean;
   /** Return false to e.preventDefault() and e.stopPropagation() */
@@ -155,13 +148,6 @@ export type TextFieldProps = {
     | "photo";
 };
 
-const { Icon } = createIcon({
-  visibilityOff: VisibilityOff,
-  visibility: Visibility,
-  help: Help,
-});
-
-const { IconButton } = createIconButton({ Icon });
 
 export const TextField = memo((props: TextFieldProps) => {
   const {
@@ -177,7 +163,6 @@ export const TextField = memo((props: TextFieldProps) => {
     onEscapeKeyDown,
     onEnterKeyDown,
     className,
-    iconId,
     placeholder,
     filled = false,
     hiddenLabel = false,
@@ -281,7 +266,7 @@ export const TextField = memo((props: TextFieldProps) => {
     filled,
   });
 
-  const [isPasswordShown, toggleIsPasswordShown] = useReducer((v: boolean) => !v, false);
+  const [isPasswordShown] = useReducer((v: boolean) => !v, false);
 
   const onKeyDown = useConstCallback(
     (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement | HTMLDivElement>) => {
@@ -326,11 +311,11 @@ export const TextField = memo((props: TextFieldProps) => {
 
   const InputProps = useMemo(
     () => ({
-      startAdornment: iconId ? (
-        <InputAdornment position="start">
-          <NormalIcon iconId={iconId} iconVariant="gray" />
-        </InputAdornment>
-      ) : null,
+      // startAdornment: iconId ? (
+      //   <InputAdornment position="start">
+      //     {/* <NormalIcon iconId={iconId} iconVariant="gray" /> */}
+      //   </InputAdornment>
+      // ) : null,
       endAdornment:
         InputProps_endAdornment ?? isCircularProgressShown ? (
           <InputAdornment position="end">
@@ -338,10 +323,10 @@ export const TextField = memo((props: TextFieldProps) => {
           </InputAdornment>
         ) : type === "password" ? (
           <InputAdornment position="end">
-            <IconButton
+            {/* <IconButton
               iconId={isPasswordShown ? "visibilityOff" : "visibility"}
               onClick={toggleIsPasswordShown}
-            />
+            /> */}
           </InputAdornment>
         ) : undefined,
     }),
@@ -396,11 +381,6 @@ export const TextField = memo((props: TextFieldProps) => {
         ? getIsValidValueResult.message || helperText
         : helperText}
       &nbsp;
-      {questionMarkHelperText !== undefined && (
-        <Tooltip title={questionMarkHelperText}>
-          <Icon iconId="help" className={classes.questionMark} />
-        </Tooltip>
-      )}
     </Text>
   );
 

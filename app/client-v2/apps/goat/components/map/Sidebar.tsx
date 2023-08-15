@@ -4,8 +4,8 @@ import { makeStyles } from "@/lib/theme";
 import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, Tooltip } from "@mui/material";
 import type { CSSProperties } from "react";
 
-import type { ICON_NAME } from "@p4b/ui/components/DataDisplay/FAIcon";
-import { FaIcon } from "@p4b/ui/components/DataDisplay/FAIcon";
+import type { ICON_NAME } from "@p4b/ui/components/Icon";
+import { Icon } from "@p4b/ui/components/Icon";
 import { useTheme } from "@p4b/ui/components/theme";
 
 export type MapSidebarItem = {
@@ -51,7 +51,7 @@ const MapSidebarList = (props: MapSidebarListProps) => {
       sx={{
         justifyContent,
       }}>
-      {items.map((item, index) => (
+      {items.map((item) => (
         <Tooltip
           key={`${item.icon}_tooltip`}
           title={item.name}
@@ -66,7 +66,7 @@ const MapSidebarList = (props: MapSidebarListProps) => {
                 }
               }}>
               <ListItemIcon className={classes.listItemIcon}>
-                <FaIcon iconName={item.icon} htmlColor={htmlColor(item.name)} fontSize="small" />
+                <Icon iconName={item.icon} htmlColor={htmlColor(item.name)} fontSize="small" />
               </ListItemIcon>
             </ListItemButton>
           </ListItem>
@@ -77,7 +77,6 @@ const MapSidebarList = (props: MapSidebarListProps) => {
 };
 
 export default function MapSidebar(props: MapSidebarProps) {
-  const theme = useTheme();
   const { classes, cx } = useStyles({ sidebarWidth: props.width });
   return (
     <Drawer

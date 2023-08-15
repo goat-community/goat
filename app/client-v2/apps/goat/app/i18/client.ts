@@ -15,7 +15,9 @@ const runsOnServerSide = typeof window === "undefined";
 i18next
   .use(initReactI18next)
   .use(LanguageDetector)
-  .use(resourcesToBackend((language, namespace) => import(`./locales/${language}/${namespace}.json`)))
+  .use(
+    resourcesToBackend((language: string, namespace: string) => import(`./locales/${language}/${namespace}.json`))
+  )
   .init({
     ...getOptions(),
     lng: undefined,
@@ -25,6 +27,7 @@ i18next
     preload: runsOnServerSide ? languages : [],
   });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useTranslation(lng?: string, ns?: string, options?: UseTranslationOptions<any>) {
   const ret = useTranslationOrg(ns, options);
   const { i18n } = ret;

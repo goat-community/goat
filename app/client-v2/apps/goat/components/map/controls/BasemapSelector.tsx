@@ -5,7 +5,7 @@ import { Box, IconButton, Paper, Tooltip } from "@mui/material";
 import Fab from "@mui/material/Fab";
 import { useState } from "react";
 
-import { FaIcon, ICON_NAME } from "@p4b/ui/components/DataDisplay/FAIcon";
+import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
 import { Text } from "@p4b/ui/components/theme";
 
 interface Item {
@@ -37,7 +37,7 @@ export function BasemapSelector(props: BasemapSelectorProps) {
           <Paper sx={{ width: 360, overflow: "auto" }}>
             <Box position="absolute" top={5} right={5}>
               <IconButton onClick={() => setOpen(false)}>
-                <FaIcon
+                <Icon
                   iconName={ICON_NAME.CLOSE}
                   htmlColor={theme.isDarkModeEnabled ? "white" : "gray"}
                   fontSize="small"
@@ -63,7 +63,7 @@ export function BasemapSelector(props: BasemapSelectorProps) {
         onClose={() => setOpen(false)}>
         <Tooltip title="Basemaps" arrow placement="left">
           <Fab onClick={() => setOpen(!open)} size="large" className={classes.btn}>
-            <FaIcon iconName={ICON_NAME.MAP} fontSize="small" />
+            <Icon iconName={ICON_NAME.MAP} fontSize="small" />
           </Fab>
         </Tooltip>
       </ArrowPopper>
