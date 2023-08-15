@@ -1,4 +1,4 @@
-import { createButton } from "../components/Button";
+import { createButton } from "./Button";
 import { createThemeProvider, defaultGetTypographyDesc } from "../lib";
 import { createText } from "./Text";
 
