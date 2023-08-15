@@ -129,7 +129,7 @@ export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
             />
           }
           label={
-            <span style={{ display: "flex", gap: "4px", alignItems: "center", width: "70%" }}>
+            <span style={{ display: "flex", gap: "4px", alignItems: "center" }}>
               <Tooltip title={nodes.name}>
                 <Text typo="body 1" className={`tag ${type === "root" ? "nodeTag" : ""}`}>
                   {nodes.name}

@@ -146,7 +146,7 @@ const ContentManagement = () => {
             ...item,
             id: item.id,
             name: item?.name,
-            type: <Chip className={classes.chip} label="layer" textDesign="italic" variant="Border" />,
+            chip: <Chip className={classes.chip} label="layer" textDesign="italic" variant="Border" />,
             modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
             path: ["home"],
             size: `${item?.metadata?.size || ""} kb`,
@@ -182,9 +182,10 @@ const ContentManagement = () => {
       filteredRows.push(
         ...projectData?.items?.map((item) => {
           return {
+            ...item,
             id: item.id,
             name: item?.name,
-            type: <Chip className={classes.chip} label="project" textDesign="italic" variant="Border" />,
+            chip: <Chip className={classes.chip} label="project" textDesign="italic" variant="Border" />,
             modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
             path: ["home"],
             size: `${item?.metadata?.size || ""} kb`,
@@ -220,9 +221,10 @@ const ContentManagement = () => {
       filteredRows.push(
         ...reportData?.items?.map((item) => {
           return {
+            ...item,
             id: item.id,
             name: item?.name,
-            type: <Chip className={classes.chip} label="report" textDesign="italic" variant="Border" />,
+            chip: <Chip className={classes.chip} label="report" textDesign="italic" variant="Border" />,
             modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
             path: ["home"],
             size: `${item?.metadata?.size || ""} kb`,
@@ -255,7 +257,12 @@ const ContentManagement = () => {
     }
 
     if (selectedFilters.length > 0) {
-      filteredRows = filteredRows.filter((item) => selectedFilters.includes(item.id));
+      filteredRows = filteredRows.filter(
+        (item) =>
+          selectedFilters.includes(item.label) ||
+          selectedFilters.includes(item?.feature_layer_type) ||
+          selectedFilters.includes(item?.type)
+      );
     }
 
     setRows(filteredRows);

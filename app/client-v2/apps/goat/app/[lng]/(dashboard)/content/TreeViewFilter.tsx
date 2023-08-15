@@ -1,3 +1,4 @@
+import { calculateLayersCountByKey, calculateLayersCountByKeyAndValue } from "@/lib/utils/helpers";
 import React from "react";
 
 import { TreeViewWithCheckboxes, Divider } from "@p4b/ui/components/DataDisplay";
@@ -32,22 +33,60 @@ const TreeViewFilter = (props: ITreeViewFilterProps) => {
 
   const treeData = [
     {
-      id: "layer",
+      id: "layers",
       name: "Layers",
       count: `(${layerData?.length || 0})`,
-      children: layerData ?? [],
+      children: [
+        {
+          id: "feature",
+          name: "Feature",
+          count: `(${calculateLayersCountByKey(layerData, "feature_layer_type")})`,
+          children: [
+            {
+              id: "standard",
+              name: "Standard",
+              count: `(${calculateLayersCountByKeyAndValue(layerData, "feature_layer_type", "standard")})`,
+            },
+            {
+              id: "indicator",
+              name: "Indicator",
+              count: `(${calculateLayersCountByKeyAndValue(layerData, "feature_layer_type", "indicator")})`,
+            },
+            {
+              id: "scenario",
+              name: "Scenario",
+              count: `(${calculateLayersCountByKeyAndValue(layerData, "feature_layer_type", "scenario")})`,
+            },
+          ],
+        },
+        {
+          id: "imagery_layer",
+          name: "Imagery",
+          count: `(${calculateLayersCountByKeyAndValue(layerData, "type", "imagery_layer")})`,
+        },
+        {
+          id: "tile_layer",
+          name: "Tile",
+          count: `(${calculateLayersCountByKeyAndValue(layerData, "type", "tile_layer")})`,
+        },
+        {
+          id: "table",
+          name: "Table",
+          count: `(${calculateLayersCountByKeyAndValue(layerData, "type", "table")})`,
+        },
+      ],
     },
     {
       id: "project",
       name: "Projects",
       count: `(${projectData?.length || 0})`,
-      children: projectData ?? [],
+      // children: projectData ?? [],
     },
     {
       id: "report",
       name: "Reports",
       count: `(${reportData?.length || 0})`,
-      children: reportData ?? [],
+      // children: reportData ?? [],
     },
   ];
 

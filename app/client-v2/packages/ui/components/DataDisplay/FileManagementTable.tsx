@@ -453,7 +453,7 @@ export function FileManagementTable(props: FileManagementProps) {
                       id={labelId}
                       scope="row"
                       padding="none">
-                      {row.type}
+                      {row.chip}
                     </TableCell>
                     <TableCell
                       onClick={() => handleRowClick(row)}

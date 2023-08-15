@@ -91,3 +91,31 @@ export const generateRowData = (data: object, label: string) => {
     ],
   };
 };
+
+export const calculateLayersCountByKey = (data: [] | undefined, keyToCount: string) => {
+  let count = 0;
+
+  data?.forEach((obj) => {
+    if (obj[keyToCount]) {
+      count++;
+    }
+  });
+
+  return count;
+};
+
+export const calculateLayersCountByKeyAndValue = (
+  data: [] | undefined,
+  keyToCount: string,
+  value: string
+) => {
+  let count = 0;
+
+  data?.forEach((obj) => {
+    if (obj[keyToCount] === value) {
+      count++;
+    }
+  });
+
+  return count;
+};
