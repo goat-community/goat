@@ -104,7 +104,7 @@
                       ></v-text-field>
                     </v-col>
                   </template> -->
-                  <template v-if="['transit', 'car'].includes(routing)">
+                  <template v-if="['transit'].includes(routing)">
                     <!-- DATE -->
                     <v-col class="d-flex mb-0 pb-0" cols="12" sm="6">
                       <v-select
@@ -1202,22 +1202,16 @@ export default {
               })
             })
             .then(response => {
-              let olFeatures = geojsonToFeature(response.data, {
-                dataProjection: "EPSG:3857",
-                featureProjection: "EPSG:3857"
-              });
-              olFeatures.forEach(feature => {
-                feature.set("calculationNumber", selectedCalculation.id);
-              });
-              selectedCalculation.additionalData[type].data = olFeatures;
-              this.isochroneLayer.getSource().addFeatures(olFeatures);
+              this.getIsochroneNetwork(
+                response.data.task_id,
+                1,
+                payload,
+                selectedCalculation,
+                type
+              );
             })
             .catch(error => {
               console.log(error);
-            })
-            .finally(() => {
-              this.isMapBusy = false;
-              this.isIsochroneBusy = false;
             });
         } else {
           this.isochroneLayer
@@ -1466,6 +1460,68 @@ export default {
             this.isIsochroneBusy = false;
             this.isMapBusy = false;
           });
+      }
+    },
+
+    /**
+     *
+     * Get Isochrone Network
+     *
+     */
+
+    getIsochroneNetwork(
+      taskId,
+      currentTry,
+      payload,
+      selectedCalculation,
+      type
+    ) {
+      const returnType = "network";
+      const axiosInstance = axios.create();
+      const CancelToken = axios.CancelToken;
+      if (this.maxTries > currentTry) {
+        let promise = axiosInstance.get(
+          `./indicators/result/${taskId}?return_type=${returnType}`,
+          {
+            // responseType: "arraybuffer",
+            cancelToken: new CancelToken(c => {
+              // An executor function receives a cancel function as a parameter
+              this.isochroneCancelToken = c;
+            })
+          }
+        );
+        promise
+          .then(response => {
+            if (response.status === 202) {
+              setTimeout(() => {
+                if (this.isochroneCancelToken != null) {
+                  this.getIsochroneNetwork(
+                    taskId,
+                    currentTry + 1,
+                    payload,
+                    selectedCalculation,
+                    type
+                  );
+                } else {
+                  this.isIsochroneBusy = false;
+                  this.isMapBusy = false;
+                }
+              }, 1000);
+            } else {
+              this.isIsochroneBusy = false;
+              this.isMapBusy = false;
+              let olFeatures = geojsonToFeature(response.data, {
+                dataProjection: "EPSG:3857",
+                featureProjection: "EPSG:3857"
+              });
+              olFeatures.forEach(feature => {
+                feature.set("calculationNumber", selectedCalculation.id);
+              });
+              selectedCalculation.additionalData[type].data = olFeatures;
+              this.isochroneLayer.getSource().addFeatures(olFeatures);
+            }
+          })
+          .catch(err => console.log(err));
       }
     },
 

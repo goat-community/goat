@@ -81,6 +81,7 @@ class HeatmapBaseSpeed(Enum):
 class HeatmapBase(BaseModel):
     max_traveltime: int
     weight: int
+    visible: bool = False
 
 
 class HeatmapConfigGravity(HeatmapBase):
@@ -539,3 +540,14 @@ request_examples = {
         },
     },
 }
+
+# sort request_examples by resolution
+try:
+    request_examples = {k: v for k, v in sorted(request_examples.items(), key=lambda item: item[1]['value']['resolution'])}
+except Exception:
+    pass
+
+# add warning to request_examples with high resolution
+for key, value in request_examples.items():
+    if value["value"]["resolution"] > 6:
+        request_examples[key]["summary"] += " (Warning! May freeze browser.)"

@@ -9,7 +9,7 @@ from src.core.config import settings
 config = {
     "bucket_name": "plan4better-data",
     "s3_folder": "prod",
-    "study_area_ids": [11000009],
+    "study_area_ids": [91620000],
     "modes": ["walking"],
     "opportunity_data": {
         "grid": ["population"],
@@ -76,7 +76,12 @@ def fetch_cache():
         # Fetch opportunity data
         for layer_type in config["opportunity_data"]:
             for layer in config["opportunity_data"][layer_type]:
-                file_names.append(f"opportunity/{layer_type}/{bulk_id}/{layer}.parquet")
+                if layer_type == "grid":
+                    file_names.append(f"opportunity/{layer_type}/{bulk_id}/{layer}.npz")
+                elif layer_type == "original":
+                    file_names.append(f"opportunity/{layer_type}/{bulk_id}/{layer}.parquet")
+                else:
+                    raise ValueError(f"Unknown layer type: {layer_type}")
 
         # Fetch opportunity matrices
         for mode in config["modes"]:

@@ -21,6 +21,9 @@ from pandas.io.sql import read_sql
 from shapely.geometry import Point, shape
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql import text
+import geopandas as gpd
+from shapely.geometry import Polygon
+from pyproj import Transformer
 
 from src import crud
 from src.core.config import settings
@@ -38,6 +41,7 @@ from src.schemas.isochrone import (
     IsochroneStartingPointCoord,
     IsochroneTypeEnum,
     R5AvailableDates,
+    R5ProjectIDCarOnly,
     R5TravelTimePayloadTemplate,
 )
 from src.utils import (
@@ -389,17 +393,23 @@ class CRUDIsochrone:
                 obj_in.output.resolution,
             )
         # == Public transport isochrone ==
-        elif obj_in.mode.value in [IsochroneMode.TRANSIT.value]:
+        elif obj_in.mode.value in [IsochroneMode.TRANSIT.value, IsochroneMode.CAR.value]:
             starting_point_geom = Point(
                 obj_in.starting_point.input[0].lon, obj_in.starting_point.input[0].lat
             ).wkt
 
             weekday = obj_in.settings.weekday
             payload = R5TravelTimePayloadTemplate.copy()
-            payload["accessModes"] = obj_in.settings.access_mode.value.upper()
-            payload["transitModes"] = ",".join(
-                x.value.upper() for x in obj_in.settings.transit_modes
-            )
+
+            if obj_in.mode.value == IsochroneMode.CAR.value:
+                payload["transitModes"] = ""
+                payload["accessModes"] = "CAR"
+                payload["projectId"] = R5ProjectIDCarOnly
+            else:
+                payload["transitModes"] = ",".join(
+                    x.value.upper() for x in obj_in.settings.transit_modes
+                )
+                payload["accessModes"] = "WALK"
             payload["date"] = R5AvailableDates[weekday]
             payload["fromTime"] = obj_in.settings.from_time
             payload["toTime"] = obj_in.settings.to_time
@@ -407,6 +417,26 @@ class CRUDIsochrone:
             payload["egressModes"] = obj_in.settings.egress_mode.value.upper()
             payload["fromLat"] = obj_in.starting_point.input[0].lat
             payload["fromLon"] = obj_in.starting_point.input[0].lon
+
+
+            # Buffer the extend of the study area by 30km to ensure that the isochrone covers the entire study area
+            poly = Polygon([(study_area_bounds[0], study_area_bounds[1]), (study_area_bounds[0], study_area_bounds[3]), (study_area_bounds[2], study_area_bounds[3]), (study_area_bounds[2], study_area_bounds[1])])
+                        # Create a GeoDataFrame from the Polygon
+            gdf = gpd.GeoDataFrame({'geometry': [poly]}, crs="EPSG:4326")
+
+            # Transform to Web Mercator
+            gdf = gdf.to_crs("EPSG:3857")
+
+            # Buffer by 30km
+            gdf['geometry'] = gdf.geometry.buffer(30000)
+
+            # Transform back to WGS84
+            gdf = gdf.to_crs("EPSG:4326")
+
+            # Get the extent of the resulting buffered geometry
+            study_area_bounds = tuple(list(gdf.total_bounds))
+
+            # You can now use g (which is a GeoSeries containing the buffered polygon)
             payload["bounds"] = {
                 "north": study_area_bounds[3],
                 "south": study_area_bounds[1],

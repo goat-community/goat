@@ -105,8 +105,19 @@
                   {{ calculation.position }}
                 </p> -->
                 <p class="ma-0" style="font-size: 10.5px; font-weight: bold;">
-                  {{ calculationTravelTime[calculation.id - 1] }}
-                  {{ $t("isochrones.traveltimes.minutes") }}
+                  {{
+                    traveltimeLabel(
+                      calculationTravelTime[calculation.id - 1],
+                      calculation.routing
+                    )
+                  }}
+                  {{
+                    $t(
+                      `isochrones.traveltimes.${
+                        calculation.routing === "buffer" ? "meters" : "minutes"
+                      }`
+                    )
+                  }}
                 </p>
               </div>
             </section>
@@ -123,7 +134,9 @@
               </div>
 
               <template
-                v-if="!['transit', 'car'].includes(calculation.routing)"
+                v-if="
+                  !['transit', 'car', 'buffer'].includes(calculation.routing)
+                "
               >
                 <div>
                   <v-icon small class="text-xs-center mx-2"
@@ -345,6 +358,17 @@ export default {
       }
 
       return styling;
+    },
+    // get the right time for isochrones and meters for buffer isochrone
+    traveltimeLabel(time, mode) {
+      if (mode === "buffer") {
+        time = time * 50; // converts to meters
+      }
+      if (time < 10) {
+        return "0" + time;
+      } else {
+        return time.toString();
+      }
     },
     secondsToHoursAndMins
   },
