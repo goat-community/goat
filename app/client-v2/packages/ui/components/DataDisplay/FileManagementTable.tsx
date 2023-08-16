@@ -164,7 +164,7 @@ type FileManagementProps = {
     numeric: boolean;
     label: string;
   }[];
-  openDialog?: React.Dispatch<
+  setDialogContent?: React.Dispatch<
     React.SetStateAction<{
       [x: string]: string | number;
       [x: number]: string | number;
@@ -190,7 +190,7 @@ export function FileManagementTable(props: FileManagementProps) {
     columnNames,
     setModalContent,
     setDialogAnchor,
-    openDialog,
+    setDialogContent,
     more = true,
     hover = false,
     currPath,
@@ -328,8 +328,8 @@ export function FileManagementTable(props: FileManagementProps) {
   ) {
     if (setDialogAnchor) {
       setDialogAnchor(event.currentTarget);
-      if (openDialog) {
-        openDialog(row);
+      if (setDialogContent) {
+        setDialogContent(row);
       }
     }
   }

@@ -3,7 +3,6 @@ import React from "react";
 
 import { TreeViewWithCheckboxes, Divider } from "@p4b/ui/components/DataDisplay";
 import TreeViewWithIcons from "@p4b/ui/components/DataDisplay/TreeViewWithIcons";
-import { Card } from "@p4b/ui/components/Surfaces";
 import { Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
@@ -16,6 +15,8 @@ interface ITreeViewFilterProps {
   projectData: [] | undefined;
   reportData: [] | undefined;
   layerData: [] | undefined;
+  setFolderAnchorData: (object) => void;
+  setSelectedFolder: (object) => void;
 }
 
 const TreeViewFilter = (props: ITreeViewFilterProps) => {
@@ -28,6 +29,8 @@ const TreeViewFilter = (props: ITreeViewFilterProps) => {
     folderData,
     handleSelectFolder,
     handleAddFolder,
+    setFolderAnchorData,
+    setSelectedFolder,
   } = props;
   const { classes } = useStyles();
 
@@ -96,15 +99,17 @@ const TreeViewFilter = (props: ITreeViewFilterProps) => {
   }
 
   return (
-    <Card className={classes.treeView} noHover={true} width="100%">
+    <>
       <div className={classes.wrapper}>
         <div className={classes.folderWrapper}>
           <TreeViewWithIcons
             homeData={folderData || []}
             organizationData={[]}
             teamsData={[]}
+            setFolderAnchor={setFolderAnchorData}
             handleSelectFolder={handleSelectFolder}
             handleAddFolder={handleAddFolder}
+            setSelectedFolder={setSelectedFolder}
           />
         </div>
         <Divider color="main" />
@@ -117,14 +122,11 @@ const TreeViewFilter = (props: ITreeViewFilterProps) => {
         </div>
         {selectedFilters.length ? <Button onClick={clearFilters}>Clear Filters</Button> : null}
       </div>
-    </Card>
+    </>
   );
 };
 
 const useStyles = makeStyles({ name: { TreeViewFilter } })((theme) => ({
-  treeView: {
-    padding: theme.spacing(3),
-  },
   wrapper: {
     display: "flex",
     flexDirection: "column",

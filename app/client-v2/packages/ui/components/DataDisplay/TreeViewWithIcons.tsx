@@ -15,6 +15,8 @@ import { styled, useTheme } from "@mui/material/styles";
 import * as React from "react";
 import { v4 } from "uuid";
 
+import { IconButton } from "../theme";
+
 declare module "react" {
   interface CSSProperties {
     "--tree-view-color"?: string;
@@ -37,6 +39,8 @@ interface ITreeViewWithIconsProps {
   organizationData: [] | undefined;
   teamsData: [] | undefined;
   handleSelectFolder: () => void;
+  setFolderAnchor: (object) => void;
+  setSelectedFolder: (object) => void;
 }
 
 const StyledTreeItemRoot = styled(TreeItem)(({ theme }) => ({
@@ -116,7 +120,14 @@ function StyledTreeItem(props: StyledTreeItemProps) {
 }
 
 export default function TreeViewWithIcons(props: ITreeViewWithIconsProps) {
-  const { homeData, organizationData, teamsData, handleSelectFolder, handleAddFolder } = props;
+  const { homeData, organizationData, teamsData, handleSelectFolder, handleAddFolder, setFolderAnchor } =
+    props;
+
+  function openDialogHandler(event: React.MouseEvent<HTMLButtonElement>, folder: object) {
+    if (setFolderAnchor) {
+      setFolderAnchor({ anchorEl: event.currentTarget, folder });
+    }
+  }
 
   return (
     <TreeView
@@ -129,15 +140,16 @@ export default function TreeViewWithIcons(props: ITreeViewWithIconsProps) {
       <StyledTreeItem nodeId="1" labelText="Home" labelIcon={HomeIcon} color="#2BB381">
         {homeData?.map((item) => {
           return (
-            <StyledTreeItem
-              key={v4()}
-              nodeId={item.id}
-              labelText={item.name}
-              labelIcon={FolderIcon}
-              onClick={() => handleSelectFolder(item)}
-              // labelInfo="90"
-              color="#2BB381"
-            />
+            <Box key={`folder-tree-${item.id}`} sx={{ display: "flex", alignItems: "center" }}>
+              <StyledTreeItem
+                nodeId={item.id}
+                labelText={item.name}
+                labelIcon={FolderIcon}
+                onClick={() => handleSelectFolder(item)}
+                color="#2BB381"
+              />
+              <IconButton onClick={(e) => openDialogHandler(e, item)} iconId="moreVert" size="large" />
+            </Box>
           );
         })}
         <StyledTreeItem
