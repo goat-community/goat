@@ -1,0 +1,45 @@
+// See https://aka.ms/vscode-remote/containers for the
+// documentation about the devcontainer.json format
+{
+    "name": "API DevContainer",
+    "dockerComposeFile": [
+        "../../docker-compose.yaml"
+    ],
+    "service": "geoapi",
+    "workspaceFolder": "/api",
+    "shutdownAction": "none",
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/api,type=bind,consistency=cached"
+    ],    
+    "remoteEnv": {
+        "GIT_WORK_TREE": "/auth_repo",
+        "GIT_DIR": "/auth_repo/.git"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-vscode.cpptools",
+                "twxs.cmake",
+                "ms-vscode.cmake-tools",
+                "njpwerner.autodocstring",
+                "donjayamanne.githistory",
+                "ms-python.black-formatter",
+                "genieai.chatgpt-vscode",
+                "charliermarsh.ruff",
+                "github.copilot-nightly"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                    "source.fixAll": true
+                },
+                "python.formatting.provider": "black"
+            }
+        }
+    }//,
+    // "runServices": [
+    //     "geoapi"
+    // ]
+}

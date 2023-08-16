@@ -1,0 +1,62 @@
+[tool.poetry]
+name = "auth_api"
+version = "0.0.1"
+description = "Dependencies to run the API of the Authorization layer"
+authors = ["EPajares <elias.pajares@plan4better.de>", "Majk Shkurti <majk.shkurti@plan4better.de>"]
+readme = "README.md"
+keywords = ["geoapi", "ogc", "geoservices"]
+
+[tool.black]
+line-length = 88
+target-version = [ "py310", "py311" ]
+exclude = "((.eggs | .git | .pytest_cache | build | dist))"
+
+[tool.ruff]
+line-length = 88
+exclude = [".git", "__pycache__", ".mypy_cache", ".pytest_cache"]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    # "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "B904",
+    "B006",    
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.poetry.dependencies]
+python = ">3.9,<3.12"
+geojson = "^3.0.1"
+uvicorn = "^0.23.2"
+sqlalchemy = "^2.0.19"
+psycopg2 = "^2.9.7"
+tipg = "^0.4.1"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.269"
+black = "^23.3.0"
+pytest = "^7.3.2"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.11.1"
+pytest-postgresql = "^5.0.0"
+pre-commit = "^3.3.3"
+pytest-testmon = "^2.0.9"
+pytest-sugar = "^0.9.7"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+reportGeneralTypeIssues = false

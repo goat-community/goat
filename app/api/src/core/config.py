@@ -73,6 +73,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+    POSTGRES_OUTER_PORT: str
 
     @validator("POSTGRES_DB", pre=True)
     def set_db_name_according_to_project_name_if_empty(cls, v, values):
@@ -84,7 +85,7 @@ class Settings(BaseSettings):
 
     @validator("POSTGRES_DATABASE_URI", pre=True)
     def postgres_database_uri_(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        return f'postgresql://{values.get("POSTGRES_USER")}:{values.get("POSTGRES_PASSWORD")}@{values.get("POSTGRES_SERVER")}:5432/{values.get("POSTGRES_DB")}'
+        return f'postgresql://{values.get("POSTGRES_USER")}:{values.get("POSTGRES_PASSWORD")}@{values.get("POSTGRES_SERVER")}:{values.get("POSTGRES_OUTER_PORT")}/{values.get("POSTGRES_DB")}'
 
     ASYNC_SQLALCHEMY_DATABASE_URI: Optional[AsyncPostgresDsn] = None
 
@@ -97,6 +98,7 @@ class Settings(BaseSettings):
             user=values.get("POSTGRES_USER"),
             password=values.get("POSTGRES_PASSWORD"),
             host=values.get("POSTGRES_SERVER"),
+            port=values.get("POSTGRES_OUTER_PORT"),
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
 
@@ -111,6 +113,7 @@ class Settings(BaseSettings):
             user=values.get("POSTGRES_USER"),
             password=values.get("POSTGRES_PASSWORD"),
             host=values.get("POSTGRES_SERVER"),
+            port=values.get("POSTGRES_OUTER_PORT"),
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
     
