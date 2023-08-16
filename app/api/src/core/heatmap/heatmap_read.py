@@ -767,7 +767,9 @@ class ReadHeatmap(BaseHeatmap):
         h3_grid_ids = results["h3_grid_ids"]
         h3_polygons = results["h3_polygons"]
         properties = without_keys(results, ["h3_grid_ids", "h3_polygons"])
-        properties = self.clean_unvisible_properties(properties, settings)
+
+        # Removed cleaning unvisible properties for now as this will be different in any case in v2
+        # properties = self.clean_unvisible_properties(properties, settings)
         features = []
         for i in range(len(h3_grid_ids)):
             h3_grid_id = h3_grid_ids[i]
