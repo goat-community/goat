@@ -31,15 +31,15 @@ const config = {
   i18n: {
     defaultLocale: "en",
     locales: ["en", "de"],
-    path: 'i18n',
+    path: "i18n",
     localeConfigs: {
       en: {
-        label: 'English',
+        label: "English",
       },
       de: {
-        label: 'Deutsch'
+        label: "Deutsch",
       },
-    }
+    },
   },
 
   presets: [
@@ -54,6 +54,14 @@ const config = {
           // Remove this to remove the "edit this page" links.
           editUrl:
             "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
+
+          lastVersion: "current",
+          versions: {
+            current: {
+              label: "1.5",
+              path: "1.5",
+            },
+          },
         },
         // blog: {
         //   showReadingTime: true,
@@ -67,41 +75,27 @@ const config = {
         },
       }),
     ],
-    [
-      'redocusaurus',
-      {
-        // Plugin Options for loading OpenAPI files
-        specs: [
-          {
-            spec: './openapi.json', //https://v2.goat.plan4better.de/api/v1/openapi.json
-            route: '/api/',
-          },
-        ],
-        // Theme Options for modifying how redoc renders them
-        theme: {
-          primaryColor: '#2BB381',
-          theme: {
-            // sidebar:{
-            //   backgroundColor: '#F8F7F3',
-            // },
-          },
-        },
-      },
-    ]
-  ],
-
-  plugins: [
-    [
-      "@docusaurus/plugin-client-redirects",
-      {
-        redirects: [
-          {
-            to: "/docs/intro",
-            from: "/docs",
-          },
-        ],
-      },
-    ],
+    // [
+    //   'redocusaurus',
+    //   {
+    //     // Plugin Options for loading OpenAPI files
+    //     specs: [
+    //       {
+    //         spec: './openapi.json', //https://v2.goat.plan4better.de/api/v1/openapi.json
+    //         route: '/api/',
+    //       },
+    //     ],
+    //     // Theme Options for modifying how redoc renders them
+    //     theme: {
+    //       primaryColor: '#2BB381',
+    //       theme: {
+    //         // sidebar:{
+    //         //   backgroundColor: '#F8F7F3',
+    //         // },
+    //       },
+    //     },
+    //   },
+    // ]
   ],
 
   themeConfig:
@@ -121,11 +115,11 @@ const config = {
             position: "left",
             label: "Tutorial",
           },
-          {
-            to: "/api",
-            label: "Api",
-            position: "left",
-          },
+          // {
+          //   to: "/api",
+          //   label: "Api",
+          //   position: "left",
+          // },
           {
             to: "/Storybook",
             label: "Storybook",
@@ -137,11 +131,11 @@ const config = {
             position: "left",
           },
           {
-            type: 'localeDropdown',
-            position: 'right',
+            type: "localeDropdown",
+            position: "right",
             dropdownItemsAfter: [
               {
-                to: 'https://my-site.com/help-us-translate',
+                to: "https://my-site.com/help-us-translate",
               },
             ],
           },
@@ -158,10 +152,9 @@ const config = {
         ],
       },
       footer: {
-        
         links: [
           {
-            title: 'Subscribe To Newsletter',
+            title: "Subscribe To Newsletter",
             items: [
               {
                 html: `
@@ -171,23 +164,23 @@ const config = {
                   </div>
                 `,
               },
-            ]
+            ],
           },
           {
             title: "Docs",
             items: [
               {
                 label: "Software Architecture",
-                to: "/backend/architecture",
+                to: "/",
               },
               {
                 label: "Frontend",
-                to: "/frontend/cli"
+                to: "/",
               },
               {
                 label: "Data Preperation",
-                to: "/data-preparation/cli"
-              }
+                to: "/",
+              },
             ],
           },
           {
