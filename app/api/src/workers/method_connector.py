@@ -141,7 +141,7 @@ async def create_connectivity_matrices_async(current_super_user, parameters):
 
 async def read_heatmap_async(current_user, heatmap_settings):
     current_user = models.User(**current_user)
-    #heatmap_settings = HeatmapSettings(**settings)
+    heatmap_settings = HeatmapSettings(**heatmap_settings)
     heatmap = ReadHeatmap(current_user=current_user)
 
     if heatmap_settings.heatmap_type == HeatmapType.modified_gaussian_population:
