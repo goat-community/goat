@@ -39,6 +39,7 @@ interface ITreeViewWithIconsProps {
   organizationData: [] | undefined;
   teamsData: [] | undefined;
   handleSelectFolder: () => void;
+  handleAddFolder: () => void;
   setFolderAnchor: (object) => void;
   setSelectedFolder: (object) => void;
 }

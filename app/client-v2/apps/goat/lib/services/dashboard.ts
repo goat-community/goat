@@ -108,3 +108,13 @@ export const updateFolderService = async (url: string, id: string, body: { name:
     return false;
   }
 };
+
+export const addFolderService = async (url: string, body: { name: string }) => {
+  try {
+    const res = await axios.post(`${url}`, body);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};

@@ -9,6 +9,7 @@ import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
 import { API } from "@/lib/api/apiConstants";
 import {
+  addFolderService,
   addLayerService,
   contentFoldersFetcher,
   contentLayersFetcher,
@@ -78,7 +79,9 @@ const ContentManagement = () => {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<object | null>(null);
   const [openEditFolderModal, setOpenEditFolderModal] = useState<boolean>(false);
+  const [openAddFolderModal, setOpenAddFolderModal] = useState<boolean>(false);
   const [editedFolderName, setEditedFolderName] = useState<string>("");
+  const [addedFolderName, setAddedFolderName] = useState<string>("");
   const [rows, setRows] = useState<any[]>([]);
   const [dialogContent, setDialogContent] = useState<{
     name: React.ReactNode;
@@ -149,6 +152,37 @@ const ContentManagement = () => {
       }
     : null;
 
+  const addFolderModalContent = openAddFolderModal
+    ? {
+        header: (
+          <div className={classes.modalHeader}>
+            <Text typo="subtitle" className={classes.modalHeaderText}>
+              Add new folder
+            </Text>
+            <IconButton onClick={closeAddFolderModal} iconId="close" />
+          </div>
+        ),
+        body: (
+          <TextField
+            className={classes.width100}
+            onValueBeingTypedChange={({ value }) => {
+              setAddedFolderName(value);
+            }}
+          />
+        ),
+        action: (
+          <div className={classes.buttons}>
+            <Button variant="noBorder" onClick={addFolderHandler}>
+              SAVE
+            </Button>
+            <Button variant="noBorder" onClick={closeAddFolderModal}>
+              CANCEL
+            </Button>
+          </div>
+        ),
+      }
+    : null;
+
   function getContentByFolder(id: string) {
     layerTrigger(id);
     projectTrigger(id);
@@ -169,10 +203,6 @@ const ContentManagement = () => {
     getContentByFolder(folder.id);
   }
 
-  function handleAddFolder() {
-    console.log("handleAddFolder");
-  }
-
   async function deleteFolderHandler() {
     if (folderAnchorData) {
       await deleteFolderService(API.folder, folderAnchorData.folder.id);
@@ -189,10 +219,21 @@ const ContentManagement = () => {
     await getFoldersMutation();
   }
 
+  async function addFolderHandler() {
+    await addFolderService(API.folder, { name: addedFolderName });
+    setOpenAddFolderModal(false);
+    await getFoldersMutation();
+  }
+
   function closeEditeModal() {
     setOpenEditFolderModal(false);
     setEditedFolderName("");
     closeFolderPopover();
+  }
+
+  function closeAddFolderModal() {
+    setOpenAddFolderModal(false);
+    setAddedFolderName("");
   }
 
   async function addLayer(body) {
@@ -362,7 +403,7 @@ const ContentManagement = () => {
               handleSelectFolder={handleSelectFolder}
               selectedFilters={selectedFilters}
               setSelectedFilters={setSelectedFilters}
-              handleAddFolder={handleAddFolder}
+              handleAddFolder={() => setOpenAddFolderModal(true)}
               setFolderAnchorData={setFolderAnchorData}
               setSelectedFolder={setSelectedFolder}
             />
@@ -424,6 +465,16 @@ const ContentManagement = () => {
                 header={editModalContent.header}
                 action={editModalContent.action}>
                 {editModalContent.body}
+              </Modal>
+            ) : null}
+            {addFolderModalContent ? (
+              <Modal
+                width="444px"
+                open={!!addFolderModalContent}
+                changeOpen={closeAddFolderModal}
+                header={addFolderModalContent.header}
+                action={addFolderModalContent.action}>
+                {addFolderModalContent.body}
               </Modal>
             ) : null}
           </Card>
