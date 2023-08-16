@@ -2,7 +2,7 @@ name: Push
 
 on:
   push:
-    branches: [ prod, dev, staging, v2 ]
+    branches: [ prod, dev, staging, v2, add-map-page ]
     
 jobs:
   release:
