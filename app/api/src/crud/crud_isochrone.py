@@ -28,7 +28,7 @@ from pyproj import Transformer
 from src import crud
 from src.core.config import settings
 from src.core.isochrone import compute_isochrone
-from src.core.opportunity import OpportunityIsochroneCount
+from src.core.opportunity import OpportunityIsochroneCount, read_population_sql
 from src.db import models
 from src.db.session import legacy_engine
 from src.jsoline import generate_jsolines
@@ -52,6 +52,7 @@ from src.utils import (
     merge_dicts,
     remove_keys,
 )
+import uuid
 
 
 class CRUDIsochrone:
@@ -419,22 +420,22 @@ class CRUDIsochrone:
             payload["fromLon"] = obj_in.starting_point.input[0].lon
 
 
-            # Buffer the extend of the study area by 30km to ensure that the isochrone covers the entire study area
-            poly = Polygon([(study_area_bounds[0], study_area_bounds[1]), (study_area_bounds[0], study_area_bounds[3]), (study_area_bounds[2], study_area_bounds[3]), (study_area_bounds[2], study_area_bounds[1])])
-                        # Create a GeoDataFrame from the Polygon
-            gdf = gpd.GeoDataFrame({'geometry': [poly]}, crs="EPSG:4326")
+            # # Buffer the extend of the study area by 30km to ensure that the isochrone covers the entire study area
+            # poly = Polygon([(study_area_bounds[0], study_area_bounds[1]), (study_area_bounds[0], study_area_bounds[3]), (study_area_bounds[2], study_area_bounds[3]), (study_area_bounds[2], study_area_bounds[1])])
+            #             # Create a GeoDataFrame from the Polygon
+            # gdf = gpd.GeoDataFrame({'geometry': [poly]}, crs="EPSG:4326")
 
-            # Transform to Web Mercator
-            gdf = gdf.to_crs("EPSG:3857")
+            # # Transform to Web Mercator
+            # gdf = gdf.to_crs("EPSG:3857")
 
-            # Buffer by 30km
-            gdf['geometry'] = gdf.geometry.buffer(30000)
+            # # Buffer by 30km
+            # gdf['geometry'] = gdf.geometry.buffer(30000)
 
-            # Transform back to WGS84
-            gdf = gdf.to_crs("EPSG:4326")
+            # # Transform back to WGS84
+            # gdf = gdf.to_crs("EPSG:4326")
 
-            # Get the extent of the resulting buffered geometry
-            study_area_bounds = tuple(list(gdf.total_bounds))
+            # # Get the extent of the resulting buffered geometry
+            # study_area_bounds = tuple(list(gdf.total_bounds))
 
             # You can now use g (which is a GeoSeries containing the buffered polygon)
             payload["bounds"] = {
@@ -504,15 +505,40 @@ class CRUDIsochrone:
                 **opportunity_user_args,
             )
 
-            # Poi
-            poi_count = opportunity_count.count_poi(group_by_column=group_by_column)
-            # Population
-            population_count = opportunity_count.count_population(
-                group_by_columns=[group_by_column]
+            
+            # Save isochrone shapes in the database for intersection
+            temp_isochrone_table_name = f"temp_isochrone_{uuid.uuid4().hex}"
+            isochrone_shapes["incremental"].to_postgis(
+                name=temp_isochrone_table_name, schema="temporal", con=legacy_engine, if_exists="replace", index=False
             )
 
+            # Create a temporary table with the subdivided isochrone shapes
+            sql = f"""
+                CREATE TABLE temporal.{temp_isochrone_table_name}_subdivided AS
+                SELECT {group_by_column}, ST_SubDivide(geometry, 50) AS geom
+                FROM temporal.{temp_isochrone_table_name};
+                ALTER TABLE temporal.{temp_isochrone_table_name}_subdivided ADD COLUMN id SERIAL PRIMARY KEY;
+                CREATE INDEX ON temporal.{temp_isochrone_table_name}_subdivided USING GIST (geom);
+            """
+            legacy_engine.execute(sql)
+            #TODO: The population intersection is done using SQL now but the others parts are still using the parquet files.
+            # This needs to be refactored later.
+            
+            # Population
+            population_count = read_population_sql(f"{temp_isochrone_table_name}_subdivided", group_by_column=group_by_column, obj_in=obj_in)
+
+            # Drop the temporary tables
+            sql = f"""
+                DROP TABLE temporal.{temp_isochrone_table_name};
+                DROP TABLE temporal.{temp_isochrone_table_name}_subdivided;
+            """
+            legacy_engine.execute(sql)
+
+            # Poi
+            poi_count = opportunity_count.count_poi(group_by_column=group_by_column)
+            population_count = {int(k): v for k, v in population_count.items()}
             opportunities = [poi_count, population_count]
-            if obj_in.mode.value != IsochroneMode.TRANSIT.value:
+            if obj_in.mode.value != IsochroneMode.TRANSIT.value and obj_in.mode.value != IsochroneMode.CAR.value:
                 # Aoi
                 aoi_count = opportunity_count.count_aoi(
                     group_by_columns=[group_by_column, "category"]

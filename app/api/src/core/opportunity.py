@@ -12,6 +12,69 @@ from src.db.session import legacy_engine
 from src.utils import create_h3_grid
 
 
+def read_population_sql(table_to_aggregate: str, group_by_column: str, obj_in):
+
+    modified_buildings = []
+    scenario_result = {}
+    if obj_in.scenario.id != 0 and obj_in.scenario.modus != 'default':
+        modified_buildings = legacy_engine.execute(
+            f"SELECT * FROM basic.modified_buildings({obj_in.scenario.id})",
+            legacy_engine,
+        )
+        modified_buildings = modified_buildings.fetchall()[0][0]
+
+    if modified_buildings == []:
+        sql_base_population = f"""
+            SELECT basic.aggregate_points_by_polygon(
+                'basic.population', 
+                'population', 
+                'sum', 
+                'temporal.{table_to_aggregate}', 
+                '{group_by_column}'            
+            )
+        """
+        base_result = legacy_engine.execute(sql_base_population)
+        base_result = base_result.fetchall()[0][0]
+
+    else: 
+        sql_base_population = f"""
+            SELECT basic.aggregate_points_by_polygon(
+                'basic.population', 
+                'population', 
+                'sum', 
+                'temporal.{table_to_aggregate}', 
+                '{group_by_column}',
+                'AND building_id NOT IN ({str(modified_buildings)[1:-1]})'
+            )
+        """
+        base_result = legacy_engine.execute(sql_base_population)
+        base_result = base_result.fetchall()[0][0]
+
+        sql_scenario_population = f"""
+            SELECT basic.aggregate_points_by_polygon(
+                'customer.population_modified',
+                'population',
+                'sum',
+                'temporal.{table_to_aggregate}',
+                '{group_by_column}',
+                'AND scenario_id = {obj_in.scenario.id}'
+            )
+        """
+        scenario_result = legacy_engine.execute(sql_scenario_population)
+        scenario_result = scenario_result.fetchall()[0][0]
+    
+    result = {}
+    # Loop through all keys in both dictionaries
+    for key in set(base_result.keys()) | set(scenario_result.keys()):
+        if scenario_result.get(key, 0) != 0:
+            scenario_value = scenario_result.get(key).get("population", 0)
+        else:
+            scenario_value = 0
+        result[key] = {}
+        result[key]["population"] = base_result.get(key, 0).get("population", 0) + scenario_value
+        
+    return result
+
 class Opportunity:
     """
     Reads opportunity data from parquet files or database.
