@@ -22,6 +22,13 @@
     "lint": {
       "cache": false
     },
+    "lint:fix": {
+      "cache": false
+    },
+    "lint:report": {
+      "cache": false,
+      "outputs": ["lint-results"]
+    },
     "clean": {},
     "typecheck": {
       "cache": false
@@ -36,6 +43,7 @@
     "KEYCLOAK_CLIENT_SECRET",
     "KEYCLOAK_CLIENT_ID",
     "KEYCLOAK_ISSUER",
-    "API_URL"
+    "API_URL",
+    "NODE_ENV"
   ]
 }

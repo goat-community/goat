@@ -1,0 +1,70 @@
+name: Client CI
+
+on:
+  push:
+    branches: [dev, main, feature/add-map-page]
+    paths:
+      - "app/client/**"
+  merge_group:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: ./app/client
+
+jobs:
+  # files-changed:
+  #   name: detect-changes
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 3
+  #   permissions:
+  #     pull-requests: read
+  #     contents: read
+  #   outputs:
+  #     client-goat: ${{ steps.changes.outputs.client-goat }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dorny/paths-filter@v2
+  #       id: changes
+  #       with:
+  #         filters: |
+  #           client-goat:
+  #               - 'app/client/apps/goat/**'
+  #               - 'app/client/packages/**'
+  #               - 'app/client/package.json'
+  #               - 'app/client/pnpm-lock.yaml'
+  #               - 'app/client/.prettier*'
+
+  typecheck:
+    name: typecheck
+    uses: ./.github/workflows/client-check-types.yml
+    secrets: inherit
+
+  lint:
+    name: lint
+    uses: ./.github/workflows/client-lint.yml
+    secrets: inherit
+
+  build:
+    name:  build
+    uses: ./.github/workflows/client-production-build.yml
+    secrets: inherit
+
+  # analyze:
+  #   name: analyze
+  #   needs: build
+  #   uses: ./.github/workflows/client-nextjs-bundle-analysis.yml
+  #   secrets: inherit
+
+  # required:
+  #   needs: [lint, typecheck, build]
+  #   if: always()
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: fail if conditional jobs failed
+  #       if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
+  #       run: exit 1

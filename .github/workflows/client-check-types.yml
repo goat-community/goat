@@ -1,0 +1,32 @@
+name: Client - Check Types
+on:
+  workflow_call:
+
+env:
+  NODE_OPTIONS: "--max-old-space-size=8192"
+
+defaults:
+  run:
+    working-directory: ./app/client
+
+jobs:
+  check-types:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v3
+
+      - name: 📥 Checkout PR
+        uses: ./.github/actions/pr-git-checkout
+
+      - name: 📥 Monorepo install
+        uses: ./.github/actions/pnpm-install
+        with:
+          enable-corepack: true
+          cwd: ${{ github.workspace }}/app/client
+
+      - name: 📊 Show Info
+        run: node -e "console.log(require('v8').getHeapStatistics())"
+
+      - name: 🕵️ Typecheck
+        run: pnpm run typecheck

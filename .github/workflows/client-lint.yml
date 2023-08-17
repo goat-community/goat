@@ -1,0 +1,45 @@
+name: Client - Lint
+on:
+  workflow_call:
+
+defaults:
+  run:
+    working-directory: ./app/client
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v3
+        
+      - name: 📥 Checkout PR
+        uses: ./.github/actions/pr-git-checkout
+
+      - name: 📥 Monorepo install
+        uses: ./.github/actions/pnpm-install
+        with:
+          enable-corepack: true
+          cwd: ${{ github.workspace }}/app/client
+
+      - name: 🔬 Run Linting with Reports
+        run: pnpm run lint:report
+        continue-on-error: true
+
+      - name: 🔬 Merge lint reports
+        run: jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json
+
+      - name: 🔬 Annotate Code Linting Results
+        uses: ataylorme/eslint-annotate-action@v2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          report-json: "lint-results/eslint_report.json"
+          only-pr-files: false
+
+      - name: 🔬 Upload ESLint report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: lint-results
+          path: lint-results

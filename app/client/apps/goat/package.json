@@ -12,7 +12,9 @@
     "dev": "cross-env NODE_OPTIONS='--inspect' next dev -p 3000",
     "fix-all-files": "eslint . --ext .ts,.tsx,.js,.jsx,.cjs,.mjs,.mdx,.graphql --fix",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --ignore-path .gitignore",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
+    "lint:report": "eslint . --format json --output-file ../../lint-results/goat.json",
     "typecheck": "tsc --project ./tsconfig.json --pretty --noEmit"
   },
   "dependencies": {
@@ -51,16 +53,17 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^13.4.17",
     "@p4b/tsconfig": "workspace:*",
     "@playwright/test": "^1.33.0",
+    "@size-limit/file": "^8.2.6",
     "@types/node": "^20.1.5",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/uuid": "^9.0.2",
-    "eslint-config-p4b": "workspace:*",
-    "size-limit": "^8.2.6",
-    "@size-limit/file": "^8.2.6",
+    "cross-env": "^7.0.3",
     "es-check": "^7.1.1",
-    "cross-env": "^7.0.3"
+    "eslint-config-p4b": "workspace:*",
+    "size-limit": "^8.2.6"
   }
 }

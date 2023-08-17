@@ -6,7 +6,6 @@
   "scripts": {
     "clean": "rimraf node_modules public/keycloak-resources",
     "dev": "craco start",
-    "build": "craco build",
     "build-keycloak-theme": "pnpm build && keycloakify"
   },
   "keywords": [],

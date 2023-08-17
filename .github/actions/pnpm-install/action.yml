@@ -9,7 +9,7 @@
 #        uses: ./.github/actions/pnpm-install                                          #
 #        with:                                                                         #
 #          enable-corepack: false # (default)                                          #
-#          cwd: ${{ github.workspace }}/apps/my-app # (default = '.')                  #
+#          cwd: ${{ github.workspace }}/apps/goat # (default = '.')                    #
 ########################################################################################
 
 
@@ -25,11 +25,20 @@ inputs:
     description: "Changes node's process.cwd() if the project is not located on the root. Default to process.cwd()"
     required: false
     default: '.'
+  node_version:
+    description: 'Node version to use'
+    required: false
+    default: v18.x
 
 runs:
   using: 'composite'
 
   steps:
+    - name: Use Node ${{ inputs.node_version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node_version }}
+
     - name: ⚙️ Enable Corepack
       if: ${{ inputs.enable-corepack == 'true' }}
       shell: bash
@@ -38,7 +47,8 @@ runs:
         corepack enable
         echo "corepack enabled" 
 
-    - uses: pnpm/action-setup@v2.2.4
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2.2.4
       if: ${{ inputs.enable-corepack == 'false' }}
       with:
         run_install: false
@@ -57,8 +67,9 @@ runs:
       run: |
         echo "YEAR_MONTH=$(/bin/date -u "+%Y%m")" >> $GITHUB_OUTPUT
 
-    - uses: actions/cache@v3
-      name: Setup pnpm cache
+    - name: Setup pnpm cache
+      uses: actions/cache@v3
+      working-directory: ${{ inputs.cwd }}
       with:
         path: ${{ steps.pnpm-config.outputs.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-cache-${{ steps.cache-rotation.outputs.YEAR_MONTH }}-${{ hashFiles('**/pnpm-lock.yaml') }}

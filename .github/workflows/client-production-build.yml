@@ -1,0 +1,32 @@
+name: "Client - Production Build"
+
+on:
+  workflow_call:
+
+defaults:
+  run:
+    working-directory: ./app/client
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+
+      - name: 📥 Checkout
+        uses: actions/checkout@v3
+
+      # - name: 📥 Checkout PR
+      #   uses: ./.github/actions/pr-git-checkout
+
+      - name: 📥 Monorepo install
+        uses: ./.github/actions/pnpm-install
+        with:
+          enable-corepack: true
+          cwd: ${{ github.workspace }}/app/client
+
+      - name: 📥 Build client
+        uses: ./.github/actions/client-cache-build
+        with:
+          cwd: ${{ github.workspace }}/app/client

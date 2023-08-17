@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "clean": "turbo run clean && rimraf node_modules",
+    "clean": "turbo run clean && rimraf node_modules lint lint-results",
     "build": "turbo run build",
     "post-install": "turbo run post-install",
     "dev": "turbo run dev --parallel",
@@ -19,6 +19,8 @@
     "build-storybook": "turbo run build --filter=storybook",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "lint:report": "turbo run lint:report",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test"
   },

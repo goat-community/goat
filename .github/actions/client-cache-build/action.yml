@@ -1,0 +1,44 @@
+name: 'Cache production build binaries'
+description: "Cache or restore if necessary"
+
+inputs:
+  cwd:
+    description: "Changes node's process.cwd() if the project is not located on the root. Default to process.cwd()"
+    required: false
+    default: '.'
+  node_version:
+    description: "Node version to use"
+    required: false
+    default: v18.x
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: test working directory
+      run: echo ${{ inputs.cwd }}
+      working-directory: ${{ inputs.cwd }}
+      shell: bash
+      
+    - name: Cache production build
+      uses: action/cache@v3
+      id: cache-build
+      working-directory: ${{ inputs.cwd }}
+      env:
+        cache-name: prod-build
+        key-1: ${{ inputs.node_version }}-${{ hashFiles('pnpm-lock.yaml') }}
+        key-2: ${{ hashFiles('apps/**/**.[jt]s', 'apps/**/**.[jt]sx', 'packages/**/**.[jt]s', 'packages/**/**.[jt]sx', '!**/node_modules') }}
+        key-3: ${{ github.event.pull_request.number || github.ref }}
+        # Ensures production-build.yml will always be fresh
+        key-4: ${{ github.sha }}
+      with:
+        path: |
+          ${{ github.workspace }}/app/client/apps/goat/.next
+          **/.turbo/**
+          **/dist/**
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
+        
+    - run: pnpm run build
+      working-directory: ${{ inputs.cwd }}
+      if: steps.cache-build.outputs.cache-hit != 'true'
+      shell: bash

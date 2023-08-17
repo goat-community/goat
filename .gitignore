@@ -70,3 +70,4 @@ costs.bin
 *.tfvars
 *.pkrvars*
 .idea
+lint-results
