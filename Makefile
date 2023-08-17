@@ -111,14 +111,14 @@ build-docker-image: app/$(COMPONENT)/Dockerfile
 
 # target: build-client-docker-image -e VERSION=some_git_sha_comit -e COMPONENT=api|client
 .PHONY: build-client-docker-image
-build-client-docker-image: app/client-v2/apps/$(COMPONENT)/Dockerfile
-	$(DOCKER) build -f app/client-v2/apps/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/client-v2
+build-client-docker-image: app/client/apps/$(COMPONENT)/Dockerfile
+	$(DOCKER) build -f app/client/apps/$(COMPONENT)/Dockerfile --pull -t $(DOCKER_IMAGE) app/client
 
 # target: release-keycloak-theme
 .PHONY: release-keycloak-theme
 release-keycloak-theme:
 	echo "Releasing keycloak theme" && \
-	cd app/client-v2/packages/keycloak-theme && pnpm install && \
+	cd app/clients/packages/keycloak-theme && pnpm install && \
     KEYCLOAKIFY_ARTIFACT_ID="p4b-keycloak-theme$(if $(filter $(NAMESPACE),dev v2),-dev)" KEYCLOAKIFY_GROUP_ID="com.plan4better.auth$(if $(filter $(NAMESPACE),dev v2),.dev.keycloak,.keycloak)" pnpm run build-keycloak-theme && \
     mv build_keycloak/target/*.jar p4b-keycloak-theme$(if $(filter $(NAMESPACE),dev v2),-dev).jar && \
     aws s3 cp p4b-keycloak-theme$(if $(filter $(NAMESPACE),dev v2),-dev).jar s3://plan4better-assets/other/keycloak/

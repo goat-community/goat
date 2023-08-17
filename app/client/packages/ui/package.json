@@ -47,12 +47,12 @@
   "devDependencies": {
     "@p4b/tsconfig": "workspace:*",
     "@p4b/types": "workspace:*",
-    "eslint-config-p4b": "workspace:*",
     "@storybook/addons": "^7.0.9",
     "@storybook/react": "^7.0.9",
     "@storybook/types": "^7.0.9",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@types/uuid": "^9.0.2"
+    "@types/uuid": "^9.0.2",
+    "eslint-config-p4b": "workspace:*"
   }
 }

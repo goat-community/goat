@@ -3,12 +3,17 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "clean": "rimraf .turbo node_modules .next",
-    "dev": "cross-env NODE_OPTIONS='--inspect' next dev -p 3000",
     "build": "next build",
+    "build-fast": "cross-env NEXT_BUILD_ENV_SENTRY_ENABLED=0 NEXT_BUILD_ENV_SOURCEMAPS=0 NEXT_BUILD_ENV_TYPECHECK=0 NEXT_BUILD_ENV_LINT=0 next build",
+    "bundle-analyze": "cross-env ANALYZE=true NEXT_BUILD_ENV_SENTRY_ENABLED=1 NEXT_BUILD_ENV_SENTRY_UPLOAD_DRY_RUN=1 NEXT_BUILD_ENV_TYPECHECK=0 NEXT_BUILD_ENV_LINT=0 pnpm build",
+    "check-dist": "es-check -v",
+    "check-size": "size-limit --highlight-less",
+    "clean": "rimraf ./.next ./out ./coverage ./tsconfig.tsbuildinfo ./node_modules",
+    "dev": "cross-env NODE_OPTIONS='--inspect' next dev -p 3000",
+    "fix-all-files": "eslint . --ext .ts,.tsx,.js,.jsx,.cjs,.mjs,.mdx,.graphql --fix",
     "start": "next start",
     "lint": "next lint",
-    "ts": "tsc --noEmit --incremental"
+    "typecheck": "tsc --project ./tsconfig.json --pretty --noEmit"
   },
   "dependencies": {
     "@emotion/cache": "latest",
@@ -23,16 +28,14 @@
     "@types/mapbox-gl": "^2.7.11",
     "accept-language": "^3.0.18",
     "axios": "^1.4.0",
-    "cross-env": "^7.0.3",
     "dayjs": "^1.11.9",
-    "eslint-config-next": "^13.4.12",
     "geojson": "^0.5.0",
     "i18next": "^23.4.4",
     "i18next-browser-languagedetector": "^7.1.0",
     "i18next-resources-to-backend": "^1.1.4",
     "mapbox-gl": "^2.15.0",
     "maplibre-gl": "^3.1.0",
-    "next": "v13.4.10",
+    "next": "v13.4.16",
     "next-auth": "^4.22.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -54,6 +57,10 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/uuid": "^9.0.2",
-    "eslint-config-p4b": "workspace:*"
+    "eslint-config-p4b": "workspace:*",
+    "size-limit": "^8.2.6",
+    "@size-limit/file": "^8.2.6",
+    "es-check": "^7.1.1",
+    "cross-env": "^7.0.3"
   }
 }

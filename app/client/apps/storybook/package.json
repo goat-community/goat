@@ -3,15 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "clean": "rimraf ./.next ./out ./coverage ./tsconfig.tsbuildinfo ./node_modules",
     "dev": "storybook dev -p 6006",
-    "build": "storybook build"
+    "build": "storybook build",
+    "typecheck": "tsc --project ./tsconfig.json --pretty --noEmit"
   },
   "dependencies": {
-    "@mui/lab": "5.0.0-alpha.132",
     "@p4b/keycloak-theme": "*",
     "@p4b/ui": "*",
     "@p4b/types": "*",
-    "next": "v13.4.10",
+    "next": "v13.4.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

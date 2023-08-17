@@ -5,7 +5,7 @@ export default function Navbar() {
     <nav className="bg-blue-800 p-4">
       <ul className="flex justify-evenly text-2xl font-bold">
         <li>
-          <Link href="/app/client-v2/apps/goat/public">Home</Link>
+          <Link href="/app/client/apps/goat/public">Home</Link>
         </li>
         <li>
           <Link href="/api/auth/signin">Sign In</Link>

@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "description": "P4B Keycloak theme",
   "scripts": {
-    "postinstall": "copy-keycloak-resources-to-public",
+    "clean": "rimraf node_modules public/keycloak-resources",
     "dev": "craco start",
     "build": "craco build",
     "build-keycloak-theme": "pnpm build && keycloakify"

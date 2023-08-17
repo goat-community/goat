@@ -20,10 +20,11 @@
       "dependsOn": ["^generate"]
     },
     "lint": {
-      "outputs": []
+      "cache": false
     },
-    "clean": {
-      "outputs": []
+    "clean": {},
+    "typecheck": {
+      "cache": false
     }
   },
   "globalEnv": [
