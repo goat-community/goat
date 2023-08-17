@@ -8,13 +8,14 @@ on:
   merge_group:
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: ./app/client
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    working-directory: ./app/client
 
 jobs:
   # files-changed:
