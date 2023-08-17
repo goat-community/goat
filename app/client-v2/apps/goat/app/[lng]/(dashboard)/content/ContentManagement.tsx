@@ -13,9 +13,11 @@ import {
   contentLayersFetcher,
   contentProjectsFetcher,
   contentReportsFetcher,
+  deleteLayerService,
 } from "@/lib/services/dashboard";
 import { formatDate } from "@/lib/utils/helpers";
 import FolderIcon from "@mui/icons-material/Folder";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
@@ -26,22 +28,6 @@ import Modal from "@p4b/ui/components/Modal";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Text, IconButton, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
-
-//todo check
-const ContainingProjects = [
-  {
-    name: "Proposal_Budget_Revision",
-    link: "/home",
-  },
-  {
-    name: "FINAL_Project1",
-    link: "/home",
-  },
-  {
-    name: "Revision123",
-    link: "/home",
-  },
-];
 
 const ContentManagement = () => {
   const { data: folderData, error: folderError } = useSWR(API.folder, contentFoldersFetcher);
@@ -63,6 +49,7 @@ const ContentManagement = () => {
   } | null>(null);
 
   const { classes } = useStyles();
+  const router = useRouter();
 
   const columnNames = [
     {
@@ -103,12 +90,14 @@ const ContentManagement = () => {
             <IconButton onClick={() => setModalContent(null)} iconId="close" />
           </div>
         ),
-        body: (
-          <ContentInfoModal containingProjects={ContainingProjects} sampleModalData={modalContent.info} />
-        ),
+        body: <ContentInfoModal sampleModalData={modalContent.info} />,
         action: (
           <div className={classes.buttons}>
-            <Button variant="noBorder">VIEW</Button>
+            {modalContent.label === "label" ? (
+              <Button variant="noBorder" onClick={() => router.push(`/content/preview/${modalContent?.id}`)}>
+                VIEW
+              </Button>
+            ) : null}
             <Button variant="noBorder" onClick={() => setModalContent(null)}>
               CANCEL
             </Button>
@@ -117,6 +106,12 @@ const ContentManagement = () => {
       }
     : null;
 
+  function getContentByFolder(id: string) {
+    layerTrigger(id);
+    projectTrigger(id);
+    reportTrigger(id);
+  }
+
   function closeTablePopover() {
     setAnchorEl(null);
     setDialogContent(null);
@@ -124,9 +119,7 @@ const ContentManagement = () => {
 
   function handleSelectFolder(folder) {
     setSelectedFolder(folder);
-    layerTrigger(folder.id);
-    projectTrigger(folder.id);
-    reportTrigger(folder.id);
+    getContentByFolder(folder.id);
   }
 
   function handleAddFolder() {
@@ -138,6 +131,11 @@ const ContentManagement = () => {
     await layerTrigger(res.folder_id);
   }
 
+  async function handleDeleteItem(data) {
+    await deleteLayerService(API[data.label], data.id);
+    getContentByFolder(data.folder_id);
+  }
+
   useEffect(() => {
     let filteredRows = [];
 
@@ -145,13 +143,36 @@ const ContentManagement = () => {
       filteredRows.push(
         ...layerData?.items?.map((item) => {
           return {
+            ...item,
             id: item.id,
             name: item?.name,
             type: <Chip className={classes.chip} label="layer" textDesign="italic" variant="Border" />,
             modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
             path: ["home"],
             size: `${item?.metadata?.size || ""} kb`,
-            info: [],
+            label: "layer",
+            info: [
+              {
+                tag: "Name",
+                data: item?.name,
+              },
+              {
+                tag: "Description",
+                data: item?.description,
+              },
+              {
+                tag: "Type",
+                data: item?.type,
+              },
+              {
+                tag: "Modified",
+                data: item?.updated_at,
+              },
+              {
+                tag: "Size",
+                data: `${item?.metadata?.size || ""} kb`,
+              },
+            ],
           };
         })
       );
@@ -167,7 +188,29 @@ const ContentManagement = () => {
             modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
             path: ["home"],
             size: `${item?.metadata?.size || ""} kb`,
-            info: [],
+            label: "project",
+            info: [
+              {
+                tag: "Name",
+                data: item?.name,
+              },
+              {
+                tag: "Description",
+                data: item?.description,
+              },
+              {
+                tag: "Type",
+                data: item?.type,
+              },
+              {
+                tag: "Modified",
+                data: item?.updated_at,
+              },
+              {
+                tag: "Size",
+                data: `${item?.metadata?.size || ""} kb`,
+              },
+            ],
           };
         })
       );
@@ -183,7 +226,29 @@ const ContentManagement = () => {
             modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
             path: ["home"],
             size: `${item?.metadata?.size || ""} kb`,
-            info: [],
+            label: "report",
+            info: [
+              {
+                tag: "Name",
+                data: item?.name,
+              },
+              {
+                tag: "Description",
+                data: item?.description,
+              },
+              {
+                tag: "Type",
+                data: item?.type,
+              },
+              {
+                tag: "Modified",
+                data: item?.updated_at,
+              },
+              {
+                tag: "Size",
+                data: `${item?.metadata?.size || ""} kb`,
+              },
+            ],
           };
         })
       );
@@ -199,9 +264,7 @@ const ContentManagement = () => {
   useEffect(() => {
     if (folderData?.items[0] && selectedFolder === null) {
       setSelectedFolder(folderData.items[0]);
-      layerTrigger(folderData.items[0].id);
-      projectTrigger(folderData.items[0].id);
-      reportTrigger(folderData.items[0].id);
+      getContentByFolder(folderData.items[0].id);
     }
   }, [folderData?.items, selectedFolder]);
 
@@ -247,7 +310,7 @@ const ContentManagement = () => {
                 direction="right"
                 // action={dialog?.action}
               >
-                <MoreMenu rowInfo={dialogContent} />
+                <MoreMenu rowInfo={dialogContent} handleDeleteItem={handleDeleteItem} />
               </Dialog>
             ) : null}
             {modal ? (
