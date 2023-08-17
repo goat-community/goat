@@ -520,6 +520,32 @@ request_examples = {
                 },
             },
         },
+        "car_single": {
+            "summary": "Single Car Isochrone",
+            "value": {
+                "mode": "car",
+                "settings": {
+                    "travel_time": 60,
+                    "transit_modes": ["bus", "tram", "subway", "rail"],
+                    "weekday": 0,
+                    "access_mode": "car",
+                    "egress_mode": "walk",
+                    "bike_traffic_stress": 4,
+                    "from_time": 25200,
+                    "to_time": 32400,
+                    "max_rides": 4,
+                    "max_bike_time": 20,
+                    "max_walk_time": 20,
+                    "percentiles": [5, 25, 50, 75, 95],
+                    "monte_carlo_draws": 200,
+                },
+                "starting_point": {
+                    "input": [{"lat": 49.49179880322353, "lon": 9.769804473588774}]
+                },
+                "scenario": {"id": 0, "modus": "default"},
+                "output": {"type": "grid", "resolution": 9},
+            },
+        },
         "single_buffer_catchment": {
             "summary": "Single Buffer Catchment",
             "value": {
