@@ -35,7 +35,7 @@ jobs:
         uses: ataylorme/eslint-annotate-action@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          report-json: "lint-results/eslint_report.json"
+          report-json: ${{ github.workspace }}/app/client/lint-results/eslint_report.json
           only-pr-files: false
 
       - name: 🔬 Upload ESLint report
