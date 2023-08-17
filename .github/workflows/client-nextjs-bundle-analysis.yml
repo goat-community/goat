@@ -5,7 +5,11 @@ on:
   push:
     branches:
       - main
-
+      
+defaults:
+  run:
+    working-directory: app/client
+      
 jobs:
   build:
     name: Production build

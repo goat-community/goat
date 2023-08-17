@@ -5,7 +5,7 @@ on:
 
 defaults:
   run:
-    working-directory: ./app/client
+    working-directory: app/client
 
 jobs:
   lint:

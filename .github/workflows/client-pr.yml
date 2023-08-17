@@ -10,7 +10,7 @@ on:
 
 defaults:
   run:
-    working-directory: ./app/client
+    working-directory: app/client
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
