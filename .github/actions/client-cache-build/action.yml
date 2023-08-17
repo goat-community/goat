@@ -13,17 +13,10 @@ inputs:
 
 runs:
   using: "composite"
-
   steps:
-    - name: test working directory
-      run: echo ${{ inputs.cwd }}
-      working-directory: ${{ inputs.cwd }}
-      shell: bash
-      
     - name: Cache production build
       uses: action/cache@v3
       id: cache-build
-      working-directory: ${{ inputs.cwd }}
       env:
         cache-name: prod-build
         key-1: ${{ inputs.node_version }}-${{ hashFiles('${{ inputs.cwd }}/pnpm-lock.yaml') }}
