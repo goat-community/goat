@@ -88,3 +88,33 @@ export const loadLayerService = async (url: string) => {
     return false;
   }
 };
+
+export const deleteFolderService = async (url: string, id: string) => {
+  try {
+    const res = await axios.delete(`${url}/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
+export const updateFolderService = async (url: string, id: string, body: { name: string }) => {
+  try {
+    const res = await axios.put(`${url}/${id}`, body);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
+export const addFolderService = async (url: string, body: { name: string }) => {
+  try {
+    const res = await axios.post(`${url}`, body);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};

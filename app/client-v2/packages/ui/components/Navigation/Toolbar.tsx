@@ -28,12 +28,13 @@ export function Toolbar(props: ToolbarProps) {
       </div>
       <Stack direction="row" alignItems="center" sx={{ paddingY: "6px" }}>
         {items?.map(
-          ({ link, icon }, index) =>
+          ({ link, icon }, index) => (
             // <Link
             //   className={index !== items.length - 1 ? classes.icon : classes.lastIcon}
             //   href={link}
             //   key={v4()}>
-            icon()
+            <span key={index}>{icon()}</span>
+          )
           // </Link>
         )}
       </Stack>

@@ -342,7 +342,7 @@ const ContentManagementComponent = () => {
             rows={rows}
             modal={modal}
             setDialogAnchor={setAnchorEl}
-            openDialog={setDialogContent}
+            setDialogContent={setDialogContent}
             openModal={setModalContent}
             currPath={path}
             setPath={setPath}
