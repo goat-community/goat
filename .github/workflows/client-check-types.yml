@@ -5,10 +5,6 @@ on:
 env:
   NODE_OPTIONS: "--max-old-space-size=8192"
 
-defaults:
-  run:
-    working-directory: app/client
-
 jobs:
   check-types:
     runs-on: ubuntu-latest
@@ -29,4 +25,5 @@ jobs:
         run: node -e "console.log(require('v8').getHeapStatistics())"
 
       - name: 🕵️ Typecheck
+        working-directory: ${{ github.workspace }}/app/client
         run: pnpm run typecheck
