@@ -40,7 +40,7 @@ jobs:
 
       - name: 🔬 Upload ESLint report
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: lint-results
-          path: lint-results
+          path: ${{ github.workspace }}/app/client/lint-results
