@@ -1,4 +1,4 @@
-name: Client - Lint
+name: "Client - Lint"
 
 on:
   workflow_call:

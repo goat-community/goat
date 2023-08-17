@@ -1,4 +1,4 @@
-name: Client - Check Types
+name: "Client - Check Types"
 on:
   workflow_call:
 

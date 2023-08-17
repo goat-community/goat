@@ -1,10 +1,10 @@
-name: Client CI
+name: "Client CI"
 
 on:
   push:
     branches: [dev, main, feature/add-map-page]
-    paths:
-      - "app/client/**"
+    # paths:
+    #   - "app/client/**"
   merge_group:
   workflow_dispatch:
 
