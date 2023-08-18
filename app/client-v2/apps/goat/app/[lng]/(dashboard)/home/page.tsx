@@ -5,6 +5,7 @@ import SingleGrid from "@/components/grid/SingleGrid";
 import { makeStyles } from "@/lib/theme";
 import { v4 } from "uuid";
 
+import Box from "@p4b/ui/components/Box";
 import { SlideShow } from "@p4b/ui/components/SlideShow";
 
 import CardList, { type CardType } from "./CardList";
@@ -213,24 +214,29 @@ const Home = () => {
   ];
 
   return (
-    <GridContainer>
-      <SingleGrid span={4}>
-        <SlideShow images={slideShowImages} height={328} width="100%" />
-        {tempCardInfo.map((cardSection: CardDataType) => (
-          <CardList
-            title={cardSection.title}
-            cards={cardSection.cards}
-            buttons={cardSection.buttons}
-            key={v4()}
-          />
-        ))}
-        <NewsLetterSection />
-      </SingleGrid>
-    </GridContainer>
+    <Box className={classes.root}>
+      <GridContainer>
+        <SingleGrid span={4}>
+          <SlideShow images={slideShowImages} height={328} width="100%" />
+          {tempCardInfo.map((cardSection: CardDataType) => (
+            <CardList
+              title={cardSection.title}
+              cards={cardSection.cards}
+              buttons={cardSection.buttons}
+              key={v4()}
+            />
+          ))}
+          <NewsLetterSection />
+        </SingleGrid>
+      </GridContainer>
+    </Box>
   );
 };
 
 const useStyles = makeStyles({ name: { Home } })(() => ({
+  root: {
+    marginTop: "100px",
+  },
   media: {
     width: "100%",
     height: "100px",

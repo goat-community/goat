@@ -1,5 +1,8 @@
+"use client";
+
+import StylingMap from "@/app/[lng]/(dashboard)/styling/StylingMap";
 import "@/styles/globals.css";
 
-export default async function Styling({}) {
-  return <p>Styling</p>;
+export default function Styling() {
+  return <StylingMap />;
 }

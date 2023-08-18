@@ -107,7 +107,7 @@ const ContentManagement = () => {
         body: <ContentInfoModal sampleModalData={modalContent.info} />,
         action: (
           <div className={classes.buttons}>
-            {modalContent.label === "label" ? (
+            {modalContent.label === "layer" ? (
               <Button variant="noBorder" onClick={() => router.push(`/content/preview/${modalContent?.id}`)}>
                 VIEW
               </Button>

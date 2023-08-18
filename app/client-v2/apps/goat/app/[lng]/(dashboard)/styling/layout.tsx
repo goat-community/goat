@@ -11,7 +11,7 @@ const StylingLayout = (props: StylingLayoutProps) => {
   const { children } = props;
   const { classes } = useStyles();
 
-  return <StylingSideBar width={60}>{children}</StylingSideBar>;
+  return <StylingSideBar width={48}>{children}</StylingSideBar>;
 };
 
 const useStyles = makeStyles({ name: { StylingLayout } })(() => ({}));
