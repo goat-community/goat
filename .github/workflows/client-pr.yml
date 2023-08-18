@@ -55,17 +55,17 @@ jobs:
     uses: ./.github/workflows/client-production-build.yml
     secrets: inherit
 
-  # analyze:
-  #   name: analyze
-  #   needs: build
-  #   uses: ./.github/workflows/client-nextjs-bundle-analysis.yml
-  #   secrets: inherit
+  analyze:
+    name: analyze
+    needs: build
+    uses: ./.github/workflows/client-nextjs-bundle-analysis.yml
+    secrets: inherit
 
-  # required:
-  #   needs: [lint, typecheck, build]
-  #   if: always()
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: fail if conditional jobs failed
-  #       if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
-  #       run: exit 1
+  required:
+    needs: [lint, typecheck, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: fail if conditional jobs failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
+        run: exit 1

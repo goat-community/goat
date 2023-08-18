@@ -47,15 +47,15 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: bundle
-          path: apps/goat/.next/analyze/__bundle_analysis.json
+          path: ${{ github.workspace }}/app/client/apps/goat/.next/analyze/__bundle_analysis.json
 
       - name: 📥 Download base branch bundle stats
         uses: dawidd6/action-download-artifact@v2
         if: success() && github.event.number
         with:
-          workflow: nextjs-bundle-analysis.yml
+          workflow: client-nextjs-bundle-analysis.yml
           branch: ${{ github.event.pull_request.base.ref }}
-          path: apps/goat/.next/analyze/base
+          path: ${{ github.workspace }}/app/client/apps/goat/.next/analyze/base
 
       # And here's the second place - this runs after we have both the current and
       # base branch bundle stats, and will compare them to determine what changed.
