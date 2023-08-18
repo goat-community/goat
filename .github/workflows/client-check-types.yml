@@ -10,7 +10,7 @@ defaults:
     working-directory: app/client
 
 jobs:
-  check-types:
+  typecheck:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout

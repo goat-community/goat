@@ -1,10 +1,10 @@
-name: "Client CI"
+name: "Client - PR"
 
 on:
-  push:
+  pull_request_target:
     branches: [dev, main, feature/add-map-page]
-    # paths:
-    #   - "app/client/**"
+    paths:
+      - "app/client/**"
   merge_group:
   workflow_dispatch:
 
@@ -18,27 +18,27 @@ concurrency:
 
 
 jobs:
-  # files-changed:
-  #   name: detect-changes
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 3
-  #   permissions:
-  #     pull-requests: read
-  #     contents: read
-  #   outputs:
-  #     client-goat: ${{ steps.changes.outputs.client-goat }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: dorny/paths-filter@v2
-  #       id: changes
-  #       with:
-  #         filters: |
-  #           client-goat:
-  #               - 'app/client/apps/goat/**'
-  #               - 'app/client/packages/**'
-  #               - 'app/client/package.json'
-  #               - 'app/client/pnpm-lock.yaml'
-  #               - 'app/client/.prettier*'
+  files-changed:
+    name: detect-changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      pull-requests: read
+      contents: read
+    outputs:
+      client-goat: ${{ steps.changes.outputs.client-goat }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            client-goat:
+                - 'app/client/apps/goat/**'
+                - 'app/client/packages/**'
+                - 'app/client/package.json'
+                - 'app/client/pnpm-lock.yaml'
+                - 'app/client/.prettier*'
 
   typecheck:
     name: typecheck

@@ -12,7 +12,6 @@ defaults:
       
 jobs:
   build:
-    name: Production build
     if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/client-production-build.yml
     secrets: inherit
