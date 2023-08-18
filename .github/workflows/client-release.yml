@@ -11,6 +11,10 @@ defaults:
   run:
     working-directory: app/client
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+  
 jobs:
   client-changed:
     name: detect-changes
@@ -42,7 +46,8 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v1
+      - name: 🐳 Setup Docker Buildx
+        uses: docker/setup-buildx-action@v1
       - name: 🐳 Login to DockerHub
         uses: docker/login-action@v1
         with:

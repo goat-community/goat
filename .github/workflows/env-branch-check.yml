@@ -1,0 +1,30 @@
+name: "Environment Branch Check"
+
+on:
+  workflow_call:
+    outputs:
+      env_name:
+        description: "Environment name"
+        value: ${{ jobs.environment-branch-check.outputs.env_name }}
+
+jobs:
+  environment-branch-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🕵️ Environment Branch Check
+        id: branch_check
+        run: |
+          echo "Running on branch ${{ github.ref }}"
+          if [ "${{ github.ref }}" = "refs/heads/prod" ]; then
+            echo "env_name=main" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/heads/feature/add-map-page" ]; then
+            echo "env_name=v2" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+            echo "env_name=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🕵️ Use variable setup in previous step
+        run: echo "I'm using variable ${{ steps.branch_check.outputs.env_name }}"
+
+    outputs:
+      env_name: ${{ steps.branch_check.outputs.env_name }}

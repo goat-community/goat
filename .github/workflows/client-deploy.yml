@@ -1,0 +1,40 @@
+name: "Client - Deploy"
+
+on:
+  push:
+    branches: [dev, main, feature/add-map-page]
+    paths:
+      - "app/client/**"
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Client - Release"]
+    types:
+      - completed
+
+defaults:
+  run:
+    working-directory: app/client
+
+jobs:
+  environment:
+    name: environment
+    uses: ./.github/workflows/env-branch-check.yml
+    secrets: inherit
+
+  deploy-goat:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.environment.outputs.env_name }}
+    needs: [environment]
+    timeout-minutes: 30
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v3
+
+      - name: 🎡 Setup Kubectl
+        uses: azure/setup-kubectl@v2.0
+
+      - name: 🎡 Setup k8s context to home folder from base64 secret
+        run: |
+          mkdir -p ~/.kube
+          echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ~/.kube/config
