@@ -3,7 +3,7 @@ import { v4 } from "uuid";
 
 import { Divider } from "@p4b/ui/components/DataDisplay";
 import { TextField } from "@p4b/ui/components/Inputs";
-import { Icon, Text, IconButton } from "@p4b/ui/components/theme";
+import { Text, IconButton } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface ContentInfoModalProps {
@@ -11,14 +11,10 @@ interface ContentInfoModalProps {
     tag: string;
     data: string;
   }[];
-  containingProjects: {
-    name: string;
-    link: string;
-  }[];
 }
 
 const ContentInfoModal = (props: ContentInfoModalProps) => {
-  const { sampleModalData, containingProjects } = props;
+  const { sampleModalData } = props;
 
   const { classes } = useStyles();
 
@@ -70,7 +66,7 @@ const ContentInfoModal = (props: ContentInfoModalProps) => {
         )}
       </div>
       <Divider width="100%" color="gray" className={classes.divider} />
-      {sampleModalData.map((data) => (
+      {sampleModalData?.map((data) => (
         <div className={classes.modalListItem} key={v4()}>
           <Text typo="body 2" className={classes.modalListItemTitle}>
             {data.tag}:{" "}
@@ -81,23 +77,6 @@ const ContentInfoModal = (props: ContentInfoModalProps) => {
         </div>
       ))}
       <Divider width="100%" color="gray" className={classes.divider} />
-      <Text typo="body 2" className={classes.modalSectionTitle}>
-        Containing Projects
-      </Text>
-      {containingProjects.map((data) => (
-        <>
-          <div className={classes.projectText}>
-            <Text typo="body 2">{data.name}</Text>
-            <a href={data.link} className={classes.openLink}>
-              <Text typo="body 2" color="focus">
-                Open
-              </Text>
-              <Icon iconId="open" size="small" />
-            </a>
-          </div>
-          <Divider width="100%" color="gray" className={classes.divider} />
-        </>
-      ))}
     </div>
   );
 };

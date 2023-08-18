@@ -1,6 +1,7 @@
 "use client";
 
 import ContentInfoModal from "@/app/[lng]/(dashboard)/content/ContentInfoModal";
+import EditFolderMenu from "@/app/[lng]/(dashboard)/content/EditFolderMenu";
 import HeaderCard from "@/app/[lng]/(dashboard)/content/HeaderCard";
 import MoreMenu from "@/app/[lng]/(dashboard)/content/MoreMenu";
 import TreeViewFilter from "@/app/[lng]/(dashboard)/content/TreeViewFilter";
@@ -8,52 +9,79 @@ import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
 import { API } from "@/lib/api/apiConstants";
 import {
+  addFolderService,
   addLayerService,
   contentFoldersFetcher,
   contentLayersFetcher,
   contentProjectsFetcher,
   contentReportsFetcher,
+  deleteFolderService,
+  deleteLayerService,
+  updateFolderService,
 } from "@/lib/services/dashboard";
 import { formatDate } from "@/lib/utils/helpers";
 import FolderIcon from "@mui/icons-material/Folder";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 
 import { FileManagementTable, Chip } from "@p4b/ui/components/DataDisplay";
 import Dialog from "@p4b/ui/components/Dialog";
+import { TextField } from "@p4b/ui/components/Inputs";
 import Modal from "@p4b/ui/components/Modal";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Text, IconButton, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
-//todo check
-const ContainingProjects = [
+const columnNames = [
   {
-    name: "Proposal_Budget_Revision",
-    link: "/home",
+    id: "name",
+    label: "",
+    numeric: false,
+    isSortable: false,
+    icon: FolderIcon,
   },
   {
-    name: "FINAL_Project1",
-    link: "/home",
+    id: "type",
+    label: "Type",
+    numeric: false,
+    isSortable: true,
   },
   {
-    name: "Revision123",
-    link: "/home",
+    id: "modified",
+    label: "Modified",
+    numeric: false,
+    isSortable: true,
+  },
+  {
+    id: "size",
+    label: "Size",
+    numeric: false,
+    isSortable: true,
   },
 ];
 
 const ContentManagement = () => {
-  const { data: folderData, error: folderError } = useSWR(API.folder, contentFoldersFetcher);
+  const {
+    data: folderData,
+    error: folderError,
+    mutate: getFoldersMutation,
+  } = useSWR(API.folder, contentFoldersFetcher);
   const { data: layerData, trigger: layerTrigger } = useSWRMutation(API.layer, contentLayersFetcher);
   const { data: reportData, trigger: reportTrigger } = useSWRMutation(API.report, contentReportsFetcher);
   const { data: projectData, trigger: projectTrigger } = useSWRMutation(API.project, contentProjectsFetcher);
 
   const [modalContent, setModalContent] = useState<object | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [folderAnchorData, setFolderAnchorData] = useState<object | null>(null);
   const [path, setPath] = useState<string[]>(["home"]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<object | null>(null);
+  const [openEditFolderModal, setOpenEditFolderModal] = useState<boolean>(false);
+  const [openAddFolderModal, setOpenAddFolderModal] = useState<boolean>(false);
+  const [editedFolderName, setEditedFolderName] = useState<string>("");
+  const [addedFolderName, setAddedFolderName] = useState<string>("");
   const [rows, setRows] = useState<any[]>([]);
   const [dialogContent, setDialogContent] = useState<{
     name: React.ReactNode;
@@ -63,34 +91,7 @@ const ContentManagement = () => {
   } | null>(null);
 
   const { classes } = useStyles();
-
-  const columnNames = [
-    {
-      id: "name",
-      label: selectedFolder?.name || "",
-      numeric: false,
-      isSortable: false,
-      icon: FolderIcon,
-    },
-    {
-      id: "type",
-      label: "Type",
-      numeric: false,
-      isSortable: true,
-    },
-    {
-      id: "modified",
-      label: "Modified",
-      numeric: false,
-      isSortable: true,
-    },
-    {
-      id: "size",
-      label: "Size",
-      numeric: false,
-      isSortable: true,
-    },
-  ];
+  const router = useRouter();
 
   // this is the Info Modal
   const modal = modalContent
@@ -103,12 +104,14 @@ const ContentManagement = () => {
             <IconButton onClick={() => setModalContent(null)} iconId="close" />
           </div>
         ),
-        body: (
-          <ContentInfoModal containingProjects={ContainingProjects} sampleModalData={modalContent.info} />
-        ),
+        body: <ContentInfoModal sampleModalData={modalContent.info} />,
         action: (
           <div className={classes.buttons}>
-            <Button variant="noBorder">VIEW</Button>
+            {modalContent.label === "label" ? (
+              <Button variant="noBorder" onClick={() => router.push(`/content/preview/${modalContent?.id}`)}>
+                VIEW
+              </Button>
+            ) : null}
             <Button variant="noBorder" onClick={() => setModalContent(null)}>
               CANCEL
             </Button>
@@ -117,25 +120,130 @@ const ContentManagement = () => {
       }
     : null;
 
+  // this is the Edit folder Modal
+  const editModalContent = openEditFolderModal
+    ? {
+        header: (
+          <div className={classes.modalHeader}>
+            <Text typo="subtitle" className={classes.modalHeaderText}>
+              Edit
+            </Text>
+            <IconButton onClick={closeEditeModal} iconId="close" />
+          </div>
+        ),
+        body: (
+          <TextField
+            className={classes.width100}
+            onValueBeingTypedChange={({ value }) => {
+              setEditedFolderName(value);
+            }}
+          />
+        ),
+        action: (
+          <div className={classes.buttons}>
+            <Button variant="noBorder" onClick={updateFolderHandler}>
+              SAVE
+            </Button>
+            <Button variant="noBorder" onClick={closeEditeModal}>
+              CANCEL
+            </Button>
+          </div>
+        ),
+      }
+    : null;
+
+  const addFolderModalContent = openAddFolderModal
+    ? {
+        header: (
+          <div className={classes.modalHeader}>
+            <Text typo="subtitle" className={classes.modalHeaderText}>
+              Add new folder
+            </Text>
+            <IconButton onClick={closeAddFolderModal} iconId="close" />
+          </div>
+        ),
+        body: (
+          <TextField
+            className={classes.width100}
+            onValueBeingTypedChange={({ value }) => {
+              setAddedFolderName(value);
+            }}
+          />
+        ),
+        action: (
+          <div className={classes.buttons}>
+            <Button variant="noBorder" onClick={addFolderHandler}>
+              SAVE
+            </Button>
+            <Button variant="noBorder" onClick={closeAddFolderModal}>
+              CANCEL
+            </Button>
+          </div>
+        ),
+      }
+    : null;
+
+  function getContentByFolder(id: string) {
+    layerTrigger(id);
+    projectTrigger(id);
+    reportTrigger(id);
+  }
+
   function closeTablePopover() {
     setAnchorEl(null);
     setDialogContent(null);
   }
 
-  function handleSelectFolder(folder) {
-    setSelectedFolder(folder);
-    layerTrigger(folder.id);
-    projectTrigger(folder.id);
-    reportTrigger(folder.id);
+  function closeFolderPopover() {
+    setFolderAnchorData(null);
   }
 
-  function handleAddFolder() {
-    console.log("handleAddFolder");
+  function handleSelectFolder(folder) {
+    setSelectedFolder(folder);
+    getContentByFolder(folder.id);
+  }
+
+  async function deleteFolderHandler() {
+    if (folderAnchorData) {
+      await deleteFolderService(API.folder, folderAnchorData.folder.id);
+      closeFolderPopover();
+      await getFoldersMutation();
+      setSelectedFolder(null);
+    }
+  }
+
+  async function updateFolderHandler() {
+    await updateFolderService(API.folder, folderAnchorData.folder.id, { name: editedFolderName });
+    closeFolderPopover();
+    setOpenEditFolderModal(false);
+    await getFoldersMutation();
+  }
+
+  async function addFolderHandler() {
+    await addFolderService(API.folder, { name: addedFolderName });
+    setOpenAddFolderModal(false);
+    await getFoldersMutation();
+  }
+
+  function closeEditeModal() {
+    setOpenEditFolderModal(false);
+    setEditedFolderName("");
+    closeFolderPopover();
+  }
+
+  function closeAddFolderModal() {
+    setOpenAddFolderModal(false);
+    setAddedFolderName("");
   }
 
   async function addLayer(body) {
     const res = await addLayerService(API.layer, body);
     await layerTrigger(res.folder_id);
+  }
+
+  async function handleDeleteItem(data) {
+    await deleteLayerService(API[data.label], data.id);
+    getContentByFolder(data.folder_id);
   }
 
   useEffect(() => {
@@ -145,13 +253,36 @@ const ContentManagement = () => {
       filteredRows.push(
         ...layerData?.items?.map((item) => {
           return {
+            ...item,
             id: item.id,
             name: item?.name,
-            type: <Chip className={classes.chip} label="layer" textDesign="italic" variant="Border" />,
+            chip: <Chip className={classes.chip} label="layer" textDesign="italic" variant="Border" />,
             modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
             path: ["home"],
             size: `${item?.metadata?.size || ""} kb`,
-            info: [],
+            label: "layer",
+            info: [
+              {
+                tag: "Name",
+                data: item?.name,
+              },
+              {
+                tag: "Description",
+                data: item?.description,
+              },
+              {
+                tag: "Type",
+                data: item?.type,
+              },
+              {
+                tag: "Modified",
+                data: item?.updated_at,
+              },
+              {
+                tag: "Size",
+                data: `${item?.metadata?.size || ""} kb`,
+              },
+            ],
           };
         })
       );
@@ -161,13 +292,36 @@ const ContentManagement = () => {
       filteredRows.push(
         ...projectData?.items?.map((item) => {
           return {
+            ...item,
             id: item.id,
             name: item?.name,
-            type: <Chip className={classes.chip} label="project" textDesign="italic" variant="Border" />,
+            chip: <Chip className={classes.chip} label="project" textDesign="italic" variant="Border" />,
             modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
             path: ["home"],
             size: `${item?.metadata?.size || ""} kb`,
-            info: [],
+            label: "project",
+            info: [
+              {
+                tag: "Name",
+                data: item?.name,
+              },
+              {
+                tag: "Description",
+                data: item?.description,
+              },
+              {
+                tag: "Type",
+                data: item?.type,
+              },
+              {
+                tag: "Modified",
+                data: item?.updated_at,
+              },
+              {
+                tag: "Size",
+                data: `${item?.metadata?.size || ""} kb`,
+              },
+            ],
           };
         })
       );
@@ -177,20 +331,48 @@ const ContentManagement = () => {
       filteredRows.push(
         ...reportData?.items?.map((item) => {
           return {
+            ...item,
             id: item.id,
             name: item?.name,
-            type: <Chip className={classes.chip} label="report" textDesign="italic" variant="Border" />,
+            chip: <Chip className={classes.chip} label="report" textDesign="italic" variant="Border" />,
             modified: formatDate(item?.metadata?.updated_at, "DD MMM YY"),
             path: ["home"],
             size: `${item?.metadata?.size || ""} kb`,
-            info: [],
+            label: "report",
+            info: [
+              {
+                tag: "Name",
+                data: item?.name,
+              },
+              {
+                tag: "Description",
+                data: item?.description,
+              },
+              {
+                tag: "Type",
+                data: item?.type,
+              },
+              {
+                tag: "Modified",
+                data: item?.updated_at,
+              },
+              {
+                tag: "Size",
+                data: `${item?.metadata?.size || ""} kb`,
+              },
+            ],
           };
         })
       );
     }
 
     if (selectedFilters.length > 0) {
-      filteredRows = filteredRows.filter((item) => selectedFilters.includes(item.id));
+      filteredRows = filteredRows.filter(
+        (item) =>
+          selectedFilters.includes(item.label) ||
+          selectedFilters.includes(item?.feature_layer_type) ||
+          selectedFilters.includes(item?.type)
+      );
     }
 
     setRows(filteredRows);
@@ -199,9 +381,7 @@ const ContentManagement = () => {
   useEffect(() => {
     if (folderData?.items[0] && selectedFolder === null) {
       setSelectedFolder(folderData.items[0]);
-      layerTrigger(folderData.items[0].id);
-      projectTrigger(folderData.items[0].id);
-      reportTrigger(folderData.items[0].id);
+      getContentByFolder(folderData.items[0].id);
     }
   }, [folderData?.items, selectedFolder]);
 
@@ -214,16 +394,33 @@ const ContentManagement = () => {
       </GridContainer>
       <GridContainer>
         <SingleGrid span={1}>
-          <TreeViewFilter
-            folderData={folderData?.items}
-            projectData={projectData?.items}
-            layerData={layerData?.items}
-            reportData={reportData?.items}
-            handleSelectFolder={handleSelectFolder}
-            selectedFilters={selectedFilters}
-            setSelectedFilters={setSelectedFilters}
-            handleAddFolder={handleAddFolder}
-          />
+          <Card className={classes.treeView} noHover={true} width="100%">
+            <TreeViewFilter
+              folderData={folderData?.items}
+              projectData={projectData?.items}
+              layerData={layerData?.items}
+              reportData={reportData?.items}
+              handleSelectFolder={handleSelectFolder}
+              selectedFilters={selectedFilters}
+              setSelectedFilters={setSelectedFilters}
+              handleAddFolder={() => setOpenAddFolderModal(true)}
+              setFolderAnchorData={setFolderAnchorData}
+              setSelectedFolder={setSelectedFolder}
+            />
+            {folderAnchorData ? (
+              <Dialog
+                anchorEl={folderAnchorData.anchorEl}
+                className={classes.moreInfoDialog}
+                onClick={closeFolderPopover}
+                width="150px"
+                direction="right">
+                <EditFolderMenu
+                  openEditModal={() => setOpenEditFolderModal(true)}
+                  deleteFolderHandler={deleteFolderHandler}
+                />
+              </Dialog>
+            ) : null}
+          </Card>
         </SingleGrid>
         <SingleGrid span={3}>
           <Card noHover={true} className={classes.tableCard}>
@@ -232,7 +429,7 @@ const ContentManagement = () => {
               columnNames={columnNames}
               rows={rows}
               setDialogAnchor={setAnchorEl}
-              openDialog={setDialogContent}
+              setDialogContent={setDialogContent}
               setModalContent={setModalContent}
               currPath={path}
               setPath={setPath}
@@ -247,7 +444,7 @@ const ContentManagement = () => {
                 direction="right"
                 // action={dialog?.action}
               >
-                <MoreMenu rowInfo={dialogContent} />
+                <MoreMenu rowInfo={dialogContent} handleDeleteItem={handleDeleteItem} />
               </Dialog>
             ) : null}
             {modal ? (
@@ -258,6 +455,26 @@ const ContentManagement = () => {
                 header={modal.header}
                 action={modal.action}>
                 {modal.body}
+              </Modal>
+            ) : null}
+            {editModalContent ? (
+              <Modal
+                width="444px"
+                open={!!editModalContent}
+                changeOpen={closeEditeModal}
+                header={editModalContent.header}
+                action={editModalContent.action}>
+                {editModalContent.body}
+              </Modal>
+            ) : null}
+            {addFolderModalContent ? (
+              <Modal
+                width="444px"
+                open={!!addFolderModalContent}
+                changeOpen={closeAddFolderModal}
+                header={addFolderModalContent.header}
+                action={addFolderModalContent.action}>
+                {addFolderModalContent.body}
               </Modal>
             ) : null}
           </Card>
@@ -354,6 +571,9 @@ const useStyles = makeStyles({ name: { ContentManagement } })((theme) => ({
     },
     margin: "12px 0px",
     padding: "3px 0px",
+  },
+  width100: {
+    width: "100%",
   },
 }));
 
