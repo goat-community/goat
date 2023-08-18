@@ -1,28 +1,23 @@
 name: "Client - Deploy"
 
 on:
-  push:
-    branches: [dev, main, feature/add-map-page]
-    paths:
-      - "app/client/**"
   workflow_dispatch:
   workflow_run:
     workflows: ["Client - Release"]
     types:
       - completed
 
-defaults:
-  run:
-    working-directory: app/client
-
 jobs:
   environment:
     name: environment
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/env-branch-check.yml
     secrets: inherit
 
   deploy-goat:
+    name: deploy-goat
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: ${{ needs.environment.outputs.env_name }}
     needs: [environment]
@@ -38,3 +33,14 @@ jobs:
         run: |
           mkdir -p ~/.kube
           echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ~/.kube/config
+
+      - name: 🚀 Deploy to k8s
+        uses: azure/k8s-deploy@v4
+        with:
+          namespace: ${{ needs.environment.outputs.env_name }}
+          action: deploy
+          strategy: basic
+          manifests: |
+            infra/manifests/${{ needs.environment.outputs.env_name }}/client.yaml
+          images: |
+            goatcommunity/client:${{ github.sha }}
