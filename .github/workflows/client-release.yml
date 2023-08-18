@@ -27,7 +27,7 @@ jobs:
         id: changes
         with:
           filters: |
-            client-goat:
+            goat:
                 - 'app/client/apps/goat/**'
                 - 'app/client/packages/**'
                 - 'app/client/package.json'
