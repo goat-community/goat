@@ -13,12 +13,12 @@
 ########################################################################################
 
 
-name: 'PNPM install'
-description: 'Run pnpm install with cache enabled'
+name: "PNPM install"
+description: "Run pnpm install with cache enabled"
 
 inputs:
   enable-corepack:
-    description: 'Enable corepack'
+    description: "Enable corepack"
     required: false
     default: 'false'
   cwd:
@@ -26,7 +26,7 @@ inputs:
     required: false
     default: '.'
   node_version:
-    description: 'Node version to use'
+    description: "Node version to use"
     required: false
     default: v18.x
 
