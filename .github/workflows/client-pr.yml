@@ -18,7 +18,7 @@ concurrency:
 
 
 jobs:
-  files-changed:
+  client-changed:
     name: detect-changes
     runs-on: ubuntu-latest
     timeout-minutes: 3
@@ -26,14 +26,14 @@ jobs:
       pull-requests: read
       contents: read
     outputs:
-      client-goat: ${{ steps.changes.outputs.client-goat }}
+      goat: ${{ steps.changes.outputs.goat }}
     steps:
       - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
         id: changes
         with:
           filters: |
-            client-goat:
+            goat:
                 - 'app/client/apps/goat/**'
                 - 'app/client/packages/**'
                 - 'app/client/package.json'
@@ -54,6 +54,13 @@ jobs:
     name:  build
     uses: ./.github/workflows/client-production-build.yml
     secrets: inherit
+
+  # TODO: add e2e tests
+  # e2e:
+  #   name: E2E tests
+  #   needs: [client-changed, typecheck, lint, build]
+  #   uses: ./.github/workflows/client-test.yml
+  #   secrets: inherit
 
   analyze:
     name: analyze

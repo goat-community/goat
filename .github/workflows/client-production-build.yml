@@ -25,7 +25,7 @@ jobs:
           enable-corepack: true
           cwd: ${{ github.workspace }}/app/client
 
-      - name: 🏗️ Build client
+      - name: 🏗️ Monorepo build
         uses: ./.github/actions/client-cache-build
         with:
           cwd: ${{ github.workspace }}/app/client

@@ -1,0 +1,69 @@
+name: "Client - Release"
+
+on:
+  push:
+    branches: [dev, main, feature/add-map-page]
+    paths:
+      - "app/client/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: app/client
+
+jobs:
+  client-changed:
+    name: detect-changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      pull-requests: read
+      contents: read
+    outputs:
+      goat: ${{ steps.changes.outputs.goat }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            client-goat:
+                - 'app/client/apps/goat/**'
+                - 'app/client/packages/**'
+                - 'app/client/package.json'
+                - 'app/client/pnpm-lock.yaml'
+                - 'app/client/.prettier*'
+
+  release-goat:
+    name: release-goat
+    needs: client-changed
+    if: ${{ needs.client-changed.outputs.goat == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v1
+      - name: 🐳 Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: 🐳 Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: goatcommunity/client
+      - name: 🐳 Build changed client
+        uses: docker/build-push-action@v2
+        with:
+          context: ./app/client
+          file: ./app/client/apps/goat/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+    
+      - name: 🐳 Image digest
+        run: echo ${{ steps.release-goat.outputs.digest }}

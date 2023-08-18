@@ -1,3 +1,15 @@
+########################################################################################
+# "client-cache-build" composite action for client build                               #
+#--------------------------------------------------------------------------------------#
+#                                                                                      #
+# Usage in workflows steps:                                                            #
+#                                                                                      #
+#      - name: 🏗️ Monorepo build                                                       #
+#        uses: ./.github/actions/client-cache-build                                    #
+#        with:                                                                         #
+#          cwd: ${{ github.workspace }}/apps/goat # (default = '.')                    #
+########################################################################################
+
 name: "Cache production build binaries"
 description: "Cache or restore if necessary"
 

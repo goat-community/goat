@@ -1,7 +1,6 @@
 ########################################################################################
 # "pnpm install" composite action for pnpm 7/8+                                        #
 #--------------------------------------------------------------------------------------#
-# Requirement: @setup/node should be run before                                        #
 #                                                                                      #
 # Usage in workflows steps:                                                            #
 #                                                                                      #
