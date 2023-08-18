@@ -2,6 +2,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
+import ColorLensIcon from "@mui/icons-material/ColorLens";
 import CorporateFareIcon from "@mui/icons-material/CorporateFare";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -97,6 +98,7 @@ export const { Icon } = createIcon({
   download: DownloadIcon,
   lock: LockIcon,
   team: GroupsIcon,
+  colorLens: ColorLensIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];

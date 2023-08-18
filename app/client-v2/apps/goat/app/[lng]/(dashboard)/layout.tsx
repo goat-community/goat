@@ -99,6 +99,11 @@ const DashboardLayout = ({ children, params: { lng } }: DashboardLayoutProps) =>
       placeholder: "Settings",
     },
     {
+      link: "/styling",
+      icon: "colorLens",
+      placeholder: "Styling",
+    },
+    {
       link: "/help",
       icon: "help",
       placeholder: "Help",

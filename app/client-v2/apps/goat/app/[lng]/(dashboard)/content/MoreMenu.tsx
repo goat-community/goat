@@ -11,7 +11,7 @@ import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface MoreMenuProps {
   rowInfo: object | null;
-  handleDeleteItem: (object) => void;
+  handleDeleteItem: (object: object) => void;
 }
 
 interface ComponentOptions {

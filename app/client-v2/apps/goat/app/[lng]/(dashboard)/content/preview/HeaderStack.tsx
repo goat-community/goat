@@ -1,17 +1,72 @@
 "use client";
 
+import { setPreviewMode } from "@/lib/store/content/slice";
 import { makeStyles } from "@/lib/theme";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import BackupTableIcon from "@mui/icons-material/BackupTable";
-import ColorLensIcon from "@mui/icons-material/ColorLens";
 import MapIcon from "@mui/icons-material/Map";
 import { Button, Stack, Typography } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import Box from "@p4b/ui/components/Box";
 import BasicBreadcrumbs from "@p4b/ui/components/BreadCrumbs";
 import ToggleButtons from "@p4b/ui/components/ToggleButtons";
+
+function HeaderStack() {
+  const { previewMode } = useSelector((state) => state.content);
+
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const { classes, cx } = useStyles();
+
+  const buttons = [
+    {
+      icon: <MapIcon sx={{ color: "#09241A" }} />,
+      value: "map",
+    },
+    {
+      icon: <BackupTableIcon sx={{ color: "#09241A" }} />,
+      value: "table",
+    },
+    // {
+    //   icon: <ColorLensIcon sx={{ color: "#09241A" }} />,
+    //   value: "styling",
+    // },
+  ];
+
+  const handleChangeBreadCrumb = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    event.preventDefault();
+    console.info("You clicked a breadcrumb.");
+  };
+
+  const returnHandler = () => {
+    router.push("/content");
+  };
+
+  const setModeHandler = (val: string) => {
+    dispatch(setPreviewMode(val));
+  };
+
+  return (
+    <Stack className={cx(classes.header)} direction="row" justifyContent="space-between" alignItems="center">
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ paddingY: "6px", width: "100%" }}>
+        <Typography className={cx(classes.title)}>Preview</Typography>
+        <Box className={cx(classes.breadcrumbsWrapper)}>
+          <Button onClick={returnHandler} startIcon={<ArrowBackIcon color="primary" />}>
+            Return
+          </Button>
+          <BasicBreadcrumbs eventHandler={handleChangeBreadCrumb} />
+        </Box>
+        <ToggleButtons val={previewMode} setVal={setModeHandler} items={buttons} />
+      </Stack>
+    </Stack>
+  );
+}
 
 const useStyles = makeStyles({ name: { HeaderStack } })((theme) => ({
   header: {
@@ -35,52 +90,4 @@ const useStyles = makeStyles({ name: { HeaderStack } })((theme) => ({
   },
 }));
 
-export default function HeaderStack() {
-  const [mode, setMode] = useState("map");
-  const { classes, cx } = useStyles();
-
-  const router = useRouter();
-
-  const buttons = [
-    {
-      icon: <MapIcon sx={{ color: "#09241A" }} />,
-      value: "map",
-    },
-    {
-      icon: <BackupTableIcon sx={{ color: "#09241A" }} />,
-      value: "table",
-    },
-    {
-      icon: <ColorLensIcon sx={{ color: "#09241A" }} />,
-      value: "colorLens",
-    },
-  ];
-
-  const handleChangeBreadCrumb = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    event.preventDefault();
-    console.info("You clicked a breadcrumb.");
-  };
-
-  const returnHandler = () => {
-    router.push("/content");
-  };
-
-  return (
-    <Stack className={cx(classes.header)} direction="row" justifyContent="space-between" alignItems="center">
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ paddingY: "6px", width: "100%" }}>
-        <Typography className={cx(classes.title)}>Preview</Typography>
-        <Box className={cx(classes.breadcrumbsWrapper)}>
-          <Button onClick={returnHandler} startIcon={<ArrowBackIcon color="primary" />}>
-            Return
-          </Button>
-          <BasicBreadcrumbs eventHandler={handleChangeBreadCrumb} />
-        </Box>
-        <ToggleButtons val={mode} setVal={setMode} items={buttons} />
-      </Stack>
-    </Stack>
-  );
-}
+export default HeaderStack;
