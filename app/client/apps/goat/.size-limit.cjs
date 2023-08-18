@@ -15,6 +15,7 @@ const limitCfg = {
   defaultSize: '150kb',
 };
 
+
 const getPageLimits = () => {
   let pageLimits = [];
   for (const [uri, paths] of Object.entries(pages)) {
