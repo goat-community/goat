@@ -28,14 +28,8 @@ jobs:
         run: |
           mkdir -p ~/.kube
           echo ${{ secrets.KUBE_CONFIG }} | base64 -d > ~/.kube/config
-          
-      - name: 🎡 Set k8s context
-        uses: azure/k8s-set-context@v3
-        with:
-          method: kubeconfig
-          kubeconfig: ~/.kube/config
 
-      - name: 🎡 Run kubectl
+      - name: 🎡 Test kubectl
         run: |
           kubectl get pods
 
