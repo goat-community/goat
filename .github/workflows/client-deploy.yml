@@ -25,17 +25,12 @@ jobs:
       - name: 🎡 Setup Kubectl
         uses: azure/setup-kubectl@v3
 
-      # - name: 🎡 Setup k8s context to home folder from base64 secret
-      #   run: |
-      #     mkdir -p ~/.kube
-      #     echo ${{ secrets.KUBE_CONFIG }} | base64 -d > ~/.kube/config
-      - name: Set up kubectl
-        uses: azure/k8s-set-context@v3
-        with:
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
-        env:
-          KUBECONFIG: ${{ secrets.KUBE_CONFIG }}
-
+      - name: 🎡 Setup k8s context to home folder from base64 secret
+        run: |
+          mkdir -p ~/.kube
+          echo ${{ secrets.KUBE_CONFIG }} | base64 -d > ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          
       - name: 🎡 Test kubectl
         run: |
           kubectl get pods
@@ -49,4 +44,4 @@ jobs:
           manifests: |
            ${{ github.workspace }}/infra/manifests/${{ needs.checks.outputs.env_name }}/client.yml
           images: |
-            goatcommunity/client:${{ github.sha }}
+            goatcommunity/client:feature-add-map-page
