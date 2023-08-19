@@ -51,4 +51,3 @@ spec:
   selector:
     app: goat-client
 
-
