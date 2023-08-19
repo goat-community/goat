@@ -27,8 +27,7 @@ jobs:
       - name: 🎡 Setup k8s context to home folder from base64 secret
         run: |
           mkdir -p ~/.kube
-          echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ~/.kube/config
-          @echo ${KUBE_CONFIG} | base64 -d > ${HOME}/.kube/config
+          echo ${{ secrets.KUBE_CONFIG }} | base64 -d > ~/.kube/config
           
       - name: 🎡 Set k8s context
         uses: azure/k8s-set-context@v3
