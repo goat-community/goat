@@ -50,3 +50,5 @@ spec:
   type: NodePort
   selector:
     app: goat-client
+
+
