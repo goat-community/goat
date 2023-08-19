@@ -27,6 +27,12 @@ jobs:
         run: |
           mkdir -p ~/.kube
           echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ~/.kube/config
+          
+      - name: 🎡 Set k8s context
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ~/.kube/config
 
       - name: 🚀 Deploy to k8s
         uses: azure/k8s-deploy@v4
@@ -35,6 +41,6 @@ jobs:
           action: deploy
           strategy: basic
           manifests: |
-            infra/manifests/${{ needs.checks.outputs.env_name }}/client.yaml
+            infra/manifests/${{ needs.checks.outputs.env_name }}/client.yml
           images: |
             goatcommunity/client:${{ github.sha }}
