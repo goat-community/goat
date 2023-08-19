@@ -2,6 +2,7 @@ name: "Client - Deploy"
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   checks:
@@ -21,18 +22,24 @@ jobs:
         uses: actions/checkout@v3
 
       - name: 🎡 Setup Kubectl
-        uses: azure/setup-kubectl@v2.0
+        uses: azure/setup-kubectl@v3
 
       - name: 🎡 Setup k8s context to home folder from base64 secret
         run: |
           mkdir -p ~/.kube
           echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ~/.kube/config
+          @echo ${KUBE_CONFIG} | base64 -d > ${HOME}/.kube/config
           
       - name: 🎡 Set k8s context
         uses: azure/k8s-set-context@v3
         with:
           method: kubeconfig
           kubeconfig: ~/.kube/config
+          context: dev
+
+      - name: 🎡 Run kubectl
+        run: |
+          kubectl get pods
 
       - name: 🚀 Deploy to k8s
         uses: azure/k8s-deploy@v4
@@ -41,6 +48,6 @@ jobs:
           action: deploy
           strategy: basic
           manifests: |
-            infra/manifests/${{ needs.checks.outputs.env_name }}/client.yml
+           ${{ github.workspace }}/infra/manifests/${{ needs.checks.outputs.env_name }}/client.yml
           images: |
             goatcommunity/client:${{ github.sha }}

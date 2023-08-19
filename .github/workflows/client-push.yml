@@ -16,10 +16,10 @@ concurrency:
   cancel-in-progress: true
   
 jobs:
-  # release-goat:
-  #   name: release-goat
-  #   uses: ./.github/workflows/client-release.yml
-  #   secrets: inherit
+  release-goat:
+    name: release-goat
+    uses: ./.github/workflows/client-release.yml
+    secrets: inherit
 
   deploy-goat:
     name: deploy-goat
