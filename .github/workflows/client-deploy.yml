@@ -35,7 +35,6 @@ jobs:
         with:
           method: kubeconfig
           kubeconfig: ~/.kube/config
-          context: dev
 
       - name: 🎡 Run kubectl
         run: |
