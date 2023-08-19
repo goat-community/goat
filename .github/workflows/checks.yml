@@ -1,0 +1,89 @@
+name: "Checks"
+
+on:
+  workflow_call:
+    outputs:
+      client-goat-changed:
+        description: "Client goat changed"
+        value: ${{ jobs.file-changed.outputs.client-goat }}
+      api-changed:
+        description: "Api changed"
+        value: ${{ jobs.file-changed.outputs.api }}
+      geoapi-changed:
+        description: "Geoapi changed"
+        value: ${{ jobs.file-changed.outputs.geoapi }}
+      docs-changed:
+        description: "Docs changed"
+        value: ${{ jobs.file-changed.outputs.docs }}
+
+      env_name:
+        description: "Environment name"
+        value: ${{ jobs.environment-branch.outputs.env_name }}
+      
+
+jobs:
+    file-changed:
+        name: detect-changes
+        runs-on: ubuntu-latest
+        timeout-minutes: 3
+        permissions:
+          pull-requests: read
+          contents: read
+        outputs:
+            client-goat: ${{ steps.changes.outputs.client-goat }}
+            api: ${{ steps.changes.outputs.api }}
+            geoapi: ${{ steps.changes.outputs.geoapi }}
+            docs: ${{ steps.changes.outputs.docs }}
+        steps:
+          - name: 📥 Checkout
+            uses: actions/checkout@v3
+
+          - name: 📥 Checkout PR
+            uses: ./.github/actions/pr-git-checkout
+            
+          - name: 🕵️ Detect changes
+            uses: dorny/paths-filter@v2
+            id: changes
+            with:
+              filters: |
+                client-goat:
+                    - 'app/client/apps/goat/**'
+                    - 'app/client/packages/**'
+                    - 'app/client/package.json'
+                    - 'app/client/pnpm-lock.yaml'
+                    - 'app/client/.prettier*'
+                    - 'infra/manifests/**/client.yml'
+                api:
+                    - 'app/api'
+                    - 'infra/manifests/**/api.yml'
+                geoapi:
+                    - 'app/geoapi'
+                    - 'infra/manifests/**/geoapi.yml'
+                docs:
+                    - 'docs/**'
+                    - 'infra/manifests/**/docs.yml'
+
+    environment-branch:
+      name: environment-branch
+      runs-on: ubuntu-latest
+      steps:
+        - name: 🕵️ Environment Branch Check
+          id: branch_check
+          run: |
+            echo "Running on branch ${{ github.ref }}"
+            if [ "${{ github.ref }}" = "refs/heads/prod" ]; then
+              echo "env_name=main" >> $GITHUB_OUTPUT
+            elif [ "${{ github.ref }}" = "refs/heads/feature/add-map-page" ]; then
+              echo "env_name=v2" >> $GITHUB_OUTPUT
+            elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+              echo "env_name=dev" >> $GITHUB_OUTPUT
+            fi
+  
+        - name: 🕵️ Use variable setup in previous step
+          run: echo "I'm using variable ${{ steps.branch_check.outputs.env_name }}"
+  
+      outputs:
+        env_name: ${{ steps.branch_check.outputs.env_name }}
+                
+
+    

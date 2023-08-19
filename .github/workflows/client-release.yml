@@ -1,68 +1,47 @@
 name: "Client - Release"
 
 on:
-  push:
-    branches: [dev, main, feature/add-map-page]
-    paths:
-      - "app/client/**"
-  workflow_dispatch:
+  workflow_call:
 
 defaults:
   run:
     working-directory: app/client
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-  
 jobs:
-  client-changed:
-    name: detect-changes
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    permissions:
-      pull-requests: read
-      contents: read
-    outputs:
-      goat: ${{ steps.changes.outputs.goat }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            goat:
-                - 'app/client/apps/goat/**'
-                - 'app/client/packages/**'
-                - 'app/client/package.json'
-                - 'app/client/pnpm-lock.yaml'
-                - 'app/client/.prettier*'
+
+  checks:
+    name: checks
+    uses: ./.github/workflows/checks.yml
 
   release-goat:
     name: release-goat
-    needs: client-changed
-    if: ${{ needs.client-changed.outputs.goat == 'true' }}
+    needs: checks
+    if: ${{ needs.checks.outputs.client-goat-changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v3
+      
       - name: 🐳 Setup Docker Buildx
         uses: docker/setup-buildx-action@v1
+
       - name: 🐳 Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: 🐳 Docker meta
         id: meta
         uses: docker/metadata-action@v4
         with:
           images: goatcommunity/client
+
       - name: 🐳 Build changed client
         uses: docker/build-push-action@v2
         with:
-          context: ./app/client
-          file: ./app/client/apps/goat/Dockerfile
+          context: ${{ github.workspace }}/app/client
+          file: ${{ github.workspace }}/app/client/apps/goat/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
@@ -71,4 +50,5 @@ jobs:
           cache-to: type=gha,mode=max
     
       - name: 🐳 Image digest
-        run: echo ${{ steps.release-goat.outputs.digest }}
+        run: echo ${{ steps.meta.outputs.digest }}
+      

@@ -1,27 +1,21 @@
 name: "Client - Deploy"
 
 on:
-  workflow_dispatch:
-  workflow_run:
-    workflows: ["Client - Release"]
-    types:
-      - completed
+  workflow_call:
 
 jobs:
-  environment:
+  checks:
     name: environment
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    uses: ./.github/workflows/env-branch-check.yml
+    uses: ./.github/workflows/checks.yml
     secrets: inherit
 
   deploy-goat:
     name: deploy-goat
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: [checks]
     environment:
-      name: ${{ needs.environment.outputs.env_name }}
-    needs: [environment]
-    timeout-minutes: 30
+      name: ${{ needs.checks.outputs.env_name }}
+    if: ${{ needs.checks.outputs.client-goat-changed == 'true' }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v3
@@ -37,10 +31,10 @@ jobs:
       - name: 🚀 Deploy to k8s
         uses: azure/k8s-deploy@v4
         with:
-          namespace: ${{ needs.environment.outputs.env_name }}
+          namespace: ${{ needs.checks.outputs.env_name }}
           action: deploy
           strategy: basic
           manifests: |
-            infra/manifests/${{ needs.environment.outputs.env_name }}/client.yaml
+            infra/manifests/${{ needs.checks.outputs.env_name }}/client.yaml
           images: |
             goatcommunity/client:${{ github.sha }}

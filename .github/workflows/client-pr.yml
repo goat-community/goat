@@ -18,28 +18,6 @@ concurrency:
 
 
 jobs:
-  client-changed:
-    name: detect-changes
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    permissions:
-      pull-requests: read
-      contents: read
-    outputs:
-      goat: ${{ steps.changes.outputs.goat }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            goat:
-                - 'app/client/apps/goat/**'
-                - 'app/client/packages/**'
-                - 'app/client/package.json'
-                - 'app/client/pnpm-lock.yaml'
-                - 'app/client/.prettier*'
-
   typecheck:
     name: typecheck
     uses: ./.github/workflows/client-check-types.yml
@@ -55,17 +33,16 @@ jobs:
     uses: ./.github/workflows/client-production-build.yml
     secrets: inherit
 
-  # TODO: add e2e tests
-  # e2e:
-  #   name: E2E tests
-  #   needs: [client-changed, typecheck, lint, build]
-  #   uses: ./.github/workflows/client-test.yml
-  #   secrets: inherit
-
   analyze:
     name: analyze
     needs: build
     uses: ./.github/workflows/client-nextjs-bundle-analysis.yml
+    secrets: inherit
+  
+  release-docker-build:
+    name: docker-build
+    needs: [build, analyze]
+    uses: ./.github/workflows/client-release.yml
     secrets: inherit
 
   required:
