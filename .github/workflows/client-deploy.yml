@@ -17,6 +17,7 @@ jobs:
     environment:
       name: ${{ needs.checks.outputs.env_name }}
     if: ${{ needs.checks.outputs.client-goat-changed == 'true' }}
+    timeout-minutes : 5
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v3
@@ -24,10 +25,16 @@ jobs:
       - name: 🎡 Setup Kubectl
         uses: azure/setup-kubectl@v3
 
-      - name: 🎡 Setup k8s context to home folder from base64 secret
-        run: |
-          mkdir -p ~/.kube
-          echo ${{ secrets.KUBE_CONFIG }} | base64 -d > ~/.kube/config
+      # - name: 🎡 Setup k8s context to home folder from base64 secret
+      #   run: |
+      #     mkdir -p ~/.kube
+      #     echo ${{ secrets.KUBE_CONFIG }} | base64 -d > ~/.kube/config
+      - name: Set up kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+        env:
+          KUBECONFIG: ${{ secrets.KUBE_CONFIG }}
 
       - name: 🎡 Test kubectl
         run: |
