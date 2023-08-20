@@ -40,4 +40,4 @@ jobs:
           manifests: |
            ${{ github.workspace }}/infra/manifests/${{ needs.checks.outputs.env_name }}/api.yml
           images: |
-            goatcommunity/api:feature-add-map-page
+            goatcommunity/api:${{ needs.checks.outputs.sha_short }}

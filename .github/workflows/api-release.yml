@@ -33,12 +33,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 🐳 Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: goatcommunity/api
-
       - name: 🐳 Build changed api
         uses: docker/build-push-action@v4
         with:
@@ -46,11 +40,8 @@ jobs:
           file: ${{ github.workspace }}/app/api/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: | 
+            goatcommunity/api:${{ needs.checks.outputs.sha_short }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-    
-      - name: 🐳 Image digest
-        run: echo ${{ steps.meta.outputs.digest }}
       
