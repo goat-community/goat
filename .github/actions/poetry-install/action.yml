@@ -12,6 +12,7 @@
 
 name: "Poetry install"
 description: "Run poetry install with cache enabled"
+author: "Plan4Better GmbH"
 
 inputs:
   cwd:

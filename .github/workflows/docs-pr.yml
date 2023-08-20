@@ -1,0 +1,42 @@
+name: "Docs - PR"
+
+on:
+  pull_request_target:
+    branches: [dev, main, feature/add-map-page]
+    paths:
+      - "docs/**"
+  merge_group:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: docs
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+
+jobs:
+  #TODO: TYPECHECK
+  #TODO: LINT
+  build:
+    name:  build
+    uses: ./.github/workflows/docs-production-build.yml
+    secrets: inherit
+
+
+  release-docker-build:
+    name: docker-build
+    needs: [build]
+    uses: ./.github/workflows/docs-release.yml
+    secrets: inherit
+
+  required:
+    needs: [build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: fail if conditional jobs failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
+        run: exit 1

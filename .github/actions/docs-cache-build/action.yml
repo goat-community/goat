@@ -1,13 +1,13 @@
 ########################################################################################
-# "client-cache-build" composite action for client build                               #
+# "docs-cache-build" composite action for docs build                                   #
 #--------------------------------------------------------------------------------------#
 #                                                                                      #
 # Usage in workflows steps:                                                            #
 #                                                                                      #
-#      - name: 🏗️ Monorepo build                                                       #
-#        uses: ./.github/actions/client-cache-build                                    #
+#      - name: 🏗️ Docs build                                                           #
+#        uses: ./.github/actions/docs-cache-build                                      #
 #        with:                                                                         #
-#          cwd: ${{ github.workspace }}/apps/goat # (default = '.')                    #
+#          cwd: ${{ github.workspace }}/docs # (default = '.')                         #
 ########################################################################################
 
 name: "Cache production build binaries"
@@ -31,17 +31,16 @@ runs:
       uses: actions/cache@v3
       id: cache-build
       env:
-        cache-name: prod-build
+        cache-name: docusaurus-prod-build
         key-1: ${{ inputs.node_version }}-${{ hashFiles('${{ inputs.cwd }}/pnpm-lock.yaml') }}
-        key-2: ${{ hashFiles('${{ inputs.cwd }}/apps/**/**.[jt]s', '${{ inputs.cwd }}/apps/**/**.[jt]sx', '${{ inputs.cwd }}/packages/**/**.[jt]s', '${{ inputs.cwd }}/packages/**/**.[jt]sx', '!**/node_modules') }}
+        key-2: ${{ hashFiles('${{ inputs.cwd }}/**/**.[jt]s', '${{ inputs.cwd }}/**/**.[jt]sx', '!**/node_modules') }}
         key-3: ${{ github.event.pull_request.number || github.ref }}
         # Ensures production-build.yml will always be fresh
         key-4: ${{ github.sha }}
       with:
         path: |
-          ${{ github.workspace }}/app/client/apps/goat/.next
-          **/.turbo/**
-          **/dist/**
+          ${{ github.workspace }}/.docusaurus
+          ${{ github.workspace }}/**/.cache
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
         
     - run: pnpm run build

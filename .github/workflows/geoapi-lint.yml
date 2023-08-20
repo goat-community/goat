@@ -1,14 +1,14 @@
-name: "Api - Test"
+name: "GeoApi - Lint"
 
 on:
   workflow_call:
 
 defaults:
   run:
-    working-directory: app/api
+    working-directory: app/geoapi
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,7 +21,7 @@ jobs:
       - name: 📥 Poetry install
         uses: ./.github/actions/poetry-install
         with:
-          cwd: ${{ github.workspace }}/app/api
+          cwd: ${{ github.workspace }}/app/geoapi
 
-      - name: 🔬 Run tests
-        run: poetry run bash scripts/test.sh
+      - name: 🔬 Run linting
+        run: poetry run bash scripts/lint.sh

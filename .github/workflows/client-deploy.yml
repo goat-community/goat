@@ -25,22 +25,12 @@ jobs:
       - name: 🎡 Setup Kubectl
         uses: azure/setup-kubectl@v3
 
-      # - name: 🎡 Setup k8s context to home folder from base64 secret
-      #   run: |
-      #     mkdir -p ~/.kube
-      #     echo ${{ secrets.KUBE_CONFIG }} | base64 -d > ~/.kube/config
-      #     export KUBECONFIG=~/.kube/config
-
-      - uses: azure/k8s-set-context@v3
+      - name: 🎡 Set Kubectl Context
+        uses: azure/k8s-set-context@v3
         with:
+          method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
-        env:
-          KUBECONFIG: ${{ secrets.KUBE_CONFIG }}
-          
-      - name: 🎡 Test kubectl
-        run: |
-          kubectl get pods
-
+      
       - name: 🚀 Deploy to k8s
         uses: azure/k8s-deploy@v4
         with:

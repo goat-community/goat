@@ -1,0 +1,29 @@
+name: "GeoApi - Push"
+
+on:
+  push:
+    branches: [dev, main, feature/add-map-page]
+    paths:
+      - "app/geoapi/**"
+      - "infra/manifests/**/geoapi.yml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: app/geoapi
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+  
+jobs:
+  release-geoapi:
+    name: release-geoapi
+    uses: ./.github/workflows/geoapi-release.yml
+    secrets: inherit
+
+  deploy-geoapi:
+    name: deploy-geoapi
+    needs: release-geoapi
+    uses: ./.github/workflows/geoapi-deploy.yml
+    secrets: inherit

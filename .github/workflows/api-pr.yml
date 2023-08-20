@@ -1,0 +1,44 @@
+name: "Api - PR"
+
+on:
+  pull_request_target:
+    branches: [dev, main, feature/add-map-page]
+    paths:
+      - "app/api/**"
+  merge_group:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: app/api
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+
+jobs:
+
+  lint:
+    name: lint
+    uses: ./.github/workflows/api-lint.yml
+    secrets: inherit
+
+  test:
+    name: test
+    uses: ./.github/workflows/api-test.yml
+    secrets: inherit
+
+  release-docker-build:
+    name: docker-build
+    uses: ./.github/workflows/api-release.yml
+    secrets: inherit
+
+  required:
+    needs: [lint, test, release-docker-build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: fail if conditional jobs failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
+        run: exit 1
