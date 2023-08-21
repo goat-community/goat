@@ -30,14 +30,19 @@ jobs:
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: 🎡 Kustomize Bake
+        id: bake
+        uses: azure/k8s-bake@v2.4
+        with:
+            renderEngine: 'kustomize'
+            kustomizationPath: ${{ github.workspace }}/infra/kustomize/docs/overlays/${{ needs.checks.outputs.env_name }}
       
       - name: 🚀 Deploy to k8s
         uses: azure/k8s-deploy@v4
         with:
-          namespace: ${{ needs.checks.outputs.env_name }}
           action: deploy
           strategy: basic
-          manifests: |
-           ${{ github.workspace }}/infra/manifests/${{ needs.checks.outputs.env_name }}/docs.yml
+          manifests: ${{ steps.bake.outputs.manifestsBundle }}
           images: |
             goatcommunity/docs:${{ needs.checks.outputs.sha_short }}

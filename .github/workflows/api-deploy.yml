@@ -25,6 +25,9 @@ jobs:
       - name: 🎡 Setup Kubectl
         uses: azure/setup-kubectl@v3
 
+      - name: 🎡 Setup Kustomize
+        uses: ./.github/actions/setup-kustomize
+
       - name: 🎡 Set Kubectl Context
         uses: azure/k8s-set-context@v3
         with:
