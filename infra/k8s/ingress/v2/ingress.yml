@@ -26,10 +26,17 @@ spec:
               name: goat-storybook-service
               port:
                 number: 80
+        - path: /docs
+          pathType: Prefix
+          backend:
+            service:
+              name: goat-docs-service
+              port:
+                number: 80
         - path: /*
           pathType: Prefix
           backend:
             service:
-              name: goat-client
+              name: goat-client-service
               port:
                 number: 80

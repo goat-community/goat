@@ -31,13 +31,22 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
       
+      - name: 🎡 Kustomize Bake
+        id: bake
+        uses: azure/k8s-bake@v2.4
+        with:
+            renderEngine: 'kustomize'
+            kustomizationPath: ${{ github.workspace }}/infra/kustomize/geoapi/overlays/${{ needs.checks.outputs.env_name }}
+        
       - name: 🚀 Deploy to k8s
         uses: azure/k8s-deploy@v4
         with:
-          namespace: ${{ needs.checks.outputs.env_name }}
+          # if env_name is v2 then namespace will be v2 else it will be default
+          namespace: ${{ needs.checks.outputs.env_name == 'v2' && 'v2' || 'default' }}
           action: deploy
           strategy: basic
           manifests: |
-           ${{ github.workspace }}/infra/manifests/${{ needs.checks.outputs.env_name }}/geoapi.yml
+            ${{ steps.bake.outputs.manifestsBundle }}
+            ${{ github.workspace }}/infra/k8s/ingress/${{ needs.checks.outputs.env_name }}/ingress.yaml
           images: |
             goatcommunity/geoapi:${{ needs.checks.outputs.sha_short }}
