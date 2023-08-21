@@ -41,7 +41,8 @@ jobs:
       - name: 🚀 Deploy to k8s
         uses: azure/k8s-deploy@v4
         with:
-          annotate-namespace: false
+          # if env_name is v2 then namespace will be v2 else it will be default
+          namespace: ${{ needs.checks.outputs.env_name == 'v2' && 'v2' || 'default' }}
           action: deploy
           strategy: basic
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
