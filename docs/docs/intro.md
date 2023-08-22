@@ -1,9 +1,9 @@
 ---
-sidebar_position: 1
+sidebar_position: 9
 slug: /
 ---
 
-# Getting started
+# Templates
 
 Let's discover **Docusaurus in less than 5 minutes**.
 
