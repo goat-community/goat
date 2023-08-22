@@ -1,15 +1,20 @@
 import { getFolders } from "@/lib/store/content/actions";
 import { LOADING_STATUSES } from "@/lib/utils/constants";
 import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 
 const contentSlice = createSlice<any>({
   name: "map",
   initialState: {
     folders: [],
     getFoldersStatus: LOADING_STATUSES.idle,
+    previewMode: "map",
   },
-  reducers: {},
-
+  reducers: {
+    setPreviewMode(state, action: PayloadAction<string>) {
+      state.previewMode = action.payload;
+    },
+  },
   extraReducers: ({ addCase }) => {
     // get folders
     addCase(getFolders.pending, (state) => {
@@ -25,5 +30,7 @@ const contentSlice = createSlice<any>({
     });
   },
 });
+
+export const { setPreviewMode } = contentSlice.actions;
 
 export const contentReducer = contentSlice.reducer;

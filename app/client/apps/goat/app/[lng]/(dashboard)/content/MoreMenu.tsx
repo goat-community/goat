@@ -1,6 +1,6 @@
-import DownloadModal from "@/app/[lng]/(dashboard)/content/DownloadModal";
-import MoveModal from "@/app/[lng]/(dashboard)/content/MoveModal";
-import ShareModal from "@/app/[lng]/(dashboard)/content/ShareModal";
+import DownloadModal from "@/components/modals/DownloadModal";
+import MoveModal from "@/components/modals/MoveModal";
+import ShareModal from "@/components/modals/ShareModal";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { v4 } from "uuid";
@@ -11,7 +11,7 @@ import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface MoreMenuProps {
   rowInfo: object | null;
-  handleDeleteItem: (object) => void;
+  handleDeleteItem: (object: object) => void;
 }
 
 interface ComponentOptions {
