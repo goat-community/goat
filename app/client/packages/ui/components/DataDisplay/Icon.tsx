@@ -8,8 +8,8 @@ import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 
 import { makeStyles } from "../../lib/ThemeProvider";
-import type { Theme } from "../../lib/ThemeProvider";
-import type { IconSizeName } from "../../lib/icon";
+import type { Theme } from "../../lib";
+import type { IconSizeName } from "../../lib";
 import { changeColorOpacity } from "../../tools/changeColorOpacity";
 
 /**
