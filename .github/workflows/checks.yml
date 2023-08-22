@@ -66,7 +66,7 @@ jobs:
               echo "Running on branch ${{ github.ref }}"
               if [ "${{ github.ref }}" = "refs/heads/prod" ]; then
                 echo "env_name=main" >> $GITHUB_OUTPUT
-              elif [ "${{ github.ref }}" = "refs/heads/feature/add-map-page" ]; then
+              elif [ "${{ github.ref }}" = "refs/heads/v2" ]; then
                 echo "env_name=v2" >> $GITHUB_OUTPUT
               elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
                 echo "env_name=dev" >> $GITHUB_OUTPUT

@@ -2,7 +2,7 @@ name: "Client - Push"
 
 on:
   push:
-    branches: [dev, main, feature/add-map-page]
+    branches: [dev, main, v2]
     paths:
       - "app/client/**"
       - "infra/manifests/**"
