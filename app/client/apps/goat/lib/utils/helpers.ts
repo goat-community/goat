@@ -58,3 +58,65 @@ export const supportedFileTypes = [
   "xlsx",
   "json",
 ];
+
+export const generateRowData = (data: object, label: string) => {
+  return {
+    ...data,
+    id: data.id,
+    name: data?.name,
+    modified: formatDate(data?.metadata?.updated_at, "DD MMM YY"),
+    path: ["home"],
+    size: `${data?.metadata?.size || ""} kb`,
+    label: label,
+    info: [
+      {
+        tag: "Name",
+        data: data?.name,
+      },
+      {
+        tag: "Description",
+        data: data?.description,
+      },
+      {
+        tag: "Type",
+        data: data?.type,
+      },
+      {
+        tag: "Modified",
+        data: data?.updated_at,
+      },
+      {
+        tag: "Size",
+        data: `${data?.metadata?.size || ""} kb`,
+      },
+    ],
+  };
+};
+
+export const calculateLayersCountByKey = (data: [] | undefined, keyToCount: string) => {
+  let count = 0;
+
+  data?.forEach((obj) => {
+    if (obj[keyToCount]) {
+      count++;
+    }
+  });
+
+  return count;
+};
+
+export const calculateLayersCountByKeyAndValue = (
+  data: [] | undefined,
+  keyToCount: string,
+  value: string
+) => {
+  let count = 0;
+
+  data?.forEach((obj) => {
+    if (obj[keyToCount] === value) {
+      count++;
+    }
+  });
+
+  return count;
+};
