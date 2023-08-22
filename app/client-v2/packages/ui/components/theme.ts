@@ -2,6 +2,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CloseIcon from "@mui/icons-material/Close";
+import ColorLensIcon from "@mui/icons-material/ColorLens";
 import CorporateFareIcon from "@mui/icons-material/CorporateFare";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -30,12 +31,14 @@ import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PersonIcon from "@mui/icons-material/Person";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
+import PrintIcon from "@mui/icons-material/Print";
 import ReplyIcon from "@mui/icons-material/Reply";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import RoomIcon from "@mui/icons-material/Room";
 import SearchIcon from "@mui/icons-material/Search";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
+import TuneIcon from "@mui/icons-material/Tune";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import type { Param0 } from "tsafe";
@@ -97,6 +100,10 @@ export const { Icon } = createIcon({
   download: DownloadIcon,
   lock: LockIcon,
   team: GroupsIcon,
+  colorLens: ColorLensIcon,
+  fileInfo: InsertDriveFileIcon,
+  slider: TuneIcon,
+  print: PrintIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];

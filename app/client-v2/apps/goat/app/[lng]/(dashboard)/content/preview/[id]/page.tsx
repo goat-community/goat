@@ -9,9 +9,5 @@ interface IParams {
 }
 
 export default function PreviewPage({ params: { id } }: IParams) {
-  return (
-    <div>
-      <PreviewManagement id={id} />
-    </div>
-  );
+  return <PreviewManagement id={id} />;
 }

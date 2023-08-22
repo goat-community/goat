@@ -99,6 +99,11 @@ const DashboardLayout = ({ children, params: { lng } }: DashboardLayoutProps) =>
       placeholder: "Settings",
     },
     {
+      link: "/styling",
+      icon: "colorLens",
+      placeholder: "Styling",
+    },
+    {
       link: "/help",
       icon: "help",
       placeholder: "Help",
@@ -108,7 +113,7 @@ const DashboardLayout = ({ children, params: { lng } }: DashboardLayoutProps) =>
   return (
     <>
       <Toolbar height={52} items={items} />
-      <DashboardSidebar items={sidebarItems} width={60} extended_width={200}>
+      <DashboardSidebar items={sidebarItems} width={48} extended_width={200}>
         <div className={cx(classes.container)}>{children}</div>
       </DashboardSidebar>
       <Footer lng={lng} />
@@ -120,17 +125,8 @@ const useStyles = makeStyles({ name: { DashboardLayout } })(() => ({
   container: {
     minHeight: "100vh",
     margin: "0 auto",
-    marginTop: "104px",
-    width: "80%",
-    "@media (max-width: 1714px)": {
-      width: "90%",
-    },
-    "@media (max-width: 1500px)": {
-      width: "90%",
-    },
-    "@media (max-width: 1268px)": {
-      paddingLeft: "50px",
-    },
+    marginTop: "52px",
+    width: "calc(100% - 96px)",
   },
 }));
 

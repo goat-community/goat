@@ -1,13 +1,13 @@
 "use client";
 
+import PreviewData from "@/app/[lng]/(dashboard)/content/preview/(previewData)/PreviewData";
+import PreviewMap from "@/app/[lng]/(dashboard)/content/preview/(previewMap)/PreviewMap";
 import HeaderStack from "@/app/[lng]/(dashboard)/content/preview/HeaderStack";
-import PreviewMap from "@/app/[lng]/(dashboard)/content/preview/PreviewMap";
-import PreviewMenu from "@/app/[lng]/(dashboard)/content/preview/PreviewMenu";
 import { API } from "@/lib/api/apiConstants";
-import { layerFetcher } from "@/lib/services/dashboard";
+import { layerFetcher, mapDataFetcher } from "@/lib/services/dashboard";
 import { makeStyles } from "@/lib/theme";
-import mapData from "@/lib/utils/project_layers_demo_update";
 import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 
@@ -18,36 +18,22 @@ const useStyles = makeStyles({ name: { PreviewManagement } })(() => ({
     minHeight: "100vh",
     marginTop: "100px",
   },
-  container: {
-    padding: "18px 0",
-    display: "flex",
-    justifyContent: "space-between",
-    gap: "16px",
-    height: "732px",
-  },
 }));
 
 interface PreviewManagementProps {
   id: string;
 }
 
-// Function to simulate fetching data asynchronously
-const mapDataFetcher = () => {
-  return new Promise((resolve, reject) => {
-    // Simulate an asynchronous delay (e.g., 1 second)
-    setTimeout(() => {
-      resolve(mapData);
-    }, 1000); // Simulate a 1-second delay
-  });
-};
-
 export default function PreviewManagement(props: PreviewManagementProps) {
   const { id } = props;
+  const { previewMode } = useSelector((state) => state.content);
 
   const { data, error } = useSWR("map", mapDataFetcher);
   const { data: layerData, trigger: layerTrigger } = useSWRMutation(API.layer, layerFetcher);
 
   const { classes, cx } = useStyles();
+
+  console.log("layerData", layerData);
 
   useEffect(() => {
     if (id) layerTrigger(id);
@@ -61,13 +47,15 @@ export default function PreviewManagement(props: PreviewManagementProps) {
     return <div>Loading...</div>;
   }
 
+  const previewObj = {
+    map: <PreviewMap {...data} />,
+    table: <PreviewData />,
+  };
+
   return (
     <div className={cx(classes.root)}>
       <HeaderStack className={cx(classes.header)} />
-      <div className={cx(classes.container)}>
-        <PreviewMenu />
-        <PreviewMap {...data} />
-      </div>
+      {previewObj[previewMode]}
     </div>
   );
 }
