@@ -5,7 +5,6 @@ export * from "./FileManagementTable";
 export * from "./Icon";
 export * from "./IconButton";
 export * from "./Table";
-export * from "./Text";
 export * from "./Tooltip";
 export * from "./TreeViewWithCheckboxes";
 export * from "./FileUploadProgress";

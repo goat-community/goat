@@ -2,6 +2,7 @@ import { languages } from "@/app/i18/settings";
 import ThemeRegistry from "@/lib/ThemeRegistry";
 import AuthProvider from "@/lib/providers/AuthProvider";
 import ToastProvider from "@/lib/providers/ToastProvider";
+import StoreProvider from "@/lib/store/providers/StoreProvider";
 import "@/styles/globals.css";
 import { dir } from "i18next";
 import type { Metadata } from "next";
@@ -29,11 +30,13 @@ export default function RootLayout({
   return (
     <html lang={lng} dir={dir(lng)}>
       <body>
+      <StoreProvider>
         <AuthProvider>
           <ToastProvider>
             <ThemeRegistry>{children}</ThemeRegistry>
           </ToastProvider>
         </AuthProvider>
+      </StoreProvider>
       </body>
     </html>
   );
