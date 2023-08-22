@@ -1,6 +1,6 @@
 "use client";
 
-import StylingMap from "@/app/[lng]/(dashboard)/styling/StylingMap";
+import StylingMap from "@/components/styling/StylingMap";
 import "@/styles/globals.css";
 
 export default function Styling() {

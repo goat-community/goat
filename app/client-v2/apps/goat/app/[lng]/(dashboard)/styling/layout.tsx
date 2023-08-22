@@ -1,6 +1,6 @@
 "use client";
 
-import StylingSideBar from "@/app/[lng]/(dashboard)/styling/StylingSideBar";
+import StylingSideBar from "@/components/styling/StylingSideBar";
 import { makeStyles } from "@/lib/theme";
 
 interface StylingLayoutProps {

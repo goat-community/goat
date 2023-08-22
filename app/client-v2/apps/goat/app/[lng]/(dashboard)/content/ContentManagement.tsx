@@ -1,12 +1,12 @@
 "use client";
 
-import ContentInfoModal from "@/app/[lng]/(dashboard)/content/ContentInfoModal";
 import EditFolderMenu from "@/app/[lng]/(dashboard)/content/EditFolderMenu";
 import HeaderCard from "@/app/[lng]/(dashboard)/content/HeaderCard";
 import MoreMenu from "@/app/[lng]/(dashboard)/content/MoreMenu";
 import TreeViewFilter from "@/app/[lng]/(dashboard)/content/TreeViewFilter";
 import GridContainer from "@/components/grid/GridContainer";
 import SingleGrid from "@/components/grid/SingleGrid";
+import ContentInfoModal from "@/components/modals/ContentInfoModal";
 import { API } from "@/lib/api/apiConstants";
 import {
   addFolderService,
