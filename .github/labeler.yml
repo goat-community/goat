@@ -1,0 +1,15 @@
+api:
+- app/api/**
+
+geoapi:
+- app/geoapi/**
+
+devops:
+- infra/**
+- .github/**
+
+frontend:
+- app/client/**
+
+docs:
+- docs/**

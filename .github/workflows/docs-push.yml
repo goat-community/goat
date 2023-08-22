@@ -1,0 +1,29 @@
+name: "Docs - Push"
+
+on:
+  push:
+    branches: [dev, main, v2]
+    paths:
+      - "docs/**"
+      - "infra/manifests/**/docs.yml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: docs
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+  
+jobs:
+  release-docs:
+    name: release-docs
+    uses: ./.github/workflows/docs-release.yml
+    secrets: inherit
+
+  deploy-docs:
+    name: deploy-docs
+    needs: release-docs
+    uses: ./.github/workflows/docs-deploy.yml
+    secrets: inherit

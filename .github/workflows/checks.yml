@@ -1,0 +1,90 @@
+name: "Checks"
+
+on:
+  workflow_call:
+    outputs:
+      client-goat-changed:
+        description: "Client goat changed"
+        value: ${{ jobs.checks.outputs.client-goat }}
+      api-changed:
+        description: "Api changed"
+        value: ${{ jobs.checks.outputs.api }}
+      geoapi-changed:
+        description: "Geoapi changed"
+        value: ${{ jobs.checks.outputs.geoapi }}
+      docs-changed:
+        description: "Docs changed"
+        value: ${{ jobs.checks.outputs.docs }}
+      env_name:
+        description: "Environment name"
+        value: ${{ jobs.checks.outputs.env_name }}
+      sha_short:
+        description: "Short sha"
+        value: ${{ jobs.checks.outputs.sha_short }}
+      
+
+jobs:
+    checks:
+        name: checks
+        runs-on: ubuntu-latest
+        timeout-minutes: 3
+        permissions:
+          pull-requests: read
+          contents: read
+        steps:
+          - name: 📥 Checkout
+            uses: actions/checkout@v3
+
+          - name: 📥 Checkout PR
+            uses: ./.github/actions/pr-git-checkout
+            
+          - name: 🕵️ Detect changes
+            uses: dorny/paths-filter@v2
+            id: changes
+            with:
+              filters: |
+                client-goat:
+                    - 'app/client/apps/goat/**'
+                    - 'app/client/packages/**'
+                    - 'app/client/package.json'
+                    - 'app/client/pnpm-lock.yaml'
+                    - 'app/client/.prettier*'
+                    - 'infra/manifests/**/client.yml'
+                api:
+                    - 'app/api'
+                    - 'infra/manifests/**/api.yml'
+                geoapi:
+                    - 'app/geoapi'
+                    - 'infra/manifests/**/geoapi.yml'
+                docs:
+                    - 'docs/**'
+                    - 'infra/manifests/**/docs.yml'
+
+          - name: 🕵️ Environment Branch Check
+            id: branch_check
+            run: |
+              echo "Running on branch ${{ github.ref }}"
+              if [ "${{ github.ref }}" = "refs/heads/prod" ]; then
+                echo "env_name=main" >> $GITHUB_OUTPUT
+              elif [ "${{ github.ref }}" = "refs/heads/v2" ]; then
+                echo "env_name=v2" >> $GITHUB_OUTPUT
+              elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+                echo "env_name=dev" >> $GITHUB_OUTPUT
+              fi
+
+          - name: 🕵️ Use variable setup in previous step
+            run: echo "I'm using variable ${{ steps.branch_check.outputs.env_name }}"
+
+          - name: 🕵️ Set sha_short
+            id: sha_short
+            run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+  
+        outputs:
+          client-goat: ${{ steps.changes.outputs.client-goat }}
+          api: ${{ steps.changes.outputs.api }}
+          geoapi: ${{ steps.changes.outputs.geoapi }}
+          docs: ${{ steps.changes.outputs.docs }}
+          env_name: ${{ steps.branch_check.outputs.env_name }}
+          sha_short: ${{ steps.sha_short.outputs.sha_short }}
+
+

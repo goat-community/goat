@@ -1,0 +1,29 @@
+name: "Client - Push"
+
+on:
+  push:
+    branches: [dev, main, v2]
+    paths:
+      - "app/client/**"
+      - "infra/manifests/**"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: app/client
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+  
+jobs:
+  # release-goat:
+  #   name: release-goat
+  #   uses: ./.github/workflows/client-release.yml
+  #   secrets: inherit
+
+  deploy-goat:
+    name: deploy-goat
+    # needs: release-goat
+    uses: ./.github/workflows/client-deploy.yml
+    secrets: inherit

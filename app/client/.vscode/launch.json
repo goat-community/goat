@@ -1,19 +1,40 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Storybook Debug",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "cd apps/storybook && pnpm run storybook",
+      "internalConsoleOptions": "openOnFirstSessionStart",
+      "serverReadyAction": {
+        "pattern": "Local:.+(https?://[^:]+:[0-9]+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
+      }
+    },
+    {
+      "name": "GOAT Debug (Server-Side)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm run goat"
+    },
+    {
+      "name": "GOAT Debug (Client)",
       "type": "chrome",
       "request": "launch",
-      "name": "vuejs: chrome",
-      "url": "http://localhost:1024/",
-      "webRoot": "${workspaceFolder}/src",
-      "sourceMapPathOverrides": {
-        "webpack:///./src/*": "${webRoot}/*",
-        "webpack:///src/*": "${webRoot}/*"
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "GOAT Debug (Full Stack)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm run goat",
+      "serverReadyAction": {
+        "pattern": "started server on .+, url: (https?://.+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
       }
-    }
+    },
   ]
 }
