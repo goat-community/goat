@@ -8,34 +8,38 @@
 import { LoadingButton } from "@mui/lab";
 import MuiButton from "@mui/material/Button";
 import { useCallbackFactory } from "powerhooks/useCallbackFactory";
-import React, { forwardRef, memo, useState } from "react";
+import { useGuaranteedMemo } from "powerhooks/useGuaranteedMemo";
+import type { FC } from "react";
+import { forwardRef, memo, useState } from "react";
 import * as runExclusive from "run-exclusive";
 import { assert } from "tsafe";
 import type { Equals } from "tsafe/Equals";
 import { capitalize } from "tsafe/capitalize";
+import { id } from "tsafe/id";
 
 import { makeStyles } from "../lib/ThemeProvider";
 import { variantNameUsedForMuiButton } from "../lib/typography";
 import { pxToNumber } from "../tools/pxToNumber";
+import type { IconProps } from "./DataDisplay";
 
-export type ButtonProps =
-  | ButtonProps.Regular
-  | ButtonProps.Submit;
+export type ButtonProps<IconId extends string = never> =
+  | ButtonProps.Regular<IconId>
+  | ButtonProps.Submit<IconId>;
 
 export namespace ButtonProps {
-  type Common = {
+  type Common<IconId extends string> = {
     className?: string;
 
     /** Defaults to "primary" */
     variant?: "primary" | "secondary" | "ternary" | "warning" | "noBorder";
 
-    children: React.ReactNode | string;
+    children: React.ReactNode;
 
     /** Defaults to false */
     disabled?: boolean;
 
-    startIcon?: string;
-    endIcon?: string;
+    startIcon?: IconId;
+    endIcon?: IconId;
 
     /** Defaults to false */
     autoFocus?: boolean;
@@ -48,23 +52,27 @@ export namespace ButtonProps {
     loading?: boolean;
   };
 
-  export type Regular = Common & {
+  export type Regular<IconId extends string = never> = Common<IconId> & {
     onClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     href?: string;
     /** Default to true if href */
     doOpenNewTabIfHref?: boolean;
   };
 
-  export type Submit = Common & {
+  export type Submit<IconId extends string = never> = Common<IconId> & {
     type: "submit";
   };
 }
 
-export function createButton() {
-
+export function createButton<IconId extends string = never>(params?: {
+  Icon(props: IconProps<IconId>): ReturnType<FC>;
+}) {
+  const { Icon } = params ?? {
+    Icon: id<(props: IconProps<IconId>) => JSX.Element>(() => <></>),
+  };
 
   const Button = memo(
-    forwardRef<any, ButtonProps>((props, ref) => {
+    forwardRef<HTMLButtonElement, ButtonProps<IconId>>((props, ref) => {
       const {
         className,
         variant = "primary",
@@ -78,6 +86,7 @@ export function createButton() {
         loading,
         htmlId,
         "aria-label": ariaLabel,
+        //For the forwarding, rest should be empty (typewise)
         ...rest
       } = props;
 
@@ -102,6 +111,13 @@ export function createButton() {
         isMouseIn,
       });
 
+      const IconWd = useGuaranteedMemo(
+        // eslint-disable-next-line react/display-name
+        () => (props: { iconId: IconId }) =>
+          <Icon iconId={props.iconId} className={classes.icon} size="small" />,
+        [disabled, classes.icon]
+      );
+
       return (
         <>
           {loading ? (
@@ -118,10 +134,8 @@ export function createButton() {
               className={cx(classes.root, className)}
               //There is an error in @mui/material types, this should be correct.
               disabled={disabled}
-              // startIcon={startIcon === undefined ? undefined : <IconWd iconId={startIcon} />}
-              startIcon={undefined}
-              // endIcon={endIcon === undefined ? undefined : <IconWd iconId={endIcon} />}
-              endIcon={undefined}
+              startIcon={startIcon === undefined ? undefined : <IconWd iconId={startIcon} />}
+              endIcon={endIcon === undefined ? undefined : <IconWd iconId={endIcon} />}
               autoFocus={autoFocus}
               tabIndex={tabIndex}
               name={name}
@@ -165,19 +179,19 @@ export function createButton() {
     const textColor = disabled
       ? theme.colors.useCases.typography["textDisabled"]
       : (() => {
-          switch (variant) {
-            case "primary":
-              return theme.colors.useCases.typography["textFocus"];
-            case "secondary":
-              return theme.colors.useCases.typography["textPrimary"];
-            case "ternary":
-              return theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main;
-            case "noBorder":
-              return `${theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].greyVariant3}E6`;
-            case "warning":
-              return theme.muiTheme.palette.warning.main;
-          }
-        })();
+        switch (variant) {
+          case "primary":
+            return theme.colors.useCases.typography["textFocus"];
+          case "secondary":
+            return theme.colors.useCases.typography["textPrimary"];
+          case "ternary":
+            return theme.colors.palette[theme.isDarkModeEnabled ? "dark" : "light"].main;
+          case "noBorder":
+            return `${theme.colors.palette[theme.isDarkModeEnabled ? "light" : "dark"].greyVariant3}E6`;
+          case "warning":
+            return theme.muiTheme.palette.warning.main;
+        }
+      })();
 
     const hoverTextColor = (() => {
       switch (variant) {
