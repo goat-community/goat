@@ -71,7 +71,7 @@ const Teams = () => {
         <TeamsTable rawRows={teams} editTeam={editTeam} searchText={searchWord} />
       ) : (
         <div className={classes.createTeam}>
-          <Image src="/assets/illustrations/teams.svg" alt="" />
+          <Image width="100" height="100" src="/assets/illustrations/teams.svg" alt="" />
           <Text typo="page heading" color="focus" className={classes.IconText}>
             Create teams to easily manage your projects
           </Text>
