@@ -3,8 +3,10 @@ import React from "react";
 
 import { changeColorOpacity } from "../../lib";
 import { makeStyles } from "../../lib/ThemeProvider";
-import { Icon, Text } from "../theme";
-import type { IconId } from "../theme";
+import { Text } from "../theme";
+// import type { IconId } from "../theme";
+import { Icon } from "../Icon";
+import { ICON_NAME } from "../Icon";
 
 interface ChipProps {
   className?: string;
@@ -12,7 +14,7 @@ interface ChipProps {
   textDesign?: "normal" | "italic";
   color?: "main" | "success" | "warning" | "error";
   label: React.ReactNode; // JSX Element
-  icon?: IconId;
+  icon?: ICON_NAME;
 }
 
 export const Chip = (props: ChipProps) => {
@@ -22,7 +24,7 @@ export const Chip = (props: ChipProps) => {
 
   const labelChip = (
     <div className={classes.chipContent}>
-      {icon ? <Icon iconId={icon} iconVariant={color} /> : null}
+      {icon ? <Icon iconName={icon} htmlColor={color} fontSize="small"/> : null}
       <Text className={classes.chipText} typo="body 3">
         {label}
       </Text>

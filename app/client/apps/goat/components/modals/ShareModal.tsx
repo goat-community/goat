@@ -24,7 +24,7 @@ const ShareModal = (props: ShareModalProps) => {
   const [checkedExpirationDate, setCheckedExpirationDate] = useState<boolean>(false);
   const [linkShareStatus, setLinkShareStatus] = useState<boolean>(true);
   const [date, setDate] = useState<Dayjs | null>(null);
-  const [password, setPassword] = useState<string | null>(null);
+  const [_, setPassword] = useState<string | null>(null);
   const [modalView, setModalView] = useState<number>(0);
 
   // Functions

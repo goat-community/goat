@@ -7,17 +7,17 @@ import { Text } from "@/lib/theme";
 import type { User } from "manage-users-dashboard";
 import { useState } from "react";
 
-import { Chip } from "@p4b/ui/components/DataDisplay";
+// import { Chip } from "@p4b/ui/components/DataDisplay";
+import { Chip } from "@/components/common/Chip";
 import { EnhancedTable } from "@p4b/ui/components/DataDisplay/EnhancedTable";
 import { TextField } from "@p4b/ui/components/Inputs/TextField";
 import Modal from "@p4b/ui/components/Modal";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Card } from "@p4b/ui/components/Surfaces/Card";
 import { Icon, Button, IconButton } from "@p4b/ui/components/theme";
-import type { IconId } from "@p4b/ui/components/theme";
 
-import InviteUser from "./InviteUser";
-import UserInfoModal from "./UserInfoModal";
+import InviteUser from "@/components/settings/organization/InviteUser";
+import UserRemovalConfirm from "@/components/settings/organization/UserRemovalConfirm";
 
 const ManageUsers = () => {
   const { classes } = useStyles();
@@ -61,7 +61,7 @@ const ManageUsers = () => {
   function sendInvitation() {
     const newUserInvite: User = {
       name: "Luca William Silva",
-      email: email,
+      email,
       role: "Admin",
       status: "Invite sent",
       Added: "23 Jun 19",
@@ -69,19 +69,16 @@ const ManageUsers = () => {
     setRawRows([...rawRows, newUserInvite]);
     closeInviteDialog();
   }
-
+  
   function editUserRole(role: "Admin" | "User" | "Editor", user: User | undefined) {
     if (user) {
-      const modifiedUsers = rows.map((row: User) => {
-        if (row.email === user.email) {
-          row.role = role;
-        }
-        return row;
-      });
+      const modifiedUsers = rows.map((row: User) =>
+        row.email === user.email ? { ...row, role } : row
+      );
       setRows(modifiedUsers);
     }
   }
-
+  
   function removeUser(user: User | undefined) {
     if (user) {
       const modifiedUsers = rows.filter((row: User) => row.email !== user.email);
@@ -89,7 +86,7 @@ const ManageUsers = () => {
       closeUserRemovalDialog();
     }
   }
-
+  
   function getStatus() {
     if (isLoading) {
       return <SubscriptionCardSkeleton />;
@@ -99,37 +96,32 @@ const ManageUsers = () => {
       return "No Result";
     }
   }
-
+  
   function returnRightFormat(users: User[]): User[] {
-    const usersList = users.map((user: User) => {
-      const modifiedVisualData = user;
-      const label =
-        typeof user.status !== "string" && "props" in user.status ? user.status.props.label : user.status;
-      let color: "main" | "success" | "warning" | "error" | undefined;
-      let icon: IconId | undefined;
+    return users.map((user: User) => {
+      const { status } = user;
+      const label = typeof status !== "string" && "props" in status ? status.props.label : status;
+      const colorMap = {
+        Active: "focus",
+        "Invite sent": "dark",
+        Expired: "orangeWarning",
+      };
+      const iconMap = {
+        Active: "circleCheck",
+        "Invite sent": "email",
+        Expired: "circleInfo",
+      };
+      const color = colorMap[label] || "error";
+      const icon = iconMap[label] || undefined;
 
-      switch (label) {
-        case "Active":
-          color = "success";
-          icon = "check";
-          break;
-        case "Invite sent":
-          color = "main";
-          icon = "email";
-          break;
-        case "Expired":
-          color = "warning";
-          icon = "info";
-          break;
-      }
-
-      modifiedVisualData.status = (
-        <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon} />
-      );
+      const modifiedVisualData = {
+        ...user,
+        status: (
+          <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon} />
+        ),
+      };
       return modifiedVisualData;
     });
-
-    return usersList;
   }
 
   return (
@@ -220,48 +212,15 @@ const ManageUsers = () => {
         imageSide="right"
       />
       {/* Confirm User Removal */}
-      <Modal
-        width="523px"
-        open={userInDialog ? true : false}
-        changeOpen={() => setTheUserInDialog(false)}
-        action={
-          isModalVisible ? (
-            <>
-              <Button onClick={closeUserRemovalDialog} variant="noBorder">
-                CANCEL
-              </Button>
-              <Button onClick={() => removeUser(userInDialog ? userInDialog : undefined)} variant="noBorder">
-                CONFIRM
-              </Button>
-            </>
-          ) : (
-            <Button
-              onClick={() => (userInDialog ? openUserRemovalDialog(userInDialog) : undefined)}
-              variant="noBorder">
-              REMOVE USER
-            </Button>
-          )
-        }
-        header={
-          isModalVisible ? (
-            <Text className={classes.modalHeader} typo="subtitle">
-              <Icon iconId="warn" iconVariant="warning" /> Attention
-            </Text>
-          ) : (
-            <div className={classes.modalHeader2}>
-              <Text typo="subtitle" className={classes.headerText}>
-                {userInDialog?.name}
-              </Text>
-              <IconButton onClick={closeUserRemovalDialog} iconId="close" />
-            </div>
-          )
-        }>
-        <UserInfoModal
-          ismodalVisible={isModalVisible}
-          userInDialog={userInDialog ? userInDialog : false}
-          editUserRole={editUserRole}
-        />
-      </Modal>
+      <UserRemovalConfirm removeUserFunctions={{
+        userInDialog: userInDialog ? userInDialog : undefined,
+        isModalVisible,
+        removeUser,
+        setTheUserInDialog,
+        closeUserRemovalDialog,
+        openUserRemovalDialog,
+        editUserRole
+      }}/>
     </div>
   );
 };

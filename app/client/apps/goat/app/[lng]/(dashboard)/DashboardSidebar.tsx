@@ -6,15 +6,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { v4 } from "uuid";
-
-import { Icon, Text, useTheme } from "@p4b/ui/components/theme";
-import type { IconId } from "@p4b/ui/components/theme";
+import { Text, useTheme } from "@p4b/ui/components/theme";
+import { Icon } from "@p4b/ui/components/Icon";
+import type { ICON_NAME } from "@p4b/ui/components/Icon";
 
 export type DashboardSidebarProps = {
-  items: { link: string; icon: IconId; placeholder: string }[];
+  items: { link: string; icon: ICON_NAME; placeholder: string }[];
   width: number;
   extended_width: number;
   children: React.ReactNode;
+  lng: string;
 };
 
 /**
@@ -24,7 +25,7 @@ export type DashboardSidebarProps = {
  */
 
 export function DashboardSidebar(props: DashboardSidebarProps) {
-  const { items, children } = props;
+  const { items, children, lng } = props;
 
   const pathname = usePathname();
 
@@ -34,31 +35,37 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
 
   // Component States
   const [hover, setHover] = useState(false);
-  const [active, setActive] = useState<string | null>(items[0].placeholder);
+  const [_, setActive] = useState<string | null>(items[0].placeholder);
+
+  function activeColor(path) {
+    if (pathname.includes(`/${lng}${path}`)) {
+      return theme.colors.palette.focus.main;
+    } else {
+      return theme.colors.palette.light.greyVariant4;
+    }
+  }
 
   return (
     <>
       <nav
         className={cx(classes.root)}
         onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}>
+        onMouseLeave={() => setHover(false)}
+      >
         <List>
           {items?.map(({ link, icon, placeholder }) => (
             <Link href={`${link}`} className={classes.textName} key={v4()}>
               <ListItem onClick={() => setActive(placeholder)} disablePadding>
                 <ListItemButton className={classes.itemList}>
                   <ListItemIcon>
-                    <Icon
-                      size="default"
-                      iconId={icon}
-                      iconVariant={pathname === link ? "focus" : theme.isDarkModeEnabled ? "white" : "gray"}
-                    />
+                    <Icon iconName={icon} htmlColor={activeColor(link)} fontSize="small" />
                   </ListItemIcon>
                   {hover ? (
                     <Text
                       typo="body 2"
                       className={classes.textName}
-                      color={pathname === link ? "focus" : "primary"}>
+                      color={pathname.includes(`/${lng}${link}`) ? "focus" : "primary"}
+                    >
                       {placeholder}
                     </Text>
                   ) : null}
@@ -78,7 +85,7 @@ const useStyles = (props: DashboardSidebarProps) =>
     root: {
       zIndex: "20",
       paddingTop: "52px",
-      backgroundColor: theme.colors.useCases.surfaces.surface2,
+      backgroundColor: theme.colors.useCases.surfaces.background,
       cursor: "pointer",
       width: props.width,
       left: 0,

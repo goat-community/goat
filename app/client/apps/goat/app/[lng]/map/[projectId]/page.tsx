@@ -6,7 +6,7 @@ import type { MapToolbarProps } from "@/components/map/Toolbar";
 import { MapToolbar } from "@/components/map/Toolbar";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import Charts from "@/components/map/panels/Charts";
-import Filter from "@/components/map/panels/Filter";
+import Filter from "@/components/map/panels/filter/Filter";
 import Layer from "@/components/map/panels/Layer";
 import Legend from "@/components/map/panels/Legend";
 import MapStyle from "@/components/map/panels/MapStyle";

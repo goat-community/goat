@@ -9,7 +9,7 @@ interface StylingLayoutProps {
 
 const StylingLayout = (props: StylingLayoutProps) => {
   const { children } = props;
-  const { classes } = useStyles();
+  // const { classes } = useStyles();
 
   return (
     <StylingSideBar width={48} extended_width={268}>

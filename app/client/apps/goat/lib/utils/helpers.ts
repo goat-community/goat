@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import Color from "color";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function filterSearch<T extends Record<string, any>>(
@@ -120,3 +121,8 @@ export const calculateLayersCountByKeyAndValue = (
 
   return count;
 };
+
+export function changeColorOpacity(params: { color: string; opacity: number }): string {
+  const { color, opacity } = params;
+  return new Color(color).rgb().alpha(opacity).string();
+}

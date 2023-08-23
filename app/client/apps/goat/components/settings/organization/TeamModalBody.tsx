@@ -1,8 +1,8 @@
-import type { Option } from "@/app/[lng]/(dashboard)/settings/organization/AddTeamModal";
-import type { Team } from "@/app/[lng]/(dashboard)/settings/organization/Teams";
 import React from "react";
+import type { Team } from "team-organization-dashboard";
 import { v4 } from "uuid";
 
+import type { Option } from "@p4b/types/atomicComponents";
 import { Checkbox } from "@p4b/ui/components/Checkbox";
 import { Chip } from "@p4b/ui/components/DataDisplay";
 import { AutoComplete, TextField } from "@p4b/ui/components/Inputs";
@@ -68,14 +68,14 @@ const TeamModalBody = (props: TeamModalBodyProps) => {
     }
   }
 
-  function removeUser(user: Option) {
-    const options = selectedOption?.filter(
-      (userSelected) => userSelected.label !== user.label && userSelected
-    );
-    if (setSelectedOption) {
-      setSelectedOption(options ? [...options] : []);
-    }
-  }
+  // function removeUser(user: Option) {
+  //   const options = selectedOption?.filter(
+  //     (userSelected) => userSelected.label !== user.label && userSelected
+  //   );
+  //   if (setSelectedOption) {
+  //     setSelectedOption(options ? [...options] : []);
+  //   }
+  // }
 
   return (
     <>
@@ -110,7 +110,7 @@ const TeamModalBody = (props: TeamModalBodyProps) => {
             <Text typo="body 2" className={classes.label}>
               User list
             </Text>
-            {selectedOption.map((option, indx) => (
+            {selectedOption.map((option) => (
               <div className={classes.useSelectedWrapper} key={v4()}>
                 <div className={classes.userSelected}>
                   <Checkbox

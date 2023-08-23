@@ -253,7 +253,7 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
   );
 }
 
-const useStyles = makeStyles()((theme) => ({
+const useStyles = makeStyles()(() => ({
   root: {
     width: "100%",
   },

@@ -59,7 +59,7 @@ const Subscription = () => {
     <div>
       {!isLoading && !error
         ? [...getSubscriptionDetails([data.subscription]), ...getSubscriptionDetails(data.extensions)].map(
-            (extension, indx) => <SubscriptionStatusCard sectionData={extension} key={v4()} />
+            (extension) => <SubscriptionStatusCard sectionData={extension} key={v4()} />
           )
         : beforeLoadedMessage()}
       <Banner

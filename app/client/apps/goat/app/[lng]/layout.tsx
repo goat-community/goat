@@ -1,3 +1,5 @@
+"use client";
+
 import { languages } from "@/app/i18/settings";
 import ThemeRegistry from "@/lib/ThemeRegistry";
 import AuthProvider from "@/lib/providers/AuthProvider";
@@ -7,6 +9,7 @@ import "@/styles/globals.css";
 import { dir } from "i18next";
 import type { Metadata } from "next";
 import "react-toastify/dist/ReactToastify.css";
+import { makeStyles } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: {
@@ -27,9 +30,12 @@ export default function RootLayout({
   children: React.ReactNode;
   params: { lng: string };
 }) {
+
+  const {classes} = useStyles()
+
   return (
     <html lang={lng} dir={dir(lng)}>
-      <body>
+      <body className={classes.body}>
       <StoreProvider>
         <AuthProvider>
           <ToastProvider>
@@ -41,3 +47,9 @@ export default function RootLayout({
     </html>
   );
 }
+
+const useStyles = makeStyles({ name: { RootLayout } })((theme) => ({
+  body: {
+    background: theme.colors.useCases.surfaces.background,
+  },
+}));

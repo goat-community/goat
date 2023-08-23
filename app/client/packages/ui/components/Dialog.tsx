@@ -18,7 +18,6 @@ export type DialogProps = {
 const Dialog = memo(
   forwardRef<HTMLElement, DialogProps>((props, ref) => {
     const { className, children, title, action, width, direction, onClick, anchorEl, ...rest } = props;
-
     const { classes, cx } = useStyles({ width });
 
     return (

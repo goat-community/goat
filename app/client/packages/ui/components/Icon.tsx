@@ -14,6 +14,15 @@ import {
   faBuilding,
   faMap,
   faClose,
+  faHouse,
+  faFolder,
+  faGears,
+  faCircleCheck,
+  faCircleExclamation,
+  faEnvelope,
+  faRocket,
+  faPersonRunning,
+  faBus
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { SvgIcon } from "@mui/material";
@@ -33,6 +42,15 @@ export enum ICON_NAME {
   ORGANIZATION = "organization",
   MAP = "map",
   CLOSE = "close",
+  HOUSE = "house",
+  FOLDER = "folder",
+  SETTINGS = "settings",
+  CIRCLECHECK = "circleCheck",
+  CIRCLEINFO = "circleInfo",
+  EMAIL = "email",
+  ROCKET = "rocket",
+  RUN = "run",
+  BUS = "bus",
 }
 
 const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
@@ -49,6 +67,15 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.ORGANIZATION]: faBuilding,
   [ICON_NAME.MAP]: faMap,
   [ICON_NAME.CLOSE]: faClose,
+  [ICON_NAME.HOUSE]: faHouse,
+  [ICON_NAME.FOLDER]: faFolder,
+  [ICON_NAME.SETTINGS]: faGears,
+  [ICON_NAME.CIRCLECHECK]: faCircleCheck,
+  [ICON_NAME.CIRCLEINFO]: faCircleExclamation,
+  [ICON_NAME.EMAIL]: faEnvelope,
+  [ICON_NAME.ROCKET]: faRocket,
+  [ICON_NAME.RUN]: faPersonRunning,
+  [ICON_NAME.BUS]: faBus,
 };
 
 library.add(...Object.values(nameToIcon));

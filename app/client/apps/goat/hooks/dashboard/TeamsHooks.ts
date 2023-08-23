@@ -1,5 +1,5 @@
-import type { Option } from "@/app/[lng]/(dashboard)/settings/organization/AddTeamModal";
 import type { Team } from "@/app/[lng]/(dashboard)/settings/organization/Teams";
+import type { Option } from "@/components/settings/organization/AddTeamModal";
 import { filterSearch } from "@/lib/utils/helpers";
 import { useEffect } from "react";
 

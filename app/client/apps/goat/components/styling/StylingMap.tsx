@@ -47,7 +47,7 @@ const StylingMap = () => {
   );
 };
 
-const useStyles = makeStyles({ name: { StylingMap } })((theme) => ({
+const useStyles = makeStyles({ name: { StylingMap } })(() => ({
   root: {
     width: "100%",
     height: "100vh",
