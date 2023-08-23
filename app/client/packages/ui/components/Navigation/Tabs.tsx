@@ -37,15 +37,15 @@ export const Tabs = memo(
     const [value, setValue] = useState("1");
 
     // functions
-    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    const handleChange = (_: React.SyntheticEvent, newValue: string) => {
       setValue(newValue);
     };
 
     return (
       <Box sx={{ width: "100%", typography: "14px" }} className={className}>
-        <TabContext initialSelectedIndex="1" value={value}>
+        <TabContext value={value}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList onChange={handleChange} aria-label="lab API tabs example" className={classes.tabs}>
+            <TabList onChange={handleChange} aria-label="lab API tabs example">
               {tabs.map((tab, index) => (
                 <Tab label={tab.name} value={`${index + 1}`} key={v4()} className={classes.tab} />
               ))}
