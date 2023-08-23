@@ -107,8 +107,10 @@ export const { Icon } = createIcon({
 
 export type IconId = Param0<typeof Icon>["iconId"];
 
+// @ts-ignore
 export const { IconButton } = createIconButton({ Icon });
 
+// @ts-ignore
 export const { Button } = createButton({ Icon });
 
 export const { Text } = createText({ useTheme });

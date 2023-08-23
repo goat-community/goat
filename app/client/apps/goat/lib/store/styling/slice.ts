@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const stylingSlice = createSlice<any>({
+const stylingSlice = createSlice<any, any, any>({
   name: "styling",
   initialState: {
     initialViewState: {

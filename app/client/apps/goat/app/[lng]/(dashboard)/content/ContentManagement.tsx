@@ -33,6 +33,8 @@ import Modal from "@p4b/ui/components/Modal";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Text, IconButton, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
+import type {ISelectedFolder} from "@/types/dashboard/content";
+import type {IDashboardTableRowInfo} from "@/types/dashboard/content";
 
 const columnNames = [
   {
@@ -63,17 +65,23 @@ const columnNames = [
 ];
 
 interface ModalContent {
-  info: string;
+  id: string;
+  name: string;
+  chip: React.ReactNode;
+  modified: string,
+  path: string[],
+  size: string,
+  label: string,
+  info: {
+    tag: string;
+    data: string;
+  }[];
 }
 
-interface SelectedFolder {
-  name: string;
-}
 
 const ContentManagement = () => {
   const {
     data: folderData,
-    error: folderError,
     mutate: getFoldersMutation,
   } = useSWR(API.folder, contentFoldersFetcher);
   const { data: layerData, trigger: layerTrigger } = useSWRMutation(API.layer, contentLayersFetcher);
@@ -82,21 +90,16 @@ const ContentManagement = () => {
 
   const [modalContent, setModalContent] = useState<ModalContent | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const [folderAnchorData, setFolderAnchorData] = useState<object | null>(null);
+  const [folderAnchorData, setFolderAnchorData] = useState<any | null>(null);
   const [path, setPath] = useState<string[]>(["home"]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [selectedFolder, setSelectedFolder] = useState<object | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<ISelectedFolder | null>(null);
   const [openEditFolderModal, setOpenEditFolderModal] = useState<boolean>(false);
   const [openAddFolderModal, setOpenAddFolderModal] = useState<boolean>(false);
   const [editedFolderName, setEditedFolderName] = useState<string>("");
   const [addedFolderName, setAddedFolderName] = useState<string>("");
   const [rows, setRows] = useState<any[]>([]);
-  const [dialogContent, setDialogContent] = useState<{
-    name: React.ReactNode;
-    type: React.ReactNode;
-    modified: string;
-    size: string;
-  } | null>(null);
+  const [dialogContent, setDialogContent] = useState<IDashboardTableRowInfo | null>(null);
 
   const { classes } = useStyles();
   const router = useRouter();
@@ -255,11 +258,11 @@ const ContentManagement = () => {
   }
 
   useEffect(() => {
-    let filteredRows = [];
+    let filteredRows: any[] = [];
 
     if (layerData?.items) {
       filteredRows.push(
-        ...layerData?.items?.map((item) => {
+        ...layerData.items.map((item) => {
           return {
             ...item,
             id: item.id,

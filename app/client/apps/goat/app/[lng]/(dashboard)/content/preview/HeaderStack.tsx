@@ -12,9 +12,10 @@ import { useDispatch, useSelector } from "react-redux";
 import Box from "@p4b/ui/components/Box";
 import BasicBreadcrumbs from "@p4b/ui/components/BreadCrumbs";
 import ToggleButtons from "@p4b/ui/components/ToggleButtons";
+import type {IStore} from "@/types/store";
 
 function HeaderStack() {
-  const { previewMode } = useSelector((state) => state.content);
+  const { previewMode } = useSelector((state: IStore) => state.content);
 
   const router = useRouter();
   const dispatch = useDispatch();

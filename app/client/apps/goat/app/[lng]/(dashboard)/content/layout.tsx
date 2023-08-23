@@ -16,7 +16,7 @@ const ContentLayout = (props: ContentLayoutProps) => {
   return <Box className={classes.root}>{children}</Box>;
 };
 
-const useStyles = makeStyles({ name: { ContentLayout } })((theme) => ({
+const useStyles = makeStyles({ name: { ContentLayout } })(() => ({
   root: {
     marginTop: "100px",
   },

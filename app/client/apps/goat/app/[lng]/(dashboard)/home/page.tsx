@@ -23,7 +23,7 @@ interface CardDataType {
 }
 
 const Home = () => {
-  const { classes, cx } = useStyles();
+  const { classes } = useStyles();
 
   // Project Dumb Data
   const tempCardInfo: CardDataType[] = [

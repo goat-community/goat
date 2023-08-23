@@ -15,10 +15,10 @@ export type ModalProps = {
 };
 
 const Modal = memo(
-  forwardRef<HTMLElement, ModalProps>((props, ref) => {
-    const { className, width, children, open, changeOpen, header, action, ...rest } = props;
+  forwardRef<HTMLElement, ModalProps>((props) => {
+    const { width, children, open, changeOpen, header, action } = props;
 
-    const { classes, cx } = useStyles({ width });
+    const { classes } = useStyles({ width });
 
     // Functions
     const handleClose = () => changeOpen(false);

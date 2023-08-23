@@ -7,9 +7,10 @@ import Modal from "@p4b/ui/components/Modal";
 import { Card } from "@p4b/ui/components/Surfaces";
 import { Button, Text, IconButton, Icon } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
+import type { ISelectedFolder } from "@/types/dashboard/content";
 
 interface HeaderCardProps {
-  selectedFolder: object | null;
+  selectedFolder: ISelectedFolder | null;
   path: string[];
   setPath: (value: string[]) => void;
   addLayer: (value: object) => void;
@@ -76,7 +77,7 @@ const HeaderCard = (props: HeaderCardProps) => {
         changeOpen={() => setAddContent(false)}
         header={
           <div className={classes.modalHeader}>
-            <Text typo="section heading" className={classes.modalHeadertext}>
+            <Text typo="section heading" className={classes.modalHeaderText}>
               Add content
             </Text>
             <IconButton onClick={() => setAddContent(false)} iconId="close" />

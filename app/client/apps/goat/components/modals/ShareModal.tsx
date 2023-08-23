@@ -24,19 +24,19 @@ const ShareModal = (props: ShareModalProps) => {
   const [checkedExpirationDate, setCheckedExpirationDate] = useState<boolean>(false);
   const [linkShareStatus, setLinkShareStatus] = useState<boolean>(true);
   const [date, setDate] = useState<Dayjs | null>(null);
-  const [password, setPassword] = useState<string | null>(null);
+  const [_, setPassword] = useState<string | null>(null);
   const [modalView, setModalView] = useState<number>(0);
 
   // Functions
-  function handleSwitch(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
+  function handleSwitch(_: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
     setChecked(checked);
   }
 
-  function handleLinkSHareStatus(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
+  function handleLinkSHareStatus(_: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
     setLinkShareStatus(checked);
   }
 
-  function handleExpirationStatus(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
+  function handleExpirationStatus(_: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
     setCheckedExpirationDate(checked);
   }
 

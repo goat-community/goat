@@ -34,7 +34,7 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
 
   // Component States
   const [hover, setHover] = useState(false);
-  const [active, setActive] = useState<string | null>(items[0].placeholder);
+  const [, setActive] = useState<string | null>(items[0].placeholder);
 
   return (
     <>

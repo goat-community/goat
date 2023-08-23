@@ -42,7 +42,7 @@ export const ToggleTabs = memo(
     const [value, setValue] = useState("1");
 
     // Functions
-    const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    const handleChange = (_: React.SyntheticEvent, newValue: string) => {
       onResultChange(newValue);
     };
 

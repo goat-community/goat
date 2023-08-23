@@ -15,11 +15,10 @@ export function Toolbar(props: ToolbarProps) {
 
   return (
     <Stack className={cx(classes.root)} direction="row" justifyContent="space-between" alignItems="center">
-      <GOATLogoGreenSvg className={classes.logoSize} />
+      <GOATLogoGreenSvg className={cx(classes.logoSize)} />
       <div>
         <TextField
           size="small"
-          iconId="search"
           hiddenLabel={true}
           placeholder="Search..."
           className={classes.searchInput}
@@ -28,7 +27,7 @@ export function Toolbar(props: ToolbarProps) {
       </div>
       <Stack direction="row" alignItems="center" sx={{ paddingY: "6px" }}>
         {items?.map(
-          ({ link, icon }, index) => (
+          ({ icon }, index) => (
             // <Link
             //   className={index !== items.length - 1 ? classes.icon : classes.lastIcon}
             //   href={link}

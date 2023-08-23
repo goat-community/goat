@@ -4,9 +4,10 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormLabel from "@mui/material/FormLabel";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
+import React from "react";
 
 interface RadioButtonsGroupProps {
-  radioLabels: object[];
+  radioLabels: { value: string, desc: string }[];
   value: string;
   setValue: (value: string) => void;
   formLabel?: string | undefined;

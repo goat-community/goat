@@ -25,7 +25,7 @@ const CreateContent = (props: CreateContentProps) => {
   const [uploadType, setUploadType] = useState<string | string[]>("");
   const [urlValue, setUrlValue] = useState("");
   const [saveFormat, setSaveFormat] = useState<string | string[]>("");
-  const [uploadFile, setUploadFile] = useState<FileList>();
+  const [, setUploadFile] = useState<FileList>();
   const [progressUpload, setProgressUpload] = useState<boolean>(false);
 
   // dumb data
@@ -169,7 +169,7 @@ const CreateContent = (props: CreateContentProps) => {
       status: "active",
       child: (
         <div>
-          <DropFieldFileInput onContentAdded={setUploadFile} onUploadFinish={setProgressUpload} />
+          <DropFieldFileInput onContentAdded={setUploadFile} onUploadFinish={() => setProgressUpload(true)} />
         </div>
       ),
     },

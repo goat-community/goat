@@ -36,32 +36,31 @@ export type TableProps = {
  * @returns The rendered table component.
  */
 const Table = memo(
-  forwardRef<HTMLElement, TableProps>((props, ref) => {
+  forwardRef<HTMLElement, TableProps>((props) => {
     // Table Props
     const {
-      className,
+      // className,
       rows,
       columnNames,
       dialog,
-      checkbox,
-      settings,
+      // checkbox,
+      // settings,
       minWidth = 700,
       openDialog,
-      ...rest
     } = props;
 
     // refs
     const dialogRef = useRef<HTMLDivElement>(null);
 
     // component state management
-    const [dialogCoords, setDialogCoords] = useState<{ left: string; top: string } | null>(null);
+    const [dialogCoords] = useState<{ left: string; top: string } | null>(null);
     const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
-    const [openedDialog, setOpenedDialog] = useState<number | boolean>(false);
-    const [iconButtonRefs, setIconButtonRefs] = useState<Array<React.RefObject<HTMLButtonElement>>>([]);
+    const [, setOpenedDialog] = useState<number | boolean>(false);
+    const [iconButtonRefs] = useState<Array<React.RefObject<HTMLButtonElement>>>([]);
     IconButton;
 
     // related to styling
-    const { classes, cx } = useStyles(dialogCoords ? dialogCoords : { left: false, top: false });
+    const { classes } = useStyles(dialogCoords ? dialogCoords : { left: false, top: false });
 
     // Here we get the keys of the row so that we can render it
     type ObjectKeys = keyof (typeof rows)[0];
@@ -106,7 +105,7 @@ const Table = memo(
 
                 ))} */}
                 {rowKeys &&
-                  rowKeys.map((key, index) => (
+                  rowKeys.map((key) => (
                     <TableCell className={classes.tableCell} component="th" scope="row" key={v4()}>
                       {row[key]}
                     </TableCell>
@@ -144,7 +143,7 @@ const Table = memo(
 
 const useStyles = makeStyles<{ left: boolean | string; top: boolean | string }>({
   name: { Table },
-})((theme, { left, top }) => ({
+})((theme, {}) => ({
   tableRow: {
     border: "none",
     backgroundColor: "transparent",

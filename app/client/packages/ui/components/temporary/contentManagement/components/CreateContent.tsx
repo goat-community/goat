@@ -168,7 +168,7 @@ const CreateContent = (props: CreateContentProps) => {
       status: "active",
       child: (
         <div>
-          <DropFieldFileInput onContentAdded={setUploadFile} onUploadFinish={setProgressUpload} />
+          <DropFieldFileInput onContentAdded={setUploadFile} onUploadFinish={() => setProgressUpload(true)} />
         </div>
       ),
     },

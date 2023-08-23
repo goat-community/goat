@@ -21,7 +21,7 @@ export default function ToggleButtons(props: ToggleButtonsType) {
       color="secondary"
       value={val}
       exclusive
-      onChange={(e, newVal) => setVal(newVal)}
+      onChange={(_, newVal) => setVal(newVal)}
       aria-label="Platform"
       className={className || ""}>
       {items?.map((item) => (

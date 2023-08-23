@@ -44,14 +44,14 @@ interface TreeViewProps {
  * @returns The rendered TreeView component.
  */
 export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
-  const { treeData, checkbox = true, selected, changeSelected } = props;
+  const { treeData, selected, changeSelected } = props;
   const { classes } = useStyles();
 
   // Component State
   const [checked, setChecked] = useState<string[]>([]);
 
   // functions
-  const handleToggle = (event: React.ChangeEvent<HTMLInputElement>, nodeId: string) => {
+  const handleToggle = (_: React.ChangeEvent<HTMLInputElement>, nodeId: string) => {
     if (checked.includes(nodeId)) {
       setChecked(checked.filter((id) => id !== nodeId));
       if (changeSelected) {
@@ -145,7 +145,7 @@ export const TreeViewWithCheckboxes: React.FC<TreeViewProps> = (props) => {
         />
       }>
       {Array.isArray(nodes.children)
-        ? nodes.children.map((childNode, index) => renderTree(childNode, "child"))
+        ? nodes.children.map((childNode) => renderTree(childNode, "child"))
         : null}
     </StyledTreeItem>
   );

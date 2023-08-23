@@ -1,16 +1,16 @@
 import TeamModalBody from "@/app/[lng]/(dashboard)/settings/organization/TeamModalBody";
 import React, { useState } from "react";
-import type { Team } from "team-organization-dashboard";
 
 import type { Option } from "@p4b/types/atomicComponents";
 import Modal from "@p4b/ui/components/Modal";
 import { Button, Text, IconButton } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
+import type {ITeam} from "@/types/dashboard/organization";
 
 interface AddTeamModalProps {
   visibility: boolean;
   setVisibility: (value: boolean) => void;
-  addTeam: (value: Team) => void;
+  addTeam: (value: ITeam) => void;
 }
 
 const AddTeamModal = (props: AddTeamModalProps) => {
