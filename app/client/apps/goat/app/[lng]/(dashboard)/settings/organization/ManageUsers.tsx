@@ -4,7 +4,6 @@ import SubscriptionCardSkeleton from "@/components/skeletons/SubscriptionCardSke
 import { useUsersData, useInviteUserDialog, useUserRemovalDialog } from "@/hooks/dashboard/OrganisationHooks";
 import { makeStyles } from "@/lib/theme";
 import { Text } from "@/lib/theme";
-import type { User } from "manage-users-dashboard";
 import { useState } from "react";
 
 import { Chip } from "@p4b/ui/components/DataDisplay";
@@ -18,6 +17,7 @@ import type { IconId } from "@p4b/ui/components/theme";
 
 import InviteUser from "./InviteUser";
 import UserInfoModal from "./UserInfoModal";
+import type {IUser} from "@/types/dashboard/organization";
 
 const ManageUsers = () => {
   const { classes } = useStyles();
@@ -59,7 +59,7 @@ const ManageUsers = () => {
   // Functions
 
   function sendInvitation() {
-    const newUserInvite: User = {
+    const newUserInvite: IUser = {
       name: "Luca William Silva",
       email: email,
       role: "Admin",
@@ -70,9 +70,9 @@ const ManageUsers = () => {
     closeInviteDialog();
   }
 
-  function editUserRole(role: "Admin" | "User" | "Editor", user: User | undefined) {
+  function editUserRole(role: "Admin" | "User" | "Editor", user: IUser | undefined) {
     if (user) {
-      const modifiedUsers = rows.map((row: User) => {
+      const modifiedUsers = rows.map((row: IUser) => {
         if (row.email === user.email) {
           row.role = role;
         }
@@ -82,9 +82,9 @@ const ManageUsers = () => {
     }
   }
 
-  function removeUser(user: User | undefined) {
+  function removeUser(user: IUser | undefined) {
     if (user) {
-      const modifiedUsers = rows.filter((row: User) => row.email !== user.email);
+      const modifiedUsers = rows.filter((row: IUser) => row.email !== user.email);
       setRawRows(modifiedUsers);
       closeUserRemovalDialog();
     }
@@ -100,11 +100,11 @@ const ManageUsers = () => {
     }
   }
 
-  function returnRightFormat(users: User[]): User[] {
-    const usersList = users.map((user: User) => {
+  function returnRightFormat(users: IUser[]): IUser[] {
+    const usersList = users.map((user) => {
       const modifiedVisualData = user;
       const label =
-        typeof user.status !== "string" && "props" in user.status ? user.status.props.label : user.status;
+        typeof user.status !== "string" && user.status?.props ? user.status.props.label : user.status;
       let color: "main" | "success" | "warning" | "error" | undefined;
       let icon: IconId | undefined;
 
@@ -197,7 +197,7 @@ const ManageUsers = () => {
           <EnhancedTable
             rows={returnRightFormat([...rows])}
             columnNames={columnNames}
-            openDialog={(value: object | null) => (value ? setTheUserInDialog(value as User) : undefined)}
+            openDialog={(value: object | null) => (value ? setTheUserInDialog(value as IUser) : undefined)}
             action={<IconButton type="submit" iconId="moreVert" size="medium" />}
             dense={false}
             alternativeColors={true}
@@ -222,8 +222,8 @@ const ManageUsers = () => {
       {/* Confirm User Removal */}
       <Modal
         width="523px"
-        open={userInDialog ? true : false}
-        changeOpen={() => setTheUserInDialog(false)}
+        open={!!userInDialog}
+        changeOpen={() => setTheUserInDialog(null)}
         action={
           isModalVisible ? (
             <>

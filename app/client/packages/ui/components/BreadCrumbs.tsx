@@ -11,7 +11,7 @@ export type BreadcrumbsType = {
 };
 
 export default function BasicBreadcrumbs(props: BreadcrumbsType) {
-  const { className, items, eventHandler } = props;
+  const { eventHandler } = props;
 
   return (
     <div role="presentation" onClick={eventHandler}>

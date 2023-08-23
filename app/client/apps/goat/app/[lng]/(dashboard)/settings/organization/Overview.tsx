@@ -6,7 +6,6 @@ import { OVERVIEW_API_URL } from "@/lib/api/apiConstants";
 import { makeStyles } from "@/lib/theme";
 import axios from "axios";
 import React, { useRef } from "react";
-import type { SubscriptionCard } from "subscriptions-dashboard";
 import useSWR from "swr";
 import { v4 } from "uuid";
 
@@ -14,13 +13,14 @@ import Dialog from "@p4b/ui/components/Dialog";
 import { TextField } from "@p4b/ui/components/Inputs/TextField";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Icon, Button, Text } from "@p4b/ui/components/theme";
+import type {ISubscriptionCard} from "@/types/dashboard/subscription";
 
 const Overview = () => {
   // User state management
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
 
   // styling related
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const { classes } = useStyles();
 
   const UsersFetcher = (url: string) => {
@@ -51,7 +51,7 @@ const Overview = () => {
     }
   }
 
-  function getOrganizationOverviewDetails(data: SubscriptionCard) {
+  function getOrganizationOverviewDetails(data: ISubscriptionCard) {
     const visualData = {
       icon: data.icon,
       title: data.title,

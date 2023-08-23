@@ -5,12 +5,13 @@ import { TreeViewWithCheckboxes, Divider } from "@p4b/ui/components/DataDisplay"
 import TreeViewWithIcons from "@p4b/ui/components/DataDisplay/TreeViewWithIcons";
 import { Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
+import type {ISelectedFolder} from "@/types/dashboard/content";
 
 interface ITreeViewFilterProps {
   selectedFilters: string[];
   setSelectedFilters: (value: string[]) => void;
-  handleSelectFolder: (value: object) => void;
-  handleAddFolder: (value: object) => void;
+  handleSelectFolder: (value: ISelectedFolder) => void;
+  handleAddFolder: () => void;
   folderData: [] | undefined;
   projectData: [] | undefined;
   reportData: [] | undefined;
@@ -112,7 +113,7 @@ const TreeViewFilter = (props: ITreeViewFilterProps) => {
             setSelectedFolder={setSelectedFolder}
           />
         </div>
-        <Divider color="main" />
+        <Divider color="main" width="100%" />
         <div className={classes.filtersWrapper}>
           <TreeViewWithCheckboxes
             selected={selectedFilters}
@@ -126,7 +127,7 @@ const TreeViewFilter = (props: ITreeViewFilterProps) => {
   );
 };
 
-const useStyles = makeStyles({ name: { TreeViewFilter } })((theme) => ({
+const useStyles = makeStyles({ name: { TreeViewFilter } })(() => ({
   wrapper: {
     display: "flex",
     flexDirection: "column",

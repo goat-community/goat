@@ -10,18 +10,12 @@ import { Text, IconButton, Icon } from "../theme";
 
 export type FileUploadProgressProps = {
   className?: string;
-  onFinished: (value: boolean) => void;
+  onFinished: () => void;
   finished?: boolean;
 };
 
-/**
- * A memoized functional component that represents the progress of a file upload.
- * @param {FileUploadProgressProps} props - The props for the component.
- * @param {React.Ref<HTMLElement>} ref - The ref for the component.
- * @returns {React.ReactElement} - The rendered component.
- */
 export const FileUploadProgress = memo(
-  forwardRef<HTMLElement, FileUploadProgressProps>((props, ref) => {
+  forwardRef<HTMLElement, FileUploadProgressProps>((props) => {
     const {
       className,
       onFinished,
@@ -34,7 +28,7 @@ export const FileUploadProgress = memo(
     // eslint-disable-next-line @typescript-eslint/ban-types
     assert<Equals<typeof rest, {}>>();
 
-    const { classes, cx } = useStyles();
+    const { classes } = useStyles();
 
     return (
       <Box className={classes.container}>

@@ -41,7 +41,7 @@ export const { Icon } = createIcon({
 
 export const { makeStyles, useStyles } = createMakeAndWithStyles({ useTheme });
 export const { Text } = createText({ useTheme });
-export const { Button } = createButton({ Icon });
+export const { Button } = createButton({Icon});
 export const { IconButton } = createIconButton({ Icon });
 
 export const logoContainerWidthInPercent = 4;

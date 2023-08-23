@@ -9,7 +9,7 @@ import { Icon } from "./theme";
 
 interface DropFieldProps {
   onContentAdded: (value: FileList) => void;
-  onUploadFinish: (value: boolean) => void;
+  onUploadFinish: () => void;
 }
 
 const DropFieldFileInput = (props: DropFieldProps) => {
@@ -21,7 +21,7 @@ const DropFieldFileInput = (props: DropFieldProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Component States
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [, setIsDragOver] = useState(false);
   const [file, setFile] = useState<FileList>();
 
   // Functions

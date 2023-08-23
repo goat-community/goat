@@ -19,7 +19,7 @@ export type SlideShowProps = {
 };
 
 export const Tabs = memo(
-  forwardRef<HTMLElement, SlideShowProps>((props, ref) => {
+  forwardRef<HTMLElement, SlideShowProps>((props) => {
     const {
       className,
       tabs,

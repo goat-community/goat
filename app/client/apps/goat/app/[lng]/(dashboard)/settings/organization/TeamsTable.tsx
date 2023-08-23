@@ -1,6 +1,5 @@
 import { useUserDialog, useTeamSearch } from "@/hooks/dashboard/TeamsHooks";
 import React, { useState } from "react";
-import type { Team } from "team-organization-dashboard";
 
 import type { Option } from "@p4b/types/atomicComponents";
 import { EnhancedTable } from "@p4b/ui/components/DataDisplay";
@@ -11,17 +10,18 @@ import { Text, Button } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 import TeamModalBody from "./TeamModalBody";
+import type {ITeam} from "@/types/dashboard/organization";
 
 interface TeamsTableProps {
-  rawRows: Team[];
-  editTeam: (value: Team) => void;
+  rawRows: ITeam[];
+  editTeam: (value: ITeam) => void;
   searchText?: string;
 }
 
 const TeamsTable = (props: TeamsTableProps) => {
   const { rawRows, editTeam, searchText } = props;
 
-  const [userInDialog, setUserInDialog] = useState<Team | boolean>(false);
+  const [userInDialog, setUserInDialog] = useState<ITeam | boolean>(false);
   const [selectedOption, setSelectedOption] = useState<Option[] | null>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
 

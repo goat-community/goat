@@ -1,26 +1,24 @@
-declare module "manage-users-dashboard" {
-  interface User {
-    name: string;
-    email: string;
-    role: "Admin" | "Editor" | "User";
-    status: "Active" | "Invite sent" | "Expired" | React.ReactNode;
-    Added: string;
-  }
+import type {Option} from "@p4b/types/atomicComponents";
+import type {IconId} from "@p4b/ui/components/theme";
+import type React from "react";
+
+export interface IUser {
+  name: string;
+  email: string;
+  role: "Admin" | "Editor" | "User";
+  status: "Active" | "Invite sent" | "Expired" | any;
+  Added: string;
 }
 
-declare module "overview-dashboard-organization" {
-  interface Organization {
-    title: string;
-    icon: IconId;
-    listItems: React.ReactNode[];
-    action: React.ReactNode;
-  }
+export interface IOrganization {
+  title: string;
+  icon: IconId;
+  listItems: React.ReactNode[];
+  action: React.ReactNode;
 }
 
-declare module "team-organization-dashboard" {
-  interface Team {
-    name: string;
-    participants: Option[];
-    createdAt: string;
-  }
+export interface ITeam {
+  name: string;
+  participants: Option[];
+  createdAt: string;
 }

@@ -30,6 +30,7 @@
     "accept-language": "^3.0.18",
     "axios": "^1.4.0",
     "dayjs": "^1.11.9",
+    "eslint": "^8.47.0",
     "geojson": "^0.5.0",
     "i18next": "^23.4.4",
     "i18next-browser-languagedetector": "^7.1.0",

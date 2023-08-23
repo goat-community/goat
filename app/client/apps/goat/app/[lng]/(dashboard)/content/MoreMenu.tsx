@@ -8,14 +8,15 @@ import { v4 } from "uuid";
 import Modal from "@p4b/ui/components/Modal";
 import { Icon, Text, IconButton } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
+import type {IDashboardTableRowInfo} from "@/types/dashboard/content";
 
 interface MoreMenuProps {
-  rowInfo: object | null;
-  handleDeleteItem: (object: object) => void;
+  rowInfo: IDashboardTableRowInfo | null;
+  handleDeleteItem: (object: IDashboardTableRowInfo | null) => void;
 }
 
-interface ComponentOptions {
-  [key: string]: React.ReactElement<never, never>;
+interface IComponentOptions {
+  [key: string]: React.ReactElement;
 }
 
 const MoreMenu = (props: MoreMenuProps) => {
@@ -70,7 +71,7 @@ const MoreMenu = (props: MoreMenuProps) => {
     ],
   ];
 
-  if (rowInfo.label === "layer") {
+  if (rowInfo?.label === "layer") {
     defaultOptions[0].push({
       value: "View",
       name: "View",
@@ -78,7 +79,7 @@ const MoreMenu = (props: MoreMenuProps) => {
     });
   }
 
-  const componentOptions: ComponentOptions = {
+  const componentOptions: IComponentOptions = {
     Download: <DownloadModal name={rowInfo ? rowInfo.name : ""} changeState={setSelectedOption} />,
     Share: (
       <ShareModal
@@ -130,7 +131,7 @@ const MoreMenu = (props: MoreMenuProps) => {
         }
         open={selectedOption?.name === "Download"}
         changeOpen={handleCloseModal}>
-        {componentOptions[selectedOption?.value] || "Download"}
+        {selectedOption ? componentOptions[selectedOption.value] : "Download"}
       </Modal>
     </div>
   );

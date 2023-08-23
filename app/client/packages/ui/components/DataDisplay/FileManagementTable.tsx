@@ -47,10 +47,10 @@ type Order = "asc" | "desc";
  * @returns A comparator function that can be used to sort an array of objects.
  */
 
-function getComparator<Key extends keyof any>(
-  order: Order,
-  orderBy: Key
-): (a: { [key in Key]: number | string }, b: { [key in Key]: number | string }) => number {
+function getComparator(
+  order,
+  orderBy
+){
   return order === "desc"
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
@@ -63,8 +63,8 @@ function getComparator<Key extends keyof any>(
  * @returns {T[]} - The sorted array.
  */
 
-function stableSort<T extends Rows>(array: readonly T[], comparator: (a: T, b: T) => number) {
-  const stabilizedThis = array.map((el, index) => [el, index] as [T, number]);
+function stableSort(array, comparator) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
     if (order !== 0) {
@@ -79,13 +79,13 @@ interface FileManagementHeadProps {
   numSelected: number;
   onRequestSort: (event: React.MouseEvent<unknown>, property: any) => void;
   order: Order;
-  orderBy: string | number;
+  orderBy: string | null | number;
   rowCount: number;
   columns: {
     id: string;
     numeric: boolean;
     label: string;
-    isSortable: boolean;
+    isSortable?: boolean;
     icon?: any;
   }[];
 }
@@ -103,6 +103,9 @@ function FileManagementHead(props: FileManagementHeadProps) {
   };
 
   const { classes } = useStyles();
+
+  console.log('numSelected', numSelected)
+  console.log('rowCount', rowCount)
 
   return (
     <TableHead>
@@ -166,8 +169,10 @@ type FileManagementProps = {
   }[];
   setDialogContent?: React.Dispatch<
     React.SetStateAction<{
-      [x: string]: string | number;
-      [x: number]: string | number;
+      name: React.ReactNode;
+      type: React.ReactNode;
+      modified: string;
+      size: string;
     } | null>
   >;
   modal?: { body: React.ReactNode; action: React.ReactNode; header: React.ReactNode } | null;
@@ -195,15 +200,14 @@ export function FileManagementTable(props: FileManagementProps) {
     hover = false,
     currPath,
     setPath,
-    ...rest
   } = props;
 
   const { classes } = useStyles();
 
   // Component State
   const [order, setOrder] = React.useState<Order>("asc");
-  const [orderBy, setOrderBy] = React.useState(null);
-  const [selected, setSelected] = React.useState<(string | number)[]>([]);
+  const [orderBy, setOrderBy] = React.useState<string | null>(null);
+  const [selected] = React.useState<(string | number)[]>([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [rowOnPath, setRowOnPath] = React.useState<Rows[] | null>(rows);
@@ -216,13 +220,13 @@ export function FileManagementTable(props: FileManagementProps) {
   }, [currPath]);
 
   // functions
-  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof ObjectKeys) => {
+  const handleRequestSort = (_: React.MouseEvent<unknown>, property: any) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -303,7 +307,7 @@ export function FileManagementTable(props: FileManagementProps) {
     }
   }
 
-  function handleRowClick(row: Rows) {
+  function handleRowClick(row) {
     if (setModalContent && !React.isValidElement(row.name) && row.name !== "...") {
       setModalContent(row);
     } else {
@@ -324,7 +328,12 @@ export function FileManagementTable(props: FileManagementProps) {
 
   function openDialogInitializer(
     event: React.MouseEvent<HTMLButtonElement>,
-    row: { [x: string]: string | number; [x: number]: string | number }
+    row: {
+      name: React.ReactNode;
+      type: React.ReactNode;
+      modified: string;
+      size: string;
+    }
   ) {
     if (setDialogAnchor) {
       setDialogAnchor(event.currentTarget);
@@ -337,7 +346,7 @@ export function FileManagementTable(props: FileManagementProps) {
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-  const visibleRows: Rows[] = React.useMemo(() => {
+  const visibleRows = React.useMemo(() => {
     return stableSort(rowOnPath ? rowOnPath : [], getComparator(order, orderBy)).slice(
       page * rowsPerPage,
       page * rowsPerPage + rowsPerPage
@@ -349,8 +358,8 @@ export function FileManagementTable(props: FileManagementProps) {
 
     if (rows.length) {
       // Here we get the keys of the row so that we can render it
-      type ObjectKeys = keyof (typeof rows)[0];
-      const rowKeys: ObjectKeys[] = Object.keys(rows[0]) as ObjectKeys[];
+
+      const rowKeys = Object.keys(rows[0])
       setOrderBy(rowKeys[0]);
     }
   }, [rows.length]);

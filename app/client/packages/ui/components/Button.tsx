@@ -8,7 +8,7 @@
 import { LoadingButton } from "@mui/lab";
 import MuiButton from "@mui/material/Button";
 import { useCallbackFactory } from "powerhooks/useCallbackFactory";
-import { forwardRef, memo, useState } from "react";
+import React, { forwardRef, memo, useState } from "react";
 import * as runExclusive from "run-exclusive";
 import { assert } from "tsafe";
 import type { Equals } from "tsafe/Equals";
@@ -18,24 +18,24 @@ import { makeStyles } from "../lib/ThemeProvider";
 import { variantNameUsedForMuiButton } from "../lib/typography";
 import { pxToNumber } from "../tools/pxToNumber";
 
-export type ButtonProps<IconId extends string = never> =
-  | ButtonProps.Regular<IconId>
-  | ButtonProps.Submit<IconId>;
+export type ButtonProps =
+  | ButtonProps.Regular
+  | ButtonProps.Submit;
 
 export namespace ButtonProps {
-  type Common<IconId extends string> = {
+  type Common = {
     className?: string;
 
     /** Defaults to "primary" */
     variant?: "primary" | "secondary" | "ternary" | "warning" | "noBorder";
 
-    children: React.ReactNode;
+    children: React.ReactNode | string;
 
     /** Defaults to false */
     disabled?: boolean;
 
-    startIcon?: IconId;
-    endIcon?: IconId;
+    startIcon?: string;
+    endIcon?: string;
 
     /** Defaults to false */
     autoFocus?: boolean;
@@ -48,23 +48,23 @@ export namespace ButtonProps {
     loading?: boolean;
   };
 
-  export type Regular<IconId extends string = never> = Common<IconId> & {
+  export type Regular = Common & {
     onClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     href?: string;
     /** Default to true if href */
     doOpenNewTabIfHref?: boolean;
   };
 
-  export type Submit<IconId extends string = never> = Common<IconId> & {
+  export type Submit = Common & {
     type: "submit";
   };
 }
 
-export function createButton<IconId extends string = never>() {
+export function createButton() {
 
 
   const Button = memo(
-    forwardRef<HTMLButtonElement, ButtonProps<IconId>>((props, ref) => {
+    forwardRef<any, ButtonProps>((props, ref) => {
       const {
         className,
         variant = "primary",
@@ -78,7 +78,6 @@ export function createButton<IconId extends string = never>() {
         loading,
         htmlId,
         "aria-label": ariaLabel,
-        //For the forwarding, rest should be empty (typewise)
         ...rest
       } = props;
 
@@ -102,13 +101,6 @@ export function createButton<IconId extends string = never>() {
         disabled,
         isMouseIn,
       });
-
-      // const IconWd = useGuaranteedMemo(
-      //   // eslint-disable-next-line react/display-name
-      //   () => (props: { iconId: IconId }) =>
-      //     <Icon iconId={props.iconId} className={classes.icon} size="small" />,
-      //   [disabled, classes.icon]
-      // );
 
       return (
         <>

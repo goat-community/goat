@@ -10,6 +10,7 @@ import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
+import type {IStore} from "@/types/store";
 
 const useStyles = makeStyles({ name: { PreviewManagement } })(() => ({
   root: {
@@ -26,7 +27,7 @@ interface PreviewManagementProps {
 
 export default function PreviewManagement(props: PreviewManagementProps) {
   const { id } = props;
-  const { previewMode } = useSelector((state) => state.content);
+  const { previewMode } = useSelector((state: IStore) => state.content);
 
   const { data, error } = useSWR("map", mapDataFetcher);
   const { data: layerData, trigger: layerTrigger } = useSWRMutation(API.layer, layerFetcher);
@@ -54,7 +55,7 @@ export default function PreviewManagement(props: PreviewManagementProps) {
 
   return (
     <div className={cx(classes.root)}>
-      <HeaderStack className={cx(classes.header)} />
+      <HeaderStack />
       {previewObj[previewMode]}
     </div>
   );

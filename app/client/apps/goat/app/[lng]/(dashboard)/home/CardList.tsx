@@ -21,7 +21,7 @@ export interface CardType<IconId extends string> {
 
 interface CardsDataArray {
   content: CardType<"file">;
-  media: boolean | { image: string };
+  media: false | { image: string };
 }
 
 export interface CardListProps {
@@ -33,7 +33,7 @@ export interface CardListProps {
 const CardList = (props: CardListProps) => {
   const { title, buttons, cards } = props;
 
-  const { classes, cx } = useStyles();
+  const { classes } = useStyles();
 
   return (
     <>
