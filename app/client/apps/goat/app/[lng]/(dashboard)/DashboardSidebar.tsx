@@ -50,8 +50,7 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
       <nav
         className={cx(classes.root)}
         onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-      >
+        onMouseLeave={() => setHover(false)}>
         <List>
           {items?.map(({ link, icon, placeholder }) => (
             <Link href={`${link}`} className={classes.textName} key={v4()}>
@@ -64,8 +63,7 @@ export function DashboardSidebar(props: DashboardSidebarProps) {
                     <Text
                       typo="body 2"
                       className={classes.textName}
-                      color={pathname.includes(`/${lng}${link}`) ? "focus" : "primary"}
-                    >
+                      color={pathname.includes(`/${lng}${link}`) ? "focus" : "primary"}>
                       {placeholder}
                     </Text>
                   ) : null}
