@@ -18,7 +18,6 @@ jobs:
   release-goat:
     name: release-goat
     needs: checks
-    if: ${{ needs.checks.outputs.client-goat-changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
