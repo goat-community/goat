@@ -18,7 +18,6 @@ jobs:
   release-geoapi:
     name: release-geoapi
     needs: checks
-    if: ${{ needs.checks.outputs.geoapi-changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
