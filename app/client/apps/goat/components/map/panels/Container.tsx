@@ -47,7 +47,7 @@ const useStyles = makeStyles({ name: { Container } })((theme) => ({
     paddingBottom: theme.spacing(2),
   },
   action: {
-    position: "absolute",
+    position: "fixed",
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2),
     bottom: 0,

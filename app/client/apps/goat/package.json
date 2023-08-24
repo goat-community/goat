@@ -21,7 +21,6 @@
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
     "@hookform/resolvers": "^3.1.1",
-    "@mapbox/mapbox-gl-geocoder": "^5.0.1",
     "@mui/icons-material": "latest",
     "@mui/material": "latest",
     "@p4b/types": "workspace:*",
