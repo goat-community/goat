@@ -42,7 +42,7 @@ const MapSidebarList = (props: MapSidebarListProps) => {
     if (name === active?.name) {
       return theme.colors.palette.focus.main;
     }
-    return theme.isDarkModeEnabled ? "white" : "gray";
+    return theme.isDarkModeEnabled ? "white" : theme.colors.palette.light.greyVariant4;
   };
 
   return (

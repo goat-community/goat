@@ -14,6 +14,10 @@ import {
   faBuilding,
   faMap,
   faClose,
+  faPlus,
+  faMinus,
+  faMaximize,
+  faMinimize,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { SvgIcon } from "@mui/material";
@@ -33,6 +37,10 @@ export enum ICON_NAME {
   ORGANIZATION = "organization",
   MAP = "map",
   CLOSE = "close",
+  PLUS = "plus",
+  MINUS = "minus",
+  MAXIMIZE = "maximize",
+  MINIMIZE = "minimize"
 }
 
 const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
@@ -49,6 +57,10 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.ORGANIZATION]: faBuilding,
   [ICON_NAME.MAP]: faMap,
   [ICON_NAME.CLOSE]: faClose,
+  [ICON_NAME.PLUS]: faPlus,
+  [ICON_NAME.MINUS]: faMinus,
+  [ICON_NAME.MAXIMIZE]: faMaximize,
+  [ICON_NAME.MINIMIZE]: faMinimize,
 };
 
 library.add(...Object.values(nameToIcon));

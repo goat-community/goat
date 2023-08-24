@@ -1,6 +1,5 @@
 import { Skeleton } from "@mui/material";
 import { Fragment, useState } from "react";
-import Image from "next/image";
 interface Props {
   src: string;
   alt?: string;
@@ -23,7 +22,7 @@ export function SkeletonImage({ src, alt = "", width, height, border = "rectangu
   return (
     <Fragment>
       <Skeleton style={skeletonStyle} width={width} variant={border} height={height} />
-      <Image
+      <img
         style={{ ...style, ...imageStyle }}
         src={src}
         alt={alt}

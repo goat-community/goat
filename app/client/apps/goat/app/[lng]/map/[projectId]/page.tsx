@@ -5,6 +5,7 @@ import MapSidebar from "@/components/map/Sidebar";
 import type { MapToolbarProps } from "@/components/map/Toolbar";
 import { MapToolbar } from "@/components/map/Toolbar";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
+import { Zoom } from "@/components/map/controls/Zoom";
 import Charts from "@/components/map/panels/Charts";
 import Filter from "@/components/map/panels/Filter";
 import Layer from "@/components/map/panels/Layer";
@@ -21,6 +22,7 @@ import Map, { MapProvider } from "react-map-gl";
 import type { CSSObject } from "tss-react";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
+import { Fullscren } from "@/components/map/controls/Fullscreen";
 
 export default function MapPage() {
   const sidebarWidth = 48;
@@ -187,7 +189,8 @@ export default function MapPage() {
               justifyContent="space-between"
               className={cx(classes.controls, classes.mapControls)}>
               <Stack direction="column">
-                {/* <Box sx={{ height: 152, width: 52, bgcolor: "primary.main" }} /> */}
+                <Zoom />
+                <Fullscren />
               </Stack>
               <Stack direction="column">
                 {/* <Attribution showMapboxLogo={true} showOsmBasemapAttribution={true} datasetAttributions={[]} /> */}
@@ -232,6 +235,7 @@ export default function MapPage() {
         </Box>
         <div className={cx(classes.root)}>
           <Map
+            id="map"
             style={{ width: "100%", height: "100%" }}
             initialViewState={{
               longitude: 11.575936741828286,
