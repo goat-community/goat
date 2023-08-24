@@ -3,7 +3,6 @@
 import SubscriptionCardSkeleton from "@/components/skeletons/SubscriptionCardSkeleton";
 import { makeStyles } from "@/lib/theme";
 import axios from "axios";
-import type { SubscriptionCard, SubscriptionStatusCardDataType } from "subscriptions-dashboard";
 import useSWR from "swr";
 import { v4 } from "uuid";
 
@@ -11,6 +10,8 @@ import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Text } from "@p4b/ui/components/theme";
 
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
+import type {ISubscriptionStatusCardDataType} from "@/types/dashboard/subscription";
+import type {ISubscriptionCard} from "@/types/dashboard/subscription";
 
 const Subscription = () => {
   const { classes } = useStyles();
@@ -21,8 +22,8 @@ const Subscription = () => {
 
   const { data, error, isLoading } = useSWR("/api/dashboard/subscription", UsersFetcher);
 
-  function getSubscriptionDetails(datas: SubscriptionCard[]) {
-    const visualData: SubscriptionStatusCardDataType[] = datas.map((data) => ({
+  function getSubscriptionDetails(datas: ISubscriptionCard[]) {
+    const visualData: ISubscriptionStatusCardDataType[] = datas.map((data) => ({
       icon: data.icon,
       title: data.title,
       listItems: data.listItems.map((item: string) => (

@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
 import { Text } from "@p4b/ui/components/theme";
+import { useMap } from "react-map-gl";
 
 interface Item {
   value: string;
@@ -28,46 +29,48 @@ export function BasemapSelector(props: BasemapSelectorProps) {
   const { styles, active, basemapChange } = props;
   const { classes } = useStyles();
   const theme = useTheme();
+  const { map } = useMap();
 
   return (
     <>
-      <ArrowPopper
-        placement="top-end"
-        content={
-          <Paper sx={{ width: 360, overflow: "auto" }}>
-            <Box position="absolute" top={5} right={5}>
-              <IconButton onClick={() => setOpen(false)}>
-                <Icon
-                  iconName={ICON_NAME.CLOSE}
-                  htmlColor={theme.isDarkModeEnabled ? "white" : "gray"}
-                  fontSize="small"
-                />
-              </IconButton>
-            </Box>
+      {map && (
+        <ArrowPopper
+          placement="top-end"
+          content={
+            <Paper sx={{ width: 360, overflow: "auto" }}>
+              <Box position="absolute" top={5} right={5}>
+                <IconButton onClick={() => setOpen(false)}>
+                  <Icon
+                    iconName={ICON_NAME.CLOSE}
+                    htmlColor={theme.isDarkModeEnabled ? "white" : "gray"}
+                    fontSize="small"
+                  />
+                </IconButton>
+              </Box>
 
-            <Text typo="page heading" className={classes.title}>
-              Map Style
-            </Text>
-            <ListTile
-              items={styles}
-              selected={active}
-              thumbnailBorder="rounded"
-              onChange={(selectedStyleIndex) => {
-                basemapChange(selectedStyleIndex);
-              }}
-            />
-          </Paper>
-        }
-        open={open}
-        arrow={true}
-        onClose={() => setOpen(false)}>
-        <Tooltip title="Basemaps" arrow placement="left">
-          <Fab onClick={() => setOpen(!open)} size="large" className={classes.btn}>
-            <Icon iconName={ICON_NAME.MAP} fontSize="small" />
-          </Fab>
-        </Tooltip>
-      </ArrowPopper>
-      ;
+              <Text typo="page heading" className={classes.title}>
+                Map Style
+              </Text>
+              <ListTile
+                items={styles}
+                selected={active}
+                thumbnailBorder="rounded"
+                onChange={(selectedStyleIndex) => {
+                  basemapChange(selectedStyleIndex);
+                }}
+              />
+            </Paper>
+          }
+          open={open}
+          arrow={true}
+          onClose={() => setOpen(false)}>
+          <Tooltip title="Basemaps" arrow placement="left">
+            <Fab onClick={() => setOpen(!open)} size="large" className={classes.btn}>
+              <Icon iconName={ICON_NAME.MAP} fontSize="small" />
+            </Fab>
+          </Tooltip>
+        </ArrowPopper>
+      )}
     </>
   );
 }
@@ -78,5 +81,6 @@ const useStyles = makeStyles()((theme) => ({
   },
   btn: {
     backgroundColor: theme.colors.useCases.surfaces.surface2,
+    color: theme.isDarkModeEnabled ? "white" : theme.colors.palette.light.greyVariant4
   },
 }));

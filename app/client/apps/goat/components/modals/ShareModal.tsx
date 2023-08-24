@@ -28,15 +28,15 @@ const ShareModal = (props: ShareModalProps) => {
   const [modalView, setModalView] = useState<number>(0);
 
   // Functions
-  function handleSwitch(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
+  function handleSwitch(_: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
     setChecked(checked);
   }
 
-  function handleLinkSHareStatus(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
+  function handleLinkSHareStatus(_: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
     setLinkShareStatus(checked);
   }
 
-  function handleExpirationStatus(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
+  function handleExpirationStatus(_: React.ChangeEvent<HTMLInputElement>, checked: boolean) {
     setCheckedExpirationDate(checked);
   }
 

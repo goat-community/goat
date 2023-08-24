@@ -19,6 +19,7 @@ import { TextField } from "@p4b/ui/components/Inputs";
 import Link from "@p4b/ui/components/Link";
 import RadioButtonsGroup from "@p4b/ui/components/RadioButtonsGroup";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
+import type {ISelectedFolder} from "@/types/dashboard/content";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -27,9 +28,6 @@ interface TabPanelProps {
 }
 
 // todo: check this if it's correct
-interface SelectedFolderProps {
-  id: string;
-}
 
 interface LoadedLayerDataProps {
   link: string;
@@ -40,7 +38,7 @@ interface FileProps {
 }
 
 interface AddLayerManagementProps {
-  selectedFolder: SelectedFolderProps;
+  selectedFolder: ISelectedFolder | null;
   setAddLayerMode: (value: boolean) => void;
   addLayer: (value: object) => void;
 }
@@ -99,6 +97,7 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
   const { classes } = useStyles();
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    console.log('handleChange event', event)
     setTabValue(newValue);
   };
 
@@ -113,7 +112,7 @@ export default function AddLayerManagement(props: AddLayerManagementProps) {
   const addLayerHandler = async () => {
     //todo change
     const body = {
-      folder_id: selectedFolder.id,
+      folder_id: selectedFolder?.id,
       name: "Layer name",
       description: "Layer description",
       tags: ["tag1", "tag2"],

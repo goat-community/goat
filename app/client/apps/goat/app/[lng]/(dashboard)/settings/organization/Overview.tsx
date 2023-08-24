@@ -6,8 +6,9 @@ import { OVERVIEW_API_URL } from "@/lib/api/apiConstants";
 import { makeStyles } from "@/lib/theme";
 import axios from "axios";
 import React from "react";
-import type { SubscriptionCard } from "subscriptions-dashboard";
 import useSWR from "swr";
+import type {ISubscriptionCard} from "@/types/dashboard/subscription";
+
 import { v4 } from "uuid";
 
 import { TextField } from "@p4b/ui/components/Inputs/TextField";
@@ -15,6 +16,7 @@ import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Text } from "@p4b/ui/components/theme";
 import Modal from "@p4b/ui/components/Modal";
 import WrappedIcon from "@/components/common/WrappedIcon";
+import { ICON_NAME } from "@p4b/ui/components/Icon";
 
 const Overview = () => {
   // User state management
@@ -43,7 +45,7 @@ const Overview = () => {
     }
   }
 
-  function getOrganizationOverviewDetails(data: SubscriptionCard) {
+  function getOrganizationOverviewDetails(data: ISubscriptionCard) {
     const visualData = {
       icon: data.icon,
       title: data.title,
@@ -71,7 +73,7 @@ const Overview = () => {
               }
               header={(
               <div className={classes.subheader}>
-                <WrappedIcon icon="organization"/>
+                <WrappedIcon icon={ICON_NAME.ORGANIZATION}/>
                 <Text className={classes.subheaderText} typo="body 1">
                   {data.title}
                 </Text>

@@ -134,7 +134,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 }
 
 type EnhanceTableProps = {
-  rows: { name: React.ReactNode; [key: string]: any }[];
+  rows: { name: string; [key: string]: any }[];
   dense: boolean;
   alternativeColors: boolean;
   hover?: boolean;
@@ -143,7 +143,7 @@ type EnhanceTableProps = {
     numeric: boolean;
     label: string;
   }[];
-  openDialog?: React.Dispatch<React.SetStateAction<object | null>>;
+  openDialog?: React.Dispatch<React.SetStateAction<any>>;
   dialog?: { title: string; body: React.ReactNode; action: React.ReactNode };
   checkbox?: boolean;
   action?: React.ReactNode | null;
@@ -182,7 +182,7 @@ export function EnhancedTable(props: EnhanceTableProps) {
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
 
   // functions
-  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof ObjectKeys) => {
+  const handleRequestSort = (_: React.MouseEvent<unknown>, property: keyof ObjectKeys) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
@@ -197,9 +197,9 @@ export function EnhancedTable(props: EnhanceTableProps) {
     setSelected([]);
   };
 
-  const handleClick = (event: React.MouseEvent<unknown>, name: string | number) => {
+  const handleClick = (_: React.MouseEvent<unknown>, name: string | number) => {
     const selectedIndex = selected.indexOf(name);
-    let newSelected: readonly string[] = [];
+    let newSelected: any = [];
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, name);
     } else if (selectedIndex === 0) {
@@ -213,7 +213,7 @@ export function EnhancedTable(props: EnhanceTableProps) {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 

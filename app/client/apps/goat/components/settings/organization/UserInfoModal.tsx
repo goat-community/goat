@@ -1,4 +1,4 @@
-import type { User } from "manage-users-dashboard";
+
 import React, { useState } from "react";
 import { v4 } from "uuid";
 
@@ -6,11 +6,12 @@ import { Switch } from "@p4b/ui/components/Inputs";
 import { SelectField } from "@p4b/ui/components/Inputs";
 import { Text } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
+import type {IUser} from "@/types/dashboard/organization";
 
 interface UserInfoModal {
   ismodalVisible: boolean;
-  userInDialog: User | undefined;
-  editUserRole: (role: "Admin" | "User" | "Editor", user: User | undefined) => void;
+  userInDialog: IUser | undefined;
+  editUserRole: (role: "Admin" | "User" | "Editor", user: IUser | undefined) => void;
 }
 
 const UserInfoModal = (props: UserInfoModal) => {
@@ -82,13 +83,13 @@ const UserInfoModal = (props: UserInfoModal) => {
 
   /**
    * Updates the state of the extensions array based on the provided element name and checked value
-   * @param {React.ChangeEvent<HTMLInputElement>} event - The change event object.
+   * @param _
    * @param {boolean} checked - The new checked state of the switch.
    * @param {string | undefined} elementName - The name of the element associated with the switch.
    */
 
   function handleSwitch(
-    event: React.ChangeEvent<HTMLInputElement>,
+    _: React.ChangeEvent<HTMLInputElement>,
     checked: boolean,
     elementName: string | undefined
   ) {

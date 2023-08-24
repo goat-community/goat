@@ -1,8 +1,8 @@
 import { ICON_NAME } from "@p4b/ui/components/Icon";
-import type { User } from "manage-users-dashboard";
-import type { SubscriptionCard } from "subscriptions-dashboard";
+import type {IUser} from "@/types/dashboard/organization";
+import type {ISubscriptionCard} from "@/types/dashboard/subscription";
 
-export const manageUsersStatic: User[] = [
+export const manageUsersStatic: IUser[] = [
   {
     name: "Luca William Silva",
     email: "john.wlsdasadm@gmail.com",
@@ -47,7 +47,7 @@ export const manageUsersStatic: User[] = [
   },
 ];
 
-export const dummyOrganization: SubscriptionCard = {
+export const dummyOrganization: ISubscriptionCard = {
   icon: ICON_NAME.ORGANIZATION,
   title: "Coorperation Name",
   listItems: [
@@ -58,7 +58,7 @@ export const dummyOrganization: SubscriptionCard = {
   ],
 };
 
-export const dummySubscription: SubscriptionCard = {
+export const dummySubscription: ISubscriptionCard = {
   icon: ICON_NAME.ROCKET,
   title: "Starter",
   listItems: [
@@ -69,7 +69,7 @@ export const dummySubscription: SubscriptionCard = {
   ],
 };
 
-export const extensionSubscriptions: SubscriptionCard[] = [
+export const extensionSubscriptions: ISubscriptionCard[] = [
   {
     icon: ICON_NAME.RUN,
     title: "Active mobility",

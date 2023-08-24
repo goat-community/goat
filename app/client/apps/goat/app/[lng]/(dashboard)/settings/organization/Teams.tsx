@@ -3,27 +3,27 @@
 import AddTeamModal from "@/components/settings/organization/AddTeamModal";
 import TeamsTable from "@/components/settings/organization/TeamsTable";
 import React, { useState } from "react";
-import type { Team } from "team-organization-dashboard";
 
 import { TextField } from "@p4b/ui/components/Inputs";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
 import { Button, Icon, Text } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 import Image from "next/image";
+import type {ITeam} from "@/types/dashboard/organization";
 
 const Teams = () => {
   const [ismodalVisible, setModalVisible] = useState<boolean>(false);
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [teams, setTeams] = useState<ITeam[]>([]);
   const [searchWord, setSearchWord] = useState<string>("");
 
   const { classes } = useStyles();
 
-  function addTeam(team: Team) {
+  function addTeam(team: ITeam) {
     setTeams([...teams, team]);
     setSearchWord("");
   }
 
-  function editTeam(team: Team) {
+  function editTeam(team: ITeam) {
     const updatedTeams = teams.map((singleTeam) => {
       if (singleTeam.name === team.name) {
         return team;

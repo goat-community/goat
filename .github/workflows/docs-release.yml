@@ -18,7 +18,6 @@ jobs:
   release-docs:
     name: release-docs
     needs: checks
-    if: ${{ needs.checks.outputs.docs-changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout

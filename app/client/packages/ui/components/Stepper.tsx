@@ -34,7 +34,7 @@ const Stepper = forwardRef((props: StepperProps, ref) => {
       isLastStep(activeStep, steps) && !allStepsCompleted(completed, steps)
         ? // It's the last step, but not all steps have been completed,
           // find the first step that has been completed
-          steps.findIndex((step, i) => !(i in completed))
+          steps.findIndex((_, i) => !(i in completed))
         : activeStep + 1;
 
     if (isPrevCompleted(completed, activeStep)) {
@@ -121,7 +121,7 @@ const Stepper = forwardRef((props: StepperProps, ref) => {
   );
 });
 
-const useStyles = makeStyles({ name: { Stepper } })((theme) => ({
+const useStyles = makeStyles({ name: { Stepper } })(() => ({
   root: {
     "& .css-1e7c4pk-MuiStepIcon-text": {
       fill: "#fff",

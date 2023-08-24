@@ -8,7 +8,7 @@ import * as React from "react";
 import { v4 } from "uuid";
 
 interface RadioButtonsGroupProps {
-  radioLabels: object[];
+  radioLabels: { value: string, desc: string }[];
   value: string;
   setValue: (value: string) => void;
   formLabel?: string | undefined;

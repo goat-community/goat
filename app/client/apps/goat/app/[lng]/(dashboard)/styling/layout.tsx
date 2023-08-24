@@ -1,7 +1,7 @@
 "use client";
 
 import StylingSideBar from "@/components/styling/StylingSideBar";
-import { makeStyles } from "@/lib/theme";
+import React from "react";
 
 interface StylingLayoutProps {
   children: React.ReactNode;
@@ -18,6 +18,6 @@ const StylingLayout = (props: StylingLayoutProps) => {
   );
 };
 
-const useStyles = makeStyles({ name: { StylingLayout } })(() => ({}));
+// const useStyles = makeStyles({ name: { StylingLayout } })(() => ({}));
 
 export default StylingLayout;

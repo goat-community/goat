@@ -2,6 +2,7 @@
 
 import { DashboardSidebar } from "@/app/[lng]/(dashboard)/DashboardSidebar";
 import { TranslationSwitcher } from "@/app/[lng]/components/TranslationSwitcher";
+// import { useTranslation } from "@/app/i18/client";
 import { makeStyles } from "@/lib/theme";
 import { signOut } from "next-auth/react";
 import { useState, useRef } from "react";
@@ -17,15 +18,14 @@ import { ICON_NAME } from "@p4b/ui/components/Icon";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  params: {
-    lng: string;
-  }
+  params: { lng: string };
 }
 
 const DashboardLayout = ({ children, params: { lng } }: DashboardLayoutProps) => {
   const { classes, cx } = useStyles();
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const ButtonElement = useRef(null);
+  // const { t } = useTranslation(lng);
 
   const handleClick = () => {
     setIsVisible(true);

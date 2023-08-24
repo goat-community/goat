@@ -161,7 +161,7 @@ export function createIconButton<IconId extends string = never>(params?: {
     iconVariant: "white" | "secondary" | "focus" | "grey" | "grey2" | "error";
   }>({
     name: { IconButton },
-  })((theme, { disabled, isMouseIn, iconVariant }) => {
+  })((theme, { isMouseIn, iconVariant }) => {
     let color;
     let hoverColor;
     switch (iconVariant) {

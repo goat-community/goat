@@ -1,18 +1,18 @@
+import type { Option } from "@p4b/types/atomicComponents";
+import type {ITeam} from "@/types/dashboard/organization";
 import React from "react";
-import type { Team } from "team-organization-dashboard";
 import { v4 } from "uuid";
 
-import type { Option } from "@p4b/types/atomicComponents";
 import { Checkbox } from "@p4b/ui/components/Checkbox";
 import { Chip } from "@p4b/ui/components/DataDisplay";
-import { AutoComplete, TextField } from "@p4b/ui/components/Inputs";
+import { TextField } from "@p4b/ui/components/Inputs";
 import { Text } from "@p4b/ui/components/theme";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface TeamModalBodyProps {
-  selectedEditRow?: Team;
+  selectedEditRow?: ITeam;
   setSelectedOption?: (value: Option[]) => void;
-  selectedOption?: Option[];
+  selectedOption?: Option[] | null;
   setTeamName?: (value: string) => void;
 }
 
@@ -21,38 +21,38 @@ const TeamModalBody = (props: TeamModalBodyProps) => {
 
   const { classes } = useStyles();
 
-  const options = [
-    {
-      label: "Sumaya Randolph",
-      value: "sumaya",
-      selected: false,
-    },
-    {
-      label: "Priya Phelps",
-      value: "priya",
-      selected: false,
-    },
-    {
-      label: "Amanda Dickson",
-      value: "amanda",
-      selected: false,
-    },
-    {
-      label: "Alia Campbell",
-      value: "alia",
-      selected: false,
-    },
-    {
-      label: "Cole Chaney",
-      value: "cole",
-      selected: false,
-    },
-    {
-      label: "Idris Lowery",
-      value: "idris",
-      selected: false,
-    },
-  ];
+  // const options = [
+  //   {
+  //     label: "Sumaya Randolph",
+  //     value: "sumaya",
+  //     selected: false,
+  //   },
+  //   {
+  //     label: "Priya Phelps",
+  //     value: "priya",
+  //     selected: false,
+  //   },
+  //   {
+  //     label: "Amanda Dickson",
+  //     value: "amanda",
+  //     selected: false,
+  //   },
+  //   {
+  //     label: "Alia Campbell",
+  //     value: "alia",
+  //     selected: false,
+  //   },
+  //   {
+  //     label: "Cole Chaney",
+  //     value: "cole",
+  //     selected: false,
+  //   },
+  //   {
+  //     label: "Idris Lowery",
+  //     value: "idris",
+  //     selected: false,
+  //   },
+  // ];
 
   function changeStatusOfUser(user: Option, status: boolean) {
     if (selectedOption) {
@@ -95,14 +95,14 @@ const TeamModalBody = (props: TeamModalBodyProps) => {
         <Text typo="body 2" className={classes.label}>
           Add users
         </Text>
-        <AutoComplete
-          selectedOptions={selectedOption}
-          setSelected={setSelectedOption}
-          multiple={true}
-          className={classes.input}
-          size="small"
-          options={options}
-        />
+        {/*<AutoComplete*/}
+        {/*  selectedOptions={selectedOption}*/}
+        {/*  setSelected={setSelectedOption}*/}
+        {/*  multiple={true}*/}
+        {/*  className={classes.input}*/}
+        {/*  size="small"*/}
+        {/*  options={options}*/}
+        {/*/>*/}
       </div>
       <div>
         {selectedOption && selectedOption.length ? (
@@ -115,7 +115,7 @@ const TeamModalBody = (props: TeamModalBodyProps) => {
                 <div className={classes.userSelected}>
                   <Checkbox
                     checked={typeof option.selected === "boolean" ? option.selected : false}
-                    onChange={(event: React.SyntheticEvent, value: boolean) =>
+                    onChange={(_: React.SyntheticEvent, value: boolean) =>
                       changeStatusOfUser(option, value)
                     }
                   />

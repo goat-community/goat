@@ -11,5 +11,8 @@ module.exports = withBundleAnalyzer({
       transform: "@mui/icons-material/{{member}}",
     },
   },
+  images: {
+    domains: ["assets.plan4better.de"],
+  }
 })
 

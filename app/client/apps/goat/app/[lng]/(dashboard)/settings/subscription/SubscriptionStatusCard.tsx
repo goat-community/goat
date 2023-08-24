@@ -1,13 +1,13 @@
 import { makeStyles } from "@/lib/theme";
-import type { SubscriptionStatusCardDataType } from "subscriptions-dashboard";
 import { v4 } from "uuid";
 
 import { Card } from "@p4b/ui/components/Surfaces/Card";
 import { Text } from "@p4b/ui/components/theme";
 import WrappedIcon from "@/components/common/WrappedIcon";
+import type { ISubscriptionStatusCardDataType } from "@/types/dashboard/subscription";
 
 interface SubscriptionStatusCardProps {
-  sectionData: SubscriptionStatusCardDataType;
+  sectionData: ISubscriptionStatusCardDataType;
 }
 
 const SubscriptionStatusCard = (props: SubscriptionStatusCardProps) => {

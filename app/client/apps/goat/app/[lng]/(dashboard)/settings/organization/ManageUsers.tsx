@@ -4,7 +4,6 @@ import SubscriptionCardSkeleton from "@/components/skeletons/SubscriptionCardSke
 import { useUsersData, useInviteUserDialog, useUserRemovalDialog } from "@/hooks/dashboard/OrganisationHooks";
 import { makeStyles } from "@/lib/theme";
 import { Text } from "@/lib/theme";
-import type { User } from "manage-users-dashboard";
 import { useState } from "react";
 
 // import { Chip } from "@p4b/ui/components/DataDisplay";
@@ -18,6 +17,7 @@ import { Icon, Button, IconButton } from "@p4b/ui/components/theme";
 
 import InviteUser from "@/components/settings/organization/InviteUser";
 import UserRemovalConfirm from "@/components/settings/organization/UserRemovalConfirm";
+import type { IUser } from "@/types/dashboard/organization";
 
 const ManageUsers = () => {
   const { classes } = useStyles();
@@ -59,7 +59,7 @@ const ManageUsers = () => {
   // Functions
 
   function sendInvitation() {
-    const newUserInvite: User = {
+    const newUserInvite: IUser = {
       name: "Luca William Silva",
       email,
       role: "Admin",
@@ -70,18 +70,18 @@ const ManageUsers = () => {
     closeInviteDialog();
   }
   
-  function editUserRole(role: "Admin" | "User" | "Editor", user: User | undefined) {
+  function editUserRole(role: "Admin" | "User" | "Editor", user: IUser | undefined) {
     if (user) {
-      const modifiedUsers = rows.map((row: User) =>
+      const modifiedUsers = rows.map((row: IUser) =>
         row.email === user.email ? { ...row, role } : row
       );
       setRows(modifiedUsers);
     }
   }
   
-  function removeUser(user: User | undefined) {
+  function removeUser(user: IUser | undefined) {
     if (user) {
-      const modifiedUsers = rows.filter((row: User) => row.email !== user.email);
+      const modifiedUsers = rows.filter((row: IUser) => row.email !== user.email);
       setRawRows(modifiedUsers);
       closeUserRemovalDialog();
     }
@@ -97,8 +97,8 @@ const ManageUsers = () => {
     }
   }
   
-  function returnRightFormat(users: User[]): User[] {
-    return users.map((user: User) => {
+  function returnRightFormat(users: IUser[]): IUser[] {
+    return users.map((user: IUser) => {
       const { status } = user;
       const label = typeof status !== "string" && "props" in status ? status.props.label : status;
       const colorMap = {
@@ -189,7 +189,7 @@ const ManageUsers = () => {
           <EnhancedTable
             rows={returnRightFormat([...rows])}
             columnNames={columnNames}
-            openDialog={(value: object | null) => (value ? setTheUserInDialog(value as User) : undefined)}
+            openDialog={(value: object | null) => (value ? setTheUserInDialog(value as IUser) : undefined)}
             action={<IconButton type="submit" iconId="moreVert" size="medium" />}
             dense={false}
             alternativeColors={true}

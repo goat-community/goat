@@ -3,7 +3,7 @@ import { LOADING_STATUSES } from "@/lib/utils/constants";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-const contentSlice = createSlice<any>({
+const contentSlice = createSlice({
   name: "map",
   initialState: {
     folders: [],

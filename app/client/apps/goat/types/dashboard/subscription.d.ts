@@ -1,16 +1,15 @@
-import type { IconId } from "@p4b/ui/components/theme";
+import type { ICON_NAME } from "@p4b/ui/components/Icon";
+import type React from "react";
 
-declare module "subscriptions-dashboard" {
-  interface SubscriptionCard {
-    icon: IconId;
-    title: string;
-    listItems: string[];
-  }
+export interface ISubscriptionCard {
+  icon: ICON_NAME;
+  title: string;
+  listItems: string[];
+}
 
-  interface SubscriptionStatusCardDataType {
-    icon: IconId;
-    title: string;
-    listItems: React.ReactNode[];
-    action: React.ReactNode;
-  }
+export interface ISubscriptionStatusCardDataType {
+  icon: ICON_NAME;
+  title: string;
+  listItems: React.ReactNode[];
+  action: React.ReactNode;
 }

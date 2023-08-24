@@ -27,7 +27,7 @@ export type SlideShowProps = {
 };
 
 export const SlideShow = memo(
-  forwardRef<HTMLElement, SlideShowProps>((props, ref) => {
+  forwardRef<HTMLElement, SlideShowProps>((props) => {
     const {
       className,
       images,
@@ -43,7 +43,7 @@ export const SlideShow = memo(
     assert<Equals<typeof rest, {}>>();
 
     // Styling related
-    const { classes, cx } = useStyles();
+    const { classes } = useStyles();
     const theme = useTheme();
 
     // Component States

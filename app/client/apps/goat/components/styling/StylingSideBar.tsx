@@ -2,7 +2,7 @@
 
 import { makeStyles } from "@/lib/theme";
 import { List, ListItem, ListItemButton, ListItemIcon } from "@mui/material";
-import { useState } from "react";
+import React, { useState } from "react";
 import { v4 } from "uuid";
 
 import Box from "@p4b/ui/components/Box";
@@ -59,7 +59,7 @@ function StylingSideBar(props: IStylingSideBarProps) {
                     <Icon
                       size="default"
                       iconId={icon}
-                      iconVariant={activeOption === value ? "green" : "gray"}
+                      iconVariant={activeOption === value ? "main" : "gray"}
                     />
                   </ListItemIcon>
                 </ListItemButton>

@@ -1,15 +1,16 @@
-import type { Team } from "@/app/[lng]/(dashboard)/settings/organization/Teams";
-import type { Option } from "@/components/settings/organization/AddTeamModal";
+import type { Option } from "@p4b/types/atomicComponents";
 import { filterSearch } from "@/lib/utils/helpers";
+import type React from "react";
 import { useEffect } from "react";
+import type {ITeam} from "@/types/dashboard/organization";
 
 interface UseUserDialogProps {
-  rawRows: Team[];
-  userInDialog: Team | boolean;
-  setUserInDialog: React.Dispatch<React.SetStateAction<Team | boolean>>;
+  rawRows: ITeam[];
+  userInDialog: ITeam | boolean;
+  setUserInDialog: React.Dispatch<React.SetStateAction<ITeam | boolean>>;
   selectedOption: Option[] | null;
   searchText?: string;
-  editTeam: (value: Team) => void;
+  editTeam: (value: ITeam) => void;
   teamName: string | null;
   setTeamName: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedOption: React.Dispatch<React.SetStateAction<Option[] | null>>;
@@ -60,6 +61,6 @@ export function useUserDialog({
   return { saveEditTeam };
 }
 
-export function useTeamSearch(rawRows: Team[], searchText: string | undefined) {
+export function useTeamSearch(rawRows: ITeam[], searchText: string | undefined) {
   return filterSearch(rawRows, "name", searchText || "");
 }

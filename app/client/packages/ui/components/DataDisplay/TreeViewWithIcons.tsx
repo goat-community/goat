@@ -35,10 +35,18 @@ type StyledTreeItemProps = TreeItemProps & {
 };
 
 interface ITreeViewWithIconsProps {
-  homeData: [] | undefined;
-  organizationData: [] | undefined;
-  teamsData: [] | undefined;
-  handleSelectFolder: () => void;
+  homeData: {
+    id: string,
+    name: string,
+    user_id: string
+  }[] | undefined;
+  organizationData: object[] | undefined;
+  teamsData: object[] | undefined;
+  handleSelectFolder: (value: {
+    id: string;
+    name: string;
+    user_id: string
+  }) => void;
   handleAddFolder: () => void;
   setFolderAnchor: (object) => void;
   setSelectedFolder: (object) => void;
@@ -121,8 +129,7 @@ function StyledTreeItem(props: StyledTreeItemProps) {
 }
 
 export default function TreeViewWithIcons(props: ITreeViewWithIconsProps) {
-  const { homeData, organizationData, teamsData, handleSelectFolder, handleAddFolder, setFolderAnchor } =
-    props;
+  const { homeData, handleSelectFolder, handleAddFolder, setFolderAnchor } = props;
 
   function openDialogHandler(event: React.MouseEvent<HTMLButtonElement>, folder: object) {
     if (setFolderAnchor) {
@@ -163,28 +170,28 @@ export default function TreeViewWithIcons(props: ITreeViewWithIconsProps) {
         />
       </StyledTreeItem>
       <StyledTreeItem nodeId="2" labelText="Organization" labelIcon={ApartmentIcon} color="#2BB381">
-        {organizationData?.map(() => {
-          <StyledTreeItem
-            key={v4()}
-            nodeId={item.id}
-            labelText={item.name}
-            labelIcon={FolderIcon}
-            // labelInfo="90"
-            color="#2BB381"
-          />;
-        })}
+        {/*{organizationData?.map(() => {*/}
+        {/*  <StyledTreeItem*/}
+        {/*    key={v4()}*/}
+        {/*    nodeId={item.id}*/}
+        {/*    labelText={item.name}*/}
+        {/*    labelIcon={FolderIcon}*/}
+        {/*    // labelInfo="90"*/}
+        {/*    color="#2BB381"*/}
+        {/*  />;*/}
+        {/*})}*/}
       </StyledTreeItem>
       <StyledTreeItem nodeId="3" labelText="Teams" labelIcon={GroupsIcon} color="#2BB381">
-        {teamsData?.map(() => {
-          <StyledTreeItem
-            key={v4()}
-            nodeId={item.id}
-            labelText={item.name}
-            labelIcon={FolderIcon}
-            // labelInfo="90"
-            color="#2BB381"
-          />;
-        })}
+        {/*{teamsData?.map(() => {*/}
+        {/*  <StyledTreeItem*/}
+        {/*    key={v4()}*/}
+        {/*    nodeId={item.id}*/}
+        {/*    labelText={item.name}*/}
+        {/*    labelIcon={FolderIcon}*/}
+        {/*    // labelInfo="90"*/}
+        {/*    color="#2BB381"*/}
+        {/*  />;*/}
+        {/*})}*/}
       </StyledTreeItem>
     </TreeView>
   );

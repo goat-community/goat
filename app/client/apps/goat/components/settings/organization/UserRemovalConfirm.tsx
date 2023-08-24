@@ -5,16 +5,16 @@ import { Button, Text, IconButton } from "@p4b/ui/components/theme";
 import { useTheme, makeStyles } from "@/lib/theme";
 import { Icon } from "@p4b/ui/components/Icon";
 import { ICON_NAME } from "@p4b/ui/components/Icon";
-import type { User } from "manage-users-dashboard";
+import type { IUser } from "@/types/dashboard/organization";
 
 interface UserRemovalFunctions {
-  userInDialog: User | undefined;
+  userInDialog: IUser | undefined;
   isModalVisible: boolean;
-  removeUser: (user: User | undefined) => void;
-  setTheUserInDialog: (user: User | boolean) => void;
+  removeUser: (user: IUser | undefined) => void;
+  setTheUserInDialog: (user: IUser | boolean) => void;
   closeUserRemovalDialog: () => void;
-  openUserRemovalDialog: (user: User | undefined) => void;
-  editUserRole: (role: "Admin" | "User" | "Editor", user: User | undefined) => void;
+  openUserRemovalDialog: (user: IUser | undefined) => void;
+  editUserRole: (role: "Admin" | "User" | "Editor", user: IUser | undefined) => void;
 }
 
 interface UserRemovalConfirmProps {
