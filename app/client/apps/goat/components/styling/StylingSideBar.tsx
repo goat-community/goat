@@ -1,13 +1,17 @@
 "use client";
 
 import { makeStyles } from "@/lib/theme";
-import { List, ListItem, ListItemButton, ListItemIcon } from "@mui/material";
-import React, { useState } from "react";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import { Button, List, ListItem, ListItemButton, ListItemIcon, Typography } from "@mui/material";
+import { useState } from "react";
+import * as React from "react";
 import { v4 } from "uuid";
 
 import Box from "@p4b/ui/components/Box";
 import type { IconId } from "@p4b/ui/components/theme";
-import { Icon } from "@p4b/ui/components/theme";
+import { Icon, IconButton } from "@p4b/ui/components/theme";
+
+import Layer from "./Layer";
 
 export type IStylingSideBarProps = {
   width: number;
@@ -26,7 +30,7 @@ const items: { icon: IconId; value: string }[] = [
   },
   {
     icon: "colorLens",
-    value: "Pallet",
+    value: "Layer design",
   },
   {
     icon: "print",
@@ -59,7 +63,7 @@ function StylingSideBar(props: IStylingSideBarProps) {
                     <Icon
                       size="default"
                       iconId={icon}
-                      iconVariant={activeOption === value ? "main" : "gray"}
+                      iconVariant={activeOption === value ? "focus" : "gray"}
                     />
                   </ListItemIcon>
                 </ListItemButton>
@@ -69,12 +73,30 @@ function StylingSideBar(props: IStylingSideBarProps) {
         </List>
       </nav>
       {children}
-      {activeOption ? (
+      {activeOption && (
         <Box className={cx(classes.activeContent)}>
-          <button onClick={() => setActiveOption(null)}>X</button>
-          <h2>{activeOption}</h2>
+          <Box className={cx(classes.contentHeading)}>
+            <IconButton iconId="chevronRight" iconVariant="focus" onClick={() => setActiveOption(null)} />
+            <Typography color="#2BB381" variant="body1">
+              {activeOption}
+            </Typography>
+          </Box>
+          <Box className={cx(classes.contentInfo)}>{activeOption === "Layer design" && <Layer />}</Box>
+          <Box className={cx(classes.buttonsContainer)}>
+            <Button className={cx(classes.button)} color="secondary" variant="outlined" disabled>
+              Reset
+            </Button>
+            <Button
+              className={cx(classes.button)}
+              color="primary"
+              variant="outlined"
+              disabled
+              endIcon={<ArrowDropDownIcon />}>
+              Save As
+            </Button>
+          </Box>
         </Box>
-      ) : null}
+      )}
     </>
   );
 }
@@ -108,7 +130,7 @@ const useStyles = (props: IStylingSideBarProps) =>
       },
     },
     activeIcon: {
-      backgroundColor: `${theme.colors.palette.green}aa`,
+      backgroundColor: `${theme.colors.palette.focus}aa`,
     },
     activeContent: {
       width: props.extended_width,
@@ -120,9 +142,34 @@ const useStyles = (props: IStylingSideBarProps) =>
       bottom: 0,
       zIndex: "10",
       boxShadow: "0px 1px 5px 0px #0000001F, 0px 2px 2px 0px #00000024, 0px 3px 1px -2px #00000033",
-      padding: "16px",
       paddingTop: "52px",
     },
+    contentHeading: {
+      display: "flex",
+      columnGap: "8px",
+      alignItems: "center",
+      padding: "12px 16px",
+    },
+    buttonsContainer: {
+      padding: "16px",
+      display: "flex",
+      columnGap: "16px",
+      position: "absolute",
+      bottom: 0,
+      width: "100%",
+    },
+    button: {
+      borderRadius: "24px",
+      textTransform: "none",
+      fontSize: "14px",
+      width: "50%",
+      "&:disabled": {
+        border: "1px solid #ccc",
+        backgroundColor: "#f5f5f5",
+        color: "#888",
+      },
+    },
+    contentInfo: {},
   }));
 
 export default StylingSideBar;

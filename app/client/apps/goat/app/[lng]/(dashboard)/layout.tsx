@@ -100,7 +100,8 @@ const DashboardLayout = ({ children, params: { lng } }: DashboardLayoutProps) =>
       placeholder: "Settings",
     },
     {
-      link: "/styling",
+      //todo change test to id logic
+      link: "/map/test",
       icon: "colorLens",
       placeholder: "Styling",
     },
