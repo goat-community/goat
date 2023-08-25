@@ -4,7 +4,6 @@ import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import * as React from "react";
 
-import { makeStyles } from "../../lib/ThemeProvider";
 import { Checkbox } from "../Checkbox";
 
 type Option = {
@@ -21,7 +20,7 @@ interface AutoComplete {
   className?: string;
   label?: string;
   size: "small" | "medium";
-  options?: { label: React.ReactNode; value: string }[];
+  options?: Option[];
   multiple?: boolean;
   setSelected?: (value: Option[]) => void;
   selectedOptions?: Option[];
@@ -40,8 +39,8 @@ export function AutoComplete(props: AutoComplete) {
 
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
-  const handleChange = (value: Option[]) => {
-    if (setSelected) {
+  const handleChange = (value: Option | Option[] | null) => {
+    if (setSelected && Array.isArray(value)) {
       setSelected([
         ...value.map((val) => {
           const newVal = val;
@@ -81,7 +80,10 @@ export function AutoComplete(props: AutoComplete) {
             inputRef={inputRef}
           />
         )}
-        onChange={(event, value) => handleChange(value)}
+        onChange={(event, value) => {
+          console.log(event)
+          handleChange(value)
+        }}
         value={getSelectedOptions()}
         renderTags={() => null}
       />
