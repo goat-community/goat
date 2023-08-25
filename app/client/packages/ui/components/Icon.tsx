@@ -19,7 +19,6 @@ import {
   faMaximize,
   faMinimize,
   faSearch,
-  faChevronRight,
   faChevronLeft,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
