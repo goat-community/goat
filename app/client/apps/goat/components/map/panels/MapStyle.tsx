@@ -15,16 +15,14 @@ import { useDispatch, useSelector } from "react-redux";
 import type { IStore } from "@/types/store";
 import { setTabValue } from "@/lib/store/styling/slice";
 import { Card } from "@p4b/ui/components/Surfaces";
-import StarIcon from "@mui/icons-material/Star";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import { Checkbox } from "@p4b/ui/components/Checkbox";
 import BasicAccordion from "@p4b/ui/components/BasicAccordion";
 import { MultipleSelect } from "@p4b/ui/components/Inputs/MultipleSelect";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Box from "@p4b/ui/components/Box";
 import type { MapSidebarItem } from "@/components/map/Sidebar";
-import {Icon, ICON_NAME} from "@p4b/ui/components/Icon";
+import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
 import React from "react";
 
 interface MapStyleProps {
@@ -96,8 +94,14 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
                 control={
                   <Radio
                     color="default"
-                    icon={<StarIcon className={classes.radioIcon} />}
-                    checkedIcon={<StarIcon className={classes.radioIconChecked} />}
+                    icon={<Icon iconName={ICON_NAME.STAR} fontSize="small" />}
+                    checkedIcon={
+                      <Icon
+                        iconName={ICON_NAME.STAR}
+                        htmlColor={theme.colors.palette.focus.main}
+                        fontSize="small"
+                      />
+                    }
                   />
                 }
                 label="@content_label"
@@ -160,7 +164,7 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
             color="primary"
             variant="outlined"
             disabled
-            endIcon={<ArrowDropDownIcon />}>
+            endIcon={<Icon iconName={ICON_NAME.CHEVRON_DOWN} fontSize="small" />}>
             Save As
           </Button>
         </Box>
@@ -173,7 +177,7 @@ const useStyles = makeStyles({ name: { MapStylePanel } })((theme) => ({
   contentHeading: {
     display: "flex",
     alignItems: "center",
-    gap: '20px'
+    gap: "20px",
   },
   buttonsContainer: {
     minWidth: "266px",
@@ -209,12 +213,6 @@ const useStyles = makeStyles({ name: { MapStylePanel } })((theme) => ({
   },
   card: {
     paddingLeft: theme.spacing(2),
-  },
-  radioIcon: {
-    color: theme.colors.palette.focus.dark,
-  },
-  radioIconChecked: {
-    color: theme.colors.palette.focus.main,
   },
   media: {
     height: "42px",
