@@ -1,6 +1,6 @@
-import { organizationOverview } from "@/public/assets/data/dashboard";
 import { NextResponse } from "next/server";
+import { dummyOrganization } from "@/public/assets/data/dashboard";
 
 export async function GET() {
-  return NextResponse.json(organizationOverview);
+  return NextResponse.json(dummyOrganization);
 }

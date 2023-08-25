@@ -2,8 +2,9 @@ import { makeStyles } from "@/lib/theme";
 import { v4 } from "uuid";
 
 import { Card } from "@p4b/ui/components/Surfaces/Card";
-import { Icon, Text } from "@p4b/ui/components/theme";
-import type {ISubscriptionStatusCardDataType} from "@/types/dashboard/subscription";
+import { Text } from "@p4b/ui/components/theme";
+import WrappedIcon from "@/components/common/WrappedIcon";
+import type { ISubscriptionStatusCardDataType } from "@/types/dashboard/subscription";
 
 interface SubscriptionStatusCardProps {
   sectionData: ISubscriptionStatusCardDataType;
@@ -17,13 +18,7 @@ const SubscriptionStatusCard = (props: SubscriptionStatusCardProps) => {
     <>
       <Card width="100%" className={classes.settingSection} noHover={true}>
         <div className={classes.headerSection}>
-          <Icon
-            iconId={sectionData.icon}
-            size="medium"
-            bgVariant="focus"
-            iconVariant="focus"
-            wrapped="circle"
-          />
+          <WrappedIcon icon={sectionData.icon}/>
           <Text typo="body 1" className={classes.title}>
             {sectionData.title}
           </Text>
@@ -49,7 +44,7 @@ const useStyles = makeStyles({ name: { SubscriptionStatusCard } })((theme) => ({
     marginBottom: theme.spacing(5),
   },
   title: {
-    fontWeight: "bold",
+    fontWeight: "bolder",
   },
   headerSection: {
     display: "flex",
@@ -67,7 +62,7 @@ const useStyles = makeStyles({ name: { SubscriptionStatusCard } })((theme) => ({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "start",
-  },
+  }
 }));
 
 export default SubscriptionStatusCard;

@@ -45,7 +45,7 @@ const useStyles = (props: MapToolbarProps) =>
   makeStyles({ name: { MapToolbar } })((theme) => ({
     root: {
       position: "fixed",
-      backgroundColor: theme.colors.useCases.surfaces.background,
+      backgroundColor: theme.colors.useCases.surfaces.surface1,
       height: props.height,
       boxShadow: "0px 2px 4px -1px rgba(0, 0, 0, 0.12)",
     },

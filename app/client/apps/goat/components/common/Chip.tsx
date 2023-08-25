@@ -1,30 +1,33 @@
 import { Chip as MUIChip } from "@mui/material";
 import React from "react";
 
-import { changeColorOpacity } from "../../lib";
-import { makeStyles } from "../../lib/ThemeProvider";
-import { Text } from "../theme";
+import { changeColorOpacity } from "@/lib/utils/helpers";
+import { makeStyles } from "@/lib/theme";
+import { Text } from "@/lib/theme";
 // import type { IconId } from "../theme";
-import { Icon } from "../Icon";
-import { ICON_NAME } from "../Icon";
+import { Icon } from "@p4b/ui/components/Icon";
+import type { ICON_NAME } from "@p4b/ui/components/Icon";
+import { useTheme } from "@/lib/theme";
 
 interface ChipProps {
   className?: string;
   variant?: "filled" | "Border" | "filledWithBorder";
   textDesign?: "normal" | "italic";
-  color?: "main" | "success" | "warning" | "error";
+  color?: "dark" | "focus" | "orangeWarning" | "redError";
   label: React.ReactNode; // JSX Element
   icon?: ICON_NAME;
 }
 
 export const Chip = (props: ChipProps) => {
-  const { variant = "filled", textDesign = "normal", label, className, color = "main", icon } = props;
+  const { variant = "filled", textDesign = "normal", label, className, color = "dark", icon } = props;
 
   const { classes, cx } = useStyles({ variant, textDesign, color, icon });
 
+  const theme = useTheme()
+  console.log(theme.colors.palette[color], color, theme.colors.palette)
   const labelChip = (
     <div className={classes.chipContent}>
-      {icon ? <Icon iconName={icon} htmlColor={color} fontSize="small"/> : null}
+      {icon ? <Icon iconName={icon} htmlColor={`${theme.colors.palette[color].main}BF`} fontSize="small"/> : null}
       <Text className={classes.chipText} typo="body 3">
         {label}
       </Text>
@@ -37,7 +40,7 @@ export const Chip = (props: ChipProps) => {
 const useStyles = makeStyles<{
   variant: "filled" | "Border" | "filledWithBorder";
   textDesign: "normal" | "italic";
-  color: "main" | "success" | "warning" | "error";
+  color: "dark" | "focus" | "orangeWarning" | "redError";
   icon?: ICON_NAME;
 }>({ name: { Chip } })((theme, { variant, textDesign, color, icon }) => {
   let bgColor;
@@ -62,16 +65,16 @@ const useStyles = makeStyles<{
     case "filledWithBorder":
     case "Border":
       switch (color) {
-        case "main":
+        case "dark":
           border = `1px solid ${theme.colors.palette.dark.main}BF`;
           break;
-        case "success":
-          border = `1px solid ${theme.colors.palette.greenSuccess.main}BF`;
+        case "focus":
+          border = `1px solid ${theme.colors.palette.focus.main}BF`;
           break;
-        case "warning":
+        case "orangeWarning":
           border = `1px solid ${theme.colors.palette.orangeWarning.main}BF`;
           break;
-        case "error":
+        case "redError":
           border = `1px solid ${theme.colors.palette.redError.main}BF`;
           break;
       }
@@ -80,16 +83,16 @@ const useStyles = makeStyles<{
 
   let textColor;
   switch (color) {
-    case "main":
+    case "dark":
       textColor = theme.colors.palette.dark.main;
       break;
-    case "success":
-      textColor = theme.colors.palette.greenSuccess.main;
+    case "focus":
+      textColor = theme.colors.palette.focus.main;
       break;
-    case "warning":
+    case "orangeWarning":
       textColor = theme.colors.palette.orangeWarning.main;
       break;
-    case "error":
+    case "redError":
       textColor = theme.colors.palette.redError.main;
       break;
   }

@@ -1,4 +1,4 @@
-import TeamModalBody from "@/app/[lng]/(dashboard)/settings/organization/TeamModalBody";
+import TeamModalBody from "./TeamModalBody";
 import React, { useState } from "react";
 
 import type { Option } from "@p4b/types/atomicComponents";

@@ -27,16 +27,18 @@ export default function RootLayout({
   children: React.ReactNode;
   params: { lng: string };
 }) {
+
+
   return (
     <html lang={lng} dir={dir(lng)}>
-      <body>
-      <StoreProvider>
-        <AuthProvider>
-          <ToastProvider>
-            <ThemeRegistry>{children}</ThemeRegistry>
-          </ToastProvider>
-        </AuthProvider>
-      </StoreProvider>
+      <body style={{background: '#FAFAFA'}}>
+        <StoreProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <ThemeRegistry>{children}</ThemeRegistry>
+            </ToastProvider>
+          </AuthProvider>
+        </StoreProvider>
       </body>
     </html>
   );

@@ -1,22 +1,23 @@
 "use client";
 
 import SubscriptionCardSkeleton from "@/components/skeletons/SubscriptionCardSkeleton";
-import {useInviteUserDialog, useUserRemovalDialog, useUsersData} from "@/hooks/dashboard/OrganisationHooks";
-import {makeStyles, Text} from "@/lib/theme";
-import {useState} from "react";
+import { useInviteUserDialog, useUserRemovalDialog, useUsersData } from "@/hooks/dashboard/OrganisationHooks";
+import { makeStyles, Text } from "@/lib/theme";
+import { useState } from "react";
 
-import {Chip} from "@p4b/ui/components/DataDisplay";
-import {EnhancedTable} from "@p4b/ui/components/DataDisplay/EnhancedTable";
-import {TextField} from "@p4b/ui/components/Inputs/TextField";
+// import { Chip } from "@p4b/ui/components/DataDisplay";
+import { Chip } from "@/components/common/Chip";
+import { EnhancedTable } from "@p4b/ui/components/DataDisplay/EnhancedTable";
+import { TextField } from "@p4b/ui/components/Inputs/TextField";
 import Modal from "@p4b/ui/components/Modal";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
-import {Card} from "@p4b/ui/components/Surfaces/Card";
-import type {IconId} from "@p4b/ui/components/theme";
-import {Button, Icon, IconButton} from "@p4b/ui/components/theme";
+import { Card } from "@p4b/ui/components/Surfaces/Card";
+import { Icon, Button, IconButton } from "@p4b/ui/components/theme";
 
-import InviteUser from "./InviteUser";
-import UserInfoModal from "./UserInfoModal";
-import type {IUser} from "@/types/dashboard/organization";
+import InviteUser from "@/components/settings/organization/InviteUser";
+import UserRemovalConfirm from "@/components/settings/organization/UserRemovalConfirm";
+import type { IUser } from "@/types/dashboard/organization";
+import { ICON_NAME } from "@p4b/ui/components/Icon";
 
 const ManageUsers = () => {
   const { classes } = useStyles();
@@ -60,7 +61,7 @@ const ManageUsers = () => {
   function sendInvitation() {
     const newUserInvite: IUser = {
       name: "Luca William Silva",
-      email: email,
+      email,
       role: "Admin",
       status: "Invite sent",
       Added: "23 Jun 19",
@@ -71,12 +72,7 @@ const ManageUsers = () => {
 
   function editUserRole(role: "Admin" | "User" | "Editor", user: IUser | undefined) {
     if (user) {
-      const modifiedUsers = rows.map((row: IUser) => {
-        if (row.email === user.email) {
-          row.role = role;
-        }
-        return row;
-      });
+      const modifiedUsers = rows.map((row: IUser) => (row.email === user.email ? { ...row, role } : row));
       setRows(modifiedUsers);
     }
   }
@@ -104,26 +100,26 @@ const ManageUsers = () => {
       const modifiedVisualData = user;
       const label =
         typeof user.status !== "string" && user.status?.props ? user.status.props.label : user.status;
-      let color: "main" | "success" | "warning" | "error" | undefined;
-      let icon: IconId | undefined;
+      let color: "dark" | "focus" | "orangeWarning" | "redError" | undefined;
+      let icon: ICON_NAME | undefined;
 
       switch (label) {
         case "Active":
-          color = "success";
-          icon = "check";
+          color = "focus";
+          icon = ICON_NAME.CIRCLECHECK;
           break;
         case "Invite sent":
-          color = "main";
-          icon = "email";
+          color = "dark";
+          icon = ICON_NAME.EMAIL;
           break;
         case "Expired":
-          color = "warning";
-          icon = "info";
+          color = "orangeWarning";
+          icon = ICON_NAME.CIRCLEINFO;
           break;
       }
 
       modifiedVisualData.status = (
-        <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon}/>
+        <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon} />
       );
       return modifiedVisualData;
     });
@@ -217,48 +213,17 @@ const ManageUsers = () => {
         imageSide="right"
       />
       {/* Confirm User Removal */}
-      <Modal
-        width="523px"
-        open={!!userInDialog}
-        changeOpen={() => setTheUserInDialog(null)}
-        action={
-          isModalVisible ? (
-            <>
-              <Button onClick={closeUserRemovalDialog} variant="noBorder">
-                CANCEL
-              </Button>
-              <Button onClick={() => removeUser(userInDialog ? userInDialog : undefined)} variant="noBorder">
-                CONFIRM
-              </Button>
-            </>
-          ) : (
-            <Button
-              onClick={() => (userInDialog ? openUserRemovalDialog(userInDialog) : undefined)}
-              variant="noBorder">
-              REMOVE USER
-            </Button>
-          )
-        }
-        header={
-          isModalVisible ? (
-            <Text className={classes.modalHeader} typo="subtitle">
-              <Icon iconId="warn" iconVariant="warning" /> Attention
-            </Text>
-          ) : (
-            <div className={classes.modalHeader2}>
-              <Text typo="subtitle" className={classes.headerText}>
-                {userInDialog?.name}
-              </Text>
-              <IconButton onClick={closeUserRemovalDialog} iconId="close" />
-            </div>
-          )
-        }>
-        <UserInfoModal
-          ismodalVisible={isModalVisible}
-          userInDialog={userInDialog ? userInDialog : false}
-          editUserRole={editUserRole}
-        />
-      </Modal>
+      <UserRemovalConfirm
+        removeUserFunctions={{
+          userInDialog: userInDialog ? userInDialog : undefined,
+          isModalVisible,
+          removeUser,
+          setTheUserInDialog,
+          closeUserRemovalDialog,
+          openUserRemovalDialog,
+          editUserRole,
+        }}
+      />
     </div>
   );
 };

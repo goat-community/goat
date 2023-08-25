@@ -7,3 +7,4 @@ export const API = {
   layer: "/api/v2/content/layer",
   project: "api/v2/content/project",
 };
+export const FILTERING = "http://localhost:3000/api/map/filtering/layer/";

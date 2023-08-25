@@ -1,7 +1,7 @@
 "use client";
 
-import AddTeamModal from "@/app/[lng]/(dashboard)/settings/organization/AddTeamModal";
-import TeamsTable from "@/app/[lng]/(dashboard)/settings/organization/TeamsTable";
+import AddTeamModal from "@/components/settings/organization/AddTeamModal";
+import TeamsTable from "@/components/settings/organization/TeamsTable";
 import React, { useState } from "react";
 
 import { TextField } from "@p4b/ui/components/Inputs";
@@ -71,7 +71,7 @@ const Teams = () => {
         <TeamsTable rawRows={teams} editTeam={editTeam} searchText={searchWord} />
       ) : (
         <div className={classes.createTeam}>
-          <Image width="100" height="100" src="/assets/illustrations/teams.svg" alt="" />
+          <Image src="/assets/illustrations/teams.svg" alt="" width={400} height={300}/>
           <Text typo="page heading" color="focus" className={classes.IconText}>
             Create teams to easily manage your projects
           </Text>
