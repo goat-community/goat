@@ -34,6 +34,12 @@ type StyledTreeItemProps = TreeItemProps & {
   labelText: string;
 };
 
+interface IFolder {
+  id: string;
+  name: string;
+  user_id: string
+}
+
 interface ITreeViewWithIconsProps {
   homeData: {
     id: string,
@@ -48,7 +54,7 @@ interface ITreeViewWithIconsProps {
     user_id: string
   }) => void;
   handleAddFolder: () => void;
-  setFolderAnchor: (object) => void;
+  setFolderAnchor: (args: { anchorEl: EventTarget & HTMLButtonElement; folder: IFolder}) => void;
   setSelectedFolder: (object) => void;
 }
 
@@ -131,7 +137,7 @@ function StyledTreeItem(props: StyledTreeItemProps) {
 export default function TreeViewWithIcons(props: ITreeViewWithIconsProps) {
   const { homeData, handleSelectFolder, handleAddFolder, setFolderAnchor } = props;
 
-  function openDialogHandler(event: React.MouseEvent<HTMLButtonElement>, folder: object) {
+  function openDialogHandler(event: React.MouseEvent<HTMLButtonElement>, folder: IFolder) {
     if (setFolderAnchor) {
       setFolderAnchor({ anchorEl: event.currentTarget, folder });
     }

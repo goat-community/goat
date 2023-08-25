@@ -16,7 +16,7 @@ interface ITreeViewFilterProps {
   projectData: [] | undefined;
   reportData: [] | undefined;
   layerData: [] | undefined;
-  setFolderAnchorData: (object) => void;
+  setFolderAnchorData: (args: { anchorEl: EventTarget & HTMLButtonElement; folder: ISelectedFolder }) => void;
   setSelectedFolder: (object) => void;
 }
 

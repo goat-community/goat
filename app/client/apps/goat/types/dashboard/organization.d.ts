@@ -6,7 +6,7 @@ export interface IUser {
   name: string;
   email: string;
   role: "Admin" | "Editor" | "User";
-  status: "Active" | "Invite sent" | "Expired" | any;
+  status: "Active" | "Invite sent" | "Expired" | React.ReactNode;
   Added: string;
 }
 
