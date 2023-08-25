@@ -18,7 +18,6 @@ jobs:
   release-api:
     name: release-api
     needs: checks
-    if: ${{ needs.checks.outputs.api-changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout

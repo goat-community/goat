@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goat-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goat-client
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  minReadySeconds: 15
+  template:
+    metadata:
+      labels:
+        app: goat-client
+    spec:
+      containers:
+        - image: goatcommunity/client
+          imagePullPolicy: IfNotPresent
+          name: goat-client
+          ports:
+            - containerPort: 3000

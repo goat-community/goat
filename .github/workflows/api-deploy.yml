@@ -46,6 +46,6 @@ jobs:
           strategy: basic
           manifests: |
             ${{ steps.bake.outputs.manifestsBundle }}
-            ${{ github.workspace }}/infra/k8s/ingress/${{ needs.checks.outputs.env_name }}/ingress.yaml
+            ${{ github.workspace }}/infra/k8s/ingress/${{ needs.checks.outputs.env_name }}/ingress.yml
           images: |
             goatcommunity/api:${{ needs.checks.outputs.sha_short }}
