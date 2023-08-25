@@ -18,6 +18,7 @@ import { Icon, Button, IconButton } from "@p4b/ui/components/theme";
 import InviteUser from "@/components/settings/organization/InviteUser";
 import UserRemovalConfirm from "@/components/settings/organization/UserRemovalConfirm";
 import type { IUser } from "@/types/dashboard/organization";
+import { ICON_NAME } from "@p4b/ui/components/Icon";
 
 const ManageUsers = () => {
   const { classes } = useStyles();
@@ -69,16 +70,14 @@ const ManageUsers = () => {
     setRawRows([...rawRows, newUserInvite]);
     closeInviteDialog();
   }
-  
+
   function editUserRole(role: "Admin" | "User" | "Editor", user: IUser | undefined) {
     if (user) {
-      const modifiedUsers = rows.map((row: IUser) =>
-        row.email === user.email ? { ...row, role } : row
-      );
+      const modifiedUsers = rows.map((row: IUser) => (row.email === user.email ? { ...row, role } : row));
       setRows(modifiedUsers);
     }
   }
-  
+
   function removeUser(user: IUser | undefined) {
     if (user) {
       const modifiedUsers = rows.filter((row: IUser) => row.email !== user.email);
@@ -86,7 +85,7 @@ const ManageUsers = () => {
       closeUserRemovalDialog();
     }
   }
-  
+
   function getStatus() {
     if (isLoading) {
       return <SubscriptionCardSkeleton />;
@@ -96,20 +95,24 @@ const ManageUsers = () => {
       return "No Result";
     }
   }
-  
-  function returnRightFormat(users: IUser[]): IUser[] {
+
+  function returnRightFormat(users: IUser[]) {
     return users.map((user: IUser) => {
       const { status } = user;
-      const label = typeof status !== "string" && "props" in status ? status.props.label : status;
-      const colorMap = {
+      const label = status;
+      const colorMap: {
+        Active: "focus";
+        "Invite sent": "dark";
+        Expired: "orangeWarning";
+      } = {
         Active: "focus",
         "Invite sent": "dark",
         Expired: "orangeWarning",
       };
       const iconMap = {
-        Active: "circleCheck",
-        "Invite sent": "email",
-        Expired: "circleInfo",
+        Active: ICON_NAME.CIRCLECHECK,
+        "Invite sent": ICON_NAME.EMAIL,
+        Expired: ICON_NAME.CIRCLEINFO,
       };
       const color = colorMap[label] || "error";
       const icon = iconMap[label] || undefined;
@@ -117,7 +120,13 @@ const ManageUsers = () => {
       const modifiedVisualData = {
         ...user,
         status: (
-          <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon} />
+          <Chip
+            className={classes.chip}
+            label={label}
+            variant="Border"
+            color={color ? color : undefined}
+            icon={icon ? icon : undefined}
+          />
         ),
       };
       return modifiedVisualData;
@@ -212,15 +221,17 @@ const ManageUsers = () => {
         imageSide="right"
       />
       {/* Confirm User Removal */}
-      <UserRemovalConfirm removeUserFunctions={{
-        userInDialog: userInDialog ? userInDialog : undefined,
-        isModalVisible,
-        removeUser,
-        setTheUserInDialog,
-        closeUserRemovalDialog,
-        openUserRemovalDialog,
-        editUserRole
-      }}/>
+      <UserRemovalConfirm
+        removeUserFunctions={{
+          userInDialog: userInDialog ? userInDialog : undefined,
+          isModalVisible,
+          removeUser,
+          setTheUserInDialog,
+          closeUserRemovalDialog,
+          openUserRemovalDialog,
+          editUserRole,
+        }}
+      />
     </div>
   );
 };

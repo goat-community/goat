@@ -88,7 +88,7 @@ const FilterManagement = () => {
         </div>
       </Card>
       {expressions ? (
-        expressions.map((expression, indx) => (
+        expressions.map((_, indx) => (
           <>
             <Box key={v4()}>
               <Box className={classes.expressionHeader}>

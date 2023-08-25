@@ -38,7 +38,7 @@ const useStyles = makeStyles<{
   variant: "filled" | "Border" | "filledWithBorder";
   textDesign: "normal" | "italic";
   color: "main" | "success" | "warning" | "error";
-  icon?: IconId;
+  icon?: ICON_NAME;
 }>({ name: { Chip } })((theme, { variant, textDesign, color, icon }) => {
   let bgColor;
   switch (variant) {

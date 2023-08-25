@@ -11,7 +11,7 @@ interface UserRemovalFunctions {
   userInDialog: IUser | undefined;
   isModalVisible: boolean;
   removeUser: (user: IUser | undefined) => void;
-  setTheUserInDialog: (user: IUser | boolean) => void;
+  setTheUserInDialog: (user: IUser | undefined) => void;
   closeUserRemovalDialog: () => void;
   openUserRemovalDialog: (user: IUser | undefined) => void;
   editUserRole: (role: "Admin" | "User" | "Editor", user: IUser | undefined) => void;
@@ -61,7 +61,7 @@ const UserRemovalConfirm: React.FC<UserRemovalConfirmProps> = ({
     <Modal
       width="523px"
       open={Boolean(userInDialog)}
-      changeOpen={() => setTheUserInDialog(false)}
+      changeOpen={() => setTheUserInDialog(undefined)}
       action={
         isModalVisible ? (
           <>

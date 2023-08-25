@@ -37,7 +37,7 @@ export const DateOption = (props: DateOptionProp) => {
 };
 
 export const TextOption = (props: simpleInput) => {
-  const { value, setChange } = props;
+  const { setChange } = props;
 
   return (
     <div>

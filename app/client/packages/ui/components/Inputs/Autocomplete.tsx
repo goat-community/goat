@@ -8,15 +8,11 @@ import { makeStyles } from "../../lib/ThemeProvider";
 import { Checkbox } from "../Checkbox";
 
 type Option = {
-  label: string;
+  label: React.ReactNode;
   value: string;
 } & {
   [key: string]: string | number | boolean;
 };
-
-interface CustomMultiAutocompleteProps {
-  options: Option[];
-}
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -44,7 +40,7 @@ export function AutoComplete(props: AutoComplete) {
 
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
-  const handleChange = (event: React.SyntheticEvent, value: Option[]) => {
+  const handleChange = (value: Option[]) => {
     if (setSelected) {
       setSelected([
         ...value.map((val) => {
@@ -85,7 +81,7 @@ export function AutoComplete(props: AutoComplete) {
             inputRef={inputRef}
           />
         )}
-        onChange={handleChange}
+        onChange={(event, value) => handleChange(value)}
         value={getSelectedOptions()}
         renderTags={() => null}
       />
@@ -93,8 +89,8 @@ export function AutoComplete(props: AutoComplete) {
   );
 }
 
-const useStyles = makeStyles({ name: { AutoComplete } })((theme) => ({
-  checkbox: {
-    marginRight: 8,
-  },
-}));
+// const useStyles = makeStyles({ name: { AutoComplete } })(() => ({
+//   checkbox: {
+//     marginRight: 8,
+//   },
+// }));

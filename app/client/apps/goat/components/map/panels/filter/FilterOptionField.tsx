@@ -93,7 +93,7 @@ const FilterOptionField = (props: FilterResultProps) => {
         query = is_greater_than(prop, 70);
         break;
       case "is_between":
-        query = is_between(prop, 10, 20);
+        query = is_between(prop); //10, 20
         break;
       default:
         return;
@@ -104,7 +104,7 @@ const FilterOptionField = (props: FilterResultProps) => {
 
   if (!comparer) return null;
 
-  let inputComponent = null;
+  let inputComponent: React.ReactNode | null = null;
 
   switch (comparer.value) {
     case "is":

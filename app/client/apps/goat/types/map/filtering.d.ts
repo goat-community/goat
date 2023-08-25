@@ -51,7 +51,7 @@ export type KeyDataType = {
 };
 
 export interface LayerPropsMode {
-  type: "number" | "date" | "text";
+  type: "number" | "date" | "string";
   name: string;
 }
 
