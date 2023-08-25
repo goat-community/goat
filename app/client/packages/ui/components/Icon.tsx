@@ -18,6 +18,9 @@ import {
   faMinus,
   faMaximize,
   faMinimize,
+  faSearch,
+  faChevronRight,
+  faChevronLeft,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -42,7 +45,9 @@ export enum ICON_NAME {
   MINUS = "minus",
   MAXIMIZE = "maximize",
   MINIMIZE = "minimize",
-  CHEVRON_RIGHT = "chevron-right"
+  SEARCH = "search",
+  CHEVRON_LEFT = "chevron-left",
+  CHEVRON_RIGHT = "chevron-right",
 }
 
 const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
@@ -63,7 +68,9 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.MINUS]: faMinus,
   [ICON_NAME.MAXIMIZE]: faMaximize,
   [ICON_NAME.MINIMIZE]: faMinimize,
-  [ICON_NAME.CHEVRON_RIGHT]: faChevronRight,
+  [ICON_NAME.SEARCH]: faSearch,
+  [ICON_NAME.CHEVRON_LEFT]: faChevronLeft,
+  [ICON_NAME.CHEVRON_RIGHT]: faChevronRight
 };
 
 library.add(...Object.values(nameToIcon));
