@@ -23,6 +23,7 @@ import type { CSSObject } from "tss-react";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
+import Geocoder from "@/components/map/controls/Geocoder";
 
 export default function MapPage() {
   const sidebarWidth = 48;
@@ -161,7 +162,10 @@ export default function MapPage() {
             }}
           />
 
-          <Stack direction="row" className={cx(classes.collapse, classes.collapseLeft)}>
+          <Stack
+            direction="row"
+            className={cx(classes.collapse, classes.collapseLeft)}
+            sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
             <Collapse
               timeout={200}
               orientation="horizontal"
@@ -179,6 +183,14 @@ export default function MapPage() {
               )}
             </Collapse>
             {/* Left Controls */}
+            <Stack
+              direction="column"
+              justifyContent="space-between"
+              className={cx(classes.controls, classes.mapControls)}>
+              <Stack direction="column" className={cx(classes.groupControl)}>
+                <Geocoder />
+              </Stack>
+            </Stack>
           </Stack>
           <Stack
             direction="row"
@@ -188,12 +200,11 @@ export default function MapPage() {
               direction="column"
               justifyContent="space-between"
               className={cx(classes.controls, classes.mapControls)}>
-              <Stack direction="column">
+              <Stack direction="column" className={cx(classes.groupControl)}>
                 <Zoom />
                 <Fullscren />
               </Stack>
-              <Stack direction="column">
-                {/* <Attribution showMapboxLogo={true} showOsmBasemapAttribution={true} datasetAttributions={[]} /> */}
+              <Stack direction="column" className={cx(classes.groupControl)}>
                 <BasemapSelector
                   styles={basemaps}
                   active={activeBasemapIndex}
@@ -284,21 +295,27 @@ const useStyles = makeStyles<{ sidebarWidth: number; toolbarHeight: number }>({
     controls: {
       ...offsetHeight,
     },
+    groupControl: {
+      pointerEvents: "all",
+    },
     mapControls: {
       padding: theme.spacing(4),
     },
     leftPanel: {
       width: 300,
       borderLeft: `2px solid ${theme.colors.palette.light.greyVariant1}`,
+      pointerEvents: "all",
     },
     rightPanel: {
       width: 300,
       borderRight: `2px solid ${theme.colors.palette.light.greyVariant1}`,
+      pointerEvents: "all",
     },
     collapse: {
       height: "100%",
       position: "absolute",
       top: 0,
+      pointerEvents: "none",
     },
     collapseLeft: {
       left: sidebarWidth,

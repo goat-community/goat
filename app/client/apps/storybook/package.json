@@ -11,7 +11,7 @@
     "@p4b/keycloak-theme": "*",
     "@p4b/ui": "*",
     "@p4b/types": "*",
-    "next": "v13.4.16",
+    "next": "v13.4.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
