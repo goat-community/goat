@@ -1,9 +1,9 @@
 "use client";
 
 import SubscriptionCardSkeleton from "@/components/skeletons/SubscriptionCardSkeleton";
-import {useInviteUserDialog, useUserRemovalDialog, useUsersData} from "@/hooks/dashboard/OrganisationHooks";
-import {makeStyles, Text} from "@/lib/theme";
-import {useState} from "react";
+import { useInviteUserDialog, useUserRemovalDialog, useUsersData } from "@/hooks/dashboard/OrganisationHooks";
+import { makeStyles, Text } from "@/lib/theme";
+import { useState } from "react";
 
 // import { Chip } from "@p4b/ui/components/DataDisplay";
 import { Chip } from "@/components/common/Chip";
@@ -100,26 +100,26 @@ const ManageUsers = () => {
       const modifiedVisualData = user;
       const label =
         typeof user.status !== "string" && user.status?.props ? user.status.props.label : user.status;
-      let color: "main" | "success" | "warning" | "error" | undefined;
-      let icon: IconId | undefined;
+      let color: "dark" | "focus" | "orangeWarning" | "redError" | undefined;
+      let icon: ICON_NAME | undefined;
 
       switch (label) {
         case "Active":
-          color = "success";
-          icon = "check";
+          color = "focus";
+          icon = ICON_NAME.CIRCLECHECK;
           break;
         case "Invite sent":
-          color = "main";
-          icon = "email";
+          color = "dark";
+          icon = ICON_NAME.EMAIL;
           break;
         case "Expired":
-          color = "warning";
-          icon = "info";
+          color = "orangeWarning";
+          icon = ICON_NAME.CIRCLEINFO;
           break;
       }
 
       modifiedVisualData.status = (
-        <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon}/>
+        <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon} />
       );
       return modifiedVisualData;
     });
