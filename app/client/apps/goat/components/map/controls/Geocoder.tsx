@@ -128,7 +128,7 @@ export default function Geocoder() {
                   setCollapsed(false);
                   setFocused(false);
                 }}
-                size="large"
+                size="small"
                 className={classes.btn}>
                 <Icon iconName={ICON_NAME.SEARCH} fontSize="small" />
               </Fab>
