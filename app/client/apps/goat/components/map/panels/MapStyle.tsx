@@ -1,5 +1,5 @@
 import Container from "@/components/map/panels/Container";
-import { IconButton, Text } from "@p4b/ui/components/theme";
+import { IconButton, Text, useTheme } from "@p4b/ui/components/theme";
 import {
   Button,
   CardContent,
@@ -24,48 +24,51 @@ import { MultipleSelect } from "@p4b/ui/components/Inputs/MultipleSelect";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import Box from "@p4b/ui/components/Box";
 import type { MapSidebarItem } from "@/components/map/Sidebar";
+import {Icon, ICON_NAME} from "@p4b/ui/components/Icon";
+import React from "react";
 
 interface MapStyleProps {
   setActiveRight: (item: MapSidebarItem | undefined) => void;
 }
+
+const layerTypes = [
+  {
+    label: "@column_label",
+    value: "@column_label",
+  },
+  {
+    label: "@column_label1",
+    value: "@column_label1",
+  },
+];
+
+const layerAccordionInfo = [
+  {
+    id: 1,
+    title: "Marker",
+  },
+  {
+    id: 2,
+    title: "Color",
+  },
+  {
+    id: 3,
+    title: "Stroke",
+  },
+  {
+    id: 4,
+    title: "Size",
+  },
+];
+
 const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
   const { tabValue } = useSelector((state: IStore) => state.styling);
 
   const dispatch = useDispatch();
-
-  const layerTypes = [
-    {
-      label: "@column_label",
-      value: "@column_label",
-    },
-    {
-      label: "@column_label1",
-      value: "@column_label1",
-    },
-  ];
-
-  const layerAccordionInfo = [
-    {
-      id: 1,
-      title: "Marker",
-    },
-    {
-      id: 2,
-      title: "Color",
-    },
-    {
-      id: 3,
-      title: "Stroke",
-    },
-    {
-      id: 4,
-      title: "Size",
-    },
-  ];
-
   const { classes } = useStyles();
+  const theme = useTheme();
 
-  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     dispatch(setTabValue(newValue));
   };
 
@@ -73,8 +76,13 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
     <Container
       header={
         <Box className={classes.contentHeading}>
-          <IconButton iconId="chevronRight" iconVariant="focus" onClick={() => setActiveRight(undefined)} />
-          <Typography color="#2BB381" variant="body1">
+          <Icon
+            iconName={ICON_NAME.CHEVRON_RIGHT}
+            htmlColor={theme.colors.palette.focus.main}
+            fontSize="small"
+            onClick={() => setActiveRight(undefined)}
+          />
+          <Typography color={theme.colors.palette.focus.main} variant="body1">
             Layer design
           </Typography>
         </Box>
@@ -165,6 +173,7 @@ const useStyles = makeStyles({ name: { MapStylePanel } })((theme) => ({
   contentHeading: {
     display: "flex",
     alignItems: "center",
+    gap: '20px'
   },
   buttonsContainer: {
     minWidth: "266px",
@@ -178,7 +187,7 @@ const useStyles = makeStyles({ name: { MapStylePanel } })((theme) => ({
     width: "50%",
     "&:disabled": {
       border: "1px solid #ccc",
-      color: "#888",
+      color: theme.colors.palette.light.greyVariant4,
     },
   },
   contentInfo: {
@@ -202,14 +211,14 @@ const useStyles = makeStyles({ name: { MapStylePanel } })((theme) => ({
     paddingLeft: theme.spacing(2),
   },
   radioIcon: {
-    color: "#2BB3814D",
+    color: theme.colors.palette.focus.dark,
   },
   radioIconChecked: {
-    color: "#2BB381",
+    color: theme.colors.palette.focus.main,
   },
   media: {
     height: "42px",
-    backgroundColor: "#2bb3810a",
+    backgroundColor: theme.colors.palette.focus.darkVariant2,
     border: "none",
   },
   content: {
@@ -228,7 +237,7 @@ const useStyles = makeStyles({ name: { MapStylePanel } })((theme) => ({
   divider: {
     width: "100%",
     borderTop: "none",
-    borderBottom: "1px solid #2bb3814d",
+    borderBottom: `1px solid ${theme.colors.palette.focus}`,
   },
 }));
 

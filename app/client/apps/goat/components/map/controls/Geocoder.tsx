@@ -18,7 +18,7 @@ type GeocoderControlProps = Omit<GeocoderOptions, "accessToken" | "mapboxgl" | "
 };
 
 export default function Geocoder(props: GeocoderControlProps) {
-  const [marker, setMarker] = useState(null);
+  const [marker, setMarker] = useState<React.ReactNode | null>(null);
 
   const geocoder = useControl<MapboxGeocoder>(
     () => {

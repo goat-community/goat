@@ -1,5 +1,6 @@
 import { makeStyles } from "@/lib/theme";
 import { Divider, Stack } from "@mui/material";
+import React from "react";
 
 interface ContainerProps {
   header?: React.ReactNode;
@@ -47,7 +48,7 @@ const useStyles = makeStyles({ name: { Container } })((theme) => ({
     paddingBottom: theme.spacing(2),
   },
   action: {
-    position: "fixed",
+    position: "absolute",
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2),
     bottom: 0,
