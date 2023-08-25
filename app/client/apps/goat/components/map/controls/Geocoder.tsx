@@ -1,6 +1,6 @@
 import Autocomplete from "@mui/material/Autocomplete";
 import parse from "@/lib/utils/parse";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -12,21 +12,21 @@ import InputBase from "@mui/material/InputBase";
 import { Divider, Fab, IconButton, Popper, Tooltip } from "@mui/material";
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyC3aviU6KHXAjoSnxcw6qbOhjnFctbxPkE";
+// const GOOGLE_MAPS_API_KEY = "AIzaSyC3aviU6KHXAjoSnxcw6qbOhjnFctbxPkE";
 
-function loadScript(src: string, position: HTMLElement | null, id: string) {
-  if (!position) {
-    return;
-  }
+// function loadScript(src: string, position: HTMLElement | null, id: string) {
+//   if (!position) {
+//     return;
+//   }
 
-  const script = document.createElement("script");
-  script.setAttribute("async", "");
-  script.setAttribute("id", id);
-  script.src = src;
-  position.appendChild(script);
-}
+//   const script = document.createElement("script");
+//   script.setAttribute("async", "");
+//   script.setAttribute("id", id);
+//   script.src = src;
+//   position.appendChild(script);
+// }
 
-const autocompleteService = { current: null };
+// const autocompleteService = { current: null };
 interface MainTextMatchedSubstrings {
   offset: number;
   length: number;

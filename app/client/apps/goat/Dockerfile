@@ -7,6 +7,7 @@ RUN apk update
 WORKDIR /app
 RUN npm install -g turbo
 COPY . .
+COPY .env.docker /app/apps/goat/.env
 RUN turbo prune --scope=@p4b/goat --docker
 
 # Add lockfile and package.json's of isolated subworkspace
@@ -41,5 +42,7 @@ COPY --from=installer /app/apps/goat/package.json .
 COPY --from=installer --chown=nextjs:nodejs /app/apps/goat/.next/standalone ./
 COPY --from=installer --chown=nextjs:nodejs /app/apps/goat/.next/static ./apps/goat/.next/static
 COPY --from=installer --chown=nextjs:nodejs /app/apps/goat/public ./apps/goat/public
+
+ENV HOSTNAME localhost
 
 CMD node apps/goat/server.js
