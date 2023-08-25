@@ -22,7 +22,7 @@ import {
 import { formatDate } from "@/lib/utils/helpers";
 import FolderIcon from "@mui/icons-material/Folder";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 
@@ -78,6 +78,19 @@ interface ModalContent {
   }[];
 }
 
+interface IRow {
+  id: string,
+  name: string,
+  chip: React.ReactNode,
+  modified: string,
+  path: string[],
+  size: string,
+  label: string,
+  info: object[],
+  feature_layer_type?: string,
+  type?: string
+}
+
 
 const ContentManagement = () => {
   const {
@@ -90,7 +103,7 @@ const ContentManagement = () => {
 
   const [modalContent, setModalContent] = useState<ModalContent | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const [folderAnchorData, setFolderAnchorData] = useState<any | null>(null);
+  const [folderAnchorData, setFolderAnchorData] = useState<({ anchorEl: EventTarget & HTMLButtonElement; folder: ISelectedFolder }) | null>(null);
   const [path, setPath] = useState<string[]>(["home"]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<ISelectedFolder | null>(null);
@@ -98,7 +111,7 @@ const ContentManagement = () => {
   const [openAddFolderModal, setOpenAddFolderModal] = useState<boolean>(false);
   const [editedFolderName, setEditedFolderName] = useState<string>("");
   const [addedFolderName, setAddedFolderName] = useState<string>("");
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<IRow[]>([]);
   const [dialogContent, setDialogContent] = useState<IDashboardTableRowInfo | null>(null);
 
   const { classes } = useStyles();
@@ -194,11 +207,11 @@ const ContentManagement = () => {
       }
     : null;
 
-  function getContentByFolder(id: string) {
+  const getContentByFolder = useCallback((id: string) => {
     layerTrigger(id);
     projectTrigger(id);
     reportTrigger(id);
-  }
+  }, [layerTrigger, projectTrigger, reportTrigger]);
 
   function closeTablePopover() {
     setAnchorEl(null);
@@ -215,7 +228,7 @@ const ContentManagement = () => {
   }
 
   async function deleteFolderHandler() {
-    if (folderAnchorData) {
+    if (folderAnchorData?.folder?.id) {
       await deleteFolderService(API.folder, folderAnchorData.folder.id);
       closeFolderPopover();
       await getFoldersMutation();
@@ -224,10 +237,12 @@ const ContentManagement = () => {
   }
 
   async function updateFolderHandler() {
-    await updateFolderService(API.folder, folderAnchorData.folder.id, { name: editedFolderName });
-    closeFolderPopover();
-    setOpenEditFolderModal(false);
-    await getFoldersMutation();
+    if (folderAnchorData?.folder?.id) {
+      await updateFolderService(API.folder, folderAnchorData.folder.id, {name: editedFolderName});
+      closeFolderPopover();
+      setOpenEditFolderModal(false);
+      await getFoldersMutation();
+    }
   }
 
   async function addFolderHandler() {
@@ -258,7 +273,7 @@ const ContentManagement = () => {
   }
 
   useEffect(() => {
-    let filteredRows: any[] = [];
+    let filteredRows: IRow[] = [];
 
     if (layerData?.items) {
       filteredRows.push(
@@ -381,8 +396,8 @@ const ContentManagement = () => {
       filteredRows = filteredRows.filter(
         (item) =>
           selectedFilters.includes(item.label) ||
-          selectedFilters.includes(item?.feature_layer_type) ||
-          selectedFilters.includes(item?.type)
+          (item.feature_layer_type && selectedFilters.includes(item.feature_layer_type)) ||
+          (item.type && selectedFilters.includes(item.type))
       );
     }
 
@@ -394,7 +409,7 @@ const ContentManagement = () => {
       setSelectedFolder(folderData.items[0]);
       getContentByFolder(folderData.items[0].id);
     }
-  }, [folderData?.items, selectedFolder, layerTrigger, projectTrigger, reportTrigger]);
+  }, [folderData?.items, selectedFolder, getContentByFolder]);
 
   return (
     <>

@@ -41,7 +41,7 @@ export function useUserDialog({
         setTeamName(team.name);
       }
     }
-  }, [userInDialog, selectedOption, searchText, rawRows]);
+  }, [setSelectedOption, setTeamName, userInDialog, selectedOption, searchText, rawRows]);
 
   function saveEditTeam() {
     if (userInDialog && typeof userInDialog !== "boolean") {

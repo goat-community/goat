@@ -1,6 +1,7 @@
 import CheckIcon from "@mui/icons-material/Check";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import ChevronRightOutlinedIcon from "@mui/icons-material/ChevronRightOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import ColorLensIcon from "@mui/icons-material/ColorLens";
 import CorporateFareIcon from "@mui/icons-material/CorporateFare";
@@ -103,6 +104,7 @@ export const { Icon } = createIcon({
   fileInfo: InsertDriveFileIcon,
   slider: TuneIcon,
   print: PrintIcon,
+  chevronRight: ChevronRightOutlinedIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];

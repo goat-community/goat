@@ -1,19 +1,18 @@
 "use client";
 
 import SubscriptionCardSkeleton from "@/components/skeletons/SubscriptionCardSkeleton";
-import { useUsersData, useInviteUserDialog, useUserRemovalDialog } from "@/hooks/dashboard/OrganisationHooks";
-import { makeStyles } from "@/lib/theme";
-import { Text } from "@/lib/theme";
-import { useState } from "react";
+import {useInviteUserDialog, useUserRemovalDialog, useUsersData} from "@/hooks/dashboard/OrganisationHooks";
+import {makeStyles, Text} from "@/lib/theme";
+import {useState} from "react";
 
-import { Chip } from "@p4b/ui/components/DataDisplay";
-import { EnhancedTable } from "@p4b/ui/components/DataDisplay/EnhancedTable";
-import { TextField } from "@p4b/ui/components/Inputs/TextField";
+import {Chip} from "@p4b/ui/components/DataDisplay";
+import {EnhancedTable} from "@p4b/ui/components/DataDisplay/EnhancedTable";
+import {TextField} from "@p4b/ui/components/Inputs/TextField";
 import Modal from "@p4b/ui/components/Modal";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
-import { Card } from "@p4b/ui/components/Surfaces/Card";
-import { Icon, Button, IconButton } from "@p4b/ui/components/theme";
-import type { IconId } from "@p4b/ui/components/theme";
+import {Card} from "@p4b/ui/components/Surfaces/Card";
+import type {IconId} from "@p4b/ui/components/theme";
+import {Button, Icon, IconButton} from "@p4b/ui/components/theme";
 
 import InviteUser from "./InviteUser";
 import UserInfoModal from "./UserInfoModal";
@@ -100,8 +99,8 @@ const ManageUsers = () => {
     }
   }
 
-  function returnRightFormat(users: IUser[]): IUser[] {
-    const usersList = users.map((user) => {
+  function returnRightFormat(users) {
+    return users.map((user) => {
       const modifiedVisualData = user;
       const label =
         typeof user.status !== "string" && user.status?.props ? user.status.props.label : user.status;
@@ -124,12 +123,10 @@ const ManageUsers = () => {
       }
 
       modifiedVisualData.status = (
-        <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon} />
+        <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon}/>
       );
       return modifiedVisualData;
     });
-
-    return usersList;
   }
 
   return (

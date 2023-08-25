@@ -1,5 +1,6 @@
 import { makeStyles } from "@/lib/theme";
 import { Divider, Stack } from "@mui/material";
+import React from "react";
 
 interface ContainerProps {
   header?: React.ReactNode;
