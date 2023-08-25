@@ -1,5 +1,5 @@
-import type { 
-  LayerPropsMode ,//KeyDataType
+import type {
+  LayerPropsMode, //KeyDataType
 } from "@/types/map/filtering";
 import axios from "axios";
 import { useState, useEffect } from "react";
@@ -18,7 +18,7 @@ export const useGetKeys = ({ layer_id }: { layer_id: string }) => {
 
       setkeys(extractedProperties);
     });
-  }, []);
+  }, [layer_id]);
 
   return { keys };
 };

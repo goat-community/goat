@@ -1,6 +1,6 @@
 // general queries
 
-function createComparisonCondition(op: string, key: string, value: any) {
+function createComparisonCondition(op: string, key: string, value: string | number) {
   return `{
     "op": "${op}",
     "args": [
@@ -121,7 +121,7 @@ export function is_greater_than(key: string, value: number) {
   return createComparisonCondition(">", key, value);
 }
 
-export function is_between(key: string, valueA: number, valueB: number) {
+export function is_between(key: string) { // other props (valueA: number, valueB: number)
   return `{
     "op": "and",
     "args": [
