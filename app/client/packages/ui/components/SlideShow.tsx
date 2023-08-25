@@ -10,7 +10,6 @@ import { assert } from "tsafe/assert";
 
 import { makeStyles } from "./../lib/ThemeProvider";
 import { Text } from "./theme";
-import { useTheme } from "./theme";
 
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
 
@@ -44,8 +43,6 @@ export const SlideShow = memo(
 
     // Styling related
     const { classes } = useStyles();
-    const theme = useTheme();
-
     // Component States
     const [activeStep, setActiveStep] = React.useState(0);
 
@@ -67,7 +64,7 @@ export const SlideShow = memo(
     return (
       <Box sx={{ width: width, height: height, flexGrow: 1, position: "relative", marginBottom: "57px" }}>
         <AutoPlaySwipeableViews
-          axis={theme.direction === "rtl" ? "x-reverse" : "x"}
+          axis="x"
           index={activeStep}
           onChangeIndex={handleStepChange}
           enableMouseEvents>

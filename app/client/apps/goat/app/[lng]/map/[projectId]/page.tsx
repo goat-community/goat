@@ -97,7 +97,7 @@ export default function MapPage() {
       {
         icon: ICON_NAME.STYLE,
         name: "Map Style",
-        component: <MapStyle />,
+        component: <MapStyle setActiveRight={setActiveRight} />,
       },
     ],
     width: sidebarWidth,

@@ -37,7 +37,7 @@ const useStyles = makeStyles({ name: { PreviewMap } })(() => ({
   },
 }));
 
-export default function PreviewMap(props: any) {
+export default function PreviewMap(props) {
   const { initial_view_state, map_style, scale_show, navigation_control, children } = props;
 
   const { classes, cx } = useStyles();

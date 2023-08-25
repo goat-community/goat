@@ -1,10 +1,9 @@
 "use client";
 
 import SubscriptionCardSkeleton from "@/components/skeletons/SubscriptionCardSkeleton";
-import { useUsersData, useInviteUserDialog, useUserRemovalDialog } from "@/hooks/dashboard/OrganisationHooks";
-import { makeStyles } from "@/lib/theme";
-import { Text } from "@/lib/theme";
-import { useState } from "react";
+import {useInviteUserDialog, useUserRemovalDialog, useUsersData} from "@/hooks/dashboard/OrganisationHooks";
+import {makeStyles, Text} from "@/lib/theme";
+import {useState} from "react";
 
 // import { Chip } from "@p4b/ui/components/DataDisplay";
 import { Chip } from "@/components/common/Chip";
@@ -96,39 +95,32 @@ const ManageUsers = () => {
     }
   }
 
-  function returnRightFormat(users: IUser[]) {
-    return users.map((user: IUser) => {
-      const { status } = user;
-      const label = status;
-      const colorMap: {
-        Active: "focus";
-        "Invite sent": "dark";
-        Expired: "orangeWarning";
-      } = {
-        Active: "focus",
-        "Invite sent": "dark",
-        Expired: "orangeWarning",
-      };
-      const iconMap = {
-        Active: ICON_NAME.CIRCLECHECK,
-        "Invite sent": ICON_NAME.EMAIL,
-        Expired: ICON_NAME.CIRCLEINFO,
-      };
-      const color = colorMap[label] || "error";
-      const icon = iconMap[label] || undefined;
+  function returnRightFormat(users) {
+    return users.map((user) => {
+      const modifiedVisualData = user;
+      const label =
+        typeof user.status !== "string" && user.status?.props ? user.status.props.label : user.status;
+      let color: "main" | "success" | "warning" | "error" | undefined;
+      let icon: IconId | undefined;
 
-      const modifiedVisualData = {
-        ...user,
-        status: (
-          <Chip
-            className={classes.chip}
-            label={label}
-            variant="Border"
-            color={color ? color : undefined}
-            icon={icon ? icon : undefined}
-          />
-        ),
-      };
+      switch (label) {
+        case "Active":
+          color = "success";
+          icon = "check";
+          break;
+        case "Invite sent":
+          color = "main";
+          icon = "email";
+          break;
+        case "Expired":
+          color = "warning";
+          icon = "info";
+          break;
+      }
+
+      modifiedVisualData.status = (
+        <Chip className={classes.chip} label={label} variant="Border" color={color} icon={icon}/>
+      );
       return modifiedVisualData;
     });
   }

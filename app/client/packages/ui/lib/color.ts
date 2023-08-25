@@ -20,6 +20,7 @@ export const defaultPalette = {
     light: "#80D1B3",
     light2: "#60D3A2",
     dark: "#1A6B4D",
+    darkVariant2: "#2bb3810a"
   },
   dark: {
     main: "#283648",
