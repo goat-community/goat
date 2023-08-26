@@ -1,122 +1,188 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Autocomplete from "@mui/material/Autocomplete";
 import parse from "@/lib/utils/parse";
-import { useState } from "react";
-import Grid from "@mui/material/Grid";
+import { useEffect, useMemo, useState } from "react";
 import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { useMap } from "react-map-gl";
 import { makeStyles } from "@/lib/theme";
 import Paper from "@mui/material/Paper";
 import InputBase from "@mui/material/InputBase";
-import { Divider, Fab, IconButton, Popper, Tooltip } from "@mui/material";
+import {
+  Divider,
+  Fab,
+  IconButton,
+  ListItemButton,
+  ListItemText,
+  Popper,
+  Tooltip,
+  debounce,
+} from "@mui/material";
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
+import search from "@/lib/services/geocoder";
+import type { FeatureCollection } from "geojson";
+import { match } from "@/lib/utils/match";
 
-// const GOOGLE_MAPS_API_KEY = "AIzaSyC3aviU6KHXAjoSnxcw6qbOhjnFctbxPkE";
-
-// function loadScript(src: string, position: HTMLElement | null, id: string) {
-//   if (!position) {
-//     return;
-//   }
-
-//   const script = document.createElement("script");
-//   script.setAttribute("async", "");
-//   script.setAttribute("id", id);
-//   script.src = src;
-//   position.appendChild(script);
-// }
-
-// const autocompleteService = { current: null };
-interface MainTextMatchedSubstrings {
-  offset: number;
-  length: number;
-}
-interface StructuredFormatting {
-  main_text: string;
-  secondary_text: string;
-  main_text_matched_substrings?: readonly MainTextMatchedSubstrings[];
-}
-interface PlaceType {
-  description: string;
-  structured_formatting: StructuredFormatting;
-}
-const CustomPopper = (props) => {
-  return (
-    <Popper
-      {...props}
-      placement="bottom"
-      sx={{
-        height: "10px",
-      }}
-      style={{ width: "300px", height: "10px" }}
-    />
-  );
+type Props = {
+  endpoint?: string;
+  source?: string;
+  accessToken: string;
+  proximity?: { longitude: number; latitude: number };
+  country?: string;
+  bbox?: number[];
+  types?: string;
+  limit?: number;
+  autocomplete?: boolean;
+  language?: string;
+  pointZoom?: number;
 };
 
-export default function Geocoder() {
-  const [value, setValue] = useState<PlaceType | null>(null);
+export interface Result {
+  feature: Feature;
+  label: string;
+}
+
+interface Feature {
+  id: string;
+  type: string;
+  place_type: string[];
+  relevance: number;
+  properties: Properties;
+  text: string;
+  place_name: string;
+  center: [number, number];
+  geometry: Geometry;
+  address: string;
+  context: Context[];
+}
+
+interface Context {
+  id: string;
+  text: string;
+  wikidata?: string;
+  short_code?: string;
+}
+
+interface Geometry {
+  type: string;
+  coordinates: [number, number];
+  interpolated: boolean;
+}
+
+interface Properties {
+  accuracy: string;
+}
+
+const COORDINATE_REGEX_STRING =
+  "^[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?)";
+const COORDINATE_REGEX = RegExp(COORDINATE_REGEX_STRING);
+export const testForCoordinates = (query: string): [true, number, number] | [false, string] => {
+  const isValid = COORDINATE_REGEX.test(query.trim());
+
+  if (!isValid) {
+    return [isValid, query];
+  }
+
+  const tokens = query.trim().split(",");
+
+  return [isValid, Number(tokens[0]), Number(tokens[1])];
+};
+
+export default function Geocoder({
+  endpoint = "https://api.mapbox.com",
+  source = "mapbox.places",
+  pointZoom = 15,
+  accessToken,
+  proximity,
+  country,
+  bbox,
+  types,
+  limit,
+  autocomplete,
+  language,
+}: Props) {
+  const [value, setValue] = useState<Result | null>(null);
+  const [options, setOptions] = useState<readonly Result[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [options, setOptions] = useState<readonly PlaceType[]>([]);
   const [focused, setFocused] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const { map } = useMap();
   const { classes } = useStyles({ focused });
 
-  //   if (typeof window !== "undefined" && !loaded.current) {
-  //     if (!document.querySelector("#google-maps")) {
-  //       loadScript(
-  //         `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`,
-  //         document.querySelector("head"),
-  //         "google-maps"
-  //       );
-  //     }
+  const fetch = useMemo(
+    () =>
+      debounce((request: { value: string }, onresult: (_error: Error, fc: FeatureCollection) => void) => {
+        search(
+          endpoint,
+          source,
+          accessToken,
+          request.value,
+          onresult,
+          proximity,
+          country,
+          bbox,
+          types,
+          limit,
+          autocomplete,
+          language
+        );
+      }, 400),
+    [accessToken, autocomplete, bbox, country, endpoint, language, limit, proximity, source, types]
+  );
 
-  //     loaded.current = true;
-  //   }
+  useEffect(() => {
+    let active = true;
+    if (inputValue === "") {
+      setOptions(value ? [value] : []);
+      return undefined;
+    }
+    const resultCoordinates = testForCoordinates(inputValue);
+    if (resultCoordinates[0]) {
+      const [_, latitude, longitude] = resultCoordinates;
+      setOptions([
+        {
+          feature: {
+            id: "",
+            type: "Feature",
+            place_type: ["coordinate"],
+            relevance: 1,
+            properties: {
+              accuracy: "point",
+            },
+            text: "",
+            place_name: "",
+            center: [longitude, latitude],
+            geometry: {
+              type: "Point",
+              coordinates: [longitude, latitude],
+              interpolated: false,
+            },
+            address: "",
+            context: [],
+          },
+          label: `${latitude}, ${longitude}`,
+        },
+      ]);
+      return undefined;
+    }
+    fetch({ value: inputValue }, (error: Error, fc: FeatureCollection) => {
+      if (active) {
+        if (!error && fc && fc.features) {
+          setOptions(
+            fc.features
+              .map((feature) => ({
+                feature: feature,
+                label: feature.place_name,
+              }))
+              .filter((feature) => feature.label)
+          );
+        }
+      }
+    });
 
-  //   const fetch = useMemo(
-  //     () =>
-  //       debounce((request: { input: string }, callback: (results?: readonly PlaceType[]) => void) => {
-  //         (autocompleteService.current as any).getPlacePredictions(request, callback);
-  //       }, 400),
-  //     []
-  //   );
-
-  //   useEffect(() => {
-  //     let active = true;
-
-  //     if (!autocompleteService.current && (window as any).google) {
-  //       autocompleteService.current = new (window as any).google.maps.places.AutocompleteService();
-  //     }
-  //     if (!autocompleteService.current) {
-  //       return undefined;
-  //     }
-
-  //     if (inputValue === "") {
-  //       setOptions(value ? [value] : []);
-  //       return undefined;
-  //     }
-
-  //     fetch({ input: inputValue }, (results?: readonly PlaceType[]) => {
-  //       if (active) {
-  //         let newOptions: readonly PlaceType[] = [];
-
-  //         if (value) {
-  //           newOptions = [value];
-  //         }
-
-  //         if (results) {
-  //           newOptions = [...newOptions, ...results];
-  //         }
-
-  //         setOptions(newOptions);
-  //       }
-  //     });
-
-  //     return () => {
-  //       active = false;
-  //     };
-  //   }, [value, inputValue, fetch]);
+    return () => {
+      active = false;
+    };
+  }, [value, inputValue, fetch]);
   return (
     <>
       {map && (
@@ -139,8 +205,6 @@ export default function Geocoder() {
               className={classes.root}
               id="geocoder"
               freeSolo
-              sx={{ width: 300 }}
-              getOptionLabel={(option) => (typeof option === "string" ? option : option.description)}
               filterOptions={(x) => x}
               options={options}
               autoComplete
@@ -148,31 +212,54 @@ export default function Geocoder() {
               filterSelectedOptions
               value={value}
               inputValue={inputValue}
-              noOptionsText="No locations"
-              PopperComponent={CustomPopper}
-              clearOnBlur={false}
+              PopperComponent={({ style, ...props }) => (
+                <Popper
+                  {...props}
+                  modifiers={[
+                    {
+                      name: "flip",
+                      options: {
+                        fallbackPlacements: [],
+                      },
+                    },
+                    {
+                      name: "offset",
+                      options: {
+                        offset: [0, 15],
+                      },
+                    },
+                  ]}
+                  sx={{
+                    boxShadow: 2,
+                  }}
+                  className={classes.popper}
+                  style={{ ...style, width: 350 }}
+                />
+              )}
+              ListboxProps={{ className: classes.listBox }}
               clearIcon={null}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onChange={(_event: any, newValue: PlaceType | null) => {
+              onChange={(_event: any, newValue: Result | null) => {
                 setOptions(newValue ? [newValue, ...options] : options);
                 setValue(newValue);
+                if (newValue?.feature?.center)
+                  map.flyTo({
+                    center: newValue?.feature.center,
+                    zoom: pointZoom,
+                  });
               }}
               onInputChange={(_event, newInputValue) => {
                 setInputValue(newInputValue);
               }}
               renderInput={(params) => {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { InputLabelProps, InputProps, ...rest } = params;
+                const { InputLabelProps: _, InputProps: __, ...rest } = params;
                 return (
-                  <Paper
-                    elevation={4}
-                    sx={{ p: "2px 4px", display: "flex", alignItems: "center", width: 300 }}>
+                  <Paper elevation={2} className={classes.paper}>
                     <Icon iconName={ICON_NAME.SEARCH} fontSize="small" className={classes.icon} />
-                    <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+                    <Divider className={classes.divider} orientation="vertical" />
                     <InputBase
-                      sx={{ ml: 1, flex: 1, padding: "0px" }}
                       {...params.InputProps}
                       {...rest}
+                      className={classes.inputBase}
                       placeholder="Enter an address or coordinates"
                       onBlur={() => {
                         setFocused(false);
@@ -185,9 +272,11 @@ export default function Geocoder() {
                     {inputValue && (
                       <IconButton
                         type="button"
-                        sx={{ p: "5px" }}
+                        className={classes.iconButton}
                         onClick={() => {
                           setInputValue("");
+                          setValue(null);
+                          setOptions([]);
                         }}>
                         <Icon iconName={ICON_NAME.CLOSE} fontSize="small" className={classes.icon} />
                       </IconButton>
@@ -195,7 +284,7 @@ export default function Geocoder() {
                     {!inputValue && (
                       <IconButton
                         type="button"
-                        sx={{ p: "5px" }}
+                        className={classes.iconButton}
                         onClick={() => {
                           setCollapsed(true);
                         }}>
@@ -206,34 +295,28 @@ export default function Geocoder() {
                 );
               }}
               renderOption={(props, option) => {
-                const matches = option.structured_formatting.main_text_matched_substrings || [];
-
-                const parts = parse(
-                  option.structured_formatting.main_text,
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  matches.map((match: any) => [match.offset, match.offset + match.length])
-                );
-
+                const matches = match(option.label, inputValue);
+                const parts = parse(option.label, matches);
+                const { className: _, style: __, ...rest } = props;
                 return (
-                  <li {...props}>
-                    <Grid container alignItems="center">
-                      <Grid item sx={{ display: "flex", width: 44 }}>
-                        <LocationOnIcon sx={{ color: "text.secondary" }} />
-                      </Grid>
-                      <Grid item sx={{ width: "calc(100% - 44px)", wordWrap: "break-word" }}>
-                        {parts.map((part, index) => (
-                          <Box
-                            key={index}
-                            component="span"
-                            sx={{ fontWeight: part.highlight ? "bold" : "regular" }}>
-                            {part.text}
-                          </Box>
-                        ))}
-                        <Typography variant="body2" color="text.secondary">
-                          {option.structured_formatting.secondary_text}
-                        </Typography>
-                      </Grid>
-                    </Grid>
+                  <li {...rest} key={option.label}>
+                    <ListItemButton className={classes.listButton}>
+                      <ListItemText
+                        primary={
+                          <Typography noWrap className={classes.listItemTypography} variant="body2">
+                            {parts.map((part: { highlight: boolean; text: string }, index: number) => (
+                              <Typography
+                                key={index}
+                                component="span"
+                                variant="inherit"
+                                sx={{ fontWeight: part.highlight ? 600 : 300 }}>
+                                {part.text}
+                              </Typography>
+                            ))}
+                          </Typography>
+                        }
+                      />
+                    </ListItemButton>
                   </li>
                 );
               }}
@@ -251,6 +334,29 @@ const useStyles = makeStyles<{ focused: boolean }>()((theme, { focused }) => ({
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
   },
+  paper: {
+    padding: theme.spacing(0.5),
+    display: "flex",
+    alignItems: "center",
+    width: 350,
+  },
+  listBox: {
+    maxHeight: "176px",
+    overflow: "hidden",
+  },
+  divider: {
+    height: 28,
+    margin: theme.spacing(0.5),
+  },
+  inputBase: {
+    marginLeft: theme.spacing(1),
+    flex: 1,
+    padding: 0,
+  },
+  iconButton: {
+    padding: theme.spacing(1),
+  },
+  popper: {},
   icon: {
     color: focused
       ? theme.colors.palette.focus.main
@@ -262,5 +368,16 @@ const useStyles = makeStyles<{ focused: boolean }>()((theme, { focused }) => ({
   btn: {
     backgroundColor: theme.colors.useCases.surfaces.surface2,
     color: theme.isDarkModeEnabled ? "white" : theme.colors.palette.light.greyVariant4,
+  },
+  listItemTypography: {
+    textOverflow: "ellipsis",
+    overflow: "hidden",
+    width: "270px",
+  },
+  listButton: {
+    paddingLeft: theme.spacing(3),
+    "&:hover": {
+      backgroundColor: theme.colors.useCases.surfaces.surface2,
+    },
   },
 }));

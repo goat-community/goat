@@ -4,7 +4,7 @@ export default async function search(
     accessToken: string,
     query: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onResult: (err: any, res: Response | null, searchTime: Date) => void,
+    onResult: (err: any, res: Response | null) => void,
     proximity?: {longitude: number; latitude: number},
     country?: string,
     bbox?: number[],
@@ -13,7 +13,6 @@ export default async function search(
     autocomplete?: boolean,
     language?: string
   ) {
-    const searchTime = new Date();
     try {
       const baseUrl = `${endpoint}/geocoding/v5/${source}/${query}.json`;
       // Don't send empty query params to Mapbox geocoding api.
@@ -48,11 +47,11 @@ export default async function search(
       const url = `${baseUrl}?${toUrlString(searchParams)}`;
       const res = await fetch(url);
       const data = await res.json();
-      onResult(null, data, searchTime);
-      return {err: null, res, searchTime};
+      onResult(null, data);
+      return {err: null, res};
     } catch (err) {
-      onResult(err, null, searchTime);
-      return {err, res: null, searchTime};
+      onResult(err, null);
+      return {err, res: null};
     }
   }
   

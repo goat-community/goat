@@ -188,7 +188,7 @@ export default function MapPage() {
               justifyContent="space-between"
               className={cx(classes.controls, classes.mapControls)}>
               <Stack direction="column" className={cx(classes.groupControl)}>
-                <Geocoder />
+                <Geocoder accessToken={MAPBOX_TOKEN} />
               </Stack>
             </Stack>
           </Stack>
