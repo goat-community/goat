@@ -25,6 +25,7 @@ import mapStore from "../store/modules/map";
 import indicators from "../store/modules/indicators";
 import axios from "axios";
 import store from "../store";
+import JwtService from "../services/jwt.service";
 
 /**
  *
@@ -204,7 +205,32 @@ export const LayerFactory = {
     const layer = new ImageLayer({
       ...this.baseConf(lConf).lOpts,
       source: new ImageWMS({
-        ...this.baseConf(lConf).sOpts
+        ...this.baseConf(lConf).sOpts,
+        imageLoadFunction: function(image, src) {
+          let reqUrl = src;
+          let headers = new Headers();
+          if (src.includes("reverse-proxy")) {
+            const split = src.split("?url=");
+            const proxyUrl = split[1];
+            const encodedUrl = encodeURIComponent(proxyUrl);
+            reqUrl = `${split[0]}?url=${encodedUrl}`;
+            headers = new Headers({
+              Authorization: `Bearer ${JwtService.getToken()}`
+            });
+          }
+
+          fetch(reqUrl, { headers })
+            .then(response => response.blob())
+            .then(blob => {
+              const url = URL.createObjectURL(blob);
+              const img = image.getImage();
+              img.addEventListener("load", function() {
+                URL.revokeObjectURL(url);
+              });
+              img.src = url;
+            })
+            .catch(error => console.error(error));
+        }
       })
     });
     return layer;
