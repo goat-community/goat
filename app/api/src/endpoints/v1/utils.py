@@ -18,7 +18,7 @@ router = APIRouter()
 @router.get("/reverse-proxy")
 async def reverse_proxy(
     *,
-    # current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.User = Depends(deps.get_current_active_user),
     url: str = Query(..., description="URL to reverse proxy"),
 ) -> Response:
     """
