@@ -10,6 +10,7 @@ from src import schemas
 from src.db import models
 from src.endpoints import deps
 from src.utils import send_test_email
+from urllib.parse import unquote
 
 router = APIRouter()
 
@@ -17,12 +18,13 @@ router = APIRouter()
 @router.get("/reverse-proxy")
 async def reverse_proxy(
     *,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    # current_user: models.User = Depends(deps.get_current_active_user),
     url: str = Query(..., description="URL to reverse proxy"),
 ) -> Response:
     """
     Reverse proxy to another server.
     """
+    url = unquote(url)
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
     if (
