@@ -50,7 +50,7 @@ export const useInviteUserDialog = () => {
 
 // Remove user dialog
 export const useUserRemovalDialog = () => {
-  const [userInDialog, setUserInDialog] = useState<IUser | null>(null);
+  const [userInDialog, setUserInDialog] = useState<IUser | undefined>(undefined);
   const [isModalVisible, setModalVisible] = useState<boolean>(false);
 
   const openUserRemovalDialog = (user: IUser) => {
@@ -60,10 +60,10 @@ export const useUserRemovalDialog = () => {
 
   const closeUserRemovalDialog = () => {
     setModalVisible(false);
-    setUserInDialog(null);
+    setUserInDialog(undefined);
   };
 
-  const setTheUserInDialog = (user: IUser | null) => {
+  const setTheUserInDialog = (user: IUser | undefined) => {
     setUserInDialog(user);
   };
 

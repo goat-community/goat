@@ -30,7 +30,7 @@ export type TextFieldProps = {
   id?: string;
   name?: string;
   /** Default text */
-  type?: "text" | "password" | "email";
+  type?: "text" | "password" | "email" | "number";
   size?: "small" | "medium";
   InputPropsClass?: {
     className?: string;

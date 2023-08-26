@@ -1,3 +1,4 @@
+import { ICON_NAME } from "@p4b/ui/components/Icon";
 import type {IUser} from "@/types/dashboard/organization";
 import type {ISubscriptionCard} from "@/types/dashboard/subscription";
 
@@ -46,8 +47,19 @@ export const manageUsersStatic: IUser[] = [
   },
 ];
 
+export const dummyOrganization: ISubscriptionCard = {
+  icon: ICON_NAME.ORGANIZATION,
+  title: "Coorperation Name",
+  listItems: [
+    "Next payment: 23 July 2024",
+    "Annual payment cycle: 23 July 2023 - 23 July 2024",
+    "2 of 12 editors seat available",
+    "Region: Greater Munich",
+  ],
+};
+
 export const dummySubscription: ISubscriptionCard = {
-  icon: "rocketLaunch",
+  icon: ICON_NAME.ROCKET,
   title: "Starter",
   listItems: [
     "Next payment: 23 July 2024",
@@ -59,7 +71,7 @@ export const dummySubscription: ISubscriptionCard = {
 
 export const extensionSubscriptions: ISubscriptionCard[] = [
   {
-    icon: "run",
+    icon: ICON_NAME.RUN,
     title: "Active mobility",
     listItems: [
       "Next payment: 23 July 2024",
@@ -69,7 +81,7 @@ export const extensionSubscriptions: ISubscriptionCard[] = [
     ],
   },
   {
-    icon: "bus",
+    icon: ICON_NAME.BUS,
     title: "Motorised mobility",
     listItems: [
       "Next payment: 23 July 2024",
@@ -79,13 +91,3 @@ export const extensionSubscriptions: ISubscriptionCard[] = [
     ],
   },
 ];
-
-export const organizationOverview: ISubscriptionCard = {
-  title: "Organisation name",
-  icon: "coorperate",
-  listItems: [
-    "You are admin on this organisation",
-    "12 active team members",
-    "Active regions: Greater Munich, Greater London, Faux Valley, Stadtburg Burg",
-  ],
-};

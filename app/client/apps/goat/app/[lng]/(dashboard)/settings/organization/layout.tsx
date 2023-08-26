@@ -1,28 +1,34 @@
-import ManageUsers from "@/app/[lng]/(dashboard)/settings/organization/ManageUsers";
-import Overview from "@/app/[lng]/(dashboard)/settings/organization/Overview";
-import Teams from "@/app/[lng]/(dashboard)/settings/organization/Teams";
-
+import React from "react";
 import { Tabs } from "@p4b/ui/components/Navigation/Tabs";
 
+const tabsData = [
+  {
+    child: "Overview",
+    name: "Overview",
+  },
+  {
+    child: "ManageUsers",
+    name: "Manage users",
+  },
+  {
+    child: "Teams",
+    name: "Teams",
+  },
+  {
+    child: "Settings",
+    name: "Settings",
+  },
+];
+
 const Organization = () => {
-  const tabs = [
-    {
-      child: <Overview />,
-      name: "Overview",
-    },
-    {
-      child: <ManageUsers />,
-      name: "Manage users",
-    },
-    {
-      child: <Teams />,
-      name: "Teams",
-    },
-    {
-      child: <div>overview</div>,
-      name: "Settings",
-    },
-  ];
+  const tabs = tabsData.map(({ child, name }) => {
+    const Component = React.lazy(() => import(`@/app/[lng]/(dashboard)/settings/organization/${child}`));
+
+    return {
+      child: <Component />,
+      name,
+    };
+  });
 
   return <Tabs tabs={tabs} />;
 };

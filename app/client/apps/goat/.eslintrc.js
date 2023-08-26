@@ -1,4 +1,4 @@
 module.exports = {
-    root: true,
-    extends: ["p4b"],
-  };
+  root: true,
+  extends: ["p4b"],
+};

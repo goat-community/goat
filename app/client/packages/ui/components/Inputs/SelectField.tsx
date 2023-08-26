@@ -21,6 +21,7 @@ export type SelectFieldProps = {
   size: "small" | "medium";
   multiple?: boolean;
   checkbox?: boolean;
+  disabled?: boolean;
 };
 
 /**
@@ -35,6 +36,7 @@ export const SelectField = memo(
     const {
       className,
       updateChange,
+      disabled = false,
       options,
       label,
       size = "medium",
@@ -72,6 +74,7 @@ export const SelectField = memo(
             <Select
               labelId="demo-simple-select-label"
               id="demo-simple-select"
+              disabled={disabled}
               value={values ? values : defaultValue}
               label={label}
               multiple={multiple}

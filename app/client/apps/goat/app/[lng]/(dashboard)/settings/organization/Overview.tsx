@@ -5,22 +5,24 @@ import SubscriptionCardSkeleton from "@/components/skeletons/SubscriptionCardSke
 import { OVERVIEW_API_URL } from "@/lib/api/apiConstants";
 import { makeStyles } from "@/lib/theme";
 import axios from "axios";
-import React, { useRef } from "react";
+import React from "react";
 import useSWR from "swr";
+import type {ISubscriptionCard} from "@/types/dashboard/subscription";
+
 import { v4 } from "uuid";
 
-import Dialog from "@p4b/ui/components/Dialog";
 import { TextField } from "@p4b/ui/components/Inputs/TextField";
 import Banner from "@p4b/ui/components/Surfaces/Banner";
-import { Icon, Button, Text } from "@p4b/ui/components/theme";
-import type {ISubscriptionCard} from "@/types/dashboard/subscription";
+import { Button, Text } from "@p4b/ui/components/theme";
+import Modal from "@p4b/ui/components/Modal";
+import WrappedIcon from "@/components/common/WrappedIcon";
+import { ICON_NAME } from "@p4b/ui/components/Icon";
 
 const Overview = () => {
   // User state management
-  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
+  const [organizationEdit, setOrganizationEdit] = React.useState<boolean>(false);
 
   // styling related
-  const dialogRef = useRef<HTMLDivElement | null>(null);
   const { classes } = useStyles();
 
   const UsersFetcher = (url: string) => {
@@ -28,14 +30,6 @@ const Overview = () => {
   };
 
   const { data, error, isLoading } = useSWR(OVERVIEW_API_URL, UsersFetcher);
-
-  function openAddUserDialog(event: React.MouseEvent<HTMLButtonElement>) {
-    setAnchorEl(event.currentTarget);
-  }
-
-  const handleAddUserClose = () => {
-    setAnchorEl(null);
-  };
 
   function beforeLoadedMessage() {
     if (isLoading) {
@@ -62,44 +56,35 @@ const Overview = () => {
       )),
       action: (
         <div className={classes.buttonWrapper}>
-          <Button onClick={openAddUserDialog} className={classes.button} variant="primary">
+          <Button onClick={() => setOrganizationEdit(true)} className={classes.button} variant="primary">
             Manage license
           </Button>
-          {anchorEl ? (
-            <Dialog
-              anchorEl={anchorEl}
-              ref={dialogRef}
-              onClick={handleAddUserClose}
-              title="Update Oganizaztion Name"
+            <Modal
+              open={organizationEdit}
+              changeOpen={setOrganizationEdit}
               width="444px"
-              direction="right"
               action={
                 <div className={classes.buttons}>
-                  <Button variant="noBorder" onClick={handleAddUserClose}>
+                  <Button variant="noBorder" onClick={() => setOrganizationEdit(false)}>
                     CANCEL
                   </Button>
                   <Button variant="noBorder">UPDATE</Button>
                 </div>
-              }>
+              }
+              header={(
               <div className={classes.subheader}>
-                <Icon
-                  iconId={data.icon}
-                  size="small"
-                  bgVariant="focus"
-                  iconVariant="secondary"
-                  wrapped="circle"
-                  bgOpacity={0.6}
-                />
+                <WrappedIcon icon={ICON_NAME.ORGANIZATION}/>
                 <Text className={classes.subheaderText} typo="body 1">
                   {data.title}
                 </Text>
               </div>
+              )}
+              >
               <div className={classes.formInputs}>
                 <TextField type="text" label="New name" />
                 <TextField type="password" label="Confirm password" />
               </div>
-            </Dialog>
-          ) : null}
+            </Modal>
         </div>
       ),
     };
@@ -146,9 +131,11 @@ const useStyles = makeStyles({ name: { Overview } })((theme) => {
     },
     subheader: {
       display: "flex",
+      alignItems: "center",
       marginBottom: theme.spacing(3),
     },
     subheaderText: {
+      fontWeight: "bold",
       marginLeft: theme.spacing(2),
     },
     formInputs: {

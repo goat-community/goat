@@ -45,7 +45,7 @@ const useStyles = (props: ToolbarProps) =>
   makeStyles({ name: { Toolbar } })((theme) => ({
     root: {
       position: "fixed",
-      backgroundColor: theme.colors.useCases.surfaces.background,
+      backgroundColor: theme.colors.useCases.surfaces.surface1,
       height: props.height,
       top: 0,
       left: 0,

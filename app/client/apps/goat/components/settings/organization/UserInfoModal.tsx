@@ -10,7 +10,7 @@ import type {IUser} from "@/types/dashboard/organization";
 
 interface UserInfoModal {
   ismodalVisible: boolean;
-  userInDialog: IUser | boolean;
+  userInDialog: IUser | undefined;
   editUserRole: (role: "Admin" | "User" | "Editor", user: IUser | undefined) => void;
 }
 
@@ -123,7 +123,7 @@ const UserInfoModal = (props: UserInfoModal) => {
                 Name:{" "}
               </Text>{" "}
               <Text typo="label 1" className={classes.userDataValue}>
-                {typeof userInDialog !== "boolean" ? userInDialog?.name : ""}
+                {userInDialog ? userInDialog?.name : ""}
               </Text>
             </span>
             <span className={classes.userDataText}>
@@ -131,7 +131,7 @@ const UserInfoModal = (props: UserInfoModal) => {
                 E-mail:{" "}
               </Text>{" "}
               <Text typo="label 1" className={classes.userDataValue}>
-                {typeof userInDialog !== "boolean" ? userInDialog?.email : ""}
+                { userInDialog ? userInDialog?.email : ""}
               </Text>
             </span>
             <span className={classes.userDataText}>
@@ -139,7 +139,7 @@ const UserInfoModal = (props: UserInfoModal) => {
                 Added in:{" "}
               </Text>{" "}
               <Text typo="label 1" className={classes.userDataValue}>
-                {typeof userInDialog !== "boolean" ? userInDialog?.Added : ""}
+                { userInDialog  ? userInDialog?.Added : ""}
               </Text>
             </span>
             <span className={classes.userDataText}>
@@ -158,7 +158,7 @@ const UserInfoModal = (props: UserInfoModal) => {
                 options={organizationRoles}
                 label="Role"
                 size="small"
-                defaultValue={typeof userInDialog !== "boolean" ? userInDialog?.role : ""}
+                defaultValue={ userInDialog ? userInDialog?.role : ""}
                 updateChange={(value: "Admin" | "Editor" | "User") =>
                   editUserRole(value, typeof userInDialog !== "boolean" ? userInDialog : undefined)
                 }
@@ -169,7 +169,7 @@ const UserInfoModal = (props: UserInfoModal) => {
                 Status:{" "}
               </Text>{" "}
               <div className={classes.userDataValue}>
-                {typeof userInDialog !== "boolean" ? userInDialog?.status : ""}
+                { userInDialog  ? userInDialog?.status : ""}
               </div>
             </span>
           </div>
