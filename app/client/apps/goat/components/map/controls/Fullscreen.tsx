@@ -25,7 +25,7 @@ export function Fullscren() {
         <>
           <Stack direction="column" className={classes.root}>
             <Tooltip title={fullscreen ? "Exit Fullscreen" : "Fullscreen"} arrow placement="left">
-              <Fab onClick={() => toggleFullscreen()} size="small" className={classes.btn}>
+              <Fab onClick={() => toggleFullscreen()} size="small" color="primary" className={classes.btn}>
                 <Icon iconName={fullscreen ? ICON_NAME.MINIMIZE : ICON_NAME.MAXIMIZE} fontSize="small" />
               </Fab>
             </Tooltip>
@@ -39,13 +39,13 @@ export function Fullscren() {
 const useStyles = makeStyles()((theme) => ({
   root: {
     alignItems: "flex-end",
-    marginTop: theme.spacing(1),
+    // marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
   },
   btn: {
-    backgroundColor: theme.colors.useCases.surfaces.surface2,
+    backgroundColor: theme.colors.palette.focus.main,
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
-    color: theme.isDarkModeEnabled ? "white" : theme.colors.palette.light.greyVariant4,
+    color: theme.isDarkModeEnabled ? theme.colors.palette.focus.main : theme.colors.palette.light.main,
   },
 }));

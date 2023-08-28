@@ -16,6 +16,7 @@ import {
   Popper,
   Tooltip,
   debounce,
+  Stack,
 } from "@mui/material";
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 import search from "@/lib/services/geocoder";
@@ -188,17 +189,20 @@ export default function Geocoder({
       {map && (
         <>
           {collapsed && (
-            <Tooltip title="Search" arrow placement="right">
-              <Fab
-                onClick={() => {
-                  setCollapsed(false);
-                  setFocused(false);
-                }}
-                size="small"
-                className={classes.btn}>
-                <Icon iconName={ICON_NAME.SEARCH} fontSize="small" />
-              </Fab>
-            </Tooltip>
+            <Stack direction="column" className={classes.root}>
+              <Tooltip title="Search" arrow placement="right">
+                <Fab
+                  onClick={() => {
+                    setCollapsed(false);
+                    setFocused(false);
+                  }}
+                  size="small"
+                  color="primary"
+                  className={classes.btn}>
+                  <Icon iconName={ICON_NAME.SEARCH} fontSize="small" />
+                </Fab>
+              </Tooltip>
+            </Stack>
           )}
           {!collapsed && (
             <Autocomplete
@@ -254,21 +258,6 @@ export default function Geocoder({
                 const { InputLabelProps: _, InputProps: __, ...rest } = params;
                 return (
                   <Paper elevation={2} className={classes.paper}>
-                    <Icon iconName={ICON_NAME.SEARCH} fontSize="small" className={classes.icon} />
-                    <Divider className={classes.divider} orientation="vertical" />
-                    <InputBase
-                      {...params.InputProps}
-                      {...rest}
-                      className={classes.inputBase}
-                      placeholder="Enter an address or coordinates"
-                      onBlur={() => {
-                        setFocused(false);
-                      }}
-                      onFocus={() => {
-                        setFocused(true);
-                      }}
-                      fullWidth
-                    />
                     {inputValue && (
                       <IconButton
                         type="button"
@@ -288,9 +277,24 @@ export default function Geocoder({
                         onClick={() => {
                           setCollapsed(true);
                         }}>
-                        <Icon iconName={ICON_NAME.CHEVRON_LEFT} fontSize="small" className={classes.icon} />
+                        <Icon iconName={ICON_NAME.CHEVRON_RIGHT} fontSize="small" className={classes.icon} />
                       </IconButton>
                     )}
+                    <InputBase
+                      {...params.InputProps}
+                      {...rest}
+                      className={classes.inputBase}
+                      placeholder="Enter an address or coordinates"
+                      onBlur={() => {
+                        setFocused(false);
+                      }}
+                      onFocus={() => {
+                        setFocused(true);
+                      }}
+                      fullWidth
+                    />
+                    <Divider className={classes.divider} orientation="vertical" />
+                    <Icon iconName={ICON_NAME.SEARCH} fontSize="small" className={classes.icon} />
                   </Paper>
                 );
               }}
@@ -330,9 +334,8 @@ export default function Geocoder({
 
 const useStyles = makeStyles<{ focused: boolean }>()((theme, { focused }) => ({
   root: {
-    alignItems: "flex-start",
+    alignItems: "flex-end",
     marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
   },
   paper: {
     padding: theme.spacing(0.5),
@@ -366,8 +369,10 @@ const useStyles = makeStyles<{ focused: boolean }>()((theme, { focused }) => ({
     margin: theme.spacing(2),
   },
   btn: {
-    backgroundColor: theme.colors.useCases.surfaces.surface2,
-    color: theme.isDarkModeEnabled ? "white" : theme.colors.palette.light.greyVariant4,
+    backgroundColor: theme.colors.palette.focus.main,
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    color: theme.isDarkModeEnabled ? theme.colors.palette.focus.main : theme.colors.palette.light.main,
   },
   listItemTypography: {
     textOverflow: "ellipsis",
