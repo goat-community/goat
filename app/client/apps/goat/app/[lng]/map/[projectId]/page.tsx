@@ -25,9 +25,17 @@ import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
 
+const sidebarWidth = 48;
+const toolbarHeight = 52;
+
 export default function MapPage() {
-  const sidebarWidth = 48;
-  const toolbarHeight = 52;
+  const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(undefined);
+  const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(undefined);
+  const [activeBasemapIndex, setActiveBasemapIndex] = useState([0]);
+
+  const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
+  const prevActiveRightRef = useRef<MapSidebarItem | undefined>(undefined);
+
   const { classes, cx } = useStyles({ sidebarWidth, toolbarHeight });
 
   const toolbar: MapToolbarProps = {
@@ -37,17 +45,6 @@ export default function MapPage() {
     height: toolbarHeight,
   };
 
-  const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(undefined);
-  const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
-  useEffect(() => {
-    prevActiveLeftRef.current = activeLeft;
-  }, [activeLeft]);
-
-  const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(undefined);
-  const prevActiveRightRef = useRef<MapSidebarItem | undefined>(undefined);
-  useEffect(() => {
-    prevActiveRightRef.current = activeRight;
-  }, [activeRight]);
   const leftSidebar: MapSidebarProps = {
     topItems: [
       {
@@ -141,7 +138,14 @@ export default function MapPage() {
       thumbnail: "https://i.imgur.com/lfcARxZm.png",
     },
   ];
-  const [activeBasemapIndex, setActiveBasemapIndex] = useState([0]);
+
+  useEffect(() => {
+    prevActiveLeftRef.current = activeLeft;
+  }, [activeLeft]);
+
+  useEffect(() => {
+    prevActiveRightRef.current = activeRight;
+  }, [activeRight]);
 
   return (
     <MapProvider>
