@@ -1,0 +1,22 @@
+{
+    "name": "eslint-config-p4b",
+    "version": "1.0.0",
+    "private": true,
+    "main": "index.js",
+    "license": "MIT",
+    "scripts": {
+      "clean": "rimraf node_modules"
+    },
+    "devDependencies": {
+      "eslint": "^8.47.0",
+      "eslint-config-next": "^13.4.12",
+      "eslint-config-prettier": "^8.10.0",
+      "eslint-plugin-react": "7.33.2",
+      "eslint-plugin-playwright": "^0.15.3",
+      "eslint-config-turbo": "1.10.12",
+      "eslint-plugin-unused-imports": "^2.0.0",
+      "eslint-plugin-you-dont-need-lodash-underscore": "^6.12.0",
+      "@typescript-eslint/eslint-plugin": "^5.52.0",
+      "@typescript-eslint/parser": "^5.52.0"
+    }
+  }

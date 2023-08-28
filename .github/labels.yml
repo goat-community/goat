@@ -1,0 +1,84 @@
+- name: api
+  color: f77c47
+  description: Everything related the API.
+- name: devops
+  color: ed2d69
+  description: Devops related
+- name: frontend
+  color: c0cdf9
+  description: Front-end
+- name: bug
+  color: d73a4a
+  description: Something isn't working
+- name: data-collection
+  color: "16C064"
+  description: 
+- name: data-preparation
+  color: 2B3015
+  description: Everything related to data preparation
+- name: data-scripting
+  color: AB2DA5
+  description: null
+- name: database
+  color: b2dbff
+  description: Database
+- name: dependencies
+  color: 0366d6
+  description: Pull requests that update a dependency file
+- name: docs
+  color: e2b436
+  description: This is for improving the documentation.
+- name: duplicate
+  color: cfd3d7
+  description: This issue or pull request already exists
+- name: epic
+  color: "78037A"
+  description: An epic bundles several issues
+- name: experiment
+  color: efc6ac
+  description: ""
+- name: github_actions
+  color: "000000"
+  description: Pull requests that update GitHub Actions code
+- name: high-priority
+  color: 58c609
+  description: ""
+- name: javascript
+  color: 168700
+  description: Pull requests that update Javascript code
+- name: typescript
+  color: 2b67c6
+  description: Pull requests that update Typescript code
+- name: mapping
+  color: "124982"
+  description: null
+- name: new-feature
+  color: a2eeef
+  description: New feature or request
+- name: python
+  color: 2b67c6
+  description: Pull requests that update Python code
+- name: question
+  color: d876e3
+  description: Further information is requested
+- name: refactoring
+  color: "8D5D46"
+  description: Is this issue linked to refactoring code.
+- name: research
+  color: "006B75"
+  description: ""
+- name: testing
+  color: "5319E7"
+  description: Testing related issues
+- name: UI/UX
+  color: "EE73BB"
+  description: Everything related to UI/UX Design
+- name: v2
+  color: "F614BD"
+  description: ""
+- name: wontfix
+  color: "ffffff"
+  description: This will not be worked on
+- name: autoupdate
+  color: "F614BD"
+  description: null

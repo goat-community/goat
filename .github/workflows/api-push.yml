@@ -1,0 +1,29 @@
+name: "Api - Push"
+
+on:
+  push:
+    branches: [dev, main, v2]
+    paths:
+      - "app/api/**"
+      - "infra/manifests/**/api.yml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: app/api
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+  
+jobs:
+  release-api:
+    name: release-api
+    uses: ./.github/workflows/api-release.yml
+    secrets: inherit
+
+  deploy-api:
+    name: deploy-api
+    needs: release-api
+    uses: ./.github/workflows/api-deploy.yml
+    secrets: inherit

@@ -19,6 +19,8 @@ __pycache__
 r5-cache
 /app/api/src/cache
 .next
+.tsbuildinfo
+
 /.idea
 
 /app/api/src/cache/traveltime_matrices/walking/*
@@ -70,3 +72,4 @@ costs.bin
 *.tfvars
 *.pkrvars*
 .idea
+lint-results

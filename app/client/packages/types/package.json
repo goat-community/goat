@@ -1,0 +1,15 @@
+{
+  "name": "@p4b/types",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "clean": "rimraf node_modules .turbo"
+  },
+  "devDependencies": {
+    "@p4b/tsconfig": "workspace:*"
+  },
+  "dependencies": {
+    "zod": "^3.21.4"
+  }
+}

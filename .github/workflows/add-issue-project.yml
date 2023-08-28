@@ -1,4 +1,4 @@
-name: Add issues to project
+name: "Add issues to project"
 
 on:
   issues:
@@ -12,9 +12,5 @@ jobs:
     steps:
       - uses: actions/add-to-project@v0.4.0
         with:
-          # You can target a repository in a different organization
-          # to the issue
           project-url: https://github.com/orgs/goat-community/projects/1
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
-          #labeled: bug
-          #label-operator: OR

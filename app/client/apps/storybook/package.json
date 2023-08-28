@@ -1,0 +1,43 @@
+{
+  "name": "@p4b/storybook",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "clean": "rimraf ./.next ./out ./coverage ./tsconfig.tsbuildinfo ./node_modules",
+    "dev": "storybook dev -p 6006",
+    "typecheck": "tsc --project ./tsconfig.json --pretty --noEmit"
+  },
+  "dependencies": {
+    "@p4b/keycloak-theme": "*",
+    "@p4b/ui": "*",
+    "@p4b/types": "*",
+    "next": "v13.4.12",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@p4b/tsconfig": "*",
+    "eslint-config-p4b": "workspace:*",
+    "eslint-plugin-storybook": "^0.6.12",
+    "@storybook/addon-a11y": "^7.0.9",
+    "@storybook/addon-actions": "^7.0.9",
+    "@storybook/addon-docs": "^7.0.9",
+    "@storybook/addon-essentials": "^7.0.9",
+    "@storybook/addon-interactions": "^7.0.9",
+    "@storybook/addon-links": "^7.0.9",
+    "@storybook/blocks": "^7.0.9",
+    "@storybook/manager-api": "^7.0.9",
+    "@storybook/nextjs": "^7.0.9",
+    "@storybook/node-logger": "^7.0.9",
+    "@storybook/react": "^7.0.9",
+    "@storybook/testing-library": "^0.1.0",
+    "@storybook/theming": "^7.0.9",
+    "@types/node": "^20.1.5",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "storybook": "^7.0.9",
+    "storybook-addon-designs": "7.0.0-beta.2",
+    "storybook-dark-mode": "^3.0.0",
+    "file-system-cache": "2.0.0"
+  }
+}

@@ -1,0 +1,69 @@
+# **what?**
+# Runs code quality checks, unit tests, integration tests and. This workflow
+# should not require any secrets since it runs for PRs from forked repos. By
+# default, secrets are not passed to workflows running from a forked repos.
+
+# **why?**
+# Ensure code for meets a certain quality standard.
+
+# **when?**
+# This will run for all PRs, when code is pushed to a release
+# branch, and when manually triggered.
+
+name: "Client - PR"
+
+on:
+  pull_request_target:
+    branches: [dev, main, v2]
+    paths:
+      - "app/client/**"
+  merge_group:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: app/client
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+
+jobs:
+  typecheck:
+    name: typecheck
+    uses: ./.github/workflows/client-check-types.yml
+    secrets: inherit
+
+  lint:
+    name: lint
+    uses: ./.github/workflows/client-lint.yml
+    secrets: inherit
+  
+  # todo: test run
+
+  build:
+    name:  build
+    uses: ./.github/workflows/client-production-build.yml
+    secrets: inherit
+
+  analyze:
+    name: analyze
+    needs: build
+    uses: ./.github/workflows/client-nextjs-bundle-analysis.yml
+    secrets: inherit
+  
+  release-docker-build:
+    name: docker-build
+    needs: [build, analyze]
+    uses: ./.github/workflows/client-release.yml
+    secrets: inherit
+
+  required:
+    needs: [lint, typecheck, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: fail if conditional jobs failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
+        run: exit 1

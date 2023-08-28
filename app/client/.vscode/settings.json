@@ -1,7 +1,8 @@
 {
-    "i18n-ally.localesPaths": [
-        "src/locales"
-    ],
-    "i18n-ally.keystyle": "nested",
-    "C_Cpp.intelliSenseEngineFallback": "Enabled"
+  "eslint.workingDirectories": [
+    { "pattern": "apps/*/" },
+    { "pattern": "packages/*/" }
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.preferences.importModuleSpecifier": "non-relative"
 }

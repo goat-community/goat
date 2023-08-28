@@ -4,7 +4,8 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
-
+import {Redirect} from '@docusaurus/router';
+import i18n from '@generated/i18n';
 import styles from './index.module.css';
 
 function HomepageHeader() {
@@ -27,15 +28,6 @@ function HomepageHeader() {
 }
 
 export default function Home(): JSX.Element {
-  const {siteConfig} = useDocusaurusContext();
-  return (
-    <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
-      <HomepageHeader />
-      <main>
-        <HomepageFeatures />
-      </main>
-    </Layout>
-  );
+  const path = i18n.currentLocale === "en" ? "/1.5" : `/${i18n.currentLocale}/1.5` 
+  return <Redirect to={path} />
 }

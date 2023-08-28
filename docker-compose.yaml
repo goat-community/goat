@@ -28,7 +28,7 @@ services:
   #   image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:client-${PROJECT_VERSION}
   #   build:
   #     dockerfile: apps/goat/Dockerfile
-  #     context: ./app/client-v2
+  #     context: ./app/client
   #   container_name: ${COMPOSE_PROJECT_NAME}_client
   #   hostname: ${COMPOSE_PROJECT_NAME}_client
   #   ports:
@@ -41,7 +41,7 @@ services:
   #   image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:storybook-${PROJECT_VERSION}
   #   build:
   #     dockerfile: apps/storybook/Dockerfile
-  #     context: ./app/client-v2
+  #     context: ./app/client
   #   container_name: ${COMPOSE_PROJECT_NAME}_storybook
   #   hostname: ${COMPOSE_PROJECT_NAME}_storybook
   #   ports:
