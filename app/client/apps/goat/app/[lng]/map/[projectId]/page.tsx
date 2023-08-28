@@ -50,7 +50,7 @@ export default function MapPage() {
       {
         icon: ICON_NAME.LAYERS,
         name: "Layers",
-        component: <Layer setActiveLeft={setActiveLeft} />,
+        component: <Layer />,
       },
       {
         icon: ICON_NAME.LEGEND,
@@ -187,6 +187,14 @@ export default function MapPage() {
               )}
             </Collapse>
             {/* Left Controls */}
+            <Stack
+              direction="column"
+              justifyContent="space-between"
+              className={cx(classes.controls, classes.mapControls)}>
+              <Stack direction="column" className={cx(classes.groupControl)}>
+                <Geocoder accessToken={MAPBOX_TOKEN} />
+              </Stack>
+            </Stack>
           </Stack>
           <Stack
             direction="row"
@@ -197,9 +205,8 @@ export default function MapPage() {
               justifyContent="space-between"
               className={cx(classes.controls, classes.mapControls)}>
               <Stack direction="column" className={cx(classes.groupControl)}>
-                <Geocoder accessToken={MAPBOX_TOKEN} />
-                <Fullscren />
                 <Zoom />
+                <Fullscren />
               </Stack>
               <Stack direction="column" className={cx(classes.groupControl)}>
                 <BasemapSelector

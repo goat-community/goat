@@ -39,7 +39,7 @@ export { ViewPortOutOfRangeError };
 export type Theme<
   Palette extends PaletteBase = PaletteBase,
   ColorUseCases extends ColorUseCasesBase = ColorUseCasesBase,
-  CustomTypographyVariantName extends string = never,
+  CustomTypographyVariantName extends string = never
 > = {
   colors: {
     palette: Palette;
@@ -107,7 +107,7 @@ export declare namespace ThemeProviderProps {
 export function createThemeProvider<
   Palette extends PaletteBase = PaletteBase,
   ColorUseCases extends ColorUseCasesBase = ColorUseCasesBase,
-  CustomTypographyVariantName extends string = never,
+  CustomTypographyVariantName extends string = never
 >(params: {
   isReactStrictModeEnabled?: boolean;
   getTypographyDesc?: GetTypographyDesc<CustomTypographyVariantName>;
