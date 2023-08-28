@@ -11,7 +11,7 @@ export type ColorUseCasesBase = ReturnType<typeof createDefaultColorUseCases>;
 
 export type CreateColorUseCase<
   Palette extends PaletteBase,
-  ColorUseCases extends ColorUseCasesBase
+  ColorUseCases extends ColorUseCasesBase,
 > = (params: { isDarkModeEnabled: boolean; palette: Palette }) => ColorUseCases;
 
 export const defaultPalette = {
@@ -20,7 +20,8 @@ export const defaultPalette = {
     light: "#80D1B3",
     light2: "#60D3A2",
     dark: "#1A6B4D",
-    darkVariant2: "#2bb3810a"
+    darkVariant2: "#2bb3810a",
+    darkVariant3: "#2BB3814D",
   },
   dark: {
     main: "#283648",
