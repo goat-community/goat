@@ -50,7 +50,7 @@ export default function MapPage() {
       {
         icon: ICON_NAME.LAYERS,
         name: "Layers",
-        component: <Layer />,
+        component: <Layer setActiveLeft={setActiveLeft} />,
       },
       {
         icon: ICON_NAME.LEGEND,
