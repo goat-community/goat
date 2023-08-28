@@ -16,7 +16,9 @@ An accessibility instrument is a tool used to calculate and analyze the accessib
 ### Active Mobility
 Active mobility refers to the use of human-powered modes of transport, such as walking, and cycling. It is an important part of sustainable transport as it reduces car dependency and is emission-free. Active mobility also has many health benefits, such as reducing the risk of obesity and cardiovascular disease. 
  
-**IMAGE**
+![Active Mobility](/img/docs/general/glossary/active_mobility_freepik.webp "Active Mobility")
+
+_Image: Designed by pch.vector / [Freepik](http://www.freepik.com)_
 
 ### Area of Interest (AOI)
 An Area of Interest (AOI) is a specific geographical region or boundary that is of particular interest or importance to a particular study or analysis. It can be a watershed, a forest, a park or any other geographic area relevant to the study. The AOI is usually defined by a set of coordinates or a polygonal boundary that encompasses the region of interest. 
@@ -26,10 +28,15 @@ Connectivity refers to the degree to which paths are connected to each other. Th
 
 Connectivity has a direct impact on accessibility, as it is decisive for the travel time to reach a certain destination. High connectivity is especially important for active modes, as these modes are particularly sensitive to detours. Thus, high connectivity is key to ensure accessibility to services and amenities and to promote sustainable mobility. 
 
-### H3 Grid **IMAGE**
+### H3 Grid 
+![H3 logo](/img/docs/general/glossary/H3_grid_logo.webp "H3 logo")
+**TODO: fix image size**
+
 The H3 grid is a geospatial indexing system by Uber Technologies that partitions the Earth's surface into a hierarchical grid of hexagonal cells for more efficient and accurate representation and analysis of geospatial data. It uses a hexagonal tiling approach based on an icosahedron, creating a hierarchical structure with multiple levels of resolution. The hexagonal shape allows for equidistant and consistent spatial representation, with different resolutions. The resolution 10 (approx. 75m edge length) is used in GOAT for computing travel-times and resolution 9 (approx. 200m edge length) or higher is used for visualization of heatmaps. Values are aggregated from the higher to lower resolution by computing the mean. 
 
-**IMAGE**
+![H3 grid](/img/docs/general/glossary/H3_grid.webp "H3 grid")
+
+**TODO: fix image size & center allignment**
 
 ### Heatmap
 A heatmap is a graphical visualization form that uses different colors to indicate the different values of a dataset. This allows for a quick understanding of the data presented. 
