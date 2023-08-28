@@ -61,7 +61,7 @@ Further information: **TODO: add link to routing/walking**
 
 Considering all paths accessible by bicycle.
 
-Default cycling speed: 15km/h Depending on the surface, smoothness and slope of the different street segments, the cycling speed is adjusted accordingly (further information >> **TODO: add paper link**).
+Default cycling speed: 15km/h Depending on the surface, smoothness and slope of the different street segments, the cycling speed is adjusted accordingly (further information: [Publication](/general/publications#accessibility-by-proximity-addressing-the-lack-of-interactive-accessibility-instruments-for-active-mobility) > TODO: check link).
 
 <img src="https://plan4better.de/images/docs/technical_documentation/isochrone/standard_en.webp" width="1000px" alt="isochrone cycling settings" style={{width: "300px", height: "150px", maxHeight: "100px", maxWidth: "300px", objectFit: "contain"}}/> 
 
@@ -96,7 +96,7 @@ Further information: **TODO: add link to routing/transit**
 
 --- end of swizzle --- 
 
-1. Place the ``starting point`` on the map. 
+2. Place the ``starting point`` on the map. 
 
 <img src="/img/docs/indicators/catchments/Isochrone/original_files/starting_point.png" width="1000px" alt="isochrone starting point" style={{width: "1000px", height: "250px", maxHeight: "10px", maxWidth: "100px", objectFit: "cover"}}/> 
 

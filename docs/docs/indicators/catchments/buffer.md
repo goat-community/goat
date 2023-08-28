@@ -9,7 +9,7 @@ The buffer creates a **straight line circle** around a given starting point. The
 
 ## 1. Explanation
 
-A **buffer** is an simple accessibility indicator that shows the catchment area of a specific point. The buffer **distance** can be selected by the user.
+A **buffer** is an simple accessibility indicator that shows the catchment area of a specific point. The buffer ``distance`` can be selected by the user.
 
 In contrary to the [isochrones](isochrones/), which are calculated based on the real transport network, the buffer calculates the catchment areas **as the crow flies**. 
 
