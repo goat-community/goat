@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export default async function search(
     endpoint: string,
     source: string,
     accessToken: string,
     query: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onResult: (err: any, res: Response | null) => void,
     proximity?: {longitude: number; latitude: number},
     country?: string,
@@ -15,7 +15,6 @@ export default async function search(
   ) {
     try {
       const baseUrl = `${endpoint}/geocoding/v5/${source}/${query}.json`;
-      // Don't send empty query params to Mapbox geocoding api.
       const searchParams = {
         ...(isNotNil(accessToken) && {access_token: accessToken}),
         ...(isNotNil(proximity) && {
@@ -54,8 +53,6 @@ export default async function search(
       return {err, res: null};
     }
   }
-  
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function toUrlString(params: any) {
     return Object.keys(params)
       .map(

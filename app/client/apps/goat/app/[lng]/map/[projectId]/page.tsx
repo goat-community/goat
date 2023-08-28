@@ -6,13 +6,14 @@ import type { MapToolbarProps } from "@/components/map/Toolbar";
 import { MapToolbar } from "@/components/map/Toolbar";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Zoom } from "@/components/map/controls/Zoom";
-import Charts from "@/components/map/panels/Charts";
-import Filter from "@/components/map/panels/filter/Filter";
-import Layer from "@/components/map/panels/Layer";
-import Legend from "@/components/map/panels/Legend";
-import MapStyle from "@/components/map/panels/MapStyle";
-import Scenario from "@/components/map/panels/Scenario";
-import Toolbox from "@/components/map/panels/Toolbox";
+import ChartsPanel from "@/components/map/panels/Charts";
+import FilterPanel from "@/components/map/panels/filter/Filter";
+import LayerPanel from "@/components/map/panels/Layer";
+import LegendPanel from "@/components/map/panels/Legend";
+import MapStylePanel from "@/components/map/panels/MapStyle";
+import ScenarioPanel from "@/components/map/panels/Scenario";
+import ToolboxPanel from "@/components/map/panels/Toolbox";
+import MapboxOverlay from "@/components/map/MapboxOverlay";
 import { MAPBOX_TOKEN } from "@/lib/constants";
 import { makeStyles } from "@/lib/theme";
 import { Box, Collapse, Stack } from "@mui/material";
@@ -24,8 +25,15 @@ import type { CSSObject } from "tss-react";
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
+import { API } from "@/lib/api/apiConstants";
+import { fetchProject } from "@/lib/services/project";
+import useSWR from "swr";
+import type { Project } from "@/types/map/project";
 
 export default function MapPage() {
+  const { data: project, error } = useSWR<Project>(API.project, fetchProject);
+  console.log(project, error);
+
   const sidebarWidth = 48;
   const toolbarHeight = 52;
   const { classes, cx } = useStyles({ sidebarWidth, toolbarHeight });
@@ -37,13 +45,17 @@ export default function MapPage() {
     height: toolbarHeight,
   };
 
-  const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(undefined);
+  const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(
+    undefined
+  );
   const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
   useEffect(() => {
     prevActiveLeftRef.current = activeLeft;
   }, [activeLeft]);
 
-  const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(undefined);
+  const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(
+    undefined
+  );
   const prevActiveRightRef = useRef<MapSidebarItem | undefined>(undefined);
   useEffect(() => {
     prevActiveRightRef.current = activeRight;
@@ -53,17 +65,17 @@ export default function MapPage() {
       {
         icon: ICON_NAME.LAYERS,
         name: "Layers",
-        component: <Layer />,
+        component: <LayerPanel onCollapse={() => setActiveLeft(undefined)} layers={project?.layers} />,
       },
       {
         icon: ICON_NAME.LEGEND,
         name: "Legend",
-        component: <Legend />,
+        component: <LegendPanel />,
       },
       {
         icon: ICON_NAME.CHART,
         name: "Charts",
-        component: <Charts />,
+        component: <ChartsPanel />,
       },
     ],
     bottomItems: [
@@ -82,22 +94,22 @@ export default function MapPage() {
       {
         icon: ICON_NAME.TOOLBOX,
         name: "Tools",
-        component: <Toolbox />,
+        component: <ToolboxPanel />,
       },
       {
         icon: ICON_NAME.FILTER,
         name: "Filter",
-        component: <Filter />,
+        component: <FilterPanel />,
       },
       {
         icon: ICON_NAME.SCENARIO,
         name: "Scenario",
-        component: <Scenario />,
+        component: <ScenarioPanel />,
       },
       {
         icon: ICON_NAME.STYLE,
         name: "Map Style",
-        component: <MapStyle setActiveRight={setActiveRight} />,
+        component: <MapStylePanel setActiveRight={setActiveRight} />,
       },
     ],
     width: sidebarWidth,
@@ -142,7 +154,6 @@ export default function MapPage() {
     },
   ];
   const [activeBasemapIndex, setActiveBasemapIndex] = useState([0]);
-
   return (
     <MapProvider>
       <div className={cx(classes.container)}>
@@ -157,7 +168,9 @@ export default function MapPage() {
                 window.open(item.link, "_blank");
                 return;
               } else {
-                setActiveLeft(item.name === activeLeft?.name ? undefined : item);
+                setActiveLeft(
+                  item.name === activeLeft?.name ? undefined : item
+                );
               }
             }}
           />
@@ -165,7 +178,8 @@ export default function MapPage() {
           <Stack
             direction="row"
             className={cx(classes.collapse, classes.collapseLeft)}
-            sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+            sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          >
             <Collapse
               timeout={200}
               orientation="horizontal"
@@ -174,19 +188,21 @@ export default function MapPage() {
               onExited={() => {
                 setActiveLeft(undefined);
                 prevActiveLeftRef.current = undefined;
-              }}>
+              }}
+            >
               {(activeLeft?.component !== undefined ||
                 prevActiveLeftRef.current?.component !== undefined) && (
                 <Box className={cx(classes.controls, classes.leftPanel)}>
-                  {activeLeft?.component || prevActiveLeftRef.current?.component}
+                  {activeLeft?.component ||
+                    prevActiveLeftRef.current?.component}
                 </Box>
               )}
             </Collapse>
-            {/* Left Controls */}
             <Stack
               direction="column"
               justifyContent="space-between"
-              className={cx(classes.controls, classes.mapControls)}>
+              className={cx(classes.controls, classes.mapControls)}
+            >
               <Stack direction="column" className={cx(classes.groupControl)}>
                 <Geocoder accessToken={MAPBOX_TOKEN} />
               </Stack>
@@ -195,11 +211,13 @@ export default function MapPage() {
           <Stack
             direction="row"
             className={cx(classes.collapse, classes.collapseRight)}
-            sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+            sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          >
             <Stack
               direction="column"
               justifyContent="space-between"
-              className={cx(classes.controls, classes.mapControls)}>
+              className={cx(classes.controls, classes.mapControls)}
+            >
               <Stack direction="column" className={cx(classes.groupControl)}>
                 <Zoom />
                 <Fullscren />
@@ -221,11 +239,13 @@ export default function MapPage() {
               onExit={() => {
                 setActiveRight(undefined);
                 prevActiveRightRef.current = undefined;
-              }}>
+              }}
+            >
               {(activeRight?.component !== undefined ||
                 prevActiveRightRef.current?.component !== undefined) && (
                 <Box className={cx(classes.controls, classes.rightPanel)}>
-                  {activeRight?.component || prevActiveRightRef.current?.component}
+                  {activeRight?.component ||
+                    prevActiveRightRef.current?.component}
                 </Box>
               )}
             </Collapse>
@@ -239,7 +259,9 @@ export default function MapPage() {
                 window.open(item.link, "_blank");
                 return;
               } else {
-                setActiveRight(item.name === activeRight?.name ? undefined : item);
+                setActiveRight(
+                  item.name === activeRight?.name ? undefined : item
+                );
               }
             }}
           />
@@ -256,7 +278,9 @@ export default function MapPage() {
             mapStyle={basemaps[activeBasemapIndex[0]].url}
             attributionControl={false}
             mapboxAccessToken={MAPBOX_TOKEN}
-          />
+          >
+            {project && <MapboxOverlay layers={project?.layers} />}
+          </Map>
         </div>
       </div>
     </MapProvider>

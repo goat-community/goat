@@ -33,6 +33,8 @@ import {
   faChevronLeft,
   faChevronRight,
   faChevronDown,
+  faEye,
+  faEyeSlash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { SvgIcon } from "@mui/material";
@@ -71,6 +73,8 @@ export enum ICON_NAME {
   CHEVRON_LEFT = "chevron-left",
   CHEVRON_RIGHT = "chevron-right",
   CHEVRON_DOWN = "chevron-down",
+  EYE = "eye",
+  EYE_SLASH = "eye-slash",
 }
 
 const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
@@ -106,11 +110,16 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.CHEVRON_LEFT]: faChevronLeft,
   [ICON_NAME.CHEVRON_RIGHT]: faChevronRight,
   [ICON_NAME.CHEVRON_DOWN]: faChevronDown,
+  [ICON_NAME.EYE]: faEye,
+  [ICON_NAME.EYE_SLASH]: faEyeSlash,
 };
 
 library.add(...Object.values(nameToIcon));
 
-export function Icon({ iconName, ...rest }: SvgIconProps & { iconName: ICON_NAME }) {
+export function Icon({
+  iconName,
+  ...rest
+}: SvgIconProps & { iconName: ICON_NAME }) {
   if (!(iconName in nameToIcon)) {
     throw new Error(`Invalid icon name: ${iconName}`);
   }

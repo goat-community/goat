@@ -13,7 +13,7 @@ export default function Container({ header, body, action }: ContainerProps) {
   return (
     <Stack className={classes.root}>
       {header && (
-        <Stack className={classes.header} direction="row" justifyContent="space-between">
+        <Stack className={classes.header} direction="row" justifyContent="space-between" alignItems="center">
           {header}
         </Stack>
       )}
@@ -35,13 +35,16 @@ export default function Container({ header, body, action }: ContainerProps) {
 const useStyles = makeStyles({ name: { Container } })((theme) => ({
   root: {
     backgroundColor: theme.colors.useCases.surfaces.surface1,
-    padding: theme.spacing(3),
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
     height: "100%",
   },
   header: {
-    marginBottom: theme.spacing(2),
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+    paddingTop: theme.spacing(0),
+    paddingBottom: theme.spacing(0),
   },
   body: {
     paddingTop: theme.spacing(2),
