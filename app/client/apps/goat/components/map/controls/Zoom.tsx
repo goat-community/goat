@@ -33,13 +33,12 @@ const useStyles = makeStyles()((theme) => ({
   root: {
     alignItems: "flex-end",
     marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
+    marginBottom: theme.spacing(1)
   },
   btn: {
-    backgroundColor: "transparent",
-    border: `1px solid ${theme.colors.palette.focus.main}`,
+    backgroundColor: theme.colors.useCases.surfaces.surface2,
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
-    color: theme.isDarkModeEnabled ? "white" : theme.colors.palette.focus.main,
+    color: theme.isDarkModeEnabled ? "white" : theme.colors.palette.light.greyVariant4
   },
 }));

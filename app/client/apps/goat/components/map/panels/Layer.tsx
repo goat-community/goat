@@ -10,9 +10,11 @@ import type { MapSidebarItem } from "@/components/map/Sidebar";
 interface LayerPanelProps {
   setActiveLeft: (item: MapSidebarItem | undefined) => void;
 }
+
 const LayerPanel = ({ setActiveLeft }: LayerPanelProps) => {
   const { classes } = useStyles();
   const theme = useTheme();
+
   return (
     <Container
       header={

@@ -42,6 +42,7 @@ import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import TuneIcon from "@mui/icons-material/Tune";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import ChevronLeftOutlinedIcon from "@mui/icons-material/ChevronLeftOutlined";
 import type { Param0 } from "tsafe";
 
 import "../assets/fonts/mulish/font.css";
@@ -105,6 +106,7 @@ export const { Icon } = createIcon({
   slider: TuneIcon,
   print: PrintIcon,
   chevronRight: ChevronRightOutlinedIcon,
+  chevronLeft: ChevronLeftOutlinedIcon,
 });
 
 export type IconId = Param0<typeof Icon>["iconId"];
