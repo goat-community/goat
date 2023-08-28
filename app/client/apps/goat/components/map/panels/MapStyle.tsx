@@ -91,17 +91,10 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
             <RadioGroup aria-label="options" name="options">
               <FormControlLabel
                 value="@content_label"
-                className={classes.radioLabel}
                 control={
                   <Radio
                     color="default"
-                    icon={
-                      <Icon
-                        iconName={ICON_NAME.STAR}
-                        htmlColor={theme.colors.palette.focus.darkVariant3}
-                        fontSize="small"
-                      />
-                    }
+                    icon={<Icon iconName={ICON_NAME.STAR} fontSize="small" />}
                     checkedIcon={
                       <Icon
                         iconName={ICON_NAME.STAR}
@@ -208,7 +201,7 @@ const useStyles = makeStyles({ name: { MapStylePanel } })((theme) => ({
   },
   descriptionText: {
     fontStyle: "italic",
-    margin: "0 8px",
+    margin: "0  8px",
   },
   tab: {
     width: "50%",
@@ -217,7 +210,6 @@ const useStyles = makeStyles({ name: { MapStylePanel } })((theme) => ({
     display: "flex",
     flexDirection: "column",
     rowGap: "8px",
-    width: "100%",
   },
   card: {
     paddingLeft: theme.spacing(2),
@@ -244,12 +236,6 @@ const useStyles = makeStyles({ name: { MapStylePanel } })((theme) => ({
     width: "100%",
     borderTop: "none",
     borderBottom: `1px solid ${theme.colors.palette.focus}`,
-  },
-  radioLabel: {
-    span: {
-      fontSize: "12px",
-      fontStyle: "italic",
-    },
   },
 }));
 
