@@ -13,7 +13,6 @@ interface PanelProps {
 
 const LayerPanel = ({ onCollapse, layers }: PanelProps) => {
   const { classes } = useStyles();
-  console.log(layers);
 
   return (
     <Container

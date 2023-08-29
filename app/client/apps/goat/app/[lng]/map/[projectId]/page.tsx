@@ -6,40 +6,52 @@ import type { MapToolbarProps } from "@/components/map/Toolbar";
 import { MapToolbar } from "@/components/map/Toolbar";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Zoom } from "@/components/map/controls/Zoom";
-import ChartsPanel from "@/components/map/panels/Charts";
-import FilterPanel from "@/components/map/panels/filter/Filter";
-import LayerPanel from "@/components/map/panels/Layer";
-import LegendPanel from "@/components/map/panels/Legend";
-import MapStylePanel from "@/components/map/panels/MapStyle";
-import ScenarioPanel from "@/components/map/panels/Scenario";
-import ToolboxPanel from "@/components/map/panels/Toolbox";
-import MapboxOverlay from "@/components/map/MapboxOverlay";
+import Charts from "@/components/map/panels/Charts";
+import Filter from "@/components/map/panels/filter/Filter";
+import Layer from "@/components/map/panels/Layer";
+import Legend from "@/components/map/panels/Legend";
+import MapStyle from "@/components/map/panels/MapStyle";
+import Scenario from "@/components/map/panels/Scenario";
+import Toolbox from "@/components/map/panels/Toolbox";
 import { MAPBOX_TOKEN } from "@/lib/constants";
 import { makeStyles } from "@/lib/theme";
 import { Box, Collapse, Stack } from "@mui/material";
 import "mapbox-gl/dist/mapbox-gl.css";
-import React, { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Map, { MapProvider } from "react-map-gl";
 import type { CSSObject } from "tss-react";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
-import { API } from "@/lib/api/apiConstants";
-import { fetchProject } from "@/lib/services/project";
-import useSWR from "swr";
-import type { Project } from "@/types/map/project";
+import { useDispatch, useSelector } from "react-redux";
+import type { IStore } from "@/types/store";
+import { setActiveBasemapIndex } from "@/lib/store/styling/slice";
 
 const sidebarWidth = 48;
 const toolbarHeight = 52;
 
 export default function MapPage() {
-  const { data: project, error } = useSWR<Project>(API.project, fetchProject);
-  console.log(project, error);
+  const { basemaps, activeBasemapIndex, initialViewState } = useSelector(
+    (state: IStore) => state.styling
+  );
 
-  const sidebarWidth = 48;
-  const toolbarHeight = 52;
+  const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(
+    undefined
+  );
+  const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(
+    undefined
+  );
+
+  const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
+  const prevActiveRightRef = useRef<MapSidebarItem | undefined>(undefined);
+  const dispatch = useDispatch();
+
   const { classes, cx } = useStyles({ sidebarWidth, toolbarHeight });
+
+  const handleCollapse = useCallback(() => {
+    setActiveLeft(undefined);
+  }, []);
 
   const toolbar: MapToolbarProps = {
     projectTitle: "@project_title",
@@ -48,37 +60,22 @@ export default function MapPage() {
     height: toolbarHeight,
   };
 
-  const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(
-    undefined
-  );
-  const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
-  useEffect(() => {
-    prevActiveLeftRef.current = activeLeft;
-  }, [activeLeft]);
-
-  const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(
-    undefined
-  );
-  const prevActiveRightRef = useRef<MapSidebarItem | undefined>(undefined);
-  useEffect(() => {
-    prevActiveRightRef.current = activeRight;
-  }, [activeRight]);
   const leftSidebar: MapSidebarProps = {
     topItems: [
       {
         icon: ICON_NAME.LAYERS,
         name: "Layers",
-        component: <LayerPanel onCollapse={() => setActiveLeft(undefined)} layers={project?.layers} />,
+        component: <Layer onCollapse={handleCollapse} />,
       },
       {
         icon: ICON_NAME.LEGEND,
         name: "Legend",
-        component: <LegendPanel />,
+        component: <Legend />,
       },
       {
         icon: ICON_NAME.CHART,
         name: "Charts",
-        component: <ChartsPanel />,
+        component: <Charts />,
       },
     ],
     bottomItems: [
@@ -97,66 +94,36 @@ export default function MapPage() {
       {
         icon: ICON_NAME.TOOLBOX,
         name: "Tools",
-        component: <ToolboxPanel />,
+        component: <Toolbox />,
       },
       {
         icon: ICON_NAME.FILTER,
         name: "Filter",
-        component: <FilterPanel />,
+        component: <Filter />,
       },
       {
         icon: ICON_NAME.SCENARIO,
         name: "Scenario",
-        component: <ScenarioPanel />,
+        component: <Scenario />,
       },
       {
         icon: ICON_NAME.STYLE,
         name: "Map Style",
-        component: <MapStylePanel setActiveRight={setActiveRight} />,
+        component: <MapStyle setActiveRight={setActiveRight} />,
       },
     ],
     width: sidebarWidth,
     position: "right",
   };
 
-  const basemaps = [
-    {
-      value: "mapbox_streets",
-      url: "mapbox://styles/mapbox/streets-v12",
-      title: "High Fidelity",
-      subtitle: "Great for public presentations",
-      thumbnail: "https://i.imgur.com/aVDMUKAm.png",
-    },
-    {
-      value: "mapbox_satellite",
-      url: "mapbox://styles/mapbox/satellite-streets-v12",
-      title: "Satellite Streets",
-      subtitle: "As seen from space",
-      thumbnail: "https://i.imgur.com/JoMGuUOm.png",
-    },
-    {
-      value: "mapbox_light",
-      url: "mapbox://styles/mapbox/light-v11",
-      title: "Light",
-      subtitle: "For highlitghting data overlays",
-      thumbnail: "https://i.imgur.com/jHFGEEQm.png",
-    },
-    {
-      value: "mapbox_dark",
-      url: "mapbox://styles/mapbox/dark-v11",
-      title: "Dark",
-      subtitle: "For highlighting data overlays",
-      thumbnail: "https://i.imgur.com/PaYV5Gjm.png",
-    },
-    {
-      value: "mapbox_navigation",
-      url: "mapbox://styles/mapbox/navigation-day-v1",
-      title: "Traffic",
-      subtitle: "Live traffic data",
-      thumbnail: "https://i.imgur.com/lfcARxZm.png",
-    },
-  ];
-  const [activeBasemapIndex, setActiveBasemapIndex] = useState([0]);
+  useEffect(() => {
+    prevActiveLeftRef.current = activeLeft;
+  }, [activeLeft]);
+
+  useEffect(() => {
+    prevActiveRightRef.current = activeRight;
+  }, [activeRight]);
+
   return (
     <MapProvider>
       <div className={cx(classes.container)}>
@@ -201,6 +168,7 @@ export default function MapPage() {
                 </Box>
               )}
             </Collapse>
+            {/* Left Controls */}
             <Stack
               direction="column"
               justifyContent="space-between"
@@ -230,7 +198,7 @@ export default function MapPage() {
                   styles={basemaps}
                   active={activeBasemapIndex}
                   basemapChange={(basemap) => {
-                    setActiveBasemapIndex(basemap);
+                    dispatch(setActiveBasemapIndex(basemap));
                   }}
                 />
               </Stack>
@@ -273,17 +241,11 @@ export default function MapPage() {
           <Map
             id="map"
             style={{ width: "100%", height: "100%" }}
-            initialViewState={{
-              longitude: 11.575936741828286,
-              latitude: 48.13780235991851,
-              zoom: 12,
-            }}
+            initialViewState={initialViewState}
             mapStyle={basemaps[activeBasemapIndex[0]].url}
             attributionControl={false}
             mapboxAccessToken={MAPBOX_TOKEN}
-          >
-            {project && <MapboxOverlay layers={project?.layers} />}
-          </Map>
+          />
         </div>
       </div>
     </MapProvider>
