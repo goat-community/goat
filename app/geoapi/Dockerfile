@@ -23,4 +23,3 @@ ENV PYTHONPATH "${PYTHONPATH}:/api"
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
 
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
-
