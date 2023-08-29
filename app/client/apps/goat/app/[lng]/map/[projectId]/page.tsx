@@ -17,24 +17,29 @@ import { MAPBOX_TOKEN } from "@/lib/constants";
 import { makeStyles } from "@/lib/theme";
 import { Box, Collapse, Stack } from "@mui/material";
 import "mapbox-gl/dist/mapbox-gl.css";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Map, { MapProvider } from "react-map-gl";
 import type { CSSObject } from "tss-react";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
+import { useDispatch, useSelector } from "react-redux";
+import type { IStore } from "@/types/store";
+import { setActiveBasemapIndex } from "@/lib/store/styling/slice";
 
 const sidebarWidth = 48;
 const toolbarHeight = 52;
 
 export default function MapPage() {
+  const { basemaps, activeBasemapIndex, initialViewState } = useSelector((state: IStore) => state.styling);
+
   const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(undefined);
   const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(undefined);
-  const [activeBasemapIndex, setActiveBasemapIndex] = useState([0]);
 
   const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
   const prevActiveRightRef = useRef<MapSidebarItem | undefined>(undefined);
+  const dispatch = useDispatch();
 
   const { classes, cx } = useStyles({ sidebarWidth, toolbarHeight });
 
@@ -100,44 +105,6 @@ export default function MapPage() {
     width: sidebarWidth,
     position: "right",
   };
-
-  const basemaps = [
-    {
-      value: "mapbox_streets",
-      url: "mapbox://styles/mapbox/streets-v12",
-      title: "High Fidelity",
-      subtitle: "Great for public presentations",
-      thumbnail: "https://i.imgur.com/aVDMUKAm.png",
-    },
-    {
-      value: "mapbox_satellite",
-      url: "mapbox://styles/mapbox/satellite-streets-v12",
-      title: "Satellite Streets",
-      subtitle: "As seen from space",
-      thumbnail: "https://i.imgur.com/JoMGuUOm.png",
-    },
-    {
-      value: "mapbox_light",
-      url: "mapbox://styles/mapbox/light-v11",
-      title: "Light",
-      subtitle: "For highlitghting data overlays",
-      thumbnail: "https://i.imgur.com/jHFGEEQm.png",
-    },
-    {
-      value: "mapbox_dark",
-      url: "mapbox://styles/mapbox/dark-v11",
-      title: "Dark",
-      subtitle: "For highlighting data overlays",
-      thumbnail: "https://i.imgur.com/PaYV5Gjm.png",
-    },
-    {
-      value: "mapbox_navigation",
-      url: "mapbox://styles/mapbox/navigation-day-v1",
-      title: "Traffic",
-      subtitle: "Live traffic data",
-      thumbnail: "https://i.imgur.com/lfcARxZm.png",
-    },
-  ];
 
   useEffect(() => {
     prevActiveLeftRef.current = activeLeft;
@@ -213,7 +180,7 @@ export default function MapPage() {
                   styles={basemaps}
                   active={activeBasemapIndex}
                   basemapChange={(basemap) => {
-                    setActiveBasemapIndex(basemap);
+                    dispatch(setActiveBasemapIndex(basemap));
                   }}
                 />
               </Stack>
@@ -252,11 +219,7 @@ export default function MapPage() {
           <Map
             id="map"
             style={{ width: "100%", height: "100%" }}
-            initialViewState={{
-              longitude: 11.575936741828286,
-              latitude: 48.13780235991851,
-              zoom: 12,
-            }}
+            initialViewState={initialViewState}
             mapStyle={basemaps[activeBasemapIndex[0]].url}
             attributionControl={false}
             mapboxAccessToken={MAPBOX_TOKEN}

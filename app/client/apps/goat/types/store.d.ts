@@ -1,3 +1,5 @@
+import type {IStylingState} from "@/lib/store/styling/slice";
+
 export interface IStore {
   map: object;
   content: {
@@ -5,16 +7,5 @@ export interface IStore {
     getFoldersStatus: string;
     previewMode: string;
   };
-  styling: {
-    initialViewState: {
-      latitude: number;
-      longitude: number;
-      zoom: number;
-      min_zoom: number;
-      max_zoom: number;
-      bearing: number;
-      pitch: number;
-    };
-    tabValue: number;
-  };
+  styling: IStylingState;
 }
