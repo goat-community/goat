@@ -19,13 +19,6 @@ spec:
   - host: 'v2.goat.plan4better.de'
     http:
       paths:
-        - path: /storybook
-          pathType: Prefix
-          backend:
-            service:
-              name: goat-storybook-service
-              port:
-                number: 80
         - path: /docs
           pathType: Prefix
           backend:

@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goat-geoapi
+spec:
+  selector:
+    matchLabels:
+      app: goat-geoapi
+  template:
+    spec:
+      containers:
+        - name: goat-geoapi
+          env:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: goat-geoapi-secret
+                key: postgres-url

@@ -23,7 +23,7 @@
 - "kured.yaml"
 - "ccm.yaml"
 "resources":
-- "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/v1.17.1/ccm-networks.yaml"
+- "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/v1.17.2/ccm-networks.yaml"
 - "https://github.com/weaveworks/kured/releases/download/1.13.1/kured-1.13.1-dockerhub.yaml"
 - "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml"
 - "hcloud-csi.yml"

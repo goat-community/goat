@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goat-geoapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goat-geoapi
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  minReadySeconds: 15
+  template:
+    metadata:
+      labels:
+        app: goat-geoapi
+    spec:
+      containers:
+        - image: busybox:1.35.0
+          command:
+            - sleep
+            - "3600"
+          imagePullPolicy: IfNotPresent
+          name: goat-geoapi
+          ports:
+            - containerPort: 5000

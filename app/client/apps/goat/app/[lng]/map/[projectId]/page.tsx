@@ -30,6 +30,9 @@ import { fetchProject } from "@/lib/services/project";
 import useSWR from "swr";
 import type { Project } from "@/types/map/project";
 
+const sidebarWidth = 48;
+const toolbarHeight = 52;
+
 export default function MapPage() {
   const { data: project, error } = useSWR<Project>(API.project, fetchProject);
   console.log(project, error);

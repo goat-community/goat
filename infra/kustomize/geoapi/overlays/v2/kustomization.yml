@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: v2
+
+resources:
+- ./namespace.yml
+- ../../base
+
+patches:
+- path: external-secret-patch.yml
+  target:
+    kind: ExternalSecret
+    name: goat-geoapi-secret
+- path: env-patch.yml
+  target:
+    kind: Deployment
+    name: goat-geoapi
+
+images:
+ - name: goatcommunity/geoapi
+   newTag: test
