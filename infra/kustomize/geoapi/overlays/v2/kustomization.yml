@@ -16,7 +16,3 @@ patches:
   target:
     kind: Deployment
     name: goat-geoapi
-
-images:
- - name: goatcommunity/geoapi
-   newTag: test

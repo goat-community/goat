@@ -19,10 +19,7 @@ spec:
         app: goat-geoapi
     spec:
       containers:
-        - image: busybox:1.35.0
-          command:
-            - sleep
-            - "3600"
+        - image: goatcommunity/geoapi
           imagePullPolicy: IfNotPresent
           name: goat-geoapi
           ports:
