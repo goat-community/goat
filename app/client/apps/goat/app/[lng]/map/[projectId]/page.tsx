@@ -18,29 +18,39 @@ import { makeStyles } from "@/lib/theme";
 import { Box, Collapse, Stack } from "@mui/material";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-import Map, { MapProvider } from "react-map-gl";
+import Map, { MapProvider, Marker } from "react-map-gl";
 import type { CSSObject } from "tss-react";
+import type { MarkerDragEvent } from "react-map-gl";
 
-import { ICON_NAME } from "@p4b/ui/components/Icon";
+import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
 import { useDispatch, useSelector } from "react-redux";
 import type { IStore } from "@/types/store";
-import { setActiveBasemapIndex } from "@/lib/store/styling/slice";
+import {
+  editeMarkerPosition,
+  setActiveBasemapIndex,
+} from "@/lib/store/styling/slice";
 
 const sidebarWidth = 48;
 const toolbarHeight = 52;
 
+interface IMarker {
+  id: string;
+  lat: number;
+  long: number;
+  iconName: string;
+}
+
 export default function MapPage() {
-  const { basemaps, activeBasemapIndex, initialViewState } = useSelector(
-    (state: IStore) => state.styling
-  );
+  const { basemaps, activeBasemapIndex, initialViewState, markers } =
+    useSelector((state: IStore) => state.styling);
 
   const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(
-    undefined
+    undefined,
   );
   const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(
-    undefined
+    undefined,
   );
 
   const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
@@ -116,6 +126,30 @@ export default function MapPage() {
     position: "right",
   };
 
+  const onMarkerDragStart = useCallback((event: MarkerDragEvent) => {
+    console.log("onMarkerDragStart", event);
+  }, []);
+
+  const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
+    console.log("onMarkerDrag", event);
+  }, []);
+
+  const onMarkerDragEnd = useCallback(
+    (event: MarkerDragEvent, item: IMarker) => {
+      console.log("onMarkerDragEnd", event);
+
+      dispatch(
+        editeMarkerPosition({
+          id: item.id,
+          lat: event.lngLat.lat,
+          long: event.lngLat.lng,
+          iconName: item.iconName,
+        }),
+      );
+    },
+    [],
+  );
+
   useEffect(() => {
     prevActiveLeftRef.current = activeLeft;
   }, [activeLeft]);
@@ -139,7 +173,7 @@ export default function MapPage() {
                 return;
               } else {
                 setActiveLeft(
-                  item.name === activeLeft?.name ? undefined : item
+                  item.name === activeLeft?.name ? undefined : item,
                 );
               }
             }}
@@ -231,7 +265,7 @@ export default function MapPage() {
                 return;
               } else {
                 setActiveRight(
-                  item.name === activeRight?.name ? undefined : item
+                  item.name === activeRight?.name ? undefined : item,
                 );
               }
             }}
@@ -245,7 +279,23 @@ export default function MapPage() {
             mapStyle={basemaps[activeBasemapIndex[0]].url}
             attributionControl={false}
             mapboxAccessToken={MAPBOX_TOKEN}
-          />
+          >
+            {markers.map((item) => {
+              return (
+                <Marker
+                  key={item.id}
+                  longitude={item.long}
+                  latitude={item.lat}
+                  draggable
+                  onDragStart={onMarkerDragStart}
+                  onDrag={onMarkerDrag}
+                  onDragEnd={(e) => onMarkerDragEnd(e, item)}
+                >
+                  <Icon iconName={ICON_NAME[item.iconName]} fontSize="small" />
+                </Marker>
+              );
+            })}
+          </Map>
         </div>
       </div>
     </MapProvider>
