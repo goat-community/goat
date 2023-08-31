@@ -55,14 +55,17 @@ const layerAccordionInfo = [
   {
     id: 2,
     title: "Color",
+    values: [],
   },
   {
     id: 3,
     title: "Stroke",
+    values: [],
   },
   {
     id: 4,
     title: "Size",
+    values: [],
   },
 ];
 
@@ -181,7 +184,7 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
                       <Icon
                         key={v4()}
                         iconName={ICON_NAME[val]}
-                        size="small"
+                        fontSize="small"
                         onClick={() => addMarkerHandler(val)}
                       />
                     ))}

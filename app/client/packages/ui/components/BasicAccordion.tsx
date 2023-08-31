@@ -43,10 +43,13 @@ export default function BasicAccordion(props: BasicAccordionTypes) {
           expandIcon={<ExpandMoreIcon color={expandIconColor} />}
           aria-controls="panel1a-content"
           id="panel1a-header"
-          className={cx(classes.content)}>
+          className={cx(classes.content)}
+        >
           <Typography>{title}</Typography>
         </AccordionSummary>
-        <AccordionDetails className={cx(classes.content)}>{children}</AccordionDetails>
+        <AccordionDetails className={cx(classes.content)}>
+          {children}
+        </AccordionDetails>
       </Accordion>
     </div>
   );
