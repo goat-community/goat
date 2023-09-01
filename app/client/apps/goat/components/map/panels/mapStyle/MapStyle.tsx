@@ -4,7 +4,6 @@ import {
   Button,
   CardContent,
   CardMedia,
-  Divider,
   FormControlLabel,
   Radio,
   RadioGroup,
@@ -14,7 +13,6 @@ import { makeStyles } from "@/lib/theme";
 import { useDispatch, useSelector } from "react-redux";
 import type { IStore } from "@/types/store";
 import {
-  addMarker,
   resetStyles,
   saveStyles,
   setTabValue,
@@ -23,13 +21,11 @@ import { Card } from "@p4b/ui/components/Surfaces";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import { Checkbox } from "@p4b/ui/components/Checkbox";
-import BasicAccordion from "@p4b/ui/components/BasicAccordion";
 import { MultipleSelect } from "@p4b/ui/components/Inputs/MultipleSelect";
 import Box from "@p4b/ui/components/Box";
 import type { MapSidebarItem } from "@/components/map/Sidebar";
 import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
 import React from "react";
-import { v4 } from "uuid";
 // import Size from "@/components/map/panels/mapStyle/Size";
 import Color from "@/components/map/panels/mapStyle/Color";
 // import Stroke from "@/components/map/panels/mapStyle/Stroke";
@@ -50,33 +46,31 @@ const layerTypes = [
   },
 ];
 
-const layerAccordionInfo = [
-  //   {
-  //     id: 1,
-  //     title: "Marker",
-  //     values: ["LOCATION", "CROSS"],
-  //   },
-  //   {
-  //     id: 2,
-  //     title: "Color",
-  //     values: [],
-  //   },
-  //   {
-  //     id: 3,
-  //     title: "Stroke",
-  //     values: [],
-  //   },
-  //   {
-  //     id: 4,
-  //     title: "Size",
-  //     values: [],
-  //   },
-];
+// const layerAccordionInfo = [
+//   {
+//     id: 1,
+//     title: "Marker",
+//     values: ["LOCATION", "CROSS"],
+//   },
+//   {
+//     id: 2,
+//     title: "Color",
+//     values: [],
+//   },
+//   {
+//     id: 3,
+//     title: "Stroke",
+//     values: [],
+//   },
+//   {
+//     id: 4,
+//     title: "Size",
+//     values: [],
+//   },
+// ];
 
 const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
-  const { tabValue, initialViewState } = useSelector(
-    (state: IStore) => state.styling,
-  );
+  const { tabValue } = useSelector((state: IStore) => state.styling);
 
   const dispatch = useDispatch();
   const { classes } = useStyles();
@@ -92,17 +86,6 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
 
   const saveStylesHandler = () => {
     dispatch(saveStyles());
-  };
-
-  const addMarkerHandler = (name: string) => {
-    dispatch(
-      addMarker({
-        id: v4(),
-        lat: initialViewState.latitude,
-        long: initialViewState.longitude,
-        iconName: name,
-      }),
-    );
   };
 
   return (
@@ -177,25 +160,25 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
                   <Checkbox />
                 </CardContent>
               </Card>
-              {layerAccordionInfo.map((item) => (
-                <Box key={item.id}>
-                  <BasicAccordion
-                    title={item.title}
-                    variant="secondary"
-                    className={classes.accordion}
-                  >
-                    {item?.values?.map((val) => (
-                      <Icon
-                        key={v4()}
-                        iconName={ICON_NAME[val]}
-                        fontSize="small"
-                        onClick={() => addMarkerHandler(val)}
-                      />
-                    ))}
-                  </BasicAccordion>
-                  <Divider className={classes.divider} />
-                </Box>
-              ))}
+              {/*{layerAccordionInfo.map((item) => (*/}
+              {/*  <Box key={item.id}>*/}
+              {/*    <BasicAccordion*/}
+              {/*      title={item.title}*/}
+              {/*      variant="secondary"*/}
+              {/*      className={classes.accordion}*/}
+              {/*    >*/}
+              {/*      {item?.values?.map((val) => (*/}
+              {/*        <Icon*/}
+              {/*          key={v4()}*/}
+              {/*          iconName={ICON_NAME[val]}*/}
+              {/*          fontSize="small"*/}
+              {/*          onClick={() => addMarkerHandler(val)}*/}
+              {/*        />*/}
+              {/*      ))}*/}
+              {/*    </BasicAccordion>*/}
+              {/*    <Divider className={classes.divider} />*/}
+              {/*  </Box>*/}
+              {/*))}*/}
               {/*<Marker />*/}
               {/*<Size />*/}
               {/*<Stroke />*/}
