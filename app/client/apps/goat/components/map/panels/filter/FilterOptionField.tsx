@@ -42,7 +42,12 @@ const FilterOptionField = (props: FilterResultProps) => {
         if (
           request.input ||
           (comparer &&
-            ["is_blank", "is_not_blank", "is_empty_string", "is_not_empty_string"].includes(comparer.value))
+            [
+              "is_blank",
+              "is_not_blank",
+              "is_empty_string",
+              "is_not_empty_string",
+            ].includes(comparer.value))
         ) {
           setFirstInput(request.input);
           if (request.input2) {
@@ -50,11 +55,11 @@ const FilterOptionField = (props: FilterResultProps) => {
           }
 
           handleFilter(request.input, request.input2);
-        }else {
+        } else {
           handleFilter("");
         }
       }, 1000),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -74,13 +79,15 @@ const FilterOptionField = (props: FilterResultProps) => {
   }
 
   const handleFilter = (value: string, value2?: string) => {
-
     if (!comparer) return;
     let query;
-    if(value){
+    if (value) {
       switch (comparer.value) {
         case "is":
-          query = is(prop, comparer.type === "number" ? parseInt(value) : value);
+          query = is(
+            prop,
+            comparer.type === "number" ? parseInt(value) : value,
+          );
           break;
         case "is_not":
           query = is_not(prop, value);
@@ -134,13 +141,17 @@ const FilterOptionField = (props: FilterResultProps) => {
           query = is_greater_than(prop, parseInt(value));
           break;
         case "is_between":
-          query = is_between(prop, parseInt(value), parseInt(value2 ? value2 : "0"));
+          query = is_between(
+            prop,
+            parseInt(value),
+            parseInt(value2 ? value2 : "0"),
+          );
           break;
         default:
           return;
       }
-    }else{
-      query = ""
+    } else {
+      query = "";
     }
 
     dispatch(addFilter({ query, expression }));
@@ -167,16 +178,24 @@ const FilterOptionField = (props: FilterResultProps) => {
     case "excludes":
       break;
     case "starts_with":
-      inputComponent = <TextOption value={firstInput} setChange={handleInputChange} />;
+      inputComponent = (
+        <TextOption value={firstInput} setChange={handleInputChange} />
+      );
       break;
     case "ends_with":
-      inputComponent = <TextOption value={firstInput} setChange={handleInputChange} />;
+      inputComponent = (
+        <TextOption value={firstInput} setChange={handleInputChange} />
+      );
       break;
     case "contains_the_text":
-      inputComponent = <TextOption value={firstInput} setChange={handleInputChange} />;
+      inputComponent = (
+        <TextOption value={firstInput} setChange={handleInputChange} />
+      );
       break;
     case "does_not_contains_the_text":
-      inputComponent = <TextOption value={firstInput} setChange={handleInputChange} />;
+      inputComponent = (
+        <TextOption value={firstInput} setChange={handleInputChange} />
+      );
       break;
     case "is_blank":
     case "is_not_blank":
@@ -184,22 +203,33 @@ const FilterOptionField = (props: FilterResultProps) => {
     case "is_not_empty_string":
       break;
     case "is_at_least":
-      inputComponent = <NumberOption value={firstInput} setChange={handleInputChange} />;
+      inputComponent = (
+        <NumberOption value={firstInput} setChange={handleInputChange} />
+      );
       break;
     case "is_at_most":
-      inputComponent = <NumberOption value={firstInput} setChange={handleInputChange} />;
+      inputComponent = (
+        <NumberOption value={firstInput} setChange={handleInputChange} />
+      );
       break;
     case "is_less_than":
-      inputComponent = <NumberOption value={firstInput} setChange={handleInputChange} />;
+      inputComponent = (
+        <NumberOption value={firstInput} setChange={handleInputChange} />
+      );
       break;
     case "is_greater_than":
-      inputComponent = <NumberOption value={firstInput} setChange={handleInputChange} />;
+      inputComponent = (
+        <NumberOption value={firstInput} setChange={handleInputChange} />
+      );
       break;
     case "is_between":
       inputComponent = (
         <>
           <NumberOption value={firstInput} setChange={handleInputChange} />
-          <NumberOption value={secondInput} setChange={handleSecondInputChange} />
+          <NumberOption
+            value={secondInput}
+            setChange={handleSecondInputChange}
+          />
         </>
       );
       break;
