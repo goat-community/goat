@@ -8,42 +8,31 @@ import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Zoom } from "@/components/map/controls/Zoom";
 import Charts from "@/components/map/panels/Charts";
 import Filter from "@/components/map/panels/filter/Filter";
-import Layer from "@/components/map/panels/Layer";
+import LayerPanel from "@/components/map/panels/Layer";
 import Legend from "@/components/map/panels/Legend";
-import MapStyle from "@/components/map/panels/MapStyle";
 import Scenario from "@/components/map/panels/Scenario";
 import Toolbox from "@/components/map/panels/Toolbox";
 import { MAPBOX_TOKEN } from "@/lib/constants";
 import { makeStyles } from "@/lib/theme";
 import { Box, Collapse, Stack } from "@mui/material";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useCallback, useEffect, useRef, useState } from "react";
-import Map, { MapProvider, Marker } from "react-map-gl";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import Map, { MapProvider, Layer, Source } from "react-map-gl";
 import type { CSSObject } from "tss-react";
-import type { MarkerDragEvent } from "react-map-gl";
 
-import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
+import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
 import { useDispatch, useSelector } from "react-redux";
 import type { IStore } from "@/types/store";
-import {
-  editeMarkerPosition,
-  setActiveBasemapIndex,
-} from "@/lib/store/styling/slice";
+import { setActiveBasemapIndex } from "@/lib/store/styling/slice";
+import MapStyle from "@/components/map/panels/mapStyle/MapStyle";
 
 const sidebarWidth = 48;
 const toolbarHeight = 52;
 
-interface IMarker {
-  id: string;
-  lat: number;
-  long: number;
-  iconName: string;
-}
-
 export default function MapPage() {
-  const { basemaps, activeBasemapIndex, initialViewState, markers } =
+  const { basemaps, activeBasemapIndex, initialViewState, mapLayer } =
     useSelector((state: IStore) => state.styling);
 
   const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(
@@ -75,7 +64,7 @@ export default function MapPage() {
       {
         icon: ICON_NAME.LAYERS,
         name: "Layers",
-        component: <Layer onCollapse={handleCollapse} />,
+        component: <LayerPanel onCollapse={handleCollapse} />,
       },
       {
         icon: ICON_NAME.LEGEND,
@@ -125,30 +114,6 @@ export default function MapPage() {
     width: sidebarWidth,
     position: "right",
   };
-
-  const onMarkerDragStart = useCallback((event: MarkerDragEvent) => {
-    console.log("onMarkerDragStart", event);
-  }, []);
-
-  const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
-    console.log("onMarkerDrag", event);
-  }, []);
-
-  const onMarkerDragEnd = useCallback(
-    (event: MarkerDragEvent, item: IMarker) => {
-      console.log("onMarkerDragEnd", event);
-
-      dispatch(
-        editeMarkerPosition({
-          id: item.id,
-          lat: event.lngLat.lat,
-          long: event.lngLat.lng,
-          iconName: item.iconName,
-        }),
-      );
-    },
-    [],
-  );
 
   useEffect(() => {
     prevActiveLeftRef.current = activeLeft;
@@ -280,21 +245,15 @@ export default function MapPage() {
             attributionControl={false}
             mapboxAccessToken={MAPBOX_TOKEN}
           >
-            {markers.map((item) => {
-              return (
-                <Marker
-                  key={item.id}
-                  longitude={item.long}
-                  latitude={item.lat}
-                  draggable
-                  onDragStart={onMarkerDragStart}
-                  onDrag={onMarkerDrag}
-                  onDragEnd={(e) => onMarkerDragEnd(e, item)}
-                >
-                  <Icon iconName={ICON_NAME[item.iconName]} fontSize="small" />
-                </Marker>
-              );
-            })}
+            {mapLayer ? (
+              <Source
+                id={mapLayer.id}
+                type="vector"
+                url={mapLayer.sources.composite.url}
+              >
+                <Layer {...mapLayer} />
+              </Source>
+            ) : null}
           </Map>
         </div>
       </div>

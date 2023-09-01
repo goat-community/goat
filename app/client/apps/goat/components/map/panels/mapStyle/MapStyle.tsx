@@ -30,6 +30,9 @@ import type { MapSidebarItem } from "@/components/map/Sidebar";
 import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
 import React from "react";
 import { v4 } from "uuid";
+// import Size from "@/components/map/panels/mapStyle/Size";
+import Color from "@/components/map/panels/mapStyle/Color";
+// import Marker from "@/components/map/panels/mapStyle/Marker";
 
 interface MapStyleProps {
   setActiveRight: (item: MapSidebarItem | undefined) => void;
@@ -47,26 +50,26 @@ const layerTypes = [
 ];
 
 const layerAccordionInfo = [
-  {
-    id: 1,
-    title: "Marker",
-    values: ["LOCATION", "CROSS"],
-  },
-  {
-    id: 2,
-    title: "Color",
-    values: [],
-  },
+  // {
+  //   id: 1,
+  //   title: "Marker",
+  //   values: ["LOCATION", "CROSS"],
+  // },
+  // {
+  //   id: 2,
+  //   title: "Color",
+  //   values: [],
+  // },
   {
     id: 3,
     title: "Stroke",
     values: [],
   },
-  {
-    id: 4,
-    title: "Size",
-    values: [],
-  },
+  // {
+  //   id: 4,
+  //   title: "Size",
+  //   values: [],
+  // },
 ];
 
 const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
@@ -192,6 +195,9 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
                   <Divider className={classes.divider} />
                 </Box>
               ))}
+              {/*<Marker />*/}
+              {/*<Size />*/}
+              <Color />
             </>
           ) : (
             <>
