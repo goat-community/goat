@@ -199,14 +199,10 @@ const stylingSlice = createSlice({
       // saveAs(blob, 'map_styles.json');
     },
     setLayerFillColor: (state, action: PayloadAction<string>) => {
-      console.log(action.payload);
       state.mapLayer.paint["fill-color"] = action.payload;
     },
     setLayerFillOutLineColor: (state, action: PayloadAction<string>) => {
       state.mapLayer.paint["fill-outline-color"] = action.payload;
-    },
-    setLayerStroke: (state, action: PayloadAction<string>) => {
-      state.mapLayer.layers[0].paint["icon-color"] = action.payload;
     },
     // setLayerIconImage: (state, action: PayloadAction<string>) => {
     //   state.mapLayer.layers[0].layout["icon-image"] = action.payload;
