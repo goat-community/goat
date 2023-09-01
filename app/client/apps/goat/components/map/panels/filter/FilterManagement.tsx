@@ -7,10 +7,10 @@ import type { ComparerMode, LayerPropsMode } from "@/types/map/filtering";
 import React from "react";
 import { useState } from "react";
 
-import { SelectField } from "@p4b/ui/components/Inputs";
+// import { SelectField } from "@p4b/ui/components/Inputs";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
-import FilterOptionField from "./FilterOptionField";
+// import FilterOptionField from "./FilterOptionField";
 import { Card, CardMedia } from "@p4b/ui/components/Surfaces";
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Icon } from "@p4b/ui/components/Icon";
@@ -18,18 +18,16 @@ import { useTheme } from "@/lib/theme";
 import { Text } from "@/lib/theme";
 import { Box } from "@mui/material";
 import { Button } from "@p4b/ui/components/theme";
-import { v4 } from "uuid";
-import { Chip } from "@/components/common/Chip";
+// import { v4 } from "uuid";
+// import { Chip } from "@/components/common/Chip";
+import Exppression from "./Exppression";
 
 // main component
 const FilterManagement = () => {
   const sampleLayerID = "user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e";
-
   const { keys } = useGetKeys({ layer_id: sampleLayerID });
-  // const [date, setDate] = useState<Dayjs | null>(null);
-  const [attributeSelected, setAttributeSelected] = useState<string | string[]>("");
-  const [comparerSelected, setComparerSelected] = useState<string | string[]>("");
-  // const [addExpressionStatus, setAddExpressionStatus] = useState(false);
+  const [attributeSelected, setAttributeSelected] = useState<string>("");
+  const [comparerSelected, setComparerSelected] = useState<string>("");
   const [expressions, setExpressions] = useState<
     | {
         attribute: LayerPropsMode | null;
@@ -79,7 +77,7 @@ const FilterManagement = () => {
 
   return (
     <div>
-      <Card>
+      <Card noHover={true}>
         <div className={classes.ContentHeader}>
           <Icon iconName={ICON_NAME.STAR} htmlColor={`${theme.colors.palette.focus.main}4D`} />
           <Text typo="body 2" className={classes.headerText}>
@@ -88,9 +86,10 @@ const FilterManagement = () => {
         </div>
       </Card>
       {expressions ? (
-        expressions.map((_, indx) => (
+        expressions.map((expression, indx) => (
           <>
-            <Box key={v4()}>
+            <Exppression isLast={indx + 1 !== expressions.length} expression={expression}/>
+            {/* <Box key={v4()}>
               <Box className={classes.expressionHeader}>
                 <Text typo="body 2">Expression</Text>
                 <Icon iconName={ICON_NAME.ELLIPSIS} />
@@ -100,6 +99,7 @@ const FilterManagement = () => {
                 options={keys.map((key) => ({ name: key.name, value: key.name }))}
                 label="Select attribute"
                 size="small"
+                defaultValue={attributeSelected ? attributeSelected : ""}
                 updateChange={setAttributeSelected}
               />
               <SelectField
@@ -118,6 +118,7 @@ const FilterManagement = () => {
                       ]
                 }
                 label="Select an expression"
+                defaultValue={comparerSelected ? comparerSelected : ""}
                 size="small"
                 disabled={attributeSelected.length ? false : true}
                 updateChange={setComparerSelected}
@@ -130,25 +131,21 @@ const FilterManagement = () => {
                       prop={typeof attributeSelected === "string" ? attributeSelected : ""}
                       layer_id={sampleLayerID}
                     />
-                  ) : (
-                    <p>Chose a comparer</p>
-                  )}
+                  ) : null}
                 </>
-              ) : (
-                <p>Chose an attribute</p>
-              )}
-              Comparers to use for filtering
+              ) : null}
             </Box>
             {indx + 1 !== expressions.length ? (
               <Box className={classes.andExpression}>
                 <Chip label="And" />
               </Box>
-            ) : null}
+            ) : null} */}
           </>
         ))
       ) : (
         <Box sx={{ marginTop: `${theme.spacing(4)}px` }}>
           <Card
+            noHover={true}
             aboveDivider={
               <CardMedia
                 className={classes.cardMediaImage}
@@ -171,37 +168,6 @@ const FilterManagement = () => {
         onClick={createExpression}>
         Add Expression
       </Button>
-      {/* <SelectField
-        options={keys.map((key) => ({ name: key.name, value: key.name }))}
-        label="Select Attribute"
-        size="small"
-        updateChange={setAttributeSelected}
-      />
-      {attributeSelected.length ? (
-        <>
-          <SelectField
-            options={comparerModes[getFeatureAttribute(attributeSelected)].map((attr: ComparerMode) => ({
-              name: attr.label,
-              value: attr.value,
-            }))}
-            label="Select Attribute"
-            size="small"
-            updateChange={setComparerSelected}
-          />
-          {comparerSelected.length ? (
-            <FilterOptionField
-              comparer={attributeSelected.length ? [...getComparer(comparerSelected)][0] : null}
-              prop={typeof attributeSelected === "string" ? attributeSelected : ""}
-              layer_id={sampleLayerID}
-            />
-          ) : (
-            <p>Chose a comparer</p>
-          )}
-        </>
-      ) : (
-        <p>Chose an attribute</p>
-      )}
-      Comparers to use for filtering */}
     </div>
   );
 };
@@ -248,7 +214,7 @@ const useStyles = makeStyles({ name: { FilterManagement } })((theme) => ({
   },
   fields: {
     margin: `${theme.spacing(2)}px 0`,
-  }
+  },
 }));
 
 export default FilterManagement;

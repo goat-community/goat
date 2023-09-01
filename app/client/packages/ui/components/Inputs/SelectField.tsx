@@ -14,7 +14,7 @@ import { Checkbox } from "../Checkbox";
 
 export type SelectFieldProps = {
   className?: string;
-  updateChange?: (value: string | string[]) => void;
+  updateChange?: ((value: string) => void) | ((value: string[]) => void);
   options: { name: React.ReactNode; value: string }[];
   defaultValue?: string;
   label: string;
@@ -75,7 +75,7 @@ export const SelectField = memo(
               labelId="demo-simple-select-label"
               id="demo-simple-select"
               disabled={disabled}
-              value={values ? values : defaultValue}
+              value={values && !Array.isArray(values) ? values : defaultValue}
               label={label}
               multiple={multiple}
               // MenuProps={multiple ? MenuProps : undefined}
