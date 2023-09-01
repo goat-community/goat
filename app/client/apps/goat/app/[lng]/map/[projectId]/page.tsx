@@ -50,7 +50,7 @@ export default function MapPage() {
     },
   ]);
 
-  const addLayer = (newLayer: XYZ_Layer) => {
+  const addLayer = (newLayer: XYZ_Layer[]) => {
     setLayers(newLayer);
   };
 

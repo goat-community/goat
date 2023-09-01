@@ -20,8 +20,7 @@ const Layers = (props: LayersProps) => {
 
   useEffect(() => {
     const filterJson = getQuery();
-    console.log(getQuery())
-    if(getQuery()){
+    if(filterJson){
       const filteredLayerSource = `${FILTERING(sampleLayerID)}?filter=${encodeURIComponent(filterJson)}`
       addLayer([
         {
@@ -30,7 +29,7 @@ const Layers = (props: LayersProps) => {
           color: "#FF0000",
         },
       ]);
-    }else if(getQuery() === ""){
+    }else if(filterJson === ""){
       addLayer([
         {
           id: "layer1",

@@ -57,6 +57,7 @@ export const SelectField = memo(
     // functions
     const handleChange = (event: SelectChangeEvent) => {
       if (updateChange && !multiple) {
+        
         updateChange(event.target.value as string);
       } else if (updateChange && multiple) {
         const value = event.target.value as string;
