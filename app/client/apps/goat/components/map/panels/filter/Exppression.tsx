@@ -28,10 +28,10 @@ interface ExpressionProps {
 
 const Exppression = (props: ExpressionProps) => {
   const { isLast, expression, logicalOperator, id } = props;
-  const [attributeSelected, setAttributeSelected] = useState<string>(
+  const [attributeSelected, setAttributeSelected] = useState<string | string[]>(
     expression.attribute ? expression.attribute.name : "",
   );
-  const [comparerSelected, setComparerSelected] = useState<string>(
+  const [comparerSelected, setComparerSelected] = useState<string | string[]>(
     expression.expression ? expression.expression.value : "",
   );
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);

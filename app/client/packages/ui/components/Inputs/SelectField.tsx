@@ -14,9 +14,9 @@ import { Checkbox } from "../Checkbox";
 
 export type SelectFieldProps = {
   className?: string;
-  updateChange?: ((value: string) => void) | ((value: string[]) => void);
+  updateChange?: ((value: string | string[]) => void);
   options: { name: React.ReactNode; value: string }[];
-  defaultValue?: string;
+  defaultValue?: string | string[];
   label: string;
   size: "small" | "medium";
   multiple?: boolean;
@@ -59,7 +59,9 @@ export const SelectField = memo(
     // functions
     const handleChange = (event: SelectChangeEvent) => {
       if (updateChange && !multiple) {
-        updateChange(event.target.value as string);
+        if(typeof event.target.value){
+          updateChange(event.target.value);
+        }
       } else if (updateChange && multiple) {
         const value = event.target.value as string;
         const valueArr = value.split(", ");
