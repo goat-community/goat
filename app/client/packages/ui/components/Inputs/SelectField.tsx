@@ -48,7 +48,9 @@ export const SelectField = memo(
     } = props;
 
     // Component State
-    const [values, setValues] = React.useState<string | string[]>(multiple ? [] : "");
+    const [values, setValues] = React.useState<string | string[]>(
+      multiple ? [] : "",
+    );
 
     //For the forwarding, rest should be empty (typewise),
     // eslint-disable-next-line @typescript-eslint/ban-types
@@ -57,7 +59,6 @@ export const SelectField = memo(
     // functions
     const handleChange = (event: SelectChangeEvent) => {
       if (updateChange && !multiple) {
-        
         updateChange(event.target.value as string);
       } else if (updateChange && multiple) {
         const value = event.target.value as string;
@@ -80,11 +81,18 @@ export const SelectField = memo(
               label={label}
               multiple={multiple}
               // MenuProps={multiple ? MenuProps : undefined}
-              renderValue={multiple ? (selected) => [selected].flat().join(", ") : (value) => value}
-              onChange={handleChange}>
+              renderValue={
+                multiple
+                  ? (selected) => [selected].flat().join(", ")
+                  : (value) => value
+              }
+              onChange={handleChange}
+            >
               {options.map((option) => (
                 <MenuItem value={option.value} key={option.value}>
-                  {checkbox ? <Checkbox checked={values.indexOf(option.value) > -1} /> : null}
+                  {checkbox ? (
+                    <Checkbox checked={values.indexOf(option.value) > -1} />
+                  ) : null}
                   {option.name}
                 </MenuItem>
               ))}
@@ -93,5 +101,5 @@ export const SelectField = memo(
         </Box>
       </>
     );
-  })
+  }),
 );

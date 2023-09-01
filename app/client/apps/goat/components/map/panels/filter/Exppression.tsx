@@ -29,10 +29,10 @@ interface ExpressionProps {
 const Exppression = (props: ExpressionProps) => {
   const { isLast, expression, logicalOperator, id } = props;
   const [attributeSelected, setAttributeSelected] = useState<string>(
-    expression.attribute ? expression.attribute.name : ""
+    expression.attribute ? expression.attribute.name : "",
   );
   const [comparerSelected, setComparerSelected] = useState<string>(
-    expression.expression ? expression.expression.value : ""
+    expression.expression ? expression.expression.value : "",
   );
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -52,7 +52,7 @@ const Exppression = (props: ExpressionProps) => {
 
   function getComparer(type: string | string[]) {
     return comparerModes[getFeatureAttribute(attributeSelected)].filter(
-      (compAttribute) => type === compAttribute.value
+      (compAttribute) => type === compAttribute.value,
     );
   }
 
@@ -81,7 +81,8 @@ const Exppression = (props: ExpressionProps) => {
               onClose={handleClose}
               MenuListProps={{
                 "aria-labelledby": "basic-button",
-              }}>
+              }}
+            >
               <MenuItem onClick={handleClose}>Delete expression</MenuItem>
               <MenuItem onClick={handleClose}>Duplicate</MenuItem>
             </Menu>
@@ -99,10 +100,12 @@ const Exppression = (props: ExpressionProps) => {
           className={classes.fields}
           options={
             attributeSelected.length
-              ? comparerModes[getFeatureAttribute(attributeSelected)].map((attr: ComparerMode) => ({
-                  name: attr.label,
-                  value: attr.value,
-                }))
+              ? comparerModes[getFeatureAttribute(attributeSelected)].map(
+                  (attr: ComparerMode) => ({
+                    name: attr.label,
+                    value: attr.value,
+                  }),
+                )
               : [
                   {
                     name: "",
@@ -120,8 +123,14 @@ const Exppression = (props: ExpressionProps) => {
           <>
             {comparerSelected.length ? (
               <FilterOptionField
-                comparer={attributeSelected.length ? [...getComparer(comparerSelected)][0] : null}
-                prop={typeof attributeSelected === "string" ? attributeSelected : ""}
+                comparer={
+                  attributeSelected.length
+                    ? [...getComparer(comparerSelected)][0]
+                    : null
+                }
+                prop={
+                  typeof attributeSelected === "string" ? attributeSelected : ""
+                }
                 expression={id}
               />
             ) : null}
@@ -130,7 +139,9 @@ const Exppression = (props: ExpressionProps) => {
       </Box>
       {isLast ? (
         <Box className={classes.andExpression}>
-          <Chip label={logicalOperator === "match_all_expressions" ? "And" : "Or"} />
+          <Chip
+            label={logicalOperator === "match_all_expressions" ? "And" : "Or"}
+          />
         </Box>
       ) : null}
     </>
