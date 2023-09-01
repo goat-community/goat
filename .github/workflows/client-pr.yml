@@ -14,7 +14,7 @@ name: "Client - PR"
 
 on:
   pull_request_target:
-    branches: [dev, main, v2]
+    branches: [v2]
     paths:
       - "app/client/**"
   merge_group:
