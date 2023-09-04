@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import BasicAccordion from "@p4b/ui/components/BasicAccordion";
-import { Slider, TextField } from "@mui/material";
+import { Divider, Select, Slider, TextField, Typography } from "@mui/material";
 import { makeStyles } from "@/lib/theme";
 import Box from "@p4b/ui/components/Box";
 
@@ -26,21 +26,31 @@ const Stroke = () => {
   return (
     <div>
       <BasicAccordion title="Stroke" variant="secondary">
-        <Box className={classes.optionContainer}>
-          <TextField
-            type="number"
-            size="small"
-            value={width.toString()}
-            onChange={handleTextFieldChange}
-          />
-          <Slider
-            value={width}
-            onChange={handleSliderChange}
-            aria-label="Small"
-            valueLabelDisplay="auto"
-            color="primary"
-            className={classes.slider}
-          />
+        <Box className={classes.root}>
+          <Box className={classes.optionContainer}>
+            <Typography variant="body2">Width</Typography>
+            <Box className={classes.sizePickerContainer}>
+              <TextField
+                type="number"
+                size="small"
+                value={width.toString()}
+                onChange={handleTextFieldChange}
+              />
+              <Slider
+                value={width}
+                onChange={handleSliderChange}
+                aria-label="Small"
+                valueLabelDisplay="auto"
+                color="primary"
+                className={classes.slider}
+              />
+            </Box>
+          </Box>
+          <Divider className={classes.divider} />
+          <Box className={classes.optionContainer}>
+            <Typography variant="body2">Style</Typography>
+            <Select size="small" />
+          </Box>
         </Box>
       </BasicAccordion>
     </div>
@@ -48,7 +58,17 @@ const Stroke = () => {
 };
 
 const useStyles = makeStyles({ name: { Stroke } })((theme) => ({
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    rowGap: "16px",
+  },
   optionContainer: {
+    display: "flex",
+    flexDirection: "column",
+    rowGap: "16px",
+  },
+  sizePickerContainer: {
     display: "flex",
     flexDirection: "column",
     rowGap: "45px",
@@ -64,6 +84,11 @@ const useStyles = makeStyles({ name: { Stroke } })((theme) => ({
       backgroundColor: theme.colors.palette.light.main,
       color: theme.colors.palette.focus.main,
     },
+  },
+  divider: {
+    width: "100%",
+    borderTop: "none",
+    borderBottom: `1px solid ${theme.colors.palette.focus}`,
   },
 }));
 

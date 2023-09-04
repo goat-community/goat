@@ -1,5 +1,6 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { createSlice } from "@reduxjs/toolkit";
+import { fetchLayerData } from "@/lib/store/styling/actions";
 
 interface IViewState {
   latitude: number;
@@ -26,58 +27,30 @@ interface IMarker {
   iconName: string;
 }
 
-// interface ImapLayer {
-//   version: number;
-//   name: string;
-//   metadata: {
-//     "mapbox:type": string;
-//     "mapbox:origin": string;
-//     "mapbox:sdk-support": {
-//       js: string;
-//       android: string;
-//       ios: string;
-//     };
-//     "mapbox:autocomposite": boolean;
-//     "mapbox:groups": {
-//       [key: string]: {
-//         name: string;
-//         collapsed: boolean;
-//       };
-//     };
-//   };
-//   center: [number, number];
-//   zoom: number;
-//   bearing: number;
-//   pitch: number;
-//   sources: {
-//     composite: {
-//       url: string;
-//       type: string;
-//     };
-//   };
-//   sprite: string;
-//   glyphs: string;
-//   layers: {
-//     id: string;
-//     type: string;
-//     paint: {
-//       "icon-color": string;
-//     };
-//     source: string;
-//     "source-layer": string;
-//     layout: {
-//       "icon-image": string;
-//       "icon-size": number;
-//     };
-//   }[];
-//   created: string;
-//   modified: string;
-//   id: string;
-//   owner: string;
-//   visibility: string;
-//   protected: boolean;
-//   draft: boolean;
-// }
+interface IMapLayer {
+  name: string;
+  sources: {
+    composite: {
+      url: string;
+      type: string;
+    };
+  };
+  id: string;
+  type:
+    | "symbol"
+    | "fill"
+    | "line"
+    | "circle"
+    | "background"
+    | "raster"
+    | "fill-extrusion"
+    | "heatmap"
+    | "hillshade";
+  paint: object;
+  layout: object;
+  source: string;
+  "source-layer": string;
+}
 
 export interface IStylingState {
   initialViewState: IViewState;
@@ -85,14 +58,14 @@ export interface IStylingState {
   basemaps: IBasemap[];
   activeBasemapIndex: number[];
   markers: IMarker[];
-  mapLayer: object;
+  mapLayer: IMapLayer | null;
 }
 
 const initialState: IStylingState = {
   initialViewState: {
     latitude: 48.13780235991851,
     longitude: 11.575936741828286,
-    zoom: 12,
+    zoom: 11,
     min_zoom: 0,
     max_zoom: 20,
     bearing: 0,
@@ -139,31 +112,7 @@ const initialState: IStylingState = {
   activeBasemapIndex: [4],
   markers: [],
   //todo need get layer from db
-  mapLayer: {
-    sources: {
-      composite: {
-        url: "mapbox://eliaspajares.cljxc2rek01ow2alyl0cy0y2j-63c9z",
-        type: "vector",
-      },
-    },
-    id: "aoi",
-    type: "fill",
-    paint: {
-      "fill-color": "#316940",
-      // "match",
-      // ["get", "category"],
-      // ["forest", "park"],
-      // "hsl(137, 37%, 30%)",
-      // "#000000",
-      "fill-outline-color": "#000", // Define the color of the stroke
-      "fill-opacity": 1.0, // Define the opacity of the fill
-      // "fill-outline-opacity": 1.0, // Define the opacity of the stroke
-      "fill-antialias": true, //
-    },
-    layout: {},
-    source: "composite",
-    "source-layer": "aoi",
-  },
+  mapLayer: null,
 };
 
 const stylingSlice = createSlice({
@@ -199,10 +148,14 @@ const stylingSlice = createSlice({
       // saveAs(blob, 'map_styles.json');
     },
     setLayerFillColor: (state, action: PayloadAction<string>) => {
-      state.mapLayer.paint["fill-color"] = action.payload;
+      if (state.mapLayer) {
+        state.mapLayer.paint["fill-color"] = action.payload;
+      }
     },
     setLayerFillOutLineColor: (state, action: PayloadAction<string>) => {
-      state.mapLayer.paint["fill-outline-color"] = action.payload;
+      if (state.mapLayer) {
+        state.mapLayer.paint["fill-outline-color"] = action.payload;
+      }
     },
     // setLayerIconImage: (state, action: PayloadAction<string>) => {
     //   state.mapLayer.layers[0].layout["icon-image"] = action.payload;
@@ -210,6 +163,17 @@ const stylingSlice = createSlice({
     // setLayerIconSize: (state, action: PayloadAction<number>) => {
     //   state.mapLayer.layers[0].layout["icon-size"] = action.payload;
     // },
+  },
+  extraReducers: ({ addCase }) => {
+    addCase(fetchLayerData.pending, (state) => {
+      state.mapLayer = null;
+    });
+    addCase(fetchLayerData.fulfilled, (state, { payload }) => {
+      state.mapLayer = payload as IMapLayer;
+    });
+    addCase(fetchLayerData.rejected, (state) => {
+      state.mapLayer = null;
+    });
   },
 });
 

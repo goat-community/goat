@@ -23,15 +23,17 @@ import type { CSSObject } from "tss-react";
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import type { IStore } from "@/types/store";
 import { setActiveBasemapIndex } from "@/lib/store/styling/slice";
 import MapStyle from "@/components/map/panels/mapStyle/MapStyle";
+import { fetchLayerData } from "@/lib/store/styling/actions";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
 
 const sidebarWidth = 48;
 const toolbarHeight = 52;
 
-export default function MapPage() {
+export default function MapPage({ params: { projectId } }) {
   const { basemaps, activeBasemapIndex, initialViewState, mapLayer } =
     useSelector((state: IStore) => state.styling);
 
@@ -44,7 +46,7 @@ export default function MapPage() {
 
   const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
   const prevActiveRightRef = useRef<MapSidebarItem | undefined>(undefined);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const { classes, cx } = useStyles({ sidebarWidth, toolbarHeight });
 
@@ -122,6 +124,12 @@ export default function MapPage() {
   useEffect(() => {
     prevActiveRightRef.current = activeRight;
   }, [activeRight]);
+
+  useEffect(() => {
+    if (projectId) {
+      dispatch(fetchLayerData(projectId));
+    }
+  }, [dispatch, projectId]);
 
   return (
     <MapProvider>
@@ -251,7 +259,14 @@ export default function MapPage() {
                 type="vector"
                 url={mapLayer.sources.composite.url}
               >
-                <Layer {...mapLayer} />
+                <Layer
+                  id={mapLayer.id}
+                  type={mapLayer.type}
+                  paint={mapLayer.paint}
+                  layout={mapLayer.layout}
+                  source={mapLayer.source}
+                  source-layer={mapLayer["source-layer"]}
+                />
               </Source>
             ) : null}
           </Map>
