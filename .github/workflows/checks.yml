@@ -49,16 +49,12 @@ jobs:
                     - 'app/client/package.json'
                     - 'app/client/pnpm-lock.yaml'
                     - 'app/client/.prettier*'
-                    - 'infra/manifests/**/client.yml'
                 api:
                     - 'app/api'
-                    - 'infra/manifests/**/api.yml'
                 geoapi:
                     - 'app/geoapi'
-                    - 'infra/manifests/**/geoapi.yml'
                 docs:
                     - 'docs/**'
-                    - 'infra/manifests/**/docs.yml'
 
           - name: 🕵️ Environment Branch Check
             id: branch_check
