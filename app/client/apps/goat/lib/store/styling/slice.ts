@@ -157,6 +157,13 @@ const stylingSlice = createSlice({
         state.mapLayer.paint["fill-outline-color"] = action.payload;
       }
     },
+    deleteLayerFillOutLineColor: (state) => {
+      if (state.mapLayer) {
+        if ("fill-outline-color" in state.mapLayer.paint) {
+          delete state.mapLayer.paint["fill-outline-color"];
+        }
+      }
+    },
     // setLayerIconImage: (state, action: PayloadAction<string>) => {
     //   state.mapLayer.layers[0].layout["icon-image"] = action.payload;
     // },
@@ -185,6 +192,7 @@ export const {
   setLayerFillColor,
   setLayerFillOutLineColor,
   saveStyles,
+  deleteLayerFillOutLineColor,
 } = stylingSlice.actions;
 
 export const stylingReducer = stylingSlice.reducer;

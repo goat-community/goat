@@ -31,6 +31,8 @@ import Color from "@/components/map/panels/mapStyle/Color";
 import Stroke from "@/components/map/panels/mapStyle/Stroke";
 import Marker from "@/components/map/panels/mapStyle/Marker";
 import Size from "@/components/map/panels/mapStyle/Size";
+import SelectStrokeOptionAoi from "@/components/map/panels/mapStyle/SelectStrokeOptionAoi";
+import ColorOptionAoi from "@/components/map/panels/mapStyle/ColorOptionAoi";
 
 interface MapStyleProps {
   setActiveRight: (item: MapSidebarItem | undefined) => void;
@@ -147,7 +149,9 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
               ) : null}
               {mapLayer?.name === "aoi" ? (
                 <>
-                  <Color />
+                  <ColorOptionAoi />
+                  <Divider className={classes.divider} />
+                  <SelectStrokeOptionAoi />
                 </>
               ) : null}
               {mapLayer?.name === "poi" ? (
