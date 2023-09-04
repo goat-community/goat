@@ -1,43 +1,21 @@
 // general queries
 
 function createComparisonCondition(op: string, key: string, value: string | number) {
-  return `{
-    "op": "${op}",
-    "args": [
-      { "property": "${key}" },
-      ${typeof value === "string" ? `"${value}"` : value}
-    ]
-  }`;
+  return `{"op":"${op}","args":[{"property":"${key}"},${typeof value === "string" ? `"${value}"` : value}]}`;
 }
 
 function createInclusionCondition(op: string, key: string, values: (string | number)[]) {
-  return `{
-    "op": "${op}",
-    "args": [
-      { "property": "${key}" },
-      ${JSON.stringify(values)}
-    ]
-  }`;
+  return `{"op":"${op}","args":[{"property":"${key}"},${JSON.stringify(values)}]}`;
 }
 
 function createNestedCondition(outerOp: string, key: string, value: string, innerOp?: string) {
-  return `{
-    "op": "${outerOp}",
-    "args": [
+  return `{"op": "${outerOp}","args": [
       ${
         innerOp
-          ? `{
-        "op": "${innerOp}",
-        "args": [
-          { "property": "${key}" },
-          "${value}"
-        ]
-      }`
-          : `{ "property": "${key}" },
+          ? `{"op":"${innerOp}","args":[{"property":"${key}"},"${value}"]}`
+          : `{ "property":"${key}"},
       "${value}"`
-      }
-    ]
-  }`;
+      }]}`;
 }
 
 // all the queries
@@ -121,18 +99,15 @@ export function is_greater_than(key: string, value: number) {
   return createComparisonCondition(">", key, value);
 }
 
-export function is_between(key: string) { // other props (valueA: number, valueB: number)
-  return `{
-    "op": "and",
-    "args": [
-      {
-        "op": ">=",
-        "args": [ { "property": "${key}" }, 10 ]
-      },
-      {
-        "op": "<=",
-        "args": [ { "property": "${key}" }, 20 ]
-      }
-    ]
-  }`;
+export function is_between(key: string, value1: number, value2: number) {
+  // other props (valueA: number, valueB: number)
+  return `{"op":"and","args":[{"op":">=","args":[{"property":"${key}"},${value1}]},{"op":"<=","args":[{"property":"${key}"},${value2}]}]}`;
+}
+
+export function and_operator(args: string[]) {
+  return `{"op":"and","args": [${args.map((arg) => `${arg}`)}]}`;
+}
+
+export function or_operator(args: string[]) {
+  return `{"op":"or","args": [${args.map((arg) => `${arg}`)}]}`;
 }

@@ -34,7 +34,8 @@ from tipg.filter.evaluate import to_filter
 from tipg.filter.filters import bbox_to_wkt
 
 
-#TODO: Add test for the functions
+# TODO: Add test for the functions
+
 
 # These are the function that need to be patched.
 def _from(self, function_parameters: Optional[Dict[str, str]]):
@@ -249,6 +250,8 @@ def filter_query(
         cql_dict = json.loads(query)
         replace_properties(cql_dict, column_mapping)
 
-        return cql2_json_parser(json.dumps(cql_dict))
+        data = cql2_json_parser(json.dumps(cql_dict))
+        print(data)
+        return data
 
     return None

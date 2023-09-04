@@ -1,22 +1,20 @@
 import type { Dayjs } from "dayjs";
 import React from "react";
-
+import TextInputSelect from "./inputFields/TextInputSelect";
 import { TextField, SelectField, DatePicker } from "@p4b/ui/components/Inputs";
+import { dummyFilterDataText, dummyFilterDataNumber } from "@/public/assets/data/filterDummy";
 
 interface simpleInput {
-  value: string | number;
-  setChange: (value: string | number) => void;
+  value: string;
+  setChange: (value: string) => void;
 }
 
 export const NumberOption = (props: simpleInput) => {
-  const { setChange } = props;
+  const { value, setChange } = props;
+
   return (
-    <div>
-      <TextField
-        type="number"
-        size="small"
-        onValueBeingTypedChange={({ value }) => setChange(parseFloat(value))}
-      />
+    <div style={{marginBottom: "8px"}}>
+      <TextInputSelect setInputValue={setChange} inputValue={value} options={dummyFilterDataNumber} type="number"/>
     </div>
   );
 };
@@ -37,11 +35,11 @@ export const DateOption = (props: DateOptionProp) => {
 };
 
 export const TextOption = (props: simpleInput) => {
-  const { setChange } = props;
+  const { value, setChange } = props;
 
   return (
     <div>
-      <TextField size="small" onValueBeingTypedChange={({ value }) => setChange(value)} />
+      <TextInputSelect setInputValue={setChange} inputValue={value} options={dummyFilterDataText}/>
     </div>
   );
 };

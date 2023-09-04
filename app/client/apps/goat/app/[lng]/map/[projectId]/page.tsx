@@ -3,6 +3,7 @@
 import type { MapSidebarItem, MapSidebarProps } from "@/components/map/Sidebar";
 import MapSidebar from "@/components/map/Sidebar";
 import type { MapToolbarProps } from "@/components/map/Toolbar";
+import type { XYZ_Layer } from "@/types/map/layer";
 import { MapToolbar } from "@/components/map/Toolbar";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Zoom } from "@/components/map/controls/Zoom";
@@ -20,6 +21,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Map, { MapProvider } from "react-map-gl";
 import type { CSSObject } from "tss-react";
+import Layers from "@/components/map/Layers";
+// import type { CircleLayer } from "react-map-gl";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
@@ -35,13 +38,21 @@ export default function MapPage() {
   const { basemaps, activeBasemapIndex, initialViewState } = useSelector(
     (state: IStore) => state.styling
   );
+  const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(undefined);
+  const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(undefined);
+  // const [activeBasemapIndex, setActiveBasemapIndex] = useState([0]);
+  const [layers, setLayers] = useState<XYZ_Layer[] | []>([
+    {
+      id: "layer1",
+      sourceUrl:
+        "http://127.0.0.1:8081/collections/user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e/tiles/{z}/{x}/{y}",
+      color: "#FF0000",
+    },
+  ]);
 
-  const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(
-    undefined
-  );
-  const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(
-    undefined
-  );
+  const addLayer = (newLayer: XYZ_Layer[]) => {
+    setLayers(newLayer);
+  };
 
   const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
   const prevActiveRightRef = useRef<MapSidebarItem | undefined>(undefined);
@@ -244,8 +255,9 @@ export default function MapPage() {
             initialViewState={initialViewState}
             mapStyle={basemaps[activeBasemapIndex[0]].url}
             attributionControl={false}
-            mapboxAccessToken={MAPBOX_TOKEN}
-          />
+            mapboxAccessToken={MAPBOX_TOKEN}>
+            <Layers layers={layers} addLayer={addLayer} />
+          </Map>
         </div>
       </div>
     </MapProvider>

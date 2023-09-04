@@ -24,7 +24,6 @@ export const Chip = (props: ChipProps) => {
   const { classes, cx } = useStyles({ variant, textDesign, color, icon });
 
   const theme = useTheme()
-  console.log(theme.colors.palette[color], color, theme.colors.palette)
   const labelChip = (
     <div className={classes.chipContent}>
       {icon ? <Icon iconName={icon} htmlColor={`${theme.colors.palette[color].main}BF`} fontSize="small"/> : null}

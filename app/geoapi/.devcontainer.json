@@ -38,8 +38,5 @@
                 "python.formatting.provider": "black"
             }
         }
-    }//,
-    // "runServices": [
-    //     "geoapi"
-    // ]
+    }
 }
