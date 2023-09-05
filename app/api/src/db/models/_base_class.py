@@ -37,7 +37,6 @@ class ContentBaseAttributes(SQLModel):
         sa_column=Column(Text, nullable=True), description="Layer thumbnail URL"
     )
 
-
 content_base_example = {
     "folder_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "name": "Layer name",

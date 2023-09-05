@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from .scenario import Scenario
     from .scenario_feature import ScenarioFeature
     from .project import Project
+    from ._link_model import LayerProjectLink
 
 
 class FeatureLayerType(str, Enum):
@@ -244,6 +245,7 @@ class Layer(LayerBase, GeospatialAttributes, DateTimeBase, table=True):
     scenario_features: List["ScenarioFeature"] = Relationship(back_populates="original_layer")
     data_store: "DataStore" = Relationship(back_populates="layers")
     analysis_requests: List["AnalysisRequest"] = Relationship(back_populates="layer")
+    layer_projects: List["LayerProjectLink"] = Relationship(back_populates="layer")
 
     @validator("extent", pre=True)
     def wkt_to_geojson(cls, v):
