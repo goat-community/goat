@@ -44,7 +44,8 @@
     "KEYCLOAK_CLIENT_SECRET",
     "KEYCLOAK_CLIENT_ID",
     "KEYCLOAK_ISSUER",
-    "API_URL",
+    "ACCOUNTS_API_URL",
+    "GEOAPI_URL",
     "NODE_ENV"
   ]
 }
