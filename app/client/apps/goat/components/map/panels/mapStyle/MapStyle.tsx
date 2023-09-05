@@ -13,17 +13,26 @@ import {
 import { makeStyles } from "@/lib/theme";
 import { useDispatch, useSelector } from "react-redux";
 import type { IStore } from "@/types/store";
-import { setTabValue } from "@/lib/store/styling/slice";
+import {
+  resetStyles,
+  saveStyles,
+  setTabValue,
+} from "@/lib/store/styling/slice";
 import { Card } from "@p4b/ui/components/Surfaces";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import { Checkbox } from "@p4b/ui/components/Checkbox";
-import BasicAccordion from "@p4b/ui/components/BasicAccordion";
 import { MultipleSelect } from "@p4b/ui/components/Inputs/MultipleSelect";
 import Box from "@p4b/ui/components/Box";
 import type { MapSidebarItem } from "@/components/map/Sidebar";
 import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
 import React from "react";
+import Color from "@/components/map/panels/mapStyle/Color";
+import Stroke from "@/components/map/panels/mapStyle/Stroke";
+import Marker from "@/components/map/panels/mapStyle/Marker";
+import Size from "@/components/map/panels/mapStyle/Size";
+import SelectStrokeOptionFill from "@/components/map/panels/mapStyle/SelectStrokeOptionFill";
+import ColorOptionFill from "@/components/map/panels/mapStyle/ColorOptionFill";
 
 interface MapStyleProps {
   setActiveRight: (item: MapSidebarItem | undefined) => void;
@@ -40,27 +49,8 @@ const layerTypes = [
   },
 ];
 
-const layerAccordionInfo = [
-  {
-    id: 1,
-    title: "Marker",
-  },
-  {
-    id: 2,
-    title: "Color",
-  },
-  {
-    id: 3,
-    title: "Stroke",
-  },
-  {
-    id: 4,
-    title: "Size",
-  },
-];
-
 const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
-  const { tabValue } = useSelector((state: IStore) => state.styling);
+  const { tabValue, mapLayer } = useSelector((state: IStore) => state.styling);
 
   const dispatch = useDispatch();
   const { classes } = useStyles();
@@ -68,6 +58,14 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     dispatch(setTabValue(newValue));
+  };
+
+  const resetStylesHandler = () => {
+    dispatch(resetStyles());
+  };
+
+  const saveStylesHandler = () => {
+    dispatch(saveStyles());
   };
 
   return (
@@ -116,7 +114,11 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
             </RadioGroup>
           </Card>
           <Box>
-            <Tabs value={tabValue} onChange={handleChange} aria-label="basic tabs example">
+            <Tabs
+              value={tabValue}
+              onChange={handleChange}
+              aria-label="basic tabs example"
+            >
               <Tab label="SIMPLE" className={classes.tab} />
               <Tab label="SMART" className={classes.tab} />
             </Tabs>
@@ -126,34 +128,62 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
               <Card>
                 <CardMedia className={classes.media} component="div" />
                 <CardContent className={classes.content}>
-                  <IconButton type="submit" size="small" iconId="info" className={classes.contentButton} />
+                  <IconButton
+                    type="submit"
+                    size="small"
+                    iconId="info"
+                    className={classes.contentButton}
+                  />
                   <Typography variant="body2" color="text.secondary">
                     Location (single symbol)
                   </Typography>
                   <Checkbox />
                 </CardContent>
               </Card>
-              {layerAccordionInfo.map((item) => (
-                <Box key={item.id}>
-                  <BasicAccordion title={item.title} variant="secondary" className={classes.accordion}>
-                    <div>Lorem</div>
-                    <div>Lorem</div>
-                    <div>Lorem</div>
-                  </BasicAccordion>
+              {mapLayer?.type === "line" ? (
+                <>
+                  <Color />
                   <Divider className={classes.divider} />
-                </Box>
-              ))}
+                  <Stroke />
+                </>
+              ) : null}
+              {mapLayer?.type === "fill" ? (
+                <>
+                  <ColorOptionFill />
+                  <Divider className={classes.divider} />
+                  <SelectStrokeOptionFill />
+                </>
+              ) : null}
+              {mapLayer?.type === "symbol" ? (
+                <>
+                  <Marker />
+                  <Divider className={classes.divider} />
+                  <Color />
+                  <Divider className={classes.divider} />
+                  <Stroke />
+                  <Divider className={classes.divider} />
+                  <Size />
+                </>
+              ) : null}
             </>
           ) : (
             <>
               <Box className={classes.attributeContainer}>
                 <Typography variant="body2">Attribute</Typography>
-                <MultipleSelect options={layerTypes} label="Browser layer attributes" />
+                <MultipleSelect
+                  options={layerTypes}
+                  label="Browser layer attributes"
+                />
               </Box>
               <Box>
-                <Text color="secondary" typo="label 2" className={classes.descriptionText}>
-                  Style your map according to the values of a specific attribute or column in the dataset,
-                  using techniques such as color coding or symbol size variation for categorical and numerical
+                <Text
+                  color="secondary"
+                  typo="label 2"
+                  className={classes.descriptionText}
+                >
+                  Style your map according to the values of a specific attribute
+                  or column in the dataset, using techniques such as color
+                  coding or symbol size variation for categorical and numerical
                   data.
                 </Text>
               </Box>
@@ -163,15 +193,23 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
       }
       action={
         <Box className={classes.buttonsContainer}>
-          <Button className={classes.button} color="secondary" variant="outlined" disabled>
+          <Button
+            className={classes.button}
+            color="secondary"
+            variant="outlined"
+            onClick={resetStylesHandler}
+          >
             Reset
           </Button>
           <Button
             className={classes.button}
             color="primary"
             variant="outlined"
-            disabled
-            endIcon={<Icon iconName={ICON_NAME.CHEVRON_DOWN} fontSize="small" />}>
+            onClick={saveStylesHandler}
+            endIcon={
+              <Icon iconName={ICON_NAME.CHEVRON_DOWN} fontSize="small" />
+            }
+          >
             Save As
           </Button>
         </Box>

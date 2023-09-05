@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Source, Layer as MapLayer } from "react-map-gl";
 import type { XYZ_Layer } from "@/types/map/layer";
 import { useSelector } from "react-redux";
@@ -15,43 +15,13 @@ interface LayersProps {
 const Layers = (props: LayersProps) => {
   const sampleLayerID = "user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e";
 
-  const { filters, logicalOperator } = useSelector((state: IStore) => state.mapFilters);
+  const { filters, logicalOperator } = useSelector(
+    (state: IStore) => state.mapFilters,
+  );
+
   const { layers, addLayer } = props;
 
-  useEffect(() => {
-    const filterJson = getQuery();
-    if(filterJson){
-      const filteredLayerSource = `${FILTERING(sampleLayerID)}?filter=${encodeURIComponent(filterJson)}`
-      addLayer([
-        {
-          id: "layer1",
-          sourceUrl: filteredLayerSource,
-          color: "#FF0000",
-        },
-      ]);
-    }else if(filterJson === ""){
-      addLayer([
-        {
-          id: "layer1",
-          sourceUrl: FILTERING(sampleLayerID),
-          color: "#FF0000",
-        },
-      ]);
-    }
-
-    if(!Object.keys(filters).length){
-      addLayer([
-        {
-          id: "layer1",
-          sourceUrl: "http://127.0.0.1:8081/collections/user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e/tiles/{z}/{x}/{y}",
-          color: "#FF0000",
-        },
-      ]);
-    }
-
-  }, [filters]);
-
-  function getQuery() {
+  const getQuery = useCallback(() => {
     if (Object.keys(filters).length) {
       if (Object.keys(filters).length === 1) {
         return filters["1"];
@@ -63,7 +33,42 @@ const Layers = (props: LayersProps) => {
         }
       }
     }
-  }
+  }, [filters, logicalOperator]);
+
+  useEffect(() => {
+    const filterJson = getQuery();
+    if (filterJson) {
+      const filteredLayerSource = `${FILTERING(
+        sampleLayerID,
+      )}?filter=${encodeURIComponent(filterJson)}`;
+      addLayer([
+        {
+          id: "layer1",
+          sourceUrl: filteredLayerSource,
+          color: "#FF0000",
+        },
+      ]);
+    } else if (filterJson === "") {
+      addLayer([
+        {
+          id: "layer1",
+          sourceUrl: FILTERING(sampleLayerID),
+          color: "#FF0000",
+        },
+      ]);
+    }
+
+    if (!Object.keys(filters).length) {
+      addLayer([
+        {
+          id: "layer1",
+          sourceUrl:
+            "http://127.0.0.1:8081/collections/user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e/tiles/{z}/{x}/{y}",
+          color: "#FF0000",
+        },
+      ]);
+    }
+  }, [addLayer, filters, getQuery]);
 
   const clusterLayer: LayerProps = {
     id: "clusters",
@@ -83,10 +88,9 @@ const Layers = (props: LayersProps) => {
             <>
               <Source
                 type="vector"
-                tiles={[
-                  layer.sourceUrl,
-                ]}
-                key="user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e">
+                tiles={[layer.sourceUrl]}
+                key="user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e"
+              >
                 <MapLayer {...clusterLayer} />
               </Source>
             </>
