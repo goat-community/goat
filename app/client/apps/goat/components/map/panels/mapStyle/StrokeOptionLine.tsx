@@ -24,7 +24,6 @@ const StrokeOptionLine = () => {
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const newValue = parseFloat(event.target.value);
-    console.log("newValue", newValue);
     if (!isNaN(newValue)) {
       dispatch(setLayerLineWidth({ key: "line-width", val: newValue }));
     }

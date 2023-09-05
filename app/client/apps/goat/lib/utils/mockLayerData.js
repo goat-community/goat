@@ -38,14 +38,8 @@ export const stylesObj = {
     type: "fill",
     paint: {
       "fill-color": "#316940",
-      // "match",
-      // ["get", "category"],
-      // ["forest", "park"],
-      // "hsl(137, 37%, 30%)",
-      // "#000000",
-      "fill-outline-color": "#000", // Define the color of the stroke
-      "fill-opacity": 1.0, // Define the opacity of the fill
-      // "fill-outline-opacity": 1.0, // Define the opacity of the stroke
+      "fill-outline-color": "#000",
+      "fill-opacity": 1.0,
       "fill-antialias": true, //
     },
     layout: {},
