@@ -136,9 +136,6 @@ const stylingSlice = createSlice({
         return item;
       });
     },
-    resetStyles: (state): void => {
-      state.markers = [];
-    },
     saveStyles: (state): void => {
       const jsonData = JSON.stringify(state, null, 2); // Convert state to JSON with pretty formatting
       console.log("Saved jsonData", jsonData);
@@ -147,9 +144,20 @@ const stylingSlice = createSlice({
       // Need Using the FileSaver library to save the JSON data as a file
       // saveAs(blob, 'map_styles.json');
     },
-    setLayerFillColor: (state, action: PayloadAction<string>) => {
-      if (state.mapLayer?.paint) {
-        state.mapLayer.paint["fill-color"] = action.payload;
+    setLayerFillColor: (
+      state,
+      action: PayloadAction<{ key: string; val: string }>,
+    ) => {
+      if (state.mapLayer) {
+        state.mapLayer.paint[action.payload.key] = action.payload.val;
+      }
+    },
+    setLayerLineWidth: (
+      state,
+      action: PayloadAction<{ key: string; val: number }>,
+    ) => {
+      if (state.mapLayer) {
+        state.mapLayer.paint[action.payload.key] = action.payload.val;
       }
     },
     setLayerFillOutLineColor: (state, action: PayloadAction<string>) => {
@@ -188,10 +196,10 @@ export const {
   setTabValue,
   setActiveBasemapIndex,
   addMarker,
-  resetStyles,
   setLayerFillColor,
   setLayerFillOutLineColor,
   saveStyles,
+  setLayerLineWidth,
   deleteLayerFillOutLineColor,
 } = stylingSlice.actions;
 

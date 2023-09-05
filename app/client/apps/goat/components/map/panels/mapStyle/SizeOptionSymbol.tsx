@@ -4,7 +4,7 @@ import { Slider, TextField } from "@mui/material";
 import { makeStyles } from "@/lib/theme";
 import Box from "@p4b/ui/components/Box";
 
-const Size = () => {
+const SizeOptionSymbol = () => {
   const [value, setValue] = useState<number>(20);
 
   const { classes } = useStyles();
@@ -47,7 +47,7 @@ const Size = () => {
   );
 };
 
-const useStyles = makeStyles({ name: { Size } })((theme) => ({
+const useStyles = makeStyles({ name: { SizeOptionSymbol } })((theme) => ({
   optionContainer: {
     display: "flex",
     flexDirection: "column",
@@ -67,4 +67,4 @@ const useStyles = makeStyles({ name: { Size } })((theme) => ({
   },
 }));
 
-export default Size;
+export default SizeOptionSymbol;

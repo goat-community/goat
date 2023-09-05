@@ -126,7 +126,9 @@ export default function MapPage({ params: { projectId } }) {
       {
         icon: ICON_NAME.STYLE,
         name: "Map Style",
-        component: <MapStyle setActiveRight={setActiveRight} />,
+        component: (
+          <MapStyle setActiveRight={setActiveRight} projectId={projectId} />
+        ),
       },
     ],
     width: sidebarWidth,

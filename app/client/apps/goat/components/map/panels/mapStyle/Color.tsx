@@ -19,7 +19,7 @@ const Color = () => {
   const handleFillColorChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    dispatch(setLayerFillColor(event.target.value));
+    dispatch(setLayerFillColor({ key: "fill-color", val: event.target.value }));
   };
 
   const handleStrokeColorChange = (

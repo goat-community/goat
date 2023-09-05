@@ -5,13 +5,10 @@ import { Divider, TextField, Typography } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
 import type { IStore } from "@/types/store";
-import {
-  setLayerFillColor,
-  setLayerFillOutLineColor,
-} from "@/lib/store/styling/slice";
+import { setLayerFillOutLineColor } from "@/lib/store/styling/slice";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 
-const ColorOptionFill = () => {
+const ColorOptionSymbol = () => {
   const { mapLayer } = useSelector((state: IStore) => state.styling);
 
   const { classes } = useStyles();
@@ -20,7 +17,8 @@ const ColorOptionFill = () => {
   const handleFillColorChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    dispatch(setLayerFillColor({ key: "fill-color", val: event.target.value }));
+    console.log("value", event.target.value);
+    // dispatch(setLayerFillColor(event.target.value));
   };
 
   const handleStrokeColorChange = (
@@ -51,7 +49,7 @@ const ColorOptionFill = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={mapLayer?.paint ? mapLayer?.paint["fill-color"] : "#000"}
+              value={mapLayer?.paint["fill-color"]}
               onChange={handleFillColorChange}
             />
             {/*<TextField*/}
@@ -71,9 +69,7 @@ const ColorOptionFill = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={
-                mapLayer?.paint ? mapLayer?.paint["fill-outline-color"] : "#000"
-              }
+              value={mapLayer?.paint["fill-outline-color"]}
               onChange={handleStrokeColorChange}
             />
             {/*<TextField*/}
@@ -90,7 +86,7 @@ const ColorOptionFill = () => {
   );
 };
 
-const useStyles = makeStyles({ name: { ColorOptionFill } })((theme) => ({
+const useStyles = makeStyles({ name: { ColorOptionSymbol } })((theme) => ({
   root: {
     display: "flex",
     flexDirection: "column",
@@ -123,4 +119,4 @@ const useStyles = makeStyles({ name: { ColorOptionFill } })((theme) => ({
   },
 }));
 
-export default ColorOptionFill;
+export default ColorOptionSymbol;

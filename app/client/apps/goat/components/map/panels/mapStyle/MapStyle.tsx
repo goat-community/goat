@@ -11,13 +11,9 @@ import {
   Typography,
 } from "@mui/material";
 import { makeStyles } from "@/lib/theme";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import type { IStore } from "@/types/store";
-import {
-  resetStyles,
-  saveStyles,
-  setTabValue,
-} from "@/lib/store/styling/slice";
+import { saveStyles, setTabValue } from "@/lib/store/styling/slice";
 import { Card } from "@p4b/ui/components/Surfaces";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
@@ -27,15 +23,20 @@ import Box from "@p4b/ui/components/Box";
 import type { MapSidebarItem } from "@/components/map/Sidebar";
 import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
 import React from "react";
-import Color from "@/components/map/panels/mapStyle/Color";
-import Stroke from "@/components/map/panels/mapStyle/Stroke";
-import Marker from "@/components/map/panels/mapStyle/Marker";
-import Size from "@/components/map/panels/mapStyle/Size";
 import SelectStrokeOptionFill from "@/components/map/panels/mapStyle/SelectStrokeOptionFill";
 import ColorOptionFill from "@/components/map/panels/mapStyle/ColorOptionFill";
+import ColorOptionLine from "@/components/map/panels/mapStyle/ColorOptionLine";
+import StrokeOptionLine from "@/components/map/panels/mapStyle/StrokeOptionLine";
+import MarkerOptionSymbol from "@/components/map/panels/mapStyle/MarkerOptionSymbol";
+import { fetchLayerData } from "@/lib/store/styling/actions";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import ColorOptionSymbol from "@/components/map/panels/mapStyle/ColorOptionSymbol";
+import StrokeOptionSymbol from "@/components/map/panels/mapStyle/StrokeOptionSymbol";
+import SizeOptionSymbol from "@/components/map/panels/mapStyle/SizeOptionSymbol";
 
 interface MapStyleProps {
   setActiveRight: (item: MapSidebarItem | undefined) => void;
+  projectId: string;
 }
 
 const layerTypes = [
@@ -49,10 +50,10 @@ const layerTypes = [
   },
 ];
 
-const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
+const MapStylePanel = ({ setActiveRight, projectId }: MapStyleProps) => {
   const { tabValue, mapLayer } = useSelector((state: IStore) => state.styling);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { classes } = useStyles();
   const theme = useTheme();
 
@@ -61,7 +62,9 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
   };
 
   const resetStylesHandler = () => {
-    dispatch(resetStyles());
+    if (projectId) {
+      dispatch(fetchLayerData(projectId));
+    }
   };
 
   const saveStylesHandler = () => {
@@ -142,9 +145,9 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
               </Card>
               {mapLayer?.type === "line" ? (
                 <>
-                  <Color />
+                  <ColorOptionLine />
                   <Divider className={classes.divider} />
-                  <Stroke />
+                  <StrokeOptionLine />
                 </>
               ) : null}
               {mapLayer?.type === "fill" ? (
@@ -156,13 +159,13 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
               ) : null}
               {mapLayer?.type === "symbol" ? (
                 <>
-                  <Marker />
+                  <MarkerOptionSymbol />
                   <Divider className={classes.divider} />
-                  <Color />
+                  <ColorOptionSymbol />
                   <Divider className={classes.divider} />
-                  <Stroke />
+                  <StrokeOptionSymbol />
                   <Divider className={classes.divider} />
-                  <Size />
+                  <SizeOptionSymbol />
                 </>
               ) : null}
             </>
