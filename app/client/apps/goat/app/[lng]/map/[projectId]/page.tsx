@@ -3,6 +3,7 @@
 import type { MapSidebarItem, MapSidebarProps } from "@/components/map/Sidebar";
 import MapSidebar from "@/components/map/Sidebar";
 import type { MapToolbarProps } from "@/components/map/Toolbar";
+import type { XYZ_Layer } from "@/types/map/layer";
 import { MapToolbar } from "@/components/map/Toolbar";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Zoom } from "@/components/map/controls/Zoom";
@@ -19,6 +20,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Map, { MapProvider, Layer, Source } from "react-map-gl";
 import type { CSSObject } from "tss-react";
+import Layers from "@/components/map/Layers";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
@@ -44,6 +46,15 @@ export default function MapPage({ params: { projectId } }) {
     undefined,
   );
 
+  const [layers, setLayers] = useState<XYZ_Layer[] | []>([
+    {
+      id: "layer1",
+      sourceUrl:
+        "http://127.0.0.1:8081/collections/user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e/tiles/{z}/{x}/{y}",
+      color: "#FF0000",
+    },
+  ]);
+
   const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
   const prevActiveRightRef = useRef<MapSidebarItem | undefined>(undefined);
   const dispatch = useAppDispatch();
@@ -53,6 +64,10 @@ export default function MapPage({ params: { projectId } }) {
   const handleCollapse = useCallback(() => {
     setActiveLeft(undefined);
   }, []);
+
+  const addLayer = (newLayer: XYZ_Layer[]) => {
+    setLayers(newLayer);
+  };
 
   const toolbar: MapToolbarProps = {
     projectTitle: "@project_title",
@@ -269,6 +284,8 @@ export default function MapPage({ params: { projectId } }) {
                 />
               </Source>
             ) : null}
+            {/* todo check */}
+            <Layers layers={layers} addLayer={addLayer} />
           </Map>
         </div>
       </div>

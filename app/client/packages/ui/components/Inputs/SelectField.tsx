@@ -14,9 +14,9 @@ import { Checkbox } from "../Checkbox";
 
 export type SelectFieldProps = {
   className?: string;
-  updateChange?: (value: string | string[]) => void;
+  updateChange?: ((value: string | string[]) => void);
   options: { name: React.ReactNode; value: string }[];
-  defaultValue?: string;
+  defaultValue?: string | string[];
   label: string;
   size: "small" | "medium";
   multiple?: boolean;
@@ -48,7 +48,9 @@ export const SelectField = memo(
     } = props;
 
     // Component State
-    const [values, setValues] = React.useState<string | string[]>(multiple ? [] : "");
+    const [values, setValues] = React.useState<string | string[]>(
+      multiple ? [] : "",
+    );
 
     //For the forwarding, rest should be empty (typewise),
     // eslint-disable-next-line @typescript-eslint/ban-types
@@ -57,7 +59,9 @@ export const SelectField = memo(
     // functions
     const handleChange = (event: SelectChangeEvent) => {
       if (updateChange && !multiple) {
-        updateChange(event.target.value as string);
+        if(typeof event.target.value){
+          updateChange(event.target.value);
+        }
       } else if (updateChange && multiple) {
         const value = event.target.value as string;
         const valueArr = value.split(", ");
@@ -75,15 +79,22 @@ export const SelectField = memo(
               labelId="demo-simple-select-label"
               id="demo-simple-select"
               disabled={disabled}
-              value={values ? values : defaultValue}
+              value={values && !Array.isArray(values) ? values : defaultValue}
               label={label}
               multiple={multiple}
               // MenuProps={multiple ? MenuProps : undefined}
-              renderValue={multiple ? (selected) => [selected].flat().join(", ") : (value) => value}
-              onChange={handleChange}>
+              renderValue={
+                multiple
+                  ? (selected) => [selected].flat().join(", ")
+                  : (value) => value
+              }
+              onChange={handleChange}
+            >
               {options.map((option) => (
                 <MenuItem value={option.value} key={option.value}>
-                  {checkbox ? <Checkbox checked={values.indexOf(option.value) > -1} /> : null}
+                  {checkbox ? (
+                    <Checkbox checked={values.indexOf(option.value) > -1} />
+                  ) : null}
                   {option.name}
                 </MenuItem>
               ))}
@@ -92,5 +103,5 @@ export const SelectField = memo(
         </Box>
       </>
     );
-  })
+  }),
 );
