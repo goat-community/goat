@@ -8,4 +8,8 @@ export interface IStore {
     previewMode: string;
   };
   styling: IStylingState;
+  mapFilters: {
+    filters: { [key: string]: string };
+    logicalOperator: string;
+  };
 }

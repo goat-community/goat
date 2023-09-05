@@ -3,55 +3,72 @@
 import type { MapSidebarItem, MapSidebarProps } from "@/components/map/Sidebar";
 import MapSidebar from "@/components/map/Sidebar";
 import type { MapToolbarProps } from "@/components/map/Toolbar";
+import type { XYZ_Layer } from "@/types/map/layer";
 import { MapToolbar } from "@/components/map/Toolbar";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Zoom } from "@/components/map/controls/Zoom";
 import Charts from "@/components/map/panels/Charts";
 import Filter from "@/components/map/panels/filter/Filter";
-import Layer from "@/components/map/panels/Layer";
+import LayerPanel from "@/components/map/panels/Layer";
 import Legend from "@/components/map/panels/Legend";
-import MapStyle from "@/components/map/panels/MapStyle";
 import Scenario from "@/components/map/panels/Scenario";
 import Toolbox from "@/components/map/panels/Toolbox";
 import { MAPBOX_TOKEN } from "@/lib/constants";
 import { makeStyles } from "@/lib/theme";
 import { Box, Collapse, Stack } from "@mui/material";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useCallback, useEffect, useRef, useState } from "react";
-import Map, { MapProvider } from "react-map-gl";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import Map, { MapProvider, Layer, Source } from "react-map-gl";
 import type { CSSObject } from "tss-react";
+import Layers from "@/components/map/Layers";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import type { IStore } from "@/types/store";
 import { setActiveBasemapIndex } from "@/lib/store/styling/slice";
+import MapStyle from "@/components/map/panels/mapStyle/MapStyle";
+import { fetchLayerData } from "@/lib/store/styling/actions";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
 
 const sidebarWidth = 48;
 const toolbarHeight = 52;
 
-export default function MapPage() {
-  const { basemaps, activeBasemapIndex, initialViewState } = useSelector(
-    (state: IStore) => state.styling
-  );
+export default function MapPage({ params: { projectId } }) {
+  const { basemaps, activeBasemapIndex, initialViewState, mapLayer } =
+    useSelector((state: IStore) => state.styling);
 
   const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(
-    undefined
+    undefined,
   );
+
   const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(
-    undefined
+    undefined,
   );
+
+  const [layers, setLayers] = useState<XYZ_Layer[] | []>([
+    {
+      id: "layer1",
+      sourceUrl:
+        "http://127.0.0.1:8081/collections/user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e/tiles/{z}/{x}/{y}",
+      color: "#FF0000",
+    },
+  ]);
 
   const prevActiveLeftRef = useRef<MapSidebarItem | undefined>(undefined);
   const prevActiveRightRef = useRef<MapSidebarItem | undefined>(undefined);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const { classes, cx } = useStyles({ sidebarWidth, toolbarHeight });
 
   const handleCollapse = useCallback(() => {
     setActiveLeft(undefined);
   }, []);
+
+  const addLayer = (newLayer: XYZ_Layer[]) => {
+    setLayers(newLayer);
+  };
 
   const toolbar: MapToolbarProps = {
     projectTitle: "@project_title",
@@ -65,7 +82,7 @@ export default function MapPage() {
       {
         icon: ICON_NAME.LAYERS,
         name: "Layers",
-        component: <Layer onCollapse={handleCollapse} />,
+        component: <LayerPanel onCollapse={handleCollapse} />,
       },
       {
         icon: ICON_NAME.LEGEND,
@@ -124,6 +141,12 @@ export default function MapPage() {
     prevActiveRightRef.current = activeRight;
   }, [activeRight]);
 
+  useEffect(() => {
+    if (projectId) {
+      dispatch(fetchLayerData(projectId));
+    }
+  }, [dispatch, projectId]);
+
   return (
     <MapProvider>
       <div className={cx(classes.container)}>
@@ -139,7 +162,7 @@ export default function MapPage() {
                 return;
               } else {
                 setActiveLeft(
-                  item.name === activeLeft?.name ? undefined : item
+                  item.name === activeLeft?.name ? undefined : item,
                 );
               }
             }}
@@ -231,7 +254,7 @@ export default function MapPage() {
                 return;
               } else {
                 setActiveRight(
-                  item.name === activeRight?.name ? undefined : item
+                  item.name === activeRight?.name ? undefined : item,
                 );
               }
             }}
@@ -245,7 +268,26 @@ export default function MapPage() {
             mapStyle={basemaps[activeBasemapIndex[0]].url}
             attributionControl={false}
             mapboxAccessToken={MAPBOX_TOKEN}
-          />
+          >
+            {mapLayer ? (
+              <Source
+                id={mapLayer.id}
+                type="vector"
+                url={mapLayer.sources.composite.url}
+              >
+                <Layer
+                  id={mapLayer.id}
+                  type={mapLayer.type}
+                  paint={mapLayer.paint}
+                  layout={mapLayer.layout}
+                  source={mapLayer.source}
+                  source-layer={mapLayer["source-layer"]}
+                />
+              </Source>
+            ) : null}
+            {/* todo check */}
+            <Layers layers={layers} addLayer={addLayer} />
+          </Map>
         </div>
       </div>
     </MapProvider>

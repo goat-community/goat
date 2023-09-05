@@ -36,6 +36,11 @@ import {
   faEye,
   faEyeSlash,
   faEllipsisVertical,
+  faCaretUp,
+  faCaretDown,
+  faLocationDot,
+  faCross,
+  faCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { SvgIcon } from "@mui/material";
@@ -77,6 +82,11 @@ export enum ICON_NAME {
   EYE = "eye",
   EYE_SLASH = "eye-slash",
   MORE_VERT = "more-vert",
+  STEPUP = "step-up",
+  STEPDOWN = "step-down",
+  LOCATION = "location",
+  CROSS = "cross",
+  CIRCLE = "circle",
 }
 
 const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
@@ -115,6 +125,11 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.EYE_SLASH]: faEyeSlash,
   [ICON_NAME.STAR]: faStar,
   [ICON_NAME.MORE_VERT]: faEllipsisVertical,
+  [ICON_NAME.STEPUP]: faCaretUp,
+  [ICON_NAME.STEPDOWN]: faCaretDown,
+  [ICON_NAME.LOCATION]: faLocationDot,
+  [ICON_NAME.CROSS]: faCross,
+  [ICON_NAME.CIRCLE]: faCircle,
 };
 
 library.add(...Object.values(nameToIcon));
