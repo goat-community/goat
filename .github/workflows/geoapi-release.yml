@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: 🐳 Setup Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -40,7 +40,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64
           tags: | 
-            goatcommunity/geoapi:${{ needs.checks.outputs.sha_short }}
+            goatcommunity/goat-geoapi:${{ needs.checks.outputs.sha_short }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
