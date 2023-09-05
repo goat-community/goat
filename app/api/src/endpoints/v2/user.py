@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, Query, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi import status
 from src.db.models.user import User
 from src.schemas.error import HTTPError

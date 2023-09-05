@@ -4,9 +4,7 @@ from sqlmodel import (
     Field,
     ForeignKey,
     Integer,
-    SQLModel,
     Text,
-    Boolean,
     Relationship,
     UniqueConstraint,
 )

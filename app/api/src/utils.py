@@ -35,9 +35,26 @@ from shapely.geometry import GeometryCollection, MultiPolygon, Point, Polygon, b
 from shapely.ops import transform
 from starlette import status
 from starlette.responses import Response
-
 from src.core.config import settings
 from src.resources.enums import MaxUploadFileSize, MimeTypes
+from pydantic import BaseModel
+
+import inspect
+
+
+def optional(*fields):
+    def dec(_cls):
+        for field in fields:
+            _cls.__fields__[field].required = False
+            if _cls.__fields__[field].default:
+                _cls.__fields__[field].default = None
+        return _cls
+
+    if fields and inspect.isclass(fields[0]) and issubclass(fields[0], BaseModel):
+        cls = fields[0]
+        fields = cls.__fields__
+        return dec(cls)
+    return dec
 
 
 def send_email_(
