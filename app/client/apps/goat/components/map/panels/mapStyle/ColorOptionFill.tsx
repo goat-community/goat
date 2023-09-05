@@ -10,7 +10,7 @@ import {
   setLayerFillOutLineColor,
 } from "@/lib/store/styling/slice";
 
-const ColorOptionAoi = () => {
+const ColorOptionFill = () => {
   const { mapLayer } = useSelector((state: IStore) => state.styling);
 
   const { classes } = useStyles();
@@ -50,7 +50,7 @@ const ColorOptionAoi = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={mapLayer?.paint["fill-color"]}
+              value={mapLayer?.paint ? mapLayer?.paint["fill-color"] : "#000"}
               onChange={handleFillColorChange}
             />
             {/*<TextField*/}
@@ -70,7 +70,9 @@ const ColorOptionAoi = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={mapLayer?.paint["fill-outline-color"]}
+              value={
+                mapLayer?.paint ? mapLayer?.paint["fill-outline-color"] : "#000"
+              }
               onChange={handleStrokeColorChange}
             />
             {/*<TextField*/}
@@ -87,39 +89,37 @@ const ColorOptionAoi = () => {
   );
 };
 
-const useStyles = makeStyles({ name: { ColorOptionAoi: ColorOptionAoi } })(
-  (theme) => ({
-    root: {
-      display: "flex",
-      flexDirection: "column",
-      rowGap: "16px",
+const useStyles = makeStyles({ name: { ColorOptionFill } })((theme) => ({
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    rowGap: "16px",
+  },
+  colorContainer: {
+    display: "flex",
+    flexDirection: "column",
+    rowGap: "8px",
+  },
+  inputsContainer: {
+    display: "flex",
+    columnGap: "4px",
+  },
+  inputs: {
+    width: "50%",
+    "& .MuiInputBase-root": {
+      height: "32px",
+      padding: "2px 8px",
     },
-    colorContainer: {
-      display: "flex",
-      flexDirection: "column",
-      rowGap: "8px",
+    input: {
+      padding: "unset",
+      height: "100%",
     },
-    inputsContainer: {
-      display: "flex",
-      columnGap: "4px",
-    },
-    inputs: {
-      width: "50%",
-      "& .MuiInputBase-root": {
-        height: "32px",
-        padding: "2px 8px",
-      },
-      input: {
-        padding: "unset",
-        height: "100%",
-      },
-    },
-    divider: {
-      width: "100%",
-      borderTop: "none",
-      borderBottom: `1px solid ${theme.colors.palette.focus}`,
-    },
-  }),
-);
+  },
+  divider: {
+    width: "100%",
+    borderTop: "none",
+    borderBottom: `1px solid ${theme.colors.palette.focus}`,
+  },
+}));
 
-export default ColorOptionAoi;
+export default ColorOptionFill;

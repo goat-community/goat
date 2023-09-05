@@ -42,6 +42,7 @@ export default function MapPage({ params: { projectId } }) {
   const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(
     undefined,
   );
+
   const [activeRight, setActiveRight] = useState<MapSidebarItem | undefined>(
     undefined,
   );

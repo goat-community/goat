@@ -16,7 +16,7 @@ import {
   setLayerFillOutLineColor,
 } from "@/lib/store/styling/slice";
 
-const SelectStrokeOptionAoi = () => {
+const SelectStrokeOptionFill = () => {
   const { classes } = useStyles();
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -57,7 +57,7 @@ const SelectStrokeOptionAoi = () => {
   );
 };
 
-const useStyles = makeStyles({ name: { SelectStrokeOptionAoi } })(() => ({
+const useStyles = makeStyles({ name: { SelectStrokeOptionFill } })(() => ({
   select: {
     "& .MuiSelect-select": {
       display: "flex",
@@ -78,4 +78,4 @@ const useStyles = makeStyles({ name: { SelectStrokeOptionAoi } })(() => ({
   },
 }));
 
-export default SelectStrokeOptionAoi;
+export default SelectStrokeOptionFill;

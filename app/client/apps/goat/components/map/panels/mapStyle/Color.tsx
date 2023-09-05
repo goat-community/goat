@@ -50,7 +50,7 @@ const Color = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={mapLayer?.paint["fill-color"]}
+              value={mapLayer?.paint ? mapLayer?.paint["fill-color"] : "#000"}
               onChange={handleFillColorChange}
             />
             {/*<TextField*/}
@@ -70,7 +70,9 @@ const Color = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={mapLayer?.paint["fill-outline-color"]}
+              value={
+                mapLayer?.paint ? mapLayer?.paint["fill-outline-color"] : "#000"
+              }
               onChange={handleStrokeColorChange}
             />
             {/*<TextField*/}

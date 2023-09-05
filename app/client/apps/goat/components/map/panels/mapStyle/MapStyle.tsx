@@ -31,8 +31,8 @@ import Color from "@/components/map/panels/mapStyle/Color";
 import Stroke from "@/components/map/panels/mapStyle/Stroke";
 import Marker from "@/components/map/panels/mapStyle/Marker";
 import Size from "@/components/map/panels/mapStyle/Size";
-import SelectStrokeOptionAoi from "@/components/map/panels/mapStyle/SelectStrokeOptionAoi";
-import ColorOptionAoi from "@/components/map/panels/mapStyle/ColorOptionAoi";
+import SelectStrokeOptionFill from "@/components/map/panels/mapStyle/SelectStrokeOptionFill";
+import ColorOptionFill from "@/components/map/panels/mapStyle/ColorOptionFill";
 
 interface MapStyleProps {
   setActiveRight: (item: MapSidebarItem | undefined) => void;
@@ -140,21 +140,21 @@ const MapStylePanel = ({ setActiveRight }: MapStyleProps) => {
                   <Checkbox />
                 </CardContent>
               </Card>
-              {mapLayer?.name === "edge" ? (
+              {mapLayer?.type === "line" ? (
                 <>
                   <Color />
                   <Divider className={classes.divider} />
                   <Stroke />
                 </>
               ) : null}
-              {mapLayer?.name === "aoi" ? (
+              {mapLayer?.type === "fill" ? (
                 <>
-                  <ColorOptionAoi />
+                  <ColorOptionFill />
                   <Divider className={classes.divider} />
-                  <SelectStrokeOptionAoi />
+                  <SelectStrokeOptionFill />
                 </>
               ) : null}
-              {mapLayer?.name === "poi" ? (
+              {mapLayer?.type === "symbol" ? (
                 <>
                   <Marker />
                   <Divider className={classes.divider} />

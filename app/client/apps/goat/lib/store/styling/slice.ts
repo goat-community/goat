@@ -148,17 +148,17 @@ const stylingSlice = createSlice({
       // saveAs(blob, 'map_styles.json');
     },
     setLayerFillColor: (state, action: PayloadAction<string>) => {
-      if (state.mapLayer) {
+      if (state.mapLayer?.paint) {
         state.mapLayer.paint["fill-color"] = action.payload;
       }
     },
     setLayerFillOutLineColor: (state, action: PayloadAction<string>) => {
-      if (state.mapLayer) {
+      if (state.mapLayer?.paint) {
         state.mapLayer.paint["fill-outline-color"] = action.payload;
       }
     },
     deleteLayerFillOutLineColor: (state) => {
-      if (state.mapLayer) {
+      if (state.mapLayer?.paint) {
         if ("fill-outline-color" in state.mapLayer.paint) {
           delete state.mapLayer.paint["fill-outline-color"];
         }
@@ -171,14 +171,14 @@ const stylingSlice = createSlice({
     //   state.mapLayer.layers[0].layout["icon-size"] = action.payload;
     // },
   },
-  extraReducers: ({ addCase }) => {
-    addCase(fetchLayerData.pending, (state) => {
+  extraReducers: (builder) => {
+    builder.addCase(fetchLayerData.pending, (state) => {
       state.mapLayer = null;
     });
-    addCase(fetchLayerData.fulfilled, (state, { payload }) => {
+    builder.addCase(fetchLayerData.fulfilled, (state, { payload }) => {
       state.mapLayer = payload as IMapLayer;
     });
-    addCase(fetchLayerData.rejected, (state) => {
+    builder.addCase(fetchLayerData.rejected, (state) => {
       state.mapLayer = null;
     });
   },
