@@ -46,6 +46,8 @@
     "KEYCLOAK_ISSUER",
     "ANALYSIS_API_URL",
     "GEOAPI_URL",
+    "NODE_ENV",
+    "API_URL"
     "ACCOUNTS_API_URL",
     "NODE_ENV"
   ]

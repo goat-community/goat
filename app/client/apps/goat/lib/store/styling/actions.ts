@@ -1,3 +1,4 @@
+import type { TLayer } from '@/lib/store/styling/slice'
 import { stylesObj } from "@/lib/utils/mockLayerData";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
@@ -13,7 +14,7 @@ export const fetchLayerData = createAsyncThunk(
   "styling/fetchLayerData",
   async (id: string) => {
     try {
-      return await layerDataFetcher(id);
+      return await layerDataFetcher(id) as TLayer;
     } catch (error) {
       throw error;
     }

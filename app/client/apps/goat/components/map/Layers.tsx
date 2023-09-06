@@ -85,15 +85,13 @@ const Layers = (props: LayersProps) => {
     <>
       {layers.length
         ? layers.map((layer: XYZ_Layer) => (
-            <>
               <Source
                 type="vector"
                 tiles={[layer.sourceUrl]}
-                key="user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e"
+                key={layer.id}
               >
                 <MapLayer {...clusterLayer} />
               </Source>
-            </>
           ))
         : null}
     </>
