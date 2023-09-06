@@ -16,6 +16,11 @@ The 15-minute-city is <i>“an urban set-up where locals are able to access all 
 
 TODO: translate the image
 
+
+TODO: add info from https://plan4better-my.sharepoint.com/:w:/g/personal/elias_pajares_plan4better_de/EQsnShs-E0RDk6Eo__jDfSQBgb0xBILtYJPUqPf2NsIq5Q?e=YeT0JI
+  & acatech & Lime report
+
+
 ## 2. Which planning questions can be answered? 
 
 For what can this indicator be used? (planning question list from tutorials)
