@@ -11,7 +11,6 @@ from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from sqlalchemy.exc import IntegrityError
 from starlette.middleware.cors import CORSMiddleware
 
-from src import run_time_method_calls
 from src.core.config import settings
 from src.db.session import r5_mongo_db_client, session_manager
 from src.endpoints.v2.api import router as api_router_v2
@@ -25,9 +24,6 @@ async def lifespan(app: FastAPI):
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
-    print("App is starting...")
-    if not os.environ.get("DISABLE_NUMBA_STARTUP_CALL") == "True":
-        await run_time_method_calls.call_isochrones_startup(app=app)
     yield
     print("Shutting down...")
     await session_manager.close()
@@ -37,7 +33,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     redoc_url="/api/redoc",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    openapi_url=f"{settings.API_V2_STR}/openapi.json",
     lifespan=lifespan,
 )
 
@@ -49,23 +45,18 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def swagger_ui_html():
     return get_swagger_ui_html(
         swagger_favicon_url="/static/api_favicon.png",
-        openapi_url=f"{settings.API_V1_STR}/openapi.json",
+        openapi_url=f"{settings.API_V2_STR}/openapi.json",
         title=settings.PROJECT_NAME,
         swagger_ui_parameters={"persistAuthorization": True},
     )
 
-
-# Set all CORS enabled origins
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=["X-Total-Count"],
-    )
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,

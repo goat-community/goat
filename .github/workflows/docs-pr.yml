@@ -2,7 +2,7 @@ name: "Docs - PR"
 
 on:
   pull_request_target:
-    branches: [dev, main, v2]
+    branches: [v2]
     paths:
       - "docs/**"
   merge_group:

@@ -13,7 +13,7 @@ export default function Container({ header, body, action }: ContainerProps) {
   return (
     <Stack className={classes.root}>
       {header && (
-        <Stack className={classes.header} direction="row" justifyContent="space-between">
+        <Stack className={classes.header} direction="row" justifyContent="space-between" alignItems="center">
           {header}
         </Stack>
       )}

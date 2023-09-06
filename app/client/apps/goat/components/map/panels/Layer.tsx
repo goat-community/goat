@@ -1,85 +1,114 @@
 import Container from "@/components/map/panels/Container";
 
-import Box from "@p4b/ui/components/Box";
-import { Card, FormControlLabel, Radio, RadioGroup, Typography } from "@mui/material";
+import { Text } from "@p4b/ui/components/theme";
+import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 import { makeStyles } from "@/lib/theme";
-import { Icon, ICON_NAME } from "@p4b/ui/components/Icon";
-import { useTheme } from "@p4b/ui/components/theme";
-import type { MapSidebarItem } from "@/components/map/Sidebar";
+import { Card, IconButton, Stack, Typography } from "@mui/material";
+import type { LayerProps, SourceProps } from "@/types/map/layers";
 
-interface LayerPanelProps {
-  setActiveLeft: (item: MapSidebarItem | undefined) => void;
+interface PanelProps {
+  onCollapse?: () => void;
+  layers?: (SourceProps & LayerProps)[];
 }
 
-const LayerPanel = ({ setActiveLeft }: LayerPanelProps) => {
+const LayerPanel = ({ onCollapse, layers }: PanelProps) => {
   const { classes } = useStyles();
-  const theme = useTheme();
 
   return (
     <Container
       header={
-        <Box className={classes.contentHeading}>
-          <Typography color="#2BB381" variant="body1">
-            Layer
-          </Typography>
-          <Icon
-            iconName={ICON_NAME.CHEVRON_LEFT}
-            htmlColor={theme.colors.palette.focus.main}
-            fontSize="small"
-            onClick={() => setActiveLeft(undefined)}
-          />
-        </Box>
+        <>
+          <Text typo="page heading">Layers</Text>
+          {onCollapse && (
+            <IconButton
+              onClick={onCollapse}
+              type="button"
+              className={classes.iconButton}
+            >
+              <Icon
+                iconName={ICON_NAME.CHEVRON_LEFT}
+                fontSize="small"
+                className={classes.icon}
+              />
+            </IconButton>
+          )}
+        </>
       }
       body={
-        <Card className={classes.card}>
-          <RadioGroup aria-label="options" name="options">
-            <FormControlLabel
-              value="@content_label"
-              control={<Radio />}
-              label="@content_label"
-              className={classes.radioLabel}
-            />
-          </RadioGroup>
-          <Box className={classes.layerMore}>
-            <Icon
-              iconName={ICON_NAME.EYE}
-              fontSize="small"
-              htmlColor={theme.colors.palette.focus.darkVariant3}
-            />
-            <Icon
-              iconName={ICON_NAME.MORE_VERT}
-              fontSize="small"
-              htmlColor={theme.colors.palette.focus.darkVariant3}
-            />
-          </Box>
-        </Card>
+        <>
+          {layers?.map((layer) => (
+            <Card
+              key={layer.id}
+              sx={{
+                boxShadow: "0px 1px 10px 0px rgba(0, 0, 0, 0.06), 0px 2px 2px 0px rgba(0, 0, 0, 0.07), 0px 1px 2px -1px rgba(0, 0, 0, 0.10)",
+                borderRadius: 0,
+                ":hover": {
+                  boxShadow: "0px 1px 10px 0px rgba(0, 0, 0, 0.12), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 2px 4px -1px rgba(0, 0, 0, 0.20)",
+                },
+                cursor: "pointer",
+              }}
+              variant="outlined"
+              className={classes.layerCard}
+            >
+              <Stack
+                spacing={1}
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Typography noWrap variant="body2">
+                  {layer.name}
+                </Typography>
+                <Stack direction="row" spacing={1}>
+                  <IconButton
+                    type="button"
+                    size="small"
+                    className={classes.iconButton}
+                  >
+                    <Icon
+                      iconName={layer.active ? ICON_NAME.EYE : ICON_NAME.EYE_SLASH}
+                      fontSize="small"
+                      className={classes.icon}
+                    />
+                  </IconButton>
+                </Stack>
+              </Stack>
+            </Card>
+          ))}
+        </>
       }
     />
   );
 };
 
-const useStyles = makeStyles({ name: { LayerPanel } })((theme) => ({
-  contentHeading: {
-    width: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
+const useStyles = makeStyles()((theme) => ({
+  root: {},
+  btn: {
+    backgroundColor: theme.colors.useCases.surfaces.surface2,
+    color: theme.isDarkModeEnabled
+      ? "white"
+      : theme.colors.palette.light.greyVariant4,
   },
-  card: {
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2),
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
+  iconButton: {
+    padding: theme.spacing(1),
   },
-  radioLabel: {
-    span: {
-      fontStyle: "italic",
-      fontSize: "12px",
+  popper: {},
+  icon: {
+    color: theme.isDarkModeEnabled
+      ? "white"
+      : theme.colors.palette.light.greyVariant2,
+    margin: theme.spacing(2),
+    "&:hover": {
+      color: theme.colors.palette.focus.main,
     },
   },
-  layerMore: {
-    display: "flex",
+  layerCard: {
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+    paddingTop: theme.spacing(0),
+    paddingBottom: theme.spacing(0),
+    margin: theme.spacing(1),
   },
 }));
+
 export default LayerPanel;

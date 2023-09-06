@@ -35,113 +35,37 @@ from shapely.geometry import GeometryCollection, MultiPolygon, Point, Polygon, b
 from shapely.ops import transform
 from starlette import status
 from starlette.responses import Response
-
 from src.core.config import settings
 from src.resources.enums import MaxUploadFileSize, MimeTypes
+from pydantic import BaseModel
+from sqlalchemy import func, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+import inspect
 
 
-def send_email_(
-    email_to: str,
-    subject_template: str = "",
-    html_template: str = "",
-    environment: Dict[str, Any] = {},
-) -> None:
-    pass
+def optional(*fields):
+    def dec(_cls):
+        for field in fields:
+            _cls.__fields__[field].required = False
+            if _cls.__fields__[field].default:
+                _cls.__fields__[field].default = None
+        return _cls
+
+    if fields and inspect.isclass(fields[0]) and issubclass(fields[0], BaseModel):
+        cls = fields[0]
+        fields = cls.__fields__
+        return dec(cls)
+    return dec
 
 
-def send_test_email(email_to: str) -> None:
-    project_name = settings.PROJECT_NAME.upper()
-    subject = f"{project_name} - Test email"
-    with open(Path(settings.EMAIL_TEMPLATES_DIR) / "test_email.html") as f:
-        template_str = f.read()
-    send_email_(
-        email_to=email_to,
-        subject_template=subject,
-        html_template=template_str,
-        environment={"project_name": settings.PROJECT_NAME.upper(), "email": email_to},
+async def table_exists(db: AsyncSession, table_name: str) -> bool:
+    sql_check_table = (
+        select(func.count())
+        .where(text("table_name = :table_name"))
+        .select_from(text("information_schema.tables"))
     )
-
-
-email_content_config = {
-    "password_recovery": {
-        "url": f"{settings.SERVER_HOST}/reset-password?token=",
-        "subject": {
-            "en": "Password recovery",
-            "de": "Passwort zurücksetzen",
-        },
-        "template_name": "reset_password",
-    },
-    "activate_new_account": {
-        "url": f"{settings.SERVER_HOST}/activate-account?token=",
-        "subject": {
-            "en": "Activate your account",
-            "de": "Demo aktivieren",
-        },
-        "template_name": "activate_new_account",
-    },
-    "account_trial_started": {
-        "url": "",
-        "subject": {
-            "en": "Your GOAT demo is ready to use",
-            "de": "Ihre GOAT Demo steht bereit",
-        },
-        "template_name": "account_trial_started",
-    },
-    "account_expired": {
-        "url": "",
-        "subject": {"en": "Account expired", "de": "Demo abgelaufen"},
-        "template_name": "account_expired",
-    },
-    "account_expiring": {
-        "url": "",
-        "subject": {"en": "Account expiring soon", "de": "Demo bald ablaufen"},
-        "template_name": "account_expiring",
-    },
-}
-
-
-def send_email(
-    type: str,
-    email_to: str,
-    name: str,
-    surname: str,
-    token: str = "",
-    email_language: str = "en",
-) -> None:
-    if type not in email_content_config:
-        raise ValueError(f"Unknown email type {type}")
-
-    subject = email_content_config[type]["subject"][email_language]
-    template_str = ""
-    available_email_language = "en"
-    template_file_name = email_content_config[type]["template_name"]
-    link = email_content_config[type]["url"] + token
-    if os.path.isfile(
-        Path(settings.EMAIL_TEMPLATES_DIR) / f"{template_file_name}_{email_language}.html"
-    ):
-        available_email_language = email_language
-    try:
-        with open(
-            Path(settings.EMAIL_TEMPLATES_DIR)
-            / f"{template_file_name}_{available_email_language}.html"
-        ) as f:
-            template_str = f.read()
-    except OSError:
-        print(f"No template for language {available_email_language}")
-
-    send_email_(
-        email_to=email_to,
-        subject_template=subject,
-        html_template=template_str,
-        environment={
-            "project_name": settings.PROJECT_NAME.upper(),
-            "name": name,
-            "surname": surname,
-            "email": email_to,
-            "valid_hours": settings.EMAIL_TOKEN_EXPIRE_HOURS,
-            "url": link,
-        },
-    )
+    table_exists = await db.execute(sql_check_table, {"table_name": table_name})
+    return table_exists.all()[0][0] > 0
 
 
 def generate_token(email: str) -> str:
@@ -1204,14 +1128,3 @@ def read_results(results, return_type=None):
             headers={"Content-Disposition": f"attachment; filename={file_name}"},
         )
 
-
-async def get_superuser_token_headers(client: AsyncClient) -> Dict[str, str]:
-    login_data = {
-        "username": settings.FIRST_SUPERUSER_EMAIL,
-        "password": settings.FIRST_SUPERUSER_PASSWORD,
-    }
-    r = await client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
-    tokens = r.json()
-    a_token = tokens["access_token"]
-    headers = {"Authorization": f"Bearer {a_token}"}
-    return headers

@@ -92,7 +92,7 @@ services:
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_api.entrypoints=web"
     ports:
-      - "${API_PORT}:5000"
+      - "5000:5000"
     networks:
       proxy:
 
@@ -114,9 +114,8 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - ./app/geoapi:/api
-    command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
     ports:
-      - "${GEOAPI_PORT}:5001"
+      - "5000:5000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.${COMPOSE_PROJECT_NAME}_geoapi.loadbalancer.server.port=5000"

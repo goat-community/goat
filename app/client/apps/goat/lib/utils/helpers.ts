@@ -32,6 +32,17 @@ export function makeArrayUnique<T>(arr: T[], key: keyof T): T[] {
   return uniqueArray;
 }
 
+export function groupBy(arr, prop) {
+  return arr.reduce((acc, obj) => {
+    const key = obj[prop];
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(obj);
+    return acc;
+  }, {});
+}
+
 function criterion<T>(person: T, key: keyof T) {
   return person[key];
 }

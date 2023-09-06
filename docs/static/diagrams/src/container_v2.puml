@@ -36,9 +36,10 @@ System_Boundary(s1, "Authorization"){
 }
 
 System_Boundary(a2, "GOAT Application"){
-    Container(applicationapi, "GOAT API", "Python and FastAPI", "It bundles the analyses and map specific features such as the indicators, projects and much more.", $sprite="python")
+    Container(applicationapi, "Analysis API", "Python and FastAPI", "It bundles the GOAT specific analyses and interacts with the content meta data.", $sprite="python")
+    Container(geoapi, "GEO API", "Python and FastAPI", "It bundles the geoservice namely OGC Feature and Vector tiles.", $sprite="python")
+    
     ContainerDb(applicationdb, "Application Database", "PostgreSQL", "Holds the application specific base data.", $sprite="postgresql")
-    ContainerDb(organizationdb, "Organization Database", "PostgreSQL", "Holds the Organization data in a multi-tenant manner.", $sprite="postgresql")
     Container(r5, "Routing Engine", "CONVEYAL R5", "Java engine handling travel-time calculation logic for public transport and car", $sprite="java")
 } 
 
@@ -47,7 +48,7 @@ System_Boundary(a2, "GOAT Application"){
 Rel(auth, authdb, "Reads/Writes", "JDBC")
 Rel(author, authordb, "Reads/Writes", "SQLAlchemy")
 Rel(applicationapi, applicationdb, "Reads/Writes", "SQLAlchemy")
-Rel(applicationapi, organizationdb, "Reads/Writes", "SQLAlchemy")
+Rel(geoapi, applicationdb, "Reads", "SQLAlchemy")
 Rel_L(s1, a1, "")
 Rel_L(a1, s1, "")
 Rel(applicationapi, r5, "HTTP (Private)")

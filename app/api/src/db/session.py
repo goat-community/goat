@@ -2,11 +2,16 @@ import contextlib
 from typing import AsyncIterator
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from psycopg import AsyncConnection
 from sqlalchemy.engine import create_engine
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlmodel import SQLModel
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    AsyncConnection,
+    create_async_engine,
+)
+
 
 from src.core.config import settings
 

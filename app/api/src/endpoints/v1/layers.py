@@ -134,7 +134,7 @@ class VectorTilerFactory:
     def __post_init__(self):
         """Post Init: register route and configure specific options."""
         self.register_routes()
-        self.router_prefix = settings.API_V1_STR + self.router_prefix
+        self.router_prefix = settings.API_V2_STR + self.router_prefix
 
     def register_routes(self):
         """Register Routes."""

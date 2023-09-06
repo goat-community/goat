@@ -64,7 +64,8 @@ export function BasemapSelector(props: BasemapSelectorProps) {
             }
             open={open}
             arrow={true}
-            onClose={() => setOpen(false)}>
+            onClose={() => setOpen(false)}
+          >
             <Tooltip title="Basemaps" arrow placement="left">
               <Fab onClick={() => setOpen(!open)} size="large" className={classes.btn}>
                 <Icon iconName={ICON_NAME.MAP} fontSize="small" />

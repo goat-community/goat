@@ -2,10 +2,9 @@ name: "Client - Push"
 
 on:
   push:
-    branches: [dev, main, v2]
+    branches: [v2]
     paths:
       - "app/client/**"
-      - "infra/manifests/**"
   workflow_dispatch:
 
 defaults:
@@ -20,10 +19,4 @@ jobs:
   release-goat:
     name: release-goat
     uses: ./.github/workflows/client-release.yml
-    secrets: inherit
-
-  deploy-goat:
-    name: deploy-goat
-    needs: release-goat
-    uses: ./.github/workflows/client-deploy.yml
     secrets: inherit
