@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const url = "http://127.0.0.1:8081";
+const url = "http://127.0.0.1:8080";
 
 export async function GET(request: Request) {
   const layer_id = request.url.slice(request.url.lastIndexOf("/") + 1);

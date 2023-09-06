@@ -57,18 +57,19 @@ export const comparerModes: { number: ComparerMode[]; date: ComparerMode[]; text
       type: "dual_number",
       select: true,
     },
-    {
-      label: "is blank",
-      value: "is_blank",
-      type: "none",
-      select: false,
-    },
-    {
-      label: "is not blank",
-      value: "is_not_blank",
-      type: "none",
-      select: false,
-    },
+    // we can enable them when the problem is solved
+    // {
+    //   label: "is blank",
+    //   value: "is_blank",
+    //   type: "none",
+    //   select: false,
+    // },
+    // {
+    //   label: "is not blank",
+    //   value: "is_not_blank",
+    //   type: "none",
+    //   select: false,
+    // },
   ],
   date: [
     // Date Comparers
@@ -120,18 +121,19 @@ export const comparerModes: { number: ComparerMode[]; date: ComparerMode[]; text
       type: "dualDate",
       select: false,
     },
-    {
-      label: "is blank",
-      value: "is_blank",
-      type: "none",
-      select: false,
-    },
-    {
-      label: "is not blank",
-      value: "is_not_blank",
-      type: "none",
-      select: false,
-    },
+    // we can enable them when the problem is solved
+    // {
+    //   label: "is blank",
+    //   value: "is_blank",
+    //   type: "none",
+    //   select: false,
+    // },
+    // {
+    //   label: "is not blank",
+    //   value: "is_not_blank",
+    //   type: "none",
+    //   select: false,
+    // },
   ],
   text: [
     // Text Comparers
@@ -183,18 +185,20 @@ export const comparerModes: { number: ComparerMode[]; date: ComparerMode[]; text
       type: "text",
       select: false,
     },
-    {
-      label: "is blank",
-      value: "is_blank",
-      type: "none",
-      select: false,
-    },
-    {
-      label: "is not blank",
-      value: "is_not_blank",
-      type: "none",
-      select: false,
-    },
+    // we can enable them when the problem is solved
+
+    // {
+    //   label: "is blank",
+    //   value: "is_blank",
+    //   type: "none",
+    //   select: false,
+    // },
+    // {
+    //   label: "is not blank",
+    //   value: "is_not_blank",
+    //   type: "none",
+    //   select: false,
+    // },
     {
       label: "is empty string",
       value: "is_empty_string",

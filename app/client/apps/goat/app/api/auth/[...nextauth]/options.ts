@@ -27,6 +27,7 @@ async function doFinalSignoutHandshake(token: JWT) {
 
 async function getOrganization(token: JWT) {
   try {
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
     const url = new URL(`api/v1/users/organization`, process.env.API_URL);
     const res = await fetch(url.href, {
       headers: {
@@ -44,6 +45,7 @@ async function getOrganization(token: JWT) {
 
 async function getSubscriptions(token: JWT) {
   try {
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
     const url = new URL(`api/v1/users/subscriptions`, process.env.API_URL);
     const res = await fetch(url.href, {
       headers: {
