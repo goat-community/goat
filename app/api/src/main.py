@@ -11,7 +11,6 @@ from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from sqlalchemy.exc import IntegrityError
 from starlette.middleware.cors import CORSMiddleware
 
-from src import run_time_method_calls
 from src.core.config import settings
 from src.db.session import r5_mongo_db_client, session_manager
 from src.endpoints.v2.api import router as api_router_v2
@@ -25,9 +24,6 @@ async def lifespan(app: FastAPI):
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     logger.addHandler(handler)
-    print("App is starting...")
-    if not os.environ.get("DISABLE_NUMBA_STARTUP_CALL") == "True":
-        await run_time_method_calls.call_isochrones_startup(app=app)
     yield
     print("Shutting down...")
     await session_manager.close()
