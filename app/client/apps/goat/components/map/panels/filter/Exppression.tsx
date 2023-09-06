@@ -16,13 +16,14 @@ import { Button, Menu, MenuItem } from "@mui/material";
 import type { Expression } from "@/types/map/filtering";
 import { useDispatch } from "react-redux";
 import { addExpression, removeFilter } from "@/lib/store/mapFilters/slice";
+import type { LayerPropsMode } from "@/types/map/filtering";
 
 interface ExpressionProps {
   isLast: boolean;
   expression: Expression;
   logicalOperator: string;
   id: string;
-  keys: string[];
+  keys: LayerPropsMode[];
 }
 
 const Exppression = (props: ExpressionProps) => {

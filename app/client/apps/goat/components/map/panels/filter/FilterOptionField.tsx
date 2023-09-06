@@ -32,7 +32,7 @@ interface FilterResultProps {
 }
 
 const FilterOptionField = (props: FilterResultProps) => {
-  const { comparer, prop, expression, expressionId } = props;
+  const { comparer, prop, expression } = props;
   const newExpressionToModify = { ...expression };
   const [firstInput, setFirstInput] = useState<string>(
     newExpressionToModify.firstInput,
@@ -82,6 +82,7 @@ const FilterOptionField = (props: FilterResultProps) => {
     } else if (firstInput !== newExpressionToModify.firstInput) {
       sendQuery({ input: firstInput });
     } else if (
+      comparer &&
       [
         "is_blank",
         "is_not_blank",
