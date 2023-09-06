@@ -12,6 +12,7 @@ export async function GET() {
     if (!session || !session.access_token) {
       return responses.notAuthenticatedResponse();
     }
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
     const url = new URL("api/v1/organizations", process.env.API_URL);
     console.log(url.href);
     const res = await fetch(url.href, {
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest) {
     if (!session || !session.access_token) {
       return responses.notAuthenticatedResponse();
     }
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
     const url = new URL("api/v1/organizations", process.env.API_URL);
     const body = await req.json();
     const payload = postOrganizationSchema.parse(body);

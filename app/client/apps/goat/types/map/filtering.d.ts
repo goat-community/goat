@@ -11,6 +11,15 @@ interface Extent {
   };
 }
 
+export interface Expression {
+  id: string,
+  attribute: LayerPropsMode | null;
+  expression: ComparerMode | null;
+  value: (string | number | number[]) | null;
+  firstInput: string;
+  secondInput: string;
+}
+
 export interface LayerData {
   id: string;
   title: string;
@@ -58,6 +67,14 @@ export interface LayerPropsMode {
 interface ComparerMode {
   label: string;
   value: string;
-  type: "number" | "date" | "text" | "select" | "dual_number" | "none" | "year_filter" | "dualDate";
+  type:
+    | "number"
+    | "date"
+    | "text"
+    | "select"
+    | "dual_number"
+    | "none"
+    | "year_filter"
+    | "dualDate";
   select: boolean;
 }

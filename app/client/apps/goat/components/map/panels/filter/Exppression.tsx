@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { useGetKeys } from "@/hooks/map/FilteringHooks";
 import { comparerModes } from "@/public/assets/data/comparers_filter";
-import type { ComparerMode, LayerPropsMode } from "@/types/map/filtering";
+import type { ComparerMode } from "@/types/map/filtering";
 
 import { SelectField } from "@p4b/ui/components/Inputs";
 
@@ -14,20 +13,21 @@ import { v4 } from "uuid";
 import { Chip } from "@/components/common/Chip";
 import { makeStyles } from "@/lib/theme";
 import { Button, Menu, MenuItem } from "@mui/material";
+import type { Expression } from "@/types/map/filtering";
+import { useDispatch } from "react-redux";
+import { addExpression, removeFilter } from "@/lib/store/mapFilters/slice";
+import type { LayerPropsMode } from "@/types/map/filtering";
 
 interface ExpressionProps {
   isLast: boolean;
-  expression: {
-    attribute: LayerPropsMode | null;
-    expression: ComparerMode | null;
-    value: (string | number | number[]) | null;
-  };
+  expression: Expression;
   logicalOperator: string;
   id: string;
+  keys: LayerPropsMode[];
 }
 
 const Exppression = (props: ExpressionProps) => {
-  const { isLast, expression, logicalOperator, id } = props;
+  const { isLast, expression, logicalOperator, id, keys } = props;
   const [attributeSelected, setAttributeSelected] = useState<string | string[]>(
     expression.attribute ? expression.attribute.name : "",
   );
@@ -37,10 +37,9 @@ const Exppression = (props: ExpressionProps) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const sampleLayerID = "user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e";
-  const { keys } = useGetKeys({ layer_id: sampleLayerID });
-
   const { classes } = useStyles();
+
+  const dispatch = useDispatch();
 
   function getFeatureAttribute(type: string | string[]) {
     const valueToFilter = keys.filter((key) => key.name === type);
@@ -48,6 +47,26 @@ const Exppression = (props: ExpressionProps) => {
       return "text";
     }
     return valueToFilter[0].type;
+  }
+
+  function handleAttributeSelect(value: string) {
+    const newExpression = { ...expression };
+    newExpression.attribute = {
+      type: getFeatureAttribute(value),
+      name: value,
+    };
+    setAttributeSelected(value);
+    dispatch(addExpression(newExpression));
+  }
+
+  function handleComparerSelect(value: string) {
+    const newExpression = { ...expression };
+    newExpression.expression = getComparer(value)[0];
+    newExpression.firstInput = "";
+    newExpression.secondInput = "";
+    setComparerSelected(value);
+    dispatch(addExpression(newExpression));
+    dispatch(removeFilter(newExpression.id));
   }
 
   function getComparer(type: string | string[]) {
@@ -94,7 +113,7 @@ const Exppression = (props: ExpressionProps) => {
           label="Select attribute"
           size="small"
           defaultValue={attributeSelected ? attributeSelected : ""}
-          updateChange={setAttributeSelected}
+          updateChange={handleAttributeSelect}
         />
         <SelectField
           className={classes.fields}
@@ -117,7 +136,7 @@ const Exppression = (props: ExpressionProps) => {
           defaultValue={comparerSelected ? comparerSelected : ""}
           size="small"
           disabled={attributeSelected.length ? false : true}
-          updateChange={setComparerSelected}
+          updateChange={handleComparerSelect}
         />
         {attributeSelected.length ? (
           <>
@@ -131,7 +150,8 @@ const Exppression = (props: ExpressionProps) => {
                 prop={
                   typeof attributeSelected === "string" ? attributeSelected : ""
                 }
-                expression={id}
+                expressionId={id}
+                expression={expression}
               />
             ) : null}
           </>

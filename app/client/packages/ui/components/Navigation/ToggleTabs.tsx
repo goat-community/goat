@@ -22,7 +22,7 @@ export type ToggleTabsProps = {
 };
 
 export const ToggleTabs = memo(
-  forwardRef<HTMLElement, ToggleTabsProps>((props, ref) => {
+  forwardRef<HTMLElement, ToggleTabsProps>((props) => {
     const {
       className,
       tabs,

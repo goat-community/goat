@@ -19,6 +19,7 @@ export async function GET(_req: NextRequest, context: z.infer<typeof routeContex
       return responses.notAuthenticatedResponse();
     }
     const { params } = routeContextSchema.parse(context);
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
     const url = new URL(`api/v1/organizations/${params.organizationId}`, process.env.API_URL);
     const res = await fetch(url.href, {
       headers: {

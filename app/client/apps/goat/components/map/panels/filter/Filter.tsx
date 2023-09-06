@@ -1,9 +1,10 @@
 "use client";
+
 import Container from "@/components/map/panels/Container";
-import type { ComparerMode, LayerPropsMode } from "@/types/map/filtering";
 import { useState } from "react";
 
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
+import { useGetKeys } from "@/hooks/map/FilteringHooks";
 
 import { Card, CardMedia } from "@p4b/ui/components/Surfaces";
 import { ICON_NAME } from "@p4b/ui/components/Icon";
@@ -14,21 +15,25 @@ import { Box } from "@mui/material";
 import { Button } from "@p4b/ui/components/theme";
 import Exppression from "./Exppression";
 import { SelectField } from "@p4b/ui/components/Inputs";
-import { useDispatch } from "react-redux";
-import { setLogicalOperator, setFilters } from "@/lib/store/mapFilters/slice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setLogicalOperator,
+  setFilters,
+  addExpression,
+  clearExpression
+} from "@/lib/store/mapFilters/slice";
+import { v4 } from "uuid";
+import type { IStore } from "@/types/store";
 
 const FilterPanel = () => {
   const dispatch = useDispatch();
-  const [logicalOperator, setLogicalOperatorVal] = useState<string>("match_all_expressions");
-  const [expressions, setExpressions] = useState<
-    | {
-        attribute: LayerPropsMode | null;
-        expression: ComparerMode | null;
-        value: (string | number | number[]) | null;
-      }[]
-    | null
-  >(null);
+  const { expressions } = useSelector((state: IStore) => state.mapFilters);
+  const [logicalOperator, setLogicalOperatorVal] = useState<string>(
+    "match_all_expressions",
+  );
+  const sampleLayerID = "user_data.8c4ad0c86a2d4e60b42ad6fb8760a76e";
 
+  const { keys } = useGetKeys({ layer_id: sampleLayerID });
   const theme = useTheme();
   const { classes } = useStyles();
 
@@ -44,25 +49,17 @@ const FilterPanel = () => {
   ];
 
   function createExpression() {
-    if (expressions) {
-      dispatch(setLogicalOperator("match_all_expressions"))
-      setExpressions([
-        ...expressions,
-        {
-          attribute: null,
-          expression: null,
-          value: null,
-        },
-      ]);
-    } else {
-      setExpressions([
-        {
-          attribute: null,
-          expression: null,
-          value: null,
-        },
-      ]);
-    }
+    dispatch(setLogicalOperator("match_all_expressions"));
+    dispatch(
+      addExpression({
+        id: v4(),
+        attribute: null,
+        expression: null,
+        value: null,
+        firstInput: "",
+        secondInput: "",
+      }),
+    );
   }
 
   function handleOperatorChange(value: string) {
@@ -71,7 +68,7 @@ const FilterPanel = () => {
   }
 
   function cleanExpressions() {
-    setExpressions(null);
+    dispatch(clearExpression());
     dispatch(setFilters({}));
   }
 
@@ -83,7 +80,10 @@ const FilterPanel = () => {
           <div>
             <Card noHover={true}>
               <div className={classes.ContentHeader}>
-                <Icon iconName={ICON_NAME.STAR} htmlColor={`${theme.colors.palette.focus.main}4D`} />
+                <Icon
+                  iconName={ICON_NAME.STAR}
+                  htmlColor={`${theme.colors.palette.focus.main}4D`}
+                />
                 <Text typo="body 2" className={classes.headerText}>
                   @content_label
                 </Text>
@@ -97,7 +97,10 @@ const FilterPanel = () => {
                 </Text>
                 <SelectField
                   className={classes.fields}
-                  options={logicalOperatorOptions.map((key) => ({ name: key.label, value: key.value }))}
+                  options={logicalOperatorOptions.map((key) => ({
+                    name: key.label,
+                    value: key.value,
+                  }))}
                   label="Select attribute"
                   size="small"
                   defaultValue={logicalOperator ? logicalOperator : ""}
@@ -108,14 +111,15 @@ const FilterPanel = () => {
 
             {expressions ? (
               expressions.map((expression, indx) => (
-                <>
-                  <Exppression
-                    isLast={indx + 1 !== expressions.length}
-                    expression={expression}
-                    logicalOperator={logicalOperator}
-                    id={`${indx + 1}`}
-                  />
-                </>
+                // <>
+                <Exppression
+                  isLast={indx + 1 !== expressions.length}
+                  logicalOperator={logicalOperator}
+                  id={`${indx + 1}`}
+                  expression={expression}
+                  key={v4()}
+                  keys={keys}
+                />
               ))
             ) : (
               <Box sx={{ marginTop: `${theme.spacing(4)}px` }}>
@@ -126,23 +130,32 @@ const FilterPanel = () => {
                       className={classes.cardMediaImage}
                       src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQy9x3wyV5OWYWA8XxBJKMlH2QvuSSOIdOItRK1jgXSQ&s"
                     />
-                  }>
+                  }
+                >
                   <div className={classes.CardWrapper}>
                     <Text typo="body 1">Filter your data</Text>
                     <Text className={classes.CardDescription} typo="label 2">
-                      Perform targeted data analysis. Filter layers, apply an expression and narrow down data
-                      displayed. Sort data and hide data that does not match your criteria. Learn more
+                      Perform targeted data analysis. Filter layers, apply an
+                      expression and narrow down data displayed. Sort data and
+                      hide data that does not match your criteria. Learn more
                     </Text>
                   </div>
                 </Card>
               </Box>
             )}
-            <Button className={classes.expressionButton} onClick={createExpression}>
+            <Button
+              className={classes.expressionButton}
+              onClick={createExpression}
+            >
               Add Expression
             </Button>
           </div>
           {expressions && expressions.length ? (
-            <Button variant="secondary" className={classes.expressionButton} onClick={cleanExpressions}>
+            <Button
+              variant="secondary"
+              className={classes.expressionButton}
+              onClick={cleanExpressions}
+            >
               Clear Filter
             </Button>
           ) : null}
