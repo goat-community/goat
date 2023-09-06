@@ -13,11 +13,6 @@ router = APIRouter()
 @router.post(
     "",
     response_model=User,
-    responses={
-        201: {"model": User, "description": "User Successfully Created"},
-        400: {"model": HTTPError, "description": "Invalid User Creation Parameters"},
-        409: {"model": HTTPError, "description": "User already exists"},
-    },
 )
 async def create_user(
     *,
@@ -28,21 +23,18 @@ async def create_user(
 
     # Check if user already exists
     user = await crud_user.get(async_session, id=user_id)
-
     if user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists")
     else:
         user = await crud_user.create(async_session, obj_in=User(id=user_id))
+        # Create user tables
+        await crud_user.create_user_data_tables(async_session, user_id=user_id)
         return user
 
 
 @router.delete(
     "",
     response_model=None,
-    responses={
-        204: {"description": "User Deleted Successfully"},
-        404: {"model": HTTPError, "description": "User not found"},
-    },
     status_code=204,
 )
 async def delete_user(
@@ -55,6 +47,8 @@ async def delete_user(
 
     if user:
         await crud_user.remove(async_session, id=user_id)
+        # Delete user tables
+        await crud_user.delete_user_data_tables(async_session, user_id=user.id)
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return
