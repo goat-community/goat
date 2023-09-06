@@ -4,25 +4,24 @@ import Box from "@p4b/ui/components/Box";
 import { Divider, TextField, Typography } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
-import type { IStore } from "@/types/store";
 import { setLayerFillOutLineColor } from "@/lib/store/styling/slice";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { selectMapLayer } from "@/lib/store/styling/selectors";
 
 const ColorOptionSymbol = () => {
-  const { mapLayer } = useSelector((state: IStore) => state.styling);
-
+  const mapLayer = useSelector(selectMapLayer);
   const { classes } = useStyles();
   const dispatch = useAppDispatch();
 
   const handleFillColorChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     console.log("value", event.target.value);
     // dispatch(setLayerFillColor(event.target.value));
   };
 
   const handleStrokeColorChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     dispatch(setLayerFillOutLineColor(event.target.value));
   };
@@ -49,7 +48,7 @@ const ColorOptionSymbol = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={mapLayer?.paint["fill-color"]}
+              value={mapLayer?.paint?.["fill-color"]}
               onChange={handleFillColorChange}
             />
             {/*<TextField*/}
@@ -69,7 +68,7 @@ const ColorOptionSymbol = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={mapLayer?.paint["fill-outline-color"]}
+              value={mapLayer?.paint?.["fill-outline-color"]}
               onChange={handleStrokeColorChange}
             />
             {/*<TextField*/}

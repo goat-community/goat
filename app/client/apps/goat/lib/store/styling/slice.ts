@@ -1,6 +1,7 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { createSlice } from "@reduxjs/toolkit";
 import { fetchLayerData } from "@/lib/store/styling/actions";
+import type { AnyLayer } from 'react-map-gl'
 
 interface IViewState {
   latitude: number;
@@ -27,30 +28,12 @@ interface IMarker {
   iconName: string;
 }
 
-interface IMapLayer {
-  name: string;
-  sources: {
-    composite: {
-      url: string;
-      type: string;
-    };
-  };
-  id: string;
-  type:
-    | "symbol"
-    | "fill"
-    | "line"
-    | "circle"
-    | "background"
-    | "raster"
-    | "fill-extrusion"
-    | "heatmap"
-    | "hillshade";
-  paint: object;
-  layout: object;
-  source: string;
-  "source-layer": string;
-}
+export type TLayer = AnyLayer & { sources: {
+  composite: {
+    url: string
+    type: string
+  }
+} } |  null
 
 export interface IStylingState {
   initialViewState: IViewState;
@@ -58,7 +41,7 @@ export interface IStylingState {
   basemaps: IBasemap[];
   activeBasemapIndex: number[];
   markers: IMarker[];
-  mapLayer: IMapLayer | null;
+  mapLayer: unknown;
 }
 
 const initialState: IStylingState = {
@@ -112,7 +95,7 @@ const initialState: IStylingState = {
   activeBasemapIndex: [4],
   markers: [],
   //todo need get layer from db
-  mapLayer: null,
+  mapLayer: null as TLayer,
 };
 
 const stylingSlice = createSlice({
@@ -148,27 +131,37 @@ const stylingSlice = createSlice({
       state,
       action: PayloadAction<{ key: string; val: string }>,
     ) => {
-      if (state.mapLayer) {
-        state.mapLayer.paint[action.payload.key] = action.payload.val;
+      const mapLayer = state.mapLayer as TLayer
+      
+      if (mapLayer) {
+        mapLayer.paint = mapLayer.paint ?? {}
+        mapLayer.paint[action.payload.key] = action.payload.val;
       }
     },
     setLayerLineWidth: (
       state,
       action: PayloadAction<{ key: string; val: number }>,
     ) => {
-      if (state.mapLayer) {
-        state.mapLayer.paint[action.payload.key] = action.payload.val;
+      const mapLayer = state.mapLayer as TLayer
+
+      if (mapLayer) {
+        mapLayer.paint = mapLayer.paint ?? {}
+        mapLayer.paint[action.payload.key] = action.payload.val;
       }
     },
     setLayerFillOutLineColor: (state, action: PayloadAction<string>) => {
-      if (state.mapLayer?.paint) {
-        state.mapLayer.paint["fill-outline-color"] = action.payload;
+      const mapLayer = state.mapLayer as TLayer
+
+      if (mapLayer?.paint) {
+        mapLayer.paint["fill-outline-color"] = action.payload;
       }
     },
     deleteLayerFillOutLineColor: (state) => {
-      if (state.mapLayer?.paint) {
-        if ("fill-outline-color" in state.mapLayer.paint) {
-          delete state.mapLayer.paint["fill-outline-color"];
+      const mapLayer = state.mapLayer as TLayer
+
+      if (mapLayer?.paint) {
+        if ("fill-outline-color" in mapLayer.paint) {
+          delete mapLayer.paint["fill-outline-color"];
         }
       }
     },
@@ -184,7 +177,7 @@ const stylingSlice = createSlice({
       state.mapLayer = null;
     });
     builder.addCase(fetchLayerData.fulfilled, (state, { payload }) => {
-      state.mapLayer = payload as IMapLayer;
+      state.mapLayer = payload;
     });
     builder.addCase(fetchLayerData.rejected, (state) => {
       state.mapLayer = null;

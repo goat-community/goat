@@ -4,13 +4,12 @@ import { Slider, TextField, Typography } from "@mui/material";
 import { makeStyles } from "@/lib/theme";
 import Box from "@p4b/ui/components/Box";
 import { useSelector } from "react-redux";
-import type { IStore } from "@/types/store";
 import { setLayerLineWidth } from "@/lib/store/styling/slice";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { selectMapLayer } from '@/lib/store/styling/selectors'
 
 const StrokeOptionLine = () => {
-  const { mapLayer } = useSelector((state: IStore) => state.styling);
-
+  const mapLayer = useSelector(selectMapLayer)
   const { classes } = useStyles();
   const dispatch = useAppDispatch();
 
@@ -39,11 +38,11 @@ const StrokeOptionLine = () => {
               <TextField
                 type="number"
                 size="small"
-                value={mapLayer?.paint["line-width"] || 1}
+                value={mapLayer?.paint?.["line-width"] || 1}
                 onChange={handleTextFieldChange}
               />
               <Slider
-                value={mapLayer?.paint["line-width"] || 1}
+                value={mapLayer?.paint?.["line-width"] || 1}
                 onChange={handleSliderChange}
                 aria-label="Small"
                 valueLabelDisplay="auto"

@@ -31,13 +31,15 @@ import { setActiveBasemapIndex } from "@/lib/store/styling/slice";
 import MapStyle from "@/components/map/panels/mapStyle/MapStyle";
 import { fetchLayerData } from "@/lib/store/styling/actions";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { selectMapLayer } from '@/lib/store/styling/selectors'
 
 const sidebarWidth = 48;
 const toolbarHeight = 52;
 
 export default function MapPage({ params: { projectId } }) {
-  const { basemaps, activeBasemapIndex, initialViewState, mapLayer } =
-    useSelector((state: IStore) => state.styling);
+  const { basemaps, activeBasemapIndex, initialViewState } =
+  useSelector((state: IStore) => state.styling);
+  const mapLayer = useSelector(selectMapLayer)
 
   const [activeLeft, setActiveLeft] = useState<MapSidebarItem | undefined>(
     undefined,
@@ -66,9 +68,9 @@ export default function MapPage({ params: { projectId } }) {
     setActiveLeft(undefined);
   }, []);
 
-  const addLayer = (newLayer: XYZ_Layer[]) => {
+  const addLayer = useCallback((newLayer: XYZ_Layer[]) => {
     setLayers(newLayer);
-  };
+  }, []);
 
   const toolbar: MapToolbarProps = {
     projectTitle: "@project_title",
@@ -278,11 +280,7 @@ export default function MapPage({ params: { projectId } }) {
                 url={mapLayer.sources.composite.url}
               >
                 <Layer
-                  id={mapLayer.id}
-                  type={mapLayer.type}
-                  paint={mapLayer.paint}
-                  layout={mapLayer.layout}
-                  source={mapLayer.source}
+                  {...mapLayer}
                   source-layer={mapLayer["source-layer"]}
                 />
               </Source>

@@ -4,18 +4,18 @@ import Box from "@p4b/ui/components/Box";
 import { TextField, Typography } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
-import type { IStore } from "@/types/store";
 import { setLayerFillColor } from "@/lib/store/styling/slice";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { selectMapLayer } from "@/lib/store/styling/selectors";
 
 const ColorOptionLine = () => {
-  const { mapLayer } = useSelector((state: IStore) => state.styling);
+  const mapLayer = useSelector(selectMapLayer);
 
   const { classes } = useStyles();
   const dispatch = useAppDispatch();
 
   const handleFillColorChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     dispatch(setLayerFillColor({ key: "line-color", val: event.target.value }));
   };
@@ -30,7 +30,7 @@ const ColorOptionLine = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={mapLayer?.paint["line-color"] || undefined}
+              value={mapLayer?.paint?.["line-color"]}
               onChange={handleFillColorChange}
             />
           </Box>

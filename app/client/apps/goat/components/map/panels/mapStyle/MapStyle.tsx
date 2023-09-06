@@ -33,6 +33,7 @@ import { useAppDispatch } from "@/hooks/useAppDispatch";
 import ColorOptionSymbol from "@/components/map/panels/mapStyle/ColorOptionSymbol";
 import StrokeOptionSymbol from "@/components/map/panels/mapStyle/StrokeOptionSymbol";
 import SizeOptionSymbol from "@/components/map/panels/mapStyle/SizeOptionSymbol";
+import { selectMapLayer } from '@/lib/store/styling/selectors'
 
 interface MapStyleProps {
   setActiveRight: (item: MapSidebarItem | undefined) => void;
@@ -51,7 +52,8 @@ const layerTypes = [
 ];
 
 const MapStylePanel = ({ setActiveRight, projectId }: MapStyleProps) => {
-  const { tabValue, mapLayer } = useSelector((state: IStore) => state.styling);
+  const { tabValue } = useSelector((state: IStore) => state.styling);
+  const mapLayer = useSelector(selectMapLayer);
 
   const dispatch = useAppDispatch();
   const { classes } = useStyles();

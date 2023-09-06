@@ -4,15 +4,15 @@ import Box from "@p4b/ui/components/Box";
 import { Divider, TextField, Typography } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
-import type { IStore } from "@/types/store";
 import {
   setLayerFillColor,
   setLayerFillOutLineColor,
 } from "@/lib/store/styling/slice";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { selectMapLayer } from '@/lib/store/styling/selectors'
 
 const ColorOptionFill = () => {
-  const { mapLayer } = useSelector((state: IStore) => state.styling);
+  const mapLayer = useSelector(selectMapLayer)
 
   const { classes } = useStyles();
   const dispatch = useAppDispatch();

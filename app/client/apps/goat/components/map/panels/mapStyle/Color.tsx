@@ -4,26 +4,26 @@ import Box from "@p4b/ui/components/Box";
 import { Divider, TextField, Typography } from "@mui/material";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import type { IStore } from "@/types/store";
 import {
   setLayerFillColor,
-  setLayerFillOutLineColor,
+  setLayerFillOutLineColor
 } from "@/lib/store/styling/slice";
+import { selectMapLayer } from "@/lib/store/styling/selectors";
 
 const Color = () => {
-  const { mapLayer } = useSelector((state: IStore) => state.styling);
+  const mapLayer = useSelector(selectMapLayer);
 
   const { classes } = useStyles();
   const dispatch = useDispatch();
 
   const handleFillColorChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     dispatch(setLayerFillColor({ key: "fill-color", val: event.target.value }));
   };
 
   const handleStrokeColorChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     dispatch(setLayerFillOutLineColor(event.target.value));
   };
