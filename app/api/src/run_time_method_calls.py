@@ -6,7 +6,7 @@ import rich
 
 from src.core.config import settings
 from src.schemas.isochrone import request_examples
-from src.utils import get_superuser_token_headers
+# from src.utils import get_superuser_token_headers
 
 
 async def run_calculate_isochrone_single_default(
@@ -49,13 +49,13 @@ async def run_calculate_isochrone_single_default(
         )
 
 
-async def call_isochrones_startup(app):
-    rich.print("[bold]First run of isochrones...[/bold]")
-    rich.print(
-        "To prevent this calling, set [blue][bold]DISABLE_NUMBA_STARTUP_CALL[/bold][/blue] environment variable to [bold]True[/bold].\n"
-    )
-    async with httpx.AsyncClient(app=app, base_url="http://localhost:5000") as client:
-        superuser_token_headers = await get_superuser_token_headers(client)
-        await run_calculate_isochrone_single_default(client, superuser_token_headers)
+# async def call_isochrones_startup(app):
+#     rich.print("[bold]First run of isochrones...[/bold]")
+#     rich.print(
+#         "To prevent this calling, set [blue][bold]DISABLE_NUMBA_STARTUP_CALL[/bold][/blue] environment variable to [bold]True[/bold].\n"
+#     )
+#     async with httpx.AsyncClient(app=app, base_url="http://localhost:5000") as client:
+#         superuser_token_headers = await get_superuser_token_headers(client)
+#         await run_calculate_isochrone_single_default(client, superuser_token_headers)
 
-    rich.print("\n[green4]Running isochrones first call complete![/green4]")
+#     rich.print("\n[green4]Running isochrones first call complete![/green4]")
