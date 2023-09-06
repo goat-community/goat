@@ -3,7 +3,8 @@ import type { PageProps } from "keycloakify/login/pages/PageProps";
 
 import { TextField } from "@p4b/ui/components/Inputs/TextField";
 
-import { Button, makeStyles, Text } from "../../theme";
+import { makeStyles, Text } from "../../theme";
+import { Button } from "@mui/material";
 import type { I18n } from "../i18n";
 import type { KcContext } from "../kcContext";
 
@@ -40,7 +41,7 @@ export default function LoginResetPassword(
           />
           <div>
             <div id="kc-form-buttons">
-              <Button className={classes.buttonSubmit} type="submit" variant="primary">
+              <Button className={classes.buttonSubmit} type="submit">
                 {msgStr("doSubmit")}
               </Button>
             </div>

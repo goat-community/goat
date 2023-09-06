@@ -2,7 +2,7 @@ import React from "react";
 
 import { TreeView } from "@p4b/ui/components/DataDisplay";
 import { Icon } from "@p4b/ui/components/theme";
-import { Button } from "@p4b/ui/components/theme";
+import { Button } from "@mui/material";
 import { makeStyles } from "@p4b/ui/lib/ThemeProvider";
 
 interface MoveModalProps {
