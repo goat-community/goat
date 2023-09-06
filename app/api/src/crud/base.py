@@ -106,7 +106,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         if page_params is None:
             result = await db.execute(query)
-            items = result.scalars().all()
+            items = result.all()
             return items
         else:
             result = await paginate(db, query, page_params)
@@ -114,6 +114,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:
         db_obj = self.model.from_orm(obj_in)
+        db_obj = obj_in
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)

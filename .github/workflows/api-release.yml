@@ -36,7 +36,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v4.6.0
         with:
-          images: goatcommunity/goat-api
+          images: goatcommunity/goat-analysis
           flavor: |
             latest=auto
           tags: |
