@@ -1,7 +1,8 @@
 import { Link, Step, StepLabel, Stepper } from "@mui/material";
 import type { PageProps } from "keycloakify/login/pages/PageProps";
 
-import { Button, makeStyles } from "../../../src/theme";
+import { makeStyles } from "../../../src/theme";
+import { Button } from "@mui/material";
 import type { I18n } from "../i18n";
 import type { KcContext } from "../kcContext";
 

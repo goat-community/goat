@@ -1,8 +1,0 @@
-{
-  "label": "Catchments",
-  "position": 1,
-  "link": {
-    "type": "generated-index",
-    "description": "There are different options of for calculating __catchment areas__. The **buffer** creates a straight line circle, while the **isochrone** calculates the catchment area based on the real transport network. **Single-isochrones** thereby calculate the catchment area of one single starting point, while **multi-isochrones** conduct the analysis for multiple starting points."
-}
-}

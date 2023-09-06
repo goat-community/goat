@@ -31,14 +31,14 @@
     "@p4b/tsconfig": "workspace:*",
     "@p4b/types": "workspace:*",
     "eslint-config-p4b": "workspace:*",
-    "@storybook/react": "^7.0.9",
+    "@storybook/react": "^7.4.0",
     "@types/node": "^20.1.5",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "eslint": "^8.40.0",
     "i18n-iso-countries": "^7.6.0",
     "react-scripts": "5.0.1",
-    "storybook": "^7.0.9"
+    "storybook": "^7.4.0"
   },
   "browserslist": [
     ">0.2%",
