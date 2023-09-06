@@ -47,9 +47,9 @@
   "devDependencies": {
     "@p4b/tsconfig": "workspace:*",
     "@p4b/types": "workspace:*",
-    "@storybook/addons": "^7.0.9",
-    "@storybook/react": "^7.0.9",
-    "@storybook/types": "^7.0.9",
+    "@storybook/addons": "^7.4.0",
+    "@storybook/react": "^7.4.0",
+    "@storybook/types": "^7.4.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/uuid": "^9.0.2",

@@ -85,7 +85,7 @@ services:
       - SERVER_HOST=http://${DOMAIN_NAME}
     volumes:
       - ./app/api:/app
-    command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
+    # command: bash -c "while true; do sleep 1; done" # Infinite loop to keep container live doing nothing
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.${COMPOSE_PROJECT_NAME}_api.loadbalancer.server.port=5000"
@@ -96,33 +96,33 @@ services:
     networks:
       proxy:
 
-  geoapi:
-    image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:geoapi-${PROJECT_VERSION}
-    build:
-      context: ./app/geoapi
-      dockerfile: Dockerfile
-      args:
-        INSTALL_DEV: ${INSTALL_DEV}
-    container_name: ${COMPOSE_PROJECT_NAME}-geoapi
-    hostname: ${COMPOSE_PROJECT_NAME}-geoapi
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_SERVER=${POSTGRES_SERVER}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    volumes:
-      - ./app/geoapi:/api
-    ports:
-      - "5000:5000"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.${COMPOSE_PROJECT_NAME}_geoapi.loadbalancer.server.port=5000"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_geoapi.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/geoapi`)"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_geoapi.entrypoints=web"
-    networks:
-      proxy:
+  # geoapi:
+  #   image: ${DOCKER_ID}/${COMPOSE_PROJECT_NAME}:geoapi-${PROJECT_VERSION}
+  #   build:
+  #     context: ./app/geoapi
+  #     dockerfile: Dockerfile
+  #     args:
+  #       INSTALL_DEV: ${INSTALL_DEV}
+  #   container_name: ${COMPOSE_PROJECT_NAME}-geoapi
+  #   hostname: ${COMPOSE_PROJECT_NAME}-geoapi
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - POSTGRES_SERVER=${POSTGRES_SERVER}
+  #     - POSTGRES_USER=${POSTGRES_USER}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #     - POSTGRES_DB=${POSTGRES_DB}
+  #   volumes:
+  #     - ./app/geoapi:/api
+  #   ports:
+  #     - "5000:5000"
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.services.${COMPOSE_PROJECT_NAME}_geoapi.loadbalancer.server.port=5000"
+  #     - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_geoapi.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/geoapi`)"
+  #     - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_geoapi.entrypoints=web"
+  #   networks:
+  #     proxy:
 
 
 

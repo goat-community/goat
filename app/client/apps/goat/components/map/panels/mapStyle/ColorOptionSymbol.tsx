@@ -3,23 +3,21 @@ import { makeStyles } from "@/lib/theme";
 import Box from "@p4b/ui/components/Box";
 import { Divider, TextField, Typography } from "@mui/material";
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  setLayerFillColor,
-  setLayerFillOutLineColor
-} from "@/lib/store/styling/slice";
+import { useSelector } from "react-redux";
+import { setLayerFillOutLineColor } from "@/lib/store/styling/slice";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { selectMapLayer } from "@/lib/store/styling/selectors";
 
-const Color = () => {
+const ColorOptionSymbol = () => {
   const mapLayer = useSelector(selectMapLayer);
-
   const { classes } = useStyles();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const handleFillColorChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    dispatch(setLayerFillColor({ key: "fill-color", val: event.target.value }));
+    console.log("value", event.target.value);
+    // dispatch(setLayerFillColor(event.target.value));
   };
 
   const handleStrokeColorChange = (
@@ -50,7 +48,7 @@ const Color = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={mapLayer?.paint ? mapLayer?.paint["fill-color"] : "#000"}
+              value={mapLayer?.paint?.["fill-color"]}
               onChange={handleFillColorChange}
             />
             {/*<TextField*/}
@@ -70,9 +68,7 @@ const Color = () => {
               type="color"
               size="small"
               className={classes.inputs}
-              value={
-                mapLayer?.paint ? mapLayer?.paint["fill-outline-color"] : "#000"
-              }
+              value={mapLayer?.paint?.["fill-outline-color"]}
               onChange={handleStrokeColorChange}
             />
             {/*<TextField*/}
@@ -89,7 +85,7 @@ const Color = () => {
   );
 };
 
-const useStyles = makeStyles({ name: { Color } })((theme) => ({
+const useStyles = makeStyles({ name: { ColorOptionSymbol } })((theme) => ({
   root: {
     display: "flex",
     flexDirection: "column",
@@ -122,4 +118,4 @@ const useStyles = makeStyles({ name: { Color } })((theme) => ({
   },
 }));
 
-export default Color;
+export default ColorOptionSymbol;

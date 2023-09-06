@@ -1,7 +1,8 @@
 import type { PageProps } from "keycloakify/login/pages/PageProps";
 import { useState } from "react";
 
-import { Button, makeStyles } from "../../theme";
+import { makeStyles } from "../../theme";
+import { Button } from "@mui/material";
 import type { I18n } from "../i18n";
 import type { KcContext } from "../kcContext";
 import { UserProfileFormFields } from "./shared/UserProfileFormFields";
