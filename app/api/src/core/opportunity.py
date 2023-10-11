@@ -16,7 +16,7 @@ def read_population_sql(table_to_aggregate: str, group_by_column: str, obj_in):
 
     modified_buildings = []
     scenario_result = {}
-    if obj_in.scenario.id != 0 and obj_in.scenario.modus != 'default':
+    if obj_in.scenario.id != 0 and obj_in.scenario.modus.value != 'default':
         modified_buildings = legacy_engine.execute(
             f"SELECT * FROM basic.modified_buildings({obj_in.scenario.id})",
             legacy_engine,
@@ -50,6 +50,7 @@ def read_population_sql(table_to_aggregate: str, group_by_column: str, obj_in):
         base_result = legacy_engine.execute(sql_base_population)
         base_result = base_result.fetchall()[0][0]
 
+    if obj_in.scenario.id != 0:
         sql_scenario_population = f"""
             SELECT basic.aggregate_points_by_polygon(
                 'customer.population_modified',
@@ -62,6 +63,9 @@ def read_population_sql(table_to_aggregate: str, group_by_column: str, obj_in):
         """
         scenario_result = legacy_engine.execute(sql_scenario_population)
         scenario_result = scenario_result.fetchall()[0][0]
+
+        if scenario_result is None:
+            scenario_result = {}
     
     result = {}
     # Loop through all keys in both dictionaries
@@ -71,7 +75,12 @@ def read_population_sql(table_to_aggregate: str, group_by_column: str, obj_in):
         else:
             scenario_value = 0
         result[key] = {}
-        result[key]["population"] = base_result.get(key, 0).get("population", 0) + scenario_value
+        base_value = base_result.get(key)
+        if isinstance(base_value, dict):
+            base_population = base_value.get("population", 0)
+        else:
+            base_population = 0
+        result[key]["population"] = base_population + scenario_value
         
     return result
 
