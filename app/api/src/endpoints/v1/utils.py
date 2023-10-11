@@ -10,6 +10,7 @@ from src import schemas
 from src.db import models
 from src.endpoints import deps
 from src.utils import send_test_email
+from urllib.parse import unquote
 
 router = APIRouter()
 
@@ -23,6 +24,7 @@ async def reverse_proxy(
     """
     Reverse proxy to another server.
     """
+    url = unquote(url)
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
     if (
