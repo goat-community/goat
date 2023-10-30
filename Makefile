@@ -160,3 +160,4 @@ deploy-worker:
 	--tags app=goat resource=worker
 
 	@echo "Done deploying the $(WORKER_TYPE) to AWS"
+
