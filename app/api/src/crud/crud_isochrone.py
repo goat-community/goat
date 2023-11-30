@@ -419,6 +419,9 @@ class CRUDIsochrone:
             payload["fromLat"] = obj_in.starting_point.input[0].lat
             payload["fromLon"] = obj_in.starting_point.input[0].lon
 
+            if (obj_in.settings.access_mode.value.upper() == 'BICYCLE'):
+                payload["walkSpeed"] = payload["bikeSpeed"]
+                payload["directModes"] = "WALK"
 
             # # Buffer the extend of the study area by 30km to ensure that the isochrone covers the entire study area
             # poly = Polygon([(study_area_bounds[0], study_area_bounds[1]), (study_area_bounds[0], study_area_bounds[3]), (study_area_bounds[2], study_area_bounds[3]), (study_area_bounds[2], study_area_bounds[1])])
