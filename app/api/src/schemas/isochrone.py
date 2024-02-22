@@ -426,7 +426,7 @@ R5TravelTimePayloadTemplate = {
     "percentiles": [5, 25, 50, 75, 95],
     "variantIndex": -1,
     "workerVersion": "v6.4",
-    "projectId": "630c0014aad8682ef8461b44",
+    "projectId": R5ProjectID,
 }
 
 
