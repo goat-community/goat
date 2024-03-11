@@ -88,7 +88,9 @@ class Settings(BaseSettings):
     ASYNC_SQLALCHEMY_DATABASE_URI: Optional[AsyncPostgresDsn] = None
 
     @validator("ASYNC_SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_async_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    def assemble_async_db_connection(
+        cls, v: Optional[str], values: Dict[str, Any]
+    ) -> Any:
         if isinstance(v, str):
             return v
         return AsyncPostgresDsn.build(
@@ -137,7 +139,9 @@ class Settings(BaseSettings):
     @validator("EMAILS_ENABLED", pre=True)
     def get_emails_enabled(cls, v: bool, values: Dict[str, Any]) -> bool:
         return bool(
-            values.get("SMTP_HOST") and values.get("SMTP_PORT") and values.get("EMAILS_FROM_EMAIL")
+            values.get("SMTP_HOST")
+            and values.get("SMTP_PORT")
+            and values.get("EMAILS_FROM_EMAIL")
         )
 
     FIRST_ORGANIZATION: str
@@ -173,6 +177,7 @@ class Settings(BaseSettings):
     # R5 config
     R5_HOST: str = None
     R5_MONGO_DB_URL: Optional[str] = None
+
     @validator("R5_MONGO_DB_URL", pre=True)
     def r5_mongodb_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         # mongodb://172.17.0.1:27017/analysis
@@ -180,6 +185,7 @@ class Settings(BaseSettings):
 
     R5_API_PORT: Optional[int] = 80
     R5_API_URL: Optional[str] = None
+
     @validator("R5_API_URL", pre=True)
     def r5_api_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         return f'http://{values.get("R5_HOST")}:{values.get("R5_API_PORT")}/api'
@@ -189,16 +195,17 @@ class Settings(BaseSettings):
     @validator("R5_AUTHORIZATION", pre=True)
     def r5_authorization(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if v:
-            return f"Basic {v}="
+            return f"Basic {v}"
         return None
 
+    CRUD_NUM_RETRIES: Optional[int] = 10  # Number of times to retry calling an endpoint
     # path_traveltime_matrices
     TRAVELTIME_MATRICES_PATH: str = "/app/src/cache/traveltime_matrices"
     OPPORTUNITY_MATRICES_PATH: str = "/app/src/cache/opportunity_matrices"
     AGGREGATING_MATRICES_PATH: str = "/app/src/cache/opportunity/grid"
     ANALYSIS_UNIT_PATH: str = "/app/src/cache/analysis_unit"
     OPPORTUNITY_PATH: str = "/app/src/cache/opportunity"
-    
+
     HEATMAP_MULTIPROCESSING_BULK_SIZE = 50
 
     # Celery config
@@ -215,10 +222,9 @@ class Settings(BaseSettings):
             }
         else:
             return {}
-    
-    CELERY_TASK_TIME_LIMIT: Optional[int] = 60 # seconds
 
-        
+    CELERY_TASK_TIME_LIMIT: Optional[int] = 60  # seconds
+
     OPENROUTESERVICE_API_KEY: Optional[str] = None
     GEOAPIFY_API_KEY: Optional[str] = None
     GOOGLE_API_KEY: Optional[str] = None

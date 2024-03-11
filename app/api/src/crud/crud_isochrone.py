@@ -137,10 +137,14 @@ class CRUDIsochrone:
         read_network_sql = text(sql_text)
         routing_profile = None
         if obj_in.mode.value == IsochroneMode.WALKING.value:
-            routing_profile = obj_in.mode.value + "_" + obj_in.settings.walking_profile.value
+            routing_profile = (
+                obj_in.mode.value + "_" + obj_in.settings.walking_profile.value
+            )
 
         if obj_in.mode.value == IsochroneMode.CYCLING.value:
-            routing_profile = obj_in.mode.value + "_" + obj_in.settings.cycling_profile.value
+            routing_profile = (
+                obj_in.mode.value + "_" + obj_in.settings.cycling_profile.value
+            )
 
         x = y = None
         if (
@@ -151,7 +155,9 @@ class CRUDIsochrone:
                 x = [point.lon for point in obj_in.starting_point.input]
                 y = [point.lat for point in obj_in.starting_point.input]
             else:
-                starting_points = self.starting_points_opportunities(current_user, db, obj_in)
+                starting_points = self.starting_points_opportunities(
+                    current_user, db, obj_in
+                )
                 x = starting_points[0][0]
                 y = starting_points[0][1]
         else:
@@ -294,7 +300,8 @@ class CRUDIsochrone:
             )
             gdf_transposed = gdf.transpose()
             gdf_transposed.columns = [
-                translation_dict["attributes"] for c in list(gdf[translation_dict["traveltime"]])
+                translation_dict["attributes"]
+                for c in list(gdf[translation_dict["traveltime"]])
             ]
             gdf_transposed[1:].to_excel(writer, sheet_name="Results")
             workbook = writer.book
@@ -344,11 +351,17 @@ class CRUDIsochrone:
             "study_area_ids": None,
         }
 
-        if obj_in.starting_point.region_type.value == IsochroneMultiRegionType.STUDY_AREA.value:
+        if (
+            obj_in.starting_point.region_type.value
+            == IsochroneMultiRegionType.STUDY_AREA.value
+        ):
             obj_in_data["study_area_ids"] = [
                 int(study_area_id) for study_area_id in obj_in.starting_point.region
             ]
-        elif obj_in.starting_point.region_type.value == IsochroneMultiRegionType.DRAW.value:
+        elif (
+            obj_in.starting_point.region_type.value
+            == IsochroneMultiRegionType.DRAW.value
+        ):
             obj_in_data["region_geom"] = obj_in.starting_point.region[0]
 
         sql_starting_points = text(
@@ -360,7 +373,11 @@ class CRUDIsochrone:
         return starting_points
 
     def calculate(
-        self, db: AsyncSession, obj_in: IsochroneDTO, current_user: models.User, study_area_bounds
+        self,
+        db: AsyncSession,
+        obj_in: IsochroneDTO,
+        current_user: models.User,
+        study_area_bounds,
     ) -> Any:
         """
         Calculate the isochrone for a given location and time
@@ -381,7 +398,10 @@ class CRUDIsochrone:
             isochrone_type = IsochroneTypeEnum.multi.value
 
         # == Walking and cycling isochrone ==
-        if obj_in.mode.value in [IsochroneMode.WALKING.value, IsochroneMode.CYCLING.value]:
+        if obj_in.mode.value in [
+            IsochroneMode.WALKING.value,
+            IsochroneMode.CYCLING.value,
+        ]:
             network, starting_ids, starting_point_geom = self.read_network(
                 db, obj_in, current_user, isochrone_type
             )
@@ -394,10 +414,32 @@ class CRUDIsochrone:
                 obj_in.output.resolution,
             )
         # == Public transport isochrone ==
-        elif obj_in.mode.value in [IsochroneMode.TRANSIT.value, IsochroneMode.CAR.value]:
+        elif obj_in.mode.value in [
+            IsochroneMode.TRANSIT.value,
+            IsochroneMode.CAR.value,
+        ]:
             starting_point_geom = Point(
                 obj_in.starting_point.input[0].lon, obj_in.starting_point.input[0].lat
             ).wkt
+
+            sql_get_region_mapping = f"""
+                SELECT r5_region_id, r5_bundle_id, r5_host
+                FROM basic.region_mapping_pt
+                WHERE ST_INTERSECTS(
+                    ST_SETSRID(
+                        ST_MAKEPOINT(
+                            {obj_in.starting_point.input[0].lon},
+                            {obj_in.starting_point.input[0].lat}
+                        ),
+                        4326
+                    ),
+                    ST_SetSRID(geom, 4326)
+                );
+            """
+
+            r5_region_id, r5_bundle_id, r5_host = legacy_engine.execute(
+                sql_get_region_mapping
+            ).fetchall()[0]
 
             weekday = obj_in.settings.weekday
             payload = R5TravelTimePayloadTemplate.copy()
@@ -405,7 +447,6 @@ class CRUDIsochrone:
             if obj_in.mode.value == IsochroneMode.CAR.value:
                 payload["transitModes"] = ""
                 payload["accessModes"] = "CAR"
-                payload["projectId"] = R5ProjectIDCarOnly
             else:
                 payload["transitModes"] = ",".join(
                     x.value.upper() for x in obj_in.settings.transit_modes
@@ -418,8 +459,11 @@ class CRUDIsochrone:
             payload["egressModes"] = obj_in.settings.egress_mode.value.upper()
             payload["fromLat"] = obj_in.starting_point.input[0].lat
             payload["fromLon"] = obj_in.starting_point.input[0].lon
+            payload["projectId"] = r5_bundle_id
+            payload["regionId"] = r5_region_id
+            payload["bundleId"] = r5_bundle_id
 
-            if (obj_in.settings.access_mode.value.upper() == 'BICYCLE'):
+            if obj_in.settings.access_mode.value.upper() == "BICYCLE":
                 payload["walkSpeed"] = payload["bikeSpeed"]
                 payload["directModes"] = "WALK"
 
@@ -450,29 +494,59 @@ class CRUDIsochrone:
             headers = {}
             if settings.R5_AUTHORIZATION:
                 headers["Authorization"] = settings.R5_AUTHORIZATION
-            response = requests.post(
-                settings.R5_API_URL + "/analysis", json=payload, headers=headers
-            )
-            grid = decode_r5_grid(response.content)
+
+            result = None
+            try:
+                # Call R5 endpoint multiple times for upto 20 seconds / 10 retries
+                for i in range(settings.CRUD_NUM_RETRIES):
+                    # Call R5 endpoint to compute isochrone
+                    response = requests.post(
+                        f"{r5_host}/api/analysis", json=payload, headers=headers
+                    )
+                    if response.status_code == 202:
+                        # Engine is still processing request, retry shortly
+                        if i == settings.CRUD_NUM_RETRIES - 1:
+                            raise Exception(
+                                "R5 engine took too long to process request."
+                            )
+                        time.sleep(2)
+                        continue
+                    elif response.status_code == 200:
+                        # Engine has finished processing request, break
+                        result = response.content
+                        break
+                    else:
+                        raise Exception(response.text)
+            except Exception as e:
+                raise e
+
+            grid = decode_r5_grid(result)
 
         if obj_in.mode.value in [IsochroneMode.BUFFER.value]:
             if isochrone_type == IsochroneTypeEnum.multi.value:
-                starting_points = self.starting_points_opportunities(current_user, db, obj_in)
+                starting_points = self.starting_points_opportunities(
+                    current_user, db, obj_in
+                )
                 x = starting_points[0][0]
                 y = starting_points[0][1]
                 starting_points_gdf = gpd.GeoDataFrame(
                     geometry=gpd.points_from_xy(x, y), crs="EPSG:4326"
                 )
-                starting_point_geom = str(starting_points_gdf["geometry"].to_wkt().to_list())
+                starting_point_geom = str(
+                    starting_points_gdf["geometry"].to_wkt().to_list()
+                )
                 max_value = obj_in.settings.buffer_distance // 50
             else:
                 starting_point_geom = Point(
-                    obj_in.starting_point.input[0].lon, obj_in.starting_point.input[0].lat
+                    obj_in.starting_point.input[0].lon,
+                    obj_in.starting_point.input[0].lat,
                 ).wkt
                 starting_points = [
                     Point(data.lon, data.lat) for data in obj_in.starting_point.input
                 ]
-                starting_points_gdf = gpd.GeoDataFrame(geometry=starting_points, crs="EPSG:4326")
+                starting_points_gdf = gpd.GeoDataFrame(
+                    geometry=starting_points, crs="EPSG:4326"
+                )
             isochrone_shapes = buffer(
                 starting_points_gdf=starting_points_gdf,
                 buffer_distance=obj_in.settings.buffer_distance,
@@ -508,11 +582,14 @@ class CRUDIsochrone:
                 **opportunity_user_args,
             )
 
-            
             # Save isochrone shapes in the database for intersection
             temp_isochrone_table_name = f"temp_isochrone_{uuid.uuid4().hex}"
             isochrone_shapes["incremental"].to_postgis(
-                name=temp_isochrone_table_name, schema="temporal", con=legacy_engine, if_exists="replace", index=False
+                name=temp_isochrone_table_name,
+                schema="temporal",
+                con=legacy_engine,
+                if_exists="replace",
+                index=False,
             )
 
             # Create a temporary table with the subdivided isochrone shapes
@@ -524,11 +601,15 @@ class CRUDIsochrone:
                 CREATE INDEX ON temporal.{temp_isochrone_table_name}_subdivided USING GIST (geom);
             """
             legacy_engine.execute(sql)
-            #TODO: The population intersection is done using SQL now but the others parts are still using the parquet files.
+            # TODO: The population intersection is done using SQL now but the others parts are still using the parquet files.
             # This needs to be refactored later.
-            
+
             # Population
-            population_count = read_population_sql(f"{temp_isochrone_table_name}_subdivided", group_by_column=group_by_column, obj_in=obj_in)
+            population_count = read_population_sql(
+                f"{temp_isochrone_table_name}_subdivided",
+                group_by_column=group_by_column,
+                obj_in=obj_in,
+            )
 
             # Drop the temporary tables
             sql = f"""
@@ -541,7 +622,10 @@ class CRUDIsochrone:
             poi_count = opportunity_count.count_poi(group_by_column=group_by_column)
             population_count = {int(k): v for k, v in population_count.items()}
             opportunities = [poi_count, population_count]
-            if obj_in.mode.value != IsochroneMode.TRANSIT.value and obj_in.mode.value != IsochroneMode.CAR.value:
+            if (
+                obj_in.mode.value != IsochroneMode.TRANSIT.value
+                and obj_in.mode.value != IsochroneMode.CAR.value
+            ):
                 # Aoi
                 aoi_count = opportunity_count.count_aoi(
                     group_by_columns=[group_by_column, "category"]
@@ -581,11 +665,14 @@ class CRUDIsochrone:
             intersected_regions = []
             for idx, region in regions.iterrows():
                 # clip the isochrone shapes to the regions
-                isochrone_clip = clip(isochrone_shapes["incremental"], region["geometry"])
+                isochrone_clip = clip(
+                    isochrone_shapes["incremental"], region["geometry"]
+                )
                 # adds a column which combines the region id and the isochrone minute to avoid calling the opportunity intersect multiple times within the loop
 
                 isochrone_clip["region"] = isochrone_clip.apply(
-                    lambda x: "{}_x_{}".format(region["name"], x.get(group_by_column)), axis=1
+                    lambda x: "{}_x_{}".format(region["name"], x.get(group_by_column)),
+                    axis=1,
                 )
                 isochrone_clip.set_crs(epsg=4326, inplace=True)
 
@@ -603,7 +690,9 @@ class CRUDIsochrone:
                 input_geometries=intersected_regions,
                 **opportunity_user_args,
             )
-            population_count = opportunity_count.count_population(group_by_columns=["region"])
+            population_count = opportunity_count.count_population(
+                group_by_columns=["region"]
+            )
             # split the dictionary based on region groups
             regions_count = {}
             for key, count_value in population_count.items():
@@ -633,10 +722,14 @@ class CRUDIsochrone:
                 ):
                     total_population = int(population_count.get("total")["population"])
                 else:
-                    total_population = regions.query(f'name == "{region}"').iloc[0]["population"]
+                    total_population = regions.query(f'name == "{region}"').iloc[0][
+                        "population"
+                    ]
 
                 opportunities[region]["total_population"] = int(total_population)
-                opportunities[region]["reached_population"] = population_reached["population"]
+                opportunities[region]["reached_population"] = population_reached[
+                    "population"
+                ]
 
             grid["accessibility"] = {
                 "starting_points": starting_point_geom,
@@ -686,7 +779,9 @@ class CRUDIsochrone:
 
             for key in population_keys:
                 feature_name = sub_study_area_to_feature_name(key, "reached_population")
-                sub_study_area_population_count = opportunities[key]["reached_population"][cnt]
+                sub_study_area_population_count = opportunities[key][
+                    "reached_population"
+                ][cnt]
                 geojson["features"][cnt]["properties"][
                     feature_name
                 ] = sub_study_area_population_count

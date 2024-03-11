@@ -53,6 +53,7 @@ COPY . /app
 
 # Install gdal binaries
 # Add *libgdal-dev* in case you need to install python bindings
-RUN apt-get install -y python3-dev gdal-bin
+RUN apt-get update
+RUN apt-get install -y python3-dev gdal-bin --fix-missing
 
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
