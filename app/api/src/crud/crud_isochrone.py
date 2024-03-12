@@ -418,40 +418,51 @@ class CRUDIsochrone:
             IsochroneMode.TRANSIT.value,
             IsochroneMode.CAR.value,
         ]:
-            starting_point_geom = Point(
-                obj_in.starting_point.input[0].lon, obj_in.starting_point.input[0].lat
-            ).wkt
-
-            sql_get_region_mapping = f"""
-                SELECT r5_region_id, r5_bundle_id, r5_host
-                FROM basic.region_mapping_pt
-                WHERE ST_INTERSECTS(
-                    ST_SETSRID(
-                        ST_MAKEPOINT(
-                            {obj_in.starting_point.input[0].lon},
-                            {obj_in.starting_point.input[0].lat}
-                        ),
-                        4326
-                    ),
-                    ST_SetSRID(geom, 4326)
-                );
-            """
-
-            r5_region_id, r5_bundle_id, r5_host = legacy_engine.execute(
-                sql_get_region_mapping
-            ).fetchall()[0]
 
             weekday = obj_in.settings.weekday
             payload = R5TravelTimePayloadTemplate.copy()
 
             if obj_in.mode.value == IsochroneMode.CAR.value:
+                r5_host = settings.R5_HOST_CAR
                 payload["transitModes"] = ""
                 payload["accessModes"] = "CAR"
+                payload["projectId"] = settings.R5_CAR_BUNDLE_ID
+                payload["regionId"] = settings.R5_CAR_REGION_ID
+                payload["bundleId"] = settings.R5_CAR_BUNDLE_ID
+
             else:
+                starting_point_geom = Point(
+                    obj_in.starting_point.input[0].lon,
+                    obj_in.starting_point.input[0].lat,
+                ).wkt
+
+                sql_get_region_mapping = f"""
+                    SELECT r5_region_id, r5_bundle_id, r5_host
+                    FROM basic.region_mapping_pt
+                    WHERE ST_INTERSECTS(
+                        ST_SETSRID(
+                            ST_MAKEPOINT(
+                                {obj_in.starting_point.input[0].lon},
+                                {obj_in.starting_point.input[0].lat}
+                            ),
+                            4326
+                        ),
+                        ST_SetSRID(geom, 4326)
+                    );
+                """
+
+                r5_region_id, r5_bundle_id, r5_host = legacy_engine.execute(
+                    sql_get_region_mapping
+                ).fetchall()[0]
+
                 payload["transitModes"] = ",".join(
                     x.value.upper() for x in obj_in.settings.transit_modes
                 )
                 payload["accessModes"] = "WALK"
+                payload["projectId"] = r5_bundle_id
+                payload["regionId"] = r5_region_id
+                payload["bundleId"] = r5_bundle_id
+
             payload["date"] = R5AvailableDates[weekday]
             payload["fromTime"] = obj_in.settings.from_time
             payload["toTime"] = obj_in.settings.to_time
@@ -459,9 +470,6 @@ class CRUDIsochrone:
             payload["egressModes"] = obj_in.settings.egress_mode.value.upper()
             payload["fromLat"] = obj_in.starting_point.input[0].lat
             payload["fromLon"] = obj_in.starting_point.input[0].lon
-            payload["projectId"] = r5_bundle_id
-            payload["regionId"] = r5_region_id
-            payload["bundleId"] = r5_bundle_id
 
             if obj_in.settings.access_mode.value.upper() == "BICYCLE":
                 payload["walkSpeed"] = payload["bikeSpeed"]
