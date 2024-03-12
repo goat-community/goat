@@ -421,7 +421,10 @@ class CRUDIsochrone:
 
             weekday = obj_in.settings.weekday
             payload = R5TravelTimePayloadTemplate.copy()
-
+            starting_point_geom = Point(
+                obj_in.starting_point.input[0].lon,
+                obj_in.starting_point.input[0].lat,
+            ).wkt
             if obj_in.mode.value == IsochroneMode.CAR.value:
                 r5_host = settings.R5_HOST_CAR
                 payload["transitModes"] = ""
@@ -431,11 +434,6 @@ class CRUDIsochrone:
                 payload["bundleId"] = settings.R5_CAR_BUNDLE_ID
 
             else:
-                starting_point_geom = Point(
-                    obj_in.starting_point.input[0].lon,
-                    obj_in.starting_point.input[0].lat,
-                ).wkt
-
                 sql_get_region_mapping = f"""
                     SELECT r5_region_id, r5_bundle_id, r5_host
                     FROM basic.region_mapping_pt
