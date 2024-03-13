@@ -199,7 +199,7 @@ class Settings(BaseSettings):
         return None
 
     CRUD_NUM_RETRIES: Optional[int] = 10  # Number of times to retry calling an endpoint
-    R5_CAR_BUNDLE_ID: Optional[str] = "65f00f0d212e202aa76aecda"
+    R5_CAR_BUNDLE_ID: Optional[str] = "65f1bf0ae114b05edd0bf648"
     R5_CAR_REGION_ID: Optional[str] = "65f008af72f475a1d6b4a2e2"
     R5_HOST_CAR: Optional[str] = "https://r5.goat.plan4better.de"
     # path_traveltime_matrices
