@@ -34,7 +34,7 @@ GOAT is a free and open source WebGIS platform. It is an all-in-one solution for
 
 For more information check out:
 
-[GOAT Docs](https://plan4better.de/en/docs/background/)
+[GOAT Docs](https://goat.plan4better.de/docs)
 
 [Follow GOAT on LinkedIn](https://www.linkedin.com/company/plan4better)
 
