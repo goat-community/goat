@@ -7,6 +7,10 @@ on:
         description: "Client goat changed"
         value: ${{ jobs.checks.outputs.client-goat }}
 
+      docs:
+        description: "Docs changed"
+        value: ${{ jobs.checks.outputs.docs }}
+
       keycloak-theme:
         description: "Keycloak theme changed"
         value: ${{ jobs.checks.outputs.keycloak-theme }}
@@ -29,6 +33,7 @@ jobs:
       contents: read
     outputs:
       client-goat: ${{ steps.changes.outputs.client-goat }}
+      docs: ${{ steps.changes.outputs.docs }}
       keycloak-theme: ${{ steps.changes.outputs.keycloak-theme }}
       storybook: ${{ steps.changes.outputs.storybook }}
       sha-short: ${{ steps.sha-short.outputs.sha-short }}
@@ -52,6 +57,7 @@ jobs:
 
             docs:
                 - 'apps/docs/**'
+                - 'packages/**'
                 - '.prettier*'
                 - 'pnpm-lock.yaml'
 
