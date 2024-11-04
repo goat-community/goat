@@ -22,7 +22,7 @@ Intelligent software for modern web mapping and integrated planning
 
 <br/>
 
-## ✨ About GOAT Frontend
+## ✨ About GOAT
 
 <img width="1527" alt="goat-sneak" src="https://assets.plan4better.de/img/goat_screenshot.png">
 
