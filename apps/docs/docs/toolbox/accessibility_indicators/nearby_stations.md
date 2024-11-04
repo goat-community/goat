@@ -133,4 +133,4 @@ Want to style your results and create nice-looking maps? See [Styling](../../map
 
 ## 4. Technical details
 
-Similar to the Public Transport Quality Classes <i>(German: ÖV-Güteklassen)</i>, this indicator is calculated based on **GTFS data** (see [Data Basis](../../data/data_basis)). Based on the selected modes, day, and time window, the PT Nearby Stations are received.
+Similar to the Public Transport Quality Classes <i>(German: ÖV-Güteklassen)</i>, this indicator is calculated based on **GTFS data** (see [Inbuilt Datasets](../../data/data_basis)). Based on the selected modes, day, and time window, the PT Nearby Stations are received.

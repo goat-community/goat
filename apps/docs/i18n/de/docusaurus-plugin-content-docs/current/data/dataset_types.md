@@ -12,7 +12,7 @@ Benutzer können auf Datensätze im **Catalog Explorer** und über den **Dataset
 
 :::info Externe Datensätze
 
-Im Gegensatz zu anderen Datensätzen stammen externe Datensätze von **Drittanbietern** über den von Ihnen bereitgestellten Link. Diese Datensätze können entweder [Features](#1-features) oder [Raster](#2-rasters) sein, die unterschiedliche Zwecke erfüllen. *Externe Feature-Layer* werden in GOAT abgerufen und dort gespeichert, während *externe Raster-Layer* live abgerufen werden (um sie in der Karte zu überlagern), aber nicht gespeichert werden.
+Im Gegensatz zu anderen Datensätzen stammen externe Datensätze von **Drittanbietern** über den von Ihnen bereitgestellten Link. Diese Datensätze können entweder [Features](#1-features) oder [Raster](#2-raster) sein, die unterschiedliche Zwecke erfüllen. *Externe Feature-Layer* werden in GOAT abgerufen und dort gespeichert, während *externe Raster-Layer* live abgerufen werden (um sie in der Karte zu überlagern), aber nicht gespeichert werden.
 <p>
 </p>
 Folgende externe Datensätze werden in GOAT unterstützt: Web Map Service (WMS), Web Map Tile Service (WMTS), Web Feature Service (WFS), XYZ Tiles.

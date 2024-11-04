@@ -90,7 +90,7 @@ Depending on the size of the selected area, the calculation might take some minu
 
 ### Scientific Background
 
-The quality and frequency of transit services is a **decisive** indicator in public transport and spatial planning. It can be used to highlight deficits in the public transport offer and to identify well-serviced locations as attractive areas for development. The approach of Public Transport Quality Classes <i>(German: ÖV-Güteklassen)</i> is **methodologically superior** compared to common catchment areas. In 2011, the [Swiss Federal Office for Spatial Development (ARE)](https://www.are.admin.ch/are/de/home.html) started to use the indicator of <i>ÖV-Güteklassen</i> to include the **attractiveness of public transport services** in the assessment of development quality; since then, these have been considered an important instrument in formal planning processes in Switzerland. In addition, the Swiss model served as an inspiration for application in Austria (e.g. Voralberg) and finds first application in Germany (e.g. by [KCW](https://plan4better.de/en/references/g%C3%BCteklassen-deutschland/) and [Agora Verkehrswende](https://plan4better.de/en/references/agora/)).  
+The quality and frequency of transit services is a **decisive** indicator in public transport and spatial planning. It can be used to highlight deficits in the public transport offer and to identify well-serviced locations as attractive areas for development. The approach of Public Transport Quality Classes <i>(German: ÖV-Güteklassen)</i> is **methodologically superior** compared to common catchment areas. In 2011, the [Swiss Federal Office for Spatial Development (ARE)](https://www.are.admin.ch/are/de/home.html) started to use the indicator of <i>ÖV-Güteklassen</i> to include the **attractiveness of public transport services** in the assessment of development quality; since then, these have been considered an important instrument in formal planning processes in Switzerland. In addition, the Swiss model served as an inspiration for application in Austria (e.g. Voralberg) and finds first application in Germany (e.g. by [KCW](https://www.plan4better.de/en/references/calculation-of-public-transport-quality-classes-in-germany) and [Agora Verkehrswende](https://www.plan4better.de/en/references/accessibility-analyses-for-the-mobility-guarantee-and-public-transport-atlas-projects)).  
 
 The institutionalization of the indicator in German-speaking countries, as well as the comprehensible and at the same time differentiated calculation methodology, are important advantages of the <i>ÖV-Güteklassen</i>. 
 
@@ -98,7 +98,7 @@ The institutionalization of the indicator in German-speaking countries, as well 
 
 In the Swiss version of the indicator, the calculation of the quality classes is usually carried out for departures on weekdays between 6 AM and 8 PM. For the use in GOAT, the **calculation period** was made more flexible so that the indicator can be calculated **for any day of the week and time of day**. Furthermore, the indicator was adapted to the conditions in Germany. 
 
-The calculations are carried out based on **GTFS data** (see [Data Basis](../../data/data_basis)). First, the number of departures per public transport mode (train, metro, tram, and bus) is dynamically calculated for each station. The sum of the departures is divided by two to calculate the frequency, to eliminate the outward and return directions. In the next step, the **average frequency** for the selected time interval is calculated. The higher-value service is selected as the **station type** in the case of service by several means of transport. For example, in the case of buses and trains, this is the train. With the help of the table below, as well as the station type and the frequency, the station category can now be determined. 
+The calculations are carried out based on **GTFS data** (see [Inbuilt Datasets](../../data/data_basis)). First, the number of departures per public transport mode (train, metro, tram, and bus) is dynamically calculated for each station. The sum of the departures is divided by two to calculate the frequency, to eliminate the outward and return directions. In the next step, the **average frequency** for the selected time interval is calculated. The higher-value service is selected as the **station type** in the case of service by several means of transport. For example, in the case of buses and trains, this is the train. With the help of the table below, as well as the station type and the frequency, the station category can now be determined. 
 
 ![Classification of transport stops](/img/toolbox/accessibility_indicators/gueteklassen/classification_stations_en.webp "Classification of transport stops")
 
@@ -116,9 +116,9 @@ The created buffers are visualized around the stations in the corresponding colo
 ## 5. Further readings
 
 Sample projects where ÖV-Güteklassen was used:
-- [Accessibility analyses for the "Mobility Guarantee" and "Public Transport Atlas" projects](https://plan4better.de/en/references/agora/) 
-- [Calculation of public transport quality classes in Austria](https://plan4better.de/en/references/g%C3%BCteklassen-%C3%B6sterreich/)
-- [Calculation of public transport quality classes in Germany](https://plan4better.de/en/references/g%C3%BCteklassen-deutschland/)
+- [Accessibility analyses for the "Mobility Guarantee" and "Public Transport Atlas" projects](https://www.plan4better.de/en/references/accessibility-analyses-for-the-mobility-guarantee-and-public-transport-atlas-projects) 
+- [Calculation of public transport quality classes in Austria](https://www.plan4better.de/en/references/guteklassen-osterreich)
+- [Calculation of public transport quality classes in Germany](https://www.plan4better.de/en/references/calculation-of-public-transport-quality-classes-in-germany)
 
 ## 6. References
 

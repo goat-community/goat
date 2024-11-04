@@ -10,7 +10,7 @@ In the <code>Layer design <img src={require('/img/map/styling/styling_icon.webp'
 
 
 :::tip HINT
-If you would like to save your styling settings and use them in further projects, you can do so by [saving a style as default](../layer_style/styling/#default-settings). 
+If you would like to save your styling settings and use them in further projects, you can do so by [saving a style as default](../layer_style/styling#default-settings). 
 :::
 
 <iframe width="100%" height="500" src="https://www.youtube.com/embed/LKzuWNFk88s?si=SvKpL3hKkA9b1pov" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>

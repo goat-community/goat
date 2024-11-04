@@ -25,7 +25,7 @@ The following external datasets are supported in GOAT: Web Map Service (WMS), We
 ### 1. Features
 
 #### 1.1 Spatial Features
-Feature datasets serve as a dynamic repository of **spatial features**, such as points, lines, or polygons - they contaian spatially referenced geogrpahic features. Users can upload and utilize data from **Shapefiles**, **Geopackages**, **GeoJSON**, and **KML** files or add **WFS** link from an external URL. Feature datasets can be visualized on the map, [styled](../category/layer-styling), and used for analyses with any tools from the [toolbox](../category/toolbox). Furthermore, feature datasets can serve as a data basis for the [scenario creation](../category/scenarios).
+Feature datasets serve as a dynamic repository of **spatial features**, such as points, lines, or polygons - they contaian spatially referenced geogrpahic features. Users can upload and utilize data from **Shapefiles**, **Geopackages**, **GeoJSON**, and **KML** files or add **WFS** link from an external URL. Feature datasets can be visualized on the map, [styled](../category/layer-styling), and used for analyses with any tools from the [toolbox](../category/toolbox). Furthermore, feature datasets can serve as a data basis for the [scenario creation](../scenarios).
 
 <p> </p>
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

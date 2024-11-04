@@ -73,7 +73,7 @@ Dies sind die Netzwerke, die von GOAT für die Analyse von Routing-Indikatoren z
 
 ::::info
 
-Während aktuell fest integrierte Netzwerke für ÖPNV- und Straßennetz-Routing genutzt werden, wird es Nutzern zukünftig möglich sein, eigene Netzwerke für Routing-Analysen hochzuladen. Wenn Sie an dieser Funktion interessiert sind, zögern Sie nicht, uns zu [kontaktieren](https://plan4better.de/en/contact/ "Contact Support").
+Während aktuell fest integrierte Netzwerke für ÖPNV- und Straßennetz-Routing genutzt werden, wird es Nutzern zukünftig möglich sein, eigene Netzwerke für Routing-Analysen hochzuladen. Wenn Sie an dieser Funktion interessiert sind, zögern Sie nicht, uns zu [kontaktieren](https://plan4better.de/de/contact/ "Contact Support").
 
 ::::
 
@@ -110,7 +110,7 @@ Umfangreiche Straßennetzdaten, die reale Transportnetzwerke und deren Komponent
     - Verbindungen oder Knotenpunkte (jeder Punkt, an dem zwei unterschiedliche Wege aufeinandertreffen)
 
 - *Sources:*
-    [Overture Maps Foundation](https://overturemaps.org/) für europaweite Straßennetzdaten und digitale Höhenmodelle (DEM), die wichtige topografische Informationen (Oberflächengradient) von [Copernicus](https://www.copernicus.eu/en) erfassen.
+    [Overture Maps Foundation](https://overturemaps.org/) für europaweite Straßennetzdaten und digitale Höhenmodelle (DEM), die wichtige topografische Informationen (Oberflächengradient) von [Copernicus](https://www.copernicus.eu/de) erfassen.
 
 - *Vorbereitung:*
     - Die Daten werden im Geoparquet-Format aus dem ["Transportation theme"](https://docs.overturemaps.org/guides/transportation/) von Overture Maps erfasst.

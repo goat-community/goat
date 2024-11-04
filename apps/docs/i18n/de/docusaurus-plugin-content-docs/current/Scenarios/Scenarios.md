@@ -1,6 +1,6 @@
 ---
 sidebar_position: 4
-slug: /Szenarien
+slug: /Scenarios
 ---
 
 import Tabs from '@theme/Tabs';

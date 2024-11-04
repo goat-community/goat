@@ -19,7 +19,7 @@ Im Bereich **Layer** können Layer **hinzugefügt und organisiert** werden. Unte
 
 ## Layer hinzufügen
 
-Sie können zwei Arten von Layer zu Ihrer Karte hinzufügen: [Interne Layer](../data/dataset_types) oder [Externe Layer](../data/dataset_types). Um neue interne Layer hinzuzufügen, können Sie entweder **Datensätze aus Ihrem Datenexplorer** integrieren oder neue **Datensätze von Ihrem lokalen Gerät** hochladen (GeoPackage, GeoJSON, Shapefile, KML, CSV oder XLSX). Externe Layer können durch Einfügen der **URL der externen Quelle** (WMS, WMTS oder MVT) hinzugefügt werden. 
+Sie können Ebenen aus [verschiedenen Quellen](../data/dataset_types) zu Ihrer Karte hinzufügen. Sie können entweder **Datensätze aus Ihrem Datenexplorer oder dem Katalogexplorer** integrieren oder neue **Datensätze von Ihrem lokalen Gerät** hochladen (GeoPackage, GeoJSON, Shapefile, KML, CSV oder XLSX). Externe Ebenen können durch Einfügen der **Url der externen Quelle** (WMS, WMTS oder MVT) hinzugefügt werden.
 
 Führen Sie die folgenden Schritte aus, um der Karte eine Layer hinzuzufügen: 
 

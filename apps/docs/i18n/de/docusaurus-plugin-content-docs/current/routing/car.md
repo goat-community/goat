@@ -12,7 +12,7 @@ Das **Verkehrsmittel Auto** wird für alle Analysen in GOAT verwendet, die Autof
 
 Car Routing wird für viele Indikatoren in GOAT verwendet, wie z.B. [Einzugsgebiete](../toolbox/accessibility_indicators/catchments) und [Heatmaps](../toolbox/accessibility_indicators/connectivity). 
 
-Da GOAT auch die Erstellung von [Szenarien im Wegenetz](../scenarios/ways) erlaubt, wird ein **angepasster Routing-Algorithmus** benötigt, der auch die Änderungen des Szenarios in den Erreichbarkeitsanalysen widerspiegelt. Für den Verkehrsträger Auto werden dabei **nur Wege berücksichtigt, die für das Fahren geeignet sind**.
+Da GOAT auch die Erstellung von [Szenarien für das Straßennetz](../Scenarios#4-straßennetz---kanten) erlaubt, wird ein **angepasster Routing-Algorithmus** benötigt, der auch die Änderungen des Szenarios in den Erreichbarkeitsanalysen widerspiegelt. Für den Verkehrsträger Auto werden dabei **nur Wege berücksichtigt, die für das Fahren geeignet sind**.
 
 ## 2. Daten
 

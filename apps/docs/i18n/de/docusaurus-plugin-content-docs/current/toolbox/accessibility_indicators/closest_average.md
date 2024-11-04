@@ -9,7 +9,7 @@ import MathJax from 'react-mathjax';
 
 # Heatmap - Durchschnitt Reisezeit
 
-Eine farbkodierte Karte zur Visualisierung der durchschnittlichen Reisezeit zu Punkten (wie [POI](../../../further_reading/glossary#point-of-interest-poi "Was ist ein POI?")) aus umliegenden Gebieten.
+Eine farbkodierte Karte zur Visualisierung der durchschnittlichen Reisezeit zu Punkten (wie [POI](../../../further_reading/glossary#points-of-interest-poi "Was ist ein POI?")) aus umliegenden Gebieten.
 
 <iframe width="100%" height="500" src="https://www.youtube.com/embed/uxY__6zzqIQ?si=t5enJc2BLJuPMkv3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
@@ -20,7 +20,7 @@ Visualisiert als farbkodiertes sechseckiges Raster, berücksichtigt die Heatmap 
 
 :::info INFO
 
-Ein `Gelegenheits-Layer` enthält [geografische Punkt](../../../data/data_types "Was sind geografische Punkte?")-Daten. Wählen Sie eine oder mehrere solcher Schichten mit Ihren Zielpunkten (Gelegenheiten) als Eingabe für die Heatmap.
+Ein `Gelegenheits-Layer` enthält [geografische Punkt](../../data/data_types "Was sind geografische Punkte?")-Daten. Wählen Sie eine oder mehrere solcher Schichten mit Ihren Zielpunkten (Gelegenheiten) als Eingabe für die Heatmap.
 
 :::
 
@@ -177,7 +177,7 @@ Da der Parameter *Anzahl der Ziele* einmal pro Gelegenheits-Layer angegeben wird
 
 :::tip Tipp
 
-Je nach Konfiguration kann die Berechnung einige Minuten dauern. Die [Statusleiste](../../workspace/home#status-bar) zeigt den aktuellen Fortschritt an.
+Je nach Konfiguration kann die Berechnung einige Minuten dauern. Die [Statusleiste](../../workspace/home#statusleiste) zeigt den aktuellen Fortschritt an.
 
 :::
 

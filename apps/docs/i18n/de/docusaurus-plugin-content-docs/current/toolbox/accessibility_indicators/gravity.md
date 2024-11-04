@@ -8,7 +8,7 @@ import thematicIcon from "/img/toolbox/data_management/join/toolbox.webp";
 import MathJax from 'react-mathjax';
 
 # Heatmap - Gravity
-Eine farblich gekennzeichnete Karte zur Visualisierung der Erreichbarkeit von Punkten (wie z.B. [POI](../../../further_reading/glossary#point-of-interest-poi "What is a POI?")) aus der Umgebung.
+Eine farblich gekennzeichnete Karte zur Visualisierung der Erreichbarkeit von Punkten (wie z.B. [POI](../../further_reading/glossary#points-of-interest-poi "What is a POI?")) aus der Umgebung.
 
 <iframe width="100%" height="500" src="https://www.youtube.com/embed/qVV63ZN-gVE?si=c-2n7O002Ze4dWgH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
@@ -18,7 +18,7 @@ Die Heatmap wird als farblich gekennzeichnetes sechseckiges Raster dargestellt u
 
 :::info INFO
 
-Ein `Gelegenheits-Layer` enthält [geografische Punkte](../../../data/data_types "Was sind geografische Punkte?"). Wählen Sie einen oder mehrere solcher Layer mit Ihren Zielpunkten (Opportunities) als Input für die Heatmap.
+Ein `Gelegenheits-Layer` enthält [geografische Punkte](../../data/data_types "Was sind geografische Punkte?"). Wählen Sie einen oder mehrere solcher Layer mit Ihren Zielpunkten (Opportunities) als Input für die Heatmap.
 
 :::
 
@@ -153,7 +153,7 @@ Weitere Einblicke in den Routing-Algorithmus erhalten Sie unter [Verkehrsmittel/
 
 #### Gaussfunktion
 
-Diese Funktion berechnet die Erreichbarkeiten auf der Grundlage einer Gaußschen Kurve, die durch die von Ihnen definierten Parameter `Sensitivität` und `Zielpotentialfeld` beeinflusst wird. Ein ausführlicheres Verständnis finden Sie im Abschnitt [Technische Details](./gravity#4-technical-details).
+Diese Funktion berechnet die Erreichbarkeiten auf der Grundlage einer Gaußschen Kurve, die durch die von Ihnen definierten Parameter `Sensitivität` und `Zielpotentialfeld` beeinflusst wird. Ein ausführlicheres Verständnis finden Sie im Abschnitt [Technische Details](./gravity#4-technische-details).
 
 :::tip Pro Tipp
 
@@ -169,7 +169,7 @@ Mit Hilfe der von Ihnen definierten *Sensitivität* ermöglicht die Gauß-Funkti
 
 #### Lineare Funktion
 
-Diese Funktion stellt eine direkte Korrelation zwischen Reisezeit und Erreichbarkeit her, die durch das von Ihnen angegebene `Zielpotentialfeld` moduliert wird. Ein ausführlicheres Verständnis finden Sie im Abschnitt [Technische Details](./gravity#4-technical-details).
+Diese Funktion stellt eine direkte Korrelation zwischen Reisezeit und Erreichbarkeit her, die durch das von Ihnen angegebene `Zielpotentialfeld` moduliert wird. Ein ausführlicheres Verständnis finden Sie im Abschnitt [Technische Details](./gravity#4-technische-details).
 
 :::info Tipp 
 Diese Funktion befindet sich derzeit in der Entwicklung. 🧑🏻‍💻
@@ -181,7 +181,7 @@ Diese Funktion befindet sich derzeit in der Entwicklung. 🧑🏻‍💻
 
 #### Exponentialfunktion
 
-Diese Funktion berechnet die Erreichbarkeiten auf der Grundlage einer Exponentialkurve, die von der von Ihnen definierten `Sensitivität` und dem `Zielpotentialfeld`  beeinflusst wird. Ein ausführlicheres Verständnis finden Sie im Abschnitt [Technische Details](./gravity#4-technical-details).
+Diese Funktion berechnet die Erreichbarkeiten auf der Grundlage einer Exponentialkurve, die von der von Ihnen definierten `Sensitivität` und dem `Zielpotentialfeld`  beeinflusst wird. Ein ausführlicheres Verständnis finden Sie im Abschnitt [Technische Details](./gravity#4-technische-details).
 
 :::info Tipp 
 Diese Funktion befindet sich derzeit in der Entwicklung. 🧑🏻‍💻
@@ -192,7 +192,7 @@ Diese Funktion befindet sich derzeit in der Entwicklung. 🧑🏻‍💻
 
 #### Powerfunktion
 
-Diese Funktion berechnet die Erreichbarkeiten auf der Grundlage einer Leistungskurve, die durch die von Ihnen definierte `Sensitivität` und das `Zielpotentialfeld` beeinflusst wird. Ein ausführlicheres Verständnis finden Sie im Abschnitt [Technische Details](./gravity#4-technical-details).
+Diese Funktion berechnet die Erreichbarkeiten auf der Grundlage einer Leistungskurve, die durch die von Ihnen definierte `Sensitivität` und das `Zielpotentialfeld` beeinflusst wird. Ein ausführlicheres Verständnis finden Sie im Abschnitt [Technische Details](./gravity#4-technische-details).
 
 :::info Tipp 
 Diese Funktion befindet sich derzeit in der Entwicklung. 🧑🏻‍💻
@@ -219,7 +219,7 @@ Zusätzlich können Sie weitere Gelegenheiten über die Schaltfläche `+ Gelegen
 
 :::tip Tipp
 
-Benötigen Sie Hilfe bei der Auswahl einer geeigneten Reisezeit für verschiedene Einrichtungen? Das [„Standort-Werkzeug“] (https://www.chemnitz.de/chemnitz/media/unsere-stadt/verkehr/verkehrsplanung/vep2040_standortwerkzeug.pdf) der Stadt Chemnitz kann Ihnen dabei behilflich sein.
+Benötigen Sie Hilfe bei der Auswahl einer geeigneten Reisezeit für verschiedene Einrichtungen? Das [„Standort-Werkzeug“](https://www.chemnitz.de/chemnitz/media/unsere-stadt/verkehr/verkehrsplanung/vep2040_standortwerkzeug.pdf) der Stadt Chemnitz kann Ihnen dabei behilflich sein.
 
 :::
 
@@ -246,7 +246,7 @@ Das *Zielpotenzialfeld* ist eine nützliche Methode, um bestimmte Möglichkeiten
 
 :::tip Tipp
 
-Je nach Ihrer Konfiguration kann die Berechnung einige Minuten dauern. Die [Statusleiste](../../Arbeitsbereich/home#status-bar) zeigt den aktuellen Fortschritt an.
+Je nach Ihrer Konfiguration kann die Berechnung einige Minuten dauern. Die [Statusleiste](../../workspace/home#statusleiste) zeigt den aktuellen Fortschritt an.
 
 :::
 
@@ -353,7 +353,7 @@ Zur Klassifizierung der Erreichbarkeitsstufen, die für jede Rasterzelle berechn
 
 ### Visualisierung
 
-Heatmaps in GOAT nutzen die **[Uber H3 auf Gitter basierende](../further_reading/glossary#h3-grid)** Lösung für effiziente Berechnungen und leicht verständliche Visualisierungen. Hinter den Kulissen wird eine vorberechnete Reisezeitmatrix für jedes *Verkehrsmittel* mit dieser Lösung abgefragt und in Echtzeit weiterverarbeitet, um die Erreichbarkeit zu berechnen und eine endgültige Heatmap zu erstellen.
+Heatmaps in GOAT nutzen die **[Uber H3 auf Gitter basierende](../../further_reading/glossary#h3-grid)** Lösung für effiziente Berechnungen und leicht verständliche Visualisierungen. Hinter den Kulissen wird eine vorberechnete Reisezeitmatrix für jedes *Verkehrsmittel* mit dieser Lösung abgefragt und in Echtzeit weiterverarbeitet, um die Erreichbarkeit zu berechnen und eine endgültige Heatmap zu erstellen.
 
 Die Auflösung und die Abmessungen des verwendeten sechseckigen Gitters hängen von dem gewählten *Verkehrsmittel* ab:
 

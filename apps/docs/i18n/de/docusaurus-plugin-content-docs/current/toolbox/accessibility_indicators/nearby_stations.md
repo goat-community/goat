@@ -132,4 +132,4 @@ Möchten Sie Ihre Ergebnisse bearbeiten und ansprechende Karten erstellen? Dies 
 
 ## 4. Technische Details
 
-Ähnlich wie die Public Transport Quality Classes (ÖV-Güteklassen) wird dieser Indikator auf Basis von **GTFS-Daten** berechnet (siehe [Datenbasis](../../data/data_basis)). Basierend auf den ausgewählten Verkehrsmitteln, dem Tag und dem Zeitfenster werden die nahegelegenen ÖV-Haltestellen ermittelt.
+Ähnlich wie die Public Transport Quality Classes (ÖV-Güteklassen) wird dieser Indikator auf Basis von **GTFS-Daten** berechnet (siehe [Eingebaute Datensätze](../../data/data_basis)). Basierend auf den ausgewählten Verkehrsmitteln, dem Tag und dem Zeitfenster werden die nahegelegenen ÖV-Haltestellen ermittelt.

@@ -106,7 +106,7 @@ If you are interested in one specific mode, e.g. only busses, you can use the [a
 
 ## 4. Technical details
 
-Similar to the Public Transport Quality Classes <i>(German: ÖV-Güteklassen)</i>, this indicator is calculated based on **GTFS data** (see [Data Basis](../../data/data_basis)). Based on the selected day and time window, the average number of departures per hour (regardless of direction) is calculated.
+Similar to the Public Transport Quality Classes <i>(German: ÖV-Güteklassen)</i>, this indicator is calculated based on **GTFS data** (see [Inbuilt Datasets](../../data/data_basis)). Based on the selected day and time window, the average number of departures per hour (regardless of direction) is calculated.
 
 ## 5. References
 

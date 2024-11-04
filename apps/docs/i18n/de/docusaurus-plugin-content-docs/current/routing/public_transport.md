@@ -13,7 +13,7 @@ Das ÖPNV-Routing erleichtert die **intermodale Analyse** durch die Integration 
 
 ÖPNV-Routing wird für viele Indikatoren in GOAT verwendet, wie z. B. [Einzugsgebiete](../toolbox/accessibility_indicators/catchments) und [Heatmaps](../toolbox/accessibility_indicators/connectivity).
 
-Darüber hinaus passt sich mit [Szenarien im Wegenetz](../scenarios/ways), ein **flexibler Routing-Algorithmus** an Szenarienänderungen bei Erreichbarkeitsanalysen in GOAT an.
+Darüber hinaus passt sich mit [Szenarien für das Straßennetz](../Scenarios#4-straßennetz---kanten), ein **flexibler Routing-Algorithmus** an Szenarienänderungen bei Erreichbarkeitsanalysen in GOAT an.
 
 ### Konfigurierbare Optionen für Analysen
 

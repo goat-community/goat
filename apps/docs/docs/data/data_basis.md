@@ -7,7 +7,7 @@ sidebar_position: 2
 
 ## Data as an important basis for analyses
 
-At Plan4Better, we recognize that data is the fuel that powers our analyses, making it our most valuable asset. To deliver accurate insights based on high-quality information, our WebGIS platform [GOAT](https://goat.plan4better.de/login) integrates a variety of diverse geospatial and non-geospatial datasets from various sources. However, processing inconsistent data from different sources with varying degrees of accuracy can pose a significant challenge. To address this issue, we leverage a range of techniques including efficient data integration, disaggregation, and fusion workflows.
+At Plan4Better, we recognize that data is the fuel that powers our analyses, making it our most valuable asset. To deliver accurate insights based on high-quality information, our WebGIS platform [GOAT](https://goat.plan4better.de/en) integrates a variety of diverse geospatial and non-geospatial datasets from various sources. However, processing inconsistent data from different sources with varying degrees of accuracy can pose a significant challenge. To address this issue, we leverage a range of techniques including efficient data integration, disaggregation, and fusion workflows.
 
 
 ## Data collection and preparation

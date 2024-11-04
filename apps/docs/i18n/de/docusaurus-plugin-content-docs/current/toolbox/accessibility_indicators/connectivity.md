@@ -17,7 +17,7 @@ Eine farbkodierte Karte zur Visualisierung der Konnektivität von Orten innerhal
 
 Die Heatmap wird als farbkodiertes sechseckiges Gitter dargestellt und berücksichtigt reale Verkehrs- und Straßennetze zur Berechnung der Konnektivität. Nach der Angabe eines *Verkehrsmittels* (zu Fuß, mit dem Fahrrad usw.) und eines *Reisezeitlimits* zeigt das Ergebnis ein farbkodiertes hexagonales Raster, das die relative Konnektivität aller Orte innerhalb des angegebenen AOI (Area of interest) darstellt.
 
-Im Gegensatz zu unseren anderen Heatmaps, die sich auf die Visualisierung der Erreichbarkeit bestimmter Punkte (wie z. B. [POI](../../../further_reading/glossary#point-of-interest-poi "What is a POI?")) oder Einrichtungen in der Umgebung konzentrieren, stellen konnektivitätsbasierte Heatmaps die Gesamtkonnektivität eines Gebiets dar. Das bedeutet, dass alle Orte innerhalb Ihrer AOI als Ziele betrachtet werden, und für jeden Ort stellt seine „Konnektivität“ den geografischen Bereich (innerhalb und außerhalb der AOI) dar, von dem aus der Ort unter Berücksichtigung des angegebenen *Verkehrsmittels* und *Reisezeitbeschränkung* erreichbar ist.
+Im Gegensatz zu unseren anderen Heatmaps, die sich auf die Visualisierung der Erreichbarkeit bestimmter Punkte (wie z. B. [POI](../../further_reading/glossary#points-of-interest-poi "What is a POI?")) oder Einrichtungen in der Umgebung konzentrieren, stellen konnektivitätsbasierte Heatmaps die Gesamtkonnektivität eines Gebiets dar. Das bedeutet, dass alle Orte innerhalb Ihrer AOI als Ziele betrachtet werden, und für jeden Ort stellt seine „Konnektivität“ den geografischen Bereich (innerhalb und außerhalb der AOI) dar, von dem aus der Ort unter Berücksichtigung des angegebenen *Verkehrsmittels* und *Reisezeitbeschränkung* erreichbar ist.
 
 ![Connectivity-based Heatmap in GOAT](/img/toolbox/accessibility_indicators/heatmaps/connectivity_based/connectivity.png "Connectivity-based Heatmap in GOAT")
 
@@ -149,7 +149,7 @@ Benötigen Sie Hilfe bei der Auswahl einer geeigneten Reisezeit für verschieden
 
 :::tip Tipp
 
-Je nach Ihrer Konfiguration kann die Berechnung einige Minuten dauern. Die [Statusleiste](../../Arbeitsbereich/home#status-bar) zeigt den aktuellen Fortschritt an.
+Je nach Ihrer Konfiguration kann die Berechnung einige Minuten dauern. Die [Statusleiste](../../workspace/home#statusleiste) zeigt den aktuellen Fortschritt an.
 
 :::
 

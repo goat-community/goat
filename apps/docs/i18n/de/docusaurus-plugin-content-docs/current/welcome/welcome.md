@@ -9,7 +9,7 @@ GOAT ist eine **WebGIS-Plattform** mit Planungsintelligenz für die Bereiche der
 
 :::tip Tipp
 
-Möchten Sie mehr über GOAT erfahren? Besuchen Sie unsere Website: https://plan4better.de/goat/
+Möchten Sie mehr über GOAT erfahren? Besuchen Sie unsere Website: https://plan4better.de/de/goat/
 
 :::
 

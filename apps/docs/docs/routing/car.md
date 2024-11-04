@@ -12,7 +12,7 @@ The **Car Routing** is used for all analyses in GOAT that contain car trips.
 
 Car routing is used for many indicators in GOAT, such as [Catchment Areas](../toolbox/accessibility_indicators/catchments) and [Heatmaps](../toolbox/accessibility_indicators/connectivity). 
 
-As GOAT also allows the creation of [Scenarios on the Paths Network](../scenarios), a **custom routing algorithm** is needed that also reflects the changes of the scenario in the accessibility analyses. For the mode of the car, we thereby **only consider paths that are suitable for driving**.
+As GOAT also allows the creation of [Scenarios on the Street Network](../scenarios#4-street-network---edges), a **custom routing algorithm** is needed that also reflects the changes of the scenario in the accessibility analyses. For the mode of the car, we thereby **only consider paths that are suitable for driving**.
 
 ## 2. Data
 

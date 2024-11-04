@@ -100,7 +100,7 @@ Falls Sie an einem bestimmten Verkehrsmittel interessiert sind, z.B. nur Busse, 
 
 ## 4. Technische Details
 
-Ähnlich den Public Transport Quality Classes <i>(Deutsch: ÖV-Güteklassen)</i>, wird dieser Indikator basierend auf **GTFS-Daten** berechnet (siehe [Datengrundlage](../../data/data_basis)). Basierend auf dem ausgewählten Tag und Zeitfenster wird die durchschnittliche Anzahl der Abfahrten pro Stunde (unabhängig von der Richtung) berechnet.
+Ähnlich den Public Transport Quality Classes <i>(Deutsch: ÖV-Güteklassen)</i>, wird dieser Indikator basierend auf **GTFS-Daten** berechnet (siehe [Eingebaute Datensätze](../../data/data_basis)). Basierend auf dem ausgewählten Tag und Zeitfenster wird die durchschnittliche Anzahl der Abfahrten pro Stunde (unabhängig von der Richtung) berechnet.
 
 ## 5. Referenzen
 
