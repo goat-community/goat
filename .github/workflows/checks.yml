@@ -50,6 +50,11 @@ jobs:
                 - '.prettier*'
                 - 'pnpm-lock.yaml'
 
+            docs:
+                - 'apps/docs/**'
+                - '.prettier*'
+                - 'pnpm-lock.yaml'
+
             keycloak-theme:
                 - 'packages/keycloak-theme/**'
                 - 'packages/eslint-config-p4b/**'
@@ -69,7 +74,7 @@ jobs:
                 - 'packages/types/**'
                 - '.prettier*'
                 - 'pnpm-lock.yaml'
-          
+
       - name: 🕵️ Set sha-short
         id: sha-short
         run: echo "sha-short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT

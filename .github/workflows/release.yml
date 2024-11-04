@@ -53,6 +53,23 @@ jobs:
       image-names: |
         ghcr.io/${{ github.repository }}/storybook
 
+  release-docker-docs:
+    name: release-docker-docs
+    needs: file-changes
+    if: needs.file-changes.outputs.docs == 'true' || startsWith(github.ref, 'refs/tags/v')
+    uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+    with:
+      dockerhub-enable: false
+      ghcr-enable: true
+      push: ${{ github.event_name != 'pull_request' }}
+      file: ./apps/docs/Dockerfile
+      image-names: |
+        ghcr.io/${{ github.repository }}/docs
+
   release-keycloak-theme:
     name: release-keycloak-theme
     needs: file-changes
