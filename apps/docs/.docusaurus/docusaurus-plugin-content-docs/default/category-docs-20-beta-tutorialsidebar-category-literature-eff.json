@@ -1,0 +1,16 @@
+{
+  "title": "Literature",
+  "description": "If you would like to know more about the development of GOAT and understand our technical terminology, explore this section. In the Glossary, you will find our most common terminology explained. The Scientific Publications section lists the most relevant publications about GOAT. Happy reading!",
+  "slug": "/category/literature",
+  "permalink": "/docs/2.0beta/category/literature",
+  "navigation": {
+    "previous": {
+      "title": "Car",
+      "permalink": "/docs/2.0beta/routing/car"
+    },
+    "next": {
+      "title": "Glossary",
+      "permalink": "/docs/2.0beta/further_reading/glossary"
+    }
+  }
+}

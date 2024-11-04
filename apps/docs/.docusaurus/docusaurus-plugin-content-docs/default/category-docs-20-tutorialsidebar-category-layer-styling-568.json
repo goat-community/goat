@@ -1,0 +1,16 @@
+{
+  "title": "Layer Styling",
+  "description": "All layers added to the map can be styled. This can be done using the same colour and appearance for all objects, or using an attribute-based styling.",
+  "slug": "/category/layer-styling",
+  "permalink": "/docs/2.0/category/layer-styling",
+  "navigation": {
+    "previous": {
+      "title": "Layers",
+      "permalink": "/docs/2.0/map/layers"
+    },
+    "next": {
+      "title": "Basic Styling",
+      "permalink": "/docs/2.0/map/layer_style/styling"
+    }
+  }
+}

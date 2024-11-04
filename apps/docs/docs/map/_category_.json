@@ -1,0 +1,8 @@
+{
+  "label": "Map",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Upon opening a project, you will see the map. Here, you can perform a wide variety of geospatial analyses, compute stats & benchmarks, or visualize and style feature layers."
+  }
+}

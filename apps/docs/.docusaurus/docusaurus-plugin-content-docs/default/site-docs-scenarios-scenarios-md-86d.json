@@ -1,0 +1,28 @@
+{
+  "unversionedId": "Scenarios/Scenarios",
+  "id": "Scenarios/Scenarios",
+  "title": "Scenarios",
+  "description": "Besides analyzing existing real-world data & situations, GOAT allows you to create custom scenarios such as network changes or new infrastructure projects. Ways, points and polygons can be added, edited or removed and their impact on accessibility analyzed.",
+  "source": "@site/docs/Scenarios/Scenarios.md",
+  "sourceDirName": "Scenarios",
+  "slug": "/Scenarios",
+  "permalink": "/docs/2.0/Scenarios",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/Scenarios/Scenarios.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "slug": "/Scenarios"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Buffer",
+    "permalink": "/docs/2.0/toolbox/geoprocessing/buffer"
+  },
+  "next": {
+    "title": "Sharing",
+    "permalink": "/docs/2.0/sharing"
+  }
+}

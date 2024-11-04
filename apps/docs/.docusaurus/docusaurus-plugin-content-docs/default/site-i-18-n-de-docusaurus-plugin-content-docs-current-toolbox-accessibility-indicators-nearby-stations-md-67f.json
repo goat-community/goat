@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbox/accessibility_indicators/nearby_stations",
+  "id": "toolbox/accessibility_indicators/nearby_stations",
+  "title": "Nahgelegene ÖV-Haltestellen",
+  "description": "Die Nahgelegene ÖV-Haltestellen-Analyse wird verwendet, um öffentliche Verkehrshaltestellen zu finden, die zu Fuß oder mit dem Fahrrad innerhalb einer bestimmten Zeit erreichbar sind. Für jede Haltestelle werden Abfahrtsinformationen nach Verkehrsmittel und Route bereitgestellt.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/toolbox/accessibility_indicators/nearby_stations.md",
+  "sourceDirName": "toolbox/accessibility_indicators",
+  "slug": "/toolbox/accessibility_indicators/nearby_stations",
+  "permalink": "/docs/de/2.0/toolbox/accessibility_indicators/nearby_stations",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/toolbox/accessibility_indicators/nearby_stations.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 7,
+  "frontMatter": {
+    "sidebar_position": 7
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Abfahrten ÖPNV",
+    "permalink": "/docs/de/2.0/toolbox/accessibility_indicators/pt_trip_count"
+  },
+  "next": {
+    "title": "Data management",
+    "permalink": "/docs/de/2.0/category/data-management"
+  }
+}

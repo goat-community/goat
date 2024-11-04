@@ -1,0 +1,27 @@
+{
+  "unversionedId": "workspace/catalog",
+  "id": "workspace/catalog",
+  "title": "Katalog",
+  "description": "Der Datenkatalog ist eine umfassende Liste aller verfügbaren räumlichen Datensätzen zur Erkundung und Analyse. Eine breite Palette von Datensätzen wird von Plan4Better, unseren Partnern und Open-Source-Bibliotheken bereitgestellt, wodurch eine zuverlässige und genaue Datenbank für Ihre GIS-Projekte sichergestellt wird.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/workspace/catalog.md",
+  "sourceDirName": "workspace",
+  "slug": "/workspace/catalog",
+  "permalink": "/docs/de/2.0/workspace/catalog",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/workspace/catalog.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Datensätze",
+    "permalink": "/docs/de/2.0/workspace/datasets"
+  },
+  "next": {
+    "title": "Einstellungen",
+    "permalink": "/docs/de/2.0/workspace/settings"
+  }
+}

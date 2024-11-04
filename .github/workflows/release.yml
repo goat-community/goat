@@ -20,7 +20,7 @@ jobs:
     secrets: inherit
 
   release-docker-goat:
-    name: release-docker-goat
+    name: release-docker-goat-web
     needs: file-changes
     if: needs.file-changes.outputs.client-goat == 'true' || startsWith(github.ref, 'refs/tags/v')
     uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
@@ -34,7 +34,7 @@ jobs:
       push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/web/Dockerfile
       image-names: |
-        ghcr.io/${{ github.repository }}/ui
+        ghcr.io/${{ github.repository }}/web
 
   release-docker-storybook:
     name: release-docker-storybook

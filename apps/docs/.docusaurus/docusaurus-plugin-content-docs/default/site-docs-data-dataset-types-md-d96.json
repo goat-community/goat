@@ -1,0 +1,27 @@
+{
+  "unversionedId": "data/dataset_types",
+  "id": "data/dataset_types",
+  "title": "Dataset Types",
+  "description": "Users can access datasets in the Catalog Explorer and through the Dataset Explorer. The datasets found in the Catalog are provided and maintained by Plan4Better. If you add an external dataset via URL, upload a dataset from your local computer or create a layer in GOAT, they will be visible in the Dataset Explorer.",
+  "source": "@site/docs/data/dataset_types.md",
+  "sourceDirName": "data",
+  "slug": "/data/dataset_types",
+  "permalink": "/docs/2.0/data/dataset_types",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/data/dataset_types.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Data",
+    "permalink": "/docs/2.0/category/data"
+  },
+  "next": {
+    "title": "Inbuilt Datasets",
+    "permalink": "/docs/2.0/data/data_basis"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "workspace/projects",
+  "id": "workspace/projects",
+  "title": "Projekte",
+  "description": "Die Projekte-Seite ermöglicht es Benutzern, Projekte zu erstellen, zu verwalten und zu teilen. Die Seite bietet den Nutzern eine übersichtliche Darstellung ihrer Projekte, kategorisiert in persönliche Projekte, Teamprojekte und Projekte, die mit der gesamten Organisation geteilt werden. Darüber hinaus können Projekte in Ordnern organisiert, gefiltert und sortiert werden, basierend auf alphabetischer Reihenfolge, Erstellungsdatum oder Datum der letzten Aktualisierung. Es ist auch möglich, Projekte zu löschen und deren Metadaten zu bearbeiten.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/workspace/projects.md",
+  "sourceDirName": "workspace",
+  "slug": "/workspace/projects",
+  "permalink": "/docs/de/2.0/workspace/projects",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/workspace/projects.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Startseite",
+    "permalink": "/docs/de/2.0/workspace/home"
+  },
+  "next": {
+    "title": "Datensätze",
+    "permalink": "/docs/de/2.0/workspace/datasets"
+  }
+}

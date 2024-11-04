@@ -1,0 +1,16 @@
+{
+  "title": "Werkzeuge",
+  "description": "Unter Werkzeuge finden Sie verschiedene leistungsstarke Werkzeuge für raumbezogene Analysen - Erreichbarkeitsindikatoren, Datenverwaltungstools, Geoverarbeitung und mehr.",
+  "slug": "/category/toolbox",
+  "permalink": "/docs/de/2.0beta/category/toolbox",
+  "navigation": {
+    "previous": {
+      "title": "Filter",
+      "permalink": "/docs/de/2.0beta/map/filter"
+    },
+    "next": {
+      "title": "Erreichbarkeitsindikatoren",
+      "permalink": "/docs/de/2.0beta/category/accessibility-indicators"
+    }
+  }
+}

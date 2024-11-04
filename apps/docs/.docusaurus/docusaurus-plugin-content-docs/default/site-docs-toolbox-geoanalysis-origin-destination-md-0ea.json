@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbox/geoanalysis/origin_destination",
+  "id": "toolbox/geoanalysis/origin_destination",
+  "title": "Origin Destination",
+  "description": "The Origin-Destination analysis is used in various fields such as transport planning and urban planning to study movements or flows between different locations.",
+  "source": "@site/docs/toolbox/geoanalysis/origin_destination.md",
+  "sourceDirName": "toolbox/geoanalysis",
+  "slug": "/toolbox/geoanalysis/origin_destination",
+  "permalink": "/docs/2.0/toolbox/geoanalysis/origin_destination",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/geoanalysis/origin_destination.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Aggregate Polygons",
+    "permalink": "/docs/2.0/toolbox/geoanalysis/aggregate_polygons"
+  },
+  "next": {
+    "title": "Geoprocessing",
+    "permalink": "/docs/2.0/category/geoprocessing"
+  }
+}

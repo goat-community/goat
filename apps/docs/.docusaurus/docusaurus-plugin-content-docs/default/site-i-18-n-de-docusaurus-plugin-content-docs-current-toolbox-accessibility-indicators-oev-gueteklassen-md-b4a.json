@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbox/accessibility_indicators/oev_gueteklassen",
+  "id": "toolbox/accessibility_indicators/oev_gueteklassen",
+  "title": "ÖV-Güteklassen",
+  "description": "Die ÖV-Güteklassen zeigen die Attraktivität von öffentlichen Verkehrsmitteln in einem ausgewählten Gebiet.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/toolbox/accessibility_indicators/oev_gueteklassen.md",
+  "sourceDirName": "toolbox/accessibility_indicators",
+  "slug": "/toolbox/accessibility_indicators/oev_gueteklassen",
+  "permalink": "/docs/de/2.0/toolbox/accessibility_indicators/oev_gueteklassen",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/toolbox/accessibility_indicators/oev_gueteklassen.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Heatmap - Gravity",
+    "permalink": "/docs/de/2.0/toolbox/accessibility_indicators/gravity"
+  },
+  "next": {
+    "title": "Abfahrten ÖPNV",
+    "permalink": "/docs/de/2.0/toolbox/accessibility_indicators/pt_trip_count"
+  }
+}

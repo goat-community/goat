@@ -1,0 +1,27 @@
+{
+  "unversionedId": "further_reading/publications",
+  "id": "further_reading/publications",
+  "title": "Scientific Publications",
+  "description": "This section gives an overview of scientific publications about the development, application, and evaluation of GOAT.",
+  "source": "@site/docs/further_reading/publications.md",
+  "sourceDirName": "further_reading",
+  "slug": "/further_reading/publications",
+  "permalink": "/docs/2.0/further_reading/publications",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/further_reading/publications.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Glossary",
+    "permalink": "/docs/2.0/further_reading/glossary"
+  },
+  "next": {
+    "title": "Technical Insights",
+    "permalink": "/docs/2.0/category/technical-insights"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "map/interface_overview",
+  "id": "map/interface_overview",
+  "title": "Map Interface",
+  "description": "Wenn Sie ein Projekt öffnen, gelangen Sie zum Map Interface.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/map/interface_overview.md",
+  "sourceDirName": "map",
+  "slug": "/map/interface_overview",
+  "permalink": "/docs/de/2.0/map/interface_overview",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/map/interface_overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Map",
+    "permalink": "/docs/de/2.0/category/map"
+  },
+  "next": {
+    "title": "Layer Styling",
+    "permalink": "/docs/de/2.0/category/layer-styling"
+  }
+}

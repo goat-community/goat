@@ -1,0 +1,16 @@
+{
+  "title": "Accessibility Indicators",
+  "description": "Various tools are provided for accessibility analysis, including the calculation of catchment areas, heatmaps and public transport indicators.",
+  "slug": "/category/accessibility-indicators",
+  "permalink": "/docs/2.0beta/category/accessibility-indicators",
+  "navigation": {
+    "previous": {
+      "title": "Toolbox",
+      "permalink": "/docs/2.0beta/category/toolbox"
+    },
+    "next": {
+      "title": "Catchment Area",
+      "permalink": "/docs/2.0beta/toolbox/accessibility_indicators/catchments"
+    }
+  }
+}

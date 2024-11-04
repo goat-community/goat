@@ -1,0 +1,16 @@
+{
+  "title": "Geoverarbeitung",
+  "description": "Als Geobearbeitungswerkzeug können Sie Puffer um Geometrien herum erstellen.",
+  "slug": "/category/geoprocessing",
+  "permalink": "/docs/de/2.0beta/category/geoprocessing",
+  "navigation": {
+    "previous": {
+      "title": "Quell-Ziel-Beziehungen",
+      "permalink": "/docs/de/2.0beta/toolbox/geoanalysis/origin_destination"
+    },
+    "next": {
+      "title": "Puffer",
+      "permalink": "/docs/de/2.0beta/toolbox/geoprocessing/buffer"
+    }
+  }
+}

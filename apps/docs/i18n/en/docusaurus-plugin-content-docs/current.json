@@ -1,0 +1,42 @@
+{
+  "version.label": {
+    "message": "2.0",
+    "description": "The label for version current"
+  },
+  "sidebar.tutorialSidebar.category.Backend": {
+    "message": "Backend",
+    "description": "The label for category Backend in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Backend.link.generated-index.description": {
+    "message": "Backend documentation the principles.",
+    "description": "The generated-index page description for category Backend in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Data Preparation": {
+    "message": "Data Preparation",
+    "description": "The label for category Data Preparation in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Data Preparation.link.generated-index.description": {
+    "message": "Data Preparation documentation the principles.",
+    "description": "The generated-index page description for category Data Preparation in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Frontend": {
+    "message": "Frontend",
+    "description": "The label for category Frontend in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Frontend.link.generated-index.description": {
+    "message": "Frontend documentation the principles.",
+    "description": "The generated-index page description for category Frontend in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Tutorial - Basics": {
+    "message": "Tutorial - Basics",
+    "description": "The label for category Tutorial - Basics in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Tutorial - Basics.link.generated-index.description": {
+    "message": "5 minutes to learn the most important Docusaurus concepts.",
+    "description": "The generated-index page description for category Tutorial - Basics in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Tutorial - Extras": {
+    "message": "Tutorial - Extras",
+    "description": "The label for category Tutorial - Extras in sidebar tutorialSidebar"
+  }
+}

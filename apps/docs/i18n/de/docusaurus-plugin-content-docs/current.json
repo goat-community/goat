@@ -1,0 +1,146 @@
+{
+  "version.label": {
+    "message": "2.0",
+    "description": "Die Bezeichnung für die aktuelle Version"
+  },
+  "sidebar.tutorialSidebar.category.Backend": {
+    "message": "Backend",
+    "description": "Das Label für die Kategorie Backend in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Backend.link.generated-index.description": {
+    "message": "Backend-Dokumentation die Grundsätze.",
+    "description": "Die generierte Beschreibung der Indexseite für die Kategorie Backend in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Data Preparation": {
+    "message": "Aufbereitung der Daten",
+    "description": "Die Bezeichnung für die Kategorie Datenaufbereitung in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Data Preparation.link.generated-index.description": {
+    "message": "Datenaufbereitung Dokumentation der Grundsätze..",
+    "description": "Die generierte Indexseite Beschreibung für die Kategorie Datenaufbereitung in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Frontend": {
+    "message": "Frontend",
+    "description": "Die Bezeichnung für die Kategorie Frontend in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Frontend.link.generated-index.description": {
+    "message": "Frontend-Dokumentation die Grundsätze.",
+    "description": "Die generierte Index-Seite Beschreibung für die Kategorie Frontend in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Tutorial - Basics": {
+    "message": "Tutorial - Grundsätze",
+    "description": "Die Bezeichnung für die Kategorie Tutorial - Grundlagen in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Tutorial - Basics.link.generated-index.description": {
+    "message": "5 Minuten, um die wichtigsten Konzepte von Docusaurus zu lernen.",
+    "description": "Die generierte Index-Seite Beschreibung für die Kategorie Tutorial - Grundlagen in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Tutorial - Extras": {
+    "message": "Tutorial - Extras",
+    "description": "Das Label für die Kategorie Tutorial - Extras in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Data": {
+    "message": "Daten",
+    "description": "Die Bezeichnung für die Kategorie Daten in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Data.link.generated-index.description": {
+    "message": "Qualitativ hochwertige Eingangsdaten sind für die Durchführung von Analysen von entscheidender Bedeutung. GOAT ist daher mit einer Vielzahl solcher Datensätze ausgestattet und erlaubt Ihnen auch, Ihre eigenen hochzuladen.",
+    "description": "Die generierte Beschreibung der Indexseite für die Kategorie Daten in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Workspace": {
+    "message": "Workspace",
+    "description": "Die Bezeichnung für die Kategorie Arbeitsbereich in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Workspace.link.generated-index.description": {
+    "message": "Die erste Seite, die Sie sehen, wenn Sie GOAT betreten. Von hier aus können Sie auf Ihre Projekte, Datensätze und Einstellungen zugreifen und diese verwalten.",
+    "description": "Die generierte Indexseitenbeschreibung für die Kategorie Arbeitsbereich in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Map": {
+    "message": "Karte",
+    "description": "Das Label für die Kategorie Map in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Map.link.generated-index.description": {
+    "message": "Wenn Sie ein Projekt öffnen, sehen Sie die Karte. Hier können Sie eine Vielzahl von Geodatenanalysen durchführen, Statistiken und Benchmarks berechnen oder Feature-Layer visualisieren und gestalten.",
+    "description": "Die generierte Beschreibung der Indexseite für die Kategorie Map in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Layer Styling": {
+    "message": "Layer Styling",
+    "description": "Das Label für die Kategorie Layer Styling in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Layer Styling.link.generated-index.description": {
+    "message": "Alle der Karte hinzugefügten Layer können gestaltet werden. Dies kann mit der gleichen Farbe und dem gleichen Aussehen für alle Objekte oder mit einem attributbasierten Styling geschehen.",
+    "description": "Die generierte Index-Seite Beschreibung für die Kategorie Layer Styling in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Toolbox": {
+    "message": "Werkzeuge",
+    "description": "Die Bezeichnung für die Kategorie Toolbox in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Toolbox.link.generated-index.description": {
+    "message": "Unter Werkzeuge finden Sie verschiedene leistungsstarke Werkzeuge für raumbezogene Analysen - Erreichbarkeitsindikatoren, Datenverwaltungstools, Geoverarbeitung und mehr.",
+    "description": "Die generierte Beschreibung der Indexseite für die Kategorie Toolbox in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Accessibility Indicators": {
+    "message": "Erreichbarkeitsindikatoren",
+    "description": "Das Label für die Kategorie Erreichbarkeitsindikatoren in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Accessibility Indicators.link.generated-index.description": {
+    "message": "Für die Erreichbarkeitsanalyse stehen verschiedene Instrumente zur Verfügung, darunter die Berechnung von Einzugsgebieten, Heatmaps und Indikatoren für den öffentlichen Verkehr.",
+    "description": "Die generierte Beschreibung der Indexseite für die Kategorie Erreichbarkeitsindikatoren in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Data management": {
+    "message": "Datenmanagement",
+    "description": "Die Bezeichnung für die Kategorie Datenverwaltung in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Data management.link.generated-index.description": {
+    "message": "Um Ihre Daten zu verwalten, können Sie verschiedene Arten von Verknüpfungsoperationen durchführen, entweder auf der Grundlage eines übereinstimmenden Attributs oder auf der Grundlage einer räumlichen Schnittmenge.",
+    "description": "Die generierte Indexseite Beschreibung für die Kategorie Datenverwaltung in der Seitenleiste TutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Geoanalysis": {
+    "message": "Geoanalyse",
+    "description": "Die Bezeichnung für die Kategorie Geoanalyse in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Geoanalysis.link.generated-index.description": {
+    "message": "Verschiedene Geoanalysen ermöglichen es, räumliche Datensätze zu analysieren, indem sie Informationen aggregieren oder auf neue Weise visualisieren.",
+    "description": "Die generierte Indexseitenbeschreibung für die Kategorie Geoanalyse in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Geoprocessing": {
+    "message": "Geoverarbeitung",
+    "description": "Die Bezeichnung für die Kategorie Geoprocessing in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Geoprocessing.link.generated-index.description": {
+    "message": "Als Geobearbeitungswerkzeug können Sie Puffer um Geometrien herum erstellen.",
+    "description": "Die generierte Beschreibung der Indexseite für die Kategorie Geoverarbeitung in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Scenarios": {
+    "message": "Szenarien",
+    "description": "Die Bezeichnung für die Kategorie Szenarien in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Scenarios.link.generated-index.description": {
+    "message": "Neben der Analyse vorhandener realer Daten und Situationen können Sie mit GOAT auch benutzerdefinierte Szenarien erstellen, wie z. B. Netzwerkänderungen oder neue Infrastrukturprojekte. Wege, Punkte und Polygone können hinzugefügt, bearbeitet oder entfernt werden und ihre Auswirkungen auf die Erreichbarkeit analysiert werden.",
+    "description": "Die generierte Beschreibung der Indexseite für die Kategorie Szenarien in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Routing": {
+    "message": "Routing",
+    "description": "Das Label für die Kategorie Routing in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Routing.link.generated-index.description": {
+    "message": "Der Routing-Algorithmus ist eine Kernfunktion von GOAT, die unter anderem zur Berechnung von Fahrten und Fahrzeiten für Einzugsgebiete und Heatmaps verwendet wird. Basierend auf dem gewählten Verkehrsmittel und den Routing-Präferenzen verwendet unser Algorithmus verschiedene Datensätze und Ansätze, um ein genaues Routing durchzuführen.",
+    "description": "Die generierte Index-Seite Beschreibung für die Kategorie Routing in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Literature": {
+    "message": "Literatur",
+    "description": "Das Label für die Kategorie Literatur in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Literature.link.generated-index.description": {
+    "message": "Wenn Sie mehr über die Entwicklung von GOAT erfahren und unsere Fachterminologie verstehen möchten, sollten Sie diesen Abschnitt lesen. Im Glossar finden Sie Erklärungen zu den gebräuchlichsten Begriffen. Im Abschnitt Wissenschaftliche Veröffentlichungen finden Sie die wichtigsten Veröffentlichungen über GOAT. Viel Spaß beim Lesen!",
+    "description": "Die generierte Beschreibung der Indexseite für die Kategorie Literatur in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Technical Insights": {
+    "message": "Technische Einblicke",
+    "description": "Die Bezeichnung für die Kategorie Technische Einblicke in der Seitenleiste tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Technical Insights.link.generated-index.description": {
+    "message": "Hier finden Sie technische Einblicke und Details über die Software-Architektur von GOAT.",
+    "description": "Die generierte Indexseitenbeschreibung für die Kategorie Technische Einblicke in der Seitenleiste tutorialSidebar"
+  }
+}

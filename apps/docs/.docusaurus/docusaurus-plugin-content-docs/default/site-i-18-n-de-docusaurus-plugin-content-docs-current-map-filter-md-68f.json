@@ -1,0 +1,27 @@
+{
+  "unversionedId": "map/filter",
+  "id": "map/filter",
+  "title": "Filter",
+  "description": "Der Filter kann verwendet werden, um die auf der Karte sichtbaren Daten einzuschränken. Sie können entweder nach logischem Ausdruck filtern (z.B. nur Supermärkte mit einem bestimmten Namen anzeigen) oder nach räumlichem Ausdruck (z.B. nur Punkte innerhalb eines bestimmten Begrenzungsrahmens anzeigen).",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/map/filter.md",
+  "sourceDirName": "map",
+  "slug": "/map/filter",
+  "permalink": "/docs/de/2.0/map/filter",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/map/filter.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Layer",
+    "permalink": "/docs/de/2.0/map/layers"
+  },
+  "next": {
+    "title": "Toolbox",
+    "permalink": "/docs/de/2.0/category/toolbox"
+  }
+}

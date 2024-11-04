@@ -1,0 +1,16 @@
+{
+  "title": "Datenmanagement",
+  "description": "Um Ihre Daten zu verwalten, können Sie verschiedene Arten von Verknüpfungsoperationen durchführen, entweder auf der Grundlage eines übereinstimmenden Attributs oder auf der Grundlage einer räumlichen Schnittmenge.",
+  "slug": "/category/data-management",
+  "permalink": "/docs/de/2.0beta/category/data-management",
+  "navigation": {
+    "previous": {
+      "title": "Nahgelegene ÖV-Haltestellen",
+      "permalink": "/docs/de/2.0beta/toolbox/accessibility_indicators/nearby_stations"
+    },
+    "next": {
+      "title": "Join & Group",
+      "permalink": "/docs/de/2.0beta/toolbox/data_management/join"
+    }
+  }
+}

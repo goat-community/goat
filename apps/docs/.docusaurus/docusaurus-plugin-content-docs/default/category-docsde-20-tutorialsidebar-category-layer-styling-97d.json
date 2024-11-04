@@ -1,0 +1,16 @@
+{
+  "title": "Layer Styling",
+  "description": "Alle der Karte hinzugefügten Layer können gestaltet werden. Dies kann mit der gleichen Farbe und dem gleichen Aussehen für alle Objekte oder mit einem attributbasierten Styling geschehen.",
+  "slug": "/category/layer-styling",
+  "permalink": "/docs/de/2.0/category/layer-styling",
+  "navigation": {
+    "previous": {
+      "title": "Map Interface",
+      "permalink": "/docs/de/2.0/map/interface_overview"
+    },
+    "next": {
+      "title": "Basic Styling",
+      "permalink": "/docs/de/2.0/map/layer_style/styling"
+    }
+  }
+}

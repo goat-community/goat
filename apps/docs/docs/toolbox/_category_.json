@@ -1,0 +1,8 @@
+{
+  "label": "Toolbox",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Find various powerful tools for geospatial analyses - accessibility indicators, data management tools, geoprocessing and more - in the toolbox."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbox/geoanalysis/aggregate_polygons",
+  "id": "toolbox/geoanalysis/aggregate_polygons",
+  "title": "Aggregate Polygons",
+  "description": "The Aggregate Polygon tool performs statistical analysis of polygons, e.g. count, sum, min, or max, and aggregates the information on polygons.",
+  "source": "@site/docs/toolbox/geoanalysis/aggregate_polygons.md",
+  "sourceDirName": "toolbox/geoanalysis",
+  "slug": "/toolbox/geoanalysis/aggregate_polygons",
+  "permalink": "/docs/2.0/toolbox/geoanalysis/aggregate_polygons",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/geoanalysis/aggregate_polygons.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Aggregate Points",
+    "permalink": "/docs/2.0/toolbox/geoanalysis/aggregate_points"
+  },
+  "next": {
+    "title": "Origin Destination",
+    "permalink": "/docs/2.0/toolbox/geoanalysis/origin_destination"
+  }
+}

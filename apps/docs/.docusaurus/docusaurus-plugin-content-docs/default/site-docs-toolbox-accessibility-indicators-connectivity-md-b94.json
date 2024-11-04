@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbox/accessibility_indicators/connectivity",
+  "id": "toolbox/accessibility_indicators/connectivity",
+  "title": "Heatmap - Connectivity",
+  "description": "A color-coded map to visualize the connectivity of locations within an area of interest (AOI).",
+  "source": "@site/docs/toolbox/accessibility_indicators/connectivity.md",
+  "sourceDirName": "toolbox/accessibility_indicators",
+  "slug": "/toolbox/accessibility_indicators/connectivity",
+  "permalink": "/docs/2.0/toolbox/accessibility_indicators/connectivity",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/accessibility_indicators/connectivity.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Catchment Area",
+    "permalink": "/docs/2.0/toolbox/accessibility_indicators/catchments"
+  },
+  "next": {
+    "title": "Heatmap - Closest Average",
+    "permalink": "/docs/2.0/toolbox/accessibility_indicators/closest_average"
+  }
+}

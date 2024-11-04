@@ -1,0 +1,27 @@
+{
+  "unversionedId": "workspace/projects",
+  "id": "workspace/projects",
+  "title": "Projects",
+  "description": "The Projects page allows users to create, manage, and share projects. The page provides users with an organized view of their projects, categorized into personal projects, team projects, and projects shared with the whole organization. In addition, projects can be organized into folders and can be filtered and sorted based on alphabetical order, date of creation, or date of last update. It is also possible to delete projects and edit their metadata.",
+  "source": "@site/docs/workspace/projects.md",
+  "sourceDirName": "workspace",
+  "slug": "/workspace/projects",
+  "permalink": "/docs/2.0/workspace/projects",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/workspace/projects.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Home",
+    "permalink": "/docs/2.0/workspace/home"
+  },
+  "next": {
+    "title": "Datasets",
+    "permalink": "/docs/2.0/workspace/datasets"
+  }
+}

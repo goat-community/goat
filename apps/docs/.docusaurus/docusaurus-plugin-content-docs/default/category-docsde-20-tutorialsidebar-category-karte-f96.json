@@ -1,0 +1,16 @@
+{
+  "title": "Karte",
+  "description": "Wenn Sie ein Projekt öffnen, sehen Sie die Karte. Hier können Sie eine Vielzahl von Geodatenanalysen durchführen, Statistiken und Benchmarks berechnen oder Feature-Layer visualisieren und gestalten.",
+  "slug": "/category/map",
+  "permalink": "/docs/de/2.0/category/map",
+  "navigation": {
+    "previous": {
+      "title": "Einstellungen",
+      "permalink": "/docs/de/2.0/workspace/settings"
+    },
+    "next": {
+      "title": "Map Interface",
+      "permalink": "/docs/de/2.0/map/interface_overview"
+    }
+  }
+}

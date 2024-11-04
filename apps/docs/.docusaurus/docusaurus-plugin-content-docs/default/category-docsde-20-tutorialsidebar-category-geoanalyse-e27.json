@@ -1,0 +1,16 @@
+{
+  "title": "Geoanalyse",
+  "description": "Verschiedene Geoanalysen ermöglichen es, räumliche Datensätze zu analysieren, indem sie Informationen aggregieren oder auf neue Weise visualisieren.",
+  "slug": "/category/geoanalysis",
+  "permalink": "/docs/de/2.0/category/geoanalysis",
+  "navigation": {
+    "previous": {
+      "title": "Spatial Join",
+      "permalink": "/docs/de/2.0/toolbox/data_management/spatial_join"
+    },
+    "next": {
+      "title": "Punkte aggregieren",
+      "permalink": "/docs/de/2.0/toolbox/geoanalysis/aggregate_points"
+    }
+  }
+}

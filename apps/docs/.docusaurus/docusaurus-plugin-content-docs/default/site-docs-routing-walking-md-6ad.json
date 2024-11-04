@@ -1,0 +1,27 @@
+{
+  "unversionedId": "routing/walking",
+  "id": "routing/walking",
+  "title": "Walk",
+  "description": "The Walk Routing is used for all analyses in GOAT that contain walking trips.",
+  "source": "@site/docs/routing/walking.md",
+  "sourceDirName": "routing",
+  "slug": "/routing/walking",
+  "permalink": "/docs/2.0/routing/walking",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/routing/walking.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Routing",
+    "permalink": "/docs/2.0/category/routing"
+  },
+  "next": {
+    "title": "Bicycle/Pedelec",
+    "permalink": "/docs/2.0/routing/bicycle"
+  }
+}

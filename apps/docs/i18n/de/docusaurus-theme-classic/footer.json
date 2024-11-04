@@ -1,0 +1,54 @@
+{
+  "link.title.Docs": {
+    "message": "Dokumentation",
+    "description": "Der Titel der Spalte für die Fußzeilenlinks mit title=Docs in der Fußzeile"
+  },
+  "link.title.Community": {
+    "message": "Netzwerke",
+    "description": "Der Titel der Fußzeile Links Spalte mit title=Community in der Fußzeile"
+  },
+  "link.title.More": {
+    "message": "Mehr",
+    "description": "Der Titel der Fußzeilen-Links-Spalte mit title=More in der Fußzeile"
+  },
+  "link.item.label.Tutorial": {
+    "message": "Tutorial",
+    "description": "Die Bezeichnung des Fußzeilen-Links mit label=Tutorial, der auf /docs/intro verweist"
+  },
+  "link.item.label.Stack Overflow": {
+    "message": "Stack Overflow",
+    "description": "Die Beschriftung des Fußzeilen-Links mit label=Stack Overflow verweist auf https://stackoverflow.com/questions/tagged/docusaurus"
+  },
+  "link.item.label.Discord": {
+    "message": "Discord",
+    "description": "Die Bezeichnung des Fußzeilen-Links mit label=Discord, der auf https://discordapp.com/invite/docusaurus verweist."
+  },
+  "link.item.label.Twitter": {
+    "message": "Twitter",
+    "description": "Die Beschriftung des Fußzeilen-Links mit label=Twitter, der auf https://twitter.com/docusaurus verlinkt."
+  },
+  "link.item.label.Blog": {
+    "message": "Blog",
+    "description": "Die Beschriftung des Fußzeilen-Links mit label=Blog verweist auf https://plan4better.de/blog/"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Die Beschriftung des Fußzeilen-Links mit label=Github verweist auf https://github.com/goat-community"
+  },
+  "copyright": {
+    "message": "Copyright © 2024 Plan4Better, Inc. Built with Docusaurus.",
+    "description": "Das Copyright in der Fußzeile"
+  },
+  "link.item.label.LinkedIn": {
+    "message": "LinkedIn",
+    "description": "Die Beschriftung des Fußzeilen-Links mit label=LinkedIn verweist aufhttps://www.linkedin.com/company/plan4better/"
+  },
+  "link.item.label.Plan4Better": {
+    "message": "Plan4Better",
+    "description": "Die Beschriftung des Fußzeilen-Links mit label=Plan4Better verweist auf https://plan4better.de/"
+  },
+  "link.item.label.References": {
+    "message": "Referenzen",
+    "description": "Die Beschriftung des Fußzeilen-Links mit label=References verweist auf https://plan4better.de/references/"
+  }
+}

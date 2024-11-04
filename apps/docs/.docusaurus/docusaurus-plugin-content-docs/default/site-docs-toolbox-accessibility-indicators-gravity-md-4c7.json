@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbox/accessibility_indicators/gravity",
+  "id": "toolbox/accessibility_indicators/gravity",
+  "title": "Heatmap - Gravity",
+  "description": "A color-coded map to visualize the accessibility of points (such as POI) from surrounding areas.",
+  "source": "@site/docs/toolbox/accessibility_indicators/gravity.md",
+  "sourceDirName": "toolbox/accessibility_indicators",
+  "slug": "/toolbox/accessibility_indicators/gravity",
+  "permalink": "/docs/2.0/toolbox/accessibility_indicators/gravity",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/accessibility_indicators/gravity.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Heatmap - Closest Average",
+    "permalink": "/docs/2.0/toolbox/accessibility_indicators/closest_average"
+  },
+  "next": {
+    "title": "ÖV-Güteklassen",
+    "permalink": "/docs/2.0/toolbox/accessibility_indicators/oev_gueteklassen"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "title": "Routing",
+  "description": "Der Routing-Algorithmus ist eine Kernfunktion von GOAT, die unter anderem zur Berechnung von Fahrten und Fahrzeiten für Einzugsgebiete und Heatmaps verwendet wird. Basierend auf dem gewählten Verkehrsmittel und den Routing-Präferenzen verwendet unser Algorithmus verschiedene Datensätze und Ansätze, um ein genaues Routing durchzuführen.",
+  "slug": "/category/routing",
+  "permalink": "/docs/de/2.0/category/routing",
+  "navigation": {
+    "previous": {
+      "title": "Teilen",
+      "permalink": "/docs/de/2.0/sharing"
+    },
+    "next": {
+      "title": "Zu Fuß",
+      "permalink": "/docs/de/2.0/routing/walking"
+    }
+  }
+}

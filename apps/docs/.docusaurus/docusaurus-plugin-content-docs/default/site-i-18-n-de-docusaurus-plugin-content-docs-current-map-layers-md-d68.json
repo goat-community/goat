@@ -1,0 +1,27 @@
+{
+  "unversionedId": "map/layers",
+  "id": "map/layers",
+  "title": "Layer",
+  "description": "Im Bereich Layer können Layer hinzugefügt und organisiert werden. Unter anderem kann die Reihenfolge der Layer angepasst werden, Layer können angezeigt/ausgeblendet, dupliziert, umbenannt, heruntergeladen und entfernt werden.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/map/layers.md",
+  "sourceDirName": "map",
+  "slug": "/map/layers",
+  "permalink": "/docs/de/2.0/map/layers",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/map/layers.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Attribut-basiertes Styling",
+    "permalink": "/docs/de/2.0/map/layer_style/attribute_based_styling"
+  },
+  "next": {
+    "title": "Filter",
+    "permalink": "/docs/de/2.0/map/filter"
+  }
+}

@@ -1,0 +1,1682 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "loadedVersions": [
+        {
+          "versionName": "current",
+          "label": "2.0",
+          "banner": null,
+          "badge": false,
+          "noIndex": false,
+          "className": "docs-version-current",
+          "path": "/docs/2.0",
+          "tagsPath": "/docs/2.0/tags",
+          "isLast": true,
+          "sidebarFilePath": "/Users/majkshkurti/Developer/P4B/goat-docs/sidebars.js",
+          "contentPath": "/Users/majkshkurti/Developer/P4B/goat-docs/docs",
+          "contentPathLocalized": "/Users/majkshkurti/Developer/P4B/goat-docs/i18n/en/docusaurus-plugin-content-docs/current",
+          "docs": [
+            {
+              "unversionedId": "data/data_basis",
+              "id": "data/data_basis",
+              "title": "Inbuilt Datasets",
+              "description": "Data as an important basis for analyses",
+              "source": "@site/docs/data/data_basis.md",
+              "sourceDirName": "data",
+              "slug": "/data/data_basis",
+              "permalink": "/docs/2.0/data/data_basis",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/data/data_basis.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "sidebar_position": 2
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Dataset Types",
+                "permalink": "/docs/2.0/data/dataset_types"
+              },
+              "next": {
+                "title": "Attribute Types",
+                "permalink": "/docs/2.0/data/data_types"
+              }
+            },
+            {
+              "unversionedId": "data/data_types",
+              "id": "data/data_types",
+              "title": "Attribute Types",
+              "description": "GOAT handles a wide range of geometry types for spatial data. This capability is achieved by using a PostgreSQL database enhanced with the PostGIS extension. GOAT stores all geometries in the PostGIS geometry type (PostGIS geometry type is a way to store and work with various shapes and locations on a map within a PostgreSQL database. It allows you to keep details about points (such as landmarks), lines (such as roads), and areas (such as districts) directly in your database) within the EPSG:4326 coordinate reference system. However, for operations involving length or area measurements, the PostGIS geography type is used. This type allows calculations in meters and offers higher accuracy.",
+              "source": "@site/docs/data/data_types.md",
+              "sourceDirName": "data",
+              "slug": "/data/data_types",
+              "permalink": "/docs/2.0/data/data_types",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/data/data_types.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "sidebar_position": 3
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Inbuilt Datasets",
+                "permalink": "/docs/2.0/data/data_basis"
+              },
+              "next": {
+                "title": "Workspace",
+                "permalink": "/docs/2.0/category/workspace"
+              }
+            },
+            {
+              "unversionedId": "data/dataset_types",
+              "id": "data/dataset_types",
+              "title": "Dataset Types",
+              "description": "Users can access datasets in the Catalog Explorer and through the Dataset Explorer. The datasets found in the Catalog are provided and maintained by Plan4Better. If you add an external dataset via URL, upload a dataset from your local computer or create a layer in GOAT, they will be visible in the Dataset Explorer.",
+              "source": "@site/docs/data/dataset_types.md",
+              "sourceDirName": "data",
+              "slug": "/data/dataset_types",
+              "permalink": "/docs/2.0/data/dataset_types",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/data/dataset_types.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Data",
+                "permalink": "/docs/2.0/category/data"
+              },
+              "next": {
+                "title": "Inbuilt Datasets",
+                "permalink": "/docs/2.0/data/data_basis"
+              }
+            },
+            {
+              "unversionedId": "further_reading/glossary",
+              "id": "further_reading/glossary",
+              "title": "Glossary",
+              "description": "Accessibility",
+              "source": "@site/docs/further_reading/glossary.md",
+              "sourceDirName": "further_reading",
+              "slug": "/further_reading/glossary",
+              "permalink": "/docs/2.0/further_reading/glossary",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/further_reading/glossary.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "sidebar_position": 4
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Literature",
+                "permalink": "/docs/2.0/category/literature"
+              },
+              "next": {
+                "title": "Scientific Publications",
+                "permalink": "/docs/2.0/further_reading/publications"
+              }
+            },
+            {
+              "unversionedId": "further_reading/publications",
+              "id": "further_reading/publications",
+              "title": "Scientific Publications",
+              "description": "This section gives an overview of scientific publications about the development, application, and evaluation of GOAT.",
+              "source": "@site/docs/further_reading/publications.md",
+              "sourceDirName": "further_reading",
+              "slug": "/further_reading/publications",
+              "permalink": "/docs/2.0/further_reading/publications",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/further_reading/publications.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 5,
+              "frontMatter": {
+                "sidebar_position": 5
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Glossary",
+                "permalink": "/docs/2.0/further_reading/glossary"
+              },
+              "next": {
+                "title": "Technical Insights",
+                "permalink": "/docs/2.0/category/technical-insights"
+              }
+            },
+            {
+              "unversionedId": "map/filter",
+              "id": "map/filter",
+              "title": "Filter",
+              "description": "The Filter can be used to limit the data that is visible on the map. You can thereby either filter by logical expression (e.g. only visualizing supermarkets with a certain name) or by spatial expression (e.g. only showing points within a specific bounding box).",
+              "source": "@site/docs/map/filter.md",
+              "sourceDirName": "map",
+              "slug": "/map/filter",
+              "permalink": "/docs/2.0/map/filter",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/map/filter.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "sidebar_position": 4
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Attribute-based Styling",
+                "permalink": "/docs/2.0/map/layer_style/attribute_based_styling"
+              },
+              "next": {
+                "title": "Toolbox",
+                "permalink": "/docs/2.0/category/toolbox"
+              }
+            },
+            {
+              "unversionedId": "map/interface_overview",
+              "id": "map/interface_overview",
+              "title": "Map Interface",
+              "description": "Opening a project will lead you to the Map Interface.",
+              "source": "@site/docs/map/interface_overview.md",
+              "sourceDirName": "map",
+              "slug": "/map/interface_overview",
+              "permalink": "/docs/2.0/map/interface_overview",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/map/interface_overview.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Map",
+                "permalink": "/docs/2.0/category/map"
+              },
+              "next": {
+                "title": "Layers",
+                "permalink": "/docs/2.0/map/layers"
+              }
+            },
+            {
+              "unversionedId": "map/layer_style/attribute_based_styling",
+              "id": "map/layer_style/attribute_based_styling",
+              "title": "Attribute-based Styling",
+              "description": "GOAT supports attribute-based styling to enhance the visualization of data on maps. This approach allows the visual representation to reflect variations and patterns in the data, making it easier to understand complex spatial information.",
+              "source": "@site/docs/map/layer_style/attribute_based_styling.md",
+              "sourceDirName": "map/layer_style",
+              "slug": "/map/layer_style/attribute_based_styling",
+              "permalink": "/docs/2.0/map/layer_style/attribute_based_styling",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/map/layer_style/attribute_based_styling.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "sidebar_position": 2
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Basic Styling",
+                "permalink": "/docs/2.0/map/layer_style/styling"
+              },
+              "next": {
+                "title": "Filter",
+                "permalink": "/docs/2.0/map/filter"
+              }
+            },
+            {
+              "unversionedId": "map/layer_style/styling",
+              "id": "map/layer_style/styling",
+              "title": "Basic Styling",
+              "description": "When you add a new layer to your project, it is assigned a default style based on the type of data. By customizing options in the Layer design  menu, you can adjust the visualization of the layer and create appealing maps. The styling options available depend on the type of data contained by a layer, i.e. whether it is points, lines, or polygons. Thereby, multiple visual aspects, such as colors, strokes, and opacities can be adjusted.",
+              "source": "@site/docs/map/layer_style/styling.md",
+              "sourceDirName": "map/layer_style",
+              "slug": "/map/layer_style/styling",
+              "permalink": "/docs/2.0/map/layer_style/styling",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/map/layer_style/styling.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Layer Styling",
+                "permalink": "/docs/2.0/category/layer-styling"
+              },
+              "next": {
+                "title": "Attribute-based Styling",
+                "permalink": "/docs/2.0/map/layer_style/attribute_based_styling"
+              }
+            },
+            {
+              "unversionedId": "map/layers",
+              "id": "map/layers",
+              "title": "Layers",
+              "description": "In the Layers section, layers can be added and organized. Among others, the layer order can be adjusted, layers can be enabled/disabled, duplicated, renamed, downloaded, and removed.",
+              "source": "@site/docs/map/layers.md",
+              "sourceDirName": "map",
+              "slug": "/map/layers",
+              "permalink": "/docs/2.0/map/layers",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/map/layers.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "sidebar_position": 2
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Map Interface",
+                "permalink": "/docs/2.0/map/interface_overview"
+              },
+              "next": {
+                "title": "Layer Styling",
+                "permalink": "/docs/2.0/category/layer-styling"
+              }
+            },
+            {
+              "unversionedId": "nerdy_content/architecture",
+              "id": "nerdy_content/architecture",
+              "title": "Software Architecture",
+              "description": "The backend of GOAT is making use of a Microservice architecture that is built using a diverse tech stack. The Backend of the GOAT platform is built using the following core technologies:",
+              "source": "@site/docs/nerdy_content/architecture.md",
+              "sourceDirName": "nerdy_content",
+              "slug": "/nerdy_content/architecture",
+              "permalink": "/docs/2.0/nerdy_content/architecture",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/nerdy_content/architecture.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Technical Insights",
+                "permalink": "/docs/2.0/category/technical-insights"
+              }
+            },
+            {
+              "unversionedId": "routing/bicycle",
+              "id": "routing/bicycle",
+              "title": "Bicycle/Pedelec",
+              "description": "The Bicycle/Pedelec Routing is used for all analyses in GOAT that contain cycling trips.",
+              "source": "@site/docs/routing/bicycle.md",
+              "sourceDirName": "routing",
+              "slug": "/routing/bicycle",
+              "permalink": "/docs/2.0/routing/bicycle",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/routing/bicycle.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "sidebar_position": 2
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Walk",
+                "permalink": "/docs/2.0/routing/walking"
+              },
+              "next": {
+                "title": "Public Transport",
+                "permalink": "/docs/2.0/routing/public_transport"
+              }
+            },
+            {
+              "unversionedId": "routing/car",
+              "id": "routing/car",
+              "title": "Car",
+              "description": "The Car Routing is used for all analyses in GOAT that contain car trips.",
+              "source": "@site/docs/routing/car.md",
+              "sourceDirName": "routing",
+              "slug": "/routing/car",
+              "permalink": "/docs/2.0/routing/car",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/routing/car.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "sidebar_position": 4
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Public Transport",
+                "permalink": "/docs/2.0/routing/public_transport"
+              },
+              "next": {
+                "title": "Literature",
+                "permalink": "/docs/2.0/category/literature"
+              }
+            },
+            {
+              "unversionedId": "routing/public_transport",
+              "id": "routing/public_transport",
+              "title": "Public Transport",
+              "description": "The Public Transport Routing in GOAT is essential for performing analyses that include public transport trips.",
+              "source": "@site/docs/routing/public_transport.md",
+              "sourceDirName": "routing",
+              "slug": "/routing/public_transport",
+              "permalink": "/docs/2.0/routing/public_transport",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/routing/public_transport.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "sidebar_position": 3
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Bicycle/Pedelec",
+                "permalink": "/docs/2.0/routing/bicycle"
+              },
+              "next": {
+                "title": "Car",
+                "permalink": "/docs/2.0/routing/car"
+              }
+            },
+            {
+              "unversionedId": "routing/walking",
+              "id": "routing/walking",
+              "title": "Walk",
+              "description": "The Walk Routing is used for all analyses in GOAT that contain walking trips.",
+              "source": "@site/docs/routing/walking.md",
+              "sourceDirName": "routing",
+              "slug": "/routing/walking",
+              "permalink": "/docs/2.0/routing/walking",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/routing/walking.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Routing",
+                "permalink": "/docs/2.0/category/routing"
+              },
+              "next": {
+                "title": "Bicycle/Pedelec",
+                "permalink": "/docs/2.0/routing/bicycle"
+              }
+            },
+            {
+              "unversionedId": "Scenarios/Scenarios",
+              "id": "Scenarios/Scenarios",
+              "title": "Scenarios",
+              "description": "Besides analyzing existing real-world data & situations, GOAT allows you to create custom scenarios such as network changes or new infrastructure projects. Ways, points and polygons can be added, edited or removed and their impact on accessibility analyzed.",
+              "source": "@site/docs/Scenarios/Scenarios.md",
+              "sourceDirName": "Scenarios",
+              "slug": "/Scenarios",
+              "permalink": "/docs/2.0/Scenarios",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/Scenarios/Scenarios.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "sidebar_position": 4,
+                "slug": "/Scenarios"
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Buffer",
+                "permalink": "/docs/2.0/toolbox/geoprocessing/buffer"
+              },
+              "next": {
+                "title": "Sharing",
+                "permalink": "/docs/2.0/sharing"
+              }
+            },
+            {
+              "unversionedId": "sharing/sharing",
+              "id": "sharing/sharing",
+              "title": "Sharing",
+              "description": "Sharing datasets and projects allows for a more efficient workflow because granting access to other members enables them to simultaneously edit and/or view your datasets or projects.",
+              "source": "@site/docs/sharing/sharing.md",
+              "sourceDirName": "sharing",
+              "slug": "/sharing",
+              "permalink": "/docs/2.0/sharing",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/sharing/sharing.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 6,
+              "frontMatter": {
+                "sidebar_position": 6,
+                "slug": "/sharing"
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Scenarios",
+                "permalink": "/docs/2.0/Scenarios"
+              },
+              "next": {
+                "title": "Routing",
+                "permalink": "/docs/2.0/category/routing"
+              }
+            },
+            {
+              "unversionedId": "toolbox/accessibility_indicators/catchments",
+              "id": "toolbox/accessibility_indicators/catchments",
+              "title": "Catchment Area",
+              "description": "Catchment Areas show how far people can travel within a certain travel time or distance, using one or more modes of transport.",
+              "source": "@site/docs/toolbox/accessibility_indicators/catchments.md",
+              "sourceDirName": "toolbox/accessibility_indicators",
+              "slug": "/toolbox/accessibility_indicators/catchments",
+              "permalink": "/docs/2.0/toolbox/accessibility_indicators/catchments",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/accessibility_indicators/catchments.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Accessibility Indicators",
+                "permalink": "/docs/2.0/category/accessibility-indicators"
+              },
+              "next": {
+                "title": "Heatmap - Connectivity",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/connectivity"
+              }
+            },
+            {
+              "unversionedId": "toolbox/accessibility_indicators/closest_average",
+              "id": "toolbox/accessibility_indicators/closest_average",
+              "title": "Heatmap - Closest Average",
+              "description": "A color-coded map to visualize the average travel time to points (such as POI) from surrounding areas.",
+              "source": "@site/docs/toolbox/accessibility_indicators/closest_average.md",
+              "sourceDirName": "toolbox/accessibility_indicators",
+              "slug": "/toolbox/accessibility_indicators/closest_average",
+              "permalink": "/docs/2.0/toolbox/accessibility_indicators/closest_average",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/accessibility_indicators/closest_average.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "sidebar_position": 3
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Heatmap - Connectivity",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/connectivity"
+              },
+              "next": {
+                "title": "Heatmap - Gravity",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/gravity"
+              }
+            },
+            {
+              "unversionedId": "toolbox/accessibility_indicators/connectivity",
+              "id": "toolbox/accessibility_indicators/connectivity",
+              "title": "Heatmap - Connectivity",
+              "description": "A color-coded map to visualize the connectivity of locations within an area of interest (AOI).",
+              "source": "@site/docs/toolbox/accessibility_indicators/connectivity.md",
+              "sourceDirName": "toolbox/accessibility_indicators",
+              "slug": "/toolbox/accessibility_indicators/connectivity",
+              "permalink": "/docs/2.0/toolbox/accessibility_indicators/connectivity",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/accessibility_indicators/connectivity.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "sidebar_position": 2
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Catchment Area",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/catchments"
+              },
+              "next": {
+                "title": "Heatmap - Closest Average",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/closest_average"
+              }
+            },
+            {
+              "unversionedId": "toolbox/accessibility_indicators/gravity",
+              "id": "toolbox/accessibility_indicators/gravity",
+              "title": "Heatmap - Gravity",
+              "description": "A color-coded map to visualize the accessibility of points (such as POI) from surrounding areas.",
+              "source": "@site/docs/toolbox/accessibility_indicators/gravity.md",
+              "sourceDirName": "toolbox/accessibility_indicators",
+              "slug": "/toolbox/accessibility_indicators/gravity",
+              "permalink": "/docs/2.0/toolbox/accessibility_indicators/gravity",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/accessibility_indicators/gravity.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "sidebar_position": 4
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Heatmap - Closest Average",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/closest_average"
+              },
+              "next": {
+                "title": "ÖV-Güteklassen",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/oev_gueteklassen"
+              }
+            },
+            {
+              "unversionedId": "toolbox/accessibility_indicators/nearby_stations",
+              "id": "toolbox/accessibility_indicators/nearby_stations",
+              "title": "PT Nearby Stations",
+              "description": "The PT Nearby Stations analysis is used to find public transport stops accessible by walking or cycling within a given time. For each stop, departure information by mode and route is provided.",
+              "source": "@site/docs/toolbox/accessibility_indicators/nearby_stations.md",
+              "sourceDirName": "toolbox/accessibility_indicators",
+              "slug": "/toolbox/accessibility_indicators/nearby_stations",
+              "permalink": "/docs/2.0/toolbox/accessibility_indicators/nearby_stations",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/accessibility_indicators/nearby_stations.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 7,
+              "frontMatter": {
+                "sidebar_position": 7
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "PT Trip Count",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/pt_trip_count"
+              },
+              "next": {
+                "title": "Data management",
+                "permalink": "/docs/2.0/category/data-management"
+              }
+            },
+            {
+              "unversionedId": "toolbox/accessibility_indicators/oev_gueteklassen",
+              "id": "toolbox/accessibility_indicators/oev_gueteklassen",
+              "title": "ÖV-Güteklassen",
+              "description": "The Public Transport Quality Classes (German: ÖV-Güteklassen) show the attractiveness of public transport services for a selected area.",
+              "source": "@site/docs/toolbox/accessibility_indicators/oev_gueteklassen.md",
+              "sourceDirName": "toolbox/accessibility_indicators",
+              "slug": "/toolbox/accessibility_indicators/oev_gueteklassen",
+              "permalink": "/docs/2.0/toolbox/accessibility_indicators/oev_gueteklassen",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/accessibility_indicators/oev_gueteklassen.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 5,
+              "frontMatter": {
+                "sidebar_position": 5
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Heatmap - Gravity",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/gravity"
+              },
+              "next": {
+                "title": "PT Trip Count",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/pt_trip_count"
+              }
+            },
+            {
+              "unversionedId": "toolbox/accessibility_indicators/pt_trip_count",
+              "id": "toolbox/accessibility_indicators/pt_trip_count",
+              "title": "PT Trip Count",
+              "description": "This indicator displays the average number of public transport departures per hour for each public transport stop.",
+              "source": "@site/docs/toolbox/accessibility_indicators/pt_trip_count.md",
+              "sourceDirName": "toolbox/accessibility_indicators",
+              "slug": "/toolbox/accessibility_indicators/pt_trip_count",
+              "permalink": "/docs/2.0/toolbox/accessibility_indicators/pt_trip_count",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/accessibility_indicators/pt_trip_count.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 6,
+              "frontMatter": {
+                "sidebar_position": 6
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "ÖV-Güteklassen",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/oev_gueteklassen"
+              },
+              "next": {
+                "title": "PT Nearby Stations",
+                "permalink": "/docs/2.0/toolbox/accessibility_indicators/nearby_stations"
+              }
+            },
+            {
+              "unversionedId": "toolbox/data_management/join",
+              "id": "toolbox/data_management/join",
+              "title": "Join & Group",
+              "description": "Append and group fields from one layer to another using a matching field on both layers.",
+              "source": "@site/docs/toolbox/data_management/join.md",
+              "sourceDirName": "toolbox/data_management",
+              "slug": "/toolbox/data_management/join",
+              "permalink": "/docs/2.0/toolbox/data_management/join",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/data_management/join.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Data management",
+                "permalink": "/docs/2.0/category/data-management"
+              },
+              "next": {
+                "title": "Spatial Join",
+                "permalink": "/docs/2.0/toolbox/data_management/spatial_join"
+              }
+            },
+            {
+              "unversionedId": "toolbox/data_management/spatial_join",
+              "id": "toolbox/data_management/spatial_join",
+              "title": "Spatial Join",
+              "description": "This feature is currently under development. 🧑🏻‍💻",
+              "source": "@site/docs/toolbox/data_management/spatial_join.md",
+              "sourceDirName": "toolbox/data_management",
+              "slug": "/toolbox/data_management/spatial_join",
+              "permalink": "/docs/2.0/toolbox/data_management/spatial_join",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/data_management/spatial_join.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "sidebar_position": 2,
+                "sidebar_class_name": "hidden"
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Join & Group",
+                "permalink": "/docs/2.0/toolbox/data_management/join"
+              },
+              "next": {
+                "title": "Geoanalysis",
+                "permalink": "/docs/2.0/category/geoanalysis"
+              }
+            },
+            {
+              "unversionedId": "toolbox/geoanalysis/aggregate_points",
+              "id": "toolbox/geoanalysis/aggregate_points",
+              "title": "Aggregate Points",
+              "description": "The Aggregate Points tool performs statistical analysis of points, e.g. count, sum, min, or max, and aggregates the information on polygons.",
+              "source": "@site/docs/toolbox/geoanalysis/aggregate_points.md",
+              "sourceDirName": "toolbox/geoanalysis",
+              "slug": "/toolbox/geoanalysis/aggregate_points",
+              "permalink": "/docs/2.0/toolbox/geoanalysis/aggregate_points",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/geoanalysis/aggregate_points.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Geoanalysis",
+                "permalink": "/docs/2.0/category/geoanalysis"
+              },
+              "next": {
+                "title": "Aggregate Polygons",
+                "permalink": "/docs/2.0/toolbox/geoanalysis/aggregate_polygons"
+              }
+            },
+            {
+              "unversionedId": "toolbox/geoanalysis/aggregate_polygons",
+              "id": "toolbox/geoanalysis/aggregate_polygons",
+              "title": "Aggregate Polygons",
+              "description": "The Aggregate Polygon tool performs statistical analysis of polygons, e.g. count, sum, min, or max, and aggregates the information on polygons.",
+              "source": "@site/docs/toolbox/geoanalysis/aggregate_polygons.md",
+              "sourceDirName": "toolbox/geoanalysis",
+              "slug": "/toolbox/geoanalysis/aggregate_polygons",
+              "permalink": "/docs/2.0/toolbox/geoanalysis/aggregate_polygons",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/geoanalysis/aggregate_polygons.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "sidebar_position": 3
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Aggregate Points",
+                "permalink": "/docs/2.0/toolbox/geoanalysis/aggregate_points"
+              },
+              "next": {
+                "title": "Origin Destination",
+                "permalink": "/docs/2.0/toolbox/geoanalysis/origin_destination"
+              }
+            },
+            {
+              "unversionedId": "toolbox/geoanalysis/origin_destination",
+              "id": "toolbox/geoanalysis/origin_destination",
+              "title": "Origin Destination",
+              "description": "The Origin-Destination analysis is used in various fields such as transport planning and urban planning to study movements or flows between different locations.",
+              "source": "@site/docs/toolbox/geoanalysis/origin_destination.md",
+              "sourceDirName": "toolbox/geoanalysis",
+              "slug": "/toolbox/geoanalysis/origin_destination",
+              "permalink": "/docs/2.0/toolbox/geoanalysis/origin_destination",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/geoanalysis/origin_destination.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "sidebar_position": 4
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Aggregate Polygons",
+                "permalink": "/docs/2.0/toolbox/geoanalysis/aggregate_polygons"
+              },
+              "next": {
+                "title": "Geoprocessing",
+                "permalink": "/docs/2.0/category/geoprocessing"
+              }
+            },
+            {
+              "unversionedId": "toolbox/geoprocessing/buffer",
+              "id": "toolbox/geoprocessing/buffer",
+              "title": "Buffer",
+              "description": "The buffer creates a zone around given points, lines, or polygons with a specified buffer distance.",
+              "source": "@site/docs/toolbox/geoprocessing/buffer.md",
+              "sourceDirName": "toolbox/geoprocessing",
+              "slug": "/toolbox/geoprocessing/buffer",
+              "permalink": "/docs/2.0/toolbox/geoprocessing/buffer",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/toolbox/geoprocessing/buffer.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Geoprocessing",
+                "permalink": "/docs/2.0/category/geoprocessing"
+              },
+              "next": {
+                "title": "Scenarios",
+                "permalink": "/docs/2.0/Scenarios"
+              }
+            },
+            {
+              "unversionedId": "welcome/welcome",
+              "id": "welcome/welcome",
+              "title": "Welcome 👋",
+              "description": "GOAT is a WebGIS platform with planning intelligence for urban and transport planning. Equipped with rich data and functionalities, it provides planners and GIS analysts with fact-based analysis. Along with computing benchmarks and analyzing existing situations, potential scenarios can be created and assessed. The platform offers a modern user interface and an intuitive user flow to simplify the planning process. GOAT's main goal is to enable smarter, more collaborative, and efficient planning through its innovative features and design.",
+              "source": "@site/docs/welcome/welcome.md",
+              "sourceDirName": "welcome",
+              "slug": "/",
+              "permalink": "/docs/2.0/",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/welcome/welcome.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1,
+                "slug": "/"
+              },
+              "sidebar": "tutorialSidebar",
+              "next": {
+                "title": "Data",
+                "permalink": "/docs/2.0/category/data"
+              }
+            },
+            {
+              "unversionedId": "workspace/catalog",
+              "id": "workspace/catalog",
+              "title": "Catalog",
+              "description": "The Data Catalog is a comprehensive listing of all geospatial datasets available for exploration and analysis. A wide range of datasets are provided by Plan4Better based on official open-data providers and other sources, ensuring that reliable data is immediately available to carry out analysis and visualization within your projects.",
+              "source": "@site/docs/workspace/catalog.md",
+              "sourceDirName": "workspace",
+              "slug": "/workspace/catalog",
+              "permalink": "/docs/2.0/workspace/catalog",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/workspace/catalog.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "sidebar_position": 4
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Datasets",
+                "permalink": "/docs/2.0/workspace/datasets"
+              },
+              "next": {
+                "title": "Settings",
+                "permalink": "/docs/2.0/workspace/settings"
+              }
+            },
+            {
+              "unversionedId": "workspace/datasets",
+              "id": "workspace/datasets",
+              "title": "Datasets",
+              "description": "On the Datasets page, data can be uploaded, managed, and shared. The page provides users with an organized view of their datasets, categorized by personal datasets, team datasets, and datasets that are shared with the whole organization. Furthermore, datasets can be organized in folders, filtered, and sorted based on their name, creation date, or their last update. Datasets can also be deleted, downloaded and their metadata edited.",
+              "source": "@site/docs/workspace/datasets.md",
+              "sourceDirName": "workspace",
+              "slug": "/workspace/datasets",
+              "permalink": "/docs/2.0/workspace/datasets",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/workspace/datasets.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "sidebar_position": 3
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Projects",
+                "permalink": "/docs/2.0/workspace/projects"
+              },
+              "next": {
+                "title": "Catalog",
+                "permalink": "/docs/2.0/workspace/catalog"
+              }
+            },
+            {
+              "unversionedId": "workspace/home",
+              "id": "workspace/home",
+              "title": "Home",
+              "description": "When you log in to GOAT, you will arrive at the Home page. From here, you can easily access your Recent Projects and Recent Datasets. Furthermore, you can Explore interesting content, such as new blog posts.",
+              "source": "@site/docs/workspace/home.md",
+              "sourceDirName": "workspace",
+              "slug": "/workspace/home",
+              "permalink": "/docs/2.0/workspace/home",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/workspace/home.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "sidebar_position": 1
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Workspace",
+                "permalink": "/docs/2.0/category/workspace"
+              },
+              "next": {
+                "title": "Projects",
+                "permalink": "/docs/2.0/workspace/projects"
+              }
+            },
+            {
+              "unversionedId": "workspace/projects",
+              "id": "workspace/projects",
+              "title": "Projects",
+              "description": "The Projects page allows users to create, manage, and share projects. The page provides users with an organized view of their projects, categorized into personal projects, team projects, and projects shared with the whole organization. In addition, projects can be organized into folders and can be filtered and sorted based on alphabetical order, date of creation, or date of last update. It is also possible to delete projects and edit their metadata.",
+              "source": "@site/docs/workspace/projects.md",
+              "sourceDirName": "workspace",
+              "slug": "/workspace/projects",
+              "permalink": "/docs/2.0/workspace/projects",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/workspace/projects.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "sidebar_position": 2
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Home",
+                "permalink": "/docs/2.0/workspace/home"
+              },
+              "next": {
+                "title": "Datasets",
+                "permalink": "/docs/2.0/workspace/datasets"
+              }
+            },
+            {
+              "unversionedId": "workspace/settings",
+              "id": "workspace/settings",
+              "title": "Settings",
+              "description": "On the Settings page, you can view and modify your preferences and settings related to your account, teams, organization, and subscriptions.",
+              "source": "@site/docs/workspace/settings.md",
+              "sourceDirName": "workspace",
+              "slug": "/workspace/settings",
+              "permalink": "/docs/2.0/workspace/settings",
+              "draft": false,
+              "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/workspace/settings.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 5,
+              "frontMatter": {
+                "sidebar_position": 5
+              },
+              "sidebar": "tutorialSidebar",
+              "previous": {
+                "title": "Catalog",
+                "permalink": "/docs/2.0/workspace/catalog"
+              },
+              "next": {
+                "title": "Map",
+                "permalink": "/docs/2.0/category/map"
+              }
+            }
+          ],
+          "drafts": [],
+          "sidebars": {
+            "tutorialSidebar": [
+              {
+                "type": "doc",
+                "label": "Welcome 👋",
+                "id": "welcome/welcome"
+              },
+              {
+                "type": "category",
+                "label": "Data",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "data/dataset_types"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "data/data_basis"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "data/data_types"
+                  }
+                ],
+                "link": {
+                  "type": "generated-index",
+                  "description": "High-quality input data is a crucial part of perfoming analyses. GOAT is therefore equipped with a variety of such datasets and also allows you to upload your own.",
+                  "slug": "/category/data",
+                  "permalink": "/docs/2.0/category/data"
+                }
+              },
+              {
+                "type": "category",
+                "label": "Workspace",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "workspace/home"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "workspace/projects"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "workspace/datasets"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "workspace/catalog"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "workspace/settings"
+                  }
+                ],
+                "link": {
+                  "type": "generated-index",
+                  "description": "The first page you see when you enter GOAT. From here, you can access & manage your projects, datasets and settings.",
+                  "slug": "/category/workspace",
+                  "permalink": "/docs/2.0/category/workspace"
+                }
+              },
+              {
+                "type": "category",
+                "label": "Map",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "map/interface_overview"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "map/layers"
+                  },
+                  {
+                    "type": "category",
+                    "label": "Layer Styling",
+                    "collapsible": true,
+                    "collapsed": true,
+                    "items": [
+                      {
+                        "type": "doc",
+                        "id": "map/layer_style/styling"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "map/layer_style/attribute_based_styling"
+                      }
+                    ],
+                    "link": {
+                      "type": "generated-index",
+                      "description": "All layers added to the map can be styled. This can be done using the same colour and appearance for all objects, or using an attribute-based styling.",
+                      "slug": "/category/layer-styling",
+                      "permalink": "/docs/2.0/category/layer-styling"
+                    }
+                  },
+                  {
+                    "type": "doc",
+                    "id": "map/filter"
+                  }
+                ],
+                "link": {
+                  "type": "generated-index",
+                  "description": "Upon opening a project, you will see the map. Here, you can perform a wide variety of geospatial analyses, compute stats & benchmarks, or visualize and style feature layers.",
+                  "slug": "/category/map",
+                  "permalink": "/docs/2.0/category/map"
+                }
+              },
+              {
+                "type": "category",
+                "label": "Toolbox",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "category",
+                    "label": "Accessibility Indicators",
+                    "collapsible": true,
+                    "collapsed": true,
+                    "items": [
+                      {
+                        "type": "doc",
+                        "id": "toolbox/accessibility_indicators/catchments"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "toolbox/accessibility_indicators/connectivity"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "toolbox/accessibility_indicators/closest_average"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "toolbox/accessibility_indicators/gravity"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "toolbox/accessibility_indicators/oev_gueteklassen"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "toolbox/accessibility_indicators/pt_trip_count"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "toolbox/accessibility_indicators/nearby_stations"
+                      }
+                    ],
+                    "link": {
+                      "type": "generated-index",
+                      "description": "Various tools are provided for accessibility analysis, including the calculation of catchment areas, heatmaps and public transport indicators.",
+                      "slug": "/category/accessibility-indicators",
+                      "permalink": "/docs/2.0/category/accessibility-indicators"
+                    }
+                  },
+                  {
+                    "type": "category",
+                    "label": "Data management",
+                    "collapsible": true,
+                    "collapsed": true,
+                    "items": [
+                      {
+                        "type": "doc",
+                        "id": "toolbox/data_management/join"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "toolbox/data_management/spatial_join",
+                        "className": "hidden"
+                      }
+                    ],
+                    "link": {
+                      "type": "generated-index",
+                      "description": "In order to manage your data, you can perform different kind of join operations, either based on a matching attribute or based on a spatial intersection.",
+                      "slug": "/category/data-management",
+                      "permalink": "/docs/2.0/category/data-management"
+                    }
+                  },
+                  {
+                    "type": "category",
+                    "label": "Geoanalysis",
+                    "collapsible": true,
+                    "collapsed": true,
+                    "items": [
+                      {
+                        "type": "doc",
+                        "id": "toolbox/geoanalysis/aggregate_points"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "toolbox/geoanalysis/aggregate_polygons"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "toolbox/geoanalysis/origin_destination"
+                      }
+                    ],
+                    "link": {
+                      "type": "generated-index",
+                      "description": "Different geoanalysis allow to analyse spatial datasets by aggregating information or visualizing it in new ways.",
+                      "slug": "/category/geoanalysis",
+                      "permalink": "/docs/2.0/category/geoanalysis"
+                    }
+                  },
+                  {
+                    "type": "category",
+                    "label": "Geoprocessing",
+                    "collapsible": true,
+                    "collapsed": true,
+                    "items": [
+                      {
+                        "type": "doc",
+                        "id": "toolbox/geoprocessing/buffer"
+                      }
+                    ],
+                    "link": {
+                      "type": "generated-index",
+                      "description": "As a geoprocessing tool, you can create buffers around geometries.",
+                      "slug": "/category/geoprocessing",
+                      "permalink": "/docs/2.0/category/geoprocessing"
+                    }
+                  }
+                ],
+                "link": {
+                  "type": "generated-index",
+                  "description": "Find various powerful tools for geospatial analyses - accessibility indicators, data management tools, geoprocessing and more - in the toolbox.",
+                  "slug": "/category/toolbox",
+                  "permalink": "/docs/2.0/category/toolbox"
+                }
+              },
+              {
+                "type": "doc",
+                "label": "Scenarios",
+                "id": "Scenarios/Scenarios"
+              },
+              {
+                "type": "doc",
+                "label": "Sharing",
+                "id": "sharing/sharing"
+              },
+              {
+                "type": "category",
+                "label": "Routing",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "routing/walking"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "routing/bicycle"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "routing/public_transport"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "routing/car"
+                  }
+                ],
+                "link": {
+                  "type": "generated-index",
+                  "description": "The routing algorithm is a core function of GOAT that is used to compute journeys and travel times for catchment areas and heatmaps, among other tools. Based on the selected transport mode and routing preferences, our algorithm uses various datasets and approaches to perform accurate routing.",
+                  "slug": "/category/routing",
+                  "permalink": "/docs/2.0/category/routing"
+                }
+              },
+              {
+                "type": "category",
+                "label": "Literature",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "further_reading/glossary"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "further_reading/publications"
+                  }
+                ],
+                "link": {
+                  "type": "generated-index",
+                  "description": "If you would like to know more about the development of GOAT and understand our technical terminology, explore this section. In the Glossary, you will find our most common terminology explained. The Scientific Publications section lists the most relevant publications about GOAT. Happy reading!",
+                  "slug": "/category/literature",
+                  "permalink": "/docs/2.0/category/literature"
+                }
+              },
+              {
+                "type": "category",
+                "label": "Technical Insights",
+                "collapsible": true,
+                "collapsed": true,
+                "className": "hidden",
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "nerdy_content/architecture"
+                  }
+                ],
+                "link": {
+                  "type": "generated-index",
+                  "description": "Here you can find technical insights and details about the software architecture of GOAT.",
+                  "slug": "/category/technical-insights",
+                  "permalink": "/docs/2.0/category/technical-insights"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "docusaurus-plugin-content-blog": {
+    "default": {
+      "blogSidebarTitle": "Recent posts",
+      "blogPosts": [
+        {
+          "id": "welcome",
+          "metadata": {
+            "permalink": "/docs/blog/welcome",
+            "source": "@site/blog/2021-08-26-welcome/index.md",
+            "title": "Welcome",
+            "description": "Docusaurus blogging features are powered by the blog plugin.",
+            "date": "2021-08-26T00:00:00.000Z",
+            "formattedDate": "August 26, 2021",
+            "tags": [
+              {
+                "label": "facebook",
+                "permalink": "/docs/blog/tags/facebook"
+              },
+              {
+                "label": "hello",
+                "permalink": "/docs/blog/tags/hello"
+              },
+              {
+                "label": "docusaurus",
+                "permalink": "/docs/blog/tags/docusaurus"
+              }
+            ],
+            "readingTime": 0.405,
+            "hasTruncateMarker": false,
+            "authors": [
+              {
+                "name": "Sébastien Lorber",
+                "title": "Docusaurus maintainer",
+                "url": "https://sebastienlorber.com",
+                "imageURL": "https://github.com/slorber.png",
+                "key": "slorber"
+              },
+              {
+                "name": "Yangshun Tay",
+                "title": "Front End Engineer @ Facebook",
+                "url": "https://github.com/yangshun",
+                "imageURL": "https://github.com/yangshun.png",
+                "key": "yangshun"
+              }
+            ],
+            "frontMatter": {
+              "slug": "welcome",
+              "title": "Welcome",
+              "authors": [
+                "slorber",
+                "yangshun"
+              ],
+              "tags": [
+                "facebook",
+                "hello",
+                "docusaurus"
+              ]
+            },
+            "nextItem": {
+              "title": "MDX Blog Post",
+              "permalink": "/docs/blog/mdx-blog-post"
+            }
+          },
+          "content": "[Docusaurus blogging features](https://docusaurus.io/docs/blog) are powered by the [blog plugin](https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-blog).\n\nSimply add Markdown files (or folders) to the `blog` directory.\n\nRegular blog authors can be added to `authors.yml`.\n\nThe blog post date can be extracted from filenames, such as:\n\n- `2019-05-30-welcome.md`\n- `2019-05-30-welcome/index.md`\n\nA blog post folder can be convenient to co-locate blog post images:\n\n![Docusaurus Plushie](./docusaurus-plushie-banner.jpeg)\n\nThe blog supports tags as well!\n\n**And if you don't want a blog**: just delete this directory, and use `blog: false` in your Docusaurus config."
+        },
+        {
+          "id": "mdx-blog-post",
+          "metadata": {
+            "permalink": "/docs/blog/mdx-blog-post",
+            "source": "@site/blog/2021-08-01-mdx-blog-post.mdx",
+            "title": "MDX Blog Post",
+            "description": "Blog posts support Docusaurus Markdown features, such as MDX.",
+            "date": "2021-08-01T00:00:00.000Z",
+            "formattedDate": "August 1, 2021",
+            "tags": [
+              {
+                "label": "docusaurus",
+                "permalink": "/docs/blog/tags/docusaurus"
+              }
+            ],
+            "readingTime": 0.175,
+            "hasTruncateMarker": false,
+            "authors": [
+              {
+                "name": "Sébastien Lorber",
+                "title": "Docusaurus maintainer",
+                "url": "https://sebastienlorber.com",
+                "imageURL": "https://github.com/slorber.png",
+                "key": "slorber"
+              }
+            ],
+            "frontMatter": {
+              "slug": "mdx-blog-post",
+              "title": "MDX Blog Post",
+              "authors": [
+                "slorber"
+              ],
+              "tags": [
+                "docusaurus"
+              ]
+            },
+            "prevItem": {
+              "title": "Welcome",
+              "permalink": "/docs/blog/welcome"
+            },
+            "nextItem": {
+              "title": "Long Blog Post",
+              "permalink": "/docs/blog/long-blog-post"
+            }
+          },
+          "content": "Blog posts support [Docusaurus Markdown features](https://docusaurus.io/docs/markdown-features), such as [MDX](https://mdxjs.com/).\n\n:::tip\n\nUse the power of React to create interactive blog posts.\n\n```js\n<button onClick={() => alert('button clicked!')}>Click me!</button>\n```\n\n<button onClick={() => alert('button clicked!')}>Click me!</button>\n\n:::"
+        },
+        {
+          "id": "long-blog-post",
+          "metadata": {
+            "permalink": "/docs/blog/long-blog-post",
+            "source": "@site/blog/2019-05-29-long-blog-post.md",
+            "title": "Long Blog Post",
+            "description": "This is the summary of a very long blog post,",
+            "date": "2019-05-29T00:00:00.000Z",
+            "formattedDate": "May 29, 2019",
+            "tags": [
+              {
+                "label": "hello",
+                "permalink": "/docs/blog/tags/hello"
+              },
+              {
+                "label": "docusaurus",
+                "permalink": "/docs/blog/tags/docusaurus"
+              }
+            ],
+            "readingTime": 2.05,
+            "hasTruncateMarker": true,
+            "authors": [
+              {
+                "name": "Endilie Yacop Sucipto",
+                "title": "Maintainer of Docusaurus",
+                "url": "https://github.com/endiliey",
+                "imageURL": "https://github.com/endiliey.png",
+                "key": "endi"
+              }
+            ],
+            "frontMatter": {
+              "slug": "long-blog-post",
+              "title": "Long Blog Post",
+              "authors": "endi",
+              "tags": [
+                "hello",
+                "docusaurus"
+              ]
+            },
+            "prevItem": {
+              "title": "MDX Blog Post",
+              "permalink": "/docs/blog/mdx-blog-post"
+            },
+            "nextItem": {
+              "title": "First Blog Post",
+              "permalink": "/docs/blog/first-blog-post"
+            }
+          },
+          "content": "This is the summary of a very long blog post,\n\nUse a `<!--` `truncate` `-->` comment to limit blog post size in the list view.\n\n<!--truncate-->\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet"
+        },
+        {
+          "id": "first-blog-post",
+          "metadata": {
+            "permalink": "/docs/blog/first-blog-post",
+            "source": "@site/blog/2019-05-28-first-blog-post.md",
+            "title": "First Blog Post",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet",
+            "date": "2019-05-28T00:00:00.000Z",
+            "formattedDate": "May 28, 2019",
+            "tags": [
+              {
+                "label": "hola",
+                "permalink": "/docs/blog/tags/hola"
+              },
+              {
+                "label": "docusaurus",
+                "permalink": "/docs/blog/tags/docusaurus"
+              }
+            ],
+            "readingTime": 0.12,
+            "hasTruncateMarker": false,
+            "authors": [
+              {
+                "name": "Gao Wei",
+                "title": "Docusaurus Core Team",
+                "url": "https://github.com/wgao19",
+                "image_url": "https://github.com/wgao19.png",
+                "imageURL": "https://github.com/wgao19.png"
+              }
+            ],
+            "frontMatter": {
+              "slug": "first-blog-post",
+              "title": "First Blog Post",
+              "authors": {
+                "name": "Gao Wei",
+                "title": "Docusaurus Core Team",
+                "url": "https://github.com/wgao19",
+                "image_url": "https://github.com/wgao19.png",
+                "imageURL": "https://github.com/wgao19.png"
+              },
+              "tags": [
+                "hola",
+                "docusaurus"
+              ]
+            },
+            "prevItem": {
+              "title": "Long Blog Post",
+              "permalink": "/docs/blog/long-blog-post"
+            }
+          },
+          "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet"
+        }
+      ],
+      "blogListPaginated": [
+        {
+          "items": [
+            "welcome",
+            "mdx-blog-post",
+            "long-blog-post",
+            "first-blog-post"
+          ],
+          "metadata": {
+            "permalink": "/docs/blog",
+            "page": 1,
+            "postsPerPage": 10,
+            "totalPages": 1,
+            "totalCount": 4,
+            "blogDescription": "Blog",
+            "blogTitle": "Blog"
+          }
+        }
+      ],
+      "blogTags": {
+        "/docs/blog/tags/facebook": {
+          "label": "facebook",
+          "items": [
+            "welcome"
+          ],
+          "permalink": "/docs/blog/tags/facebook",
+          "pages": [
+            {
+              "items": [
+                "welcome"
+              ],
+              "metadata": {
+                "permalink": "/docs/blog/tags/facebook",
+                "page": 1,
+                "postsPerPage": 10,
+                "totalPages": 1,
+                "totalCount": 1,
+                "blogDescription": "Blog",
+                "blogTitle": "Blog"
+              }
+            }
+          ]
+        },
+        "/docs/blog/tags/hello": {
+          "label": "hello",
+          "items": [
+            "welcome",
+            "long-blog-post"
+          ],
+          "permalink": "/docs/blog/tags/hello",
+          "pages": [
+            {
+              "items": [
+                "welcome",
+                "long-blog-post"
+              ],
+              "metadata": {
+                "permalink": "/docs/blog/tags/hello",
+                "page": 1,
+                "postsPerPage": 10,
+                "totalPages": 1,
+                "totalCount": 2,
+                "blogDescription": "Blog",
+                "blogTitle": "Blog"
+              }
+            }
+          ]
+        },
+        "/docs/blog/tags/docusaurus": {
+          "label": "docusaurus",
+          "items": [
+            "welcome",
+            "mdx-blog-post",
+            "long-blog-post",
+            "first-blog-post"
+          ],
+          "permalink": "/docs/blog/tags/docusaurus",
+          "pages": [
+            {
+              "items": [
+                "welcome",
+                "mdx-blog-post",
+                "long-blog-post",
+                "first-blog-post"
+              ],
+              "metadata": {
+                "permalink": "/docs/blog/tags/docusaurus",
+                "page": 1,
+                "postsPerPage": 10,
+                "totalPages": 1,
+                "totalCount": 4,
+                "blogDescription": "Blog",
+                "blogTitle": "Blog"
+              }
+            }
+          ]
+        },
+        "/docs/blog/tags/hola": {
+          "label": "hola",
+          "items": [
+            "first-blog-post"
+          ],
+          "permalink": "/docs/blog/tags/hola",
+          "pages": [
+            {
+              "items": [
+                "first-blog-post"
+              ],
+              "metadata": {
+                "permalink": "/docs/blog/tags/hola",
+                "page": 1,
+                "postsPerPage": 10,
+                "totalPages": 1,
+                "totalCount": 1,
+                "blogDescription": "Blog",
+                "blogTitle": "Blog"
+              }
+            }
+          ]
+        }
+      },
+      "blogTagsListPath": "/docs/blog/tags"
+    }
+  },
+  "docusaurus-plugin-content-pages": {
+    "default": [
+      {
+        "type": "jsx",
+        "permalink": "/docs/Storybook",
+        "source": "@site/src/pages/Storybook.tsx"
+      },
+      {
+        "type": "jsx",
+        "permalink": "/docs/",
+        "source": "@site/src/pages/index.tsx"
+      },
+      {
+        "type": "mdx",
+        "permalink": "/docs/markdown-page",
+        "source": "@site/src/pages/markdown-page.md",
+        "title": "Markdown page example",
+        "description": "You don't need React to write simple standalone pages.",
+        "frontMatter": {
+          "title": "Markdown page example"
+        }
+      }
+    ]
+  },
+  "docusaurus-plugin-debug": {},
+  "docusaurus-theme-classic": {},
+  "docusaurus-theme-search-algolia": {},
+  "docusaurus-bootstrap-plugin": {},
+  "docusaurus-mdx-fallback-plugin": {}
+}

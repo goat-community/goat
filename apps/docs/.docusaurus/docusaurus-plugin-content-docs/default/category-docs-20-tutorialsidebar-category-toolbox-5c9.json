@@ -1,0 +1,16 @@
+{
+  "title": "Toolbox",
+  "description": "Find various powerful tools for geospatial analyses - accessibility indicators, data management tools, geoprocessing and more - in the toolbox.",
+  "slug": "/category/toolbox",
+  "permalink": "/docs/2.0/category/toolbox",
+  "navigation": {
+    "previous": {
+      "title": "Filter",
+      "permalink": "/docs/2.0/map/filter"
+    },
+    "next": {
+      "title": "Accessibility Indicators",
+      "permalink": "/docs/2.0/category/accessibility-indicators"
+    }
+  }
+}

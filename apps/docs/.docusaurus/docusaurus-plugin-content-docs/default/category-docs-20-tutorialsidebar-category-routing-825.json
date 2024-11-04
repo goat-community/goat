@@ -1,0 +1,16 @@
+{
+  "title": "Routing",
+  "description": "The routing algorithm is a core function of GOAT that is used to compute journeys and travel times for catchment areas and heatmaps, among other tools. Based on the selected transport mode and routing preferences, our algorithm uses various datasets and approaches to perform accurate routing.",
+  "slug": "/category/routing",
+  "permalink": "/docs/2.0/category/routing",
+  "navigation": {
+    "previous": {
+      "title": "Sharing",
+      "permalink": "/docs/2.0/sharing"
+    },
+    "next": {
+      "title": "Walk",
+      "permalink": "/docs/2.0/routing/walking"
+    }
+  }
+}

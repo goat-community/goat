@@ -1,0 +1,16 @@
+{
+  "title": "Szenarien",
+  "description": "Neben der Analyse vorhandener realer Daten und Situationen können Sie mit GOAT auch benutzerdefinierte Szenarien erstellen, wie z. B. Netzwerkänderungen oder neue Infrastrukturprojekte. Wege, Punkte und Polygone können hinzugefügt, bearbeitet oder entfernt werden und ihre Auswirkungen auf die Erreichbarkeit analysiert werden.",
+  "slug": "/category/scenarios",
+  "permalink": "/docs/de/2.0beta/category/scenarios",
+  "navigation": {
+    "previous": {
+      "title": "Puffer",
+      "permalink": "/docs/de/2.0beta/toolbox/geoprocessing/buffer"
+    },
+    "next": {
+      "title": "Ways",
+      "permalink": "/docs/de/2.0beta/scenarios/ways"
+    }
+  }
+}

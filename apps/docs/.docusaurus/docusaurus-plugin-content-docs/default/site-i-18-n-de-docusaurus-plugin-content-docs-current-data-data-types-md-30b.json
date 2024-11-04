@@ -1,0 +1,27 @@
+{
+  "unversionedId": "data/data_types",
+  "id": "data/data_types",
+  "title": "Attributetypen",
+  "description": "GOAT verarbeitet eine Vielzahl von Geometrietypen für räumliche Daten. Dies wird durch die Verwendung einer PostgreSQL Datenbank mit der PostGIS Erweiterung erreicht. GOAT speichert alle Geometrien im PostGIS-Geometrietyp (Der PostGIS-Geometrietyp ist eine Möglichkeit, verschiedene Formen und Standorte auf einer Karte innerhalb einer PostgreSQL-Datenbank zu speichern und zu bearbeiten. Er ermöglicht es, Details über Punkte (wie Wahrzeichen), Linien (wie Straßen) und Flächen (wie Bezirke) direkt in der Datenbank zu speichern. Alle Daten werden in der Datenbank Koordinatenreferenzsystem EPSG:4326 gespeichert. Für Operationen, die Längen- oder Flächenmessungen beinhalten, wird jedoch der PostGIS-Geographietyp verwendet. Dieser Typ ermöglicht Berechnungen in Metern und bietet eine höhere Genauigkeit.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/data/data_types.md",
+  "sourceDirName": "data",
+  "slug": "/data/data_types",
+  "permalink": "/docs/de/2.0/data/data_types",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/data/data_types.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Eingebaute Datensätze",
+    "permalink": "/docs/de/2.0/data/data_basis"
+  },
+  "next": {
+    "title": "Workspace",
+    "permalink": "/docs/de/2.0/category/workspace"
+  }
+}

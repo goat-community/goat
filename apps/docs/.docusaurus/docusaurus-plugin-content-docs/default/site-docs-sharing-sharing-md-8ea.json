@@ -1,0 +1,28 @@
+{
+  "unversionedId": "sharing/sharing",
+  "id": "sharing/sharing",
+  "title": "Sharing",
+  "description": "Sharing datasets and projects allows for a more efficient workflow because granting access to other members enables them to simultaneously edit and/or view your datasets or projects.",
+  "source": "@site/docs/sharing/sharing.md",
+  "sourceDirName": "sharing",
+  "slug": "/sharing",
+  "permalink": "/docs/2.0/sharing",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/sharing/sharing.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "sidebar_position": 6,
+    "slug": "/sharing"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Scenarios",
+    "permalink": "/docs/2.0/Scenarios"
+  },
+  "next": {
+    "title": "Routing",
+    "permalink": "/docs/2.0/category/routing"
+  }
+}

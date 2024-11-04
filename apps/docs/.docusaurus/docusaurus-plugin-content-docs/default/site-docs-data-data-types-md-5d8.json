@@ -1,0 +1,27 @@
+{
+  "unversionedId": "data/data_types",
+  "id": "data/data_types",
+  "title": "Attribute Types",
+  "description": "GOAT handles a wide range of geometry types for spatial data. This capability is achieved by using a PostgreSQL database enhanced with the PostGIS extension. GOAT stores all geometries in the PostGIS geometry type (PostGIS geometry type is a way to store and work with various shapes and locations on a map within a PostgreSQL database. It allows you to keep details about points (such as landmarks), lines (such as roads), and areas (such as districts) directly in your database) within the EPSG:4326 coordinate reference system. However, for operations involving length or area measurements, the PostGIS geography type is used. This type allows calculations in meters and offers higher accuracy.",
+  "source": "@site/docs/data/data_types.md",
+  "sourceDirName": "data",
+  "slug": "/data/data_types",
+  "permalink": "/docs/2.0/data/data_types",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/data/data_types.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Inbuilt Datasets",
+    "permalink": "/docs/2.0/data/data_basis"
+  },
+  "next": {
+    "title": "Workspace",
+    "permalink": "/docs/2.0/category/workspace"
+  }
+}

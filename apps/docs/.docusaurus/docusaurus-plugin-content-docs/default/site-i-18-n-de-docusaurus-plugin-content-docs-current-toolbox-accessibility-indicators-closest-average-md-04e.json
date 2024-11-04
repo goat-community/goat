@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbox/accessibility_indicators/closest_average",
+  "id": "toolbox/accessibility_indicators/closest_average",
+  "title": "Heatmap - Durchschnitt Reisezeit",
+  "description": "Eine farbkodierte Karte zur Visualisierung der durchschnittlichen Reisezeit zu Punkten (wie POI) aus umliegenden Gebieten.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/toolbox/accessibility_indicators/closest_average.md",
+  "sourceDirName": "toolbox/accessibility_indicators",
+  "slug": "/toolbox/accessibility_indicators/closest_average",
+  "permalink": "/docs/de/2.0/toolbox/accessibility_indicators/closest_average",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/toolbox/accessibility_indicators/closest_average.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Heatmap - Konnektivität",
+    "permalink": "/docs/de/2.0/toolbox/accessibility_indicators/connectivity"
+  },
+  "next": {
+    "title": "Heatmap - Gravity",
+    "permalink": "/docs/de/2.0/toolbox/accessibility_indicators/gravity"
+  }
+}

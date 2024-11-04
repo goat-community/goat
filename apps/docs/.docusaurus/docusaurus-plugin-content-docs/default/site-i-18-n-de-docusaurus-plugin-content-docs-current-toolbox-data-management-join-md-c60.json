@@ -1,0 +1,27 @@
+{
+  "unversionedId": "toolbox/data_management/join",
+  "id": "toolbox/data_management/join",
+  "title": "Join & Group",
+  "description": "Füge Felder von einer Layer zu einer anderen hinzu und gruppiere sie, indem du ein übereinstimmendes Feld in beiden Layern verwendest.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/toolbox/data_management/join.md",
+  "sourceDirName": "toolbox/data_management",
+  "slug": "/toolbox/data_management/join",
+  "permalink": "/docs/de/2.0/toolbox/data_management/join",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/toolbox/data_management/join.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Data management",
+    "permalink": "/docs/de/2.0/category/data-management"
+  },
+  "next": {
+    "title": "Spatial Join",
+    "permalink": "/docs/de/2.0/toolbox/data_management/spatial_join"
+  }
+}

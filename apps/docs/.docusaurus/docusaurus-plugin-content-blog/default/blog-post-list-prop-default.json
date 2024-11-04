@@ -1,0 +1,21 @@
+{
+  "title": "Neueste Beiträge",
+  "items": [
+    {
+      "title": "Welcome",
+      "permalink": "/docs/de/blog/welcome"
+    },
+    {
+      "title": "MDX Blog Post",
+      "permalink": "/docs/de/blog/mdx-blog-post"
+    },
+    {
+      "title": "Long Blog Post",
+      "permalink": "/docs/de/blog/long-blog-post"
+    },
+    {
+      "title": "First Blog Post",
+      "permalink": "/docs/de/blog/first-blog-post"
+    }
+  ]
+}

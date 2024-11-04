@@ -1,0 +1,27 @@
+{
+  "unversionedId": "data/dataset_types",
+  "id": "data/dataset_types",
+  "title": "Datensatztypen",
+  "description": "Benutzer können auf Datensätze im Catalog Explorer und über den Dataset Explorer zugreifen. Die im Katalog enthaltenen Datensätze werden von Plan4Better bereitgestellt und gepflegt. Wenn Sie einen externen Datensatz über eine URL hinzufügen, einen Datensatz von Ihrem lokalen Computer hochladen oder eine Ebene in GOAT erstellen, sind diese im Dataset Explorer sichtbar.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/data/dataset_types.md",
+  "sourceDirName": "data",
+  "slug": "/data/dataset_types",
+  "permalink": "/docs/de/2.0/data/dataset_types",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/data/dataset_types.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Data",
+    "permalink": "/docs/de/2.0/category/data"
+  },
+  "next": {
+    "title": "Eingebaute Datensätze",
+    "permalink": "/docs/de/2.0/data/data_basis"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Workspace",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "The first page you see when you enter GOAT. From here, you can access & manage your projects, datasets and settings."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "title": "Data",
+  "description": "High-quality input data is a crucial part of perfoming analyses. GOAT is therefore equipped with a variety of such datasets and also allows you to upload your own.",
+  "slug": "/category/data",
+  "permalink": "/docs/2.0beta/category/data",
+  "navigation": {
+    "previous": {
+      "title": "Welcome 👋",
+      "permalink": "/docs/2.0beta/"
+    },
+    "next": {
+      "title": "Our Datasets",
+      "permalink": "/docs/2.0beta/data/data_basis"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "routing/car",
+  "id": "routing/car",
+  "title": "Auto",
+  "description": "Das Verkehrsmittel Auto wird für alle Analysen in GOAT verwendet, die Autofahrten enthalten.",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/routing/car.md",
+  "sourceDirName": "routing",
+  "slug": "/routing/car",
+  "permalink": "/docs/de/2.0/routing/car",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/routing/car.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Öffentliche Verkehrsmittel",
+    "permalink": "/docs/de/2.0/routing/public_transport"
+  },
+  "next": {
+    "title": "Literature",
+    "permalink": "/docs/de/2.0/category/literature"
+  }
+}

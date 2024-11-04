@@ -1,0 +1,23 @@
+{
+  "unversionedId": "nerdy_content/architecture",
+  "id": "nerdy_content/architecture",
+  "title": "Software Architecture",
+  "description": "The backend of GOAT is making use of a Microservice architecture that is built using a diverse tech stack. The Backend of the GOAT platform is built using the following core technologies:",
+  "source": "@site/docs/nerdy_content/architecture.md",
+  "sourceDirName": "nerdy_content",
+  "slug": "/nerdy_content/architecture",
+  "permalink": "/docs/de/2.0/nerdy_content/architecture",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/nerdy_content/architecture.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Technical Insights",
+    "permalink": "/docs/de/2.0/category/technical-insights"
+  }
+}

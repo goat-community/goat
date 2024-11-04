@@ -1,0 +1,22 @@
+{
+  "logo.alt": {
+    "message": "Plan4Better",
+    "description": "Der Alt-Text des Navbar-Logos"
+  },
+  "item.label.Tutorial": {
+    "message": "Tutorial",
+    "description": "Navbar-Element mit Beschriftung Tutorial"
+  },
+  "item.label.Blog": {
+    "message": "Blog",
+    "description": "Navbar-Element mit Bezeichnung Blog"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar-Element mit Bezeichnung GitHub"
+  },
+  "item.label.Docs": {
+    "message": "Docs",
+    "description": "Navbar-Element mit Bezeichnung Docs"
+  }
+}

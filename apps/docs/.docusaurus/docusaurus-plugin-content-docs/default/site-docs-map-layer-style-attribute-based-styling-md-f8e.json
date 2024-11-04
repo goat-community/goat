@@ -1,0 +1,27 @@
+{
+  "unversionedId": "map/layer_style/attribute_based_styling",
+  "id": "map/layer_style/attribute_based_styling",
+  "title": "Attribute-based Styling",
+  "description": "GOAT supports attribute-based styling to enhance the visualization of data on maps. This approach allows the visual representation to reflect variations and patterns in the data, making it easier to understand complex spatial information.",
+  "source": "@site/docs/map/layer_style/attribute_based_styling.md",
+  "sourceDirName": "map/layer_style",
+  "slug": "/map/layer_style/attribute_based_styling",
+  "permalink": "/docs/2.0/map/layer_style/attribute_based_styling",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/map/layer_style/attribute_based_styling.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Basic Styling",
+    "permalink": "/docs/2.0/map/layer_style/styling"
+  },
+  "next": {
+    "title": "Filter",
+    "permalink": "/docs/2.0/map/filter"
+  }
+}

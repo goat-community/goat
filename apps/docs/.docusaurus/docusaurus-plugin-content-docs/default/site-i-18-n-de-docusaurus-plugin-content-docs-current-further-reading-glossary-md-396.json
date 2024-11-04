@@ -1,0 +1,27 @@
+{
+  "unversionedId": "further_reading/glossary",
+  "id": "further_reading/glossary",
+  "title": "Glossar",
+  "description": "Erreichbarkeit",
+  "source": "@site/i18n/de/docusaurus-plugin-content-docs/current/further_reading/glossary.md",
+  "sourceDirName": "further_reading",
+  "slug": "/further_reading/glossary",
+  "permalink": "/docs/de/2.0/further_reading/glossary",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/i18n/de/docusaurus-plugin-content-docs/current/further_reading/glossary.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Literature",
+    "permalink": "/docs/de/2.0/category/literature"
+  },
+  "next": {
+    "title": "Wissenschaftliche Veröffentlichungen",
+    "permalink": "/docs/de/2.0/further_reading/publications"
+  }
+}

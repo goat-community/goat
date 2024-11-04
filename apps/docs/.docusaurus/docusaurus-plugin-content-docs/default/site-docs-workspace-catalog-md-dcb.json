@@ -1,0 +1,27 @@
+{
+  "unversionedId": "workspace/catalog",
+  "id": "workspace/catalog",
+  "title": "Catalog",
+  "description": "The Data Catalog is a comprehensive listing of all geospatial datasets available for exploration and analysis. A wide range of datasets are provided by Plan4Better based on official open-data providers and other sources, ensuring that reliable data is immediately available to carry out analysis and visualization within your projects.",
+  "source": "@site/docs/workspace/catalog.md",
+  "sourceDirName": "workspace",
+  "slug": "/workspace/catalog",
+  "permalink": "/docs/2.0/workspace/catalog",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/workspace/catalog.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Datasets",
+    "permalink": "/docs/2.0/workspace/datasets"
+  },
+  "next": {
+    "title": "Settings",
+    "permalink": "/docs/2.0/workspace/settings"
+  }
+}

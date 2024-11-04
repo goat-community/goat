@@ -1,0 +1,27 @@
+{
+  "unversionedId": "map/filter",
+  "id": "map/filter",
+  "title": "Filter",
+  "description": "The Filter can be used to limit the data that is visible on the map. You can thereby either filter by logical expression (e.g. only visualizing supermarkets with a certain name) or by spatial expression (e.g. only showing points within a specific bounding box).",
+  "source": "@site/docs/map/filter.md",
+  "sourceDirName": "map",
+  "slug": "/map/filter",
+  "permalink": "/docs/2.0/map/filter",
+  "draft": false,
+  "editUrl": "https://github.com/goat-community/goat-docs/edit/main/docs/map/filter.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Attribute-based Styling",
+    "permalink": "/docs/2.0/map/layer_style/attribute_based_styling"
+  },
+  "next": {
+    "title": "Toolbox",
+    "permalink": "/docs/2.0/category/toolbox"
+  }
+}

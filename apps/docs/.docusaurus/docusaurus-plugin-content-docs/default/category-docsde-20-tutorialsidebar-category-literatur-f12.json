@@ -1,0 +1,16 @@
+{
+  "title": "Literatur",
+  "description": "Wenn Sie mehr über die Entwicklung von GOAT erfahren und unsere Fachterminologie verstehen möchten, sollten Sie diesen Abschnitt lesen. Im Glossar finden Sie Erklärungen zu den gebräuchlichsten Begriffen. Im Abschnitt Wissenschaftliche Veröffentlichungen finden Sie die wichtigsten Veröffentlichungen über GOAT. Viel Spaß beim Lesen!",
+  "slug": "/category/literature",
+  "permalink": "/docs/de/2.0/category/literature",
+  "navigation": {
+    "previous": {
+      "title": "Auto",
+      "permalink": "/docs/de/2.0/routing/car"
+    },
+    "next": {
+      "title": "Glossar",
+      "permalink": "/docs/de/2.0/further_reading/glossary"
+    }
+  }
+}

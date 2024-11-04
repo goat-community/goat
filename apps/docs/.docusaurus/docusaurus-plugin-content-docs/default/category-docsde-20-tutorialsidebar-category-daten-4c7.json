@@ -1,0 +1,16 @@
+{
+  "title": "Daten",
+  "description": "Qualitativ hochwertige Eingangsdaten sind für die Durchführung von Analysen von entscheidender Bedeutung. GOAT ist daher mit einer Vielzahl solcher Datensätze ausgestattet und erlaubt Ihnen auch, Ihre eigenen hochzuladen.",
+  "slug": "/category/data",
+  "permalink": "/docs/de/2.0/category/data",
+  "navigation": {
+    "previous": {
+      "title": "Willkommen 👋",
+      "permalink": "/docs/de/2.0/"
+    },
+    "next": {
+      "title": "Datensatztypen",
+      "permalink": "/docs/de/2.0/data/dataset_types"
+    }
+  }
+}

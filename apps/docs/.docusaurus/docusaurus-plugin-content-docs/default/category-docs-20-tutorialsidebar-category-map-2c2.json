@@ -1,0 +1,16 @@
+{
+  "title": "Map",
+  "description": "Upon opening a project, you will see the map. Here, you can perform a wide variety of geospatial analyses, compute stats & benchmarks, or visualize and style feature layers.",
+  "slug": "/category/map",
+  "permalink": "/docs/2.0/category/map",
+  "navigation": {
+    "previous": {
+      "title": "Settings",
+      "permalink": "/docs/2.0/workspace/settings"
+    },
+    "next": {
+      "title": "Map Interface",
+      "permalink": "/docs/2.0/map/interface_overview"
+    }
+  }
+}

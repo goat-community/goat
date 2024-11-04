@@ -1,0 +1,273 @@
+{
+  "theme.ErrorPageContent.title": {
+    "message": "Die Seite ist abgestürzt.",
+    "description": "Der Titel der Ausweichseite, wenn die Seite abgestürzt ist"
+  },
+  "theme.NotFound.title": {
+    "message": "Seite nicht gefunden",
+    "description": "Der Titel der 404-Seite"
+  },
+  "theme.NotFound.p1": {
+    "message": "Wir konnten nicht finden, wonach Sie gesucht haben.",
+    "description": "Der erste Absatz der 404-Seite"
+  },
+  "theme.NotFound.p2": {
+    "message": "Bitte kontaktieren Sie den Besitzer der Seite, die Sie mit der ursprünglichen URL verlinkt hat, und teilen Sie ihm mit, dass der Link nicht mehr funktioniert.",
+    "description": "Der 2. Absatz der 404-Seite"
+  },
+  "theme.admonition.note": {
+    "message": "Notiz",
+    "description": "Die Standardbeschriftung für die Ermahnung Notiz (:::note)"
+  },
+  "theme.admonition.tip": {
+    "message": "Tipp",
+    "description": "Die Standardbeschriftung für die Tipps (:::tip)"
+  },
+  "theme.admonition.danger": {
+    "message": "Gefahr",
+    "description": "Die Standardbeschriftung für den Warnhinweis „Gefahr“ (:::danger)"
+  },
+  "theme.admonition.info": {
+    "message": "info",
+    "description": "Die Standardbezeichnung für die Info- Meldung (:::info)"
+  },
+  "theme.admonition.caution": {
+    "message": "Vorsicht",
+    "description": "Die Standardbeschriftung für den Warnhinweis Vorsicht (:::caution)"
+  },
+  "theme.blog.archive.title": {
+    "message": "Archiv",
+    "description": "Der Seiten- und Heldentitel der Blog-Archivseite"
+  },
+  "theme.blog.archive.description": {
+    "message": "Archiv",
+    "description": "Die Seiten- und Heldenbeschreibung der Blog-Archivseite"
+  },
+  "theme.BackToTopButton.buttonAriaLabel": {
+    "message": "Zurück nach oben scrollen",
+    "description": "Die ARIA-Beschriftung für die Schaltfläche „Zurück zum Anfang"
+  },
+  "theme.blog.paginator.navAriaLabel": {
+    "message": "Navigation der Blog-Listenseite",
+    "description": "Das ARIA-Label für die Blog-Pagination"
+  },
+  "theme.blog.paginator.newerEntries": {
+    "message": "Neuere Einträge",
+    "description": "Das Label, mit dem zur Seite mit den neueren Blogeinträgen navigiert wird (vorherige Seite)"
+  },
+  "theme.blog.paginator.olderEntries": {
+    "message": "Ältere Einträge",
+    "description": "Das Label, das zur Navigation zur Seite mit den älteren Blogbeiträgen (nächste Seite) verwendet wird"
+  },
+  "theme.blog.post.paginator.navAriaLabel": {
+    "message": "Blog Post Seiten Navigation",
+    "description": "Das ARIA-Label für die Pagination der Blogbeiträge"
+  },
+  "theme.blog.post.paginator.newerPost": {
+    "message": "Neuer Post",
+    "description": "Das Etikett der Blogpost-Schaltfläche für die Navigation zu einem neueren/vorherigen Beitrag"
+  },
+  "theme.blog.post.paginator.olderPost": {
+    "message": "Älterer Post",
+    "description": "Die Beschriftung der Blogpost-Schaltfläche, um zum älteren/nächsten Beitrag zu navigieren"
+  },
+  "theme.blog.post.plurals": {
+    "message": "Ein Post|{count} Posts",
+    "description": "Pluralisierte Bezeichnung für \"{count} posts\". Verwenden Sie so viele Pluralformen (separated by \"|\") wie Ihre Sprache unterstützt (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.blog.tagTitle": {
+    "message": "{nPosts} getaggt mit \"{tagName}\"",
+    "description": "Der Titel der Seite für ein Blog-Tag"
+  },
+  "theme.tags.tagsPageLink": {
+    "message": "Alle Tags anzeigen",
+    "description": "Die Bezeichnung des Links, der auf die Tag-Listenseite zielt"
+  },
+  "theme.colorToggle.ariaLabel": {
+    "message": "Umschalten zwischen dunkler und heller Ansicht (momentan {mode})",
+    "description": "Die ARIA-Beschriftung für die Umschaltung des Farbmodus der Navigationsleiste"
+  },
+  "theme.colorToggle.ariaLabel.mode.dark": {
+    "message": "dunkler Modus",
+    "description": "Der Name für den dunklen Farbmodus"
+  },
+  "theme.colorToggle.ariaLabel.mode.light": {
+    "message": "heller Modus",
+    "description": "Der Name für den hellen Farbmodus"
+  },
+  "theme.docs.breadcrumbs.navAriaLabel": {
+    "message": "Breadcrumbs",
+    "description": "Das ARIA-Label für die Breadcrumbs"
+  },
+  "theme.docs.DocCard.categoryDescription": {
+    "message": "{count} Einträge",
+    "description": "Die Standardbeschreibung für eine Kategoriekarte im generierten Index, die angibt, wie viele Elemente diese Kategorie umfasst"
+  },
+  "theme.docs.paginator.navAriaLabel": {
+    "message": "Dokumentation Seiten Navigation",
+    "description": "Das ARIA-Label für die Paginierung der Dokumente"
+  },
+  "theme.docs.paginator.previous": {
+    "message": "Zurück",
+    "description": "Das Label, mit dem zum vorherigen Dokument navigiert wird"
+  },
+  "theme.docs.paginator.next": {
+    "message": "Weiter",
+    "description": "Das Label, mit dem zum nächsten Dokument navigiert wird"
+  },
+  "theme.docs.tagDocListPageTitle.nDocsTagged": {
+    "message": "Ein doc getaggt|{count} docs getaggt",
+    "description": "Pluralisiertes Label für \"{count} docs tagged\". Verwenden Sie so viele Pluralformen (separated by \"|\") wie ihre Sprache unterstützt (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.docs.tagDocListPageTitle": {
+    "message": "{nDocsTagged} mit \"{tagName}\"",
+    "description": "der Titel der Seite für ein docs-Tag"
+  },
+  "theme.docs.versionBadge.label": {
+    "message": "Version: {versionLabel}"
+  },
+  "theme.common.editThisPage": {
+    "message": "Diese Seite bearbeiten",
+    "description": "Die Linkbeschriftung zum Bearbeiten der aktuellen Seite"
+  },
+  "theme.docs.versions.unreleasedVersionLabel": {
+    "message": "Das ist die unveröffentlichte Dokumentation für {siteTitle} {versionLabel}.",
+    "description": "Das Label, das den Benutzer darauf hinweist, dass er eine unveröffentlichte Doc-Version durchsucht"
+  },
+  "theme.docs.versions.unmaintainedVersionLabel": {
+    "message": "Das ist die Dokumentation für {siteTitle} {versionLabel} und wird nicht weiter gewartet.",
+    "description": "Das Label, das den Benutzer darauf hinweist, dass er sich in einer nicht gewarteten Dokumentversion befindet"
+  },
+  "theme.docs.versions.latestVersionSuggestionLabel": {
+    "message": "Für die aktuellste Dokumentation bitte auf {latestVersionLink} ({versionLabel}) gehen.",
+    "description": "Das Label, das den Benutzer darauf hinweist, die neueste Version zu prüfen"
+  },
+  "theme.docs.versions.latestVersionLinkLabel": {
+    "message": "aktuelle Version",
+    "description": "Die für die aktuelle Version verwendete Bezeichnung für den Link-Vorschlag"
+  },
+  "theme.common.headingLinkTitle": {
+    "message": "Direkter Link zur {heading}",
+    "description": "Titel für Link zur Überschrift"
+  },
+  "theme.lastUpdated.atDate": {
+    "message": " am {date}",
+    "description": "Die Worte, mit denen beschrieben wird, an welchem Datum eine Seite zuletzt aktualisiert wurde"
+  },
+  "theme.lastUpdated.byUser": {
+    "message": " von {user}",
+    "description": "Die Worte, mit denen beschrieben wird, von wem die Seite zuletzt aktualisiert wurde"
+  },
+  "theme.lastUpdated.lastUpdatedAtBy": {
+    "message": "Letztes Update{atDate}{byUser}",
+    "description": "Der Satz, mit dem angezeigt wird, wann und von wem eine Seite zuletzt aktualisiert wurde"
+  },
+  "theme.navbar.mobileVersionsDropdown.label": {
+    "message": "Versionen",
+    "description": "Die Beschriftung für das Dropdown-Menü der Navbar-Versionen in der Handy-Ansicht"
+  },
+  "theme.tags.tagsListLabel": {
+    "message": "Tags:",
+    "description": "Das Label neben einer Tag-Liste"
+  },
+  "theme.AnnouncementBar.closeButtonAriaLabel": {
+    "message": "Schließen",
+    "description": "Das ARIA-Label für die Schließen-Schaltfläche der Ankündigungsleiste"
+  },
+  "theme.blog.sidebar.navAriaLabel": {
+    "message": "Navigation der letzten Beiträge im Blog",
+    "description": "Das ARIA-Label für die letzten Beiträge in der Blog-Seitenleiste"
+  },
+  "theme.CodeBlock.copied": {
+    "message": "Kopiert",
+    "description": "Die kopierte Schaltflächenbeschriftung auf Codeblöcken"
+  },
+  "theme.CodeBlock.copyButtonAriaLabel": {
+    "message": "In die Zwischenablage kopieren",
+    "description": "Die ARIA-Beschriftung für die Schaltfläche Codeblöcke kopieren"
+  },
+  "theme.CodeBlock.copy": {
+    "message": "Kopieren",
+    "description": "Die Beschriftung der Kopierschaltfläche in Codeblöcken"
+  },
+  "theme.CodeBlock.wordWrapToggle": {
+    "message": "Toggle word wrap",
+    "description": "Das Titelattribut für die Schaltfläche zum Umschalten des Zeilenumbruchs von Codeblöcken"
+  },
+  "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
+    "message": "Umschalten der Seitenleiste mit einklappbarer Kategorie '{label}'",
+    "description": "Das ARIA-Label zum Umschalten der ausklappbaren Seitenleistenkategorie"
+  },
+  "theme.NavBar.navAriaLabel": {
+    "message": "Haupt",
+    "description": "Das ARIA-Label für die Hauptnavigation"
+  },
+  "theme.navbar.mobileLanguageDropdown.label": {
+    "message": "Sprachen",
+    "description": "Die Beschriftung für das Dropdown-Menü der mobilen Sprachumschaltung"
+  },
+  "theme.TOCCollapsible.toggleButtonLabel": {
+    "message": "Auf dieser Seite",
+    "description": "Die Beschriftung der Schaltfläche der ausklappbaren TOC-Komponente"
+  },
+  "theme.blog.post.readMore": {
+    "message": "Mehr lesen",
+    "description": "Das Label, das in Auszügen von Blogeinträgen verwendet wird, um auf vollständige Blogeinträge zu verlinken"
+  },
+  "theme.blog.post.readMoreLabel": {
+    "message": "Mehr lesen über {title}",
+    "description": "Das ARIA-Label für den Link zu vollständigen Blogbeiträgen aus Auszügen"
+  },
+  "theme.blog.post.readingTime.plurals": {
+    "message": "Eine Minute Lesezeit|{readingTime} Minuten Lesezeit",
+    "description": "Pluralisierte Beschriftung für \"{readingTime} min read\". Verwenden Sie so viele Plural Formen (separated by \"|\") wie Ihre Sprache unterstützt (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.docs.breadcrumbs.home": {
+    "message": "Startseite",
+    "description": "Das ARIA-Label für die Startseite in den Breadcrumbs"
+  },
+  "theme.docs.sidebar.collapseButtonTitle": {
+    "message": "Seitenleiste einklappen",
+    "description": "Das Titelattribut für die Schaltfläche „Ausklappen“ der Doc-Seitenleiste"
+  },
+  "theme.docs.sidebar.collapseButtonAriaLabel": {
+    "message": "Seitenleiste einklappen",
+    "description": "Das Titelattribut für die Schaltfläche „Ausklappen“ der Doc-Seitenleiste"
+  },
+  "theme.docs.sidebar.navAriaLabel": {
+    "message": "Docs Seitenleiste",
+    "description": "Das ARIA-Label für die Navigation in der Seitenleiste"
+  },
+  "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+    "message": "Navigationsleiste schließen",
+    "description": "Die ARIA-Beschriftung für die Schließen-Schaltfläche der mobilen Seitenleiste"
+  },
+  "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+    "message": "← Zurück zum Hauptmenü",
+    "description": "Die Bezeichnung des Zurück-Buttons, um zum Hauptmenü zurückzukehren, innerhalb des sekundären Menüs der mobilen Navigationsleiste (insbesondere zur Anzeige der Docs-Seitenleiste)"
+  },
+  "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+    "message": "Umschaltbare Navigationsleiste",
+    "description": "The ARIA label for hamburger menu button of mobile navigation"
+  },
+  "theme.docs.sidebar.expandButtonTitle": {
+    "message": "Seitenleiste ausklappen",
+    "description": "Die ARIA-Beschriftung und das Titel-Attribut für die Schaltfläche „Expandieren“ der Doc-Sidebar"
+  },
+  "theme.docs.sidebar.expandButtonAriaLabel": {
+    "message": "Seitenleiste ausklappen",
+    "description": "Die ARIA-Beschriftung und das Titel-Attribut für die Schaltfläche „Expandieren“ der Doc-Sidebar"
+  },
+  "theme.ErrorPageContent.tryAgain": {
+    "message": "Nochmal versuchen",
+    "description": "Die Beschriftung der Schaltfläche zum erneuten Wiedergeben, wenn die React Error Boundary einen Fehler erfasst"
+  },
+  "theme.common.skipToMainContent": {
+    "message": "Zum Hauptinhalt springen",
+    "description": "Die Kennzeichnung „Zum Inhalt springen“ dient der Barrierefreiheit und ermöglicht eine schnelle Navigation zum Hauptinhalt mit der Tabulator-/Eingabe-Navigation der Tastatur"
+  },
+  "theme.tags.tagsPageTitle": {
+    "message": "Tags",
+    "description": "Der Titel der Tag-Listenseite"
+  }
+}

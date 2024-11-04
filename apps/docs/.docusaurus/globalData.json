@@ -1,0 +1,268 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/docs/de/",
+      "versions": [
+        {
+          "name": "current",
+          "label": "2.0",
+          "isLast": true,
+          "path": "/docs/de/2.0",
+          "mainDocId": "welcome/welcome",
+          "docs": [
+            {
+              "id": "data/data_basis",
+              "path": "/docs/de/2.0/data/data_basis",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "data/data_types",
+              "path": "/docs/de/2.0/data/data_types",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "data/dataset_types",
+              "path": "/docs/de/2.0/data/dataset_types",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "further_reading/glossary",
+              "path": "/docs/de/2.0/further_reading/glossary",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "further_reading/publications",
+              "path": "/docs/de/2.0/further_reading/publications",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "map/filter",
+              "path": "/docs/de/2.0/map/filter",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "map/interface_overview",
+              "path": "/docs/de/2.0/map/interface_overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "map/layer_style/attribute_based_styling",
+              "path": "/docs/de/2.0/map/layer_style/attribute_based_styling",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "map/layer_style/styling",
+              "path": "/docs/de/2.0/map/layer_style/styling",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "map/layers",
+              "path": "/docs/de/2.0/map/layers",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "nerdy_content/architecture",
+              "path": "/docs/de/2.0/nerdy_content/architecture",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "routing/bicycle",
+              "path": "/docs/de/2.0/routing/bicycle",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "routing/car",
+              "path": "/docs/de/2.0/routing/car",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "routing/public_transport",
+              "path": "/docs/de/2.0/routing/public_transport",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "routing/walking",
+              "path": "/docs/de/2.0/routing/walking",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "Scenarios/Scenarios",
+              "path": "/docs/de/2.0/Szenarien",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "sharing/sharing",
+              "path": "/docs/de/2.0/sharing",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/accessibility_indicators/catchments",
+              "path": "/docs/de/2.0/toolbox/accessibility_indicators/catchments",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/accessibility_indicators/closest_average",
+              "path": "/docs/de/2.0/toolbox/accessibility_indicators/closest_average",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/accessibility_indicators/connectivity",
+              "path": "/docs/de/2.0/toolbox/accessibility_indicators/connectivity",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/accessibility_indicators/gravity",
+              "path": "/docs/de/2.0/toolbox/accessibility_indicators/gravity",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/accessibility_indicators/nearby_stations",
+              "path": "/docs/de/2.0/toolbox/accessibility_indicators/nearby_stations",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/accessibility_indicators/oev_gueteklassen",
+              "path": "/docs/de/2.0/toolbox/accessibility_indicators/oev_gueteklassen",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/accessibility_indicators/pt_trip_count",
+              "path": "/docs/de/2.0/toolbox/accessibility_indicators/pt_trip_count",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/data_management/join",
+              "path": "/docs/de/2.0/toolbox/data_management/join",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/data_management/spatial_join",
+              "path": "/docs/de/2.0/toolbox/data_management/spatial_join",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/geoanalysis/aggregate_points",
+              "path": "/docs/de/2.0/toolbox/geoanalysis/aggregate_points",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/geoanalysis/aggregate_polygons",
+              "path": "/docs/de/2.0/toolbox/geoanalysis/aggregate_polygons",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/geoanalysis/origin_destination",
+              "path": "/docs/de/2.0/toolbox/geoanalysis/origin_destination",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "toolbox/geoprocessing/buffer",
+              "path": "/docs/de/2.0/toolbox/geoprocessing/buffer",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "welcome/welcome",
+              "path": "/docs/de/2.0/",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "workspace/catalog",
+              "path": "/docs/de/2.0/workspace/catalog",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "workspace/datasets",
+              "path": "/docs/de/2.0/workspace/datasets",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "workspace/home",
+              "path": "/docs/de/2.0/workspace/home",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "workspace/projects",
+              "path": "/docs/de/2.0/workspace/projects",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "workspace/settings",
+              "path": "/docs/de/2.0/workspace/settings",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/data",
+              "path": "/docs/de/2.0/category/data",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/workspace",
+              "path": "/docs/de/2.0/category/workspace",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/map",
+              "path": "/docs/de/2.0/category/map",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/layer-styling",
+              "path": "/docs/de/2.0/category/layer-styling",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/toolbox",
+              "path": "/docs/de/2.0/category/toolbox",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/accessibility-indicators",
+              "path": "/docs/de/2.0/category/accessibility-indicators",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/data-management",
+              "path": "/docs/de/2.0/category/data-management",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/geoanalysis",
+              "path": "/docs/de/2.0/category/geoanalysis",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/geoprocessing",
+              "path": "/docs/de/2.0/category/geoprocessing",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/routing",
+              "path": "/docs/de/2.0/category/routing",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/literature",
+              "path": "/docs/de/2.0/category/literature",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "/category/technical-insights",
+              "path": "/docs/de/2.0/category/technical-insights",
+              "sidebar": "tutorialSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "tutorialSidebar": {
+              "link": {
+                "path": "/docs/de/2.0/",
+                "label": "Willkommen 👋"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}
