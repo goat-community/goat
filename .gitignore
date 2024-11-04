@@ -1,70 +1,63 @@
-/app/database/data/*
-/app/database/scripts/db
-!/app/data/.gitkeep
-/app/geoserver/geoserver_data/logs/*
-/app/config/db/spaces.yaml
-/app/node/node_modules
-/app/database/backups
-/app/database/data_preparation/Python/__pycache__
-/app/database/scripts/__pycache__
-/app/api/src/exts/cpp/src/isochrone.cpython-39-x86_64-linux-gnu.so
-node_modules
+# Common
+.dockerignore
 .env
-/.vscode
-r5-cache
-/app/api/app/app/exts/cpp/build
-__pycache__
-/app/api/src/data/*
-!/app/api/src/data/.gitkeep
-r5-cache
-/app/api/src/cache
-.next
+.git
+.gitignore
+.vs
+.vscode
+docker-compose*.yml
+*.md
+hosts
+LICENSE
+cache
 
-/app/api/src/cache/traveltime_matrices/walking/*
-/app/api/src/cache/traveltime_matrices/cycling/*
-/app/api/src/cache/traveltime_matrices/public_transport/*
-!/app/api/src/cache/traveltime_matrices/walking/standard/.gitkeep
-!/app/api/src/cache/traveltime_matrices/cycling/.gitkeep
-!/app/api/src/cache/traveltime_matrices/public_transport/.gitkeep
-/app/api/src/cache/opportunity_matrices/walking/*
-/app/api/src/cache/opportunity_matrices/cycling/*
-/app/api/src/cache/opportunity_matrices/public_transport/*
-!/app/api/src/cache/opportunity_matrices/walking/standard/.gitkeep
-!/app/api/src/cache/opportunity_matrices/cycling/.gitkeep
-!/app/api/src/cache/opportunity_matrices/public_transport/.gitkeep
-/app/api/src/cache/parquet-h3-tiles/*
-!/app/api/src/cache/parquet-h3-tiles/.gitkeep
-/app/api/src/cache/
-/app/api/tmp/
+# Node
+## Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-/app/api/src/cache/traveltime_matrices/walking/*
-/app/api/src/cache/traveltime_matrices/cycling/*
-/app/api/src/cache/traveltime_matrices/public_transport/*
-!/app/api/src/cache/traveltime_matrices/walking/standard/.gitkeep
-!/app/api/src/cache/traveltime_matrices/cycling/.gitkeep
-!/app/api/src/cache/traveltime_matrices/public_transport/.gitkeep
-/app/api/src/cache/opportunity_matrices/walking/*
-/app/api/src/cache/opportunity_matrices/cycling/*
-/app/api/src/cache/opportunity_matrices/public_transport/*
-!/app/api/src/cache/opportunity_matrices/walking/standard/.gitkeep
-!/app/api/src/cache/opportunity_matrices/cycling/.gitkeep
-!/app/api/src/cache/opportunity_matrices/public_transport/.gitkeep
-/app/api/src/cache/
-/app/api/tmp/
+## Dependency directories
+**/bin/
+**/obj/
+**/node_modules/
+**/bower_components/
+**/wwwroot/lib/*
 
-/docs/.docusaurus
+# dependencies
+node_modules
+.pnp
+.pnp.js
+.pnpm-store/
 
-# Unit test / coverage reports 
-.coverage
-coverage.xml
-cache*
+# testing
+coverage
 
-# Temporary files
-NearestNDInterpolate.png
-costs.bin
+# next.js
+.next/
+out/
+build
+
+# misc
 .DS_Store
+*.pem
 
-.terraform
-*.tfstate
-*.tfvars
-*.pkrvars*
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# turbo
+.turbo
+
+# vercel
+.vercel
+
+# others
+build_keycloak
+storybook-static
+*.jar
+/.idea

@@ -1,0 +1,66 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "**/.env"
+  ],
+  "pipeline": {
+    "build": {
+      "outputs": [
+        "dist/**",
+        ".next/**"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": [
+        "^lint",
+        "^build"
+      ],
+      "outputs": []
+    },
+    "generate": {
+      "dependsOn": [
+        "^generate"
+      ]
+    },
+    "lint": {
+      "cache": false
+    },
+    "lint:fix": {
+      "cache": false
+    },
+    "lint:report": {
+      "cache": false,
+      "outputs": [
+        "lint-results"
+      ]
+    },
+    "clean": {},
+    "typecheck": {
+      "cache": false
+    }
+  },
+  "globalEnv": [
+    "ANALYZE",
+    "NEXT_PUBLIC_APP_URL",
+    "NEXT_PUBLIC_MAP_TOKEN",
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_GEOAPI_URL",
+    "NEXT_PUBLIC_ACCOUNTS_API_URL",
+    "NEXTAUTH_URL",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "NEXT_RUNTIME",
+    "NEXTAUTH_SECRET",
+    "KEYCLOAK_CLIENT_SECRET",
+    "NEXT_PUBLIC_KEYCLOAK_CLIENT_ID",
+    "NEXT_PUBLIC_KEYCLOAK_ISSUER",
+    "NODE_ENV",
+    "NEXT_PUBLIC_APP_ENVIRONMENT"
+  ]
+}

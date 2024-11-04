@@ -1,0 +1,78 @@
+name: "Checks"
+
+on:
+  workflow_call:
+    outputs:
+      client-goat:
+        description: "Client goat changed"
+        value: ${{ jobs.checks.outputs.client-goat }}
+
+      keycloak-theme:
+        description: "Keycloak theme changed"
+        value: ${{ jobs.checks.outputs.keycloak-theme }}
+
+      storybook:
+        description: "Storybook changed"
+        value: ${{ jobs.checks.outputs.storybook }}
+
+      sha-short:
+        description: "Short sha"
+        value: ${{ jobs.checks.outputs.sha-short }}
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      pull-requests: read
+      contents: read
+    outputs:
+      client-goat: ${{ steps.changes.outputs.client-goat }}
+      keycloak-theme: ${{ steps.changes.outputs.keycloak-theme }}
+      storybook: ${{ steps.changes.outputs.storybook }}
+      sha-short: ${{ steps.sha-short.outputs.sha-short }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Checkout PR
+        uses: goat-community/.github/.github/actions/pr-git-checkout@main
+
+      - name: 🕵️ Detect changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            client-goat:
+                - 'apps/web/**'
+                - 'packages/**'
+                - '.prettier*'
+                - 'pnpm-lock.yaml'
+
+            keycloak-theme:
+                - 'packages/keycloak-theme/**'
+                - 'packages/eslint-config-p4b/**'
+                - 'packages/prettier-config/**'
+                - 'packages/tsconfig/**'
+                - 'packages/types/**'
+                - 'packages/ui/**'
+                - '.prettier*'
+                - 'pnpm-lock.yaml'
+
+            storybook:
+                - 'apps/storybook/**'
+                - 'packages/ui/**'
+                - 'packages/eslint-config-p4b/**'
+                - 'packages/prettier-config/**'
+                - 'packages/tsconfig/**'
+                - 'packages/types/**'
+                - '.prettier*'
+                - 'pnpm-lock.yaml'
+          
+      - name: 🕵️ Set sha-short
+        id: sha-short
+        run: echo "sha-short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+
+

@@ -1,0 +1,24 @@
+body {
+  background-color: black;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0;
+}
+
+.teamsImage {
+  width: 400px;
+  height: 300px;
+}
+
+@media (max-width: 600px) {
+  .teamsImage {
+    width: 250px;
+    height: 200px;
+  }
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

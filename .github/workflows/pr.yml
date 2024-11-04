@@ -1,0 +1,78 @@
+# **what?**
+# Runs code quality checks, unit tests, integration tests and. This workflow
+# should not require any secrets since it runs for PRs from forked repos. By
+# default, secrets are not passed to workflows running from a forked repos.
+
+# **why?**
+# Ensure code for meets a certain quality standard.
+
+# **when?**
+# This will run for all PRs, when code is pushed to a release
+# branch, and when manually triggered.
+
+name: "Client - PR"
+
+on:
+  pull_request:
+    branches: [main]
+  pull_request_target:
+    branches: [main]
+  merge_group:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  file-changes:
+    name: file-changes
+    uses: ./.github/workflows/checks.yml
+    secrets: inherit
+
+  pr-base:
+    name: pr-base
+    uses: "goat-community/.github/.github/workflows/reusable-pr-base.yml@main"
+    permissions:
+      contents: none
+      issues: read
+      pull-requests: write
+    secrets: inherit
+
+  typecheck:
+    name: typecheck
+    uses: ./.github/workflows/typecheck.yml
+    secrets: inherit
+
+  lint:
+    name: lint
+    uses: ./.github/workflows/lint.yml
+    secrets: inherit
+
+  build-goat:
+    name: build
+    needs: file-changes
+    if: ${{ needs.file-changes.outputs.client-goat == 'true' || needs.file-changes.outputs.storybook == 'true' }}
+    uses: ./.github/workflows/production-build.yml
+    secrets: inherit
+
+  analyze-goat:
+    name: analyze-goat
+    needs: build-goat
+    uses: ./.github/workflows/nextjs-bundle-analysis.yml
+    secrets: inherit
+
+  build-keycloak:
+    name: build-keycloak
+    needs: file-changes
+    if: ${{ needs.file-changes.outputs.keycloak-theme == 'true' }}
+    uses: ./.github/workflows/keycloak-build.yml
+
+  required:
+    needs: [lint, typecheck, build-goat, analyze-goat, build-keycloak]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: fail if conditional jobs failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
+        run: exit 1

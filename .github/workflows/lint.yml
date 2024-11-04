@@ -1,0 +1,42 @@
+name: "Lint"
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        
+      - name: 📥 Checkout PR
+        uses: goat-community/.github/.github/actions/pr-git-checkout@main
+
+      - name: 📥 Monorepo install
+        uses: goat-community/.github/.github/actions/pnpm-install@main
+        with:
+          enable-corepack: true
+          cwd: ${{ github.workspace }}
+
+      - name: 🔬 Run Linting with Reports
+        run: pnpm run lint:report
+        continue-on-error: true
+
+      - name: 🔬 Merge lint reports
+        run: jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json
+
+      - name: 🔬 Annotate Code Linting Results
+        uses: ataylorme/eslint-annotate-action@v2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          report-json: ${{ github.workspace }}/lint-results/eslint_report.json
+          only-pr-files: false
+
+      - name: 🔬 Upload ESLint report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint-results
+          path: ${{ github.workspace }}/lint-results

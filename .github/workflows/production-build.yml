@@ -1,0 +1,28 @@
+name: "Production Build"
+
+on:
+  workflow_call:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Checkout PR
+        uses: goat-community/.github/.github/actions/pr-git-checkout@main
+
+      - name: 📥 Monorepo install
+        uses: goat-community/.github/.github/actions/pnpm-install@main
+        with:
+          enable-corepack: true
+          cwd: ${{ github.workspace }}
+
+      - name: 🏗️ GOAT build
+        uses: ./.github/actions/pnpm-cache-build
+        with:
+          cwd: ${{ github.workspace }}

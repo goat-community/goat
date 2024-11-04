@@ -1,0 +1,28 @@
+name: "Check Types"
+on:
+  workflow_call:
+
+env:
+  NODE_OPTIONS: "--max-old-space-size=8192"
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Checkout PR
+        uses: goat-community/.github/.github/actions/pr-git-checkout@main
+
+      - name: 📥 Monorepo install
+        uses: goat-community/.github/.github/actions/pnpm-install@main
+        with:
+          enable-corepack: true
+          cwd: ${{ github.workspace }}
+
+      - name: 📊 Show Info
+        run: node -e "console.log(require('v8').getHeapStatistics())"
+
+      - name: 🕵️ Typecheck
+        run: pnpm run typecheck

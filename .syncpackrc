@@ -1,0 +1,10 @@
+{
+  "versionGroups": [
+    {
+      "dependencyTypes": ["dev"],
+      "dependencies": ["@p4b/**"],
+      "packages": ["**"],
+      "pinVersion": "workspace:*"
+    }
+  ]
+}
