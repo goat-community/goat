@@ -61,3 +61,7 @@ build_keycloak
 storybook-static
 *.jar
 /.idea
+
+# Docs files
+.docusaurus
+.cache-loader

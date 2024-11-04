@@ -17,6 +17,8 @@
     "web": "dotenv -- turbo run dev --filter=web",
     "storybook": "turbo run dev --filter=storybook",
     "build-storybook": "turbo run build --filter=storybook",
+    "docs": "turbo run dev --filter=docs",
+    "build-docs": "turbo run build --filter=docs",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
