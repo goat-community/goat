@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Storybook Debug",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "cd apps/storybook && pnpm run storybook",
+      "internalConsoleOptions": "openOnFirstSessionStart",
+      "serverReadyAction": {
+        "pattern": "Local:.+(https?://[^:]+:[0-9]+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
+      }
+    },
+    {
+      "name": "GOAT Debug (Server-Side)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm run web"
+    },
+    {
+      "name": "GOAT Debug (Client)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "GOAT Debug (Full Stack)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm run web",
+      "serverReadyAction": {
+        "pattern": "started server on .+, url: (https?://.+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
+      }
+    },
+  ]
+}
