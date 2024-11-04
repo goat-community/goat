@@ -24,6 +24,7 @@ coverage
 # next.js
 .next/
 out/
+!apps/docs/**/out/
 build
 
 # misc

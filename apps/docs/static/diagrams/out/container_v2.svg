@@ -1,0 +1,1867 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="1253px" preserveAspectRatio="none" style="width:1439px;height:1253px;background:#FFFFFF;" version="1.1" viewBox="0 0 1439 1253" width="1439px" zoomAndPan="magnify"><defs/><g><rect fill="none" height="26.2969" id="_title" style="stroke:none;stroke-width:1.0;" width="246" x="589.7317" y="5"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="236" x="594.7317" y="22.9951">Container Diagram (C4 Model)</text><!--MD5=[84dda40acb3410cad7262261daba2aaf]
+cluster c1--><g id="cluster_c1"><rect fill="none" height="321" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="243" x="199.4633" y="233.2969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="142" x="249.9633" y="270.1484">Web Application</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="289.9633" y="285.0605">[System]</text></g><!--MD5=[575edd5936f6f92dcb72b4d9c417533a]
+cluster a1--><g id="cluster_a1"><rect fill="none" height="612.5" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="272" x="19.4633" y="621.7969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="130" x="90.4633" y="658.6484">Authentication</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="124.4633" y="673.5605">[System]</text></g><!--MD5=[c26638a81821cf585a88e29a60357529]
+cluster s1--><g id="cluster_s1"><rect fill="none" height="630" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="287" x="331.4633" y="604.2969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="118" x="415.9633" y="641.1484">Authorization</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="443.9633" y="656.0605">[System]</text></g><!--MD5=[6263a3a756bfed72f50c9e30d30aff15]
+cluster a2--><g id="cluster_a2"><rect fill="none" height="634" rx="2.5" ry="2.5" style="stroke:#444444;stroke-width:1.0;stroke-dasharray:7.0,7.0;" width="775" x="658.4633" y="613.2969"/><text fill="#444444" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="152" x="969.9633" y="650.1484">GOAT Application</text><text fill="#444444" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="62" x="1014.9633" y="665.0605">[System]</text></g><!--MD5=[4a65e84059005d12693a083370a06717]
+entity client--><g id="elem_client"><rect fill="#438DD5" height="163.4531" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="175" x="242.9633" y="367.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="293.4633" y="388.4355">«container»</text><image height="48" width="48" x="306.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADHUlEQVR4Xu2YT4oVMRDG5245gBd4B5gLzAE8gK5ciTsXs3D5dq7EneDGhcgThAEZGBhQVFAEof3oH68oq5J0Rtt/0OHj0Z1UJV/qX9LvpNx5+U/hJHf9XWyElrARWsJ/Tuju48vzZ9f6PX34Jo96SMCE82gHo4R2D15//PJtcu1w9blKS50a8pKX77/euvcqS1YxSog17j+9ErOzRxf7F+9YTDbwYtavB4lJWCp6fX7xKc9ZxRAhzZsn1aZhSb+96lfyXvLJ4YP6B400ROj2/q1mrEaDLIRTBAyTZVCXwfJQxhAhUenMCKcpuc8gxdZ+MlYgZCGshzxa5jBfmRA2128eIj7kKcK5Grwd9YwhQmxR+RL6QwbpoSNWrREZQ4QEzShj8Ezm40f6sRDWgpOWt7RaP8sEqmKoeItNWlLRr5DnrGKBkCyBI6xpARmDJFdayVqCdi/wbIVAYtK1+q4H9YQSldEkJCo+fYhZEps6qSWzFoAuQUMASd1mE8tOPNUJWWnxe9IWIYHNbFLZRuwFixKSgCogFfOXprKzJcc+qBBCJ58AZqTJBbh4eKdYrSKQEQ7lW9NirWohjYT85gLwFA2uMkm4AugVO2VhDzv48lAkxJ5aRRln2Y45E0Iz3U6pNN3suJsRYls3IlQ1tulmr0VCHZcxRPORbp3T7DL6+y4rx73ldIuEirtRBOmfCGrLeT+PBXXoBxVC5Vg8WNhoWcElkrxbSXv/Oh2jJ6S9HS/ZWaBOqMwOshqtSS2NmZfOrAUojHiKvUndl9lWjJYOIUAp84ESjg7x3s0nBtCredyToGmHHSpggZABf/mzabAd1j1cgerY5AK5HD+7WFIGk1UEOxb4cAvXjzxtFUOEWkUMTuGClq+q61/QOnfQcIX1VhxRzxgi9IuXfAycLVfFCoTsrtIqLesT6syIp/ofiv39BAwRIsvCuW0nAP2SIagP6SJFf/VEyxgiVNwnzm7+5GidAOa+/Y9/NrTCK2OUkAyAU6y1rsan6e8YVcVB85RxQuBs/hxTAi8uQOU8/31/WP0xbISWsBFawkZoCd8BxQnrYvxstngAAAAASUVORK5CYII=" y="391.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="50" x="305.4633" y="454.1172">Client</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="118" x="271.4633" y="469.0293">[React.js &amp; Next.js]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="328.4633" y="484.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="151" x="252.9633" y="501.1514">Frontend of the GOAT</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="74" x="293.4633" y="517.4482">application</text></g><!--MD5=[e29493a8775effcafa538aa0485107d1]
+entity auth--><g id="elem_auth"><rect fill="#438DD5" height="163.4531" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="205" x="62.9633" y="755.7969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="128.4633" y="776.9355">«container»</text><image height="48" width="48" x="141.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACsklEQVR4Xu2XT0ocQRTGvVsfYC7gAbyAB8gB4sqVuMvCRZbusgruAm5ciBgICCIIgiEJRASh86M/eBT9OlWvq0oUdPgW3W96pn7z1ftTszV8PH9V2vKhl9U7UElvAGizf7F9+N3Hg+oPhI6+3flgUP2BcOj06o+PB9Uf6MPx9dfLXz4eVH+gy9u/Bye3Ph5UZ6C9LzfjOLJr/q2gegKxWdC02DN0BJI3Leks9QE6Pruf0bBrIOKZfzivViAWJouhscoiQh8iWNcem4BY8ubnIzQ4pAiW/H54stsK1QPhhGisL3PxkklNxqR5oxJraYlSJRD2jNPLEkWZtPPph394lZqA2DKLiG/385V/eJUqgRA05K/dcp3uYLXqgZQ0tmXKaF60H/9wXPVAiBRO249MSm2rUBPQMNWa5Q0X7ZnUCjRMPtl4Vy+o69FSB6Bh8kYXwC22aYiDZ5J1QBqZ9OLFfqMp5uPg8ikaFf4VsaJA1BRfR6kvokizxTbu7wcfB8t/MFUIyMYWFcSm4BDS6QLJM7xB7BfcMsMPNbWGvEkhIIkvkvm2tqRblgcO/zIZDWWxKawAMuV/4v+kplA8sq0GYjsWM9eEQ6w984kI3hRphjogdT9lKLsgca1OrZedGFV6KOjraqBh8kCZpNFhIkJ81qYzVbmoGqBnVQ0QlZWOi1RKoMW3gqoBsjQap85EMulsZMGx4RASBSIVqBGrHWzAJyWyoXCrtplpRUUVgDBfzTdSsXlpN318phwQX6GfTvm0/Gjc1Wzxb3nlgNRCNMXGqfFgFYZpkNkss4lmQ01Zzw5qE4krzXVY8AulygGl4ruURrakVkVQ6kJzzYaa1Zr6lp4pFmAUSBKTJgPaTMcuExEeMO7Z5A9u+jogSempVSUNBxv72s3UpLhqgJ5V70AlvTqgf2H6uTXfTevfAAAAAElFTkSuQmCC" y="779.7656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="114" x="108.4633" y="842.6172">Keycloak API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="66" x="132.4633" y="857.5293">[Keycloak]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="163.4633" y="873.3545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="181" x="72.9633" y="889.6514">Handles authentication for</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="145.4633" y="905.9482">GOAT</text></g><!--MD5=[263a8629702241d41d1d44763e07634b]
+entity authdb--><g id="elem_authdb"><path d="M78.4633,1048.2969 C78.4633,1038.2969 165.4633,1038.2969 165.4633,1038.2969 C165.4633,1038.2969 252.4633,1038.2969 252.4633,1048.2969 L252.4633,1200.75 C252.4633,1210.75 165.4633,1210.75 165.4633,1210.75 C165.4633,1210.75 78.4633,1210.75 78.4633,1200.75 L78.4633,1048.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M78.4633,1048.2969 C78.4633,1058.2969 165.4633,1058.2969 165.4633,1058.2969 C165.4633,1058.2969 252.4633,1058.2969 252.4633,1048.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="128.4633" y="1073.4355">«container»</text><image height="48" width="48" x="141.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="1076.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="83" x="123.9633" y="1139.1172">Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="125.4633" y="1154.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="163.4633" y="1169.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="138" x="94.4633" y="1186.1514">Holds user data and</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="154" x="88.4633" y="1202.4482">keycloak configuration</text></g><!--MD5=[2d3c5e0b954a749fced3fb92086cf371]
+entity author--><g id="elem_author"><rect fill="#438DD5" height="198.375" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="220" x="374.4633" y="738.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="447.4633" y="759.4355">«container»</text><image height="48" width="48" x="460.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACUElEQVR4Xu2XMUoEQRBFvVsfwAt4AC/gATyARkZiZmBguJmRmAkmBiIrCAuysCAoKiiCMH62mGa2qrq6a3oGhd3PD3aH6a431TXVPVvh4O5feUte+ltvgHKuBdo+uod3Th7oh7zB6z5A+5Onye3L/PW70YTrl9O3vfOZHFhiHxDCvH/9cISEbmYfPXLmAMLsFAlMyEEJ2XTxKeex7QDCSlEYem7UzWp0Xd61cwAdXsybZYnEKyVJOrt+llMZdgAdXy0oBlIVWr6sUP5yKsN9gFxaJyBUMRZLNaJykFZDAu2ePqJQkJis0XI4SCsC6s5DJZiyDgSUVCP2ioDY+4i/CCHj6kC4tTu4UipQs9o+MkBD5YaUAoKwfDI6B0Jj5ePqRI1RBVI3Fg6E8XxcnVDOmJZfbSV3Xw4Eaj6oTghpZF3udByIj6gTpcd4SFlGYwHhzaB+Y/TMRmubK0DxxGMIj4tI8cyqmmZD+zByQ8K5ygIKuQzREmDhMRGCGVZfK6kqIFpvewm8yixZSHdFPHEoPgOVi1JuAaUSQI+Swu0t1GIGKJUDu7/1E2U9A5SKOgaQetxWgNTdYwwguW/oQEHrrYMDyXK2gMKymHAOjH2F2i6ftSPZilK2P7STQKo5RUeyX7PGXejBgAzJeQyvARC6C+oPNRe3MzmP4eGB4hEn9lg5j2EfUMnWwYCm2sHZsA8otbEw0QchLZn9WSjtAwrOL/xU9zPsBgrLj/zUoYCE3OAGuZOXuA9QNH38Y+9D8wUBfuBvP47oKqAxvAHKeQOU8y9QdXNx2ULofAAAAABJRU5ErkJggg==" y="762.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="138" x="412.4633" y="825.1172">Authorization &amp;</text><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="119" x="424.9633" y="843.7422">Accounts API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="130" x="419.4633" y="858.6543">[Python and FastAPI]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="482.4633" y="874.4795"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="200" x="384.4633" y="890.7764">It manages the subscriptions</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="144" x="410.4633" y="907.0732">and features that are</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="167" x="400.9633" y="923.3701">accessible by the users.</text></g><!--MD5=[16b9548f44a0e814c7c2afed2a6528fc]
+entity authordb--><g id="elem_authordb"><path d="M374.4633,1048.2969 C374.4633,1038.2969 484.4633,1038.2969 484.4633,1038.2969 C484.4633,1038.2969 594.4633,1038.2969 594.4633,1048.2969 L594.4633,1200.75 C594.4633,1210.75 484.4633,1210.75 484.4633,1210.75 C484.4633,1210.75 374.4633,1210.75 374.4633,1200.75 L374.4633,1048.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M374.4633,1048.2969 C374.4633,1058.2969 484.4633,1058.2969 484.4633,1058.2969 C484.4633,1058.2969 594.4633,1058.2969 594.4633,1048.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="447.4633" y="1073.4355">«container»</text><image height="48" width="48" x="460.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="1076.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="172" x="398.4633" y="1139.1172">Accounts Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="444.4633" y="1154.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="482.4633" y="1169.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="200" x="384.4633" y="1186.1514">Holds the user data and their</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="97" x="435.9633" y="1202.4482">subscriptions.</text></g><!--MD5=[61e1faea918c873f307ee5e790a7431e]
+entity applicationapi--><g id="elem_applicationapi"><rect fill="#438DD5" height="179.75" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="219" x="954.9633" y="747.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="1027.4633" y="768.4355">«container»</text><image height="48" width="48" x="1040.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACUElEQVR4Xu2XMUoEQRBFvVsfwAt4AC/gATyARkZiZmBguJmRmAkmBiIrCAuysCAoKiiCMH62mGa2qrq6a3oGhd3PD3aH6a431TXVPVvh4O5feUte+ltvgHKuBdo+uod3Th7oh7zB6z5A+5Onye3L/PW70YTrl9O3vfOZHFhiHxDCvH/9cISEbmYfPXLmAMLsFAlMyEEJ2XTxKeex7QDCSlEYem7UzWp0Xd61cwAdXsybZYnEKyVJOrt+llMZdgAdXy0oBlIVWr6sUP5yKsN9gFxaJyBUMRZLNaJykFZDAu2ePqJQkJis0XI4SCsC6s5DJZiyDgSUVCP2ioDY+4i/CCHj6kC4tTu4UipQs9o+MkBD5YaUAoKwfDI6B0Jj5ePqRI1RBVI3Fg6E8XxcnVDOmJZfbSV3Xw4Eaj6oTghpZF3udByIj6gTpcd4SFlGYwHhzaB+Y/TMRmubK0DxxGMIj4tI8cyqmmZD+zByQ8K5ygIKuQzREmDhMRGCGVZfK6kqIFpvewm8yixZSHdFPHEoPgOVi1JuAaUSQI+Swu0t1GIGKJUDu7/1E2U9A5SKOgaQetxWgNTdYwwguW/oQEHrrYMDyXK2gMKymHAOjH2F2i6ftSPZilK2P7STQKo5RUeyX7PGXejBgAzJeQyvARC6C+oPNRe3MzmP4eGB4hEn9lg5j2EfUMnWwYCm2sHZsA8otbEw0QchLZn9WSjtAwrOL/xU9zPsBgrLj/zUoYCE3OAGuZOXuA9QNH38Y+9D8wUBfuBvP47oKqAxvAHKeQOU8y9QdXNx2ULofAAAAABJRU5ErkJggg==" y="771.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="134" x="997.4633" y="834.1172">GOAT Core API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="130" x="999.4633" y="849.0293">[Python and FastAPI]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="1062.4633" y="864.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="195" x="964.9633" y="881.1514">It bundles the GOAT specific</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="186" x="969.4633" y="897.4482">analyses and interacts with</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="158" x="985.4633" y="913.7451">the content meta data.</text></g><!--MD5=[ad3f4671e9daba7bacd6e35e099a431e]
+entity geoapi--><g id="elem_geoapi"><rect fill="#438DD5" height="179.75" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="199" x="701.9633" y="747.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="764.4633" y="768.4355">«container»</text><image height="48" width="48" x="777.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACUElEQVR4Xu2XMUoEQRBFvVsfwAt4AC/gATyARkZiZmBguJmRmAkmBiIrCAuysCAoKiiCMH62mGa2qrq6a3oGhd3PD3aH6a431TXVPVvh4O5feUte+ltvgHKuBdo+uod3Th7oh7zB6z5A+5Onye3L/PW70YTrl9O3vfOZHFhiHxDCvH/9cISEbmYfPXLmAMLsFAlMyEEJ2XTxKeex7QDCSlEYem7UzWp0Xd61cwAdXsybZYnEKyVJOrt+llMZdgAdXy0oBlIVWr6sUP5yKsN9gFxaJyBUMRZLNaJykFZDAu2ePqJQkJis0XI4SCsC6s5DJZiyDgSUVCP2ioDY+4i/CCHj6kC4tTu4UipQs9o+MkBD5YaUAoKwfDI6B0Jj5ePqRI1RBVI3Fg6E8XxcnVDOmJZfbSV3Xw4Eaj6oTghpZF3udByIj6gTpcd4SFlGYwHhzaB+Y/TMRmubK0DxxGMIj4tI8cyqmmZD+zByQ8K5ygIKuQzREmDhMRGCGVZfK6kqIFpvewm8yixZSHdFPHEoPgOVi1JuAaUSQI+Swu0t1GIGKJUDu7/1E2U9A5SKOgaQetxWgNTdYwwguW/oQEHrrYMDyXK2gMKymHAOjH2F2i6ftSPZilK2P7STQKo5RUeyX7PGXejBgAzJeQyvARC6C+oPNRe3MzmP4eGB4hEn9lg5j2EfUMnWwYCm2sHZsA8otbEw0QchLZn9WSjtAwrOL/xU9zPsBgrLj/zUoYCE3OAGuZOXuA9QNH38Y+9D8wUBfuBvP47oKqAxvAHKeQOU8y9QdXNx2ULofAAAAABJRU5ErkJggg==" y="771.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="73" x="764.9633" y="834.1172">GEO API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="130" x="736.4633" y="849.0293">[Python and FastAPI]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="799.4633" y="864.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="175" x="711.9633" y="881.1514">It bundles the geoservice</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="172" x="713.4633" y="897.4482">namely OGC Feature and</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="81" x="760.9633" y="913.7451">Vector tiles.</text></g><!--MD5=[4da1a7c9c0edb2823027a65420f34db0]
+entity applicationdb--><g id="elem_applicationdb"><path d="M690.4633,1048.2969 C690.4633,1038.2969 800.4633,1038.2969 800.4633,1038.2969 C800.4633,1038.2969 910.4633,1038.2969 910.4633,1048.2969 L910.4633,1200.75 C910.4633,1210.75 800.4633,1210.75 800.4633,1210.75 C800.4633,1210.75 690.4633,1210.75 690.4633,1200.75 L690.4633,1048.2969 " fill="#438DD5" style="stroke:#3C7FC0;stroke-width:0.5;"/><path d="M690.4633,1048.2969 C690.4633,1058.2969 800.4633,1058.2969 800.4633,1058.2969 C800.4633,1058.2969 910.4633,1058.2969 910.4633,1048.2969 " fill="none" style="stroke:#3C7FC0;stroke-width:0.5;"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="763.4633" y="1073.4355">«container»</text><image height="48" width="48" x="776.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAADAklEQVR4Xu2XQWoVQRCGc7c+wLtADuAFPIAHMCtXwZ0LFy6zcyXZCW5ciEQQAhIICIoKBkEYP/rHpujqqp4XRwz4Hj/DvHrV3V9X1VTPOyoP39wpHXnTv9UBaKYD0Ez/B9Du0dv7zy5Pnl9J3GPxbkPNgR6cfXh1+e3rzU+0LMvV5x98PT2/vvfkPb+y3sX19+X3Bx8cuMF49vqThD8WrpD5+TtlQGyLeZkIpuPH72Thhq9PX37Uwt0y/AqiNoCbnY2vDHlx8cUvZJUBMZ5IePuaX6HEAe7ODhCb9P5NIRAbTXajXHi7lQLs3fKxIRD7U5V4sRIZ8fahYGJv1sJwcu09pTFQPoZM+VxEoqqgVwk2YYmeuzEQsUkyTc1GwRuKDXQ5SnZ7G6BkOi8iwWwMaSHJw783kApIzUmNJ0ofk1CIrTO1oCaTlwgoKVuqQX2PBxuRDl+2kvoCyWIIPq2MfAatxkAlrjvNrnuAiFPUIJQXtU07mzqt95dCoKjTW6BmIRje0xZKdO8VAlEZw0bsgUqwho1Ec1DxeeemEEjp8PZhSQ6BbCqbQ56vkgCVYBkPmjzGrSXqRk3Su1llQMMy8jHHx8dMIukKEkUGDffDMrDKgIbPp7qLteCTLENIGMIV7ml4Sg4URbg7d6MGIVFJ+LfXOu/QKQMq9az2x5b2KjsZHDahbhI0bA1eE6Co6ek00DI4JBEqFRpnhUdHmy/NpglQMU9KEwSi1EpgeZ8mFRB1pj0s9fjjGvnPgbog0TAh2NX/FZSFfkrqGv92+jJKb9bReVzWAJVaBFqPq6ZTYHSmKgYREKxL/a+iwLABX5RWq4B29e1YENwzqbDUZlipEXupNTMqr7OmVUBe5Eu5IEisZPPSSS3R2yPdEqhTAhSdKpH+LlDyohdpG6DT4H/I8NUg1zZAVJI/9cq6Pt5pGyD/TiIl/SnSNkBRrSQdPNI2QKWeJzZrVA8xG+Yx12ZApfZAQsJVfXnfZElbApX6CkU97Zsmq42B/lwHoJkOQDPdOaBfAMnk2ReBiGYAAAAASUVORK5CYII=" y="1076.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="185" x="707.9633" y="1139.1172">Application Database</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="80" x="760.4633" y="1154.0293">[PostgreSQL]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="798.4633" y="1169.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="200" x="700.4633" y="1186.1514">Holds the application specific</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="764.4633" y="1202.4482">base data.</text></g><!--MD5=[cb62c053fa32d0b8c4977658f81499ee]
+entity r5--><g id="elem_r5"><rect fill="#438DD5" height="179.75" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="209" x="945.9633" y="1034.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="1013.4633" y="1055.4355">«container»</text><image height="48" width="48" x="1026.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACsklEQVR4Xu2XT0ocQRTGvVsfYC7gAbyAB8gB4sqVuMvCRZbusgruAm5ciBgICCIIgiEJRASh86M/eBT9OlWvq0oUdPgW3W96pn7z1ftTszV8PH9V2vKhl9U7UElvAGizf7F9+N3Hg+oPhI6+3flgUP2BcOj06o+PB9Uf6MPx9dfLXz4eVH+gy9u/Bye3Ph5UZ6C9LzfjOLJr/q2gegKxWdC02DN0BJI3Leks9QE6Pruf0bBrIOKZfzivViAWJouhscoiQh8iWNcem4BY8ubnIzQ4pAiW/H54stsK1QPhhGisL3PxkklNxqR5oxJraYlSJRD2jNPLEkWZtPPph394lZqA2DKLiG/385V/eJUqgRA05K/dcp3uYLXqgZQ0tmXKaF60H/9wXPVAiBRO249MSm2rUBPQMNWa5Q0X7ZnUCjRMPtl4Vy+o69FSB6Bh8kYXwC22aYiDZ5J1QBqZ9OLFfqMp5uPg8ikaFf4VsaJA1BRfR6kvokizxTbu7wcfB8t/MFUIyMYWFcSm4BDS6QLJM7xB7BfcMsMPNbWGvEkhIIkvkvm2tqRblgcO/zIZDWWxKawAMuV/4v+kplA8sq0GYjsWM9eEQ6w984kI3hRphjogdT9lKLsgca1OrZedGFV6KOjraqBh8kCZpNFhIkJ81qYzVbmoGqBnVQ0QlZWOi1RKoMW3gqoBsjQap85EMulsZMGx4RASBSIVqBGrHWzAJyWyoXCrtplpRUUVgDBfzTdSsXlpN318phwQX6GfTvm0/Gjc1Wzxb3nlgNRCNMXGqfFgFYZpkNkss4lmQ01Zzw5qE4krzXVY8AulygGl4ruURrakVkVQ6kJzzYaa1Zr6lp4pFmAUSBKTJgPaTMcuExEeMO7Z5A9u+jogSempVSUNBxv72s3UpLhqgJ5V70AlvTqgf2H6uTXfTevfAAAAAElFTkSuQmCC" y="1058.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="169" x="965.9633" y="1121.1172">Routing API Car/PT</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="84" x="1008.4633" y="1136.0293">[Java and R5]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="1048.4633" y="1151.8545"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="141" x="977.9633" y="1168.1514">Java engine handling</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="185" x="955.9633" y="1184.4482">travel-time calculation logic</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="185" x="957.9633" y="1200.7451">for public transport and car</text></g><!--MD5=[597ac1c8ae276f847d294a266676f578]
+entity goatrouting--><g id="elem_goatrouting"><rect fill="#438DD5" height="198.375" rx="2.5" ry="2.5" style="stroke:#3C7FC0;stroke-width:0.5;" width="219" x="1189.9633" y="1025.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="74" x="1262.4633" y="1046.4355">«container»</text><image height="48" width="48" x="1275.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACUElEQVR4Xu2XMUoEQRBFvVsfwAt4AC/gATyARkZiZmBguJmRmAkmBiIrCAuysCAoKiiCMH62mGa2qrq6a3oGhd3PD3aH6a431TXVPVvh4O5feUte+ltvgHKuBdo+uod3Th7oh7zB6z5A+5Onye3L/PW70YTrl9O3vfOZHFhiHxDCvH/9cISEbmYfPXLmAMLsFAlMyEEJ2XTxKeex7QDCSlEYem7UzWp0Xd61cwAdXsybZYnEKyVJOrt+llMZdgAdXy0oBlIVWr6sUP5yKsN9gFxaJyBUMRZLNaJykFZDAu2ePqJQkJis0XI4SCsC6s5DJZiyDgSUVCP2ioDY+4i/CCHj6kC4tTu4UipQs9o+MkBD5YaUAoKwfDI6B0Jj5ePqRI1RBVI3Fg6E8XxcnVDOmJZfbSV3Xw4Eaj6oTghpZF3udByIj6gTpcd4SFlGYwHhzaB+Y/TMRmubK0DxxGMIj4tI8cyqmmZD+zByQ8K5ygIKuQzREmDhMRGCGVZfK6kqIFpvewm8yixZSHdFPHEoPgOVi1JuAaUSQI+Swu0t1GIGKJUDu7/1E2U9A5SKOgaQetxWgNTdYwwguW/oQEHrrYMDyXK2gMKymHAOjH2F2i6ftSPZilK2P7STQKo5RUeyX7PGXejBgAzJeQyvARC6C+oPNRe3MzmP4eGB4hEn9lg5j2EfUMnWwYCm2sHZsA8otbEw0QchLZn9WSjtAwrOL/xU9zPsBgrLj/zUoYCE3OAGuZOXuA9QNH38Y+9D8wUBfuBvP47oKqAxvAHKeQOU8y9QdXNx2ULofAAAAABJRU5ErkJggg==" y="1049.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="104" x="1244.4633" y="1112.1172">Routing API</text><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="137" x="1230.9633" y="1130.7422">Walking/Cycling</text><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="130" x="1234.4633" y="1145.6543">[Python and FastAPI]</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="1297.4633" y="1161.4795"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="195" x="1199.9633" y="1177.7764">Python engine using Numba</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="193" x="1200.9633" y="1194.0732">for travel-time calculatuin for</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="132" x="1233.4633" y="1210.3701">walking and cycling</text></g><!--MD5=[8fc3522a43f8c7199df5e09e5bb0188e]
+entity user--><g id="elem_user"><rect fill="#08427B" height="133.1875" rx="2.5" ry="2.5" style="stroke:#073B6F;stroke-width:0.5;" width="212" x="101.4633" y="44.2969"/><text fill="#FFFFFF" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="57" x="178.9633" y="65.4355">«person»</text><image height="48" width="48" x="183.4633" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAACbklEQVR4Xu1Wq04FMRS8cj+BT+AXsDgMHwAfQILGXUWQgMQQggRDgsBgSLiWgEIREhRIEAjsMum5dLtzetreXgKE7GTUbh/TOY921CyP/xRH+tPvchCU4yAox0FQjt8gaHF9b2XreGnjYGF1R/+dlfWCsP3uyeTt/aMNcPfwDHF6cDkrBcEPkhLi6OJGTylkjSDEKKFGUK2pRhDiwvvHUBe7iKDN/fOnl1esCBuQJfQX2/DOBqBbz726fWzdymfX93Ba786CYHV6XT0ggbDu1rZP6S9kaU09QUhVmiMIfZIjFgILyiwo438O2sWeIOv0iKAfU5hAAp9G2h4P6l49QYgrD3eAt9kxUfiIIC/53xcoaj1B48NLHu4QGptYmhAeI1EKoQAWZEUahmfHaFCFSuUSdLviKtNH0ZVvGRkC9lByIDSkCfVBKzdaUOM8wJbQDim+TIjZTLImIuJYGbTaZkRQIS2fkHC6u5STBcEeLIfzeSYeFfiFE8MtiID/iXMLaeWo7k4QVreaHmJvhaCQiD4v6oBUw5HCkZ2gaBUIMC199CzTORdqmgqyEqJ19vioYSZclLeHXL1hTBECNAhvMyYiiCW9sQ260VSQdSH46tVFWw7fOBLH9hGYCrI2k9SBGv4xIxAy2chKU997U4J848q+D0sgiWI9KFhQNGRiY8LnmeCvtsRenaBoxiXMq4PYoFtA+Lzpyh5mwgxPcbj8Ki2BXKXISNoo7L3cqYnzp3OI6G1KzAiycrAO/1EQyKvOAf200swLsl7+FYhe78S8oMa1IlQmGkk1EawSNU2hoJ/kICjHQVCOg6AcB0E5fgLPSUakWeua4wAAAABJRU5ErkJggg==" y="68.2656"/><text fill="#FFFFFF" font-family="sans-serif" font-size="16" font-weight="bold" lengthAdjust="spacing" textLength="41" x="186.9633" y="131.1172">User</text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="205.4633" y="147.8857"> </text><text fill="#FFFFFF" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="192" x="111.4633" y="164.1826">A user of the GOAT platform</text></g><!--MD5=[0bd1c934b33aeea3edcba088a0f9a0f6]
+link auth to authdb--><g id="link_auth_authdb"><path d="M165.4633,918.8269 C165.4633,953.4869 165.4633,994.2269 165.4633,1030.1769 " fill="none" id="auth-to-authdb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="165.4633,1038.2469,168.4633,1030.2469,162.4633,1030.2469,165.4633,1038.2469" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="166.4633" y="978.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="39" x="194.4633" y="992.4043">[JDBC]</text></g><!--MD5=[11c67a07b886e18ff62bcdb52eca0895]
+link author to authordb--><g id="link_author_authordb"><path d="M484.4633,936.3769 C484.4633,966.5469 484.4633,999.6769 484.4633,1029.5469 " fill="none" id="author-to-authordb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="484.4633,1037.8769,487.4633,1029.8769,481.4633,1029.8769,484.4633,1037.8769" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="485.4633" y="978.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="85" x="490.4633" y="992.4043">[SQLAlchemy]</text></g><!--MD5=[196989d5e8e30e8e2251e3798272290f]
+link applicationapi to applicationdb--><g id="link_applicationapi_applicationdb"><path d="M982.0133,927.2969 C951.2533,960.5069 916.2933,998.2569 885.3133,1031.6969 " fill="none" id="applicationapi-to-applicationdb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="879.5733,1037.8869,887.2167,1034.0687,882.8215,1029.9844,879.5733,1037.8869" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="95" x="940.4633" y="978.4355">Reads/Writes</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="85" x="945.4633" y="992.4043">[SQLAlchemy]</text></g><!--MD5=[bb3cc234b5c7408debe6bb7f8ae74026]
+link geoapi to applicationdb--><g id="link_geoapi_applicationdb"><path d="M798.3233,927.4569 C797.9633,940.4869 797.6633,953.7369 797.4633,966.2969 C797.1433,986.8669 797.2733,1008.9669 797.6133,1029.8869 " fill="none" id="geoapi-to-applicationdb" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="797.7633,1038.1469,800.62,1030.0946,794.621,1030.2017,797.7633,1038.1469" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="44" x="818.9633" y="978.4355">Reads</text><text fill="#666666" font-family="sans-serif" font-size="12" font-style="italic" lengthAdjust="spacing" textLength="85" x="798.4633" y="992.4043">[SQLAlchemy]</text></g><!--MD5=[d7238f84ee201f8e3c4d16cc3d5af6b6]
+reverse link a1 to s1--><g id="link_a1_s1"><path d="M291.8673,653.3443 C292.1089,653.5702 292.3493,653.7973 292.5886,654.0254 C293.5458,654.9379 294.4844,655.8675 295.4048,656.8135 C299.0863,660.5974 302.4762,664.6433 305.5969,668.9017 C311.8384,677.4183 317.0028,686.7848 321.2685,696.6052 C323.4013,701.5154 325.3095,706.539 327.0153,711.6267 C327.8682,714.1706 328.6705,716.7304 329.425,719.3001 C329.8022,720.5849 330.1675,721.8722 330.5212,723.1612 C330.698,723.8056 330.872,724.4505 331.043,725.0958 C331.1286,725.4184 331.2134,725.7411 331.2975,726.0638 C331.3396,726.2252 331.3815,726.3866 331.4232,726.548 " fill="none" id="a1-backto-s1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="291.8673,653.3443,295.6611,660.9998,299.7594,656.6176,291.8673,653.3443" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[d9c5b6bdac8464bd695ddc15bfa839da]
+reverse link s1 to a1--><g id="link_s1_a1"><path d="M331.2975,726.0638 C331.2134,725.7411 331.1286,725.4184 331.043,725.0958 C330.872,724.4505 330.698,723.8056 330.5212,723.1612 C330.1675,721.8722 329.8022,720.5849 329.425,719.3001 C328.6705,716.7304 327.8682,714.1706 327.0153,711.6267 C325.3095,706.539 323.4013,701.5154 321.2685,696.6052 C317.0028,686.7848 311.8384,677.4183 305.5969,668.9017 C302.4762,664.6433 299.0863,660.5974 295.4048,656.8135 C294.4844,655.8675 293.5458,654.9379 292.5886,654.0254 C292.3493,653.7973 292.1089,653.5702 291.8673,653.3443 C291.7464,653.2313 291.6253,653.1186 291.504,653.0061 " fill="none" id="s1-backto-a1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="331.2975,726.0638,332.183,717.5658,326.3769,719.079,331.2975,726.0638" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[3e60abc49c51d8c4681898ee7710a496]
+link applicationapi to r5--><g id="link_applicationapi_r5"><path d="M1060.0933,927.2969 C1058.5533,958.6169 1056.8133,993.9669 1055.2433,1025.9369 " fill="none" id="applicationapi-to-r5" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="1054.8533,1033.9869,1058.2491,1026.1467,1052.2566,1025.847,1054.8533,1033.9869" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="99" x="1058.4633" y="985.4355">HTTP (Private)</text></g><!--MD5=[595dc88d49a9807206451661897403a5]
+link applicationapi to goatrouting--><g id="link_applicationapi_goatrouting"><path d="M1137.8533,927.2969 C1161.7433,956.2669 1188.4733,988.6969 1213.2133,1018.6969 " fill="none" id="applicationapi-to-goatrouting" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="1218.4633,1025.0569,1215.6908,1016.9752,1211.0605,1020.791,1218.4633,1025.0569" style="stroke:#666666;stroke-width:1.0;"/><text fill="#666666" font-family="sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacing" textLength="99" x="1189.4633" y="985.4355">HTTP (Private)</text></g><!--MD5=[de2f59d8b18ce2aae4f81aad63aa8429]
+link user to c1--><g id="link_user_c1"><path d="M207.4633,177.3769 C207.4633,189.4094 207.4633,202.575 207.4633,216.4127 C207.4633,219.8721 207.4633,223.3736 207.4633,226.9098 C207.4633,228.6779 207.4633,230.4548 207.4633,232.2394 " fill="none" id="user-to-c1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="207.4633,232.2394,210.4633,224.2394,204.4633,224.2394,207.4633,232.2394" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[874b3de16a77b9c2118cf0bdb2b0d732]
+link c1 to a1--><g id="link_c1_a1"><path d="M199.4311,453.78 C199.3069,453.8439 199.1814,453.9085 199.0547,453.9739 C198.8011,454.1046 198.5425,454.2383 198.2788,454.375 C197.2242,454.9218 196.0892,455.5161 194.8795,456.1574 C192.46,457.4399 189.7417,458.9099 186.7693,460.5616 C174.8796,467.1681 158.9246,476.6806 141.7733,488.7219 C107.4708,512.8044 68.3833,547.0019 47.4633,588.2969 C22.8683,636.8469 17.6383,697.6844 18.6696,746.9519 C18.7985,753.1103 19.0252,759.088 19.3242,764.8382 C19.3616,765.557 19.4001,766.2723 19.4397,766.9839 " fill="none" id="c1-to-a1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="19.4397,766.9839,21.9907,758.8296,16,759.1628,19.4397,766.9839" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[96a39c5300fc3b233c46d74b7bd95ed2]
+link c1 to s1--><g id="link_c1_s1"><path d="M216.1858,554.7272 C216.373,555.0991 216.5627,555.4696 216.7551,555.8386 C217.1398,556.5766 217.535,557.3084 217.941,558.0338 C218.753,559.4846 219.608,560.9094 220.5079,562.3048 C222.3079,565.0956 224.2877,567.7688 226.4633,570.2969 C243.7933,590.4369 265.4833,568.7369 283.4633,588.2969 C302.2858,608.7669 315.2358,634.1813 324.0636,660.8667 C326.2706,667.5381 328.2199,674.2889 329.9389,681.0618 C330.3687,682.755 330.7841,684.4496 331.1855,686.1446 " fill="none" id="c1-to-s1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="331.1855,686.1446,332.2613,677.6686,326.4228,679.0512,331.1855,686.1446" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[a4d0d68bc6e6395aef2c46ef2dee7b11]
+reverse link a2 to s1--><g id="link_a2_s1"><path d="M658.2975,726.0638 C658.2134,725.7411 658.1286,725.4184 658.043,725.0958 C657.872,724.4505 657.698,723.8056 657.5212,723.1612 C657.1675,721.8722 656.8022,720.5849 656.425,719.3001 C655.6705,716.7304 654.8682,714.1706 654.0153,711.6267 C652.3095,706.539 650.4013,701.5154 648.2685,696.6052 C644.0028,686.7848 638.8384,677.4183 632.5969,668.9017 C629.4762,664.6433 626.0863,660.5974 622.4048,656.8135 C621.4844,655.8675 620.5458,654.9379 619.5886,654.0254 C619.3493,653.7973 619.1089,653.5702 618.8673,653.3443 C618.7464,653.2313 618.6253,653.1186 618.504,653.0061 " fill="none" id="a2-backto-s1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="658.2975,726.0638,659.183,717.5658,653.3769,719.079,658.2975,726.0638" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[765e21e76607fc25233c8f8e85ecc2e5]
+link a2 to s1--><g id="link_a2_s1"><path d="M658.2975,726.0638 C658.2134,725.7411 658.1286,725.4184 658.043,725.0958 C657.872,724.4505 657.698,723.8056 657.5212,723.1612 C657.1675,721.8722 656.8022,720.5849 656.425,719.3001 C655.6705,716.7304 654.8682,714.1706 654.0153,711.6267 C652.3095,706.539 650.4013,701.5154 648.2685,696.6052 C644.0028,686.7848 638.8384,677.4183 632.5969,668.9017 C629.4762,664.6433 626.0863,660.5974 622.4048,656.8135 C621.4844,655.8675 620.5458,654.9379 619.5886,654.0254 C619.3493,653.7973 619.1089,653.5702 618.8673,653.3443 C618.7464,653.2313 618.6253,653.1186 618.504,653.0061 " fill="none" id="a2-to-s1" style="stroke:#666666;stroke-width:1.0;"/><polygon fill="#666666" points="618.504,653.0061,622.3345,660.6433,626.4117,656.2414,618.504,653.0061" style="stroke:#666666;stroke-width:1.0;"/></g><!--MD5=[92eb6e8e32a5f55233a061a7c362a69a]
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+
+!include FONTAWESOME/users.puml
+!include FONTAWESOME/vuejs.puml
+!include FONTAWESOME/python.puml
+!include FONTAWESOME/file.puml
+!include DEVICONS/postgresql.puml
+!include DEVICONS/mongodb.puml
+!include DEVICONS/java.puml
+!include DEVICONS/javascript.puml
+!include DEVICONS/react.puml
+
+title Container Diagram (C4 Model)
+
+
+SHOW_PERSON_OUTLINE()
+Person(user, "User", "A user of the GOAT platform", $sprite="users")
+
+
+System_Boundary(c1, "Web Application"){
+    Container(client, "Client", "React.js & Next.js", "Frontend of the GOAT application", $sprite="react")
+}
+
+System_Boundary(a1, "Authentication"){
+    Container(auth, "Keycloak API", "Keycloak", "Handles authentication for GOAT", $sprite="java")
+    ContainerDb(authdb, "Database", "PostgreSQL", "Holds user data and keycloak configuration", $sprite="postgresql")
+}
+
+System_Boundary(s1, "Authorization"){
+    Container(author, "Authorization & Accounts API", "Python and FastAPI", "It manages the subscriptions and features that are accessible by the users.", $sprite="python")
+    ContainerDb(authordb, "Accounts Database", "PostgreSQL", "Holds the user data and their subscriptions.", $sprite="postgresql")
+}
+
+System_Boundary(a2, "GOAT Application"){
+    Container(applicationapi, "GOAT Core API", "Python and FastAPI", "It bundles the GOAT specific analyses and interacts with the content meta data.", $sprite="python")
+    Container(geoapi, "GEO API", "Python and FastAPI", "It bundles the geoservice namely OGC Feature and Vector tiles.", $sprite="python")
+
+    ContainerDb(applicationdb, "Application Database", "PostgreSQL", "Holds the application specific base data.", $sprite="postgresql")
+    Container(r5, "Routing API Car/PT", "Java and R5", "Java engine handling travel-time calculation logic for public transport and car", $sprite="java")
+    Container(goatrouting, "Routing API Walking/Cycling", "Python and FastAPI", "Python engine using Numba for travel-time calculatuin for walking and cycling", $sprite="python")
+} 
+
+
+' ' Make a relation between auth and authdb
+Rel(auth, authdb, "Reads/Writes", "JDBC")
+Rel(author, authordb, "Reads/Writes", "SQLAlchemy")
+Rel(applicationapi, applicationdb, "Reads/Writes", "SQLAlchemy")
+Rel(geoapi, applicationdb, "Reads", "SQLAlchemy")
+Rel_L(s1, a1, "")
+Rel_L(a1, s1, "")
+Rel(applicationapi, r5, "HTTP (Private)")
+Rel(applicationapi, goatrouting, "HTTP (Private)")
+Rel(user, c1, "")
+Rel(c1, a1, "")
+Rel(c1, s1, "")
+Rel_L(s1, a2, "")
+Rel_R(a2, s1, "")
+
+@enduml
+
+@startuml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+skinparam defaultTextAlignment center
+
+skinparam wrapWidth 200
+skinparam maxMessageSize 150
+
+skinparam LegendFontColor #FFFFFF
+skinparam LegendBackgroundColor transparent
+skinparam LegendBorderColor transparent
+
+skinparam rectangle<<legendArea>> {
+    backgroundcolor transparent
+    bordercolor transparent
+}
+
+skinparam rectangle {
+    StereotypeFontSize 12
+}
+
+skinparam database {
+    StereotypeFontSize 12
+}
+
+skinparam queue {
+    StereotypeFontSize 12
+}
+
+skinparam participant {
+    StereotypeFontSize 12
+}
+
+skinparam arrow {
+    Color #666666
+    FontColor #666666
+    FontSize 12
+}
+
+skinparam person {
+    StereotypeFontSize 12
+}
+
+skinparam actor {
+    StereotypeFontSize 12
+    style awesome
+}
+
+skinparam rectangle<<boundary>> {
+    StereotypeFontSize 6
+    StereotypeFontColor transparent
+    BorderStyle dashed
+}
+
+skinparam package {
+    StereotypeFontSize 6
+    StereotypeFontColor transparent
+    FontStyle plain
+    BackgroundColor transparent
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+skinparam rectangle<<boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam database<<boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam queue<<boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam person<<boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam actor<<boundary>> {
+    FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam participant<<boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam sequencebox<<boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam package<<boundary>>StereotypeFontColor transparent
+skinparam rectangle<<boundary>>StereotypeFontColor transparent
+
+    
+skinparam rectangle<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam database<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam queue<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam person<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam actor<<enterprise_boundary>> {
+    FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam participant<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam sequencebox<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam package<<enterprise_boundary>>StereotypeFontColor transparent
+skinparam rectangle<<enterprise_boundary>>StereotypeFontColor transparent
+
+
+    
+skinparam rectangle<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam database<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam queue<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam person<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam actor<<system_boundary>> {
+    FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam participant<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam sequencebox<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam package<<system_boundary>>StereotypeFontColor transparent
+skinparam rectangle<<system_boundary>>StereotypeFontColor transparent
+
+
+    
+skinparam rectangle<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam database<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam queue<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam person<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam actor<<container_boundary>> {
+    FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam participant<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam sequencebox<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam package<<container_boundary>>StereotypeFontColor transparent
+skinparam rectangle<<container_boundary>>StereotypeFontColor transparent
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+skinparam rectangle<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam database<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam queue<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam person<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam actor<<person>> {
+    StereotypeFontColor #08427B
+    FontColor #08427B
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam participant<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam sequencebox<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+
+
+skinparam rectangle<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam database<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam queue<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam person<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam actor<<external_person>> {
+    StereotypeFontColor #686868
+    FontColor #686868
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam participant<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam sequencebox<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+
+
+skinparam rectangle<<system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #1168BD
+    BorderColor #3C7FC0
+}
+skinparam database<<system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #1168BD
+    BorderColor #3C7FC0
+}
+skinparam queue<<system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #1168BD
+    BorderColor #3C7FC0
+}
+skinparam person<<system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #1168BD
+    BorderColor #3C7FC0
+}
+skinparam actor<<system>> {
+    StereotypeFontColor #1168BD
+    FontColor #1168BD
+    BackgroundColor #1168BD
+    BorderColor #3C7FC0
+}
+skinparam participant<<system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #1168BD
+    BorderColor #3C7FC0
+}
+skinparam sequencebox<<system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #1168BD
+    BorderColor #3C7FC0
+}
+
+
+skinparam rectangle<<external_system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #999999
+    BorderColor #8A8A8A
+}
+skinparam database<<external_system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #999999
+    BorderColor #8A8A8A
+}
+skinparam queue<<external_system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #999999
+    BorderColor #8A8A8A
+}
+skinparam person<<external_system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #999999
+    BorderColor #8A8A8A
+}
+skinparam actor<<external_system>> {
+    StereotypeFontColor #999999
+    FontColor #999999
+    BackgroundColor #999999
+    BorderColor #8A8A8A
+}
+skinparam participant<<external_system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #999999
+    BorderColor #8A8A8A
+}
+skinparam sequencebox<<external_system>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #999999
+    BorderColor #8A8A8A
+}
+
+
+    
+skinparam rectangle<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam database<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam queue<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam person<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam actor<<system_boundary>> {
+    FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam participant<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam sequencebox<<system_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam package<<system_boundary>>StereotypeFontColor transparent
+skinparam rectangle<<system_boundary>>StereotypeFontColor transparent
+
+
+    
+skinparam rectangle<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam database<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam queue<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam person<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam actor<<enterprise_boundary>> {
+    FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam participant<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam sequencebox<<enterprise_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam package<<enterprise_boundary>>StereotypeFontColor transparent
+skinparam rectangle<<enterprise_boundary>>StereotypeFontColor transparent
+
+
+
+
+
+
+sprite $person [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+0000000000000000000049BCCA7200000000000000000000
+0000000000000000006EFFFFFFFFB3000000000000000000
+00000000000000001CFFFFFFFFFFFF700000000000000000
+0000000000000001EFFFFFFFFFFFFFF80000000000000000
+000000000000000CFFFFFFFFFFFFFFFF6000000000000000
+000000000000007FFFFFFFFFFFFFFFFFF100000000000000
+00000000000001FFFFFFFFFFFFFFFFFFF900000000000000
+00000000000006FFFFFFFFFFFFFFFFFFFF00000000000000
+0000000000000BFFFFFFFFFFFFFFFFFFFF40000000000000
+0000000000000EFFFFFFFFFFFFFFFFFFFF70000000000000
+0000000000000FFFFFFFFFFFFFFFFFFFFF80000000000000
+0000000000000FFFFFFFFFFFFFFFFFFFFF80000000000000
+0000000000000DFFFFFFFFFFFFFFFFFFFF60000000000000
+0000000000000AFFFFFFFFFFFFFFFFFFFF40000000000000
+00000000000006FFFFFFFFFFFFFFFFFFFE00000000000000
+00000000000000EFFFFFFFFFFFFFFFFFF800000000000000
+000000000000007FFFFFFFFFFFFFFFFFF100000000000000
+000000000000000BFFFFFFFFFFFFFFFF5000000000000000
+0000000000000001DFFFFFFFFFFFFFF70000000000000000
+00000000000000000BFFFFFFFFFFFF500000000000000000
+0000000000000000005DFFFFFFFFA1000000000000000000
+0000000000000000000037ABB96100000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000025788300000000005886410000000000000
+000000000007DFFFFFFD9643347BFFFFFFFB400000000000
+0000000004EFFFFFFFFFFFFFFFFFFFFFFFFFFB1000000000
+000000007FFFFFFFFFFFFFFFFFFFFFFFFFFFFFD200000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE10000000
+0000003FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB0000000
+000000BFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5000000
+000003FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD000000
+000009FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF200000
+00000DFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF600000
+00000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF800000
+00001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA00000
+00001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB00000
+00001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB00000
+00001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB00000
+00001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA00000
+00000EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF700000
+000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE100000
+0000008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD3000000
+000000014555555555555555555555555555555300000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+sprite $person2 [48x48/16] {
+0000000000000000000049BCCA7200000000000000000000
+0000000000000000006EFFFFFFFFB3000000000000000000
+00000000000000001CFFFFFFFFFFFF700000000000000000
+0000000000000001EFFFFFFFFFFFFFF80000000000000000
+000000000000000CFFFFFFFFFFFFFFFF6000000000000000
+000000000000007FFFFFFFFFFFFFFFFFF100000000000000
+00000000000001FFFFFFFFFFFFFFFFFFF900000000000000
+00000000000006FFFFFFFFFFFFFFFFFFFF00000000000000
+0000000000000BFFFFFFFFFFFFFFFFFFFF40000000000000
+0000000000000EFFFFFFFFFFFFFFFFFFFF70000000000000
+0000000000000FFFFFFFFFFFFFFFFFFFFF80000000000000
+0000000000000FFFFFFFFFFFFFFFFFFFFF80000000000000
+0000000000000DFFFFFFFFFFFFFFFFFFFF60000000000000
+0000000000000AFFFFFFFFFFFFFFFFFFFF40000000000000
+00000000000006FFFFFFFFFFFFFFFFFFFE00000000000000
+00000000000000EFFFFFFFFFFFFFFFFFF800000000000000
+000000000000007FFFFFFFFFFFFFFFFFF100000000000000
+000000000000000BFFFFFFFFFFFFFFFF5000000000000000
+0000000000000001DFFFFFFFFFFFFFF70000000000000000
+00000000000000000BFFFFFFFFFFFF500000000000000000
+0000000000000000005DFFFFFFFFA1000000000000000000
+0000000000000000000037ABB96100000000000000000000
+000000000002578888300000000005888864100000000000
+0000000007DFFFFFFFFD9643347BFFFFFFFFFB4000000000
+00000004EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB10000000
+0000007FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD2000000
+000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE100000
+00003FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB00000
+0000BFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF50000
+0003FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD0000
+0009FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2000
+000DFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6000
+000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB000
+001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB000
+001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFB000
+001FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA000
+000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+000DFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6000
+0009FFFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFFF2000
+0003FFFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFFD0000
+0000BFFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFF50000
+00003FFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFB00000
+000006FFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFE100000
+0000007FFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFD2000000
+00000004EFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFB10000000
+0000000007DF8FFFFFFFFFFFFFFFFFFFFFF8FB4000000000
+000000000002578888888888888888888864100000000000
+}
+
+sprite $robot [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000005BFFFFFFFFFFFFFFFFFFFFFE9100000000000
+0000000000AFFFFFFFFFFFFFFFFFFFFFFFFFE30000000000
+0000000007FFFFFFFFFFFFFFFFFFFFFFFFFFFE1000000000
+000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000000000
+000000004FFFFFFFFFFFFFFFFFFFFFFFFFFFFFC000000000
+000000005FFFFFFFFFFFFFFFFFFFFFFFFFFFFFD000000000
+000000005FFFFFFFFFFFFFFFFFFFFFFFFFFFFFE000000000
+000000005FFFFFFFFFFFFFFFFFFFFFFFFFFFFFE000000000
+000699405FFFFFFC427FFFFFFFFFC427FFFFFFE009982000
+008FFF705FFFFFE10006FFFFFFFE00007FFFFFE00FFFF100
+00CFFF705FFFFFA00001FFFFFFF900002FFFFFE00FFFF500
+00DFFF705FFFFFB00002FFFFFFFA00003FFFFFE00FFFF500
+00DFFF705FFFFFF4000AFFFFFFFF3000BFFFFFE00FFFF500
+00DFFF705FFFFFFFA8DFFFFFFFFFFA8DFFFFFFE00FFFF500
+00DFFF705FFFFFFFFFFFFFFFFFFFFFFFFFFFFFE00FFFF500
+00DFFF705FFFFFFFFFFFFFFFFFFFFFFFFFFFFFE00FFFF500
+00DFFF705FFFFFFFFFFFFFFFFFFFFFFFFFFFFFE00FFFF500
+00DFFF705FFFFFFFFFFFFFFFFFFFFFFFFFFFFFE00FFFF500
+00DFFF705FFFFFFFFFFFFFFFFFFFFFFFFFFFFFE00FFFF500
+00CFFF705FFFFFF87777777777777777CFFFFFE00FFFF500
+008FFF705FFFFFF100000000000000009FFFFFE00FFFF100
+000699405FFFFFF76666666666666666CFFFFFE009982000
+000000005FFFFFFFFFFFFFFFFFFFFFFFFFFFFFE000000000
+000000005FFFFFFFFFFFFFFFFFFFFFFFFFFFFFE000000000
+000000004FFFFFFFFFFFFFFFFFFFFFFFFFFFFFC000000000
+000000000EFFFFFFFFFFFFFFFFFFFFFFFFFFFF7000000000
+0000000005FFFFFFFFFFFFFFFFFFFFFFFFFFFD0000000000
+00000000004CFFFFFFFFFFFFFFFFFFFFFFFF910000000000
+000000000000011111111111111111111110000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+sprite $robot2 [48x48/16] {
+000000000000000088888888888888880000000000000000
+000000000000000AFFFFFFFFFFFFFFFFA000000000000000
+00000000000000CFFFFFFFFFFFFFFFFFFC00000000000000
+00000000000004EFFFFFFFFFFFFFFFFFFE40000000000000
+0000000000000AFFFFFFFFFFFFFFFFFFFFA0000000000000
+00000000000008FFFFFFFFFFFFFFFFFFFF80000000000000
+00000000000008FFFFFFFFFFFFFFFFFFFF80000000000000
+00000000000008FFFFFFFFFFFFFFFFFFFF80000000000000
+00000000000888FFFFFFFFFFFFFFFFFFFF88800000000000
+00000000008FF8FFFFFFFFFFFFFFFFFFFF8FF80000000000
+00000000008FF8FFFFFFFFFFFFFFFFFFFF8FF80000000000
+00000000008FF8FFFFFFFFFFFFFFFFFFFF8FF80000000000
+00000000008FF8FFFFFFFFFFFFFFFFFFFF8FF80000000000
+00000000008FF8FFFFFFFFFFFFFFFFFFFF8FF80000000000
+00000000008FF8FFFFFFFFFFFFFFFFFFFF8FF80000000000
+00000000000888FFFFFFFFFFFFFFFFFFFF88800000000000
+00000000000008FFFFFFFFFFFFFFFFFFFF80000000000000
+00000000000008FFFFFFFFFFFFFFFFFFFF80000000000000
+00000000000008FFFFFFFFFFFFFFFFFFFF80000000000000
+00000000000008FFFFFFFFFFFFFFFFFFFF80000000000000
+00000000000008FFFFFFFFFFFFFFFFFFFF80000000000000
+00000000000004CFFFFFFFFFFFFFFFFFFC40000000000000
+000000488888848CFFFFFFFFFFFFFFFFC848888884000000
+00000CFFFFFFFFC888888888888888888CFFFFFFFFC00000
+00008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80000
+0000CFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC0000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8000
+0008FFFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFFF8000
+0008FFFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFFF8000
+0008FFFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFFF8000
+0008FFFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFFF8000
+0000CFFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFFC0000
+00008FFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFF80000
+00000CFFFFFF8FFFFFFFFFFFFFFFFFFFFFF8FFFFFFC00000
+000000488887578888888888888888888864688884000000
+000000000000000000000000000000000000000000000000
+}
+
+
+
+
+
+skinparam rectangle<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam database<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam queue<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam person<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam actor<<person>> {
+    StereotypeFontColor #08427B
+    FontColor #08427B
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam participant<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam sequencebox<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+
+
+
+skinparam rectangle<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam database<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam queue<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam person<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam actor<<external_person>> {
+    StereotypeFontColor #686868
+    FontColor #686868
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam participant<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam sequencebox<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+skinparam rectangle<<container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #438DD5
+    BorderColor #3C7FC0
+}
+skinparam database<<container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #438DD5
+    BorderColor #3C7FC0
+}
+skinparam queue<<container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #438DD5
+    BorderColor #3C7FC0
+}
+skinparam person<<container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #438DD5
+    BorderColor #3C7FC0
+}
+skinparam actor<<container>> {
+    StereotypeFontColor #438DD5
+    FontColor #438DD5
+    BackgroundColor #438DD5
+    BorderColor #3C7FC0
+}
+skinparam participant<<container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #438DD5
+    BorderColor #3C7FC0
+}
+skinparam sequencebox<<container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #438DD5
+    BorderColor #3C7FC0
+}
+
+
+skinparam rectangle<<external_container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #B3B3B3
+    BorderColor #A6A6A6
+}
+skinparam database<<external_container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #B3B3B3
+    BorderColor #A6A6A6
+}
+skinparam queue<<external_container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #B3B3B3
+    BorderColor #A6A6A6
+}
+skinparam person<<external_container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #B3B3B3
+    BorderColor #A6A6A6
+}
+skinparam actor<<external_container>> {
+    StereotypeFontColor #B3B3B3
+    FontColor #B3B3B3
+    BackgroundColor #B3B3B3
+    BorderColor #A6A6A6
+}
+skinparam participant<<external_container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #B3B3B3
+    BorderColor #A6A6A6
+}
+skinparam sequencebox<<external_container>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #B3B3B3
+    BorderColor #A6A6A6
+}
+
+
+    
+skinparam rectangle<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam database<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam queue<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam person<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam actor<<container_boundary>> {
+    FontColor transparent
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam participant<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam sequencebox<<container_boundary>> {
+    FontColor #444444
+    BackgroundColor transparent
+    BorderColor #444444
+    BorderStyle dashed
+}
+skinparam package<<container_boundary>>StereotypeFontColor transparent
+skinparam rectangle<<container_boundary>>StereotypeFontColor transparent
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sprite $users [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000024310000000000000000000000
+000000000000000000018EFFFFC400000000000000000000
+0000000000000000003EFFFFFFFF90000000000000000000
+000000000000000002EFFFFFFFFFF9000000000000000000
+00000000000000000CFFFFFFFFFFFF400000000000000000
+0000006DFE8000004FFFFFFFFFFFFFC000004BFEA2000000
+000009FFFFFC00009FFFFFFFFFFFFFF10005FFFFFE200000
+00003FFFFFFF8000BFFFFFFFFFFFFFF3001FFFFFFFC00000
+00009FFFFFFFD000CFFFFFFFFFFFFFF4005FFFFFFFF10000
+0000AFFFFFFFE000AFFFFFFFFFFFFFF2006FFFFFFFF20000
+00007FFFFFFFC0006FFFFFFFFFFFFFE0004FFFFFFFF00000
+00001FFFFFFF50001FFFFFFFFFFFFF80000DFFFFFF900000
+000004FFFFF8000007FFFFFFFFFFFE100002DFFFFB000000
+000000179830000000AFFFFFFFFFF3000000069940000000
+00000000000000000007FFFFFFFC20000000000000000000
+0000012333310000000016ACB94000000000233332000000
+0001BFFFFFFFD3000000000000000000008FFFFFFFE60000
+000DFFFFFFFFE400000000000000000000AFFFFFFFFF6000
+007FFFFFFFFD1006BEFE8310025BFFD92006FFFFFFFFF000
+00CFFFFFFFE102DFFFFFFFFFFFFFFFFFF8007FFFFFFFF400
+00DFFFFFFF302FFFFFFFFFFFFFFFFFFFFFA00BFFFFFFF500
+00DFFFFFFB00EFFFFFFFFFFFFFFFFFFFFFF603FFFFFFF500
+00CFFFFFF407FFFFFFFFFFFFFFFFFFFFFFFE00CFFFFFF400
+006FFFFFF00DFFFFFFFFFFFFFFFFFFFFFFFF508FFFFFD000
+00037777601FFFFFFFFFFFFFFFFFFFFFFFFF902777761000
+00000000002FFFFFFFFFFFFFFFFFFFFFFFFFB00000000000
+00000000003FFFFFFFFFFFFFFFFFFFFFFFFFB00000000000
+00000000003FFFFFFFFFFFFFFFFFFFFFFFFFB00000000000
+00000000000FFFFFFFFFFFFFFFFFFFFFFFFF800000000000
+000000000009FFFFFFFFFFFFFFFFFFFFFFFF200000000000
+0000000000007DEEEEEEEEEEEEEEEEEEEEB2000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<FA5 USERS>> White
+sprite $vuejs [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000006666666666666650000000036666666666666300000
+000009FFFFFFFFFFFFFF40000001FFFFFFFFFFFFFF200000
+000001EFFFFFFFFFFFFFC000000BFFFFFFFFFFFFF9000000
+0000006FFD4444CFFFFFF500005FFFFFF74446FFE1000000
+0000000CFF40002FFFFFFD0000EFFFFFB0000BFF60000000
+00000003FFD00009FFFFFF6009FFFFFF20005FFC00000000
+00000000AFF70001EFFFFFE03FFFFFF90000DFF300000000
+000000001FFF10007FFFFFF8DFFFFFE10007FFA000000000
+0000000007FFA0000DFFFFFFFFFFFF60001FFF1000000000
+0000000000DFF30004FFFFFFFFFFFD0000AFF70000000000
+00000000005FFC0000BFFFFFFFFFF40003FFD00000000000
+00000000000BFF60002FFFFFFFFFB0000CFF500000000000
+000000000002FFE10008FFFFFFFF20006FFB000000000000
+0000000000009FF80000EFFFFFF80001EFF2000000000000
+0000000000001EFF20006FFFFFE00009FF90000000000000
+00000000000006FFB0000CFFFF60002FFE10000000000000
+00000000000000CFF40003FFFC0000BFF600000000000000
+000000000000003FFD0000AFF30005FFC000000000000000
+000000000000000AFF70001FA0000DFF3000000000000000
+0000000000000001FFF1000710007FFA0000000000000000
+00000000000000007FFA00000001FFF10000000000000000
+00000000000000000DFF3000000AFF700000000000000000
+000000000000000005FFC000003FFD000000000000000000
+000000000000000000BFF60000CFF4000000000000000000
+0000000000000000002FFE1006FFB0000000000000000000
+00000000000000000009FF801EFF20000000000000000000
+00000000000000000000EFF29FF800000000000000000000
+000000000000000000006FFCFFE100000000000000000000
+000000000000000000000CFFFF6000000000000000000000
+0000000000000000000003FFFC0000000000000000000000
+0000000000000000000000AFF30000000000000000000000
+00000000000000000000001FA00000000000000000000000
+000000000000000000000006100000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<FA5 VUEJS>> White
+sprite $python [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000112110000000000000000000000
+0000000000000000059DFFFFFFFDA4000000000000000000
+0000000000000004EFFFFFFFFFFFFFB10000000000000000
+000000000000001FFEAEFFFFFFFFFFFC0000000000000000
+000000000000005FF102FFFFFFFFFFFF4000000000000000
+000000000000006FD000EFFFFFFFFFFF8000000000000000
+000000000000007FF506FFFFFFFFFFFF9000000000000000
+000000000000007FFFFFFFFFFFFFFFFF9000000000000000
+000000000000007FFFFFFFFFFFFFFFFF9000000000000000
+000000000000002555555559FFFFFFFF9000000000000000
+00000000036777777777777BFFFFFFFF9067775000000000
+00000003DFFFFFFFFFFFFFFFFFFFFFFF90EFFFFE30000000
+0000003FFFFFFFFFFFFFFFFFFFFFFFFF90EFFFFFD0000000
+000000DFFFFFFFFFFFFFFFFFFFFFFFFF90EFFFFFF7000000
+000004FFFFFFFFFFFFFFFFFFFFFFFFFF80EFFFFFFC000000
+000008FFFFFFFFFFFFFFFFFFFFFFFFFF60FFFFFFFF100000
+00000CFFFFFFFFFFFFFFFFFFFFFFFFFF14FFFFFFFF400000
+00000FFFFFFFFFFFFFFFFFFFFFFFFFF60CFFFFFFFF700000
+00000FFFFFFFFFFFFFFFFFFFFFFFFD509FFFFFFFFF900000
+00001FFFFFFFFFFFC52111111111003CFFFFFFFFFFA00000
+00000FFFFFFFFFF604ACCCCCCCCCCEFFFFFFFFFFFFA00000
+00000FFFFFFFFF709FFFFFFFFFFFFFFFFFFFFFFFFF900000
+00000DFFFFFFFE06FFFFFFFFFFFFFFFFFFFFFFFFFF600000
+000009FFFFFFF90DFFFFFFFFFFFFFFFFFFFFFFFFFF200000
+000006FFFFFFF60FFFFFFFFFFFFFFFFFFFFFFFFFFE000000
+000000FFFFFFF60FFFFFFFFFFFFFFFFFFFFFFFFFF8000000
+0000008FFFFFF60FFFFFFFFFFFFFFFFFFFFFFFFFF1000000
+0000000CFFFFF60FFFFFFFFFFFFFFFFFFFFFFFFF60000000
+000000006BCCC50FFFFFFFFFCCCCCCCCCCCCCCA400000000
+000000000000000FFFFFFFFF111111111000000000000000
+000000000000000FFFFFFFFFFFFFFFFFF000000000000000
+000000000000000FFFFFFFFFFFFFFFFFF000000000000000
+000000000000000FFFFFFFFFFFFE65EFF000000000000000
+000000000000000FFFFFFFFFFFF7006FF000000000000000
+000000000000000DFFFFFFFFFFF7006FC000000000000000
+0000000000000006FFFFFFFFFFFF77EF5000000000000000
+00000000000000007FFFFFFFFFFFFFF60000000000000000
+0000000000000000029FFFFFFFFFE9200000000000000000
+00000000000000000000368A986200000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<FA5 PYTHON>> White
+sprite $file [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000006CDDDDDDDDDDDDDDDD700AA10000000000000000
+00000003FFFFFFFFFFFFFFFFFF800CFD1000000000000000
+00000006FFFFFFFFFFFFFFFFFF800CFFD100000000000000
+00000006FFFFFFFFFFFFFFFFFF800CFFFD10000000000000
+00000006FFFFFFFFFFFFFFFFFF800CFFFFD1000000000000
+00000006FFFFFFFFFFFFFFFFFF800CFFFFFD100000000000
+00000006FFFFFFFFFFFFFFFFFF800CFFFFFFD10000000000
+00000006FFFFFFFFFFFFFFFFFF800CFFFFFFFD1000000000
+00000006FFFFFFFFFFFFFFFFFF800CFFFFFFFFD100000000
+00000006FFFFFFFFFFFFFFFFFF800CFFFFFFFFFB00000000
+00000006FFFFFFFFFFFFFFFFFF800BEEEEEEEEEE00000000
+00000006FFFFFFFFFFFFFFFFFF8000000000000000000000
+00000006FFFFFFFFFFFFFFFFFFC000000000000000000000
+00000006FFFFFFFFFFFFFFFFFFFB55555555555500000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000006FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000005FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000
+00000001EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF900000000
+000000000455555555555555555555555555553000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<FA5 FILE>> White
+sprite $postgresql [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000014666410000000000000
+000000000005BEEFDB7306CFFFEDFC999BFB400000000000
+0000000001CB5201258DFB400026BE500005DA0000000000
+000000000D700000000D7000000004D800000AC000000000
+000000006A000000009900000000001C9000009900000000
+00000000D300000001E0000000000000C600001F00000000
+00000001F000000007800000000000002E20000E10000000
+00000003C00000000B300000000000000790000F00000000
+00000003C00000000F0000000000000013F1001F00000000
+00000003C00000001E5BFE800000003DEDF3003C00000000
+00000001E00000002FC447C6000000D792C2007900000000
+00000000E10000002C004B6A000000F040E100B500000000
+00000000B40000002C00002D000000F000F000F000000000
+00000000870000002C00000F000000B500F005B000000000
+000000004B0000003C00000F0000006A00F00B5000000000
+000000000F0000004B00001F0000000E20E22E0000000000
+000000000B4000005B00004C00000007A0D2A70000000000
+00000000079000003D00009700000000E3E4E00000000000
+0000000002E000000D3000E1000000006DDB700000000000
+0000000000C3000004E305A0000000000CCD000000000000
+00000000006A000000DFCDA10000000005F7013400000000
+00000000000E20000AA05FCE200000003E9DFFEF20000000
+000000000006A0008C14BA0970000000880015D800000000
+000000000000C707D8FC603E700000009FDEFA3000000000
+0000000000001CFC1AD87AEC70000000B511000000000000
+00000000000000000048861880000000D200000000000000
+00000000000000000000000880000000F000000000000000
+00000000000000000000000880000001E000000000000000
+00000000000000000000000780000003C000000000000000
+00000000000000000000000690000005A000000000000000
+000000000000000000000004B00000097000000000000000
+000000000000000000000001E000000E2000000000000000
+000000000000000000000000A90003B90000000000000000
+0000000000000000000000000BEBDE700000000000000000
+000000000000000000000000002420000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<DEV POSTGRESQL>> White
+sprite $mongodb [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000001000000000000000000000000
+000000000000000000000006400000000000000000000000
+00000000000000000000002EC00000000000000000000000
+0000000000000000000002DFF60000000000000000000000
+000000000000000000002EFFFF4000000000000000000000
+00000000000000000001EFFFFFF300000000000000000000
+0000000000000000000BFFFFFFFE20000000000000000000
+0000000000000000006FFFFFFFFFD0000000000000000000
+000000000000000001EFFFFFFFFFF8000000000000000000
+00000000000000000AFFFFFFFFFFFF300000000000000000
+00000000000000002FFFFFFFFFFFFFC00000000000000000
+0000000000000000BFFFFFFFFFFFFFF50000000000000000
+0000000000000002FFFFFFFFFFFFFFFD0000000000000000
+0000000000000008FFFFFFFFFFFFFFFF3000000000000000
+000000000000000EFFFFFFFFFFFFFFFFA000000000000000
+000000000000003FFFFFFFFFFFFFFFFFF000000000000000
+000000000000007FFFFFFFFFFFFFFFFFF400000000000000
+00000000000000BFFFFFFFFFFFFFFFFFF900000000000000
+00000000000000DFFFFFFFFFFFFFFFFFFD00000000000000
+00000000000000FFFFFFFFFFFFFFFFFFFF00000000000000
+00000000000001FFFFFFFFFFFFFFFFFFFF20000000000000
+00000000000002FFFFFFFFFFFFFFFFFFFF30000000000000
+00000000000002FFFFFFFFFFFFFFFFFFFF30000000000000
+00000000000003FFFFFFFFFFFFFFFFFFFF30000000000000
+00000000000002FFFFFFFFFFFFFFFFFFFF20000000000000
+00000000000001FFFFFFFFFFFFFFFFFFFF00000000000000
+00000000000000EFFFFFFFFFFFFFFFFFFE00000000000000
+00000000000000BFFFFFFFFFFFFFFFFFFB00000000000000
+000000000000006FFFFFFFFFFFFFFFFFF700000000000000
+000000000000001FFFFFFFFFFFFFFFFFF300000000000000
+000000000000000BFFFFFFFFFFFFFFFFE000000000000000
+0000000000000004FFFFFFFFFFFFFFFF7000000000000000
+0000000000000000BFFFFFFFFFFFFFFF1000000000000000
+00000000000000003FFFFFFFFFFFFFF90000000000000000
+000000000000000009FFFFFFFFFFFFE10000000000000000
+000000000000000000DFFFFFFFFFFF500000000000000000
+0000000000000000002FFFFFFFFFF9000000000000000000
+00000000000000000004FFFFFFFFB0000000000000000000
+000000000000000000004FFFFFFB00000000000000000000
+0000000000000000000004FFFFA000000000000000000000
+00000000000000000000003EF90000000000000000000000
+000000000000000000000009F20000000000000000000000
+000000000000000000000006F00000000000000000000000
+000000000000000000000004F00000000000000000000000
+000000000000000000000003F00000000000000000000000
+000000000000000000000002F00000000000000000000000
+000000000000000000000000100000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<DEV MONGODB>> White
+sprite $java [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000120000000000000000000
+000000000000000000000000000080000000000000000000
+0000000000000000000000000001B0000000000000000000
+0000000000000000000000000005A0000000000000000000
+000000000000000000000000000C70000000000000000000
+000000000000000000000000006F10000000000000000000
+00000000000000000000000005F700000000000000000000
+0000000000000000000000006FB000000000000000000000
+000000000000000000000009FB0001650000000000000000
+0000000000000000000001CFA0018C200000000000000000
+000000000000000000002DF9005E90000000000000000000
+00000000000000000001DF8008F700000000000000000000
+0000000000000000000BFB005FA000000000000000000000
+0000000000000000001FF200CF3000000000000000000000
+0000000000000000001FD000FF4000000000000000000000
+0000000000000000000DE000EFB000000000000000000000
+00000000000000000005F2008FF600000000000000000000
+00000000000000000000AA001EFE00000000000000000000
+000000000000000000000B4004FF40000000000000000000
+0000000000000000000000A100BF20000000000000000000
+00000000000000000000000400A900000011000000000000
+00000000000000016730000001800000046CB10000000000
+00000000000005BD30000000010000120000DC0000000000
+0000000000001DFEA7765567889BCB7000008F1000000000
+000000000000001468899988753200000000BE0000000000
+000000000000000001000000000000000004F50000000000
+0000000000000000C800000000024200004E500000000000
+0000000000000000CFFDCBBBCEFFFC201881000000000000
+00000000000000000268AAAAA86400003000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000009A10000002410000000000000000000
+00000000000000000CFFFEDDEFFFF6000000000000000000
+00000000000003520049CEEFFCA720000000000000000000
+000000000019B50000000000000000000002400000000000
+0000000002FF820000000000000000000378000000000000
+00000000018DFFDB9766555566789ACCA610160000000000
+00000000000001357899AABAA9875310026AA10000000000
+0000000000000003542211111233579BCB72000000000000
+000000000000000002457778888765310000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<DEV JAVA>> White
+sprite $javascript [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000111110000000000146765300000000000
+000000000000008FFFFF100000006DFFFFFFFFB500000000
+000000000000008FFFFF1000003DFFFFFFFFFFFB00000000
+000000000000008FFFFF100003FFFFFFFFFFFFF700000000
+000000000000008FFFFF10000DFFFFFFFFFFFFF200000000
+000000000000008FFFFF10006FFFFFF842358EE000000000
+000000000000008FFFFF1000BFFFFF300000002000000000
+000000000000008FFFFF1000DFFFFE000000000000000000
+000000000000008FFFFF1000DFFFFF200000000000000000
+000000000000008FFFFF1000BFFFFFE40000000000000000
+000000000000008FFFFF10006FFFFFFFB400000000000000
+000000000000008FFFFF10000DFFFFFFFFE7100000000000
+000000000000008FFFFF100002EFFFFFFFFFE60000000000
+000000000000008FFFFF1000001CFFFFFFFFFFA000000000
+000000000000008FFFFF100000005CFFFFFFFFFA00000000
+000000000000008FFFFF10000000003AFFFFFFFF30000000
+000000000000008FFFFF10000000000019FFFFFF90000000
+000000000000009FFFFF000000000000006FFFFFD0000000
+00000000000000BFFFFF000000000000000EFFFFE0000000
+00000000000000FFFFFD000000000000000FFFFFD0000000
+00000000000009FFFFF900002A300000007FFFFFA0000000
+00000004A768CFFFFFF500006FFEA7657CFFFFFF40000000
+00000007FFFFFFFFFFD00000AFFFFFFFFFFFFFFB00000000
+00000009FFFFFFFFFF300000EFFFFFFFFFFFFFD100000000
+0000000CFFFFFFFFF5000001FFFFFFFFFFFFFA1000000000
+0000000BFFFFFFE81000000016BFFFFFFFE9300000000000
+000000000244310000000000000023443100000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<DEV JAVASCRIPT>> White
+sprite $react [48x48/16] {
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000686300000000003686000000000000000
+00000000000002EFFFFC30000003CFFFFD10000000000000
+0000000000000CF7249FF800009FF9427FB0000000000000
+0000000000002FB00001CFB01CFC20000AF1000000000000
+0000000000005F60000008FDDF90000005F4000000000000
+0000000000006F400000008FF800000004F6000000000000
+0000000000006F40000000CFFC00000003F6000000000000
+0000000000005F5000000AF99FB0000005F5000000000000
+0000000000003F7000007FB00BF7000007F3000000000000
+0000000000000FA00246FFA99AFF73100AF1000000000000
+0000000000000EFCFFFFFFFFFFFFFFFECEE0000000000000
+00000000004BFFFFC9DF82211228FD9BEFFE920000000000
+000000004CFFC9F802FD00000000DF307F9CFFB300000000
+00000008FF9200ED0BF3001441003FC0DE0029FF70000000
+0000009FC200009F8FA004EFFE400AF8F900002CF8000000
+000003FC0000002FFF201EFFFFE102FFF2000001CF200000
+000008F40000000BF9004FFFFFF4009FB00000004F700000
+000008F40000000CF9004FFFFFF4009FC00000004F800000
+000003FC0000003FFF200EFFFFE002FFF2000000CF300000
+0000008FD300009F8FA004EFFE400AF7F900002CF9000000
+00000007FFA300EE0BF4000440004FB0DE002AFF80000000
+000000003BFFDAF802FD00000000DF207FACFFC400000000
+000000000029EFFFC9DF83222238FDACFFFFB40000000000
+0000000000000EEBEFFFFFFFFFFFFFFFCEE0000000000000
+0000000000001FA00036FF9889FF63100AF0000000000000
+0000000000004F7000006FB00BF6000007F3000000000000
+0000000000005F5000000AF99FA0000005F5000000000000
+0000000000006F40000000CFFC00000004F6000000000000
+0000000000006F400000008FF800000004F6000000000000
+0000000000004F60000009FDDF90000006F4000000000000
+0000000000001FB00002CFB01BFC20000BF2000000000000
+0000000000000BF724AFF800008FF9427FC0000000000000
+00000000000001DFFFFB30000003CFFFFE20000000000000
+000000000000000465200000000003686000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000
+}
+
+
+skinparam folderBackgroundColor<<DEV REACT>> White
+
+title Container Diagram (C4 Model)
+
+
+    
+  
+skinparam rectangle<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam database<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam queue<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam person<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam actor<<person>> {
+    StereotypeFontColor #08427B
+    FontColor #08427B
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam participant<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+skinparam sequencebox<<person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #08427B
+    BorderColor #073B6F
+}
+
+  
+  
+skinparam rectangle<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam database<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam queue<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam person<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam actor<<external_person>> {
+    StereotypeFontColor #686868
+    FontColor #686868
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam participant<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+skinparam sequencebox<<external_person>> {
+    StereotypeFontColor #FFFFFF
+    FontColor #FFFFFF
+    BackgroundColor #686868
+    BorderColor #8A8A8A
+}
+
+rectangle "<$users>\n== User\n\nA user of the GOAT platform" <<person>> as user 
+
+
+  rectangle "== Web Application\n<size:12>[System]</size>" <<system_boundary>><<boundary>> as c1 {
+      rectangle "<$react>\n== Client\n//<size:12>[React.js & Next.js]</size>//\n\nFrontend of the GOAT application" <<container>> as client
+}
+
+  rectangle "== Authentication\n<size:12>[System]</size>" <<system_boundary>><<boundary>> as a1 {
+      rectangle "<$java>\n== Keycloak API\n//<size:12>[Keycloak]</size>//\n\nHandles authentication for GOAT" <<container>> as auth
+      database "<$postgresql>\n== Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds user data and keycloak configuration" <<container>> as authdb
+}
+
+  rectangle "== Authorization\n<size:12>[System]</size>" <<system_boundary>><<boundary>> as s1 {
+      rectangle "<$python>\n== Authorization & Accounts API\n//<size:12>[Python and FastAPI]</size>//\n\nIt manages the subscriptions and features that are accessible by the users." <<container>> as author
+      database "<$postgresql>\n== Accounts Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds the user data and their subscriptions." <<container>> as authordb
+}
+
+  rectangle "== GOAT Application\n<size:12>[System]</size>" <<system_boundary>><<boundary>> as a2 {
+      rectangle "<$python>\n== GOAT Core API\n//<size:12>[Python and FastAPI]</size>//\n\nIt bundles the GOAT specific analyses and interacts with the content meta data." <<container>> as applicationapi
+      rectangle "<$python>\n== GEO API\n//<size:12>[Python and FastAPI]</size>//\n\nIt bundles the geoservice namely OGC Feature and Vector tiles." <<container>> as geoapi
+
+      database "<$postgresql>\n== Application Database\n//<size:12>[PostgreSQL]</size>//\n\nHolds the application specific base data." <<container>> as applicationdb
+      rectangle "<$java>\n== Routing API Car/PT\n//<size:12>[Java and R5]</size>//\n\nJava engine handling travel-time calculation logic for public transport and car" <<container>> as r5
+      rectangle "<$python>\n== Routing API Walking/Cycling\n//<size:12>[Python and FastAPI]</size>//\n\nPython engine using Numba for travel-time calculatuin for walking and cycling" <<container>> as goatrouting
+} 
+
+
+auth - ->> authdb : **Reads/Writes**\n//<size:12>[JDBC]</size>//
+author - ->> authordb : **Reads/Writes**\n//<size:12>[SQLAlchemy]</size>//
+applicationapi - ->> applicationdb : **Reads/Writes**\n//<size:12>[SQLAlchemy]</size>//
+geoapi - ->> applicationdb : **Reads**\n//<size:12>[SQLAlchemy]</size>//
+s1 -LEFT->> a1 : <size:0>.</size>
+a1 -LEFT->> s1 : <size:0>.</size>
+applicationapi - ->> r5 : **HTTP (Private)**
+applicationapi - ->> goatrouting : **HTTP (Private)**
+user - ->> c1 : <size:0>.</size>
+c1 - ->> a1 : <size:0>.</size>
+c1 - ->> s1 : <size:0>.</size>
+s1 -LEFT->> a2 : <size:0>.</size>
+a2 -RIGHT->> s1 : <size:0>.</size>
+
+@enduml
+
+PlantUML version 1.2022.7(Mon Aug 22 19:01:30 CEST 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>
