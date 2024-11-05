@@ -8,7 +8,12 @@ import { MapProvider } from "react-map-gl/maplibre";
 
 import { useTranslation } from "@/i18n/client";
 
-import { updateProjectInitialViewState, useProject, useProjectInitialViewState } from "@/lib/api/projects";
+import {
+  updateProjectInitialViewState,
+  useProject,
+  useProjectInitialViewState,
+  useProjectScenarioFeatures,
+} from "@/lib/api/projects";
 import { PATTERN_IMAGES } from "@/lib/constants/pattern-images";
 import { DrawProvider } from "@/lib/providers/DrawProvider";
 import { selectActiveBasemap } from "@/lib/store/map/selectors";
@@ -30,6 +35,7 @@ const UPDATE_VIEW_STATE_DEBOUNCE_TIME = 3000;
 export default function MapPage({ params: { projectId } }) {
   const theme = useTheme();
   const { t } = useTranslation("common");
+
   const activeBasemap = useAppSelector(selectActiveBasemap);
   const mapRef = useRef<MapRef | null>(null);
   const {
@@ -54,6 +60,7 @@ export default function MapPage({ params: { projectId } }) {
 
   const { isProjectEditor, isLoading: isAuthZLoading } = useAuthZ();
 
+  const { scenarioFeatures } = useProjectScenarioFeatures(projectId, project?.active_scenario_id);
   const isLoading = useMemo(
     () => isProjectLoading || isInitialViewLoading || areProjectLayersLoading || isAuthZLoading,
     [isProjectLoading, isInitialViewLoading, areProjectLayersLoading, isAuthZLoading]
@@ -136,6 +143,7 @@ export default function MapPage({ params: { projectId } }) {
               <MapViewer
                 layers={projectLayers}
                 mapRef={mapRef}
+                scenarioFeatures={scenarioFeatures}
                 initialViewState={{
                   zoom: initialView?.zoom ?? 3,
                   latitude: initialView?.latitude ?? 48.13,

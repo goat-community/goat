@@ -7,7 +7,13 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { useTranslation } from "@/i18n/client";
 
-import { deleteProjectScenario, updateProject, useProject, useProjectScenarios } from "@/lib/api/projects";
+import {
+  deleteProjectScenario,
+  updateProject,
+  useProject,
+  useProjectScenarioFeatures,
+  useProjectScenarios,
+} from "@/lib/api/projects";
 import { setActiveRightPanel, setEditingScenario } from "@/lib/store/map/slice";
 import type { Scenario } from "@/lib/validations/scenario";
 
@@ -75,7 +81,10 @@ const ScenarioPanel = ({ projectId }: { projectId: string }) => {
   const [selectedScenario, setSelectedScenario] = useState<Scenario | undefined>(undefined);
 
   const { project, mutate: mutateProject } = useProject(projectId);
-
+  const { mutate: mutateScenarioFeatures } = useProjectScenarioFeatures(
+    projectId,
+    project?.active_scenario_id
+  );
   const activeScenario = useMemo(() => {
     return scenarios?.items?.find((scenario) => scenario.id === project?.active_scenario_id);
   }, [scenarios, project]);
@@ -117,6 +126,7 @@ const ScenarioPanel = ({ projectId }: { projectId: string }) => {
     } finally {
       setSelectedScenario(undefined);
       setConfirmDeleteScenarioDialogOpen(false);
+      mutateScenarioFeatures(undefined, false);
     }
   }
 
@@ -212,6 +222,7 @@ const ScenarioPanel = ({ projectId }: { projectId: string }) => {
                             setIsEditScenarioMetadataModalOpen(true);
                           } else if (menuItem.id === ScenarioActions.EDIT) {
                             dispatch(setEditingScenario(scenario));
+                            await setActiveScenario(scenario);
                             if (activeScenario?.id !== scenario.id) {
                               await setActiveScenario(scenario);
                             }
