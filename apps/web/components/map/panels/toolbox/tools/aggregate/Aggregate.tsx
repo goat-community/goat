@@ -65,8 +65,7 @@ const Aggregate = ({ onBack, onClose, type }: AggregateProps) => {
   );
   const { layers: projectLayers } = useFilteredProjectLayers(projectId as string);
 
-  const aggregateMaxFeatureCnt =
-    type === "point" ? maxFeatureCnt.aggregate_point : maxFeatureCnt.aggregate_polygon;
+  const aggregateMaxFeatureCnt = maxFeatureCnt.aggregate_polygon;
 
   const [sourceLayerItem, setSourceLayerItem] = useState<SelectorItem | undefined>();
   const sourceLayerDatasetId = useLayerDatasetId(
@@ -138,13 +137,18 @@ const Aggregate = ({ onBack, onClose, type }: AggregateProps) => {
     ) {
       return false;
     }
-    if (sourceLayer?.filtered_count && sourceLayer.filtered_count > aggregateMaxFeatureCnt) {
+    if (
+      sourceLayer?.filtered_count &&
+      sourceLayer.filtered_count > aggregateMaxFeatureCnt &&
+      type === "polygon"
+    ) {
       return false;
     }
     if (
       areaType?.value === areaTypeEnum.Enum.feature &&
       selectedAreaLayer?.filtered_count &&
-      selectedAreaLayer.filtered_count > aggregateMaxFeatureCnt
+      selectedAreaLayer.filtered_count > aggregateMaxFeatureCnt &&
+      type === "polygon"
     ) {
       return false;
     }
@@ -160,6 +164,7 @@ const Aggregate = ({ onBack, onClose, type }: AggregateProps) => {
     sourceLayer,
     selectedAreaLayer?.filtered_count,
     aggregateMaxFeatureCnt,
+    type,
   ]);
 
   const handleRun = async () => {
@@ -276,6 +281,7 @@ const Aggregate = ({ onBack, onClose, type }: AggregateProps) => {
                       tooltip={t("select_source_layer_tooltip")}
                     />
                     {!!aggregateMaxFeatureCnt &&
+                      type === "polygon" &&
                       !!sourceLayer?.filtered_count &&
                       sourceLayer.filtered_count > aggregateMaxFeatureCnt && (
                         <LayerNumberOfFeaturesAlert
@@ -350,6 +356,7 @@ const Aggregate = ({ onBack, onClose, type }: AggregateProps) => {
 
                     {areaType?.value === areaTypeEnum.Enum.feature &&
                       !!aggregateMaxFeatureCnt &&
+                      type === "polygon" &&
                       !!selectedAreaLayer?.filtered_count &&
                       selectedAreaLayer.filtered_count > aggregateMaxFeatureCnt && (
                         <LayerNumberOfFeaturesAlert
