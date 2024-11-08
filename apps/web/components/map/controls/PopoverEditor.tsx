@@ -56,8 +56,30 @@ const MapPopoverEditor: React.FC<MapPopoverEditorProps> = ({
     feature?.properties || {}
   );
 
+  const _lngLat = useMemo(() => {
+    let _lngLat = lngLat || [0, 0];
+    if (!lngLat && feature) {
+      const coordinates = feature.geometry["coordinates"];
+      if (layer?.feature_layer_geometry_type === "point") {
+        _lngLat = coordinates;
+      } else if (layer?.feature_layer_geometry_type === "line") {
+        const lastCoordinate = coordinates[coordinates.length - 1];
+        _lngLat = lastCoordinate;
+      } else if (layer?.feature_layer_geometry_type === "polygon") {
+        const lastCoordinate = coordinates[0][coordinates[0].length - 1];
+        _lngLat = lastCoordinate;
+      }
+    }
+    return _lngLat;
+  }, [feature, lngLat]);
+
   return (
-    <Popup onClose={onClose} longitude={lngLat[0]} latitude={lngLat[1]} closeButton={false} maxWidth="340px">
+    <Popup
+      onClose={onClose}
+      longitude={_lngLat[0]}
+      latitude={_lngLat[1]}
+      closeButton={false}
+      maxWidth="340px">
       <Box>
         <Paper elevation={0}>
           <Stack sx={{ px: 2, pt: 2 }} direction="row" alignItems="center" justifyContent="space-between">

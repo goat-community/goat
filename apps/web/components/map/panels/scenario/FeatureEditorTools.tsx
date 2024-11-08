@@ -211,22 +211,10 @@ const FeatureEditorTools = ({
     (e: { features: object[] }) => {
       const feature = e.features[0] as MapGeoJSONFeature;
       if (feature) {
-        let lngLat = map?.getCenter();
-        const coordinates = feature.geometry["coordinates"];
-        if (layer?.feature_layer_geometry_type === "point") {
-          lngLat = coordinates;
-        } else if (layer?.feature_layer_geometry_type === "line") {
-          const lastCoordinate = coordinates[coordinates.length - 1];
-          lngLat = lastCoordinate;
-        } else if (layer?.feature_layer_geometry_type === "polygon") {
-          const lastCoordinate = coordinates[0][coordinates[0].length - 1];
-          lngLat = lastCoordinate;
-        }
         hideToast();
         setTimeout(() => {
           dispatch(
             setPopupEditor({
-              lngLat: lngLat,
               editMode: editType,
               layer,
               feature: feature,

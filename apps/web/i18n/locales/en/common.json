@@ -218,6 +218,7 @@
   "delete_team": "Delete team",
   "delete_team_confirmation_body": "Are you sure you want to delete your team? This will remove all shared data and projects, including those used in other team members projects. <strong> This action cannot be undone! </strong>",
   "delete_this_feature": "Are you sure you want to delete this feature ?",
+  "deleted": "Deleted",
   "deleted_successfully": "Folder deleted successfully",
   "desc": "Desc",
   "description": "Description",
@@ -543,6 +544,7 @@
   "metadata_updated_success": "Metadata updated successfully",
   "metric": "Metric",
   "min": "Min",
+  "modified": "Modified",
   "modify_attributes": "Modify attributes",
   "modify_geometry": "Modify geometry",
   "more": "More",
@@ -559,6 +561,7 @@
   "nearby_stations_access_description": "The PT Nearby Station Access analysis is used to find stops and their departures that are accessible by walking/cycling.",
   "nearby_stations_access_header": "PT Nearby Station Access",
   "network": "Network",
+  "new": "New",
   "new_folder": "New Folder",
   "new_org_member": "New Member",
   "new_organization_stepper": "Name & Region",
@@ -989,6 +992,7 @@
   "unique_id_field_tooltip": "The field containing the unique identifier for the origin-destination geometries",
   "unit": "Unit",
   "unity": "Unity",
+  "unknown": "Unknown",
   "update": "Update",
   "update_folder": "Update Folder",
   "update_organization_information": "Update your organization information",
@@ -1029,5 +1033,6 @@
   "zoom_level_legend_tooltip": "Zoom levels at which the layer will be visible",
   "zoom_out": "Zoom Out",
   "zoom_to": "Zoom to",
+  "zoom_to_feature": "Zoom to feature",
   "zoom_to_starting_point": "Zoom to starting point"
 }

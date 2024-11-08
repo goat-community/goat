@@ -218,6 +218,7 @@
   "delete_team": "Team löschen",
   "delete_team_confirmation_body": "Sind Sie sicher, dass Sie Ihr Team löschen möchten? \nDadurch werden alle freigegebenen Daten und Projekte entfernt, einschließlich derjenigen, die in Projekten anderer Teammitglieder verwendet werden. \n<strong> Diese Aktion kann nicht rückgängig gemacht werden! \n</strong>",
   "delete_this_feature": "Sind Sie sicher, dass Sie diese Funktion löschen möchten?",
+  "deleted": "Gelöscht",
   "deleted_successfully": "Ordner erfolgreich gelöscht",
   "desc": "Absteigend",
   "description": "Beschreibung",
@@ -543,6 +544,7 @@
   "metadata_updated_success": "Metadaten erfolgreich aktualisiert",
   "metric": "Metrisch",
   "min": "Min",
+  "modified": "Geändert",
   "modify_attributes": "Attribute ändern",
   "modify_geometry": "Geometrie ändern",
   "more": "Mehr",
@@ -559,6 +561,7 @@
   "nearby_stations_access_description": "Die Analyse Nahgelegene ÖV-Haltestellen dient dazu, Haltestellen und deren Abfahrten zu finden, die zu Fuß oder mit dem Fahrrad erreichbar sind.",
   "nearby_stations_access_header": "Nahgelegene ÖV-Haltestellen",
   "network": "Netzwerk",
+  "new": "Neu",
   "new_folder": "Neuer Ordner",
   "new_org_member": "Neues Mitglied",
   "new_organization_stepper": "Name & Region",
@@ -989,6 +992,7 @@
   "unique_id_field_tooltip": "Das Feld, das den eindeutigen Wert für die Quell-Ziel-Geometrien enthält.",
   "unit": "Einheit",
   "unity": "Einheit",
+  "unknown": "Unbekannt",
   "update": "Aktualisieren",
   "update_folder": "Ordner aktualisieren",
   "update_organization_information": "Aktualisieren Sie Ihre Organisationsdaten",
@@ -1029,5 +1033,6 @@
   "zoom_level_legend_tooltip": "Zoomstufen, bei denen die Layer sichtbar sein wird",
   "zoom_out": "Rauszoomen",
   "zoom_to": "Zoomen auf",
+  "zoom_to_feature": "Zoomen Sie auf die Funktion",
   "zoom_to_starting_point": "Zoomen zum Startpunkt"
 }

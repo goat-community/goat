@@ -89,9 +89,13 @@ const ScenarioPanel = ({ projectId }: { projectId: string }) => {
     return scenarios?.items?.find((scenario) => scenario.id === project?.active_scenario_id);
   }, [scenarios, project]);
 
-  const setActiveScenario = async (scenario: Scenario) => {
+  const setActiveScenario = async (scenario: Scenario, toggle: boolean = false) => {
     const updatedProject = JSON.parse(JSON.stringify(project));
-    updatedProject.active_scenario_id = project?.active_scenario_id === scenario.id ? null : scenario.id;
+    if (!toggle) {
+      updatedProject.active_scenario_id = scenario.id;
+    } else {
+      updatedProject.active_scenario_id = project?.active_scenario_id === scenario.id ? null : scenario.id;
+    }
     mutateProject(updatedProject, false);
     await updateProject(projectId, updatedProject);
   };
@@ -192,7 +196,7 @@ const ScenarioPanel = ({ projectId }: { projectId: string }) => {
                   id={scenario.id}
                   active={activeScenario?.id === scenario.id}
                   onClick={async () => {
-                    await setActiveScenario(scenario);
+                    await setActiveScenario(scenario, true);
                   }}
                   body={
                     <>
@@ -223,9 +227,6 @@ const ScenarioPanel = ({ projectId }: { projectId: string }) => {
                           } else if (menuItem.id === ScenarioActions.EDIT) {
                             dispatch(setEditingScenario(scenario));
                             await setActiveScenario(scenario);
-                            if (activeScenario?.id !== scenario.id) {
-                              await setActiveScenario(scenario);
-                            }
                           }
                         }}
                         menuButton={

@@ -1,22 +1,28 @@
 import {
-  Box, // Table,
-  // TableBody,
-  // TableCell,
-  // TableContainer,
-  // TableHead,
-  // TableRow,
+  Box,
+  IconButton,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
+import bbox from "@turf/bbox";
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useMap } from "react-map-gl/maplibre";
 import { toast } from "react-toastify";
 import { ZodError } from "zod";
 
-import { ICON_NAME } from "@p4b/ui/components/Icon";
+import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { useTranslation } from "@/i18n/client";
 
-import { useDataset } from "@/lib/api/layers";
+import { getDataset, useDataset } from "@/lib/api/layers";
 import {
   createProjectScenarioFeatures,
   deleteProjectScenarioFeature,
@@ -24,7 +30,10 @@ import {
   useProjectScenarioFeatures,
 } from "@/lib/api/projects";
 import { setPopupEditor, setSelectedScenarioLayer } from "@/lib/store/map/slice";
+import { fitBounds } from "@/lib/utils/map/navigate";
 import { stringify as stringifyToWKT } from "@/lib/utils/map/wkt";
+import { ProjectLayer } from "@/lib/validations/project";
+import type { ScenarioFeature, ScenarioFeatures } from "@/lib/validations/scenario";
 import {
   type Scenario,
   scenarioEditTypeEnum,
@@ -44,75 +53,193 @@ import Selector from "@/components/map/panels/common/Selector";
 import { getLayerIcon } from "@/components/map/panels/layer/Layer";
 import FeatureEditorTools from "@/components/map/panels/scenario/FeatureEditorTools";
 
-// const ScenarioFeaturesTable = ({ scenarioFeatures }: { scenarioFeatures: ScenarioFeatures | undefined }) => {
-//   const { t } = useTranslation("common");
-//   return (
-//     <>
-//       <Table size="small" aria-label="scenario features table" stickyHeader>
-//         <TableHead>
-//           <TableRow>
-//             <TableCell align="left">
-//               <Typography variant="caption" fontWeight="bold">
-//                 Layer
-//               </Typography>
-//             </TableCell>
-//             <TableCell align="left">
-//               <Typography variant="caption" fontWeight="bold">
-//                 Type
-//               </Typography>
-//             </TableCell>
-//             <TableCell align="right"> </TableCell>
-//           </TableRow>
-//         </TableHead>
-//       </Table>
+const ScenarioFeaturesTable = ({
+  projectId,
+  scenarioId,
+  projectLayers,
+  scenarioFeatures,
+  mutateScenarioFeatures,
+}: {
+  projectId: string;
+  scenarioId: string;
+  scenarioFeatures: ScenarioFeatures | undefined;
+  projectLayers: ProjectLayer[];
+  mutateScenarioFeatures: () => void;
+}) => {
+  const { t } = useTranslation("common");
+  const theme = useTheme();
+  const { map } = useMap();
+  const dispatch = useAppDispatch();
 
-//       <TableContainer style={{ marginTop: 0, maxHeight: 250 }}>
-//         <Table size="small" aria-label="scenario features table">
-//           <TableBody>
-//             {!scenarioFeatures?.features?.length && (
-//               <TableRow>
-//                 <TableCell align="center" colSpan={3}>
-//                   <Typography variant="caption" fontWeight="bold">
-//                     {t("no_scenario_features")}
-//                   </Typography>
-//                 </TableCell>
-//               </TableRow>
-//             )}
-//             {/* Scenario Feature Table  */}
-//             {!scenarioFeatures
-//               ? null
-//               : scenarioFeatures.features.map((_feature, index) => (
-//                   <TableRow key={index}>
-//                     <TableCell align="center" sx={{ px: 2 }}>
-//                       <Typography variant="caption" fontWeight="bold">
-//                         1
-//                       </Typography>
-//                     </TableCell>
-//                     <TableCell align="center" sx={{ px: 2 }}>
-//                       <Typography variant="caption" fontWeight="bold">
-//                         2
-//                       </Typography>
-//                     </TableCell>
-//                     <TableCell align="right" sx={{ px: 2 }}>
-//                       <Typography variant="caption" fontWeight="bold">
-//                         3
-//                       </Typography>
-//                     </TableCell>
-//                   </TableRow>
-//                 ))}
-//           </TableBody>
-//         </Table>
-//       </TableContainer>
-//     </>
-//   );
-// };
+  const handleZoomToFeature = (feature: ScenarioFeature) => {
+    if (!map) return;
+    const boundingBox = bbox(feature);
+    fitBounds(map, boundingBox as [number, number, number, number]);
+  };
+
+  const projectLayerIdToName = useMemo(() => {
+    return projectLayers.reduce(
+      (acc, layer) => {
+        acc[layer.id] = layer.name;
+        return acc;
+      },
+      {} as Record<number, string>
+    );
+  }, [projectLayers]);
+
+  const handleDeleteFeature = async (feature: ScenarioFeature) => {
+    const projectLayerId = feature.properties?.layer_project_id;
+    const projectLayer = projectLayers.find((layer) => layer.id === projectLayerId);
+    if (!projectLayer) return;
+    const layerId = projectLayer.layer_id;
+    if (!layerId) return;
+    const layer = await getDataset(layerId);
+    if (!layer) return;
+    handleZoomToFeature(feature);
+    dispatch(
+      setPopupEditor({
+        editMode: EditorModes.DELETE,
+        layer,
+        feature,
+        onClose: () => {
+          dispatch(setPopupEditor(undefined));
+        },
+        onConfirm: async () => {
+          const properties = feature.properties;
+          try {
+            await deleteProjectScenarioFeature(
+              projectId,
+              projectLayerId,
+              scenarioId,
+              properties.id,
+              properties?.h3_3 as number
+            );
+            toast.success(t("feature_deleted_success"));
+          } catch (error) {
+            console.error(error);
+            toast.error(t("feature_delete_error"));
+          } finally {
+            dispatch(setPopupEditor(undefined));
+            mutateScenarioFeatures();
+          }
+        },
+      })
+    );
+  };
+
+  const editTypeLabel = (editType: string) => {
+    switch (editType) {
+      case scenarioEditTypeEnum.Enum.m:
+        return t("new");
+      case scenarioEditTypeEnum.Enum.d:
+        return t("deleted");
+      case scenarioEditTypeEnum.Enum.m:
+        return t("modified");
+      default:
+        return editType;
+    }
+  };
+  return (
+    <>
+      <Table size="small" aria-label="scenario features table" stickyHeader>
+        <TableHead>
+          <TableRow>
+            <TableCell align="left" sx={{ px: 2, width: 100 }}>
+              <Typography variant="caption" fontWeight="bold">
+                {t("layer")}
+              </Typography>
+            </TableCell>
+            <TableCell align="left" sx={{ px: 2, width: 100 }}>
+              <Typography variant="caption" fontWeight="bold">
+                {t("type")}
+              </Typography>
+            </TableCell>
+            <TableCell align="left" sx={{ px: 2, width: 60 }}>
+              {" "}
+            </TableCell>
+          </TableRow>
+        </TableHead>
+      </Table>
+
+      <TableContainer style={{ marginTop: 0, maxHeight: 250 }}>
+        <Table size="small" aria-label="scenario features table">
+          <TableBody>
+            {!scenarioFeatures?.features?.length && (
+              <TableRow>
+                <TableCell align="center" colSpan={3}>
+                  <Typography variant="caption" fontWeight="bold">
+                    {t("no_scenario_features")}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
+            {/* Scenario Feature Table  */}
+            {!scenarioFeatures
+              ? null
+              : scenarioFeatures.features.map((_feature) => (
+                  <TableRow key={_feature.id}>
+                    <TableCell align="left" sx={{ px: 2, width: 100 }}>
+                      <Typography variant="caption" fontWeight="bold">
+                        {/* {_feature.properties?.layer_project_id} */}
+                        {projectLayerIdToName[_feature.properties?.layer_project_id] || t("unknown")}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="left" sx={{ px: 2, width: 100 }}>
+                      <Typography variant="caption" fontWeight="bold">
+                        {editTypeLabel(_feature.properties?.edit_type)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right" sx={{ px: 2, width: 60 }}>
+                      <Stack direction="row" alignItems="center" justifyContent="end" spacing={1}>
+                        <Tooltip title={t("zoom_to_feature")} placement="top">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleZoomToFeature(_feature)}
+                            sx={{
+                              "&:hover": {
+                                color: theme.palette.primary.main,
+                              },
+                            }}>
+                            <Icon
+                              iconName={ICON_NAME.ZOOM_IN}
+                              style={{ fontSize: "12px" }}
+                              htmlColor="inherit"
+                            />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title={t("delete_feature")} placement="top">
+                          <IconButton
+                            size="small"
+                            sx={{
+                              "&:hover": {
+                                color: theme.palette.error.main,
+                              },
+                            }}
+                            onClick={async () => await handleDeleteFeature(_feature)}>
+                            <Icon
+                              iconName={ICON_NAME.TRASH}
+                              style={{ fontSize: "12px" }}
+                              htmlColor="inherit"
+                            />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+};
 
 const ScenarioFeaturesEditor = ({ scenario, projectId }: { scenario: Scenario; projectId: string }) => {
   const theme = useTheme();
   const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
   const { layers: projectLayers } = useFilteredProjectLayers(projectId, ["table"], []);
-  const { scenarioFeatures: _, mutate: mutateScenarioFeatures } = useProjectScenarioFeatures(
+  const { scenarioFeatures, mutate: mutateScenarioFeatures } = useProjectScenarioFeatures(
     projectId,
     scenario.id
   );
@@ -298,7 +425,7 @@ const ScenarioFeaturesEditor = ({ scenario, projectId }: { scenario: Scenario; p
       />
 
       {/* {SCENARIO FEATURES} */}
-      {/* <SectionHeader
+      <SectionHeader
         active={true}
         alwaysActive={true}
         label={t("scenario_features")}
@@ -310,10 +437,16 @@ const ScenarioFeaturesEditor = ({ scenario, projectId }: { scenario: Scenario; p
         active={scenarioFeatures !== undefined}
         baseOptions={
           <>
-            <ScenarioFeaturesTable scenarioFeatures={scenarioFeatures} />
+            <ScenarioFeaturesTable
+              projectId={projectId}
+              scenarioId={scenario.id}
+              scenarioFeatures={scenarioFeatures}
+              projectLayers={projectLayers}
+              mutateScenarioFeatures={mutateScenarioFeatures}
+            />
           </>
         }
-      /> */}
+      />
     </Box>
   );
 };

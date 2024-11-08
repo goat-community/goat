@@ -11,7 +11,7 @@ export enum EditorModes {
 
 export type MapPopoverEditorProps = {
   title?: string;
-  lngLat: [number, number];
+  lngLat?: [number, number];
   feature?: MapGeoJSONFeature | undefined;
   editMode: EditorModes;
   layer: Layer;

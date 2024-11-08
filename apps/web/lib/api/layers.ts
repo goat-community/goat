@@ -68,6 +68,17 @@ export const useDataset = (datasetId: string) => {
   return { dataset: data, isLoading, isError: error, mutate };
 };
 
+export const getDataset = async (datasetId: string): Promise<Layer> => {
+  // The reason why getDataset is used instead of useDataset is when you want to get the data inside a function
+  const response = await fetchWithAuth(`${LAYERS_API_BASE_URL}/${datasetId}`, {
+    method: "GET",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to get dataset");
+  }
+  return await response.json();
+}
+
 export const updateDataset = async (datasetId: string, payload: PostDataset) => {
   const response = await fetchWithAuth(`${LAYERS_API_BASE_URL}/${datasetId}`, {
     method: "PUT",
