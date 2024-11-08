@@ -233,7 +233,7 @@ const FeatureEditorTools = ({
         }, 100);
       }
     },
-    [map, layer, hideToast, dispatch, editType, drawControl, reenableDraw, onFinish]
+    [layer, hideToast, dispatch, editType, drawControl, reenableDraw, onFinish]
   );
 
   const handleFeatureCreateTooltipUpdates = useCallback(() => {

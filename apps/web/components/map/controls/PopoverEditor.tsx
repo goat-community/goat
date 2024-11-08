@@ -71,7 +71,7 @@ const MapPopoverEditor: React.FC<MapPopoverEditorProps> = ({
       }
     }
     return _lngLat;
-  }, [feature, lngLat]);
+  }, [feature, lngLat, layer?.feature_layer_geometry_type]);
 
   return (
     <Popup

@@ -32,7 +32,7 @@ import {
 import { setPopupEditor, setSelectedScenarioLayer } from "@/lib/store/map/slice";
 import { fitBounds } from "@/lib/utils/map/navigate";
 import { stringify as stringifyToWKT } from "@/lib/utils/map/wkt";
-import { ProjectLayer } from "@/lib/validations/project";
+import type { ProjectLayer } from "@/lib/validations/project";
 import type { ScenarioFeature, ScenarioFeatures } from "@/lib/validations/scenario";
 import {
   type Scenario,
