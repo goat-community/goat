@@ -57,9 +57,9 @@ Die folgenden Standardkonfigurationen werden beim Routing für den öffentlichen
 - **Abklingfunktionstyp:** logistisch
 - **Standardabweichung:** 12 Minuten
 - **Breite:** 10 Minuten
-- **Gehgeschwindigkeit:** 1,39 km/h
+- **Gehgeschwindigkeit:** 5 km/h
 - **Maximale Gehzeit:** 20 Minuten
-- **Fahrradgeschwindigkeit:** 4,166666666666667 km/h
+- **Fahrradgeschwindigkeit:** 15 km/h
 - **Maximale Fahrradzeit:** 20 Minuten
 - **Radverkehrsbelastung:** 4
 - **Maximale Fahrten:** 4

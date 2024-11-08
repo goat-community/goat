@@ -57,9 +57,9 @@ The following default configurations are used while performing public transport 
 - **Decay function type:** logistic
 - **Standard deviation:** 12 minutes
 - **Width:** 10 minutes
-- **Walk speed:** 1.39 km/h
+- **Walk speed:** 5 km/h
 - **Maximum walk time:** 20 minutes
-- **Bike speed:** 4.166666666666667 km/h
+- **Bike speed:** 15 km/h
 - **Maximum bike time:** 20 minutes
 - **Bike traffic stress:** 4
 - **Maximum rides:** 4
