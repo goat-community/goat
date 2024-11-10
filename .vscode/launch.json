@@ -2,6 +2,47 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "GeoAPI Debug",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "fastapi",
+      "args": [
+          "dev",
+          "src/geoapi/main.py",
+          "--reload",
+          "--port",
+          "8080"
+      ],
+      "cwd": "${workspaceFolder}/apps/geoapi",
+      "justMyCode": false,
+      "jinja": true,
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "uv-sync"
+    },
+    {
+      "name": "Web Debug (Server-Side)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm run web"
+    },
+    {
+      "name": "Web Debug (Client)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "Web Debug (Full Stack)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm run web",
+      "serverReadyAction": {
+        "pattern": "started server on .+, url: (https?://.+)",
+        "uriFormat": "%s",
+        "action": "debugWithChrome"
+      }
+    },
+    {
       "name": "Storybook Debug",
       "type": "node-terminal",
       "request": "launch",
@@ -9,29 +50,6 @@
       "internalConsoleOptions": "openOnFirstSessionStart",
       "serverReadyAction": {
         "pattern": "Local:.+(https?://[^:]+:[0-9]+)",
-        "uriFormat": "%s",
-        "action": "debugWithChrome"
-      }
-    },
-    {
-      "name": "GOAT Debug (Server-Side)",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "pnpm run web"
-    },
-    {
-      "name": "GOAT Debug (Client)",
-      "type": "chrome",
-      "request": "launch",
-      "url": "http://localhost:3000"
-    },
-    {
-      "name": "GOAT Debug (Full Stack)",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "pnpm run web",
-      "serverReadyAction": {
-        "pattern": "started server on .+, url: (https?://.+)",
         "uriFormat": "%s",
         "action": "debugWithChrome"
       }

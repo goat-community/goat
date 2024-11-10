@@ -1,4 +1,4 @@
-## Logs
+# Logs
 logs
 *.log
 npm-debug.log*
@@ -43,6 +43,16 @@ build
 
 # vercel
 .vercel
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+dist/
+wheels/
+*.egg-info
+.ruff_cache/
+.venv
+.pytest_cache/
 
 # others
 build_keycloak
