@@ -306,16 +306,20 @@ version = "2.0.0"
 source = { editable = "apps/geoapi" }
 dependencies = [
     { name = "asyncpg" },
+    { name = "fastapi", extra = ["standard"] },
     { name = "geojson" },
     { name = "sentry-sdk" },
+    { name = "sqlmodel" },
     { name = "tipg" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "asyncpg", specifier = "==0.30.0" },
+    { name = "fastapi", extras = ["standard"], specifier = "==0.115.4" },
     { name = "geojson", specifier = "==3.1.0" },
     { name = "sentry-sdk", specifier = "==2.18.0" },
+    { name = "sqlmodel", specifier = "==0.0.22" },
     { name = "tipg", specifier = "==0.8.0" },
 ]
 
@@ -344,11 +348,6 @@ wheels = [
 name = "goat-backend-monorepo"
 version = "2.0.0"
 source = { virtual = "." }
-dependencies = [
-    { name = "fastapi", extra = ["standard"] },
-    { name = "geoapi" },
-    { name = "sqlmodel" },
-]
 
 [package.dev-dependencies]
 dev = [
@@ -365,11 +364,6 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "fastapi", extras = ["standard"], specifier = "==0.115.4" },
-    { name = "geoapi", editable = "apps/geoapi" },
-    { name = "sqlmodel", specifier = "==0.0.22" },
-]
 
 [package.metadata.requires-dev]
 dev = [

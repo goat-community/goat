@@ -2,13 +2,10 @@
 name = "goat-backend-monorepo"
 version = "2.0.0"
 requires-python = ">=3.12"
-dependencies = [
-    "fastapi[standard]==0.115.4",
-    "sqlmodel==0.0.22",
-    "geoapi"
-]
+dependencies = [ ]
 
 [tool.uv]
+package = false
 dev-dependencies = [
     "pre-commit==4.0.1",
     "pyright==1.1.384",

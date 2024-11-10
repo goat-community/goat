@@ -61,5 +61,7 @@ storybook-static
 /.idea
 cache
 
-
+# Submodules
+.gitmodules
+apps/accounts
 
