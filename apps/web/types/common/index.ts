@@ -10,6 +10,7 @@ export enum ContentActions {
   SHARE = "share",
   DELETE = "delete",
   TABLE = "table",
+  UPDATE = "update",
 }
 
 export enum MapLayerActions {

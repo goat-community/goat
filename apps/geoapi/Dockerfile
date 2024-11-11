@@ -25,9 +25,20 @@ ENV UV_LINK_MODE=copy
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --no-install-workspace
+    uv sync --frozen --no-install-project --no-dev --all-packages --no-install-workspace
 
 
 ENV PYTHONPATH=/app
 
 # TODO: Add the rest of the Dockerfile
+
+COPY apps/geoapi /app/apps/geoapi
+
+# Sync the project
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
+RUN --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-dev --package=geoapi
+
+
+CMD ["fastapi", "run", "--workers", "4", "app/main.py"]

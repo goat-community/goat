@@ -70,7 +70,7 @@ const TileGrid = (props: TileGridProps) => {
               />
             </Grid>
           )}
-          {(isLoading ? Array.from(new Array(4)) : items ?? []).map(
+          {(isLoading ? Array.from(new Array(4)) : (items ?? [])).map(
             (item: Project | Layer, index: number) => (
               <Grid
                 item
@@ -89,7 +89,7 @@ const TileGrid = (props: TileGridProps) => {
                     enableActions={props.enableActions}
                     cardType={props.view}
                     item={item}
-                    moreMenuOptions={getMoreMenuOptions(props.type)}
+                    moreMenuOptions={getMoreMenuOptions(props.type, item)}
                     onMoreMenuSelect={openMoreMenu}
                   />
                 )}

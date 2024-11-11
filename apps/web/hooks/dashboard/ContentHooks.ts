@@ -11,10 +11,12 @@ import { ContentActions } from "@/types/common";
 
 import type { PopperMenuItem } from "@/components/common/PopperMenu";
 
+
 export const useContentMoreMenu = () => {
   const { t } = useTranslation("common");
-  const getMoreMenuOptions = function (contentType: "project" | "layer") {
+  const getMoreMenuOptions = function (contentType: "project" | "layer", item: Project | Layer) {
     if (contentType === "layer") {
+      const layerItem = item as Layer;
       const layerMoreMenuOptions: PopperMenuItem[] = [
         {
           id: ContentActions.EDIT_METADATA,
@@ -26,11 +28,20 @@ export const useContentMoreMenu = () => {
           label: t("move_to_folder"),
           icon: ICON_NAME.FOLDER,
         },
-        {
-          id: ContentActions.DOWNLOAD,
-          label: t("download"),
-          icon: ICON_NAME.DOWNLOAD,
-        },
+        ...(layerItem?.type === "feature" || layerItem?.type === "table"
+          ? [
+            {
+              id: ContentActions.DOWNLOAD,
+              label: t("download"),
+              icon: ICON_NAME.DOWNLOAD,
+            },
+            {
+              id: ContentActions.UPDATE,
+              label: t("update"),
+              icon: ICON_NAME.REFRESH
+            },
+          ]
+          : []),
         {
           id: ContentActions.SHARE,
           label: t("share"),

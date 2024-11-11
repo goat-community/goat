@@ -23,7 +23,6 @@ export default function ContentDialogWrapper(props: ContentDialogProps) {
     onClose: props.onClose,
     type: props.type,
   };
-
   return (
     <>
       {props.action === ContentActions.EDIT_METADATA && <MetadataModal {...commonModalProps} />}
