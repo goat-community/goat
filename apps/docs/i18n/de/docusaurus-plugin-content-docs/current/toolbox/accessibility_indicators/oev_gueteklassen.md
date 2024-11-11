@@ -44,7 +44,7 @@ Falls Sie eine Analyse außerhalb dieses Geofence durchführen müssen, kontakti
   <div class="content">Klicken Sie im Menü <code>Erreichbarkeitsindikatoren</code> auf <code>ÖV-Güteklassen</code>. Dadurch wird das Einstellungsmenü geöffnet.</div>
 </div>
 
-![Menüübersicht für ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/overview.png "Menüübersicht für ÖV-Güteklassen")
+![Menüübersicht für ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/overview_new.png "Menüübersicht für ÖV-Güteklassen")
 
 ### Berechnungszeit
 
@@ -60,10 +60,17 @@ Falls Sie eine Analyse außerhalb dieses Geofence durchführen müssen, kontakti
   <div class="content">Wählen Sie den <code>Referenzlayer</code> aus, für den Sie den Indikator berechnen möchten. Dies kann jeder Polygon-Feature-Layer sein.</div>
 </div>
 
-![Auswahl des Referenzgebiets](/img/toolbox/accessibility_indicators/gueteklassen/reference_area.png "Auswahl des Referenzgebiets")
+### Einstellungen
 
 <div class="step">
   <div class="step-number">5</div>
+  <div class="content">Wählen Sie den <code>Einzugsgebietstyp</code> aus, für den Sie den Indikator berechnen möchten. Dieser kann auf einem <code>Puffer</code> oder auf dem <code>Netzwerk</code> basieren. </div>
+</div>
+
+![Auswahl des Referenzgebiets](/img/toolbox/accessibility_indicators/gueteklassen/reference_area_new.png "Auswahl des Referenzgebiets")
+
+<div class="step">
+  <div class="step-number">6</div>
   <div class="content">Klicken Sie auf <code>Ausführen</code>. Dies startet die Berechnung der ÖV-Güteklassen für das ausgewählte Gebiet.</div>
 </div>
 
@@ -74,13 +81,15 @@ Je nach Größe des ausgewählten Gebiets kann die Berechnung einige Minuten dau
 ### Ergebnisse
 
 <div class="step">
-  <div class="step-number">6</div>
+  <div class="step-number">7</div>
   <div class="content">Sobald der Berechnungsprozess abgeschlossen ist, werden die resultierenden Layer zur Karte hinzugefügt. Die Ergebnisse bestehen aus einem Layer namens <b>"ÖV-Güteklassen"</b>, die die ÖV-Güteklassen zeigt, und einer Layer namens <b>"ÖV-Güteklassen Stationen"</b>, die alle Stationen enthält, die für die Berechnung dieses Indikators verwendet wurden. Die in Grau dargestellten Stationen haben eine zu geringe Servicefrequenz und tragen daher nicht zu einer ÖV-Güteklasse bei.
   <p></p>
   Wenn Sie auf ein "ÖV-Güteklassen"-Symbol auf der Karte klicken, sehen Sie weitere Details wie dessen pt_class und pt_class_number, die die <a href="#calculation">Qualität des öffentlichen Verkehrs</a> angeben.</div>
 </div>
 
 ![Ergebnis - ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/result.png "Ergebnis - ÖV-Güteklassen")
+![Ergebnis - ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/results_isochrone.png "Ergebnis - ÖV-Güteklassen")
+
 
 ## 4. Technische Details
 
@@ -98,15 +107,16 @@ Die Berechnungen basieren auf **GTFS-Daten** (siehe [Eingebaute Datensätze](../
 
 ![Klassifikation der Verkehrshaltestellen](/img/toolbox/accessibility_indicators/gueteklassen/classification_stations_en.webp "Klassifikation der Verkehrshaltestellen")
 
-Anschließend werden **Puffer** der angegebenen Größe für die entsprechenden Haltestellenkategorien berechnet. Dadurch entstehen mehrere Puffer, die zusammengeführt werden. Bei überlappenden Puffern wird die höherwertige Klasse verwendet.
+Anschließend werden **Puffer** oder **Isochrone** der angegebenen Größe für die entsprechenden Haltestellenkategorien berechnet. Dadurch entstehen mehrere Puffer/Ispchrone, die zusammengeführt werden. Bei überlappenden Puffern/Iscochronen wird die höherwertige Klasse verwendet.
 
 ![Bestimmung der ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/determination_oev_gueteklasse_en.webp "Bestimmung der ÖV-Güteklassen")
 
 ### Visualisierung
 
-Die erstellten Puffer werden um die Haltestellen in den entsprechenden Farben visualisiert, um die **Güteklasse** (<span style={{color: "#199741"}}>A</span>-<span style={{color: "#E4696A"}}>F</span>) hervorzuheben.
+Die erstellten Puffer/Ioschrone werden um die Haltestellen in den entsprechenden Farben visualisiert, um die **Güteklasse** (<span style={{color: "#199741"}}>A</span>-<span style={{color: "#E4696A"}}>F</span>) hervorzuheben.
 
 ![Visualisierung der ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/visualization.png "Visualisierung der ÖV-Güteklassen")
+![Visualisierung der ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/visualization_network.png "Visualisierung der ÖV-Güteklassen")
 
 ## 5. Weitere Lektüre
 
