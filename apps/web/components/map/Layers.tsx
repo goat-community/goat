@@ -148,6 +148,9 @@ const Layers = (props: LayersProps) => {
                       id={layer.id.toString()}
                       type="raster"
                       source-layer="default"
+                      layout={{
+                        visibility: layer.properties.visibility ? "visible" : "none",
+                      }}
                     />
                   </Source>
                 );
