@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 
@@ -104,5 +104,52 @@ export const useContentMoreMenu = () => {
     moreMenuState,
     closeMoreMenu,
     openMoreMenu,
+  };
+};
+
+export const useFileUpload = () => {
+  const [fileUploadError, setFileUploadError] = useState<string | undefined>(undefined);
+  const [fileValue, setFileValue] = useState<File | undefined>(undefined);
+  const [datasetType, setDatasetType] = useState<string | undefined>(undefined);
+
+  const acceptedFileTypes = useMemo(() => {
+    return [".gpkg", ".geojson", ".zip", ".kml", ".csv", ".xlsx"];
+  }, []);
+
+  const handleChange = useCallback((file: File) => {
+    setFileUploadError(undefined);
+    setFileValue(undefined);
+    if (file && file.name) {
+      const isAcceptedType = acceptedFileTypes.some((type) => file.name.endsWith(type));
+      if (!isAcceptedType) {
+        setFileUploadError("Invalid file type. Please select a file of type");
+        return;
+      }
+
+      // Autodetect dataset type
+      const isFeatureLayer =
+        file.name.endsWith(".gpkg") ||
+        file.name.endsWith(".geojson") ||
+        file.name.endsWith(".shp") ||
+        file.name.endsWith(".kml");
+      const isTable = file.name.endsWith(".csv") || file.name.endsWith(".xlsx");
+      if (isFeatureLayer) {
+        setDatasetType("feature_layer");
+      } else if (isTable) {
+        setDatasetType("table");
+      }
+      setFileValue(file);
+    }
+  }, [acceptedFileTypes]);
+
+  return {
+    acceptedFileTypes,
+    fileUploadError,
+    setFileUploadError,
+    fileValue,
+    setFileValue,
+    datasetType,
+    setDatasetType,
+    handleChange,
   };
 };
