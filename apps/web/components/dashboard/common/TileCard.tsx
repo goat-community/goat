@@ -206,6 +206,9 @@ const TileCard = (props: TileCard) => {
                 transform: "scale(1.2)",
               }),
             },
+            "& .type-chip": {
+              backgroundColor: theme.palette.primary.main,
+            },
           },
           ...(props.selected?.id === item?.id && {
             backgroundColor: "rgba(43, 179, 129, 0.2)",
@@ -213,6 +216,41 @@ const TileCard = (props: TileCard) => {
           }),
           flexDirection: cardType === "grid" ? "column" : "row",
         }}>
+        {item?.["type"] && cardType === "grid" && (
+          <Chip
+            color="secondary"
+            label={t(`${item?.["type"]}`)}
+            size="small"
+            className="type-chip"
+            sx={{
+              position: "absolute",
+              top: 8,
+              left: 8,
+              zIndex: 1,
+              "& .MuiChip-label": {
+                fontWeight: "bold",
+                fontStyle: "normal",
+                fontSize: "0.7rem",
+              },
+            }}
+          />
+        )}
+        {item?.["data_type"] && cardType === "grid" && (
+          <Tooltip title={t(item?.["data_type"].toUpperCase())} arrow placement="top">
+            <IconButton
+              className="type-chip"
+              sx={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                zIndex: 1,
+                color: theme.palette.secondary.contrastText,
+                backgroundColor: theme.palette.secondary.main,
+              }}>
+              <Icon iconName={ICON_NAME.LINK} style={{ fontSize: 14 }} />
+            </IconButton>
+          </Tooltip>
+        )}
         {item?.thumbnail_url && cardType === "grid" && (
           <Box
             sx={{
