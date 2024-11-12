@@ -149,7 +149,7 @@ const Layers = (props: LayersProps) => {
                       type="raster"
                       source-layer="default"
                       layout={{
-                        visibility: layer.properties.visibility ? "visible" : "none",
+                        visibility: layer.properties?.visibility ? "visible" : "none",
                       }}
                     />
                   </Source>
