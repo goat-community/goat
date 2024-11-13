@@ -3,6 +3,6 @@
 set -e
 set -x
 
-uv run ruff check .
-uv run ruff format . --check
+ruff check .
+ruff format . --check
 

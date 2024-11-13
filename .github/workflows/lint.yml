@@ -15,7 +15,7 @@ on:
         default: true
 
 jobs:
-  lint-web:
+  web:
     runs-on: ubuntu-latest
     if: ${{ inputs.web }}
     steps:
@@ -52,7 +52,7 @@ jobs:
           name: lint-results
           path: ${{ github.workspace }}/lint-results
 
-  lint-python:
+  python:
     runs-on: ubuntu-latest
     if: ${{ inputs.python }}
     steps:
@@ -74,4 +74,4 @@ jobs:
           enable-cache: true
 
       - run: uv run bash scripts/lint.sh
-        working-directory: backend
+        working-directory: ${{ github.workspace }}
