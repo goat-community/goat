@@ -73,5 +73,6 @@ jobs:
           version: "0.5.1"
           enable-cache: true
 
-      - run: 🐍 uv run bash scripts/lint-python.sh
+      - name: 🔬 Run linting
+        run: uv run bash scripts/lint-python.sh
         working-directory: ${{ github.workspace }}
