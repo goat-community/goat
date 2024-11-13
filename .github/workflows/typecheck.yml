@@ -2,13 +2,13 @@ name: "Check Types"
 on:
   workflow_call:
     inputs:
-      lint-web:
+      web:
         type: boolean
         description: "Whether to run web linting"
         required: false
         default: true
 
-      lint-python:
+      python:
         type: boolean
         description: "Whether to run python linting"
         required: false
@@ -19,7 +19,7 @@ env:
 
 jobs:
   typecheck:
-    if: ${{ inputs.lint-web }}
+    if: ${{ inputs.web }}
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout

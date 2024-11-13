@@ -6,4 +6,3 @@ set -x
 uv run ruff check .
 uv run ruff format . --check
 
-pnpm run lint

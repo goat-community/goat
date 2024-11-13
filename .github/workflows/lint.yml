@@ -2,13 +2,13 @@ name: "Lint"
 on:
   workflow_call:
     inputs:
-      lint-web:
+      web:
         type: boolean
         description: "Whether to run web linting"
         required: false
         default: true
 
-      lint-python:
+      python:
         type: boolean
         description: "Whether to run python linting"
         required: false
@@ -17,7 +17,7 @@ on:
 jobs:
   lint-web:
     runs-on: ubuntu-latest
-    if: ${{ inputs.lint-web }}
+    if: ${{ inputs.web }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
@@ -51,3 +51,27 @@ jobs:
         with:
           name: lint-results
           path: ${{ github.workspace }}/lint-results
+
+  lint-python:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.python }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Checkout PR
+        uses: goat-community/.github/.github/actions/pr-git-checkout@main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.1"
+          enable-cache: true
+
+      - run: uv run bash scripts/lint.sh
+        working-directory: backend

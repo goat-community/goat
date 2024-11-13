@@ -25,8 +25,8 @@ jobs:
     uses: ./.github/workflows/typecheck.yml
     secrets: inherit
     with:
-      lint-web: true
-      lint-python: true
+      web: true
+      python: true
 
   lint:
     name: lint
@@ -34,8 +34,8 @@ jobs:
     uses: ./.github/workflows/lint.yml
     secrets: inherit
     with:
-      lint-web: true
-      lint-python: true
+      web: true
+      python: true
 
   release-docker-goat:
     name: release-docker-goat-web
