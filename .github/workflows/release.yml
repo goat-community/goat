@@ -21,17 +21,21 @@ jobs:
 
   typecheck:
     name: typecheck
+    needs: file-changes
     uses: ./.github/workflows/typecheck.yml
     secrets: inherit
     with:
-      type: "web"
+      lint-web: true
+      lint-python: true
 
   lint:
     name: lint
+    needs: file-changes
     uses: ./.github/workflows/lint.yml
     secrets: inherit
     with:
-      type: "web"
+      lint-web: true
+      lint-python: true
 
   release-docker-goat:
     name: release-docker-goat-web

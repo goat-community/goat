@@ -2,19 +2,22 @@ name: "Lint"
 on:
   workflow_call:
     inputs:
-      type:
-        type: choice
-        description: "Type of linting to run"
+      lint-web:
+        type: boolean
+        description: "Whether to run web linting"
         required: false
-        options:
-          - "web"
-          - "python"
+        default: true
 
+      lint-python:
+        type: boolean
+        description: "Whether to run python linting"
+        required: false
+        default: true
 
 jobs:
   lint-web:
     runs-on: ubuntu-latest
-    if: ${{ !github.event.inputs.lint-type || github.event.inputs.lint-type == 'web' }}
+    if: ${{ inputs.lint-web }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
