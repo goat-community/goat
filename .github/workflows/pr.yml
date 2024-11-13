@@ -1,15 +1,3 @@
-# **what?**
-# Runs code quality checks, unit tests, integration tests and. This workflow
-# should not require any secrets since it runs for PRs from forked repos. By
-# default, secrets are not passed to workflows running from a forked repos.
-
-# **why?**
-# Ensure code for meets a certain quality standard.
-
-# **when?**
-# This will run for all PRs, when code is pushed to a release
-# branch, and when manually triggered.
-
 name: "Client - PR"
 
 on:
