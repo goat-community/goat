@@ -1,16 +1,24 @@
 name: "Lint"
-
 on:
   workflow_call:
+    inputs:
+      type:
+        type: choice
+        description: "Type of linting to run"
+        required: false
+        options:
+          - "web"
+          - "python"
+
 
 jobs:
-  lint:
+  lint-web:
     runs-on: ubuntu-latest
-
+    if: ${{ !github.event.inputs.lint-type || github.event.inputs.lint-type == 'web' }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-        
+
       - name: 📥 Checkout PR
         uses: goat-community/.github/.github/actions/pr-git-checkout@main
 

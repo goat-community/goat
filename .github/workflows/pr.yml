@@ -43,16 +43,20 @@ jobs:
     name: typecheck
     uses: ./.github/workflows/typecheck.yml
     secrets: inherit
+    with:
+      type: "web"
 
   lint:
     name: lint
     uses: ./.github/workflows/lint.yml
     secrets: inherit
+    with:
+      type: "web"
 
   build-goat:
     name: build
     needs: file-changes
-    if: ${{ needs.file-changes.outputs.client-goat == 'true' || needs.file-changes.outputs.storybook == 'true' }}
+    if: ${{ needs.file-changes.outputs.web == 'true' || needs.file-changes.outputs.storybook == 'true' }}
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 

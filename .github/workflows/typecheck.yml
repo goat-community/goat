@@ -1,12 +1,22 @@
 name: "Check Types"
 on:
   workflow_call:
+    inputs:
+      type:
+        type: choice
+        description: "Type of typecheck to run"
+        required: false
+        options:
+          - "web"
+          - "python"
+
 
 env:
   NODE_OPTIONS: "--max-old-space-size=8192"
 
 jobs:
   typecheck:
+    if: ${{ !inputs.type || inputs.type == 'web' }}
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
