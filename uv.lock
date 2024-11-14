@@ -8,7 +8,7 @@ resolution-markers = [
 [manifest]
 members = [
     "geoapi",
-    "goat-backend-monorepo",
+    "goat-monorepo",
 ]
 
 [[package]]
@@ -366,7 +366,7 @@ wheels = [
 ]
 
 [[package]]
-name = "goat-backend-monorepo"
+name = "goat-monorepo"
 version = "2.0.0"
 source = { virtual = "." }
 

@@ -20,6 +20,8 @@
     // Utilities
     "github.copilot", // GitHub Copilot
     "github.copilot-chat", // GitHub Copilot Chat
+    "ms-vscode.vscode-copilot-vision", // GitHub Copilot Vision
+    "ms-vscode.vscode-copilot-data-analysis", // GitHub Copilot Data Analysis
     "gruntfuggly.todo-tree", // todo tree
     "aaron-bond.better-comments", // better comments
   ]

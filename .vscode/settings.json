@@ -19,5 +19,7 @@
   "i18n-ally.namespace": true,
   "i18n-ally.keystyle": "nested",
   "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "githubPullRequests.experimental.chat": true,
+  "githubPullRequests.experimental.notificationsView": true
 }
