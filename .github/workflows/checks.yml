@@ -60,6 +60,11 @@ jobs:
                 - '.prettier*'
                 - 'pnpm-lock.yaml'
 
+            geoapi:
+                - 'apps/geoapi/**'
+                - 'pyproject.toml'
+                - 'uv.lock'
+
             docs:
                 - 'apps/docs/**'
                 - 'packages/**'
