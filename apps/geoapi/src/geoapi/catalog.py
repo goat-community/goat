@@ -12,6 +12,7 @@ from tipg.settings import PostgresSettings
 class DCollection(Collection):
     distributed: bool = False
 
+
 # TODO: Check if we can reuse the connection of TIPG. At the moment it was considered easier to just open a new connection.
 class LayerCatalog:
     def __init__(self, app: FastAPI) -> None:
@@ -21,7 +22,7 @@ class LayerCatalog:
     @staticmethod
     async def asyncpg_listen(
         channel: str,
-        notification_handler: Callable[[asyncpg.Connection, int, str], None], # type: ignore
+        notification_handler: Callable[[asyncpg.Connection, int, str], None],  # type: ignore
         reconnect_handler: Optional[Callable[[asyncpg.Connection], None]] = None,  # type: ignore
         *,
         conn_check_interval: int = 60,
@@ -32,10 +33,10 @@ class LayerCatalog:
         while True:
             try:
                 conn = await asyncpg.connect(str(PostgresSettings().database_url))
-                await conn.add_listener(channel, notification_handler) # type: ignore
+                await conn.add_listener(channel, notification_handler)  # type: ignore
 
                 if reconnect_handler is not None:
-                    await reconnect_handler(conn) # type: ignore
+                    await reconnect_handler(conn)  # type: ignore
 
                 while True:
                     await asyncio.sleep(conn_check_interval)
@@ -60,11 +61,15 @@ class LayerCatalog:
         print("Starting catalog listener.")
         self.listener_task = asyncio.create_task(
             self.asyncpg_listen(
-                "layer_changes", self.listener_handler, self.listener_reconnect_handler # type: ignore
+                "layer_changes",
+                self.listener_handler,
+                self.listener_reconnect_handler,  # type: ignore
             )
         )
 
-    async def listener_handler(self, conn: asyncpg.Connection, pid: int, channel: str, payload: str) -> None: # type: ignore
+    async def listener_handler(
+        self, conn: asyncpg.Connection, pid: int, channel: str, payload: str
+    ) -> None:  # type: ignore
         """Handle layer changes"""
         operation, layer_id = payload.split(":", 1)
         print(
@@ -77,16 +82,18 @@ class LayerCatalog:
         elif operation == "INSERT":
             await self.update_insert(layer_id, conn)
 
-    async def listener_reconnect_handler(self, conn: asyncpg.Connection) -> None: # type: ignore
+    async def listener_reconnect_handler(self, conn: asyncpg.Connection) -> None:  # type: ignore
         """Reconnect handler"""
         print("Reading catalog data")
         self.app.state.collection_catalog = await self.read_catalog(conn)
 
     async def stop(self) -> None:
         """Unlisten to the layer_changes channel."""
-        self.listener_task.cancel() # type: ignore
+        self.listener_task.cancel()  # type: ignore
 
-    async def get(self, conn: asyncpg.Connection, layer_id: UUID | None = None ) -> List[dict]: # type: ignore
+    async def get(
+        self, conn: asyncpg.Connection, layer_id: UUID | None = None
+    ) -> List[dict]:  # type: ignore
         """Get all layers when passing now layer_id or get the layer with the given layer_id."""
 
         # Build and condition
@@ -133,7 +140,7 @@ class LayerCatalog:
         rows = await conn.fetch(sql)
         return [json.loads(dict(row)["jsonb_build_object"]) for row in rows]
 
-    def build_collection(self, layer_objs: List[dict]) -> Dict[str, DCollection]: # type: ignore
+    def build_collection(self, layer_objs: List[dict]) -> Dict[str, DCollection]:  # type: ignore
         """Build a collection using collection and column types from tipg from a layer."""
 
         collections: Dict[str, DCollection] = {}
@@ -207,16 +214,16 @@ class LayerCatalog:
         if collection_key in self.app.state.collection_catalog["collections"]:
             del self.app.state.collection_catalog["collections"][collection_key]
 
-    async def update_insert(self, layer_id: str, conn: asyncpg.Connection) -> None: # type: ignore
+    async def update_insert(self, layer_id: str, conn: asyncpg.Connection) -> None:  # type: ignore
         """Update or insert a collection into the catalog"""
-        changed_layer = await self.get(conn=conn, layer_id=layer_id) # type: ignore
+        changed_layer = await self.get(conn=conn, layer_id=layer_id)  # type: ignore
         if changed_layer:
             collections = self.build_collection(changed_layer)
             # Insert the new collection into the catalog
             self.app.state.collection_catalog["collections"].update(collections)
 
-    async def read_catalog(self, conn: asyncpg.Connection) -> Catalog: # type: ignore
+    async def read_catalog(self, conn: asyncpg.Connection) -> Catalog:  # type: ignore
         """Initialize the catalog. It will load all feature layers from the database and build a collection object."""
         layer_objs = await self.get(conn=conn)
         collections = self.build_collection(layer_objs)
-        return Catalog(collections=collections) # type: ignore
+        return Catalog(collections=collections)  # type: ignore

@@ -34,8 +34,9 @@ from .exts import (
     ExtCollection,
     filter_query,
 )
-dependencies.filter_query = filter_query # type: ignore
-collections.Collection = ExtCollection # type: ignore
+
+dependencies.filter_query = filter_query  # type: ignore
+collections.Collection = ExtCollection  # type: ignore
 
 from .catalog import LayerCatalog  # noqa: E402, I001
 
@@ -61,7 +62,6 @@ if os.getenv("SENTRY_DSN") and os.getenv("ENVIRONMENT"):
 
 # Monkey patch the function that need modification
 Operator.OPERATORS = OperatorPatch.OPERATORS
-
 
 
 @asynccontextmanager
@@ -120,7 +120,6 @@ app.add_middleware(CompressionMiddleware)
     operation_id="healthCheck",
     tags=["Health Check"],
 )
-
 async def ping() -> Dict[str, str]:
     """Health check."""
     return {"ping": "pongpong!"}
