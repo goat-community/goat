@@ -29,7 +29,7 @@ jobs:
       python: true
 
   release-docker-web:
-    needs: file-changes
+    needs: [file-changes, lint]
     if: needs.file-changes.outputs.web == 'true' || startsWith(github.ref, 'refs/tags/v')
     uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
     permissions:
@@ -45,7 +45,7 @@ jobs:
         ghcr.io/${{ github.repository }}/web
 
   release-docker-geoapi:
-    needs: file-changes
+    needs: [file-changes, lint]
     if: needs.file-changes.outputs.geoapi == 'true' ||
         startsWith(github.ref, 'refs/tags/v')
     uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
@@ -62,7 +62,7 @@ jobs:
         ghcr.io/${{ github.repository }}/geoapi
 
   release-docker-storybook:
-    needs: file-changes
+    needs: [file-changes, lint]
     if: needs.file-changes.outputs.storybook == 'true' || startsWith(github.ref, 'refs/tags/v')
     uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
     permissions:
@@ -78,7 +78,7 @@ jobs:
         ghcr.io/${{ github.repository }}/storybook
 
   release-docker-docs:
-    needs: file-changes
+    needs: [file-changes, lint]
     if: needs.file-changes.outputs.docs == 'true' || startsWith(github.ref, 'refs/tags/v')
     uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
     permissions:
@@ -94,7 +94,7 @@ jobs:
         ghcr.io/${{ github.repository }}/docs
 
   release-keycloak-theme:
-    needs: file-changes
+    needs: [file-changes, lint]
     if: needs.file-changes.outputs.keycloak-theme == 'true' || startsWith(github.ref, 'refs/tags/v')
     uses: ./.github/workflows/keycloak-build.yml
     secrets: inherit

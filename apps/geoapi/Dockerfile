@@ -1,9 +1,7 @@
 FROM python:3.12-slim-bookworm
 
 ENV PYTHONUNBUFFERED=1
-
 WORKDIR /app/
-
 # Install uv
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
 COPY --from=ghcr.io/astral-sh/uv:0.5.1 /uv /bin/uv
