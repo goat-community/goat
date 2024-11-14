@@ -8,9 +8,14 @@ dependencies = [
     "asyncpg==0.30.0",
     "geojson==3.1.0",
     "tipg==0.8.0",
-    "sentry-sdk==2.18.0"
+    "sentry-sdk==2.18.0",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "asyncpg-stubs>=0.30.0",
+]

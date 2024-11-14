@@ -58,6 +58,19 @@ wheels = [
 ]
 
 [[package]]
+name = "asyncpg-stubs"
+version = "0.30.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "asyncpg" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/92/fb/08e27995b5444c888d58040203a2a73b9151855e267d171b3aff69033e7d/asyncpg_stubs-0.30.0.tar.gz", hash = "sha256:8bfe20f1b1e24a19674152ec9abbcc2df72c01e78af696f44fc275d56fe335ba", size = 20946 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/db/92/fb8ba4baca7f02ae627ad1f3b84fff8c550c93bd71fd7f993e6792d5718e/asyncpg_stubs-0.30.0-py3-none-any.whl", hash = "sha256:1eac258c10fc45a781729913a2fcfba775888bed160ae47f55fe0964d639e9cd", size = 26816 },
+]
+
+[[package]]
 name = "attrs"
 version = "24.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -313,6 +326,11 @@ dependencies = [
     { name = "tipg" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "asyncpg-stubs" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "asyncpg", specifier = "==0.30.0" },
@@ -322,6 +340,9 @@ requires-dist = [
     { name = "sqlmodel", specifier = "==0.0.22" },
     { name = "tipg", specifier = "==0.8.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "asyncpg-stubs", specifier = ">=0.30.0" }]
 
 [[package]]
 name = "geojson"

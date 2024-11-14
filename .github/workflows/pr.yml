@@ -1,4 +1,4 @@
-name: "Client - PR"
+name: "PR"
 
 on:
   pull_request:
@@ -27,19 +27,15 @@ jobs:
       pull-requests: write
     secrets: inherit
 
-  typecheck:
-    name: typecheck
-    uses: ./.github/workflows/typecheck.yml
-    secrets: inherit
-    with:
-      type: "web"
-
   lint:
     name: lint
+    needs: file-changes
     uses: ./.github/workflows/lint.yml
     secrets: inherit
     with:
-      type: "web"
+      web: true
+      python: true
+
 
   build-goat:
     name: build
@@ -61,7 +57,7 @@ jobs:
     uses: ./.github/workflows/keycloak-build.yml
 
   required:
-    needs: [lint, typecheck, build-goat, analyze-goat, build-keycloak]
+    needs: [lint, build-goat, analyze-goat, build-keycloak]
     if: always()
     runs-on: ubuntu-latest
     steps:

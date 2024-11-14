@@ -14,6 +14,10 @@ on:
         required: false
         default: true
 
+env:
+  NODE_OPTIONS: "--max-old-space-size=8192"
+
+
 jobs:
   web:
     runs-on: ubuntu-latest
@@ -31,6 +35,12 @@ jobs:
           enable-corepack: true
           cwd: ${{ github.workspace }}
 
+      - name: 📊 Show Info
+        run: node -e "console.log(require('v8').getHeapStatistics())"
+
+      - name: 🕵️ Typecheck
+        run: pnpm run typecheck
+
       - name: 🔬 Run Linting with Reports
         run: pnpm run lint:report
         continue-on-error: true
@@ -39,15 +49,15 @@ jobs:
         run: jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json
 
       - name: 🔬 Annotate Code Linting Results
-        uses: ataylorme/eslint-annotate-action@v2
+        uses: ataylorme/eslint-annotate-action@v3
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           report-json: ${{ github.workspace }}/lint-results/eslint_report.json
           only-pr-files: false
 
       - name: 🔬 Upload ESLint report
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: lint-results
           path: ${{ github.workspace }}/lint-results

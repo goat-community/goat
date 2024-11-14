@@ -3,6 +3,7 @@
 set -e
 set -x
 
+mypy .
 ruff check .
 ruff format . --check
 

@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import List
+from typing import Callable, Dict, List, Optional
 from uuid import UUID
 
 import asyncpg
@@ -9,33 +9,33 @@ from tipg.collections import Catalog, Collection, Column
 from tipg.settings import PostgresSettings
 
 
-class Collection(Collection):
+class DCollection(Collection):
     distributed: bool = False
 
 # TODO: Check if we can reuse the connection of TIPG. At the moment it was considered easier to just open a new connection.
 class LayerCatalog:
-    def __init__(self, app: FastAPI = None):
-        self.listener_task = None
+    def __init__(self, app: FastAPI) -> None:
+        self.listener_task: Optional[asyncio.Task[None]] = None
         self.app = app
 
     @staticmethod
     async def asyncpg_listen(
-        channel,
-        notification_handler,
-        reconnect_handler=None,
+        channel: str,
+        notification_handler: Callable[[asyncpg.Connection, int, str], None], # type: ignore
+        reconnect_handler: Optional[Callable[[asyncpg.Connection], None]] = None,  # type: ignore
         *,
-        conn_check_interval=60,
-        conn_check_timeout=5,
-        reconnect_delay=0,
-    ):
+        conn_check_interval: int = 60,
+        conn_check_timeout: int = 5,
+        reconnect_delay: int = 0,
+    ) -> None:
         """Listen to a PostgreSQL channel using asyncpg."""
         while True:
             try:
                 conn = await asyncpg.connect(str(PostgresSettings().database_url))
-                await conn.add_listener(channel, notification_handler)
+                await conn.add_listener(channel, notification_handler) # type: ignore
 
                 if reconnect_handler is not None:
-                    await reconnect_handler(conn)
+                    await reconnect_handler(conn) # type: ignore
 
                 while True:
                     await asyncio.sleep(conn_check_interval)
@@ -55,16 +55,16 @@ class LayerCatalog:
             if reconnect_delay > 0:
                 await asyncio.sleep(reconnect_delay)
 
-    async def start(self):
+    async def start(self) -> None:
         """Listen to the layer_changes channel."""
         print("Starting catalog listener.")
         self.listener_task = asyncio.create_task(
             self.asyncpg_listen(
-                "layer_changes", self.listener_handler, self.listener_reconnect_handler
+                "layer_changes", self.listener_handler, self.listener_reconnect_handler # type: ignore
             )
         )
 
-    async def listener_handler(self, conn, pid, channel, payload):
+    async def listener_handler(self, conn: asyncpg.Connection, pid: int, channel: str, payload: str) -> None: # type: ignore
         """Handle layer changes"""
         operation, layer_id = payload.split(":", 1)
         print(
@@ -77,16 +77,16 @@ class LayerCatalog:
         elif operation == "INSERT":
             await self.update_insert(layer_id, conn)
 
-    async def listener_reconnect_handler(self, conn):
+    async def listener_reconnect_handler(self, conn: asyncpg.Connection) -> None: # type: ignore
         """Reconnect handler"""
         print("Reading catalog data")
         self.app.state.collection_catalog = await self.read_catalog(conn)
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Unlisten to the layer_changes channel."""
-        self.listener_task.cancel()
+        self.listener_task.cancel() # type: ignore
 
-    async def get(self, layer_id: UUID = None, conn=None) -> List[dict]:
+    async def get(self, conn: asyncpg.Connection, layer_id: UUID | None = None ) -> List[dict]: # type: ignore
         """Get all layers when passing now layer_id or get the layer with the given layer_id."""
 
         # Build and condition
@@ -133,12 +133,12 @@ class LayerCatalog:
         rows = await conn.fetch(sql)
         return [json.loads(dict(row)["jsonb_build_object"]) for row in rows]
 
-    def build_collection(self, layer_objs: List[dict]):
+    def build_collection(self, layer_objs: List[dict]) -> Dict[str, DCollection]: # type: ignore
         """Build a collection using collection and column types from tipg from a layer."""
 
-        collections = {}
+        collections: Dict[str, DCollection] = {}
         for obj in layer_objs:
-            columns = []
+            columns: List[Column] = []
 
             # Append layer id column
             layer_id_col = Column(name="layer_id", type="text", description="layer_id")
@@ -183,7 +183,7 @@ class LayerCatalog:
             columns.append(id_col)
 
             # Define collection
-            collection = Collection(
+            collection = DCollection(
                 type="Table",
                 id="user_data." + obj["id"],
                 table=obj["table_name"],
@@ -199,7 +199,7 @@ class LayerCatalog:
 
         return collections
 
-    async def delete(self, layer_id):
+    async def delete(self, layer_id: str) -> None:
         """Remove the corresponding collection for the given ID"""
         collection_key = (
             "user_data." + layer_id
@@ -207,16 +207,16 @@ class LayerCatalog:
         if collection_key in self.app.state.collection_catalog["collections"]:
             del self.app.state.collection_catalog["collections"][collection_key]
 
-    async def update_insert(self, layer_id, conn):
+    async def update_insert(self, layer_id: str, conn: asyncpg.Connection) -> None: # type: ignore
         """Update or insert a collection into the catalog"""
-        changed_layer = await self.get(layer_id, conn)
+        changed_layer = await self.get(conn=conn, layer_id=layer_id) # type: ignore
         if changed_layer:
             collections = self.build_collection(changed_layer)
             # Insert the new collection into the catalog
             self.app.state.collection_catalog["collections"].update(collections)
 
-    async def read_catalog(self, conn):
+    async def read_catalog(self, conn: asyncpg.Connection) -> Catalog: # type: ignore
         """Initialize the catalog. It will load all feature layers from the database and build a collection object."""
         layer_objs = await self.get(conn=conn)
         collections = self.build_collection(layer_objs)
-        return Catalog(collections=collections)
+        return Catalog(collections=collections) # type: ignore

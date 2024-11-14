@@ -6,7 +6,8 @@
       "type": "shell",
       "command": "uv",
       "args": [
-        "sync"
+        "sync",
+        "--all-packages"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
