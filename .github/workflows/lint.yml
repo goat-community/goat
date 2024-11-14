@@ -59,16 +59,15 @@ jobs:
       - name: 📥 Checkout PR
         uses: goat-community/.github/.github/actions/pr-git-checkout@main
 
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: 🐍 Install uv
         uses: astral-sh/setup-uv@v3
         with:
           version: "0.5.1"
           enable-cache: true
+
+      - name: 🐍 Install Dependencies
+        run: uv sync --frozen --all-packages
+        working-directory: ${{ github.workspace }}
 
       - name: 🔬 Run linting
         run: uv run bash scripts/lint-python.sh
