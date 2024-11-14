@@ -28,63 +28,63 @@ jobs:
       web: true
       python: true
 
-  release-docker-goat:
-    name: release-docker-goat-web
-    needs: file-changes
-    if: needs.file-changes.outputs.web == 'true' || startsWith(github.ref, 'refs/tags/v')
-    uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
-    permissions:
-      contents: read
-      packages: write
-      pull-requests: write
-    with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
-      file: ./apps/web/Dockerfile
-      image-names: |
-        ghcr.io/${{ github.repository }}/web
+  # release-docker-goat:
+  #   name: release-docker-goat-web
+  #   needs: file-changes
+  #   if: needs.file-changes.outputs.web == 'true' || startsWith(github.ref, 'refs/tags/v')
+  #   uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #     pull-requests: write
+  #   with:
+  #     dockerhub-enable: false
+  #     ghcr-enable: true
+  #     push: ${{ github.event_name != 'pull_request' }}
+  #     file: ./apps/web/Dockerfile
+  #     image-names: |
+  #       ghcr.io/${{ github.repository }}/web
 
-  release-docker-storybook:
-    name: release-docker-storybook
-    needs: file-changes
-    if: needs.file-changes.outputs.storybook == 'true' || startsWith(github.ref, 'refs/tags/v')
-    uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
-    permissions:
-      contents: read
-      packages: write
-      pull-requests: write
-    with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
-      file: ./apps/storybook/Dockerfile
-      image-names: |
-        ghcr.io/${{ github.repository }}/storybook
+  # release-docker-storybook:
+  #   name: release-docker-storybook
+  #   needs: file-changes
+  #   if: needs.file-changes.outputs.storybook == 'true' || startsWith(github.ref, 'refs/tags/v')
+  #   uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #     pull-requests: write
+  #   with:
+  #     dockerhub-enable: false
+  #     ghcr-enable: true
+  #     push: ${{ github.event_name != 'pull_request' }}
+  #     file: ./apps/storybook/Dockerfile
+  #     image-names: |
+  #       ghcr.io/${{ github.repository }}/storybook
 
-  release-docker-docs:
-    name: release-docker-docs
-    needs: file-changes
-    if: needs.file-changes.outputs.docs == 'true' || startsWith(github.ref, 'refs/tags/v')
-    uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
-    permissions:
-      contents: read
-      packages: write
-      pull-requests: write
-    with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
-      file: ./apps/docs/Dockerfile
-      image-names: |
-        ghcr.io/${{ github.repository }}/docs
+  # release-docker-docs:
+  #   name: release-docker-docs
+  #   needs: file-changes
+  #   if: needs.file-changes.outputs.docs == 'true' || startsWith(github.ref, 'refs/tags/v')
+  #   uses: goat-community/.github/.github/workflows/reusable-docker-build.yml@main
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #     pull-requests: write
+  #   with:
+  #     dockerhub-enable: false
+  #     ghcr-enable: true
+  #     push: ${{ github.event_name != 'pull_request' }}
+  #     file: ./apps/docs/Dockerfile
+  #     image-names: |
+  #       ghcr.io/${{ github.repository }}/docs
 
-  release-keycloak-theme:
-    name: release-keycloak-theme
-    needs: file-changes
-    if: needs.file-changes.outputs.keycloak-theme == 'true' || startsWith(github.ref, 'refs/tags/v')
-    uses: ./.github/workflows/keycloak-build.yml
-    secrets: inherit
-    with:
-      keycloak-theme-artifact-id: "p4b-keyclok-theme-${{ needs.file-changes.outputs.sha-short}}"
-      push: true
+  # release-keycloak-theme:
+  #   name: release-keycloak-theme
+  #   needs: file-changes
+  #   if: needs.file-changes.outputs.keycloak-theme == 'true' || startsWith(github.ref, 'refs/tags/v')
+  #   uses: ./.github/workflows/keycloak-build.yml
+  #   secrets: inherit
+  #   with:
+  #     keycloak-theme-artifact-id: "p4b-keyclok-theme-${{ needs.file-changes.outputs.sha-short}}"
+  #     push: true

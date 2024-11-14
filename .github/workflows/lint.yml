@@ -14,9 +14,6 @@ on:
         required: false
         default: true
 
-env:
-  NODE_OPTIONS: "--max-old-space-size=8192"
-
 
 jobs:
   web:
