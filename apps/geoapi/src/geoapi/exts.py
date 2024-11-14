@@ -300,8 +300,9 @@ class ExtCollection(Collection):
                     logic.V(self.id_column)
                     == logic.S(
                         pg_funcs.cast(
-                            pg_funcs.cast(i, "text"), self.id_column_info.type
-                        )  # type: ignore
+                            pg_funcs.cast(i, "text"),
+                            self.id_column_info.type,  # type: ignore
+                        )
                     )
                     for i in ids
                 ]

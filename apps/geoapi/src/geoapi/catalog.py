@@ -62,14 +62,18 @@ class LayerCatalog:
         self.listener_task = asyncio.create_task(
             self.asyncpg_listen(
                 "layer_changes",
-                self.listener_handler,
+                self.listener_handler,  # type: ignore
                 self.listener_reconnect_handler,  # type: ignore
             )
         )
 
     async def listener_handler(
-        self, conn: asyncpg.Connection, pid: int, channel: str, payload: str
-    ) -> None:  # type: ignore
+        self,
+        conn: asyncpg.Connection,  # type: ignore
+        pid: int,
+        channel: str,
+        payload: str,
+    ) -> None:
         """Handle layer changes"""
         operation, layer_id = payload.split(":", 1)
         print(
@@ -92,7 +96,9 @@ class LayerCatalog:
         self.listener_task.cancel()  # type: ignore
 
     async def get(
-        self, conn: asyncpg.Connection, layer_id: UUID | None = None
+        self,
+        conn: asyncpg.Connection,  # type: ignore
+        layer_id: UUID | None = None,
     ) -> List[dict]:  # type: ignore
         """Get all layers when passing now layer_id or get the layer with the given layer_id."""
 
