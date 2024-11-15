@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 from typing import Callable, Dict, List, Optional
 from uuid import UUID
 
@@ -7,6 +8,14 @@ import asyncpg
 from fastapi import FastAPI
 from tipg.collections import Catalog, Collection, Column
 from tipg.settings import PostgresSettings
+
+postgres_settings = PostgresSettings(
+    postgres_user=os.getenv("POSTGRES_USER"),
+    postgres_pass=os.getenv("POSTGRES_PASSWORD"),
+    postgres_host=os.getenv("POSTGRES_SERVER"),
+    postgres_port=int(os.getenv("POSTGRES_OUTER_PORT", 5432)),
+    postgres_dbname=os.getenv("POSTGRES_DB"),
+)
 
 
 class DCollection(Collection):
@@ -32,7 +41,7 @@ class LayerCatalog:
         """Listen to a PostgreSQL channel using asyncpg."""
         while True:
             try:
-                conn = await asyncpg.connect(str(PostgresSettings().database_url))
+                conn = await asyncpg.connect(str(postgres_settings.database_url))
                 await conn.add_listener(channel, notification_handler)  # type: ignore
 
                 if reconnect_handler is not None:

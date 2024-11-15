@@ -28,17 +28,17 @@ from tipg.settings import (
     CustomSQLSettings,
     DatabaseSettings,
     MVTSettings,
-    PostgresSettings,
 )
 from .exts import (
     ExtCollection,
     filter_query,
 )
 
+
 dependencies.filter_query = filter_query  # type: ignore
 collections.Collection = ExtCollection  # type: ignore
+from .catalog import LayerCatalog, postgres_settings  # noqa: E402, I001
 
-from .catalog import LayerCatalog  # noqa: E402, I001
 
 from .exts import (  # noqa: E402
     Operator as OperatorPatch,
@@ -48,7 +48,6 @@ from .exts import (  # noqa: E402
 mvt_settings = MVTSettings()
 mvt_settings.max_features_per_tile = 20000
 settings = APISettings()
-postgres_settings = PostgresSettings()
 db_settings = DatabaseSettings()
 custom_sql_settings = CustomSQLSettings()
 
@@ -107,7 +106,12 @@ ogc_api = Endpoints(
     with_tiles_viewer=settings.add_tiles_viewer,
 )
 # Remove the list all collections endpoint
-ogc_api.router.routes = ogc_api.router.routes[1:]
+# ogc_api.router.routes = ogc_api.router.routes[1:]
+ogc_api.router.routes = [
+    route
+    for route in ogc_api.router.routes
+    if route.name != "collections"  # type: ignore
+]
 app.include_router(ogc_api.router)
 app.add_middleware(CacheControlMiddleware, cachecontrol=settings.cachecontrol)
 app.add_middleware(CompressionMiddleware)
