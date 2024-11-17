@@ -1,0 +1,15 @@
+networks:
+  proxy:
+    name: goat-dev
+
+services:
+  goat-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: goat-dev
+    volumes:
+      - ..:/app
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    networks:
+      proxy:
