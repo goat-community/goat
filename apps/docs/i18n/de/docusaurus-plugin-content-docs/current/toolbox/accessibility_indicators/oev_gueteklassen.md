@@ -107,7 +107,7 @@ Die Berechnungen basieren auf **GTFS-Daten** (siehe [Eingebaute Datensätze](../
 
 ![Klassifikation der Verkehrshaltestellen](/img/toolbox/accessibility_indicators/gueteklassen/classification_stations_en.webp "Klassifikation der Verkehrshaltestellen")
 
-Anschließend werden **Puffer** oder **Isochrone** der angegebenen Größe für die entsprechenden Haltestellenkategorien berechnet. Dadurch entstehen mehrere Puffer/Ispchrone, die zusammengeführt werden. Bei überlappenden Puffern/Iscochronen wird die höherwertige Klasse verwendet.
+Anschließend werden **Puffer** oder **Isochrone** der angegebenen Größe für die entsprechenden Haltestellenkategorien berechnet. Dadurch entstehen mehrere Puffer/Isochronen, die zusammengeführt werden. Bei überlappenden Puffern/Isochronen wird die höherwertige Klasse verwendet.
 
 ![Bestimmung der ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/determination_oev_gueteklasse_en.webp "Bestimmung der ÖV-Güteklassen")
 
