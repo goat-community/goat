@@ -27,7 +27,7 @@ When you run an analysis in a project, the task is referred to as a **job** in t
 
  ![Filtering to compute larger areas](/img/troubleshooting/filtering.jpg "Filtering to compute larger areas")
 
-* If you calculate an indicator but the result is empty, no output is provided and a job failure occurs. For example, if you use the public transport trip count indicator in an area and a type period where no trip is performed; the job fails with the error: **The Layer is None**
+For example, if you use the public transport trip count indicator in an area and a time period where no trip is performed; the job fails with the error: **The Layer is None**
 <div style={{ display: "flex", alignItems: "center" }}>
   <img 
     src={require('/img/troubleshooting/arrow-right.png').default} 
