@@ -54,7 +54,7 @@ When you run an analysis in a project, the task is referred to as a **job** in t
   </span>
 </div>
 
-### Catchement area
+### Catchment area
  The starting points of the indicator must be within 100m of the road network.
 <div style={{ display: "flex", alignItems: "center" }}>
   <img 
