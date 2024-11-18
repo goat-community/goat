@@ -21,5 +21,6 @@
   "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
   "editor.formatOnSave": true,
   "githubPullRequests.experimental.chat": true,
-  "githubPullRequests.experimental.notificationsView": true
+  "githubPullRequests.experimental.notificationsView": true,
+  "python.defaultInterpreterPath": ".venv/bin/python",
 }

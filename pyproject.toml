@@ -1,9 +1,12 @@
 [project]
 name = "goat-monorepo"
+description = "GOAT, an intelligent software for modern web mapping and integrated planning"
 version = "2.0.0"
 requires-python = ">=3.12"
 dependencies = []
-
+authors = [
+    { name = "Plan4Better GmbH", email = "info@plan4better.de" },
+]
 [tool.uv]
 package = false
 dev-dependencies = [
@@ -21,10 +24,13 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
+core = { workspace = true }
 geoapi = { workspace = true }
+routing = { workspace = true }
+accounts = { workspace = true }
 
 [tool.uv.workspace]
-members = ["apps/geoapi"]
+members = ["apps/core", "apps/geoapi", "apps/routing", "apps/accounts"]
 
 [tool.mypy]
 strict = true

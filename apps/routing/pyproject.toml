@@ -1,0 +1,32 @@
+[project]
+name = "routing"
+version = "2.0.0"
+description = "GOAT Routing"
+authors = [
+    { name = "Plan4Better GmbH", email = "info@plan4better.de" },
+]
+dependencies = [
+    "fastapi[standard]==0.115.4",
+    "sqlmodel==0.0.22",
+    "pydantic==2.9.2",
+    "asyncpg==0.30.0",
+    "psycopg==3.2.3",
+    "psycopg-binary==3.2.3",
+    "polars==1.13.1",
+    "numpy==2.0.2",
+    "numba==0.60.0",
+    "scipy==1.14.1",
+    "geopandas==1.0.1",
+    "shapely==2.0.6",
+    # "connectorx==0.4.0",
+    "pyarrow==18.0.0",
+    "celery==5.4.0",
+    "redis==5.2.0",
+    "tqdm==4.67.0",
+    "sentry-sdk==2.18.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+

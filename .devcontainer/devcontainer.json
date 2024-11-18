@@ -1,7 +1,8 @@
 {
   "name": "GOAT",
-  "dockerComposeFile": ["docker-compose.yml"],
+  "dockerComposeFile": ["../docker-compose.yml","docker-compose.extend.yml"],
   "workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
   "service": "goat-dev",
   "customizations": {
     "vscode": {

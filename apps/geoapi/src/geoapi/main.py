@@ -39,11 +39,9 @@ dependencies.filter_query = filter_query  # type: ignore
 collections.Collection = ExtCollection  # type: ignore
 from .catalog import LayerCatalog, postgres_settings  # noqa: E402, I001
 
-
 from .exts import (  # noqa: E402
     Operator as OperatorPatch,
 )
-
 
 mvt_settings = MVTSettings()
 mvt_settings.max_features_per_tile = 20000

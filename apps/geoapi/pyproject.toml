@@ -2,6 +2,9 @@
 name = "geoapi"
 version = "2.0.0"
 description = "GOAT GeoAPI"
+authors = [
+    { name = "Plan4Better GmbH", email = "info@plan4better.de" },
+]
 dependencies = [
     "fastapi[standard]==0.115.4",
     "sqlmodel==0.0.22",

@@ -6,10 +6,9 @@ services:
   goat-dev:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: .devcontainer/Dockerfile
     container_name: goat-dev
     volumes:
-      - ..:/app
-    command: /bin/sh -c "while sleep 1000; do :; done"
+      - .:/app
     networks:
       proxy:
