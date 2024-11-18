@@ -11,7 +11,7 @@ Feel free to [contact us](https://plan4better.de/en/contact/ "contact us") for s
 :::
 
 ## Job failure
-When you run an analysis in a project, the task is referred to as a **job** in the software. An error message stating **job failure** indicates that the task could not be executed. To learn more about the reason for the failure, please check the [status bar](workspace/home#status-bar). You can find below common job failure and suggestion to solve them.
+You can find below common job failure and suggestions to solve them.
 
 * Jobs cannot exceed two minutes length. There is also a limit on the number of features that can be analyzed for each indicator. 
 <div style={{ display: "flex", alignItems: "center" }}>
