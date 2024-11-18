@@ -42,7 +42,7 @@ For example, if you use the public transport trip count indicator in an area and
 ## Accessibility Indicators
 
 ### Heatmap Gravity
- The sensitivity of a gaussian impedance function cannot be higher than 1,000,000.
+ The sensitivity of a Gaussian impedance function cannot be higher than 1,000,000.
 <div style={{ display: "flex", alignItems: "center" }}>
   <img 
     src={require('/img/troubleshooting/arrow-right.png').default} 
