@@ -5,14 +5,17 @@ slug: /troubleshooting
 
 # Fehlerbehebung
 
-Bei der Verwendung von GOAT können Probleme bei bestimmten Aufgaben auftreten, die Sie ausführen möchten. Diese Probleme resultieren in der Regel aus den Rechenbeschränkungen von GOAT. Solche Beschränkungen sind wichtig, um die Stabilität und Effizienz des Servers zu gewährleisten und eine zuverlässige Leistung sicherzustellen. Das Verständnis und die Behebung dieser Probleme hilft Ihnen, mit Ihrer Analyse weiterzukommen. Diese Seite soll Sie durch gängige Fehler führen und Ihnen helfen, diese zu lösen, damit Sie Ihre Arbeit mit GOAT fortsetzen können.
+Diese Seite hilft Ihnen bei Problemen oder Einschränkungen bei der Verwendung von GOAT, um diese einfacher zu lösen und mit Ihrer Analyse fortzufahren. 
+
+:::tip INFO 
+Zögern Sie nicht, uns für Unterstützung oder weitere Fragen [hier](https://plan4better.de/de/contact/ "hier") zu kontaktieren. 
+:::
 
 ## Job-Fehler
 
 Wenn Sie eine Analyse in einem Projekt ausführen, wird die Aufgabe in der Software als **Job** bezeichnet. Eine Fehlermeldung mit **Job-Fehler** bedeutet, dass die Aufgabe nicht ausgeführt werden konnte. Um mehr über die Ursache des Fehlers zu erfahren, überprüfen Sie bitte die [Statusleiste](workspace/home#statusleiste). Nachfolgend finden Sie häufige Ursachen für Job-Fehler und Vorschläge zu deren Behebung.
 
-* Analysen dürfen eine Dauer von zwei Minuten nicht überschreiten, und es gibt eine Begrenzung der Anzahl der Merkmale, die analysiert werden können.
-
+* Jobs dürfen eine Dauer von zwei Minuten nicht überschreiten. Es gibt außerdem eine Begrenzung für die Anzahl der Features, die für jeden Indikator analysiert werden können.
 <div style={{ display: "flex", alignItems: "center" }}>
   <img 
     src={require('/img/troubleshooting/arrow-right.png').default} 
@@ -27,35 +30,7 @@ Wenn Sie eine Analyse in einem Projekt ausführen, wird die Aufgabe in der Softw
   ![Filtern zur Berechnung größerer Flächen](/img/troubleshooting/filtering.jpg "Filtern zur Berechnung größerer Flächen")
   
 
-  
-* Bei der Schwerkraftanalyse akzeptiert GOAT keine Empfindlichkeiten über 1.000.000.
-<div style={{ display: "flex", alignItems: "center" }}>
-  <img 
-    src={require('/img/troubleshooting/arrow-right.png').default} 
-    alt="Layers" 
-    style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", marginRight: "8px" }} 
-  />
-  <span>
-    <strong>Sie können die vorgeschlagenen Empfindlichkeiten in GOAT als Referenz verwenden.</strong>
-  </span>
-</div>
-  
-* Startpunkte eines Routing-Indikators wie Einzugsgebiet oder Nähe zu öffentlichen Verkehrsmitteln sollten weniger als 100m vom Straßennetz entfernt sein.
-<div style={{ display: "flex", alignItems: "center" }}>
-  <img 
-    src={require('/img/troubleshooting/arrow-right.png').default} 
-    alt="Layers" 
-    style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", marginRight: "8px" }} 
-  />
-  <span>
-    <strong>Sie können das Netz entweder direkt mit der Grundkarte oder durch Visualisierung der Straßennetzebene in Szenarien anzeigen.</strong>
-  </span>
-</div>
-  
-
-![Startpunkt der Streckenführung](/img/troubleshooting/routing_start.jpeg "Startpunkt der Streckenführung")
-
-* Wenn Sie einen Indikator berechnen, aber das Ergebnis leer ist, wird kein Output bereitgestellt und ein Job-Fehler tritt auf. Beispielsweise schlägt die Berechnung der Anzahl von ÖPNV-Fahrten in einem Gebiet und einem Zeitraum ohne Fahrten mit dem Fehler **The Layer is None** fehl.
+ * Wenn Sie einen Indikator berechnen, das Ergebnis jedoch leer ist, wird kein Output generiert und ein Job-Fehler tritt auf. Beispiel: Wenn Sie den Indikator Abfahrten ÖPNV in einem Gebiet und einem Zeitraum verwenden, in dem keine Fahrten stattfinden, schlägt der Job mit dem Fehler fehl: **The Layer is None**.
 <div style={{ display: "flex", alignItems: "center" }}>
   <img 
     src={require('/img/troubleshooting/arrow-right.png').default} 
@@ -67,6 +42,39 @@ Wenn Sie eine Analyse in einem Projekt ausführen, wird die Aufgabe in der Softw
   </span>
 </div>
 
-## Fehler beim Hochladen von Datensätzen
+
+## Erreichbarkeitsindikatoren
+### Heatmap - Durchschnitt Reisezeit
+* Die Sensitivität einer Gaußschen Impedanzfunktion darf 1.000.000 nicht überschreiten.
+<div style={{ display: "flex", alignItems: "center" }}>
+  <img 
+    src={require('/img/troubleshooting/arrow-right.png').default} 
+    alt="Layers" 
+    style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", marginRight: "8px" }} 
+  />
+  <span>
+    <strong>Sie können die vorgeschlagenen Empfindlichkeiten in GOAT als Referenz verwenden.</strong>
+  </span>
+</div>
+  
+### Einzugsgebiet
+* Die Startpunkte des Indikators müssen sich innerhalb von 100 m vom Straßennetz befinden.
+<div style={{ display: "flex", alignItems: "center" }}>
+  <img 
+    src={require('/img/troubleshooting/arrow-right.png').default} 
+    alt="Layers" 
+    style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", marginRight: "8px" }} 
+  />
+  <span>
+    <strong>Um Ihre Startpunkte auf der Karte genau festzulegen, können Sie das Netzwerk entweder direkt mit der Basiskarte oder mit der Straßennetzschicht im Szenario visualisieren.</strong>
+  </span>
+</div>
+  
+
+![Startpunkt der Streckenführung](/img/troubleshooting/routing_start.jpeg "Startpunkt der Streckenführung")
+
+
+
+## Hochladen von Datensätzen
 
 * Wenn Sie versuchen, einen Datensatz hochzuladen, der von GOAT nicht unterstützt wird, tritt ein Fehler auf. Siehe die autorisierten [Datensatztypen](data/dataset_types).
