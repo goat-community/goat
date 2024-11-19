@@ -23,7 +23,6 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_PYTHON=python3.12 \
     UV_PROJECT_ENVIRONMENT=/app/.venv
 
-
 # Install dependencies
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
