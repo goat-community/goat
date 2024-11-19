@@ -30,7 +30,7 @@ routing = { workspace = true }
 accounts = { workspace = true }
 
 [tool.uv.workspace]
-members = ["apps/core", "apps/geoapi", "apps/routing", "apps/accounts"]
+members = ["apps/geoapi", "apps/routing", "apps/accounts"]
 
 [tool.mypy]
 strict = true
