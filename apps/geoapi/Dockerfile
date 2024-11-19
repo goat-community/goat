@@ -5,11 +5,14 @@ LABEL org.opencontainers.image.source=https://github.com/goat-community/goat
 LABEL org.opencontainers.image.description="Goat GeoAPI"
 LABEL org.opencontainers.image.licenses="GPL-3.0"
 
+ARG PYTHON_VERSION=3.12
+
+
 ENV LC_CTYPE=C.utf8 \
     UV_PROJECT_ENVIRONMENT="/venv" \
     UV_COMPILE_BYTECODE=1 \
     UV_PYTHON_INSTALL_DIR="/python" \
-    UV_PYTHON=python3.12
+    UV_PYTHON=python$PYTHON_VERSION
 
 ENV PATH="$UV_PROJECT_ENVIRONMENT/bin:$PATH"
 
@@ -33,15 +36,23 @@ COPY pyproject.toml uv.lock /app/
 
 WORKDIR /app
 
-RUN uv sync --frozen --no-dev --no-editable --package=geoapi
+RUN uv sync --all-extras --frozen --no-dev --no-editable --package=geoapi
 
-# Stage 4: Webapp environment
+# Stage 3: Webapp environment
 FROM linux-base AS webapp
+
+RUN useradd -m appuser
+
 # Copy python, virtual env and static assets
 COPY --from=python-base $UV_PYTHON_INSTALL_DIR $UV_PYTHON_INSTALL_DIR
 COPY --from=python-base $UV_PROJECT_ENVIRONMENT $UV_PROJECT_ENVIRONMENT
 COPY --from=python-base /app /app
 
+RUN chown -R appuser:appuser /app $UV_PROJECT_ENVIRONMENT $UV_PYTHON_INSTALL_DIR
+USER appuser
+
 WORKDIR /app
+
+EXPOSE 8000
 
 CMD ["fastapi", "run", "apps/geoapi/src/geoapi/main.py"]
