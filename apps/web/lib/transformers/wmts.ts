@@ -38,13 +38,13 @@ export const getGoogleCompatibleTileMatrixSet = (tileMatrixSets) => {
 
   // Try to Identify Google-compatible TileMatrixSets from WellKnownScaleSet
   const googleCompatibleTileMatrixSets = tileMatrixSets.filter((tms) =>
-    tms.SupportedCRS?.includes("EPSG:3857") && tms?.WellKnownScaleSet?.includes("GoogleMapsCompatible")
+    tms.SupportedCRS?.includes("3857") && tms?.WellKnownScaleSet?.includes("GoogleMapsCompatible")
   );
 
   // If no Google-compatible TileMatrixSets found, try using ScaleDenominator
   if (googleCompatibleTileMatrixSets.length === 0) {
     tileMatrixSets.forEach((tms) => {
-      if (tms.SupportedCRS?.includes("EPSG:3857")) {
+      if (tms.SupportedCRS?.includes("3857")) {
         const hasGoogleScaleDenominator = tms.TileMatrix?.some((tm) => {
           const scaleDenominatorInt = Math.floor(tm.ScaleDenominator);
           return googleScaleDenominators.includes(scaleDenominatorInt);

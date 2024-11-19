@@ -1,0 +1,14 @@
+networks:
+  proxy:
+    name: goat-dev
+
+services:
+  goat-dev:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    container_name: goat-dev
+    volumes:
+      - .:/app
+    networks:
+      proxy:

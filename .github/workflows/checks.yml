@@ -3,9 +3,13 @@ name: "Checks"
 on:
   workflow_call:
     outputs:
-      client-goat:
-        description: "Client goat changed"
-        value: ${{ jobs.checks.outputs.client-goat }}
+      web:
+        description: "Web changed"
+        value: ${{ jobs.checks.outputs.web }}
+
+      geoapi:
+        description: "Geoapi changed"
+        value: ${{ jobs.checks.outputs.geoapi }}
 
       docs:
         description: "Docs changed"
@@ -32,7 +36,8 @@ jobs:
       pull-requests: read
       contents: read
     outputs:
-      client-goat: ${{ steps.changes.outputs.client-goat }}
+      web: ${{ steps.changes.outputs.web }}
+      geoapi: ${{ steps.changes.outputs.geoapi }}
       docs: ${{ steps.changes.outputs.docs }}
       keycloak-theme: ${{ steps.changes.outputs.keycloak-theme }}
       storybook: ${{ steps.changes.outputs.storybook }}
@@ -49,11 +54,16 @@ jobs:
         id: changes
         with:
           filters: |
-            client-goat:
+            web:
                 - 'apps/web/**'
                 - 'packages/**'
                 - '.prettier*'
                 - 'pnpm-lock.yaml'
+
+            geoapi:
+                - 'apps/geoapi/**'
+                - 'pyproject.toml'
+                - 'uv.lock'
 
             docs:
                 - 'apps/docs/**'

@@ -1,16 +1,28 @@
 name: "Lint"
-
 on:
   workflow_call:
+    inputs:
+      web:
+        type: boolean
+        description: "Whether to run web linting"
+        required: false
+        default: true
+
+      python:
+        type: boolean
+        description: "Whether to run python linting"
+        required: false
+        default: true
+
 
 jobs:
-  lint:
+  web:
     runs-on: ubuntu-latest
-
+    if: ${{ inputs.web }}
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-        
+
       - name: 📥 Checkout PR
         uses: goat-community/.github/.github/actions/pr-git-checkout@main
 
@@ -20,23 +32,43 @@ jobs:
           enable-corepack: true
           cwd: ${{ github.workspace }}
 
-      - name: 🔬 Run Linting with Reports
-        run: pnpm run lint:report
-        continue-on-error: true
-
-      - name: 🔬 Merge lint reports
-        run: jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json
+      - name: 🔬 Run linting
+        run: bash ${{ github.workspace }}/scripts/lint-web.sh
 
       - name: 🔬 Annotate Code Linting Results
-        uses: ataylorme/eslint-annotate-action@v2
+        uses: ataylorme/eslint-annotate-action@v3
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           report-json: ${{ github.workspace }}/lint-results/eslint_report.json
           only-pr-files: false
 
       - name: 🔬 Upload ESLint report
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: lint-results
           path: ${{ github.workspace }}/lint-results
+
+  python:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.python }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Checkout PR
+        uses: goat-community/.github/.github/actions/pr-git-checkout@main
+
+      - name: 🐍 Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.1"
+          enable-cache: true
+
+      - name: 🐍 Install Dependencies
+        run: uv sync --frozen --all-packages
+        working-directory: ${{ github.workspace }}
+
+      - name: 🔬 Run linting
+        run: uv run bash scripts/lint-python.sh
+        working-directory: ${{ github.workspace }}

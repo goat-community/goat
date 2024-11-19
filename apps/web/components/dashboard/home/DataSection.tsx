@@ -90,7 +90,7 @@ const DataSection = (props: DataSectionProps) => {
               <TileCard
                 cardType="grid"
                 item={item}
-                moreMenuOptions={getMoreMenuOptions("layer")}
+                moreMenuOptions={getMoreMenuOptions("layer", item)}
                 onMoreMenuSelect={openMoreMenu}
               />
             )}

@@ -1,16 +1,4 @@
-# **what?**
-# Runs code quality checks, unit tests, integration tests and. This workflow
-# should not require any secrets since it runs for PRs from forked repos. By
-# default, secrets are not passed to workflows running from a forked repos.
-
-# **why?**
-# Ensure code for meets a certain quality standard.
-
-# **when?**
-# This will run for all PRs, when code is pushed to a release
-# branch, and when manually triggered.
-
-name: "Client - PR"
+name: "PR"
 
 on:
   pull_request:
@@ -39,20 +27,20 @@ jobs:
       pull-requests: write
     secrets: inherit
 
-  typecheck:
-    name: typecheck
-    uses: ./.github/workflows/typecheck.yml
-    secrets: inherit
-
   lint:
     name: lint
+    needs: file-changes
     uses: ./.github/workflows/lint.yml
     secrets: inherit
+    with:
+      web: true
+      python: true
+
 
   build-goat:
     name: build
     needs: file-changes
-    if: ${{ needs.file-changes.outputs.client-goat == 'true' || needs.file-changes.outputs.storybook == 'true' }}
+    if: ${{ needs.file-changes.outputs.web == 'true' || needs.file-changes.outputs.storybook == 'true' }}
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
@@ -69,7 +57,7 @@ jobs:
     uses: ./.github/workflows/keycloak-build.yml
 
   required:
-    needs: [lint, typecheck, build-goat, analyze-goat, build-keycloak]
+    needs: [lint, build-goat, analyze-goat, build-keycloak]
     if: always()
     runs-on: ubuntu-latest
     steps:

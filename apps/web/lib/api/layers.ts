@@ -93,6 +93,18 @@ export const updateDataset = async (datasetId: string, payload: PostDataset) => 
   return response;
 };
 
+export const updateLayerDataset = async (layerId: string, datasetId: string) => {
+  const url = new URL(`${LAYERS_API_BASE_URL}/${layerId}/dataset`);
+  url.searchParams.append('dataset_id', datasetId);
+  const response = await fetchWithAuth(url.toString(), {
+    method: "PUT",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to update layer dataset");
+  }
+  return await response.json();
+}
+
 export const useDatasetCollectionItems = (datasetId: string, queryParams?: GetCollectionItemsQueryParams) => {
   const collectionId = `user_data.${datasetId.replace(/-/g, "")}`;
   const { data, isLoading, error, mutate } = useSWR<DatasetCollectionItems>(

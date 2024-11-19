@@ -4,6 +4,7 @@ import type { ContentDialogBaseProps } from "@/types/dashboard/content";
 import ContentDeleteModal from "@/components/modals/ContentDelete";
 import DatasetDownloadModal from "@/components/modals/DatasetDownload";
 import DatasetTableModal from "@/components/modals/DatasetTable";
+import DatasetUpdateModal from "@/components/modals/DatasetUpdate";
 import MetadataModal from "@/components/modals/Metadata";
 import ContentMoveToFolderModal from "@/components/modals/MoveToFolder";
 import ShareModal from "@/components/modals/Share";
@@ -23,7 +24,6 @@ export default function ContentDialogWrapper(props: ContentDialogProps) {
     onClose: props.onClose,
     type: props.type,
   };
-
   return (
     <>
       {props.action === ContentActions.EDIT_METADATA && <MetadataModal {...commonModalProps} />}
@@ -40,6 +40,7 @@ export default function ContentDialogWrapper(props: ContentDialogProps) {
           onDownload={props.onContentDownload}
         />
       )}
+      {props.action === ContentActions.UPDATE && <DatasetUpdateModal {...commonModalProps} />}
       {props.action === ContentActions.TABLE && (
         <DatasetTableModal {...commonModalProps} dataset={props.content} />
       )}

@@ -564,6 +564,7 @@ const DatasetExternal: React.FC<DatasetExternalProps> = ({ open, onClose, projec
         const payload = createLayerFromDatasetSchema.parse({
           ...layerPayload,
           dataset_id: datasetId,
+          ...featureUrlPayload,
         });
         const response = await createFeatureLayer(payload, projectId);
         const jobId = response?.job_id;

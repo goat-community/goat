@@ -6,52 +6,46 @@ https://github.com/developmentseed/tipg
 The original code/repository is licensed under MIT License.
 ---------------------------------------------------------------------------------
 """
-import os
+
+import os  # noqa: I001
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator, Dict
 
 import sentry_sdk
-from tipg import __version__ as tipg_version
-from tipg import dependencies
-from tipg.collections import Collection
-
-from .exts import (
-    Operator as OperatorPatch,
-)
-from .exts import (
-    _from,
-    _select_no_geo,
-    _where,
-    filter_query,
-    get_column,
-    get_mvt_point,
-    get_tile,
-    single_select_h3,
-)
 
 # Monkey patch filter query here because it needs to be patched before used by import down
-dependencies.filter_query = filter_query
-
-from fastapi import FastAPI  # noqa: E402
-from starlette.middleware.cors import CORSMiddleware  # noqa: E402
-from starlette_cramjam.middleware import CompressionMiddleware  # noqa: E402
-from tipg.database import close_db_connection, connect_to_db  # noqa: E402
-from tipg.factory import Endpoints  # noqa: E402
-from tipg.filter.filters import Operator  # noqa: E402
-from tipg.middleware import CacheControlMiddleware  # noqa: E402
-from tipg.settings import (  # noqa: E402
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+from starlette_cramjam.middleware import CompressionMiddleware
+from tipg import __version__ as tipg_version
+from tipg import collections, dependencies
+from tipg.database import close_db_connection, connect_to_db
+from tipg.factory import Endpoints
+from tipg.filter.filters import Operator
+from tipg.middleware import CacheControlMiddleware
+from tipg.settings import (
     APISettings,
     CustomSQLSettings,
     DatabaseSettings,
     MVTSettings,
-    PostgresSettings,
+)
+from .exts import (
+    ExtCollection,
+    filter_query,
 )
 
-from .catalog import LayerCatalog  # noqa: E402
+
+dependencies.filter_query = filter_query  # type: ignore
+collections.Collection = ExtCollection  # type: ignore
+from .catalog import LayerCatalog, postgres_settings  # noqa: E402, I001
+
+from .exts import (  # noqa: E402
+    Operator as OperatorPatch,
+)
 
 mvt_settings = MVTSettings()
 mvt_settings.max_features_per_tile = 20000
 settings = APISettings()
-postgres_settings = PostgresSettings()
 db_settings = DatabaseSettings()
 custom_sql_settings = CustomSQLSettings()
 
@@ -65,17 +59,10 @@ if os.getenv("SENTRY_DSN") and os.getenv("ENVIRONMENT"):
 
 # Monkey patch the function that need modification
 Operator.OPERATORS = OperatorPatch.OPERATORS
-Collection._from = _from
-Collection.get_mvt_point = get_mvt_point
-Collection.single_select_h3 = single_select_h3
-Collection._where = _where
-Collection._select_no_geo = _select_no_geo
-Collection.get_column = get_column
-Collection.get_tile = get_tile
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """FastAPI Lifespan."""
     # Create Connection Pool
     await connect_to_db(
@@ -117,10 +104,16 @@ ogc_api = Endpoints(
     with_tiles_viewer=settings.add_tiles_viewer,
 )
 # Remove the list all collections endpoint
-ogc_api.router.routes = ogc_api.router.routes[1:]
+# ogc_api.router.routes = ogc_api.router.routes[1:]
+ogc_api.router.routes = [
+    route
+    for route in ogc_api.router.routes
+    if route.name != "collections"  # type: ignore
+]
 app.include_router(ogc_api.router)
 app.add_middleware(CacheControlMiddleware, cachecontrol=settings.cachecontrol)
 app.add_middleware(CompressionMiddleware)
+
 
 @app.get(
     "/healthz",
@@ -129,6 +122,6 @@ app.add_middleware(CompressionMiddleware)
     operation_id="healthCheck",
     tags=["Health Check"],
 )
-def ping():
+async def ping() -> Dict[str, str]:
     """Health check."""
     return {"ping": "pongpong!"}

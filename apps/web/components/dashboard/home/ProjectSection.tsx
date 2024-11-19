@@ -68,7 +68,7 @@ const ProjectSection = (props: ProjectSectionProps) => {
               <TileCard
                 cardType="grid"
                 item={item}
-                moreMenuOptions={getMoreMenuOptions("project")}
+                moreMenuOptions={getMoreMenuOptions("project", item)}
                 onMoreMenuSelect={openMoreMenu}
               />
             )}

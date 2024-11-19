@@ -195,7 +195,7 @@ export const layerMetadataSchema = contentMetadataSchema.extend({
 });
 
 export const otherPropertiesSchmea = z.object({
-  url: z.string().optional(), // metadata url
+  url: z.string().optional(),
   layers: z.array(z.string()).optional(),
   srs: z.string().optional(),
   width: z.number().optional(), // width of the image (only for external imagery)
@@ -240,15 +240,19 @@ export const createLayerBaseSchema = layerMetadataSchema.extend({
   folder_id: z.string().uuid(),
 });
 
-export const createLayerFromDatasetSchema = createLayerBaseSchema.extend({
-  dataset_id: z.string().uuid(),
-  project_id: z.string().uuid().optional(),
-});
-
 export const externalDatasetFeatureUrlSchema = z.object({
   data_type: dataType,
   other_properties: otherPropertiesSchmea,
 });
+
+export const createLayerFromDatasetSchema = createLayerBaseSchema.extend({
+  dataset_id: z.string().uuid(),
+  project_id: z.string().uuid().optional(),
+  data_type: dataType.optional(),
+  other_properties: otherPropertiesSchmea.optional(),
+});
+
+
 
 export const createRasterLayerSchema = createLayerBaseSchema.extend({
   type: z.literal("raster"),
