@@ -115,18 +115,7 @@ const Aggregate = ({ onBack, onClose, type }: AggregateProps) => {
     }));
   }, []);
 
-  const {
-    statisticMethods,
-    statisticMethodSelected,
-    setStatisticMethodSelected,
-    statisticField,
-    setStatisticField,
-  } = useStatisticValues();
-
-  const { layerFields: statisticLayerFields } = useLayerFields(
-    sourceLayerDatasetId || "",
-    statisticMethodSelected?.value === "count" ? undefined : "number"
-  );
+  const { statisticMethods, statisticMethodSelected, setStatisticMethodSelected } = useStatisticValues();
 
   const { layerFields: allSourceLayerFields } = useLayerFields(sourceLayerDatasetId || "");
 
@@ -153,12 +142,11 @@ const Aggregate = ({ onBack, onClose, type }: AggregateProps) => {
       return false;
     }
 
-    return !!sourceLayerItem && !!areaType && !!statisticMethodSelected && !!statisticField;
+    return !!sourceLayerItem && !!areaType && !!statisticMethodSelected;
   }, [
     sourceLayerItem,
     areaType,
     statisticMethodSelected,
-    statisticField,
     selectedAreaLayerItem,
     selectedAreaH3Grid,
     sourceLayer,
@@ -179,7 +167,6 @@ const Aggregate = ({ onBack, onClose, type }: AggregateProps) => {
           }),
       column_statistics: {
         operation: statisticMethodSelected?.value,
-        field: statisticField?.name,
       },
     };
     if (fieldGroup && fieldGroup?.length > 0) {
@@ -216,7 +203,6 @@ const Aggregate = ({ onBack, onClose, type }: AggregateProps) => {
     setSelectedAreaLayerItem(undefined);
     setSelectedAreaH3Grid(undefined);
     setStatisticMethodSelected(undefined);
-    setStatisticField(undefined);
     setStatisticAdvancedOptions(true);
     setWeightPolygonByIntersectingArea(false);
     setFieldGroup([]);
@@ -394,16 +380,6 @@ const Aggregate = ({ onBack, onClose, type }: AggregateProps) => {
                       label={t("select_statistic_method")}
                       placeholder={t("select_statistic_method_placeholder")}
                       tooltip={t("select_statistic_method_tooltip")}
-                    />
-                    <LayerFieldSelector
-                      fields={statisticLayerFields}
-                      selectedField={statisticField}
-                      disabled={!statisticMethodSelected}
-                      setSelectedField={(field) => {
-                        setStatisticField(field);
-                      }}
-                      label={t("select_field_to_calculate_statistics")}
-                      tooltip={t("select_field_to_calculate_statistics_tooltip")}
                     />
                   </>
                 }
