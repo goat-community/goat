@@ -1,40 +1,43 @@
-FROM python:3.12-slim-bookworm
+# Stage 1: General debian environment
+FROM debian:bookworm-slim AS linux-base
 
-ENV PYTHONUNBUFFERED=1
-WORKDIR /app/
+ENV LC_CTYPE=C.utf8 \
+    UV_PROJECT_ENVIRONMENT="/venv" \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_INSTALL_DIR="/python" \
+    UV_PYTHON=python3.12
+
+ENV PATH="$UV_PROJECT_ENVIRONMENT/bin:$PATH"
+
+RUN apt-get update
+RUN apt-get upgrade -y
+
+# Install general required dependencies
+RUN apt-get install --no-install-recommends -y tzdata
+
+
+# Stage 2: Python environment
+FROM linux-base AS python-base
+# Install debian dependencies
+RUN apt-get install --no-install-recommends -y build-essential gettext
 # Install uv
-# Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
-COPY --from=ghcr.io/astral-sh/uv:0.5.1 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.5.1 /uv /usr/local/bin/uv
 
-# Place executables in the environment at the front of the path
-# Ref: https://docs.astral.sh/uv/guides/integration/docker/#using-the-environment
-ENV PATH="/app/.venv/bin:$PATH"
-
-# - compilte byte-compile packages for faster application startups,
-# - silence uv complaining about not being able to use hard links,
-# - prevent uv from accidentally downloading isolated Python builds,
-# - Pick a Python (use `/usr/bin/python3.12` on uv 0.5.0 and later),
-# - declare `/app` as the target for `uv sync`.
-# @Ref: https://docs.astral.sh/uv/guides/integration/docker
-# @Ref: https://docs.astral.sh/uv/reference/cli/#uv-sync
-ENV UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy \
-    UV_PYTHON_DOWNLOADS=never \
-    UV_PYTHON=python3.12 \
-    UV_PROJECT_ENVIRONMENT=/app/.venv
-
-# Install dependencies
-# Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-dev --no-install-project --no-install-workspace
-
-COPY ./pyproject.toml ./uv.lock /app/
-
+# Create virtual environment and install dependencies
 COPY apps/geoapi /app/apps/geoapi
+COPY pyproject.toml uv.lock /app/
 
-RUN --mount=type=cache,target=/root/.cache/uv \
-     uv sync --frozen --no-dev --no-editable --package=geoapi
+WORKDIR /app
+
+RUN uv sync --frozen --no-dev --no-editable --package=geoapi
+
+# Stage 4: Webapp environment
+FROM linux-base AS webapp
+# Copy python, virtual env and static assets
+COPY --from=python-base $UV_PYTHON_INSTALL_DIR $UV_PYTHON_INSTALL_DIR
+COPY --from=python-base $UV_PROJECT_ENVIRONMENT $UV_PROJECT_ENVIRONMENT
+COPY --from=python-base /app /app
+
+WORKDIR /app
 
 CMD ["fastapi", "run", "apps/geoapi/src/geoapi/main.py"]
