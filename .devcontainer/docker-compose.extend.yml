@@ -1,9 +1,12 @@
 networks:
   proxy:
-    name: goat-dev
+    name: goat
 
 services:
   goat-dev:
+    depends_on:
+      - rabbitmq
+      - redis
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile

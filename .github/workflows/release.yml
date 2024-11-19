@@ -26,7 +26,7 @@ jobs:
     secrets: inherit
     with:
       web: true
-      python: true
+      python: false
 
   release-docker-web:
     needs: [file-changes, lint]
@@ -41,6 +41,7 @@ jobs:
       ghcr-enable: true
       push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/web/Dockerfile
+      platforms: linux/amd64,linux/arm64
       image-names: |
         ghcr.io/${{ github.repository }}/web
 
@@ -58,6 +59,7 @@ jobs:
       ghcr-enable: true
       push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/geoapi/Dockerfile
+      platforms: linux/amd64,linux/arm64
       image-names: |
         ghcr.io/${{ github.repository }}/geoapi
 
@@ -74,6 +76,7 @@ jobs:
       ghcr-enable: true
       push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/storybook/Dockerfile
+      platforms: linux/amd64,linux/arm64
       image-names: |
         ghcr.io/${{ github.repository }}/storybook
 
@@ -90,6 +93,7 @@ jobs:
       ghcr-enable: true
       push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/docs/Dockerfile
+      platforms: linux/amd64,linux/arm64
       image-names: |
         ghcr.io/${{ github.repository }}/docs
 

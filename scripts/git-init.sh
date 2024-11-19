@@ -5,4 +5,7 @@
   exit 0
 }
 
-./git-setup.sh goat-accounts::main::accounts
+# Get the directory of the current script
+SCRIPT_DIR="$(dirname "$0")"
+
+"$SCRIPT_DIR"/git-setup.sh . goat-accounts::main::accounts

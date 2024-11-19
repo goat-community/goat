@@ -1,0 +1,22 @@
+networks:
+  proxy:
+    name: goat
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.0.3-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      proxy:
+
+  redis:
+    image: redis:7.4.1-alpine
+    networks:
+      proxy:
+
+  geoapi:
+    image: ghcr.io/goat-community/goat/geoapi:latest
+    networks:
+      proxy:

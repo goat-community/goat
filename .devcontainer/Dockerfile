@@ -46,7 +46,8 @@ RUN apt-get -y install xvfb
 # UV
 ENV VIRTUAL_ENV="/app/.venv" \
     PATH="/app/.venv/bin:$PATH" \
-    PYTHONPATH="/usr/lib/python3/dist-packages" \
+    # PYTHONPATH="/usr/lib/python3/dist-packages" \
+    UV_PYTHON_DOWNLOADS=never \
     UV_PYTHON=python$PYTHON_VERSION \
     UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/app/.venv
