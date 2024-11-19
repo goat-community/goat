@@ -150,6 +150,7 @@
           id: build_image
           uses: docker/build-push-action@v5
           with:
+            provenance: false
             platforms: ${{ matrix.platform }}
             context: ${{ inputs.context }}
             file: ${{ inputs.file }}
