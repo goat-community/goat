@@ -39,4 +39,3 @@ RUN --mount=type=cache,target=/root/.cache/uv \
      uv sync --frozen --no-dev --no-editable --package=geoapi
 
 CMD ["fastapi", "run", "apps/geoapi/src/geoapi/main.py"]
-

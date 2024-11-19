@@ -109,7 +109,7 @@
             - platform: linux/amd64
               runner: ubuntu-latest
             - platform: linux/arm64
-              runner: macos-latest
+              runner: ubuntu-latest
 
 
       steps:
