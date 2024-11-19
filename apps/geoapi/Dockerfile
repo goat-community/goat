@@ -1,6 +1,10 @@
 # Stage 1: General debian environment
 FROM debian:bookworm-slim AS linux-base
 
+LABEL org.opencontainers.image.source=https://github.com/goat-community/goat
+LABEL org.opencontainers.image.description="Goat GeoAPI"
+LABEL org.opencontainers.image.licenses="GPL-3.0"
+
 ENV LC_CTYPE=C.utf8 \
     UV_PROJECT_ENVIRONMENT="/venv" \
     UV_COMPILE_BYTECODE=1 \
