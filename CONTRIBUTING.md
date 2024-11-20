@@ -38,3 +38,4 @@ All contributors to GOAT are expected to follow our Code of Conduct. This docume
 ## Feedback and Support
 
 If you have any questions, comments, or feedback about GOAT please feel free to [contact us](mailto:info@plan4better.de). We appreciate your contributions and look forward to working with you!
+

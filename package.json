@@ -45,7 +45,6 @@
   "engines": {
     "node": ">=16.0.0"
   },
-  "packageManager": "pnpm@9.5.0",
   "dependencies": {
     "@types/memoizee": "^0.4.8"
   }
