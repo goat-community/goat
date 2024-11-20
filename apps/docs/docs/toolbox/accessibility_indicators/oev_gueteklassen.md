@@ -67,6 +67,12 @@ In case you need to perform analysis beyond this geofence, feel free to contact 
   <div class="content">Select the <code>Catchment area type</code> for the calculation, which can be based on either <code>Buffer</code> or <code>Network</code>. </div>
 </div>
 
+:::info
+
+**Buffers** represent areas around public transport stations measured "as the crow flies", while **network** catchment areas account for the same distances along real-world streets and paths.
+
+:::
+
 ![Reference Area Selection](/img/toolbox/accessibility_indicators/gueteklassen/reference_area_new.png "Reference Area Selection")
 
 
@@ -110,13 +116,13 @@ The calculations are carried out based on **GTFS data** (see [Inbuilt Datasets](
 
 ![Classification of transport stops](/img/toolbox/accessibility_indicators/gueteklassen/classification_stations_en.webp "Classification of transport stops")
 
-Subsequently, **buffers** or **isochrones** of the size shown are calculated for the corresponding station categories. This creates several buffers or isochrones that are merged. For overlapping buffers/isochrones, the higher-quality class is used. 
+Subsequently, **buffers** or **network catchment areas** of the size shown are calculated for the corresponding station categories. This creates several buffers or isochrones that are merged. For overlapping buffers/isochrones, the higher-quality class is used. 
 
 ![Determination of Public Transport Quality Classes](/img/toolbox/accessibility_indicators/gueteklassen/determination_oev_gueteklasse_en.webp "Determination of Public Transport Quality Classes")
 
 ### Visualization
 
-The created buffers/isochrones are visualized around the stations in the corresponding colors to highlight the **quality class** (<span style={{color: "#199741"}}>A</span>-<span style={{color: "#E4696A"}}>F</span>).
+The created buffers/network catchment areas are visualized around the stations in the corresponding colors to highlight the **quality class** (<span style={{color: "#199741"}}>A</span>-<span style={{color: "#E4696A"}}>F</span>).
 
 ![Visualization of the ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/visualization.png "Visualization of the ÖV-Güteklassen")
 ![Visualization of the ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/visualization_network.png "Visualization of the ÖV-Güteklassen")
