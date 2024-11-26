@@ -44,7 +44,7 @@ In case you need to perform analysis beyond this geofence, feel free to contact 
   <div class="content">Under the <code>Accessibility Indicators</code> menu, click on <code>ÖV-Güteklassen</code>. This opens the settings menu.</div>
 </div>
 
-![Menu Overview for ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/overview.png "Menu Overview for ÖV-Güteklassen")
+![Menu Overview for ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/overview_new.png "Menu Overview for ÖV-Güteklassen")
 
 ### Calculation Time
 
@@ -60,11 +60,24 @@ In case you need to perform analysis beyond this geofence, feel free to contact 
   <div class="content">Select the <code>Reference Layer</code> for which you like to calculate the indicator. This can be any polygon feature layer.</div>
 </div>
 
-![Reference Area Selection](/img/toolbox/accessibility_indicators/gueteklassen/reference_area.png "Reference Area Selection")
-
+### Configuration
 
 <div class="step">
   <div class="step-number">5</div>
+  <div class="content">Select the <code>Catchment area type</code> for the calculation, which can be based on either <code>Buffer</code> or <code>Network</code>. </div>
+</div>
+
+:::info
+
+**Buffers** represent areas around public transport stations measured "as the crow flies", while **network** catchment areas account for the same distances along real-world streets and paths.
+
+:::
+
+![Reference Area Selection](/img/toolbox/accessibility_indicators/gueteklassen/reference_area_new.png "Reference Area Selection")
+
+
+<div class="step">
+  <div class="step-number">6</div>
   <div class="content">Click on <code>Run</code>. This starts the calculation of the Public Transport Quality Classes for the selected area.</div>
 </div>
 
@@ -77,7 +90,7 @@ Depending on the size of the selected area, the calculation might take some minu
 ### Results
 
 <div class="step">
-  <div class="step-number">6</div>
+  <div class="step-number">7</div>
   <div class="content">As soon as the calculation process is finished, the resulting layers will be added to the map. The results consist of one layer called <b>"ÖV-Güteklassen"</b>, showing the Public Transport Quality Classes, and one layer called <b>"ÖV-Güteklassen Stations"</b> which provides all stations that were used for the calculation of this indicator. The station points that are visualized in grey have a service frequency that is too low and thus do not contribute to any public transport quality class.
   <p></p>
   If you click on an "ÖV-Güteklassen" item on the map, you will see further details such as its pt_class and pt_class_number, which indicate <a href="#calculation">the quality of public transport</a>.</div>
@@ -85,6 +98,7 @@ Depending on the size of the selected area, the calculation might take some minu
 
 ![Result - Public Transport Quality Classes](/img/toolbox/accessibility_indicators/gueteklassen/result.png "Result - Public Transport Quality Classes")
 
+![Result - Public Transport Quality Classes](/img/toolbox/accessibility_indicators/gueteklassen/results_isochrone.png "Result - Public Transport Quality Classes")
 
 ## 4. Technical details
 
@@ -102,15 +116,16 @@ The calculations are carried out based on **GTFS data** (see [Inbuilt Datasets](
 
 ![Classification of transport stops](/img/toolbox/accessibility_indicators/gueteklassen/classification_stations_en.webp "Classification of transport stops")
 
-Subsequently, **buffers** of the size shown are calculated for the corresponding station categories. This creates several buffers that are merged. For overlapping buffers, the higher-quality class is used. 
+Subsequently, **buffers** or **network catchment areas** of the size shown are calculated for the corresponding station categories. This creates several buffers or isochrones that are merged. For overlapping buffers/isochrones, the higher-quality class is used. 
 
 ![Determination of Public Transport Quality Classes](/img/toolbox/accessibility_indicators/gueteklassen/determination_oev_gueteklasse_en.webp "Determination of Public Transport Quality Classes")
 
 ### Visualization
 
-The created buffers are visualized around the stations in the corresponding colors to highlight the **quality class** (<span style={{color: "#199741"}}>A</span>-<span style={{color: "#E4696A"}}>F</span>).
+The created buffers/network catchment areas are visualized around the stations in the corresponding colors to highlight the **quality class** (<span style={{color: "#199741"}}>A</span>-<span style={{color: "#E4696A"}}>F</span>).
 
 ![Visualization of the ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/visualization.png "Visualization of the ÖV-Güteklassen")
+![Visualization of the ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/visualization_network.png "Visualization of the ÖV-Güteklassen")
 
 
 ## 5. Further readings
