@@ -7,9 +7,21 @@ on:
         description: "Web changed"
         value: ${{ jobs.checks.outputs.web }}
 
+      core:
+        description: "Core changed"
+        value: ${{ jobs.checks.outputs.core }}
+
       geoapi:
         description: "Geoapi changed"
         value: ${{ jobs.checks.outputs.geoapi }}
+
+      routing:
+        description: "Routing changed"
+        value: ${{ jobs.checks.outputs.routing }}
+        
+      accounts:
+        description: "Accounts changed"
+        value: ${{ jobs.checks.outputs.accounts }}
 
       docs:
         description: "Docs changed"
@@ -37,7 +49,10 @@ jobs:
       contents: read
     outputs:
       web: ${{ steps.changes.outputs.web }}
+      core: ${{ steps.changes.outputs.core }}
       geoapi: ${{ steps.changes.outputs.geoapi }}
+      routing: ${{ steps.changes.outputs.routing }}
+      accounts: ${{ steps.changes.outputs.accounts }}
       docs: ${{ steps.changes.outputs.docs }}
       keycloak-theme: ${{ steps.changes.outputs.keycloak-theme }}
       storybook: ${{ steps.changes.outputs.storybook }}
@@ -60,8 +75,23 @@ jobs:
                 - '.prettier*'
                 - 'pnpm-lock.yaml'
 
+            core:
+                - 'apps/core/**'
+                - 'pyproject.toml'
+                - 'uv.lock'
+
             geoapi:
                 - 'apps/geoapi/**'
+                - 'pyproject.toml'
+                - 'uv.lock'
+
+            routing:
+                - 'apps/routing/**'
+                - 'pyproject.toml'
+                - 'uv.lock'
+
+            accounts:
+                - 'apps/accounts/**'
                 - 'pyproject.toml'
                 - 'uv.lock'
 

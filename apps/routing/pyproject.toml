@@ -18,13 +18,20 @@ dependencies = [
     "scipy==1.14.1",
     "geopandas==1.0.1",
     "shapely==2.0.6",
-    # "connectorx==0.4.0",
     "pyarrow==18.0.0",
     "celery==5.4.0",
     "redis==5.2.0",
     "tqdm==4.67.0",
     "sentry-sdk==2.18.0",
+    "connectorx==0.4.0"
 ]
+
+# "connextorx" does not provide aarch64 wheels for linux yet (linux/arm64). 
+# This is only relevant when working on dev containers on aarch64 (e.g. Apple Silicon) to avoid using Rosseta emulator. 
+# Prod containers are unaffected as they run on linux/amd64. 
+# https://github.com/sfu-db/connector-x/issues/386
+[tool.uv.sources]
+connectorx = { url = "https://assets.plan4better.de/other/libs/connectorx-0.4.0-cp312-cp312-manylinux_2_35_aarch64.whl", marker = "platform_machine == 'aarch64' and platform_system == 'Linux'" }
 
 [build-system]
 requires = ["hatchling"]

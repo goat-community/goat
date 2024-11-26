@@ -31,7 +31,7 @@ async def compute_active_mobility_catchment_area(
         examples=request_examples["catchment_area_active_mobility"],
         description="The catchment area parameters.",
     ),
-):
+) -> JSONResponse:
     """Compute catchment areas for active mobility."""
 
     return await compute_catchment_area(params)
@@ -48,7 +48,7 @@ async def compute_motorized_mobility_catchment_area(
         examples=request_examples["catchment_area_motorized_mobility"],
         description="The catchment area parameters.",
     ),
-):
+) -> JSONResponse:
     """Compute catchment areas for motorized mobility."""
 
     return await compute_catchment_area(params)
@@ -56,10 +56,10 @@ async def compute_motorized_mobility_catchment_area(
 
 async def compute_catchment_area(
     params: ICatchmentAreaActiveMobility | ICatchmentAreaCar,
-):
+) -> JSONResponse:
     # Get processing status of catchment area request
     processing_status = redis.get(str(params.layer_id))
-    processing_status = processing_status.decode("utf-8") if processing_status else None
+    processing_status = processing_status.decode("utf-8") if processing_status else None  # type: ignore
 
     if processing_status is None:
         # Initiate catchment area computation for request

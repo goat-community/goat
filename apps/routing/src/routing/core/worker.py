@@ -5,7 +5,7 @@ import sentry_sdk
 from celery import Celery, signals
 from redis import Redis
 from routing.core.config import settings
-from routing.crud.crud_catchment_area import CRUDCatchmentArea
+from routing.crud.crud_catchment_area import CRUDCatchmentArea  # type: ignore
 from routing.db.session import async_session
 
 celery_app = Celery("worker", broker=settings.CELERY_BROKER_URL)
@@ -17,7 +17,7 @@ redis = Redis(
 crud_catchment_area = CRUDCatchmentArea(async_session(), redis)
 
 
-@signals.celeryd_init.connect # type: ignore
+@signals.celeryd_init.connect  # type: ignore
 def init_sentry(**_kwargs: dict[str, Any]) -> None:
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
@@ -26,7 +26,7 @@ def init_sentry(**_kwargs: dict[str, Any]) -> None:
     )
 
 
-@celery_app.task # type: ignore
+@celery_app.task  # type: ignore
 def run_catchment_area(params: Any) -> str:
     loop = asyncio.get_event_loop()
     coroutine = crud_catchment_area.run(params)

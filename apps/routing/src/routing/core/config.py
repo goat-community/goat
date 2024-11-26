@@ -1,7 +1,6 @@
-from typing import Any, Dict
-
-from pydantic import PostgresDsn, validator
+from pydantic import PostgresDsn, model_validator
 from pydantic_settings import BaseSettings
+from typing_extensions import Self
 
 
 class AsyncPostgresDsn(PostgresDsn):
@@ -23,19 +22,19 @@ class Settings(BaseSettings):
 
     API_V2_STR: str = "/api/v2"
     PROJECT_NAME: str = "GOAT Routing API"
-    CACHE_DIR: str = "/app/src/cache"
+    CACHE_DIR: str = "/tmp/cache"
 
-    NETWORK_REGION_TABLE = "basic.geofence_active_mobility"
+    NETWORK_REGION_TABLE: str = "basic.geofence_active_mobility"
 
-    CATCHMENT_AREA_CAR_BUFFER_DEFAULT_SPEED = 80  # km/h
-    CATCHMENT_AREA_HOLE_THRESHOLD_SQM = 200000  # 20 hectares, ~450m x 450m
+    CATCHMENT_AREA_CAR_BUFFER_DEFAULT_SPEED: int = 80  # km/h
+    CATCHMENT_AREA_HOLE_THRESHOLD_SQM: int = 200000  # 20 hectares, ~450m x 450m
 
     BASE_STREET_NETWORK: str | None = "903ecdca-b717-48db-bbce-0219e41439cf"
-    DEFAULT_STREET_NETWORK_NODE_LAYER_PROJECT_ID = (
+    DEFAULT_STREET_NETWORK_NODE_LAYER_PROJECT_ID: int = (
         37319  # Hardcoded until node layers are added to GOAT projects by default
     )
 
-    DATA_INSERT_BATCH_SIZE = 800
+    DATA_INSERT_BATCH_SIZE: int = 800
 
     CELERY_BROKER_URL: str | None = "pyamqp://guest@rabbitmq//"
     REDIS_HOST: str | None = "redis"
@@ -46,44 +45,36 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = ""
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
-    POSTGRES_PORT: str | None = "5432"
-    POSTGRES_DATABASE_URI: str  = ""
-
-    @validator("POSTGRES_DATABASE_URI", pre=True)
-    def postgres_database_uri_(self, v: str | None, values: Dict[str, Any]) -> Any:
-        return f'postgresql://{values.get("POSTGRES_USER")}:{values.get("POSTGRES_PASSWORD")}@{values.get("POSTGRES_SERVER")}:{values.get("POSTGRES_PORT")}/{values.get("POSTGRES_DB")}'
-
+    POSTGRES_PORT: int | None = 5432
+    POSTGRES_DATABASE_URI: str = ""
     ASYNC_SQLALCHEMY_DATABASE_URI: AsyncPostgresDsn | None = None
-
-    @validator("ASYNC_SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_async_db_connection(
-        self, v: str | None, values: Dict[str, Any]
-    ) -> Any:
-        if isinstance(v, str):
-            return v
-        return AsyncPostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            username=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
-            port=values.get("POSTGRES_PORT"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
-        )
-
     SQLALCHEMY_DATABASE_URI: SyncPostgresDsn | None = None
 
-    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_db_connection(self, v: str | None, values: Dict[str, Any]) -> Any:
-        if isinstance(v, str):
-            return v
-        return SyncPostgresDsn.build(
-            scheme="postgresql",
-            username=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
-            port=values.get("POSTGRES_PORT"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
-        )
+    @model_validator(mode="after")
+    def _postgres_database_uri(self) -> Self:
+        if not self.POSTGRES_DATABASE_URI:
+            self.POSTGRES_DATABASE_URI = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+        if not self.ASYNC_SQLALCHEMY_DATABASE_URI:
+            self.ASYNC_SQLALCHEMY_DATABASE_URI = AsyncPostgresDsn.build(
+                scheme="postgresql+asyncpg",
+                username=self.POSTGRES_USER,
+                password=self.POSTGRES_PASSWORD,
+                host=self.POSTGRES_SERVER,
+                port=self.POSTGRES_PORT,
+                path=f"{self.POSTGRES_DB or ''}",
+            )
+
+        if not self.SQLALCHEMY_DATABASE_URI:
+            self.SQLALCHEMY_DATABASE_URI = SyncPostgresDsn.build(
+                scheme="postgresql",
+                username=self.POSTGRES_USER,
+                password=self.POSTGRES_PASSWORD,
+                host=self.POSTGRES_SERVER,
+                port=self.POSTGRES_PORT,
+                path=f"{self.POSTGRES_DB or ''}",
+            )
+        return self
 
     class Config:
         case_sensitive = True

@@ -1,9 +1,10 @@
 import json
 import math
 import os
-from typing import Annotated, TypedDict
+from typing import Annotated, Any, Dict, TypedDict
 
 import numpy as np
+import numpy.typing as npt
 from numba import njit
 
 
@@ -75,7 +76,9 @@ def coordinate_to_pixel(
         return [x, y]
 
 
-def compute_r5_surface(grid: dict, percentile: int) -> np.array:
+def compute_r5_surface(
+    grid: Dict[str, npt.NDArray[Any]], percentile: int
+) -> npt.NDArray[Any] | None:
     """
     Compute single value surface from the grid
     """
@@ -122,7 +125,7 @@ def coordinate_from_pixel(
     return [x, y]
 
 
-@njit(cache=True) # type: ignore
+@njit(cache=True)  # type: ignore
 def pixel_x_to_web_mercator_x(x: float, zoom: int) -> float:
     """
     Convert pixel x coordinate to web mercator x coordinate
@@ -131,7 +134,7 @@ def pixel_x_to_web_mercator_x(x: float, zoom: int) -> float:
     return x * (40075016.68557849 / (z_s)) - (40075016.68557849 / 2.0)
 
 
-@njit(cache=True) # type: ignore
+@njit(cache=True)  # type: ignore
 def pixel_y_to_web_mercator_y(y: float, zoom: int) -> float:
     """
     Convert pixel y coordinate to web mercator y coordinate
@@ -140,7 +143,7 @@ def pixel_y_to_web_mercator_y(y: float, zoom: int) -> float:
     return y * (40075016.68557849 / (-1 * z_s)) + (40075016.68557849 / 2.0)
 
 
-@njit(cache=True) # type: ignore
+@njit(cache=True)  # type: ignore
 def pixel_to_longitude(pixel_x: float, zoom: int) -> float:
     """
     Convert pixel x coordinate to longitude
@@ -149,7 +152,7 @@ def pixel_to_longitude(pixel_x: float, zoom: int) -> float:
     return (pixel_x / z_s) * 360 - 180
 
 
-@njit(cache=True) # type: ignore
+@njit(cache=True)  # type: ignore
 def pixel_to_latitude(pixel_y: float, zoom: int) -> float:
     """
     Convert pixel y coordinate to latitude
@@ -158,7 +161,7 @@ def pixel_to_latitude(pixel_y: float, zoom: int) -> float:
     return lat_rad * 180 / math.pi
 
 
-def decode_r5_grid(grid_data_buffer: bytes) -> dict[str, int | float | list[int]]:
+def decode_r5_grid(grid_data_buffer: bytes) -> Any:
     """
     Decode R5 grid data
     """
@@ -211,7 +214,7 @@ def decode_r5_grid(grid_data_buffer: bytes) -> dict[str, int | float | list[int]
         * 4,
         dtype=np.int8,
     )
-    metadata = json.loads(raw_metadata.tostring())
+    metadata = json.loads(raw_metadata.tobytes())
 
     return header | metadata | {"data": data, "errors": [], "warnings": []}
 

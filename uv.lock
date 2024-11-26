@@ -1,8 +1,10 @@
 version = 1
 requires-python = ">=3.12"
 resolution-markers = [
-    "python_full_version < '3.13'",
-    "python_full_version >= '3.13'",
+    "(python_full_version < '3.13' and platform_machine != 'aarch64') or (python_full_version < '3.13' and platform_system != 'Linux')",
+    "python_full_version < '3.13' and platform_machine == 'aarch64' and platform_system == 'Linux'",
+    "(python_full_version >= '3.13' and platform_machine != 'aarch64') or (python_full_version >= '3.13' and platform_system != 'Linux')",
+    "python_full_version >= '3.13' and platform_machine == 'aarch64' and platform_system == 'Linux'",
 ]
 
 [manifest]
@@ -219,6 +221,37 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335 },
+]
+
+[[package]]
+name = "connectorx"
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "(python_full_version < '3.13' and platform_machine != 'aarch64') or (python_full_version < '3.13' and platform_system != 'Linux')",
+    "(python_full_version >= '3.13' and platform_machine != 'aarch64') or (python_full_version >= '3.13' and platform_system != 'Linux')",
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3c/5b/19bfbb374ba4ec8bdc9f74951352a9aab9d26ecc9459e519a57fcf940fdc/connectorx-0.4.0-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:5c6bb6cc468ff77b18b71ee44b5ea7e3c72de3a08a4740040fed3361a6086659", size = 27001506 },
+    { url = "https://files.pythonhosted.org/packages/0d/21/6486b86315af8da9d510ff0d8195fc178b9aba5d2b0c0572b68288e54cef/connectorx-0.4.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:42d9ae283541aca860f7082186ecb0525ff933b714e676dfe0e517e7943a9799", size = 25923458 },
+    { url = "https://files.pythonhosted.org/packages/d0/cb/93261244ab037d686b00006445dee8feb56811d63fd61a5edac8463ab4be/connectorx-0.4.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:c3ebe1e95e4c82d69804d0165be4d4f80ff4bb1beac04d6946aa73ed04819440", size = 32018249 },
+    { url = "https://files.pythonhosted.org/packages/6c/f8/4febd915b31343798824f2e4961b54bc354a70a7944e4c51b6925f84e6bd/connectorx-0.4.0-cp312-none-win_amd64.whl", hash = "sha256:d4c156df650860002f61155e2eff23d9c822c2e9f14e16d04e21dd1033b09cdc", size = 25350236 },
+    { url = "https://files.pythonhosted.org/packages/37/0d/43527ac16b096ef19ae7ffa2c4104f7d1315e965aa4f3059f28ec5fff450/connectorx-0.4.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:b74266abb86c7d570579004d909d8b4ce5d18dab29e07c63015ea75ed0178adb", size = 27002153 },
+    { url = "https://files.pythonhosted.org/packages/82/44/cd4a606b5ab89592d8310bb4ad94960ad516186f455274342e3784946b74/connectorx-0.4.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:dd80488823a174d0c73e4575b10f0c0eb86bc82cbd72e28fd2b611733308699d", size = 25922650 },
+    { url = "https://files.pythonhosted.org/packages/49/cf/ec8aeb7c69b1f8e57fddb9ea5c3f1c653402a62794b0b9be7349768d3b51/connectorx-0.4.0-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:33a64fdd0b3efd32f54cce664f1022d448db5878e919e7a2f186f2af19eaa572", size = 32018346 },
+    { url = "https://files.pythonhosted.org/packages/fd/e4/8fb9ca60a8895e873fb465ed8a893c6ee459e043f4ba12f6ba9f056f86bf/connectorx-0.4.0-cp313-none-win_amd64.whl", hash = "sha256:635727407b0a14ff30cd02519e631766b2df55c94da2d57c7599e5a9a4ce2f4f", size = 25349352 },
+]
+
+[[package]]
+name = "connectorx"
+version = "0.4.0"
+source = { url = "https://assets.plan4better.de/other/libs/connectorx-0.4.0-cp312-cp312-manylinux_2_35_aarch64.whl" }
+resolution-markers = [
+    "python_full_version < '3.13' and platform_machine == 'aarch64' and platform_system == 'Linux'",
+    "python_full_version >= '3.13' and platform_machine == 'aarch64' and platform_system == 'Linux'",
+]
+wheels = [
+    { url = "https://assets.plan4better.de/other/libs/connectorx-0.4.0-cp312-cp312-manylinux_2_35_aarch64.whl", hash = "sha256:1d9c98f7f5ffecf3f4d54653cdb5e7b9310460a670bdf9221963feeb1d4bef9c" },
 ]
 
 [[package]]
@@ -1433,6 +1466,8 @@ source = { editable = "apps/routing" }
 dependencies = [
     { name = "asyncpg" },
     { name = "celery" },
+    { name = "connectorx", version = "0.4.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'aarch64' or platform_system != 'Linux'" },
+    { name = "connectorx", version = "0.4.0", source = { url = "https://assets.plan4better.de/other/libs/connectorx-0.4.0-cp312-cp312-manylinux_2_35_aarch64.whl" }, marker = "platform_machine == 'aarch64' and platform_system == 'Linux'" },
     { name = "fastapi", extra = ["standard"] },
     { name = "geopandas" },
     { name = "numba" },
@@ -1454,6 +1489,8 @@ dependencies = [
 requires-dist = [
     { name = "asyncpg", specifier = "==0.30.0" },
     { name = "celery", specifier = "==5.4.0" },
+    { name = "connectorx", marker = "platform_machine != 'aarch64' or platform_system != 'Linux'", specifier = "==0.4.0" },
+    { name = "connectorx", marker = "platform_machine == 'aarch64' and platform_system == 'Linux'", url = "https://assets.plan4better.de/other/libs/connectorx-0.4.0-cp312-cp312-manylinux_2_35_aarch64.whl" },
     { name = "fastapi", extras = ["standard"], specifier = "==0.115.4" },
     { name = "geopandas", specifier = "==1.0.1" },
     { name = "numba", specifier = "==0.60.0" },

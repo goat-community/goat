@@ -8,7 +8,7 @@ import pytest_asyncio
 from httpx import AsyncClient
 
 # Local application imports
-from src.routing.main import app
+from routing.main import app
 
 
 @pytest_asyncio.fixture

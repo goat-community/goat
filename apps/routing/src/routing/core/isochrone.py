@@ -1,3 +1,6 @@
+# type: ignore
+# ruff: noqa
+
 import heapq
 import math
 
@@ -13,7 +16,7 @@ from routing.utils import (
 from scipy import spatial
 
 
-@njit(cache=True) # type: ignore
+@njit(cache=True)  # type: ignore
 def construct_adjacency_list_(
     n, edge_source, edge_target, edge_cost, edge_reverse_cost
 ) -> list[list[list[float]]]:
@@ -305,7 +308,7 @@ def split_edges(
                     next_coord = geom[idx + 1]
                     dist = math.sqrt(
                         (coord[0] - next_coord[0]) ** 2
-                        + ((coord[1] - next_coord[1])) ** 2
+                        + (coord[1] - next_coord[1]) ** 2
                     )
                     agg_dist = previous_agg_dist + dist
 
@@ -417,7 +420,9 @@ def build_grid_interpolate_(
     additional_costs = (
         distances
         if is_distance_based
-        else 0 if speed is None else ((distances / speed) / 60)
+        else 0
+        if speed is None
+        else ((distances / speed) / 60)
     )
     indices_flatten = indices.flatten()
 
@@ -471,7 +476,9 @@ def build_grid_interpolate_h3(
     additional_costs = (
         distances
         if is_distance_based
-        else 0 if speed is None else ((distances / speed) / 60)
+        else 0
+        if speed is None
+        else ((distances / speed) / 60)
     )
     mapped_costs = np.rint(mapped_costs + additional_costs)
 

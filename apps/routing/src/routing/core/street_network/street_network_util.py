@@ -74,7 +74,9 @@ class StreetNetworkUtil:
 
         return edge_table, node_table
 
-    async def _get_street_network_region_h3_3_cells(self, region_geofence_table: str) -> list[str]:
+    async def _get_street_network_region_h3_3_cells(
+        self, region_geofence_table: str
+    ) -> list[str]:
         """Get list of H3_3 cells covering the street network region."""
 
         h3_3_cells = []

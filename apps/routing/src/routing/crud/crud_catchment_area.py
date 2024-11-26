@@ -1,3 +1,6 @@
+# type: ignore
+# ruff: noqa
+
 import math
 import time
 import uuid
@@ -676,12 +679,14 @@ class CRUDCatchmentArea:
                     is_distance_based=(not is_travel_time_catchment_area),
                 )
             else:
-                catchment_area_grid_index, h3_centroid_x, h3_centroid_y = (
-                    await self.get_h3_10_grid(
-                        self.db_connection,
-                        obj_in=obj_in,
-                        origin_h3_10=origin_point_h3_10,
-                    )
+                (
+                    catchment_area_grid_index,
+                    h3_centroid_x,
+                    h3_centroid_y,
+                ) = await self.get_h3_10_grid(
+                    self.db_connection,
+                    obj_in=obj_in,
+                    origin_h3_10=origin_point_h3_10,
                 )
                 catchment_area_grid = compute_isochrone_h3(
                     edge_network_input=sub_routing_network,

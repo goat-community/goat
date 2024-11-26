@@ -1,8 +1,11 @@
+# type: ignore
+# ruff: noqa
+
 """
- Compute an isoline as a GeoJSON feature from a regular grid
- Uses the Marching Squares algorithm, with code ported in python from
- https://github.com/conveyal/analysis-ui/blob/main/lib/utils/jsolines.ts
- Copyright (c), Conveyal LLC, Plan4Better GmbH
+Compute an isoline as a GeoJSON feature from a regular grid
+Uses the Marching Squares algorithm, with code ported in python from
+https://github.com/conveyal/analysis-ui/blob/main/lib/utils/jsolines.ts
+Copyright (c), Conveyal LLC, Plan4Better GmbH
 """
 
 import math

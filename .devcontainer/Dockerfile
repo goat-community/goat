@@ -44,15 +44,13 @@ RUN apt-get -y install xvfb
 
 
 # UV
-ENV VIRTUAL_ENV="/app/.venv" \
-    PATH="/app/.venv/bin:$PATH" \
-    # PYTHONPATH="/usr/lib/python3/dist-packages" \
+ENV PATH="/app/.venv/bin:$PATH" \
     UV_PYTHON_DOWNLOADS=never \
     UV_PYTHON=python$PYTHON_VERSION \
     UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/app/.venv
 
-COPY --from=ghcr.io/astral-sh/uv:0.5.1 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.5.4 /uv /bin/uv
 
 # NODE
 ENV NVM_DIR=/usr/local/nvm

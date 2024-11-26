@@ -19,7 +19,6 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT:
     )
 
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     print("Starting up...")
@@ -38,6 +37,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 @app.get("/api/docs", include_in_schema=False)
 async def swagger_ui_html() -> HTMLResponse:
     return get_swagger_ui_html(
@@ -46,6 +46,7 @@ async def swagger_ui_html() -> HTMLResponse:
         title=settings.PROJECT_NAME,
         swagger_ui_parameters={"persistAuthorization": True},
     )
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,6 +57,3 @@ app.add_middleware(
 )
 
 app.include_router(api_router_v2, prefix=settings.API_V2_STR)
-
-
-

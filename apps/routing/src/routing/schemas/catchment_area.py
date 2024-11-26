@@ -3,8 +3,9 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 import polars as pl
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from routing.core.config import settings
+from typing_extensions import Self
 
 SEGMENT_DATA_SCHEMA = {
     "id": pl.Int64,
@@ -144,8 +145,9 @@ class CatchmentAreaTravelTimeCostActiveMobility(BaseModel):
     )
 
     # Ensure the number of steps doesn't exceed the maximum traveltime
-    @validator("steps", pre=True, always=True)
-    def valid_num_steps(self, v: int) -> int:
+    @field_validator("steps", mode="before")
+    @classmethod
+    def valid_num_steps(cls, v: int) -> int:
         if v > 45:
             raise ValueError(
                 "The number of steps must not exceed the maximum traveltime."
@@ -170,8 +172,9 @@ class CatchmentAreaTravelTimeCostMotorizedMobility(BaseModel):
     )
 
     # Ensure the number of steps doesn't exceed the maximum traveltime
-    @validator("steps", pre=True, always=True)
-    def valid_num_steps(self, v: int) -> int:
+    @field_validator("steps", mode="before")
+    @classmethod
+    def valid_num_steps(cls, v: int) -> int:
         if v > 90:
             raise ValueError(
                 "The number of steps must not exceed the maximum traveltime."
@@ -197,8 +200,9 @@ class CatchmentAreaTravelDistanceCostActiveMobility(BaseModel):
     )
 
     # Ensure the number of steps doesn't exceed the maximum distance
-    @validator("steps", pre=True, always=True)
-    def valid_num_steps(self, v: int) -> int:
+    @field_validator("steps", mode="before")
+    @classmethod
+    def valid_num_steps(cls, v: int) -> int:
         if v > 20000:
             raise ValueError(
                 "The number of steps must not exceed the maximum distance."
@@ -224,8 +228,9 @@ class CatchmentAreaTravelDistanceCostCar(BaseModel):
     )
 
     # Ensure the number of steps doesn't exceed the maximum distance
-    @validator("steps", pre=True, always=True)
-    def valid_num_steps(self, v: int) -> int:
+    @field_validator("steps", mode="before")
+    @classmethod
+    def valid_num_steps(cls, v: int) -> int:
         if v > 20000:
             raise ValueError(
                 "The number of steps must not exceed the maximum distance."
@@ -305,40 +310,34 @@ class ICatchmentAreaActiveMobility(BaseModel):
         description="The ID of the layer the results should be saved.",
     )
 
-    # Ensure street network is specified if a scenario ID is provided
-    @validator("street_network", pre=True, always=True)
-    def check_street_network(
-        self, v: CatchmentAreaStreetNetwork | None, values: Any
-    ) -> CatchmentAreaStreetNetwork | None:
-        if values["scenario_id"] is not None and v is None:
+    @model_validator(mode="after")
+    def _model_validator(self) -> Self:
+        scenario_id = self.scenario_id
+        street_network = self.street_network
+        polygon_difference = self.polygon_difference
+        catchment_area_type = self.catchment_area_type
+        # Ensure street network is specified if a scenario ID is provided
+        if scenario_id is not None and street_network is None:
             raise ValueError(
                 "The street network must be set if a scenario ID is provided."
             )
-        return v
-
-    # Check that polygon difference exists if catchment area type is polygon
-    @validator("polygon_difference", pre=True, always=True)
-    def check_polygon_difference(self, v: bool, values: Any) -> bool:
+        # Check that polygon difference exists if catchment area type is polygon
         if (
-            values["catchment_area_type"] == CatchmentAreaType.polygon.value
-            and v is None
+            catchment_area_type == CatchmentAreaType.polygon.value
+            and polygon_difference is None
         ):
             raise ValueError(
                 "The polygon difference must be set if the catchment area type is polygon."
             )
-        return v
-
-    # Check that polygon difference is not specified if catchment area type is not polygon
-    @validator("polygon_difference", pre=True, always=True)
-    def check_polygon_difference_not_specified(self, v: bool, values: Any) -> bool:
+        # Check that polygon difference is not specified if catchment area type is not polygon
         if (
-            values["catchment_area_type"] != CatchmentAreaType.polygon.value
-            and v is not None
+            catchment_area_type != CatchmentAreaType.polygon.value
+            and polygon_difference is not None
         ):
             raise ValueError(
                 "The polygon difference must not be set if the catchment area type is not polygon."
             )
-        return v
+        return self
 
 
 class ICatchmentAreaCar(BaseModel):
@@ -393,43 +392,37 @@ class ICatchmentAreaCar(BaseModel):
         description="The ID of the layer the results should be saved.",
     )
 
-    # Ensure street network is specified if a scenario ID is provided
-    @validator("street_network", pre=True, always=True)
-    def check_street_network(
-        self, v: CatchmentAreaStreetNetwork | None, values: Any
-    ) -> CatchmentAreaStreetNetwork | None:
-        if values["scenario_id"] is not None and v is None:
+    @model_validator(mode="after")
+    def _model_validator(self) -> Self:
+        scenario_id = self.scenario_id
+        street_network = self.street_network
+        polygon_difference = self.polygon_difference
+        catchment_area_type = self.catchment_area_type
+        # Ensure street network is specified if a scenario ID is provided
+        if scenario_id is not None and street_network is None:
             raise ValueError(
                 "The street network must be set if a scenario ID is provided."
             )
-        return v
-
-    # Check that polygon difference exists if catchment area type is polygon
-    @validator("polygon_difference", pre=True, always=True)
-    def check_polygon_difference(self, v: bool, values: Any) -> bool:
+        # Check that polygon difference exists if catchment area type is polygon
         if (
-            values["catchment_area_type"] == CatchmentAreaType.polygon.value
-            and v is None
+            catchment_area_type == CatchmentAreaType.polygon.value
+            and polygon_difference is None
         ):
             raise ValueError(
                 "The polygon difference must be set if the catchment area type is polygon."
             )
-        return v
-
-    # Check that polygon difference is not specified if catchment area type is not polygon
-    @validator("polygon_difference", pre=True, always=True)
-    def check_polygon_difference_not_specified(self, v: bool, values: Any) -> bool:
+        # Check that polygon difference is not specified if catchment area type is not polygon
         if (
-            values["catchment_area_type"] != CatchmentAreaType.polygon.value
-            and v is not None
+            catchment_area_type != CatchmentAreaType.polygon.value
+            and polygon_difference is not None
         ):
             raise ValueError(
                 "The polygon difference must not be set if the catchment area type is not polygon."
             )
-        return v
+        return self
 
 
-request_examples = {
+request_examples: dict[str, Any] = {
     "catchment_area_active_mobility": {
         # 1. Single catchment area for walking (time based)
         "single_point_walking_time": {
