@@ -24,7 +24,7 @@ dependencies = [
     "h3==4.1.2",
     "numba==0.60.0",
     "fastapi-pagination==0.12.32",
-    "Jinja2==3.1.4",
+    "Jinja2==3.1.5",
     "requests==2.32.3",
     "gdal==3.6.2",
     "alembic==1.14.0",
