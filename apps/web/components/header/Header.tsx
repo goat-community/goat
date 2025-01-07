@@ -139,7 +139,7 @@ export default function Header(props: HeaderProps) {
     } else {
       return [...publicMenuItems, ...commonMenuItems];
     }
-  }, [t, theme.palette.error.main, project?.max_extent, viewOnly, map]);
+  }, [t, theme.palette.error.main, project?.max_extent, viewOnly, map, onProjectUpdate, lng]);
 
   return (
     <>
