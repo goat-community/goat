@@ -32,12 +32,20 @@ export const projectSchema = contentMetadataSchema.extend({
   folder_id: z.string(),
   id: z.string(),
   layer_order: z.array(z.number()),
+  max_extent: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
   active_scenario_id: z.string().nullable(),
   updated_at: z.string(),
   created_at: z.string(),
   shared_with: shareProjectSchema.optional(),
   owned_by: publicUserSchema,
 });
+
+export const projectPublicSchema = z.object({
+  created_at: z.string(),
+  updated_at: z.string(),
+  project_id: z.string(),
+  config: z.object({}),
+})
 
 export const projectLayerSchema = layerSchema.extend({
   id: z.number(),
@@ -73,6 +81,7 @@ export const postProjectSchema = z.object({
   thumbnail_url: z.string().optional(),
   layer_order: z.array(z.number()).optional(),
   active_scenario_id: z.string().optional(),
+  max_extent: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
   initial_view_state: projectViewStateSchema.optional(),
 });
 
@@ -89,3 +98,4 @@ export type ProjectViewState = z.infer<typeof projectViewStateSchema>;
 export type ProjectLayersPaginated = z.infer<typeof projectLayersResponseSchema>;
 export type GetProjectsQueryParams = z.infer<typeof getProjectsQueryParamsSchema>;
 export type ProjectSharedWith = z.infer<typeof shareProjectSchema>;
+export type ProjectPublic = z.infer<typeof projectPublicSchema>;

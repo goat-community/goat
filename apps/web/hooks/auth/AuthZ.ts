@@ -10,8 +10,8 @@ interface Options {
 }
 
 export function useAuthZ(options: Options = {}) {
-  const { userProfile, isLoading: isUserProfileLoading } = useUserProfile();
-  const { organization } = useOrganization();
+  const { userProfile, isLoading: isUserProfileLoading, isError: isUserProfileError } = useUserProfile();
+  const { organization, isError: isOrganizationError } = useOrganization();
   const roles = userProfile?.roles;
 
   const isOrgAdmin = useMemo(() => {
@@ -50,6 +50,8 @@ export function useAuthZ(options: Options = {}) {
   }
 
   return {
+    isUserProfileError,
+    isOrganizationError,
     isLoading,
     isOrgAdmin,
     isOrgEditor,

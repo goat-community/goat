@@ -68,7 +68,6 @@ function TeamProfile({ team }: { team: Team }) {
     try {
       if (team) {
         await updateTeam(team.id, data);
-        console.log(data);
         toast.success(t("team_update_success"));
         reset({}, { keepValues: true });
       }

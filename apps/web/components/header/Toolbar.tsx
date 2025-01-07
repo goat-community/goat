@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  AppBar,
-  Box,
-  Divider,
-  IconButton,
-  Link,
-  Toolbar as MUIToolbar,
-  Stack,
-  useTheme,
-} from "@mui/material";
+import { AppBar, Box, Divider, IconButton, Toolbar as MUIToolbar, Stack, useTheme } from "@mui/material";
 import React from "react";
 
-import { GOATLogoIconOnlyGreen } from "@p4b/ui/assets/svg/GOATLogoIconOnlyGreen";
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 export type MapToolbarProps = {
@@ -54,29 +44,10 @@ export function Toolbar(props: MapToolbarProps) {
           </>
         )}
 
-        <Link
-          href="/home"
-          style={{
-            width: "32px",
-            height: "32px",
-            cursor: "pointer",
-          }}>
-          <Box
-            sx={{
-              transition: "transform 0.2s ease-in-out",
-              "&:hover": {
-                transform: "scale(1.1)",
-              },
-            }}>
-            <GOATLogoIconOnlyGreen style={{ width: "32px", height: "32px", cursor: "pointer" }} />
-          </Box>
-        </Link>
-
         <Stack
           direction="row"
           alignItems="center"
           sx={{
-            mx: theme.spacing(2),
             gap: theme.spacing(2),
           }}>
           {LeftToolbarChild}

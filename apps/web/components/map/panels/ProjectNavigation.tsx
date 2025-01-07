@@ -13,7 +13,7 @@ import { FeatureName } from "@/lib/validations/organization";
 import { MapSidebarItemID } from "@/types/map/common";
 
 import { useAuthZ } from "@/hooks/auth/AuthZ";
-import { useActiveLayer } from "@/hooks/map/LayerPanelHooks";
+import { useActiveLayer, useFilteredProjectLayers, useLayerActions } from "@/hooks/map/LayerPanelHooks";
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import MapSidebar from "@/components/map/Sidebar";
@@ -34,7 +34,12 @@ import type { MapSidebarProps } from "../Sidebar";
 const sidebarWidth = 52;
 const toolbarHeight = 52;
 
-const ProjectNavigation = ({ projectId }) => {
+interface ProjectNavigationProps {
+  projectId: string;
+  isPublic?: boolean;
+}
+
+const ProjectNavigation = ({ projectId }: ProjectNavigationProps) => {
   const theme = useTheme();
   const { t, i18n } = useTranslation("common");
   const dispatch = useAppDispatch();
@@ -47,6 +52,8 @@ const ProjectNavigation = ({ projectId }) => {
   const prevActiveLeftRef = useRef<MapSidebarItemID | undefined>(undefined);
   const prevActiveRightRef = useRef<MapSidebarItemID | undefined>(undefined);
   const { isProjectEditor, isAppFeatureEnabled } = useAuthZ();
+  const { layers: projectLayers, mutate: mutateProjectLayers } = useFilteredProjectLayers(projectId);
+  const { toggleLayerVisibility } = useLayerActions(projectLayers);
 
   const leftSidebar: MapSidebarProps = {
     topItems: [
@@ -60,7 +67,7 @@ const ProjectNavigation = ({ projectId }) => {
         id: MapSidebarItemID.LEGEND,
         icon: ICON_NAME.LEGEND,
         name: t("legend"),
-        component: <Legend projectId={projectId} />,
+        component: <Legend projectLayers={projectLayers} />,
       },
     ],
     bottomItems: [],
@@ -218,7 +225,15 @@ const ProjectNavigation = ({ projectId }) => {
           </Stack>
           {!isProjectEditor && (
             <Stack direction="column" sx={{ pointerEvents: "all" }}>
-              <Legend projectId={projectId} isFloating showAllLayers />
+              <Legend
+                projectLayers={projectLayers}
+                isFloating
+                showAllLayers
+                onVisibilityChange={async (layer) => {
+                  const { layers: _layers, layerToUpdate: _layerToUpdate } = toggleLayerVisibility(layer);
+                  await mutateProjectLayers(_layers, false);
+                }}
+              />
             </Stack>
           )}
         </Stack>

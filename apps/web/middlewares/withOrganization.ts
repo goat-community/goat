@@ -11,6 +11,7 @@ import type { MiddlewareFactory } from "@/middlewares/types";
 
 export const USERS_API_BASE_URL = new URL("api/v1/users", process.env.NEXT_PUBLIC_ACCOUNTS_API_URL).href;
 const protectedPaths = ["/home", "/projects", "datasets", "/settings", "/map"];
+const publicPaths = ["/map/public"];
 
 export const withOrganization: MiddlewareFactory = (next: NextMiddleware) => {
   return async (request: NextRequest, _next: NextFetchEvent) => {
@@ -18,7 +19,17 @@ export const withOrganization: MiddlewareFactory = (next: NextMiddleware) => {
 
     const lng = request.cookies.get(lngCookieName)?.value;
     const lngPath = lng ? `/${lng}` : fallbackLng ? `/${fallbackLng}` : "";
+
+    // Remove language prefix from pathname for public path check
+    const strippedPathname = pathname.startsWith(lngPath) ? pathname.slice(lngPath.length) : pathname;
+    // Check if the path is public
+    const isPublicPath = publicPaths.some((p) => strippedPathname.startsWith(p));
+    if (isPublicPath) {
+      return await next(request, _next);
+    }
+
     const organizationPageCreate = `${lngPath}/onboarding/organization/create`;
+
     const _protectedPaths = protectedPaths.map((p) => (lngPath ? `${lngPath}${p}` : p));
 
     if (!_protectedPaths.some((p) => pathname.startsWith(p))) return await next(request, _next);
@@ -61,7 +72,6 @@ export const withOrganization: MiddlewareFactory = (next: NextMiddleware) => {
 
       if (pendingInvitations.ok) {
         const invitations: InvitationPaginated = await pendingInvitations.json();
-        console.log(invitations);
         if (invitations?.items?.length > 0) {
           const invitationId = invitations.items[0].id;
           const invitationUrl = new URL(`${lngPath}/onboarding/organization/invite/${invitationId}`, origin);

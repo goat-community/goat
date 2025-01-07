@@ -88,12 +88,16 @@ class LayerCatalog:
         print(
             f"Received notification on channel {channel}: {operation} on layer {layer_id}"
         )
-        if operation == "UPDATE":
-            await self.update_insert(layer_id, conn)
-        elif operation == "DELETE":
-            await self.delete(layer_id)
-        elif operation == "INSERT":
-            await self.update_insert(layer_id, conn)
+        new_conn = await asyncpg.connect(str(PostgresSettings().database_url))
+        try:
+            if operation == "UPDATE":
+                await self.update_insert(layer_id, new_conn)
+            elif operation == "DELETE":
+                await self.delete(layer_id)
+            elif operation == "INSERT":
+                await self.update_insert(layer_id, new_conn)
+        finally:
+            await new_conn.close()
 
     async def listener_reconnect_handler(self, conn: asyncpg.Connection) -> None:  # type: ignore
         """Reconnect handler"""

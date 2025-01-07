@@ -7,8 +7,10 @@ import type { Scenario } from "@/lib/validations/scenario";
 import type { MapPopoverEditorProps, MapPopoverInfoProps } from "@/types/map/popover";
 import type { MapGeoJSONFeature } from "react-map-gl/maplibre";
 import { MAPTILER_KEY } from "@/lib/constants";
+import { Project } from "@/lib/validations/project";
 
 export interface MapState {
+  project: Project | undefined;
   basemaps: Basemap[];
   activeBasemap: string;
   maskLayer: string | undefined; // Toolbox mask layer
@@ -25,6 +27,7 @@ export interface MapState {
 }
 
 const initialState = {
+  project: undefined,
   basemaps: [
     {
       value: "streets",
@@ -94,6 +97,14 @@ const mapSlice = createSlice({
   name: "map",
   initialState: initialState,
   reducers: {
+    setProject: (state, action: PayloadAction<Project | undefined>) => {
+      state.project = action.payload;
+    },
+    updateProject: (state, action: PayloadAction<Project>) => {
+      if (state.project) {
+        state.project = { ...state.project, ...action.payload };
+      }
+    },
     setActiveBasemap: (state, action: PayloadAction<string>) => {
       state.activeBasemap = action.payload;
     },
@@ -160,6 +171,8 @@ const mapSlice = createSlice({
 });
 
 export const {
+  setProject,
+  updateProject,
   setActiveBasemap,
   setActiveLeftPanel,
   setActiveRightPanel,

@@ -7,6 +7,7 @@ import type {
   Project,
   ProjectLayer,
   ProjectPaginated,
+  ProjectPublic,
   ProjectViewState,
 } from "@/lib/validations/project";
 import type {
@@ -319,3 +320,38 @@ export const createProjectScenarioFeatures = async (
   }
   return await response.json();
 }
+
+
+export const usePublicProject = (projectId: string) => {
+  const { data, isLoading, error, mutate, isValidating } = useSWR<ProjectPublic>(
+    `${PROJECTS_API_BASE_URL}/${projectId}/public`,
+    fetcher
+  );
+  return {
+    sharedProject: data,
+    isLoading,
+    isError: error,
+    mutate,
+    isValidating,
+  };
+};
+
+export const publishProject = async (projectId: string) => {
+  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/publish`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to publish project");
+  }
+  return await response.json();
+};
+
+export const unpublishProject = async (projectId: string) => {
+  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/unpublish`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to unpublish project");
+  }
+  return await response.json();
+};

@@ -3,24 +3,28 @@ import { useMemo } from "react";
 import { useTranslation } from "@/i18n/client";
 
 import { setActiveLeftPanel } from "@/lib/store/map/slice";
+import { ProjectLayer } from "@/lib/validations/project";
 
-import { useFilteredProjectLayers, useLayerActions } from "@/hooks/map/LayerPanelHooks";
 import { useAppDispatch } from "@/hooks/store/ContextHooks";
 
 import { Legend, LegendMapContainer } from "@/components/map/controls/Legend";
 import Container from "@/components/map/panels/Container";
 
 interface PanelProps {
-  projectId: string;
+  projectLayers?: ProjectLayer[];
   isFloating?: boolean;
   showAllLayers?: boolean;
+  onVisibilityChange?: (layer: ProjectLayer) => void;
 }
 
-const LegendPanel = ({ projectId, isFloating = false, showAllLayers = false }: PanelProps) => {
+const LegendPanel = ({
+  isFloating = false,
+  showAllLayers = false,
+  projectLayers = [],
+  onVisibilityChange,
+}: PanelProps) => {
   const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
-  const { layers: projectLayers, mutate: mutateProjectLayers } = useFilteredProjectLayers(projectId);
-  const { toggleLayerVisibility } = useLayerActions(projectLayers);
   const _layers = useMemo(
     () =>
       showAllLayers
@@ -46,8 +50,7 @@ const LegendPanel = ({ projectId, isFloating = false, showAllLayers = false }: P
           enableActions={showAllLayers}
           hideZoomLevel
           onVisibilityChange={async (layer) => {
-            const { layers: _layers, layerToUpdate: _layerToUpdate } = toggleLayerVisibility(layer);
-            await mutateProjectLayers(_layers, false);
+            onVisibilityChange?.(layer);
           }}
         />
       )}

@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 import { useTranslation } from "@/i18n/client";
 
 import { createTeam } from "@/lib/api/teams";
-import type { TeamBase} from "@/lib/validations/team";
+import type { TeamBase } from "@/lib/validations/team";
 import { teamBaseSchema } from "@/lib/validations/team";
 
 interface TeamCreateDialogProps {
@@ -44,7 +44,6 @@ const TeamCreateModal: React.FC<TeamCreateDialogProps> = ({ open, onClose, onCre
       onCreate?.();
       setIsBusy(true);
       const payload = getValues();
-      console.log(payload);
       await createTeam(payload);
       toast.success(t("common:team_created_success"));
     } catch {

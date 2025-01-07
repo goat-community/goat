@@ -5,10 +5,12 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { MapProvider } from "react-map-gl/maplibre";
+import { toast } from "react-toastify";
 
 import { useTranslation } from "@/i18n/client";
 
 import {
+  updateProject,
   updateProjectInitialViewState,
   useProject,
   useProjectInitialViewState,
@@ -35,7 +37,6 @@ const UPDATE_VIEW_STATE_DEBOUNCE_TIME = 3000;
 export default function MapPage({ params: { projectId } }) {
   const theme = useTheme();
   const { t } = useTranslation("common");
-
   const activeBasemap = useAppSelector(selectActiveBasemap);
   const mapRef = useRef<MapRef | null>(null);
   const {
@@ -115,17 +116,29 @@ export default function MapPage({ params: { projectId } }) {
     mutateProject();
   });
 
+  const handleProjectUpdate = async (key: string, value: any, refresh = false) => {
+    try {
+      const projectToUpdate = JSON.parse(JSON.stringify(project));
+      projectToUpdate[key] = value;
+      mutateProject(projectToUpdate, refresh);
+      await updateProject(projectId, { [key]: value });
+    } catch (error) {
+      toast.error(t("error_updating_project"));
+      mutateProject();
+    }
+  };
+
   return (
     <>
       {isLoading && <LoadingPage />}
-      {!isLoading && !hasError && (
+      {!isLoading && !hasError && project && (
         <MapProvider>
           <DrawProvider>
             <Header
-              title={`${t("project")} ${project?.name ?? ""}`}
               showHambugerMenu={false}
-              tags={project?.tags}
-              lastSaved={project?.updated_at}
+              mapHeader={true}
+              project={project}
+              onProjectUpdate={handleProjectUpdate}
             />
             <Box
               sx={{
@@ -144,6 +157,7 @@ export default function MapPage({ params: { projectId } }) {
                 layers={projectLayers}
                 mapRef={mapRef}
                 scenarioFeatures={scenarioFeatures}
+                maxExtent={project?.max_extent}
                 initialViewState={{
                   zoom: initialView?.zoom ?? 3,
                   latitude: initialView?.latitude ?? 48.13,

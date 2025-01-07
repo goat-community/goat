@@ -22,21 +22,28 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
+import { formatDistance } from "date-fns";
 import { useMemo, useState } from "react";
 import { Trans } from "react-i18next";
 import { toast } from "react-toastify";
 import { mutate } from "swr";
 
-import { useTranslation } from "@/i18n/client";
+import { useDateFnsLocale, useTranslation } from "@/i18n/client";
 
 import { LAYERS_API_BASE_URL } from "@/lib/api/layers";
-import { PROJECTS_API_BASE_URL } from "@/lib/api/projects";
+import {
+  PROJECTS_API_BASE_URL,
+  publishProject,
+  unpublishProject,
+  usePublicProject,
+} from "@/lib/api/projects";
 import { shareLayer, shareProject } from "@/lib/api/share";
 import { useTeams } from "@/lib/api/teams";
 import { useOrganization } from "@/lib/api/users";
 import { type Layer, layerShareRoleEnum } from "@/lib/validations/layer";
 import { type Project, projectShareRoleEnum } from "@/lib/validations/project";
 
+import CopyField from "@/components/common/CopyField";
 import { CustomTabPanel, a11yProps } from "@/components/common/CustomTabPanel";
 
 interface ShareProps {
@@ -57,6 +64,10 @@ interface ShareWithItemsTabProps {
   items: Item[];
   roleOptions: string[];
   onRoleChange: (id: string, role: string) => void;
+}
+
+interface ShareWithPublicTabProps {
+  project: Project;
 }
 
 const ShareWithItemsTab: React.FC<ShareWithItemsTabProps> = ({ items, roleOptions, onRoleChange }) => {
@@ -148,6 +159,125 @@ const ShareWithItemsTab: React.FC<ShareWithItemsTabProps> = ({ items, roleOption
   );
 };
 
+const ShareWithPublicTab: React.FC<ShareWithPublicTabProps> = ({ project }) => {
+  const { t } = useTranslation("common");
+  const { sharedProject, isLoading, mutate } = usePublicProject(project.id);
+  console.log("isLoading", isLoading);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isUnpublishing, setIsUnpublishing] = useState(false);
+  const dateLocale = useDateFnsLocale();
+  const baseUrl = window.location.origin;
+  const publicUrl = `${baseUrl}/map/public/${project.id}`;
+  const embedCode = `<iframe src="${publicUrl}" width="100%" height="600" frameborder="0" style="max-width: 100%; border: 1px solid #EAEAEA; border-radius: 4px;"></iframe>`;
+
+  const handlePublish = async () => {
+    try {
+      setIsPublishing(true);
+      await publishProject(project.id);
+      mutate();
+    } catch {
+      toast.error(t("error_publishing_project"));
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    try {
+      setIsUnpublishing(true);
+      await unpublishProject(project.id);
+      mutate();
+    } catch {
+      toast.error(t("error_unpublishing_project"));
+    } finally {
+      setIsUnpublishing(false);
+    }
+  };
+
+  return (
+    <>
+      {/* {sharedProject && (
+        <Alert variant="outlined" severity="warning" sx={{ my: 2 }}>
+          {t("map_has_unsaved")} <br />
+          <b>{t("click_republish_to_make_live")}</b>
+        </Alert>
+      )} */}
+      <Stack spacing={4} sx={{ my: 4, mx: 0 }}>
+        {/* <Divider /> */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          {!sharedProject && (
+            <>
+              <Stack>
+                <Typography variant="body1">{t("publish_map")}</Typography>
+                <Typography variant="caption">{t("publish_map_description")}</Typography>
+              </Stack>
+              <LoadingButton
+                variant="contained"
+                color="primary"
+                disableElevation
+                onClick={handlePublish}
+                loading={isPublishing}>
+                {t("publish")}
+              </LoadingButton>
+            </>
+          )}
+          {sharedProject && (
+            <>
+              <Stack>
+                <Typography variant="body1">{t("publish_map")}</Typography>
+                <Typography variant="caption">
+                  {t("last_published")}
+                  {": "}
+                  {formatDistance(new Date(sharedProject.updated_at), new Date(), {
+                    addSuffix: true,
+                    locale: dateLocale,
+                  })}
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={2}>
+                <LoadingButton
+                  variant="text"
+                  color="error"
+                  disableElevation
+                  onClick={handleUnpublish}
+                  disabled={isLoading || isPublishing}
+                  loading={isUnpublishing}>
+                  {t("unpublish")}
+                </LoadingButton>
+                <LoadingButton
+                  variant="contained"
+                  color="primary"
+                  disabled={isUnpublishing || isLoading}
+                  disableElevation
+                  onClick={handlePublish}
+                  loading={isPublishing}>
+                  {t("republish")}
+                </LoadingButton>
+              </Stack>
+            </>
+          )}
+        </Stack>
+        <Divider />
+        {/* Public URL  */}
+        {sharedProject && (
+          <>
+            <Stack spacing={1}>
+              <Typography variant="body1">{t("public_url")}</Typography>
+              <CopyField value={publicUrl} copyText="Copy URL" copiedText="Copied URL" />
+            </Stack>
+
+            {/* Embed Code */}
+            <Stack spacing={1}>
+              <Typography variant="body1">{t("embed_code")}</Typography>
+              <CopyField value={embedCode} copyText="Copy Code" copiedText="Copied Code" />
+            </Stack>
+          </>
+        )}
+      </Stack>
+    </>
+  );
+};
+
 const ShareModal: React.FC<ShareProps> = ({ open, onClose, type, content }) => {
   const { t } = useTranslation("common");
   const [isBusy, setIsBusy] = useState(false);
@@ -171,11 +301,18 @@ const ShareModal: React.FC<ShareProps> = ({ open, onClose, type, content }) => {
   };
 
   const tabItems = useMemo(() => {
-    return [
+    const items = [
       { label: t("organization"), value: "organization" },
       { label: t("teams"), value: "teams" },
+      { label: t("public"), value: "public" },
     ];
-  }, [t]);
+
+    if (type === "layer") {
+      return items.filter((item) => item.value !== "public");
+    }
+
+    return items;
+  }, [t, type]);
 
   const handleOnClose = () => {
     setIsBusy(false);
@@ -318,7 +455,7 @@ const ShareModal: React.FC<ShareProps> = ({ open, onClose, type, content }) => {
                   ))}
                 </Tabs>
               </Box>
-              <Divider sx={{ mt: 2, mb: 0, pb: 0 }} />
+              {/* <Divider sx={{ mt: 2, mb: 0, pb: 0 }} /> */}
               {tabItems.map((item) => (
                 <CustomTabPanel
                   disablePadding
@@ -339,34 +476,40 @@ const ShareModal: React.FC<ShareProps> = ({ open, onClose, type, content }) => {
                       onRoleChange={handleTeamRoleChange}
                     />
                   )}
+                  {item.value === "public" && type === "project" && (
+                    <ShareWithPublicTab project={content as Project} />
+                  )}
                 </CustomTabPanel>
               ))}
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions
-          disableSpacing
-          sx={{
-            pt: 6,
-            pb: 2,
-            justifyContent: "flex-end",
-          }}>
-          <Stack direction="row" spacing={2}>
-            <Button onClick={handleOnClose} variant="text">
-              <Typography variant="body2" fontWeight="bold">
-                {t("cancel")}
-              </Typography>
-            </Button>
-            <LoadingButton
-              // disabled={!isSharingUpdated}
-              loading={isBusy}
-              variant="contained"
-              color="primary"
-              onClick={handleSubmit}>
-              {t("save")}
-            </LoadingButton>
-          </Stack>
-        </DialogActions>
+        {/* Disable for public sharing */}
+        {value !== 2 && (
+          <DialogActions
+            disableSpacing
+            sx={{
+              pt: 6,
+              pb: 2,
+              justifyContent: "flex-end",
+            }}>
+            <Stack direction="row" spacing={2}>
+              <Button onClick={handleOnClose} variant="text">
+                <Typography variant="body2" fontWeight="bold">
+                  {t("cancel")}
+                </Typography>
+              </Button>
+              <LoadingButton
+                // disabled={!isSharingUpdated}
+                loading={isBusy}
+                variant="contained"
+                color="primary"
+                onClick={handleSubmit}>
+                {t("save")}
+              </LoadingButton>
+            </Stack>
+          </DialogActions>
+        )}
       </Dialog>
     </>
   );

@@ -32,6 +32,7 @@ interface MapProps {
       padding?: number | { top: number; bottom: number; left: number; right: number };
     };
   };
+  maxExtent?: [number, number, number, number];
   mapStyle: string;
   layers: ProjectLayer[] | Layer[];
   scenarioFeatures?: ScenarioFeatures;
@@ -59,6 +60,7 @@ const MapViewer: React.FC<MapProps> = ({
   onLoad,
   dragRotate = false,
   touchZoomRotate = false,
+  maxExtent,
   children,
   containerSx,
   isEditor,
@@ -167,73 +169,76 @@ const MapViewer: React.FC<MapProps> = ({
   }, [layers, mapRef, onLoad]);
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-        ".maplibregl-ctrl .maplibregl-ctrl-logo": {
-          display: "none",
-        },
-        height: `100%`,
-        ".maplibregl-popup-content": {
-          padding: 0,
-          borderRadius: "6px",
-          background: theme.palette.background.paper,
-        },
-        ".maplibregl-popup-anchor-top .maplibregl-popup-tip, .maplibregl-popup-anchor-top-left .maplibregl-popup-tip, .maplibregl-popup-anchor-top-right .maplibregl-popup-tip":
-          {
-            borderBottomColor: theme.palette.background.paper,
+    <>
+      <Box
+        sx={{
+          width: "100%",
+          ".maplibregl-ctrl .maplibregl-ctrl-logo": {
+            display: "none",
           },
-        ".maplibregl-popup-anchor-bottom .maplibregl-popup-tip, .maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip, .maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip":
-          {
-            borderTopColor: theme.palette.background.paper,
+          height: `100%`,
+          ".maplibregl-popup-content": {
+            padding: 0,
+            borderRadius: "6px",
+            background: theme.palette.background.paper,
           },
-        ".maplibregl-popup-anchor-left .maplibregl-popup-tip": {
-          borderRightColor: theme.palette.background.paper,
-        },
-        ".maplibregl-popup-anchor-right .maplibregl-popup-tip": {
-          borderLeftColor: theme.palette.background.paper,
-        },
-        ...containerSx,
-      }}>
-      <Map
-        id="map"
-        ref={mapRef}
-        style={{ width: "100%", height: "100%" }}
-        initialViewState={initialViewState}
-        mapStyle={mapStyle}
-        interactiveLayerIds={interactiveLayerIds}
-        dragRotate={dragRotate}
-        touchZoomRotate={touchZoomRotate}
-        onMoveEnd={onMoveEnd}
-        onClick={handleMapClick}
-        onMouseMove={handleMapOverImmediate}
-        onMove={onMove}
-        onLoad={handleMapLoad}>
-        {isEditor && (
-          <DrawControl
-            position="top-right"
-            displayControlsDefault={false}
-            defaultMode={MapboxDraw.constants.modes.SIMPLE_SELECT}
+          ".maplibregl-popup-anchor-top .maplibregl-popup-tip, .maplibregl-popup-anchor-top-left .maplibregl-popup-tip, .maplibregl-popup-anchor-top-right .maplibregl-popup-tip":
+            {
+              borderBottomColor: theme.palette.background.paper,
+            },
+          ".maplibregl-popup-anchor-bottom .maplibregl-popup-tip, .maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip, .maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip":
+            {
+              borderTopColor: theme.palette.background.paper,
+            },
+          ".maplibregl-popup-anchor-left .maplibregl-popup-tip": {
+            borderRightColor: theme.palette.background.paper,
+          },
+          ".maplibregl-popup-anchor-right .maplibregl-popup-tip": {
+            borderLeftColor: theme.palette.background.paper,
+          },
+          ...containerSx,
+        }}>
+        <Map
+          id="map"
+          ref={mapRef}
+          style={{ width: "100%", height: "100%" }}
+          initialViewState={initialViewState}
+          mapStyle={mapStyle}
+          interactiveLayerIds={interactiveLayerIds}
+          dragRotate={dragRotate}
+          touchZoomRotate={touchZoomRotate}
+          onMoveEnd={onMoveEnd}
+          onClick={handleMapClick}
+          onMouseMove={handleMapOverImmediate}
+          onMove={onMove}
+          maxBounds={maxExtent}
+          onLoad={handleMapLoad}>
+          {isEditor && (
+            <DrawControl
+              position="top-right"
+              displayControlsDefault={false}
+              defaultMode={MapboxDraw.constants.modes.SIMPLE_SELECT}
+            />
+          )}
+          <Layers
+            layers={layers}
+            highlightFeature={highlightedFeature}
+            scenarioFeatures={scenarioFeatures}
+            selectedScenarioLayer={selectedScenarioEditLayer as ProjectLayer}
           />
-        )}
-        <Layers
-          layers={layers}
-          highlightFeature={highlightedFeature}
-          scenarioFeatures={scenarioFeatures}
-          selectedScenarioLayer={selectedScenarioEditLayer as ProjectLayer}
-        />
-        <ScenarioLayer scenarioLayerData={scenarioFeatures} projectLayers={layers as ProjectLayer[]} />
-        <ToolboxLayers />
-        {popupInfo && <MapPopoverInfo key={highlightedFeature?.id ?? v4()} {...popupInfo} />}
-        {popupEditor && isEditor && (
-          <MapPopoverEditor
-            key={popupEditor.feature?.id || popupEditor.feature?.properties?.id || v4()}
-            {...popupEditor}
-          />
-        )}
-      </Map>
-      {children}
-    </Box>
+          <ScenarioLayer scenarioLayerData={scenarioFeatures} projectLayers={layers as ProjectLayer[]} />
+          <ToolboxLayers />
+          {popupInfo && <MapPopoverInfo key={highlightedFeature?.id ?? v4()} {...popupInfo} />}
+          {popupEditor && isEditor && (
+            <MapPopoverEditor
+              key={popupEditor.feature?.id || popupEditor.feature?.properties?.id || v4()}
+              {...popupEditor}
+            />
+          )}
+        </Map>
+        {children}
+      </Box>
+    </>
   );
 };
 
