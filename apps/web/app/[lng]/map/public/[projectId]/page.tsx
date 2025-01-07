@@ -2,17 +2,18 @@
 
 import { Box, useTheme } from "@mui/material";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect, useRef } from "react";
-import { MapProvider, MapRef } from "react-map-gl/maplibre";
+import { useEffect, useMemo, useRef } from "react";
+import type { MapRef } from "react-map-gl/maplibre";
+import { MapProvider } from "react-map-gl/maplibre";
 import { shallowEqual, useSelector } from "react-redux";
 
 import { usePublicProject } from "@/lib/api/projects";
-import { RootState } from "@/lib/store";
+import type { RootState } from "@/lib/store";
 import { selectFilteredProjectLayers } from "@/lib/store/layer/selectors";
 import { setProjectLayers } from "@/lib/store/layer/slice";
 import { selectActiveBasemap } from "@/lib/store/map/selectors";
 import { setProject } from "@/lib/store/map/slice";
-import { Project, ProjectLayer } from "@/lib/validations/project";
+import type { Project, ProjectLayer } from "@/lib/validations/project";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
@@ -26,7 +27,9 @@ export default function MapPage({ params: { projectId } }) {
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const activeBasemap = useAppSelector(selectActiveBasemap);
-  const projectLayers = sharedProject?.config?.["layers"] ?? ([] as ProjectLayer[]);
+  const projectLayers = useMemo(() => {
+    return sharedProject?.config?.["layers"] ?? ([] as ProjectLayer[]);
+  }, [sharedProject]);
   const project = sharedProject?.config?.["project"] as Project;
   const mapRef = useRef<MapRef | null>(null);
   const initialView = sharedProject?.config?.["initial_view_state"] ?? {};
@@ -36,7 +39,7 @@ export default function MapPage({ params: { projectId } }) {
       dispatch(setProjectLayers(projectLayers));
       dispatch(setProject(project));
     }
-  }, [projectLayers]);
+  }, [dispatch, project, projectLayers]);
 
   const _projectLayers = useSelector(
     (state: RootState) => selectFilteredProjectLayers(state, ["table"]),

@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useTranslation } from "@/i18n/client";
 
 import { setActiveLeftPanel } from "@/lib/store/map/slice";
-import { ProjectLayer } from "@/lib/validations/project";
+import type { ProjectLayer } from "@/lib/validations/project";
 
 import { useAppDispatch } from "@/hooks/store/ContextHooks";
 

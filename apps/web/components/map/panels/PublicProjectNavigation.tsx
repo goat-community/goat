@@ -6,7 +6,7 @@ import { useTranslation } from "@/i18n/client";
 import { MAPBOX_TOKEN } from "@/lib/constants";
 import { updateProjectLayer } from "@/lib/store/layer/slice";
 import { setActiveBasemap } from "@/lib/store/map/slice";
-import { ProjectLayer } from "@/lib/validations/project";
+import type { ProjectLayer } from "@/lib/validations/project";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 

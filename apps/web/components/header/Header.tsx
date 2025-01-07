@@ -15,7 +15,7 @@ import { useDateFnsLocale, useTranslation } from "@/i18n/client";
 
 import { useOrganization } from "@/lib/api/users";
 import { CONTACT_US_URL, DOCS_URL, DOCS_VERSION, WEBSITE_URL } from "@/lib/constants";
-import { Project } from "@/lib/validations/project";
+import type { Project } from "@/lib/validations/project";
 
 import { useAuthZ } from "@/hooks/auth/AuthZ";
 
@@ -36,6 +36,7 @@ export type HeaderProps = {
   mapHeader?: boolean;
   project?: Project;
   viewOnly?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
 };
 

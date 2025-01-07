@@ -1,5 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
-import { RootState } from "@/lib/store";
+import type { RootState } from "@/lib/store";
 import { SYSTEM_LAYERS_IDS } from "@/lib/constants";
 
 export const selectProjectLayers = (state: RootState) => state.layers.projectLayers;

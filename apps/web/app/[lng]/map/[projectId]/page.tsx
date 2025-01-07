@@ -116,6 +116,7 @@ export default function MapPage({ params: { projectId } }) {
     mutateProject();
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleProjectUpdate = async (key: string, value: any, refresh = false) => {
     try {
       const projectToUpdate = JSON.parse(JSON.stringify(project));

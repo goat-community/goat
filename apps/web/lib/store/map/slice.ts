@@ -7,7 +7,7 @@ import type { Scenario } from "@/lib/validations/scenario";
 import type { MapPopoverEditorProps, MapPopoverInfoProps } from "@/types/map/popover";
 import type { MapGeoJSONFeature } from "react-map-gl/maplibre";
 import { MAPTILER_KEY } from "@/lib/constants";
-import { Project } from "@/lib/validations/project";
+import type { Project } from "@/lib/validations/project";
 
 export interface MapState {
   project: Project | undefined;

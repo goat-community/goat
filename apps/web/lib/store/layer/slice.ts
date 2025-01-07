@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-import { ProjectLayer } from "@/lib/validations/project";
+import type { ProjectLayer } from "@/lib/validations/project";
 
 export interface LayerState {
   activeLayerId: number | null;
