@@ -25,6 +25,7 @@ import type { PopperMenuItem } from "@/components/common/PopperMenu";
 import MoreMenu from "@/components/common/PopperMenu";
 import JobsPopper from "@/components/jobs/JobsPopper";
 import ContentDeleteModal from "@/components/modals/ContentDelete";
+import ShareModal from "@/components/modals/Share";
 
 import { Toolbar } from "./Toolbar";
 
@@ -53,6 +54,7 @@ export default function Header(props: HeaderProps) {
 
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
   const [showDeleteProjectDialog, setShowDeleteProjectDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   const mapMenuItems: PopperMenuItem[] = useMemo(() => {
     const editorMenuItems: PopperMenuItem[] = [
@@ -155,6 +157,14 @@ export default function Header(props: HeaderProps) {
           type="project"
         />
       )}
+      {project && props.mapHeader && (
+        <ShareModal
+          open={showShareDialog}
+          onClose={() => setShowShareDialog(false)}
+          type="project"
+          content={project}
+        />
+      )}
       <Toolbar
         showHambugerMenu={showHambugerMenu}
         onMenuIconClick={onMenuIconClick}
@@ -250,39 +260,50 @@ export default function Header(props: HeaderProps) {
           <>
             {!props.viewOnly && (
               <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
-                <>
-                  {organization && organization.on_trial && isOrgAdmin && (
-                    <Chip
-                      icon={<Info />}
-                      variant="outlined"
-                      color="warning"
-                      size="small"
-                      label={
-                        <Trans
-                          i18nKey="common:your_trial_will_end_in"
-                          values={{
-                            expire_date: formatDistance(
-                              new Date(organization.plan_renewal_date),
-                              new Date(),
-                              {
-                                locale: dateLocale,
-                              }
-                            ),
-                          }}
-                        />
+                {organization && organization.on_trial && isOrgAdmin && (
+                  <Chip
+                    icon={<Info />}
+                    variant="outlined"
+                    color="warning"
+                    size="small"
+                    label={
+                      <Trans
+                        i18nKey="common:your_trial_will_end_in"
+                        values={{
+                          expire_date: formatDistance(new Date(organization.plan_renewal_date), new Date(), {
+                            locale: dateLocale,
+                          }),
+                        }}
+                      />
+                    }
+                    sx={{
+                      "& .MuiChip-label": {
+                        fontWeight: "bold",
+                        fontStyle: "normal",
+                      },
+                    }}
+                    onClick={() => {
+                      window.open(CONTACT_US_URL, "_blank");
+                    }}
+                  />
+                )}
+                {props.mapHeader && (
+                  <>
+                    <Button
+                      startIcon={
+                        <Icon iconName={ICON_NAME.GLOBE} style={{ fontSize: 16, color: "inherit" }} />
                       }
-                      sx={{
-                        "& .MuiChip-label": {
-                          fontWeight: "bold",
-                          fontStyle: "normal",
-                        },
-                      }}
-                      onClick={() => {
-                        window.open(CONTACT_US_URL, "_blank");
-                      }}
-                    />
-                  )}
-                </>
+                      onClick={() => setShowShareDialog(true)}
+                      variant="contained"
+                      size="small">
+                      <Typography variant="body2" color="inherit" fontWeight="bold">
+                        {t("common:share")}
+                      </Typography>
+                    </Button>
+                    <Divider orientation="vertical" flexItem />
+                  </>
+                )}
+
                 <Tooltip title={t("common:open_documentation")}>
                   <IconButton
                     size="small"

@@ -28,6 +28,8 @@ import { Trans } from "react-i18next";
 import { toast } from "react-toastify";
 import { mutate } from "swr";
 
+import { Loading } from "@p4b/ui/components/Loading";
+
 import { useDateFnsLocale, useTranslation } from "@/i18n/client";
 
 import { LAYERS_API_BASE_URL } from "@/lib/api/layers";
@@ -162,7 +164,6 @@ const ShareWithItemsTab: React.FC<ShareWithItemsTabProps> = ({ items, roleOption
 const ShareWithPublicTab: React.FC<ShareWithPublicTabProps> = ({ project }) => {
   const { t } = useTranslation("common");
   const { sharedProject, isLoading, mutate } = usePublicProject(project.id);
-  console.log("isLoading", isLoading);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isUnpublishing, setIsUnpublishing] = useState(false);
   const dateLocale = useDateFnsLocale();
@@ -202,78 +203,92 @@ const ShareWithPublicTab: React.FC<ShareWithPublicTabProps> = ({ project }) => {
           <b>{t("click_republish_to_make_live")}</b>
         </Alert>
       )} */}
-      <Stack spacing={4} sx={{ my: 4, mx: 0 }}>
-        {/* <Divider /> */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          {!sharedProject && (
-            <>
-              <Stack>
-                <Typography variant="body1">{t("publish_map")}</Typography>
-                <Typography variant="caption">{t("publish_map_description")}</Typography>
-              </Stack>
-              <LoadingButton
-                variant="contained"
-                color="primary"
-                disableElevation
-                onClick={handlePublish}
-                loading={isPublishing}>
-                {t("publish")}
-              </LoadingButton>
-            </>
-          )}
-          {sharedProject && (
-            <>
-              <Stack>
-                <Typography variant="body1">{t("publish_map")}</Typography>
-                <Typography variant="caption">
-                  {t("last_published")}
-                  {": "}
-                  {formatDistance(new Date(sharedProject.updated_at), new Date(), {
-                    addSuffix: true,
-                    locale: dateLocale,
-                  })}
-                </Typography>
-              </Stack>
-              <Stack direction="row" spacing={2}>
-                <LoadingButton
-                  variant="text"
-                  color="error"
-                  disableElevation
-                  onClick={handleUnpublish}
-                  disabled={isLoading || isPublishing}
-                  loading={isUnpublishing}>
-                  {t("unpublish")}
-                </LoadingButton>
+      {isLoading && (
+        <Box
+          sx={{
+            minHeight: "80px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}>
+          <Loading size={40} />
+        </Box>
+      )}
+
+      {!isLoading && (
+        <Stack spacing={4} sx={{ my: 4, mx: 0 }}>
+          {/* <Divider /> */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            {!sharedProject && (
+              <>
+                <Stack>
+                  <Typography variant="body1">{t("publish_map")}</Typography>
+                  <Typography variant="caption">{t("publish_map_description")}</Typography>
+                </Stack>
                 <LoadingButton
                   variant="contained"
                   color="primary"
-                  disabled={isUnpublishing || isLoading}
                   disableElevation
                   onClick={handlePublish}
                   loading={isPublishing}>
-                  {t("republish")}
+                  {t("publish")}
                 </LoadingButton>
+              </>
+            )}
+            {sharedProject && (
+              <>
+                <Stack>
+                  <Typography variant="body1">{t("publish_map")}</Typography>
+                  <Typography variant="caption">
+                    {t("last_published")}
+                    {": "}
+                    {formatDistance(new Date(sharedProject.updated_at), new Date(), {
+                      addSuffix: true,
+                      locale: dateLocale,
+                    })}
+                  </Typography>
+                </Stack>
+                <Stack direction="row" spacing={2}>
+                  <LoadingButton
+                    variant="text"
+                    color="error"
+                    disableElevation
+                    onClick={handleUnpublish}
+                    disabled={isLoading || isPublishing}
+                    loading={isUnpublishing}>
+                    {t("unpublish")}
+                  </LoadingButton>
+                  <LoadingButton
+                    variant="contained"
+                    color="primary"
+                    disabled={isUnpublishing || isLoading}
+                    disableElevation
+                    onClick={handlePublish}
+                    loading={isPublishing}>
+                    {t("republish")}
+                  </LoadingButton>
+                </Stack>
+              </>
+            )}
+          </Stack>
+          <Divider />
+          {/* Public URL  */}
+          {sharedProject && (
+            <>
+              <Stack spacing={1}>
+                <Typography variant="body1">{t("public_url")}</Typography>
+                <CopyField value={publicUrl} copyText="Copy URL" copiedText="Copied URL" />
+              </Stack>
+
+              {/* Embed Code */}
+              <Stack spacing={1}>
+                <Typography variant="body1">{t("embed_code")}</Typography>
+                <CopyField value={embedCode} copyText="Copy Code" copiedText="Copied Code" />
               </Stack>
             </>
           )}
         </Stack>
-        <Divider />
-        {/* Public URL  */}
-        {sharedProject && (
-          <>
-            <Stack spacing={1}>
-              <Typography variant="body1">{t("public_url")}</Typography>
-              <CopyField value={publicUrl} copyText="Copy URL" copiedText="Copied URL" />
-            </Stack>
-
-            {/* Embed Code */}
-            <Stack spacing={1}>
-              <Typography variant="body1">{t("embed_code")}</Typography>
-              <CopyField value={embedCode} copyText="Copy Code" copiedText="Copied Code" />
-            </Stack>
-          </>
-        )}
-      </Stack>
+      )}
     </>
   );
 };
