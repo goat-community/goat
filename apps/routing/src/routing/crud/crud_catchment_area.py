@@ -516,7 +516,7 @@ class CRUDCatchmentArea:
                 FROM isochrones_with_id a
                 LEFT JOIN LATERAL
                 (
-                    SELECT ST_DIFFERENCE(a.filled_geom, b.orig_geom) AS geom
+                    SELECT ST_DIFFERENCE(a.filled_geom, b.filled_geom) AS geom
                     FROM isochrones_with_id b
                     WHERE a.id + 1 = b.id
                 ) j ON {"TRUE" if obj_in.polygon_difference else "FALSE"};
