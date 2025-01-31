@@ -63,7 +63,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
-      image: "https://assets.plan4better.de/img/logo/goat_standard.svg",
+      image: "img/GOAT_logo_white_green_crop_b.png",
       navbar: {
         logo: {
           alt: "Plan4Better",
