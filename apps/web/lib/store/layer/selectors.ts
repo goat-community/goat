@@ -10,14 +10,17 @@ export const selectFilteredProjectLayers = createSelector(
     selectProjectLayers,
     selectProject,
     (_: RootState, excludeLayerTypes: string[] = []) => excludeLayerTypes,
-    (_: RootState, excludeLayerIds: string[] = [...SYSTEM_LAYERS_IDS]) => excludeLayerIds,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (_: RootState, _1: any, excludeLayerIds: string[] = [...SYSTEM_LAYERS_IDS]) => excludeLayerIds,
   ],
   (projectLayers, project, excludeLayerTypes, excludeLayerIds) => {
     if (!projectLayers || !project) return [];
     if (!project.layer_order) return projectLayers;
 
     const filteredLayers = projectLayers.filter(
-      (layer) => !excludeLayerTypes.includes(layer.type) && !excludeLayerIds.includes(layer.layer_id)
+      (layer) =>
+        !excludeLayerTypes.includes(layer.type) &&
+        !excludeLayerIds.includes(layer.layer_id)
     );
 
     return filteredLayers.sort(
