@@ -34,17 +34,17 @@ export default function MapPage({ params: { projectId } }) {
   const mapRef = useRef<MapRef | null>(null);
   const initialView = sharedProject?.config?.["initial_view_state"] ?? {};
 
+  const _projectLayers = useSelector(
+    (state: RootState) => selectFilteredProjectLayers(state, ["table"]),
+    shallowEqual
+  );
+
   useEffect(() => {
     if (projectLayers && project) {
       dispatch(setProjectLayers(projectLayers));
       dispatch(setProject(project));
     }
   }, [dispatch, project, projectLayers]);
-
-  const _projectLayers = useSelector(
-    (state: RootState) => selectFilteredProjectLayers(state, ["table"]),
-    shallowEqual
-  );
 
   return (
     <>
