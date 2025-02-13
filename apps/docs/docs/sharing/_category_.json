@@ -1,0 +1,8 @@
+{
+  "label": "Sharing",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "GOAT offers two ways to share maps: With Teams & Members, granting access to other members to simultaneously edit and/or view your datasets or projects; and Public & Embedded Maps, which allows anyone to view your map without needing a GOAT account."
+  }
+}

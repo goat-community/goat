@@ -1,9 +1,8 @@
 ---
-sidebar_position: 6
-slug: /sharing
+sidebar_position: 1
 ---
 
-# Sharing
+# Teams & Members
 
 Sharing datasets and projects allows for a more efficient workflow because granting access to other members enables them to simultaneously **edit and/or view your datasets or projects**. 
 
