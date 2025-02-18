@@ -1035,7 +1035,7 @@
   "vertical_bar_chart": "Vertikales Balkendiagramm",
   "view_chart": "Diagramm anzeigen",
   "view_property_data": "Ansicht {{property}} Daten",
-  "viewer": "Zuschauer",
+  "viewer": "Viewer",
   "viewers_quota_label": "<highlight>{{current}}</highlight> viewers out of {{total}}",
   "visibility": "Sichtweite",
   "visibility_range": "Sichtweite",
