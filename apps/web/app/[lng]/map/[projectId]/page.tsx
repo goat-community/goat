@@ -18,26 +18,24 @@ import {
 } from "@/lib/api/projects";
 import { PATTERN_IMAGES } from "@/lib/constants/pattern-images";
 import { DrawProvider } from "@/lib/providers/DrawProvider";
-import { selectActiveBasemap } from "@/lib/store/map/selectors";
 import { addOrUpdateMarkerImages, addPatternImages } from "@/lib/transformers/map-image";
 import type { FeatureLayerPointProperties } from "@/lib/validations/layer";
 
 import { useAuthZ } from "@/hooks/auth/AuthZ";
 import { useJobStatus } from "@/hooks/jobs/JobStatus";
 import { useFilteredProjectLayers } from "@/hooks/map/LayerPanelHooks";
-import { useAppSelector } from "@/hooks/store/ContextHooks";
+import { useBasemap } from "@/hooks/map/MapHooks";
 
 import { LoadingPage } from "@/components/common/LoadingPage";
 import Header from "@/components/header/Header";
 import MapViewer from "@/components/map/MapViewer";
 import ProjectNavigation from "@/components/map/panels/ProjectNavigation";
 
-const UPDATE_VIEW_STATE_DEBOUNCE_TIME = 3000;
+const UPDATE_VIEW_STATE_DEBOUNCE_TIME = 200;
 
 export default function MapPage({ params: { projectId } }) {
   const theme = useTheme();
   const { t } = useTranslation("common");
-  const activeBasemap = useAppSelector(selectActiveBasemap);
   const mapRef = useRef<MapRef | null>(null);
   const {
     project,
@@ -58,6 +56,8 @@ export default function MapPage({ params: { projectId } }) {
     layers: projectLayers,
     mutate: mutateProjectLayers,
   } = useFilteredProjectLayers(projectId, ["table"], []);
+
+  const { activeBasemap } = useBasemap(project);
 
   const { isProjectEditor, isLoading: isAuthZLoading } = useAuthZ();
 
@@ -129,6 +129,8 @@ export default function MapPage({ params: { projectId } }) {
     }
   };
 
+  console.log(initialView);
+
   return (
     <>
       {isLoading && <LoadingPage />}
@@ -152,7 +154,7 @@ export default function MapPage({ params: { projectId } }) {
                 },
               }}>
               <Box>
-                <ProjectNavigation projectId={projectId} />
+                <ProjectNavigation project={project} onProjectUpdate={handleProjectUpdate} />
               </Box>
               <MapViewer
                 layers={projectLayers}

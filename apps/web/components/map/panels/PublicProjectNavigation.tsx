@@ -1,14 +1,14 @@
 import { Stack, useTheme } from "@mui/material";
-import React, { useMemo } from "react";
+import React from "react";
 
 import { useTranslation } from "@/i18n/client";
 
 import { MAPBOX_TOKEN } from "@/lib/constants";
 import { updateProjectLayer } from "@/lib/store/layer/slice";
-import { setActiveBasemap } from "@/lib/store/map/slice";
-import type { ProjectLayer } from "@/lib/validations/project";
+import type { Project, ProjectLayer } from "@/lib/validations/project";
 
-import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
+import { useBasemap } from "@/hooks/map/MapHooks";
+import { useAppDispatch } from "@/hooks/store/ContextHooks";
 
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
@@ -19,27 +19,18 @@ import Legend from "@/components/map/panels/Legend";
 const toolbarHeight = 52;
 
 interface ProjectNavigationProps {
+  project: Project;
   projectLayers?: ProjectLayer[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
 }
 
-const PublicProjectNavigation = ({ projectLayers = [] }: ProjectNavigationProps) => {
+const PublicProjectNavigation = ({ projectLayers = [], project }: ProjectNavigationProps) => {
   const theme = useTheme();
-  const { t, i18n } = useTranslation("common");
+  const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
-  const basemaps = useAppSelector((state) => state.map.basemaps);
-  const activeBasemap = useAppSelector((state) => state.map.activeBasemap);
 
-  const translatedBaseMaps = useMemo(() => {
-    return basemaps.map((basemap) => ({
-      ...basemap,
-      title: i18n.exists(`common:basemap_types.${basemap.value}.title`)
-        ? t(`basemap_types.${basemap.value}.title`)
-        : t(basemap.title),
-      subtitle: i18n.exists(`common:basemap_types.${basemap.value}.subtitle`)
-        ? t(`basemap_types.${basemap.value}.subtitle`)
-        : t(basemap.subtitle),
-    }));
-  }, [basemaps, i18n, t]);
+  const { translatedBaseMaps, activeBasemap, setActiveBasemap } = useBasemap(project);
 
   return (
     <>
@@ -117,9 +108,9 @@ const PublicProjectNavigation = ({ projectLayers = [] }: ProjectNavigationProps)
           <Stack direction="column" sx={{ pointerEvents: "all" }}>
             <BasemapSelector
               styles={translatedBaseMaps}
-              active={activeBasemap}
+              active={activeBasemap?.value}
               basemapChange={(basemap) => {
-                dispatch(setActiveBasemap(basemap));
+                setActiveBasemap(basemap);
               }}
             />
           </Stack>

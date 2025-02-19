@@ -34,6 +34,7 @@ export const projectSchema = contentMetadataSchema.extend({
   layer_order: z.array(z.number()),
   max_extent: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
   active_scenario_id: z.string().nullable(),
+  basemap: z.string().optional(),
   updated_at: z.string(),
   created_at: z.string(),
   shared_with: shareProjectSchema.optional(),

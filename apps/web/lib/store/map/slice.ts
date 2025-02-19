@@ -12,7 +12,7 @@ import type { Project } from "@/lib/validations/project";
 export interface MapState {
   project: Project | undefined;
   basemaps: Basemap[];
-  activeBasemap: string;
+  activeBasemap: Basemap | undefined;
   maskLayer: string | undefined; // Toolbox mask layer
   toolboxStartingPoints: [number, number][] | undefined;
   activeLeftPanel: MapSidebarItemID | undefined;
@@ -80,7 +80,7 @@ const initialState = {
     }
   ],
   maskLayer: undefined,
-  activeBasemap: "streets",
+  activeBasemap: undefined,
   activeLeftPanel: MapSidebarItemID.LAYERS,
   toolboxStartingPoints: undefined,
   activeRightPanel: undefined,
@@ -105,7 +105,7 @@ const mapSlice = createSlice({
         state.project = { ...state.project, ...action.payload };
       }
     },
-    setActiveBasemap: (state, action: PayloadAction<string>) => {
+    setActiveBasemap: (state, action: PayloadAction<Basemap>) => {
       state.activeBasemap = action.payload;
     },
     setActiveLeftPanel: (state, action: PayloadAction<MapSidebarItemID | undefined>) => {

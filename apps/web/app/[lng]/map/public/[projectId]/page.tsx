@@ -11,11 +11,11 @@ import { usePublicProject } from "@/lib/api/projects";
 import type { RootState } from "@/lib/store";
 import { selectFilteredProjectLayers } from "@/lib/store/layer/selectors";
 import { setProjectLayers } from "@/lib/store/layer/slice";
-import { selectActiveBasemap } from "@/lib/store/map/selectors";
 import { setProject } from "@/lib/store/map/slice";
 import type { Project, ProjectLayer } from "@/lib/validations/project";
 
-import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
+import { useBasemap } from "@/hooks/map/MapHooks";
+import { useAppDispatch } from "@/hooks/store/ContextHooks";
 
 import { LoadingPage } from "@/components/common/LoadingPage";
 import Header from "@/components/header/Header";
@@ -26,13 +26,13 @@ export default function MapPage({ params: { projectId } }) {
   const { sharedProject, isLoading, isError: projectError } = usePublicProject(projectId);
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const activeBasemap = useAppSelector(selectActiveBasemap);
+  const { activeBasemap } = useBasemap(sharedProject?.config?.["project"] as Project);
   const projectLayers = useMemo(() => {
     return sharedProject?.config?.["layers"] ?? ([] as ProjectLayer[]);
   }, [sharedProject]);
   const project = sharedProject?.config?.["project"] as Project;
   const mapRef = useRef<MapRef | null>(null);
-  const initialView = sharedProject?.config?.["initial_view_state"] ?? {};
+  const initialView = sharedProject?.config?.["project"]?.["initial_view_state"] ?? {};
 
   const _projectLayers = useSelector(
     (state: RootState) => selectFilteredProjectLayers(state, ["table"]),
@@ -63,7 +63,7 @@ export default function MapPage({ params: { projectId } }) {
               },
             }}>
             <Box>
-              <PublicProjectNavigation projectLayers={_projectLayers} />
+              <PublicProjectNavigation projectLayers={_projectLayers} project={project} />
             </Box>
             <MapViewer
               layers={_projectLayers}
