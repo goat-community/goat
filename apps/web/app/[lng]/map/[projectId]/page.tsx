@@ -1,6 +1,7 @@
 "use client";
 
-import { Box, debounce, useTheme } from "@mui/material";
+import { DndContext } from "@dnd-kit/core";
+import { Box, Stack, debounce, useTheme } from "@mui/material";
 import "maplibre-gl/dist/maplibre-gl.css";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import type { MapRef, ViewStateChangeEvent } from "react-map-gl/maplibre";
@@ -27,10 +28,12 @@ import { useJobStatus } from "@/hooks/jobs/JobStatus";
 import { useFilteredProjectLayers } from "@/hooks/map/LayerPanelHooks";
 import { useAppSelector } from "@/hooks/store/ContextHooks";
 
+import BuilderConfigPanel from "@/components/builder/ConfigPanel";
 import { LoadingPage } from "@/components/common/LoadingPage";
 import Header from "@/components/header/Header";
 import MapViewer from "@/components/map/MapViewer";
 import ProjectNavigation from "@/components/map/panels/ProjectNavigation";
+import PublicProjectLayout from "@/components/map/panels/PublicProjectLayout";
 
 const UPDATE_VIEW_STATE_DEBOUNCE_TIME = 3000;
 
@@ -39,13 +42,13 @@ export default function MapPage({ params: { projectId } }) {
   const { t } = useTranslation("common");
   const activeBasemap = useAppSelector(selectActiveBasemap);
   const mapRef = useRef<MapRef | null>(null);
+  const mapMode = useAppSelector((state) => state.map.mapMode);
   const {
     project,
     isLoading: isProjectLoading,
     isError: projectError,
     mutate: mutateProject,
   } = useProject(projectId);
-
   const {
     initialView,
     isLoading: isInitialViewLoading,
@@ -135,46 +138,71 @@ export default function MapPage({ params: { projectId } }) {
       {!isLoading && !hasError && project && (
         <MapProvider>
           <DrawProvider>
-            <Header
-              showHambugerMenu={false}
-              mapHeader={true}
-              project={project}
-              onProjectUpdate={handleProjectUpdate}
-            />
-            <Box
-              sx={{
-                display: "flex",
-                height: "100vh",
-                width: "100%",
-                [theme.breakpoints.down("sm")]: {
-                  marginLeft: "0",
-                  width: `100%`,
-                },
-              }}>
-              <Box>
-                <ProjectNavigation projectId={projectId} />
-              </Box>
-              <MapViewer
-                layers={projectLayers}
-                mapRef={mapRef}
-                scenarioFeatures={scenarioFeatures}
-                maxExtent={project?.max_extent}
-                initialViewState={{
-                  zoom: initialView?.zoom ?? 3,
-                  latitude: initialView?.latitude ?? 48.13,
-                  longitude: initialView?.longitude ?? 11.57,
-                  pitch: initialView?.pitch ?? 0,
-                  bearing: initialView?.bearing ?? 0,
-                  fitBoundsOptions: {
-                    minZoom: initialView?.min_zoom ?? 0,
-                    maxZoom: initialView?.max_zoom ?? 24,
-                  },
-                }}
-                mapStyle={activeBasemap?.url}
-                {...(isProjectEditor ? { onMoveEnd: updateViewState } : {})}
-                isEditor={isProjectEditor}
+            <Stack component="div" width="100%" height="100%" overflow="hidden">
+              <Header
+                showHambugerMenu={false}
+                mapHeader={true}
+                project={project}
+                onProjectUpdate={handleProjectUpdate}
               />
-            </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  height: "100%",
+                  width: "100%",
+                  [theme.breakpoints.down("sm")]: {
+                    marginLeft: "0",
+                    width: `100%`,
+                  },
+                }}>
+                <DndContext>
+                  {mapMode === "data" && <ProjectNavigation projectId={projectId} />}
+                  <Box
+                    sx={{
+                      padding: mapMode === "builder" ? "20px" : "0",
+                      width: "100%",
+                      height: "100%",
+                      position: "relative",
+                    }}>
+                    {mapMode === "builder" && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          inset: "20px",
+                        }}>
+                        <PublicProjectLayout projectLayers={projectLayers} project={project} onProjectUpdate={handleProjectUpdate} />
+                      </Box>
+                    )}
+                    <MapViewer
+                      layers={projectLayers}
+                      mapRef={mapRef}
+                      scenarioFeatures={scenarioFeatures}
+                      maxExtent={project?.max_extent}
+                      initialViewState={{
+                        zoom: initialView?.zoom ?? 3,
+                        latitude: initialView?.latitude ?? 48.13,
+                        longitude: initialView?.longitude ?? 11.57,
+                        pitch: initialView?.pitch ?? 0,
+                        bearing: initialView?.bearing ?? 0,
+                        fitBoundsOptions: {
+                          minZoom: initialView?.min_zoom ?? 0,
+                          maxZoom: initialView?.max_zoom ?? 24,
+                        },
+                      }}
+                      mapStyle={activeBasemap?.url}
+                      {...(isProjectEditor ? { onMoveEnd: updateViewState } : {})}
+                      isEditor={isProjectEditor}
+                    />
+                  </Box>
+                  {mapMode === "builder" && (
+                    <BuilderConfigPanel
+                      project={project}
+                      onProjectUpdate={handleProjectUpdate}
+                    />
+                  )}
+                </DndContext>
+              </Box>
+            </Stack>
           </DrawProvider>
         </MapProvider>
       )}

@@ -18,12 +18,12 @@ import type { Project, ProjectLayer } from "@/lib/validations/project";
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import { LoadingPage } from "@/components/common/LoadingPage";
-import Header from "@/components/header/Header";
 import MapViewer from "@/components/map/MapViewer";
-import PublicProjectNavigation from "@/components/map/panels/PublicProjectNavigation";
+import PublicProjectLayout from "@/components/map/panels/PublicProjectLayout";
 
 export default function MapPage({ params: { projectId } }) {
   const { sharedProject, isLoading, isError: projectError } = usePublicProject(projectId);
+  console.log(sharedProject);
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const activeBasemap = useAppSelector(selectActiveBasemap);
@@ -51,7 +51,6 @@ export default function MapPage({ params: { projectId } }) {
       {isLoading && <LoadingPage />}
       {!isLoading && !projectError && project && (
         <MapProvider>
-          <Header showHambugerMenu={false} mapHeader={true} project={project} viewOnly />
           <Box
             sx={{
               display: "flex",
@@ -62,8 +61,13 @@ export default function MapPage({ params: { projectId } }) {
                 width: `100%`,
               },
             }}>
-            <Box>
-              <PublicProjectNavigation projectLayers={_projectLayers} />
+            <Box
+              sx={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+              }}>
+              <PublicProjectLayout project={project} projectLayers={_projectLayers} />
             </Box>
             <MapViewer
               layers={_projectLayers}

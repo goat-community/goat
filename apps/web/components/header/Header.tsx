@@ -15,14 +15,17 @@ import { useDateFnsLocale, useTranslation } from "@/i18n/client";
 
 import { useOrganization } from "@/lib/api/users";
 import { CONTACT_US_URL, DOCS_URL, DOCS_VERSION, WEBSITE_URL } from "@/lib/constants";
+import { setMapMode } from "@/lib/store/map/slice";
 import type { Project } from "@/lib/validations/project";
 
 import { useAuthZ } from "@/hooks/auth/AuthZ";
+import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import UserInfoMenu from "@/components/UserInfoMenu";
 import EditableTypography from "@/components/common/EditableTypography";
 import type { PopperMenuItem } from "@/components/common/PopperMenu";
 import MoreMenu from "@/components/common/PopperMenu";
+import SlidingToggle from "@/components/common/SlidingToggle";
 import JobsPopper from "@/components/jobs/JobsPopper";
 import ContentDeleteModal from "@/components/modals/ContentDelete";
 import ShareModal from "@/components/modals/Share";
@@ -51,10 +54,12 @@ export default function Header(props: HeaderProps) {
   const dateLocale = useDateFnsLocale();
   const lng = i18n.language === "de" ? "/de" : "";
   const docsVersion = `/${DOCS_VERSION}`;
+  const dispatch = useAppDispatch();
 
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
   const [showDeleteProjectDialog, setShowDeleteProjectDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const mapMode = useAppSelector((state) => state.map.mapMode);
 
   const mapMenuItems: PopperMenuItem[] = useMemo(() => {
     const editorMenuItems: PopperMenuItem[] = [
@@ -208,7 +213,6 @@ export default function Header(props: HeaderProps) {
                         borderRadius: 1,
                         ml: -2,
                         my: 4,
-
                         "&:hover": {
                           color: theme.palette.primary.main,
                         },
@@ -289,17 +293,43 @@ export default function Header(props: HeaderProps) {
                 )}
                 {props.mapHeader && (
                   <>
-                    <Button
-                      startIcon={
-                        <Icon iconName={ICON_NAME.GLOBE} style={{ fontSize: 16, color: "inherit" }} />
-                      }
-                      onClick={() => setShowShareDialog(true)}
-                      variant="contained"
-                      size="small">
-                      <Typography variant="body2" color="inherit" fontWeight="bold">
-                        {t("common:share")}
-                      </Typography>
-                    </Button>
+                    <Stack sx={{ px: 4 }}>
+                      <SlidingToggle
+                        options={[
+                          { label: t("common:data"), value: "data" },
+                          { label: t("common:builder"), value: "builder" },
+                        ]}
+                        activeOption={mapMode}
+                        onToggle={(value: "data" | "builder") => {
+                          dispatch(setMapMode(value));
+                        }}
+                      />
+                    </Stack>
+                    <Divider orientation="vertical" flexItem />
+                    <Stack sx={{ px: 4 }} spacing={2} direction="row">
+                      <Button
+                        startIcon={
+                          <Icon iconName={ICON_NAME.GLOBE} style={{ fontSize: 16, color: "inherit" }} />
+                        }
+                        onClick={() => setShowShareDialog(true)}
+                        variant="contained"
+                        size="small">
+                        <Typography variant="body2" color="inherit" fontWeight="bold">
+                          {t("common:share")}
+                        </Typography>
+                      </Button>
+                      {/* <Button
+                        startIcon={
+                          <Icon iconName={ICON_NAME.PLAY} style={{ fontSize: 16, color: "inherit" }} />
+                        }
+                        onClick={() => setShowShareDialog(true)}
+                        variant="outlined"
+                        size="small">
+                        <Typography variant="body2" color="inherit" fontWeight="bold">
+                          {t("common:preview")}
+                        </Typography>
+                      </Button> */}
+                    </Stack>
                     <Divider orientation="vertical" flexItem />
                   </>
                 )}

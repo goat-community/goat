@@ -8,6 +8,7 @@ import { v4 } from "uuid";
 import { PATTERN_IMAGES } from "@/lib/constants/pattern-images";
 import { setHighlightedFeature, setPopupInfo } from "@/lib/store/map/slice";
 import { addOrUpdateMarkerImages, addPatternImages } from "@/lib/transformers/map-image";
+import createPulsingDot from "@/lib/utils/map/pulsing-dot-image";
 import type { FeatureLayerPointProperties, Layer } from "@/lib/validations/layer";
 import type { ProjectLayer } from "@/lib/validations/project";
 import type { ScenarioFeatures } from "@/lib/validations/scenario";
@@ -17,6 +18,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 import Layers from "@/components/map/Layers";
 import ScenarioLayer from "@/components/map/ScenarioLayer";
 import ToolboxLayers from "@/components/map/ToolboxLayers";
+import UserLocationLayer from "@/components/map/UserLocationLayer";
 import MapPopoverEditor from "@/components/map/controls/PopoverEditor";
 import MapPopoverInfo from "@/components/map/controls/PopoverInfo";
 import DrawControl from "@/components/map/controls/draw/Draw";
@@ -164,6 +166,10 @@ const MapViewer: React.FC<MapProps> = ({
 
       // load pattern images
       addPatternImages(PATTERN_IMAGES ?? [], mapRef.current);
+
+      // load geolocation images
+      const geolocationPulsingDot = createPulsingDot(mapRef.current);
+      mapRef.current.addImage("geolocation-pulsing-dot", geolocationPulsingDot, { pixelRatio: 2 });
     }
     onLoad && onLoad();
   }, [layers, mapRef, onLoad]);
@@ -207,6 +213,7 @@ const MapViewer: React.FC<MapProps> = ({
           interactiveLayerIds={interactiveLayerIds}
           dragRotate={dragRotate}
           touchZoomRotate={touchZoomRotate}
+          attributionControl={false}
           onMoveEnd={onMoveEnd}
           onClick={handleMapClick}
           onMouseMove={handleMapOverImmediate}
@@ -227,6 +234,7 @@ const MapViewer: React.FC<MapProps> = ({
             selectedScenarioLayer={selectedScenarioEditLayer as ProjectLayer}
           />
           <ScenarioLayer scenarioLayerData={scenarioFeatures} projectLayers={layers as ProjectLayer[]} />
+          <UserLocationLayer />
           <ToolboxLayers />
           {popupInfo && <MapPopoverInfo key={highlightedFeature?.id ?? v4()} {...popupInfo} />}
           {popupEditor && isEditor && (

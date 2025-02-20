@@ -4,6 +4,7 @@ import { contentMetadataSchema, getContentQueryParamsSchema } from "@/lib/valida
 import { layerSchema } from "@/lib/validations/layer";
 import { responseSchema } from "@/lib/validations/response";
 import { publicUserSchema } from "@/lib/validations/user";
+import { categoriesChartConfigSchema, histogramChartConfigSchema, pieChartConfigSchema } from "@/lib/validations/widget";
 
 export const projectRoleEnum = z.enum(["project-owner", "project-viewer", "project-editor"]);
 
@@ -20,32 +21,89 @@ export const shareProjectWithTeamOrOrganizationSchema = z.object({
   name: z.string().optional(),
   avatar: z.string().optional(),
   role: projectShareRoleEnum,
-})
+});
 
 export const shareProjectSchema = z.object({
   teams: z.array(shareProjectWithTeamOrOrganizationSchema).optional(),
   organizations: z.array(shareProjectWithTeamOrOrganizationSchema).optional(),
-})
+});
 
+export const builderConfigInterfaceTypeSchema = z.enum(["panel", "widget"]);
+
+export const builderWidgetSchema = z.object({
+  id: z.string(),
+  type: z.literal("widget"),
+  config: z.union([categoriesChartConfigSchema, histogramChartConfigSchema, pieChartConfigSchema]).optional(),
+});
+
+export const builderPanelConfigSchema = z.object({
+  options: z.object({
+    style: z.enum(["default", "rounded"]).optional().default("default"),
+  }).optional().default({}),
+  appearance: z.object({
+    opacity: z.number().min(0).max(1).optional(),
+    backgroundBlur: z.number().min(0).max(20).optional(),
+    shadow: z.number().min(0).max(10).optional(),
+  }).optional().default({}),
+  position: z.object({
+    alignItems: z.enum(["start", "center", "end"]).default("start"),
+    spacing: z.number().min(1).max(15).optional()
+  }).optional().default({ alignItems: "start" }),
+});
+
+
+export const builderPanelSchema = z.object({
+  id: z.string(),
+  type: z.literal("panel").optional().default("panel"),
+  position: z.enum(["top", "bottom", "left", "right"]),
+  config: builderPanelConfigSchema.optional(),
+  widgets: z.array(builderWidgetSchema).optional().default([]),
+});
+
+
+export const builderConfigSchema = z.object({
+  settings: z.object({
+    location: z.boolean().default(true),
+    scalebar: z.boolean().default(true),
+    measure: z.boolean().default(false),
+    find_my_location: z.boolean().default(false),
+    zoom_controls: z.boolean().default(true),
+    basemap: z.boolean().default(true),
+    fullscreen: z.boolean().default(true),
+    toolbar: z.boolean().default(true),
+  }),
+  interface: z.array(builderPanelSchema).optional().default([]),
+});
 
 export const projectSchema = contentMetadataSchema.extend({
   folder_id: z.string(),
   id: z.string(),
   layer_order: z.array(z.number()),
   max_extent: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
-  active_scenario_id: z.string().nullable(),
+  builder_config: builderConfigSchema
+    .default({
+      settings: {},
+      interface: [],
+    })
+    .optional(),
+  active_scenario_id: z.string().nullable().optional(),
   updated_at: z.string(),
   created_at: z.string(),
   shared_with: shareProjectSchema.optional(),
-  owned_by: publicUserSchema,
+  owned_by: publicUserSchema.optional(),
+});
+
+export const projectPublicSchemaConfig = z.object({
+  project: projectSchema,
+  layers: z.array(layerSchema),
 });
 
 export const projectPublicSchema = z.object({
   created_at: z.string(),
   updated_at: z.string(),
   project_id: z.string(),
-  config: z.object({}),
-})
+  config: projectPublicSchemaConfig,
+});
 
 export const projectLayerSchema = layerSchema.extend({
   id: z.number(),
@@ -99,3 +157,6 @@ export type ProjectLayersPaginated = z.infer<typeof projectLayersResponseSchema>
 export type GetProjectsQueryParams = z.infer<typeof getProjectsQueryParamsSchema>;
 export type ProjectSharedWith = z.infer<typeof shareProjectSchema>;
 export type ProjectPublic = z.infer<typeof projectPublicSchema>;
+export type BuilderConfigSchema = z.infer<typeof builderConfigSchema>;
+export type BuilderPanelSchema = z.infer<typeof builderPanelSchema>;
+export type BuilderWidgetSchema = z.infer<typeof builderWidgetSchema>;
