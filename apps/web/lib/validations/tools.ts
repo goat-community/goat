@@ -206,7 +206,8 @@ export const aggregatePointSchema = z.object({
   aggregation_layer_project_id: z.number().optional(),
   h3_resolution: z.number().optional(),
   column_statistics: z.object({
-    operation: statisticOperationEnum
+    operation: statisticOperationEnum,
+    field: z.string().optional()
   }),
   source_group_by_field: z.string().array().optional(),
   scenario_id: z.string().optional(),

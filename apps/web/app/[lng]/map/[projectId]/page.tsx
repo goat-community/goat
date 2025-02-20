@@ -19,13 +19,13 @@ import {
 } from "@/lib/api/projects";
 import { PATTERN_IMAGES } from "@/lib/constants/pattern-images";
 import { DrawProvider } from "@/lib/providers/DrawProvider";
-import { selectActiveBasemap } from "@/lib/store/map/selectors";
 import { addOrUpdateMarkerImages, addPatternImages } from "@/lib/transformers/map-image";
 import type { FeatureLayerPointProperties } from "@/lib/validations/layer";
 
 import { useAuthZ } from "@/hooks/auth/AuthZ";
 import { useJobStatus } from "@/hooks/jobs/JobStatus";
 import { useFilteredProjectLayers } from "@/hooks/map/LayerPanelHooks";
+import { useBasemap } from "@/hooks/map/MapHooks";
 import { useAppSelector } from "@/hooks/store/ContextHooks";
 
 import BuilderConfigPanel from "@/components/builder/ConfigPanel";
@@ -35,12 +35,11 @@ import MapViewer from "@/components/map/MapViewer";
 import ProjectNavigation from "@/components/map/panels/ProjectNavigation";
 import PublicProjectLayout from "@/components/map/panels/PublicProjectLayout";
 
-const UPDATE_VIEW_STATE_DEBOUNCE_TIME = 3000;
+const UPDATE_VIEW_STATE_DEBOUNCE_TIME = 200;
 
 export default function MapPage({ params: { projectId } }) {
   const theme = useTheme();
   const { t } = useTranslation("common");
-  const activeBasemap = useAppSelector(selectActiveBasemap);
   const mapRef = useRef<MapRef | null>(null);
   const mapMode = useAppSelector((state) => state.map.mapMode);
   const {
@@ -61,6 +60,8 @@ export default function MapPage({ params: { projectId } }) {
     layers: projectLayers,
     mutate: mutateProjectLayers,
   } = useFilteredProjectLayers(projectId, ["table"], []);
+
+  const { activeBasemap } = useBasemap(project);
 
   const { isProjectEditor, isLoading: isAuthZLoading } = useAuthZ();
 
@@ -132,6 +133,8 @@ export default function MapPage({ params: { projectId } }) {
     }
   };
 
+  console.log(initialView);
+
   return (
     <>
       {isLoading && <LoadingPage />}
@@ -156,7 +159,7 @@ export default function MapPage({ params: { projectId } }) {
                   },
                 }}>
                 <DndContext>
-                  {mapMode === "data" && <ProjectNavigation projectId={projectId} />}
+                  {mapMode === "data" && <ProjectNavigation project={project} />}
                   <Box
                     sx={{
                       padding: mapMode === "builder" ? "20px" : "0",
@@ -170,7 +173,11 @@ export default function MapPage({ params: { projectId } }) {
                           position: "absolute",
                           inset: "20px",
                         }}>
-                        <PublicProjectLayout projectLayers={projectLayers} project={project} onProjectUpdate={handleProjectUpdate} />
+                        <PublicProjectLayout
+                          projectLayers={projectLayers}
+                          project={project}
+                          onProjectUpdate={handleProjectUpdate}
+                        />
                       </Box>
                     )}
                     <MapViewer
@@ -195,10 +202,7 @@ export default function MapPage({ params: { projectId } }) {
                     />
                   </Box>
                   {mapMode === "builder" && (
-                    <BuilderConfigPanel
-                      project={project}
-                      onProjectUpdate={handleProjectUpdate}
-                    />
+                    <BuilderConfigPanel project={project} onProjectUpdate={handleProjectUpdate} />
                   )}
                 </DndContext>
               </Box>

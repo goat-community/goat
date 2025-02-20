@@ -11,11 +11,11 @@ import { usePublicProject } from "@/lib/api/projects";
 import type { RootState } from "@/lib/store";
 import { selectFilteredProjectLayers } from "@/lib/store/layer/selectors";
 import { setProjectLayers } from "@/lib/store/layer/slice";
-import { selectActiveBasemap } from "@/lib/store/map/selectors";
 import { setProject } from "@/lib/store/map/slice";
 import type { Project, ProjectLayer } from "@/lib/validations/project";
 
-import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
+import { useBasemap } from "@/hooks/map/MapHooks";
+import { useAppDispatch } from "@/hooks/store/ContextHooks";
 
 import { LoadingPage } from "@/components/common/LoadingPage";
 import MapViewer from "@/components/map/MapViewer";
@@ -26,13 +26,18 @@ export default function MapPage({ params: { projectId } }) {
   console.log(sharedProject);
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const activeBasemap = useAppSelector(selectActiveBasemap);
+  const { activeBasemap } = useBasemap(sharedProject?.config?.["project"] as Project);
   const projectLayers = useMemo(() => {
     return sharedProject?.config?.["layers"] ?? ([] as ProjectLayer[]);
   }, [sharedProject]);
   const project = sharedProject?.config?.["project"] as Project;
   const mapRef = useRef<MapRef | null>(null);
-  const initialView = sharedProject?.config?.["initial_view_state"] ?? {};
+  const initialView = sharedProject?.config?.["project"]?.["initial_view_state"] ?? {};
+
+  const _projectLayers = useSelector(
+    (state: RootState) => selectFilteredProjectLayers(state, ["table"]),
+    shallowEqual
+  );
 
   useEffect(() => {
     if (projectLayers && project) {
@@ -40,11 +45,6 @@ export default function MapPage({ params: { projectId } }) {
       dispatch(setProject(project));
     }
   }, [dispatch, project, projectLayers]);
-
-  const _projectLayers = useSelector(
-    (state: RootState) => selectFilteredProjectLayers(state, ["table"]),
-    shallowEqual
-  );
 
   return (
     <>

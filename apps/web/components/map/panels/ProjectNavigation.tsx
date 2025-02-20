@@ -6,18 +6,19 @@ import { ICON_NAME } from "@p4b/ui/components/Icon";
 import { useTranslation } from "@/i18n/client";
 
 import { MAPBOX_TOKEN } from "@/lib/constants";
-import { setActiveBasemap, setActiveLeftPanel, setActiveRightPanel } from "@/lib/store/map/slice";
+import { setActiveLeftPanel, setActiveRightPanel } from "@/lib/store/map/slice";
 import { layerType } from "@/lib/validations/common";
 import { FeatureName } from "@/lib/validations/organization";
+import type { Project } from "@/lib/validations/project";
 
 import { MapSidebarItemID } from "@/types/map/common";
 
 import { useAuthZ } from "@/hooks/auth/AuthZ";
 import { useActiveLayer, useFilteredProjectLayers, useLayerActions } from "@/hooks/map/LayerPanelHooks";
+import { useBasemap } from "@/hooks/map/MapHooks";
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import MapSidebar from "@/components/map/Sidebar";
-import Attribution from "@/components/map/controls/Attribution";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
@@ -38,16 +39,18 @@ const sidebarWidth = 52;
 const toolbarHeight = 52;
 
 interface ProjectNavigationProps {
-  projectId: string;
+  project: Project;
   isPublic?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
 }
 
-const ProjectNavigation = ({ projectId }: ProjectNavigationProps) => {
+const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps) => {
   const theme = useTheme();
-  const { t, i18n } = useTranslation("common");
+  const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
-  const basemaps = useAppSelector((state) => state.map.basemaps);
-  const activeBasemap = useAppSelector((state) => state.map.activeBasemap);
+  const projectId = project.id;
+  const { translatedBaseMaps, activeBasemap } = useBasemap(project);
   const activeLeft = useAppSelector((state) => state.map.activeLeftPanel);
   const activeRight = useAppSelector((state) => state.map.activeRightPanel);
   const { activeLayer } = useActiveLayer(projectId);
@@ -77,17 +80,6 @@ const ProjectNavigation = ({ projectId }: ProjectNavigationProps) => {
     position: "left",
   };
 
-  const translatedBaseMaps = useMemo(() => {
-    return basemaps.map((basemap) => ({
-      ...basemap,
-      title: i18n.exists(`common:basemap_types.${basemap.value}.title`)
-        ? t(`basemap_types.${basemap.value}.title`)
-        : t(basemap.title),
-      subtitle: i18n.exists(`common:basemap_types.${basemap.value}.subtitle`)
-        ? t(`basemap_types.${basemap.value}.subtitle`)
-        : t(basemap.subtitle),
-    }));
-  }, [basemaps, i18n, t]);
   const rightSidebar: MapSidebarProps = {
     topItems: [
       {
@@ -270,16 +262,13 @@ const ProjectNavigation = ({ projectId }: ProjectNavigationProps) => {
             <UserLocation tooltip={t("find_location")} />
           </Stack>
           <Stack direction="column" sx={{ pointerEvents: "all" }}>
-            <Box sx={{ pr: 4 }}>
-              <BasemapSelector
-                styles={translatedBaseMaps}
-                active={activeBasemap}
-                basemapChange={(basemap) => {
-                  dispatch(setActiveBasemap(basemap));
-                }}
-              />
-            </Box>
-            <Attribution />
+            <BasemapSelector
+              styles={translatedBaseMaps}
+              active={activeBasemap.value}
+              basemapChange={async (basemap) => {
+                await onProjectUpdate?.("basemap", basemap);
+              }}
+            />
           </Stack>
         </Stack>
         {isProjectEditor && (

@@ -40,7 +40,7 @@ const HeatmapOpportunitiesSelector = ({
   const { t } = useTranslation("common");
   const theme = useTheme();
   const { projectId } = useParams();
-  const { filteredLayers } = useLayerByGeomType(["feature"], ["point"], projectId as string);
+  const { filteredLayers } = useLayerByGeomType(["feature"], ["point", "polygon"], projectId as string);
 
   const createDefaultOpportunity = (options = {}) => ({
     layer: undefined,

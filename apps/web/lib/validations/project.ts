@@ -87,6 +87,7 @@ export const projectSchema = contentMetadataSchema.extend({
     })
     .optional(),
   active_scenario_id: z.string().nullable().optional(),
+  basemap: z.string().optional(),
   updated_at: z.string(),
   created_at: z.string(),
   shared_with: shareProjectSchema.optional(),

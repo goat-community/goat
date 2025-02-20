@@ -370,6 +370,7 @@
   "finished_successfully": "Finished successfully",
   "first_name": "First Name",
   "folder_exists": "Folder name already exists",
+  "folder_location": "Folder location",
   "folder_name": "Folder Name",
   "folder_rule": "Folder name must be less than 30 characters",
   "from": "From",
