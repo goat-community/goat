@@ -11,27 +11,19 @@ Das **Verkehrsmittel ÖPNV** in GOAT ist essentiell für die Durchführung von A
 
 Das ÖPNV-Routing erleichtert die **intermodale Analyse** durch die Integration von Ein- und Ausstiegsmodi, wie z.B. zu Fuß oder mit dem Fahrrad zum und vom Bahnhof. Dies ist komplexer als die anderen Routing-Modi, da es die Zusammenführung verschiedener Datensätze (z. B. Bürgersteige und Radwege, Haltestellen und Fahrpläne des öffentlichen Verkehrs usw.) und Berechnungsansätze erfordert.
 
-ÖPNV-Routing wird für viele Indikatoren in GOAT verwendet, wie z. B. [Einzugsgebiete](../toolbox/accessibility_indicators/catchments) und [Heatmaps](../toolbox/accessibility_indicators/connectivity).
-
-Darüber hinaus passt sich mit [Szenarien für das Straßennetz](../Scenarios#4-straßennetz---kanten), ein **flexibler Routing-Algorithmus** an Szenarienänderungen bei Erreichbarkeitsanalysen in GOAT an.
-
-### Konfigurierbare Optionen für Analysen
-
-- `Wochentag`: Wählen Sie zwischen Wochentag, Samstag oder Sonntag.
-- `Startzeit` und `Endzeit`: Geben Sie das Zeitfenster für die Analyse an.
-
+Das Routing im öffentlichen Verkehr wird in GOAT für Indikatoren wie [Einzugsgebiete](../toolbox/accessibility_indicators/catchments) verwendet.
 
 
 ## 2. Daten
 
 ### Transit-Daten
 
-Verwendet Daten in **[GTFS](https://developers.google.com/transit/gtfs)** (General Transit Feed Specification) für statische Informationen zum öffentlichen Verkehrsnetz (Haltestellen, Routen, Fahrpläne, Umsteigeverbindungen).
+Verwendet Daten im Format **[GTFS](https://gtfs.org/)** (General Transit Feed Specification) für statische Informationen zum öffentlichen Verkehrsnetz (Haltestellen, Linien, Fahrpläne, Umsteigeverbindungen und mehr).
 
 
 ### Straßendaten
 
-Bezieht Informationen auf Straßenebene von  **[OpenStreetMap](https://wiki.openstreetmap.org/)** ein, um multimodales Routing und echte Wegeverbindungen zu unterstützen (einschließlich Bürgersteige, Radwege und Fußgängerüberwege).
+Integriert straßenbezogene Informationen aus **[OpenStreetMap](https://wiki.openstreetmap.org/)** zur Unterstützung multimodaler Routenführung und realistischer Wegeketten (einschließlich Gehwegen, Radwegen und Zebrastreifen).
 
 
 ## 3. Technische Einzelheiten
@@ -42,19 +34,32 @@ PDas Routing für den öffentlichen Verkehr wird mit der **[R5 Routing Engine](h
 ### Routing-Optionen
 
 #### Modi
-'Bus', 'Straßenbahn', 'Bahn', 'U-Bahn', 'Fähre', 'Seilbahn', 'Gondel', 'Standseilbahn'.
 
-#### Zugangs- und Ausstiegsmodi
+Analysen für die folgenden öffentlichen Verkehrsmodi werden derzeit von GOAT unterstützt. Wählen Sie einen oder mehrere aus – beachten Sie dabei, dass einige Modi nicht in allen Regionen verfügbar sind.
 
-- **Zugangsmodus:** Wie die Nutzer von ihrem Ausgangsort zu einer Haltestelle gelangen (`zu Fuß` `Fahrrad` `Auto`).
-- **Ausstiegsmodus:** Wie die Benutzer von einer Haltestelle zu ihrem Ziel gelangen (`zu Fuß` `Fahrrad`).
+`Bus`, `Straßenbahn`, `Bahn`, `U-Bahn`, `Fähre`, `Seilbahn`, `Gondel`, `Standseilbahn`.
+
+#### Reisezeitlimit
+
+Die maximale Reisedauer, die beim Routing im öffentlichen Verkehr berücksichtigt wird. Aktuell wird ein Maximum von `90 Minuten` unterstützt. Dies beinhaltet auch die Zeit für den Zugang und Abgang zu bzw. von den ÖPNV-Haltestellen.
+
+#### Tag
+
+Der Wochentag, der beim Routing im öffentlichen Verkehr berücksichtigt wird. Wählen Sie zwischen `Werktag`, `Samstag` und `Sonntag`. Dies ist nützlich, um Unterschiede im Verkehrsangebot zwischen Werktagen und Wochenenden zu analysieren.
+
+#### Start- und Endzeit
+
+Ein Zeitfenster für das Routing im öffentlichen Verkehr. Es werden alle schnellstmöglichen Verbindungen innerhalb dieses Zeitfensters berücksichtigt, was z. B. zu einem möglichst großen Einzugsgebiet vom angegebenen Startpunkt führen kann.  
+Eine Verbindung gilt als innerhalb des Zeitfensters liegend, **ausschließlich basierend auf ihrer Startzeit** – unabhängig von ihrer Endzeit oder Gesamtdauer.
 
 
 #### Sonstiges (Standardkonfigurationen)
 
 Die folgenden Standardkonfigurationen werden beim Routing für den öffentlichen Verkehr verwendet. Sie sind derzeit nicht vom Benutzer konfigurierbar.
 
-- **Abklingfunktionstyp:** logistisch
+- **Access Mode:** Zu Fuß
+- **Egress Mode:** Zu Fuß
+- **Abklingfunktionstyp:** Logistisch
 - **Standardabweichung:** 12 Minuten
 - **Breite:** 10 Minuten
 - **Gehgeschwindigkeit:** 5 km/h
@@ -64,5 +69,5 @@ Die folgenden Standardkonfigurationen werden beim Routing für den öffentlichen
 - **Radverkehrsbelastung:** 4
 - **Maximale Fahrten:** 4
 - **Zoomstufe:** 9
-- **Perzentile:** 5
+- **Perzentile:** Ersten
 - **Monte Carlo zieht:** 200
