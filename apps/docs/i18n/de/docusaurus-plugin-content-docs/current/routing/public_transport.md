@@ -9,26 +9,26 @@ Das **Verkehrsmittel ÖPNV** in GOAT ist essentiell für die Durchführung von A
 
 ## 1. Zielsetzung
 
-Das ÖPNV-Routing erleichtert die **intermodale Analyse** durch die Integration von Ein- und Ausstiegsmodi, wie z.B. zu Fuß oder mit dem Fahrrad zum und vom Bahnhof. Dies ist komplexer als die anderen Routing-Modi, da es die Zusammenführung verschiedener Datensätze (z. B. Bürgersteige und Radwege, Haltestellen und Fahrpläne des öffentlichen Verkehrs usw.) und Berechnungsansätze erfordert.
+Das ÖPNV-Routing erleichtert die **intermodale Analyse** durch die Wahl von Zu- und Abgang, wie z.B. zu Fuß oder mit dem Fahrrad zum und vom Bahnhof. Dies ist komplexer als die anderen Routing-Modi, da es die Zusammenführung verschiedener Datensätze (z. B. Bürgersteige und Radwege, Haltestellen und Fahrpläne des öffentlichen Verkehrs usw.) und Berechnungsansätze erfordert.
 
 Das Routing im öffentlichen Verkehr wird in GOAT für Indikatoren wie [Einzugsgebiete](../toolbox/accessibility_indicators/catchments) verwendet.
 
 
 ## 2. Daten
 
-### Transit-Daten
+### ÖV-Daten
 
 Verwendet Daten im Format **[GTFS](https://gtfs.org/)** (General Transit Feed Specification) für statische Informationen zum öffentlichen Verkehrsnetz (Haltestellen, Linien, Fahrpläne, Umsteigeverbindungen und mehr).
 
 
-### Straßendaten
+### Straßen und Wege
 
 Integriert straßenbezogene Informationen aus **[OpenStreetMap](https://wiki.openstreetmap.org/)** zur Unterstützung multimodaler Routenführung und realistischer Wegeketten (einschließlich Gehwegen, Radwegen und Zebrastreifen).
 
 
 ## 3. Technische Einzelheiten
 
-PDas Routing für den öffentlichen Verkehr wird mit der **[R5 Routing Engine](https://github.com/conveyal/r5)** (_Rapid Realistic Routing on Real-world and Reimagined networks_) durchgeführt. R5 ist die Routing-Engine von **[Conveyal](https://conveyal.com/)**, einer webbasierten Plattform, die es den Nutzern ermöglicht, Verkehrsszenarien zu erstellen und sie im Hinblick auf kumulative Möglichkeiten und Erreichbarkeitsindikatoren zu bewerten.
+Das Routing für den öffentlichen Verkehr wird mit der **[R5 Routing Engine](https://github.com/conveyal/r5)** (_Rapid Realistic Routing on Real-world and Reimagined networks_) durchgeführt. R5 ist die Routing-Engine von **[Conveyal](https://conveyal.com/)**, einer webbasierten Plattform, die es den Nutzern ermöglicht, Planungsszenarien zu erstellen und verschiedene Erreichbarkeitsindikatoren zu berechnen.
 
 
 ### Routing-Optionen
@@ -49,25 +49,24 @@ Der Wochentag, der beim Routing im öffentlichen Verkehr berücksichtigt wird. W
 
 #### Start- und Endzeit
 
-Ein Zeitfenster für das Routing im öffentlichen Verkehr. Es werden alle schnellstmöglichen Verbindungen innerhalb dieses Zeitfensters berücksichtigt, was z. B. zu einem möglichst großen Einzugsgebiet vom angegebenen Startpunkt führen kann.  
+Ein Zeitfenster für das Routing im öffentlichen Verkehr. Es werden alle schnellstmöglichen Verbindungen innerhalb dieses Zeitfensters berücksichtigt, was z.B. zu einem möglichst großen Einzugsgebiet vom angegebenen Startpunkt führen kann.  
 Eine Verbindung gilt als innerhalb des Zeitfensters liegend, **ausschließlich basierend auf ihrer Startzeit** – unabhängig von ihrer Endzeit oder Gesamtdauer.
 
 
 #### Sonstiges (Standardkonfigurationen)
 
 Die folgenden Standardkonfigurationen werden beim Routing für den öffentlichen Verkehr verwendet. Sie sind derzeit nicht vom Benutzer konfigurierbar.
-
-- **Access Mode:** Zu Fuß
-- **Egress Mode:** Zu Fuß
-- **Abklingfunktionstyp:** Logistisch
-- **Standardabweichung:** 12 Minuten
-- **Breite:** 10 Minuten
-- **Gehgeschwindigkeit:** 5 km/h
-- **Maximale Gehzeit:** 20 Minuten
-- **Fahrradgeschwindigkeit:** 15 km/h
-- **Maximale Fahrradzeit:** 20 Minuten
-- **Radverkehrsbelastung:** 4
-- **Maximale Fahrten:** 4
-- **Zoomstufe:** 9
-- **Perzentile:** Ersten
-- **Monte Carlo zieht:** 200
+- **Zugang:** Wie Nutzer von ihrem Ausgangsort zur Haltestelle gelangen (`Fuß`).
+- **Abgang:** Wie Nutzer von der Haltestelle zu ihrem Zielort gelangen (`Fuß`).
+- **Decay function type:** logistic
+- **Standard deviation:** 12 minutes
+- **Width:** 10 minutes
+- **Walk speed:** 5 km/h
+- **Maximum walk time:** 20 minutes
+- **Bike speed:** 15 km/h
+- **Maximum bike time:** 20 minutes
+- **Bike traffic stress:** 4
+- **Maximum rides:** 4
+- **Zoom level:** 9
+- **Percentiles:** 5
+- **Monte Carlo draws:** 200
