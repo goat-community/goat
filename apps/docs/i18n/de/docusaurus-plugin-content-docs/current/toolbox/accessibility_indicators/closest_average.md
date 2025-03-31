@@ -11,7 +11,7 @@ import MathJax from 'react-mathjax';
 
 Eine farbkodierte Karte zur Visualisierung der durchschnittlichen Reisezeit zu Punkten (wie [POI](../../../further_reading/glossary#points-of-interest-poi "Was ist ein POI?")) aus umliegenden Gebieten.
 
-<iframe width="100%" height="500" src="https://www.youtube.com/embed/uxY__6zzqIQ?si=t5enJc2BLJuPMkv3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="100%" height="500" src="https://www.youtube.com/embed/3oAIv8ujWZQ?si=fDGFjqM64DZqHp8k" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## 1. Erklärung
 

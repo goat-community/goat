@@ -11,7 +11,7 @@ import MathJax from 'react-mathjax';
 # Heatmap - Konnektivität
 Eine farbkodierte Karte zur Visualisierung der Konnektivität von Orten innerhalb eines Interessengebiets ([AOI](../../further_reading/glossary#area-of-interest-aoi "What is an AOI?")).
 
-<iframe width="100%" height="500" src="https://www.youtube.com/embed/g90OhqpiHSs?si=YRCBJg0J-mwjhath" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="100%" height="500" src="https://www.youtube.com/embed/bOklLipx5oc?si=hS012c7nmu5DaddT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## 1. Erklärung
 

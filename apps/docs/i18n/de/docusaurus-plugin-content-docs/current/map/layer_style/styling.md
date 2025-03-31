@@ -6,6 +6,8 @@ sidebar_position: 20
 
 Wenn Sie einen neue Layer zu Ihrem Projekt hinzufügen, wird ihr ein Standardstil zugewiesen, welche je nach Datensatz unterschiedlich sein kann. Durch die Anpassung der Optionen im Menü <code>Layer Design<img src={require('/img/map/styling/styling_icon.webp').default} alt="Styling Icon" style={{ maxHeight: "15px", maxWidth: "15px", objectFit: "cover"}}/></code> können Sie die Darstellung des Layers anpassen und **ansprechende Karten** erstellen. Die verfügbaren Gestaltungsoptionen hängen von der Art der in einer Layer enthaltenen Daten ab, d. h. davon, ob es sich um Punkte, Linien oder Polygone handelt. Dabei können mehrere visuelle Aspekte wie **Farben**, **Striche** und **Optionen** angepasst werden.
 
+<iframe width="100%" height="500" src="https://www.youtube.com/embed/RZej6OfSBOs?si=L30N4-S753Hu6cm-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 ## Farbeinstellungen
 
 ### Füllfarbe

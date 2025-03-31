@@ -10,7 +10,7 @@ import MathJax from 'react-mathjax';
 # Heatmap - Gravity
 Eine farblich gekennzeichnete Karte zur Visualisierung der Erreichbarkeit von Punkten (wie z.B. [POI](../../further_reading/glossary#points-of-interest-poi "What is a POI?")) aus der Umgebung.
 
-<iframe width="100%" height="500" src="https://www.youtube.com/embed/qVV63ZN-gVE?si=c-2n7O002Ze4dWgH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="100%" height="500" src="https://www.youtube.com/embed/jOV5dSk64rM?si=s7PZIatUHvnLsKA0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## 1. Erklärung
 
