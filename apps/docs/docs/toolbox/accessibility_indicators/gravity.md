@@ -19,7 +19,7 @@ Visualized as a color-coded hexagonal grid, the heatmap takes into account real-
 
 :::info INFO
 
-An `Opportunity layer` contains [geographic point](../../../data/data_types "What are geographic points?") data. Select one or more such layers containing your destination points (opportunities) as input to the heatmap.
+An `Opportunity layer` contains [geographic point](../../data/data_types "What are geographic points?") data. Select one or more such layers containing your destination points (opportunities) as input to the heatmap.
 
 :::
 
