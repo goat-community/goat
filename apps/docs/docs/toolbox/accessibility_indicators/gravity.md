@@ -10,7 +10,7 @@ import MathJax from 'react-mathjax';
 
 A color-coded map to visualize the accessibility of points (such as [POI](../../further_reading/glossary#point-of-interest-poi "What is a POI?")) from surrounding areas.
 
-<iframe width="100%" height="500" src="https://www.youtube.com/embed/OAHa-5-WVk8?si=looP1BuuuWUVNFb8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="100%" height="500" src="https://www.youtube.com/embed/ghXzZUCDsJ4?si=yu8ono8_bUZHjH5z" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 
 ## 1. Explanation
@@ -19,7 +19,7 @@ Visualized as a color-coded hexagonal grid, the heatmap takes into account real-
 
 :::info INFO
 
-An `Opportunity layer` contains [geographic point](../../../data/data_types "What are geographic points?") data. Select one or more such layers containing your destination points (opportunities) as input to the heatmap.
+An `Opportunity layer` contains [geographic point](../../data/data_types "What are geographic points?") data. Select one or more such layers containing your destination points (opportunities) as input to the heatmap.
 
 :::
 

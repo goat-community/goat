@@ -11,7 +11,7 @@ import MathJax from 'react-mathjax';
 # Heatmap - Konnektivität
 Eine farbkodierte Karte zur Visualisierung der Konnektivität von Orten innerhalb eines Interessengebiets ([AOI](../../further_reading/glossary#area-of-interest-aoi "What is an AOI?")).
 
-<iframe width="100%" height="500" src="https://www.youtube.com/embed/g90OhqpiHSs?si=YRCBJg0J-mwjhath" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="100%" height="500" src="https://www.youtube.com/embed/bOklLipx5oc?si=hS012c7nmu5DaddT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## 1. Erklärung
 
@@ -87,7 +87,7 @@ Berücksichtigt alle mit dem Fahrrad befahrbaren Wege. Dieser Routing-Modus ber�
 
 :::tip Hinweis
 
-Weitere Einblicke in den Routing-Algorithmus erhalten Sie unter [Verkehrsmittel/Fahrrad](../../routing/fahrrad). Darüber hinaus können Sie diese [Publikation](https://doi.org/10.1016/j.jtrangeo.2021.103080) lesen.
+Weitere Einblicke in den Routing-Algorithmus erhalten Sie unter [Verkehrsmittel/Fahrrad](../../routing/bicycle). Darüber hinaus können Sie diese [Publikation](https://doi.org/10.1016/j.jtrangeo.2021.103080) lesen.
 
 :::
 
