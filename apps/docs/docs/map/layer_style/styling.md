@@ -6,8 +6,7 @@ sidebar_position: 1
 
 When you add a new layer to your project, it is assigned a default style based on the type of data. By customizing options in the <code>Layer design <img src={require('/img/map/styling/styling_icon.webp').default} alt="Styling Icon" style={{ maxHeight: "15px", maxWidth: "15px", objectFit: "cover"}}/></code> menu, you can adjust the visualization of the layer and **create appealing maps**. The styling options available depend on the type of data contained by a layer, i.e. whether it is points, lines, or polygons. Thereby, multiple visual aspects, such as **colors**, **strokes**, and **opacities** can be adjusted.
 
-<iframe width="100%" height="500" src="https://www.youtube.com/embed/R7nefHqPnBk?si=bcKGlrz-53BxP8PT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
+<iframe width="100%" height="500" src="https://www.youtube.com/embed/R7nefHqPnBk?si=KWndAFlcb2uuC7CZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Color Settings
 
