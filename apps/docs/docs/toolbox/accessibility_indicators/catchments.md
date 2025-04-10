@@ -27,19 +27,28 @@ You might know this feature from our previous software versions under the terms 
 :::
 
 :::info 
-Catchment areas are available for certain regions. Upon selecting a <code>Routing type</code>, GOAT will dynamically display a geofence for supported regions.
-For <code>Walk</code>, <code>Bicycle</code>, <code>Pedelec</code>, and <code>Car</code>, the geofence reaches more than 30 European countries:
+The computation of Catchment Areas is possible in specific regions.
 
-<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/toolbox/accessibility_indicators/catchments/geofence.png').default} alt="Geofence for catchment area calculation in GOAT" style={{ maxHeight: "300px", maxWidth: "400px", alignItems:'center'}}/>
-</div> 
+Upon selecting a <code>Routing type</code>, GOAT will display a map overlay indicating this.
+For <code>Walk</code>, <code>Bicycle</code>, <code>Pedelec</code>, and <code>Car</code>, over 30 European countries are supported, while <code>Public Transport</code> Catchment Areas may be computed for Germany.
 
-For <code>Public Transport</code>, the geofence reaches all of Germany:
-<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/toolbox/accessibility_indicators/gueteklassen/geofence-pt.png').default} alt="Geofence for catchment area calculation in GOAT" style={{ maxHeight: "300px", maxWidth: "400px", alignItems:'center'}}/>
-</div> 
+<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>
+  <img 
+    src={require('/img/toolbox/accessibility_indicators/catchments/geofence.png').default} 
+    alt="Geofence for catchment area calculation in GOAT" 
+    style={{ maxHeight: "300px", maxWidth: "400px" }}
+  />
+  
+  <img 
+    src={require('/img/toolbox/accessibility_indicators/gueteklassen/geofence-pt.png').default} 
+    alt="Geofence for catchment area calculation in GOAT" 
+    style={{ maxHeight: "300px", maxWidth: "400px" }}
+  />
+</div>
 
-In case you need to perform analysis beyond this geofence, feel free to contact the [Support](https://plan4better.de/en/contact/ "Contact Support") and we will check what is possible. 
+<br />
+
+If you need to perform analyses beyond these regions, feel free to [contact us](https://plan4better.de/en/contact/ "contact us") and we would be happy to discuss further options.
 :::
 
 ## 2. Example use cases
@@ -324,17 +333,31 @@ For further insights into the Routing algorithm, visit [Routing/Public Transport
   <img src={require('/img/toolbox/accessibility_indicators/catchments/pt_type.png').default} alt="Public Transport Modes in GOAT" style={{ maxHeight: "400px", maxWidth: "400px", objectFit: "cover"}}/>
 </div>
 
+<br />
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Set the configurations for <code>Travel time limit</code>, <code>Number of breaks</code>, <code>Day</code> <i>(Weekday, Saturday</i> or <i>Sunday</i>) and Time period (<code>Start Time</code> and <code>End Time</code>).</div>
+  <div class="content">
+    <code>Travel time limit</code> - the maximum allowed duration of journeys considered for the analysis
+    <br />
+    <code>Number of breaks</code> - determines the resolution of the resulting catchment area isochrone
+    <br />
+    <code>Day</code> - the weekday type on which the analysis is performed: <i>Weekday, Saturday</i> or <i>Sunday</i>
+    <br />
+    <code>Start Time</code> and <code>End Time</code> - the fastest possible journeys within this time window are considered for the analysis
+    <br />
+    <p>
+      Read more about routing options {" "}
+      <a href="../../routing/public_transport#routing-options">here</a>.
+    </p>
+  </div>
 </div>
 
 <img src={require('/img/toolbox/accessibility_indicators/catchments/pt_config.png').default} alt="Public Transport Configurations" style={{ maxHeight: "400px", maxWidth: "400px"}}/>
 
 :::tip Hint
 
-For defining which travel time limits are suitable for which amenity, the ["Standort-Werkzeug"](https://www.chemnitz.de/chemnitz/media/unsere-stadt/verkehr/verkehrsplanung/vep2040_standortwerkzeug.pdf) of the City of Chemnitz can provide helpful guidance.
+The ["Standort-Werkzeug"](https://www.chemnitz.de/chemnitz/media/unsere-stadt/verkehr/verkehrsplanung/vep2040_standortwerkzeug.pdf) of the City of Chemnitz can provide helpful guidance on suitable travel time limits for assessing accessibility to various amenities.
 
 :::
 
