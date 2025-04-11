@@ -19,7 +19,7 @@ import { useAppDispatch } from "@/hooks/store/ContextHooks";
 
 import { LoadingPage } from "@/components/common/LoadingPage";
 import MapViewer from "@/components/map/MapViewer";
-import PublicProjectLayout from "@/components/map/panels/PublicProjectLayout";
+import PublicProjectLayout from "@/components/map/layouts/PublicProjectLayout";
 
 export default function MapPage({ params: { projectId } }) {
   const { sharedProject, isLoading, isError: projectError } = usePublicProject(projectId);
@@ -67,7 +67,7 @@ export default function MapPage({ params: { projectId } }) {
                 width: "100%",
                 height: "100%",
               }}>
-              <PublicProjectLayout project={project} projectLayers={_projectLayers} />
+              <PublicProjectLayout project={project} projectLayers={_projectLayers} viewOnly />
             </Box>
             <MapViewer
               layers={_projectLayers}

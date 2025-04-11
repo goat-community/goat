@@ -52,6 +52,7 @@ const PanelConfiguration = ({ panel, onDelete, onChange }: PanelContainerProps) 
     () => [
       { value: "default", label: t("default") },
       { value: "rounded", label: t("rounded") },
+      { value: "floated", label: t("floated") },
     ],
     [t]
   );
@@ -78,13 +79,13 @@ const PanelConfiguration = ({ panel, onDelete, onChange }: PanelContainerProps) 
   const [opacity, setOpacity] = useState(panel.config?.appearance?.opacity ?? 1);
   const [backgroundBlur, setBackgroundBlur] = useState(panel.config?.appearance?.backgroundBlur ?? 0);
   const [shadow, setShadow] = useState(panel.config?.appearance?.shadow ?? 0);
-  const [spacing, setSpacing] = useState(panel.config?.position?.spacing ?? 1);
+  const [spacing, setSpacing] = useState(panel.config?.position?.spacing ?? 0);
 
   useEffect(() => {
     setOpacity(panel.config?.appearance?.opacity ?? 1);
     setBackgroundBlur(panel.config?.appearance?.backgroundBlur ?? 0);
     setShadow(panel.config?.appearance?.shadow ?? 0);
-    setSpacing(panel.config?.position?.spacing ?? 1);
+    setSpacing(panel.config?.position?.spacing ?? 0);
   }, [panel]);
 
   // Handlers
@@ -93,7 +94,7 @@ const PanelConfiguration = ({ panel, onDelete, onChange }: PanelContainerProps) 
     onChange({
       ...panel,
       config: {
-        ...panel.config,
+        ...((panel.config || {}) as any),
         [root]: rest.reduce(
           (acc, key, index) => ({
             ...acc,
@@ -174,7 +175,7 @@ const PanelConfiguration = ({ panel, onDelete, onChange }: PanelContainerProps) 
 
         <ConfigSection title={t("position")} icon={ICON_NAME.PANEL_POSITION}>
           {renderSelector(panelAlignItem, panelAlignItemOptions, t("align_items"), "position.alignItems")}
-          {renderSlider(t("spacing"), spacing, "position.spacing", 1, 10, 1)}
+          {renderSlider(t("spacing"), spacing, "position.spacing", 0, 10, 1)}
         </ConfigSection>
       </Stack>
 

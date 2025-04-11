@@ -16,7 +16,6 @@ import {
   TableChart as TableIcon,
   TextFields as TextIcon,
   Timeline as TimelineIcon,
-  Title as TitleIcon,
 } from "@mui/icons-material";
 import { Box, Divider, Grid, InputAdornment, Stack, TextField, Typography, styled } from "@mui/material";
 import React, { useMemo, useState } from "react";
@@ -40,7 +39,6 @@ const iconMap = {
   text: TextIcon,
   image: ImageIcon,
   divider: DividerIcon,
-  title: TitleIcon,
 };
 
 type MenuItem = {

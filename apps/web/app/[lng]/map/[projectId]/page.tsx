@@ -32,8 +32,8 @@ import BuilderConfigPanel from "@/components/builder/ConfigPanel";
 import { LoadingPage } from "@/components/common/LoadingPage";
 import Header from "@/components/header/Header";
 import MapViewer from "@/components/map/MapViewer";
-import ProjectNavigation from "@/components/map/panels/ProjectNavigation";
-import PublicProjectLayout from "@/components/map/panels/PublicProjectLayout";
+import DataProjectLayout from "@/components/map/layouts/DataProjectLayout";
+import PublicProjectLayout from "@/components/map/layouts/PublicProjectLayout";
 
 const UPDATE_VIEW_STATE_DEBOUNCE_TIME = 200;
 
@@ -133,8 +133,6 @@ export default function MapPage({ params: { projectId } }) {
     }
   };
 
-  console.log(initialView);
-
   return (
     <>
       {isLoading && <LoadingPage />}
@@ -159,7 +157,7 @@ export default function MapPage({ params: { projectId } }) {
                   },
                 }}>
                 <DndContext>
-                  {mapMode === "data" && <ProjectNavigation project={project} />}
+                  {mapMode === "data" && <DataProjectLayout project={project} />}
                   <Box
                     sx={{
                       padding: mapMode === "builder" ? "20px" : "0",

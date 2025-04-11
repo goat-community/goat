@@ -1,25 +1,61 @@
 import { Box } from "@mui/material";
 import React, { useMemo } from "react";
 
-import { setSelectedBuilderItem } from "@/lib/store/map/slice";
-import type { BuilderPanelSchema, Project, ProjectLayer } from "@/lib/validations/project";
+import { useTranslation } from "@/i18n/client";
 
+import { MAPBOX_TOKEN } from "@/lib/constants";
+import { setSelectedBuilderItem } from "@/lib/store/map/slice";
+import {
+  type BuilderPanelSchema,
+  type Project,
+  type ProjectLayer,
+  builderPanelSchema,
+  projectSchema,
+} from "@/lib/validations/project";
+
+import { useBasemap } from "@/hooks/map/MapHooks";
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import AddSectionButton from "@/components/builder/AddSectionButton";
 import type { BuilderPanelSchemaWithPosition } from "@/components/builder/PanelContainer";
 import PanelContainer from "@/components/builder/PanelContainer";
 import Header from "@/components/header/Header";
+import AttributionControl from "@/components/map/controls/Attribution";
+import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
+import { Fullscren } from "@/components/map/controls/Fullscreen";
+import Geocoder from "@/components/map/controls/Geocoder";
+import Scalebar from "@/components/map/controls/Scalebar";
+import { UserLocation } from "@/components/map/controls/UserLocation";
+import { Zoom } from "@/components/map/controls/Zoom";
 
 interface PublicProjectLayoutProps {
   project?: Project;
   projectLayers?: ProjectLayer[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
+  // add property isEditing to the interface
+  viewOnly?: boolean;
 }
 
-const PublicProjectLayout = ({ projectLayers = [], project, onProjectUpdate }: PublicProjectLayoutProps) => {
+const PublicProjectLayout = ({
+  projectLayers = [],
+  project: _project,
+  onProjectUpdate,
+  viewOnly,
+}: PublicProjectLayoutProps) => {
+  const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
+  const project = useMemo(() => {
+    const parsedProject = projectSchema.safeParse(_project);
+    if (parsedProject.success) {
+      return parsedProject.data;
+    } else {
+      console.error("Invalid project data:", parsedProject.error);
+      return undefined;
+    }
+  }, [_project]);
+
+  const { translatedBaseMaps, activeBasemap } = useBasemap(project);
   const selectedPanel = useAppSelector((state) => state.map.selectedBuilderItem) as BuilderPanelSchema;
   const builderConfig = project?.builder_config;
   const panels = useMemo(() => builderConfig?.interface ?? [], [builderConfig]);
@@ -43,6 +79,7 @@ const PublicProjectLayout = ({ projectLayers = [], project, onProjectUpdate }: P
         case "left":
           return {
             ...panel,
+            orientation: "vertical",
             element: {
               left: PANEL_SIZE * leftPanelsBefore,
               top: PANEL_SIZE * topPanelsBefore,
@@ -53,6 +90,7 @@ const PublicProjectLayout = ({ projectLayers = [], project, onProjectUpdate }: P
         case "right":
           return {
             ...panel,
+            orientation: "vertical",
             element: {
               right: PANEL_SIZE * rightPanelsBefore,
               top: PANEL_SIZE * topPanelsBefore,
@@ -63,6 +101,7 @@ const PublicProjectLayout = ({ projectLayers = [], project, onProjectUpdate }: P
         case "top":
           return {
             ...panel,
+            orientation: "horizontal",
             element: {
               top: 0,
               left: PANEL_SIZE * leftPanelsBefore,
@@ -73,6 +112,7 @@ const PublicProjectLayout = ({ projectLayers = [], project, onProjectUpdate }: P
         case "bottom":
           return {
             ...panel,
+            orientation: "horizontal",
             element: {
               bottom: 0,
               left: PANEL_SIZE * leftPanelsBefore,
@@ -185,18 +225,25 @@ const PublicProjectLayout = ({ projectLayers = [], project, onProjectUpdate }: P
   // Add a new panel to the specified position
   const onAddSection = async (position: "top" | "bottom" | "left" | "right") => {
     if (canAddPanel(position)) {
-      const newPanel: BuilderPanelSchema = {
+      const newPanelObj = {
         position: position,
+        config: {},
         type: "panel",
         widgets: [],
         id: `panel-${Date.now()}`,
       };
-      const updatedPanels = [...panels, newPanel];
-      const builderConfig = {
-        interface: updatedPanels,
-        settings: { ...project?.builder_config?.settings },
-      };
-      await onProjectUpdate?.("builder_config", builderConfig);
+      const _newPanel = builderPanelSchema.safeParse(newPanelObj);
+      if (_newPanel.success) {
+        const newPanel = _newPanel.data;
+        const updatedPanels = [...panels, newPanel];
+        const builderConfig = {
+          interface: updatedPanels,
+          settings: { ...project?.builder_config?.settings },
+        };
+        await onProjectUpdate?.("builder_config", builderConfig);
+      } else {
+        console.error("Invalid panel data:", _newPanel.error);
+      }
     }
   };
 
@@ -252,6 +299,8 @@ const PublicProjectLayout = ({ projectLayers = [], project, onProjectUpdate }: P
                 <PanelContainer
                   key={panel.id}
                   panel={panel}
+                  projectLayers={projectLayers}
+                  viewOnly={viewOnly}
                   selected={selectedPanel?.type === "panel" && selectedPanel?.id === panel.id}
                   onChangeOrder={handleChangeOrder}
                   onClick={() => handlePanelClick(panel)}
@@ -260,26 +309,101 @@ const PublicProjectLayout = ({ projectLayers = [], project, onProjectUpdate }: P
             </>
           )}
           {/* Center Content */}
+          {!viewOnly && (
+            <Box
+              sx={{
+                flexGrow: 1,
+                position: "absolute",
+                ...addSectionStylePosition,
+              }}>
+              {/* Render AddSectionButton only if the panel can be added */}
+              {["top", "bottom", "left", "right"].map((position) => {
+                const canAdd = canAddPanel(position as "top" | "bottom" | "left" | "right");
+                return (
+                  canAdd && (
+                    <AddSectionButton
+                      key={position}
+                      position={position as "top" | "bottom" | "left" | "right"}
+                      onClick={() => onAddSection(position as "top" | "bottom" | "left" | "right")}
+                    />
+                  )
+                );
+              })}
+            </Box>
+          )}
+
+          {/* Top-Left Controls */}
+          {builderConfig?.settings.location && (
+            <Box
+              sx={{
+                position: "absolute",
+                left: leftPanels.length * PANEL_SIZE,
+                top: topPanels.length * PANEL_SIZE,
+                m: 2,
+                zIndex: 2,
+                pointerEvents: "all",
+              }}>
+              <Geocoder
+                accessToken={MAPBOX_TOKEN}
+                placeholder={t("enter_an_address")}
+                tooltip={t("search")}
+              />
+            </Box>
+          )}
+          {/* Top-Right Controls  */}
           <Box
             sx={{
-              flexGrow: 1,
               position: "absolute",
-              ...addSectionStylePosition,
+              right: rightPanels.length * PANEL_SIZE,
+              top: topPanels.length * PANEL_SIZE,
+              m: 2,
+              zIndex: 2,
+              pointerEvents: "all",
             }}>
-            {/* Render AddSectionButton only if the panel can be added */}
-            {["top", "bottom", "left", "right"].map((position) => {
-              const canAdd = canAddPanel(position as "top" | "bottom" | "left" | "right");
-              return (
-                canAdd && (
-                  <AddSectionButton
-                    key={position}
-                    position={position as "top" | "bottom" | "left" | "right"}
-                    onClick={() => onAddSection(position as "top" | "bottom" | "left" | "right")}
-                  />
-                )
-              );
-            })}
+            {builderConfig?.settings.zoom_controls && (
+              <Zoom tooltipZoomIn={t("zoom_in")} tooltipZoomOut={t("zoom_out")} />
+            )}
+            {builderConfig?.settings.fullscreen && (
+              <Fullscren tooltipOpen={t("fullscreen")} tooltipExit={t("exit_fullscreen")} />
+            )}
+            {builderConfig?.settings.find_my_location && <UserLocation tooltip={t("find_location")} />}
           </Box>
+          {/* Bottom-Right Controls */}
+          <Box
+            sx={{
+              position: "absolute",
+              right: rightPanels.length * PANEL_SIZE,
+              bottom: bottomPanels.length * PANEL_SIZE,
+              zIndex: 2,
+              pointerEvents: "all",
+            }}>
+            {builderConfig?.settings.basemap && (
+              <Box sx={{ m: 2 }}>
+                <BasemapSelector
+                  styles={translatedBaseMaps}
+                  active={activeBasemap.value}
+                  basemapChange={async (basemap) => {
+                    await onProjectUpdate?.("basemap", basemap);
+                  }}
+                />
+              </Box>
+            )}
+            <AttributionControl />
+          </Box>
+          {/* Bottom-Left Controls */}
+          {builderConfig?.settings.scalebar && (
+            <Box
+              sx={{
+                position: "absolute",
+                left: leftPanels.length * PANEL_SIZE,
+                zIndex: 2,
+                bottom: bottomPanels.length * PANEL_SIZE,
+                m: 2,
+                pointerEvents: "all",
+              }}>
+              <Scalebar />
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>

@@ -17,7 +17,10 @@ const Container = styled(Box)(({}) => ({
 }));
 
 const AttributionControl: React.FC<AttributionControlProps> = ({
-  customAttribution = '<a href="https://maplibre.org/" target="_blank">&#169;	MapLibre</a>',
+  customAttribution = [
+    '<a href="https://www.plan4better.de/en/goat" target="_blank">Made with GOAT</a>',
+    '<a href="https://maplibre.org/" target="_blank">&#169;	MapLibre</a>',
+  ],
 }) => {
   const [attributions, setAttributions] = useState<string[]>([]);
   const { map } = useMap();
@@ -73,7 +76,8 @@ const AttributionControl: React.FC<AttributionControlProps> = ({
       // Clear debounced function when component unmounts
       debouncedUpdateAttributions.clear();
     };
-  }, [map, debouncedUpdateAttributions, updateAttributions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map]);
 
   return (
     <Container>

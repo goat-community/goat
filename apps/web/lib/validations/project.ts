@@ -1,10 +1,19 @@
 import * as z from "zod";
 
-import { contentMetadataSchema, getContentQueryParamsSchema } from "@/lib/validations/common";
+import { contentMetadataSchema, getContentQueryParamsSchema, orderByEnum } from "@/lib/validations/common";
 import { layerSchema } from "@/lib/validations/layer";
 import { responseSchema } from "@/lib/validations/response";
 import { publicUserSchema } from "@/lib/validations/user";
-import { categoriesChartConfigSchema, histogramChartConfigSchema, pieChartConfigSchema } from "@/lib/validations/widget";
+import {
+  categoriesChartConfigSchema,
+  dividerElementConfigSchema,
+  histogramChartConfigSchema,
+  imageElementConfigSchema,
+  informationLayersConfigSchema,
+  operationTypes,
+  pieChartConfigSchema,
+  textElementConfigSchema,
+} from "@/lib/validations/widget";
 
 export const projectRoleEnum = z.enum(["project-owner", "project-viewer", "project-editor"]);
 
@@ -33,33 +42,50 @@ export const builderConfigInterfaceTypeSchema = z.enum(["panel", "widget"]);
 export const builderWidgetSchema = z.object({
   id: z.string(),
   type: z.literal("widget"),
-  config: z.union([categoriesChartConfigSchema, histogramChartConfigSchema, pieChartConfigSchema]).optional(),
+  config: z
+    .union([
+      informationLayersConfigSchema,
+      categoriesChartConfigSchema,
+      histogramChartConfigSchema,
+      pieChartConfigSchema,
+      textElementConfigSchema,
+      dividerElementConfigSchema,
+      imageElementConfigSchema,
+    ])
+    .optional(),
 });
 
 export const builderPanelConfigSchema = z.object({
-  options: z.object({
-    style: z.enum(["default", "rounded"]).optional().default("default"),
-  }).optional().default({}),
-  appearance: z.object({
-    opacity: z.number().min(0).max(1).optional(),
-    backgroundBlur: z.number().min(0).max(20).optional(),
-    shadow: z.number().min(0).max(10).optional(),
-  }).optional().default({}),
-  position: z.object({
-    alignItems: z.enum(["start", "center", "end"]).default("start"),
-    spacing: z.number().min(1).max(15).optional()
-  }).optional().default({ alignItems: "start" }),
+  options: z
+    .object({
+      style: z.enum(["default", "rounded", "floated"]).optional().default("default"),
+    })
+    .optional()
+    .default({}),
+  appearance: z
+    .object({
+      opacity: z.number().min(0).max(1).optional().default(1),
+      backgroundBlur: z.number().min(0).max(20).optional().default(0),
+      shadow: z.number().min(0).max(10).optional().default(0),
+    })
+    .optional()
+    .default({}),
+  position: z
+    .object({
+      alignItems: z.enum(["start", "center", "end"]).default("start"),
+      spacing: z.number().min(0).max(15).optional().default(0),
+    })
+    .optional()
+    .default({ alignItems: "start" }),
 });
-
 
 export const builderPanelSchema = z.object({
   id: z.string(),
   type: z.literal("panel").optional().default("panel"),
   position: z.enum(["top", "bottom", "left", "right"]),
-  config: builderPanelConfigSchema.optional(),
+  config: builderPanelConfigSchema.optional().default({}),
   widgets: z.array(builderWidgetSchema).optional().default([]),
 });
-
 
 export const builderConfigSchema = z.object({
   settings: z.object({
@@ -79,7 +105,7 @@ export const projectSchema = contentMetadataSchema.extend({
   folder_id: z.string(),
   id: z.string(),
   layer_order: z.array(z.number()),
-  max_extent: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
+  max_extent: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional().nullable(),
   builder_config: builderConfigSchema
     .default({
       settings: {},
@@ -88,8 +114,8 @@ export const projectSchema = contentMetadataSchema.extend({
     .optional(),
   active_scenario_id: z.string().nullable().optional(),
   basemap: z.string().optional(),
-  updated_at: z.string(),
-  created_at: z.string(),
+  updated_at: z.string().optional(),
+  created_at: z.string().optional(),
   shared_with: shareProjectSchema.optional(),
   owned_by: publicUserSchema.optional(),
 });
@@ -149,6 +175,51 @@ const getProjectsQueryParamsSchema = getContentQueryParamsSchema.extend({});
 export const projectResponseSchema = responseSchema(projectSchema);
 export const projectLayersResponseSchema = responseSchema(projectLayerSchema);
 
+// Stats for project layer
+export const aggregationStatsQueryParams = z.object({
+  group_by_column_name: z.string(),
+  operation: operationTypes,
+  column_name: z.string().optional(),
+  size: z.number().default(10),
+  query: z.string().optional(),
+  order: orderByEnum.optional(),
+}).refine(
+  (data) => data.operation === operationTypes.Values.count || Boolean(data.column_name),
+  {
+    message: "column_name is required when operation is not 'count'",
+    path: ["column_name"],
+  }
+);
+
+export const aggregationStatsResponseSchema = z.object({
+  items: z.array(
+    z.object({
+      grouped_value: z.string(),
+      operation_value: z.number(),
+    })
+  ),
+  total_items: z.number(),
+  total_count: z.number(),
+});
+
+export const histogramStatsQueryParams = z.object({
+  column_name: z.string(),
+  num_bins: z.number().default(10),
+  query: z.string().optional(),
+  order: orderByEnum.optional(),
+});
+
+export const histogramStatsResponseSchema = z.object({
+  bins: z.array(
+    z.object({
+      range: z.tuple([z.number(), z.number()]),
+      count: z.number(),
+    })
+  ),
+  missing_count: z.number(),
+  total_rows: z.number(),
+});
+
 export type Project = z.infer<typeof projectSchema>;
 export type ProjectLayer = z.infer<typeof projectLayerSchema>;
 export type ProjectPaginated = z.infer<typeof projectResponseSchema>;
@@ -161,3 +232,7 @@ export type ProjectPublic = z.infer<typeof projectPublicSchema>;
 export type BuilderConfigSchema = z.infer<typeof builderConfigSchema>;
 export type BuilderPanelSchema = z.infer<typeof builderPanelSchema>;
 export type BuilderWidgetSchema = z.infer<typeof builderWidgetSchema>;
+export type AggregationStatsQueryParams = z.infer<typeof aggregationStatsQueryParams>;
+export type AggregationStatsResponse = z.infer<typeof aggregationStatsResponseSchema>;
+export type HistogramStatsQueryParams = z.infer<typeof histogramStatsQueryParams>;
+export type HistogramStatsResponse = z.infer<typeof histogramStatsResponseSchema>;

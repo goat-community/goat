@@ -4,21 +4,22 @@ import React, { useMemo, useState } from "react";
 
 import { useTranslation } from "@/i18n/client";
 
+import { setSelectedBuilderItem } from "@/lib/store/map/slice";
 import type { BuilderPanelSchema, Project } from "@/lib/validations/project";
 import { builderConfigSchema } from "@/lib/validations/project";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
+import PanelConfiguration from "@/components/builder/PanelConfiguration";
 import SettingsTab from "@/components/builder/SettingsTab";
+import WidgetConfiguration from "@/components/builder/WidgetConfiguration";
 import WidgetsTab from "@/components/builder/WidgetsTab";
 import SelectedItemContainer from "@/components/map/panels/Container";
-import { setSelectedBuilderItem } from "@/lib/store/map/slice";
 import ToolsHeader from "@/components/map/panels/common/ToolsHeader";
-import PanelConfiguration from "@/components/builder/PanelConfiguration";
-import WidgetConfiguration from "@/components/builder/WidgetConfiguration";
 
 interface ConfigPanelProps {
   project: Project;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
 }
 
@@ -50,7 +51,11 @@ const sections = [
   },
   {
     title: "Project Elements",
-    items: [{ id: "projectTitle", label: "Project Title", icon: "title" }],
+    items: [
+      { id: "text", label: "Text", icon: "text" },
+      { id: "divider", label: "Divider", icon: "divider" },
+      { id: "image", label: "Image", icon: "image" },
+    ],
   },
 ];
 const Container = styled(Box)(({ theme }) => ({
@@ -92,7 +97,6 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
     setValue(newValue);
   };
 
-
   const handleMapSettingsChange = async (name: string, value: boolean) => {
     if (!builderConfig) {
       return;
@@ -107,7 +111,6 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
       return;
     }
     await onProjectUpdate?.("builder_config", builderConfigDefault.data);
-
   };
 
   const handleMapInterfaceChange = async (builderInterface: BuilderPanelSchema[]) => {
@@ -120,8 +123,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
     } catch {
       dispatch(setSelectedBuilderItem(undefined));
     }
-  }
-
+  };
 
   const onPanelDelete = () => {
     if (!selectedBuilderItem) {
@@ -129,13 +131,13 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
     }
     const updatedPanels = builderConfig?.interface.filter((panel) => panel.id !== selectedBuilderItem.id);
     handleMapInterfaceChange(updatedPanels);
-  }
+  };
 
   const onPanelChange = (panel: BuilderPanelSchema) => {
     const updatedPanels = builderConfig?.interface.map((p) => {
       if (p.id === panel.id) {
         if (panel["element"]) {
-          delete panel["element"]
+          delete panel["element"];
         }
         return panel;
       }
@@ -143,18 +145,20 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
     });
     dispatch(setSelectedBuilderItem(panel));
     handleMapInterfaceChange(updatedPanels);
-  }
+  };
 
   const renderConfiguration = () => {
     if (!selectedBuilderItem) {
       return null;
     }
     const configComponents: { [key: string]: React.ReactNode } = {
-      panel: <PanelConfiguration
-        panel={selectedBuilderItem as BuilderPanelSchema}
-        onDelete={onPanelDelete}
-        onChange={onPanelChange}
-      />,
+      panel: (
+        <PanelConfiguration
+          panel={selectedBuilderItem as BuilderPanelSchema}
+          onDelete={onPanelDelete}
+          onChange={onPanelChange}
+        />
+      ),
       widget: <WidgetConfiguration />,
     };
 
@@ -162,7 +166,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
   };
 
   return (
-     <Container>
+    <Container>
       {!selectedBuilderItem && (
         <>
           <Tabs
@@ -205,24 +209,22 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
           </TabPanel>
         </>
       )}
-      {
-        selectedBuilderItem && (
-          <SelectedItemContainer
-            backgroundColor={theme.palette.background.paper}
-            disableClose
-            header={
-              <ToolsHeader
-                  title="Settings"
-                  onBack={() => {
-                    dispatch(setSelectedBuilderItem(undefined));
-                  }}
-                />
-            }
-            body={renderConfiguration()}
-            close={() => {}}
-          />
-        )
-      }
+      {selectedBuilderItem && (
+        <SelectedItemContainer
+          backgroundColor={theme.palette.background.paper}
+          disableClose
+          header={
+            <ToolsHeader
+              title="Settings"
+              onBack={() => {
+                dispatch(setSelectedBuilderItem(undefined));
+              }}
+            />
+          }
+          body={renderConfiguration()}
+          close={() => {}}
+        />
+      )}
     </Container>
   );
 };

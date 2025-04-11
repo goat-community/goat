@@ -19,6 +19,7 @@ import { useBasemap } from "@/hooks/map/MapHooks";
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import MapSidebar from "@/components/map/Sidebar";
+import AttributionControl from "@/components/map/controls/Attribution";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
@@ -38,14 +39,14 @@ import type { MapSidebarProps } from "../Sidebar";
 const sidebarWidth = 52;
 const toolbarHeight = 52;
 
-interface ProjectNavigationProps {
+interface DataProjectLayoutProps {
   project: Project;
   isPublic?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
 }
 
-const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps) => {
+const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps) => {
   const theme = useTheme();
   const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
@@ -269,6 +270,7 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
                 await onProjectUpdate?.("basemap", basemap);
               }}
             />
+            <AttributionControl />
           </Stack>
         </Stack>
         {isProjectEditor && (
@@ -323,4 +325,4 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
   );
 };
 
-export default ProjectNavigation;
+export default DataProjectLayout;

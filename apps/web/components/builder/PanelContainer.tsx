@@ -6,11 +6,12 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { useTranslation } from "@/i18n/client";
 
-import type { BuilderPanelSchema } from "@/lib/validations/project";
+import type { BuilderPanelSchema, ProjectLayer } from "@/lib/validations/project";
 
 import WidgetWrapper from "@/components/builder/widgets/WidgetWrapper";
 
 export interface BuilderPanelSchemaWithPosition extends BuilderPanelSchema {
+  orientation?: "horizontal" | "vertical";
   element: {
     top?: number;
     bottom?: number;
@@ -21,9 +22,11 @@ export interface BuilderPanelSchemaWithPosition extends BuilderPanelSchema {
 
 interface PanelContainerProps {
   panel: BuilderPanelSchemaWithPosition; // A single panel
+  projectLayers: ProjectLayer[];
   selected?: boolean; // Whether the panel is selected
   onClick?: () => void;
   onChangeOrder?: (panelId: string, position: "top" | "bottom" | "left" | "right") => void;
+  viewOnly?: boolean;
 }
 
 const ChangeOrderButton: React.FC<{
@@ -64,7 +67,14 @@ const ChangeOrderButton: React.FC<{
   );
 };
 
-const PanelContainer: React.FC<PanelContainerProps> = ({ panel, selected, onClick, onChangeOrder }) => {
+const PanelContainer: React.FC<PanelContainerProps> = ({
+  panel,
+  projectLayers,
+  selected,
+  onClick,
+  onChangeOrder,
+  viewOnly,
+}) => {
   const theme = useTheme();
   const { t } = useTranslation("common");
   const [isHovered, setIsHovered] = useState(false);
@@ -79,17 +89,21 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ panel, selected, onClic
       sx={{
         ...panel.element,
         position: "absolute",
-        ...(isHovered && { outline: `1px solid ${theme.palette.primary.main}` }),
-        ...(selected && { outline: `2px solid ${theme.palette.primary.main}` }),
+        ...(isHovered && !viewOnly && { outline: `1px solid ${theme.palette.primary.main}`, zIndex: 10 }),
+        ...(selected && !viewOnly && { outline: `2px solid ${theme.palette.primary.main}`, zIndex: 11 }),
         cursor: "pointer",
-        display: "flex",
         overflow: "hidden",
-        alignItems: "center",
         pointerEvents: "all",
-        justifyContent: "center",
+        ...(viewOnly && {
+          pointerEvents: "none",
+          cursor: "default",
+        }),
+        ...(panel.config?.options?.style === "default" && {
+          boxShadow: `rgba(0, 0, 0, 0.2) 0px 0px ${panel.config.appearance.shadow}px`,
+        }),
       }}>
       {/* Conditional Buttons */}
-      {!!panel.element?.left && (
+      {!!panel.element?.left && !viewOnly && (
         <ChangeOrderButton
           onClick={() => onChangeOrder?.(panel.id, "left")}
           position="left"
@@ -97,7 +111,7 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ panel, selected, onClic
           isVisible={isHovered}
         />
       )}
-      {!!panel.element?.top && (
+      {!!panel.element?.top && !viewOnly && (
         <ChangeOrderButton
           onClick={() => onChangeOrder?.(panel.id, "top")}
           position="top"
@@ -105,7 +119,7 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ panel, selected, onClic
           isVisible={isHovered}
         />
       )}
-      {!!panel.element?.bottom && (
+      {!!panel.element?.bottom && !viewOnly && (
         <ChangeOrderButton
           onClick={() => onChangeOrder?.(panel.id, "bottom")}
           position="bottom"
@@ -113,7 +127,7 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ panel, selected, onClic
           isVisible={isHovered}
         />
       )}
-      {!!panel.element?.right && (
+      {!!panel.element?.right && !viewOnly && (
         <ChangeOrderButton
           onClick={() => onChangeOrder?.(panel.id, "right")}
           position="right"
@@ -121,61 +135,147 @@ const PanelContainer: React.FC<PanelContainerProps> = ({ panel, selected, onClic
           isVisible={isHovered}
         />
       )}
-      {/* INNER SECTION  */}
       <Box
         sx={{
           width: "100%",
           height: "100%",
           display: "flex",
-          pointerEvents: "all",
+          position: "relative",
+          ...(panel.orientation === "horizontal" && {
+            flexDirection: "row",
+          }),
+          ...(panel.orientation === "vertical" && {
+            flexDirection: "column",
+          }),
           transition: "all 0.3s",
-          backgroundColor: theme.palette.background.paper,
-          ...(panel.config?.appearance?.opacity !== undefined && {
-            backgroundColor: alpha(theme.palette.background.paper, panel.config?.appearance?.opacity),
-          }),
-          ...(panel.config?.appearance?.backgroundBlur !== undefined && {
-            backdropFilter: `blur(${panel.config.appearance.backgroundBlur}px)`,
-          }),
-          ...(panel.config?.options?.style === "rounded" && {
-            borderRadius: "1rem",
-            margin: "0.5rem",
-            width: "calc(100% - 1rem)",
-            height: "calc(100% - 1rem)",
-          }),
-          ...(panel.config?.appearance?.shadow !== undefined && {
-            boxShadow: `0px 0px 10px 0px rgba(58, 53, 65, ${panel.config.appearance.shadow})`,
+          ...(panel.config?.options?.style !== "default" && {
+            justifyContent: panel.config?.position?.alignItems,
           }),
         }}>
-        <Box
+        {/* INNER SECTION  */}
+        <Stack
+          direction="column"
           sx={{
-            width: "100%",
-            height: "100%",
-            overflow: "auto hidden",
             display: "flex",
-            flexDirection: "column",
+            transition: "all 0.3s",
+            ...(panel.config?.options?.style === "default" && {
+              width: "100%",
+              height: "100%",
+              backgroundColor: alpha(theme.palette.background.paper, panel.config?.appearance?.opacity),
+              backdropFilter: `blur(${panel.config.appearance.backgroundBlur}px)`,
+            }),
+            ...(panel.config?.options?.style === "rounded" && {
+              ...(panel.orientation === "horizontal" && {
+                height: "calc(100% - 1rem)",
+                width: "fit-content",
+                minWidth: "220px",
+              }),
+              ...(panel.orientation === "vertical" && {
+                height: "fit-content",
+                width: "calc(100% - 1rem)",
+                maxWidth: "calc(100% - 1rem)",
+                maxHeight: "calc(100% - 1rem)",
+              }),
+              borderRadius: "1rem",
+              margin: "0.5rem",
+              backgroundColor: alpha(theme.palette.background.paper, panel.config?.appearance?.opacity),
+              backdropFilter: `blur(${panel.config.appearance.backgroundBlur}px)`,
+              boxShadow: `rgba(0, 0, 0, 0.2) 0px 0px ${panel.config.appearance.shadow}px`,
+            }),
+            ...(panel.config?.options?.style === "floated" && {
+              ...(panel.orientation === "horizontal" && {
+                width: "fit-content",
+                maxWidth: "100%",
+              }),
+              ...(panel.orientation === "vertical" && {
+                height: "fit-content",
+                maxHeight: "100%",
+              }),
+              borderRadius: "1rem",
+              backgroundColor: "transparent",
+            }),
+            ...(panel.widgets?.length === 0 && {
+              backgroundColor: alpha(theme.palette.background.paper, panel.config?.appearance?.opacity),
+              ...(panel.config?.options?.style !== "default" && {
+                height: "calc(100% - 1rem)",
+                width: "calc(100% - 1rem)",
+              }),
+              ...(panel.config?.options?.style === "floated" && {
+                backdropFilter: `blur(${panel.config.appearance.backgroundBlur}px)`,
+                boxShadow: `rgba(0, 0, 0, 0.2) 0px 0px ${panel.config.appearance.shadow}px`,
+                margin: "0.5rem",
+              }),
+            }),
           }}>
-          {/* Show empty message if widgets array is empty */}
-          {panel.widgets?.length === 0 ? (
-            <Stack
-              width="100%"
-              height="100%"
-              spacing={2}
-              alignItems="center"
-              direction="column"
-              justifyContent="center">
-              <Icon iconName={ICON_NAME.CUBE} htmlColor={theme.palette.text.secondary} fontSize="small" />
-              <Typography variant="body2" fontWeight="bold" color="textSecondary">
-                {t("drag_and_drop_widgets_here")}
-              </Typography>
-            </Stack>
-          ) : (
-            panel.widgets?.map((widget) => (
-              <Box key={widget.id}>
-                <WidgetWrapper widget={widget} />
-              </Box>
-            ))
-          )}
-        </Box>
+          <Box
+            sx={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignSelf: "stretch",
+              ...(panel.orientation === "horizontal" && {
+                flexDirection: "row",
+                overflow: "auto hidden",
+              }),
+              ...(panel.orientation === "vertical" && {
+                flexDirection: "column",
+                overflow: "hidden auto",
+              }),
+              gap: `${panel?.config?.position?.spacing}rem`,
+              transition: "all 0.3s",
+              ...(panel.config?.options?.style === "default" && {
+                justifyContent: panel.config?.position?.alignItems,
+              }),
+            }}>
+            {/* Show empty message if widgets array is empty */}
+            {panel.widgets?.length === 0 ? (
+              <Stack
+                width="100%"
+                height="100%"
+                alignItems="center"
+                direction="column"
+                display="flex"
+                justifyContent="center">
+                {!viewOnly && (
+                  <>
+                    <Icon
+                      iconName={ICON_NAME.CUBE}
+                      htmlColor={theme.palette.text.secondary}
+                      fontSize="small"
+                    />
+                    <Typography variant="body2" fontWeight="bold" color="textSecondary">
+                      {t("drag_and_drop_widgets_here")}
+                    </Typography>
+                  </>
+                )}
+              </Stack>
+            ) : (
+              panel.widgets?.map((widget) => (
+                <Box
+                  key={widget.id}
+                  sx={{
+                    transition: "all 0.3s",
+                    ...(panel.config?.options?.style === "floated" && {
+                      justifyContent: "center",
+                      alignItems: "center",
+                      backgroundColor: alpha(
+                        theme.palette.background.paper,
+                        panel.config?.appearance?.opacity
+                      ),
+                      backdropFilter: `blur(${panel.config.appearance.backgroundBlur}px)`,
+                      boxShadow: `rgba(0, 0, 0, 0.2) 0px 0px ${panel.config.appearance.shadow}px`,
+                      margin: "0.5rem",
+                      borderRadius: "1rem",
+                      height: "fit-content",
+                      width: "calc(100% - 1rem)",
+                    }),
+                  }}>
+                  <WidgetWrapper widget={widget} projectLayers={projectLayers} />
+                </Box>
+              ))
+            )}
+          </Box>
+        </Stack>
       </Box>
     </Box>
   );
