@@ -94,6 +94,7 @@ const PanelConfiguration = ({ panel, onDelete, onChange }: PanelContainerProps) 
     onChange({
       ...panel,
       config: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...((panel.config || {}) as any),
         [root]: rest.reduce(
           (acc, key, index) => ({

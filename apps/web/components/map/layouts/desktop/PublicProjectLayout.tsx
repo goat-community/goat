@@ -28,7 +28,7 @@ import Scalebar from "@/components/map/controls/Scalebar";
 import { UserLocation } from "@/components/map/controls/UserLocation";
 import { Zoom } from "@/components/map/controls/Zoom";
 
-interface PublicProjectLayoutProps {
+export interface PublicProjectLayoutProps {
   project?: Project;
   projectLayers?: ProjectLayer[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

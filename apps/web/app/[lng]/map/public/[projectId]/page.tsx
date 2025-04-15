@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, useTheme } from "@mui/material";
+import { Box, Theme, useMediaQuery, useTheme } from "@mui/material";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useMemo, useRef } from "react";
 import type { MapRef } from "react-map-gl/maplibre";
@@ -19,7 +19,8 @@ import { useAppDispatch } from "@/hooks/store/ContextHooks";
 
 import { LoadingPage } from "@/components/common/LoadingPage";
 import MapViewer from "@/components/map/MapViewer";
-import PublicProjectLayout from "@/components/map/layouts/PublicProjectLayout";
+import PublicProjectLayout from "@/components/map/layouts/desktop/PublicProjectLayout";
+import MobileProjectLayout from "@/components/map/layouts/mobile/MobileProjectLayout";
 
 export default function MapPage({ params: { projectId } }) {
   const { sharedProject, isLoading, isError: projectError } = usePublicProject(projectId);
@@ -45,7 +46,7 @@ export default function MapPage({ params: { projectId } }) {
       dispatch(setProject(project));
     }
   }, [dispatch, project, projectLayers]);
-
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
   return (
     <>
       {isLoading && <LoadingPage />}
@@ -67,12 +68,17 @@ export default function MapPage({ params: { projectId } }) {
                 width: "100%",
                 height: "100%",
               }}>
-              <PublicProjectLayout project={project} projectLayers={_projectLayers} viewOnly />
+              {isMobile ? (
+                <MobileProjectLayout project={project} projectLayers={_projectLayers} viewOnly />
+              ) : (
+                <PublicProjectLayout project={project} projectLayers={_projectLayers} viewOnly />
+              )}
             </Box>
             <MapViewer
               layers={_projectLayers}
               mapRef={mapRef}
-              maxExtent={project?.max_extent}
+              touchZoomRotate
+              maxExtent={project?.max_extent || undefined}
               initialViewState={{
                 zoom: initialView?.zoom ?? 3,
                 latitude: initialView?.latitude ?? 48.13,

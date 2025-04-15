@@ -34,7 +34,7 @@ import Scenario from "@/components/map/panels/scenario/Scenario";
 import LayerStyle from "@/components/map/panels/style/LayerStyle";
 import Toolbox from "@/components/map/panels/toolbox/Toolbox";
 
-import type { MapSidebarProps } from "../Sidebar";
+import type { MapSidebarProps } from "../../Sidebar";
 
 const sidebarWidth = 52;
 const toolbarHeight = 52;
@@ -263,13 +263,15 @@ const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps)
             <UserLocation tooltip={t("find_location")} />
           </Stack>
           <Stack direction="column" sx={{ pointerEvents: "all" }}>
-            <BasemapSelector
-              styles={translatedBaseMaps}
-              active={activeBasemap.value}
-              basemapChange={async (basemap) => {
-                await onProjectUpdate?.("basemap", basemap);
-              }}
-            />
+            <Box sx={{ pr: 4 }}>
+              <BasemapSelector
+                styles={translatedBaseMaps}
+                active={activeBasemap.value}
+                basemapChange={async (basemap) => {
+                  await onProjectUpdate?.("basemap", basemap);
+                }}
+              />
+            </Box>
             <AttributionControl />
           </Stack>
         </Stack>

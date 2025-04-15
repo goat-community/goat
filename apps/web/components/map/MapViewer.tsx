@@ -1,5 +1,5 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
-import { Box, useTheme } from "@mui/material";
+import { Box, Theme, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useMemo } from "react";
 import { Map, type MapLayerMouseEvent, type MapRef, type ViewState } from "react-map-gl/maplibre";
 import type { ViewStateChangeEvent } from "react-map-gl/maplibre";
@@ -19,8 +19,8 @@ import Layers from "@/components/map/Layers";
 import ScenarioLayer from "@/components/map/ScenarioLayer";
 import ToolboxLayers from "@/components/map/ToolboxLayers";
 import UserLocationLayer from "@/components/map/UserLocationLayer";
+import { MapPopoverInfo } from "@/components/map/controls/LayerInfo";
 import MapPopoverEditor from "@/components/map/controls/PopoverEditor";
-import MapPopoverInfo from "@/components/map/controls/PopoverInfo";
 import DrawControl from "@/components/map/controls/draw/Draw";
 
 interface MapProps {
@@ -174,6 +174,8 @@ const MapViewer: React.FC<MapProps> = ({
     onLoad && onLoad();
   }, [layers, mapRef, onLoad]);
 
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
+
   return (
     <>
       <Box
@@ -236,8 +238,8 @@ const MapViewer: React.FC<MapProps> = ({
           <ScenarioLayer scenarioLayerData={scenarioFeatures} projectLayers={layers as ProjectLayer[]} />
           <UserLocationLayer />
           <ToolboxLayers />
-          {popupInfo && <MapPopoverInfo key={highlightedFeature?.id ?? v4()} {...popupInfo} />}
-          {popupEditor && isEditor && (
+          {!isMobile && popupInfo && <MapPopoverInfo key={highlightedFeature?.id ?? v4()} {...popupInfo} />}
+          {!isMobile && popupEditor && isEditor && (
             <MapPopoverEditor
               key={popupEditor.feature?.id || popupEditor.feature?.properties?.id || v4()}
               {...popupEditor}

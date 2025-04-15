@@ -37,7 +37,7 @@ export const shareProjectSchema = z.object({
   organizations: z.array(shareProjectWithTeamOrOrganizationSchema).optional(),
 });
 
-export const builderConfigInterfaceTypeSchema = z.enum(["panel", "widget"]);
+
 
 export const builderWidgetSchema = z.object({
   id: z.string(),

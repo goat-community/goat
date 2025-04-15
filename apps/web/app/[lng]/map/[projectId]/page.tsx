@@ -32,8 +32,8 @@ import BuilderConfigPanel from "@/components/builder/ConfigPanel";
 import { LoadingPage } from "@/components/common/LoadingPage";
 import Header from "@/components/header/Header";
 import MapViewer from "@/components/map/MapViewer";
-import DataProjectLayout from "@/components/map/layouts/DataProjectLayout";
-import PublicProjectLayout from "@/components/map/layouts/PublicProjectLayout";
+import DataProjectLayout from "@/components/map/layouts/desktop/DataProjectLayout";
+import PublicProjectLayout from "@/components/map/layouts/desktop/PublicProjectLayout";
 
 const UPDATE_VIEW_STATE_DEBOUNCE_TIME = 200;
 
@@ -157,7 +157,9 @@ export default function MapPage({ params: { projectId } }) {
                   },
                 }}>
                 <DndContext>
-                  {mapMode === "data" && <DataProjectLayout project={project} />}
+                  {mapMode === "data" && (
+                    <DataProjectLayout project={project} onProjectUpdate={handleProjectUpdate} />
+                  )}
                   <Box
                     sx={{
                       padding: mapMode === "builder" ? "20px" : "0",
@@ -182,7 +184,7 @@ export default function MapPage({ params: { projectId } }) {
                       layers={projectLayers}
                       mapRef={mapRef}
                       scenarioFeatures={scenarioFeatures}
-                      maxExtent={project?.max_extent}
+                      maxExtent={project?.max_extent || undefined}
                       initialViewState={{
                         zoom: initialView?.zoom ?? 3,
                         latitude: initialView?.latitude ?? 48.13,

@@ -133,8 +133,7 @@ export function UserLocation(props: UserLocationProps) {
           direction="column"
           sx={{
             alignItems: "flex-end",
-            marginTop: theme.spacing(1),
-            marginBottom: theme.spacing(1),
+            my: 1,
           }}>
           <Tooltip title={props.tooltip || "Find location"} arrow placement="left">
             <Fab
