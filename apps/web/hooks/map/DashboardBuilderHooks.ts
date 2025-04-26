@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMap } from "react-map-gl/maplibre";
-import { ZodSchema } from "zod";
+import type { ZodSchema } from "zod";
 import { getMapExtentCQL } from "@/lib/utils/map/navigate";
 
 export const useChartWidget = <TConfig, TQueryParams>(
@@ -48,6 +49,7 @@ export const useChartWidget = <TConfig, TQueryParams>(
     return () => {
       map.off("moveend", handler);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, (config as any)?.options?.filter_by_viewport]);
 
   return { config, queryParams, projectId };

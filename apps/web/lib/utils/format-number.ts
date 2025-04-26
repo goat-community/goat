@@ -1,4 +1,4 @@
-import { FormatNumberTypes } from "@/lib/validations/widget";
+import type { FormatNumberTypes } from "@/lib/validations/widget";
 
 export const formatNumber = (
   value: number,

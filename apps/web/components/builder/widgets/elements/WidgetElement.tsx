@@ -8,6 +8,7 @@ import TextElementWidget from "@/components/builder/widgets/elements/Text";
 
 interface WidgetElementProps {
   config: WidgetElementConfig;
+  viewOnly?: boolean;
 }
 
 const WidgetElement: React.FC<WidgetElementProps> = ({ config }) => {

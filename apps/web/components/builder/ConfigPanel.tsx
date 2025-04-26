@@ -130,7 +130,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
       return;
     }
     const updatedPanels = builderConfig?.interface.filter((panel) => panel.id !== selectedBuilderItem.id);
-    handleMapInterfaceChange(updatedPanels);
+    if (updatedPanels) handleMapInterfaceChange(updatedPanels);
   };
 
   const onPanelChange = (panel: BuilderPanelSchema) => {
@@ -144,7 +144,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
       return p;
     });
     dispatch(setSelectedBuilderItem(panel));
-    handleMapInterfaceChange(updatedPanels);
+    if (updatedPanels) handleMapInterfaceChange(updatedPanels);
   };
 
   const renderConfiguration = () => {
@@ -198,7 +198,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
           </Tabs>
           <Divider sx={{ mt: 0 }} />
           <TabPanel value={value} index={0}>
-            <WidgetsTab sections={sections as any} />
+            <WidgetsTab sections={sections as never} />
           </TabPanel>
           <TabPanel value={value} index={1}>
             <SettingsTab

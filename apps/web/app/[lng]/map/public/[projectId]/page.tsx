@@ -1,6 +1,7 @@
 "use client";
 
-import { Box, Theme, useMediaQuery, useTheme } from "@mui/material";
+import type { Theme } from "@mui/material";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useMemo, useRef } from "react";
 import type { MapRef } from "react-map-gl/maplibre";
@@ -27,7 +28,7 @@ export default function MapPage({ params: { projectId } }) {
   console.log(sharedProject);
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const { activeBasemap } = useBasemap(sharedProject?.config?.["project"] as Project);
+  const { activeBasemap, setActiveBasemap } = useBasemap(sharedProject?.config?.["project"] as Project);
   const projectLayers = useMemo(() => {
     return sharedProject?.config?.["layers"] ?? ([] as ProjectLayer[]);
   }, [sharedProject]);
@@ -42,11 +43,19 @@ export default function MapPage({ params: { projectId } }) {
 
   useEffect(() => {
     if (projectLayers && project) {
-      dispatch(setProjectLayers(projectLayers));
+      dispatch(setProjectLayers(projectLayers as ProjectLayer[]));
       dispatch(setProject(project));
     }
   }, [dispatch, project, projectLayers]);
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onProjectUpdate = (key: string, value: any) => {
+    if (key === "basemap") {
+      setActiveBasemap(value);
+    }
+  };
+
   return (
     <>
       {isLoading && <LoadingPage />}
@@ -69,9 +78,19 @@ export default function MapPage({ params: { projectId } }) {
                 height: "100%",
               }}>
               {isMobile ? (
-                <MobileProjectLayout project={project} projectLayers={_projectLayers} viewOnly />
+                <MobileProjectLayout
+                  project={project}
+                  projectLayers={_projectLayers}
+                  viewOnly
+                  onProjectUpdate={onProjectUpdate}
+                />
               ) : (
-                <PublicProjectLayout project={project} projectLayers={_projectLayers} viewOnly />
+                <PublicProjectLayout
+                  project={project}
+                  projectLayers={_projectLayers}
+                  viewOnly
+                  onProjectUpdate={onProjectUpdate}
+                />
               )}
             </Box>
             <MapViewer

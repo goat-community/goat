@@ -68,7 +68,7 @@ export const PieChartWidget = ({ config: rawConfig }: { config: PieChartSchema }
     return displayData.length === 1
       ? [palette[0]]
       : chroma.scale(palette).mode("lch").colors(displayData.length);
-  }, [displayData.length, config?.options?.color_range?.colors]);
+  }, [displayData.length, data.length, config?.options?.color_range?.colors]);
 
   const computedColors = useMemo(() => {
     return displayData.map((item, index) => {
@@ -83,7 +83,7 @@ export const PieChartWidget = ({ config: rawConfig }: { config: PieChartSchema }
           : `${baseColor}${OPACITY_MODIFIER}`
         : baseColor;
     });
-  }, [selectedValues, isHovering, displayData, baseColors]);
+  }, [displayData, baseColors, selectedValues, data.length, isHovering]);
 
   useEffect(() => {
     const newIndex = calculateDefaultActiveIndex();

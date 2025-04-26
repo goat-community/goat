@@ -1,4 +1,5 @@
-import { Fab, FabProps } from "@mui/material";
+import type { FabProps } from "@mui/material";
+import { Fab } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useState } from "react";
 

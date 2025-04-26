@@ -412,7 +412,7 @@ const MobileProjectLayout = ({
                         >
                           {item?.widgets?.map((widget) => (
                             <Box key={widget.id} sx={{ p: 2, width: "100%", flexShrink: 0 }}>
-                              <WidgetWrapper widget={widget} projectLayers={projectLayers} />
+                              <WidgetWrapper widget={widget} projectLayers={projectLayers} viewOnly />
                             </Box>
                           ))}
                         </Box>

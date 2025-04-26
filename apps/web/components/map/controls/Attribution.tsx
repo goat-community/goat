@@ -55,6 +55,7 @@ const AttributionControl: React.FC<AttributionControlProps> = ({
   }, [map, customAttribution]);
 
   // Debounced version of `updateAttributions` using MUI `debounce`
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedUpdateAttributions = useCallback(debounce(updateAttributions, 200), [updateAttributions]);
 
   useEffect(() => {

@@ -9,9 +9,10 @@ import LayerWidget from "@/components/builder/widgets/information/Layers";
 interface WidgetInformationProps {
   config: WidgetInformationConfig;
   projectLayers: ProjectLayer[];
+  viewOnly?: boolean;
 }
 
-const WidgetInformation: React.FC<WidgetInformationProps> = ({ config, projectLayers }) => {
+const WidgetInformation: React.FC<WidgetInformationProps> = ({ config, projectLayers, viewOnly }) => {
   return (
     <Box sx={{ minHeight: 200 }}>
       {config.setup?.title && (
@@ -20,7 +21,7 @@ const WidgetInformation: React.FC<WidgetInformationProps> = ({ config, projectLa
         </Typography>
       )}
       {config.type === informationTypes.Values.layers && (
-        <LayerWidget config={config} projectLayers={projectLayers} />
+        <LayerWidget config={config} projectLayers={projectLayers} viewOnly={viewOnly} />
       )}
     </Box>
   );

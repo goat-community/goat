@@ -9,6 +9,7 @@ import { PieChartWidget } from "@/components/builder/widgets/chart/Pie";
 
 interface WidgetChartProps {
   config: WidgetChartConfig;
+  viewOnly?: boolean;
 }
 
 const WidgetChart: React.FC<WidgetChartProps> = ({ config }) => {

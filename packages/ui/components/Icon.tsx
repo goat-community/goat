@@ -140,8 +140,6 @@ import {
   hexagonIcon,
   licenseIcon,
   lineIcon,
-  panelAppearance,
-  panelItemPosition,
   pointIcon,
   polygonIcon,
   streetNetworkIcon,

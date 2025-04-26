@@ -270,7 +270,7 @@ const PanelContainer: React.FC<PanelContainerProps> = ({
                       width: "calc(100% - 1rem)",
                     }),
                   }}>
-                  <WidgetWrapper widget={widget} projectLayers={projectLayers} />
+                  <WidgetWrapper widget={widget} projectLayers={projectLayers} viewOnly={viewOnly} />
                 </Box>
               ))
             )}

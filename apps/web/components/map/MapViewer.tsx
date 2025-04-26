@@ -1,5 +1,6 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
-import { Box, Theme, useMediaQuery, useTheme } from "@mui/material";
+import type { Theme } from "@mui/material";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useMemo } from "react";
 import { Map, type MapLayerMouseEvent, type MapRef, type ViewState } from "react-map-gl/maplibre";
 import type { ViewStateChangeEvent } from "react-map-gl/maplibre";

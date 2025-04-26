@@ -16,19 +16,24 @@ import WidgetInformation from "@/components/builder/widgets/information/WidgetIn
 interface WidgetWrapper {
   widget: BuilderWidgetSchema;
   projectLayers: ProjectLayer[];
+  viewOnly?: boolean;
 }
 
-const WidgetWrapper: React.FC<WidgetWrapper> = ({ widget, projectLayers }) => {
+const WidgetWrapper: React.FC<WidgetWrapper> = ({ widget, projectLayers, viewOnly }) => {
   return (
     <Box sx={{ width: "100%", p: 2, pointerEvents: "all" }}>
       {widget.config?.type && chartTypes.options.includes(widget.config?.type as any) && (
-        <WidgetChart config={widget.config as WidgetChartConfig} />
+        <WidgetChart config={widget.config as WidgetChartConfig} viewOnly={viewOnly} />
       )}
       {widget.config?.type && elementTypes.options.includes(widget.config?.type as any) && (
-        <WidgetElement config={widget.config as WidgetElementConfig} />
+        <WidgetElement config={widget.config as WidgetElementConfig} viewOnly={viewOnly} />
       )}
       {widget.config?.type && informationTypes.options.includes(widget.config?.type as any) && (
-        <WidgetInformation config={widget.config as WidgetInformationConfig} projectLayers={projectLayers} />
+        <WidgetInformation
+          config={widget.config as WidgetInformationConfig}
+          projectLayers={projectLayers}
+          viewOnly={viewOnly}
+        />
       )}
     </Box>
   );

@@ -1,6 +1,6 @@
 import bbox from "@turf/bbox";
 import bboxPolygon from "@turf/bbox-polygon";
-import { BBox } from "@turf/helpers";
+import type { BBox } from "@turf/helpers";
 import type { MapRef } from "react-map-gl/maplibre";
 
 import { wktToGeoJSON } from "@/lib/utils/map/wkt";

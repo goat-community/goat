@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMap } from "react-map-gl/maplibre";
 
 type Unit = "imperial" | "metric";
@@ -60,15 +60,23 @@ const ScaleControl: React.FC<ScaleControlProps> = ({ maxWidth = 150 }) => {
   const [endLabel, setEndLabel] = useState<string>(""); // Endpoint label
 
   // List of valid scales
-  const allowedScales = [
-    5, 10, 20, 30, 50, 100, 200, 300, 500, 1000, 2000, 3000, 5000, 10000, 20000, 30000, 50000, 100000, 200000,
-    300000, 500000, 1000000, 2000000, 3000000, 5000000,
-  ];
+  const allowedScales = useMemo(
+    () => [
+      5, 10, 20, 30, 50, 100, 200, 300, 500, 1000, 2000, 3000, 5000, 10000, 20000, 30000, 50000, 100000,
+      200000, 300000, 500000, 1000000, 2000000, 3000000, 5000000,
+    ],
+    []
+  );
 
-  const getNearestScale = useCallback((num: number) => {
-    // Find the closest valid scale from the allowedScales list
-    return allowedScales.reduce((prev, curr) => (Math.abs(curr - num) < Math.abs(prev - num) ? curr : prev));
-  }, []);
+  const getNearestScale = useCallback(
+    (num: number) => {
+      // Find the closest valid scale from the allowedScales list
+      return allowedScales.reduce((prev, curr) =>
+        Math.abs(curr - num) < Math.abs(prev - num) ? curr : prev
+      );
+    },
+    [allowedScales]
+  );
 
   useEffect(() => {
     if (!map || !containerRef.current) return;
