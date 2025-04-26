@@ -19,9 +19,12 @@ import { useBasemap } from "@/hooks/map/MapHooks";
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import MapSidebar from "@/components/map/Sidebar";
+import AttributionControl from "@/components/map/controls/Attribution";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
+import Scalebar from "@/components/map/controls/Scalebar";
+import { UserLocation } from "@/components/map/controls/UserLocation";
 import { Zoom } from "@/components/map/controls/Zoom";
 import Legend from "@/components/map/panels/Legend";
 import Filter from "@/components/map/panels/filter/Filter";
@@ -31,19 +34,19 @@ import Scenario from "@/components/map/panels/scenario/Scenario";
 import LayerStyle from "@/components/map/panels/style/LayerStyle";
 import Toolbox from "@/components/map/panels/toolbox/Toolbox";
 
-import type { MapSidebarProps } from "../Sidebar";
+import type { MapSidebarProps } from "../../Sidebar";
 
 const sidebarWidth = 52;
 const toolbarHeight = 52;
 
-interface ProjectNavigationProps {
+interface DataProjectLayoutProps {
   project: Project;
   isPublic?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
 }
 
-const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps) => {
+const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps) => {
   const theme = useTheme();
   const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
@@ -174,7 +177,7 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
           height: "100%",
           position: "absolute",
           top: 0,
-          pointerEvents: "all",
+          pointerEvents: "none",
           ...(isProjectEditor && { left: sidebarWidth }),
           [theme.breakpoints.down("sm")]: {
             left: "0",
@@ -215,19 +218,22 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
           <Stack direction="column" sx={{ pointerEvents: "all" }}>
             <Geocoder accessToken={MAPBOX_TOKEN} placeholder={t("enter_an_address")} tooltip={t("search")} />
           </Stack>
-          {!isProjectEditor && (
-            <Stack direction="column" sx={{ pointerEvents: "all" }}>
-              <Legend
-                projectLayers={projectLayers}
-                isFloating
-                showAllLayers
-                onVisibilityChange={async (layer) => {
-                  const { layers: _layers, layerToUpdate: _layerToUpdate } = toggleLayerVisibility(layer);
-                  await mutateProjectLayers(_layers, false);
-                }}
-              />
-            </Stack>
-          )}
+          <Stack direction="column" sx={{ pointerEvents: "all" }}>
+            {!isProjectEditor && (
+              <Stack direction="column" sx={{ pointerEvents: "all" }}>
+                <Legend
+                  projectLayers={projectLayers}
+                  isFloating
+                  showAllLayers
+                  onVisibilityChange={async (layer) => {
+                    const { layers: _layers, layerToUpdate: _layerToUpdate } = toggleLayerVisibility(layer);
+                    await mutateProjectLayers(_layers, false);
+                  }}
+                />
+              </Stack>
+            )}
+            <Scalebar />
+          </Stack>
         </Stack>
       </Stack>
       <Stack
@@ -249,20 +255,24 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
             height: `calc(100% - ${toolbarHeight}px)`,
             justifyContent: "space-between",
             marginTop: `${toolbarHeight}px`,
-            padding: theme.spacing(4),
+            pt: theme.spacing(4),
           }}>
-          <Stack direction="column" sx={{ pointerEvents: "all" }}>
+          <Stack direction="column" sx={{ pointerEvents: "all", pr: 4 }}>
             <Zoom tooltipZoomIn={t("zoom_in")} tooltipZoomOut={t("zoom_out")} />
             <Fullscren tooltipOpen={t("fullscreen")} tooltipExit={t("exit_fullscreen")} />
+            <UserLocation tooltip={t("find_location")} />
           </Stack>
           <Stack direction="column" sx={{ pointerEvents: "all" }}>
-            <BasemapSelector
-              styles={translatedBaseMaps}
-              active={activeBasemap.value}
-              basemapChange={async (basemap) => {
-                await onProjectUpdate?.("basemap", basemap);
-              }}
-            />
+            <Box sx={{ pr: 4 }}>
+              <BasemapSelector
+                styles={translatedBaseMaps}
+                active={activeBasemap.value}
+                basemapChange={async (basemap) => {
+                  await onProjectUpdate?.("basemap", basemap);
+                }}
+              />
+            </Box>
+            <AttributionControl />
           </Stack>
         </Stack>
         {isProjectEditor && (
@@ -317,4 +327,4 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
   );
 };
 
-export default ProjectNavigation;
+export default DataProjectLayout;

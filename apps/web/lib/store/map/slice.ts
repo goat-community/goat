@@ -1,3 +1,4 @@
+
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
@@ -7,7 +8,8 @@ import type { Scenario } from "@/lib/validations/scenario";
 import type { MapPopoverEditorProps, MapPopoverInfoProps } from "@/types/map/popover";
 import type { MapGeoJSONFeature } from "react-map-gl/maplibre";
 import { MAPTILER_KEY } from "@/lib/constants";
-import type { Project } from "@/lib/validations/project";
+import type { BuilderPanelSchema, BuilderWidgetSchema, Project } from "@/lib/validations/project";
+
 
 export interface MapState {
   project: Project | undefined;
@@ -24,6 +26,12 @@ export interface MapState {
   highlightedFeature: MapGeoJSONFeature | undefined;
   popupInfo: MapPopoverInfoProps | undefined;
   popupEditor: MapPopoverEditorProps | undefined;
+  mapMode: "data" | "builder";
+  userLocation: {
+    active: boolean;
+    position: GeolocationPosition | undefined;
+  } | undefined;
+  selectedBuilderItem: BuilderPanelSchema | BuilderWidgetSchema | undefined;
 }
 
 const initialState = {
@@ -91,6 +99,9 @@ const initialState = {
   popupInfo: undefined,
   popupEditor: undefined,
   highlightedFeature: undefined,
+  mapMode: "data",
+  userLocation: undefined,
+  selectedBuilderItem: undefined,
 } as MapState;
 
 const mapSlice = createSlice({
@@ -166,7 +177,19 @@ const mapSlice = createSlice({
     setHighlightedFeature: (state, action) => {
       state.highlightedFeature = action
         .payload;
-    }
+    },
+    setMapMode: (state, action: PayloadAction<"data" | "builder">) => {
+      state.mapMode = action.payload;
+      if (action.payload === "data") {
+        state.selectedBuilderItem = undefined;
+      }
+    },
+    setUserLocation: (state, action: PayloadAction<MapState["userLocation"]>) => {
+      state.userLocation = action.payload;
+    },
+    setSelectedBuilderItem: (state, action: PayloadAction<MapState["selectedBuilderItem"]>) => {
+      state.selectedBuilderItem = action.payload;
+    },
   },
 });
 
@@ -184,7 +207,10 @@ export const {
   setSelectedScenarioLayer,
   setPopupInfo,
   setPopupEditor,
-  setHighlightedFeature
+  setHighlightedFeature,
+  setMapMode,
+  setUserLocation,
+  setSelectedBuilderItem,
 } = mapSlice.actions;
 
 export const mapReducer = mapSlice.reducer;
