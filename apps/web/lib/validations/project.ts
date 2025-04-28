@@ -10,7 +10,6 @@ import {
   histogramChartConfigSchema,
   imageElementConfigSchema,
   informationLayersConfigSchema,
-  operationTypes,
   pieChartConfigSchema,
   textElementConfigSchema,
 } from "@/lib/validations/widget";
