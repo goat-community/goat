@@ -21,12 +21,10 @@ export const useChartWidget = <TConfig, TQueryParams>(
 
   useEffect(() => {
     if (!config || !map) return;
-
     const parsedParams = queryParamSchema.safeParse({
       ...(config as any).setup,
       ...(config as any).options,
     });
-
     if (!parsedParams.success) return;
 
     let newParams = parsedParams.data;

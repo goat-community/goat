@@ -89,9 +89,7 @@ export const histogramChartConfigSchema = chartsConfigBaseSchema.extend({
 export const categoriesChartConfigSchema = chartsConfigBaseSchema.extend({
   type: z.literal("categories_chart"),
   setup: chartConfigSetupBaseSchema.extend({
-    group_by_column_name: z.string().optional(),
-    operation: operationTypes.optional(),
-    column_name: z.string().optional(),
+    expression: z.string().optional(),
   }),
   options: chartConfigOptionsBaseSchema.extend({
     format: formatNumberTypes.optional().default("none"),
@@ -106,9 +104,7 @@ export const categoriesChartConfigSchema = chartsConfigBaseSchema.extend({
 export const pieChartConfigSchema = chartsConfigBaseSchema.extend({
   type: z.literal("pie_chart"),
   setup: chartConfigSetupBaseSchema.extend({
-    group_by_column_name: z.string().optional(),
-    operation: operationTypes.optional(),
-    column_name: z.string().optional(),
+    expression: z.string().optional(),
   }),
   options: chartConfigOptionsBaseSchema.extend({
     num_categories: z.number().min(1).max(15).optional().default(1),
@@ -116,7 +112,6 @@ export const pieChartConfigSchema = chartsConfigBaseSchema.extend({
     color_range: colorRange.optional().default(DEFAULT_COLOR_RANGE),
   }),
 });
-
 
 // Element configuration schemas
 export const textElementConfigSchema = z.object({

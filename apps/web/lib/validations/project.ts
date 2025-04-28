@@ -177,19 +177,11 @@ export const projectLayersResponseSchema = responseSchema(projectLayerSchema);
 
 // Stats for project layer
 export const aggregationStatsQueryParams = z.object({
-  group_by_column_name: z.string(),
-  operation: operationTypes,
-  column_name: z.string().optional(),
+  expression: z.string().optional(),
   size: z.number().default(10),
   query: z.string().optional(),
   order: orderByEnum.optional(),
-}).refine(
-  (data) => data.operation === operationTypes.Values.count || Boolean(data.column_name),
-  {
-    message: "column_name is required when operation is not 'count'",
-    path: ["column_name"],
-  }
-);
+})
 
 export const aggregationStatsResponseSchema = z.object({
   items: z.array(

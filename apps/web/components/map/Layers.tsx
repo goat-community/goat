@@ -97,6 +97,8 @@ const Layers = (props: LayersProps) => {
                   <Source key={layer.updated_at} type="vector" tiles={[getFeatureTileUrl(layer)]}>
                     <MapLayer
                       key={getLayerKey(layer)}
+                      minzoom={layer.properties.min_zoom || 0}
+                      maxzoom={layer.properties.max_zoom || 24}
                       id={layer.id.toString()}
                       {...(transformToMapboxLayerStyleSpec(layer) as LayerProps)}
                       beforeId={
@@ -108,6 +110,8 @@ const Layers = (props: LayersProps) => {
                       <MapLayer
                         key={`stroke-${layer.id.toString()}`}
                         id={`stroke-${layer.id.toString()}`}
+                        minzoom={layer.properties.min_zoom || 0}
+                        maxzoom={layer.properties.max_zoom || 24}
                         beforeId={
                           index === 0 || !useDataLayers ? undefined : useDataLayers[index - 1].id.toString()
                         }
@@ -146,6 +150,8 @@ const Layers = (props: LayersProps) => {
                     <MapLayer
                       key={getLayerKey(layer)}
                       id={layer.id.toString()}
+                      minzoom={layer.properties.min_zoom || 0}
+                      maxzoom={layer.properties.max_zoom || 24}
                       type="raster"
                       source-layer="default"
                       layout={{
