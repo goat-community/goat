@@ -32,6 +32,7 @@ export interface MapState {
     position: GeolocationPosition | undefined;
   } | undefined;
   selectedBuilderItem: BuilderPanelSchema | BuilderWidgetSchema | undefined;
+  currentZoom: number | undefined;
 }
 
 const initialState = {
@@ -190,6 +191,9 @@ const mapSlice = createSlice({
     setSelectedBuilderItem: (state, action: PayloadAction<MapState["selectedBuilderItem"]>) => {
       state.selectedBuilderItem = action.payload;
     },
+    setCurrentZoom: (state, action: PayloadAction<number | undefined>) => {
+      state.currentZoom = action.payload;
+    },
   },
 });
 
@@ -211,6 +215,7 @@ export const {
   setMapMode,
   setUserLocation,
   setSelectedBuilderItem,
+  setCurrentZoom,
 } = mapSlice.actions;
 
 export const mapReducer = mapSlice.reducer;
