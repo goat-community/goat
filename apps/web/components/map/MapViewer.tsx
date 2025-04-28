@@ -7,7 +7,7 @@ import type { ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { v4 } from "uuid";
 
 import { PATTERN_IMAGES } from "@/lib/constants/pattern-images";
-import { setHighlightedFeature, setPopupInfo } from "@/lib/store/map/slice";
+import { setCurrentZoom, setHighlightedFeature, setPopupInfo } from "@/lib/store/map/slice";
 import { addOrUpdateMarkerImages, addPatternImages } from "@/lib/transformers/map-image";
 import createPulsingDot from "@/lib/utils/map/pulsing-dot-image";
 import type { FeatureLayerPointProperties, Layer } from "@/lib/validations/layer";
@@ -158,6 +158,7 @@ const MapViewer: React.FC<MapProps> = ({
   const handleMapLoad = useCallback(() => {
     if (mapRef?.current) {
       // get all icon layers and add icons to map using addOrUpdateMarkerImages method
+
       layers?.forEach((layer) => {
         if (layer.type === "feature" && layer.feature_layer_geometry_type === "point") {
           const pointFeatureProperties = layer.properties as FeatureLayerPointProperties;
@@ -171,9 +172,28 @@ const MapViewer: React.FC<MapProps> = ({
       // load geolocation images
       const geolocationPulsingDot = createPulsingDot(mapRef.current);
       mapRef.current.addImage("geolocation-pulsing-dot", geolocationPulsingDot, { pixelRatio: 2 });
+
+      // set current zoom
+      const map = mapRef.current.getMap();
+      const zoom = map.getZoom();
+      dispatch(setCurrentZoom(zoom));
     }
     onLoad && onLoad();
   }, [layers, mapRef, onLoad]);
+
+  const _onMove = useCallback(
+    (e: ViewStateChangeEvent) => {
+      if (onMove) {
+        onMove(e);
+      }
+      if (mapRef?.current) {
+        const map = mapRef.current.getMap();
+        const zoom = map.getZoom();
+        dispatch(setCurrentZoom(zoom));
+      }
+    },
+    [dispatch, onMove, mapRef]
+  );
 
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
 
@@ -220,7 +240,7 @@ const MapViewer: React.FC<MapProps> = ({
           onMoveEnd={onMoveEnd}
           onClick={handleMapClick}
           onMouseMove={handleMapOverImmediate}
-          onMove={onMove}
+          onMove={_onMove}
           maxBounds={maxExtent}
           onLoad={handleMapLoad}>
           {isEditor && (
