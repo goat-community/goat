@@ -2,7 +2,6 @@ import { Global } from "@emotion/react";
 import type { Theme } from "@mui/material";
 import { Box, IconButton, Stack, SwipeableDrawer, Typography, styled, useTheme } from "@mui/material";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-// Added useEffect
 import "swiper/css";
 import "swiper/css/pagination";
 import { Pagination } from "swiper/modules";

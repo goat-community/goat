@@ -10,6 +10,7 @@ import {
   histogramChartConfigSchema,
   imageElementConfigSchema,
   informationLayersConfigSchema,
+  numbersInformationConfigSchema,
   pieChartConfigSchema,
   textElementConfigSchema,
 } from "@/lib/validations/widget";
@@ -44,6 +45,7 @@ export const builderWidgetSchema = z.object({
   config: z
     .union([
       informationLayersConfigSchema,
+      numbersInformationConfigSchema,
       categoriesChartConfigSchema,
       histogramChartConfigSchema,
       pieChartConfigSchema,

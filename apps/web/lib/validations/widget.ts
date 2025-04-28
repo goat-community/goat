@@ -3,7 +3,7 @@ import * as z from "zod";
 import { DEFAULT_COLOR_RANGE } from "@/lib/constants/color";
 import { colorRange } from "@/lib/validations/layer";
 
-export const informationTypes = z.enum(["layers"]);
+export const informationTypes = z.enum(["layers", "numbers"]);
 export const chartTypes = z.enum(["histogram_chart", "categories_chart", "pie_chart"]);
 export const elementTypes = z.enum(["text", "divider", "image"]);
 export const widgetTypes = z.enum([
@@ -32,11 +32,17 @@ export const formatNumberTypes = z.enum([
   "percent_2d", // 1.00%
 ]);
 
-// Information configuration schemas
+const chartConfigSetupBaseSchema = z.object({
+  title: z.string().optional(),
+  layer_project_id: z.number().optional(),
+});
+
 const informationConfigSetupBaseSchema = z.object({
   title: z.string().optional(),
 });
-const informationConfigOptionsBaseSchema = z.object({});
+const informationConfigOptionsBaseSchema = z.object({
+  description: z.string().optional(),
+});
 
 export const informationConfigSchema = z.object({
   type: informationTypes,
@@ -53,10 +59,18 @@ export const informationLayersConfigSchema = informationConfigSchema.extend({
   }),
 });
 
-// Chart configuration schemas
-const chartConfigSetupBaseSchema = z.object({
-  title: z.string().optional(),
-  layer_project_id: z.number().optional(),
+export const numbersInformationConfigSchema = informationConfigSchema.extend({
+  type: z.literal("numbers"),
+  setup: chartConfigSetupBaseSchema.extend({
+    expression: z.string().optional(),
+    icon: z.string().optional(),
+  }),
+  options: informationConfigOptionsBaseSchema.extend({
+    filter_by_viewport: z.boolean().optional().default(true),
+    cross_filter: z.boolean().optional().default(true),
+    format: formatNumberTypes.optional().default("none"),
+    description: z.string().optional(),
+  }),
 });
 
 const chartConfigOptionsBaseSchema = z.object({
@@ -148,7 +162,8 @@ export type TextElementSchema = z.infer<typeof textElementConfigSchema>;
 export type DividerElementSchema = z.infer<typeof dividerElementConfigSchema>;
 export type ImageElementSchema = z.infer<typeof imageElementConfigSchema>;
 export type LayerInformationSchema = z.infer<typeof informationLayersConfigSchema>;
+export type NumbersInformationSchema = z.infer<typeof numbersInformationConfigSchema>;
 
 export type WidgetChartConfig = HistogramChartSchema | CategoriesChartSchema | PieChartSchema;
 export type WidgetElementConfig = TextElementSchema | DividerElementSchema | ImageElementSchema;
-export type WidgetInformationConfig = LayerInformationSchema;
+export type WidgetInformationConfig = LayerInformationSchema | NumbersInformationSchema;

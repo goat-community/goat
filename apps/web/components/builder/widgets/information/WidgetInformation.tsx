@@ -5,6 +5,7 @@ import type { WidgetInformationConfig } from "@/lib/validations/widget";
 import { informationTypes } from "@/lib/validations/widget";
 
 import LayerWidget from "@/components/builder/widgets/information/Layers";
+import NumbersWidget from "@/components/builder/widgets/information/Numbers";
 
 interface WidgetInformationProps {
   config: WidgetInformationConfig;
@@ -14,7 +15,7 @@ interface WidgetInformationProps {
 
 const WidgetInformation: React.FC<WidgetInformationProps> = ({ config, projectLayers, viewOnly }) => {
   return (
-    <Box sx={{ minHeight: 200 }}>
+    <Box>
       {config.setup?.title && (
         <Typography variant="body1" fontWeight="bold" align="left" gutterBottom>
           {config.setup?.title}
@@ -22,6 +23,15 @@ const WidgetInformation: React.FC<WidgetInformationProps> = ({ config, projectLa
       )}
       {config.type === informationTypes.Values.layers && (
         <LayerWidget config={config} projectLayers={projectLayers} viewOnly={viewOnly} />
+      )}
+
+      {config.type === informationTypes.Values.numbers && (
+        <NumbersWidget config={config} projectLayers={projectLayers} viewOnly={viewOnly} />
+      )}
+      {config.options?.description && (
+        <Typography variant="body1" align="left">
+          {config.options.description}
+        </Typography>
       )}
     </Box>
   );
