@@ -3,6 +3,10 @@ import useSWR from "swr";
 import { fetchWithAuth, fetcher } from "@/lib/api/fetcher";
 import type { GetContentQueryParams } from "@/lib/validations/common";
 import type {
+  AggregationStatsQueryParams,
+  AggregationStatsResponse,
+  HistogramStatsQueryParams,
+  HistogramStatsResponse,
   PostProject,
   Project,
   ProjectLayer,
@@ -13,8 +17,8 @@ import type {
 import type {
   PostScenario,
   ScenarioFeaturePost,
-  ScenarioFeatures,
   ScenarioFeatureUpdate,
+  ScenarioFeatures,
   ScenarioResponse,
 } from "@/lib/validations/scenario";
 
@@ -35,7 +39,6 @@ export const useProjects = (queryParams?: GetContentQueryParams) => {
 };
 
 export const useProject = (projectId?: string) => {
-
   const { data, isLoading, error, mutate, isValidating } = useSWR<Project>(
     () => (projectId ? [`${PROJECTS_API_BASE_URL}/${projectId}`] : null),
     fetcher
@@ -51,7 +54,6 @@ export const useProject = (projectId?: string) => {
 };
 
 export const useProjectLayers = (projectId?: string) => {
-
   const { data, isLoading, error, mutate, isValidating } = useSWR<ProjectLayer[]>(
     () => (projectId ? [`${PROJECTS_API_BASE_URL}/${projectId}/layer`] : null),
     fetcher
@@ -115,6 +117,54 @@ export const useProjectLayerChartData = (projectId: string, layerId: number, cum
   );
   return {
     chartData: data,
+    isLoading: isLoading,
+    isError: error,
+    mutate,
+    isValidating,
+  };
+};
+
+export const useProjectLayerAggregationStats = (
+  projectId: string,
+  layerId?: number,
+  queryParams?: AggregationStatsQueryParams
+) => {
+  const { data, isLoading, error, mutate, isValidating } = useSWR<AggregationStatsResponse>(
+    () =>
+      queryParams && layerId
+        ? [`${PROJECTS_API_BASE_URL}/${projectId}/layer/${layerId}/statistic-aggregation`, queryParams]
+        : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    }
+  );
+  return {
+    aggregationStats: data,
+    isLoading: isLoading,
+    isError: error,
+    mutate,
+    isValidating,
+  };
+};
+
+export const useProjectLayerHistogramStats = (
+  projectId: string,
+  layerId?: number,
+  queryParams?: HistogramStatsQueryParams
+) => {
+  const { data, isLoading, error, mutate, isValidating } = useSWR<HistogramStatsResponse>(
+    () =>
+      queryParams && layerId
+        ? [`${PROJECTS_API_BASE_URL}/${projectId}/layer/${layerId}/statistic-histogram`, queryParams]
+        : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    }
+  );
+  return {
+    histogramStats: data,
     isLoading: isLoading,
     isError: error,
     mutate,
@@ -289,18 +339,21 @@ export const updateProjectScenarioFeatures = async (
   scenarioId: string,
   payload: ScenarioFeatureUpdate[]
 ) => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/layer/${project_layer_id}/scenario/${scenarioId}/features`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  const response = await fetchWithAuth(
+    `${PROJECTS_API_BASE_URL}/${projectId}/layer/${project_layer_id}/scenario/${scenarioId}/features`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to update project scenario features");
   }
   return await response.json();
-}
+};
 
 export const createProjectScenarioFeatures = async (
   projectId: string,
@@ -308,19 +361,21 @@ export const createProjectScenarioFeatures = async (
   scenarioId: string,
   payload: ScenarioFeaturePost[]
 ) => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/layer/${project_layer_id}/scenario/${scenarioId}/features`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  const response = await fetchWithAuth(
+    `${PROJECTS_API_BASE_URL}/${projectId}/layer/${project_layer_id}/scenario/${scenarioId}/features`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
   if (!response.ok) {
     throw new Error("Failed to create project scenario features");
   }
   return await response.json();
-}
-
+};
 
 export const usePublicProject = (projectId: string) => {
   const { data, isLoading, error, mutate, isValidating } = useSWR<ProjectPublic>(

@@ -14,6 +14,7 @@ import {
   faXTwitter,
 } from "@fortawesome/free-brands-svg-icons";
 import {
+  faAlignCenter,
   faArrowRightArrowLeft,
   faBars,
   faBarsProgress,
@@ -35,9 +36,11 @@ import {
   faChevronDown,
   faChevronLeft,
   faChevronRight,
+  faChevronUp,
   faCircle,
   faCircleCheck,
   faCircleExclamation,
+  faCircleHalfStroke,
   faCirclePlus,
   faCircleQuestion,
   faClock,
@@ -49,6 +52,7 @@ import {
   faCreditCard,
   faCross,
   faCrown,
+  faCube,
   faDatabase,
   faDownload,
   faDrawPolygon,
@@ -74,6 +78,7 @@ import {
   faLayerGroup,
   faLink,
   faList,
+  faLocationCrosshairs,
   faLocationDot,
   faLocationPin,
   faLock,
@@ -89,6 +94,7 @@ import {
   faPen,
   faPersonBiking,
   faPersonRunning,
+  faPlay,
   faPlus,
   faQuestionCircle,
   faRefresh,
@@ -178,6 +184,7 @@ export enum ICON_NAME {
   CHEVRON_LEFT = "chevron-left",
   CHEVRON_RIGHT = "chevron-right",
   CHEVRON_DOWN = "chevron-down",
+  CHEVRON_UP = "chevron-up",
   EYE = "eye",
   EYE_SLASH = "eye-slash",
   MORE_VERT = "more-vert",
@@ -186,6 +193,7 @@ export enum ICON_NAME {
   STEPDOWN = "step-down",
   LOCATION = "location",
   LOCATION_MARKER = "location-marker",
+  LOCATION_CROSSHAIRS = "location-crosshairs",
   CROSS = "cross",
   CIRCLE = "circle",
   CIRCLE_PLUS = "circle-plus",
@@ -246,6 +254,8 @@ export enum ICON_NAME {
   COOKIES = "cookies",
   LOCK = "lock",
   UNLOCK = "unlock",
+  PLAY = "play",
+  CUBE = "cube",
   // Brand icons
   GOOGLE = "google",
   MICROSOFT = "microsoft",
@@ -280,6 +290,8 @@ export enum ICON_NAME {
   XYZ = "xyz",
   ARCGIS_FEATURE_SERVICE = "arcgis-feature-service",
   GEOJSON = "geojson",
+  PANEL_APPERANCE = "panel-appearance",
+  PANEL_POSITION = "panel-position",
 }
 
 const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
@@ -318,6 +330,7 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.CHEVRON_LEFT]: faChevronLeft,
   [ICON_NAME.CHEVRON_RIGHT]: faChevronRight,
   [ICON_NAME.CHEVRON_DOWN]: faChevronDown,
+  [ICON_NAME.CHEVRON_UP]: faChevronUp,
   [ICON_NAME.EYE]: faEye,
   [ICON_NAME.EYE_SLASH]: faEyeSlash,
   [ICON_NAME.STAR]: faStar,
@@ -327,6 +340,7 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.STEPDOWN]: faCaretDown,
   [ICON_NAME.LOCATION]: faLocationDot,
   [ICON_NAME.LOCATION_MARKER]: faLocationPin,
+  [ICON_NAME.LOCATION_CROSSHAIRS]: faLocationCrosshairs,
   [ICON_NAME.CROSS]: faCross,
   [ICON_NAME.CIRCLE]: faCircle,
   [ICON_NAME.CIRCLE_PLUS]: faCirclePlus,
@@ -384,6 +398,8 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.COOKIES]: faCookieBite,
   [ICON_NAME.LOCK]: faLock,
   [ICON_NAME.UNLOCK]: faUnlock,
+  [ICON_NAME.PLAY]: faPlay,
+  [ICON_NAME.CUBE]: faCube,
   // Brand icons
   [ICON_NAME.GOOGLE]: faGoogle,
   [ICON_NAME.MICROSOFT]: faMicrosoft,
@@ -419,6 +435,8 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.XYZ]: xyzIcon,
   [ICON_NAME.ARCGIS_FEATURE_SERVICE]: arcgisFeatureServiceIcon,
   [ICON_NAME.GEOJSON]: geojsonIcon,
+  [ICON_NAME.PANEL_POSITION]: faAlignCenter,
+  [ICON_NAME.PANEL_APPERANCE]: faCircleHalfStroke,
 };
 
 interface BrandColors {

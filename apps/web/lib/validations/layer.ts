@@ -66,7 +66,7 @@ export const layerClassBreaks = z.object({
 });
 
 const ColorLegends = z.record(z.string());
-const ColorRange = z.object({
+export const colorRange = z.object({
   name: z.string().optional(),
   type: z.string().optional(),
   category: z.string().optional(),
@@ -100,7 +100,7 @@ export const layerPropertiesBaseSchema = z.object({
 
 export const colorSchema = z.object({
   color: z.array(z.number().min(0).max(255)).optional().default(DEFAULT_COLOR),
-  color_range: ColorRange.optional().default(DEFAULT_COLOR_RANGE),
+  color_range: colorRange.optional().default(DEFAULT_COLOR_RANGE),
   color_field: layerFieldType.optional(),
   color_scale: classBreaks.optional().default("quantile"),
   color_scale_breaks: layerClassBreaks.optional(),
@@ -108,7 +108,7 @@ export const colorSchema = z.object({
 
 export const strokeColorSchema = z.object({
   stroke_color: z.array(z.number().min(0).max(255)).optional().default(DEFAULT_COLOR),
-  stroke_color_range: ColorRange.optional().default(DEFAULT_COLOR_RANGE),
+  stroke_color_range: colorRange.optional().default(DEFAULT_COLOR_RANGE),
   stroke_color_field: layerFieldType.optional(),
   stroke_color_scale: classBreaks.optional().default("quantile"),
   stroke_color_scale_breaks: layerClassBreaks.optional(),
@@ -373,7 +373,7 @@ export const layerResponseSchema = responseSchema(layerSchema);
 export const layerTypesArray = Object.values(layerType.Values);
 export const featureLayerTypesArray = Object.values(featureLayerType.Values);
 
-export type ColorRange = z.infer<typeof ColorRange>;
+export type ColorRange = z.infer<typeof colorRange>;
 export type ColorMap = z.infer<typeof ColorMap>;
 export type Layer = z.infer<typeof layerSchema>;
 export type PostDataset = z.infer<typeof postDatasetSchema>;

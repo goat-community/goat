@@ -33,11 +33,11 @@ export function removeColorMapsDuplicates(colorMaps) {
 
 export function getMapboxStyleColor(data: ProjectLayer | Layer, type: "color" | "stroke_color") {
   const colors = data.properties[`${type}_range`]?.colors;
+
   const fieldName = data.properties[`${type}_field`]?.name;
   const fieldType = data.properties[`${type}_field`]?.type;
   const colorScale = data.properties[`${type}_scale`];
   const colorMaps = data.properties[`${type}_range`]?.color_map;
-
   if (colorMaps && fieldName && Array.isArray(colorMaps) && colorScale === "ordinal") {
     const valuesAndColors = [] as (string | number)[];
     colorMaps.forEach((colorMap) => {

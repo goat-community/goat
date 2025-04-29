@@ -1,13 +1,15 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
-import { Box, useTheme } from "@mui/material";
+import type { Theme } from "@mui/material";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useMemo } from "react";
 import { Map, type MapLayerMouseEvent, type MapRef, type ViewState } from "react-map-gl/maplibre";
 import type { ViewStateChangeEvent } from "react-map-gl/maplibre";
 import { v4 } from "uuid";
 
 import { PATTERN_IMAGES } from "@/lib/constants/pattern-images";
-import { setHighlightedFeature, setPopupInfo } from "@/lib/store/map/slice";
+import { setCurrentZoom, setHighlightedFeature, setPopupInfo } from "@/lib/store/map/slice";
 import { addOrUpdateMarkerImages, addPatternImages } from "@/lib/transformers/map-image";
+import createPulsingDot from "@/lib/utils/map/pulsing-dot-image";
 import type { FeatureLayerPointProperties, Layer } from "@/lib/validations/layer";
 import type { ProjectLayer } from "@/lib/validations/project";
 import type { ScenarioFeatures } from "@/lib/validations/scenario";
@@ -17,8 +19,9 @@ import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 import Layers from "@/components/map/Layers";
 import ScenarioLayer from "@/components/map/ScenarioLayer";
 import ToolboxLayers from "@/components/map/ToolboxLayers";
+import UserLocationLayer from "@/components/map/UserLocationLayer";
+import { MapPopoverInfo } from "@/components/map/controls/LayerInfo";
 import MapPopoverEditor from "@/components/map/controls/PopoverEditor";
-import MapPopoverInfo from "@/components/map/controls/PopoverInfo";
 import DrawControl from "@/components/map/controls/draw/Draw";
 
 interface MapProps {
@@ -155,6 +158,7 @@ const MapViewer: React.FC<MapProps> = ({
   const handleMapLoad = useCallback(() => {
     if (mapRef?.current) {
       // get all icon layers and add icons to map using addOrUpdateMarkerImages method
+
       layers?.forEach((layer) => {
         if (layer.type === "feature" && layer.feature_layer_geometry_type === "point") {
           const pointFeatureProperties = layer.properties as FeatureLayerPointProperties;
@@ -164,9 +168,34 @@ const MapViewer: React.FC<MapProps> = ({
 
       // load pattern images
       addPatternImages(PATTERN_IMAGES ?? [], mapRef.current);
+
+      // load geolocation images
+      const geolocationPulsingDot = createPulsingDot(mapRef.current);
+      mapRef.current.addImage("geolocation-pulsing-dot", geolocationPulsingDot, { pixelRatio: 2 });
+
+      // set current zoom
+      const map = mapRef.current.getMap();
+      const zoom = map.getZoom();
+      dispatch(setCurrentZoom(zoom));
     }
     onLoad && onLoad();
   }, [layers, mapRef, onLoad]);
+
+  const _onMove = useCallback(
+    (e: ViewStateChangeEvent) => {
+      if (onMove) {
+        onMove(e);
+      }
+      if (mapRef?.current) {
+        const map = mapRef.current.getMap();
+        const zoom = map.getZoom();
+        dispatch(setCurrentZoom(zoom));
+      }
+    },
+    [dispatch, onMove, mapRef]
+  );
+
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
 
   return (
     <>
@@ -207,10 +236,11 @@ const MapViewer: React.FC<MapProps> = ({
           interactiveLayerIds={interactiveLayerIds}
           dragRotate={dragRotate}
           touchZoomRotate={touchZoomRotate}
+          attributionControl={false}
           onMoveEnd={onMoveEnd}
           onClick={handleMapClick}
           onMouseMove={handleMapOverImmediate}
-          onMove={onMove}
+          onMove={_onMove}
           maxBounds={maxExtent}
           onLoad={handleMapLoad}>
           {isEditor && (
@@ -227,9 +257,10 @@ const MapViewer: React.FC<MapProps> = ({
             selectedScenarioLayer={selectedScenarioEditLayer as ProjectLayer}
           />
           <ScenarioLayer scenarioLayerData={scenarioFeatures} projectLayers={layers as ProjectLayer[]} />
+          <UserLocationLayer />
           <ToolboxLayers />
-          {popupInfo && <MapPopoverInfo key={highlightedFeature?.id ?? v4()} {...popupInfo} />}
-          {popupEditor && isEditor && (
+          {!isMobile && popupInfo && <MapPopoverInfo key={highlightedFeature?.id ?? v4()} {...popupInfo} />}
+          {!isMobile && popupEditor && isEditor && (
             <MapPopoverEditor
               key={popupEditor.feature?.id || popupEditor.feature?.properties?.id || v4()}
               {...popupEditor}
