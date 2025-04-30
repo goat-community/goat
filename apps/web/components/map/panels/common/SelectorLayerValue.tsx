@@ -31,8 +31,10 @@ export type SelectorProps = {
   tooltip?: string;
   disabled?: boolean;
   multiple?: boolean;
+  placeholder?: string;
   onFocus?: () => void;
   onClose?: () => void;
+  cqlFilter?: object | undefined;
 };
 
 const SelectorLayerValue = (props: SelectorProps) => {
@@ -45,6 +47,7 @@ const SelectorLayerValue = (props: SelectorProps) => {
       onSelectedValuesChange: props.onSelectedValuesChange,
       fieldName: props.fieldName,
       datasetId: props.layerId,
+      cqlFilter: props.cqlFilter,
     });
 
   return (
@@ -97,9 +100,9 @@ const SelectorLayerValue = (props: SelectorProps) => {
         onBlur={() => setFocused(false)}
         renderValue={() => {
           if (!props.selectedValues && !props.multiple)
-            return <Typography variant="body2">{t("select_value")}</Typography>;
+            return <Typography variant="body2">{props.placeholder ?? t("select_value")}</Typography>;
           if (props.multiple && Array.isArray(props.selectedValues) && props.selectedValues.length === 0)
-            return <Typography variant="body2">{t("select_values")}</Typography>;
+            return <Typography variant="body2">{props.placeholder ?? t("select_values")}</Typography>;
           return (
             <>
               {props.selectedValues && (

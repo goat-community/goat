@@ -7,25 +7,25 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 import { useProjectLayerAggregationStats } from "@/lib/api/projects";
 import type { AggregationStatsQueryParams } from "@/lib/validations/project";
 import { type ProjectLayer, aggregationStatsQueryParams } from "@/lib/validations/project";
-import { type NumbersInformationSchema, numbersInformationConfigSchema } from "@/lib/validations/widget";
+import { type NumbersDataSchema, numbersDataConfigSchema } from "@/lib/validations/widget";
 
 import { useChartWidget } from "@/hooks/map/DashboardBuilderHooks";
 
 import { ChartStatusContainer } from "@/components/builder/widgets/chart/ChartStatusContainer";
 import { StaleDataLoader } from "@/components/builder/widgets/chart/StaleDataLoader";
 
-interface NumbersInformationProps {
-  config: NumbersInformationSchema;
+interface NumbersDataProps {
+  config: NumbersDataSchema;
   projectLayers: ProjectLayer[];
   viewOnly?: boolean;
 }
 
-const NumbersInformationWidget = ({ config: rawConfig }: NumbersInformationProps) => {
+const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
   const { t } = useTranslation("common");
   const theme = useTheme();
   const { config, queryParams, projectId } = useChartWidget(
     rawConfig,
-    numbersInformationConfigSchema,
+    numbersDataConfigSchema,
     aggregationStatsQueryParams
   );
 
@@ -92,4 +92,4 @@ const NumbersInformationWidget = ({ config: rawConfig }: NumbersInformationProps
   );
 };
 
-export default NumbersInformationWidget;
+export default NumbersDataWidget;
