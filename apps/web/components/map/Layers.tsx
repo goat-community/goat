@@ -22,7 +22,7 @@ interface LayersProps {
 const Layers = (props: LayersProps) => {
   const temporaryFilters = useAppSelector((state) => state.map.temporaryFilters);
   const mapMode = useAppSelector((state) => state.map.mapMode);
-
+  console.log("mapMode", mapMode);
   const scenarioFeaturesToExclude = useMemo(() => {
     const featuresToExclude: { [key: string]: string[] } = {};
     props.scenarioFeatures?.features.forEach((feature) => {
