@@ -25,7 +25,6 @@ import MobileProjectLayout from "@/components/map/layouts/mobile/MobileProjectLa
 
 export default function MapPage({ params: { projectId } }) {
   const { sharedProject, isLoading, isError: projectError } = usePublicProject(projectId);
-  console.log(sharedProject);
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const { activeBasemap, setActiveBasemap } = useBasemap(sharedProject?.config?.["project"] as Project);
