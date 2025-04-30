@@ -179,7 +179,7 @@ const MapViewer: React.FC<MapProps> = ({
       dispatch(setCurrentZoom(zoom));
     }
     onLoad && onLoad();
-  }, [layers, mapRef, onLoad]);
+  }, [layers, mapRef, onLoad, dispatch]);
 
   const _onMove = useCallback(
     (e: ViewStateChangeEvent) => {

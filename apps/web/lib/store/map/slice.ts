@@ -11,6 +11,13 @@ import { MAPTILER_KEY } from "@/lib/constants";
 import type { BuilderPanelSchema, BuilderWidgetSchema, Project } from "@/lib/validations/project";
 
 
+export type TemporaryFilter = {
+  id: string; // unique identifier
+  layer_id: number; // layer id
+  filter: object
+  spatial_cross_filter?: object | undefined
+};
+
 export interface MapState {
   project: Project | undefined;
   basemaps: Basemap[];
@@ -33,6 +40,8 @@ export interface MapState {
   } | undefined;
   selectedBuilderItem: BuilderPanelSchema | BuilderWidgetSchema | undefined;
   currentZoom: number | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  temporaryFilters: TemporaryFilter[]; // Temporary filters for the map
 }
 
 const initialState = {
@@ -103,6 +112,7 @@ const initialState = {
   mapMode: "data",
   userLocation: undefined,
   selectedBuilderItem: undefined,
+  temporaryFilters: [] as TemporaryFilter[],
 } as MapState;
 
 const mapSlice = createSlice({
@@ -194,6 +204,19 @@ const mapSlice = createSlice({
     setCurrentZoom: (state, action: PayloadAction<number | undefined>) => {
       state.currentZoom = action.payload;
     },
+    // Temporary filters for the map
+    addTemporaryFilter: (state, action: PayloadAction<TemporaryFilter>) => {
+      state.temporaryFilters.push(action.payload);
+    },
+    updateTemporaryFilter: (state, action: PayloadAction<TemporaryFilter>) => {
+      const index = state.temporaryFilters.findIndex(f => f.id === action.payload.id);
+      if (index !== -1) {
+        state.temporaryFilters[index] = action.payload;
+      }
+    },
+    removeTemporaryFilter: (state, action: PayloadAction<string>) => {
+      state.temporaryFilters = state.temporaryFilters.filter(f => f.id !== action.payload);
+    },
   },
 });
 
@@ -216,6 +239,9 @@ export const {
   setUserLocation,
   setSelectedBuilderItem,
   setCurrentZoom,
+  addTemporaryFilter,
+  updateTemporaryFilter,
+  removeTemporaryFilter,
 } = mapSlice.actions;
 
 export const mapReducer = mapSlice.reducer;

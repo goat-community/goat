@@ -1,0 +1,143 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Box } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
+
+import { useDatasetCollectionItems } from "@/lib/api/layers";
+import type { TemporaryFilter } from "@/lib/store/map/slice";
+import { addTemporaryFilter, removeTemporaryFilter, updateTemporaryFilter } from "@/lib/store/map/slice";
+import { type ProjectLayer } from "@/lib/validations/project";
+import { type FilterDataSchema, filterLayoutTypes } from "@/lib/validations/widget";
+
+import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
+
+import SelectorLayerValue from "@/components/map/panels/common/SelectorLayerValue";
+
+// Helper function for deep comparison using JSON.stringify
+const areFiltersEqual = (a: TemporaryFilter | undefined, b: TemporaryFilter) => {
+  if (!a) return false;
+  const cleanA = { ...a, id: undefined }; // Exclude ID from comparison
+  const cleanB = { ...b, id: undefined };
+  return JSON.stringify(cleanA) === JSON.stringify(cleanB);
+};
+
+interface FilterDataProps {
+  id: string;
+  config: FilterDataSchema;
+  projectLayers: ProjectLayer[];
+  viewOnly?: boolean;
+}
+
+const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataProps) => {
+  const dispatch = useAppDispatch();
+  const [selectedValues, setSelectedValues] = useState<string[] | string | undefined>(
+    rawConfig?.setup?.multiple ? [] : undefined
+  );
+  const existingFilter = useAppSelector((state) =>
+    state.map.temporaryFilters.find((filter) => filter.id === id)
+  );
+
+  const layer = useMemo(() => {
+    return projectLayers?.find((l) => l.id === rawConfig?.setup?.layer_project_id) ?? null;
+  }, [projectLayers, rawConfig?.setup?.layer_project_id]);
+
+  const geometryDataQueryParams = useMemo(() => {
+    const values = Array.isArray(selectedValues) ? selectedValues : [selectedValues];
+    if (
+      !selectedValues?.length ||
+      !rawConfig?.options?.cross_filter ||
+      !rawConfig?.setup?.column_name ||
+      !layer ||
+      layer.feature_layer_geometry_type !== "polygon"
+    )
+      return undefined;
+
+    return {
+      limit: 50,
+      offset: 0,
+      filter: JSON.stringify({
+        op: "or",
+        args: values.map((value) => ({
+          op: "=",
+          args: [{ property: rawConfig.setup.column_name }, value],
+        })),
+      }),
+    };
+  }, [selectedValues, rawConfig, layer]);
+
+  const { data: geometryData } = useDatasetCollectionItems(layer?.layer_id || "", geometryDataQueryParams);
+
+  useEffect(() => {
+    if (
+      !selectedValues ||
+      (Array.isArray(selectedValues) && selectedValues.length === 0) ||
+      !layer ||
+      !rawConfig?.setup?.column_name
+    ) {
+      if (existingFilter) dispatch(removeTemporaryFilter(id));
+      return;
+    }
+
+    const normalizedValues = Array.isArray(selectedValues) ? selectedValues : [selectedValues];
+
+    const newFilter: TemporaryFilter = {
+      id,
+      layer_id: layer.id,
+      filter: {
+        op: "or",
+        args: normalizedValues.map((value) => ({
+          op: "=",
+          args: [{ property: rawConfig.setup.column_name }, value],
+        })),
+      },
+    };
+
+    if (geometryData?.features?.length) {
+      newFilter.spatial_cross_filter = {
+        op: "or",
+        args: geometryData.features.map((feature) => ({
+          op: "s_intersects",
+          args: [{ property: "geom" }, { ...feature.geometry }],
+        })),
+      };
+    }
+
+    // Compare filters using JSON.stringify
+    if (!areFiltersEqual(existingFilter, newFilter)) {
+      if (existingFilter) {
+        dispatch(updateTemporaryFilter(newFilter));
+      } else {
+        dispatch(addTemporaryFilter(newFilter));
+      }
+    }
+  }, [
+    dispatch,
+    existingFilter,
+    geometryData?.features,
+    id,
+    layer,
+    rawConfig.setup.column_name,
+    selectedValues,
+  ]);
+
+  return (
+    <Box sx={{ mb: 2 }}>
+      {layer &&
+        rawConfig?.setup.column_name &&
+        rawConfig?.setup.layout === filterLayoutTypes.Values.select && (
+          <SelectorLayerValue
+            selectedValues={selectedValues as any}
+            onSelectedValuesChange={(values: string[] | string | null) => {
+              setSelectedValues(values as any);
+            }}
+            layerId={layer.layer_id}
+            fieldName={rawConfig?.setup.column_name}
+            placeholder={rawConfig?.setup.placeholder}
+            multiple={rawConfig?.setup.multiple}
+            cqlFilter={layer.query?.cql}
+          />
+        )}
+    </Box>
+  );
+};
+
+export default FilterDataWidget;

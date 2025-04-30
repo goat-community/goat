@@ -17,6 +17,8 @@ interface ChartStatusContainerProps {
     condition: boolean;
     element: React.ReactNode;
   }>;
+  infoMessage?: string;
+  errorMessage?: string;
 }
 
 export const ChartStatusContainer = ({
@@ -26,6 +28,8 @@ export const ChartStatusContainer = ({
   isError,
   height = 200,
   customStates = [],
+  infoMessage,
+  errorMessage,
 }: ChartStatusContainerProps) => {
   const { t } = useTranslation("common");
 
@@ -37,11 +41,11 @@ export const ChartStatusContainer = ({
     },
     {
       condition: !!config && !queryParams,
-      element: <Alert severity="info">{t("please_configure_chart")}</Alert>,
+      element: <Alert severity="info">{infoMessage ?? t("please_configure_chart")}</Alert>,
     },
     {
       condition: !config || isError,
-      element: <Alert severity="error">{t("cannot_render_chart_error")}</Alert>,
+      element: <Alert severity="error">{errorMessage ?? t("cannot_render_chart_error")}</Alert>,
     },
     ...customStates, // Add any custom states passed by the component
   ];

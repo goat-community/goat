@@ -4,15 +4,7 @@ import { contentMetadataSchema, getContentQueryParamsSchema, orderByEnum } from 
 import { layerSchema } from "@/lib/validations/layer";
 import { responseSchema } from "@/lib/validations/response";
 import { publicUserSchema } from "@/lib/validations/user";
-import {
-  categoriesChartConfigSchema,
-  dividerElementConfigSchema,
-  histogramChartConfigSchema,
-  imageElementConfigSchema,
-  informationLayersConfigSchema,
-  pieChartConfigSchema,
-  textElementConfigSchema,
-} from "@/lib/validations/widget";
+import { configSchemas } from "@/lib/validations/widget";
 
 export const projectRoleEnum = z.enum(["project-owner", "project-viewer", "project-editor"]);
 
@@ -36,22 +28,10 @@ export const shareProjectSchema = z.object({
   organizations: z.array(shareProjectWithTeamOrOrganizationSchema).optional(),
 });
 
-
-
 export const builderWidgetSchema = z.object({
   id: z.string(),
   type: z.literal("widget"),
-  config: z
-    .union([
-      informationLayersConfigSchema,
-      categoriesChartConfigSchema,
-      histogramChartConfigSchema,
-      pieChartConfigSchema,
-      textElementConfigSchema,
-      dividerElementConfigSchema,
-      imageElementConfigSchema,
-    ])
-    .optional(),
+  config: configSchemas.optional(),
 });
 
 export const builderPanelConfigSchema = z.object({
@@ -180,7 +160,7 @@ export const aggregationStatsQueryParams = z.object({
   size: z.number().default(10),
   query: z.string().optional(),
   order: orderByEnum.optional(),
-})
+});
 
 export const aggregationStatsResponseSchema = z.object({
   items: z.array(
