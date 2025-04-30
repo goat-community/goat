@@ -12,7 +12,7 @@ import { usePublicProject } from "@/lib/api/projects";
 import type { RootState } from "@/lib/store";
 import { selectFilteredProjectLayers } from "@/lib/store/layer/selectors";
 import { setProjectLayers } from "@/lib/store/layer/slice";
-import { setProject } from "@/lib/store/map/slice";
+import { setMapMode, setProject } from "@/lib/store/map/slice";
 import type { Project, ProjectLayer } from "@/lib/validations/project";
 
 import { useBasemap } from "@/hooks/map/MapHooks";
@@ -45,6 +45,7 @@ export default function MapPage({ params: { projectId } }) {
     if (projectLayers && project) {
       dispatch(setProjectLayers(projectLayers as ProjectLayer[]));
       dispatch(setProject(project));
+      dispatch(setMapMode("public"));
     }
   }, [dispatch, project, projectLayers]);
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
