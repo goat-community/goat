@@ -45,6 +45,7 @@ const PublicProjectLayout = ({
 }: PublicProjectLayoutProps) => {
   const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
+  const disableEditing = true;
   const project = useMemo(() => {
     const parsedProject = projectSchema.safeParse(_project);
     if (parsedProject.success) {
@@ -219,6 +220,7 @@ const PublicProjectLayout = ({
   };
 
   const handlePanelClick = (panel: BuilderPanelSchema) => {
+    if (viewOnly || disableEditing) return;
     dispatch(setSelectedBuilderItem(panel));
   };
 
@@ -300,7 +302,7 @@ const PublicProjectLayout = ({
                   key={panel.id}
                   panel={panel}
                   projectLayers={projectLayers}
-                  viewOnly={viewOnly}
+                  viewOnly={viewOnly || disableEditing}
                   selected={selectedPanel?.type === "panel" && selectedPanel?.id === panel.id}
                   onChangeOrder={handleChangeOrder}
                   onClick={() => handlePanelClick(panel)}
@@ -309,7 +311,7 @@ const PublicProjectLayout = ({
             </>
           )}
           {/* Center Content */}
-          {!viewOnly && (
+          {!viewOnly && !disableEditing && (
             <Box
               sx={{
                 flexGrow: 1,

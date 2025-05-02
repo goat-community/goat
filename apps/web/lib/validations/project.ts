@@ -5,6 +5,7 @@ import { layerSchema } from "@/lib/validations/layer";
 import { responseSchema } from "@/lib/validations/response";
 import { publicUserSchema } from "@/lib/validations/user";
 import { configSchemas } from "@/lib/validations/widget";
+import { basicLayout } from "@/lib/constants/dashboard-builder-template-layouts";
 
 export const projectRoleEnum = z.enum(["project-owner", "project-viewer", "project-editor"]);
 
@@ -77,7 +78,13 @@ export const builderConfigSchema = z.object({
     fullscreen: z.boolean().default(true),
     toolbar: z.boolean().default(true),
   }),
-  interface: z.array(builderPanelSchema).optional().default([]),
+  interface: z
+    .preprocess(
+      // Convert empty arrays to `undefined` to trigger the default, todo: remove this when dashboard is completed
+      (val) => (Array.isArray(val) && val.length === 0 ? undefined : val),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      z.array(builderPanelSchema).default(basicLayout.interface as any)
+    )
 });
 
 export const projectSchema = contentMetadataSchema.extend({
@@ -85,14 +92,13 @@ export const projectSchema = contentMetadataSchema.extend({
   id: z.string(),
   layer_order: z.array(z.number()),
   max_extent: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional().nullable(),
-  builder_config: builderConfigSchema
-    .default({
-      settings: {},
-      interface: [],
-    })
-    .optional(),
+  builder_config: builderConfigSchema.default({
+    settings: {},
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    interface: basicLayout.interface as any,
+  }),
   active_scenario_id: z.string().nullable().optional(),
-  basemap: z.string().optional(),
+  basemap: z.string().nullable().default("streets"),
   updated_at: z.string().optional(),
   created_at: z.string().optional(),
   shared_with: shareProjectSchema.optional(),

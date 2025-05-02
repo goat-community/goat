@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Box } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
+import { useMap } from "react-map-gl/maplibre";
 
 import { useDatasetCollectionItems } from "@/lib/api/layers";
 import type { TemporaryFilter } from "@/lib/store/map/slice";
 import { addTemporaryFilter, removeTemporaryFilter, updateTemporaryFilter } from "@/lib/store/map/slice";
+import { zoomToFeatureCollection } from "@/lib/utils/map/navigate";
 import { type ProjectLayer } from "@/lib/validations/project";
 import { type FilterDataSchema, filterLayoutTypes } from "@/lib/validations/widget";
 
@@ -29,8 +31,9 @@ interface FilterDataProps {
 
 const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataProps) => {
   const dispatch = useAppDispatch();
+  const { map } = useMap();
   const [selectedValues, setSelectedValues] = useState<string[] | string | undefined>(
-    rawConfig?.setup?.multiple ? [] : undefined
+    rawConfig?.setup?.multiple ? [] : ""
   );
   const existingFilter = useAppSelector((state) =>
     state.map.temporaryFilters.find((filter) => filter.id === id)
@@ -91,6 +94,12 @@ const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataPr
       },
     };
 
+    if (geometryData && rawConfig?.options?.zoom_to_selection && map) {
+      zoomToFeatureCollection(map, geometryData as GeoJSON.FeatureCollection, {
+        duration: 200,
+      });
+    }
+
     if (geometryData?.features?.length) {
       newFilter.spatial_cross_filter = {
         op: "or",
@@ -112,9 +121,11 @@ const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataPr
   }, [
     dispatch,
     existingFilter,
-    geometryData?.features,
+    geometryData,
     id,
     layer,
+    map,
+    rawConfig?.options?.zoom_to_selection,
     rawConfig.setup.column_name,
     selectedValues,
   ]);

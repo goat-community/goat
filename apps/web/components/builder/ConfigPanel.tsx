@@ -176,6 +176,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
             aria-label="config panel tabs"
             variant="fullWidth">
             <Tab
+              disabled
               sx={{ minHeight: "40px", height: "40px" }}
               label={
                 <Typography variant="body2" fontWeight="bold" sx={{ ml: 2 }} color="inherit">
