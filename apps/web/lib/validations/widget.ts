@@ -101,6 +101,7 @@ export const filterDataConfigSchema = dataConfigSchema.extend({
   options: dataConfigOptionsBaseSchema.extend({
     description: z.string().optional(),
     cross_filter: z.boolean().optional().default(false),
+    zoom_to_selection: z.boolean().optional().default(true),
   }),
 });
 

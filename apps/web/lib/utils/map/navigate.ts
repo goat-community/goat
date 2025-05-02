@@ -11,11 +11,17 @@ export function zoomToLayer(map: MapRef, wkt_extent: string) {
   fitBounds(map, boundingBox as [number, number, number, number]);
 }
 
-export function fitBounds(map: MapRef, bounds: [number, number, number, number], padding = 40, maxZoom = 18) {
+export function fitBounds(
+  map: MapRef,
+  bounds: [number, number, number, number],
+  padding = 40,
+  maxZoom = 18,
+  duration = 1000
+) {
   map.fitBounds(bounds, {
     padding: padding,
     maxZoom: maxZoom,
-    duration: 1000,
+    duration: duration,
   });
 }
 
@@ -28,4 +34,20 @@ export function getMapExtentCQL(map: MapRef) {
   const geometry = polygon.geometry;
   const cqlFilter = `{"op":"s_intersects","args":[{"property":"geom"}, ${JSON.stringify(geometry)}]}`;
   return cqlFilter;
+}
+
+export function zoomToFeatureCollection(
+  map: MapRef,
+  featureCollection: GeoJSON.FeatureCollection,
+  options: Partial<{
+    padding: number;
+    maxZoom: number;
+    duration: number;
+  }> = {}
+) {
+  if (!featureCollection || !featureCollection.features.length) return;
+  const { padding = 40, maxZoom = 18, duration = 1000 } = options; // Destructure with defaults
+
+  const _bbox = bbox(featureCollection);
+  fitBounds(map, _bbox as [number, number, number, number], padding, maxZoom, duration);
 }
