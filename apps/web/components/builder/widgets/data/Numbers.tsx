@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { useProjectLayerAggregationStats } from "@/lib/api/projects";
+import { formatNumber } from "@/lib/utils/format-number";
 import type { AggregationStatsQueryParams } from "@/lib/validations/project";
 import { type ProjectLayer, aggregationStatsQueryParams } from "@/lib/validations/project";
 import { type NumbersDataSchema, numbersDataConfigSchema } from "@/lib/validations/widget";
@@ -21,7 +22,7 @@ interface NumbersDataProps {
 }
 
 const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const theme = useTheme();
   const { config, queryParams, projectId } = useChartWidget(
     rawConfig,
@@ -82,7 +83,7 @@ const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
         <Stack direction="row" spacing={4} alignItems="center">
           {renderIcon}
           <Typography variant="h4" fontWeight="bold">
-            {displayValue}
+            {formatNumber(displayValue, config.options?.format, i18n.language)}
           </Typography>
         </Stack>
       )}

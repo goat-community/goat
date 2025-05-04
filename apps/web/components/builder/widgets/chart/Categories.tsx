@@ -20,7 +20,7 @@ const DEFAULT_COLOR = "#0e58ff";
 const OPACITY_MODIFIER = "33";
 
 export const CategoriesChartWidget = ({ config: rawConfig }: { config: CategoriesChartSchema }) => {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const theme = useTheme();
   const { config, queryParams, projectId } = useChartWidget(
     rawConfig,
@@ -82,7 +82,11 @@ export const CategoriesChartWidget = ({ config: rawConfig }: { config: Categorie
           }}>
           {displayData.map((category) => {
             const percentage = (category.operation_value / maxValue) * 100;
-            const displayValue = formatNumber(category.operation_value, config.options?.format);
+            const displayValue = formatNumber(
+              category.operation_value,
+              config.options?.format,
+              i18n.language
+            );
 
             return (
               <Box
