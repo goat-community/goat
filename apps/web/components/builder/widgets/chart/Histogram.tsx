@@ -38,7 +38,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
 
 export const HistogramChartWidget = ({ config: rawConfig }: { config: HistogramChartSchema }) => {
   const theme = useTheme();
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const { config, queryParams, projectId } = useChartWidget(
     rawConfig,
     histogramChartConfigSchema,
@@ -68,7 +68,7 @@ export const HistogramChartWidget = ({ config: rawConfig }: { config: HistogramC
               dataKey="range[0]"
               type="number"
               domain={["dataMin", "dataMax"]}
-              tickFormatter={(value) => formatNumber(value, config.options?.format)}
+              tickFormatter={(value) => formatNumber(value, config.options?.format, i18n.language)}
               tick={{ fontSize: 12, fill: theme.palette.text.secondary }}
               tickMargin={5}
               axisLine={false}
