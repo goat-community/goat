@@ -13,7 +13,7 @@ In the <code>Layer design <img src={require('/img/map/styling/styling_icon.webp'
 If you would like to save your styling settings and use them in further projects, you can do so by [saving a style as default](../layer_style/styling#default-settings). 
 :::
 
-<iframe width="100%" height="500" src="https://www.youtube.com/embed/cLIPMCOu4FQ?si=9wqkVeBjSLD0-dMl" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="100%" height="500" src="https://www.youtube.com/embed/cLIPMCOu4FQ?si=aydSJN_Pf0fusO9x" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Select Attribute 
 
