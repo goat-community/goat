@@ -44,7 +44,7 @@ export interface MapState {
   selectedBuilderItem: BuilderPanelSchema | BuilderWidgetSchema | undefined;
   currentZoom: number | undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  temporaryFilters: TemporaryFilter[]; // Temporary filters for the map
+  temporaryFilters: TemporaryFilter[]; // Temporary filters for the map,
 }
 
 const initialState = {
