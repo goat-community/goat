@@ -20,8 +20,6 @@ export function Zoom(props: ZoomProps) {
             direction="column"
             sx={{
               alignItems: "flex-end",
-              marginTop: theme.spacing(1),
-              marginBottom: theme.spacing(1),
             }}>
             <Tooltip title={props.tooltipZoomIn || "Zoom In"} arrow placement="left">
               <Fab
@@ -29,7 +27,6 @@ export function Zoom(props: ZoomProps) {
                 size="small"
                 sx={{
                   backgroundColor: theme.palette.background.paper,
-                  marginTop: theme.spacing(1),
                   marginBottom: theme.spacing(1),
                   color: theme.palette.text.secondary,
                   "&:hover": {
