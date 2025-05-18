@@ -24,7 +24,6 @@ import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
 import Scalebar from "@/components/map/controls/Scalebar";
-import { UserLocation } from "@/components/map/controls/UserLocation";
 import { Zoom } from "@/components/map/controls/Zoom";
 import Legend from "@/components/map/panels/Legend";
 import Filter from "@/components/map/panels/filter/Filter";
@@ -260,7 +259,6 @@ const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps)
           <Stack direction="column" sx={{ pointerEvents: "all", pr: 4 }}>
             <Zoom tooltipZoomIn={t("zoom_in")} tooltipZoomOut={t("zoom_out")} />
             <Fullscren tooltipOpen={t("fullscreen")} tooltipExit={t("exit_fullscreen")} />
-            <UserLocation tooltip={t("find_location")} />
           </Stack>
           <Stack direction="column" sx={{ pointerEvents: "all" }}>
             <Box sx={{ pr: 4 }}>
