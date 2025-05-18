@@ -94,7 +94,6 @@ export default function Container(props: ContainerProps) {
             }),
             overflowY: "auto",
             height: "100%",
-            scrollbarGutter: "stable both-edges",
             "&::-webkit-scrollbar": {
               width: "6px",
             },
