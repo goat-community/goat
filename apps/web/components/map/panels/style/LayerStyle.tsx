@@ -255,7 +255,7 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
   const [collapseStrokeWidthOptions, setCollapseStrokeWidthOptions] = useState(true);
   const [collapsedMarkerIconOptions, setCollapsedMarkerIconOptions] = useState(true);
   const [collapseRadiusOptions, setCollapseRadiusOptions] = useState(true);
-  const [collapseLabelOptions, setCollapseLabelOptions] = useState(true);
+  // const [collapseLabelOptions, setCollapseLabelOptions] = useState(true);
 
   return (
     <Container
