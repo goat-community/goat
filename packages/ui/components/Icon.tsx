@@ -73,6 +73,8 @@ import {
   faFolderPlus,
   faGears,
   faGlobe,
+  faGripHorizontal,
+  faGripVertical,
   faHouse,
   faLanguage,
   faLayerGroup,
@@ -256,6 +258,8 @@ export enum ICON_NAME {
   UNLOCK = "unlock",
   PLAY = "play",
   CUBE = "cube",
+  GRIP_HORIZONTAL = "grip",
+  GRIP_VERTICAL = "grip-vertical",
   // Brand icons
   GOOGLE = "google",
   MICROSOFT = "microsoft",
@@ -400,6 +404,8 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.UNLOCK]: faUnlock,
   [ICON_NAME.PLAY]: faPlay,
   [ICON_NAME.CUBE]: faCube,
+  [ICON_NAME.GRIP_HORIZONTAL]: faGripHorizontal,
+  [ICON_NAME.GRIP_VERTICAL]: faGripVertical,
   // Brand icons
   [ICON_NAME.GOOGLE]: faGoogle,
   [ICON_NAME.MICROSOFT]: faMicrosoft,
