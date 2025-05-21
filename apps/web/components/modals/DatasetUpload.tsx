@@ -23,6 +23,7 @@ import { useTranslation } from "@/i18n/client";
 import { useFolders } from "@/lib/api/folders";
 import { useJobs } from "@/lib/api/jobs";
 import { createFeatureLayer, createTableLayer, layerFileUpload } from "@/lib/api/layers";
+import { useProject } from "@/lib/api/projects";
 import { setRunningJobIds } from "@/lib/store/jobs/slice";
 import type { GetContentQueryParams } from "@/lib/validations/common";
 import type { Folder } from "@/lib/validations/folder";
@@ -45,6 +46,7 @@ const DatasetUploadModal: React.FC<DatasetUploadDialogProps> = ({ open, onClose,
   const dispatch = useAppDispatch();
   const runningJobIds = useAppSelector((state) => state.jobs.runningJobIds);
 
+  const { project } = useProject(projectId);
   const steps = [t("select_file"), t("destination_and_metadata"), t("confirmation")];
   const { mutate } = useJobs({
     read: false,
@@ -62,10 +64,12 @@ const DatasetUploadModal: React.FC<DatasetUploadDialogProps> = ({ open, onClose,
   const [isBusy, setIsBusy] = useState(false);
   useEffect(() => {
     const homeFolder = folders?.find((folder) => folder.name === "home");
-    if (homeFolder) {
-      setSelectedFolder(homeFolder);
+    const projectFolder = folders?.find((folder) => folder.id === project?.folder_id);
+    const preSelectedFolder = projectFolder || homeFolder;
+    if (preSelectedFolder) {
+      setSelectedFolder(preSelectedFolder);
     }
-  }, [folders]);
+  }, [folders, project?.folder_id]);
 
   const {
     register,
