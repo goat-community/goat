@@ -1,5 +1,5 @@
 import { Box, Collapse, Stack, useTheme } from "@mui/material";
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 
@@ -54,8 +54,6 @@ const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps)
   const activeLeft = useAppSelector((state) => state.map.activeLeftPanel);
   const activeRight = useAppSelector((state) => state.map.activeRightPanel);
   const { activeLayer } = useActiveLayer(projectId);
-  const prevActiveLeftRef = useRef<MapSidebarItemID | undefined>(undefined);
-  const prevActiveRightRef = useRef<MapSidebarItemID | undefined>(undefined);
   const { isProjectEditor, isAppFeatureEnabled } = useAuthZ();
   const { layers: projectLayers, mutate: mutateProjectLayers } = useFilteredProjectLayers(projectId);
   const { toggleLayerVisibility } = useLayerActions(projectLayers);
@@ -103,7 +101,10 @@ const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps)
         icon: ICON_NAME.STYLE,
         name: t("layer_design"),
         component: <LayerStyle projectId={projectId} />,
-        disabled: !activeLayer || activeLayer?.type !== layerType.Values.feature,
+        disabled:
+          !activeLayer ||
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ![layerType.Values.feature, layerType.Values.raster].includes(activeLayer.type as any),
       },
       {
         id: MapSidebarItemID.TOOLBOX,
@@ -126,8 +127,6 @@ const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps)
   const activeRightComponent = useMemo(() => {
     if (activeRight) {
       return rightSidebar.topItems?.find((item) => item.id === activeRight && !item.disabled)?.component;
-    } else if (prevActiveRightRef.current) {
-      return rightSidebar.topItems?.find((item) => item.id === prevActiveRightRef.current)?.component;
     }
     return undefined;
   }, [activeRight, rightSidebar.topItems]);
@@ -135,11 +134,21 @@ const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps)
   const activeLeftComponent = useMemo(() => {
     if (activeLeft) {
       return leftSidebar.topItems?.find((item) => item.id === activeLeft)?.component;
-    } else if (prevActiveLeftRef.current) {
-      return leftSidebar.topItems?.find((item) => item.id === prevActiveLeftRef.current)?.component;
     }
     return undefined;
   }, [activeLeft, leftSidebar.topItems]);
+
+  useEffect(() => {
+    if (
+      activeRight !== undefined &&
+      !activeLayer &&
+      (activeRight === MapSidebarItemID.PROPERTIES ||
+        activeRight === MapSidebarItemID.STYLE ||
+        activeRight === MapSidebarItemID.FILTER)
+    ) {
+      dispatch(setActiveRightPanel(undefined));
+    }
+  }, [activeRight, activeLayer, dispatch]);
 
   return (
     <>
@@ -190,9 +199,8 @@ const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps)
             sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
             onExited={() => {
               dispatch(setActiveLeftPanel(undefined));
-              prevActiveLeftRef.current = undefined;
             }}>
-            {(activeLeft !== undefined || prevActiveLeftRef.current !== undefined) && (
+            {activeLeft !== undefined && (
               <Box
                 sx={{
                   height: `calc(100% - ${toolbarHeight}px)`,
@@ -280,9 +288,8 @@ const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps)
             in={activeRight !== undefined}
             onExit={() => {
               dispatch(setActiveRightPanel(undefined));
-              prevActiveRightRef.current = undefined;
             }}>
-            {(activeRight !== undefined || prevActiveRightRef.current !== undefined) && (
+            {activeRight !== undefined && (
               <Box
                 sx={{
                   height: `calc(100% - ${toolbarHeight}px)`,
