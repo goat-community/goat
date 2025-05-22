@@ -232,6 +232,7 @@ export default function Geocoder({
                   "&:hover": {
                     backgroundColor: theme.palette.background.default,
                   },
+                  pointerEvents: "all",
                 }}>
                 <Icon iconName={ICON_NAME.SEARCH} htmlColor="inherit" fontSize="small" />
               </Fab>
@@ -243,6 +244,7 @@ export default function Geocoder({
                 alignItems: "flex-start",
                 marginTop: theme.spacing(1),
                 marginBottom: theme.spacing(1),
+                pointerEvents: "all",
               }}
               id="geocoder"
               freeSolo
@@ -272,6 +274,7 @@ export default function Geocoder({
                   ]}
                   sx={{
                     boxShadow: 2,
+                    pointerEvents: "all",
                   }}
                   style={{ ...style, width: 350 }}
                 />

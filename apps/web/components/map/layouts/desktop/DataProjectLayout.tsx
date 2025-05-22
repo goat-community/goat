@@ -214,12 +214,12 @@ const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps)
             marginTop: `${toolbarHeight}px`,
             padding: theme.spacing(4),
           }}>
-          <Stack direction="column" sx={{ pointerEvents: "all" }}>
+          <Stack direction="column">
             <Geocoder accessToken={MAPBOX_TOKEN} placeholder={t("enter_an_address")} tooltip={t("search")} />
           </Stack>
-          <Stack direction="column" sx={{ pointerEvents: "all" }}>
+          <Stack direction="column">
             {!isProjectEditor && (
-              <Stack direction="column" sx={{ pointerEvents: "all" }}>
+              <Stack direction="column">
                 <Legend
                   projectLayers={projectLayers}
                   isFloating
@@ -256,11 +256,11 @@ const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps)
             marginTop: `${toolbarHeight}px`,
             pt: theme.spacing(4),
           }}>
-          <Stack direction="column" sx={{ pointerEvents: "all", pr: 4 }}>
+          <Stack direction="column" sx={{ pr: 4, pointerEvents: "none" }}>
             <Zoom tooltipZoomIn={t("zoom_in")} tooltipZoomOut={t("zoom_out")} />
             <Fullscren tooltipOpen={t("fullscreen")} tooltipExit={t("exit_fullscreen")} />
           </Stack>
-          <Stack direction="column" sx={{ pointerEvents: "all" }}>
+          <Stack direction="column">
             <Box sx={{ pr: 4 }}>
               <BasemapSelector
                 styles={translatedBaseMaps}

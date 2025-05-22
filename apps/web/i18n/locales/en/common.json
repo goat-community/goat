@@ -1105,5 +1105,6 @@
   "zoom_out": "Zoom Out",
   "zoom_to": "Zoom to",
   "zoom_to_feature": "Zoom to feature",
-  "zoom_to_starting_point": "Zoom to starting point"
+  "zoom_to_starting_point": "Zoom to starting point",
+  "zoom_visibility": "Zoom Visibility"
 }

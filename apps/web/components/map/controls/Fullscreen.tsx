@@ -44,6 +44,7 @@ export function Fullscren(props: FullscreenProps) {
                 onClick={() => toggleFullscreen()}
                 size="small"
                 sx={{
+                  pointerEvents: "all",
                   backgroundColor: theme.palette.background.paper,
                   marginTop: theme.spacing(1),
                   marginBottom: theme.spacing(1),

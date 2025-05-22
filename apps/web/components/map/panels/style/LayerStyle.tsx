@@ -1,4 +1,4 @@
-import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Divider, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
 import { useMap } from "react-map-gl/maplibre";
 import { useDispatch } from "react-redux";
@@ -36,6 +36,7 @@ import Container from "@/components/map/panels/Container";
 import ProjectLayerDropdown from "@/components/map/panels/ProjectLayerDropdown";
 import SectionHeader from "@/components/map/panels/common/SectionHeader";
 import ColorOptions from "@/components/map/panels/style/color/ColorOptions";
+import GeneralOptions from "@/components/map/panels/style/general/GeneralOptions";
 import MarkerOptions from "@/components/map/panels/style/marker/MarkerOptions";
 import Settings from "@/components/map/panels/style/settings/Settings";
 
@@ -286,6 +287,23 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
               />
             </Stack>
           )}
+          <Divider />
+          <Box
+            sx={{
+              display: "flex",
+              p: 2,
+              flexDirection: "column",
+            }}>
+            {activeLayer && (
+              <GeneralOptions
+                layer={activeLayer}
+                onStyleChange={async (newStyle) => {
+                  updateLayerStyle(newStyle);
+                }}
+              />
+            )}
+          </Box>
+          <Divider sx={{ mb: 0 }} />
           <AccordionWrapper
             boxShadow="none"
             backgroundColor="transparent"
@@ -299,6 +317,11 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
                 </Typography>
               </>
             }
+            accordionSxProps={{
+              "&:before": {
+                display: "none",
+              },
+            }}
             body={
               <>
                 <Box
@@ -519,12 +542,18 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
               </>
             }
           />
-          {/* <AccordionWrapper
+          {/* <Divider sx={{ m: 0 }} />
+          <AccordionWrapper
             boxShadow="none"
             backgroundColor="transparent"
             disableGutters
             expanded={expanded === LayerStylePanels.LABELS}
             onChange={handleAccordionChange(LayerStylePanels.LABELS)}
+            accordionSxProps={{
+              "&:before": {
+                display: "none",
+              },
+            }}
             header={
               <>
                 <Typography variant="body2" fontWeight="bold">
@@ -553,6 +582,7 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
               </Box>
             }
           />
+          <Divider sx={{ m: 0 }} />
           <AccordionWrapper
             boxShadow="none"
             backgroundColor="transparent"
@@ -564,6 +594,11 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
                 {t("popup")}
               </Typography>
             }
+            accordionSxProps={{
+              "&:before": {
+                display: "none",
+              },
+            }}
             body={
               <Box
                 sx={{
@@ -579,6 +614,7 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
               </Box>
             }
           />
+          <Divider sx={{ m: 0 }} />
           <AccordionWrapper
             boxShadow="none"
             backgroundColor="transparent"
@@ -590,6 +626,11 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
                 {t("legend")}
               </Typography>
             }
+            accordionSxProps={{
+              "&:before": {
+                display: "none",
+              },
+            }}
             body={
               <Box
                 sx={{
@@ -605,6 +646,7 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
               </Box>
             }
           /> */}
+          <Divider sx={{ mt: 0 }} />
         </>
       }
     />

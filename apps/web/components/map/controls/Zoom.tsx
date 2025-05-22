@@ -28,6 +28,7 @@ export function Zoom(props: ZoomProps) {
                 sx={{
                   backgroundColor: theme.palette.background.paper,
                   marginBottom: theme.spacing(1),
+                  pointerEvents: "all",
                   color: theme.palette.text.secondary,
                   "&:hover": {
                     backgroundColor: theme.palette.background.default,
@@ -41,6 +42,7 @@ export function Zoom(props: ZoomProps) {
                 onClick={() => map?.zoomOut()}
                 size="small"
                 sx={{
+                  pointerEvents: "all",
                   backgroundColor: theme.palette.background.paper,
                   marginTop: theme.spacing(1),
                   marginBottom: theme.spacing(1),

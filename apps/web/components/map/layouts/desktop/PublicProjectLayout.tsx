@@ -343,7 +343,6 @@ const PublicProjectLayout = ({
                 top: topPanels.length * PANEL_SIZE,
                 m: 2,
                 zIndex: 2,
-                pointerEvents: "all",
               }}>
               <Geocoder
                 accessToken={MAPBOX_TOKEN}
@@ -360,7 +359,6 @@ const PublicProjectLayout = ({
               top: topPanels.length * PANEL_SIZE,
               m: 2,
               zIndex: 2,
-              pointerEvents: "all",
             }}>
             {builderConfig?.settings.zoom_controls && (
               <Zoom tooltipZoomIn={t("zoom_in")} tooltipZoomOut={t("zoom_out")} />
@@ -377,7 +375,6 @@ const PublicProjectLayout = ({
               right: rightPanels.length * PANEL_SIZE,
               bottom: bottomPanels.length * PANEL_SIZE,
               zIndex: 2,
-              pointerEvents: "all",
             }}>
             {builderConfig?.settings.basemap && (
               <Box sx={{ m: 2 }}>
@@ -401,7 +398,7 @@ const PublicProjectLayout = ({
                 zIndex: 2,
                 bottom: bottomPanels.length * PANEL_SIZE,
                 m: 2,
-                pointerEvents: "all",
+                pointerEvents: "none",
               }}>
               <Scalebar />
             </Box>
