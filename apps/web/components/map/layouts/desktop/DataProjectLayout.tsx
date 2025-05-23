@@ -1,5 +1,5 @@
 import { Box, Collapse, Stack, useTheme } from "@mui/material";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo } from "react";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 
