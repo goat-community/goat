@@ -98,7 +98,7 @@ export const timeTravelCost = z.object({
 
 export const distanceTravelCost = z.object({
   max_distance: z.number().min(50).max(20000),
-  steps: z.number().min(3).max(9),
+  steps: z.number().min(1).max(9),
 });
 
 export const ptTimeWindow = z.object({
