@@ -13,6 +13,7 @@ const Container = styled(Box)(({}) => ({
   borderRadius: "2px",
   fontSize: "10px",
   zIndex: 1,
+  pointerEvents: "all",
   backgroundColor: "hsla(0,0%,100%,.5)",
 }));
 

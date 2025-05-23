@@ -11,6 +11,7 @@ const AccordionWrapper = ({
   disableGutters = false,
   boxShadow = "0px 2px 10px 0px rgba(58, 53, 65, 0.1)",
   backgroundColor,
+  accordionSxProps,
   onChange,
 }: {
   header: ReactNode;
@@ -19,13 +20,18 @@ const AccordionWrapper = ({
   disableGutters?: boolean;
   boxShadow?: string | undefined;
   backgroundColor?: string | undefined;
+  accordionSxProps?: object;
   onChange?: (event: React.SyntheticEvent, newExpanded: boolean) => void;
 }) => {
   return (
     <Accordion
       square={true}
       expanded={expanded}
-      sx={{ boxShadow, backgroundColor }}
+      sx={{
+        boxShadow,
+        backgroundColor,
+        ...accordionSxProps,
+      }}
       onChange={onChange}
       disableGutters={disableGutters}>
       <AccordionSummary
