@@ -234,6 +234,7 @@ export const MAKI_ICON_TYPES = [
       "parking-garage",
       "parking-paid",
       "parking",
+      "walking",
     ],
   },
 ];
