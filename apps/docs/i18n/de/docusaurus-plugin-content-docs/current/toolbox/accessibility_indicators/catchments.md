@@ -456,36 +456,31 @@ Die Einzugsgebiete werden dynamisch im Frontend auf der Basis eines Reisezeit-/E
 
 ### Wissenschaftlicher Hintergrund
 
-Aus wissenschaftlicher Sicht sind Einzugsgebiete _konturbasierte Maßnahmen_ (auch bekannt als _kumulative Gelegenheiten_). Sie werden wegen ihrer **leicht interpretierbaren Ergebnisse** geschätzt ([Geurs und van Eck 2001](#6-referenzen); [Albacete 2016](#6-referenzen)), haben jedoch den Nachteil, dass sie innerhalb des **Cut-off-Bereichs** nicht zwischen verschiedenen Reisezeiten unterscheiden ([Bertolini, le Clercq, und Kapoen 2005](#6-referenzen)), wie es bei [Heatmaps](../accessibility_indicators/closest_average.md) der Fall ist.
+Aus wissenschaftlicher Sicht sind Einzugsgebiete _konturbasierte Maßnahmen_ (auch bekannt als _kumulative Gelegenheiten_). Sie werden wegen ihrer **leicht interpretierbaren Ergebnisse** geschätzt (Geurs und van Eck, 2001; Albacete, 2016), haben jedoch den Nachteil, dass sie innerhalb des **Cut-off-Bereichs** nicht zwischen verschiedenen Reisezeiten unterscheiden (Bertolini et al., 2005), wie es bei [Heatmaps](../accessibility_indicators/closest_average.md) der Fall ist.
 
 ### Visualisierung
 
-Die Form der Einzugsgebiete wird aus dem Routing-Gitter unter Verwendung des [Marching-Square-Konturlinien-Algorithmus](https://de.wikipedia.org/wiki/Marching_Squares "Wikipedia: Marching Squares") abgeleitet, einem Computergraphik-Algorithmus, der zweidimensionale Konturlinien aus einem rechteckigen Wertearray erzeugen kann ([de Queiroz Neto et al. 2016](#6-referenzen)). Dieser Algorithmus transformiert das Gitter von einem 2D-Array in eine Form, um es zu visualisieren oder zu analysieren. Eine Illustration der 2D-Bildverarbeitung ist in der Abbildung dargestellt.
+Die Form der Einzugsgebiete wird aus dem Routing-Gitter unter Verwendung des [Marching-Square-Konturlinien-Algorithmus](https://de.wikipedia.org/wiki/Marching_Squares "Wikipedia: Marching Squares") abgeleitet, einem Computergraphik-Algorithmus, der zweidimensionale Konturlinien aus einem rechteckigen Wertearray erzeugen kann (de Queiroz Neto et al., 2016). Dieser Algorithmus transformiert das Gitter von einem 2D-Array in eine Form, um es zu visualisieren oder zu analysieren. Eine Illustration der 2D-Bildverarbeitung ist in der folgenden Abbildung dargestellt.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/toolbox/accessibility_indicators/catchments/wiki.png').default} width="1000px" alt="marching square" style={{ width: "1000px", height: "400px", maxHeight: "400px", maxWidth: "400px", objectFit: "contain"}}/>
+  <img src={require('/img/toolbox/accessibility_indicators/catchments/wiki.png').default} alt="Marching Squares Algorithmus" style={{ maxWidth: "400px", height: "auto", objectFit: "contain"}}/>
+  <p style={{ textAlign: 'center' }}>Bild: Marching Squares Algorithmus</p>
 </div> 
 
 ## 5. Weiterführende Literatur
 
-Weitere Einblicke in die Einzugsgebietsberechnung und deren wissenschaftlichen Hintergrund finden Sie in dieser [Publikation](https://doi.org/10.1016/j.jtrangeo.2021.103080).
+Weitere Einblicke in die Einzugsgebietsberechnung und deren wissenschaftlichen Hintergrund finden Sie in dieser [wissenschaftlichen Publikation von Shkurti (2022)](https://doi.org/10.1016/j.jtrangeo.2021.103080).
 
 ## 6. Referenzen
 
-Albacete, Xavier. 2016. “Evaluation and Improvements of Contour-Based Accessibility Measures.” url: https://dspace.uef.fi/bitstream/handle/123456789/16857/urn_isbn_978-952-61-2103-1.pdf?sequence=1&isAllowed=y 
+Albacete, Xavier (2016): "Evaluation and Improvements of Contour-Based Accessibility Measures." [https://dspace.uef.fi/bitstream/handle/123456789/16857/urn_isbn_978-952-61-2103-1.pdf](https://dspace.uef.fi/bitstream/handle/123456789/16857/urn_isbn_978-952-61-2103-1.pdf?sequence=1&isAllowed=y)
 
-Bertolini, Luca, F. le Clercq, and L. Kapoen. 2005. “Sustainable Accessibility: A Conceptual Framework to Integrate Transport and Land Use Plan-Making. Two Test-Applications in the Netherlands and a Reflection on the Way Forward.” Transport Policy 12 (3): 207–20. https://doi.org/10.1016/j.tranpol.2005.01.006.
+Bertolini, Luca; le Clercq, F.; Kapoen, L. (2005): "Sustainable Accessibility: A Conceptual Framework to Integrate Transport and Land Use Plan-Making. Two Test-Applications in the Netherlands and a Reflection on the Way Forward." *Transport Policy* 12 (3): 207–20. [https://doi.org/10.1016/j.tranpol.2005.01.006](https://doi.org/10.1016/j.tranpol.2005.01.006)
 
-J. F. de Queiroz Neto, E. M. d. Santos, and C. A. Vidal. “MSKDE - Using
-Marching Squares to Quickly Make High Quality Crime Hotspot Maps”. en.
-In: 2016 29th SIBGRAPI Conference on Graphics, Patterns and Images (SIBGRAPI).
-Sao Paulo, Brazil: IEEE, Oct. 2016, pp. 305–312. isbn: 978-1-5090-3568-7. doi:
-10.1109/SIBGRAPI.2016.049. url: https://ieeexplore.ieee.org/document/7813048
+de Queiroz Neto, J. F.; Santos, E. M. d.; Vidal, C. A. (2016): "MSKDE - Using Marching Squares to Quickly Make High Quality Crime Hotspot Maps". In: *2016 29th SIBGRAPI Conference on Graphics, Patterns and Images*. Sao Paulo, Brazil: IEEE, 305–312. ISBN: 978-1-5090-3568-7. [https://ieeexplore.ieee.org/document/7813048](https://ieeexplore.ieee.org/document/7813048)
 
-https://fr.wikipedia.org/wiki/Marching_squares#/media/Fichier:Marching_Squares_Isoline.svg
+Geurs, K. T.; van Eck, J. R. (2001): "Accessibility measures: review and applications. Evaluation of accessibility impacts of land-use transportation scenarios, and related social and economic impact." RIVM report.
 
-Majk Shkurti, "Spatio-temporal public transport accessibility analysis and benchmarking in an interactive WebGIS", Sep 2022. url: https://www.researchgate.net/publication/365790691_Spatio-temporal_public_transport_accessibility_analysis_and_benchmarking_in_an_interactive_WebGIS 
+Shkurti, Majk (2022): "Spatio-temporal public transport accessibility analysis and benchmarking in an interactive WebGIS". [https://www.researchgate.net/publication/365790691_Spatio-temporal_public_transport_accessibility_analysis_and_benchmarking_in_an_interactive_WebGIS](https://www.researchgate.net/publication/365790691_Spatio-temporal_public_transport_accessibility_analysis_and_benchmarking_in_an_interactive_WebGIS)
 
-Matthew Wigginton Conway, Andrew Byrd, Marco Van Der Linden. "Evidence-Based Transit and Land Use Sketch Planning Using Interactive Accessibility Methods on Combined Schedule and Headway-Based Networks", 2017. url: https://journals.sagepub.com/doi/10.3141/2653-06
-
-Geurs, Karst T., and Ritsema van Eck. 2001. “Accessibility Measures: Review and Applications.” RIVM Report 408505 006. url: https://rivm.openrepository.com/handle/10029/259808
+Wigginton Conway, Matthew; Byrd, Andrew; Van Der Linden, Marco (2017): "Evidence-Based Transit and Land Use Sketch Planning Using Interactive Accessibility Methods on Combined Schedule and Headway-Based Networks". *Transportation Research Record*, 2653. [https://journals.sagepub.com/doi/10.3141/2653-06](https://journals.sagepub.com/doi/10.3141/2653-06)
