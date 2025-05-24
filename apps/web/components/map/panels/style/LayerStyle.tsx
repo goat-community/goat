@@ -37,6 +37,7 @@ import ProjectLayerDropdown from "@/components/map/panels/ProjectLayerDropdown";
 import SectionHeader from "@/components/map/panels/common/SectionHeader";
 import ColorOptions from "@/components/map/panels/style/color/ColorOptions";
 import GeneralOptions from "@/components/map/panels/style/general/GeneralOptions";
+import LabelOptions from "@/components/map/panels/style/label/LabelOptions";
 import MarkerOptions from "@/components/map/panels/style/marker/MarkerOptions";
 import Settings from "@/components/map/panels/style/settings/Settings";
 
@@ -256,7 +257,6 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
   const [collapseStrokeWidthOptions, setCollapseStrokeWidthOptions] = useState(true);
   const [collapsedMarkerIconOptions, setCollapsedMarkerIconOptions] = useState(true);
   const [collapseRadiusOptions, setCollapseRadiusOptions] = useState(true);
-  // const [collapseLabelOptions, setCollapseLabelOptions] = useState(true);
 
   return (
     <Container
@@ -310,26 +310,269 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
           </Box>
           <Divider sx={{ mb: 0 }} />
           {activeLayer?.type === "feature" && (
-            <AccordionWrapper
-              boxShadow="none"
-              backgroundColor="transparent"
-              disableGutters
-              expanded={expanded === LayerStylePanels.STYLE}
-              onChange={handleAccordionChange(LayerStylePanels.STYLE)}
-              header={
-                <>
-                  <Typography variant="body2" fontWeight="bold">
-                    {t("style")}
-                  </Typography>
-                </>
-              }
-              accordionSxProps={{
-                "&:before": {
-                  display: "none",
-                },
-              }}
-              body={
-                <>
+            <>
+              <AccordionWrapper
+                boxShadow="none"
+                backgroundColor="transparent"
+                disableGutters
+                expanded={expanded === LayerStylePanels.STYLE}
+                onChange={handleAccordionChange(LayerStylePanels.STYLE)}
+                header={
+                  <>
+                    <Typography variant="body2" fontWeight="bold">
+                      {t("style")}
+                    </Typography>
+                  </>
+                }
+                accordionSxProps={{
+                  "&:before": {
+                    display: "none",
+                  },
+                }}
+                body={
+                  <>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        px: 4,
+                        flexDirection: "column",
+                      }}>
+                      {activeLayer && (
+                        <Stack>
+                          {/* {FILL COLOR} */}
+                          {activeLayer.feature_layer_geometry_type &&
+                            ["polygon", "point"].includes(activeLayer.feature_layer_geometry_type) && (
+                              <>
+                                <SectionHeader
+                                  active={layerProperties.filled}
+                                  onToggleChange={(event) => {
+                                    onToggleChange(event, "filled");
+                                  }}
+                                  label={
+                                    activeLayer?.feature_layer_geometry_type === "line"
+                                      ? t("color")
+                                      : t("fill_color")
+                                  }
+                                  collapsed={collapseFillOptions}
+                                  setCollapsed={setCollapseFillOptions}
+                                />
+                                <ColorOptions
+                                  type="color"
+                                  layerStyle={layerProperties}
+                                  active={!!layerProperties.filled}
+                                  layerFields={layerFields}
+                                  collapsed={collapseFillOptions}
+                                  selectedField={layerProperties.color_field}
+                                  onStyleChange={async (newStyle: FeatureLayerProperties) => {
+                                    if (
+                                      newStyle.color_field?.type === "number" &&
+                                      newStyle.color_scale !== "ordinal"
+                                    ) {
+                                      await updateColorClassificationBreaks("color", newStyle);
+                                    } else if (newStyle.color_scale === "ordinal") {
+                                      await updateOrdinalValues("color", newStyle);
+                                    }
+
+                                    updateLayerStyle(newStyle);
+                                  }}
+                                  layerId={activeLayer?.layer_id}
+                                />
+                              </>
+                            )}
+
+                          {/* {STROKE} */}
+                          <SectionHeader
+                            active={!!layerProperties.stroked}
+                            onToggleChange={(event) => {
+                              onToggleChange(event, "stroked");
+                            }}
+                            alwaysActive={activeLayer?.feature_layer_geometry_type === "line"}
+                            label={
+                              activeLayer?.feature_layer_geometry_type === "line"
+                                ? t("color")
+                                : t("stroke_color")
+                            }
+                            collapsed={collapseStrokeColorOptions}
+                            setCollapsed={setCollapseStrokeColorOptions}
+                          />
+
+                          <ColorOptions
+                            type="stroke_color"
+                            layerStyle={layerProperties}
+                            active={!!layerProperties.stroked}
+                            layerFields={layerFields}
+                            collapsed={collapseStrokeColorOptions}
+                            selectedField={layerProperties.stroke_color_field}
+                            onStyleChange={async (newStyle: FeatureLayerProperties) => {
+                              if (
+                                newStyle.stroke_color_field?.type === "number" &&
+                                newStyle.stroke_color_scale !== "ordinal"
+                              ) {
+                                await updateColorClassificationBreaks("stroke_color", newStyle);
+                              } else if (newStyle.stroke_color_scale === "ordinal") {
+                                await updateOrdinalValues("stroke_color", newStyle);
+                              }
+                              updateLayerStyle(newStyle);
+                            }}
+                            layerId={activeLayer?.layer_id}
+                          />
+
+                          {/* {LINE STROKE} */}
+                          {activeLayer.feature_layer_geometry_type &&
+                            ["line", "polygon", "point"].includes(
+                              activeLayer.feature_layer_geometry_type
+                            ) && (
+                              <>
+                                <SectionHeader
+                                  active={!!layerProperties.stroked}
+                                  onToggleChange={(event) => {
+                                    onToggleChange(event, "stroked");
+                                  }}
+                                  alwaysActive={activeLayer?.feature_layer_geometry_type === "line"}
+                                  label={t("stroke_width")}
+                                  collapsed={collapseStrokeWidthOptions}
+                                  setCollapsed={setCollapseStrokeWidthOptions}
+                                  disableAdvanceOptions={true}
+                                />
+
+                                <Settings
+                                  type="stroke_width"
+                                  layerStyle={layerProperties}
+                                  active={!!layerProperties.stroked}
+                                  collapsed={collapseStrokeWidthOptions}
+                                  onStyleChange={(newStyle: FeatureLayerProperties) => {
+                                    updateLayerStyle(newStyle);
+                                  }}
+                                  layerFields={layerFields}
+                                  selectedField={layerProperties["stroke_width_field"]}
+                                />
+                              </>
+                            )}
+
+                          {/* {MARKER ICON} */}
+                          {activeLayer.feature_layer_geometry_type &&
+                            activeLayer.feature_layer_geometry_type === "point" && (
+                              <>
+                                <SectionHeader
+                                  active={layerProperties["custom_marker"]}
+                                  alwaysActive={false}
+                                  onToggleChange={(event) => {
+                                    onToggleChange(event, "custom_marker");
+                                  }}
+                                  label={t("custom_marker")}
+                                  collapsed={collapsedMarkerIconOptions}
+                                  setCollapsed={setCollapsedMarkerIconOptions}
+                                />
+
+                                <MarkerOptions
+                                  type="marker"
+                                  layerStyle={layerProperties}
+                                  layerId={activeLayer?.layer_id}
+                                  active={!!layerProperties["custom_marker"]}
+                                  collapsed={collapsedMarkerIconOptions}
+                                  onStyleChange={async (newStyle: FeatureLayerProperties) => {
+                                    if (!map) return;
+                                    await updateOrdinalValues("marker", newStyle);
+                                    updateLayerStyle(newStyle);
+                                    addOrUpdateMarkerImages(
+                                      activeLayer.id,
+                                      newStyle as FeatureLayerPointProperties,
+                                      map
+                                    );
+                                  }}
+                                  layerFields={layerFields}
+                                  selectedField={layerProperties["marker_field"]}
+                                />
+                              </>
+                            )}
+
+                          {/* {RADIUS/SIZE} */}
+                          {activeLayer?.feature_layer_geometry_type &&
+                            activeLayer.feature_layer_geometry_type === "point" && (
+                              <>
+                                {layerProperties["custom_marker"] && (
+                                  <>
+                                    <SectionHeader
+                                      active={markerExists}
+                                      alwaysActive={true}
+                                      label={t("marker_settings")}
+                                      collapsed={collapseRadiusOptions}
+                                      setCollapsed={setCollapseRadiusOptions}
+                                      disableAdvanceOptions={true}
+                                    />
+
+                                    <Settings
+                                      type="marker_size"
+                                      layerStyle={layerProperties}
+                                      active={markerExists}
+                                      collapsed={collapseRadiusOptions}
+                                      onStyleChange={(newStyle: FeatureLayerProperties) => {
+                                        if (!map) return;
+                                        updateLayerStyle(newStyle);
+                                        addOrUpdateMarkerImages(
+                                          activeLayer.id,
+                                          newStyle as FeatureLayerPointProperties,
+                                          map
+                                        );
+                                      }}
+                                      layerFields={layerFields}
+                                      selectedField={layerProperties["marker_size_field"]}
+                                    />
+                                  </>
+                                )}
+
+                                {!layerProperties["custom_marker"] && (
+                                  <>
+                                    <SectionHeader
+                                      active={true}
+                                      alwaysActive={true}
+                                      label={t("point_settings")}
+                                      collapsed={collapseStrokeWidthOptions}
+                                      setCollapsed={setCollapseStrokeWidthOptions}
+                                      disableAdvanceOptions={true}
+                                    />
+
+                                    <Settings
+                                      type="radius"
+                                      layerStyle={layerProperties}
+                                      active={true}
+                                      collapsed={collapseRadiusOptions}
+                                      onStyleChange={(newStyle: FeatureLayerProperties) => {
+                                        updateLayerStyle(newStyle);
+                                      }}
+                                      layerFields={layerFields}
+                                      selectedField={layerProperties["radius_field"]}
+                                    />
+                                  </>
+                                )}
+                              </>
+                            )}
+                        </Stack>
+                      )}
+                    </Box>
+                  </>
+                }
+              />
+              <Divider sx={{ m: 0 }} />
+              <AccordionWrapper
+                boxShadow="none"
+                backgroundColor="transparent"
+                disableGutters
+                expanded={expanded === LayerStylePanels.LABELS}
+                onChange={handleAccordionChange(LayerStylePanels.LABELS)}
+                accordionSxProps={{
+                  "&:before": {
+                    display: "none",
+                  },
+                }}
+                header={
+                  <>
+                    <Typography variant="body2" fontWeight="bold">
+                      {t("labels")}
+                    </Typography>
+                  </>
+                }
+                body={
                   <Box
                     sx={{
                       display: "flex",
@@ -337,260 +580,22 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
                       flexDirection: "column",
                     }}>
                     {activeLayer && (
-                      <Stack>
-                        {/* {FILL COLOR} */}
-                        {activeLayer.feature_layer_geometry_type &&
-                          ["polygon", "point"].includes(activeLayer.feature_layer_geometry_type) && (
-                            <>
-                              <SectionHeader
-                                active={layerProperties.filled}
-                                onToggleChange={(event) => {
-                                  onToggleChange(event, "filled");
-                                }}
-                                label={
-                                  activeLayer?.feature_layer_geometry_type === "line"
-                                    ? t("color")
-                                    : t("fill_color")
-                                }
-                                collapsed={collapseFillOptions}
-                                setCollapsed={setCollapseFillOptions}
-                              />
-                              <ColorOptions
-                                type="color"
-                                layerStyle={layerProperties}
-                                active={!!layerProperties.filled}
-                                layerFields={layerFields}
-                                collapsed={collapseFillOptions}
-                                selectedField={layerProperties.color_field}
-                                onStyleChange={async (newStyle: FeatureLayerProperties) => {
-                                  if (
-                                    newStyle.color_field?.type === "number" &&
-                                    newStyle.color_scale !== "ordinal"
-                                  ) {
-                                    await updateColorClassificationBreaks("color", newStyle);
-                                  } else if (newStyle.color_scale === "ordinal") {
-                                    await updateOrdinalValues("color", newStyle);
-                                  }
-
-                                  updateLayerStyle(newStyle);
-                                }}
-                                layerId={activeLayer?.layer_id}
-                              />
-                            </>
-                          )}
-
-                        {/* {STROKE} */}
-                        <SectionHeader
-                          active={!!layerProperties.stroked}
-                          onToggleChange={(event) => {
-                            onToggleChange(event, "stroked");
-                          }}
-                          alwaysActive={activeLayer?.feature_layer_geometry_type === "line"}
-                          label={
-                            activeLayer?.feature_layer_geometry_type === "line"
-                              ? t("color")
-                              : t("stroke_color")
-                          }
-                          collapsed={collapseStrokeColorOptions}
-                          setCollapsed={setCollapseStrokeColorOptions}
-                        />
-
-                        <ColorOptions
-                          type="stroke_color"
-                          layerStyle={layerProperties}
-                          active={!!layerProperties.stroked}
-                          layerFields={layerFields}
-                          collapsed={collapseStrokeColorOptions}
-                          selectedField={layerProperties.stroke_color_field}
-                          onStyleChange={async (newStyle: FeatureLayerProperties) => {
-                            if (
-                              newStyle.stroke_color_field?.type === "number" &&
-                              newStyle.stroke_color_scale !== "ordinal"
-                            ) {
-                              await updateColorClassificationBreaks("stroke_color", newStyle);
-                            } else if (newStyle.stroke_color_scale === "ordinal") {
-                              await updateOrdinalValues("stroke_color", newStyle);
-                            }
-                            updateLayerStyle(newStyle);
-                          }}
-                          layerId={activeLayer?.layer_id}
-                        />
-
-                        {/* {LINE STROKE} */}
-                        {activeLayer.feature_layer_geometry_type &&
-                          ["line", "polygon", "point"].includes(activeLayer.feature_layer_geometry_type) && (
-                            <>
-                              <SectionHeader
-                                active={!!layerProperties.stroked}
-                                onToggleChange={(event) => {
-                                  onToggleChange(event, "stroked");
-                                }}
-                                alwaysActive={activeLayer?.feature_layer_geometry_type === "line"}
-                                label={t("stroke_width")}
-                                collapsed={collapseStrokeWidthOptions}
-                                setCollapsed={setCollapseStrokeWidthOptions}
-                                disableAdvanceOptions={true}
-                              />
-
-                              <Settings
-                                type="stroke_width"
-                                layerStyle={layerProperties}
-                                active={!!layerProperties.stroked}
-                                collapsed={collapseStrokeWidthOptions}
-                                onStyleChange={(newStyle: FeatureLayerProperties) => {
-                                  updateLayerStyle(newStyle);
-                                }}
-                                layerFields={layerFields}
-                                selectedField={layerProperties["stroke_width_field"]}
-                              />
-                            </>
-                          )}
-
-                        {/* {MARKER ICON} */}
-                        {activeLayer.feature_layer_geometry_type &&
-                          activeLayer.feature_layer_geometry_type === "point" && (
-                            <>
-                              <SectionHeader
-                                active={layerProperties["custom_marker"]}
-                                alwaysActive={false}
-                                onToggleChange={(event) => {
-                                  onToggleChange(event, "custom_marker");
-                                }}
-                                label={t("custom_marker")}
-                                collapsed={collapsedMarkerIconOptions}
-                                setCollapsed={setCollapsedMarkerIconOptions}
-                              />
-
-                              <MarkerOptions
-                                type="marker"
-                                layerStyle={layerProperties}
-                                layerId={activeLayer?.layer_id}
-                                active={!!layerProperties["custom_marker"]}
-                                collapsed={collapsedMarkerIconOptions}
-                                onStyleChange={async (newStyle: FeatureLayerProperties) => {
-                                  if (!map) return;
-                                  await updateOrdinalValues("marker", newStyle);
-                                  updateLayerStyle(newStyle);
-                                  addOrUpdateMarkerImages(
-                                    activeLayer.id,
-                                    newStyle as FeatureLayerPointProperties,
-                                    map
-                                  );
-                                }}
-                                layerFields={layerFields}
-                                selectedField={layerProperties["marker_field"]}
-                              />
-                            </>
-                          )}
-
-                        {/* {RADIUS/SIZE} */}
-                        {activeLayer?.feature_layer_geometry_type &&
-                          activeLayer.feature_layer_geometry_type === "point" && (
-                            <>
-                              {layerProperties["custom_marker"] && (
-                                <>
-                                  <SectionHeader
-                                    active={markerExists}
-                                    alwaysActive={true}
-                                    label={t("marker_settings")}
-                                    collapsed={collapseRadiusOptions}
-                                    setCollapsed={setCollapseRadiusOptions}
-                                    disableAdvanceOptions={true}
-                                  />
-
-                                  <Settings
-                                    type="marker_size"
-                                    layerStyle={layerProperties}
-                                    active={markerExists}
-                                    collapsed={collapseRadiusOptions}
-                                    onStyleChange={(newStyle: FeatureLayerProperties) => {
-                                      if (!map) return;
-                                      updateLayerStyle(newStyle);
-                                      addOrUpdateMarkerImages(
-                                        activeLayer.id,
-                                        newStyle as FeatureLayerPointProperties,
-                                        map
-                                      );
-                                    }}
-                                    layerFields={layerFields}
-                                    selectedField={layerProperties["marker_size_field"]}
-                                  />
-                                </>
-                              )}
-
-                              {!layerProperties["custom_marker"] && (
-                                <>
-                                  <SectionHeader
-                                    active={true}
-                                    alwaysActive={true}
-                                    label={t("point_settings")}
-                                    collapsed={collapseStrokeWidthOptions}
-                                    setCollapsed={setCollapseStrokeWidthOptions}
-                                    disableAdvanceOptions={true}
-                                  />
-
-                                  <Settings
-                                    type="radius"
-                                    layerStyle={layerProperties}
-                                    active={true}
-                                    collapsed={collapseRadiusOptions}
-                                    onStyleChange={(newStyle: FeatureLayerProperties) => {
-                                      updateLayerStyle(newStyle);
-                                    }}
-                                    layerFields={layerFields}
-                                    selectedField={layerProperties["radius_field"]}
-                                  />
-                                </>
-                              )}
-                            </>
-                          )}
-                      </Stack>
+                      <LabelOptions
+                        layer={activeLayer}
+                        onStyleChange={async (newStyle) => {
+                          updateLayerStyle(newStyle);
+                        }}
+                        key={activeLayer.id}
+                      />
                     )}
                   </Box>
-                </>
-              }
-            />
+                }
+              />
+            </>
           )}
-          {/* <Divider sx={{ m: 0 }} />
-          <AccordionWrapper
-            boxShadow="none"
-            backgroundColor="transparent"
-            disableGutters
-            expanded={expanded === LayerStylePanels.LABELS}
-            onChange={handleAccordionChange(LayerStylePanels.LABELS)}
-            accordionSxProps={{
-              "&:before": {
-                display: "none",
-              },
-            }}
-            header={
-              <>
-                <Typography variant="body2" fontWeight="bold">
-                  {t("labels")}
-                </Typography>
-              </>
-            }
-            body={
-              <Box
-                sx={{
-                  display: "flex",
-                  px: 4,
-                  flexDirection: "column",
-                }}>
-                {activeLayer && (
-                  <Stack>
-                    <SectionHeader
-                      active={false}
-                      alwaysActive={true}
-                      label={t("labels")}
-                      collapsed={collapseLabelOptions}
-                      setCollapsed={setCollapseLabelOptions}
-                    />
-                  </Stack>
-                )}
-              </Box>
-            }
-          />
+          {/*
+
+
           <Divider sx={{ m: 0 }} />
           <AccordionWrapper
             boxShadow="none"

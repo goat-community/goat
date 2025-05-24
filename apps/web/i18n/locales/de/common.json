@@ -445,6 +445,8 @@
   "join_layer_text": "Wählen Sie den Layer aus, dessen Daten Sie hinzufügen möchten",
   "kml": "KML",
   "label": "Beschriftung",
+  "label_by": "",
+  "label_settings": "",
   "labels": "Beschriftungen",
   "language": "Sprache",
   "last_created": "Zuletzt erstellt",

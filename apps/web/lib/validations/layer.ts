@@ -152,7 +152,7 @@ export const featureLayerBasePropertiesSchema = z
   .object({
     filled: z.boolean().default(true),
     stroked: z.boolean().default(true),
-    text_label: TextLabel.optional(),
+    text_label: TextLabel.optional().default([]),
   })
   .merge(layerPropertiesBaseSchema)
   .merge(colorSchema)

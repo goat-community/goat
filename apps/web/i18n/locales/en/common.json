@@ -445,6 +445,8 @@
   "join_layer_text": "Select the layer containing the data of interest",
   "kml": "KML",
   "label": "Label",
+  "label_by": "Label by",
+  "label_settings": "Label Settings",
   "labels": "Labels",
   "language": "Language",
   "last_created": "Last Created",
