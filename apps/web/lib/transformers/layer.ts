@@ -240,7 +240,7 @@ export function getSymbolStyleSpec(data: TextLabelSchemaData, layer: ProjectLaye
     textLayout["text-offset"] = data.offset || [0, 0];
     textPaint["text-color"] = data.color ? rgbToHex(data.color as RGBColor) : "#000000";
     textPaint["text-halo-color"] = data.outline_color ? rgbToHex(data.outline_color as RGBColor) : "#FFFFFF";
-    textPaint["text-halo-width"] = data.outline_width || 1;
+    textPaint["text-halo-width"] = data.outline_width ?? 1;
   }
 
   return {
