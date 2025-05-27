@@ -41,7 +41,6 @@ FROM base AS runner
 RUN apk add bash
 
 WORKDIR /app
-
 # Don't run production as root
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
