@@ -2,8 +2,8 @@ This is a Monorepo repository for our GOAT project with a FastAPI/Python backend
 Please follow these guidelines when contributing:
 
 ## Code Standards
-- Run `ssh ./scripts/lint-web` before committing any changes to ensure proper code formatting for the frontend projects/libraries
-- Run `ssh ./scripts/lint-python` before committing any changes to ensure proper code formatting for the FastAPI/Python backend
+- Run `sh ./scripts/lint-web` before committing any changes to ensure proper code formatting for the frontend projects/libraries
+- Run `sh ./scripts/lint-python` before committing any changes to ensure proper code formatting for the FastAPI/Python backend
 
 ## Repository Structure
 - `.devcontainer/`: Contains configuration for development containers
