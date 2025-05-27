@@ -31,8 +31,10 @@ export type SelectorProps = {
   tooltip?: string;
   disabled?: boolean;
   multiple?: boolean;
+  placeholder?: string;
   onFocus?: () => void;
   onClose?: () => void;
+  cqlFilter?: object | undefined;
 };
 
 const SelectorLayerValue = (props: SelectorProps) => {
@@ -45,7 +47,26 @@ const SelectorLayerValue = (props: SelectorProps) => {
       onSelectedValuesChange: props.onSelectedValuesChange,
       fieldName: props.fieldName,
       datasetId: props.layerId,
+      cqlFilter: props.cqlFilter,
     });
+
+  // Prepare selected values array
+  const selectedValuesArray = props.multiple
+    ? ((props.selectedValues as string[]) || []).filter((v) => v != null)
+    : props.selectedValues
+      ? [props.selectedValues as string]
+      : [];
+
+  const selectedValuesSet = new Set(selectedValuesArray);
+
+  // Create combined items list with selected values first
+  const selectedItems = selectedValuesArray.map((selectedValue) => {
+    const existingItem = data?.items?.find((item) => item.value === selectedValue);
+    return existingItem || { value: selectedValue };
+  });
+
+  const otherItems = data?.items?.filter((item) => !selectedValuesSet.has(item.value)) || [];
+  const itemsToDisplay = [...selectedItems, ...otherItems];
 
   return (
     <FormControl size="small" fullWidth>
@@ -97,9 +118,9 @@ const SelectorLayerValue = (props: SelectorProps) => {
         onBlur={() => setFocused(false)}
         renderValue={() => {
           if (!props.selectedValues && !props.multiple)
-            return <Typography variant="body2">{t("select_value")}</Typography>;
+            return <Typography variant="body2">{props.placeholder ?? t("select_value")}</Typography>;
           if (props.multiple && Array.isArray(props.selectedValues) && props.selectedValues.length === 0)
-            return <Typography variant="body2">{t("select_values")}</Typography>;
+            return <Typography variant="body2">{props.placeholder ?? t("select_values")}</Typography>;
           return (
             <>
               {props.selectedValues && (
@@ -146,20 +167,19 @@ const SelectorLayerValue = (props: SelectorProps) => {
             <Loading size={40} />
           </Box>
         )}
-        {!isLoading && data?.items?.length === 0 && <NoValuesFound />}
+        {!isLoading && itemsToDisplay.length === 0 && <NoValuesFound />}
 
-        {data?.items.map((value) => (
-          <MenuItem sx={{ px: 2 }} key={value.value} value={value.value}>
-            {props.multiple && Array.isArray(props.selectedValues) && (
+        {itemsToDisplay.map((item) => (
+          <MenuItem sx={{ px: 2 }} key={item.value} value={item.value}>
+            {props.multiple && (
               <Checkbox
                 sx={{ mr: 2, p: 0 }}
                 size="small"
-                checked={props.selectedValues ? props.selectedValues.some((v) => v === value.value) : false}
+                checked={selectedValuesArray.includes(item.value)}
               />
             )}
-
             <Typography variant="body2" fontWeight="bold">
-              {value.value}
+              {item.value}
             </Typography>
           </MenuItem>
         ))}

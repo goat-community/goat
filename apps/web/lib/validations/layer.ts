@@ -1,5 +1,6 @@
 import * as z from "zod";
 
+import { DEFAULT_WKT_EXTENT } from "@/lib/constants";
 import { DEFAULT_COLOR, DEFAULT_COLOR_RANGE } from "@/lib/constants/color";
 import {
   contentMetadataSchema,
@@ -14,7 +15,6 @@ import {
 } from "@/lib/validations/common";
 import { responseSchema } from "@/lib/validations/response";
 import { publicUserSchema } from "@/lib/validations/user";
-import { DEFAULT_WKT_EXTENT } from "@/lib/constants";
 
 export const layerRoleEnums = z.enum(["layer-owner", "layer-viewer", "layer-editor"]);
 
@@ -31,14 +31,12 @@ export const shareLayerWithTeamOrOrganizationSchema = z.object({
   name: z.string().optional(),
   avatar: z.string().optional(),
   role: layerShareRoleEnum,
-})
-
+});
 
 export const shareLayerSchema = z.object({
   teams: z.array(shareLayerWithTeamOrOrganizationSchema).optional(),
   organizations: z.array(shareLayerWithTeamOrOrganizationSchema).optional(),
-})
-
+});
 
 const HexColor = z.string();
 const ColorMap = z.array(z.tuple([z.union([z.array(z.string()), z.null()]), HexColor]));
@@ -174,6 +172,31 @@ export const featureLayerProperties = featureLayerPointPropertiesSchema
   .or(featureLayerLinePropertiesSchema)
   .or(featureLayerPolygonPropertiesSchema);
 
+export const featureLabelProperties = z.object({});
+
+export const attributeSchema = z.object({
+  label: z.string(),
+  type: z.enum(["string", "number", "boolean"]),
+  format: z.string().optional(),
+});
+
+export const popupTableContent = z.object({
+  type: z.literal("table"),
+  title: z.string().optional(),
+  attributes: z.record(attributeSchema), // dynamic keys like "id", "name", etc.
+});
+
+export const popupImageContent = z.object({
+  type: z.literal("image"),
+  title: z.string().optional(),
+  url: z.string().url(),
+});
+
+export const popupProperties = z.object({
+  interaction: z.enum(["hover", "click"]).optional().default("click"),
+  content: z.array(popupTableContent).default([]),
+});
+
 // lineage, positional_accuracy, attribute_accuracy, completeness
 export const layerMetadataSchema = contentMetadataSchema.extend({
   lineage: z.string().optional(),
@@ -252,8 +275,6 @@ export const createLayerFromDatasetSchema = createLayerBaseSchema.extend({
   other_properties: otherPropertiesSchmea.optional(),
 });
 
-
-
 export const createRasterLayerSchema = createLayerBaseSchema.extend({
   type: z.literal("raster"),
   url: z.string().url(),
@@ -261,7 +282,7 @@ export const createRasterLayerSchema = createLayerBaseSchema.extend({
   extent: z.string().optional(),
   properties: z.record(z.any()).optional(), // add validation for raster properties
   other_properties: otherPropertiesSchmea,
-})
+});
 
 export const layerQueryables = z.object({
   title: z.string(),
@@ -357,9 +378,6 @@ export const datasetMetadataAggregated = z.object({
   distributor_name: z.array(datasetMetadataValue),
   license: z.array(datasetMetadataValue),
 });
-
-
-
 
 export type DatasetCollectionItems = z.infer<typeof datasetCollectionItems>;
 export type GetCollectionItemsQueryParams = z.infer<typeof datasetCollectionItemsQueryParams>;

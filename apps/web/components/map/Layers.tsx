@@ -10,6 +10,8 @@ import type { Layer } from "@/lib/validations/layer";
 import type { ProjectLayer } from "@/lib/validations/project";
 import { type ScenarioFeatures, scenarioEditTypeEnum } from "@/lib/validations/scenario";
 
+import { useAppSelector } from "@/hooks/store/ContextHooks";
+
 interface LayersProps {
   layers?: ProjectLayer[] | Layer[];
   selectedScenarioLayer?: ProjectLayer | null;
@@ -18,6 +20,8 @@ interface LayersProps {
 }
 
 const Layers = (props: LayersProps) => {
+  const temporaryFilters = useAppSelector((state) => state.map.temporaryFilters);
+  const mapMode = useAppSelector((state) => state.map.mapMode);
   const scenarioFeaturesToExclude = useMemo(() => {
     const featuresToExclude: { [key: string]: string[] } = {};
     props.scenarioFeatures?.features.forEach((feature) => {
@@ -41,10 +45,11 @@ const Layers = (props: LayersProps) => {
 
   const getLayerQueryFilter = (layer: ProjectLayer | Layer) => {
     const cqlFilter = layer["query"]?.cql;
-    if (!layer["layer_id"] || !Object.keys(scenarioFeaturesToExclude).length) return cqlFilter;
+    if (!layer["layer_id"] || (!Object.keys(scenarioFeaturesToExclude).length && mapMode === "data"))
+      return cqlFilter;
 
     const extendedFilter = JSON.parse(JSON.stringify(cqlFilter || {}));
-    if (scenarioFeaturesToExclude[layer.id]?.length) {
+    if (scenarioFeaturesToExclude[layer.id]?.length && mapMode === "data") {
       const scenarioFeaturesExcludeFilter = excludeOp("id", scenarioFeaturesToExclude[layer.id]);
       const parsedScenarioFeaturesExcludeFilter = JSON.parse(scenarioFeaturesExcludeFilter);
       // Append the filter to the existing filters
@@ -57,6 +62,25 @@ const Layers = (props: LayersProps) => {
       }
     }
 
+    if (mapMode !== "data" && temporaryFilters.length > 0) {
+      const nonCrossFilters = temporaryFilters
+        .filter((filter) => filter.layer_id === layer.id)
+        .map((filter) => filter.filter);
+      const spatialCrossFilters = temporaryFilters
+        .filter((filter) => filter.layer_id !== layer.id && filter.spatial_cross_filter)
+        .map((filter) => filter.spatial_cross_filter);
+      // 3- Merge all filters
+      const allFilters = [...nonCrossFilters, ...spatialCrossFilters];
+      if (allFilters.length === 0) return extendedFilter;
+      const extendedWithTemporaryFilters = {
+        op: "and",
+        args: allFilters,
+      };
+      if (extendedFilter["args"]) {
+        extendedWithTemporaryFilters["args"].push(extendedFilter);
+      }
+      return extendedWithTemporaryFilters;
+    }
     return extendedFilter;
   };
 

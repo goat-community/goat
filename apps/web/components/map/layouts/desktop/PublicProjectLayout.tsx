@@ -45,6 +45,7 @@ const PublicProjectLayout = ({
 }: PublicProjectLayoutProps) => {
   const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
+  const disableEditing = true;
   const project = useMemo(() => {
     const parsedProject = projectSchema.safeParse(_project);
     if (parsedProject.success) {
@@ -219,6 +220,7 @@ const PublicProjectLayout = ({
   };
 
   const handlePanelClick = (panel: BuilderPanelSchema) => {
+    if (viewOnly || disableEditing) return;
     dispatch(setSelectedBuilderItem(panel));
   };
 
@@ -300,7 +302,7 @@ const PublicProjectLayout = ({
                   key={panel.id}
                   panel={panel}
                   projectLayers={projectLayers}
-                  viewOnly={viewOnly}
+                  viewOnly={viewOnly || disableEditing}
                   selected={selectedPanel?.type === "panel" && selectedPanel?.id === panel.id}
                   onChangeOrder={handleChangeOrder}
                   onClick={() => handlePanelClick(panel)}
@@ -309,7 +311,7 @@ const PublicProjectLayout = ({
             </>
           )}
           {/* Center Content */}
-          {!viewOnly && (
+          {!viewOnly && !disableEditing && (
             <Box
               sx={{
                 flexGrow: 1,
@@ -341,7 +343,6 @@ const PublicProjectLayout = ({
                 top: topPanels.length * PANEL_SIZE,
                 m: 2,
                 zIndex: 2,
-                pointerEvents: "all",
               }}>
               <Geocoder
                 accessToken={MAPBOX_TOKEN}
@@ -358,7 +359,6 @@ const PublicProjectLayout = ({
               top: topPanels.length * PANEL_SIZE,
               m: 2,
               zIndex: 2,
-              pointerEvents: "all",
             }}>
             {builderConfig?.settings.zoom_controls && (
               <Zoom tooltipZoomIn={t("zoom_in")} tooltipZoomOut={t("zoom_out")} />
@@ -375,7 +375,6 @@ const PublicProjectLayout = ({
               right: rightPanels.length * PANEL_SIZE,
               bottom: bottomPanels.length * PANEL_SIZE,
               zIndex: 2,
-              pointerEvents: "all",
             }}>
             {builderConfig?.settings.basemap && (
               <Box sx={{ m: 2 }}>
@@ -399,7 +398,7 @@ const PublicProjectLayout = ({
                 zIndex: 2,
                 bottom: bottomPanels.length * PANEL_SIZE,
                 m: 2,
-                pointerEvents: "all",
+                pointerEvents: "none",
               }}>
               <Scalebar />
             </Box>

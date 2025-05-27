@@ -4,15 +4,8 @@ import { contentMetadataSchema, getContentQueryParamsSchema, orderByEnum } from 
 import { layerSchema } from "@/lib/validations/layer";
 import { responseSchema } from "@/lib/validations/response";
 import { publicUserSchema } from "@/lib/validations/user";
-import {
-  categoriesChartConfigSchema,
-  dividerElementConfigSchema,
-  histogramChartConfigSchema,
-  imageElementConfigSchema,
-  informationLayersConfigSchema,
-  pieChartConfigSchema,
-  textElementConfigSchema,
-} from "@/lib/validations/widget";
+import { configSchemas } from "@/lib/validations/widget";
+import { basicLayout } from "@/lib/constants/dashboard-builder-template-layouts";
 
 export const projectRoleEnum = z.enum(["project-owner", "project-viewer", "project-editor"]);
 
@@ -36,22 +29,10 @@ export const shareProjectSchema = z.object({
   organizations: z.array(shareProjectWithTeamOrOrganizationSchema).optional(),
 });
 
-
-
 export const builderWidgetSchema = z.object({
   id: z.string(),
   type: z.literal("widget"),
-  config: z
-    .union([
-      informationLayersConfigSchema,
-      categoriesChartConfigSchema,
-      histogramChartConfigSchema,
-      pieChartConfigSchema,
-      textElementConfigSchema,
-      dividerElementConfigSchema,
-      imageElementConfigSchema,
-    ])
-    .optional(),
+  config: configSchemas.optional(),
 });
 
 export const builderPanelConfigSchema = z.object({
@@ -97,7 +78,13 @@ export const builderConfigSchema = z.object({
     fullscreen: z.boolean().default(true),
     toolbar: z.boolean().default(true),
   }),
-  interface: z.array(builderPanelSchema).optional().default([]),
+  interface: z
+    .preprocess(
+      // Convert empty arrays to `undefined` to trigger the default, todo: remove this when dashboard is completed
+      (val) => (Array.isArray(val) && val.length === 0 ? undefined : val),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      z.array(builderPanelSchema).default(basicLayout.interface as any)
+    )
 });
 
 export const projectSchema = contentMetadataSchema.extend({
@@ -105,14 +92,13 @@ export const projectSchema = contentMetadataSchema.extend({
   id: z.string(),
   layer_order: z.array(z.number()),
   max_extent: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional().nullable(),
-  builder_config: builderConfigSchema
-    .default({
-      settings: {},
-      interface: [],
-    })
-    .optional(),
+  builder_config: builderConfigSchema.default({
+    settings: {},
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    interface: basicLayout.interface as any,
+  }),
   active_scenario_id: z.string().nullable().optional(),
-  basemap: z.string().optional(),
+  basemap: z.string().nullable().default("streets"),
   updated_at: z.string().optional(),
   created_at: z.string().optional(),
   shared_with: shareProjectSchema.optional(),
@@ -180,7 +166,7 @@ export const aggregationStatsQueryParams = z.object({
   size: z.number().default(10),
   query: z.string().optional(),
   order: orderByEnum.optional(),
-})
+});
 
 export const aggregationStatsResponseSchema = z.object({
   items: z.array(

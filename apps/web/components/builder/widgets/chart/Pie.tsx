@@ -20,7 +20,7 @@ const FALLBACK_COLORS = ["#5A1846", "#900C3F", "#C70039", "#E3611C", "#F1920E", 
 const OPACITY_MODIFIER = "33";
 
 export const PieChartWidget = ({ config: rawConfig }: { config: PieChartSchema }) => {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const { config, queryParams, projectId } = useChartWidget(
     rawConfig,
     pieChartConfigSchema,
@@ -138,7 +138,8 @@ export const PieChartWidget = ({ config: rawConfig }: { config: PieChartSchema }
               <Label
                 value={`${formatNumber(
                   displayData[activeIndex].operation_value / totalOperationValue,
-                  "percent_1d"
+                  "percent_1d",
+                  i18n.language
                 )}`}
                 position="centerBottom"
                 fontSize={14}

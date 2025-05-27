@@ -378,6 +378,7 @@ export function LegendRows({
 
 export function Legend(props: LegendProps) {
   const { t } = useTranslation("common");
+  const theme = useTheme();
   const geometryTypes = ["point", "line", "polygon"];
 
   return (
@@ -399,7 +400,10 @@ export function Legend(props: LegendProps) {
             style={{ cursor: "default" }}>
             {!props.hideLayerName && (
               <Stack direction="row" justifyContent="space-between">
-                <Typography variant="body2" fontWeight="bold">
+                <Typography
+                  variant="body2"
+                  fontWeight="bold"
+                  color={layer.properties.visibility ? "inherit" : theme.palette.text.disabled}>
                   {layer.name}
                 </Typography>
                 {props.enableActions && (
@@ -414,33 +418,35 @@ export function Legend(props: LegendProps) {
                 </Typography>
               </Tooltip>
             )}
-            <Stack sx={{ py: 1 }}>
-              {layer.type === "feature" && (
-                <>
-                  {geometryTypes.map(
-                    (type) =>
-                      layer.feature_layer_geometry_type === type &&
-                      layer.properties && (
-                        <LegendRows
-                          key={type}
-                          properties={layer.properties as FeatureLayerProperties}
-                          type={type}
-                        />
-                      )
-                  )}
-                </>
-              )}
-              {layer.type === "raster" && (
-                <>
-                  {layer.other_properties?.legend_urls &&
-                    layer.other_properties?.legend_urls.map((url: string) => (
-                      <Stack key={url} spacing={1} sx={{ mt: 2 }} direction="column">
-                        <img src={url} alt={url} style={{ width: "100%" }} />
-                      </Stack>
-                    ))}
-                </>
-              )}
-            </Stack>
+            {layer.properties.visibility && (
+              <Stack sx={{ py: 1 }}>
+                {layer.type === "feature" && (
+                  <>
+                    {geometryTypes.map(
+                      (type) =>
+                        layer.feature_layer_geometry_type === type &&
+                        layer.properties && (
+                          <LegendRows
+                            key={type}
+                            properties={layer.properties as FeatureLayerProperties}
+                            type={type}
+                          />
+                        )
+                    )}
+                  </>
+                )}
+                {layer.type === "raster" && (
+                  <>
+                    {layer.other_properties?.legend_urls &&
+                      layer.other_properties?.legend_urls.map((url: string) => (
+                        <Stack key={url} spacing={1} sx={{ mt: 2 }} direction="column">
+                          <img src={url} alt={url} style={{ width: "100%" }} />
+                        </Stack>
+                      ))}
+                  </>
+                )}
+              </Stack>
+            )}
             {index < props.layers.length - 1 && <Divider />}
           </Stack>
         ))}
