@@ -4,7 +4,11 @@ import { Layer as MapLayer, Source } from "react-map-gl/maplibre";
 
 import { GEOAPI_BASE_URL, SYSTEM_LAYERS_IDS } from "@/lib/constants";
 import { excludes as excludeOp } from "@/lib/transformers/filter";
-import { getHightlightStyleSpec, transformToMapboxLayerStyleSpec } from "@/lib/transformers/layer";
+import {
+  getHightlightStyleSpec,
+  getSymbolStyleSpec,
+  transformToMapboxLayerStyleSpec,
+} from "@/lib/transformers/layer";
 import { getLayerKey } from "@/lib/utils/map/layer";
 import type { Layer } from "@/lib/validations/layer";
 import type { ProjectLayer } from "@/lib/validations/project";
@@ -119,17 +123,19 @@ const Layers = (props: LayersProps) => {
               if (layer.type === "feature") {
                 return (
                   <Source key={layer.updated_at} type="vector" tiles={[getFeatureTileUrl(layer)]}>
-                    <MapLayer
-                      key={getLayerKey(layer)}
-                      minzoom={layer.properties.min_zoom || 0}
-                      maxzoom={layer.properties.max_zoom || 24}
-                      id={layer.id.toString()}
-                      {...(transformToMapboxLayerStyleSpec(layer) as LayerProps)}
-                      beforeId={
-                        index === 0 || !useDataLayers ? undefined : useDataLayers[index - 1].id.toString()
-                      }
-                      source-layer="default"
-                    />
+                    {!layer.properties?.["custom_marker"] && (
+                      <MapLayer
+                        key={getLayerKey(layer)}
+                        minzoom={layer.properties.min_zoom || 0}
+                        maxzoom={layer.properties.max_zoom || 24}
+                        id={layer.id.toString()}
+                        {...(transformToMapboxLayerStyleSpec(layer) as LayerProps)}
+                        beforeId={
+                          index === 0 || !useDataLayers ? undefined : useDataLayers[index - 1].id.toString()
+                        }
+                        source-layer="default"
+                      />
+                    )}
                     {layer.feature_layer_geometry_type === "polygon" && (
                       <MapLayer
                         key={`stroke-${layer.id.toString()}`}
@@ -149,6 +155,25 @@ const Layers = (props: LayersProps) => {
                           },
                         }) as LayerProps)}
                         source-layer="default"
+                      />
+                    )}
+
+                    {/* Labels for all layers that aren't a custom marker*/}
+                    {(layer.properties?.text_label || layer.properties?.["custom_marker"]) && (
+                      <MapLayer
+                        key={
+                          layer.properties?.["custom_marker"] ? getLayerKey(layer) : `text-label-${layer.id}`
+                        }
+                        id={
+                          layer.properties?.["custom_marker"] ? layer.id.toString() : `text-label-${layer.id}`
+                        }
+                        source-layer="default"
+                        minzoom={layer.properties.min_zoom || 0}
+                        maxzoom={layer.properties.max_zoom || 24}
+                        {...(getSymbolStyleSpec(layer.properties?.text_label, layer) as LayerProps)}
+                        beforeId={
+                          index === 0 || !useDataLayers ? undefined : useDataLayers[index - 1].id.toString()
+                        }
                       />
                     )}
 

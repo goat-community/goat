@@ -500,7 +500,6 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
                                       setCollapsed={setCollapseRadiusOptions}
                                       disableAdvanceOptions={true}
                                     />
-
                                     <Settings
                                       type="marker_size"
                                       layerStyle={layerProperties}
@@ -517,6 +516,7 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
                                       }}
                                       layerFields={layerFields}
                                       selectedField={layerProperties["marker_size_field"]}
+                                      activeLayer={activeLayer}
                                     />
                                   </>
                                 )}

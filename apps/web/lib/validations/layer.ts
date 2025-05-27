@@ -74,20 +74,22 @@ export const colorRange = z.object({
   color_legends: ColorLegends.optional(),
 });
 
+export const SymbolPlacementAnchor = z.enum(["center", "left", "right", "top", "bottom", "top-left", "top-right", "bottom-left", "bottom-right"]);
 export const TextLabelSchema = z.object({
   size: z.number().min(1).max(100).default(14),
   color: z.array(z.number().min(0).max(255)).optional().default([0, 0, 0]),
   field: z.string().optional(),
-  offset: z.array(z.number().min(0).max(100)).optional().default([0, 0]),
-  anchor: z.enum(["start", "middle", "end"]).optional().default("middle"),
+  offset: z.array(z.number().min(-5).max(5)).optional().default([0, 0]),
+  anchor: SymbolPlacementAnchor.default("bottom"),
   alignment: z.enum(["center", "left", "right"]).optional().default("center"),
   background: z.boolean().optional().default(false),
-  background_color: z.array(z.number().min(0).max(255)).optional().default([0, 0, 200, 255]),
-  outline_color: z.array(z.number().min(0).max(255)).optional().default([255, 0, 0, 255]),
-  outline_width: z.number().min(0).max(100).optional().default(0),
+  allow_overlap: z.boolean().optional().default(false),
+  font_family: z.array(z.string()).optional().default(["Open Sans Regular", "Arial Unicode MS Regular"]),
+  background_color: z.array(z.number().min(0).max(255)).optional().default([0, 0, 0, 0]),
+  outline_color: z.array(z.number().min(0).max(255)).optional().default([255, 255, 255]),
+  outline_width: z.number().min(0).max(10).optional().default(0),
 });
 
-export const TextLabel = z.array(TextLabelSchema);
 
 export const layerPropertiesBaseSchema = z.object({
   opacity: z.number().min(0).max(1).default(0.8),
@@ -146,13 +148,15 @@ export const markerSchema = z.object({
   marker_size_field: layerFieldType.optional(),
   marker_background_type: markerBackgroundType.optional().default("marker"),
   marker_allow_overlap: z.boolean().optional().default(false),
+  marker_anchor: SymbolPlacementAnchor.optional().default("center"),
+  marker_offset: z.array(z.number().min(-5).max(5)).optional().default([0, 0]),
 });
 
 export const featureLayerBasePropertiesSchema = z
   .object({
     filled: z.boolean().default(true),
     stroked: z.boolean().default(true),
-    text_label: TextLabel.optional().default([]),
+    text_label: TextLabelSchema.optional(),
   })
   .merge(layerPropertiesBaseSchema)
   .merge(colorSchema)
@@ -416,3 +420,4 @@ export type ExternalDatasetFeatureUrl = z.infer<typeof externalDatasetFeatureUrl
 export type CreateLayerFromDataset = z.infer<typeof createLayerFromDatasetSchema>;
 export type CreateRasterLayer = z.infer<typeof createRasterLayerSchema>;
 export type LayerSharedWith = z.infer<typeof shareLayerSchema>;
+export type TextLabelSchemaData = z.infer<typeof TextLabelSchema>;
