@@ -447,7 +447,7 @@
   "join_layer_text": "Wählen Sie den Layer aus, dessen Daten Sie hinzufügen möchten",
   "kml": "KML",
   "label": "Beschriftung",
-  "label_by": "",
+  "label_by": "Beschriftung nach",
   "label_line_anchor_options": {
     "above": "Above",
     "below": "Below",
