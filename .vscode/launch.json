@@ -38,6 +38,24 @@
       "preLaunchTask": "uv-sync"
     },
     {
+      "name": "Core Debug",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "fastapi",
+      "args": [
+          "dev",
+          "src/core/main.py",
+          "--reload",
+          "--port",
+          "5000"
+      ],
+      "cwd": "${workspaceFolder}/apps/core",
+      "justMyCode": false,
+      "jinja": true,
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "uv-sync"
+    },
+    {
       "name": "Web Debug (Server-Side)",
       "type": "node-terminal",
       "request": "launch",

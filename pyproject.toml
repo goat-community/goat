@@ -2,8 +2,11 @@
 name = "goat-monorepo"
 description = "GOAT, an intelligent software for modern web mapping and integrated planning"
 version = "2.0.0"
-requires-python = ">=3.12"
-dependencies = []
+requires-python = ">3.10,<3.12"
+dependencies = [
+    "boto3>=1.38.23",
+    "python-jose>=3.4.0",
+]
 authors = [
     { name = "Plan4Better GmbH", email = "info@plan4better.de" },
 ]
