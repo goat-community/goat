@@ -80,7 +80,7 @@ const LabelOptions = ({
     if (!textLabelOptions?.anchor) {
       return anchorItems[0];
     }
-    return anchorItems.find((item) => item.value === textLabelOptions.anchor);
+    return anchorItems.find((item) => item.value === textLabelOptions.anchor) || anchorItems[0];
   }, [textLabelOptions?.anchor, anchorItems]);
 
   return (
