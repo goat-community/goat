@@ -11,54 +11,54 @@ export function useSymbolOptions(layer: ProjectLayer | Layer) {
   const anchorItems: SelectorItem[] = useMemo(() => {
     const pointAnchorOptions = [
       {
-        value: SymbolPlacementAnchor.enum.center,
+        value: SymbolPlacementAnchor.Enum.center,
         label: t("label_point_anchor_options.center"),
       },
       {
-        value: SymbolPlacementAnchor.enum.top,
+        value: SymbolPlacementAnchor.Enum.top,
         label: t("label_point_anchor_options.top"),
       },
       {
-        value: SymbolPlacementAnchor.enum.bottom,
+        value: SymbolPlacementAnchor.Enum.bottom,
         label: t("label_point_anchor_options.bottom"),
       },
       {
-        value: SymbolPlacementAnchor.enum.left,
+        value: SymbolPlacementAnchor.Enum.left,
         label: t("label_point_anchor_options.left"),
       },
       {
-        value: SymbolPlacementAnchor.enum.right,
+        value: SymbolPlacementAnchor.Enum.right,
         label: t("label_point_anchor_options.right"),
       },
       {
-        value: SymbolPlacementAnchor.enum["top-left"],
+        value: SymbolPlacementAnchor.Enum["top-left"],
         label: t("label_point_anchor_options.top_left"),
       },
       {
-        value: SymbolPlacementAnchor.enum["top-right"],
+        value: SymbolPlacementAnchor.Enum["top-right"],
         label: t("label_point_anchor_options.top_right"),
       },
       {
-        value: SymbolPlacementAnchor.enum["bottom-left"],
+        value: SymbolPlacementAnchor.Enum["bottom-left"],
         label: t("label_point_anchor_options.bottom_left"),
       },
       {
-        value: SymbolPlacementAnchor.enum["bottom-right"],
+        value: SymbolPlacementAnchor.Enum["bottom-right"],
         label: t("label_point_anchor_options.bottom_right"),
       },
     ];
 
     const lineAnchorOptions = [
       {
-        value: SymbolPlacementAnchor.enum.center,
+        value: SymbolPlacementAnchor.Enum.center,
         label: t("label_line_anchor_options.center"),
       },
       {
-        value: SymbolPlacementAnchor.enum.top,
+        value: SymbolPlacementAnchor.Enum.top,
         label: t("label_line_anchor_options.above"),
       },
       {
-        value: SymbolPlacementAnchor.enum.bottom,
+        value: SymbolPlacementAnchor.Enum.bottom,
         label: t("label_line_anchor_options.below"),
       },
     ];
