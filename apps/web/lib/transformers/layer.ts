@@ -233,14 +233,14 @@ export function getSymbolStyleSpec(data: TextLabelSchemaData, layer: ProjectLaye
   }
   if (data.field) {
     textLayout["text-field"] = ["get", data.field];
-    textLayout["text-size"] = data.size || 12;
+    textLayout["text-size"] = data.size ?? 14;
     textLayout["text-font"] = data.font_family || ["Open Sans Regular"];
     textLayout["text-allow-overlap"] = data.allow_overlap || false;
     textLayout["text-anchor"] = data.anchor || "top";
     textLayout["text-offset"] = data.offset || [0, 0];
     textPaint["text-color"] = data.color ? rgbToHex(data.color as RGBColor) : "#000000";
     textPaint["text-halo-color"] = data.outline_color ? rgbToHex(data.outline_color as RGBColor) : "#FFFFFF";
-    textPaint["text-halo-width"] = data.outline_width || 1;
+    textPaint["text-halo-width"] = data.outline_width ?? 1;
   }
 
   return {
