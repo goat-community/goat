@@ -231,7 +231,7 @@ export function getSymbolStyleSpec(data: TextLabelSchemaData, layer: ProjectLaye
     iconPaint["icon-opacity"] = pointProperties.filled ? pointProperties.opacity : 1;
     iconPaint["icon-color"] = getMapboxStyleColor(layer, "color");
   }
-  if (data.field) {
+  if (data?.field) {
     textLayout["text-field"] = ["get", data.field];
     textLayout["text-size"] = data.size ?? 14;
     textLayout["text-font"] = data.font_family || ["Open Sans Regular"];
