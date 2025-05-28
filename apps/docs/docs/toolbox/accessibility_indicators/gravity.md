@@ -299,6 +299,8 @@ where the accessibility **A** of origin **i** is the sum of all opportunities **
   </div>
 </MathJax.Provider>
 
+This function produces a bell-shaped curve where accessibility decreases gradually at first and then more rapidly as travel time increases. The parameter β controls how quickly the accessibility value decreases with distance. Higher β values result in a slower decrease in accessibility as travel time increases. The Gaussian function is particularly useful for modeling accessibility to amenities where the willingness to travel decreases non-linearly with distance.
+
 *Cumulative Opportunities Linear, (Kwan,1998):*
 <div>
 <MathJax.Provider>
@@ -314,6 +316,8 @@ where the accessibility **A** of origin **i** is the sum of all opportunities **
 </MathJax.Provider>
   </div>    
 
+The Linear function assumes that accessibility decreases linearly with travel time until reaching the maximum travel time threshold (t̄), after which accessibility becomes zero. This function is suitable for modeling scenarios where the willingness to travel decreases at a constant rate with distance.
+
   *Negative Exponential, (Kwan,1998):*
 
 
@@ -323,6 +327,8 @@ where the accessibility **A** of origin **i** is the sum of all opportunities **
   </div>
 </MathJax.Provider>
     </div>  
+
+The Exponential function shows a rapid initial decrease in accessibility that slows down over time. The parameter β controls the rate of decrease, with higher values leading to a steeper decline. This function is often used when modeling accessibility where the deterrence effect of distance is strong even for short travel times.
 
 *Inverse Power, (Kwan,1998):*
 
@@ -337,14 +343,25 @@ where the accessibility **A** of origin **i** is the sum of all opportunities **
 </MathJax.Provider>
 </div>  
 
+The Power function maintains 100% accessibility until a minimum threshold (1 minute), then decreases according to a power law with exponent -β. Compared to the exponential function, the power function typically shows a less rapid initial decline but a steeper decline for longer travel times, making it suitable for modeling scenarios where people are less sensitive to small travel time differences but highly sensitive to larger ones.
+
 Travel times are measured in minutes. For a maximum travel time of 30 minutes, destinations that are farther than 30 minutes are considered non-accessible and therefore not considered in the calculation of the accessibility.
-The *sensitivity* parameter determines how accessibility changes with increasing travel time. As the *sensitivity* parameter is decisive when measuring accessibility, GOAT allows you to adjust this. The following graphs show the influence of the *sensitivity* parameter on accessibility:
+The *sensitivity* parameter determines how accessibility changes with increasing travel time. As the *sensitivity* parameter is decisive when measuring accessibility, GOAT allows you to adjust this. The following interactive graph shows the influence of the *sensitivity* parameter on accessibility:
 
-:::info coming soon
+import ImpedanceFunction from '@site/src/components/ImpedanceFunction';
 
-Examples of this functionality will be online soon. 🧑🏻‍💻
+<ImpedanceFunction />
 
-:::
+Use the controls above to:
+- Select different impedance functions to see how the form of the accessibility curve changes
+- Adjust the sensitivity parameter (β) to see how it affects the willingness to walk or cycle over different travel times
+- Compare the different functions to understand which one best represents your use case
+
+When choosing a sensitivity value for your analysis:
+- **Higher values** of β (e.g., 500,000) result in a more gradual decrease in accessibility with distance, suggesting people are willing to travel farther
+- **Lower values** of β (e.g., 100,000) cause accessibility to decrease more rapidly with distance, suggesting a stronger preference for nearby destinations
+- For most urban mobility applications using the Gaussian function, values between 200,000-400,000 provide reasonable results
+- The optimal sensitivity value may differ based on the transportation mode, region, and amenity type being analyzed
 
 Similarly, the *destination potential* can be changed. Thus, for example, one POI type (e.g. hypermarkets) can be assigned a higher accessibility effect than other POI types (e.g. discount supermarkets). The following images show the influence of the *destination potential* parameter on accessibility:
 
