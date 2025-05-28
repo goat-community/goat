@@ -294,6 +294,7 @@ wobei die Erreichbarkeit **A** des Ausgangspunkts **i** die Summe aller am Zielo
   </div>
 </MathJax.Provider>
 
+Diese Funktion erzeugt eine glockenförmige Kurve, bei der die Erreichbarkeit zunächst allmählich und dann mit zunehmender Reisezeit schneller abnimmt. Der Parameter β bestimmt, wie schnell der Erreichbarkeitswert mit der Entfernung abnimmt. Höhere β-Werte führen zu einer langsameren Abnahme der Erreichbarkeit mit zunehmender Reisezeit. Die Gauß-Funktion ist besonders nützlich für die Modellierung der Erreichbarkeit von Einrichtungen, bei denen die Bereitschaft zu reisen nicht linear mit der Entfernung abnimmt.
 
 *Lineare kumulative Chancen, (Kwan,1998):*
 
@@ -308,6 +309,8 @@ wobei die Erreichbarkeit **A** des Ausgangspunkts **i** die Summe aller am Zielo
 </MathJax.Provider>
 </div>
 
+Die lineare Funktion geht davon aus, dass die Erreichbarkeit linear mit der Reisezeit abnimmt, bis der maximale Reisezeitgrenzwert (t̄) erreicht ist, danach wird die Erreichbarkeit Null. Diese Funktion eignet sich für die Modellierung von Szenarien, bei denen die Bereitschaft zur Reise mit zunehmender Entfernung mit konstanter Rate abnimmt.
+
 *Negative Exponentialfunktion, (Kwan,1998):*
 
 <div>
@@ -317,6 +320,8 @@ wobei die Erreichbarkeit **A** des Ausgangspunkts **i** die Summe aller am Zielo
   </div>
 </MathJax.Provider>
 </div>
+
+Die Exponentialfunktion zeigt eine schnelle anfängliche Abnahme der Erreichbarkeit, die im Laufe der Zeit langsamer wird. Der Parameter β steuert die Abnahmerate, wobei höhere Werte zu einem steileren Rückgang führen. Diese Funktion wird häufig bei der Modellierung der Erreichbarkeit verwendet, wenn der abschreckende Effekt der Entfernung auch bei kurzen Reisezeiten stark ist.
 
 *Inverse Power, (Kwan,1998):*
 
