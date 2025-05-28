@@ -14,22 +14,24 @@ export default function ImpedanceFunction({ initialFunction = 'gaussian', initia
   const calculateValues = () => {
     const travelTimes = Array.from({ length: 31 }, (_, i) => i); // 0 to 30 minutes
     let values = [];
+    // Normalize sensitivity value (0-1 range)
+    const normalizedSensitivity = sensitivity / 1000000;
 
     switch(impedanceFunction) {
       case 'gaussian':
-        values = travelTimes.map(t => Math.exp(-(Math.pow(t, 2) / sensitivity)));
+        values = travelTimes.map(t => Math.exp(-(Math.pow(t / 30, 2) / normalizedSensitivity)));
         break;
       case 'linear':
         values = travelTimes.map(t => t <= 30 ? 1 - (t / 30) : 0);
         break;
       case 'exponential':
-        values = travelTimes.map(t => Math.exp(-(sensitivity / 100000) * t));
+        values = travelTimes.map(t => Math.exp(-(normalizedSensitivity * 10) * (t / 30)));
         break;
       case 'power':
-        values = travelTimes.map(t => t <= 1 ? 1 : Math.pow(t, -sensitivity / 100000));
+        values = travelTimes.map(t => t <= 1 ? 1 : Math.pow((t / 30), -normalizedSensitivity * 10));
         break;
       default:
-        values = travelTimes.map(t => Math.exp(-(Math.pow(t, 2) / sensitivity)));
+        values = travelTimes.map(t => Math.exp(-(Math.pow(t / 30, 2) / normalizedSensitivity)));
     }
 
     return { travelTimes, values };
@@ -156,10 +158,12 @@ export default function ImpedanceFunction({ initialFunction = 'gaussian', initia
         <p>
           <strong>Current function:</strong> {impedanceFunction.charAt(0).toUpperCase() + impedanceFunction.slice(1)}
           <br />
-          <strong>Formula:</strong> {impedanceFunction === 'gaussian' ? 'f(t) = exp(-t²/β)' : 
-                        impedanceFunction === 'linear' ? 'f(t) = 1 - (t/t̄) for t ≤ t̄, 0 otherwise' :
-                        impedanceFunction === 'exponential' ? 'f(t) = exp(-β·t)' : 
-                        'f(t) = 1 for t ≤ 1, t^(-β) otherwise'}
+          <strong>Formula:</strong> {impedanceFunction === 'gaussian' ? 'f(t) = exp(-(t/30)²/β̂)' : 
+                        impedanceFunction === 'linear' ? 'f(t) = 1 - (t/30) for t ≤ 30, 0 otherwise' :
+                        impedanceFunction === 'exponential' ? 'f(t) = exp(-10β̂·(t/30))' : 
+                        'f(t) = 1 for t ≤ 1, (t/30)^(-10β̂) otherwise'}
+          <br/>
+          <small>where β̂ = β/1000000 is the normalized sensitivity (0-1)</small>
         </p>
       </div>
     </div>
