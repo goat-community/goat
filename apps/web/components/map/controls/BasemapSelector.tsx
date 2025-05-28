@@ -89,6 +89,7 @@ export function BasemapSelectorButton({ open, setOpen }: BasemapSelectorButtonPr
           "&:hover": {
             backgroundColor: theme.palette.background.default,
           },
+          pointerEvents: "all",
         }}>
         <Icon iconName={ICON_NAME.MAP} fontSize="small" htmlColor="inherit" />
       </Fab>
@@ -115,7 +116,7 @@ export function BasemapSelector(props: BasemapSelectorProps) {
           <ArrowPopper
             placement="top-end"
             content={
-              <Box sx={{ width: 360 }}>
+              <Box sx={{ width: 360, pointerEvents: "all" }}>
                 <BaseMapSelectorList
                   styles={props.styles}
                   active={props.active}

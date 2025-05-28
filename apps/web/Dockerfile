@@ -3,6 +3,7 @@ FROM node:20-alpine AS base
 FROM base AS builder
 RUN apk add --no-cache libc6-compat
 RUN apk update
+
 # Set working directory
 WORKDIR /app
 RUN npm install -g turbo@1.13.3
@@ -41,7 +42,6 @@ FROM base AS runner
 RUN apk add bash
 
 WORKDIR /app
-
 # Don't run production as root
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

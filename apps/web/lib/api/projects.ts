@@ -201,14 +201,16 @@ export const updateProjectLayer = async (projectId: string, layerId: number, pay
 };
 
 export const deleteProjectLayer = async (projectId: string, layerId: number) => {
-  try {
-    await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/layer?layer_project_id=${layerId}`, {
+  const response = await fetchWithAuth(
+    `${PROJECTS_API_BASE_URL}/${projectId}/layer?layer_project_id=${layerId}`,
+    {
       method: "DELETE",
-    });
-  } catch (error) {
-    console.error(error);
+    }
+  );
+  if (!response.ok) {
     throw Error(`deleteProjectLayer: unable to delete layer with id ${layerId}`);
   }
+  return response;
 };
 
 export const addProjectLayers = async (projectId: string, layerIds: string[]) => {
@@ -262,14 +264,13 @@ export const createProject = async (payload: PostProject): Promise<Project> => {
 };
 
 export const deleteProject = async (id: string) => {
-  try {
-    await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${id}`, {
-      method: "DELETE",
-    });
-  } catch (error) {
-    console.error(error);
+  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
     throw Error(`deleteProject: unable to delete project with id ${id}`);
   }
+  return response;
 };
 
 export const createProjectScenario = async (projectId: string, payload: PostScenario) => {
