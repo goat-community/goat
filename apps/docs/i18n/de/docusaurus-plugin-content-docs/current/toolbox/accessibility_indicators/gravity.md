@@ -294,7 +294,6 @@ wobei die Erreichbarkeit **A** des Ausgangspunkts **i** die Summe aller am Zielo
   </div>
 </MathJax.Provider>
 
-Diese Funktion erzeugt eine glockenförmige Kurve, bei der die Erreichbarkeit zunächst allmählich und dann mit zunehmender Reisezeit schneller abnimmt. Der Parameter β bestimmt, wie schnell der Erreichbarkeitswert mit der Entfernung abnimmt. Höhere β-Werte führen zu einer langsameren Abnahme der Erreichbarkeit mit zunehmender Reisezeit. Die Gauß-Funktion ist besonders nützlich für die Modellierung der Erreichbarkeit von Einrichtungen, bei denen die Bereitschaft zu reisen nicht linear mit der Entfernung abnimmt.
 
 *Lineare kumulative Chancen, (Kwan,1998):*
 
@@ -309,8 +308,6 @@ Diese Funktion erzeugt eine glockenförmige Kurve, bei der die Erreichbarkeit zu
 </MathJax.Provider>
 </div>
 
-Die lineare Funktion geht davon aus, dass die Erreichbarkeit linear mit der Reisezeit abnimmt, bis der maximale Reisezeitgrenzwert (t̄) erreicht ist, danach wird die Erreichbarkeit Null. Diese Funktion eignet sich für die Modellierung von Szenarien, bei denen die Bereitschaft zur Reise mit zunehmender Entfernung mit konstanter Rate abnimmt.
-
 *Negative Exponentialfunktion, (Kwan,1998):*
 
 <div>
@@ -321,9 +318,8 @@ Die lineare Funktion geht davon aus, dass die Erreichbarkeit linear mit der Reis
 </MathJax.Provider>
 </div>
 
-Die Exponentialfunktion zeigt eine schnelle anfängliche Abnahme der Erreichbarkeit, die im Laufe der Zeit langsamer wird. Der Parameter β steuert die Abnahmerate, wobei höhere Werte zu einem steileren Rückgang führen. Diese Funktion wird häufig bei der Modellierung der Erreichbarkeit verwendet, wenn der abschreckende Effekt der Entfernung auch bei kurzen Reisezeiten stark ist.
 
-*Inverse Power, (Kwan,1998):*
+*Inverse Power, (Kwan,1998) ('Powerfunktion' im GOAT):*
 
 <div>
 <MathJax.Provider>
@@ -337,13 +333,11 @@ Die Exponentialfunktion zeigt eine schnelle anfängliche Abnahme der Erreichbark
 </div>
 
 Die Reisezeit wird in Minuten gemessen. Bei einer maximalen Reisezeit von 30 Minuten gelten Ziele, die weiter als 30 Minuten entfernt sind, als nicht erreichbar und werden daher bei der Berechnung der Erreichbarkeit nicht berücksichtigt.
-Der Parameter *Sensitivität* bestimmt, wie sich die Erreichbarkeit mit zunehmender Reisezeit verändert. Da der Parameter *Sensitivität* für die Messung der Erreichbarkeit entscheidend ist, können Sie ihn in GOAT anpassen. Die folgenden Diagramme zeigen den Einfluss des Parameters *Sensitivität* auf die Erreichbarkeit:
+Der Parameter *Sensitivität* bestimmt, wie sich die Erreichbarkeit mit zunehmender Reisezeit verändert. Da der Parameter *Sensitivität* für die Messung der Erreichbarkeit entscheidend ist, können Sie ihn in GOAT anpassen. Die folgenden Diagramme zeigt, wie die Bereitschaft, zu Fuß zu gehen, mit zunehmender Reisezeit auf der Grundlage der gewählten Impedanzfunktion und des Sensitivität (β) abnimmt.
 
-:::info demnächst verfügbar
+import ImpedanceFunction from '@site/src/components/ImpedanceFunction';
 
-Beispiele für diese Funktionalität werden bald online sein. 🧑🏻‍💻
-
-:::
+<ImpedanceFunction />
 
 In ähnlicher Weise kann auch das *Zielpotenzialfeld* verändert werden. So kann z.B. einem POI-Typ (z.B. Verbrauchermärkte) ein höherer Erreichbarkeitseffekt zugeordnet werden als anderen POI-Typen (z.B. Discounter). Die folgenden Bilder zeigen den Einfluss des Parameters *Zielpotenzialfeld* auf die Erreichbarkeit:
 
