@@ -26,27 +26,32 @@ export default function ImpedanceFunction({ initialFunction = 'gaussian', initia
     }
     
     let values = [];
-    // Normalize sensitivity value (0-1 range)
-    const normalizedSensitivity = sensitivity / MAX_SENSITIVITY;
-
     // Travel time in minutes for the formulas
     const travelTimesMinutes = travelTimesSeconds.map(sec => sec / 60);
 
     switch(impedanceFunction) {
       case 'gaussian':
-        values = travelTimesMinutes.map(t => Math.exp(-(Math.pow(t / 30, 2) / normalizedSensitivity)));
+        // Gaussian: exp(-β * t²) where β controls the decay rate
+        const beta = sensitivity / MAX_SENSITIVITY; // normalized sensitivity
+        values = travelTimesMinutes.map(t => Math.exp(-beta * 10 * Math.pow(t, 2)));
         break;
       case 'linear':
+        // Linear: max(0, 1 - t/T) where T is maximum travel time
         values = travelTimesMinutes.map(t => Math.max(0, 1 - (t / 30)));
         break;
       case 'exponential':
-        values = travelTimesMinutes.map(t => Math.exp(-(normalizedSensitivity * 10) * (t / 30)));
+        // Exponential: exp(-β * t)
+        const expBeta = (sensitivity / MAX_SENSITIVITY) * 5; // scaling factor
+        values = travelTimesMinutes.map(t => Math.exp(-expBeta * t));
         break;
       case 'power':
-        values = travelTimesMinutes.map(t => t <= 1/30 ? 1 : Math.pow((t / 30), -normalizedSensitivity * 10));
+        // Power: t^(-β) for t > 0, 1 for t = 0
+        const powerBeta = (sensitivity / MAX_SENSITIVITY) * 2;
+        values = travelTimesMinutes.map(t => t <= 0.01 ? 1 : Math.pow(t + 0.01, -powerBeta));
         break;
       default:
-        values = travelTimesMinutes.map(t => Math.exp(-(Math.pow(t / 30, 2) / normalizedSensitivity)));
+        const defaultBeta = sensitivity / MAX_SENSITIVITY;
+        values = travelTimesMinutes.map(t => Math.exp(-defaultBeta * 10 * Math.pow(t, 2)));
     }
 
     return { travelTimesSeconds, values };
@@ -88,12 +93,12 @@ export default function ImpedanceFunction({ initialFunction = 'gaussian', initia
     ctx.restore();
     
     // X-axis label
-    ctx.fillText('Secondes', width / 2, height - 10);
+    ctx.fillText('Seconds', width / 2, height - 10);
 
     // Draw Y-axis ticks and labels
     ctx.textAlign = 'right';
-    for (let i = 0; i <= 10; i++) {
-      const y = height - padding - (i * (height - 2 * padding) / 10);
+    for (let i = 0; i <= 12; i++) {
+      const y = height - padding - (i * (height - 2 * padding) / 12);
       ctx.beginPath();
       ctx.moveTo(padding - 5, y);
       ctx.lineTo(padding, y);
@@ -103,21 +108,21 @@ export default function ImpedanceFunction({ initialFunction = 'gaussian', initia
 
     // Draw X-axis ticks and labels
     ctx.textAlign = 'center';
-    // We want to show labels at regular intervals
-    const intervals = [1, 26, 51, 76, 101, 126, 151, 176, 201, 226, 251, 276, 301, 326,
-                      351, 376, 401, 426, 451, 476, 501, 526, 551, 576, 601, 626, 651,
-                      676, 701, 726, 751, 776, 801, 826, 851, 876, 901, 926, 951, 976,
-                      1001, 1026, 1051, 1076, 1101, 1126, 1151, 1176];
-                      
     const xScale = (width - 2 * padding) / DISPLAY_MAX_SEC;
-    intervals.forEach(sec => {
+    
+    // Show ticks every 100 seconds for cleaner display
+    for (let sec = 0; sec <= DISPLAY_MAX_SEC; sec += 100) {
       const x = padding + (sec * xScale);
       ctx.beginPath();
       ctx.moveTo(x, height - padding);
       ctx.lineTo(x, height - padding + 5);
       ctx.stroke();
-      ctx.fillText(`${sec}`, x, height - padding + 20);
-    });
+      
+      // Only show labels for major ticks to avoid crowding
+      if (sec % 200 === 0 || sec === DISPLAY_MAX_SEC) {
+        ctx.fillText(`${sec}`, x, height - padding + 20);
+      }
+    }
 
     // Draw the graph
     ctx.beginPath();
@@ -183,12 +188,12 @@ export default function ImpedanceFunction({ initialFunction = 'gaussian', initia
           <br />
           <strong>Formula:</strong> {
             impedanceFunction === 'gaussian' ? 
-              `f(t) = exp(-(t/30)²/β̂)` : 
+              `f(t) = exp(-β̂ × 10 × t²)` : 
             impedanceFunction === 'linear' ? 
-              `f(t) = 1 - (t/30) for t ≤ 30, 0 otherwise` :
+              `f(t) = max(0, 1 - t/30)` :
             impedanceFunction === 'exponential' ? 
-              `f(t) = exp(-10β̂·(t/30))` : 
-              `f(t) = 1 for t ≤ 1, (t/30)^(-10β̂) otherwise`
+              `f(t) = exp(-β̂ × 5 × t)` : 
+              `f(t) = (t + 0.01)^(-β̂ × 2)`
           }
           <br/>
           <small>where β̂ = β/{MAX_SENSITIVITY.toLocaleString()} is the normalized sensitivity (0-1 scale)</small>
