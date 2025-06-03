@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Any, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, HttpUrl, ValidationInfo, computed_field, field_validator
@@ -8,8 +8,8 @@ from sqlmodel import ARRAY, Column, Field, ForeignKey, SQLModel, Text
 from sqlmodel import UUID as UUID_PG
 
 from core.core.config import settings
-from core.db.models._base_class import DateTimeBase
-from core.db.models.layer import ContentBaseAttributes, internal_layer_table_name
+from core.db.models._base_class import ContentBaseAttributes, DateTimeBase
+from core.db.models.layer import internal_layer_table_name
 from core.schemas.common import CQLQuery
 from core.schemas.layer import (
     ExternalServiceOtherProperties,
@@ -39,20 +39,23 @@ class InitialViewState(BaseModel):
     pitch: int = Field(..., description="Pitch", ge=0, le=60)
 
     @field_validator("zoom", mode="before")
-    def convert_zoom(cls, value: int | float):
+    @classmethod
+    def convert_zoom(cls: type["InitialViewState"], value: int | float) -> int:
         if isinstance(value, float):
             return int(value)
         return value
 
     @field_validator("max_zoom", mode="after")
-    def check_max_zoom(cls, value: int, info: ValidationInfo):
+    @classmethod
+    def check_max_zoom(cls: type["InitialViewState"], value: int, info: ValidationInfo) -> int:
         min_zoom = info.data.get("min_zoom")
         if min_zoom is not None and value < min_zoom:
             raise ValueError("max_zoom should be greater than or equal to min_zoom")
         return value
 
     @field_validator("min_zoom", mode="after")
-    def check_min_zoom(cls, value: int, info: ValidationInfo):
+    @classmethod
+    def check_min_zoom(cls: type["InitialViewState"], value: int, info: ValidationInfo) -> int:
         max_zoom = info.data.get("max_zoom")
         if max_zoom is not None and value > max_zoom:
             raise ValueError("min_zoom should be less than or equal to max_zoom")
@@ -86,9 +89,9 @@ class IProjectRead(ContentBaseAttributes, DateTimeBase):
     thumbnail_url: HttpUrl | None = Field(description="Project thumbnail URL")
     active_scenario_id: UUID | None = Field(None, description="Active scenario ID")
     basemap: str | None = Field(None, description="Project basemap")
-    shared_with: dict | None = Field(None, description="Shared with")
-    owned_by: dict | None = Field(None, description="Owned by")
-    builder_config: dict | None = Field(None, description="Builder config")
+    shared_with: dict[str, Any] | None = Field(None, description="Shared with")
+    owned_by: dict[str, Any] | None = Field(None, description="Owned by")
+    builder_config: dict[str, Any] | None = Field(None, description="Builder config")
     max_extent: list[float] | None = Field(
         None, description="Max extent of the project"
     )
@@ -124,7 +127,7 @@ class IProjectBaseUpdate(SQLModel):
         None, description="Max extent of the project"
     )
     active_scenario_id: UUID | None = Field(None, description="Active scenario ID")
-    builder_config: dict | None = Field(None, description="Builder config")
+    builder_config: dict[str, Any] | None = Field(None, description="Builder config")
     tags: List[str] | None = Field(
         default=None,
         sa_column=Column(ARRAY(Text), nullable=True), description="Layer tags"
@@ -148,12 +151,12 @@ class LayerProjectIds(BaseModel):
 
 class IFeatureBaseProject(CQLQuery):
     group: str | None = Field(None, description="Layer group name")
-    charts: dict | None = Field(None, description="Layer chart properties")
+    charts: dict[str, Any] | None = Field(None, description="Layer chart properties")
 
 
 class IFeatureBaseProjectRead(IFeatureBaseProject):
     name: str = Field(..., description="Layer name")
-    properties: dict = Field(
+    properties: dict[str, Any] = Field(
         ...,
         description="Layer properties",
     )
@@ -164,47 +167,46 @@ class IFeatureBaseProjectRead(IFeatureBaseProject):
         None, description="Filtered count of features in the layer"
     )
 
-    @property
-    def table_name(self):
-        return internal_layer_table_name(self)
-
-    @property
-    def where_query(self):
-        return where_query(self)
-
-
-def where_query(values: SQLModel | BaseModel):
-    table_name = internal_layer_table_name(values)
-    # Check if query exists then build where query
-    return build_where(
-        id=values.layer_id,
-        table_name=table_name,
-        query=values.query,
-        attribute_mapping=values.attribute_mapping,
-    )
-
 
 class IFeatureStandardProjectRead(
     LayerProjectIds, IFeatureStandardRead, IFeatureBaseProjectRead
 ):
-    pass
+    @computed_field
+    def table_name(self) -> str:
+        return internal_layer_table_name(self)
+
+    @computed_field
+    def where_query(self) -> str | None:
+        return where_query(self)
 
 
 class IFeatureToolProjectRead(
     LayerProjectIds, IFeatureToolRead, IFeatureBaseProjectRead
 ):
-    pass
+    @computed_field
+    def table_name(self) -> str:
+        return internal_layer_table_name(self)
+
+    @computed_field
+    def where_query(self) -> str | None:
+        return where_query(self)
 
 
 class IFeatureStreetNetworkProjectRead(
     LayerProjectIds, IFeatureStreetNetworkRead, IFeatureBaseProjectRead
 ):
-    pass
+    @computed_field
+    def table_name(self) -> str:
+        return internal_layer_table_name(self)
+
+    @computed_field
+    def where_query(self) -> str | None:
+        return where_query(self)
 
 
 class IFeatureStandardProjectUpdate(IFeatureBaseProject):
     name: str | None = Field(None, description="Layer name")
-    properties: dict | None = Field(
+    properties: dict[str, Any] | None = Field(
         default=None,
         description="Layer properties",
     )
@@ -212,7 +214,7 @@ class IFeatureStandardProjectUpdate(IFeatureBaseProject):
 
 class IFeatureStreetNetworkProjectUpdate(IFeatureBaseProject):
     name: str | None = Field(None, description="Layer name")
-    properties: dict | None = Field(
+    properties: dict[str, Any] | None = Field(
         default=None,
         description="Layer properties",
     )
@@ -220,7 +222,7 @@ class IFeatureStreetNetworkProjectUpdate(IFeatureBaseProject):
 
 class IFeatureToolProjectUpdate(IFeatureBaseProject):
     name: str | None = Field(None, description="Layer name")
-    properties: dict | None = Field(
+    properties: dict[str, Any] | None = Field(
         default=None,
         description="Layer properties",
     )
@@ -241,7 +243,7 @@ class ITableProjectRead(LayerProjectIds, ITableRead, CQLQuery):
         return internal_layer_table_name(self)
 
     @computed_field
-    def where_query(self) -> str:
+    def where_query(self) -> str | None:
         return where_query(self)
 
 
@@ -253,7 +255,7 @@ class ITableProjectUpdate(CQLQuery):
 
 class IRasterProjectRead(LayerProjectIds, IRasterRead):
     group: str | None = Field(None, description="Layer group name", max_length=255)
-    properties: Optional[dict] = Field(
+    properties: Optional[dict[str, Any]] = Field(
         None,
         description="Layer properties",
     )
@@ -263,7 +265,7 @@ class IRasterProjectRead(LayerProjectIds, IRasterRead):
 class IRasterProjectUpdate(BaseModel):
     name: str | None = Field(None, description="Layer name", max_length=255)
     group: str | None = Field(None, description="Layer group name", max_length=255)
-    properties: dict | None = Field(
+    properties: dict[str, Any] | None = Field(
         None,
         description="Layer properties",
     )
@@ -305,11 +307,11 @@ class ProjectPublicProjectConfig(BaseModel):
         None, description="Max extent of the project"
     )
     folder_id: UUID = Field(..., description="Folder ID")
-    builder_config: dict | None = Field(None, description="Builder config")
+    builder_config: dict[str, Any] | None = Field(None, description="Builder config")
 
 
 class ProjectPublicConfig(BaseModel):
-    layers: list = Field(..., description="Layers of the project")
+    layers: list[BaseModel] = Field(..., description="Layers of the project")
     project: ProjectPublicProjectConfig = Field(
         ..., description="Project configuration"
     )
@@ -320,6 +322,21 @@ class ProjectPublicRead(BaseModel):
     updated_at: datetime = Field(..., description="Updated at")
     project_id: UUID
     config: ProjectPublicConfig
+
+
+def where_query(values: IFeatureStandardProjectRead | \
+        IFeatureToolProjectRead | \
+        IFeatureStreetNetworkProjectRead | \
+        ITableProjectRead
+) -> str | None:
+    table_name = internal_layer_table_name(values)
+    # Check if query exists then build where query
+    return build_where(
+        id=values.layer_id,
+        table_name=table_name,
+        query=values.query,
+        attribute_mapping=values.attribute_mapping,
+    )
 
 
 # TODO: Refactor

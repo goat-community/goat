@@ -34,7 +34,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 # Local application imports
 from core.core.config import settings
 from core.crud.base import ModelType
-from core.schemas.common import CQLQuery
+from core.schemas.common import CQLQuery, CQLQueryObject
 
 
 def optional(*fields):
@@ -448,10 +448,10 @@ def get_result_column(
 def build_where(
     id: UUID,
     table_name: str,
-    query: str | dict,
-    attribute_mapping: dict,
+    query: None | str | dict[str, Any] | CQLQueryObject,
+    attribute_mapping: dict[str, Any],
     return_basic_filter: bool = True,
-):
+) -> str | None:
     """Builds a PostgreSQL WHERE clause based on a CQL query and layer ID."""
 
     if query is None:

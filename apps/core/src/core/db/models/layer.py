@@ -5,7 +5,7 @@ from uuid import UUID
 import pycountry
 from geoalchemy2 import Geometry, WKBElement
 from geoalchemy2.shape import to_shape
-from pydantic import BaseModel, EmailStr, HttpUrl, field_validator
+from pydantic import BaseModel, EmailStr, HttpUrl, computed_field, field_validator
 from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as UUID_PG
@@ -360,7 +360,7 @@ layer_base_example = {
 }
 
 
-def internal_layer_table_name(values: SQLModel | BaseModel):
+def internal_layer_table_name(values: SQLModel | BaseModel) -> str:
     """Get the table name for the internal layer."""
 
     # Get table name
@@ -518,12 +518,12 @@ class Layer(LayerBase, GeospatialAttributes, DateTimeBase, table=True):
         assert HttpUrl(value)
         return value
 
-    @property
-    def table_name(self):
+    @computed_field
+    def table_name(self) -> str:
         return internal_layer_table_name(self)
 
-    @property
-    def layer_id(self):
+    @computed_field
+    def layer_id(self) -> UUID | None:
         return self.id
 
 

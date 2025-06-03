@@ -74,4 +74,4 @@ RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(whic
 CMD bash -c "Xvfb ${DISPLAY} -screen 0 '1024x768x24' -ac +extension GLX +render -noreset -nolisten tcp & while true; do sleep 1000; done"
 
 # Configure PYTHONPATH env so the QGIS Python module is found
-ENV PYTHONPATH "${PYTHONPATH}:/usr/lib/python3/dist-packages"
+ENV PYTHONPATH ".:/usr/lib/python3/dist-packages"

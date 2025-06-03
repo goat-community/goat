@@ -1,7 +1,6 @@
 from typing import Any, Optional
 from uuid import UUID
 
-import boto3
 from pydantic import PostgresDsn, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings
 
@@ -51,7 +50,8 @@ class Settings(BaseSettings):
     POSTGRES_DATABASE_URI: Optional[str] = None
 
     @field_validator("POSTGRES_DATABASE_URI", mode="after")
-    def postgres_database_uri_(cls, value: Optional[str], info: ValidationInfo) -> str:
+    @classmethod
+    def postgres_database_uri_(cls: type["Settings"], value: Optional[str], info: ValidationInfo) -> str:
         if value:
             return value
         return f'postgresql://{info.data.get("POSTGRES_USER")}:{info.data.get("POSTGRES_PASSWORD")}@' \
@@ -60,7 +60,8 @@ class Settings(BaseSettings):
     ASYNC_SQLALCHEMY_DATABASE_URI: Optional[str] = None
 
     @field_validator("ASYNC_SQLALCHEMY_DATABASE_URI", mode="after")
-    def assemble_async_db_connection(cls, value: Optional[str], info: ValidationInfo) -> str:
+    @classmethod
+    def assemble_async_db_connection(cls: type["Settings"], value: Optional[str], info: ValidationInfo) -> str:
         if value:
             return value
         return str(AsyncPostgresDsn.build(
@@ -78,7 +79,8 @@ class Settings(BaseSettings):
     R5_AUTHORIZATION: Optional[str] = None
 
     @field_validator("R5_AUTHORIZATION", mode="after")
-    def r5_authorization(cls, value: Optional[str], info: ValidationInfo) -> Any:
+    @classmethod
+    def r5_authorization(cls: type["Settings"], value: Optional[str], info: ValidationInfo) -> Any:
         if value:
             return f"Basic {value}"
         return None
@@ -91,8 +93,10 @@ class Settings(BaseSettings):
     GOAT_ROUTING_PORT: int
 
     GOAT_ROUTING_URL: Optional[str] = None
+
     @field_validator("GOAT_ROUTING_URL", mode="after")
-    def goat_routing_url(cls, value: Optional[str], info: ValidationInfo) -> str:
+    @classmethod
+    def goat_routing_url(cls: type["Settings"], value: Optional[str], info: ValidationInfo) -> str:
         if value:
             return value
         return f'{info.data.get("GOAT_ROUTING_HOST")}:{info.data.get("GOAT_ROUTING_PORT")}/api/v2/routing'
@@ -100,7 +104,8 @@ class Settings(BaseSettings):
     GOAT_ROUTING_AUTHORIZATION: Optional[str] = None
 
     @field_validator("GOAT_ROUTING_AUTHORIZATION", mode="after")
-    def goat_routing_authorization(cls, value: Optional[str], info: ValidationInfo) -> Optional[str]:
+    @classmethod
+    def goat_routing_authorization(cls: type["Settings"], value: Optional[str], info: ValidationInfo) -> Optional[str]:
         if value:
             return f"Basic {value}"
         return None
@@ -116,23 +121,6 @@ class Settings(BaseSettings):
 
     MAPBOX_TOKEN: Optional[str] = None
     MAPTILER_TOKEN: Optional[str] = None
-    AWS_ACCESS_KEY_ID: Optional[str] = None
-    AWS_SECRET_ACCESS_KEY: Optional[str] = None
-    AWS_REGION: Optional[str] = "eu-central-1"
-    AWS_S3_ASSETS_BUCKET: Optional[str] = "plan4better-assets"
-
-    S3_CLIENT: Optional[Any] = None
-
-    @field_validator("S3_CLIENT", mode="after")
-    def assemble_s3_client(cls, value: Optional[str], info: ValidationInfo) -> Any:
-        if value:
-            return value
-        return boto3.client(
-            "s3",
-            aws_access_key_id=info.data.get("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=info.data.get("AWS_SECRET_ACCESS_KEY"),
-            region_name=info.data.get("AWS_REGION"),
-        )
 
     DEFAULT_PROJECT_THUMBNAIL: Optional[str] = (
         "https://assets.plan4better.de/img/goat_new_project_artwork.png"
@@ -148,7 +136,8 @@ class Settings(BaseSettings):
     THUMBNAIL_DIR_LAYER: Optional[str] = None
 
     @field_validator("THUMBNAIL_DIR_LAYER", mode="after")
-    def set_thumbnail_dir_layer(cls, value: Optional[str], info: ValidationInfo) -> Optional[str]:
+    @classmethod
+    def set_thumbnail_dir_layer(cls: type["Settings"], value: Optional[str], info: ValidationInfo) -> Optional[str]:
         environment = info.data.get("ENVIRONMENT", "dev")
         if value is None:
             return f"img/users/{environment}/thumbnails/layer"
@@ -157,7 +146,8 @@ class Settings(BaseSettings):
     THUMBNAIL_DIR_PROJECT: Optional[str] = None
 
     @field_validator("THUMBNAIL_DIR_PROJECT", mode="after")
-    def set_thumbnail_dir_project(cls, value: Optional[str], info: ValidationInfo) -> Optional[str]:
+    @classmethod
+    def set_thumbnail_dir_project(cls: type["Settings"], value: Optional[str], info: ValidationInfo) -> Optional[str]:
         environment = info.data.get("ENVIRONMENT", "dev")
         if value is None:
             return f"img/users/{environment}/thumbnails/project"
