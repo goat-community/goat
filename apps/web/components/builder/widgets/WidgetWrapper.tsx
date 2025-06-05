@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useSortable } from "@dnd-kit/sortable";
 import { Box, IconButton, alpha, useTheme } from "@mui/material";
 import { useMemo } from "react";
 
@@ -37,6 +38,8 @@ const DraggableWidgetContainer: React.FC<DraggableWidgetContainerProps> = ({ chi
   const selectedWidget = useAppSelector((state) => state.map.selectedBuilderItem);
   const theme = useTheme();
 
+  const { attributes, listeners, setNodeRef } = useSortable({ id: widget.id });
+
   const isSelected = useMemo(() => {
     if (!selectedWidget || selectedWidget.type !== "widget") return false;
     if (selectedWidget.id === widget.id) return true;
@@ -45,6 +48,7 @@ const DraggableWidgetContainer: React.FC<DraggableWidgetContainerProps> = ({ chi
 
   return (
     <Box
+      ref={setNodeRef}
       onClick={(e) => {
         e.stopPropagation();
         dispatch(setSelectedBuilderItem(widget));
@@ -77,7 +81,7 @@ const DraggableWidgetContainer: React.FC<DraggableWidgetContainerProps> = ({ chi
             backgroundColor: theme.palette.primary.main,
             boxShadow: 0,
           }}>
-          <IconButton sx={{ borderRadius: 0, color: "white", cursor: "move" }}>
+          <IconButton sx={{ borderRadius: 0, color: "white", cursor: "move" }} {...attributes} {...listeners}>
             <Icon iconName={ICON_NAME.GRIP_VERTICAL} style={{ fontSize: "12px" }} />
           </IconButton>
           <IconButton sx={{ borderRadius: 0, color: "white" }}>

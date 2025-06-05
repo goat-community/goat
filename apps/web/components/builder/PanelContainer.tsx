@@ -20,7 +20,7 @@ export interface BuilderPanelSchemaWithPosition extends BuilderPanelSchema {
   };
 }
 
-interface PanelContainerProps {
+interface ContainerProps {
   panel: BuilderPanelSchemaWithPosition; // A single panel
   projectLayers: ProjectLayer[];
   selected?: boolean; // Whether the panel is selected
@@ -67,7 +67,7 @@ const ChangeOrderButton: React.FC<{
   );
 };
 
-const PanelContainer: React.FC<PanelContainerProps> = ({
+export const Container: React.FC<ContainerProps> = ({
   panel,
   projectLayers,
   selected,
@@ -281,4 +281,44 @@ const PanelContainer: React.FC<PanelContainerProps> = ({
   );
 };
 
-export default PanelContainer;
+// interface DroppableContainerProps extends ContainerProps {
+//   children?: React.ReactNode;
+//   disabled?: boolean;
+//   style?: React.CSSProperties;
+// }
+
+// // export const DroppableContainer: React.FC<DroppableContainerProps> = ({
+// //   children
+// //   disabled,
+// //   id,
+// //   items,
+// //   style,
+// //   ...props
+// // }) => {
+// //   const {
+// //     active,
+// //     attributes,
+// //     isDragging,
+// //     listeners,
+// //     over,
+// //     setNodeRef,
+// //     transition,
+// //     transform,
+// //   } = useSortable({
+// //     id,
+// //     data: {
+// //       type: 'container',
+// //       children: items,
+// //     }
+// //   });
+
+// //   return (
+// //     <Container
+// //       ref={setNodeRef}
+// //       id={id}
+// //       items={items}
+// //       {...props}
+// //       >
+// //       </Container>
+
+// // };

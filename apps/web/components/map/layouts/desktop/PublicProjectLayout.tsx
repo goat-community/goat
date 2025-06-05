@@ -18,7 +18,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import AddSectionButton from "@/components/builder/AddSectionButton";
 import type { BuilderPanelSchemaWithPosition } from "@/components/builder/PanelContainer";
-import PanelContainer from "@/components/builder/PanelContainer";
+import { Container } from "@/components/builder/PanelContainer";
 import Header from "@/components/header/Header";
 import AttributionControl from "@/components/map/controls/Attribution";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
@@ -297,7 +297,7 @@ const PublicProjectLayout = ({
           {panelsWithPosition?.length > 0 && (
             <>
               {panelsWithPosition.map((panel: BuilderPanelSchemaWithPosition) => (
-                <PanelContainer
+                <Container
                   key={panel.id}
                   panel={panel}
                   projectLayers={projectLayers}
