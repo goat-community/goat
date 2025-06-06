@@ -41,6 +41,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onChange, onReset }
       options: [
         { name: "fullscreen", label: t("fullscreen") },
         { name: "toolbar", label: t("toolbar") },
+        { name: "project_info", label: t("project_info") },
       ],
     },
   ];
@@ -77,11 +78,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onChange, onReset }
         ))}
       </Stack>
       <Stack>
-      <Button onClick={onReset} fullWidth size="small" color="error">
-        <Typography variant="body2" fontWeight="bold" color="inherit">
-          {t("common:reset")}
-        </Typography>
-      </Button>
+        <Button onClick={onReset} fullWidth size="small" color="error">
+          <Typography variant="body2" fontWeight="bold" color="inherit">
+            {t("common:reset")}
+          </Typography>
+        </Button>
       </Stack>
     </Stack>
   );

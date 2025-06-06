@@ -26,8 +26,35 @@ export const useLayerSettingsMoreMenu = () => {
   function getLayerMoreMenuOptions(
     layerType: ProjectLayer["type"],
     viewChart?: boolean,
-    inCatalog?: ProjectLayer["in_catalog"]
+    inCatalog?: ProjectLayer["in_catalog"],
+    readOnly?: boolean
   ): PopperMenuItem[] {
+
+    if (readOnly) {
+      const readOnlyOptions: PopperMenuItem[] = [
+        ...(layerType !== "table" ? [
+          {
+            id: MapLayerActions.ZOOM_TO,
+            label: t("zoom_to"),
+            icon: ICON_NAME.ZOOM_IN,
+          },
+        ] : []),
+        ...(layerType !== "feature" || !inCatalog ? [
+          {
+            id: ContentActions.DOWNLOAD,
+            label: t("download"),
+            icon: ICON_NAME.DOWNLOAD,
+          },
+        ] : []),
+        {
+          id: ContentActions.INFO,
+          label: t("data_source_info"),
+          icon: ICON_NAME.CIRCLEINFO,
+        },
+      ];
+      return readOnlyOptions;
+    }
+
     if (layerType === "feature") {
       const featureOptions: PopperMenuItem[] = [
         {
