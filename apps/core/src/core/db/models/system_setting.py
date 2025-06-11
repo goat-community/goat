@@ -4,9 +4,11 @@ from uuid import UUID
 from sqlalchemy import ForeignKey, text
 from sqlalchemy.dialects.postgresql import UUID as UUID_PG
 from sqlmodel import Column, Field, Relationship, SQLModel, Text
+
+from core.core.config import settings
 from core.db.models._base_class import DateTimeBase
 from core.db.models.user import User
-from core.core.config import settings
+
 
 class ClientThemeType(str, Enum):
     """Layer types that are supported."""

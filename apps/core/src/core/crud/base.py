@@ -41,7 +41,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def get(
         self, db: AsyncSession, id: Any, extra_fields: List[Any] = []
-    ) -> Optional[ModelType]:
+    ) -> SQLModel | None:
         statement = select(self.model).where(self.model.id == id)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         result = await db.execute(statement)
@@ -130,9 +130,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self,
         db: AsyncSession,
         *,
-        db_obj: ModelType,
-        obj_in: Union[UpdateSchemaType, Dict[str, Any]] = None,
-    ) -> ModelType:
+        db_obj: SQLModel,
+        obj_in: Union[UpdateSchemaType, Dict[str, Any]] | None = None,
+    ) -> SQLModel:
         if isinstance(obj_in, dict):
             update_data = obj_in
             fields = obj_in.keys()

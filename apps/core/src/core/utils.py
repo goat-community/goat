@@ -12,7 +12,7 @@ import subprocess
 import time
 import zipfile
 from functools import wraps
-from typing import Any, List, Type
+from typing import Any, AsyncIterator, Callable, Type, TypeVar, cast
 from uuid import UUID
 
 import aiohttp
@@ -24,6 +24,7 @@ from geoalchemy2.shape import to_shape
 from geojson import Feature, FeatureCollection
 from geojson import loads as geojsonloads
 from numba import njit
+from numpy.typing import NDArray
 from pydantic import BaseModel
 from pygeofilter.backends.sql import to_sql_where
 from pygeofilter.parsers.cql2_json import parse as cql2_json_parser
@@ -33,22 +34,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # Local application imports
 from core.core.config import settings
-from core.crud.base import ModelType
+from core.db.models import Scenario, ScenarioScenarioFeatureLink
 from core.schemas.common import CQLQuery, CQLQueryObject
 
 
-def optional(*fields):
-    def dec(_cls):
+def optional(*fields: Any) -> Any:
+    def dec(_cls: type[BaseModel]) -> type[BaseModel]:
         for field in fields:
             # TODO: Take another look at this
             # _cls.__fields__[field].required = False
-            if _cls.__fields__[field].default:
-                _cls.__fields__[field].default = None
+            if _cls.model_fields[field].default:
+                _cls.model_fields[field].default = None
         return _cls
 
     if fields and inspect.isclass(fields[0]) and issubclass(fields[0], BaseModel):
         cls = fields[0]
-        fields = cls.__fields__
+        fields = tuple(cls.model_fields.keys())
         return dec(cls)
     return dec
 
@@ -61,7 +62,8 @@ async def table_exists(db: AsyncSession, schema_name: str, table_name: str) -> b
     )
     params = {"table_name": table_name, "schema_name": schema_name}
     table_exists = await db.execute(sql_check_table, params)
-    return table_exists.scalar() > 0
+    result = table_exists.scalar()
+    return result is not None and result > 0
 
 
 def encode_r5_grid(grid_data: Any) -> bytes:
@@ -110,28 +112,28 @@ def encode_r5_grid(grid_data: Any) -> bytes:
     return binary_output
 
 
-def decode_r5_grid(grid_data_buffer: bytes) -> dict:
+def decode_r5_grid(grid_data_buffer: bytes) -> dict[str, Any]:
     """
     Decode R5 grid data
     """
-    CURRENT_VERSION = 0
-    HEADER_ENTRIES = 7
-    HEADER_LENGTH = 9  # type + entries
-    TIMES_GRID_TYPE = "ACCESSGR"
+    current_version = 0
+    header_entries = 7
+    header_length = 9  # type + entries
+    times_grid_type = "ACCESSGR"
 
     # -- PARSE HEADER
     ## - get header type
     header = {}
     header_data = np.frombuffer(grid_data_buffer, count=8, dtype=np.byte)
     header_type = "".join(map(chr, header_data))
-    if header_type != TIMES_GRID_TYPE:
+    if header_type != times_grid_type:
         raise ValueError("Invalid grid type")
     ## - get header data
     header_raw = np.frombuffer(
-        grid_data_buffer, count=HEADER_ENTRIES, offset=8, dtype=np.int32
+        grid_data_buffer, count=header_entries, offset=8, dtype=np.int32
     )
     version = header_raw[0]
-    if version != CURRENT_VERSION:
+    if version != current_version:
         raise ValueError("Invalid grid version")
     header["zoom"] = header_raw[1]
     header["west"] = header_raw[2]
@@ -142,16 +144,16 @@ def decode_r5_grid(grid_data_buffer: bytes) -> dict:
     header["version"] = version
 
     # -- PARSE DATA --
-    gridSize = header["width"] * header["height"]
+    grid_size = header["width"] * header["height"]
     # - skip the header
     data = np.frombuffer(
         grid_data_buffer,
-        offset=HEADER_LENGTH * 4,
-        count=gridSize * header["depth"],
+        offset=header_length * 4,
+        count=grid_size * header["depth"],
         dtype=np.int32,
     )
     # - reshape the data
-    data = data.reshape(header["depth"], gridSize)
+    data = data.reshape(header["depth"], grid_size)
     reshaped_data = np.array([], dtype=np.int32)
     for i in range(header["depth"]):
         reshaped_data = np.append(reshaped_data, data[i].cumsum())
@@ -159,16 +161,16 @@ def decode_r5_grid(grid_data_buffer: bytes) -> dict:
     # - decode metadata
     raw_metadata = np.frombuffer(
         grid_data_buffer,
-        offset=(HEADER_LENGTH + header["width"] * header["height"] * header["depth"])
+        offset=(header_length + header["width"] * header["height"] * header["depth"])
         * 4,
         dtype=np.int8,
     )
-    metadata = json.loads(raw_metadata.tostring())
+    metadata = json.loads(raw_metadata.tobytes())
 
-    return header | metadata | {"data": data, "errors": [], "warnings": []}
+    return dict(header | metadata | {"data": data, "errors": [], "warnings": []})
 
 
-def compute_r5_surface(grid: dict, percentile: int) -> np.array:
+def compute_r5_surface(grid: dict[str, Any], percentile: int) -> NDArray[np.uint16] | None:
     """
     Compute single value surface from the grid
     """
@@ -184,7 +186,7 @@ def compute_r5_surface(grid: dict, percentile: int) -> np.array:
 
     if grid["depth"] == 1:
         # if only one percentile is requested, return the grid as is
-        surface = grid["data"]
+        surface: NDArray[Any] = grid["data"]
     else:
         grid_percentiles = np.reshape(grid["data"], (grid["depth"], -1))
         surface = grid_percentiles[percentile_index]
@@ -193,24 +195,24 @@ def compute_r5_surface(grid: dict, percentile: int) -> np.array:
 
 
 @njit(cache=True)
-def z_scale(z):
+def z_scale(z: int) -> int:
     """
     2^z represents the tile number. Scale that by the number of pixels in each tile.
     """
-    PIXELS_PER_TILE = 256
-    return 2**z * PIXELS_PER_TILE
+    pixels_per_tile = 256
+    return int(2**z * pixels_per_tile)
 
 
 @njit(cache=True)
-def pixel_to_longitude(pixel_x, zoom):
+def pixel_to_longitude(pixel_x: float, zoom: int) -> float:
     """
     Convert pixel x coordinate to longitude
     """
-    return (pixel_x / z_scale(zoom)) * 360 - 180
+    return float((pixel_x / z_scale(zoom)) * 360 - 180)
 
 
 @njit(cache=True)
-def pixel_to_latitude(pixel_y, zoom):
+def pixel_to_latitude(pixel_y: float, zoom: int) -> float:
     """
     Convert pixel y coordinate to latitude
     """
@@ -219,17 +221,17 @@ def pixel_to_latitude(pixel_y, zoom):
 
 
 @njit(cache=True)
-def pixel_x_to_web_mercator_x(x, zoom):
-    return x * (40075016.68557849 / (z_scale(zoom))) - (40075016.68557849 / 2.0)
+def pixel_x_to_web_mercator_x(x: float, zoom: int) -> float:
+    return float(x * (40075016.68557849 / (z_scale(zoom))) - (40075016.68557849 / 2.0))
 
 
 @njit(cache=True)
-def pixel_y_to_web_mercator_y(y, zoom):
-    return y * (40075016.68557849 / (-1 * z_scale(zoom))) + (40075016.68557849 / 2.0)
+def pixel_y_to_web_mercator_y(y: float, zoom: int) -> float:
+    return float(y * (40075016.68557849 / (-1 * z_scale(zoom))) + (40075016.68557849 / 2.0))
 
 
 @njit(cache=True)
-def coordinate_from_pixel(input, zoom, round_int=False, web_mercator=False):
+def coordinate_from_pixel(input: list[float], zoom: int, round_int: bool = False, web_mercator: bool = False) -> list[float]:
     """
     Convert pixel coordinate to longitude and latitude
     """
@@ -266,23 +268,25 @@ def create_dir(dir_path: str) -> None:
         os.makedirs(dir_path)
 
 
-def print_hashtags():
+def print_hashtags() -> None:
     print(
         "#################################################################################################################"
     )
 
 
-def print_info(message: str):
+def print_info(message: str) -> None:
     print(f"[bold green]INFO[/bold green]: {message}")
 
 
-def print_warning(message: str):
+def print_warning(message: str) -> None:
     print(f"[bold red]WARNING[/bold red]: {message}")
 
 
-def timing(f):
+F = TypeVar("F", bound=Callable[..., Any])
+
+def timing(f: F) -> F:
     @wraps(f)
-    def wrap(*args, **kw):
+    def wrap(*args: Any, **kw: Any) -> Any:
         ts = time.time()
         result = f(*args, **kw)
         te = time.time()
@@ -298,16 +302,16 @@ def timing(f):
 
         return result
 
-    return wrap
+    return cast(F, wrap)
 
 
-def get_random_string(length):
+def get_random_string(length: int) -> str:
     # choose from all lowercase letter
     letters = string.ascii_lowercase
     return "".join(random.choice(letters) for i in range(length))
 
 
-def get_layer_columns(attribute_mapping: dict, base_columns: list):
+def get_layer_columns(attribute_mapping: dict[str, Any], base_columns: list[str]) -> list[str]:
     """Get the columns for the layer table and the original table. Add the base columns geom and layer_id"""
 
     original_columns = ", ".join(attribute_mapping.keys())
@@ -332,7 +336,7 @@ def sanitize_error_message(message: str) -> str:
     return message
 
 
-async def async_delete_dir(path: str):
+async def async_delete_dir(path: str) -> None:
     """Asynchronously delete a directory and its contents."""
     try:
         await asyncio.to_thread(shutil.rmtree, path)
@@ -340,17 +344,17 @@ async def async_delete_dir(path: str):
         pass
 
 
-async def async_scandir(directory):
+async def async_scandir(directory: str) -> AsyncIterator[os.DirEntry[str]]:
     for entry in os.scandir(directory):
         yield entry
 
 
-async def async_zip_directory(output_filename, directory):
+async def async_zip_directory(output_filename: str, directory: str) -> None:
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, zip_directory, output_filename, directory)
 
 
-def zip_directory(output_filename, directory):
+def zip_directory(output_filename: str, directory: str) -> None:
     with zipfile.ZipFile(output_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
         for root, _dirs, files in os.walk(directory):
             for file in files:
@@ -362,14 +366,13 @@ def zip_directory(output_filename, directory):
                 )
 
 
-def execute_cmd(cmd):
+def execute_cmd(cmd: str) -> None:
     subprocess.run(cmd, shell=True, check=True)
 
 
-async def async_run_command(cmd):
+async def async_run_command(cmd: str) -> None:
     loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(None, execute_cmd, cmd)
-    return result
+    await loop.run_in_executor(None, execute_cmd, cmd)
 
 
 async def check_file_size(file: UploadFile, max_size: int) -> bool:
@@ -389,14 +392,14 @@ async def check_file_size(file: UploadFile, max_size: int) -> bool:
     return True
 
 
-def search_value(d, target) -> str:
+def search_value(d: dict[str, Any], target: Any) -> str:
     for key, value in d.items():
         if value == target:
             return key
     raise ValueError(f"{target} is not in the dictionary")
 
 
-def next_column_name(attribute_mapping: dict, data_type: str):
+def next_column_name(attribute_mapping: dict[str, Any], data_type: str) -> str:
     attributes = attribute_mapping.keys()
     # Regular expression to find attributes with the given data type and a number
     pattern = re.compile(rf"^{data_type}_attr(\d+)$")
@@ -413,9 +416,7 @@ def next_column_name(attribute_mapping: dict, data_type: str):
     return f"{data_type}_attr{next_number}"
 
 
-def get_result_column(
-    attribute_mapping: dict, base_column_name: str, datatype: str
-) -> dict:
+def get_result_column(attribute_mapping: dict[str, Any], base_column_name: str, datatype: str) -> dict[str, str]:
     # Initialize the highest number found for the column name
     highest_num = 0
     base_name_exists = False
@@ -448,7 +449,7 @@ def get_result_column(
 def build_where(
     id: UUID,
     table_name: str,
-    query: None | str | dict[str, Any] | CQLQueryObject,
+    query: None | str | CQLQueryObject,
     attribute_mapping: dict[str, Any],
     return_basic_filter: bool = True,
 ) -> str | None:
@@ -460,11 +461,12 @@ def build_where(
         return None
     else:
         if isinstance(query, str):
-            query = {"cql": json.loads(query)}
+            query_dict = {"cql": json.loads(query)}
         else:
-            query = {"cql": query.cql}
+            query_dict = {"cql": query.cql}
 
-        query_obj = CQLQuery(query=query)
+        query_obj = CQLQuery(query=query_dict)
+        assert query_obj.query is not None
         ast = cql2_json_parser(query_obj.query.cql)
         attribute_mapping = {value: key for key, value in attribute_mapping.items()}
         # Add id to attribute mapping
@@ -488,7 +490,7 @@ def build_where(
         return where
 
 
-def build_where_clause(queries: [str]):
+def build_where_clause(queries: list[str]) -> str:
     # Remove none values from queries
     queries = [query for query in queries if query is not None]
     if len(queries) == 0:
@@ -502,9 +504,9 @@ def build_where_clause(queries: [str]):
 def build_insert_query(
     read_table_name: str,
     result_table_name: str,
-    attribute_mapping: dict,
+    attribute_mapping: dict[str, Any],
     result_column: str = "",
-) -> [str, str]:
+) -> tuple[str, str]:
     # Create insert statement
     insert_columns = ", ".join(attribute_mapping.keys())
     if result_column:
@@ -520,8 +522,8 @@ def build_insert_query(
 
 
 async def async_get_with_retry(
-    url: str, headers: dict, num_retries: int, retry_delay: int
-):
+    url: str, headers: dict[str, str], num_retries: int, retry_delay: int
+) -> str | None:
     async with aiohttp.ClientSession() as session:
         for i in range(num_retries):
             async with session.get(url, headers=headers) as response:
@@ -539,20 +541,21 @@ async def async_get_with_retry(
                     return result
                 else:
                     raise Exception(await response.text())
+    return None
 
 
-def hex_to_rgb(hex: str) -> tuple:
+def hex_to_rgb(hex: str) -> tuple[int, ...]:
     hex = hex.lstrip("#")
     return tuple(int(hex[i : i + 2], 16) for i in (0, 2, 4))
 
 
 async def delete_orphans(
     db: AsyncSession,
-    child_table_model: Type[ModelType],
+    child_table_model: Type[Scenario],
     column_name: str,
-    link_table_model: Type[ModelType],
+    link_table_model: Type[ScenarioScenarioFeatureLink],
     link_column_name: str,
-):
+) -> None:
     child_table_name = f"{child_table_model.__table_args__['schema']}.{child_table_model.__tablename__}"
     link_table_name = (
         f"{link_table_model.__table_args__['schema']}.{link_table_model.__tablename__}"
@@ -567,7 +570,7 @@ async def delete_orphans(
     await db.execute(sql)
 
 
-def without_keys(d, keys):
+def without_keys(d: dict[str, Any], keys: list[str]) -> dict[str, Any]:
     """
     Omit keys from a dict
     """
@@ -577,8 +580,8 @@ def without_keys(d, keys):
 def to_feature_collection(
     sql_result: Any,
     geometry_name: str = "geom",
-    geometry_type: str = "wkb",  # wkb | geojson (wkb is postgis geometry which is stored as hex)
-    exclude_properties: List = [],
+    geometry_type: str = "wkb",
+    exclude_properties: list[str] = [],
 ) -> FeatureCollection:
     """
     Generic method to convert sql result to geojson. Geometry field is expected to be in geojson or postgis hex format.
@@ -609,7 +612,7 @@ def to_feature_collection(
     return FeatureCollection(features)
 
 
-def format_value_null_sql(value) -> str:
+def format_value_null_sql(value: Any) -> str:
     if value is None:
         return "NULL"
     else:

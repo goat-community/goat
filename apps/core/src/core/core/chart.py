@@ -1,12 +1,16 @@
+from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import SQLModel
 
 from core.crud.crud_layer_project import layer_project as crud_layer_project
 from core.db.models.layer import ToolType
+from core.schemas.project import (
+    IFeatureStandardProjectRead,
+    IFeatureToolProjectRead,
+)
 from core.schemas.toolbox_base import ColumnStatisticsOperation
 from core.utils import search_value
 
@@ -16,7 +20,7 @@ async def read_chart_data(
     project_id: UUID,
     layer_project_id: int,
     cumsum: bool = False,
-):
+) -> dict[str, Any]:
 
     # Get layer project data
     layer_project = await crud_layer_project.get_internal(
@@ -101,7 +105,7 @@ async def read_chart_data(
         """
         # Adjust query based on cumsum
         if cumsum is False:
-            sql = text(f"""
+            sql = f"""
                 WITH unnested AS (
                     {sql_base}
                 ),
@@ -113,9 +117,9 @@ async def read_chart_data(
                 )
                 SELECT jsonb_agg(x) x, jsonb_agg(y), jsonb_agg("group")
                 FROM grouped
-            """)
+            """
         else:
-            sql = text(f"""
+            sql = f"""
                 WITH unnested AS (
                     {sql_base}
                 ),
@@ -132,16 +136,20 @@ async def read_chart_data(
                 )
                 SELECT jsonb_agg(x) AS x, jsonb_agg(y) AS y, jsonb_agg("group")
                 FROM second_grouped
-            """)
+            """
 
-    result = await async_session.execute(sql)
-    data = result.fetchall()
-    data = {"x": data[0][0], "y": data[0][1], "group": data[0][2] if group_by else None}
+    result = (await async_session.execute(text(sql))).fetchall()
+    data = {"x": result[0][0], "y": result[0][1], "group": result[0][2] if group_by else None}
     return data
 
 
 class Chart:
-    def __init__(self, job_id, async_session, user_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        async_session: AsyncSession,
+        user_id: UUID,
+    ) -> None:
         self.job_id = job_id
         self.async_session = async_session
         self.user_id = user_id
@@ -149,12 +157,12 @@ class Chart:
     async def create_chart(
         self,
         layer: SQLModel,
-        layer_project: BaseModel,
+        layer_project: IFeatureStandardProjectRead | IFeatureToolProjectRead,
         operation: ColumnStatisticsOperation,
         x_label: str,
         y_label: str,
         group_by: str | None = None,
-    ):
+    ) -> None:
 
         # Map columns
         chart_data = {

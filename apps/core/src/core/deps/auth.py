@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import requests
 from core.core.config import settings
 from core.endpoints.deps import get_db
@@ -25,11 +27,11 @@ oauth2_scheme = OAuth2PasswordBearer(
 )
 
 
-def decode_token(token: str):
+def decode_token(token: str) -> Dict[str, Any]:
     """
     Decodes a JWT token.
     """
-    user_token = jwt.decode(
+    user_token: Dict[str, Any] = jwt.decode(
         token,
         key=auth_key,
         options={
@@ -51,12 +53,14 @@ async def auth(token: str = Depends(oauth2_scheme)) -> str:
     return token
 
 
-def user_token(token: str = Depends(auth)) -> dict:
+def user_token(token: str = Depends(auth)) -> Dict[str, Any]:
     payload = decode_token(token)
     return payload
 
 
-def is_superuser(user_token: dict = Depends(user_token), throw_error: bool = True):
+def is_superuser(
+    user_token: Dict[str, Any] = Depends(user_token), throw_error: bool = True
+) -> bool:
     is_superuser = False
     if user_token["realm_access"] and user_token["realm_access"]["roles"]:
         is_superuser = "superuser" in user_token["realm_access"]["roles"]
@@ -72,7 +76,10 @@ def is_superuser(user_token: dict = Depends(user_token), throw_error: bool = Tru
 def clean_path(path: str) -> str:
     return path.replace(settings.API_V2_STR + "/", "")
 
-async def _validate_authorization(request: Request, user_token: dict, async_session: AsyncSession):
+
+async def _validate_authorization(
+    request: Request, user_token: Dict[str, Any], async_session: AsyncSession
+) -> bool:
     if settings.AUTH is not False:
         try:
             user_id = user_token["sub"]
@@ -101,9 +108,10 @@ async def _validate_authorization(request: Request, user_token: dict, async_sess
 
     return True
 
+
 async def auth_z(
     request: Request,
-    user_token: dict = Depends(user_token),
+    user_token: Dict[str, Any] = Depends(user_token),
     async_session: AsyncSession = Depends(get_db),
 ) -> bool:
     """
@@ -116,7 +124,8 @@ async def auth_z(
 
     return True
 
-async def auth_z_lite(request: Request, async_session: AsyncSession):
+
+async def auth_z_lite(request: Request, async_session: AsyncSession) -> bool:
     """
     Authorization function to check if the user has access to the requested resource (without FastAPI dependencies).
     """
@@ -127,7 +136,8 @@ async def auth_z_lite(request: Request, async_session: AsyncSession):
             token = token.split(" ")[1]
         else:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing authorization token"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing authorization token",
             )
         user_token = decode_token(token)
         return await _validate_authorization(request, user_token, async_session)

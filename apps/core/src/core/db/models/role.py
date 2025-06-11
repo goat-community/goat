@@ -1,20 +1,16 @@
-from typing import List, TYPE_CHECKING
+from enum import Enum
+from uuid import UUID
+
+from sqlalchemy.dialects.postgresql import UUID as UUID_PG
 from sqlmodel import (
     Column,
     Field,
-    Relationship,
     Text,
     text,
 )
-from core.db.models._base_class import DateTimeBase
-from enum import Enum
-from sqlalchemy.dialects.postgresql import UUID as UUID_PG
-from uuid import UUID
+
 from core.core.config import settings
-
-
-if TYPE_CHECKING:
-    from ._link_model import LayerTeamLink, ProjectTeamLink, LayerOrganizationLink, ProjectOrganizationLink
+from core.db.models._base_class import DateTimeBase
 
 
 class RessourceTypeEnum(str, Enum):

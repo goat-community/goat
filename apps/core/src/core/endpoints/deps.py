@@ -1,4 +1,5 @@
 from typing import Generator, Optional
+from uuid import UUID
 
 from fastapi import Depends, HTTPException, Path, Request, status
 from httpx import AsyncClient, Timeout
@@ -9,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
 from core.crud.crud_scenario import scenario as crud_scenario
+from core.db.models.scenario import Scenario
 from core.db.session import session_manager
 
 http_client: Optional[AsyncClient] = None
@@ -19,7 +21,7 @@ async def get_db() -> Generator:  # type: ignore
         yield session
 
 
-def get_user_id(request: Request):
+def get_user_id(request: Request) -> UUID:
     """Get the user ID from the JWT token or use the pre-defined user_id if running without authentication."""
     # Check if the request has an Authorization header
     authorization = request.headers.get("Authorization")
@@ -34,12 +36,13 @@ def get_user_id(request: Request):
             raise HTTPException(status_code=401, detail="Missing Authorization Token")
 
         # Decode the JWT token and extract the user_id
-        return jwt.get_unverified_claims(token)["sub"]
-
+        result = jwt.get_unverified_claims(token)["sub"]
     else:
         # This is returned if there is no Authorization header and therefore no authentication.
         scheme, _, token = settings.SAMPLE_AUTHORIZATION.partition(" ")
-        return jwt.get_unverified_claims(token)["sub"]
+        result = jwt.get_unverified_claims(token)["sub"]
+
+    return UUID(result)
 
 
 async def get_scenario(
@@ -54,7 +57,7 @@ async def get_scenario(
         example="3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ),
     async_session: AsyncSession = Depends(get_db),
-):
+) -> Scenario:
     """Get a scenario by its ID and project ID."""
 
     scenario = await crud_scenario.get_by_multi_keys(
@@ -67,7 +70,7 @@ async def get_scenario(
     return scenario[0]
 
 
-def get_http_client():
+def get_http_client() -> AsyncClient:
     """Returns an asynchronous HTTP client, typically used for connecting to the GOAT Routing service."""
 
     global http_client
@@ -81,7 +84,7 @@ def get_http_client():
     return http_client
 
 
-async def close_http_client():
+async def close_http_client() -> None:
     """Clean-up network resources used by the HTTP client."""
 
     global http_client
@@ -90,16 +93,16 @@ async def close_http_client():
         http_client = None
 
 
-def initialize_qgis_application():
+def initialize_qgis_application() -> QgsApplication:
     """Initialize QGIS session and resources."""
-    
+
     QgsApplication.setPrefixPath("/usr", True)
     application = QgsApplication([], False)
     application.initQgis()
     return application
 
 
-def close_qgis_application(application: QgsApplication):
+def close_qgis_application(application: QgsApplication) -> None:
     """Terminate QGIS session and clean-up resources."""
 
     application.exitQgis()

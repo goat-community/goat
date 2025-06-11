@@ -1,6 +1,9 @@
 from datetime import datetime
+
 from sqlmodel import Column, DateTime, Field, SQLModel, Text
+
 from core.core.config import settings
+
 
 class SystemTaskBase(SQLModel):
     """Base class for system tasks requiring a last run timestamp."""

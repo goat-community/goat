@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Any, Dict, List
 from uuid import UUID
 
 from sqlalchemy.dialects.postgresql import JSONB
@@ -54,7 +54,7 @@ class Job(DateTimeBase, table=True):
         ),
         description="Layer IDs that are produced by the job",
     )
-    status: dict = Field(
+    status: Dict[str, Any] = Field(
         sa_column=Column(JSONB, nullable=False), description="Status of the job"
     )
     status_simple: JobStatusType = Field(
@@ -70,7 +70,7 @@ class Job(DateTimeBase, table=True):
         sa_column=Column(Boolean, nullable=False, server_default="False"),
         description="Whether the user has marked the job as read",
     )
-    payload: dict | None = Field(
+    payload: Dict[str, Any] | None = Field(
         default=None,
         sa_column=Column(JSONB, nullable=True), description="Payload of the job"
     )

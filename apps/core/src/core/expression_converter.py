@@ -1,4 +1,5 @@
 import re
+
 from qgis.core import QgsExpression
 
 """Minimal converter: QGIS expression → Postgres/PostGIS SQL."""
@@ -31,20 +32,20 @@ _SPECIAL = {
 _FUNC_RE = re.compile(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", re.IGNORECASE)
 
 class QgsExpressionToSqlConverter:
-    def __init__(self, expr):
-        expr = QgsExpression(expr)
+    def __init__(self, input_expr: str) -> None:
+        expr = QgsExpression(input_expr)
         if not expr.isValid():
             if expr.hasParserError():
                 raise ValueError(f"Invalid expression: {expr.parserErrorString()}")
             raise ValueError("Invalid expression")
         self.raw = expr.expression()
 
-    def extract_field_names(self):
+    def extract_field_names(self) -> set[str]:
         """Return set of column names (assumed always double‑quoted)."""
 
         return set(re.findall(r'"([^"]+)"', self.raw))
-    
-    def replace_field_name(self, old, new):
+
+    def replace_field_name(self, old: str, new: str) -> None:
         """Replace field name in expression with attribute-mapped name."""
 
         pattern = re.compile(rf'"{re.escape(old)}"')
@@ -52,7 +53,7 @@ class QgsExpressionToSqlConverter:
 
 
     # ------------------------------------------------------------------
-    def translate(self):
+    def translate(self) -> tuple[str, str]:
         """Convert QGIS expression to a PostgreSQL compliant SELECT and GROUP BY clause."""
 
         sql = self.raw
@@ -69,42 +70,42 @@ class QgsExpressionToSqlConverter:
         return sql, ", ".join(sorted(grp))
 
     # ------------------------------------------------------------------
-    def _validate(self, text):
+    def _validate(self, text: str) -> None:
         for fn in _FUNC_RE.findall(text):
-            l = fn.lower()
-            if l in _BANNED_MULTI_GEOM:
-                raise ValueError(f"Function '{fn}' needs multiple geometries – not supported.")
-            if l not in _ALL_FUNCS:
+            fn_lower = fn.lower()
+            if fn_lower in _BANNED_MULTI_GEOM:
+                raise ValueError(f"Function '{fn}' needs multiple geometries - not supported.")
+            if fn_lower not in _ALL_FUNCS:
                 raise ValueError(f"Function '{fn}' is not supported.")
 
     @staticmethod
-    def _subst(txt, mapping):
+    def _subst(txt: str, mapping: dict[str, str]) -> str:
         for k, v in mapping.items():
             txt = re.sub(re.escape(k), v, txt, flags=re.IGNORECASE)
         return txt
 
     @staticmethod
-    def _rewrite_casts(txt):
+    def _rewrite_casts(txt: str) -> str:
         txt = re.sub(r"\bto_int\s*\(([^)]+)\)", r"CAST(\1 AS integer)", txt, flags=re.IGNORECASE)
         txt = re.sub(r"\bto_real\s*\(([^)]+)\)", r"CAST(\1 AS double precision)", txt, flags=re.IGNORECASE)
         txt = re.sub(r"\bto_string\s*\(([^)]+)\)", r"CAST(\1 AS text)", txt, flags=re.IGNORECASE)
         return txt
 
     @staticmethod
-    def _rewrite_buffer(txt):
+    def _rewrite_buffer(txt: str) -> str:
         pat = re.compile(r"\bbuffer\s*\(\s*([^,]+?),\s*([^)]+?)\)", re.IGNORECASE)
         return pat.sub(lambda m: f"ST_Buffer({m.group(1)}::geography, {m.group(2)})", txt)
 
-    def _geom_like(self, arg: str):
+    def _geom_like(self, arg: str) -> bool:
         a = arg.lower()
         hints = ["geom", "::geography", "st_", "buffer("] + list(_GEOM_UNARY) + list(_METRIC_UNARY) + [_METRIC_BUFFER]
         return any(h in a for h in hints)
 
-    def _rewrite_metric(self, txt):
+    def _rewrite_metric(self, txt: str) -> str:
         nest = r"(?:[^()]+|\([^()]*\))+"
         for q, pg in _METRIC_UNARY.items():
             pat = re.compile(rf"\b{q}\s*\(\s*({nest})\s*\)", re.IGNORECASE)
-            def rp(m):
+            def rp(m: re.Match[str]) -> str:
                 arg = m.group(1).strip()
                 if self._geom_like(arg):
                     return f"{pg}({arg}::geography)"
@@ -114,16 +115,16 @@ class QgsExpressionToSqlConverter:
             txt = pat.sub(rp, txt)
         return txt
 
-    def _rename_unary_geom(self, txt):
+    def _rename_unary_geom(self, txt: str) -> str:
         nest = r"(?:[^()]+|\([^()]*\))+"
         for q, pg in _GEOM_UNARY.items():
             pat = re.compile(rf"\b{q}\s*\(\s*({nest})\s*\)", re.IGNORECASE)
             txt = pat.sub(lambda m: f"{pg}({m.group(1)})" if self._geom_like(m.group(1)) else m.group(0), txt)
         return txt
 
-    def _rewrite_aggs(self, sql):
+    def _rewrite_aggs(self, sql: str) -> tuple[str, set[str]]:
         grp = set()
-        def rp(m):
+        def rp(m: re.Match[str]) -> str:
             func, params = m.group(1), m.group(2)
             parts = [p.strip() for p in re.split(r",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", params) if p.strip()]
             exprs = []
@@ -139,7 +140,7 @@ class QgsExpressionToSqlConverter:
         pattern = re.compile(rf"\b({'|'.join(_AGG_FUNCS)})\s*\((.*?)\)", re.IGNORECASE | re.DOTALL)
         return pattern.sub(rp, sql), grp
 
-def build_sql(expr, alias=None):
+def build_sql(expr: str, alias: str | None = None) -> str:
     sql, grp = QgsExpressionToSqlConverter(expr).translate()
     if alias:
         sql += f" AS {alias}"

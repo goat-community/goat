@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy.dialects.postgresql import JSONB
@@ -62,18 +62,18 @@ class LayerProjectLink(DateTimeBase, table=True):
         description="Layer name within the project",
         max_length=255,
     )
-    properties: dict | None = Field(
+    properties: Dict[str, Any] | None = Field(
         sa_column=Column(JSONB, nullable=True), description="Layer properties"
     )
-    other_properties: dict | None = Field(
+    other_properties: Dict[str, Any] | None = Field(
         sa_column=Column(JSONB, nullable=True), description="Layer other properties"
     )
-    query: dict | None = Field(
+    query: Dict[str, Any] | None = Field(
         default=None,
         sa_column=Column(JSONB, nullable=True),
         description="CQL2-JSON filter to query the layer",
     )
-    charts: dict | None = Field(
+    charts: Dict[str, Any] | None = Field(
         default=None,
         sa_column=Column(JSONB, nullable=True), description="Chart configuration"
     )
@@ -142,7 +142,7 @@ class UserProjectLink(DateTimeBase, table=True):
         ),
         description="Project ID",
     )
-    initial_view_state: dict = Field(
+    initial_view_state: Dict[str, Any] = Field(
         sa_column=Column(JSONB, nullable=False),
         description="Initial view state of the project",
     )
@@ -150,10 +150,8 @@ class UserProjectLink(DateTimeBase, table=True):
     # Relationships
     project: "Project" = Relationship(back_populates="user_projects")
 
-
-UniqueConstraint(
-    UserProjectLink.project_id, UserProjectLink.user_id, name="unique_user_project"
-)
+    # Constraints
+    UniqueConstraint("project_id", "user_id", name="unique_user_project"),
 
 
 class UserTeamLink(SQLModel, table=True):

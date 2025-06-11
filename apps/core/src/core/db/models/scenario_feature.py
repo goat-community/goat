@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Any, Dict, List
 from uuid import UUID
 
 from geoalchemy2 import Geometry
@@ -40,8 +40,8 @@ class ScenarioFeatureEditType(str, Enum):
     deleted = "d"
 
 
-def generate_field_definitions():
-    field_definitions = {
+def generate_field_definitions() -> Dict[str, Any]:
+    field_definitions: Dict[str, Any] = {
         "geom": (
             str,
             Field(
@@ -97,7 +97,7 @@ def generate_field_definitions():
         )
         field_definitions[f"timestamp_attr{i}"] = (
             datetime | None,
-            Field(default=None, sa_column=DateTime(timezone=False)),
+            Field(default=None, sa_column=Column(DateTime(timezone=False))),
         )
 
     return field_definitions
@@ -119,7 +119,7 @@ class ScenarioFeature(DateTimeBase, UserData, table=True):
             primary_key=True,
             nullable=False,
             server_default=text("uuid_generate_v4()"),
-        )
+        ),
     )
     feature_id: UUID | None = Field(
         default=None,

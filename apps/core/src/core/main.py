@@ -1,6 +1,7 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 import sentry_sdk
 from fastapi import FastAPI, Request, status
@@ -9,6 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import IntegrityError
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import HTMLResponse
 
 from core.core.config import settings
 from core.db.session import session_manager
@@ -28,7 +30,7 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     print("Starting up...")
     session_manager.init(settings.ASYNC_SQLALCHEMY_DATABASE_URI)
     logger = logging.getLogger("uvicorn.access")
@@ -52,7 +54,7 @@ app = FastAPI(
 
 
 @app.exception_handler(ValueError)
-async def value_error_exception_handler(request: Request, exc: ValueError):
+async def value_error_exception_handler(request: Request, exc: ValueError) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": str(exc)},
@@ -63,7 +65,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/api/docs", include_in_schema=False)
-async def swagger_ui_html():
+async def swagger_ui_html() -> HTMLResponse:
     return get_swagger_ui_html(
         swagger_favicon_url="/static/api_favicon.png",
         openapi_url=f"{settings.API_V2_STR}/openapi.json",
@@ -82,7 +84,7 @@ app.add_middleware(
 
 
 @app.get("/api/healthz", description="Health Check", tags=["Health Check"])
-def ping():
+def ping() -> dict[str, str]:
     """Health check."""
     return {"ping": "pong!"}
 
@@ -91,7 +93,7 @@ app.include_router(api_router_v2, prefix=settings.API_V2_STR)
 
 
 @app.exception_handler(IntegrityError)
-async def item_already_exists_handler(request: Request, exc: IntegrityError):
+async def item_already_exists_handler(request: Request, exc: IntegrityError) -> JSONResponse:
     return JSONResponse(
         status_code=409,
         content={

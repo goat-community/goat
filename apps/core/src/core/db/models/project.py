@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Any, Dict, List
 from uuid import UUID
 
 from pydantic import HttpUrl, field_validator
@@ -22,7 +22,7 @@ from core.db.models._base_class import DateTimeBase
 from core.db.models.layer import ContentBaseAttributes
 
 if TYPE_CHECKING:
-    from _link_model import (
+    from core.db.models._link_model import (
         LayerProjectLink,
         ProjectOrganizationLink,
         ProjectTeamLink,
@@ -91,7 +91,7 @@ class Project(ContentBaseAttributes, DateTimeBase, table=True):
         ),
         description="Max extent of the project",
     )
-    builder_config: dict | None = Field(
+    builder_config: Dict[str, Any] | None = Field(
         sa_column=Column(
             JSONB,
             nullable=True,
@@ -100,7 +100,8 @@ class Project(ContentBaseAttributes, DateTimeBase, table=True):
     )
     tags: List[str] | None = Field(
         default=None,
-        sa_column=Column(ARRAY(Text), nullable=True), description="Layer tags"
+        sa_column=Column(ARRAY(Text), nullable=True),
+        description="Layer tags",
     )
 
     # Relationships
@@ -131,7 +132,8 @@ class Project(ContentBaseAttributes, DateTimeBase, table=True):
     )
 
     @field_validator("thumbnail_url", mode="before")
-    def convert_httpurl_to_str(cls, value: str | HttpUrl | None) -> str | None:
+    @classmethod
+    def convert_httpurl_to_str(cls: type["Project"], value: str | HttpUrl | None) -> str | None:
         if value is None:
             return value
         elif isinstance(value, HttpUrl):
@@ -162,7 +164,7 @@ class ProjectPublic(DateTimeBase, table=True, extend_existing=True):
         )
     )
     password: str | None = Field(sa_column=Column(Text, nullable=True), max_length=255)
-    config: dict = Field(sa_column=Column(JSONB, nullable=False))
+    config: Dict[str, Any] = Field(sa_column=Column(JSONB, nullable=False))
     project_id: UUID = Field(
         sa_column=Column(
             UUID_PG(as_uuid=True),
@@ -174,4 +176,5 @@ class ProjectPublic(DateTimeBase, table=True, extend_existing=True):
     project: Project = Relationship(back_populates="project_public")
 
 
-UniqueConstraint(Project.__table__.c.folder_id, Project.__table__.c.name)
+    # Constraints
+    UniqueConstraint("folder_id", "name")

@@ -1,10 +1,12 @@
-from typing import List, TYPE_CHECKING
-from sqlmodel import Field, Relationship, Text
-from core.db.models._base_class import DateTimeBase
+from typing import TYPE_CHECKING, List
+from uuid import UUID
+
 from sqlalchemy import Column, text
 from sqlalchemy.dialects.postgresql import UUID as UUID_PG
-from uuid import UUID
+from sqlmodel import Field, Relationship, Text
+
 from core.core.config import settings
+from core.db.models._base_class import DateTimeBase
 
 if TYPE_CHECKING:
     from ._link_model import LayerOrganizationLink, ProjectOrganizationLink

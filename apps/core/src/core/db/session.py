@@ -5,23 +5,26 @@ from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncEngine,
     AsyncSession,
+    async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
 
 class DatabaseSessionManager:
     def __init__(self) -> None:
         self._engine: AsyncEngine | None = None
-        self._session_maker: sessionmaker | None = None
+        self._session_maker: async_sessionmaker[AsyncSession] | None = None
 
-    def init(self, host: str) -> None:
+    def init(self, host: str | None) -> None:
+        if not host:
+            raise ValueError("Database host must be provided")
+
         self._engine = create_async_engine(
             host,
             isolation_level="AUTOCOMMIT",
         )
-        self._session_maker = sessionmaker(
+        self._session_maker = async_sessionmaker(
             bind=self._engine,
             autocommit=False,
             autoflush=False,

@@ -32,7 +32,7 @@ class Scenario(DateTimeBase, table=True):
             primary_key=True,
             nullable=False,
             server_default=text("uuid_generate_v4()"),
-        )
+        ),
     )
     name: str = Field(sa_column=Column(Text, nullable=False), max_length=255)
     project_id: UUID = Field(

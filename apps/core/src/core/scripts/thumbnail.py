@@ -2,10 +2,6 @@ import asyncio
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession
-from utils import fetch_last_run_timestamp, update_last_run_timestamp
-
 from core.core.config import settings
 from core.core.print import PrintMap
 from core.crud.base import CRUDBase
@@ -15,11 +11,16 @@ from core.db.models.layer import Layer
 from core.db.models.project import Project
 from core.db.session import session_manager
 from core.schemas.layer import FeatureType, LayerType
+from core.scripts.utils import fetch_last_run_timestamp, update_last_run_timestamp
+from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 SYSTEM_TASK_ID = "thumbnail_update"
 
 
-async def fetch_projects_to_update(async_session: AsyncSession, last_run: datetime):
+async def fetch_projects_to_update(
+    async_session: AsyncSession, last_run: datetime
+) -> list[Project]:
     """Fetch all projects which require a thumbnail update."""
 
     query = select(Project).where(Project.updated_at > last_run)
@@ -29,7 +30,9 @@ async def fetch_projects_to_update(async_session: AsyncSession, last_run: dateti
     )
 
 
-async def fetch_layers_to_update(async_session: AsyncSession, last_run: datetime):
+async def fetch_layers_to_update(
+    async_session: AsyncSession, last_run: datetime
+) -> list[Layer]:
     """Fetch all layers which require a thumbnail update."""
 
     query = select(Layer).where(Layer.updated_at > last_run)
@@ -39,7 +42,7 @@ async def fetch_layers_to_update(async_session: AsyncSession, last_run: datetime
     )
 
 
-async def process_projects(async_session: AsyncSession, last_run: datetime):
+async def process_projects(async_session: AsyncSession, last_run: datetime) -> None:
     """Update thumbnails of projects."""
 
     # Process all projects requiring a thumbnail update
@@ -96,7 +99,7 @@ async def process_projects(async_session: AsyncSession, last_run: datetime):
                 print(f"Error updating project thumbnail: {e}")
 
 
-async def process_layers(async_session: AsyncSession, last_run: datetime):
+async def process_layers(async_session: AsyncSession, last_run: datetime) -> None:
     """Update thumbnails of layers."""
 
     # Process all layers requiring a thumbnail update
@@ -150,7 +153,7 @@ async def process_layers(async_session: AsyncSession, last_run: datetime):
                 print(f"Error updating layer thumbnail: {e}")
 
 
-async def main():
+async def main() -> None:
     session_manager.init(settings.ASYNC_SQLALCHEMY_DATABASE_URI)
     async with session_manager.session() as async_session:
         # Get timestamp of last thumbnail update script run

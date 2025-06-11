@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 from uuid import UUID
 
 import pycountry
@@ -191,13 +191,16 @@ class GeospatialAttributes(SQLModel):
 
     @field_validator("extent", mode="before")
     @classmethod
-    def wkb_to_wkt(cls, v):
+    def wkb_to_wkt(
+        cls: type["GeospatialAttributes"],
+        v: WKBElement | str | None,
+    ) -> str | None:
         if isinstance(v, WKBElement):
-            return to_shape(v).wkt
+            return str(to_shape(v).wkt)
         return v
 
 
-def validate_language_code(v):
+def validate_language_code(v: str | None) -> str | None:
     if v:
         try:
             pycountry.languages.get(alpha_2=v)
@@ -206,7 +209,7 @@ def validate_language_code(v):
     return v
 
 
-def validate_geographical_code(v):
+def validate_geographical_code(v: str | None) -> str | None:
     continents = [
         "Africa",
         "Antarctica",
@@ -319,20 +322,28 @@ class LayerBase(ContentBaseAttributes):
     )
     tags: List[str] | None = Field(
         default=None,
-        sa_column=Column(ARRAY(Text), nullable=True), description="Layer tags"
+        sa_column=Column(ARRAY(Text), nullable=True),
+        description="Layer tags",
     )
 
     # Check if language and geographical_tag valid according to pycountry
     @field_validator("language_code", mode="after", check_fields=False)
-    def language_code_valid(cls, value: str) -> str:
+    @classmethod
+    def language_code_valid(cls: type["LayerBase"], value: str | None) -> str | None:
         return validate_language_code(value)
 
     @field_validator("geographical_code", mode="after", check_fields=False)
-    def geographical_code_valid(cls, value: str) -> str:
+    @classmethod
+    def geographical_code_valid(
+        cls: type["LayerBase"], value: str | None
+    ) -> str | None:
         return validate_geographical_code(value)
 
     @field_validator("distribution_url", "thumbnail_url", mode="before")
-    def convert_httpurl_to_str(cls, value: str | HttpUrl | None) -> str | None:
+    @classmethod
+    def convert_httpurl_to_str(
+        cls: type["LayerBase"], value: str | HttpUrl | None
+    ) -> str | None:
         if value is None:
             return value
         elif isinstance(value, HttpUrl):
@@ -363,12 +374,24 @@ layer_base_example = {
 def internal_layer_table_name(values: SQLModel | BaseModel) -> str:
     """Get the table name for the internal layer."""
 
+    # Ensure the layer type is correct by validating available attributes
+    if (
+        not hasattr(values, "type")
+        or not hasattr(values, "feature_layer_geometry_type")
+        or not hasattr(values, "user_id")
+    ):
+        raise ValueError("A valid layer must be provided.")
+
     # Get table name
     if values.type == LayerType.feature.value:
         # If of type enum return value
         if isinstance(values.feature_layer_geometry_type, Enum):
             feature_layer_geometry_type = values.feature_layer_geometry_type.value
         else:
+            if not values.feature_layer_geometry_type:
+                raise ValueError(
+                    "Feature layer geometry type must be set for feature layers."
+                )
             feature_layer_geometry_type = values.feature_layer_geometry_type
     elif values.type == LayerType.table.value:
         feature_layer_geometry_type = "no_geometry"
@@ -429,12 +452,12 @@ class Layer(LayerBase, GeospatialAttributes, DateTimeBase, table=True):
         ),
         description="Geographical Extent of the layer",
     )
-    properties: dict | None = Field(
+    properties: Dict[str, Any] | None = Field(
         default=None,
         sa_column=Column(JSONB, nullable=True),
         description="Properties of the layer",
     )
-    other_properties: dict | None = Field(
+    other_properties: Dict[str, Any] | None = Field(
         default=None,
         sa_column=Column(JSONB, nullable=True),
         description="Other properties of the layer",
@@ -461,7 +484,8 @@ class Layer(LayerBase, GeospatialAttributes, DateTimeBase, table=True):
     )
     feature_layer_type: FeatureType | None = Field(
         default=None,
-        sa_column=Column(Text, nullable=True), description="Feature layer type"
+        sa_column=Column(Text, nullable=True),
+        description="Feature layer type",
     )
     feature_layer_geometry_type: FeatureGeometryType | None = Field(
         default=None,
@@ -473,7 +497,7 @@ class Layer(LayerBase, GeospatialAttributes, DateTimeBase, table=True):
         sa_column=Column(Integer, nullable=True),
         description="Size of the layer in bytes",
     )
-    attribute_mapping: dict | None = Field(
+    attribute_mapping: Dict[str, Any] | None = Field(
         default=None,
         sa_column=Column(JSONB, nullable=True),
         description="Attribute mapping for feature layers",
@@ -503,13 +527,14 @@ class Layer(LayerBase, GeospatialAttributes, DateTimeBase, table=True):
     )
 
     @field_validator("extent", mode="after")
+    @classmethod
     def wkt_to_geojson(cls, value: str | WKBElement | None) -> str | None:
-        if value and isinstance(value, WKBElement):
-            return to_shape(value).wkt
-        else:
-            return value
+        if value is not None and isinstance(value, WKBElement):
+            return str(to_shape(value).wkt)
+        return value
 
     @field_validator("url", "distribution_url", "thumbnail_url", mode="before")
+    @classmethod
     def convert_httpurl_to_str(cls, value: str | HttpUrl | None) -> str | None:
         if value is None:
             return value
@@ -526,7 +551,8 @@ class Layer(LayerBase, GeospatialAttributes, DateTimeBase, table=True):
     def layer_id(self) -> UUID | None:
         return self.id
 
+    # Constraints
+    UniqueConstraint("folder_id", "name")
 
-# Constraints
-UniqueConstraint(Layer.__table__.c.folder_id, Layer.__table__.c.name)
-Layer.update_forward_refs()
+
+Layer.model_rebuild()

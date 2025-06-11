@@ -3,10 +3,12 @@ Translated from https://github.com/goat-community/goat/blob/0089611acacbebf4e297
 """
 
 import math
+from typing import Any, Sequence
 
 import numpy as np
 from geopandas import GeoDataFrame
 from numba import njit
+from numpy.typing import NDArray
 from shapely.geometry import shape
 
 from core.utils import compute_r5_surface, coordinate_from_pixel, decode_r5_grid
@@ -15,7 +17,7 @@ MAX_COORDS = 20000
 
 
 @njit
-def get_contour(surface, width, height, cutoff):
+def get_contour(surface: NDArray[np.float64], width: int, height: int, cutoff: float) -> NDArray[np.int8]:
     """
     Get a contouring grid. Exported for testing purposes, not generally used
     outside jsolines testing
@@ -26,33 +28,33 @@ def get_contour(surface, width, height, cutoff):
     for x in range(width - 1):
         for y in range(height - 1):
             index = y * width + x
-            topLeft = surface[index] < cutoff
-            topRight = surface[index + 1] < cutoff
-            botLeft = surface[index + width] < cutoff
-            botRight = surface[index + width + 1] < cutoff
+            top_left = surface[index] < cutoff
+            top_right = surface[index + 1] < cutoff
+            bot_left = surface[index + width] < cutoff
+            bot_right = surface[index + width + 1] < cutoff
 
             # if we're at the edge of the area, set the outer sides to false, so that
             # isochrones always close even when they actually extend beyond the edges
             # of the surface
 
             if x == 0:
-                topLeft = botLeft = False
+                top_left = bot_left = False
             if x == width - 2:
-                topRight = botRight = False
+                top_right = bot_right = False
             if y == 0:
-                topLeft = topRight = False
+                top_left = top_right = False
             if y == height - 2:
-                botRight = botLeft = False
+                bot_right = bot_left = False
 
             idx = 0
 
-            if topLeft:
+            if top_left:
                 idx |= 1 << 3
-            if topRight:
+            if top_right:
                 idx |= 1 << 2
-            if botRight:
+            if bot_right:
                 idx |= 1 << 1
-            if botLeft:
+            if bot_left:
                 idx |= 1
 
             contour[y * (width - 1) + x] = idx
@@ -61,7 +63,7 @@ def get_contour(surface, width, height, cutoff):
 
 
 @njit
-def followLoop(idx, xy, prev_xy):
+def follow_loop(idx: int, xy: Sequence[int], prev_xy: Sequence[int]) -> list[int]:
     """
     Follow the loop
     We keep track of which contour cell we're in, and we always keep the filled
@@ -110,7 +112,14 @@ def followLoop(idx, xy, prev_xy):
 
 
 @njit
-def interpolate(pos, cutoff, start, surface, width, height):
+def interpolate(
+    pos: Sequence[int],
+    cutoff: float,
+    start: Sequence[int],
+    surface: NDArray[np.float64],
+    width: int,
+    height: int,
+) -> list[float] | None:
     """
     Do linear interpolation
     """
@@ -121,39 +130,39 @@ def interpolate(pos, cutoff, start, surface, width, height):
     startx = start[0]
     starty = start[1]
     index = y * width + x
-    topLeft = surface[index]
-    topRight = surface[index + 1]
-    botLeft = surface[index + width]
-    botRight = surface[index + width + 1]
+    top_left = surface[index]
+    top_right = surface[index + 1]
+    bot_left = surface[index + width]
+    bot_right = surface[index + width + 1]
     if x == 0:
-        topLeft = botLeft = cutoff
+        top_left = bot_left = cutoff
     if y == 0:
-        topLeft = topRight = cutoff
+        top_left = top_right = cutoff
     if y == height - 2:
-        botRight = botLeft = cutoff
+        bot_right = bot_left = cutoff
     if x == width - 2:
-        topRight = botRight = cutoff
+        top_right = bot_right = cutoff
     # From left
     if startx < x:
-        frac = (cutoff - topLeft) / (botLeft - topLeft)
-        return [x, y + ensureFractionIsNumber(frac, "left")]
+        frac = (cutoff - top_left) / (bot_left - top_left)
+        return [x, y + ensure_fraction_is_number(frac, "left")]
     # From right
     if startx > x:
-        frac = (cutoff - topRight) / (botRight - topRight)
-        return [x + 1, y + ensureFractionIsNumber(frac, "right")]
+        frac = (cutoff - top_right) / (bot_right - top_right)
+        return [x + 1, y + ensure_fraction_is_number(frac, "right")]
     # From bottom
     if starty > y:
-        frac = (cutoff - botLeft) / (botRight - botLeft)
-        return [x + ensureFractionIsNumber(frac, "bottom"), y + 1]
+        frac = (cutoff - bot_left) / (bot_right - bot_left)
+        return [x + ensure_fraction_is_number(frac, "bottom"), y + 1]
     # From top
     if starty < y:
-        frac = (cutoff - topLeft) / (topRight - topLeft)
-        return [x + ensureFractionIsNumber(frac, "top"), y]
-    pass
+        frac = (cutoff - top_left) / (top_right - top_left)
+        return [x + ensure_fraction_is_number(frac, "top"), y]
+    return None
 
 
 @njit
-def noInterpolate(pos, start):
+def no_interpolate(pos: Sequence[int], start: Sequence[int]) -> list[float] | None:
     x = pos[0]
     y = pos[1]
     startx = start[0]
@@ -170,12 +179,12 @@ def noInterpolate(pos, start):
     # From top
     if starty < y:
         return [x + 0.5, y]
-    pass
+    return None
 
 
 # Calculated fractions may not be numbers causing interpolation to fail.
 @njit
-def ensureFractionIsNumber(frac, direction):
+def ensure_fraction_is_number(frac: float, direction: str) -> float:
     if math.isnan(frac) or math.isinf(frac):
         return 0.5
     return frac
@@ -183,20 +192,20 @@ def ensureFractionIsNumber(frac, direction):
 
 @njit
 def calculate_jsolines(
-    surface,
-    width,
-    height,
-    west,
-    north,
-    zoom,
-    cutoffs,
-    interpolation=True,
-    web_mercator=True,
-):
+    surface: NDArray[np.float64],
+    width: int,
+    height: int,
+    west: float,
+    north: float,
+    zoom: int,
+    cutoffs: NDArray[np.float64],
+    interpolation: bool = True,
+    web_mercator: bool = True,
+) -> list[list[Any]]:
     geometries = []
     for _, cutoff in np.ndenumerate(cutoffs):
         contour = get_contour(surface, width, height, cutoff)
-        cWidth = width - 1
+        c_width = width - 1
         # Store warnings
         warnings = []
 
@@ -215,7 +224,7 @@ def calculate_jsolines(
 
         for origy in range(height - 1):
             for origx in range(width - 1):
-                index = origy * cWidth + origx
+                index = origy * c_width + origx
                 if found[index] == 1:
                     continue
                 idx = contour[index]
@@ -254,8 +263,8 @@ def calculate_jsolines(
                         break
 
                     # Follow the loop
-                    pos = followLoop(idx, pos, prev)
-                    index = pos[1] * cWidth + pos[0]
+                    pos = follow_loop(idx, pos, prev)
+                    index = pos[1] * c_width + pos[0]
 
                     # Keep track of winding direction
                     direction += (pos[0] - start[0]) * (pos[1] + start[1])
@@ -264,7 +273,7 @@ def calculate_jsolines(
                     if interpolation:
                         coord = interpolate(pos, cutoff, start, surface, width, height)
                     else:
-                        coord = noInterpolate(pos, start)
+                        coord = no_interpolate(pos, start)
 
                     if not coord:
                         warnings.append(
@@ -306,20 +315,20 @@ def calculate_jsolines(
                 # NB this is checking whether the first coordinate of the hole is inside
                 # the shell. This is sufficient as shells don't overlap, and holes are
                 # guaranteed to be completely contained by a single shell.
-                holePoint = hole[0][0]
-                containingShell = []
+                hole_point = hole[0][0]
+                containing_shell = []
                 for shell in shells:
-                    if pointinpolygon(holePoint[0], holePoint[1], shell[0]):
-                        containingShell.append(shell)
-                if len(containingShell) == 1:
-                    containingShell[0].append(hole[0])
+                    if pointinpolygon(hole_point[0], hole_point[1], shell[0]):
+                        containing_shell.append(shell)
+                if len(containing_shell) == 1:
+                    containing_shell[0].append(hole[0])
 
         geometries.append(list(shells))
     return geometries
 
 
 @njit
-def pointinpolygon(x, y, poly):
+def pointinpolygon(x: float, y: float, poly: NDArray[np.float64]) -> bool:
     n = len(poly)
     inside = False
     p2x = 0.0
@@ -341,17 +350,17 @@ def pointinpolygon(x, y, poly):
 
 
 def jsolines(
-    surface,
-    width,
-    height,
-    west,
-    north,
-    zoom,
-    cutoffs,
-    interpolation=True,
-    return_incremental=False,
-    web_mercator=False,
-):
+    surface: NDArray[np.uint16],
+    width: int,
+    height: int,
+    west: float,
+    north: float,
+    zoom: int,
+    cutoffs: NDArray[np.float16 | np.int16],
+    interpolation: bool = True,
+    return_incremental: bool = False,
+    web_mercator: bool = False,
+) -> dict[str, Any]:
     """
     Calculate isolines from a surface.
 
@@ -405,7 +414,12 @@ def jsolines(
     return result
 
 
-def generate_jsolines(grid, travel_time, percentile, steps):
+def generate_jsolines(
+    grid: dict[str, Any],
+    travel_time: int,
+    percentile: int,
+    steps: int,
+) -> dict[str, Any]:
     """
     Generate the jsolines from the isochrones.
 
@@ -435,11 +449,11 @@ def generate_jsolines(grid, travel_time, percentile, steps):
 
 
 if __name__ == "__main__":
-    fileName = "/app/src/tests/data/isochrone/public_transport_calculation.bin"
-    with open(fileName, mode="rb") as file:  # b is important -> binary
-        fileContent = file.read()
+    file_name = "/app/src/tests/data/isochrone/public_transport_calculation.bin"
+    with open(file_name, mode="rb") as file:  # b is important -> binary
+        file_content = file.read()
 
-        grid_decoded = decode_r5_grid(fileContent)
+        grid_decoded = decode_r5_grid(file_content)
         grid_decoded["surface"] = compute_r5_surface(
             grid_decoded,
             5,

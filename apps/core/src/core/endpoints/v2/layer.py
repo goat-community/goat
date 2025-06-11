@@ -21,8 +21,8 @@ from fastapi import (
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi_pagination import Page
 from fastapi_pagination import Params as PaginationParams
-from pydantic import UUID4
-from sqlmodel import select
+from pydantic import UUID4, BaseModel
+from sqlmodel import SQLModel, select
 
 from core.core.config import settings
 
@@ -31,7 +31,11 @@ from core.core.content import (
     read_content_by_id,
 )
 from core.crud.crud_job import job as crud_job
-from core.crud.crud_layer import CRUDLayerDatasetUpdate, CRUDLayerExport, CRUDLayerImport
+from core.crud.crud_layer import (
+    CRUDLayerDatasetUpdate,
+    CRUDLayerExport,
+    CRUDLayerImport,
+)
 from core.crud.crud_layer import layer as crud_layer
 from core.crud.crud_layer_project import layer_project as crud_layer_project
 from core.db.models._link_model import LayerProjectLink
@@ -85,18 +89,24 @@ async def file_upload(
     *,
     async_session: AsyncSession = Depends(get_db),
     user_id: UUID = Depends(get_user_id),
-    file: UploadFile | None = File(None, description="File to upload. "),
-):
+    file: UploadFile,
+) -> IFileUploadMetadata:
     """
     Upload file and validate.
     """
 
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File name is required.",
+        )
     file_ending = os.path.splitext(file.filename)[-1][1:]
+
     # Check if file is feature or table
     if file_ending in TableUploadType.__members__:
-        layer_type = LayerType.table.value
+        layer_type = LayerType.table
     elif file_ending in FeatureUploadType.__members__:
-        layer_type = LayerType.feature.value
+        layer_type = LayerType.feature
     else:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
@@ -137,7 +147,7 @@ async def file_upload_external_service(
         ...,
         description="External service to fetch data from.",
     ),
-):
+) -> IFileUploadMetadata:
     """
     Fetch data from external service into a file, upload file to server and validate.
     """
@@ -158,9 +168,9 @@ async def file_upload_external_service(
 def _validate_and_fetch_metadata(
     user_id: UUID,
     dataset_id: UUID,
-):
+) -> Dict[str, Any]:
     # Check if user owns folder by checking if it exists
-    folder_path = os.path.join(settings.DATA_DIR, user_id, str(dataset_id))
+    folder_path = os.path.join(settings.DATA_DIR, str(user_id), str(dataset_id))
     if os.path.exists(folder_path) is False:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -180,7 +190,7 @@ def _validate_and_fetch_metadata(
         )
 
     with open(os.path.join(metadata_path)) as f:
-        file_metadata = json.loads(json.load(f))
+        file_metadata = dict(json.loads(json.load(f)))
 
     return file_metadata
 
@@ -199,7 +209,7 @@ async def _create_layer_from_dataset(
         examples=layer_request_examples["create"],
         description="Layer to create",
     ),
-):
+) -> Dict[str, UUID]:
     """Create a feature standard or table layer from a dataset."""
 
     # Validate and fetch dataset file metadata
@@ -252,7 +262,7 @@ async def create_layer_feature_standard(
         examples=layer_request_examples["create"][LayerType.feature],
         description="Layer to create",
     ),
-):
+) -> Dict[str, Any]:
     """Create a new feature standard layer from a previously uploaded dataset."""
 
     return await _create_layer_from_dataset(
@@ -280,11 +290,13 @@ async def create_layer_raster(
         examples=layer_request_examples["create"][LayerType.raster],
         description="Layer to create",
     ),
-):
+) -> BaseModel:
     """Create a new raster layer from a service hosted externally."""
 
-    layer_in = Layer(**layer_in.dict(), user_id=user_id)
-    layer = await crud_layer.create(db=async_session, obj_in=layer_in.model_dump())
+    layer = await crud_layer.create(
+        db=async_session,
+        obj_in=Layer(**layer_in.model_dump(), user_id=user_id).model_dump(),
+    )
     return layer
 
 
@@ -310,7 +322,7 @@ async def create_layer_table(
         examples=layer_request_examples["create"][LayerType.table],
         description="Layer to create",
     ),
-):
+) -> Dict[str, Any]:
     """Create a new table layer from a previously uploaded dataset."""
 
     return await _create_layer_from_dataset(
@@ -343,7 +355,7 @@ async def export_layer(
         examples=layer_request_examples["export"],
         description="Layer to export",
     ),
-):
+) -> FileResponse:
     # Run the export
     crud_export = CRUDLayerExport(
         id=layer_id,
@@ -372,7 +384,7 @@ async def read_layer(
         description="The ID of the layer to get",
         example="3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ),
-):
+) -> SQLModel:
     """Retrieve a layer by its ID."""
     return await read_content_by_id(
         async_session=async_session, id=layer_id, model=Layer, crud_content=crud_layer

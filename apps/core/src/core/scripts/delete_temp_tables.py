@@ -1,20 +1,23 @@
 import asyncio
 from datetime import datetime, timezone
+
+from core.core.config import settings
+from core.db.session import session_manager
+from core.scripts.utils import fetch_last_run_timestamp, update_last_run_timestamp
+from core.utils import print_info, print_warning
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
-from core.db.session import session_manager
-from core.core.config import settings
-from utils import fetch_last_run_timestamp, update_last_run_timestamp
-from core.utils import print_info, print_warning
 
 SYSTEM_TASK_ID = "delete_temp_tables"
 COMMENT_TEXT = "EXISTED BEFORE: "
-MAX_RETENTION_MINUTES = 60 # minutes
+MAX_RETENTION_MINUTES = 60  # minutes
 
 
-async def delete_old_temp_tables_query(async_session: AsyncSession, current_run: datetime):
+async def delete_old_temp_tables_query(
+    async_session: AsyncSession, current_run: datetime
+) -> None:
     print_info("Deleting old temporary tables")
-   # Get all tables in schema temporal that are older than max_retention_minutes in comments skip table with not matching comment
+    # Get all tables in schema temporal that are older than max_retention_minutes in comments skip table with not matching comment
     result = await async_session.execute(
         text(
             f"""
@@ -56,7 +59,10 @@ async def delete_old_temp_tables_query(async_session: AsyncSession, current_run:
     else:
         print_info("No tables to delete.")
 
-async def label_tables_for_deletion(async_session: AsyncSession, current_run: datetime):
+
+async def label_tables_for_deletion(
+    async_session: AsyncSession, current_run: datetime
+) -> None:
     print_info("Labeling tables without comments for deletion on next run")
 
     # Add comment to all tables in schema 'temporal' that do not have a comment
@@ -103,7 +109,8 @@ async def label_tables_for_deletion(async_session: AsyncSession, current_run: da
     else:
         print_info("No tables with comments not matching the expected format.")
 
-async def main():
+
+async def main() -> None:
     session_manager.init(settings.ASYNC_SQLALCHEMY_DATABASE_URI)
     async with session_manager.session() as async_session:
         # Get timestamp of last run

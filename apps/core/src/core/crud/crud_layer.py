@@ -3,6 +3,7 @@ import asyncio
 import json
 import os
 from datetime import datetime
+from typing import Any
 from uuid import UUID, uuid4
 
 # Third party imports
@@ -19,7 +20,12 @@ from starlette.datastructures import UploadFile
 # Local application imports
 from core.core.config import settings
 from core.core.content import build_shared_with_object, create_query_shared_content
-from core.core.job import CRUDFailedJob, job_init, job_log, run_background_or_immediately
+from core.core.job import (
+    CRUDFailedJob,
+    job_init,
+    job_log,
+    run_background_or_immediately,
+)
 from core.core.layer import (
     CRUDLayerBase,
     FileUpload,
@@ -181,7 +187,7 @@ class CRUDLayer(CRUDLayerBase):
         user_id: UUID,
         source: UploadFile | IFileUploadExternalService,
         layer_type: LayerType,
-    ):
+    ) -> IFileUploadMetadata:
         """Fetch data if required, then validate using ogr2ogr."""
 
         dataset_id = uuid4()
@@ -604,9 +610,9 @@ class CRUDLayer(CRUDLayerBase):
         order: str,
         page_params: PaginationParams,
         params: ILayerGet | ICatalogLayerGet,
-        team_id: UUID = None,
-        organization_id: UUID = None,
-    ):
+        team_id: UUID | None = None,
+        organization_id: UUID | None = None,
+    ) -> Page[BaseModel]:
         """Get layer with filter."""
 
         # Additional server side validation for feature_layer_type
@@ -679,7 +685,7 @@ class CRUDLayer(CRUDLayerBase):
         async_session: AsyncSession,
         user_id: UUID,
         params: IMetadataAggregate,
-    ):
+    ) -> IMetadataAggregateRead:
         """Get metadata aggregate for layers."""
 
         if params is None:
@@ -863,7 +869,7 @@ class CRUDLayerImport(CRUDFailedJob):
         file_metadata: dict,
         layer_in: ILayerFromDatasetCreate,
         project_id: UUID = None,
-    ):
+    ) -> dict[str, Any]:
         """Create a layer from a dataset file."""
 
         result, _ = await self.import_file(
@@ -877,7 +883,7 @@ class CRUDLayerImport(CRUDFailedJob):
 class CRUDLayerExport:
     """CRUD class for Layer import."""
 
-    def __init__(self, id, async_session, user_id):
+    def __init__(self, id: UUID, async_session: AsyncSession, user_id: UUID) -> None:
         self.id = id
         self.user_id = user_id
         self.async_session = async_session

@@ -47,7 +47,9 @@ class InitialViewState(BaseModel):
 
     @field_validator("max_zoom", mode="after")
     @classmethod
-    def check_max_zoom(cls: type["InitialViewState"], value: int, info: ValidationInfo) -> int:
+    def check_max_zoom(
+        cls: type["InitialViewState"], value: int, info: ValidationInfo
+    ) -> int:
         min_zoom = info.data.get("min_zoom")
         if min_zoom is not None and value < min_zoom:
             raise ValueError("max_zoom should be greater than or equal to min_zoom")
@@ -55,7 +57,9 @@ class InitialViewState(BaseModel):
 
     @field_validator("min_zoom", mode="after")
     @classmethod
-    def check_min_zoom(cls: type["InitialViewState"], value: int, info: ValidationInfo) -> int:
+    def check_min_zoom(
+        cls: type["InitialViewState"], value: int, info: ValidationInfo
+    ) -> int:
         max_zoom = info.data.get("max_zoom")
         if max_zoom is not None and value > max_zoom:
             raise ValueError("min_zoom should be less than or equal to max_zoom")
@@ -79,7 +83,8 @@ class IProjectCreate(ContentBaseAttributes):
     )
     tags: List[str] | None = Field(
         default=None,
-        sa_column=Column(ARRAY(Text), nullable=True), description="Layer tags"
+        sa_column=Column(ARRAY(Text), nullable=True),
+        description="Layer tags",
     )
 
 
@@ -97,7 +102,8 @@ class IProjectRead(ContentBaseAttributes, DateTimeBase):
     )
     tags: List[str] | None = Field(
         default=None,
-        sa_column=Column(ARRAY(Text), nullable=True), description="Layer tags"
+        sa_column=Column(ARRAY(Text), nullable=True),
+        description="Layer tags",
     )
 
 
@@ -113,7 +119,10 @@ class IProjectBaseUpdate(SQLModel):
     )
     name: str | None = Field(
         default=None,
-        sa_type=Text, description="Layer name", max_length=255, nullable=False
+        sa_type=Text,
+        description="Layer name",
+        max_length=255,
+        nullable=False,
     )
     description: str | None = Field(
         default=None,
@@ -130,7 +139,8 @@ class IProjectBaseUpdate(SQLModel):
     builder_config: dict[str, Any] | None = Field(None, description="Builder config")
     tags: List[str] | None = Field(
         default=None,
-        sa_column=Column(ARRAY(Text), nullable=True), description="Layer tags"
+        sa_column=Column(ARRAY(Text), nullable=True),
+        description="Layer tags",
     )
 
 
@@ -324,10 +334,11 @@ class ProjectPublicRead(BaseModel):
     config: ProjectPublicConfig
 
 
-def where_query(values: IFeatureStandardProjectRead | \
-        IFeatureToolProjectRead | \
-        IFeatureStreetNetworkProjectRead | \
-        ITableProjectRead
+def where_query(
+    values: IFeatureStandardProjectRead
+    | IFeatureToolProjectRead
+    | IFeatureStreetNetworkProjectRead
+    | ITableProjectRead,
 ) -> str | None:
     table_name = internal_layer_table_name(values)
     # Check if query exists then build where query

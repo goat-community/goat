@@ -45,6 +45,5 @@ class Folder(DateTimeBase, table=True):
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
 
-
-# Constraints
-UniqueConstraint(Folder.__table__.c.user_id, Folder.__table__.c.name)
+    # Constraints
+    UniqueConstraint("user_id", "name")

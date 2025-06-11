@@ -1,38 +1,53 @@
-from typing import Callable, List, Type
-from fastapi import Depends, HTTPException, status
-from fastapi_pagination import Params as PaginationParams
+from typing import TYPE_CHECKING, Any, List, Type
+from uuid import UUID
+
+from fastapi import HTTPException, status
 from pydantic import UUID4
-from sqlalchemy import select
-from sqlalchemy.sql import Select
+from sqlalchemy import Row, and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Query, contains_eager, selectinload
 from sqlmodel import SQLModel
-from core.db.session import AsyncSession
-from core.schemas.common import ContentIdList
-from sqlalchemy import select, and_, or_
-from sqlalchemy.orm import contains_eager, selectinload
-from core.db.models import User
+
+from core.db.models import (
+    Layer,
+    LayerOrganizationLink,
+    LayerTeamLink,
+    Organization,
+    Project,
+    ProjectOrganizationLink,
+    ProjectTeamLink,
+    Role,
+    Team,
+    User,
+)
+
+if TYPE_CHECKING:
+    from core.crud.crud_layer import CRUDLayer
+    from core.crud.crud_project import CRUDProject
 
 
+# TODO: Unused, remove if not required
 ### Generic helper functions for content
-async def create_content(
-    async_session: AsyncSession,
-    *,
-    model: Type[SQLModel],
-    crud_content: Callable,
-    content_in: SQLModel,
-    other_params: dict = {},
-) -> SQLModel:
-    """Create a new content."""
-    content_in = model(**content_in.dict(exclude_none=True), **other_params)
-    content = await crud_content.create(async_session, obj_in=content_in)
-    return content
+# async def create_content(
+#     async_session: AsyncSession,
+#     *,
+#     model: Type[SQLModel],
+#     crud_content: Callable,
+#     content_in: SQLModel,
+#     other_params: dict = {},
+# ) -> SQLModel:
+#     """Create a new content."""
+#     content_in = model(**content_in.dict(exclude_none=True), **other_params)
+#     content = await crud_content.create(async_session, obj_in=content_in)
+#     return content
 
 
 async def read_content_by_id(
     async_session: AsyncSession,
     id: UUID4,
     model: Type[SQLModel],
-    crud_content: Callable,
-    extra_fields: List = [],
+    crud_content: "CRUDLayer",
+    extra_fields: List[Any] = [],
 ) -> SQLModel:
     """Read a content by its ID."""
     content = await crud_content.get(async_session, id=id, extra_fields=extra_fields)
@@ -45,42 +60,43 @@ async def read_content_by_id(
     return content
 
 
-async def read_contents_by_ids(
-    async_session: AsyncSession,
-    ids: ContentIdList,
-    model: Type[SQLModel],
-    crud_content: Callable,
-    page_params: PaginationParams = Depends(),
-) -> Select:
-    """Read contents by their IDs."""
-    # Read contents by IDs
-    query = select(model).where(model.id.in_(ids.ids))
-    contents = await crud_content.get_multi(
-        async_session, query=query, page_params=page_params
-    )
+# TODO: Unused, remove if not required
+# async def read_contents_by_ids(
+#     async_session: AsyncSession,
+#     ids: ContentIdList,
+#     model: Type[SQLModel],
+#     crud_content: Callable,
+#     page_params: PaginationParams = Depends(),
+# ) -> Select:
+#     """Read contents by their IDs."""
+#     # Read contents by IDs
+#     query = select(model).where(model.id.in_(ids.ids))
+#     contents = await crud_content.get_multi(
+#         async_session, query=query, page_params=page_params
+#     )
 
-    # Check if all contents were found
-    if len(contents.items) != len(ids.ids):
-        not_found_contents = [
-            content_id
-            for content_id in ids.ids
-            if content_id not in [content.id for content in contents.items]
-        ]
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"{model.__name__} with {not_found_contents} not found",
-        )
+#     # Check if all contents were found
+#     if len(contents.items) != len(ids.ids):
+#         not_found_contents = [
+#             content_id
+#             for content_id in ids.ids
+#             if content_id not in [content.id for content in contents.items]
+#         ]
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"{model.__name__} with {not_found_contents} not found",
+#         )
 
-    return contents
+#     return contents
 
 
 async def update_content_by_id(
     async_session: AsyncSession,
     id: UUID4,
     model: Type[SQLModel],
-    crud_content: Callable,
+    crud_content: "CRUDProject",
     content_in: SQLModel,
-) -> SQLModel:
+) -> SQLModel | None:
     """Update a content by its ID."""
     db_obj = await crud_content.get(async_session, id=id)
     if db_obj is None:
@@ -91,22 +107,24 @@ async def update_content_by_id(
     return content
 
 
-async def delete_content_by_id(
-    async_session: AsyncSession,
-    id: UUID4,
-    model: Type[SQLModel],
-    crud_content: Callable,
-) -> None:
-    """Delete a content by its ID."""
-    db_obj = await crud_content.get(async_session, id=id)
-    if db_obj is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"{model.__name__} not found"
-        )
-    await crud_content.remove(async_session, id=id)
-    return
+# TODO: Unused, remove if not required
+# async def delete_content_by_id(
+#     async_session: AsyncSession,
+#     id: UUID4,
+#     model: Type[SQLModel],
+#     crud_content: Callable,
+# ) -> None:
+#     """Delete a content by its ID."""
+#     db_obj = await crud_content.get(async_session, id=id)
+#     if db_obj is None:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND, detail=f"{model.__name__} not found"
+#         )
+#     await crud_content.remove(async_session, id=id)
+#     return
 
 
+# TODO: Unused, remove if not required
 # def create_query_shared_content(
 #     model,
 #     team_link_model,
@@ -213,16 +231,16 @@ async def delete_content_by_id(
 
 
 def create_query_shared_content(
-    model,
-    team_link_model,
-    organization_link_model,
-    team_model,
-    organization_model,
-    role_model,
-    filters,
-    team_id=None,
-    organization_id=None,
-):
+    model: Layer | Project,
+    team_link_model: LayerTeamLink | ProjectTeamLink,
+    organization_link_model: LayerOrganizationLink | ProjectOrganizationLink,
+    team_model: Team,
+    organization_model: Organization,
+    role_model: Role,
+    filters: list[Any],
+    team_id: UUID | None=None,
+    organization_id: UUID | None=None,
+) -> Query[Any]:
     """
     Creates a dynamic query for a given model (Layer or Project) and its associated team, organization, and owner user.
 
@@ -258,7 +276,7 @@ def create_query_shared_content(
         read_column = []
 
     # Basic query to join the User who owns the Layer or Project
-    base_query = select(
+    base_query: Query[Any] = select(
         model,
         role_model.id.label("valid_role_id"),
         User.id.label("valid_user_id"),
@@ -342,14 +360,14 @@ def create_query_shared_content(
 
 #TODO: Make a pydantic schema for shared_with and owned_by
 def build_shared_with_object(
-    items,
-    role_mapping,
-    team_key="team_links",
-    org_key="organization_links",
-    model_name="layer",
-    team_id=None,
-    organization_id=None,
-):
+    items: list[Row[Any]],
+    role_mapping: dict[UUID, str],
+    team_key: str="team_links",
+    org_key: str="organization_links",
+    model_name: str="layer",
+    team_id: UUID | None=None,
+    organization_id: UUID | None=None,
+) -> list[dict[str, Any]]:
     """
     Builds the shared_with object for both Layer and Project models.
 
@@ -363,7 +381,7 @@ def build_shared_with_object(
     :return: A list of dictionaries containing the model and the shared_with data
     """
 
-    def get_owned_by(item):
+    def get_owned_by(item: Row[Any]) -> dict[str, Any]:
         """Helper function to build the 'owned_by' dictionary."""
         return {
             "id": item[2],
@@ -372,9 +390,9 @@ def build_shared_with_object(
             "avatar": item[5],
         }
 
-    def process_links(item, link_key, link_type):
+    def process_links(item: Layer | Project, link_key: str, link_type: str) -> list[dict[str, Any]]:
         """Helper function to process either team or organization links."""
-        shared_with = []
+        shared_with: list[dict[str, Any]] = []
         links = getattr(item, link_key, None)
         if not links:
             return shared_with

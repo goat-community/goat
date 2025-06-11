@@ -1,11 +1,10 @@
 from enum import Enum
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, text
+from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import UUID as UUID_PG
-from sqlmodel import Column, Field, Relationship, SQLModel, Text
-from core.db.models._base_class import DateTimeBase
-from core.db.models.user import User
+from sqlmodel import Column, Field, SQLModel, Text
+
 from core.core.config import settings
 
 

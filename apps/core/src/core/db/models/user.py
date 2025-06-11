@@ -9,6 +9,7 @@ from sqlmodel import (
     SQLModel,
     Text,
 )
+
 from core.core.config import settings
 
 if TYPE_CHECKING:
