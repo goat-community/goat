@@ -77,6 +77,7 @@ export const builderConfigSchema = z.object({
     basemap: z.boolean().default(true),
     fullscreen: z.boolean().default(true),
     toolbar: z.boolean().default(true),
+    project_info: z.boolean().default(true),
   }),
   interface: z
     .preprocess(

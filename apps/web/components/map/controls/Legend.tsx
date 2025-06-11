@@ -1,11 +1,13 @@
-import { Divider, Paper, Stack, Tooltip, Typography, useTheme } from "@mui/material";
+import { Divider, IconButton, Paper, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import { useMemo } from "react";
+import { useMap } from "react-map-gl/maplibre";
 
-import { ICON_NAME } from "@p4b/ui/components/Icon";
+import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { useTranslation } from "@/i18n/client";
 
 import { formatNumber, rgbToHex } from "@/lib/utils/helpers";
+import { zoomToLayer } from "@/lib/utils/map/navigate";
 import type {
   FeatureLayerPointProperties,
   FeatureLayerProperties,
@@ -13,11 +15,19 @@ import type {
 } from "@/lib/validations/layer";
 import type { ProjectLayer } from "@/lib/validations/project";
 
+import { ContentActions, MapLayerActions } from "@/types/common";
 import type { RGBColor } from "@/types/map/color";
 
+import { useLayerSettingsMoreMenu } from "@/hooks/map/LayerPanelHooks";
+
 import EmptySection from "@/components/common/EmptySection";
+import type { PopperMenuItem } from "@/components/common/PopperMenu";
+import MoreMenu from "@/components/common/PopperMenu";
+import DatasetSummary from "@/components/dashboard/dataset/DatasetSummary";
 import { LayerVisibilityToggle } from "@/components/map/panels/layer/Layer";
 import { MaskedImageIcon } from "@/components/map/panels/style/other/MaskedImageIcon";
+import ContentDialogWrapper from "@/components/modals/ContentDialogWrapper";
+import ViewModal from "@/components/modals/View";
 
 const DEFAULT_COLOR = "#000000";
 export interface LegendProps {
@@ -379,11 +389,34 @@ export function LegendRows({
 export function Legend(props: LegendProps) {
   const { t } = useTranslation("common");
   const theme = useTheme();
+  const { map } = useMap();
   const geometryTypes = ["point", "line", "polygon"];
-
+  const {
+    getLayerMoreMenuOptions,
+    openMoreMenu,
+    closeMoreMenu,
+    moreMenuState,
+    activeLayer: activeLayerMoreMenu,
+  } = useLayerSettingsMoreMenu();
   return (
     props.layers && (
       <>
+        {(moreMenuState?.id === ContentActions.DOWNLOAD || moreMenuState?.id === ContentActions.TABLE) &&
+          activeLayerMoreMenu && (
+            <ContentDialogWrapper
+              content={activeLayerMoreMenu}
+              action={moreMenuState.id as ContentActions}
+              onClose={closeMoreMenu}
+              onContentDelete={closeMoreMenu}
+              type="layer"
+            />
+          )}
+        {moreMenuState?.id === ContentActions.INFO && activeLayerMoreMenu && (
+          <ViewModal title={t("data_source_info")} open={true} onClose={closeMoreMenu} closeText={t("close")}>
+            <DatasetSummary dataset={activeLayerMoreMenu} hideEmpty={true} />
+          </ViewModal>
+        )}
+
         {props.layers.map((layer, index) => (
           <Stack
             key={layer.id}
@@ -399,15 +432,39 @@ export function Legend(props: LegendProps) {
             }}
             style={{ cursor: "default" }}>
             {!props.hideLayerName && (
-              <Stack direction="row" justifyContent="space-between">
-                <Typography
-                  variant="body2"
-                  fontWeight="bold"
-                  color={layer.properties.visibility ? "inherit" : theme.palette.text.disabled}>
-                  {layer.name}
-                </Typography>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography
+                    variant="body2"
+                    fontWeight="bold"
+                    style={{ wordBreak: "break-all" }}
+                    color={layer.properties.visibility ? "inherit" : theme.palette.text.disabled}>
+                    {layer.name}
+                  </Typography>
+                </Stack>
                 {props.enableActions && (
-                  <LayerVisibilityToggle layer={layer} toggleLayerVisibility={props?.onVisibilityChange} />
+                  <Stack direction="row" spacing={1} alignItems="right">
+                    <MoreMenu
+                      menuItems={getLayerMoreMenuOptions(layer.type, false, layer.in_catalog, true)}
+                      menuButton={
+                        <Tooltip title={t("more_options")} arrow placement="top">
+                          <IconButton size="small">
+                            <Icon iconName={ICON_NAME.MORE_HORIZ} style={{ fontSize: 15 }} />
+                          </IconButton>
+                        </Tooltip>
+                      }
+                      onSelect={async (menuItem: PopperMenuItem) => {
+                        if (menuItem.id === MapLayerActions.ZOOM_TO) {
+                          if (map) {
+                            zoomToLayer(map, layer.extent);
+                          }
+                        } else {
+                          openMoreMenu(menuItem, layer);
+                        }
+                      }}
+                    />
+                    <LayerVisibilityToggle layer={layer} toggleLayerVisibility={props?.onVisibilityChange} />
+                  </Stack>
                 )}
               </Stack>
             )}

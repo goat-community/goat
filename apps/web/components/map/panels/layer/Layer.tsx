@@ -436,15 +436,13 @@ const LayerPanel = ({ projectId }: PanelProps) => {
         <>
           {(moreMenuState?.id === ContentActions.DOWNLOAD || moreMenuState?.id === ContentActions.TABLE) &&
             activeLayerMoreMenu && (
-              <>
-                <ContentDialogWrapper
-                  content={activeLayerMoreMenu}
-                  action={moreMenuState.id as ContentActions}
-                  onClose={closeMoreMenu}
-                  onContentDelete={closeMoreMenu}
-                  type="layer"
-                />
-              </>
+              <ContentDialogWrapper
+                content={activeLayerMoreMenu}
+                action={moreMenuState.id as ContentActions}
+                onClose={closeMoreMenu}
+                onContentDelete={closeMoreMenu}
+                type="layer"
+              />
             )}
           {moreMenuState?.id === MapLayerActions.CHART && activeLayerMoreMenu && (
             <MapLayerChartModal

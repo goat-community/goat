@@ -273,7 +273,13 @@ const PublicProjectLayout = ({
   return (
     <Box sx={{ height: "100%", width: "100%", display: "flex", flexDirection: "column" }}>
       {project && builderConfig?.settings?.toolbar && (
-        <Header showHambugerMenu={false} mapHeader={true} project={project} viewOnly />
+        <Header
+          showHambugerMenu={false}
+          mapHeader={true}
+          project={project}
+          viewOnly
+          showInfo={builderConfig?.settings?.project_info}
+        />
       )}
       <Box
         display="flex"
