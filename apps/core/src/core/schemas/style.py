@@ -1,9 +1,10 @@
 import random
-from core.db.models.layer import FeatureGeometryType
-from core.schemas.colors import diverging_colors, color_ranges, ColorRangeType
-from core.utils import hex_to_rgb
-from core.schemas.toolbox_base import DefaultResultLayerName
+from typing import Any, Dict, List
 
+from core.db.models.layer import FeatureGeometryType
+from core.schemas.colors import ColorRangeType, color_ranges, diverging_colors
+from core.schemas.toolbox_base import DefaultResultLayerName
+from core.utils import hex_to_rgb
 
 # TODO: Add Basic pydantic validation
 default_style_settings = {
@@ -45,7 +46,7 @@ default_polygon_style_settings = {
 }
 
 
-def get_base_style(feature_geometry_type: FeatureGeometryType):
+def get_base_style(feature_geometry_type: FeatureGeometryType) -> Dict[str, Any]:
     """Return the base style for the given feature geometry type and tool type."""
 
     color = hex_to_rgb(random.choice(diverging_colors["Spectral"][-1]["colors"]))
@@ -69,16 +70,17 @@ def get_base_style(feature_geometry_type: FeatureGeometryType):
 
 def get_tool_style_with_breaks(
     feature_geometry_type: FeatureGeometryType,
-    color_field: dict,
-    color_scale_breaks: dict,
+    color_field: Dict[str, Any],
+    color_scale_breaks: Dict[str, Any],
     color_range_type: ColorRangeType,
-):
+) -> Dict[str, Any]:
     """Return the style for the given feature geometry type and property settings."""
 
     index_color_range = len(color_scale_breaks["breaks"]) - 2
-    random_color_range_key = random.choice(
-        list(color_ranges.get(color_range_type).keys())
-    )
+    color_sequence = color_ranges.get(color_range_type)
+    if not color_sequence:
+        raise ValueError(f"Invalid color range type: {color_range_type}")
+    random_color_range_key = random.choice(list(color_sequence.keys()))
     random_color_range = color_ranges[color_range_type][random_color_range_key][
         index_color_range
     ]
@@ -120,15 +122,16 @@ def get_tool_style_with_breaks(
 def get_tool_style_ordinal(
     feature_geometry_type: FeatureGeometryType,
     color_range_type: ColorRangeType,
-    color_field: dict,
-    unique_values: [str],
-):
+    color_field: Dict[str, Any],
+    unique_values: List[str],
+) -> Dict[str, Any]:
     """Return the style for the given feature geometry type and property settings."""
 
     index_color_range = len(unique_values) - 3
-    random_color_range_key = random.choice(
-        list(color_ranges.get(color_range_type).keys())
-    )
+    color_sequence = color_ranges.get(color_range_type)
+    if not color_sequence:
+        raise ValueError(f"Invalid color range type: {color_range_type}")
+    random_color_range_key = random.choice(list(color_sequence.keys()))
     random_color_range = color_ranges[color_range_type][random_color_range_key][
         index_color_range
     ]

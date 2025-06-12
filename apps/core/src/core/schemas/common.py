@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import Any, Dict, List
 
 from pydantic import UUID4, BaseModel, Field, field_validator
 from pygeofilter.parsers.cql2_json import parse as cql2_json_parser
@@ -34,11 +34,14 @@ class MetaDataQuery(BaseModel):
 
 class CQLQueryObject(BaseModel):
     metadata: MetaDataQuery | None = Field(None, description="Metadata query")
-    cql: dict | None = Field(None, description="CQL query")
+    cql: Dict[str, Any] | None = Field(None, description="CQL query")
 
     # Validate using cql2_json_parser(query)
     @field_validator("cql")
-    def validate_query(cls, value: dict | None) -> dict | None:
+    @classmethod
+    def validate_query(
+        cls: type["CQLQueryObject"], value: Dict[str, Any] | None
+    ) -> Dict[str, Any] | None:
         if value is None:
             return value
         try:

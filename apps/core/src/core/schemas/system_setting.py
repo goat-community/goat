@@ -1,6 +1,13 @@
 from uuid import UUID
+
 from pydantic import Field
-from core.db.models.system_setting import SystemSettingBase, ClientThemeType, LanguageType, UnitType
+
+from core.db.models.system_setting import (
+    ClientThemeType,
+    LanguageType,
+    SystemSettingBase,
+    UnitType,
+)
 from core.utils import optional
 
 

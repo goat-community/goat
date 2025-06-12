@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Any, Dict, List
 from uuid import UUID
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
@@ -56,7 +57,7 @@ class IJoin(BaseModel):
     )
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, InputLayerType]:
         return {
             "target_layer_project_id": InputLayerType(
                 layer_types=[LayerType.feature, LayerType.table],
@@ -77,11 +78,11 @@ class IJoin(BaseModel):
         }
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.join
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.join: {
                 "color_range_type": ColorRangeType.sequential,
@@ -141,13 +142,21 @@ class IAggregationBase(BaseModel):
     )
 
     @field_validator("source_group_by_field", mode="after")
-    def check_source_group_by_field(cls, value: list[str] | None):
+    @classmethod
+    def check_source_group_by_field(
+        cls: type["IAggregationBase"], value: List[str] | None
+    ) -> List[str] | None:
         if value is not None and not (0 <= len(value) <= 3):
-                raise ValueError("The source_group_by_field must have between 0 and 3 elements.")
+            raise ValueError(
+                "The source_group_by_field must have between 0 and 3 elements."
+            )
         return value
 
     @field_validator("h3_resolution", mode="after", check_fields=True)
-    def h3_grid_requires_resolution(cls, value: int | None, info: ValidationInfo):
+    @classmethod
+    def h3_grid_requires_resolution(
+        cls: type["IAggregationBase"], value: int | None, info: ValidationInfo
+    ) -> int | None:
         if info.data.get("area_type") == AreaLayerType.h3_grid and value is None:
             raise ValueError(
                 "If area_type is h3_grid then h3_resolution cannot be null."
@@ -155,7 +164,10 @@ class IAggregationBase(BaseModel):
         return value
 
     @field_validator("aggregation_layer_project_id", mode="after", check_fields=True)
-    def feature_layer_requires_aggregation_layer_project_id(cls, value: int | None, info: ValidationInfo):
+    @classmethod
+    def feature_layer_requires_aggregation_layer_project_id(
+        cls: type["IAggregationBase"], value: int | None, info: ValidationInfo
+    ) -> int | None:
         if info.data.get("area_type") == AreaLayerType.feature and value is None:
             raise ValueError(
                 "If area_type is feature then aggregation_layer_project_id cannot be null."
@@ -171,7 +183,10 @@ class IAggregationBase(BaseModel):
         return self
 
     @field_validator("column_statistics", mode="after", check_fields=True)
-    def check_column_statistics(cls, value: ColumnStatistic):
+    @classmethod
+    def check_column_statistics(
+        cls: type["IAggregationBase"], value: ColumnStatistic
+    ) -> ColumnStatistic:
         if value.operation == ColumnStatisticsOperation.count:
             if value.field is not None:
                 raise ValueError("Field is not allowed for count operation.")
@@ -185,7 +200,7 @@ class IAggregationPoint(IAggregationBase):
     """Aggregation tool schema."""
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, InputLayerType]:
         if self.area_type == AreaLayerType.feature:
             return {
                 "source_layer_project_id": input_layer_type_point,
@@ -195,11 +210,11 @@ class IAggregationPoint(IAggregationBase):
             return {"source_layer_project_id": input_layer_type_point}
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.aggregate_point
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.aggregate_point: {
                 "color_range_type": ColorRangeType.sequential,
@@ -220,7 +235,7 @@ class IAggregationPolygon(IAggregationBase):
     )
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, InputLayerType]:
         if self.area_type == AreaLayerType.feature:
             return {
                 "source_layer_project_id": input_layer_type_polygon,
@@ -230,11 +245,11 @@ class IAggregationPolygon(IAggregationBase):
             return {"source_layer_project_id": input_layer_type_polygon}
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.aggregate_polygon
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.aggregate_polygon: {
                 "color_range_type": ColorRangeType.sequential,
@@ -287,14 +302,20 @@ class IBuffer(BaseModel):
 
     # Make sure that the number of steps is smaller then then max distance
     @field_validator("distance_step", mode="after", check_fields=True)
-    def distance_step_smaller_than_max_distance(cls, value: int, info: ValidationInfo):
+    @classmethod
+    def distance_step_smaller_than_max_distance(
+        cls: type["IBuffer"], value: int, info: ValidationInfo
+    ) -> int:
         if value > info.data["max_distance"]:
             raise ValueError("The distance step must be smaller than the max distance.")
         return value
 
     # Make sure that polygon difference is only True if polygon union is True
     @field_validator("polygon_difference", mode="after")
-    def check_polygon_difference(cls, value: bool | None, info: ValidationInfo):
+    @classmethod
+    def check_polygon_difference(
+        cls: type["IBuffer"], value: bool | None, info: ValidationInfo
+    ) -> bool | None:
         if info.data["polygon_union"] is False and value is True:
             raise ValueError(
                 "You can only have polygon difference if polygon union is True."
@@ -302,15 +323,15 @@ class IBuffer(BaseModel):
         return value
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, InputLayerType]:
         return {"source_layer_project_id": input_layer_type_feature_all}
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.buffer
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         breaks = (
             self.max_distance / self.distance_step
             if self.max_distance / self.distance_step < 7
@@ -361,18 +382,18 @@ class IOriginDestination(BaseModel):
     )
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, InputLayerType]:
         return {
             "geometry_layer_project_id": input_layer_type_point_polygon,
             "origin_destination_matrix_layer_project_id": input_layer_table,
         }
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.origin_destination
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.origin_destination_point: {
                 "color_range_type": ColorRangeType.sequential,
@@ -391,7 +412,17 @@ class IToolParam(BaseModel):
     data: object
 
     @field_validator("data", mode="after")
-    def check_type(cls, value: object):
+    @classmethod
+    def check_type(
+        cls: type["IToolParam"], value: object
+    ) -> (
+        IJoin
+        | IAggregationPoint
+        | ICatchmentAreaActiveMobility
+        | IOevGueteklasse
+        | ICatchmentAreaCar
+        | ICatchmentAreaPT
+    ):
         allowed_types = (
             IJoin,
             IAggregationPoint,

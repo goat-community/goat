@@ -1,3 +1,5 @@
+from typing import Any, Callable
+
 from fastapi import HTTPException, status
 
 
@@ -72,6 +74,7 @@ class LayerNotFoundError(LayerError):
 
     pass
 
+
 class FolderNotFoundError(Exception):
     """Raised when the layer is not found."""
 
@@ -137,15 +140,18 @@ class ThumbnailComputeError(Exception):
 
     pass
 
+
 class OperationNotSupportedError(Exception):
     """Raised when the operation is not supported."""
 
     pass
 
+
 class ColumnNotFoundError(Exception):
     """Raised when the column is not found."""
 
     pass
+
 
 class UnknownError(Exception):
     """Raised when an unknown error occurs."""
@@ -180,7 +186,9 @@ ERROR_MAPPING = {
 }
 
 
-async def http_error_handler(func, *args, **kwargs):
+async def http_error_handler(
+    func: Callable[..., Any], *args: Any, **kwargs: Any
+) -> Any:
     try:
         return await func(*args, **kwargs)
     except Exception as e:
@@ -195,10 +203,10 @@ async def http_error_handler(func, *args, **kwargs):
 
 
 class HTTPErrorHandler:
-    def __enter__(self):
+    def __enter__(self) -> "HTTPErrorHandler":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if exc_type is not None:
             error_status_code = ERROR_MAPPING.get(exc_type)
             if error_status_code:

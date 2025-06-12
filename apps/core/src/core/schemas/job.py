@@ -60,36 +60,36 @@ class Msg(BaseModel):
 class JobStep(BaseModel):
     """Job step attribute types."""
 
-    status: JobStatusType = JobStatusType.pending.value
-    timestamp_start: datetime | None
-    timestamp_end: datetime | None
-    msg: Msg | None
+    status: JobStatusType = JobStatusType.pending
+    timestamp_start: datetime | None = None
+    timestamp_end: datetime | None = None
+    msg: Msg | None = None
 
 
 class JobStatusFileImport(BaseModel):
-    upload: JobStep = {}
-    migration: JobStep = {}
+    upload: JobStep = JobStep()
+    migration: JobStep = JobStep()
 
 
 class JobStatusJoin(BaseModel):
-    join: JobStep = {}
+    join: JobStep = JobStep()
 
 
 class JobStatusOevGueteklasse(BaseModel):
-    station_category: JobStep = {}
-    station_buffer: JobStep = {}
+    station_category: JobStep = JobStep()
+    station_buffer: JobStep = JobStep()
 
 
 class JobStatusAggregationPoint(BaseModel):
-    aggregation: JobStep = {}
+    aggregation: JobStep = JobStep()
 
 
 class JobStatusAggregationPolygon(BaseModel):
-    aggregation: JobStep = {}
+    aggregation: JobStep = JobStep()
 
 
 class JobStatusCatchmentAreaBase(BaseModel):
-    catchment_area: JobStep = {}
+    catchment_area: JobStep = JobStep()
 
 
 class JobStatusCatchmentAreaActiveMobility(JobStatusCatchmentAreaBase):
@@ -105,23 +105,23 @@ class JobStatusCatchmentAreaCar(JobStatusCatchmentAreaBase):
 
 
 class JobStatusBuffer(BaseModel):
-    buffer: JobStep = {}
+    buffer: JobStep = JobStep()
 
 
 class JobStatusTripCountStation(BaseModel):
-    trip_count_station: JobStep = {}
+    trip_count_station: JobStep = JobStep()
 
 
 class JobStatusOriginDestination(BaseModel):
-    origin_destination: JobStep = {}
+    origin_destination: JobStep = JobStep()
 
 
 class JobStatusNearbyStationAccess(BaseModel):
-    nearby_station_access: JobStep = {}
+    nearby_station_access: JobStep = JobStep()
 
 
 class JobStatusHeatmapGravityBase(BaseModel):
-    heatmap_gravity: JobStep = {}
+    heatmap_gravity: JobStep = JobStep()
 
 
 class JobStatusHeatmapGravityActiveMobility(JobStatusHeatmapGravityBase):
@@ -133,7 +133,7 @@ class JobStatusHeatmapGravityMotorizedMobility(JobStatusHeatmapGravityBase):
 
 
 class JobStatusHeatmapClosestAverageBase(BaseModel):
-    heatmap_closest_average: JobStep = {}
+    heatmap_closest_average: JobStep = JobStep()
 
 
 class JobStatusHeatmapClosestAverageActiveMobility(JobStatusHeatmapClosestAverageBase):
@@ -147,7 +147,7 @@ class JobStatusHeatmapClosestAverageMotorizedMobility(
 
 
 class JobStatusHeatmapConnectivityBase(BaseModel):
-    heatmap_connectivity: JobStep = {}
+    heatmap_connectivity: JobStep = JobStep()
 
 
 class JobStatusHeatmapConnectivityActiveMobility(JobStatusHeatmapConnectivityBase):
@@ -159,7 +159,7 @@ class JobStatusHeatmapConnectivityMotorizedMobility(JobStatusHeatmapConnectivity
 
 
 class JobStatusLayerDeleteMulti(BaseModel):
-    data_delete_multi: JobStep = {}
+    data_delete_multi: JobStep = JobStep()
 
 
 # Only add jobs here that are consisting of multiple steps

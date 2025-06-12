@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
@@ -21,7 +21,15 @@ from core.schemas.toolbox_base import (
 class IStartingPointNearbyStationAccess(CatchmentAreaStartingPointsBase):
     """Model for the starting points of the nearby station endpoint."""
 
-    check_starting_points = check_starting_points(1000)
+    @field_validator("latitude", "longitude", mode="after")
+    @classmethod
+    def validate_starting_points(
+        cls: type["IStartingPointNearbyStationAccess"], values: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Ensure that the number of starting points does not exceed 1000."""
+
+        check_starting_points(1000, values["latitude"], values["longitude"])
+        return values
 
 
 class INearbyStationAccess(BaseModel):
@@ -74,17 +82,20 @@ class INearbyStationAccess(BaseModel):
 
     # Ensure at least one mode is selected
     @field_validator("mode", mode="after")
-    def check_mode(cls, value: List[CatchmentAreaRoutingModePT]):
+    @classmethod
+    def check_mode(
+        cls, value: List[CatchmentAreaRoutingModePT]
+    ) -> List[CatchmentAreaRoutingModePT]:
         if not value or len(value) == 0:
             raise ValueError("At least one mode must be selected.")
         return value
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.nearby_station_access
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, Any]:
         return {
             "layer_project_id": input_layer_type_point,
             "edge_layer_project_id": input_layer_type_line,
@@ -92,7 +103,7 @@ class INearbyStationAccess(BaseModel):
         }
 
     @property
-    def geofence_table(self):
+    def geofence_table(self) -> str:
         return "basic.geofence_pt"
 
 

@@ -66,7 +66,7 @@ from core.schemas.layer import (
     IMetadataAggregate,
     IMetadataAggregateRead,
     IRasterCreate,
-    IRasterRead,
+    IRasterLayerRead,
     IUniqueValue,
     MaxFileSizeType,
 )
@@ -277,7 +277,7 @@ async def create_layer_feature_standard(
 @router.post(
     "/raster",
     summary="Create a new raster layer",
-    response_model=IRasterRead,
+    response_model=IRasterLayerRead,
     status_code=201,
     description="Generate a new layer based on a URL for a raster service hosted externally.",
     dependencies=[Depends(auth_z)],

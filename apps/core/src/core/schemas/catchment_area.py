@@ -1,8 +1,8 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator, ValidationInfo
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 from core.schemas.colors import ColorRangeType
 from core.schemas.layer import ToolType
@@ -21,15 +21,30 @@ from core.schemas.toolbox_base import (
 class CatchmentAreaStartingPointsActiveMobility(CatchmentAreaStartingPointsBase):
     """Model for the active mobility catchment area starting points."""
 
-    # Check that the starting points for active mobility are below 1000
-    check_starting_points = check_starting_points(1000)
+    @field_validator("latitude", "longitude", mode="after")
+    @classmethod
+    def validate_starting_points(
+        cls: type["CatchmentAreaStartingPointsActiveMobility"], values: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Ensure that the number of starting points does not exceed 1000."""
+
+        check_starting_points(1000, values["latitude"], values["longitude"])
+        return values
 
 
 class CatchmentAreaStartingPointsMotorizedMobility(CatchmentAreaStartingPointsBase):
     """Model for the active mobility catchment area starting points."""
 
-    # Check that the starting points for motorized mobility is 1
-    check_starting_points = check_starting_points(1)
+    @field_validator("latitude", "longitude", mode="after")
+    @classmethod
+    def validate_starting_points(
+        cls: type["CatchmentAreaStartingPointsMotorizedMobility"],
+        values: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Ensure that the number of starting points does not exceed 1."""
+
+        check_starting_points(1, values["latitude"], values["longitude"])
+        return values
 
 
 """Catchment area routing mode schemas."""
@@ -126,7 +141,10 @@ class CatchmentAreaTravelTimeCostActiveMobility(BaseModel):
 
     # Ensure the number of steps doesn't exceed the maximum traveltime
     @field_validator("steps", mode="after", check_fields=True)
-    def valid_num_steps(cls, value: int):
+    @classmethod
+    def valid_num_steps(
+        cls: type["CatchmentAreaTravelTimeCostActiveMobility"], value: int
+    ) -> int:
         if value > 45:
             raise ValueError(
                 "The number of steps must not exceed the maximum potential traveltime."
@@ -153,7 +171,10 @@ class CatchmentAreaTravelDistanceCostActiveMobility(BaseModel):
 
     # Ensure the number of steps doesn't exceed the maximum distance
     @field_validator("steps", mode="after", check_fields=True)
-    def valid_num_steps(cls, value: int):
+    @classmethod
+    def valid_num_steps(
+        cls: type["CatchmentAreaTravelDistanceCostActiveMobility"], value: int
+    ) -> int:
         if value > 20000:
             raise ValueError(
                 "The number of steps must not exceed the maximum potential distance."
@@ -197,7 +218,10 @@ class CatchmentAreaTravelDistanceCostMotorizedMobility(BaseModel):
 
     # Ensure the number of steps doesn't exceed the maximum distance
     @field_validator("steps", mode="after", check_fields=True)
-    def valid_num_steps(cls, value: int):
+    @classmethod
+    def valid_num_steps(
+        cls: type["CatchmentAreaTravelDistanceCostMotorizedMobility"], value: int
+    ) -> int:
         if value > 20000:
             raise ValueError(
                 "The number of steps must not exceed the maximum distance."
@@ -316,7 +340,12 @@ class ICatchmentAreaActiveMobility(BaseModel):
 
     # Check that polygon difference exists if catchment area type is polygon
     @field_validator("polygon_difference", mode="after", check_fields=True)
-    def check_polygon_difference(cls, value: bool | None, info: ValidationInfo):
+    @classmethod
+    def check_polygon_difference(
+        cls: type["ICatchmentAreaActiveMobility"],
+        value: bool | None,
+        info: ValidationInfo,
+    ) -> bool | None:
         if (
             info.data["catchment_area_type"]
             == CatchmentAreaTypeActiveMobility.polygon.value
@@ -329,7 +358,12 @@ class ICatchmentAreaActiveMobility(BaseModel):
 
     # Check that polygon difference is not specified if catchment area type is not polygon
     @field_validator("polygon_difference", mode="after", check_fields=True)
-    def check_polygon_difference_not_specified(cls, value: bool | None, info: ValidationInfo):
+    @classmethod
+    def check_polygon_difference_not_specified(
+        cls: type["ICatchmentAreaActiveMobility"],
+        value: bool | None,
+        info: ValidationInfo,
+    ) -> bool | None:
         if (
             info.data["catchment_area_type"]
             != CatchmentAreaTypeActiveMobility.polygon.value
@@ -341,18 +375,18 @@ class ICatchmentAreaActiveMobility(BaseModel):
         return value
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.catchment_area_active_mobility
 
     @property
-    def geofence_table(self):
+    def geofence_table(self) -> str:
         mode = ToolType.catchment_area_active_mobility.value.replace(
             "catchment_area_", ""
         )
         return f"basic.geofence_{mode}"
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, Any]:
         return {
             "layer_project_id": input_layer_type_point,
             "edge_layer_project_id": input_layer_type_line,
@@ -360,7 +394,7 @@ class ICatchmentAreaActiveMobility(BaseModel):
         }
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.catchment_area_active_mobility: {
                 "color_range_type": ColorRangeType.sequential,
@@ -427,7 +461,10 @@ class ICatchmentAreaPT(BaseModel):
 
     # Check that polygon difference exists if catchment area type is polygon
     @field_validator("polygon_difference", mode="after", check_fields=True)
-    def check_polygon_difference(cls, value: bool | None, info: ValidationInfo):
+    @classmethod
+    def check_polygon_difference(
+        cls: type["ICatchmentAreaPT"], value: bool | None, info: ValidationInfo
+    ) -> bool | None:
         if (
             info.data["catchment_area_type"] == CatchmentAreaTypePT.polygon.value
             and value is None
@@ -439,7 +476,10 @@ class ICatchmentAreaPT(BaseModel):
 
     # Check that polygon difference is not specified if catchment area type is not polygon
     @field_validator("polygon_difference", mode="after", check_fields=True)
-    def check_polygon_difference_not_specified(cls, value: bool | None, info: ValidationInfo):
+    @classmethod
+    def check_polygon_difference_not_specified(
+        cls: type["ICatchmentAreaPT"], value: bool | None, info: ValidationInfo
+    ) -> bool | None:
         if (
             info.data["catchment_area_type"] != CatchmentAreaTypePT.polygon.value
             and value is not None
@@ -450,20 +490,20 @@ class ICatchmentAreaPT(BaseModel):
         return value
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.catchment_area_pt
 
     @property
-    def geofence_table(self):
+    def geofence_table(self) -> str:
         mode = ToolType.catchment_area_pt.value.replace("catchment_area_", "")
         return f"basic.geofence_{mode}"
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, Any]:
         return {"layer_project_id": input_layer_type_point}
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.catchment_area_pt: {
                 "color_range_type": ColorRangeType.sequential,
@@ -517,7 +557,10 @@ class ICatchmentAreaCar(BaseModel):
 
     # Check that polygon difference exists if catchment area type is polygon
     @field_validator("polygon_difference", mode="after", check_fields=True)
-    def check_polygon_difference(cls, value: bool | None, info: ValidationInfo):
+    @classmethod
+    def check_polygon_difference(
+        cls: type["ICatchmentAreaCar"], value: bool | None, info: ValidationInfo
+    ) -> bool | None:
         if (
             info.data["catchment_area_type"] == CatchmentAreaTypeCar.polygon.value
             and value is None
@@ -529,7 +572,10 @@ class ICatchmentAreaCar(BaseModel):
 
     # Check that polygon difference is not specified if catchment area type is not polygon
     @field_validator("polygon_difference", mode="after", check_fields=True)
-    def check_polygon_difference_not_specified(cls, value: bool | None, info: ValidationInfo):
+    @classmethod
+    def check_polygon_difference_not_specified(
+        cls: type["ICatchmentAreaCar"], value: bool | None, info: ValidationInfo
+    ) -> bool | None:
         if (
             info.data["catchment_area_type"] != CatchmentAreaTypeCar.polygon.value
             and value is not None
@@ -540,18 +586,18 @@ class ICatchmentAreaCar(BaseModel):
         return value
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.catchment_area_car
 
     @property
-    def geofence_table(self):
+    def geofence_table(self) -> str:
         mode = ToolType.catchment_area_active_mobility.value.replace(
             "catchment_area_", ""
         )
         return f"basic.geofence_{mode}"
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, Any]:
         return {
             "layer_project_id": input_layer_type_point,
             "edge_layer_project_id": input_layer_type_line,
@@ -559,7 +605,7 @@ class ICatchmentAreaCar(BaseModel):
         }
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.catchment_area_car: {
                 "color_range_type": ColorRangeType.sequential,
@@ -613,7 +659,12 @@ class CatchmentAreaNearbyStationAccess(BaseModel):
 
     # Check that polygon difference exists if catchment area type is polygon
     @field_validator("polygon_difference", mode="after", check_fields=True)
-    def check_polygon_difference(cls, value: bool | None, info: ValidationInfo):
+    @classmethod
+    def check_polygon_difference(
+        cls: type["CatchmentAreaNearbyStationAccess"],
+        value: bool | None,
+        info: ValidationInfo,
+    ) -> bool | None:
         if (
             info.data["catchment_area_type"]
             == CatchmentAreaTypeActiveMobility.polygon.value
@@ -626,7 +677,12 @@ class CatchmentAreaNearbyStationAccess(BaseModel):
 
     # Check that polygon difference is not specified if catchment area type is not polygon
     @field_validator("polygon_difference", mode="after", check_fields=True)
-    def check_polygon_difference_not_specified(cls, value: bool | None, info: ValidationInfo):
+    @classmethod
+    def check_polygon_difference_not_specified(
+        cls: type["CatchmentAreaNearbyStationAccess"],
+        value: bool | None,
+        info: ValidationInfo,
+    ) -> bool | None:
         if (
             info.data["catchment_area_type"]
             != CatchmentAreaTypeActiveMobility.polygon.value
@@ -638,16 +694,16 @@ class CatchmentAreaNearbyStationAccess(BaseModel):
         return value
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.catchment_area_nearby_station_access
 
     @property
-    def geofence_table(self):
+    def geofence_table(self) -> str:
         mode = ToolType.catchment_area_pt.value.replace("catchment_area_", "")
         return f"basic.geofence_{mode}"
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, Any]:
         return {
             "layer_project_id": input_layer_type_point,
             "edge_layer_project_id": input_layer_type_line,
@@ -655,7 +711,7 @@ class CatchmentAreaNearbyStationAccess(BaseModel):
         }
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.nearby_station_access: {
                 "color_range_type": ColorRangeType.sequential,

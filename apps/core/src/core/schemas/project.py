@@ -13,11 +13,11 @@ from core.db.models.layer import internal_layer_table_name
 from core.schemas.common import CQLQuery
 from core.schemas.layer import (
     ExternalServiceOtherProperties,
-    IFeatureStandardRead,
-    IFeatureStreetNetworkRead,
-    IFeatureToolRead,
-    IRasterRead,
-    ITableRead,
+    FeatureStandardRead,
+    FeatureStreetNetworkRead,
+    FeatureToolRead,
+    RasterRead,
+    TableRead,
 )
 from core.utils import build_where, optional
 
@@ -165,7 +165,6 @@ class IFeatureBaseProject(CQLQuery):
 
 
 class IFeatureBaseProjectRead(IFeatureBaseProject):
-    name: str = Field(..., description="Layer name")
     properties: dict[str, Any] = Field(
         ...,
         description="Layer properties",
@@ -179,7 +178,7 @@ class IFeatureBaseProjectRead(IFeatureBaseProject):
 
 
 class IFeatureStandardProjectRead(
-    LayerProjectIds, IFeatureStandardRead, IFeatureBaseProjectRead
+    LayerProjectIds, FeatureStandardRead, IFeatureBaseProjectRead
 ):
     @computed_field
     def table_name(self) -> str:
@@ -191,7 +190,7 @@ class IFeatureStandardProjectRead(
 
 
 class IFeatureToolProjectRead(
-    LayerProjectIds, IFeatureToolRead, IFeatureBaseProjectRead
+    LayerProjectIds, FeatureToolRead, IFeatureBaseProjectRead
 ):
     @computed_field
     def table_name(self) -> str:
@@ -203,7 +202,7 @@ class IFeatureToolProjectRead(
 
 
 class IFeatureStreetNetworkProjectRead(
-    LayerProjectIds, IFeatureStreetNetworkRead, IFeatureBaseProjectRead
+    LayerProjectIds, FeatureStreetNetworkRead, IFeatureBaseProjectRead
 ):
     @computed_field
     def table_name(self) -> str:
@@ -238,7 +237,7 @@ class IFeatureToolProjectUpdate(IFeatureBaseProject):
     )
 
 
-class ITableProjectRead(LayerProjectIds, ITableRead, CQLQuery):
+class ITableProjectRead(LayerProjectIds, TableRead, CQLQuery):
     group: str | None = Field(None, description="Layer group name", max_length=255)
     total_count: int | None = Field(
         None, description="Total count of features in the layer"
@@ -263,7 +262,7 @@ class ITableProjectUpdate(CQLQuery):
     group: str | None = Field(None, description="Layer group name", max_length=255)
 
 
-class IRasterProjectRead(LayerProjectIds, IRasterRead):
+class IRasterProjectRead(LayerProjectIds, RasterRead):
     group: str | None = Field(None, description="Layer group name", max_length=255)
     properties: Optional[dict[str, Any]] = Field(
         None,

@@ -1,6 +1,6 @@
 # Standard Libraries
 from enum import Enum
-from typing import List
+from typing import Any, List
 from uuid import UUID
 
 from fastapi import BackgroundTasks, Depends, Query
@@ -179,24 +179,14 @@ class CatchmentAreaStartingPointsBase(BaseModel):
         return self
 
 
-def check_starting_points(max_count):
-    @model_validator(mode="after")
-    def _validator(self) -> Self:
-        lat = self.latitude
-        long = self.longitude
+def check_starting_points(max_count: int, lat: List[Any], lon: List[Any]) -> None:
+    """Check if the number of starting points exceeds the maximum count."""
 
-        if lat and long:
-            if len(lat) > max_count:
-                raise ValueError(
-                    f"The maximum number of starting points is {max_count}."
-                )
-            if len(long) > max_count:
-                raise ValueError(
-                    f"The maximum number of starting points is {max_count}."
-                )
-        return self
-
-    return _validator
+    if lat and lon:
+        if len(lat) > max_count:
+            raise ValueError(f"The maximum number of starting points is {max_count}.")
+        if len(lon) > max_count:
+            raise ValueError(f"The maximum number of starting points is {max_count}.")
 
 
 class PTSupportedDay(str, Enum):
@@ -226,7 +216,7 @@ class PTTimeWindow(BaseModel):
     )
 
     @property
-    def weekday_integer(self):
+    def weekday_integer(self) -> int:
         mapping = {
             "weekday": 1,
             "saturday": 2,
@@ -235,7 +225,7 @@ class PTTimeWindow(BaseModel):
         return mapping[PTSupportedDay(self.weekday).value]
 
     @property
-    def weekday_date(self):
+    def weekday_date(self) -> str:
         mapping = {
             "weekday": "2025-02-18",
             "saturday": "2025-02-22",
@@ -244,7 +234,7 @@ class PTTimeWindow(BaseModel):
         return mapping[PTSupportedDay(self.weekday).value]
 
     @property
-    def duration_minutes(self):
+    def duration_minutes(self) -> int:
         return round((self.to_time - self.from_time) / 60)
 
 
@@ -259,7 +249,7 @@ class CommonToolParams:
             title="Project ID of the project that contains the layers.",
             description="The project ID of the project that contains the layers.",
         ),
-    ):
+    ) -> None:
         self.background_tasks = background_tasks
         self.async_session = async_session
         self.user_id = user_id
@@ -281,7 +271,8 @@ class InputLayerType(BaseModel):
     )
 
     @field_validator("layer_types", mode="after")
-    def validate_layer_types(cls, value: List[LayerType]):
+    @classmethod
+    def validate_layer_types(cls: type["InputLayerType"], value: List[LayerType]) -> List[LayerType]:
         for layer_type in value:
             if layer_type not in LayerType.__members__:
                 raise ValueError(f"{layer_type} is not a valid LayerType")

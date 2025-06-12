@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel
 
 from core.db.models.scenario_feature import (
     ScenarioFeatureEditType,
@@ -21,9 +21,7 @@ class IScenarioFeatureCreate(BaseModel):
     geom: str
 
     class Config:
-        model_config = {
-            "extra": "allow"
-        }
+        model_config = {"extra": "allow"}
 
 
 class IScenarioFeatureUpdate(BaseModel):
@@ -35,7 +33,7 @@ class IScenarioFeatureUpdate(BaseModel):
     geom: str | None = None
 
     class Config:
-        extra = Extra.allow
+        model_config = {"extra": "allow"}
 
 
 request_examples = {

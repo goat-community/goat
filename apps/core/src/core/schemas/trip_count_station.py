@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -31,19 +32,19 @@ class ITripCountStation(BaseModel):
     )
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.trip_count_station
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, Any]:
         return {"reference_area_layer_project_id": input_layer_type_polygon}
 
     @property
-    def geofence_table(self):
+    def geofence_table(self) -> str:
         return "basic.geofence_pt"
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.trip_count_station: {
                 "color_range_type": ColorRangeType.sequential,

@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class ColorRangeType(Enum):
     sequential = "sequential"
     diverging = "diverging"

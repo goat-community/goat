@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import Any, Dict, List
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -17,7 +17,7 @@ class CatchmentType(str, Enum):
 
 
 class OevGueteklasseStationConfig(BaseModel):
-    groups: dict = Field(
+    groups: Dict[str, Any] = Field(
         ...,
         title="Groups",
         description="The groups of the station config.",
@@ -27,12 +27,12 @@ class OevGueteklasseStationConfig(BaseModel):
         title="Time Frequency",
         description="The time frequency of the station config.",
     )
-    categories: List[dict] = Field(
+    categories: List[Dict[str, Any]] = Field(
         ...,
         title="Categories",
         description="The categories of the station config.",
     )
-    classification: dict = Field(
+    classification: Dict[str, Any] = Field(
         ...,
         title="Classification",
         description="The classification of the station config.",
@@ -67,15 +67,15 @@ class IOevGueteklasse(BaseModel):
     )
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.oev_gueteklasse
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, Any]:
         return {"reference_area_layer_project_id": input_layer_type_polygon}
 
     @property
-    def geofence_table(self):
+    def geofence_table(self) -> str:
         return "basic.geofence_pt"
 
 

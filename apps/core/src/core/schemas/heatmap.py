@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import Any, Dict, List
 from uuid import UUID
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
@@ -114,24 +114,32 @@ class OpportunityGravityBased(OpportunityBase):
 
     # Ensure sensitivity doesn't exceed the configured limit
     @field_validator("sensitivity", mode="after", check_fields=True)
-    def valid_sensitivity(cls, value: float):
+    @classmethod
+    def valid_sensitivity(cls: type["OpportunityGravityBased"], value: float) -> float:
         if value > settings.HEATMAP_GRAVITY_MAX_SENSITIVITY:
             raise ValueError(
                 f"The sensitivity must not exceed {settings.HEATMAP_GRAVITY_MAX_SENSITIVITY}."
             )
         return value
 
-def _validate_max_traveltime(routing_type, values):
+
+def _validate_max_traveltime(
+    routing_type: ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType,
+    values: Dict[str, Any],
+) -> ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType:
     max_traveltime = MaxTravelTimeTransportMode[routing_type].value
     valid = True
 
-    if values.get("opportunities"):
-        for opportunity in values.get("opportunities"):
+    opportunities: List[OpportunityBase] | None = values.get("opportunities")
+    max_traveltime_value: int | None = values.get("max_traveltime")
+
+    if opportunities:
+        for opportunity in opportunities:
             if opportunity.max_traveltime > max_traveltime:
                 valid = False
                 break
-    elif values.get("max_traveltime"):
-        if values.get("max_traveltime") > max_traveltime:
+    elif max_traveltime_value:
+        if max_traveltime_value > max_traveltime:
             valid = False
     else:
         raise ValueError(
@@ -144,6 +152,7 @@ def _validate_max_traveltime(routing_type, values):
         )
 
     return routing_type
+
 
 class HeatmapGravityBase(BaseModel):
     """Gravity based heatmap schema."""
@@ -171,7 +180,7 @@ class HeatmapGravityBase(BaseModel):
     )
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, Any]:
         return {
             "opportunity_layer_project_id": input_layer_type_point_polygon,
             "opportunity_geofence_layer_project_id": input_layer_type_polygon,
@@ -198,7 +207,7 @@ class HeatmapClosestAverageBase(BaseModel):
     )
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, Any]:
         return {
             "opportunity_layer_project_id": input_layer_type_point_polygon,
             "opportunity_geofence_layer_project_id": input_layer_type_polygon,
@@ -227,7 +236,7 @@ class HeatmapConnectivityBase(BaseModel):
     )
 
     @property
-    def input_layer_types(self):
+    def input_layer_types(self) -> Dict[str, Any]:
         return {"reference_area_layer_project_id": input_layer_type_polygon}
 
 
@@ -241,15 +250,20 @@ class IHeatmapGravityActive(HeatmapGravityBase):
     )
 
     @field_validator("routing_type", mode="after")
-    def validate_routing_type(cls, value: ActiveRoutingHeatmapType, info: ValidationInfo):
+    @classmethod
+    def validate_routing_type(
+        cls: type["IHeatmapGravityActive"],
+        value: ActiveRoutingHeatmapType,
+        info: ValidationInfo,
+    ) -> ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType:
         return _validate_max_traveltime(value, info.data)
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.heatmap_gravity_active_mobility
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.heatmap_gravity_active_mobility: {
                 "color_range_type": ColorRangeType.sequential,
@@ -272,15 +286,20 @@ class IHeatmapGravityMotorized(HeatmapGravityBase):
     )
 
     @field_validator("routing_type", mode="after")
-    def validate_routing_type(cls, value: MotorizedRoutingHeatmapType, info: ValidationInfo):
+    @classmethod
+    def validate_routing_type(
+        cls: type["IHeatmapGravityMotorized"],
+        value: MotorizedRoutingHeatmapType,
+        info: ValidationInfo,
+    ) -> ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType:
         return _validate_max_traveltime(value, info.data)
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.heatmap_gravity_motorized_mobility
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.heatmap_gravity_active_mobility: {
                 "color_range_type": ColorRangeType.sequential,
@@ -303,15 +322,20 @@ class IHeatmapClosestAverageActive(HeatmapClosestAverageBase):
     )
 
     @field_validator("routing_type", mode="after")
-    def validate_routing_type(cls, value: ActiveRoutingHeatmapType, info: ValidationInfo):
+    @classmethod
+    def validate_routing_type(
+        cls: type["IHeatmapClosestAverageActive"],
+        value: ActiveRoutingHeatmapType,
+        info: ValidationInfo,
+    ) -> ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType:
         return _validate_max_traveltime(value, info.data)
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.heatmap_closest_average_active_mobility
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.heatmap_closest_average_active_mobility: {
                 "color_range_type": ColorRangeType.sequential,
@@ -334,15 +358,20 @@ class IHeatmapClosestAverageMotorized(HeatmapClosestAverageBase):
     )
 
     @field_validator("routing_type", mode="after")
-    def validate_routing_type(cls, value: MotorizedRoutingHeatmapType, info: ValidationInfo):
+    @classmethod
+    def validate_routing_type(
+        cls: type["IHeatmapClosestAverageMotorized"],
+        value: MotorizedRoutingHeatmapType,
+        info: ValidationInfo,
+    ) -> ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType:
         return _validate_max_traveltime(value, info.data)
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.heatmap_closest_average_motorized_mobility
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.heatmap_closest_average_motorized_mobility: {
                 "color_range_type": ColorRangeType.sequential,
@@ -365,15 +394,20 @@ class IHeatmapConnectivityActive(HeatmapConnectivityBase):
     )
 
     @field_validator("routing_type", mode="after")
-    def validate_routing_type(cls, value: ActiveRoutingHeatmapType, info: ValidationInfo):
+    @classmethod
+    def validate_routing_type(
+        cls: type["IHeatmapConnectivityActive"],
+        value: ActiveRoutingHeatmapType,
+        info: ValidationInfo,
+    ) -> ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType:
         return _validate_max_traveltime(value, info.data)
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.heatmap_connectivity_active_mobility
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.heatmap_connectivity_active_mobility: {
                 "color_range_type": ColorRangeType.sequential,
@@ -396,15 +430,20 @@ class IHeatmapConnectivityMotorized(HeatmapConnectivityBase):
     )
 
     @field_validator("routing_type", mode="after")
-    def validate_routing_type(cls, value: MotorizedRoutingHeatmapType, info: ValidationInfo):
+    @classmethod
+    def validate_routing_type(
+        cls: type["IHeatmapConnectivityMotorized"],
+        value: MotorizedRoutingHeatmapType,
+        info: ValidationInfo,
+    ) -> ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType:
         return _validate_max_traveltime(value, info.data)
 
     @property
-    def tool_type(self):
+    def tool_type(self) -> ToolType:
         return ToolType.heatmap_connectivity_motorized_mobility
 
     @property
-    def properties_base(self):
+    def properties_base(self) -> Dict[str, Any]:
         return {
             DefaultResultLayerName.heatmap_connectivity_motorized_mobility: {
                 "color_range_type": ColorRangeType.sequential,
@@ -415,4 +454,3 @@ class IHeatmapConnectivityMotorized(HeatmapConnectivityBase):
                 "color_scale": "quantile",
             }
         }
-
