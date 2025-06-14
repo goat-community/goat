@@ -74,6 +74,7 @@ import {
   faGears,
   faGlobe,
   faHouse,
+  faImage,
   faLanguage,
   faLayerGroup,
   faLink,
@@ -256,6 +257,8 @@ export enum ICON_NAME {
   UNLOCK = "unlock",
   PLAY = "play",
   CUBE = "cube",
+  IMAGE = "image",
+  LIST = "list",
   // Brand icons
   GOOGLE = "google",
   MICROSOFT = "microsoft",
@@ -400,6 +403,8 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.UNLOCK]: faUnlock,
   [ICON_NAME.PLAY]: faPlay,
   [ICON_NAME.CUBE]: faCube,
+  [ICON_NAME.IMAGE]: faImage,
+  [ICON_NAME.LIST]: faList,
   // Brand icons
   [ICON_NAME.GOOGLE]: faGoogle,
   [ICON_NAME.MICROSOFT]: faMicrosoft,
