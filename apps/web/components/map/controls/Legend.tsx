@@ -413,7 +413,7 @@ export function Legend(props: LegendProps) {
           )}
         {moreMenuState?.id === ContentActions.INFO && activeLayerMoreMenu && (
           <ViewModal title={t("data_source_info")} open={true} onClose={closeMoreMenu} closeText={t("close")}>
-            <DatasetSummary dataset={activeLayerMoreMenu} hideEmpty={true} />
+            <DatasetSummary dataset={activeLayerMoreMenu} hideEmpty={true} hideMainSection />
           </ViewModal>
         )}
 

@@ -16,6 +16,7 @@ import { METADATA_HEADER_ICONS } from "@/components/dashboard/catalog/CatalogDat
 interface DatasetSummaryProps {
   dataset: Layer | ProjectLayer;
   hideEmpty?: boolean; // Prop to control empty field display
+  hideMainSection?: boolean; // Prop to control main section display
 }
 
 const ContainerWrapper = styled("div")({
@@ -53,7 +54,11 @@ const MainContentSection = styled("div")({
   },
 });
 
-const DatasetSummary: React.FC<DatasetSummaryProps> = ({ dataset, hideEmpty = false }) => {
+const DatasetSummary: React.FC<DatasetSummaryProps> = ({
+  dataset,
+  hideEmpty = false,
+  hideMainSection = false,
+}) => {
   const theme = useTheme();
   const { t, i18n } = useTranslation(["common", "countries"]);
   const getMetadataValueTranslation = useGetMetadataValueTranslation();
@@ -159,29 +164,31 @@ const DatasetSummary: React.FC<DatasetSummaryProps> = ({ dataset, hideEmpty = fa
           </MetadataSection>
         )}
 
-        <MainContentSection>
-          <Stack spacing={2}>
-            {Object.keys(datasetMetadataAggregated.shape).map((key) => (
-              <div key={key} style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <Icon
-                  iconName={METADATA_HEADER_ICONS[key]}
-                  style={{ fontSize: 14, flexShrink: 0 }}
-                  htmlColor={theme.palette.text.secondary}
-                />
-                <div style={{ minWidth: 0 }}>
-                  <Typography variant="caption" noWrap>
-                    {i18n.exists(`common:metadata.headings.${key}`)
-                      ? t(`common:metadata.headings.${key}`)
-                      : key}
-                  </Typography>
-                  <Typography variant="body2" fontWeight="bold" noWrap>
-                    {getMetadataValueTranslation(key, dataset[key])}
-                  </Typography>
+        {!hideMainSection && (
+          <MainContentSection>
+            <Stack spacing={2}>
+              {Object.keys(datasetMetadataAggregated.shape).map((key) => (
+                <div key={key} style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <Icon
+                    iconName={METADATA_HEADER_ICONS[key]}
+                    style={{ fontSize: 14, flexShrink: 0 }}
+                    htmlColor={theme.palette.text.secondary}
+                  />
+                  <div style={{ minWidth: 0 }}>
+                    <Typography variant="caption" noWrap>
+                      {i18n.exists(`common:metadata.headings.${key}`)
+                        ? t(`common:metadata.headings.${key}`)
+                        : key}
+                    </Typography>
+                    <Typography variant="body2" fontWeight="bold" noWrap>
+                      {getMetadataValueTranslation(key, dataset[key])}
+                    </Typography>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </Stack>
-        </MainContentSection>
+              ))}
+            </Stack>
+          </MainContentSection>
+        )}
       </LayoutContainer>
     </ContainerWrapper>
   );
