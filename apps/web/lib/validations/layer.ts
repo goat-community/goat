@@ -185,12 +185,18 @@ export const interactionProperties = z.object({
   content: z.array(interactionFieldListContent.or(interactionImageContent)).default([]),
 });
 
+export const layerLegend = z.object({
+  show: z.boolean().default(true),
+  caption: z.string().optional(),
+})
+
 export const featureLayerBasePropertiesSchema = z
   .object({
     filled: z.boolean().default(true),
     stroked: z.boolean().default(true),
     text_label: TextLabelSchema.optional(),
-    interaction: interactionProperties.optional().default({})
+    interaction: interactionProperties.optional().default({}),
+    legend: layerLegend.optional().default({}),
   })
   .merge(layerPropertiesBaseSchema)
   .merge(colorSchema)
