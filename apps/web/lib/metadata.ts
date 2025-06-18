@@ -1,6 +1,6 @@
+import { isValidUrl } from "@/lib/utils/helpers";
 import type { Metadata } from "next";
 
-import { APP_URL } from "@/lib/constants";
 
 type LanguageMetadataContent = {
   title: string;
@@ -46,16 +46,18 @@ export function getLocalizedMetadata(
     image: overrides.image ?? defaultContent.image,
   };
 
-  const openGraphUrl = otherOptions.openGraphUrl || APP_URL;
+  const openGraphUrl = otherOptions.openGraphUrl || process.env.NEXT_PUBLIC_APP_URL
+
   let robotsIndex = otherOptions.robotsIndex !== undefined ? !!otherOptions.robotsIndex : false;
 
-  if (APP_URL && (APP_URL.includes("localhost") || APP_URL.includes("dev") || APP_URL.includes("staging"))) {
+  if (openGraphUrl && (openGraphUrl.includes("localhost") || openGraphUrl.includes("dev") || openGraphUrl.includes("staging"))) {
     // Disable indexing for local development or staging environments
     robotsIndex = false;
   }
 
+
   return {
-    metadataBase: new URL(APP_URL),
+    metadataBase: openGraphUrl && isValidUrl(openGraphUrl) ? new URL(openGraphUrl) : undefined,
     title: content.title,
     description: content.description,
     openGraph: {

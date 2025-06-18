@@ -1,9 +1,9 @@
 export const KEYCLOAK_CLIENT_ID = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
 export const KEYCLOAK_ISSUER = process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER;
 export const GEOAPI_BASE_URL = process.env.NEXT_PUBLIC_GEOAPI_URL;
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.plan4better.de";
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://goat.plan4better.de";
-export const DOCS_URL = `${APP_URL}/docs`;
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+export const DOCS_URL = `${APP_URL}/docs`
 export const DOCS_VERSION = "2.0";
 export const CONTACT_US_URL = "https://plan4better.de/contact";
 export const WEBSITE_URL = "https://plan4better.de";
