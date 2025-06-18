@@ -1,7 +1,7 @@
-import { APP_URL } from "@/lib/constants";
+import { API_BASE_URL, APP_URL } from "@/lib/constants";
 import { getLocalizedMetadata } from "@/lib/metadata";
 
-const PROJECTS_API_BASE_URL = new URL("api/v2/project", process.env.NEXT_PUBLIC_API_URL).href;
+const PROJECTS_API_BASE_URL = new URL("api/v2/project", API_BASE_URL).href;
 
 export async function generateMetadata({ params: { projectId, lng } }) {
   const publicProject = await fetch(`${PROJECTS_API_BASE_URL}/${projectId}/public`).then((res) => res.json());
