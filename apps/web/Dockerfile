@@ -10,6 +10,7 @@ RUN npm install -g turbo@1.13.3
 COPY . .
 RUN turbo prune --scope=@p4b/web --docker
 
+
 # Add lockfile and package.json's of isolated subworkspace
 FROM base AS installer
 RUN apk add --no-cache libc6-compat
