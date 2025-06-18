@@ -5,7 +5,7 @@ export const DOCS_URL = "https://goat.plan4better.de/docs";
 export const DOCS_VERSION = "2.0";
 export const CONTACT_US_URL = "https://plan4better.de/contact";
 export const WEBSITE_URL = "https://plan4better.de";
-
+export const SEO_BASE_URL = "https://goat.plan4better.de";
 export const MAPBOX_TOKEN =
   "pk.eyJ1IjoiZWxpYXNwYWphcmVzIiwiYSI6ImNqOW1scnVyOTRxcWwzMm5yYWhta2N2cXcifQ.aDCgidtC9cjf_O75frn9lA";
 
