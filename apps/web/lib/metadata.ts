@@ -1,5 +1,6 @@
-import { SEO_BASE_URL } from "@/lib/constants";
 import type { Metadata } from "next";
+
+import { APP_URL } from "@/lib/constants";
 
 type LanguageMetadataContent = {
   title: string;
@@ -11,7 +12,7 @@ type LanguageMetadataContent = {
 type OtherOptions = {
   openGraphUrl?: string;
   robotsIndex?: boolean;
-}
+};
 
 type PartialLanguageMetadataContent = Partial<LanguageMetadataContent>;
 
@@ -45,10 +46,16 @@ export function getLocalizedMetadata(
     image: overrides.image ?? defaultContent.image,
   };
 
-  const openGraphUrl = otherOptions.openGraphUrl || SEO_BASE_URL;
-  const robotsIndex = otherOptions.robotsIndex !== undefined ? !!otherOptions.robotsIndex : false;
+  const openGraphUrl = otherOptions.openGraphUrl || APP_URL;
+  let robotsIndex = otherOptions.robotsIndex !== undefined ? !!otherOptions.robotsIndex : false;
+
+  if (APP_URL && (APP_URL.includes("localhost") || APP_URL.includes("dev") || APP_URL.includes("staging"))) {
+    // Disable indexing for local development or staging environments
+    robotsIndex = false;
+  }
 
   return {
+    metadataBase: new URL(APP_URL),
     title: content.title,
     description: content.description,
     openGraph: {
