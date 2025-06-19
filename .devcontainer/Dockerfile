@@ -1,6 +1,6 @@
-FROM python:3.12-bookworm
+FROM python:3.11.12-bookworm
 
-ARG PYTHON_VERSION="3.12"
+ARG PYTHON_VERSION="3.11.12"
 ARG NODE_VERSION="20.15.0"
 ARG PNPM_VERSION="9.5.0"
 
@@ -72,3 +72,6 @@ RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(whic
 
 # Start Xvfb (virtual display) in the background for pymgl and keep the container running
 CMD bash -c "Xvfb ${DISPLAY} -screen 0 '1024x768x24' -ac +extension GLX +render -noreset -nolisten tcp & while true; do sleep 1000; done"
+
+# Configure PYTHONPATH env so the QGIS Python module is found
+ENV PYTHONPATH ".:/usr/lib/python3/dist-packages"
