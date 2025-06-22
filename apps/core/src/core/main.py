@@ -1,3 +1,4 @@
+import core._dotenv  # noqa: E402, F401, I001
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -20,6 +21,7 @@ from core.endpoints.deps import (
     initialize_qgis_application,
 )
 from core.endpoints.v2.api import router as api_router_v2
+
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT:
     sentry_sdk.init(

@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source=https://github.com/goat-community/goat
 LABEL org.opencontainers.image.description="Goat GeoAPI"
 LABEL org.opencontainers.image.licenses="GPL-3.0"
 
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.11
 
 
 ENV LC_CTYPE=C.utf8 \

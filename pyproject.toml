@@ -5,6 +5,7 @@ version = "2.0.0"
 requires-python = ">3.10,<3.12"
 dependencies = [
     "boto3>=1.38.23",
+    "dotenv>=0.9.9",
     "python-jose>=3.4.0",
 ]
 authors = [

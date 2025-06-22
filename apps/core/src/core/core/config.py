@@ -41,10 +41,10 @@ class Settings(BaseSettings):
     HEATMAP_GRAVITY_MAX_SENSITIVITY: int = 1000000
 
     SENTRY_DSN: Optional[str] = None
-    POSTGRES_SERVER: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
+    POSTGRES_SERVER: str = ""
+    POSTGRES_USER: str = ""
+    POSTGRES_PASSWORD: str = ""
+    POSTGRES_DB: str = ""
     POSTGRES_PORT: Optional[int] = 5432
 
     POSTGRES_DATABASE_URI: Optional[str] = None
@@ -89,8 +89,8 @@ class Settings(BaseSettings):
     GOAT_GEOAPI_HOST: Optional[str] = None
 
     # GOAT Routing config
-    GOAT_ROUTING_HOST: str
-    GOAT_ROUTING_PORT: int
+    GOAT_ROUTING_HOST: str = ""
+    GOAT_ROUTING_PORT: int = 443
 
     GOAT_ROUTING_URL: Optional[str] = None
 
