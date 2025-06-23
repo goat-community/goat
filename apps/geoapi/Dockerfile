@@ -1,4 +1,4 @@
-# Stage 1: General debian environment
+# ==== STAGE 1: General debian environment ====
 FROM debian:bookworm-slim AS linux-base
 
 LABEL org.opencontainers.image.source=https://github.com/goat-community/goat
@@ -23,7 +23,7 @@ RUN apt-get upgrade -y
 RUN apt-get install --no-install-recommends -y tzdata
 
 
-# Stage 2: Python environment
+# ===== STAGE 2: Python environment ====
 FROM linux-base AS python-base
 # Install debian dependencies
 RUN apt-get install --no-install-recommends -y build-essential gettext
@@ -38,7 +38,7 @@ WORKDIR /app
 
 RUN uv sync --all-extras --frozen --no-dev --no-editable --package=geoapi
 
-# Stage 3: Webapp environment
+# ==== STAGE 3: Webapp environment ====
 FROM linux-base AS webapp
 
 RUN useradd -m appuser

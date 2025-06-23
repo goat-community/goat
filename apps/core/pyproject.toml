@@ -34,7 +34,7 @@ dependencies = [
     "matplotlib==3.9.2",
     "cairosvg==2.7.1",
     "sentry-sdk==2.18.0",
-    "fastapi==0.115.12",
+    "fastapi[standard]==0.115.12",
     "fastapi-pagination==0.13.1",
     "pydantic==2.11.5",
     "sqlalchemy[asyncio]==2.0.41",
