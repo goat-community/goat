@@ -263,7 +263,6 @@ const AddLayerSection = ({ projectId }: { projectId: string }) => {
 
 export const LayerVisibilityToggle = ({ layer, toggleLayerVisibility }) => {
   const { t } = useTranslation("common");
-  const theme = useTheme();
   if (layer.type === "table") {
     return null;
   }
@@ -279,12 +278,6 @@ export const LayerVisibilityToggle = ({ layer, toggleLayerVisibility }) => {
         onClick={(event) => {
           event.stopPropagation();
           toggleLayerVisibility(layer);
-        }}
-        sx={{
-          transition: theme.transitions.create(["opacity"], {
-            duration: theme.transitions.duration.standard,
-          }),
-          opacity: !layer.properties?.visibility ? 1 : 0,
         }}>
         <Icon
           iconName={!layer.properties?.visibility ? ICON_NAME.EYE_SLASH : ICON_NAME.EYE}
@@ -443,15 +436,13 @@ const LayerPanel = ({ projectId }: PanelProps) => {
         <>
           {(moreMenuState?.id === ContentActions.DOWNLOAD || moreMenuState?.id === ContentActions.TABLE) &&
             activeLayerMoreMenu && (
-              <>
-                <ContentDialogWrapper
-                  content={activeLayerMoreMenu}
-                  action={moreMenuState.id as ContentActions}
-                  onClose={closeMoreMenu}
-                  onContentDelete={closeMoreMenu}
-                  type="layer"
-                />
-              </>
+              <ContentDialogWrapper
+                content={activeLayerMoreMenu}
+                action={moreMenuState.id as ContentActions}
+                onClose={closeMoreMenu}
+                onContentDelete={closeMoreMenu}
+                type="layer"
+              />
             )}
           {moreMenuState?.id === MapLayerActions.CHART && activeLayerMoreMenu && (
             <MapLayerChartModal

@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Checkbox,
@@ -86,9 +85,6 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
                 <Link href={url.registrationUrl}>{msg("doRegister")}</Link>
               </Typography>
             </Stack>
-            <Alert severity="info">
-              <span dangerouslySetInnerHTML={{ __html: msgStr("switchToV1") }} />
-            </Alert>
             {realm.password && social.providers !== undefined && (
               <>
                 <Divider sx={{ my: 5 }}>{msg("or")}</Divider>

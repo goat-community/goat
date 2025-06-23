@@ -250,6 +250,11 @@ export const nearbyStationsSchema = z.object({
 
 export type PostNearbyStations = z.infer<typeof nearbyStationsSchema>;
 
+
+//**=== HEATMAP === */
+export const minSensitivityValue = 0;
+export const maxSensitivityValue = 1000000;
+
 //**=== HEATMAP GRAVITY === */
 export const heatmapImpedanceFunctionEnum = z.enum(["gaussian", "linear", "exponential", "power"]);
 export const heatmapGravitySchema = z.object({

@@ -1,5 +1,5 @@
 import { Box, Collapse, Stack, useTheme } from "@mui/material";
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo } from "react";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 
@@ -19,9 +19,11 @@ import { useBasemap } from "@/hooks/map/MapHooks";
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import MapSidebar from "@/components/map/Sidebar";
+import AttributionControl from "@/components/map/controls/Attribution";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
 import { Fullscren } from "@/components/map/controls/Fullscreen";
 import Geocoder from "@/components/map/controls/Geocoder";
+import Scalebar from "@/components/map/controls/Scalebar";
 import { Zoom } from "@/components/map/controls/Zoom";
 import Legend from "@/components/map/panels/Legend";
 import Filter from "@/components/map/panels/filter/Filter";
@@ -31,19 +33,19 @@ import Scenario from "@/components/map/panels/scenario/Scenario";
 import LayerStyle from "@/components/map/panels/style/LayerStyle";
 import Toolbox from "@/components/map/panels/toolbox/Toolbox";
 
-import type { MapSidebarProps } from "../Sidebar";
+import type { MapSidebarProps } from "../../Sidebar";
 
 const sidebarWidth = 52;
 const toolbarHeight = 52;
 
-interface ProjectNavigationProps {
+interface DataProjectLayoutProps {
   project: Project;
   isPublic?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
 }
 
-const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps) => {
+const DataProjectLayout = ({ project, onProjectUpdate }: DataProjectLayoutProps) => {
   const theme = useTheme();
   const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
@@ -52,8 +54,6 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
   const activeLeft = useAppSelector((state) => state.map.activeLeftPanel);
   const activeRight = useAppSelector((state) => state.map.activeRightPanel);
   const { activeLayer } = useActiveLayer(projectId);
-  const prevActiveLeftRef = useRef<MapSidebarItemID | undefined>(undefined);
-  const prevActiveRightRef = useRef<MapSidebarItemID | undefined>(undefined);
   const { isProjectEditor, isAppFeatureEnabled } = useAuthZ();
   const { layers: projectLayers, mutate: mutateProjectLayers } = useFilteredProjectLayers(projectId);
   const { toggleLayerVisibility } = useLayerActions(projectLayers);
@@ -101,7 +101,10 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
         icon: ICON_NAME.STYLE,
         name: t("layer_design"),
         component: <LayerStyle projectId={projectId} />,
-        disabled: !activeLayer || activeLayer?.type !== layerType.Values.feature,
+        disabled:
+          !activeLayer ||
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ![layerType.Values.feature, layerType.Values.raster].includes(activeLayer.type as any),
       },
       {
         id: MapSidebarItemID.TOOLBOX,
@@ -124,8 +127,6 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
   const activeRightComponent = useMemo(() => {
     if (activeRight) {
       return rightSidebar.topItems?.find((item) => item.id === activeRight && !item.disabled)?.component;
-    } else if (prevActiveRightRef.current) {
-      return rightSidebar.topItems?.find((item) => item.id === prevActiveRightRef.current)?.component;
     }
     return undefined;
   }, [activeRight, rightSidebar.topItems]);
@@ -133,11 +134,21 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
   const activeLeftComponent = useMemo(() => {
     if (activeLeft) {
       return leftSidebar.topItems?.find((item) => item.id === activeLeft)?.component;
-    } else if (prevActiveLeftRef.current) {
-      return leftSidebar.topItems?.find((item) => item.id === prevActiveLeftRef.current)?.component;
     }
     return undefined;
   }, [activeLeft, leftSidebar.topItems]);
+
+  useEffect(() => {
+    if (
+      activeRight !== undefined &&
+      !activeLayer &&
+      (activeRight === MapSidebarItemID.PROPERTIES ||
+        activeRight === MapSidebarItemID.STYLE ||
+        activeRight === MapSidebarItemID.FILTER)
+    ) {
+      dispatch(setActiveRightPanel(undefined));
+    }
+  }, [activeRight, activeLayer, dispatch]);
 
   return (
     <>
@@ -174,7 +185,7 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
           height: "100%",
           position: "absolute",
           top: 0,
-          pointerEvents: "all",
+          pointerEvents: "none",
           ...(isProjectEditor && { left: sidebarWidth }),
           [theme.breakpoints.down("sm")]: {
             left: "0",
@@ -188,9 +199,8 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
             sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
             onExited={() => {
               dispatch(setActiveLeftPanel(undefined));
-              prevActiveLeftRef.current = undefined;
             }}>
-            {(activeLeft !== undefined || prevActiveLeftRef.current !== undefined) && (
+            {activeLeft !== undefined && (
               <Box
                 sx={{
                   height: `calc(100% - ${toolbarHeight}px)`,
@@ -212,22 +222,25 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
             marginTop: `${toolbarHeight}px`,
             padding: theme.spacing(4),
           }}>
-          <Stack direction="column" sx={{ pointerEvents: "all" }}>
+          <Stack direction="column">
             <Geocoder accessToken={MAPBOX_TOKEN} placeholder={t("enter_an_address")} tooltip={t("search")} />
           </Stack>
-          {!isProjectEditor && (
-            <Stack direction="column" sx={{ pointerEvents: "all" }}>
-              <Legend
-                projectLayers={projectLayers}
-                isFloating
-                showAllLayers
-                onVisibilityChange={async (layer) => {
-                  const { layers: _layers, layerToUpdate: _layerToUpdate } = toggleLayerVisibility(layer);
-                  await mutateProjectLayers(_layers, false);
-                }}
-              />
-            </Stack>
-          )}
+          <Stack direction="column">
+            {!isProjectEditor && (
+              <Stack direction="column">
+                <Legend
+                  projectLayers={projectLayers}
+                  isFloating
+                  showAllLayers
+                  onVisibilityChange={async (layer) => {
+                    const { layers: _layers, layerToUpdate: _layerToUpdate } = toggleLayerVisibility(layer);
+                    await mutateProjectLayers(_layers, false);
+                  }}
+                />
+              </Stack>
+            )}
+            <Scalebar />
+          </Stack>
         </Stack>
       </Stack>
       <Stack
@@ -249,20 +262,23 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
             height: `calc(100% - ${toolbarHeight}px)`,
             justifyContent: "space-between",
             marginTop: `${toolbarHeight}px`,
-            padding: theme.spacing(4),
+            pt: theme.spacing(4),
           }}>
-          <Stack direction="column" sx={{ pointerEvents: "all" }}>
+          <Stack direction="column" sx={{ pr: 4, pointerEvents: "none" }}>
             <Zoom tooltipZoomIn={t("zoom_in")} tooltipZoomOut={t("zoom_out")} />
             <Fullscren tooltipOpen={t("fullscreen")} tooltipExit={t("exit_fullscreen")} />
           </Stack>
-          <Stack direction="column" sx={{ pointerEvents: "all" }}>
-            <BasemapSelector
-              styles={translatedBaseMaps}
-              active={activeBasemap.value}
-              basemapChange={async (basemap) => {
-                await onProjectUpdate?.("basemap", basemap);
-              }}
-            />
+          <Stack direction="column">
+            <Box sx={{ pr: 4 }}>
+              <BasemapSelector
+                styles={translatedBaseMaps}
+                active={activeBasemap.value}
+                basemapChange={async (basemap) => {
+                  await onProjectUpdate?.("basemap", basemap);
+                }}
+              />
+            </Box>
+            <AttributionControl />
           </Stack>
         </Stack>
         {isProjectEditor && (
@@ -272,9 +288,8 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
             in={activeRight !== undefined}
             onExit={() => {
               dispatch(setActiveRightPanel(undefined));
-              prevActiveRightRef.current = undefined;
             }}>
-            {(activeRight !== undefined || prevActiveRightRef.current !== undefined) && (
+            {activeRight !== undefined && (
               <Box
                 sx={{
                   height: `calc(100% - ${toolbarHeight}px)`,
@@ -317,4 +332,4 @@ const ProjectNavigation = ({ project, onProjectUpdate }: ProjectNavigationProps)
   );
 };
 
-export default ProjectNavigation;
+export default DataProjectLayout;
