@@ -1016,13 +1016,14 @@ async def get_public_project(
 )
 async def publish_project(
     project_id: str,
+    user_id: UUID4 = Depends(get_user_id),
     async_session: AsyncSession = Depends(get_db),
 ):
     """
     Publish a project
     """
     result = await crud_project.publish_project(
-        async_session=async_session, project_id=project_id
+        async_session=async_session, project_id=project_id, user_id=user_id
     )
 
     return result

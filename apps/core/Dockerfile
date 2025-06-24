@@ -25,7 +25,7 @@ RUN apt-get install --no-install-recommends -y tzdata
 # ===== STAGE 2: Runtime dependencies ====
 FROM linux-base AS runtime-deps
 
-RUN apt-get install --no-install-recommends -y build-essential gettext wget
+RUN apt-get install --no-install-recommends -y build-essential gettext wget clang
 # Install Qgis, gdal and pymgl
 RUN apt-get install -y gdal-bin libgdal-dev
 RUN wget -O /etc/apt/keyrings/qgis-archive-keyring.gpg https://download.qgis.org/downloads/qgis-archive-keyring.gpg

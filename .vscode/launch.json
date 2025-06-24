@@ -73,6 +73,14 @@
         "GeoAPI Debug",
         "Core Debug",
       ]
+    },
+    {
+      "name": "Launch App",
+      "configurations": [
+        "GeoAPI Debug",
+        "Core Debug",
+        "Web Debug"
+      ]
     }
   ]
 }
