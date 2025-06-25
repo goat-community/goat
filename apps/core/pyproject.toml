@@ -10,7 +10,6 @@ dependencies = [
     "asyncpg==0.30.0",
     "psycopg==3.2.3",
     "psycopg-binary==3.2.3",
-    "polars==1.13.1",
     "geopandas==1.0.1",
     "shapely==2.0.6",
     "celery==5.4.0",
@@ -47,6 +46,7 @@ dependencies = [
     "numpy==2.2.6",
     "pytest>=8.3.5",
     "types-requests>=2.32.4.20250611",
+    "polars==1.31.0",
 ]
 
 
