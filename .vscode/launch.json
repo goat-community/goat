@@ -2,6 +2,25 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Core Debug",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "fastapi",
+      "args": [
+          "dev",
+          "src/core/main.py",
+          "--reload",
+          "--port",
+          "8000"
+      ],
+      "consoleName": "Core Debug Console",
+      "cwd": "${workspaceFolder}/apps/core",
+      "justMyCode": false,
+      "jinja": true,
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "uv-sync"
+    },
+    {
       "name": "GeoAPI Debug",
       "type": "debugpy",
       "request": "launch",
@@ -11,10 +30,29 @@
           "src/geoapi/main.py",
           "--reload",
           "--port",
-          "8080"
+          "8100"
       ],
       "consoleName": "GeoAPI Debug Console",
       "cwd": "${workspaceFolder}/apps/geoapi",
+      "justMyCode": false,
+      "jinja": true,
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "uv-sync"
+    },
+    {
+      "name": "Accounts Debug",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "fastapi",
+      "args": [
+          "dev",
+          "src/accounts/main.py",
+          "--reload",
+          "--port",
+          "8100"
+      ],
+      "consoleName": "Accounts Debug Console",
+      "cwd": "${workspaceFolder}/apps/accounts",
       "justMyCode": false,
       "jinja": true,
       "envFile": "${workspaceFolder}/.env",
@@ -30,29 +68,10 @@
           "src/routing/main.py",
           "--reload",
           "--port",
-          "8080"
+          "8200"
       ],
       "consoleName": "Routing Debug Console",
       "cwd": "${workspaceFolder}/apps/routing",
-      "justMyCode": false,
-      "jinja": true,
-      "envFile": "${workspaceFolder}/.env",
-      "preLaunchTask": "uv-sync"
-    },
-    {
-      "name": "Core Debug",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "fastapi",
-      "args": [
-          "dev",
-          "src/core/main.py",
-          "--reload",
-          "--port",
-          "5000"
-      ],
-      "consoleName": "Core Debug Console",
-      "cwd": "${workspaceFolder}/apps/core",
       "justMyCode": false,
       "jinja": true,
       "envFile": "${workspaceFolder}/.env",
