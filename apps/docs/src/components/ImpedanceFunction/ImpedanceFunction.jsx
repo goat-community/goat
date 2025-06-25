@@ -33,7 +33,7 @@ export default function ImpedanceFunction({ initialFunction = 'gaussian', initia
         const normalizedSensitivity = sensitivity / MAX_SENSITIVITY;
         values = travelTimesMinutes.map(t => {
           const normalizedTime = t / MAX_TRAVEL_TIME_MIN;
-          return Math.exp(-normalizedSensitivity * 10 * Math.pow(normalizedTime, 2));
+          return Math.exp(-10 * (Math.pow(normalizedTime, 2) / normalizedSensitivity));
         });
         break;
       case 'linear':
