@@ -1,16 +1,14 @@
 from typing import List
 
 import pytest
-from httpx import AsyncClient
-
 from core.core.config import settings
 from core.schemas.heatmap import (
     ActiveRoutingHeatmapType,
     ImpedanceFunctionType,
     MotorizedRoutingHeatmapType,
 )
+from httpx import AsyncClient
 from tests.utils import check_job_status
-
 
 # TODO: Upload larger heatmap-specific input/opportunity layers to test functionality in a more robust way
 

@@ -7,11 +7,21 @@ import os
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-from sqlalchemy import text
 from jose import jwt
+from sqlalchemy import text
+from tests.utils import (
+    check_job_status,
+    check_user_data_deleted,
+    generate_random_string,
+    upload_file,
+    upload_invalid_file,
+    upload_valid_file,
+    upload_valid_files,
+)
 
 # Local application imports
 from core.core.config import settings
+from core.crud.base import CRUDBase
 from core.db.models import (
     LayerOrganizationLink,
     LayerTeamLink,
@@ -34,16 +44,6 @@ from core.schemas.catchment_area import (
 from core.schemas.layer import request_examples as layer_request_examples
 from core.schemas.project import (
     request_examples as project_request_examples,
-)
-from core.crud.base import CRUDBase
-from tests.utils import (
-    check_job_status,
-    check_user_data_deleted,
-    generate_random_string,
-    upload_file,
-    upload_invalid_file,
-    upload_valid_file,
-    upload_valid_files,
 )
 
 

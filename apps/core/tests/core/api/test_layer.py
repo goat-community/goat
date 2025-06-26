@@ -3,8 +3,6 @@ import zipfile
 from uuid import uuid4
 
 import pytest
-from httpx import AsyncClient
-
 from core.core.config import settings
 from core.db.models.layer import LayerType
 from core.schemas.layer import (
@@ -14,6 +12,7 @@ from core.schemas.layer import (
     TableLayerExportType,
 )
 from core.utils import delete_dir, delete_file
+from httpx import AsyncClient
 from tests.utils import get_with_wrong_id
 
 

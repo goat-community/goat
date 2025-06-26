@@ -1,10 +1,9 @@
 from uuid import uuid4
 
 import pytest
-from pydantic import ValidationError
-
 from core.db.models.layer import DataCategory, DataLicense, Layer, LayerBase
 from core.schemas.layer import FeatureLayerExportType, ILayerExport
+from pydantic import ValidationError
 
 
 def test_layer_creation():

@@ -1,7 +1,6 @@
 import pytest
-from httpx import AsyncClient
-
 from core.core.config import settings
+from httpx import AsyncClient
 from tests.utils import get_with_wrong_id, upload_valid_files
 
 

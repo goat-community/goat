@@ -1,10 +1,10 @@
 import pytest
+from core.schemas.catchment_area import (
+    CatchmentAreaStartingPointsActiveMobility,
+    CatchmentAreaTravelDistanceCostActiveMobility,
+)
 from pydantic import ValidationError
 
-from core.schemas.catchment_area import (
-    CatchmentAreaTravelDistanceCostActiveMobility,
-    CatchmentAreaStartingPointsActiveMobility,
-)
 
 def test_check_starting_points_below_1000():
     # Test with a number of starting points that is below 1000

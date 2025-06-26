@@ -1,14 +1,13 @@
 from typing import List
 
 import pytest
-from httpx import AsyncClient
-
 from core.core.config import settings
 from core.schemas.catchment_area import (
     CatchmentAreaRoutingModeActiveMobility,
     CatchmentAreaRoutingModePT,
 )
 from core.schemas.toolbox_base import PTSupportedDay
+from httpx import AsyncClient
 from tests.utils import check_job_status
 
 
