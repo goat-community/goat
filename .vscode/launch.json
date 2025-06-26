@@ -18,7 +18,12 @@
       "justMyCode": false,
       "jinja": true,
       "envFile": "${workspaceFolder}/.env",
-      "preLaunchTask": "uv-sync"
+      "preLaunchTask": "uv-sync",
+      "presentation": {
+        "hidden": false,
+        "group": "backend",
+        "order": 3
+      }
     },
     {
       "name": "GeoAPI Debug",
@@ -37,7 +42,12 @@
       "justMyCode": false,
       "jinja": true,
       "envFile": "${workspaceFolder}/.env",
-      "preLaunchTask": "uv-sync"
+      "preLaunchTask": "uv-sync",
+      "presentation": {
+        "hidden": false,
+        "group": "backend",
+        "order": 3
+      }
     },
     {
       "name": "Accounts Debug",
@@ -56,8 +66,14 @@
       "justMyCode": false,
       "jinja": true,
       "envFile": "${workspaceFolder}/.env",
-      "preLaunchTask": "uv-sync"
+      "preLaunchTask": "uv-sync",
+      "presentation": {
+        "hidden": false,
+        "group": "backend",
+        "order": 3
+      }
     },
+
     {
       "name": "Routing Debug",
       "type": "debugpy",
@@ -75,15 +91,37 @@
       "justMyCode": false,
       "jinja": true,
       "envFile": "${workspaceFolder}/.env",
-      "preLaunchTask": "uv-sync"
+      "preLaunchTask": "uv-sync",
+      "presentation": {
+        "hidden": false,
+        "group": "backend",
+        "order": 3
+      }
     },
     {
       "name": "Web Debug",
       "type": "node-terminal",
       "request": "launch",
       "envFile": "${workspaceFolder}/.env",
-      "command": "pnpm run web"
+      "command": "pnpm run web",
+      "presentation": {
+        "hidden": false,
+        "group": "frontend",
+        "order": 2
+      }
     },
+    {
+      "name": "Storybook Debug",
+      "type": "node-terminal",
+      "request": "launch",
+      "envFile": "${workspaceFolder}/.env",
+      "command": "pnpm run storybook",
+      "presentation": {
+        "hidden": false,
+        "group": "frontend",
+        "order": 2
+      }
+    }
   ],
   "compounds": [
     {
@@ -91,7 +129,12 @@
       "configurations": [
         "GeoAPI Debug",
         "Core Debug",
-      ]
+      ],
+      "presentation": {
+        "hidden": false,
+        "group": "compounds",
+        "order": 1
+      }
     },
     {
       "name": "Launch App",
@@ -99,7 +142,12 @@
         "GeoAPI Debug",
         "Core Debug",
         "Web Debug"
-      ]
+      ],
+      "presentation": {
+        "hidden": false,
+        "group": "compounds",
+        "order": 1
+      }
     }
   ]
 }
