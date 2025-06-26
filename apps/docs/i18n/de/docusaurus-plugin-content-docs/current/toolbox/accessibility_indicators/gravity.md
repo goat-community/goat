@@ -318,7 +318,8 @@ wobei die Erreichbarkeit **A** des Ausgangspunkts **i** die Summe aller am Zielo
 </MathJax.Provider>
 </div>
 
-*Inverse Power, (Kwan,1998):*
+
+*Inverse Power, (Kwan,1998) ('Powerfunktion' im GOAT):*
 
 <div>
 <MathJax.Provider>
@@ -332,13 +333,11 @@ wobei die Erreichbarkeit **A** des Ausgangspunkts **i** die Summe aller am Zielo
 </div>
 
 Die Reisezeit wird in Minuten gemessen. Bei einer maximalen Reisezeit von 30 Minuten gelten Ziele, die weiter als 30 Minuten entfernt sind, als nicht erreichbar und werden daher bei der Berechnung der Erreichbarkeit nicht berücksichtigt.
-Der Parameter *Sensitivität* bestimmt, wie sich die Erreichbarkeit mit zunehmender Reisezeit verändert. Da der Parameter *Sensitivität* für die Messung der Erreichbarkeit entscheidend ist, können Sie ihn in GOAT anpassen. Die folgenden Diagramme zeigen den Einfluss des Parameters *Sensitivität* auf die Erreichbarkeit:
+Der Parameter *Sensitivität* bestimmt, wie sich die Erreichbarkeit mit zunehmender Reisezeit verändert. Da der Parameter *Sensitivität* für die Messung der Erreichbarkeit entscheidend ist, können Sie ihn in GOAT anpassen. Die folgenden Diagramme zeigt, wie die Bereitschaft, zu Fuß zu gehen, mit zunehmender Reisezeit auf der Grundlage der gewählten Impedanzfunktion und des Sensitivität (β) abnimmt.
 
-:::info demnächst verfügbar
+import ImpedanceFunction from '@site/src/components/ImpedanceFunction';
 
-Beispiele für diese Funktionalität werden bald online sein. 🧑🏻‍💻
-
-:::
+<ImpedanceFunction />
 
 In ähnlicher Weise kann auch das *Zielpotenzialfeld* verändert werden. So kann z.B. einem POI-Typ (z.B. Verbrauchermärkte) ein höherer Erreichbarkeitseffekt zugeordnet werden als anderen POI-Typen (z.B. Discounter). Die folgenden Bilder zeigen den Einfluss des Parameters *Zielpotenzialfeld* auf die Erreichbarkeit:
 

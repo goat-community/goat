@@ -1,5 +1,5 @@
 import * as z from "zod";
-
+import { v4 } from "uuid";
 import { DEFAULT_WKT_EXTENT } from "@/lib/constants";
 import { DEFAULT_COLOR, DEFAULT_COLOR_RANGE } from "@/lib/constants/color";
 import {
@@ -152,11 +152,51 @@ export const markerSchema = z.object({
   marker_offset: z.array(z.number().min(-5).max(5)).optional().default([0, 0]),
 });
 
+export const layerInteractionContentType = z.enum(["field_list", "image"]);
+
+export const attributeSchema = z.object({
+  name: z.string(),
+  label: z.string().optional(),
+  type: z.enum(["string", "number", "boolean"]),
+  format: z.string().optional(),
+});
+
+
+export const interactionFieldListContent = z.object({
+  id: z.string().uuid().default(() => v4()),
+  type: z.literal(layerInteractionContentType.Enum.field_list).default("field_list"),
+  title: z.string().optional(),
+  attributes: z.array(attributeSchema).optional().default([]),
+});
+
+export const interactionImageContent = z.object({
+  id: z.string().uuid().default(() => v4()),
+  type: z.literal(layerInteractionContentType.Enum.image).default("image"),
+  title: z.string().optional(),
+  url: z.string().optional().default(""),
+});
+
+export const layerInteractionContent = z.union([interactionFieldListContent, interactionImageContent]);
+
+export const layerInteractionType = z.enum(["click", "hover", "none"]);
+
+export const interactionProperties = z.object({
+  type: layerInteractionType.optional().default("click"),
+  content: z.array(interactionFieldListContent.or(interactionImageContent)).default([]),
+});
+
+export const layerLegend = z.object({
+  show: z.boolean().default(true),
+  caption: z.string().optional(),
+})
+
 export const featureLayerBasePropertiesSchema = z
   .object({
     filled: z.boolean().default(true),
     stroked: z.boolean().default(true),
     text_label: TextLabelSchema.optional(),
+    interaction: interactionProperties.optional().default({}),
+    legend: layerLegend.optional().default({}),
   })
   .merge(layerPropertiesBaseSchema)
   .merge(colorSchema)
@@ -178,28 +218,8 @@ export const featureLayerProperties = featureLayerPointPropertiesSchema
 
 export const featureLabelProperties = z.object({});
 
-export const attributeSchema = z.object({
-  label: z.string(),
-  type: z.enum(["string", "number", "boolean"]),
-  format: z.string().optional(),
-});
 
-export const popupTableContent = z.object({
-  type: z.literal("table"),
-  title: z.string().optional(),
-  attributes: z.record(attributeSchema), // dynamic keys like "id", "name", etc.
-});
 
-export const popupImageContent = z.object({
-  type: z.literal("image"),
-  title: z.string().optional(),
-  url: z.string().url(),
-});
-
-export const popupProperties = z.object({
-  interaction: z.enum(["hover", "click"]).optional().default("click"),
-  content: z.array(popupTableContent).default([]),
-});
 
 // lineage, positional_accuracy, attribute_accuracy, completeness
 export const layerMetadataSchema = contentMetadataSchema.extend({
@@ -421,3 +441,6 @@ export type CreateLayerFromDataset = z.infer<typeof createLayerFromDatasetSchema
 export type CreateRasterLayer = z.infer<typeof createRasterLayerSchema>;
 export type LayerSharedWith = z.infer<typeof shareLayerSchema>;
 export type TextLabelSchemaData = z.infer<typeof TextLabelSchema>;
+export type LayerInteractionContentType = z.infer<typeof layerInteractionContentType>;
+export type LayerInteractionContent = z.infer<typeof layerInteractionContent>;
+export type LayerInteractionFieldListContent = z.infer<typeof interactionFieldListContent>;

@@ -2,6 +2,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
   Checkbox,
+  Divider,
   FormControl,
   InputAdornment,
   ListSubheader,
@@ -35,6 +36,7 @@ export type SelectorProps = {
   onFocus?: () => void;
   onClose?: () => void;
   cqlFilter?: object | undefined;
+  clearable?: boolean;
 };
 
 const SelectorLayerValue = (props: SelectorProps) => {
@@ -168,6 +170,22 @@ const SelectorLayerValue = (props: SelectorProps) => {
           </Box>
         )}
         {!isLoading && itemsToDisplay.length === 0 && <NoValuesFound />}
+
+        {props.clearable && [
+          <MenuItem
+            sx={{ px: 2 }}
+            value={props.multiple ? [] : ""}
+            onClick={() => props.onSelectedValuesChange(props.multiple ? [] : null)}
+            key="__none__">
+            {props.multiple && (
+              <Checkbox sx={{ mr: 2, p: 0 }} size="small" checked={selectedValuesArray.length === 0} />
+            )}
+            <Typography variant="body2" fontWeight="bold">
+              {t("none")}
+            </Typography>
+          </MenuItem>,
+          <Divider sx={{ my: 1 }} key="__divider__" />,
+        ]}
 
         {itemsToDisplay.map((item) => (
           <MenuItem sx={{ px: 2 }} key={item.value} value={item.value}>

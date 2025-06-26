@@ -2,6 +2,25 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Core Debug",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "fastapi",
+      "args": [
+          "dev",
+          "src/core/main.py",
+          "--reload",
+          "--port",
+          "8000"
+      ],
+      "consoleName": "Core Debug Console",
+      "cwd": "${workspaceFolder}/apps/core",
+      "justMyCode": false,
+      "jinja": true,
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "uv-sync"
+    },
+    {
       "name": "GeoAPI Debug",
       "type": "debugpy",
       "request": "launch",
@@ -11,9 +30,29 @@
           "src/geoapi/main.py",
           "--reload",
           "--port",
-          "8080"
+          "8100"
       ],
+      "consoleName": "GeoAPI Debug Console",
       "cwd": "${workspaceFolder}/apps/geoapi",
+      "justMyCode": false,
+      "jinja": true,
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "uv-sync"
+    },
+    {
+      "name": "Accounts Debug",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "fastapi",
+      "args": [
+          "dev",
+          "src/accounts/main.py",
+          "--reload",
+          "--port",
+          "8100"
+      ],
+      "consoleName": "Accounts Debug Console",
+      "cwd": "${workspaceFolder}/apps/accounts",
       "justMyCode": false,
       "jinja": true,
       "envFile": "${workspaceFolder}/.env",
@@ -29,8 +68,9 @@
           "src/routing/main.py",
           "--reload",
           "--port",
-          "8080"
+          "8200"
       ],
+      "consoleName": "Routing Debug Console",
       "cwd": "${workspaceFolder}/apps/routing",
       "justMyCode": false,
       "jinja": true,
@@ -38,39 +78,28 @@
       "preLaunchTask": "uv-sync"
     },
     {
-      "name": "Web Debug (Server-Side)",
+      "name": "Web Debug",
       "type": "node-terminal",
       "request": "launch",
+      "envFile": "${workspaceFolder}/.env",
       "command": "pnpm run web"
     },
+  ],
+  "compounds": [
     {
-      "name": "Web Debug (Client)",
-      "type": "chrome",
-      "request": "launch",
-      "url": "http://localhost:3000"
+      "name": "Backend Debug",
+      "configurations": [
+        "GeoAPI Debug",
+        "Core Debug",
+      ]
     },
     {
-      "name": "Web Debug (Full Stack)",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "pnpm run web",
-      "serverReadyAction": {
-        "pattern": "started server on .+, url: (https?://.+)",
-        "uriFormat": "%s",
-        "action": "debugWithChrome"
-      }
-    },
-    {
-      "name": "Storybook Debug",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "cd apps/storybook && pnpm run storybook",
-      "internalConsoleOptions": "openOnFirstSessionStart",
-      "serverReadyAction": {
-        "pattern": "Local:.+(https?://[^:]+:[0-9]+)",
-        "uriFormat": "%s",
-        "action": "debugWithChrome"
-      }
-    },
+      "name": "Launch App",
+      "configurations": [
+        "GeoAPI Debug",
+        "Core Debug",
+        "Web Debug"
+      ]
+    }
   ]
 }

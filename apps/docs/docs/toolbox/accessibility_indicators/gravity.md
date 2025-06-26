@@ -324,7 +324,7 @@ where the accessibility **A** of origin **i** is the sum of all opportunities **
 </MathJax.Provider>
     </div>  
 
-*Inverse Power, (Kwan,1998):*
+*Inverse Power, (Kwan,1998) (`power` in GOAT):*
 
 <div>
 <MathJax.Provider>
@@ -338,13 +338,11 @@ where the accessibility **A** of origin **i** is the sum of all opportunities **
 </div>  
 
 Travel times are measured in minutes. For a maximum travel time of 30 minutes, destinations that are farther than 30 minutes are considered non-accessible and therefore not considered in the calculation of the accessibility.
-The *sensitivity* parameter determines how accessibility changes with increasing travel time. As the *sensitivity* parameter is decisive when measuring accessibility, GOAT allows you to adjust this. The following graphs show the influence of the *sensitivity* parameter on accessibility:
+The *sensitivity* parameter determines how accessibility changes with increasing travel time. As the *sensitivity* parameter is decisive when measuring accessibility, GOAT allows you to adjust this The graph shows how the willingness to walk decreases with increasing travel time based on the selected impedance function and sensitivity value (β).
 
-:::info coming soon
+import ImpedanceFunction from '@site/src/components/ImpedanceFunction';
 
-Examples of this functionality will be online soon. 🧑🏻‍💻
-
-:::
+<ImpedanceFunction />
 
 Similarly, the *destination potential* can be changed. Thus, for example, one POI type (e.g. hypermarkets) can be assigned a higher accessibility effect than other POI types (e.g. discount supermarkets). The following images show the influence of the *destination potential* parameter on accessibility:
 
