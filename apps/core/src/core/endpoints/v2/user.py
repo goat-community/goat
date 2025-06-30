@@ -57,7 +57,7 @@ async def delete_user(
 ) -> None:
     """Delete a user and all of the related contents. This will read the user ID from the JWT token or use the pre-defined user_id if running without authentication."""
     user = await crud_user.get(async_session, id=user_id)
-    assert type(user) is User
+    assert isinstance(user, User)
 
     if user:
         await crud_user.delete_user_data_tables(async_session, user_id=user.id)

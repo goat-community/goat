@@ -462,7 +462,7 @@ class OGRFileHandling:
     def get_layer_extent(self, layer: ogr.Layer) -> str:
         """Get layer extent in EPSG:4326."""
         # Get the original extent
-        mix, maxx, miny, maxy = layer.GetExtent()
+        minx, maxx, miny, maxy = layer.GetExtent()
 
         # Define the source SRS
         source_srs = layer.GetSpatialRef()
@@ -476,7 +476,7 @@ class OGRFileHandling:
 
         # Transform the coordinates
         min_point = ogr.Geometry(ogr.wkbPoint)
-        min_point.AddPoint(mix, miny)
+        min_point.AddPoint(minx, miny)
         min_point.Transform(transform)
 
         max_point = ogr.Geometry(ogr.wkbPoint)
