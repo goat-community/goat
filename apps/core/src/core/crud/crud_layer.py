@@ -3,18 +3,17 @@ import asyncio
 import json
 import os
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict, List, Tuple
 from uuid import UUID, uuid4
 
 # Third party imports
-from fastapi import HTTPException, status
+from fastapi import BackgroundTasks, HTTPException, status
 from fastapi_pagination import Page
 from fastapi_pagination import Params as PaginationParams
-from geoalchemy2.shape import WKTElement
+from geoalchemy2.elements import WKTElement
 from pydantic import BaseModel
 from sqlalchemy import and_, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import SQLModel
 from starlette.datastructures import UploadFile
 
 # Local application imports
@@ -35,14 +34,14 @@ from core.core.layer import (
 )
 from core.crud.base import CRUDBase
 from core.crud.crud_layer_project import layer_project as crud_layer_project
-from core.db.models import (
-    Layer,
+from core.db.models._link_model import (
     LayerOrganizationLink,
     LayerTeamLink,
-    Organization,
-    Role,
-    Team,
 )
+from core.db.models.layer import FeatureGeometryType, FeatureType, Layer, LayerType
+from core.db.models.organization import Organization
+from core.db.models.role import Role
+from core.db.models.team import Team
 from core.schemas.error import (
     ColumnNotFoundError,
     LayerNotFoundError,
@@ -52,8 +51,8 @@ from core.schemas.error import (
 )
 from core.schemas.job import JobStatusType
 from core.schemas.layer import (
+    AreaStatisticsOperation,
     ComputeBreakOperation,
-    FeatureType,
     ICatalogLayerGet,
     IFeatureStandardCreateAdditionalAttributes,
     IFileUploadExternalService,
@@ -65,7 +64,6 @@ from core.schemas.layer import (
     IMetadataAggregateRead,
     ITableCreateAdditionalAttributes,
     IUniqueValue,
-    LayerType,
     MetadataGroupAttributes,
     OgrDriverType,
     SupportedOgrGeomType,
@@ -74,7 +72,7 @@ from core.schemas.layer import (
     layer_update_class,
 )
 from core.schemas.style import get_base_style
-from core.schemas.toolbox_base import ColumnStatisticsOperation, MaxFeatureCnt
+from core.schemas.toolbox_base import MaxFeatureCnt
 from core.utils import (
     async_delete_dir,
     async_zip_directory,
@@ -86,7 +84,9 @@ from core.utils import (
 class CRUDLayer(CRUDLayerBase):
     """CRUD class for Layer."""
 
-    async def label_cluster_keep(self, async_session: AsyncSession, layer: Layer):
+    async def label_cluster_keep(
+        self, async_session: AsyncSession, layer: Layer
+    ) -> None:
         """Label the rows that should be kept in case of vector tile clustering. Based on the logic to priotize features close to the centroid of an h3 grid of resolution 8."""
 
         # Build query to update the selected rows
@@ -111,10 +111,10 @@ class CRUDLayer(CRUDLayerBase):
             await async_session.execute(text(sql_query))
             await async_session.commit()
 
-    async def get_internal(self, async_session: AsyncSession, id: UUID):
+    async def get_internal(self, async_session: AsyncSession, id: UUID) -> Layer:
         """Gets a layer and make sure it is a internal layer."""
 
-        layer = await self.get(async_session, id=id)
+        layer: Layer | None = await self.get(async_session, id=id)
         if layer is None:
             raise LayerNotFoundError("Layer not found")
         if layer.type not in [LayerType.feature, LayerType.table]:
@@ -128,7 +128,7 @@ class CRUDLayer(CRUDLayerBase):
         async_session: AsyncSession,
         id: UUID,
         layer_in: dict,
-    ):
+    ) -> Layer:
         # Get layer
         layer = await self.get(async_session, id=id)
         if layer is None:
@@ -154,7 +154,7 @@ class CRUDLayer(CRUDLayerBase):
         self,
         async_session: AsyncSession,
         id: UUID,
-    ):
+    ) -> None:
         layer = await CRUDBase(Layer).get(async_session, id=id)
         if layer is None:
             raise LayerNotFoundError(f"{Layer.__name__} not found")
@@ -287,8 +287,8 @@ class CRUDLayer(CRUDLayerBase):
         return metadata
 
     async def get_feature_layer_size(
-        self, async_session: AsyncSession, layer: BaseModel | SQLModel
-    ):
+        self, async_session: AsyncSession, layer: Layer
+    ) -> int:
         """Get size of feature layer."""
 
         # Get size
@@ -297,13 +297,12 @@ class CRUDLayer(CRUDLayerBase):
             FROM {layer.table_name} AS p
             WHERE layer_id = '{str(layer.id)}'
         """
-        result = await async_session.execute(text(sql_query))
-        result = result.fetchall()
-        return result[0][0]
+        result: int = (await async_session.execute(text(sql_query))).fetchall()[0][0]
+        return result
 
     async def get_feature_layer_extent(
-        self, async_session: AsyncSession, layer: BaseModel | SQLModel
-    ):
+        self, async_session: AsyncSession, layer: Layer
+    ) -> WKTElement:
         """Get extent of feature layer."""
 
         # Get extent
@@ -314,15 +313,23 @@ class CRUDLayer(CRUDLayerBase):
             FROM {layer.table_name}
             WHERE layer_id = '{str(layer.id)}'
         """
-        result = await async_session.execute(text(sql_query))
-        result = result.fetchall()
-        return result[0][0]
+        result: WKTElement = (
+            (await async_session.execute(text(sql_query))).fetchall()
+        )[0][0]
+        return result
 
     async def check_if_column_suitable_for_stats(
-        self, async_session: AsyncSession, id: UUID, column_name: str, query: str
-    ):
+        self, async_session: AsyncSession, id: UUID, column_name: str, query: str | None
+    ) -> Dict[str, Any]:
         # Check if layer is internal layer
         layer = await self.get_internal(async_session, id=id)
+
+        # Ensure a valid ID and attribute mapping is available
+        if layer.id is None or layer.attribute_mapping is None:
+            raise ValueError(
+                "ID or attribute mapping is not defined for this layer, unable to compute stats."
+            )
+
         column_mapped = next(
             (
                 key
@@ -354,7 +361,7 @@ class CRUDLayer(CRUDLayerBase):
         order: str,
         query: str,
         page_params: PaginationParams,
-    ):
+    ) -> Page:
         # Check if layer is suitable for stats
         res_check = await self.check_if_column_suitable_for_stats(
             async_session=async_session, id=id, column_name=column_name, query=query
@@ -418,11 +425,17 @@ class CRUDLayer(CRUDLayerBase):
         self,
         async_session: AsyncSession,
         id: UUID,
-        operation: ColumnStatisticsOperation,
+        operation: AreaStatisticsOperation,
         query: str,
-    ):
+    ) -> Dict[str, Any] | None:
         # Check if layer is internal layer
         layer = await self.get_internal(async_session, id=id)
+
+        # Ensure a valid ID and attribute mapping is available
+        if layer.id is None or layer.attribute_mapping is None:
+            raise ValueError(
+                "ID or attribute mapping is not defined for this layer, unable to compute stats."
+            )
 
         # Where query
         where_query = build_where(
@@ -431,6 +444,10 @@ class CRUDLayer(CRUDLayerBase):
             query=query,
             attribute_mapping=layer.attribute_mapping,
         )
+
+        # Ensure where query is valid
+        if where_query is None:
+            raise ValueError("Invalid where query for layer.")
 
         # Check if layer has polygon geoms
         if layer.feature_layer_geometry_type != UserDataGeomType.polygon.value:
@@ -451,22 +468,24 @@ class CRUDLayer(CRUDLayerBase):
         sql_query = text(f"""
             SELECT * FROM basic.area_statistics('{operation.value}', '{layer.table_name}', '{where_query.replace("'", "''")}')
         """)
-        res = await async_session.execute(
-            sql_query,
-        )
-        res = res.fetchall()
-        return res[0][0] if res else None
+        res = (
+            await async_session.execute(
+                sql_query,
+            )
+        ).fetchall()
+        res_value: Dict[str, Any] | None = res[0][0] if res else None
+        return res_value
 
     async def get_class_breaks(
         self,
         async_session: AsyncSession,
         id: UUID,
-        operation: ColumnStatisticsOperation,
-        query: str,
+        operation: ComputeBreakOperation,
+        query: str | None,
         column_name: str,
-        stripe_zeros: bool = None,
-        breaks: int = None,
-    ):
+        stripe_zeros: bool | None = None,
+        breaks: int | None = None,
+    ) -> Dict[str, Any] | None:
         # Check if layer is suitable for stats
         res = await self.check_if_column_suitable_for_stats(
             async_session=async_session, id=id, column_name=column_name, query=query
@@ -505,9 +524,9 @@ class CRUDLayer(CRUDLayerBase):
             raise OperationNotSupportedError("Operation not supported")
 
         # Execute the query
-        res = await async_session.execute(text(sql_query), args)
-        res = res.fetchall()
-        return res[0][0] if res else None
+        result = (await async_session.execute(text(sql_query), args)).fetchall()
+        result_value: Dict[str, Any] | None = result[0][0] if result else None
+        return result_value
 
     async def get_last_data_updated_at(
         self, async_session: AsyncSession, id: UUID, query: str
@@ -516,6 +535,13 @@ class CRUDLayer(CRUDLayerBase):
 
         # Check if layer is internal layer
         layer = await self.get_internal(async_session, id=id)
+
+        # Ensure a valid ID and attribute mapping is available
+        if layer.id is None or layer.attribute_mapping is None:
+            raise ValueError(
+                "ID or attribute mapping is not defined for this layer, unable to compute stats."
+            )
+
         where_query = build_where(
             id=layer.id,
             table_name=layer.table_name,
@@ -529,18 +555,19 @@ class CRUDLayer(CRUDLayerBase):
             FROM {layer.table_name}
             WHERE {where_query}
         """
-        result = await async_session.execute(text(sql_query))
-        result = result.fetchall()
-        return result[0][0]
+        result: datetime = (await async_session.execute(text(sql_query))).fetchall()[0][
+            0
+        ]
+        return result
 
     async def get_base_filter(
         self,
         user_id: UUID,
-        params: ILayerGet | ICatalogLayerGet,
-        attributes_to_exclude: list = [],
-        team_id: UUID = None,
-        organization_id: UUID = None,
-    ):
+        params: ILayerGet | ICatalogLayerGet | IMetadataAggregate,
+        attributes_to_exclude: List[str] = [],
+        team_id: UUID | None = None,
+        organization_id: UUID | None = None,
+    ) -> List[Any]:
         """Get filter for get layer queries."""
         filters = []
         for key, value in params.dict().items():
@@ -619,7 +646,8 @@ class CRUDLayer(CRUDLayerBase):
         if params is None:
             params = ILayerGet()
         if (
-            params.feature_layer_type is not None
+            params.type is not None
+            and params.feature_layer_type is not None
             and LayerType.feature not in params.type
         ):
             raise HTTPException(
@@ -653,21 +681,23 @@ class CRUDLayer(CRUDLayerBase):
             organization_id=organization_id,
         )
 
-        # Build params
-        params = {
-            "order_by": order_by,
-            "order": order,
+        # Build params and filter out None values
+        builder_params = {
+            k: v
+            for k, v in {
+                "order_by": order_by,
+                "order": order,
+            }.items()
+            if v is not None
         }
-
-        # Filter out None values
-        params = {k: v for k, v in params.items() if v is not None}
 
         layers = await self.get_multi(
             async_session,
             query=query,
             page_params=page_params,
-            **params,
+            **builder_params,
         )
+        assert isinstance(layers, Page)
         layers_arr = build_shared_with_object(
             items=layers.items,
             role_mapping=role_mapping,
@@ -719,8 +749,7 @@ class CRUDLayer(CRUDLayerBase):
             ]
             result[key] = metadata
 
-        result = IMetadataAggregateRead(**result)
-        return result
+        return IMetadataAggregateRead(**result)
 
 
 layer = CRUDLayer(Layer)
@@ -729,7 +758,13 @@ layer = CRUDLayer(Layer)
 class CRUDLayerImport(CRUDFailedJob):
     """CRUD class for Layer import."""
 
-    def __init__(self, job_id, background_tasks, async_session, user_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id)
         self.temp_table_name = (
             f'{settings.USER_DATA_SCHEMA}."{str(self.job_id).replace("-", "")}"'
@@ -738,11 +773,11 @@ class CRUDLayerImport(CRUDFailedJob):
     async def create_internal(
         self,
         layer_in: ILayerFromDatasetCreate,
-        file_metadata: dict,
-        attribute_mapping: dict,
-        project_id: UUID = None,
-    ):
-        additional_attributes = {}
+        file_metadata: Dict[str, Any],
+        attribute_mapping: Dict[str, Any],
+        project_id: UUID | None = None,
+    ) -> UUID:
+        additional_attributes: Dict[str, Any] = {}
         # Get layer_id and size from import job
         additional_attributes["user_id"] = self.user_id
         # Create attribute mapping
@@ -756,7 +791,9 @@ class CRUDLayerImport(CRUDFailedJob):
                 file_metadata["data_types"]["geometry"]["type"]
             ].value
             if not layer_in.properties:
-                layer_in.properties = get_base_style(feature_geometry_type=geom_type)
+                layer_in.properties = get_base_style(
+                    feature_geometry_type=FeatureGeometryType[geom_type]
+                )
             additional_attributes["type"] = LayerType.feature
             additional_attributes["feature_layer_type"] = FeatureType.standard
             additional_attributes["feature_layer_geometry_type"] = geom_type
@@ -765,12 +802,12 @@ class CRUDLayerImport(CRUDFailedJob):
             ]
             additional_attributes = IFeatureStandardCreateAdditionalAttributes(
                 **additional_attributes
-            ).dict()
+            ).model_dump()
         else:
             additional_attributes["type"] = LayerType.table
             additional_attributes = ITableCreateAdditionalAttributes(
                 **additional_attributes
-            ).dict()
+            ).model_dump()
 
         # Check to update the layer name if it already exists
         layer_in.name = await CRUDLayer(Layer).check_and_alter_layer_name(
@@ -781,20 +818,21 @@ class CRUDLayerImport(CRUDFailedJob):
         )
 
         # Populate layer_in with additional attributes
-        layer_in = Layer(
-            **layer_in.dict(exclude_none=True),
+        layer_model_obj = Layer(
+            **layer_in.model_dump(exclude_none=True),
             **additional_attributes,
             job_id=self.job_id,
         )
 
         # Update size
         layer_in.size = await CRUDLayer(Layer).get_feature_layer_size(
-            async_session=self.async_session, layer=layer_in
+            async_session=self.async_session, layer=layer_model_obj
         )
-        layer = await CRUDLayer(Layer).create(
+        layer: Layer = await CRUDLayer(Layer).create(
             db=self.async_session,
-            obj_in=layer_in.model_dump(),
+            obj_in=layer_model_obj.model_dump(),
         )
+        assert layer.id is not None
 
         # Label cluster_keep
         if layer.type == LayerType.feature:
@@ -812,10 +850,10 @@ class CRUDLayerImport(CRUDFailedJob):
 
     async def import_file(
         self,
-        file_metadata: dict,
+        file_metadata: Dict[str, Any],
         layer_in: ILayerFromDatasetCreate,
-        project_id: UUID = None,
-    ):
+        project_id: UUID | None = None,
+    ) -> Tuple[Dict[str, Any], UUID]:
         """Import file using ogr2ogr."""
 
         # Initialize OGRFileHandling
@@ -866,9 +904,9 @@ class CRUDLayerImport(CRUDFailedJob):
     @job_init()
     async def import_file_job(
         self,
-        file_metadata: dict,
+        file_metadata: Dict[str, Any],
         layer_in: ILayerFromDatasetCreate,
-        project_id: UUID = None,
+        project_id: UUID | None = None,
     ) -> dict[str, Any]:
         """Create a layer from a dataset file."""
 
@@ -891,7 +929,7 @@ class CRUDLayerExport:
             settings.DATA_DIR, str(self.user_id), str(self.id)
         )
 
-    async def create_metadata_file(self, layer: Layer, layer_in: ILayerExport):
+    async def create_metadata_file(self, layer: Layer, layer_in: ILayerExport) -> None:
         last_data_updated_at = await CRUDLayer(Layer).get_last_data_updated_at(
             async_session=self.async_session, id=self.id, query=layer_in.query
         )
@@ -937,7 +975,7 @@ class CRUDLayerExport:
     async def export_file(
         self,
         layer_in: ILayerExport,
-    ):
+    ) -> str:
         """Export file using ogr2ogr."""
 
         # Get layer
@@ -962,7 +1000,7 @@ class CRUDLayerExport:
         # Build select query based on attribute mapping
         select_query = ""
         for key, value in layer.attribute_mapping.items():
-            select_query += f"{key} AS \"{value}\", "
+            select_query += f'{key} AS "{value}", '
 
         # Add id and geom
         if layer.type == LayerType.feature:
@@ -1021,14 +1059,20 @@ class CRUDLayerExport:
 
         return result_dir
 
-    async def export_file_run(self, layer_in: ILayerExport):
+    async def export_file_run(self, layer_in: ILayerExport) -> str:
         return await self.export_file(layer_in=layer_in)
 
 
 class CRUDDataDelete(CRUDFailedJob):
     """CRUD class for Layer import."""
 
-    def __init__(self, job_id, background_tasks, async_session, user_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id)
 
     @job_log(job_step_name="data_delete_multi")
@@ -1036,7 +1080,7 @@ class CRUDDataDelete(CRUDFailedJob):
         self,
         async_session: AsyncSession,
         layers: list[Layer],
-    ):
+    ) -> Dict[str, Any]:
         for layer in layers:
             await delete_layer_data(async_session=async_session, layer=layer)
         return {
@@ -1050,14 +1094,20 @@ class CRUDDataDelete(CRUDFailedJob):
         self,
         async_session: AsyncSession,
         layers: list[Layer],
-    ):
+    ) -> Dict[str, Any]:
         return await self.delete_multi(async_session=async_session, layers=layers)
 
 
 class CRUDLayerDatasetUpdate(CRUDFailedJob):
     """CRUD class for updating the dataset of an existing layer and updating all layer project references."""
 
-    def __init__(self, job_id, background_tasks, async_session, user_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id)
 
     @run_background_or_immediately(settings)
@@ -1067,8 +1117,11 @@ class CRUDLayerDatasetUpdate(CRUDFailedJob):
         existing_layer_id: UUID,
         file_metadata: dict,
         layer_in: ILayerFromDatasetCreate,
-    ):
+    ) -> Dict[str, Any]:
         """Update layer dataset."""
+
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         original_name = layer_in.name
 

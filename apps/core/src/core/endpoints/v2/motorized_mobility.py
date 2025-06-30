@@ -51,21 +51,23 @@ async def compute_pt_catchment_area(
     common: CommonToolParams = Depends(),
     params: ICatchmentAreaPT = Body(
         ...,
-        examples=request_examples_catchment_area_pt,
+        example=request_examples_catchment_area_pt,
         description="The catchment area parameters.",
     ),
-):
+) -> IToolResponse:
     """Compute catchment areas for public transport."""
-    return await start_calculation(
-        job_type=JobType.catchment_area_pt,
-        tool_class=CRUDCatchmentAreaPT,
-        crud_method="run_catchment_area",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
-        http_client=get_http_client(),
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.catchment_area_pt,
+            tool_class=CRUDCatchmentAreaPT,
+            crud_method="run_catchment_area",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+            http_client=get_http_client(),
+        )
     )
 
 
@@ -81,21 +83,23 @@ async def compute_car_catchment_area(
     common: CommonToolParams = Depends(),
     params: ICatchmentAreaCar = Body(
         ...,
-        examples=request_examples_catchment_area_car,
+        example=request_examples_catchment_area_car,
         description="The catchment area parameters.",
     ),
-):
+) -> IToolResponse:
     """Compute catchment areas for car."""
-    return await start_calculation(
-        job_type=JobType.catchment_area_car,
-        tool_class=CRUDCatchmentAreaCar,
-        crud_method="run_catchment_area",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
-        http_client=get_http_client(),
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.catchment_area_car,
+            tool_class=CRUDCatchmentAreaCar,
+            crud_method="run_catchment_area",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+            http_client=get_http_client(),
+        )
     )
 
 
@@ -109,23 +113,25 @@ async def compute_car_catchment_area(
 async def compute_oev_gueteklassen(
     *,
     common: CommonToolParams = Depends(),
-    params: IOevGueteklasse = Body(..., examples=request_example_oev_gueteklasse),
-):
+    params: IOevGueteklasse = Body(..., example=request_example_oev_gueteklasse),
+) -> IToolResponse:
     """
     ÖV-Güteklassen (The public transport quality classes) is an indicator for access to public transport.
     The indicator makes it possible to identify locations which, thanks to their good access to public transport, have great potential as focal points for development.
     The calculation in an automated process from the data in the electronic timetable (GTFS).
     """
 
-    return await start_calculation(
-        job_type=JobType.oev_gueteklasse,
-        tool_class=CRUDOevGueteklasse,
-        crud_method="oev_gueteklasse_run",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.oev_gueteklasse,
+            tool_class=CRUDOevGueteklasse,
+            crud_method="oev_gueteklasse_run",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )
 
 
@@ -139,19 +145,21 @@ async def compute_oev_gueteklassen(
 async def compute_trip_count_station(
     *,
     common: CommonToolParams = Depends(),
-    params: ITripCountStation = Body(..., examples=request_example_oev_gueteklasse),
-):
+    params: ITripCountStation = Body(..., example=request_example_oev_gueteklasse),
+) -> IToolResponse:
     """Calculates the number of trips per station and public transport mode."""
 
-    return await start_calculation(
-        job_type=JobType.trip_count_station,
-        tool_class=CRUDTripCountStation,
-        crud_method="trip_count_run",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.trip_count_station,
+            tool_class=CRUDTripCountStation,
+            crud_method="trip_count_run",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )
 
 
@@ -167,20 +175,22 @@ async def compute_nearby_station_access(
     common: CommonToolParams = Depends(),
     params: INearbyStationAccess = Body(
         ...,
-        examples=request_example_nearby_station_access,
+        example=request_example_nearby_station_access,
         description="The catchment area parameters.",
     ),
-):
+) -> IToolResponse:
     """Get public transport stops and their trips that are accessible by walking/cycling."""
-    return await start_calculation(
-        job_type=JobType.nearby_station_access,
-        tool_class=CRUDNearbyStationAccess,
-        crud_method="nearby_station_access_run",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.nearby_station_access,
+            tool_class=CRUDNearbyStationAccess,
+            crud_method="nearby_station_access_run",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )
 
 
@@ -196,21 +206,22 @@ async def compute_motorized_mobility_heatmap_gravity(
     common: CommonToolParams = Depends(),
     params: IHeatmapGravityMotorized = Body(
         ...,
-        examples={},
         description="The heatmap gravity parameters.",
     ),
-):
+) -> IToolResponse:
     """Compute heatmap gravity for motorized mobility."""
 
-    return await start_calculation(
-        job_type=JobType.heatmap_gravity_motorized_mobility,
-        tool_class=CRUDHeatmapGravity,
-        crud_method="run_heatmap",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.heatmap_gravity_motorized_mobility,
+            tool_class=CRUDHeatmapGravity,
+            crud_method="run_heatmap",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )
 
 
@@ -226,21 +237,22 @@ async def compute_motorized_mobility_heatmap_closest_average(
     common: CommonToolParams = Depends(),
     params: IHeatmapClosestAverageMotorized = Body(
         ...,
-        examples={},
         description="The heatmap closest-average parameters.",
     ),
-):
+) -> IToolResponse:
     """Compute heatmap closest-average for motorized mobility."""
 
-    return await start_calculation(
-        job_type=JobType.heatmap_closest_average_motorized_mobility,
-        tool_class=CRUDHeatmapClosestAverage,
-        crud_method="run_heatmap",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.heatmap_closest_average_motorized_mobility,
+            tool_class=CRUDHeatmapClosestAverage,
+            crud_method="run_heatmap",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )
 
 
@@ -256,19 +268,20 @@ async def compute_motorized_mobility_heatmap_connectivity(
     common: CommonToolParams = Depends(),
     params: IHeatmapConnectivityMotorized = Body(
         ...,
-        examples={},
         description="The heatmap connectivity parameters.",
     ),
-):
+) -> IToolResponse:
     """Compute heatmap connectivity for motorized mobility."""
 
-    return await start_calculation(
-        job_type=JobType.heatmap_connectivity_motorized_mobility,
-        tool_class=CRUDHeatmapConnectivity,
-        crud_method="run_heatmap",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.heatmap_connectivity_motorized_mobility,
+            tool_class=CRUDHeatmapConnectivity,
+            crud_method="run_heatmap",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )

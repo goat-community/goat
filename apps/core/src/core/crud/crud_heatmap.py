@@ -1,17 +1,29 @@
+from typing import Any, Dict, List, Tuple
+from uuid import UUID
+
+from fastapi import BackgroundTasks
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.core.tool import CRUDToolBase
 from core.crud.crud_layer_project import layer_project as crud_layer_project
 from core.schemas.heatmap import (
     IHeatmapClosestAverageActive,
     IHeatmapClosestAverageMotorized,
-    IHeatmapConnectivityActive,
-    IHeatmapConnectivityMotorized,
     IHeatmapGravityActive,
     IHeatmapGravityMotorized,
 )
+from core.schemas.project import IFeatureStandardProjectRead, IFeatureToolProjectRead
 
 
 class CRUDHeatmapBase(CRUDToolBase):
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
 
     async def fetch_opportunity_layers(
@@ -21,10 +33,11 @@ class CRUDHeatmapBase(CRUDToolBase):
             | IHeatmapGravityMotorized
             | IHeatmapClosestAverageActive
             | IHeatmapClosestAverageMotorized
-            | IHeatmapConnectivityActive
-            | IHeatmapConnectivityMotorized
         ),
-    ):
+    ) -> Tuple[
+        List[Dict[str, Any]],
+        IFeatureStandardProjectRead | IFeatureToolProjectRead | None,
+    ]:
         # Iterate over opportunity layers supplied by user
         opportunity_layers = []
         for layer in params.opportunities:

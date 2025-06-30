@@ -1,11 +1,14 @@
-from typing import List
+from typing import Any, Dict, List, Tuple
 from uuid import UUID
 
-from sqlalchemy import text
+from fastapi import BackgroundTasks
+from sqlalchemy import TextClause, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
 from core.core.job import job_init, job_log, run_background_or_immediately
 from core.crud.crud_heatmap import CRUDHeatmapBase
+from core.db.models.layer import FeatureGeometryType
 from core.schemas.heatmap import (
     ROUTING_MODE_DEFAULT_SPEED,
     TRAVELTIME_MATRIX_RESOLUTION,
@@ -17,7 +20,8 @@ from core.schemas.heatmap import (
     MotorizedRoutingHeatmapType,
 )
 from core.schemas.job import JobStatusType
-from core.schemas.layer import FeatureGeometryType, IFeatureLayerToolCreate
+from core.schemas.layer import IFeatureLayerToolCreate
+from core.schemas.project import IFeatureStandardProjectRead, IFeatureToolProjectRead
 from core.schemas.toolbox_base import DefaultResultLayerName
 from core.utils import (
     format_value_null_sql,
@@ -26,17 +30,25 @@ from core.utils import (
 
 
 class CRUDHeatmapGravity(CRUDHeatmapBase):
-
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
 
     async def create_distributed_opportunity_table(
         self,
         routing_type: ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType,
-        layers: List[dict],
-        scenario_id: UUID,
-        opportunity_geofence_layer,
-    ):
+        layers: List[Dict[str, Any]],
+        scenario_id: UUID | None,
+        opportunity_geofence_layer: IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | None,
+    ) -> Tuple[str, str | None]:
         """Create distributed table for user-specified opportunities."""
 
         # Create temp table name for points
@@ -116,25 +128,22 @@ class CRUDHeatmapGravity(CRUDHeatmapBase):
 
         return temp_points, temp_filler_cells
 
-    # TODO: Verify function formulas
     def build_impedance_function(
         self,
         type: ImpedanceFunctionType,
         max_traveltime: int,
         max_sensitivity: float,
-    ):
+    ) -> str:
         """Builds impedance function used to compute heatmap gravity."""
 
-        max_traveltime = float(max_traveltime)
-
         if type == ImpedanceFunctionType.gaussian:
-            return f"SUM((EXP(1) ^ ((((traveltime / {max_traveltime}) ^ 2) * -1) / (sensitivity / {max_sensitivity}))) * potential)"
+            return f"SUM((EXP(1) ^ ((((traveltime / {float(max_traveltime)}) ^ 2) * -1) / (sensitivity / {max_sensitivity}))) * potential)"
         elif type == ImpedanceFunctionType.linear:
-            return f"SUM((1 - (traveltime / {max_traveltime})) * potential)"
+            return f"SUM((1 - (traveltime / {float(max_traveltime)})) * potential)"
         elif type == ImpedanceFunctionType.exponential:
-            return f"SUM((EXP(1) ^ (((sensitivity / {max_sensitivity}) * -1) * (traveltime / {max_traveltime}))) * potential)"
+            return f"SUM((EXP(1) ^ (((sensitivity / {max_sensitivity}) * -1) * (traveltime / {float(max_traveltime)}))) * potential)"
         elif type == ImpedanceFunctionType.power:
-            return f"SUM(((traveltime / {max_traveltime}) ^ ((sensitivity / {max_sensitivity}) * -1)) * potential)"
+            return f"SUM(((traveltime / {float(max_traveltime)}) ^ ((sensitivity / {max_sensitivity}) * -1)) * potential)"
         else:
             raise ValueError(f"Unknown impedance function type: {type}")
 
@@ -147,7 +156,7 @@ class CRUDHeatmapGravity(CRUDHeatmapBase):
         max_sensitivity: float,
         result_table: str,
         result_layer_id: str,
-    ):
+    ) -> TextClause:
         """Builds SQL query to compute heatmap gravity."""
 
         impedance_function = self.build_impedance_function(
@@ -186,7 +195,7 @@ class CRUDHeatmapGravity(CRUDHeatmapBase):
                 GROUP BY h3_index
             """
 
-        query = text(f"""
+        return text(f"""
             INSERT INTO {result_table} (layer_id, geom, text_attr1, float_attr1)
             SELECT
                 '{result_layer_id}',
@@ -199,15 +208,21 @@ class CRUDHeatmapGravity(CRUDHeatmapBase):
             GROUP BY dest_id;
         """)
 
-        return query
-
     @job_log(job_step_name="heatmap_gravity")
-    async def heatmap(self, params: IHeatmapGravityActive | IHeatmapGravityMotorized):
+    async def heatmap(
+        self, params: IHeatmapGravityActive | IHeatmapGravityMotorized
+    ) -> Dict[str, Any]:
         """Compute heatmap gravity."""
+
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         # Fetch opportunity tables
         layers, opportunity_geofence_layer = await self.fetch_opportunity_layers(params)
-        opportunity_table, filler_cells_table = await self.create_distributed_opportunity_table(
+        (
+            opportunity_table,
+            filler_cells_table,
+        ) = await self.create_distributed_opportunity_table(
             params.routing_type,
             layers,
             params.scenario_id,
@@ -221,7 +236,7 @@ class CRUDHeatmapGravity(CRUDHeatmapBase):
         layer_heatmap = IFeatureLayerToolCreate(
             name=(
                 DefaultResultLayerName.heatmap_gravity_active_mobility.value
-                if type(params.routing_type) == ActiveRoutingHeatmapType
+                if type(params.routing_type) is ActiveRoutingHeatmapType
                 else DefaultResultLayerName.heatmap_gravity_motorized_mobility.value
             ),
             feature_layer_geometry_type=FeatureGeometryType.polygon,
@@ -264,5 +279,5 @@ class CRUDHeatmapGravity(CRUDHeatmapBase):
     @job_init()
     async def run_heatmap(
         self, params: IHeatmapGravityActive | IHeatmapGravityMotorized
-    ):
+    ) -> Dict[str, Any]:
         return await self.heatmap(params=params)

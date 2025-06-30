@@ -1,4 +1,9 @@
+from typing import Any, Dict
+from uuid import UUID
+
+from fastapi import BackgroundTasks
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.chart import Chart
 from core.core.config import settings
@@ -7,6 +12,7 @@ from core.core.tool import (
     CRUDToolBase,
     assign_attribute,
 )
+from core.db.models.layer import Layer
 from core.schemas.error import ColumnTypeError
 from core.schemas.job import JobStatusType
 from core.schemas.layer import (
@@ -14,6 +20,7 @@ from core.schemas.layer import (
     IFeatureLayerToolCreate,
     OgrPostgresType,
 )
+from core.schemas.project import IFeatureStandardProjectRead, IFeatureToolProjectRead
 from core.schemas.tool import IAggregationPoint, IAggregationPolygon, IOriginDestination
 from core.schemas.toolbox_base import ColumnStatisticsOperation, DefaultResultLayerName
 from core.utils import (
@@ -23,7 +30,14 @@ from core.utils import (
 
 
 class CRUDAggregateBase(CRUDToolBase, Chart):
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
         self.table_name_total_stats = (
             f"temporal.total_stats_{str(self.job_id).replace('-', '')}"
@@ -34,7 +48,10 @@ class CRUDAggregateBase(CRUDToolBase, Chart):
 
     async def prepare_aggregation(
         self, params: IAggregationPoint | IAggregationPolygon
-    ):
+    ) -> Dict[str, Any]:
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
+
         # Get layers
         layers_project = await self.get_layers_project(
             params=params,
@@ -164,8 +181,13 @@ class CRUDAggregateBase(CRUDToolBase, Chart):
         }
 
     async def create_chart_aggregation(
-        self, aggregation_layer_project, layer, layer_project, params
-    ):
+        self,
+        aggregation_layer_project: IFeatureStandardProjectRead
+        | IFeatureToolProjectRead,
+        layer: Layer,
+        layer_project: IFeatureStandardProjectRead | IFeatureToolProjectRead,
+        params: IAggregationPoint | IAggregationPolygon,
+    ) -> None:
         # Create charts
         y_label = params.column_statistics.operation.value
         if aggregation_layer_project:
@@ -192,14 +214,21 @@ class CRUDAggregateBase(CRUDToolBase, Chart):
 class CRUDAggregatePoint(CRUDAggregateBase):
     """Tool aggregation points."""
 
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
         self.result_table = (
             f"{settings.USER_DATA_SCHEMA}.polygon_{str(self.user_id).replace('-', '')}"
         )
 
     @job_log(job_step_name="aggregation")
-    async def aggregate_point(self, params: IAggregationPoint):
+    async def aggregate_point(self, params: IAggregationPoint) -> Dict[str, Any]:
         # Prepare aggregation
         aggregation = await self.prepare_aggregation(params=params)
         aggregation_layer_project = aggregation["aggregation_layer_project"]
@@ -347,12 +376,19 @@ class CRUDAggregatePoint(CRUDAggregateBase):
 
     @run_background_or_immediately(settings)
     @job_init()
-    async def aggregate_point_run(self, params: IAggregationPoint):
+    async def aggregate_point_run(self, params: IAggregationPoint) -> Dict[str, Any]:
         return await self.aggregate_point(params=params)
 
 
 class CRUDAggregatePolygon(CRUDAggregateBase):
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
         self.result_table = (
             f"{settings.USER_DATA_SCHEMA}.polygon_{str(self.user_id).replace('-', '')}"
@@ -362,7 +398,7 @@ class CRUDAggregatePolygon(CRUDAggregateBase):
         )
 
     @job_log(job_step_name="aggregation")
-    async def aggregate_polygon(self, params: IAggregationPolygon):
+    async def aggregate_polygon(self, params: IAggregationPolygon) -> Dict[str, Any]:
         # Prepare aggregation
         aggregation = await self.prepare_aggregation(params=params)
         aggregation_layer_project = aggregation["aggregation_layer_project"]
@@ -443,10 +479,17 @@ class CRUDAggregatePolygon(CRUDAggregateBase):
                 """)
         else:
             # Get average edge length of h3 grid
-            avg_edge_length = await self.async_session.execute(
-                text(f"SELECT h3_get_hexagon_edge_length_avg({params.h3_resolution}, 'm')")
+            avg_edge_length = (
+                (
+                    await self.async_session.execute(
+                        text(
+                            f"SELECT h3_get_hexagon_edge_length_avg({params.h3_resolution}, 'm')"
+                        )
+                    )
+                )
+                .scalars()
+                .first()
             )
-            avg_edge_length = avg_edge_length.scalars().first()
 
             # Build group by fields
             group_by_columns_subquery = ""
@@ -553,7 +596,9 @@ class CRUDAggregatePolygon(CRUDAggregateBase):
                 """)
                 await self.async_session.execute(sql_query_group_stats)
                 await self.async_session.execute(
-                    text(f"CREATE INDEX ON {self.table_name_grouped_stats} (h3_target);")
+                    text(
+                        f"CREATE INDEX ON {self.table_name_grouped_stats} (h3_target);"
+                    )
                 )
 
                 sql_query_combine = text(f"""
@@ -601,12 +646,21 @@ class CRUDAggregatePolygon(CRUDAggregateBase):
 
     @run_background_or_immediately(settings)
     @job_init()
-    async def aggregate_polygon_run(self, params: IAggregationPolygon):
+    async def aggregate_polygon_run(
+        self, params: IAggregationPolygon
+    ) -> Dict[str, Any]:
         return await self.aggregate_polygon(params=params)
 
 
 class CRUDOriginDestination(CRUDToolBase):
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
         self.result_table_relation = (
             f"{settings.USER_DATA_SCHEMA}.line_{str(self.user_id).replace('-', '')}"
@@ -616,7 +670,10 @@ class CRUDOriginDestination(CRUDToolBase):
         )
 
     @job_log(job_step_name="origin_destination")
-    async def origin_destination(self, params: IOriginDestination):
+    async def origin_destination(self, params: IOriginDestination) -> Dict[str, Any]:
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
+
         # Get layers
         layers_project = await self.get_layers_project(
             params=params,
@@ -698,16 +755,13 @@ class CRUDOriginDestination(CRUDToolBase):
             layer_project=origin_destination_matrix_layer_project,
         )
         await self.async_session.execute(
-            text(f"CREATE INDEX ON {temp_origin_destination_matrix_layer} ({mapped_origin_column}, {mapped_destination_column});")
+            text(
+                f"CREATE INDEX ON {temp_origin_destination_matrix_layer} ({mapped_origin_column}, {mapped_destination_column});"
+            )
         )
         await self.async_session.commit()
 
         # Compute relations
-        select_columns = [
-            "matrix." + attr
-            for attr in list(result_layer_relation.attribute_mapping.keys())
-        ]
-        select_columns = ", ".join(select_columns)
         sql_query_relations = text(f"""
             INSERT INTO {self.result_table_relation} (layer_id, geom, {', '.join(list(result_layer_relation.attribute_mapping.keys()))})
             SELECT '{result_layer_relation.id}',
@@ -756,5 +810,7 @@ class CRUDOriginDestination(CRUDToolBase):
 
     @run_background_or_immediately(settings)
     @job_init()
-    async def origin_destination_run(self, params: IAggregationPolygon):
+    async def origin_destination_run(
+        self, params: IAggregationPolygon
+    ) -> Dict[str, Any]:
         return await self.origin_destination(params=params)

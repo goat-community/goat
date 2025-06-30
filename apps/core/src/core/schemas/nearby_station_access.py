@@ -6,11 +6,11 @@ from pydantic import BaseModel, Field, field_validator
 from core.schemas.catchment_area import (
     CatchmentAreaRoutingModeActiveMobility,
     CatchmentAreaRoutingModePT,
+    CatchmentAreaStartingPointsActiveMobility,
     CatchmentAreaStreetNetwork,
 )
 from core.schemas.layer import ToolType
 from core.schemas.toolbox_base import (
-    CatchmentAreaStartingPointsBase,
     PTTimeWindow,
     check_starting_points,
     input_layer_type_line,
@@ -18,7 +18,7 @@ from core.schemas.toolbox_base import (
 )
 
 
-class IStartingPointNearbyStationAccess(CatchmentAreaStartingPointsBase):
+class IStartingPointNearbyStationAccess(CatchmentAreaStartingPointsActiveMobility):
     """Model for the starting points of the nearby station endpoint."""
 
     @field_validator("latitude", "longitude", mode="after")

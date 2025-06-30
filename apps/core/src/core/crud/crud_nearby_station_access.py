@@ -1,12 +1,17 @@
 import json
 from datetime import timedelta
+from typing import Any, Dict
+from uuid import UUID
 
+from fastapi import BackgroundTasks
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
 from core.core.job import job_init, job_log, run_background_or_immediately
 from core.core.tool import CRUDToolBase
 from core.crud.crud_catchment_area import CRUDCatchmentAreaActiveMobility
+from core.db.models.layer import FeatureGeometryType
 from core.endpoints.deps import get_http_client
 from core.schemas.catchment_area import (
     CatchmentAreaNearbyStationAccess,
@@ -24,21 +29,35 @@ from core.schemas.trip_count_station import public_transport_types
 class CRUDNearbyStationAccess(CRUDToolBase):
     """CRUD for Nearby Station Access."""
 
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
         self.result_table = (
             f"{settings.USER_DATA_SCHEMA}.point_{str(self.user_id).replace('-', '')}"
         )
 
     @job_log(job_step_name="nearby_station_access")
-    async def nearby_station_access(self, params: INearbyStationAccess):
+    async def nearby_station_access(
+        self, params: INearbyStationAccess
+    ) -> Dict[str, Any]:
         """Computes a catchment area based on provided parameters, then identifies stations within this catchment area
         and computes the frequency of public transport routes serving these stations."""
+
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         # Create feature layer to store computed nearby stations output
         layer_stations = IFeatureLayerToolCreate(
             name=DefaultResultLayerName.nearby_station_access.value,
-            feature_layer_geometry_type=UserDataGeomType.point.value,
+            feature_layer_geometry_type=FeatureGeometryType[
+                UserDataGeomType.point.value
+            ],
             attribute_mapping={
                 "text_attr1": "stop_name",
                 "text_attr2": "dominant_mode",
@@ -185,5 +204,7 @@ class CRUDNearbyStationAccess(CRUDToolBase):
 
     @run_background_or_immediately(settings)
     @job_init()
-    async def nearby_station_access_run(self, params: INearbyStationAccess):
+    async def nearby_station_access_run(
+        self, params: INearbyStationAccess
+    ) -> Dict[str, Any]:
         return await self.nearby_station_access(params=params)

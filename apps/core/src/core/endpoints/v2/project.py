@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List, Union
 from uuid import UUID
 
 from fastapi import (
@@ -22,7 +22,11 @@ from core.crud.crud_layer_project import layer_project as crud_layer_project
 from core.crud.crud_project import project as crud_project
 from core.crud.crud_scenario import scenario as crud_scenario
 from core.crud.crud_user_project import user_project as crud_user_project
-from core.db.models._link_model import LayerProjectLink, ScenarioScenarioFeatureLink
+from core.db.models._link_model import (
+    LayerProjectLink,
+    ScenarioScenarioFeatureLink,
+    UserProjectLink,
+)
 from core.db.models.project import Project
 from core.db.models.scenario import Scenario
 from core.db.models.scenario_feature import ScenarioFeature
@@ -33,6 +37,7 @@ from core.schemas.common import OrderEnum
 from core.schemas.error import HTTPErrorHandler
 from core.schemas.project import (
     IFeatureStandardProjectRead,
+    IFeatureStreetNetworkProjectRead,
     IFeatureToolProjectRead,
     InitialViewState,
     IProjectBaseUpdate,
@@ -76,7 +81,7 @@ async def create_project(
     project_in: IProjectCreate = Body(
         ..., example=project_request_examples["create"], description="Project to create"
     ),
-):
+) -> IProjectRead:
     """This will create an empty project with a default initial view state. The project does not contains layers."""
 
     # Create project
@@ -97,13 +102,13 @@ async def create_project(
 )
 async def read_project(
     async_session: AsyncSession = Depends(get_db),
-    user_=Depends(get_user_id),
+    user_id: UUID = Depends(get_user_id),
     project_id: UUID4 = Path(
         ...,
         description="The ID of the project to get",
         example="3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ),
-):
+) -> IProjectRead:
     """Retrieve a project by its ID."""
 
     # Get project
@@ -112,7 +117,7 @@ async def read_project(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
         )
-    return IProjectRead(**project.dict())
+    return IProjectRead(**project.model_dump())
 
 
 @router.get(
@@ -149,7 +154,7 @@ async def read_projects(
         description="Specify the order to apply. There are the option ascendent or descendent.",
         example="descendent",
     ),
-):
+) -> Page[IProjectRead]:
     """Retrieve a list of projects."""
 
     projects = await crud_project.get_projects(
@@ -184,7 +189,7 @@ async def update_project(
     project_in: IProjectBaseUpdate = Body(
         ..., example=project_request_examples["update"], description="Project to update"
     ),
-):
+) -> IProjectRead:
     """Update base attributes of a project by its ID."""
 
     # Update project
@@ -209,7 +214,7 @@ async def delete_project(
         description="The ID of the project to get",
         example="3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ),
-):
+) -> None:
     """Delete a project by its ID."""
 
     # Get project
@@ -239,14 +244,17 @@ async def read_project_initial_view_state(
         description="The ID of the project to get",
         example="3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ),
-):
+) -> InitialViewState:
     """Retrieve initial view state of a project by its ID."""
 
     # Get initial view state
-    user_project = await crud_user_project.get_by_multi_keys(
-        async_session, keys={"user_id": user_id, "project_id": project_id}
-    )
-    return user_project[0].initial_view_state
+    user_project = (
+        await crud_user_project.get_by_multi_keys(
+            async_session, keys={"user_id": user_id, "project_id": project_id}
+        )
+    )[0]
+    assert type(user_project) is UserProjectLink
+    return InitialViewState(**user_project.initial_view_state)
 
 
 @router.put(
@@ -269,7 +277,7 @@ async def update_project_initial_view_state(
         example=project_request_examples["initial_view_state"],
         description="Initial view state to update",
     ),
-):
+) -> InitialViewState:
     """Update initial view state of a project by its ID."""
 
     # Update project
@@ -279,7 +287,7 @@ async def update_project_initial_view_state(
         project_id=project_id,
         initial_view_state=initial_view_state,
     )
-    return user_project.initial_view_state
+    return InitialViewState(**user_project.initial_view_state)
 
 
 ##############################################
@@ -311,7 +319,12 @@ async def add_layers_to_project(
         description="List of layer IDs to add to the project",
         example=["3fa85f64-5717-4562-b3fc-2c963f66afa6"],
     ),
-):
+) -> List[
+    IFeatureStandardProjectRead
+    | IFeatureToolProjectRead
+    | ITableProjectRead
+    | IRasterProjectRead
+]:
     """Add layers to a project by its ID."""
 
     # Add layers to project
@@ -320,6 +333,7 @@ async def add_layers_to_project(
         project_id=project_id,
         layer_ids=layer_ids,
     )
+    assert isinstance(layers_project, List)
 
     return layers_project
 
@@ -338,7 +352,13 @@ async def get_layers_from_project(
         description="The ID of the project to get",
         example="3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ),
-):
+) -> List[
+    IFeatureStandardProjectRead
+    | IFeatureToolProjectRead
+    | IFeatureStreetNetworkProjectRead
+    | ITableProjectRead
+    | IRasterProjectRead
+]:
     """Get layers from a project by its ID."""
 
     # Get all layers from project
@@ -346,6 +366,8 @@ async def get_layers_from_project(
         async_session,
         project_id=project_id,
     )
+    assert isinstance(layers_project, List)
+
     return layers_project
 
 
@@ -371,11 +393,23 @@ async def get_layer_from_project(
         description="Layer project ID to get",
         example="1",
     ),
-):
-    layer_project = await crud_layer_project.get_by_ids(
-        async_session, ids=[layer_project_id]
+) -> Union[
+    IFeatureStandardProjectRead
+    | IFeatureToolProjectRead
+    | ITableProjectRead
+    | IRasterProjectRead
+]:
+    layer_project = (
+        await crud_layer_project.get_by_ids(async_session, ids=[layer_project_id])
+    )[0]
+    assert type(layer_project) is (
+        IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | ITableProjectRead
+        | IRasterProjectRead
     )
-    return layer_project[0]
+
+    return layer_project
 
 
 @router.put(
@@ -400,25 +434,41 @@ async def update_layer_in_project(
         description="Layer Project ID to update",
         example="1",
     ),
-    layer_in: dict = Body(
+    layer_in: Dict[str, Any] = Body(
         ...,
-        examples=project_request_examples["update_layer"],
+        example=project_request_examples["update_layer"],
         description="Layer to update",
     ),
-):
+) -> Union[
+    IFeatureStandardProjectRead
+    | IFeatureToolProjectRead
+    | ITableProjectRead
+    | IRasterProjectRead
+]:
     """Update layer in a project by its ID."""
 
     # NOTE: Avoid getting layer_id from layer_in as the authorization is running against the query params.
 
     # Update layer in project
-    layer_project = await crud_layer_project.update(
+    layer_project: (
+        IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | ITableProjectRead
+        | IRasterProjectRead
+    ) = await crud_layer_project.update(
         async_session=async_session,
         id=layer_project_id,
         layer_in=layer_in,
     )
+
     # Update the last updated at of the project
     # Get project to update it
     project = await crud_project.get(async_session, id=project_id)
+
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        )
 
     # Update project updated_at
     await crud_project.update(
@@ -449,7 +499,7 @@ async def delete_layer_from_project(
         description="Layer ID to delete",
         example="1",
     ),
-):
+) -> None:
     """Delete layer from a project by its ID."""
 
     # Get layer project
@@ -459,6 +509,8 @@ async def delete_layer_from_project(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Layer project relation not found",
         )
+    assert type(layer_project) is LayerProjectLink
+    assert isinstance(layer_project.id, int)
 
     # Delete layer from project
     await crud_layer_project.delete(
@@ -468,6 +520,14 @@ async def delete_layer_from_project(
 
     # Delete layer from project layer order
     project = await crud_project.get(async_session, id=project_id)
+
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        )
+    assert type(project) is Project
+    assert isinstance(project.layer_order, List)
+
     layer_order = project.layer_order.copy()
     layer_order.remove(layer_project.id)
 
@@ -504,7 +564,7 @@ async def get_chart_data(
         description="Specify if the data should be cumulated. This only works if the x-axis is a number.",
         example=False,
     ),
-):
+) -> Dict[str, Any]:
     """Get chart data from a layer in a project by its ID."""
 
     # Get chart data
@@ -569,7 +629,7 @@ async def get_statistic_aggregation(
         description="Specify the order to apply. There are the option ascendent or descendent.",
         example="descendent",
     ),
-):
+) -> Dict[str, Any]:
     """Get aggregated statistics for a numeric column based on the supplied group-by column and CQL-filter."""
 
     # Check authorization status
@@ -675,7 +735,7 @@ async def get_statistic_histogram(
         description="Specify the order to apply. There are the option ascendent or descendent.",
         example="ascendent",
     ),
-):
+) -> Dict[str, Any]:
     """Get histogram statistics for a numeric column based on the specified number of bins and CQL-filter."""
 
     # Check authorization status
@@ -745,7 +805,7 @@ async def read_scenarios(
         description="Specify the order to apply. There are the option ascendent or descendent.",
         example="descendent",
     ),
-):
+) -> Page[Scenario]:
     """Retrieve a list of scenarios."""
     query = select(Scenario).where(Scenario.project_id == project_id)
     scenarios = await crud_scenario.get_multi(
@@ -756,6 +816,7 @@ async def read_scenarios(
         order_by=order_by,
         order=order,
     )
+    assert type(scenarios) is Page
 
     return scenarios
 
@@ -781,10 +842,10 @@ async def create_scenario(
         example=scenario_request_examples["create"],
         description="Scenario to create",
     ),
-):
+) -> Scenario:
     """Create scenario."""
 
-    return await crud_scenario.create(
+    result = await crud_scenario.create(
         db=async_session,
         obj_in=Scenario(
             **scenario_in.model_dump(exclude_none=True),
@@ -792,6 +853,9 @@ async def create_scenario(
             project_id=project_id,
         ).model_dump(),
     )
+    assert type(result) is Scenario
+
+    return result
 
 
 @router.put(
@@ -808,14 +872,17 @@ async def update_scenario(
         example=scenario_request_examples["update"],
         description="Scenario to update",
     ),
-):
+) -> Scenario:
     """Update scenario."""
 
-    return await crud_scenario.update(
+    result = await crud_scenario.update(
         db=async_session,
         db_obj=scenario,
         obj_in=scenario_in,
     )
+    assert type(result) is Scenario
+
+    return result
 
 
 @router.delete(
@@ -827,7 +894,7 @@ async def update_scenario(
 async def delete_scenario(
     async_session: AsyncSession = Depends(get_db),
     scenario: Scenario = Depends(get_scenario),
-):
+) -> None:
     """Delete scenario."""
 
     await crud_scenario.remove(db=async_session, id=scenario.id)
@@ -853,8 +920,13 @@ async def delete_scenario(
 async def read_scenario_features(
     async_session: AsyncSession = Depends(get_db),
     scenario: Scenario = Depends(get_scenario),
-):
+) -> Dict[str, Any]:
     """Retrieve a list of scenario features."""
+
+    if not scenario.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Scenario ID is required"
+        )
 
     scenario_features = await crud_scenario.get_features(
         async_session=async_session,
@@ -863,7 +935,7 @@ async def read_scenario_features(
 
     fc = to_feature_collection(scenario_features)
 
-    return fc
+    return dict(fc)
 
 
 @router.post(
@@ -881,7 +953,7 @@ async def create_scenario_features(
         example=scenario_request_examples["create_scenario_features"],
         description="Scenario features to create",
     ),
-):
+) -> Dict[str, Any]:
     """Create scenario features."""
 
     fc = await crud_scenario.create_features(
@@ -891,7 +963,7 @@ async def create_scenario_features(
         features=features,
     )
 
-    return fc
+    return dict(fc)
 
 
 @router.put(
@@ -913,7 +985,7 @@ async def update_scenario_feature(
         ...,
         description="Scenario features to update",
     ),
-):
+) -> None:
     """Update scenario features."""
 
     layer_project = await crud_layer_project.get(
@@ -924,6 +996,7 @@ async def update_scenario_feature(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Layer project relation not found",
         )
+    assert type(layer_project) is LayerProjectLink
 
     for feature in features:
         await crud_scenario.update_feature(
@@ -961,8 +1034,7 @@ async def delete_scenario_features(
         description="H3 3 resolution",
         example=5,
     ),
-):
-
+) -> None:
     layer_project = await crud_layer_project.get(
         async_session, id=layer_project_id, extra_fields=[LayerProjectLink.layer]
     )
@@ -971,6 +1043,7 @@ async def delete_scenario_features(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Layer project relation not found",
         )
+    assert type(layer_project) is LayerProjectLink
 
     await crud_scenario.delete_feature(
         async_session=async_session,
@@ -998,7 +1071,7 @@ async def delete_scenario_features(
 async def get_public_project(
     project_id: str,
     async_session: AsyncSession = Depends(get_db),
-):
+) -> ProjectPublicRead | None:
     """
     Get shared project
     """
@@ -1017,12 +1090,16 @@ async def get_public_project(
 async def publish_project(
     project_id: str,
     async_session: AsyncSession = Depends(get_db),
-):
+) -> ProjectPublicRead:
     """
     Publish a project
     """
-    result = await crud_project.publish_project(
-        async_session=async_session, project_id=project_id
+    result = ProjectPublicRead(
+        **(
+            await crud_project.publish_project(
+                async_session=async_session, project_id=project_id
+            )
+        ).model_dump()
     )
 
     return result
@@ -1036,12 +1113,10 @@ async def publish_project(
 async def unpublish_project(
     project_id: str,
     async_session: AsyncSession = Depends(get_db),
-):
+) -> None:
     """
     Unpublish a project
     """
-    result = await crud_project.unpublish_project(
+    await crud_project.unpublish_project(
         async_session=async_session, project_id=project_id
     )
-
-    return result

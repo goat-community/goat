@@ -6,7 +6,7 @@ import re
 import time
 import zipfile
 from enum import Enum
-from typing import Union
+from typing import Any, Dict, Union
 from uuid import UUID
 
 # Third party imports
@@ -62,7 +62,7 @@ from core.utils import (
 )
 
 
-async def delete_old_files(max_time: int):
+async def delete_old_files(max_time: int) -> None:
     """Delete old files from data directory."""
     # Clean all old folders that are older then two hours
     async for folder in async_scandir(settings.DATA_DIR):
@@ -71,18 +71,15 @@ async def delete_old_files(max_time: int):
             await async_delete_dir(os.path.join(settings.DATA_DIR, folder.name))
 
 
-def model_to_dict(model):
-    if isinstance(model, (SQLModel, BaseModel)):
-        model_dict = model.dict()
-        for key, value in model_dict.items():
-            if isinstance(value, Enum):
-                model_dict[key] = value.value
-        return model_dict
-    else:
-        return model  # Return the model as is if it's not an instance of SQLModel or BaseModel
+def model_to_dict(model: SQLModel | BaseModel) -> Dict[str, Any]:
+    model_dict = model.model_dump()
+    for key, value in model_dict.items():
+        if isinstance(value, Enum):
+            model_dict[key] = value.value
+    return model_dict
 
 
-def get_user_table(layer: Union[dict, SQLModel, BaseModel]):
+def get_user_table(layer: Union[dict, SQLModel, BaseModel]) -> str:
     """Get the table with the user data based on the layer metadata."""
 
     # Check if layer is of type dict or SQLModel/BaseModel
@@ -113,7 +110,7 @@ class CRUDLayerBase(CRUDBase):
         async_session: AsyncSession,
         folder_id: UUID,
         layer_name: str,
-        project_id: UUID = None,
+        project_id: UUID | None = None,
     ) -> str:
         """Check if layer name already exists in project and alter it like layer (n+1) if necessary"""
 
@@ -128,19 +125,22 @@ class CRUDLayerBase(CRUDBase):
                     LayerProjectLink.name.like(f"{layer_name}%"),
                 )
             )
-            names_in_project = [row[0] for row in names_in_project.fetchall()]
-            layer_names = names_in_project
+            layer_names = [row[0] for row in names_in_project.fetchall()]
         else:
             layer_names = []
 
         # Get all layer names in folder
-        names_in_folder = await async_session.execute(
-            select(Layer.name).where(
-                Layer.folder_id == folder_id,
-                Layer.name.like(f"{layer_name}%"),
-            )
-        )
-        names_in_folder = [row[0] for row in names_in_folder.fetchall()]
+        names_in_folder = [
+            row[0]
+            for row in (
+                await async_session.execute(
+                    select(Layer.name).where(
+                        Layer.folder_id == folder_id,
+                        Layer.name.like(f"{layer_name}%"),
+                    )
+                )
+            ).fetchall()
+        ]
         layer_names = list(set(layer_names + names_in_folder))
 
         # Find the highest number (n) among the layer names using list comprehension
@@ -170,7 +170,7 @@ class FileUpload:
         user_id: UUID,
         dataset_id: UUID,
         source: UploadFile | IFileUploadExternalService,
-    ):
+    ) -> None:
         self.async_session = async_session
         self.user_id = user_id
         self.source = source
@@ -186,7 +186,7 @@ class FileUpload:
                 self.folder_path, "file." + FileUploadType.geojson.value
             )
 
-    async def _fetch_and_write(self):
+    async def _fetch_and_write(self) -> None:
         """Fetch data from external service if required, save file to disk."""
 
         if isinstance(self.source, UploadFile):
@@ -234,7 +234,7 @@ class FileUpload:
                 # TODO: Implement MVT fetching
                 pass
 
-    async def save_file(self):
+    async def save_file(self) -> str:
         """Save file to disk for later operations."""
 
         # Clean all old folders that are older then two hours
@@ -251,13 +251,13 @@ class FileUpload:
 
         return self.file_path
 
-    async def save_file_fail(self):
+    async def save_file_fail(self) -> None:
         """Delete folder if file upload fails."""
         await async_delete_dir(self.folder_path)
 
 
 class FetchLayerExternalService:
-    def __init__(self, url: HttpUrl, output_file: str):
+    def __init__(self, url: HttpUrl, output_file: str) -> None:
         self.MAX_FEATURE_COUNT = 200000
 
         self.url = url
@@ -266,7 +266,7 @@ class FetchLayerExternalService:
         # Output driver to be used
         self.output_driver_type = OgrDriverType.geojson.value
 
-    def fetch_wfs(self, layer_name: str):
+    def fetch_wfs(self, layer_name: str) -> None:
         """Fetch data from WFS service and save to disk."""
 
         # First, attempt to fetch data using QGIS
@@ -385,14 +385,16 @@ class FetchLayerExternalService:
 
         ogr.DontUseExceptions()
 
-    async def fetch_mvt(self):
+    async def fetch_mvt(self) -> None:
         """Fetch data from MVT service and save to disk."""
         # TODO: Implement MVT fetching
         pass
 
 
 class OGRFileHandling:
-    def __init__(self, async_session: AsyncSession, user_id: UUID, file_path: str):
+    def __init__(
+        self, async_session: AsyncSession, user_id: UUID, file_path: str
+    ) -> None:
         self.async_session = async_session
         self.user_id = user_id
         self.file_path = file_path
@@ -412,7 +414,7 @@ class OGRFileHandling:
         else:
             self.driver_name = OgrDriverType[self.file_ending].value
 
-    def validate_ogr(self, file_path: str):
+    def validate_ogr(self, file_path: str) -> Dict[str, Any]:
         """Validate using ogr and get valid attributes."""
 
         # Get driver
@@ -457,10 +459,10 @@ class OGRFileHandling:
 
         return {"file_path": file_path, **field_type_res}
 
-    def get_layer_extent(self, layer) -> str:
+    def get_layer_extent(self, layer: ogr.Layer) -> str:
         """Get layer extent in EPSG:4326."""
         # Get the original extent
-        minX, maxX, minY, maxY = layer.GetExtent()
+        mix, maxx, miny, maxy = layer.GetExtent()
 
         # Define the source SRS
         source_srs = layer.GetSpatialRef()
@@ -474,25 +476,30 @@ class OGRFileHandling:
 
         # Transform the coordinates
         min_point = ogr.Geometry(ogr.wkbPoint)
-        min_point.AddPoint(minX, minY)
+        min_point.AddPoint(mix, miny)
         min_point.Transform(transform)
 
         max_point = ogr.Geometry(ogr.wkbPoint)
-        max_point.AddPoint(maxX, maxY)
+        max_point.AddPoint(maxx, maxy)
         max_point.Transform(transform)
 
         # Get the transformed coordinates
-        minY_transformed, minX_transformed, _ = min_point.GetPoint()
-        maxY_transformed, maxX_transformed, _ = max_point.GetPoint()
+        miny_transformed, minx_transformed, _ = min_point.GetPoint()
+        maxy_transformed, maxx_transformed, _ = max_point.GetPoint()
 
         # Create a Multipolygon from the extent
-        multipolygon_wkt = f"MULTIPOLYGON((({minX_transformed} {minY_transformed}, {minX_transformed} {maxY_transformed}, {maxX_transformed} {maxY_transformed}, {maxX_transformed} {minY_transformed}, {minX_transformed} {minY_transformed})))"
+        multipolygon_wkt = f"MULTIPOLYGON((({minx_transformed} {miny_transformed}, {minx_transformed} {maxy_transformed}, {maxx_transformed} {maxy_transformed}, {maxx_transformed} {miny_transformed}, {minx_transformed} {miny_transformed})))"
         return multipolygon_wkt
 
-    def check_field_types(self, layer):
+    def check_field_types(self, layer: ogr.Layer) -> Dict[str, Any]:
         """Check if field types are valid and label if too many columns where specified."""
 
-        field_types = {"valid": {}, "unvalid": {}, "overflow": {}, "geometry": {}}
+        field_types: Dict[str, Any] = {
+            "valid": {},
+            "unvalid": {},
+            "overflow": {},
+            "geometry": {},
+        }
         layer_def = layer.GetLayerDefn()
 
         if layer_def.GetGeomFieldCount() == 1:
@@ -528,9 +535,9 @@ class OGRFileHandling:
                 ).GetName()
             field_types["geometry"]["type"] = geometry_type
             field_types["geometry"]["extent"] = self.get_layer_extent(layer)
-            field_types["geometry"][
-                "srs"
-            ] = "EPSG:" + layer.GetSpatialRef().GetAuthorityCode(None)
+            field_types["geometry"]["srs"] = (
+                "EPSG:" + layer.GetSpatialRef().GetAuthorityCode(None)
+            )
 
         for i in range(layer_def.GetFieldCount()):
             field_def = layer_def.GetFieldDefn(i)
@@ -571,7 +578,7 @@ class OGRFileHandling:
 
         return {"data_types": field_types}
 
-    def validate_csv(self):
+    def validate_csv(self) -> Dict[str, Any]:
         """Validate if CSV."""
 
         # Read file in binary mode to check if header exists
@@ -604,7 +611,7 @@ class OGRFileHandling:
         df.to_excel(self.file_path + ".xlsx", index=False)
         return self.validate_ogr(self.file_path + ".xlsx")
 
-    def validate_xlsx(self):
+    def validate_xlsx(self) -> Dict[str, Any]:
         """Validate if XLSX is well-formed."""
         # Load workbook
         wb = load_workbook(filename=self.file_path, read_only=True)
@@ -627,7 +634,7 @@ class OGRFileHandling:
 
         return self.validate_ogr(self.file_path)
 
-    def validate_shapefile(self):
+    def validate_shapefile(self) -> Dict[str, Any]:
         """Validate if ZIP contains a valid shapefile."""
         with zipfile.ZipFile(self.file_path) as zip_ref:
             # List all file names in the zip file
@@ -667,19 +674,19 @@ class OGRFileHandling:
 
         return self.validate_ogr(os.path.join(zip_dir, base_name + ".shp"))
 
-    def validate_gpkg(self):
+    def validate_gpkg(self) -> Dict[str, Any]:
         """Validate geopackage."""
         return self.validate_ogr(self.file_path)
 
-    def validate_geojson(self):
+    def validate_geojson(self) -> Dict[str, Any]:
         """Validate geojson."""
         return self.validate_ogr(self.file_path)
 
-    def validate_kml(self):
+    def validate_kml(self) -> Dict[str, Any]:
         """Validate kml."""
         return self.validate_ogr(self.file_path)
 
-    async def validate(self):
+    async def validate(self) -> Dict[str, Any]:
         """Validate file before uploading."""
 
         # Run validation
@@ -694,10 +701,10 @@ class OGRFileHandling:
             result["data_types"]["unvalid"] == {}
             and result["data_types"]["overflow"] == {}
         ):
-            msg_type = MsgType.info.value
+            msg_type = MsgType.info
             msg_text = "File is valid."
         else:
-            msg_type = MsgType.warning.value
+            msg_type = MsgType.warning
             if result["data_types"]["unvalid"]:
                 msg_text = f"The following attributes are not saved as they could not be mapped to a valid data type: {', '.join(result['data_types']['unvalid'].values())}"
             if result["data_types"]["overflow"]:
@@ -709,12 +716,14 @@ class OGRFileHandling:
         result["msg"] = Msg(type=msg_type, text=msg_text)
         return result
 
-    async def validate_fail(self, folder_path: str):
+    async def validate_fail(self, folder_path: str) -> None:
         """Delete folder if validation fails."""
         await async_delete_dir(folder_path)
 
     @job_log(job_step_name="upload")
-    async def upload_ogr2ogr(self, temp_table_name: str, job_id: UUID):
+    async def upload_ogr2ogr(
+        self, temp_table_name: str, job_id: UUID
+    ) -> Dict[str, Any]:
         """Upload file to database."""
 
         # Initialize OGR
@@ -770,7 +779,7 @@ class OGRFileHandling:
             "status": JobStatusType.finished.value,
         }
 
-    async def upload_ogr2ogr_fail(self, temp_table_name: str):
+    async def upload_ogr2ogr_fail(self, temp_table_name: str) -> None:
         """Delete folder if ogr2ogr upload fails."""
         await self.validate_fail(self.folder_path)
         await self.async_session.execute(
@@ -785,7 +794,7 @@ class OGRFileHandling:
         file_name: str,
         sql_query: str,
         crs: str,
-    ):
+    ) -> str:
         """Export file from database."""
 
         # Initialize OGR
@@ -849,12 +858,12 @@ class OGRFileHandling:
     @job_log(job_step_name="migration")
     async def migrate_target_table(
         self,
-        validation_result: dict,
-        attribute_mapping: dict,
+        validation_result: Dict[str, Any],
+        attribute_mapping: Dict[str, Any],
         temp_table_name: str,
         layer_id: UUID,
         job_id: UUID,
-    ):
+    ) -> Dict[str, Any]:
         """Migrate data from temporary table to target table."""
 
         data_types = validation_result["data_types"]
@@ -903,11 +912,11 @@ class OGRFileHandling:
 
     async def migrate_target_table_fail(
         self,
-        validation_result: dict,
-        attribute_mapping: dict,
+        validation_result: Dict[str, Any],
+        attribute_mapping: Dict[str, Any],
         temp_table_name: str,
         layer_id: UUID,
-    ):
+    ) -> None:
         """Delete folder if ogr2ogr upload fails."""
 
         # Delete data from user table if already inserted
@@ -928,7 +937,7 @@ class OGRFileHandling:
         await self.async_session.commit()
 
 
-async def delete_layer_data(async_session: AsyncSession, layer: Layer):
+async def delete_layer_data(async_session: AsyncSession, layer: Layer) -> None:
     """Delete layer data which is in the user data tables."""
 
     # Delete layer data

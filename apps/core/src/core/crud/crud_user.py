@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,11 +12,18 @@ from core.utils import table_exists
 from .base import CRUDBase
 
 
-class CRUDUser(CRUDBase):
-    async def create_user_data_tables(self, async_session: AsyncSession, user_id: UUID):
+class CRUDUser(CRUDBase[User, Any, Any]):
+    async def create_user_data_tables(
+        self, async_session: AsyncSession, user_id: UUID
+    ) -> None:
         """Create the user data tables."""
         # Don't create the network table for all users yet
-        for table_type in (UserDataTable.point, UserDataTable.line, UserDataTable.polygon, UserDataTable.no_geometry):
+        for table_type in (
+            UserDataTable.point,
+            UserDataTable.line,
+            UserDataTable.polygon,
+            UserDataTable.no_geometry,
+        ):
             table_name = f"{table_type.value}_{str(user_id).replace('-', '')}"
 
             # Check if table exists
@@ -66,7 +74,7 @@ class CRUDUser(CRUDBase):
                     {', '.join([f'timestamp_attr{i+1} TIMESTAMP' for i in range(NumberColumnsPerType.timestamp.value)])},
                     {', '.join([f'boolean_attr{i+1} BOOLEAN' for i in range(NumberColumnsPerType.boolean.value)])},
                     updated_at timestamptz NOT NULL DEFAULT to_char((CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text), 'YYYY-MM-DD"T"HH24:MI:SSOF'::text)::timestamp with time zone,
-	                created_at timestamptz NOT NULL DEFAULT to_char((CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text), 'YYYY-MM-DD"T"HH24:MI:SSOF'::text)::timestamp with time zone
+                    created_at timestamptz NOT NULL DEFAULT to_char((CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text), 'YYYY-MM-DD"T"HH24:MI:SSOF'::text)::timestamp with time zone
                     {additional_columns}
                 );
                 """
@@ -167,7 +175,9 @@ class CRUDUser(CRUDBase):
         # Commit changes
         await async_session.commit()
 
-    async def delete_user_data_tables(self, async_session: AsyncSession, user_id: UUID):
+    async def delete_user_data_tables(
+        self, async_session: AsyncSession, user_id: UUID
+    ) -> None:
         """Delete the user data tables."""
 
         for table_type in UserDataTable:

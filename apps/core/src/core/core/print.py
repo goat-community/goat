@@ -1,7 +1,7 @@
 import io
 import json
 import random
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 from urllib.parse import quote
 
 import aiohttp
@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from pymgl import Map
 from shapely import from_wkb
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import text
 
 from core.core.config import settings
 from core.db.models import Project
@@ -112,8 +113,7 @@ def get_mapbox_style_color(data: Dict, type: str) -> Union[str, List]:
     return config
 
 
-def get_mapbox_style_marker(data: dict):
-
+def get_mapbox_style_marker(data: dict) -> str | List[Any]:
     properties = data["properties"]
     marker_maps = properties.get("marker_mapping")
     field_name = properties.get("marker_field", {}).get("name")
@@ -205,13 +205,13 @@ def transform_to_mapbox_layer_style_spec(data: dict) -> dict:
 
 
 class PrintMap:
-    def __init__(self, async_session: AsyncSession):
+    def __init__(self, async_session: AsyncSession) -> None:
         self.thumbnail_zoom = 13
         self.thumbnail_height = 280
         self.thumbnail_width = 674
         self.async_session = async_session
 
-    async def add_icons_to_map(self, map: Map, layer: Layer):
+    async def add_icons_to_map(self, map: Map, layer: Layer) -> Map:
         """Add icons to map."""
 
         # Request icon from assets url
@@ -429,7 +429,7 @@ class PrintMap:
 
         return image
 
-    async def create_table_thumbnail(self, layer: Layer):
+    async def create_table_thumbnail(self, layer: Layer) -> io.BytesIO:
         """Create table thumbnail."""
 
         # Get the first 4 four columns of the attribute mapping.
@@ -514,9 +514,9 @@ class PrintMap:
         self,
         project: Project,
         initial_view_state: InitialViewState,
-        layers_project: [BaseModel],
+        layers_project: List[BaseModel],
         file_name: str,
-    ):
+    ) -> str:
         basemap = project.basemap
         style_url = None
         if not basemap:
