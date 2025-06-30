@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 # Popup
 
-Popups let you **display relevant information when clicking on a feature** on your map. It's a great way to *keep your map clean* while still offering more details when needed.
+Popups ermöglichen es Ihnen, **relevante Informationen anzuzeigen, wenn Sie auf ein Feature klicken**, auf Ihrer Karte. Dies ist ein gutes Mittel, um *Ihre Karte übersichtlich zu halten*, während Sie dennoch mehr Details bei Bedarf bieten.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
   <img src={require('/img/map/styling/popup.png').default} alt="label font size" style={{ maxHeight: "Auto", maxWidth: "Auto", objectFit: "cover"}}/>
@@ -15,7 +15,7 @@ Popups let you **display relevant information when clicking on a feature** on yo
 
 <br></br>
 
-**By default, popups are enabled** and show all the original attribute fields of the selected feature. You can **entirely disable the popups**, so *nothing will appear when you click on a feature*.
+**Standardmäßig sind Popups aktiviert** und zeigen alle ursprünglichen Attributfelder des ausgewählten Features an. Sie können **Popups vollständig deaktivieren**, sodass *nichts erscheint, wenn Sie auf ein Feature klicken*.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
   <img src={require('/img/map/styling/popup_disable.png').default} alt="label font size" style={{ maxHeight: "200px", maxWidth: "Auto", objectFit: "cover"}}/>
@@ -23,11 +23,11 @@ Popups let you **display relevant information when clicking on a feature** on yo
 
 <br></br>
 
-You can customize **which fields should appear and rename** them, making the information more user-friendly.
+Sie können **anpassen, welche Felder angezeigt werden und sie umbenennen**, um die Informationen benutzerfreundlicher zu gestalten.
 
-- First **choose the attribute fields** you want to display in the popup. You can select multiple fields, and they will be shown in the order you choose.
-- After the selection, you can **rename the fileds**.
-- Don't forget to click on the <button>Save</button> button to save your changes.
+- Zuerst **wählen Sie die Attributfelder** aus, die Sie im Popup anzeigen möchten. Sie können mehrere Felder auswählen, und sie werden in der von Ihnen gewählten Reihenfolge angezeigt.
+- Nach der Auswahl können Sie **die Felder umbenennen**.
+- Vergessen Sie nicht, auf den Button <button>Speichern</button> zu klicken, um Ihre Änderungen zu speichern.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
   <img src={require('/img/map/styling/popup_adding.gif').default} alt="label font size" style={{ maxHeight: "Auto", maxWidth: "500px", objectFit: "cover"}}/>
@@ -35,16 +35,14 @@ You can customize **which fields should appear and rename** them, making the inf
 
 <br></br>
 
-- You will see the popup with the **renamed attributes** when clicking on a fetaure.
+- Sie sehen das Popup mit den **umbenennten Attributen**, wenn Sie auf ein Feature cllissen.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
   <img src={require('/img/map/styling/popup_show.gif').default} alt="label font size" style={{ maxHeight: "Auto", maxWidth: "500px", objectFit: "cover"}}/>
 </div> 
 
-
 <br></br>
 
 ::::info
-More coming soon!
+Mehr kommt bald!
 ::::
-

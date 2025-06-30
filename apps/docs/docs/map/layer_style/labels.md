@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 # Labels
 
-You can display labels on your layers **based on any attribute**. Labels make your map *easier to read and more informative*s.
+You can display labels on your layers **based on any attribute**. Labels make your map *easier to read and more informative.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
   <img src={require('/img/map/styling/style_label.png').default} alt="label font size" style={{ maxHeight: "Auto", maxWidth: "Auto", objectFit: "cover"}}/>
@@ -48,6 +48,8 @@ Define where the label appears **in relation to the feature**: center, top, bott
 </div> 
 
 <br></br> 
+
+---
 
 ::::info
 Open more setting with the <b>Advanced Settings</b> <code><img src={require('/img/map/styling/options_icon.png').default} alt="Options Icon" style={{ maxHeight: "15px", maxWidth: "15px", objectFit: "cover"}}/></code> button.
@@ -90,4 +92,4 @@ Set the **thickness of the halo**. The maximum value is one-quarter of the label
 
 - Use **smaller fonts** for *dense layers* to reduce visual clutter.
 - A **light halo** on **dark maps** (or vice versa) can make labels much *easier to read*.
-- **Disabling label overlap** *improves clarity*, but some labels might not appear if space is limited.
+- **By default label overlap is disabled**, which *improves clarity*, but some labels might not appear if space is limited.
