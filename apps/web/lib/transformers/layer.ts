@@ -234,7 +234,8 @@ export function getSymbolStyleSpec(data: TextLabelSchemaData, layer: ProjectLaye
   if (data?.field) {
     textLayout["text-field"] = ["get", data.field];
     textLayout["text-size"] = data.size ?? 14;
-    textLayout["text-font"] = data.font_family || ["Open Sans Regular"];
+    // TODO: FIND A BETTER SOLUTION FOR THIS. THE GERMAN BASEMAPS ONLY SUPPORT ROBOTO REGULAR
+    textLayout["text-font"] = ["Roboto Regular"];
     textLayout["text-allow-overlap"] = data.allow_overlap || false;
     textLayout["text-anchor"] = data.anchor || "top";
     textLayout["text-offset"] = data.offset || [0, 0];

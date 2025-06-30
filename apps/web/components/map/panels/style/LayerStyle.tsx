@@ -37,7 +37,9 @@ import ProjectLayerDropdown from "@/components/map/panels/ProjectLayerDropdown";
 import SectionHeader from "@/components/map/panels/common/SectionHeader";
 import ColorOptions from "@/components/map/panels/style/color/ColorOptions";
 import GeneralOptions from "@/components/map/panels/style/general/GeneralOptions";
+import InteractionOptions from "@/components/map/panels/style/interaction/InteractionOptions";
 import LabelOptions from "@/components/map/panels/style/label/LabelOptions";
+import { LegendOptions } from "@/components/map/panels/style/legend/LegendOptions";
 import MarkerOptions from "@/components/map/panels/style/marker/MarkerOptions";
 import Settings from "@/components/map/panels/style/settings/Settings";
 
@@ -591,43 +593,45 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
                   </Box>
                 }
               />
+              <Divider sx={{ m: 0 }} />
+              <AccordionWrapper
+                boxShadow="none"
+                backgroundColor="transparent"
+                disableGutters
+                expanded={expanded === LayerStylePanels.POPUP}
+                onChange={handleAccordionChange(LayerStylePanels.POPUP)}
+                header={
+                  <Typography variant="body2" fontWeight="bold">
+                    {t("popup")}
+                  </Typography>
+                }
+                accordionSxProps={{
+                  "&:before": {
+                    display: "none",
+                  },
+                }}
+                body={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      px: 4,
+                      flexDirection: "column",
+                    }}>
+                    {activeLayer && (
+                      <InteractionOptions
+                        layer={activeLayer}
+                        onStyleChange={async (newStyle) => {
+                          updateLayerStyle(newStyle);
+                        }}
+                        key={activeLayer.id}
+                      />
+                    )}
+                  </Box>
+                }
+              />
             </>
           )}
-          {/*
 
-
-          <Divider sx={{ m: 0 }} />
-          <AccordionWrapper
-            boxShadow="none"
-            backgroundColor="transparent"
-            disableGutters
-            expanded={expanded === LayerStylePanels.POPUP}
-            onChange={handleAccordionChange(LayerStylePanels.POPUP)}
-            header={
-              <Typography variant="body2" fontWeight="bold">
-                {t("popup")}
-              </Typography>
-            }
-            accordionSxProps={{
-              "&:before": {
-                display: "none",
-              },
-            }}
-            body={
-              <Box
-                sx={{
-                  display: "flex",
-                  px: 4,
-                  flexDirection: "column",
-                }}>
-                {activeLayer && (
-                  <Stack>
-                    <p>Popup Settings</p>
-                  </Stack>
-                )}
-              </Box>
-            }
-          />
           <Divider sx={{ m: 0 }} />
           <AccordionWrapper
             boxShadow="none"
@@ -653,13 +657,16 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
                   flexDirection: "column",
                 }}>
                 {activeLayer && (
-                  <Stack>
-                    <p>Legend Settings</p>
-                  </Stack>
+                  <LegendOptions
+                    layer={activeLayer}
+                    onStyleChange={async (newStyle) => {
+                      updateLayerStyle(newStyle);
+                    }}
+                  />
                 )}
               </Box>
             }
-          /> */}
+          />
           <Divider sx={{ mt: 0 }} />
         </>
       }

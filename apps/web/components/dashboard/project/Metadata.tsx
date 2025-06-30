@@ -39,7 +39,27 @@ export const ProjectMetadataView: React.FC<ProjectMetadataProps> = ({ project })
       <Stack>
         <Typography variant="caption">{t("description")}</Typography>
         <Divider />
-        <ReactMarkdown>{project.description}</ReactMarkdown>
+        <ReactMarkdown
+          components={{
+            img: ({ node: _, ...props }) => {
+              const hasSize =
+                props.width !== undefined ||
+                props.height !== undefined ||
+                (props.style && (props.style.width || props.style.height));
+
+              const style = hasSize ? props.style : { width: "100%" };
+
+              // eslint-disable-next-line jsx-a11y/alt-text
+              return <img {...props} style={style} />;
+            },
+            a: ({ node: _, href, children, ...props }) => (
+              <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                {children}
+              </a>
+            ),
+          }}>
+          {project.description}
+        </ReactMarkdown>
       </Stack>
     </Stack>
   );

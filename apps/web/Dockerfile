@@ -10,6 +10,7 @@ RUN npm install -g turbo@1.13.3
 COPY . .
 RUN turbo prune --scope=@p4b/web --docker
 
+
 # Add lockfile and package.json's of isolated subworkspace
 FROM base AS installer
 RUN apk add --no-cache libc6-compat
@@ -56,8 +57,8 @@ COPY --from=installer --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=installer --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=installer --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
-ENV HOSTNAME localhost
+ENV HOSTNAME=localhost
 
 COPY ./apps/web/entrypoint.sh /app/apps/web/entrypoint.sh
 ENTRYPOINT ["/app/apps/web/entrypoint.sh"]
-CMD node apps/web/server.js
+CMD ["node", "apps/web/server.js"]

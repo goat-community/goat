@@ -126,10 +126,6 @@ function getLegendColorMap(properties: FeatureLayerProperties, type: "color" | "
         });
       }
     }
-    colorMap.push({
-      value: ["No data"],
-      color: DEFAULT_COLOR,
-    });
   } else {
     if (properties[type]) {
       colorMap.push({
@@ -398,6 +394,11 @@ export function Legend(props: LegendProps) {
     moreMenuState,
     activeLayer: activeLayerMoreMenu,
   } = useLayerSettingsMoreMenu();
+
+  const layersWithLegend = useMemo(() => {
+    return props.layers.filter((layer) => layer.properties?.legend?.show !== false);
+  }, [props.layers]);
+
   return (
     props.layers && (
       <>
@@ -413,11 +414,11 @@ export function Legend(props: LegendProps) {
           )}
         {moreMenuState?.id === ContentActions.INFO && activeLayerMoreMenu && (
           <ViewModal title={t("data_source_info")} open={true} onClose={closeMoreMenu} closeText={t("close")}>
-            <DatasetSummary dataset={activeLayerMoreMenu} hideEmpty={true} />
+            <DatasetSummary dataset={activeLayerMoreMenu} hideEmpty={true} hideMainSection />
           </ViewModal>
         )}
 
-        {props.layers.map((layer, index) => (
+        {layersWithLegend.map((layer, index) => (
           <Stack
             key={layer.id}
             spacing={1}
@@ -475,6 +476,11 @@ export function Legend(props: LegendProps) {
                 </Typography>
               </Tooltip>
             )}
+            {layer.properties.legend?.caption && (
+              <Typography variant="caption" fontWeight="bold" sx={{ pt: 1 }}>
+                {layer.properties.legend.caption}
+              </Typography>
+            )}
             {layer.properties.visibility && (
               <Stack sx={{ py: 1 }}>
                 {layer.type === "feature" && (
@@ -508,7 +514,9 @@ export function Legend(props: LegendProps) {
           </Stack>
         ))}
 
-        {props.layers?.length === 0 && <EmptySection label={t("no_active_layers")} icon={ICON_NAME.LAYERS} />}
+        {layersWithLegend.length === 0 && (
+          <EmptySection label={t("no_active_layers")} icon={ICON_NAME.LAYERS} />
+        )}
       </>
     )
   );
