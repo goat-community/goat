@@ -474,8 +474,9 @@ def build_where(
         attribute_mapping["geometry"] = "geom"
         attribute_mapping["geom"] = "geom"
         where = f"{table_name}.layer_id = '{str(id)}' AND "
+        converted_cql = to_sql_where(ast, attribute_mapping)
         converted_cql = re.sub(
-            r'(?<=\(|\s|,)"', f'{table_name}."', to_sql_where(ast, attribute_mapping)
+            r'(?<=\(|\s|,)"', f'{table_name}."', converted_cql
         )
         # Fixing issue with pygeofilter https://github.com/geopython/pygeofilter/pull/54
         converted_cql = converted_cql.replace(
@@ -486,6 +487,12 @@ def build_where(
             r"(ST_GeomFromWKB\((.*?)\))", r"ST_SetSRID(\1, 4326)", converted_cql
         )
         where = where + converted_cql
+        # Cast all columns subject to a likeliness check to TEXT, ensuring it succeeds
+        where = re.sub(
+            r'("([^"]*)")(?=\s+LIKE)',
+            r'\1::TEXT',
+            where,
+        )
         where = where.replace("LIKE", "ILIKE")
         return where
 

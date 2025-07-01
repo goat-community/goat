@@ -15,39 +15,39 @@ class SyncPostgresDsn(PostgresDsn):
 
 
 class Settings(BaseSettings):
-    AUTH: Optional[bool] = True
-    TEST_MODE: Optional[bool] = False
-    ENVIRONMENT: Optional[str] = "dev"
+    AUTH: bool = True
+    TEST_MODE: bool = False
+    ENVIRONMENT: str = "dev"
     API_V2_STR: str = "/api/v2"
     DATA_DIR: str = "/app/data"
     TEST_DATA_DIR: str = "/app/tests/data"
     PROJECT_NAME: str = "GOAT Core API"
-    USER_DATA_SCHEMA: Optional[str] = "user_data"
-    CUSTOMER_SCHEMA: Optional[str] = "customer"
-    ACCOUNTS_SCHEMA: Optional[str] = "accounts"
-    REGION_MAPPING_PT_TABLE: Optional[str] = "basic.region_mapping_pt"
-    BASE_STREET_NETWORK: Optional[UUID] = UUID("903ecdca-b717-48db-bbce-0219e41439cf")
+    USER_DATA_SCHEMA: str = "user_data"
+    CUSTOMER_SCHEMA: str = "customer"
+    ACCOUNTS_SCHEMA: str = "accounts"
+    REGION_MAPPING_PT_TABLE: str = "basic.region_mapping_pt"
+    BASE_STREET_NETWORK: UUID = UUID("903ecdca-b717-48db-bbce-0219e41439cf")
 
     JOB_TIMEOUT_DEFAULT: int = 120
-    ASYNC_CLIENT_DEFAULT_TIMEOUT: Optional[float] = (
+    ASYNC_CLIENT_DEFAULT_TIMEOUT: float = (
         10.0  # Default timeout for async http client
     )
-    ASYNC_CLIENT_READ_TIMEOUT: Optional[float] = (
+    ASYNC_CLIENT_READ_TIMEOUT: float = (
         30.0  # Read timeout for async http client
     )
-    CRUD_NUM_RETRIES: Optional[int] = 30  # Number of times to retry calling an endpoint
-    CRUD_RETRY_INTERVAL: Optional[int] = 3  # Number of seconds to wait between retries
+    CRUD_NUM_RETRIES: int = 30  # Number of times to retry calling an endpoint
+    CRUD_RETRY_INTERVAL: int = 3  # Number of seconds to wait between retries
 
     HEATMAP_GRAVITY_MAX_SENSITIVITY: int = 1000000
 
-    SENTRY_DSN: Optional[str] = None
-    POSTGRES_SERVER: str = ""
-    POSTGRES_USER: str = ""
-    POSTGRES_PASSWORD: str = ""
-    POSTGRES_DB: str = ""
-    POSTGRES_PORT: Optional[int] = 5432
+    SENTRY_DSN: str | None = None
+    POSTGRES_SERVER: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
+    POSTGRES_PORT: int = 5432
 
-    POSTGRES_DATABASE_URI: Optional[str] = None
+    POSTGRES_DATABASE_URI: str | None = None
 
     @field_validator("POSTGRES_DATABASE_URI", mode="after")
     @classmethod
@@ -57,7 +57,7 @@ class Settings(BaseSettings):
         return f'postgresql://{info.data.get("POSTGRES_USER")}:{info.data.get("POSTGRES_PASSWORD")}@' \
             f'{info.data.get("POSTGRES_SERVER")}:{info.data.get("POSTGRES_PORT")}/{info.data.get("POSTGRES_DB")}'
 
-    ASYNC_SQLALCHEMY_DATABASE_URI: Optional[str] = None
+    ASYNC_SQLALCHEMY_DATABASE_URI: str | None = None
 
     @field_validator("ASYNC_SQLALCHEMY_DATABASE_URI", mode="after")
     @classmethod
@@ -117,7 +117,7 @@ class Settings(BaseSettings):
     RUN_AS_BACKGROUND_TASK: Optional[bool] = True
     MAX_NUMBER_PARALLEL_JOBS: Optional[int] = 6
     TESTING: Optional[bool] = False
-    MAX_FOLDER_COUNT: Optional[int] = 100
+    MAX_FOLDER_COUNT: int = 100
 
     MAPBOX_TOKEN: Optional[str] = None
     MAPTILER_TOKEN: Optional[str] = None

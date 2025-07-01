@@ -4,16 +4,20 @@ import inspect
 import logging
 import uuid
 from functools import wraps
+from typing import Any, Awaitable, Callable, Dict
 from uuid import UUID
 
+from fastapi import BackgroundTasks
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.core.config import settings
+from core.core.config import Settings, settings
 from core.crud.crud_job import job as crud_job
+from core.db.models.job import Job
+from core.db.models.layer import LayerType
 from core.schemas.error import ERROR_MAPPING, JobKilledError, TimeoutError, UnknownError
 from core.schemas.job import JobStatusType
-from core.schemas.layer import LayerType, UserDataTable
+from core.schemas.layer import UserDataTable
 from core.utils import table_exists
 
 # Create a logger object for background tasks
@@ -28,8 +32,8 @@ background_logger.addHandler(handler)
 
 
 async def delete_orphan_data(
-    async_session: AsyncSession, user_id: UUID, last_run: datetime
-):
+    async_session: AsyncSession, user_id: UUID, last_run: datetime.datetime
+) -> None:
     """Delete orphan data from user tables"""
 
     for table in (
@@ -76,8 +80,12 @@ async def delete_orphan_data(
             WHERE l.id IS NULL
             AND d.updated_at > '{last_run.isoformat()}';
         """
-        layer_ids_to_delete = await async_session.execute(text(sql_layer_ids_to_delete))
-        layer_ids_to_delete = [row[0] for row in layer_ids_to_delete.fetchall()]
+        layer_ids_to_delete = [
+            row[0]
+            for row in (
+                await async_session.execute(text(sql_layer_ids_to_delete))
+            ).fetchall()
+        ]
 
         # Drop temp table
         await async_session.execute(
@@ -103,7 +111,12 @@ async def delete_orphan_data(
     return
 
 
-async def run_failure_func(instance, func, *args, **kwargs):
+async def run_failure_func(
+    instance: "CRUDFailedJob",
+    func: Callable[[Any], Awaitable[Dict[str, Any]]],
+    *args: Any,
+    **kwargs: Any,
+) -> None:
     # Get failure function
     failure_func_name = f"{func.__name__}_fail"  # Construct the failure function name
     failure_func = getattr(
@@ -124,7 +137,13 @@ async def run_failure_func(instance, func, *args, **kwargs):
     else:
         # Get the delete orphan, delete temp tables function from class
         delete_temp_tables_func = getattr(instance, "delete_temp_tables", None)
+        if not callable(delete_temp_tables_func):
+            raise ValueError("Unable to fetch delete_temp_tables function from class.")
         delete_created_layers = getattr(instance, "delete_created_layers", None)
+        if not callable(delete_created_layers):
+            raise ValueError(
+                "Unable to fetch delete_created_layers function from class."
+            )
         # Delete all orphan data that is older then 20 minutes
         min_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
             minutes=20
@@ -140,10 +159,12 @@ async def run_failure_func(instance, func, *args, **kwargs):
         await delete_created_layers()
 
 
-def job_init():
-    def decorator(func, timeout: int = 1):
+def job_init() -> Callable[[Any], Any]:
+    def decorator(
+        func: Callable[[Any], Awaitable[Dict[str, Any]]], timeout: int = 1
+    ) -> Callable[[Any], Any]:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Dict[str, Any] | None:
             self = args[0]
             # Check if job_id and async_session are provided in kwards else search them in the class
             if kwargs.get("async_session"):
@@ -157,7 +178,9 @@ def job_init():
                 job_id = self.job_id
             background_logger.info(f"Job {str(job_id)} started.")
             # Get job id
-            job = await crud_job.get(db=async_session, id=job_id)
+            job: Job | None = await crud_job.get(db=async_session, id=job_id)
+            if job is None:
+                raise ValueError(f"Job with id {job_id} not found.")
             job = await crud_job.update(
                 db=async_session,
                 db_obj=job,
@@ -176,7 +199,7 @@ def job_init():
                 if e.__class__ in ERROR_MAPPING:
                     error = e
                 else:
-                    error = str(UnknownError("Unknown error occurred."))
+                    error = UnknownError("Unknown error occurred.")
                 msg_simple = f"{error.__class__.__name__}: {str(error)}"
                 # Update job status simple to failed
                 job = await crud_job.update(
@@ -187,7 +210,7 @@ def job_init():
                         "msg_simple": msg_simple,
                     },
                 )
-                return
+                return None
 
             # Update job status to finished in case it is not killed, timeout or failed
             if result["status"] not in [
@@ -211,6 +234,11 @@ def job_init():
                 try:
                     # Get the delete temp tables function from class
                     delete_temp_tables_func = getattr(self, "delete_temp_tables", None)
+                    if not callable(delete_temp_tables_func):
+                        raise ValueError(
+                            "Unable to fetch delete_temp_tables function from class."
+                        )
+
                     # Run delete temp tables function
                     await delete_temp_tables_func()
                 except Exception:
@@ -227,44 +255,55 @@ def job_init():
     return decorator
 
 
-def job_log(job_step_name: str, timeout: int = settings.JOB_TIMEOUT_DEFAULT):
-    def decorator(func):
+def job_log(
+    job_step_name: str, timeout: int = settings.JOB_TIMEOUT_DEFAULT
+) -> Callable[
+    [Callable[..., Awaitable[Dict[str, Any]]]], Callable[..., Awaitable[Dict[str, Any]]]
+]:
+    def decorator(
+        func: Callable[..., Awaitable[Dict[str, Any]]],
+    ) -> Callable[..., Awaitable[Dict[str, Any]]]:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
-
+        async def wrapper(*args: Any, **kwargs: Any) -> Dict[str, Any]:
             # Get async_session
             self = args[0] if args else None
+            if not self or not isinstance(self, CRUDFailedJob):
+                raise ValueError("Job started from unsupported class.")
             # Check if job_id and async_session are provided in kwards else search them in the class
+            job_id: UUID
             if kwargs.get("job_id"):
                 job_id = kwargs["job_id"]
             else:
+                if not self or not hasattr(self, "job_id"):
+                    raise ValueError("Job ID is required.")
                 job_id = self.job_id
-
             # Get async_session
+            async_session: Any
             if kwargs.get("async_session"):
                 async_session = kwargs["async_session"]
             else:
+                if not self or not hasattr(self, "async_session"):
+                    raise ValueError("Async session is required.")
                 async_session = self.async_session
-
             # Update job status to indicate running
             job = await crud_job.update_status(
                 async_session=async_session,
                 job_id=job_id,
-                status=JobStatusType.running.value,
+                status=JobStatusType.running,
                 msg_text="Job is running.",
                 job_step_name=job_step_name,
             )
-
             # Exit if job is killed before starting
             if job.status_simple == JobStatusType.killed.value:
                 await run_failure_func(self, func, **kwargs)
                 msg_text = "Job was killed."
                 background_logger.error(msg_text)
                 return {"status": JobStatusType.killed.value, "msg": msg_text}
-
             # Execute function
             try:
-                result = await asyncio.wait_for(func(*args, **kwargs), timeout)
+                result: Dict[str, Any] = await asyncio.wait_for(
+                    func(*args, **kwargs), timeout
+                )
             except asyncio.TimeoutError:
                 # Roll back the transaction
                 await async_session.rollback()
@@ -275,7 +314,7 @@ def job_log(job_step_name: str, timeout: int = settings.JOB_TIMEOUT_DEFAULT):
                 job = await crud_job.update_status(
                     async_session=async_session,
                     job_id=job_id,
-                    status=JobStatusType.timeout.value,
+                    status=JobStatusType.timeout,
                     msg_text=msg_text,
                     job_step_name=job_step_name,
                 )
@@ -290,34 +329,34 @@ def job_log(job_step_name: str, timeout: int = settings.JOB_TIMEOUT_DEFAULT):
                 job = await crud_job.update_status(
                     async_session=async_session,
                     job_id=job_id,
-                    status=JobStatusType.failed.value,
+                    status=JobStatusType.failed,
                     msg_text=str(e),
                     error=e,
                     job_step_name=job_step_name,
                 )
                 background_logger.error(f"Job failed with error: {e}")
                 raise e
-
             # Check if job was killed. The job needs to be expired as it was fetching old data from cache.
             async_session.expire(job)
-            job = await crud_job.get(db=async_session, id=job_id)
-
+            job_obj = await crud_job.get(db=async_session, id=job_id)
+            if job_obj is None:
+                raise ValueError(f"Job with id {job_id} not found.")
+            job = job_obj
             if job.status_simple == JobStatusType.killed.value:
-                status = JobStatusType.killed.value
+                status = JobStatusType.killed
                 msg_text = "Job was killed."
             # Else use the status provided by the function
             else:
                 if result["status"] == JobStatusType.failed.value:
-                    status = JobStatusType.failed.value
+                    status = JobStatusType.failed
                     msg_text = result["msg"]
                 elif result["status"] == JobStatusType.finished.value:
-                    status = JobStatusType.finished.value
+                    status = JobStatusType.finished
                     msg_text = "Job finished successfully."
                 else:
                     raise ValueError(
                         f"Invalid status {result['status']} returned by function {func.__name__}."
                     )
-
             # Update job status if successful
             job = await crud_job.update_status(
                 async_session=async_session,
@@ -338,7 +377,6 @@ def job_log(job_step_name: str, timeout: int = settings.JOB_TIMEOUT_DEFAULT):
                 msg_txt = "Job was killed"
                 print(msg_txt)
                 raise JobKilledError(msg_txt)
-
             background_logger.info(f"Job step {job_step_name} finished successfully.")
             return result
 
@@ -347,10 +385,12 @@ def job_log(job_step_name: str, timeout: int = settings.JOB_TIMEOUT_DEFAULT):
     return decorator
 
 
-def run_background_or_immediately(settings):
-    def decorator(func):
+def run_background_or_immediately(settings: Settings) -> Callable[[Any], Any]:
+    def decorator(
+        func: Callable[[Any], Awaitable[Dict[str, Any]]],
+    ) -> Callable[[Any], Dict[str, Any] | Any]:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Dict[str, Any] | Any:
             # Get background tasks either from class or from function kwargs
 
             if kwargs.get("background_tasks"):
@@ -371,13 +411,19 @@ def run_background_or_immediately(settings):
 class CRUDFailedJob:
     """CRUD class that bundles functions for failed jobs"""
 
-    def __init__(self, job_id, background_tasks, async_session, user_id):
+    def __init__(
+        self,
+        job_id: UUID | None,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+    ) -> None:
         self.job_id = job_id
         self.background_tasks = background_tasks
         self.async_session = async_session
         self.user_id = user_id
 
-    async def delete_orphan_data(self):
+    async def delete_orphan_data(self) -> None:
         """Delete orphan data from user tables"""
 
         await delete_orphan_data(
@@ -386,7 +432,7 @@ class CRUDFailedJob:
             last_run=datetime.datetime.now(datetime.timezone.utc),
         )
 
-    async def delete_temp_tables(self):
+    async def delete_temp_tables(self) -> None:
         # Get all tables that end with the job id
         sql = f"""
             SELECT table_name
@@ -403,7 +449,7 @@ class CRUDFailedJob:
             )
         await self.async_session.commit()
 
-    async def delete_created_layers(self):
+    async def delete_created_layers(self) -> None:
         # Delete all layers with the self.job_id
         sql = f"""
             DELETE FROM {settings.CUSTOMER_SCHEMA}.layer

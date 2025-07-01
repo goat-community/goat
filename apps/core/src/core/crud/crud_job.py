@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import List
+from typing import Any, List
 from uuid import UUID
 
 from fastapi import HTTPException, status
+from fastapi_pagination import Page
 from fastapi_pagination import Params as PaginationParams
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +18,7 @@ from core.schemas.job import JobStatusType, JobType, MsgType, job_mapping
 from core.utils import sanitize_error_message
 
 
-class CRUDJob(CRUDBase):
+class CRUDJob(CRUDBase[Job, Any, Any]):
     async def check_and_create(
         self,
         async_session: AsyncSession,
@@ -25,7 +26,7 @@ class CRUDJob(CRUDBase):
         job_type: JobType,
         project_id: UUID | None = None,
         read: bool | None = None,
-    ):
+    ) -> Job:
         """Create a job."""
 
         # Count running jobs using count.
@@ -35,8 +36,10 @@ class CRUDJob(CRUDBase):
                 Job.status_simple == JobStatusType.running.value,
             )
         )
-        count = await async_session.execute(query)
-        count = count.scalar()
+        count = (await async_session.execute(query)).scalar()
+
+        if count is None:
+            raise ValueError("Unable to fetch job information")
 
         # Check if count is greater than or equal to MAX_NUMBER_PARALLEL_JOBS.
         if count >= settings.MAX_NUMBER_PARALLEL_JOBS:
@@ -73,9 +76,9 @@ class CRUDJob(CRUDBase):
         job_id: UUID,
         job_step_name: str,
         status: JobStatusType = JobStatusType.running,
-        error=None,
+        error: Exception | None = None,
         msg_text: str = "",
-    ):
+    ) -> Job:
         """Update job status."""
 
         # TODO: Find another way to avoid refetching the job again here.
@@ -96,7 +99,7 @@ class CRUDJob(CRUDBase):
             "text": msg_text,
         }
         if status == JobStatusType.finished:
-            job.status_simple = JobStatusType.running.value
+            job.status_simple = JobStatusType.running
         else:
             job.status_simple = status
 
@@ -125,14 +128,14 @@ class CRUDJob(CRUDBase):
         async_session: AsyncSession,
         user_id: UUID,
         page_params: PaginationParams,
-        project_id: UUID,
-        job_type: JobType,
-        start_data: datetime,
-        end_data: datetime,
-        read: bool,
+        project_id: UUID | None,
+        job_type: List[JobType] | None,
+        start_data: datetime | None,
+        end_data: datetime | None,
+        read: bool | None,
         order_by: str,
         order: OrderEnum,
-    ):
+    ) -> Page[Job]:
         """Get all jobs by date."""
 
         and_conditions = [Job.user_id == user_id]
@@ -171,7 +174,7 @@ class CRUDJob(CRUDBase):
 
     async def mark_as_read(
         self, async_session: AsyncSession, user_id: UUID, job_ids: List[UUID]
-    ):
+    ) -> List[Job]:
         """Mark a job as read."""
 
         # Get the jobs owned by the user and ids in the list.
@@ -184,14 +187,12 @@ class CRUDJob(CRUDBase):
                 ),
             )
         )
-        jobs = await self.get_multi(async_session, query=query_get)
-        jobs = [job[0] for job in jobs]
+        jobs = [job[0] for job in (await self.get_multi(async_session, query=query_get))]
 
         # Create dict of len jobs with read=True.
         jobs_update = [{"read": True} for job in jobs]
 
-        jobs = await self.update_multi(async_session, db_objs=jobs, objs_in=jobs_update)
-        return jobs
+        return await self.update_multi(async_session, db_objs=jobs, objs_in=jobs_update)
 
 
 job = CRUDJob(Job)

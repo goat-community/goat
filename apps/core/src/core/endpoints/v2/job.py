@@ -1,4 +1,5 @@
 from datetime import datetime
+from http import HTTPStatus
 from typing import List
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query
@@ -33,16 +34,16 @@ async def get_job(
         example="3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ),
     user_id: UUID4 = Depends(get_user_id),
-):
+) -> Job:
     """Retrieve a job by its ID."""
-    job = await crud_job.get_by_multi_keys(
+    result: List[Job] = await crud_job.get_by_multi_keys(
         db=async_session, keys={"id": job_id, "user_id": user_id}
     )
 
-    if job == []:
+    if result == []:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    return job[0]
+    return result[0]
 
 
 @router.get(
@@ -87,10 +88,10 @@ async def read_jobs(
         description="Specify the order to apply. There are the option ascendent or descendent.",
         example="descendent",
     ),
-):
+) -> Page[Job]:
     """Retrieve a list of jobs using different filters."""
 
-    return await crud_job.get_by_date(
+    result: Page[Job] = await crud_job.get_by_date(
         async_session=async_session,
         user_id=user_id,
         page_params=page_params,
@@ -102,6 +103,8 @@ async def read_jobs(
         order_by=order_by,
         order=order,
     )
+
+    return result
 
 
 @router.put(
@@ -123,11 +126,14 @@ async def mark_jobs_as_read(
             "c9d2884c-0e01-4d7a-b595-5c20be857ec5",
         ],
     ),
-):
+) -> List[Job]:
     """Mark jobs as read."""
-    return await crud_job.mark_as_read(
+
+    result: List[Job] = await crud_job.mark_as_read(
         async_session=async_session, user_id=user_id, job_ids=job_ids
     )
+
+    return result
 
 
 @router.put(
@@ -146,16 +152,16 @@ async def kill_job(
         description="Job ID to kill.",
         example="7e5eeb1f-3605-4ff7-87f8-2aed7094e4de",
     ),
-):
+) -> Job:
     """Kill a job. It will let the job finish already started tasks and then kill it. All data produced by the job will be deleted."""
 
-    job = await crud_job.get_by_multi_keys(
+    result = await crud_job.get_by_multi_keys(
         db=async_session, keys={"id": job_id, "user_id": user_id}
     )
 
-    if job is None:
+    if result is None:
         raise HTTPException(status_code=404, detail="Job not found")
-    job = job[0]
+    job = result[0]
 
     if job.status_simple not in [
         JobStatusType.pending.value,
@@ -166,6 +172,13 @@ async def kill_job(
             detail="Job is not pending or running. Therefore it cannot be killed.",
         )
 
-    return await crud_job.update(
+    result_job = await crud_job.update(
         db=async_session, db_obj=job, obj_in={"status_simple": "killed"}
     )
+
+    if type(result_job) is not Job:
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="Unable to kill job."
+        )
+
+    return result_job

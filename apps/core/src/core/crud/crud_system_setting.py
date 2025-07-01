@@ -3,10 +3,13 @@ from core.schemas.system_setting import (
     SystemSettingsCreate,
     SystemSettingsUpdate,
 )
+
 from .base import CRUDBase
 
 
-class CRUDSystemSetting(CRUDBase[SystemSetting, SystemSettingsCreate, SystemSettingsUpdate]):
+class CRUDSystemSetting(
+    CRUDBase[SystemSetting, SystemSettingsCreate, SystemSettingsUpdate]
+):
     pass
 
 

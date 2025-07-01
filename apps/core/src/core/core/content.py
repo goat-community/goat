@@ -5,7 +5,8 @@ from fastapi import HTTPException, status
 from pydantic import UUID4
 from sqlalchemy import Row, and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Query, contains_eager, selectinload
+from sqlalchemy.orm import contains_eager, selectinload
+from sqlalchemy.sql import Select
 from sqlmodel import SQLModel
 
 from core.db.models import (
@@ -231,16 +232,17 @@ async def update_content_by_id(
 
 
 def create_query_shared_content(
-    model: Layer | Project,
-    team_link_model: LayerTeamLink | ProjectTeamLink,
-    organization_link_model: LayerOrganizationLink | ProjectOrganizationLink,
-    team_model: Team,
-    organization_model: Organization,
-    role_model: Role,
+    model: type[Layer] | type[Project],
+    team_link_model: type[LayerTeamLink] | type[ProjectTeamLink],
+    organization_link_model: type[LayerOrganizationLink]
+    | type[ProjectOrganizationLink],
+    team_model: type[Team],
+    organization_model: type[Organization],
+    role_model: type[Role],
     filters: list[Any],
-    team_id: UUID | None=None,
-    organization_id: UUID | None=None,
-) -> Query[Any]:
+    team_id: UUID | None = None,
+    organization_id: UUID | None = None,
+) -> Select[Any]:
     """
     Creates a dynamic query for a given model (Layer or Project) and its associated team, organization, and owner user.
 
@@ -276,7 +278,7 @@ def create_query_shared_content(
         read_column = []
 
     # Basic query to join the User who owns the Layer or Project
-    base_query: Query[Any] = select(
+    base_query = select(
         model,
         role_model.id.label("valid_role_id"),
         User.id.label("valid_user_id"),
@@ -285,7 +287,8 @@ def create_query_shared_content(
         User.avatar.label("user_avatar"),
         *read_column,
     ).join(
-        User, model.user_id == User.id  # Join on owner_id field with User model
+        User,
+        model.user_id == User.id,  # Join on owner_id field with User model
     )
 
     if team_id:
@@ -358,15 +361,16 @@ def create_query_shared_content(
         )
     return query
 
-#TODO: Make a pydantic schema for shared_with and owned_by
+
+# TODO: Make a pydantic schema for shared_with and owned_by
 def build_shared_with_object(
     items: list[Row[Any]],
     role_mapping: dict[UUID, str],
-    team_key: str="team_links",
-    org_key: str="organization_links",
-    model_name: str="layer",
-    team_id: UUID | None=None,
-    organization_id: UUID | None=None,
+    team_key: str = "team_links",
+    org_key: str = "organization_links",
+    model_name: str = "layer",
+    team_id: UUID | None = None,
+    organization_id: UUID | None = None,
 ) -> list[dict[str, Any]]:
     """
     Builds the shared_with object for both Layer and Project models.
@@ -390,7 +394,9 @@ def build_shared_with_object(
             "avatar": item[5],
         }
 
-    def process_links(item: Layer | Project, link_key: str, link_type: str) -> list[dict[str, Any]]:
+    def process_links(
+        item: Layer | Project, link_key: str, link_type: str
+    ) -> list[dict[str, Any]]:
         """Helper function to process either team or organization links."""
         shared_with: list[dict[str, Any]] = []
         links = getattr(item, link_key, None)
