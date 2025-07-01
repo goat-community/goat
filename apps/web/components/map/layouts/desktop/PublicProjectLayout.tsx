@@ -223,6 +223,22 @@ const PublicProjectLayout = ({
     dispatch(setSelectedBuilderItem(panel));
   };
 
+  const onWidgetDelete = (widgetId: string) => {
+    if (viewOnly) return;
+    const updatedPanels = panels.map((panel) => {
+      if (panel.widgets) {
+        panel.widgets = panel.widgets.filter((widget) => widget.id !== widgetId);
+      }
+      return panel;
+    });
+    const builderConfig = {
+      interface: updatedPanels,
+      settings: { ...project?.builder_config?.settings },
+    };
+    onProjectUpdate?.("builder_config", builderConfig);
+    dispatch(setSelectedBuilderItem(undefined));
+  };
+
   // Add a new panel to the specified position
   const onAddSection = async (position: "top" | "bottom" | "left" | "right") => {
     if (canAddPanel(position)) {
@@ -310,6 +326,7 @@ const PublicProjectLayout = ({
                   viewOnly={viewOnly}
                   selected={selectedPanel?.type === "panel" && selectedPanel?.id === panel.id}
                   onChangeOrder={handleChangeOrder}
+                  onWidgetDelete={onWidgetDelete}
                   onClick={() => handlePanelClick(panel)}
                 />
               ))}

@@ -12,8 +12,9 @@ import { type NumbersDataSchema, numbersDataConfigSchema } from "@/lib/validatio
 
 import { useChartWidget } from "@/hooks/map/DashboardBuilderHooks";
 
-import { ChartStatusContainer } from "@/components/builder/widgets/chart/ChartStatusContainer";
-import { StaleDataLoader } from "@/components/builder/widgets/chart/StaleDataLoader";
+import { StaleDataLoader } from "@/components/builder/widgets/common/StaleDataLoader";
+import { WidgetDataSelector, WidgetInfo } from "@/components/builder/widgets/common/WidgetCommonConfigs";
+import { WidgetStatusContainer } from "@/components/builder/widgets/common/WidgetStatusContainer";
 
 interface NumbersDataProps {
   config: NumbersDataSchema;
@@ -21,8 +22,8 @@ interface NumbersDataProps {
   viewOnly?: boolean;
 }
 
-const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
-  const { t, i18n } = useTranslation("common");
+export const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
+  const { i18n } = useTranslation("common");
   const theme = useTheme();
   const { config, queryParams, projectId } = useChartWidget(
     rawConfig,
@@ -69,14 +70,17 @@ const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
     return null;
   }, [config?.setup?.icon, theme.palette.mode]);
 
+  const isWidgetConfigured = useMemo(() => {
+    return config?.setup?.layer_project_id && queryParams;
+  }, [config, queryParams]);
+
   return (
     <>
-      <ChartStatusContainer
-        config={config}
-        queryParams={queryParams}
-        isLoading={isLoading && !aggregationStats}
+      <WidgetStatusContainer
+        isLoading={isLoading && !aggregationStats && !isError}
+        isNotConfigured={!isWidgetConfigured}
         isError={isError}
-        errorMessage={t("cannot_render_widget_error")}
+        height={100}
       />
 
       {config && !isError && aggregationStats && (
@@ -93,4 +97,53 @@ const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
   );
 };
 
-export default NumbersDataWidget;
+export const NumbersDataConfiguration = ({
+  config,
+  onChange,
+}: {
+  config: NumbersDataSchema;
+  onChange: (config: NumbersDataSchema) => void;
+}) => {
+  return (
+    <>
+      <WidgetInfo
+        titleValue={config.setup?.title || ""}
+        onTitleChange={(value: string) =>
+          onChange({
+            ...config,
+            setup: {
+              ...config.setup,
+              title: value,
+            },
+          })
+        }
+        hasDescription
+        descriptionValue={config.options?.description || ""}
+        onDescriptionChange={(value: string) =>
+          onChange({
+            ...config,
+            options: {
+              ...config.options,
+              description: value,
+            },
+          })
+        }
+      />
+
+      <WidgetDataSelector
+        projectLayerId={config.setup?.layer_project_id}
+        hasColumnName={false}
+        onProjectLayerIdChange={(layerId: number) => {
+          onChange({
+            ...config,
+            setup: {
+              ...config.setup,
+              expression: undefined,
+              layer_project_id: layerId,
+            },
+          });
+        }}
+      />
+    </>
+  );
+};

@@ -3,8 +3,8 @@ import { Box, Typography } from "@mui/material";
 import type { ProjectLayer } from "@/lib/validations/project";
 import { type WidgetDataConfig, dataTypes } from "@/lib/validations/widget";
 
-import FilterWidget from "@/components/builder/widgets/data/Filter";
-import NumbersWidget from "@/components/builder/widgets/data/Numbers";
+import { FilterDataWidget } from "@/components/builder/widgets/data/Filter";
+import { NumbersDataWidget } from "@/components/builder/widgets/data/Numbers";
 
 interface WidgetDataProps {
   id: string;
@@ -20,10 +20,10 @@ const WidgetData: React.FC<WidgetDataProps> = ({ id, config, projectLayers, view
         {config.setup?.title}
       </Typography>
       {config.type === dataTypes.Values.numbers && (
-        <NumbersWidget config={config} projectLayers={projectLayers} viewOnly={viewOnly} />
+        <NumbersDataWidget config={config} projectLayers={projectLayers} viewOnly={viewOnly} />
       )}
       {config.type === dataTypes.Values.filter && (
-        <FilterWidget id={id} config={config} projectLayers={projectLayers} viewOnly={viewOnly} />
+        <FilterDataWidget id={id} config={config} projectLayers={projectLayers} viewOnly={viewOnly} />
       )}
       {config.options?.description && (
         <Typography variant="body1" align="left">

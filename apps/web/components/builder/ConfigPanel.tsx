@@ -5,7 +5,7 @@ import React, { useMemo, useState } from "react";
 import { useTranslation } from "@/i18n/client";
 
 import { setSelectedBuilderItem } from "@/lib/store/map/slice";
-import type { BuilderPanelSchema, Project } from "@/lib/validations/project";
+import type { BuilderPanelSchema, BuilderWidgetSchema, Project } from "@/lib/validations/project";
 import { builderConfigSchema } from "@/lib/validations/project";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
@@ -23,41 +23,6 @@ interface ConfigPanelProps {
   onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
 }
 
-const sections = [
-  {
-    title: "Information",
-    items: [
-      { id: "layers", label: "Layers", icon: "layers" },
-      { id: "bookmarks", label: "Bookmarks", icon: "bookmarks" },
-      { id: "comments", label: "Comments", icon: "comments" },
-    ],
-  },
-  {
-    title: "Data",
-    items: [
-      { id: "filter", label: "Filter", icon: "filter" },
-      { id: "table", label: "Table", icon: "table" },
-      { id: "numbers", label: "Numbers", icon: "numbers" },
-      { id: "featureList", label: "Feature List", icon: "featureList" },
-    ],
-  },
-  {
-    title: "Charts",
-    items: [
-      { id: "categories", label: "Categories", icon: "categories" },
-      { id: "histogram", label: "Histogram", icon: "histogram" },
-      { id: "pieChart", label: "Pie chart", icon: "pieChart" },
-    ],
-  },
-  {
-    title: "Project Elements",
-    items: [
-      { id: "text", label: "Text", icon: "text" },
-      { id: "divider", label: "Divider", icon: "divider" },
-      { id: "image", label: "Image", icon: "image" },
-    ],
-  },
-];
 const Container = styled(Box)(({ theme }) => ({
   width: "350px",
   backgroundColor: theme.palette.background.paper,
@@ -66,7 +31,6 @@ const Container = styled(Box)(({ theme }) => ({
 
 const TabPanel = (props: { children?: React.ReactNode; index: number; value: number }) => {
   const { children, value, index, ...other } = props;
-
   return (
     <div
       role="tabpanel"
@@ -147,6 +111,32 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
     if (updatedPanels) handleMapInterfaceChange(updatedPanels);
   };
 
+  const onWidgetChange = (widget: BuilderWidgetSchema) => {
+    if (!selectedBuilderItem || selectedBuilderItem.type !== "widget" || !builderConfig) {
+      return;
+    }
+    dispatch(setSelectedBuilderItem(widget));
+    const updatedPanels = builderConfig?.interface.map((panel) => {
+      if (panel.type === "panel") {
+        const updatedWidgets = panel.widgets.map((w) => {
+          if (w.id === widget.id) {
+            return widget;
+          }
+          return w;
+        });
+        return {
+          ...panel,
+          widgets: updatedWidgets,
+        };
+      }
+      return panel;
+    });
+    if (updatedPanels) {
+      builderConfig["interface"] = updatedPanels;
+      onProjectUpdate?.("builder_config", builderConfig, false);
+    }
+  };
+
   const renderConfiguration = () => {
     if (!selectedBuilderItem) {
       return null;
@@ -159,7 +149,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
           onChange={onPanelChange}
         />
       ),
-      widget: <WidgetConfiguration />,
+      widget: <WidgetConfiguration onChange={onWidgetChange} />,
     };
 
     return configComponents[selectedBuilderItem?.type] || null;
@@ -198,7 +188,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
           </Tabs>
           <Divider sx={{ mt: 0 }} />
           <TabPanel value={value} index={0}>
-            <WidgetsTab sections={sections as never} />
+            <WidgetsTab />
           </TabPanel>
           <TabPanel value={value} index={1}>
             <SettingsTab
@@ -215,7 +205,11 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
           disableClose
           header={
             <ToolsHeader
-              title="Settings"
+              title={`${
+                selectedBuilderItem?.type === "panel"
+                  ? t("panel")
+                  : t(selectedBuilderItem?.config?.type || "widget")
+              } - ${t("settings")}`}
               onBack={() => {
                 dispatch(setSelectedBuilderItem(undefined));
               }}

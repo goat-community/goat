@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSortable } from "@dnd-kit/sortable";
-import { Box, IconButton, alpha, useTheme } from "@mui/material";
+import { CSS } from "@dnd-kit/utilities";
+import { Box, IconButton, Tooltip, alpha, useTheme } from "@mui/material";
 import { useMemo } from "react";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
+
+import { useTranslation } from "@/i18n/client";
 
 import { setSelectedBuilderItem } from "@/lib/store/map/slice";
 import type { BuilderWidgetSchema, ProjectLayer } from "@/lib/validations/project";
@@ -26,19 +29,34 @@ interface WidgetWrapper {
   widget: BuilderWidgetSchema;
   projectLayers: ProjectLayer[];
   viewOnly?: boolean;
+  onWidgetDelete?: (widgetId: string) => void;
 }
 
 interface DraggableWidgetContainerProps {
   children: React.ReactNode;
   widget: BuilderWidgetSchema;
+  onWidgetDelete?: (widgetId: string) => void;
 }
 
-const DraggableWidgetContainer: React.FC<DraggableWidgetContainerProps> = ({ children, widget }) => {
+const DraggableWidgetContainer: React.FC<DraggableWidgetContainerProps> = ({
+  children,
+  widget,
+  onWidgetDelete,
+}) => {
+  const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
   const selectedWidget = useAppSelector((state) => state.map.selectedBuilderItem);
   const theme = useTheme();
 
-  const { attributes, listeners, setNodeRef } = useSortable({ id: widget.id });
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: widget.id,
+    data: widget,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: `${transition}, border-color 0.2s ease-in-out`,
+  };
 
   const isSelected = useMemo(() => {
     if (!selectedWidget || selectedWidget.type !== "widget") return false;
@@ -48,6 +66,7 @@ const DraggableWidgetContainer: React.FC<DraggableWidgetContainerProps> = ({ chi
 
   return (
     <Box
+      style={style}
       ref={setNodeRef}
       onClick={(e) => {
         e.stopPropagation();
@@ -81,12 +100,24 @@ const DraggableWidgetContainer: React.FC<DraggableWidgetContainerProps> = ({ chi
             backgroundColor: theme.palette.primary.main,
             boxShadow: 0,
           }}>
-          <IconButton sx={{ borderRadius: 0, color: "white", cursor: "move" }} {...attributes} {...listeners}>
-            <Icon iconName={ICON_NAME.GRIP_VERTICAL} style={{ fontSize: "12px" }} />
-          </IconButton>
-          <IconButton sx={{ borderRadius: 0, color: "white" }}>
-            <Icon iconName={ICON_NAME.TRASH} style={{ fontSize: "12px" }} />
-          </IconButton>
+          <Tooltip title={t("drag_to_move")} placement="top" arrow>
+            <IconButton
+              sx={{ borderRadius: 0, color: "white", cursor: "move" }}
+              {...attributes}
+              {...listeners}>
+              <Icon iconName={ICON_NAME.GRIP_VERTICAL} style={{ fontSize: "12px" }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t("remove")} placement="top" arrow>
+            <IconButton
+              sx={{ borderRadius: 0, color: "white" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onWidgetDelete?.(widget.id);
+              }}>
+              <Icon iconName={ICON_NAME.TRASH} style={{ fontSize: "12px" }} />
+            </IconButton>
+          </Tooltip>
         </Box>
       )}
 
@@ -105,7 +136,7 @@ const DraggableWidgetContainer: React.FC<DraggableWidgetContainerProps> = ({ chi
   );
 };
 
-const WidgetWrapper: React.FC<WidgetWrapper> = ({ widget, projectLayers, viewOnly }) => {
+const WidgetWrapper: React.FC<WidgetWrapper> = ({ widget, projectLayers, viewOnly, onWidgetDelete }) => {
   const widgetContent = (
     <Box sx={{ p: 1 }}>
       {widget.config?.type && informationTypes.options.includes(widget.config?.type as any) && (
@@ -135,7 +166,9 @@ const WidgetWrapper: React.FC<WidgetWrapper> = ({ widget, projectLayers, viewOnl
   return viewOnly ? (
     <Box sx={{ width: "100%", p: 2, pointerEvents: "all" }}>{widgetContent}</Box>
   ) : (
-    <DraggableWidgetContainer widget={widget}>{widgetContent}</DraggableWidgetContainer>
+    <DraggableWidgetContainer widget={widget} onWidgetDelete={onWidgetDelete}>
+      {widgetContent}
+    </DraggableWidgetContainer>
   );
 };
 

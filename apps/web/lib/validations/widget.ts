@@ -9,6 +9,7 @@ export const chartTypes = z.enum(["histogram_chart", "categories_chart", "pie_ch
 export const elementTypes = z.enum(["text", "divider", "image"]);
 export const widgetTypes = z.enum([
   ...informationTypes.options,
+  ...dataTypes.options,
   ...chartTypes.options,
   ...elementTypes.options,
 ]);
@@ -34,13 +35,13 @@ export const formatNumberTypes = z.enum([
 ]);
 
 const chartConfigSetupBaseSchema = z.object({
-  title: z.string().optional(),
+  title: z.string().optional().default("Chart"),
   layer_project_id: z.number().optional(),
 });
 
 // Information configuration schemas
 const informationConfigSetupBaseSchema = z.object({
-  title: z.string().optional(),
+  title: z.string().optional().default("Information"),
 });
 const informationConfigOptionsBaseSchema = z.object({
   description: z.string().optional(),
@@ -54,16 +55,16 @@ export const informationConfigSchema = z.object({
 
 export const informationLayersConfigSchema = informationConfigSchema.extend({
   type: z.literal("layers"),
-  setup: informationConfigSetupBaseSchema.extend({}),
+  setup: informationConfigSetupBaseSchema.extend({}).default({}),
   options: informationConfigOptionsBaseSchema.extend({
     show_search: z.boolean().optional().default(false),
     open_legend_by_default: z.boolean().optional().default(false),
-  }),
+  }).default({})
 });
 
 // Data configuration schemas
 const dataConfigSetupBaseSchema = z.object({
-  title: z.string().optional(),
+  title: z.string().optional().default("Data"),
 });
 const dataConfigOptionsBaseSchema = z.object({
   description: z.string().optional(),
@@ -80,13 +81,13 @@ export const numbersDataConfigSchema = dataConfigSchema.extend({
   setup: chartConfigSetupBaseSchema.extend({
     expression: z.string().optional(),
     icon: z.string().optional(),
-  }),
+  }).default({}),
   options: dataConfigOptionsBaseSchema.extend({
     filter_by_viewport: z.boolean().optional().default(true),
     cross_filter: z.boolean().optional().default(true),
     format: formatNumberTypes.optional().default("none"),
     description: z.string().optional(),
-  }),
+  }).default({})
 });
 
 export const filterLayoutTypes = z.enum(["checkbox", "cards", "chips", "select", "range"]);
@@ -97,12 +98,12 @@ export const filterDataConfigSchema = dataConfigSchema.extend({
     column_name: z.string().optional(),
     placeholder: z.string().optional(),
     multiple: z.boolean().optional().default(true),
-  }),
+  }).default({}),
   options: dataConfigOptionsBaseSchema.extend({
     description: z.string().optional(),
     cross_filter: z.boolean().optional().default(false),
     zoom_to_selection: z.boolean().optional().default(true),
-  }),
+  }).default({})
 });
 
 // Chart configuration schemas
@@ -113,7 +114,7 @@ const chartConfigOptionsBaseSchema = z.object({
 });
 export const chartsConfigBaseSchema = z.object({
   type: widgetTypes,
-  setup: chartConfigSetupBaseSchema.optional(),
+  setup: chartConfigSetupBaseSchema.optional().default({}),
   options: chartConfigOptionsBaseSchema.optional().default({}),
 });
 
@@ -121,7 +122,7 @@ export const histogramChartConfigSchema = chartsConfigBaseSchema.extend({
   type: z.literal("histogram_chart"),
   setup: chartConfigSetupBaseSchema.extend({
     column_name: z.string().optional(),
-  }),
+  }).default({}),
   options: chartConfigOptionsBaseSchema.extend({
     num_bins: z.number().min(1).max(20).optional().default(10),
     min_value: z.number().optional(),
@@ -130,14 +131,14 @@ export const histogramChartConfigSchema = chartsConfigBaseSchema.extend({
     format: formatNumberTypes.optional().default("none"),
     color: z.string().optional().default("#0e58ff"),
     highlight_color: z.string().optional().default("#f5b704"),
-  }),
+  }).default({})
 });
 
 export const categoriesChartConfigSchema = chartsConfigBaseSchema.extend({
   type: z.literal("categories_chart"),
   setup: chartConfigSetupBaseSchema.extend({
     expression: z.string().optional(),
-  }),
+  }).default({}),
   options: chartConfigOptionsBaseSchema.extend({
     format: formatNumberTypes.optional().default("none"),
     sorting: sortTypes.optional().default("asc"),
@@ -145,27 +146,27 @@ export const categoriesChartConfigSchema = chartsConfigBaseSchema.extend({
     width: z.number().min(3).max(15).optional().default(5),
     num_categories: z.number().min(1).max(15).optional().default(1),
     show_other_aggregate: z.boolean().optional().default(false),
-  }),
+  }).default({}),
 });
 
 export const pieChartConfigSchema = chartsConfigBaseSchema.extend({
   type: z.literal("pie_chart"),
   setup: chartConfigSetupBaseSchema.extend({
     expression: z.string().optional(),
-  }),
+  }).default({}),
   options: chartConfigOptionsBaseSchema.extend({
     num_categories: z.number().min(1).max(15).optional().default(1),
     cap_others: z.boolean().optional().default(false),
     color_range: colorRange.optional().default(DEFAULT_COLOR_RANGE),
-  }),
+  }).default({}),
 });
 
 // Element configuration schemas
 export const textElementConfigSchema = z.object({
   type: z.literal("text"),
   setup: z.object({
-    text: z.string().optional(),
-  }),
+    text: z.string().optional().default("Text"),
+  }).default({}),
 });
 
 export const dividerElementConfigSchema = z.object({
@@ -173,7 +174,7 @@ export const dividerElementConfigSchema = z.object({
   setup: z.object({
     color: z.string().optional().default("#000000"),
     size: z.number().min(1).max(10).optional().default(1),
-  }),
+  }).default({}),
 });
 
 export const imageElementConfigSchema = z.object({
@@ -181,7 +182,7 @@ export const imageElementConfigSchema = z.object({
   setup: z.object({
     url: z.string().optional(),
     alt: z.string().optional(),
-  }),
+  }).default({}),
 });
 
 export const configSchemas = z.union([
@@ -195,6 +196,18 @@ export const configSchemas = z.union([
   dividerElementConfigSchema,
   imageElementConfigSchema,
 ]);
+
+export const widgetSchemaMap = {
+  layers: informationLayersConfigSchema,
+  numbers: numbersDataConfigSchema,
+  filter: filterDataConfigSchema,
+  histogram_chart: histogramChartConfigSchema,
+  categories_chart: categoriesChartConfigSchema,
+  pie_chart: pieChartConfigSchema,
+  text: textElementConfigSchema,
+  divider: dividerElementConfigSchema,
+  image: imageElementConfigSchema,
+};
 
 export type WidgetTypes = z.infer<typeof widgetTypes>;
 export type OperationTypes = z.infer<typeof operationTypes>;

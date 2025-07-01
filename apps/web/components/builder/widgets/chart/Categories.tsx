@@ -13,8 +13,8 @@ import { categoriesChartConfigSchema } from "@/lib/validations/widget";
 
 import { useChartWidget } from "@/hooks/map/DashboardBuilderHooks";
 
-import { ChartStatusContainer } from "@/components/builder/widgets/chart/ChartStatusContainer";
-import { StaleDataLoader } from "@/components/builder/widgets/chart/StaleDataLoader";
+import { StaleDataLoader } from "@/components/builder/widgets/common/StaleDataLoader";
+import { WidgetStatusContainer } from "@/components/builder/widgets/common/WidgetStatusContainer";
 
 const DEFAULT_COLOR = "#0e58ff";
 const OPACITY_MODIFIER = "33";
@@ -58,16 +58,22 @@ export const CategoriesChartWidget = ({ config: rawConfig }: { config: Categorie
     return shouldDim ? `${baseColor}${OPACITY_MODIFIER}` : baseColor;
   };
 
+  const isChartConfigured = useMemo(() => {
+    return config?.setup?.layer_project_id && queryParams;
+  }, [config, queryParams]);
+
   return (
     <>
-      <ChartStatusContainer
-        config={config}
-        queryParams={queryParams}
-        isLoading={isLoading && !aggregationStats}
+      <WidgetStatusContainer
+        isLoading={isLoading && !aggregationStats && !isError}
+        isNotConfigured={!isChartConfigured}
         isError={isError}
+        height={150}
+        isNotConfiguredMessage={t("please_configure_chart")}
+        errorMessage={t("cannot_render_chart_error")}
       />
 
-      {config && !isError && (
+      {config && !isError && isChartConfigured && (
         <Box
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => {

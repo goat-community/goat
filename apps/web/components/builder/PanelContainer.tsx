@@ -1,3 +1,9 @@
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { Box, IconButton, Stack, Typography, useTheme } from "@mui/material";
 import { alpha } from "@mui/material";
 import { useState } from "react";
@@ -26,6 +32,7 @@ interface ContainerProps {
   selected?: boolean; // Whether the panel is selected
   onClick?: () => void;
   onChangeOrder?: (panelId: string, position: "top" | "bottom" | "left" | "right") => void;
+  onWidgetDelete?: (widgetId: string) => void;
   viewOnly?: boolean;
 }
 
@@ -73,6 +80,7 @@ export const Container: React.FC<ContainerProps> = ({
   selected,
   onClick,
   onChangeOrder,
+  onWidgetDelete,
   viewOnly,
 }) => {
   const theme = useTheme();
@@ -80,9 +88,20 @@ export const Container: React.FC<ContainerProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const handleMouseEnter = () => setIsHovered(true);
   const handleMouseLeave = () => setIsHovered(false);
+
+  const widgetIds = panel.widgets?.map((widget) => widget.id) || [];
+  const sortingStrategy =
+    panel.orientation === "horizontal" ? horizontalListSortingStrategy : verticalListSortingStrategy;
+
+  const { setNodeRef } = useDroppable({
+    id: panel.id,
+    data: panel,
+  });
+
   return (
     // OUTER SECTION
     <Box
+      ref={setNodeRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
@@ -249,7 +268,39 @@ export const Container: React.FC<ContainerProps> = ({
                   </>
                 )}
               </Stack>
+            ) : !viewOnly ? (
+              <SortableContext items={widgetIds} strategy={sortingStrategy}>
+                {panel.widgets?.map((widget) => (
+                  <Box
+                    key={widget.id}
+                    sx={{
+                      transition: "all 0.3s",
+                      ...(panel.config?.options?.style === "floated" && {
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor: alpha(
+                          theme.palette.background.paper,
+                          panel.config?.appearance?.opacity
+                        ),
+                        backdropFilter: `blur(${panel.config.appearance.backgroundBlur}px)`,
+                        boxShadow: `rgba(0, 0, 0, 0.2) 0px 0px ${panel.config.appearance.shadow}px`,
+                        margin: "0.5rem",
+                        borderRadius: "1rem",
+                        height: "fit-content",
+                        width: "calc(100% - 1rem)",
+                      }),
+                    }}>
+                    <WidgetWrapper
+                      widget={widget}
+                      projectLayers={projectLayers}
+                      viewOnly={viewOnly}
+                      onWidgetDelete={onWidgetDelete}
+                    />
+                  </Box>
+                ))}
+              </SortableContext>
             ) : (
+              // Render normally if viewOnly
               panel.widgets?.map((widget) => (
                 <Box
                   key={widget.id}
@@ -270,7 +321,12 @@ export const Container: React.FC<ContainerProps> = ({
                       width: "calc(100% - 1rem)",
                     }),
                   }}>
-                  <WidgetWrapper widget={widget} projectLayers={projectLayers} viewOnly={viewOnly} />
+                  <WidgetWrapper
+                    widget={widget}
+                    projectLayers={projectLayers}
+                    viewOnly={viewOnly}
+                    onWidgetDelete={onWidgetDelete}
+                  />
                 </Box>
               ))
             )}
@@ -280,45 +336,3 @@ export const Container: React.FC<ContainerProps> = ({
     </Box>
   );
 };
-
-// interface DroppableContainerProps extends ContainerProps {
-//   children?: React.ReactNode;
-//   disabled?: boolean;
-//   style?: React.CSSProperties;
-// }
-
-// // export const DroppableContainer: React.FC<DroppableContainerProps> = ({
-// //   children
-// //   disabled,
-// //   id,
-// //   items,
-// //   style,
-// //   ...props
-// // }) => {
-// //   const {
-// //     active,
-// //     attributes,
-// //     isDragging,
-// //     listeners,
-// //     over,
-// //     setNodeRef,
-// //     transition,
-// //     transform,
-// //   } = useSortable({
-// //     id,
-// //     data: {
-// //       type: 'container',
-// //       children: items,
-// //     }
-// //   });
-
-// //   return (
-// //     <Container
-// //       ref={setNodeRef}
-// //       id={id}
-// //       items={items}
-// //       {...props}
-// //       >
-// //       </Container>
-
-// // };

@@ -12,6 +12,12 @@ import { type FilterDataSchema, filterLayoutTypes } from "@/lib/validations/widg
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
+import {
+  WidgetDataSelector,
+  WidgetInfo,
+  WidgetOptions,
+} from "@/components/builder/widgets/common/WidgetCommonConfigs";
+import { WidgetStatusContainer } from "@/components/builder/widgets/common/WidgetStatusContainer";
 import SelectorLayerValue from "@/components/map/panels/common/SelectorLayerValue";
 
 // Helper function for deep comparison using JSON.stringify
@@ -29,7 +35,7 @@ interface FilterDataProps {
   viewOnly?: boolean;
 }
 
-const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataProps) => {
+export const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataProps) => {
   const dispatch = useAppDispatch();
   const { map } = useMap();
   const [selectedValues, setSelectedValues] = useState<string[] | string | undefined>(
@@ -132,6 +138,8 @@ const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataPr
 
   return (
     <Box sx={{ mb: 2 }}>
+      <WidgetStatusContainer isNotConfigured={!layer || !rawConfig?.setup?.column_name} height={100} />
+
       {layer &&
         rawConfig?.setup.column_name &&
         rawConfig?.setup.layout === filterLayoutTypes.Values.select && (
@@ -156,4 +164,88 @@ const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataPr
   );
 };
 
-export default FilterDataWidget;
+export const FilterDataConfiguration = ({
+  config,
+  onChange,
+}: {
+  config: FilterDataSchema;
+  onChange: (config: FilterDataSchema) => void;
+}) => {
+  return (
+    <>
+      <WidgetInfo
+        titleValue={config.setup?.title || ""}
+        onTitleChange={(value: string) =>
+          onChange({
+            ...config,
+            setup: {
+              ...config.setup,
+              title: value,
+            },
+          })
+        }
+        hasDescription
+        descriptionValue={config.options?.description || ""}
+        onDescriptionChange={(value: string) =>
+          onChange({
+            ...config,
+            options: {
+              ...config.options,
+              description: value,
+            },
+          })
+        }
+      />
+
+      <WidgetDataSelector
+        projectLayerId={config.setup?.layer_project_id}
+        columnName={config.setup?.column_name}
+        onProjectLayerIdChange={(layerId: number) => {
+          onChange({
+            ...config,
+            setup: {
+              ...config.setup,
+              column_name: undefined, // Reset column name when layer changes
+              layer_project_id: layerId,
+            },
+          });
+        }}
+        onColumnNameChange={(columnName: string | undefined) => {
+          onChange({
+            ...config,
+            setup: {
+              ...config.setup,
+              column_name: columnName,
+            },
+          });
+        }}
+      />
+
+      <WidgetOptions
+        sectionLabel="Options"
+        hasCrossFilter
+        crossFilter={config.options?.cross_filter}
+        onCrossFilterChange={(crossFilter: boolean) => {
+          onChange({
+            ...config,
+            options: {
+              ...config.options,
+              cross_filter: crossFilter,
+            },
+          });
+        }}
+        hasZoomToSelection
+        zoomToSelection={config.options?.zoom_to_selection}
+        onZoomToSelectionChange={(zoomToSelection: boolean) => {
+          onChange({
+            ...config,
+            options: {
+              ...config.options,
+              zoom_to_selection: zoomToSelection,
+            },
+          });
+        }}
+      />
+    </>
+  );
+};
