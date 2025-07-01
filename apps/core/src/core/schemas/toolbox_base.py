@@ -115,9 +115,9 @@ class CatchmentAreaType(str, Enum):
 class CatchmentAreaGeometryTypeMapping(str, Enum):
     """Catchment area geometry type mapping schema."""
 
-    polygon = FeatureGeometryType.polygon.value
-    network = FeatureGeometryType.line.value
-    rectangular_grid = FeatureGeometryType.polygon.value
+    polygon = FeatureGeometryType.polygon
+    network = FeatureGeometryType.line
+    rectangular_grid = FeatureGeometryType.polygon
 
 
 class IToolResponse(BaseModel):
@@ -244,7 +244,7 @@ class CommonToolParams:
         background_tasks: BackgroundTasks,
         async_session: AsyncSession = Depends(get_db),
         user_id: UUID = Depends(get_user_id),
-        project_id: str = Query(
+        project_id: UUID = Query(
             ...,
             title="Project ID of the project that contains the layers.",
             description="The project ID of the project that contains the layers.",

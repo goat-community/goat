@@ -1,4 +1,9 @@
+from typing import Any, Dict
+from uuid import UUID
+
+from fastapi import BackgroundTasks
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
 from core.core.job import job_init, job_log, run_background_or_immediately
@@ -19,14 +24,24 @@ from core.utils import (
 
 
 class CRUDJoin(CRUDToolBase):
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
 
     @job_log(JobType.join.value)
     async def join(
         self,
         params: IJoin,
-    ):
+    ) -> Dict[str, Any]:
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
+
         # Get layers
         layers_project = await self.get_layers_project(
             params=params,
@@ -134,5 +149,5 @@ class CRUDJoin(CRUDToolBase):
 
     @run_background_or_immediately(settings)
     @job_init()
-    async def join_run(self, params: IJoin):
+    async def join_run(self, params: IJoin) -> Dict[str, Any]:
         return await self.join(params=params)

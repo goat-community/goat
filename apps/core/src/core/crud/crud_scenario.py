@@ -1,7 +1,8 @@
-from typing import List
+from typing import Any, Dict, List
 from uuid import UUID
 
-from sqlalchemy import select, text
+from geojson import FeatureCollection
+from sqlalchemy import RowMapping, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, load_only
 
@@ -27,10 +28,10 @@ class CRUDScenario(CRUDBase[Scenario, IScenarioCreate, IScenarioUpdate]):
         layer_project: LayerProjectLink,
         feature_id: UUID,
         h3_3: int,
-    ):
+    ) -> RowMapping | None:
         """Get all features from the origin table."""
 
-        user_table = get_user_table(layer_project.layer.dict())
+        user_table = get_user_table(layer_project.layer.model_dump())
         origin_feature_result = await async_session.execute(
             text(f"""SELECT * FROM {user_table} WHERE id = :id AND h3_3 = :h3_3"""),
             {"id": feature_id, "h3_3": h3_3},
@@ -38,7 +39,7 @@ class CRUDScenario(CRUDBase[Scenario, IScenarioCreate, IScenarioUpdate]):
         origin_feature_obj = origin_feature_result.mappings().fetchone()
         return origin_feature_obj
 
-    def _get_rev_attr_mapping(self, layer_project):
+    def _get_rev_attr_mapping(self, layer_project: LayerProjectLink) -> Dict[str, Any]:
         """Get attribute mapping for a project layer."""
 
         attribute_mapping = layer_project.layer.attribute_mapping
@@ -46,13 +47,14 @@ class CRUDScenario(CRUDBase[Scenario, IScenarioCreate, IScenarioUpdate]):
             reversed_attribute_mapping = {v: k for k, v in attribute_mapping.items()}
             attribute_mapping = reversed_attribute_mapping
 
+        if attribute_mapping is None:
+            raise ValueError("Attribute mapping unavailable for layer")
+
         return attribute_mapping
 
     async def get_features(
-        self,
-        async_session: AsyncSession,
-        scenario_id: UUID,
-    ):
+        self, async_session: AsyncSession, scenario_id: UUID
+    ) -> List[Dict[str, Any]]:
         """Get all features of a scenario."""
 
         query = (
@@ -87,7 +89,7 @@ class CRUDScenario(CRUDBase[Scenario, IScenarioCreate, IScenarioUpdate]):
                 "created_at": feature.created_at,
             }
             for key, value in feature.dict().items():
-                if key in attribute_mapping:
+                if attribute_mapping is not None and key in attribute_mapping:
                     transformed_feature[attribute_mapping[key]] = value
 
             transformed_features.append(transformed_feature)
@@ -100,7 +102,7 @@ class CRUDScenario(CRUDBase[Scenario, IScenarioCreate, IScenarioUpdate]):
         user_id: UUID,
         scenario: Scenario,
         features: List[IScenarioFeatureCreate],
-    ):
+    ) -> FeatureCollection:
         """Create a feature in a scenario."""
 
         scenario_features = []
@@ -129,7 +131,7 @@ class CRUDScenario(CRUDBase[Scenario, IScenarioCreate, IScenarioUpdate]):
         layer_project: LayerProjectLink,
         scenario: Scenario,
         feature: IScenarioFeatureUpdate,
-    ):
+    ) -> ScenarioFeature:
         """Update a feature in a scenario."""
 
         attribute_mapping = self._get_rev_attr_mapping(layer_project)
@@ -185,7 +187,7 @@ class CRUDScenario(CRUDBase[Scenario, IScenarioCreate, IScenarioUpdate]):
         scenario: Scenario,
         feature_id: UUID,
         h3_3: int | None = None,
-    ):
+    ) -> ScenarioFeature:
         """Delete a feature from a scenario."""
 
         # Check if feature exists in the scenario_feature table

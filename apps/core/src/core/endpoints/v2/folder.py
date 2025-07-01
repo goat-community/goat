@@ -45,13 +45,20 @@ async def create_folder(
     async_session: AsyncSession = Depends(get_db),
     user_id: UUID4 = Depends(get_user_id),
     folder_in: FolderCreate = Body(..., example=folder_request_examples["create"]),
-):
+) -> FolderRead:
     """Create a new folder."""
     # Count already existing folders for the user
-    folder_cnt = await async_session.execute(
-        select(func.count(Folder.id)).filter(Folder.user_id == user_id)
-    )
-    folder_cnt = folder_cnt.scalar()
+    folder_cnt = (
+        await async_session.execute(
+            select(func.count(Folder.id)).filter(Folder.user_id == user_id)
+        )
+    ).scalar()
+
+    if not folder_cnt:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch folder count",
+        )
 
     # Check if the user has already reached the maximum number of folders
     if folder_cnt >= settings.MAX_FOLDER_COUNT:
@@ -61,7 +68,9 @@ async def create_folder(
         )
 
     folder_in.user_id = user_id
-    folder = await crud_folder.create(async_session, obj_in=folder_in)
+    folder = FolderRead(
+        **(await crud_folder.create(async_session, obj_in=folder_in)).model_dump()
+    )
     return folder
 
 
@@ -81,7 +90,7 @@ async def read_folder(
         description="The ID of the folder to get",
         example="3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ),
-):
+) -> FolderRead:
     """Retrieve a folder by its ID."""
     folder = await crud_folder.get_by_multi_keys(
         async_session, keys={"id": folder_id, "user_id": user_id}
@@ -92,7 +101,7 @@ async def read_folder(
             status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
 
-    return folder[0]
+    return FolderRead(**folder[0].model_dump())
 
 
 @router.get(
@@ -118,17 +127,21 @@ async def read_folders(
         description="Specify the order to apply. There are the option ascendent or descendent.",
         example="descendent",
     ),
-):
+) -> List[FolderRead]:
     """Retrieve a list of folders."""
     query = select(Folder).where(Folder.user_id == user_id)
-    folders = await crud_folder.get_multi(
-        async_session,
-        query=query,
-        search_text={"name": search} if search else {},
-        order_by=order_by,
-        order=order,
-    )
-    folders = [folder[0] for folder in folders]
+    folders: List[FolderRead] = [
+        folder[0]
+        for folder in (
+            await crud_folder.get_multi(
+                async_session,
+                query=query,
+                search_text={"name": search} if search else {},
+                order_by=order_by,
+                order=order,
+            )
+        )
+    ]
 
     return folders
 
@@ -150,7 +163,7 @@ async def update_folder(
     ),
     user_id: UUID4 = Depends(get_user_id),
     folder_in: FolderUpdate = Body(..., example=folder_request_examples["update"]),
-):
+) -> FolderUpdate:
     """Update a folder with new data."""
     db_obj = await crud_folder.get_by_multi_keys(
         async_session, keys={"id": folder_id, "user_id": user_id}
@@ -162,6 +175,13 @@ async def update_folder(
         )
 
     folder = await crud_folder.update(async_session, db_obj=db_obj[0], obj_in=folder_in)
+
+    if not isinstance(folder, FolderUpdate):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update folder",
+        )
+
     return folder
 
 
@@ -182,7 +202,7 @@ async def delete_folder(
     ),
     user_id: UUID4 = Depends(get_user_id),
     background_tasks: BackgroundTasks,
-):
+) -> None:
     """Delete a folder and all its contents"""
 
     await crud_folder.delete(

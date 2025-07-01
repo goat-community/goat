@@ -1,12 +1,16 @@
 import json
 from datetime import timedelta
+from typing import Any, Dict
+from uuid import UUID
 
+from fastapi import BackgroundTasks
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
 from core.core.job import job_init, job_log, run_background_or_immediately
 from core.core.tool import CRUDToolBase
-from core.db.models.layer import ToolType
+from core.db.models.layer import FeatureGeometryType, ToolType
 from core.schemas.job import JobStatusType
 from core.schemas.layer import IFeatureLayerToolCreate, UserDataGeomType
 from core.schemas.toolbox_base import DefaultResultLayerName
@@ -20,17 +24,28 @@ from core.utils import build_where_clause, format_value_null_sql
 class CRUDTripCountStation(CRUDToolBase):
     """CRUD for PT Trip Count."""
 
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
         self.result_table = (
             f"{settings.USER_DATA_SCHEMA}.point_{str(self.user_id).replace('-', '')}"
         )
 
     @job_log(job_step_name="trip_count_station")
-    async def trip_count(self, params: ITripCountStation):
+    async def trip_count(self, params: ITripCountStation) -> Dict[str, Any]:
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
+
         # Get Layer
-        layer_project = await self.get_layers_project(params=params)
-        layer_project = layer_project["reference_area_layer_project_id"]
+        layer_project = (await self.get_layers_project(params=params))[
+            "reference_area_layer_project_id"
+        ]
 
         input_table = layer_project.table_name
         where_query = build_where_clause([layer_project.where_query])
@@ -51,9 +66,11 @@ class CRUDTripCountStation(CRUDToolBase):
 
         result_layer = IFeatureLayerToolCreate(
             name=DefaultResultLayerName.trip_count_station.value,
-            feature_layer_geometry_type=UserDataGeomType.point.value,
+            feature_layer_geometry_type=FeatureGeometryType[
+                UserDataGeomType.point.value
+            ],
             attribute_mapping=attribute_mapping,
-            tool_type=ToolType.trip_count_station.value,
+            tool_type=ToolType.trip_count_station,
             job_id=self.job_id,
         )
 
@@ -94,5 +111,5 @@ class CRUDTripCountStation(CRUDToolBase):
 
     @run_background_or_immediately(settings)
     @job_init()
-    async def trip_count_run(self, params: ITripCountStation):
+    async def trip_count_run(self, params: ITripCountStation) -> Dict[str, Any]:
         return await self.trip_count(params=params)

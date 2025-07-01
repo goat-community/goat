@@ -1,12 +1,11 @@
-from typing import Any
+from typing import Any, List
 from uuid import UUID
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import SQLModel
 
 from core.crud.crud_layer_project import layer_project as crud_layer_project
-from core.db.models.layer import ToolType
+from core.db.models.layer import Layer, ToolType
 from core.schemas.project import (
     IFeatureStandardProjectRead,
     IFeatureToolProjectRead,
@@ -21,7 +20,6 @@ async def read_chart_data(
     layer_project_id: int,
     cumsum: bool = False,
 ) -> dict[str, Any]:
-
     # Get layer project data
     layer_project = await crud_layer_project.get_internal(
         async_session=async_session, project_id=project_id, id=layer_project_id
@@ -139,14 +137,18 @@ async def read_chart_data(
             """
 
     result = (await async_session.execute(text(sql))).fetchall()
-    data = {"x": result[0][0], "y": result[0][1], "group": result[0][2] if group_by else None}
+    data = {
+        "x": result[0][0],
+        "y": result[0][1],
+        "group": result[0][2] if group_by else None,
+    }
     return data
 
 
 class Chart:
     def __init__(
         self,
-        job_id: UUID,
+        job_id: UUID | None,
         async_session: AsyncSession,
         user_id: UUID,
     ) -> None:
@@ -156,14 +158,13 @@ class Chart:
 
     async def create_chart(
         self,
-        layer: SQLModel,
+        layer: Layer,
         layer_project: IFeatureStandardProjectRead | IFeatureToolProjectRead,
         operation: ColumnStatisticsOperation,
         x_label: str,
         y_label: str,
-        group_by: str | None = None,
+        group_by: List[str] | None = None,
     ) -> None:
-
         # Map columns
         chart_data = {
             "charts": {

@@ -50,7 +50,7 @@ async def check_reference_area(
         title="Tool Type",
         description="The type of the tool.",
     ),
-):
+) -> Msg:
     """Check if the reference area is suitable for the requested tool operation."""
     # Catch exception nand return HTTP error message
     crud_tool_base = CRUDToolBase(
@@ -66,7 +66,7 @@ async def check_reference_area(
         layer_project_id=layer_project_id,
         tool_type=tool_type,
     )
-    return result["msg"]
+    return Msg(text=result["msg"])
 
 
 @router.post(
@@ -80,21 +80,23 @@ async def join(
     common: CommonToolParams = Depends(),
     params: IJoin = Body(
         ...,
-        examples=request_examples_join,
+        example=request_examples_join,
         description="The join paramaters.",
     ),
-):
+) -> IToolResponse:
     """Join two layers based on a matching column and create a new layer containing the attributes of the target layer and the new column for the statistics results."""
 
-    return await start_calculation(
-        job_type=JobType.join,
-        tool_class=CRUDJoin,
-        crud_method="join_run",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.join,
+            tool_class=CRUDJoin,
+            crud_method="join_run",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )
 
 
@@ -110,20 +112,22 @@ async def aggregate_points(
     common: CommonToolParams = Depends(),
     params: IAggregationPoint = Body(
         ...,
-        examples=request_examples_aggregation_point,
+        example=request_examples_aggregation_point,
         description="The aggregation parameters.",
     ),
-):
+) -> IToolResponse:
     """Aggregate points and compute statistics on a group by column."""
-    return await start_calculation(
-        job_type=JobType.aggregate_point,
-        tool_class=CRUDAggregatePoint,
-        crud_method="aggregate_point_run",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.aggregate_point,
+            tool_class=CRUDAggregatePoint,
+            crud_method="aggregate_point_run",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )
 
 
@@ -139,20 +143,22 @@ async def aggregate_polygons(
     common: CommonToolParams = Depends(),
     params: IAggregationPolygon = Body(
         ...,
-        examples=request_examples_aggregation_polygon,
+        example=request_examples_aggregation_polygon,
         description="The aggregation parameters.",
     ),
-):
+) -> IToolResponse:
     """Aggregate polygons and compute statistics on a group by column."""
-    return await start_calculation(
-        job_type=JobType.aggregate_polygon,
-        tool_class=CRUDAggregatePolygon,
-        crud_method="aggregate_polygon_run",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.aggregate_polygon,
+            tool_class=CRUDAggregatePolygon,
+            crud_method="aggregate_polygon_run",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )
 
 
@@ -168,20 +174,22 @@ async def buffer(
     common: CommonToolParams = Depends(),
     params: IBuffer = Body(
         ...,
-        examples=request_example_buffer,
+        example=request_example_buffer,
         description="The buffer parameters.",
     ),
-):
+) -> IToolResponse:
     """Buffer points and compute statistics on a group by column."""
-    return await start_calculation(
-        job_type=JobType.buffer,
-        tool_class=CRUDBuffer,
-        crud_method="buffer_run",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.buffer,
+            tool_class=CRUDBuffer,
+            crud_method="buffer_run",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )
 
 
@@ -199,15 +207,17 @@ async def origin_destination(
         ...,
         description="The origin destination parameters.",
     ),
-):
+) -> IToolResponse:
     """Create origin destination matrix."""
-    return await start_calculation(
-        job_type=JobType.origin_destination,
-        tool_class=CRUDOriginDestination,
-        crud_method="origin_destination_run",
-        async_session=common.async_session,
-        user_id=common.user_id,
-        background_tasks=common.background_tasks,
-        project_id=common.project_id,
-        params=params,
+    return IToolResponse(
+        **await start_calculation(
+            job_type=JobType.origin_destination,
+            tool_class=CRUDOriginDestination,
+            crud_method="origin_destination_run",
+            async_session=common.async_session,
+            user_id=common.user_id,
+            background_tasks=common.background_tasks,
+            project_id=common.project_id,
+            params=params,
+        )
     )

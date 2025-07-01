@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List
 from uuid import UUID
 
 from fastapi import BackgroundTasks
@@ -20,7 +20,6 @@ from core.db.models.layer import FeatureType, Layer, LayerType, ToolType
 from core.schemas.common import CQLQueryObject, OrderEnum
 from core.schemas.error import (
     AreaSizeError,
-    ColumnTypeError,
     FeatureCountError,
     GeometryTypeError,
     LayerExtentError,
@@ -33,6 +32,12 @@ from core.schemas.layer import (
     FeatureGeometryType,
     IFeatureLayerToolCreate,
     UserDataGeomType,
+)
+from core.schemas.project import (
+    IFeatureStandardProjectRead,
+    IFeatureStreetNetworkProjectRead,
+    IFeatureToolProjectRead,
+    ITableProjectRead,
 )
 from core.schemas.style import (
     custom_styles,
@@ -52,11 +57,12 @@ from core.utils import (
     build_where_clause,
     format_value_null_sql,
     get_random_string,
-    search_value,
 )
 
 
-def assign_attribute(mapped_column, attribute_mapping, attribute_value):
+def assign_attribute(
+    mapped_column: str, attribute_mapping: Dict[str, Any], attribute_value: Any
+) -> Dict[str, Any]:
     base_attr = mapped_column.split("_")[0]
     attr1 = base_attr + "_attr1"
     if attr1 not in attribute_mapping:
@@ -72,15 +78,15 @@ def assign_attribute(mapped_column, attribute_mapping, attribute_value):
 
 async def start_calculation(
     job_type: JobType,
-    tool_class: object,
+    tool_class: type,
     crud_method: str,
     async_session: AsyncSession,
     user_id: UUID,
     background_tasks: BackgroundTasks,
     project_id: UUID,
     params: BaseModel,
-    http_client: AsyncClient = None,
-):
+    http_client: AsyncClient | None = None,
+) -> Dict[str, Any]:
     # Create job and check if user can create a new job
     job = await crud_job.check_and_create(
         async_session=async_session,
@@ -89,17 +95,17 @@ async def start_calculation(
         project_id=project_id,
     )
 
-    # Init class
-    tool = (
-        tool_class(
+    # Instantiate the class
+    if http_client is None:
+        tool = tool_class(
             job_id=job.id,
             background_tasks=background_tasks,
             async_session=async_session,
             user_id=user_id,
             project_id=project_id,
         )
-        if http_client is None
-        else tool_class(
+    else:
+        tool = tool_class(
             job_id=job.id,
             background_tasks=background_tasks,
             async_session=async_session,
@@ -107,7 +113,6 @@ async def start_calculation(
             project_id=project_id,
             http_client=http_client,
         )
-    )
 
     # Execute the CRUD method
     await getattr(tool, crud_method)(
@@ -118,18 +123,38 @@ async def start_calculation(
 
 
 class CRUDToolBase(StatisticsBase, CRUDFailedJob):
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID | None,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id)
         self.project_id = project_id
 
     async def build_additional_spatial_filter(
         self,
-        layer_project: BaseModel,
-        layer_project_filter: BaseModel,
-    ):
+        layer_project: IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | IFeatureStreetNetworkProjectRead
+        | ITableProjectRead,
+        layer_project_filter: IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | IFeatureStreetNetworkProjectRead,
+    ) -> BaseModel:
+        # Ensure spatial extent is available
+        if layer_project_filter.extent is None:
+            raise LayerExtentError(
+                "The layer_project_filter does not have an extent defined."
+            )
+
         # Add filter by extent to query
-        coords = layer_project_filter.extent[16:-3].split(", ")
-        coords = [[float(coord) for coord in point.split()] for point in coords]
+        coords = [
+            [float(coord) for coord in point.split()]
+            for point in layer_project_filter.extent[16:-3].split(", ")
+        ]
 
         # Add spatial filter to query
         spatial_filter = {
@@ -154,9 +179,9 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
 
     async def check_max_feature_cnt_aggregation(
         self,
-        layers_project: dict,
+        layers_project: Dict[str, Any],
         params: IToolParam,
-    ):
+    ) -> Dict[str, Any]:
         # Count exclusively features that are within the extent of the other layers
         source_layer_project = layers_project["source_layer_project_id"]
         aggregation_layer_project = layers_project.get("aggregation_layer_project_id")
@@ -169,25 +194,26 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
             return layers_project
         else:
             # Build array for layers to check
-            layers_project = []
+            layers_project_list = []
             source_layer_project = await self.build_additional_spatial_filter(
                 layer_project=source_layer_project,
                 layer_project_filter=aggregation_layer_project,
             )
-            layers_project.append(source_layer_project)
+            layers_project_list.append(source_layer_project)
             aggregation_layer_project = await self.build_additional_spatial_filter(
                 layer_project=aggregation_layer_project,
                 layer_project_filter=source_layer_project,
             )
-            layers_project.append(aggregation_layer_project)
+            layers_project_list.append(aggregation_layer_project)
 
             # Check if the feature count is below the limit
-            for layer_project in layers_project:
-                cnt = await crud_layer_project.get_feature_cnt(
-                    async_session=self.async_session,
-                    layer_project=layer_project,
-                )
-                cnt = cnt["filtered_count"]
+            for layer_project in layers_project_list:
+                cnt = (
+                    await crud_layer_project.get_feature_cnt(
+                        async_session=self.async_session,
+                        layer_project=layer_project,
+                    )
+                )["filtered_count"]
                 # Make sure that the count is below the limit for aggregation_point or aggregation_polygon
                 if cnt > MaxFeatureCnt[params.tool_type.value].value:
                     raise FeatureCountError(
@@ -198,7 +224,7 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
                 "aggregation_layer_project_id": aggregation_layer_project,
             }
 
-    async def get_layers_project(self, params: BaseModel):
+    async def get_layers_project(self, params: BaseModel) -> Dict[str, Any]:
         # Get all params that have the name layer_project_id and build a dict using the variable name as key
         layer_project_ids = {}
         for key, value in params.model_dump().items():
@@ -261,7 +287,7 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
         self,
         layer_in: IFeatureLayerToolCreate,
         params: BaseModel,
-    ):
+    ) -> Dict[str, Any]:
         # Get project to put the new layer in the same folder as the project
         project = await crud_project.get(self.async_session, id=self.project_id)
 
@@ -278,7 +304,7 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
         # TODO: Compute properties dynamically
         properties = get_base_style(layer_in.feature_layer_geometry_type)
         layer = Layer(
-            **layer_in.dict(exclude_none=True),
+            **layer_in.model_dump(exclude_none=True),
             folder_id=project.folder_id,
             user_id=self.user_id,
             type=LayerType.feature,
@@ -290,8 +316,10 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
         layer.size = await crud_layer.get_feature_layer_size(
             async_session=self.async_session, layer=layer
         )
-        layer.extent = await crud_layer.get_feature_layer_extent(
-            async_session=self.async_session, layer=layer
+        layer.extent = str(
+            await crud_layer.get_feature_layer_extent(
+                async_session=self.async_session, layer=layer
+            )
         )
         # Raise error if extent or size is None
         if layer.size is None:
@@ -421,7 +449,7 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
         self,
         layers_project: List[BaseModel] | List[SQLModel] | List[dict],
         tool_type: ToolType,
-    ):
+    ) -> None:
         for layer_project in layers_project:
             # Check if BaseModel or SQLModel
             if isinstance(layer_project, BaseModel) or isinstance(
@@ -441,9 +469,9 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
 
     async def check_reference_area_size(
         self,
-        layer_project: BaseModel | SQLModel | dict,
+        layer_project: BaseModel | SQLModel | Dict[str, Any],
         tool_type: ToolType,
-    ):
+    ) -> float:
         # Build where query for layer
         where_query = build_where_clause([layer_project.where_query])
 
@@ -461,16 +489,17 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
             SELECT *
             FROM basic.area_statistics(:operation, :table_name, :where_query)
         """)
-        res = await self.async_session.execute(
-            sql_query,
-            {
-                "operation": ColumnStatisticsOperation.sum.value,
-                "table_name": layer_project.table_name,
-                "where_query": where_query,
-            },
-        )
-        res = res.fetchall()
-        area = res[0][0]["sum"] / 1000000
+        res = (
+            await self.async_session.execute(
+                sql_query,
+                {
+                    "operation": ColumnStatisticsOperation.sum.value,
+                    "table_name": layer_project.table_name,
+                    "where_query": where_query,
+                },
+            )
+        ).fetchall()
+        area: float = res[0][0]["sum"] / 1000000
         if area > MaxFeaturePolygonArea[tool_type.value].value:
             raise AreaSizeError(
                 f"The operation cannot be performed on more than {MaxFeaturePolygonArea[tool_type.value].value} km2."
@@ -481,7 +510,7 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
         self,
         layer_project: BaseModel | SQLModel | dict,
         tool_type: MaxFeaturePolygonArea,
-    ):
+    ) -> Msg:
         # Build where query for layer
         where_query = build_where_clause([layer_project.where_query])
         geofence_table = GeofenceTable[tool_type.value].value
@@ -512,7 +541,9 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
             )
         return Msg(type=MsgType.info, text="All features are within the geofence.")
 
-    async def check_reference_area(self, layer_project_id: int, tool_type: ToolType):
+    async def check_reference_area(
+        self, layer_project_id: int, tool_type: ToolType
+    ) -> Dict[str, Any]:
         # Get layer project
         layer_project = await crud_layer_project.get_internal(
             async_session=self.async_session,
@@ -537,30 +568,31 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
             "layer_project": layer_project,
         }
 
-    async def check_column_same_type(
-        self, layers_project: BaseModel, columns: list[str]
-    ):
-        """Check if all columns are having the same type"""
+    # TODO: Remove if unused
+    # async def check_column_same_type(
+    #     self, layers_project: BaseModel, columns: list[str]
+    # ) -> None:
+    #     """Check if all columns are having the same type"""
 
-        # Check if len layers_project and columns are the same
-        if len(layers_project) != len(columns):
-            raise ValueError("The number of columns and layers are not the same.")
+    #     # Check if len layers_project and columns are the same
+    #     if len(layers_project) != len(columns):
+    #         raise ValueError("The number of columns and layers are not the same.")
 
-        # Populate mapped_field_type array
-        mapped_field_type = []
-        for i in range(len(layers_project)):
-            layer_project = layers_project[i]
-            column = columns[i]
+    #     # Populate mapped_field_type array
+    #     mapped_field_type = []
+    #     for i in range(len(layers_project)):
+    #         layer_project = layers_project[i]
+    #         column = columns[i]
 
-            # Get mapped field
-            mapped_field = search_value(layer_project.attribute_mapping, column)
-            mapped_field_type.append(mapped_field.split("_")[0])
+    #         # Get mapped field
+    #         mapped_field = search_value(layer_project.attribute_mapping, column)
+    #         mapped_field_type.append(mapped_field.split("_")[0])
 
-        # Check if all mapped_field_type are the same
-        if len(set(mapped_field_type)) != 1:
-            raise ColumnTypeError("The columns are not having the same type.")
+    #     # Check if all mapped_field_type are the same
+    #     if len(set(mapped_field_type)) != 1:
+    #         raise ColumnTypeError("The columns are not having the same type.")
 
-    async def create_temp_table_name(self, prefix: str):
+    async def create_temp_table_name(self, prefix: str) -> str:
         # Create temp table name
         table_suffix = str(self.job_id).replace("-", "")
         temp_table = f"temporal.{prefix}_{get_random_string(6)}_{table_suffix}"
@@ -568,9 +600,9 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
 
     async def create_distributed_polygon_table(
         self,
-        layer_project: BaseModel,
-        scenario_id: UUID,
-    ):
+        layer_project: IFeatureStandardProjectRead | IFeatureToolProjectRead,
+        scenario_id: UUID | None,
+    ) -> str:
         # Create table name
         temp_polygons = await self.create_temp_table_name("polygons")
 
@@ -600,9 +632,9 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
 
     async def create_distributed_line_table(
         self,
-        layer_project: BaseModel,
-        scenario_id: UUID,
-    ):
+        layer_project: IFeatureStandardProjectRead | IFeatureToolProjectRead,
+        scenario_id: UUID | None,
+    ) -> str:
         # Create temp table name for lines
         temp_lines = await self.create_temp_table_name("lines")
 
@@ -631,9 +663,9 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
 
     async def create_distributed_point_table(
         self,
-        layer_project: BaseModel,
-        scenario_id: UUID,
-    ):
+        layer_project: IFeatureStandardProjectRead | IFeatureToolProjectRead,
+        scenario_id: UUID | None,
+    ) -> str:
         # Create temp table name for points
         temp_points = await self.create_temp_table_name("points")
 
@@ -660,7 +692,9 @@ class CRUDToolBase(StatisticsBase, CRUDFailedJob):
         await self.async_session.commit()
         return temp_points
 
-    async def create_temp_table_layer(self, layer_project: BaseModel):
+    async def create_temp_table_layer(
+        self, layer_project: IFeatureStandardProjectRead | IFeatureToolProjectRead
+    ) -> str:
         """Create a temp table for the layer_project."""
 
         temp_geometry_layer = await self.create_temp_table_name("layer")

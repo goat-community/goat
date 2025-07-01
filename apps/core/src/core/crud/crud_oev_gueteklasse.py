@@ -1,9 +1,11 @@
 import json
 from datetime import timedelta
+from typing import Any, Dict
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel
+from fastapi import BackgroundTasks
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
 from core.core.job import job_init, job_log, run_background_or_immediately
@@ -12,13 +14,14 @@ from core.crud.crud_catchment_area import (
     call_routing_endpoint,
     create_temp_isochrone_table,
 )
-from core.db.models.layer import ToolType
+from core.db.models.layer import FeatureGeometryType, ToolType
 from core.endpoints.deps import get_http_client
 from core.schemas.catchment_area import CatchmentAreaRoutingModeActiveMobility
 from core.schemas.error import AreaSizeError
 from core.schemas.job import JobStatusType
 from core.schemas.layer import IFeatureLayerToolCreate, UserDataGeomType
 from core.schemas.oev_gueteklasse import CatchmentType, IOevGueteklasse
+from core.schemas.project import IFeatureStandardProjectRead, IFeatureToolProjectRead
 from core.schemas.toolbox_base import DefaultResultLayerName, MaxFeaturePolygonArea
 from core.utils import build_where_clause, format_value_null_sql
 
@@ -26,7 +29,14 @@ from core.utils import build_where_clause, format_value_null_sql
 class CRUDOevGueteklasse(CRUDToolBase):
     """CRUD for OEV-Gueteklasse."""
 
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
         self.table_stations = (
             f"{settings.USER_DATA_SCHEMA}.point_{str(self.user_id).replace('-', '')}"
@@ -40,9 +50,9 @@ class CRUDOevGueteklasse(CRUDToolBase):
     async def get_oev_gueteklasse_station_category(
         self,
         params: IOevGueteklasse,
-        reference_layer_project: BaseModel,
-        station_category_layer: BaseModel,
-    ):
+        reference_layer_project: IFeatureStandardProjectRead | IFeatureToolProjectRead,
+        station_category_layer: IFeatureLayerToolCreate,
+    ) -> Dict[str, Any]:
         """Get station category."""
 
         input_table = reference_layer_project.table_name
@@ -99,7 +109,7 @@ class CRUDOevGueteklasse(CRUDToolBase):
 
     async def create_difference_between_steps(
         self, temp_table_name: str, layer_id: UUID
-    ):
+    ) -> None:
         # Create difference between different buffers*
         await self.async_session.execute(
             text(f"""
@@ -122,10 +132,10 @@ class CRUDOevGueteklasse(CRUDToolBase):
     @job_log(job_step_name="station_buffer")
     async def compute_station_buffer(
         self,
-        station_category_layer: BaseModel,
-        catchment_layer: BaseModel,
-        station_config: dict,
-    ) -> dict:
+        station_category_layer: IFeatureLayerToolCreate,
+        catchment_layer: IFeatureLayerToolCreate,
+        station_config: Dict[str, Any],
+    ) -> Dict[str, Any]:
         """Compute station buffer."""
 
         # Create temp table names
@@ -165,11 +175,15 @@ class CRUDOevGueteklasse(CRUDToolBase):
             """)
         )
         await self.async_session.execute(
-            text(f"""CREATE INDEX ON {temp_buffered_stations} USING GIST(h3_3, geom);""")
+            text(
+                f"""CREATE INDEX ON {temp_buffered_stations} USING GIST(h3_3, geom);"""
+            )
         )
 
         # Union the buffers. It is not made use of citus distribution column here as it is a challenge to group over shards efficiently.
-        await self.async_session.execute(text(f"DROP TABLE IF EXISTS {temp_union_buffer};"))
+        await self.async_session.execute(
+            text(f"DROP TABLE IF EXISTS {temp_union_buffer};")
+        )
         await self.async_session.execute(
             text(f"""CREATE TABLE {temp_union_buffer} AS
             WITH clustered_buffer AS
@@ -206,11 +220,14 @@ class CRUDOevGueteklasse(CRUDToolBase):
     @job_log(job_step_name="station_buffer")
     async def compute_station_network_catchment(
         self,
-        station_category_layer: BaseModel,
-        catchment_layer: BaseModel,
-        station_config: dict,
-    ):
+        station_category_layer: IFeatureLayerToolCreate,
+        catchment_layer: IFeatureLayerToolCreate,
+        station_config: Dict[str, Any],
+    ) -> Dict[str, Any]:
         """Compute station network catchment."""
+
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         # Create temp table names
         table_suffix = str(self.job_id).replace("-", "")
@@ -247,8 +264,7 @@ class CRUDOevGueteklasse(CRUDToolBase):
                 WHERE layer_id = '{station_category_layer.id}'
                 AND integer_attr1 = {pt_class};
             """)
-            starting_points = await self.async_session.execute(query)
-            starting_points = starting_points.fetchall()
+            starting_points = (await self.async_session.execute(query)).fetchall()
 
             lons = starting_points[0][0]
             lats = starting_points[0][1]
@@ -317,8 +333,11 @@ class CRUDOevGueteklasse(CRUDToolBase):
 
     @run_background_or_immediately(settings)
     @job_init()
-    async def oev_gueteklasse_run(self, params: IOevGueteklasse):
+    async def oev_gueteklasse_run(self, params: IOevGueteklasse) -> Dict[str, Any]:
         """Compute ÖV-Güteklassen."""
+
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         # Check if reference layer qualifies for ÖV-Güteklassen
         layer_project = await self.get_layers_project(
@@ -342,7 +361,9 @@ class CRUDOevGueteklasse(CRUDToolBase):
         # Create layer object
         station_category_layer = IFeatureLayerToolCreate(
             name=DefaultResultLayerName.oev_gueteklasse_station.value,
-            feature_layer_geometry_type=UserDataGeomType.point.value,
+            feature_layer_geometry_type=FeatureGeometryType[
+                UserDataGeomType.point.value
+            ],
             attribute_mapping={
                 "text_attr1": "stop_id",
                 "text_attr2": "stop_name",
@@ -363,12 +384,14 @@ class CRUDOevGueteklasse(CRUDToolBase):
         # Create layer for buffer results
         catchment_layer = IFeatureLayerToolCreate(
             name=DefaultResultLayerName.oev_gueteklasse.value,
-            feature_layer_geometry_type=UserDataGeomType.polygon.value,
+            feature_layer_geometry_type=FeatureGeometryType[
+                UserDataGeomType.polygon.value
+            ],
             attribute_mapping={
                 "text_attr1": "pt_class",
                 "integer_attr1": "pt_class_number",
             },
-            tool_type=ToolType.oev_gueteklasse.value,
+            tool_type=ToolType.oev_gueteklasse,
             job_id=self.job_id,
         )
 
