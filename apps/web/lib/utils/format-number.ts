@@ -9,8 +9,8 @@ export const formatNumber = (
   const formatterOptions: Record<FormatNumberTypes, Intl.NumberFormatOptions> = {
     none: {},
     integer: { maximumFractionDigits: 0, useGrouping: false },
-    comma_separated: { maximumFractionDigits: 0 },
-    comma_separated_2d: { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+    grouping: { maximumFractionDigits: 0 },
+    grouping_2d: { minimumFractionDigits: 2, maximumFractionDigits: 2 },
     signed_2d: {
       signDisplay: 'always',
       minimumFractionDigits: 2,

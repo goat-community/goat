@@ -2,8 +2,6 @@ import { Box } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 
-import { useTranslation } from "@/i18n/client";
-
 import { updateProjectLayer } from "@/lib/api/projects";
 import { SYSTEM_LAYERS_IDS } from "@/lib/constants";
 import { updateProjectLayer as updateLocalProjectLayer } from "@/lib/store/layer/slice";
@@ -13,11 +11,7 @@ import type { LayerInformationSchema } from "@/lib/validations/widget";
 import { useFilteredProjectLayers, useLayerActions } from "@/hooks/map/LayerPanelHooks";
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
-import { WidgetInfo } from "@/components/builder/widgets/common/WidgetCommonConfigs";
 import { Legend } from "@/components/map/controls/Legend";
-import SectionHeader from "@/components/map/panels/common/SectionHeader";
-import SectionOptions from "@/components/map/panels/common/SectionOptions";
-import TextFieldInput from "@/components/map/panels/common/TextFieldInput";
 
 interface LayerInformationProps {
   config: LayerInformationSchema;
@@ -76,41 +70,5 @@ export const LayerInformationWidget = ({
         }}
       />
     </Box>
-  );
-};
-
-export const LayerInformationConfiguration = ({
-  config,
-  onChange,
-}: {
-  config: LayerInformationSchema;
-  onChange: (config: LayerInformationSchema) => void;
-}) => {
-  return (
-    <>
-      <WidgetInfo
-        titleValue={config.setup?.title || ""}
-        onTitleChange={(value: string) =>
-          onChange({
-            ...config,
-            setup: {
-              ...config.setup,
-              title: value,
-            },
-          })
-        }
-        hasDescription
-        descriptionValue={config.options?.description || ""}
-        onDescriptionChange={(value: string) =>
-          onChange({
-            ...config,
-            options: {
-              ...config.options,
-              description: value,
-            },
-          })
-        }
-      />
-    </>
   );
 };

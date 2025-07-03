@@ -18,15 +18,15 @@ export const sortTypes = z.enum(["asc", "desc"]);
 
 export const formatNumberTypes = z.enum([
   "none", // 1000
+  "decimal_max", // All decimals (up to 3)
   "integer", // 1000 (no commas)
-  "comma_separated", // 1,000
-  "comma_separated_2d", // 12,345.67
+  "grouping", // 1,000
+  "grouping_2d", // 12,345.67
   "signed_2d", // +12,345.67
   "compact", // 1k
   "compact_1d", // 12.3k
   "decimal_2", // 1.23
   "decimal_3", // 1.234
-  "decimal_max", // All decimals (up to 3)
   "currency_usd", // $12,345.67
   "currency_eur", // €12,345.67
   "percent", // 1%
@@ -213,6 +213,7 @@ export type WidgetTypes = z.infer<typeof widgetTypes>;
 export type OperationTypes = z.infer<typeof operationTypes>;
 export type SortTypes = z.infer<typeof sortTypes>;
 export type FormatNumberTypes = z.infer<typeof formatNumberTypes>;
+export type ChartConfigBaseSchema = z.infer<typeof chartsConfigBaseSchema>;
 export type HistogramChartSchema = z.infer<typeof histogramChartConfigSchema>;
 export type CategoriesChartSchema = z.infer<typeof categoriesChartConfigSchema>;
 export type PieChartSchema = z.infer<typeof pieChartConfigSchema>;
@@ -222,8 +223,11 @@ export type ImageElementSchema = z.infer<typeof imageElementConfigSchema>;
 export type LayerInformationSchema = z.infer<typeof informationLayersConfigSchema>;
 export type NumbersDataSchema = z.infer<typeof numbersDataConfigSchema>;
 export type FilterDataSchema = z.infer<typeof filterDataConfigSchema>;
+export type FilterLayoutTypes = z.infer<typeof filterLayoutTypes>;
 
 export type WidgetChartConfig = HistogramChartSchema | CategoriesChartSchema | PieChartSchema;
 export type WidgetElementConfig = TextElementSchema | DividerElementSchema | ImageElementSchema;
 export type WidgetInformationConfig = LayerInformationSchema;
 export type WidgetDataConfig = NumbersDataSchema | FilterDataSchema;
+
+export type WidgetConfigSchema = z.infer<typeof configSchemas>;

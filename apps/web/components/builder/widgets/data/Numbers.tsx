@@ -13,7 +13,6 @@ import { type NumbersDataSchema, numbersDataConfigSchema } from "@/lib/validatio
 import { useChartWidget } from "@/hooks/map/DashboardBuilderHooks";
 
 import { StaleDataLoader } from "@/components/builder/widgets/common/StaleDataLoader";
-import { WidgetDataSelector, WidgetInfo } from "@/components/builder/widgets/common/WidgetCommonConfigs";
 import { WidgetStatusContainer } from "@/components/builder/widgets/common/WidgetStatusContainer";
 
 interface NumbersDataProps {
@@ -93,57 +92,6 @@ export const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
       )}
 
       <StaleDataLoader isLoading={isLoading} hasData={!!aggregationStats} />
-    </>
-  );
-};
-
-export const NumbersDataConfiguration = ({
-  config,
-  onChange,
-}: {
-  config: NumbersDataSchema;
-  onChange: (config: NumbersDataSchema) => void;
-}) => {
-  return (
-    <>
-      <WidgetInfo
-        titleValue={config.setup?.title || ""}
-        onTitleChange={(value: string) =>
-          onChange({
-            ...config,
-            setup: {
-              ...config.setup,
-              title: value,
-            },
-          })
-        }
-        hasDescription
-        descriptionValue={config.options?.description || ""}
-        onDescriptionChange={(value: string) =>
-          onChange({
-            ...config,
-            options: {
-              ...config.options,
-              description: value,
-            },
-          })
-        }
-      />
-
-      <WidgetDataSelector
-        projectLayerId={config.setup?.layer_project_id}
-        hasColumnName={false}
-        onProjectLayerIdChange={(layerId: number) => {
-          onChange({
-            ...config,
-            setup: {
-              ...config.setup,
-              expression: undefined,
-              layer_project_id: layerId,
-            },
-          });
-        }}
-      />
     </>
   );
 };

@@ -1,4 +1,5 @@
-import { chartTypes, dataTypes, elementTypes, informationTypes, WidgetTypes } from "@/lib/validations/widget";
+import type { WidgetTypes } from "@/lib/validations/widget";
+import { chartTypes, dataTypes, elementTypes, informationTypes } from "@/lib/validations/widget";
 import {
     Bookmark as BookmarksIcon,
     Category as CategoriesIcon,
