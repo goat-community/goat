@@ -539,7 +539,7 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
 
         # Build count query
         sql_count_query = f"""
-            SELECT COUNT({mapped_statistics_field if mapped_statistics_field else '*'})
+            SELECT COUNT({mapped_statistics_field if mapped_statistics_field else "*"})
             FROM {layer_project.table_name}
             {where_query};
         """
@@ -554,7 +554,7 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
             SELECT *
             FROM (
                 SELECT {statistics_column_query} operation_value
-                    {f',{mapped_group_by_field}' if mapped_group_by_field else ''}
+                    {f",{mapped_group_by_field}" if mapped_group_by_field else ""}
                 FROM {layer_project.table_name}
                 {where_query}
                 {group_by_clause}
@@ -630,41 +630,56 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
             raise ValueError("Unable to fetch metadata for histogram statistics")
         total_count, min_val, max_val = result[0], result[1], result[2]
 
-        # Build final statistics queries
-        order_mapped = {"descendent": "DESC", "ascendent": "ASC"}[order]
-        sql_data_query = f"""
-            WITH bins AS (
-                SELECT generate_series(1, {num_bins}) AS bin_number
-            ),
-            histogram AS (
-                SELECT
-                    width_bucket({mapped_statistics_field}, {min_val}, {max_val + 1}, {num_bins}) AS bin_number,
-                    COUNT(*) AS count
-                FROM {layer_project.table_name}
-                {where_query}
-                AND {mapped_statistics_field} IS NOT NULL
-                GROUP BY bin_number
-            )
-            SELECT
-                bins.bin_number,
-                ROUND(({min_val} + (bins.bin_number - 1) * ({max_val} - {min_val}) / {num_bins})::NUMERIC, 2) AS lower_bound,
-                ROUND(({min_val} + bins.bin_number * ({max_val} - {min_val}) / {num_bins})::NUMERIC, 2) AS upper_bound,
-                COALESCE(histogram.count, 0) AS count
-            FROM bins
-            LEFT JOIN histogram ON bins.bin_number = histogram.bin_number
-            ORDER BY bins.bin_number {order_mapped};
-        """
-        final_result = (await async_session.execute(text(sql_data_query))).fetchall()
+        # The specified num_bins value is a limit, update the number of bins if necessary
+        if max_val is not None and min_val is not None:
+            if num_bins > max_val:
+                num_bins = (max_val + 1) - min_val
+        else:
+            num_bins = 0
 
         # Create a response object
-        missing_count = total_count - sum([res[3] for res in final_result])
         response = {
-            "bins": [
-                {"range": [res[1], res[2]], "count": res[3]} for res in final_result
-            ],
-            "missing_count": missing_count,
-            "total_rows": total_count,
+            "bins": [],
+            "missing_count": 0,
+            "total_rows": 0,
         }
+
+        # Execute final statistics query
+        if num_bins:
+            order_mapped = {"descendent": "DESC", "ascendent": "ASC"}[order]
+            sql_data_query = f"""
+                WITH bins AS (
+                    SELECT generate_series(1, {num_bins}) AS bin_number
+                ),
+                histogram AS (
+                    SELECT
+                        width_bucket({mapped_statistics_field}, {min_val}, {max_val + 1}, {num_bins}) AS bin_number,
+                        COUNT(*) AS count
+                    FROM {layer_project.table_name}
+                    {where_query}
+                    AND {mapped_statistics_field} IS NOT NULL
+                    GROUP BY bin_number
+                )
+                SELECT
+                    bins.bin_number,
+                    ROUND(({min_val} + (bins.bin_number - 1) * ({max_val} - {min_val}) / {num_bins})::NUMERIC, 2) AS lower_bound,
+                    ROUND(({min_val} + bins.bin_number * ({max_val} - {min_val}) / {num_bins})::NUMERIC, 2) AS upper_bound,
+                    COALESCE(histogram.count, 0) AS count
+                FROM bins
+                LEFT JOIN histogram ON bins.bin_number = histogram.bin_number
+                ORDER BY bins.bin_number {order_mapped};
+            """
+            final_result = (
+                await async_session.execute(text(sql_data_query))
+            ).fetchall()
+
+            # Update response object
+            missing_count = total_count - sum([res[3] for res in final_result])
+            response["bins"] = [
+                {"range": [res[1], res[2]], "count": res[3]} for res in final_result
+            ]
+            response["missing_count"] = missing_count
+            response["total_rows"] = total_count
         return response
 
 

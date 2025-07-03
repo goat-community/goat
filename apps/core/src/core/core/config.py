@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     TEST_MODE: bool = False
     ENVIRONMENT: str = "dev"
     API_V2_STR: str = "/api/v2"
-    DATA_DIR: str = "/app/data"
-    TEST_DATA_DIR: str = "/app/tests/data"
+    DATA_DIR: str = "/app/apps/core/data"
+    TEST_DATA_DIR: str = "/app/apps/core/tests/data"
     PROJECT_NAME: str = "GOAT Core API"
     USER_DATA_SCHEMA: str = "user_data"
     CUSTOMER_SCHEMA: str = "customer"
