@@ -7,6 +7,7 @@ from ._link_model import (
     ScenarioScenarioFeatureLink,
     UserProjectLink,
 )
+from .asset import UploadedAsset
 from .data_store import DataStore
 from .folder import Folder
 from .job import Job

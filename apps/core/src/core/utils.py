@@ -624,3 +624,5 @@ def format_value_null_sql(value: Any) -> str:
         return "NULL"
     else:
         return f"'{value}'"
+
+

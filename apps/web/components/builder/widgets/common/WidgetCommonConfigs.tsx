@@ -9,12 +9,8 @@ import { useTranslation } from "@/i18n/client";
 
 import { formatNumber } from "@/lib/utils/format-number";
 import { hasNestedSchemaPath } from "@/lib/utils/zod";
-import {
-  FormatNumberTypes,
-  WidgetConfigSchema,
-  formatNumberTypes,
-  widgetSchemaMap,
-} from "@/lib/validations/widget";
+import type { FormatNumberTypes, WidgetConfigSchema } from "@/lib/validations/widget";
+import { formatNumberTypes, widgetSchemaMap } from "@/lib/validations/widget";
 
 import type { SelectorItem } from "@/types/map/common";
 
@@ -22,6 +18,7 @@ import useLayerFields from "@/hooks/map/CommonHooks";
 import { useLayerByGeomType, useLayerDatasetId } from "@/hooks/map/ToolsHooks";
 
 import LayerFieldSelector from "@/components/map/common/LayerFieldSelector";
+import { StatisticSelector } from "@/components/map/common/StatisticSelector";
 import SectionHeader from "@/components/map/panels/common/SectionHeader";
 import SectionOptions from "@/components/map/panels/common/SectionOptions";
 import Selector from "@/components/map/panels/common/Selector";
@@ -30,7 +27,7 @@ import TextFieldInput from "@/components/map/panels/common/TextFieldInput";
 export interface WidgetConfigProps {
   active?: boolean;
   sectionLabel?: string;
-  config: WidgetConfigSchema; // Assume WidgetConfigSchema handles 'options' access directly for now
+  config: WidgetConfigSchema;
   onChange: (widget: WidgetConfigSchema) => void;
 }
 
@@ -82,7 +79,7 @@ export const NumberFormatSelector = ({
         value: format,
       };
     });
-  }, []);
+  }, [i18n.language, t]);
 
   const selectedFormat = useMemo(() => {
     return numberFormat ? numberFormats.find((item) => item.value === numberFormat) : undefined;
@@ -111,21 +108,14 @@ export const WidgetInfo = ({ sectionLabel, config, onChange }: WidgetConfigProps
     return hasNestedSchemaPath(schema, "options.description");
   }, [schema]);
 
-  /**
-   * Handles changes for properties nested under 'setup' or 'options' in the config.
-   * @param parentKey The top-level key ('setup' or 'options').
-   * @param propertyKey The nested key (e.g., 'title', 'description').
-   * @param value The new value for the property.
-   */
   const handleConfigChange = useCallback(
     (parentKey: "setup" | "options", propertyKey: string, value: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const currentParent = (config as any)[parentKey] || {};
-
       const updatedParent = {
         ...currentParent,
         [propertyKey]: value,
       };
-
       onChange({
         ...config,
         [parentKey]: updatedParent,
@@ -134,49 +124,59 @@ export const WidgetInfo = ({ sectionLabel, config, onChange }: WidgetConfigProps
     [config, onChange]
   );
 
+  const hasInfo = useMemo(() => {
+    return hasTitleDef || hasDescriptionDef;
+  }, [hasTitleDef, hasDescriptionDef]);
+
   return (
     <>
-      <SectionHeader
-        active
-        alwaysActive
-        label={sectionLabel ?? t("info")}
-        icon={ICON_NAME.CIRCLEINFO}
-        disableAdvanceOptions
-      />
-      <SectionOptions
-        active
-        baseOptions={
-          <>
-            {hasTitleDef && (
-              <TextFieldInput
-                type="text"
-                label={t("title")}
-                placeholder={t("add_widget_title")}
-                clearable={false}
-                // Safely access title, using 'as any' for now to match context
-                value={(config.setup as any)?.title || ""}
-                onChange={(value: string) => {
-                  handleConfigChange("setup", "title", value);
-                }}
-              />
-            )}
-            {hasDescriptionDef && (
-              <TextFieldInput
-                type="text"
-                label={t("description")}
-                placeholder={t("add_widget_description")}
-                multiline
-                clearable={false}
-                // Safely access description, using 'as any' for now to match context
-                value={(config as any)?.options?.description || ""}
-                onChange={(value: string) => {
-                  handleConfigChange("options", "description", value);
-                }}
-              />
-            )}
-          </>
-        }
-      />
+      {hasInfo && (
+        <>
+          <SectionHeader
+            active
+            alwaysActive
+            label={sectionLabel ?? t("info")}
+            icon={ICON_NAME.CIRCLEINFO}
+            disableAdvanceOptions
+          />
+          <SectionOptions
+            active
+            baseOptions={
+              <>
+                {hasTitleDef && (
+                  <TextFieldInput
+                    type="text"
+                    label={t("title")}
+                    placeholder={t("add_widget_title")}
+                    clearable={false}
+                    // Safely access title, using 'as any' for now to match context
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    value={(config.setup as any)?.title || ""}
+                    onChange={(value: string) => {
+                      handleConfigChange("setup", "title", value);
+                    }}
+                  />
+                )}
+                {hasDescriptionDef && (
+                  <TextFieldInput
+                    type="text"
+                    label={t("description")}
+                    placeholder={t("add_widget_description")}
+                    multiline
+                    clearable={false}
+                    // Safely access description, using 'as any' for now to match context
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    value={(config as any)?.options?.description || ""}
+                    onChange={(value: string) => {
+                      handleConfigChange("options", "description", value);
+                    }}
+                  />
+                )}
+              </>
+            }
+          />
+        </>
+      )}
     </>
   );
 };
@@ -195,9 +195,14 @@ export const WidgetData = ({ sectionLabel, config, onChange }: WidgetConfigProps
     return hasNestedSchemaPath(schema, "setup.column_name");
   }, [schema]);
 
+  const hasOperationDef = useMemo(() => {
+    return hasNestedSchemaPath(schema, "setup.operation_type");
+  }, [schema]);
+
   const selectedLayer = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return filteredLayers.find((layer) => layer.value === (config?.setup as any)?.layer_project_id);
-  }, [filteredLayers, (config?.setup as any)?.layer_project_id]);
+  }, [config?.setup, filteredLayers]);
 
   const selectedLayerDatasetId = useLayerDatasetId(
     selectedLayer?.value as number | undefined,
@@ -208,22 +213,9 @@ export const WidgetData = ({ sectionLabel, config, onChange }: WidgetConfigProps
 
   const selectedColumnName = useMemo(() => {
     if (!hasColumnNameDef || !selectedLayer) return undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return layerFields.find((field) => field.name === (config?.setup as any)?.column_name);
-  }, [hasColumnNameDef, selectedLayer, (config?.setup as any)?.column_name, layerFields]);
-
-  const handleConfigChange = useCallback(
-    (propertyKey: string, value: any) => {
-      const updatedSetup = {
-        ...(config.setup as any),
-        [propertyKey]: value,
-      };
-      onChange({
-        ...config,
-        setup: updatedSetup,
-      } as WidgetConfigSchema);
-    },
-    [config, onChange]
-  );
+  }, [hasColumnNameDef, selectedLayer, layerFields, config?.setup]);
 
   return (
     <>
@@ -242,7 +234,25 @@ export const WidgetData = ({ sectionLabel, config, onChange }: WidgetConfigProps
               <Selector
                 selectedItems={selectedLayer}
                 setSelectedItems={(item: SelectorItem | undefined) => {
-                  handleConfigChange("layer_project_id", item?.value);
+                  // handleConfigChange("layer_project_id", item?.value);
+                  const updatedSetup = {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ...(config.setup as any),
+                    layer_project_id: item?.value,
+                  };
+                  if (hasColumnNameDef) {
+                    // If a layer is selected, ensure column_name is reset
+                    updatedSetup.column_name = undefined;
+                  }
+                  if (hasOperationDef) {
+                    // If a layer is selected, ensure operation_type and operation_value are reset
+                    updatedSetup.operation_type = undefined;
+                    updatedSetup.operation_value = undefined;
+                  }
+                  onChange({
+                    ...config,
+                    setup: updatedSetup,
+                  } as WidgetConfigSchema);
                 }}
                 items={filteredLayers}
                 emptyMessage={t("no_layers_found")}
@@ -252,15 +262,46 @@ export const WidgetData = ({ sectionLabel, config, onChange }: WidgetConfigProps
               />
             )}
 
-            {selectedLayer && hasColumnNameDef && (
+            {selectedLayer && hasColumnNameDef && !hasOperationDef && (
               <LayerFieldSelector
                 fields={layerFields}
                 selectedField={selectedColumnName}
                 disabled={!selectedLayer}
                 setSelectedField={(field) => {
-                  handleConfigChange("column_name", field?.name);
+                  // handleConfigChange("column_name", field?.name);
+                  onChange({
+                    ...config,
+                    setup: {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      ...(config.setup as any),
+                      column_name: field?.name,
+                    },
+                  } as WidgetConfigSchema);
                 }}
                 label={t("select_field")}
+              />
+            )}
+            {selectedLayer && hasOperationDef && (
+              <StatisticSelector
+                layerProjectId={selectedLayer.value as number}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                value={{
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  method: (config.setup as any).operation_type,
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  value: (config.setup as any).operation_value,
+                }}
+                onChange={(value) => {
+                  onChange({
+                    ...config,
+                    setup: {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      ...(config.setup as any),
+                      operation_type: value.method,
+                      operation_value: value.value,
+                    },
+                  } as WidgetConfigSchema);
+                }}
               />
             )}
           </>
@@ -304,90 +345,102 @@ export const WidgetOptions = ({ active = true, sectionLabel, config, onChange }:
     [config, onChange]
   );
 
+  const hasOption = useMemo(() => {
+    return hasCrossFilterDef || hasFilterViewPortDef || hasZoomToSelectionDef || hasNumberFormatDef;
+  }, [hasCrossFilterDef, hasFilterViewPortDef, hasZoomToSelectionDef, hasNumberFormatDef]);
+
   return (
     <>
-      <SectionHeader
-        active={active}
-        alwaysActive
-        label={sectionLabel ?? t("options")}
-        disableAdvanceOptions
-        icon={ICON_NAME.SLIDERS}
-      />
-      <SectionOptions
-        active={active}
-        baseOptions={
-          <Stack>
-            {hasCrossFilterDef && (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    size="small"
-                    color="primary"
-                    // Access config.options safely, using 'as any' for now to match context.
-                    checked={!!(config as any)?.options?.cross_filter}
-                    onChange={(e) => {
-                      handleOptionChange("cross_filter", e.target.checked);
-                    }}
-                  />
-                }
-                label={
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <Typography variant="body2">{t("cross_filter")}</Typography>
-                    <Tooltip title={t("cross_filter_tooltip")} placement="top" arrow>
-                      <HelpOutlineIcon
-                        style={{
-                          fontSize: "12px",
+      {hasOption && (
+        <>
+          <SectionHeader
+            active={active}
+            alwaysActive
+            label={sectionLabel ?? t("options")}
+            disableAdvanceOptions
+            icon={ICON_NAME.SLIDERS}
+          />
+          <SectionOptions
+            active={active}
+            baseOptions={
+              <Stack>
+                {hasCrossFilterDef && (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        size="small"
+                        color="primary"
+                        // Access config.options safely, using 'as any' for now to match context.
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        checked={!!(config as any)?.options?.cross_filter}
+                        onChange={(e) => {
+                          handleOptionChange("cross_filter", e.target.checked);
                         }}
                       />
-                    </Tooltip>
+                    }
+                    label={
+                      <Stack direction="row" alignItems="center" spacing={2}>
+                        <Typography variant="body2">{t("cross_filter")}</Typography>
+                        <Tooltip title={t("cross_filter_tooltip")} placement="top" arrow>
+                          <HelpOutlineIcon
+                            style={{
+                              fontSize: "12px",
+                            }}
+                          />
+                        </Tooltip>
+                      </Stack>
+                    }
+                  />
+                )}
+
+                {hasFilterViewPortDef && (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        size="small"
+                        color="primary"
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        checked={!!(config as any)?.options?.filter_by_viewport}
+                        onChange={(e) => {
+                          handleOptionChange("filter_by_viewport", e.target.checked);
+                        }}
+                      />
+                    }
+                    label={<Typography variant="body2">{t("filter_viewport")}</Typography>}
+                  />
+                )}
+
+                {hasZoomToSelectionDef && (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        size="small"
+                        color="primary"
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        checked={!!(config as any)?.options?.zoom_to_selection}
+                        onChange={(e) => {
+                          handleOptionChange("zoom_to_selection", e.target.checked);
+                        }}
+                      />
+                    }
+                    label={<Typography variant="body2">{t("zoom_to_selection")}</Typography>}
+                  />
+                )}
+
+                {hasNumberFormatDef && (
+                  <Stack sx={{ mt: 2 }}>
+                    <NumberFormatSelector
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      numberFormat={(config as any)?.options?.format}
+                      onNumberFormatChange={(format) => handleOptionChange("format", format)}
+                    />
                   </Stack>
-                }
-              />
-            )}
-
-            {hasFilterViewPortDef && (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    size="small"
-                    color="primary"
-                    checked={!!(config as any)?.options?.filter_by_viewport}
-                    onChange={(e) => {
-                      handleOptionChange("filter_by_viewport", e.target.checked);
-                    }}
-                  />
-                }
-                label={<Typography variant="body2">{t("filter_viewport")}</Typography>}
-              />
-            )}
-
-            {hasZoomToSelectionDef && (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    size="small"
-                    color="primary"
-                    checked={!!(config as any)?.options?.zoom_to_selection}
-                    onChange={(e) => {
-                      handleOptionChange("zoom_to_selection", e.target.checked);
-                    }}
-                  />
-                }
-                label={<Typography variant="body2">{t("zoom_to_selection")}</Typography>}
-              />
-            )}
-
-            {hasNumberFormatDef && (
-              <Stack sx={{ mt: 2 }}>
-                <NumberFormatSelector
-                  numberFormat={(config as any)?.options?.format}
-                  onNumberFormatChange={(format) => handleOptionChange("format", format)}
-                />
+                )}
               </Stack>
-            )}
-          </Stack>
-        }
-      />
+            }
+          />
+        </>
+      )}
     </>
   );
 };

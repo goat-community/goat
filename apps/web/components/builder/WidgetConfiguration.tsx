@@ -36,6 +36,7 @@ const WidgetConfiguration = ({ onChange }: WidgetConfigurationProps) => {
     });
   };
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const hasDataConfig = useMemo(() => {
     return hasNestedSchemaPath(schema, "setup.layer_project_id");
   }, [schema]);

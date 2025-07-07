@@ -122,6 +122,11 @@ class Settings(BaseSettings):
     MAPBOX_TOKEN: Optional[str] = None
     MAPTILER_TOKEN: Optional[str] = None
 
+    AWS_ACCESS_KEY_ID: Optional[str] = None
+    AWS_SECRET_ACCESS_KEY: Optional[str] = None
+    AWS_REGION: Optional[str] = "eu-central-1"
+    AWS_S3_ASSETS_BUCKET: Optional[str] = "plan4better-assets"
+
     DEFAULT_PROJECT_THUMBNAIL: Optional[str] = (
         "https://assets.plan4better.de/img/goat_new_project_artwork.png"
     )

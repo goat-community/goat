@@ -82,7 +82,7 @@ export const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
         height={100}
       />
 
-      {config && !isError && aggregationStats && (
+      {config && !isError && aggregationStats && isWidgetConfigured && (
         <Stack direction="row" spacing={4} alignItems="center">
           {renderIcon}
           <Typography variant="h4" fontWeight="bold">

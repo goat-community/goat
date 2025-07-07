@@ -23,6 +23,7 @@
     "github.github-vscode-theme",
     "ms-vscode.vscode-copilot-vision", // GitHub Copilot Vision
     "ms-vscode.vscode-copilot-data-analysis", // GitHub Copilot Data Analysis
+    "yoavbls.pretty-ts-errors",
     "gruntfuggly.todo-tree", // todo tree
     "aaron-bond.better-comments", // better comments
   ]

@@ -20,6 +20,7 @@ import {
   faBarsProgress,
   faBicycle,
   faBook,
+  faBookmark,
   faBug,
   faBuilding,
   faBullseye,
@@ -46,6 +47,7 @@ import {
   faClock,
   faClone,
   faClose,
+  faComment,
   faCompassDrafting,
   faCookieBite,
   faCopy,
@@ -71,6 +73,7 @@ import {
   faFloppyDisk,
   faFolder,
   faFolderPlus,
+  faFont,
   faGears,
   faGlobe,
   faGripHorizontal,
@@ -135,14 +138,17 @@ import {
   aggregateIcon,
   arcgisFeatureServiceIcon,
   boundingBoxIcon,
+  categories,
   comingSoonIcon,
   dataCategoryIcon,
+  divider,
   funicularIcon,
   geojsonIcon,
   gondolaIcon,
   hexagonIcon,
   licenseIcon,
   lineIcon,
+  number,
   pointIcon,
   polygonIcon,
   streetNetworkIcon,
@@ -263,6 +269,9 @@ export enum ICON_NAME {
   GRIP_VERTICAL = "grip-vertical",
   IMAGE = "image",
   LIST = "list",
+  BOOKMARK = "bookmark",
+  COMMENT = "comment",
+  FONT = "font",
   // Brand icons
   GOOGLE = "google",
   MICROSOFT = "microsoft",
@@ -299,6 +308,9 @@ export enum ICON_NAME {
   GEOJSON = "geojson",
   PANEL_APPERANCE = "panel-appearance",
   PANEL_POSITION = "panel-position",
+  DIVIDER = "divider",
+  NUMBER = "number",
+  "CATEGORIES" = "categories",
 }
 
 const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
@@ -411,6 +423,9 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.GRIP_VERTICAL]: faGripVertical,
   [ICON_NAME.IMAGE]: faImage,
   [ICON_NAME.LIST]: faList,
+  [ICON_NAME.BOOKMARK]: faBookmark,
+  [ICON_NAME.COMMENT]: faComment,
+  [ICON_NAME.FONT]: faFont,
   // Brand icons
   [ICON_NAME.GOOGLE]: faGoogle,
   [ICON_NAME.MICROSOFT]: faMicrosoft,
@@ -448,6 +463,9 @@ const nameToIcon: { [k in ICON_NAME]: IconDefinition } = {
   [ICON_NAME.GEOJSON]: geojsonIcon,
   [ICON_NAME.PANEL_POSITION]: faAlignCenter,
   [ICON_NAME.PANEL_APPERANCE]: faCircleHalfStroke,
+  [ICON_NAME.DIVIDER]: divider,
+  [ICON_NAME.NUMBER]: number,
+  [ICON_NAME.CATEGORIES]: categories,
 };
 
 interface BrandColors {

@@ -596,25 +596,20 @@ async def get_statistic_aggregation(
         description="Layer Project ID to get chart data",
         example="1",
     ),
-    column_name: str | None = Query(
-        None,
-        description="The column name to get the unique values from",
-        example="name",
-    ),
-    operation: ColumnStatisticsOperation | None = Query(
+    operation_type: ColumnStatisticsOperation | None = Query(
         None,
         description="The operation to perform",
         example="sum",
+    ),
+    operation_value: str | None = Query(
+        None,
+        description="The value to use for the operation. Column name for operations like sum, avg or QGIS expression for expression operations.",
+        example="population",
     ),
     group_by_column_name: str | None = Query(
         None,
         description="The name of the column to group by",
         example="name",
-    ),
-    expression: str | None = Query(
-        None,
-        description="The QGIS expression to use for the statistic operation",
-        example='sum("population")',
     ),
     size: int = Query(
         100, description="The number of grouped values to return", example=5
@@ -647,29 +642,23 @@ async def get_statistic_aggregation(
             )
 
     # Ensure an operation or expression is specified
-    if operation is None and expression is None:
+    if operation_type is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="An operation or expression must be specified.",
+            detail="An operation must be specified.",
         )
 
     # Ensure a column name is specified for all operations except count
     if (
-        operation
-        and operation != ColumnStatisticsOperation.count
-        and column_name is None
+        operation_type
+        and operation_type != ColumnStatisticsOperation.count
+        and operation_value is None
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A column name must be specified for all operations except count.",
+            detail="A column name or expression must be specified for the operation except for count.",
         )
 
-    # If an operation is specified, a group-by column name must also be specified
-    if operation and group_by_column_name is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A group-by column name must be specified.",
-        )
 
     # Ensure the size is not excessively large
     if size > 100:
@@ -683,10 +672,9 @@ async def get_statistic_aggregation(
             async_session=async_session,
             project_id=project_id,
             layer_project_id=layer_project_id,
-            column_name=column_name,
-            operation=operation,
+            operation_type=operation_type,
             group_by_column_name=group_by_column_name,
-            expression=expression,
+            operation_value=operation_value,
             size=size,
             query=query,
             order=order,

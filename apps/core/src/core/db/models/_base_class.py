@@ -13,7 +13,7 @@ class DateTimeBase(SQLModel):
 
     updated_at: datetime | None = Field(
         default_factory=lambda: datetime.now(timezone.utc),
-        sa_type=DateTime,
+        sa_type=DateTime(timezone=True),
         sa_column_kwargs={
             "onupdate": datetime.now(timezone.utc),
         },
@@ -21,7 +21,7 @@ class DateTimeBase(SQLModel):
     )
     created_at: datetime | None = Field(
         default=None,
-        sa_type=DateTime,
+        sa_type=DateTime(timezone=True),
         sa_column_kwargs={
             "server_default": text(
                 """to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SSOF')::timestamptz"""

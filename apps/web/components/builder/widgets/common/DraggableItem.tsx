@@ -1,6 +1,8 @@
 import { useDraggable } from "@dnd-kit/core";
-import { Box, Typography, styled } from "@mui/material";
+import { Card, CardHeader, Stack, Typography, useTheme } from "@mui/material";
 import React from "react";
+
+import { Icon } from "@p4b/ui/components/Icon";
 
 import { useTranslation } from "@/i18n/client";
 
@@ -12,51 +14,6 @@ export interface DraggableItemProps {
   widgetType: WidgetTypes;
   isDragging?: boolean;
 }
-
-const SquareItem = styled(Box)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  height: 64,
-  width: 64,
-  borderRadius: 8,
-  border: `1px solid ${theme.palette.divider}`,
-  "&:hover": {
-    borderColor: theme.palette.primary.main,
-    backgroundColor: theme.palette.action.hover,
-  },
-}));
-
-const CardTile = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-start",
-  height: 64,
-  width: 160,
-  borderRadius: 8,
-  border: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
-  boxShadow: theme.shadows[4], // Add elevation (shadow)
-  padding: theme.spacing(3), // Add some padding
-}));
-
-const Label = styled(Typography)(({ theme }) => ({
-  marginTop: theme.spacing(0.5),
-  textAlign: "center",
-  maxWidth: 64,
-  wordWrap: "break-word",
-  overflowWrap: "break-word",
-  whiteSpace: "normal",
-}));
-
-const CardTileLabel = styled(Typography)(({ theme }) => ({
-  marginLeft: theme.spacing(1.5), // Add spacing between icon and label
-  textAlign: "left",
-  whiteSpace: "nowrap", // Prevent label from wrapping
-  overflow: "hidden",
-  textOverflow: "ellipsis", // Add ellipsis for long labels
-}));
 
 export function Draggable(props) {
   const Element = props.element || "div";
@@ -71,23 +28,47 @@ export function Draggable(props) {
   );
 }
 
-export const DraggableItem = ({ widgetType, isDragging = false }: DraggableItemProps) => {
+export const DraggableItem = ({ widgetType, isDragging }: DraggableItemProps) => {
   const { t } = useTranslation("common");
+  const theme = useTheme();
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "grab" }}>
-      {isDragging ? (
-        <CardTile>
-          {iconMap[widgetType] && React.createElement(iconMap[widgetType], { fontSize: "medium" })}
-          <CardTileLabel variant="body2">{t(widgetType)}</CardTileLabel>
-        </CardTile>
-      ) : (
-        <>
-          <SquareItem>
-            {iconMap[widgetType] && React.createElement(iconMap[widgetType], { fontSize: "medium" })}
-          </SquareItem>
-          <Label variant="caption">{t(widgetType)}</Label>
-        </>
-      )}
-    </Box>
+    <Card
+      sx={{
+        cursor: isDragging ? "grabbing" : "grab",
+        maxWidth: "130px",
+        borderRadius: "6px",
+      }}>
+      <CardHeader
+        sx={{
+          px: 2,
+          py: 4,
+          ".MuiCardHeader-content": {
+            width: "100%",
+            color: isDragging ? theme.palette.primary.main : theme.palette.text.secondary,
+          },
+        }}
+        title={
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={2}
+            style={{
+              color: theme.palette.text.secondary,
+            }}>
+            <Typography variant="body2" fontWeight="bold" noWrap color="inherit">
+              {t(widgetType)}
+            </Typography>
+            <Icon
+              iconName={iconMap[widgetType]}
+              style={{
+                fontSize: "1.2rem",
+                color: isDragging ? theme.palette.primary.main : "inherit",
+              }}
+            />
+          </Stack>
+        }
+      />
+    </Card>
   );
 };

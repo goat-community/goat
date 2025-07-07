@@ -5,14 +5,10 @@ import { ICON_NAME } from "@p4b/ui/components/Icon";
 
 import { useTranslation } from "@/i18n/client";
 
-import {
-  FilterDataSchema,
-  FilterLayoutTypes,
-  WidgetDataConfig,
-  filterLayoutTypes,
-} from "@/lib/validations/widget";
+import type { FilterDataSchema, FilterLayoutTypes, WidgetDataConfig } from "@/lib/validations/widget";
+import { filterLayoutTypes } from "@/lib/validations/widget";
 
-import { SelectorItem } from "@/types/map/common";
+import type { SelectorItem } from "@/types/map/common";
 
 import SectionHeader from "@/components/map/panels/common/SectionHeader";
 import SectionOptions from "@/components/map/panels/common/SectionOptions";

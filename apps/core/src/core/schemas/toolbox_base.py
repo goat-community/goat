@@ -22,6 +22,8 @@ class ColumnStatisticsOperation(str, Enum):
     sum = "sum"
     min = "min"
     max = "max"
+    expression = "expression"
+
 
 
 class ColumnStatistic(BaseModel):

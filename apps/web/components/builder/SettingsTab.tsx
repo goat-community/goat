@@ -2,6 +2,8 @@ import { Box, Button, Divider, Stack, Switch, Typography } from "@mui/material";
 
 import { useTranslation } from "@/i18n/client";
 
+import SettingsGroupHeader from "@/components/builder/widgets/common/SettingsGroupHeader";
+
 interface SettingsTabProps {
   settings: { [key: string]: boolean };
   onChange: (name: string, value: boolean) => void;
@@ -51,10 +53,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onChange, onReset }
       <Stack direction="column">
         {settingsGroups.map((group) => (
           <Box key={group.group} sx={{ mb: 6 }}>
-            <Typography variant="body1" gutterBottom>
-              {group.label}
-            </Typography>
-            <Divider />
+            <SettingsGroupHeader label={t(group.label)} />
             <Stack spacing={1}>
               {group.options.map(
                 (option) =>

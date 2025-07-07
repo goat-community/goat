@@ -44,7 +44,7 @@ exclude = ["venv", ".venv", "alembic"]
 [tool.ruff.lint]
 select = ["F", "E", "W", "N", "I", "ANN"]
 ignore = ["E501", "ANN101", "ANN102", "ANN401"]
-per-file-ignores = { "*/__init__.py" = ["F401"] }
+per-file-ignores = { "*/__init__.py" = ["F401"], "*/alembic/*" = ["ANN", "F401", "I001", "W291"] }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

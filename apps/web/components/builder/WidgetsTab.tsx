@@ -9,6 +9,7 @@ import type { WidgetTypes } from "@/lib/validations/widget";
 import { chartTypes, dataTypes, elementTypes, informationTypes } from "@/lib/validations/widget";
 
 import { DraggableItem } from "@/components/builder/widgets/common/DraggableItem";
+import SettingsGroupHeader from "@/components/builder/widgets/common/SettingsGroupHeader";
 
 function Draggable(props) {
   const Element = props.element || "div";
@@ -116,14 +117,11 @@ const WidgetTab = () => {
           <Stack spacing={4} sx={{ p: 3 }}>
             <Box>
               {filteredSections.map((section) => (
-                <Box key={section.group}>
-                  <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: "bold" }}>
-                    {t(section.group)}
-                  </Typography>
-                  <Divider sx={{ mt: 0, mb: 4 }} />
+                <Box key={section.group} sx={{ mb: 8 }}>
+                  <SettingsGroupHeader label={t(section.group)} />
                   <Grid container spacing={4}>
                     {section.widgets.map((widget) => (
-                      <Grid item xs={3} key={widget}>
+                      <Grid item xs={6} key={widget}>
                         <Draggable id={widget}>
                           <DraggableItem widgetType={widget} />
                         </Draggable>

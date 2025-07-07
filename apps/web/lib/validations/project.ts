@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-import { contentMetadataSchema, getContentQueryParamsSchema, orderByEnum } from "@/lib/validations/common";
+import { contentMetadataSchema, getContentQueryParamsSchema, orderByEnum, statisticOperationEnum } from "@/lib/validations/common";
 import { layerSchema } from "@/lib/validations/layer";
 import { responseSchema } from "@/lib/validations/response";
 import { publicUserSchema } from "@/lib/validations/user";
@@ -163,11 +163,26 @@ export const projectLayersResponseSchema = responseSchema(projectLayerSchema);
 
 // Stats for project layer
 export const aggregationStatsQueryParams = z.object({
-  expression: z.string().optional(),
+  operation_type: statisticOperationEnum,
+  operation_value: z.string().optional(),
   size: z.number().default(10),
   query: z.string().optional(),
   order: orderByEnum.optional(),
+}).superRefine((val, ctx) => {
+  if (val.operation_type !== statisticOperationEnum.Values.count && !val.operation_value) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "operation_value is required unless operation_type is 'count'",
+      path: ["operation_value"],
+    });
+  }
+}).transform((data) => {
+  if (data.operation_type === statisticOperationEnum.Enum.count) {
+    delete data.operation_value;
+  }
+  return data;
 });
+
 
 export const aggregationStatsResponseSchema = z.object({
   items: z.array(

@@ -454,10 +454,9 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
         async_session: AsyncSession,
         project_id: UUID,
         layer_project_id: int,
-        column_name: str | None,
-        operation: ColumnStatisticsOperation | None,
+        operation_type: ColumnStatisticsOperation,
+        operation_value: str | None,
         group_by_column_name: str | None,
-        expression: str | None,
         size: int,
         query: str,
         order: str,
@@ -474,8 +473,8 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
         mapped_statistics_field = None
 
         # For expression-based operations, validate columns and attribute mapping
-        if expression:
-            converter = QgsExpressionToSqlConverter(expression)
+        if operation_type == ColumnStatisticsOperation.expression and operation_value is not None:
+            converter = QgsExpressionToSqlConverter(operation_value)
             column_names = converter.extract_field_names()
             for column in column_names:
                 try:
@@ -495,32 +494,28 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
             # Convert expression to SQL
             statistics_column_query, mapped_group_by_field = converter.translate()
         else:
-            # An operation must be speicfied if no expression is provided
-            if not operation:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="Operation must be specified if no expression is provided.",
-                )
 
             # Check if mapped statistics field is float, integer or biginteger
             mapped_statistics_field = (
                 await self.check_column_statistics(
                     layer_project=layer_project,
-                    column_name=column_name,
-                    operation=operation,
+                    column_name=operation_value,
+                    operation=operation_type,
                 )
             )["mapped_statistics_field"]
 
             # TODO: Consider performing a data type check on the group-by column
-            mapped_group_by_field = search_value(
-                layer_project.attribute_mapping,
-                group_by_column_name,
-            )
+            mapped_group_by_field = None
+            if group_by_column_name is not None:
+                mapped_group_by_field = search_value(
+                    layer_project.attribute_mapping,
+                    group_by_column_name,
+                )
 
             # Build statistics portion of select clause
             statistics_column_query = self.get_statistics_sql(
                 field=mapped_statistics_field,
-                operation=operation,
+                operation=operation_type,
             )
 
         # Build where clause combining layer project and CQL query

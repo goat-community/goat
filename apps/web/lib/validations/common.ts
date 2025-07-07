@@ -64,7 +64,12 @@ export const featureLayerGeometryType = z.enum(["point", "line", "polygon"]);
 export const vectorDataType = z.enum(["mvt", "wfs"]);
 export const imageryDataType = z.enum(["xyz", "wms", "wmts"]);
 export const dataType = z.union([vectorDataType, imageryDataType]);
+export const sortTypes = z.enum(["asc", "desc"]);
+export const statisticOperationEnum = z.enum(["count", "sum", "mean", "median", "min", "max", "expression"]);
 
+
+export type SortType = z.infer<typeof sortTypes>;
+export type StatisticOperation = z.infer<typeof statisticOperationEnum>;
 export type LayerType = z.infer<typeof layerType>;
 export type DataLicense = z.infer<typeof dataLicense>;
 export type DataCategory = z.infer<typeof dataCategory>;
