@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 # Labels
 
-You can display labels on your layers **based on any attribute**. Labels make your map *easier to read and more informative.
+You can display labels on your layers **based on any attribute**. Labels make your map easier to read and more informative.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
   <img src={require('/img/map/styling/style_label.png').default} alt="label font size" style={{ maxHeight: "Auto", maxWidth: "Auto", objectFit: "cover"}}/>
