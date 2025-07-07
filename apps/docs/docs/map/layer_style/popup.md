@@ -26,7 +26,7 @@ Popups let you **display relevant information when clicking on a feature** on yo
 You can customize **which fields should appear and rename** them, making the information more user-friendly.
 
 - First **choose the attribute fields** you want to display in the popup. You can select multiple fields, and they will be shown in the order you choose.
-- After the selection, you can **rename the fileds**.
+- After the selection, you can **rename the fields**.
 - Don't forget to click on the <button>Save</button> button to save your changes.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
