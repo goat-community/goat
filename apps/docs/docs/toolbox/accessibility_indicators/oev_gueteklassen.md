@@ -131,6 +131,8 @@ The created buffers/network catchment areas are visualized around the stations i
 ## 5. Further readings
 
 Sample projects where ÖV-Güteklassen was used:
+
+- [Germany-Wide Assessment of Public Transport Accessibility Through Public Transport Quality Classes white paper](https://www.plan4better.de/en/whitepapers/ov-erschliessung)
 - [Accessibility analyses for the "Mobility Guarantee" and "Public Transport Atlas" projects](https://www.plan4better.de/en/references/accessibility-analyses-for-the-mobility-guarantee-and-public-transport-atlas-projects) 
 - [Calculation of public transport quality classes in Austria](https://www.plan4better.de/en/references/guteklassen-osterreich)
 - [Calculation of public transport quality classes in Germany](https://www.plan4better.de/en/references/calculation-of-public-transport-quality-classes-in-germany)
