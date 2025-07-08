@@ -267,8 +267,7 @@ def job_log(
         async def wrapper(*args: Any, **kwargs: Any) -> Dict[str, Any]:
             # Get async_session
             self = args[0] if args else None
-            if not self or not isinstance(self, CRUDFailedJob):
-                raise ValueError("Job started from unsupported class.")
+
             # Check if job_id and async_session are provided in kwards else search them in the class
             job_id: UUID
             if kwargs.get("job_id"):
