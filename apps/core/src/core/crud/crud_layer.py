@@ -825,7 +825,7 @@ class CRUDLayerImport(CRUDFailedJob):
         )
 
         # Update size
-        layer_in.size = await CRUDLayer(Layer).get_feature_layer_size(
+        layer_model_obj.size = await CRUDLayer(Layer).get_feature_layer_size(
             async_session=self.async_session, layer=layer_model_obj
         )
         layer: Layer = await CRUDLayer(Layer).create(
