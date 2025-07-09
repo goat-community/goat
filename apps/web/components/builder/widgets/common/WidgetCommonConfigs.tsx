@@ -10,13 +10,14 @@ import { useTranslation } from "@/i18n/client";
 import { formatNumber } from "@/lib/utils/format-number";
 import { hasNestedSchemaPath } from "@/lib/utils/zod";
 import type { FormatNumberTypes, WidgetConfigSchema } from "@/lib/validations/widget";
-import { formatNumberTypes, widgetSchemaMap } from "@/lib/validations/widget";
+import { formatNumberTypes, widgetSchemaMap, widgetTypes } from "@/lib/validations/widget";
 
 import type { SelectorItem } from "@/types/map/common";
 
 import useLayerFields from "@/hooks/map/CommonHooks";
 import { useLayerByGeomType, useLayerDatasetId } from "@/hooks/map/ToolsHooks";
 
+import { WidgetFilterLayout } from "@/components/builder/widgets/data/DataConfig";
 import LayerFieldSelector from "@/components/map/common/LayerFieldSelector";
 import { StatisticSelector } from "@/components/map/common/StatisticSelector";
 import SectionHeader from "@/components/map/panels/common/SectionHeader";
@@ -53,14 +54,14 @@ export const NumberFormatSelector = ({
         case "integer":
         case "compact":
         case "grouping":
-          label = `${formatNumber(1000, format, i18n.language)} - ${t(`formatTypes.${format}`)}`;
+          label = `${formatNumber(1000, format, i18n.language)}`;
           break;
         case "grouping_2d":
         case "signed_2d":
         case "compact_1d":
         case "currency_usd":
         case "currency_eur":
-          label = `${formatNumber(12345.678, format, i18n.language)} - ${t(`formatTypes.${format}`)}`;
+          label = `${formatNumber(12345.678, format, i18n.language)}`;
           break;
         case "percent":
         case "percent_1d":
@@ -69,7 +70,7 @@ export const NumberFormatSelector = ({
           break;
         case "decimal_2":
         case "decimal_3":
-          label = `${formatNumber(1.234, format, i18n.language)} - ${t(`formatTypes.${format}`)}`;
+          label = `${formatNumber(1.234, format, i18n.language)}`;
           break;
         default:
           break;
@@ -199,6 +200,10 @@ export const WidgetData = ({ sectionLabel, config, onChange }: WidgetConfigProps
     return hasNestedSchemaPath(schema, "setup.operation_type");
   }, [schema]);
 
+  const hasGroupColumnNameDef = useMemo(() => {
+    return hasNestedSchemaPath(schema, "setup.group_by_column_name");
+  }, [schema]);
+
   const selectedLayer = useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return filteredLayers.find((layer) => layer.value === (config?.setup as any)?.layer_project_id);
@@ -234,21 +239,15 @@ export const WidgetData = ({ sectionLabel, config, onChange }: WidgetConfigProps
               <Selector
                 selectedItems={selectedLayer}
                 setSelectedItems={(item: SelectorItem | undefined) => {
-                  // handleConfigChange("layer_project_id", item?.value);
-                  const updatedSetup = {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  // Build updated setup, resetting dependent fields as needed
+                  const updatedSetup: Record<string, any> = {
                     ...(config.setup as any),
                     layer_project_id: item?.value,
+                    ...(hasColumnNameDef && { column_name: undefined }),
+                    ...(hasOperationDef && { operation_type: undefined, operation_value: undefined }),
+                    ...(hasGroupColumnNameDef && { group_by_column_name: undefined }),
                   };
-                  if (hasColumnNameDef) {
-                    // If a layer is selected, ensure column_name is reset
-                    updatedSetup.column_name = undefined;
-                  }
-                  if (hasOperationDef) {
-                    // If a layer is selected, ensure operation_type and operation_value are reset
-                    updatedSetup.operation_type = undefined;
-                    updatedSetup.operation_value = undefined;
-                  }
+
                   onChange({
                     ...config,
                     setup: updatedSetup,
@@ -261,7 +260,7 @@ export const WidgetData = ({ sectionLabel, config, onChange }: WidgetConfigProps
                 placeholder={t("select_layer")}
               />
             )}
-
+            {/* For widgets such as filter etc */}
             {selectedLayer && hasColumnNameDef && !hasOperationDef && (
               <LayerFieldSelector
                 fields={layerFields}
@@ -281,24 +280,27 @@ export const WidgetData = ({ sectionLabel, config, onChange }: WidgetConfigProps
                 label={t("select_field")}
               />
             )}
+            {/* For widgets that support operations (like statistics) */}
             {selectedLayer && hasOperationDef && (
               <StatisticSelector
                 layerProjectId={selectedLayer.value as number}
+                hasGroupBy={hasGroupColumnNameDef}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 value={{
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   method: (config.setup as any).operation_type,
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   value: (config.setup as any).operation_value,
+                  groupBy: (config.setup as any).group_by_column_name,
                 }}
                 onChange={(value) => {
                   onChange({
                     ...config,
                     setup: {
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       ...(config.setup as any),
                       operation_type: value.method,
                       operation_value: value.value,
+                      ...(hasGroupColumnNameDef && { group_by_column_name: value.groupBy }),
                     },
                   } as WidgetConfigSchema);
                 }}
@@ -307,6 +309,14 @@ export const WidgetData = ({ sectionLabel, config, onChange }: WidgetConfigProps
           </>
         }
       />
+    </>
+  );
+};
+
+export const WidgetSetup = ({ config, onChange }: WidgetConfigProps) => {
+  return (
+    <>
+      {config.type === widgetTypes.Enum.filter && <WidgetFilterLayout config={config} onChange={onChange} />}
     </>
   );
 };

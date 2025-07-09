@@ -1,5 +1,5 @@
-import { Box, Divider, Tab, Tabs, Typography } from "@mui/material";
-import { styled, useTheme } from "@mui/material/styles";
+import { Box, Divider, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import React, { useMemo, useState } from "react";
 
 import { useTranslation } from "@/i18n/client";
@@ -7,6 +7,7 @@ import { useTranslation } from "@/i18n/client";
 import { setSelectedBuilderItem } from "@/lib/store/map/slice";
 import type { BuilderPanelSchema, BuilderWidgetSchema, Project } from "@/lib/validations/project";
 import { builderConfigSchema } from "@/lib/validations/project";
+import { widgetTypesWithoutConfig } from "@/lib/validations/widget";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
@@ -24,10 +25,16 @@ interface ConfigPanelProps {
 }
 
 const Container = styled(Box)(({ theme }) => ({
-  width: "350px",
-  backgroundColor: theme.palette.background.paper,
-  boxShadow: "0px 0px 10px 0px rgba(58, 53, 65, 0.1)",
+  backgroundColor: theme.palette.background.default,
+  boxShadow: `0px 0px 10px 0px ${
+    theme.palette.mode === "dark" ? "rgba(0, 0, 0, 0.7)" : "rgba(58, 53, 65, 0.1)"
+  }`,
 }));
+
+const PanelStack = styled(Stack)({
+  width: "300px",
+  height: "calc(100% - 40px)",
+});
 
 const TabPanel = (props: { children?: React.ReactNode; index: number; value: number }) => {
   const { children, value, index, ...other } = props;
@@ -36,7 +43,7 @@ const TabPanel = (props: { children?: React.ReactNode; index: number; value: num
       role="tabpanel"
       hidden={value !== index}
       id={`tabpanel-${index}`}
-      style={{ height: "100%" }}
+      style={{ height: "100%", overflowY: "auto" }}
       aria-labelledby={`tab-${index}`}
       {...other}>
       {value === index && <>{children}</>}
@@ -47,8 +54,7 @@ const TabPanel = (props: { children?: React.ReactNode; index: number; value: num
 const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) => {
   const dispatch = useAppDispatch();
   const selectedBuilderItem = useAppSelector((state) => state.map.selectedBuilderItem);
-  const [value, setValue] = useState(1);
-  const theme = useTheme();
+  const [value, setValue] = useState(0);
   const { t } = useTranslation("common");
   const builderConfig = useMemo(() => {
     const parsed = builderConfigSchema.safeParse(project?.builder_config);
@@ -155,10 +161,25 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
     return configComponents[selectedBuilderItem?.type] || null;
   };
 
+  const showConfiguration = useMemo(() => {
+    if (!selectedBuilderItem) {
+      return false;
+    }
+    if (selectedBuilderItem.type === "panel" && selectedBuilderItem.config) {
+      return true;
+    }
+
+    if (selectedBuilderItem.type === "widget" && selectedBuilderItem.config) {
+      const widgetType = selectedBuilderItem.config?.type;
+      return !widgetTypesWithoutConfig.includes(widgetType as never);
+    }
+    return false;
+  }, [selectedBuilderItem]);
+
   return (
     <Container>
-      {!selectedBuilderItem && (
-        <>
+      {!showConfiguration && (
+        <PanelStack>
           <Tabs
             sx={{ minHeight: "40px" }}
             value={value}
@@ -197,27 +218,28 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
               onReset={handleMapSettingsReset}
             />
           </TabPanel>
-        </>
+        </PanelStack>
       )}
-      {selectedBuilderItem && (
-        <SelectedItemContainer
-          backgroundColor={theme.palette.background.paper}
-          disableClose
-          header={
-            <ToolsHeader
-              title={`${
-                selectedBuilderItem?.type === "panel"
-                  ? t("panel")
-                  : t(selectedBuilderItem?.config?.type || "widget")
-              } - ${t("settings")}`}
-              onBack={() => {
-                dispatch(setSelectedBuilderItem(undefined));
-              }}
-            />
-          }
-          body={renderConfiguration()}
-          close={() => {}}
-        />
+      {showConfiguration && (
+        <PanelStack>
+          <SelectedItemContainer
+            disableClose
+            header={
+              <ToolsHeader
+                title={`${
+                  selectedBuilderItem?.type === "panel"
+                    ? t("panel")
+                    : t(selectedBuilderItem?.config?.type || "widget")
+                } - ${t("settings")}`}
+                onBack={() => {
+                  dispatch(setSelectedBuilderItem(undefined));
+                }}
+              />
+            }
+            body={renderConfiguration()}
+            close={() => {}}
+          />
+        </PanelStack>
       )}
     </Container>
   );

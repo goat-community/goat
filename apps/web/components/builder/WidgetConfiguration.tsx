@@ -11,6 +11,7 @@ import {
   WidgetData,
   WidgetInfo,
   WidgetOptions,
+  WidgetSetup,
 } from "@/components/builder/widgets/common/WidgetCommonConfigs";
 
 interface WidgetConfigurationProps {
@@ -45,6 +46,7 @@ const WidgetConfiguration = ({ onChange }: WidgetConfigurationProps) => {
     <Stack direction="column" spacing={2} justifyContent="space-between">
       <WidgetInfo config={selectedBuilderItem.config} onChange={handleConfigChange} />
       {hasDataConfig && <WidgetData config={selectedBuilderItem.config} onChange={handleConfigChange} />}
+      <WidgetSetup config={selectedBuilderItem.config} onChange={handleConfigChange} />
       <WidgetOptions config={selectedBuilderItem.config} onChange={handleConfigChange} />
     </Stack>
   );

@@ -17,16 +17,19 @@ import TextFieldInput from "@/components/map/panels/common/TextFieldInput";
 export type StatisticConfig = {
   method?: StatisticOperation | undefined;
   value?: string | undefined;
+  groupBy?: string | undefined;
 };
 
 export const StatisticSelector = ({
   layerProjectId,
   value,
   onChange,
+  hasGroupBy = false,
 }: {
   layerProjectId: number;
   value?: StatisticConfig;
   onChange?: (value: StatisticConfig) => void;
+  hasGroupBy?: boolean;
 }) => {
   const { t } = useTranslation("common");
   const { projectId } = useParams();
@@ -49,9 +52,18 @@ export const StatisticSelector = ({
     isStatisticFieldVisible ? "number" : undefined
   );
 
+  const groupByFields = useMemo(() => {
+    if (!statisticLayerFields) return [];
+    return statisticLayerFields.filter((field) => field.name !== value?.value);
+  }, [statisticLayerFields, value?.value]);
+
   const selectedField = useMemo(() => {
     return statisticLayerFields.find((field) => field.name === value?.value);
   }, [statisticLayerFields, value?.value]);
+
+  const selectedGroupByField = useMemo(() => {
+    return groupByFields.find((field) => field.name === value?.groupBy);
+  }, [groupByFields, value?.groupBy]);
 
   return (
     <>
@@ -60,10 +72,15 @@ export const StatisticSelector = ({
           selectedItems={selectedStatisticMethod}
           setSelectedItems={(item: SelectorItem[] | SelectorItem | undefined) => {
             if (onChange) {
-              onChange({
+              const newConfig: StatisticConfig = {
                 method: (item as SelectorItem)?.value as StatisticOperation | undefined,
                 value: undefined,
-              });
+              };
+              // Only include groupBy if hasGroupBy is true
+              if (hasGroupBy) {
+                newConfig.groupBy = undefined;
+              }
+              onChange(newConfig);
             }
           }}
           items={statisticMethods}
@@ -79,14 +96,34 @@ export const StatisticSelector = ({
           selectedField={selectedField}
           setSelectedField={(field) => {
             if (onChange) {
-              onChange({
+              const newConfig: StatisticConfig = {
                 method: selectedStatisticMethod?.value as StatisticOperation | undefined,
                 value: field?.name,
-              });
+              };
+              if (hasGroupBy) {
+                newConfig.groupBy = undefined; // Reset groupBy when changing the field
+              }
+              onChange(newConfig);
             }
           }}
           label={t("select_field_to_calculate_statistics")}
           tooltip={t("select_field_to_calculate_statistics_tooltip")}
+        />
+      )}
+      {hasGroupBy && selectedStatisticMethod?.value !== statisticOperationEnum.Enum.expression && (
+        <LayerFieldSelector
+          fields={groupByFields}
+          selectedField={selectedGroupByField}
+          setSelectedField={(field) => {
+            if (onChange) {
+              onChange({
+                method: selectedStatisticMethod?.value as StatisticOperation | undefined,
+                value: value?.value,
+                groupBy: field?.name,
+              });
+            }
+          }}
+          label={t("field_group")}
         />
       )}
       {selectedStatisticMethod?.value === statisticOperationEnum.Enum.expression && (

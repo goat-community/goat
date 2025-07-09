@@ -1,8 +1,8 @@
 import * as z from "zod";
 
 import { DEFAULT_COLOR_RANGE } from "@/lib/constants/color";
-import { colorRange } from "@/lib/validations/layer";
 import { sortTypes, statisticOperationEnum } from "@/lib/validations/common";
+import { colorRange } from "@/lib/validations/layer";
 
 export const informationTypes = z.enum(["layers", "bookmarks", "comments"]);
 export const dataTypes = z.enum(["filter", "table", "numbers", "feature_list"]);
@@ -15,6 +15,7 @@ export const widgetTypes = z.enum([
   ...elementTypes.options,
 ]);
 
+export const widgetTypesWithoutConfig = [elementTypes.Values.text]
 
 export const formatNumberTypes = z.enum([
   "none", // 1000
@@ -155,6 +156,7 @@ export const categoriesChartConfigSchema = chartsConfigBaseSchema.extend({
     .extend({
       operation_type: statisticOperationEnum.optional(),
       operation_value: z.string().optional(),
+      group_by_column_name: z.string().optional()
     })
     .default({}),
   options: chartConfigOptionsBaseSchema
@@ -175,6 +177,7 @@ export const pieChartConfigSchema = chartsConfigBaseSchema.extend({
     .extend({
       operation_type: statisticOperationEnum.optional(),
       operation_value: z.string().optional(),
+      group_by_column_name: z.string().optional()
     })
     .default({}),
   options: chartConfigOptionsBaseSchema

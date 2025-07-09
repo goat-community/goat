@@ -1,6 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { Search as SearchIcon } from "@mui/icons-material";
-import { Box, Divider, Grid, InputAdornment, Stack, TextField, Typography } from "@mui/material";
+import { Box, Grid, InputAdornment, Stack, TextField } from "@mui/material";
 import React, { useMemo, useState } from "react";
 
 import { useTranslation } from "@/i18n/client";
