@@ -133,7 +133,7 @@ const DatasetSummary: React.FC<DatasetSummaryProps> = ({
       <LayoutContainer>
         {shouldRenderMetadataSection && (
           <MetadataSection>
-            <Stack spacing={4}>
+            <Stack spacing={4} sx={{ width: "100%" }}>
               {metadataSummaryFields.map(({ field, heading, noMetadataAvailable, type }) => {
                 if (hideEmpty && !dataset[field]) return null;
                 return (
@@ -145,7 +145,29 @@ const DatasetSummary: React.FC<DatasetSummaryProps> = ({
                         {noMetadataAvailable}
                       </Typography>
                     )}
-                    {type === "markdown" && dataset[field] && <ReactMarkdown>{dataset[field]}</ReactMarkdown>}
+                    {type === "markdown" && dataset[field] && (
+                      <ReactMarkdown
+                        components={{
+                          img: ({ node: _, ...props }) => {
+                            const hasSize =
+                              props.width !== undefined ||
+                              props.height !== undefined ||
+                              (props.style && (props.style.width || props.style.height));
+
+                            const style = hasSize ? props.style : { width: "100%" };
+
+                            // eslint-disable-next-line jsx-a11y/alt-text
+                            return <img {...props} style={style} />;
+                          },
+                          a: ({ node: _, href, children, ...props }) => (
+                            <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                              {children}
+                            </a>
+                          ),
+                        }}>
+                        {dataset[field]}
+                      </ReactMarkdown>
+                    )}
                     {type === "email" && dataset[field] && (
                       <Link href={`mailto:${dataset[field]}`} target="_blank" rel="noopener noreferrer">
                         {dataset[field]}

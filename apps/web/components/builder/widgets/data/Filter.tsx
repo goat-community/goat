@@ -136,8 +136,13 @@ const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataPr
         rawConfig?.setup.column_name &&
         rawConfig?.setup.layout === filterLayoutTypes.Values.select && (
           <SelectorLayerValue
+            clearable
             selectedValues={selectedValues as any}
             onSelectedValuesChange={(values: string[] | string | null) => {
+              if (values === null || (Array.isArray(values) && values.length === 0)) {
+                setSelectedValues(rawConfig?.setup.multiple ? [] : "");
+                return;
+              }
               setSelectedValues(values as any);
             }}
             layerId={layer.layer_id}
