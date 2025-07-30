@@ -111,11 +111,11 @@ In der Schweizer Version des Indikators wird die Berechnung der Güteklassen üb
 
 Die Berechnungen basieren auf **GTFS-Daten** (siehe [Eingebaute Datensätze](../../data/data_basis)). Zunächst wird die Anzahl der Abfahrten pro Verkehrsmittel (Zug, U-Bahn, Straßenbahn und Bus) für jede Station dynamisch berechnet. Die Summe der Abfahrten wird durch zwei geteilt, um die Frequenz zu berechnen und die Hin- und Rückrichtungen zu eliminieren. Im nächsten Schritt wird die **durchschnittliche Frequenz** für das ausgewählte Zeitfenster berechnet. Das höherwertige Angebot wird als **Art der Haltestelle** ausgewählt, falls mehrere Verkehrsmittel die Haltestelle bedienen. Zum Beispiel ist bei Bussen und Zügen der Zug der höherwertige Service. Mithilfe der unten stehenden Tabelle sowie der Art der Haltestelle und der Frequenz kann nun die Haltestellenkategorie bestimmt werden.
 
-![Klassifikation der Verkehrshaltestellen](/img/toolbox/accessibility_indicators/gueteklassen/classification_stations_en.webp "Klassifikation der Verkehrshaltestellen")
+![Klassifikation der Verkehrshaltestellen](/img/toolbox/accessibility_indicators/gueteklassen/classification_stations_de.webp "Klassifikation der Verkehrshaltestellen")
 
 Anschließend werden **Puffer** oder **Netzwerk-Einzugsgebiete** der angegebenen Größe für die entsprechenden Haltestellenkategorien berechnet. Dadurch entstehen mehrere Puffer/Isochronen, die zusammengeführt werden. Bei überlappenden Puffern/Isochronen wird die höherwertige Klasse verwendet.
 
-![Bestimmung der ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/determination_oev_gueteklasse_en.webp "Bestimmung der ÖV-Güteklassen")
+![Bestimmung der ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/determination_oev_gueteklasse_de.webp "Bestimmung der ÖV-Güteklassen")
 
 ### Visualisierung
 
