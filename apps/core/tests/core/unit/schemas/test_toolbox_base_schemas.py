@@ -1,6 +1,11 @@
 import pytest
+from core.schemas.toolbox_base import (
+    CatchmentAreaStartingPointsBase,
+    FeatureGeometryType,
+    InputLayerType,
+    LayerType,
+)
 from pydantic import ValidationError
-from core.schemas.toolbox_base import InputLayerType, LayerType, FeatureGeometryType, CatchmentAreaStartingPointsBase
 
 
 def test_catchment_area_starting_points_base_both_coords_and_layer_id():

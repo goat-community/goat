@@ -1,6 +1,7 @@
 import pytest
-from httpx import AsyncClient
 from core.core.config import settings
+from httpx import AsyncClient
+
 
 @pytest.mark.asyncio
 async def test_create_user_data_schema(client: AsyncClient, fixture_create_user):

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi_pagination import Page
 from fastapi_pagination import Params as PaginationParams
-from sqlalchemy import and_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
@@ -178,7 +178,7 @@ class CRUDProject(CRUDBase):
         return project_public_read
 
     async def publish_project(
-        self, *, async_session: AsyncSession, project_id: str
+        self, *, async_session: AsyncSession, project_id: str, user_id: UUID
     ) -> ProjectPublic:
         project = select(Project).where(Project.id == project_id)
         project = await async_session.execute(project)
@@ -190,14 +190,12 @@ class CRUDProject(CRUDBase):
         )
         project_public = await async_session.execute(project_public)
         project_public: ProjectPublic | None = project_public.scalars().first()
-        user_project = select(UserProjectLink).where(
-            and_(
-                UserProjectLink.project_id == project_id,
-                Project.user_id == UserProjectLink.user_id,
-            )
+        user_project = await crud_user_project.get_by_multi_keys(
+                async_session, keys={"user_id": user_id, "project_id": project_id}
         )
-        user_project = await async_session.execute(user_project)
-        user_project: UserProjectLink = user_project.scalars().first()
+        user_project = user_project[0] if user_project else None
+        if not user_project:
+            raise Exception("User project not found")
         if project_public:
             await async_session.delete(project_public)
 

@@ -1,7 +1,6 @@
 import pytest
-from pydantic import ValidationError
-
 from core.schemas.tool import IBuffer
+from pydantic import ValidationError
 
 
 def test_distance_step_valid():

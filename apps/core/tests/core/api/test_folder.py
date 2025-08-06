@@ -1,8 +1,7 @@
 import pytest
-from httpx import AsyncClient
-
 from core.core.config import settings
-from tests.utils import check_user_data_deleted, get_with_wrong_id
+from httpx import AsyncClient
+from tests.utils import get_with_wrong_id
 
 
 @pytest.mark.asyncio

@@ -10,7 +10,6 @@ dependencies = [
     "asyncpg==0.30.0",
     "psycopg==3.2.3",
     "psycopg-binary==3.2.3",
-    "polars==1.13.1",
     "geopandas==1.0.1",
     "shapely==2.0.6",
     "celery==5.4.0",
@@ -34,7 +33,7 @@ dependencies = [
     "matplotlib==3.9.2",
     "cairosvg==2.7.1",
     "sentry-sdk==2.18.0",
-    "fastapi==0.115.12",
+    "fastapi[standard]==0.115.12",
     "fastapi-pagination==0.13.1",
     "pydantic==2.11.5",
     "sqlalchemy[asyncio]==2.0.41",
@@ -47,6 +46,7 @@ dependencies = [
     "numpy==2.2.6",
     "pytest>=8.3.5",
     "types-requests>=2.32.4.20250611",
+    "polars==1.31.0",
 ]
 
 

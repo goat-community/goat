@@ -1,10 +1,9 @@
 import pytest
-from httpx import AsyncClient
-
 from core.core.config import settings
 from core.db.models.layer import ToolType
 from core.schemas.job import JobStatusType
 from core.schemas.toolbox_base import ColumnStatisticsOperation
+from httpx import AsyncClient
 from tests.utils import check_job_status, test_aggregate
 
 

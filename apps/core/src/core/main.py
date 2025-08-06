@@ -1,7 +1,7 @@
-import core._dotenv  # noqa: E402, F401, I001
 import logging
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncGenerator
 
 import sentry_sdk
@@ -13,6 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse
 
+import core._dotenv  # noqa: E402, F401, I001
 from core.core.config import settings
 from core.db.session import session_manager
 from core.endpoints.deps import (
@@ -21,7 +22,6 @@ from core.endpoints.deps import (
     initialize_qgis_application,
 )
 from core.endpoints.v2.api import router as api_router_v2
-
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT:
     sentry_sdk.init(
@@ -62,8 +62,8 @@ async def value_error_exception_handler(request: Request, exc: ValueError) -> JS
         content={"detail": str(exc)},
     )
 
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
+static_path = Path(__file__).resolve().parent.parent.parent / "static"
+app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 
 @app.get("/api/docs", include_in_schema=False)

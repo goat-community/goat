@@ -18,7 +18,6 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Link from "@mui/material/Link";
 import type { PageProps } from "keycloakify/login/pages/PageProps";
 import { useConstCallback } from "keycloakify/tools/useConstCallback";
-import { useStateRef } from "powerhooks/useStateRef";
 import type { MouseEvent } from "react";
 import { type FormEventHandler, useState } from "react";
 
@@ -51,9 +50,6 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
     formElement.submit();
   });
 
-  const usernameInputRef = useStateRef<HTMLInputElement>(null);
-  const passwordInputRef = useStateRef<HTMLInputElement>(null);
-  const submitButtonRef = useStateRef<HTMLButtonElement>(null);
   const [showPassword, setShowPassword] = useState(false);
   const handleMouseEvents = (event: MouseEvent) => {
     event.preventDefault();
@@ -159,7 +155,6 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
               defaultValue={login.username ?? ""}
               id="username"
               name="username"
-              ref={usernameInputRef}
               tabIndex={1}
               spellCheck={false}
               label={
@@ -176,7 +171,6 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
               <OutlinedInput
                 label={msg("password")}
                 defaultValue=""
-                ref={passwordInputRef}
                 id="password"
                 name="password"
                 tabIndex={2}
@@ -246,12 +240,7 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
                   }
                 : {})}
             />
-            <Button
-              fullWidth
-              ref={submitButtonRef}
-              name="login"
-              type="submit"
-              disabled={isLoginButtonDisabled}>
+            <Button fullWidth name="login" type="submit" disabled={isLoginButtonDisabled}>
               {msgStr("continue")}
             </Button>
           </Box>

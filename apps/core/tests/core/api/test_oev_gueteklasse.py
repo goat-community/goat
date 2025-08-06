@@ -1,12 +1,11 @@
 import pytest
-from httpx import AsyncClient
-
 from core.core.config import settings
 from core.schemas.oev_gueteklasse import (
     CatchmentType,
     station_config_example,
 )
 from core.schemas.toolbox_base import PTSupportedDay
+from httpx import AsyncClient
 from tests.utils import check_job_status
 
 

@@ -1,8 +1,7 @@
 import pytest
-from httpx import AsyncClient
-
 from core.core.config import settings
 from core.schemas.project import initial_view_state_example
+from httpx import AsyncClient
 from tests.utils import get_with_wrong_id
 
 
