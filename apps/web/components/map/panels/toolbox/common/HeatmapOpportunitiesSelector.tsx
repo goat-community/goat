@@ -99,7 +99,13 @@ const HeatmapOpportunitiesSelector = ({
     activeLayer?.value as number | undefined,
     projectId as string
   );
-  const { layerFields: activeLayerFields } = useLayerFields(activeLayerDatasetId || "", "number");
+
+  const { layerFields: activeLayerFields } = useLayerFields(
+    activeLayerDatasetId || "",
+    "number",
+    undefined,
+    true
+  );
 
   const sensitivityOptions = useMemo(() => {
     const series = generateSeries(50000, maxSensitivityValue);
