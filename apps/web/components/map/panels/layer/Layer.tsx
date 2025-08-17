@@ -32,7 +32,6 @@ import { useTranslation } from "@/i18n/client";
 
 import {
   addProjectLayers,
-  deleteProjectLayer,
   updateProject,
   updateProjectLayer,
   useProject,
@@ -69,6 +68,7 @@ import DatasetExplorerModal from "@/components/modals/DatasetExplorer";
 import DatasetExternalModal from "@/components/modals/DatasetExternal";
 import DatasetUploadModal from "@/components/modals/DatasetUpload";
 import MapLayerChartModal from "@/components/modals/MapLayerChart";
+import ProjectLayerDeleteModal from "@/components/modals/ProjectLayerDelete";
 
 type SortableLayerTileProps = {
   id: number;
@@ -368,19 +368,6 @@ const LayerPanel = ({ projectId }: PanelProps) => {
     }
   }
 
-  async function deleteLayer(layer: ProjectLayer) {
-    try {
-      await deleteProjectLayer(projectId, layer.id);
-      mutateProjectLayers(projectLayers?.filter((l) => l.id !== layer.id));
-      if (layer.id === activeLayerId) {
-        dispatch(setActiveLayer(null));
-      }
-      mutateProject();
-    } catch (error) {
-      toast.error(t("error_removing_layer_from_project"));
-    }
-  }
-
   async function duplicateLayer(layer: ProjectLayer) {
     try {
       await addProjectLayers(projectId, [layer.layer_id]);
@@ -444,6 +431,22 @@ const LayerPanel = ({ projectId }: PanelProps) => {
                 type="layer"
               />
             )}
+          {moreMenuState?.id === ContentActions.DELETE && activeLayerMoreMenu && (
+            <ProjectLayerDeleteModal
+              open={true}
+              onClose={closeMoreMenu}
+              projectLayer={activeLayerMoreMenu}
+              onDelete={() => {
+                mutateProjectLayers(projectLayers?.filter((l) => l.id !== activeLayerMoreMenu.id));
+                if (activeLayerMoreMenu.id === activeLayerId) {
+                  dispatch(setActiveLayer(null));
+                }
+                mutateProject();
+                closeMoreMenu();
+              }}
+            />
+          )}
+
           {moreMenuState?.id === MapLayerActions.CHART && activeLayerMoreMenu && (
             <MapLayerChartModal
               open={true}
@@ -684,8 +687,6 @@ const LayerPanel = ({ projectId }: PanelProps) => {
                             onSelect={async (menuItem: PopperMenuItem) => {
                               if (menuItem.id === MapLayerActions.PROPERTIES) {
                                 openPropertiesPanel(layer);
-                              } else if (menuItem.id === ContentActions.DELETE) {
-                                await deleteLayer(layer);
                               } else if (menuItem.id === MapLayerActions.DUPLICATE) {
                                 await duplicateLayer(layer);
                               } else if (menuItem.id === MapLayerActions.RENAME) {
