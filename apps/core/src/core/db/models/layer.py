@@ -393,7 +393,7 @@ def internal_layer_table_name(values: SQLModel | BaseModel) -> str:
                     "Feature layer geometry type must be set for feature layers."
                 )
             feature_layer_geometry_type = values.feature_layer_geometry_type
-    elif values.type == LayerType.table.value:
+    elif values.type == LayerType.table.value or values.type == LayerType.raster.value:
         feature_layer_geometry_type = "no_geometry"
     else:
         raise ValueError(f"The passed layer type {values.type} is not supported.")

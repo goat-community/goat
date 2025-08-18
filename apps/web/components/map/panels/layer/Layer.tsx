@@ -16,7 +16,6 @@ import {
   MenuItem,
   MenuList,
   Stack,
-  TextField,
   Tooltip,
   Typography,
   useTheme,
@@ -69,6 +68,7 @@ import DatasetExternalModal from "@/components/modals/DatasetExternal";
 import DatasetUploadModal from "@/components/modals/DatasetUpload";
 import MapLayerChartModal from "@/components/modals/MapLayerChart";
 import ProjectLayerDeleteModal from "@/components/modals/ProjectLayerDelete";
+import ProjectLayerRenameModal from "@/components/modals/ProjectLayerRename";
 
 type SortableLayerTileProps = {
   id: number;
@@ -313,8 +313,6 @@ const LayerPanel = ({ projectId }: PanelProps) => {
     return count;
   }, [scenarioFeatures]);
 
-  const [renameLayer, setRenameLayer] = useState<ProjectLayer | undefined>(undefined);
-  const [newLayerName, setNewLayerName] = useState<string>("");
   const {
     getLayerMoreMenuOptions,
     openMoreMenu,
@@ -378,21 +376,6 @@ const LayerPanel = ({ projectId }: PanelProps) => {
     }
   }
 
-  async function renameLayerName(layer: ProjectLayer) {
-    try {
-      setRenameLayer(undefined);
-      const udpatedProjectLayers = JSON.parse(JSON.stringify(projectLayers));
-      const index = udpatedProjectLayers.findIndex((l) => l.id === layer.id);
-      udpatedProjectLayers[index].name = newLayerName;
-      mutateProjectLayers(udpatedProjectLayers, false);
-      await updateProjectLayer(projectId, layer.id, udpatedProjectLayers[index]);
-    } catch (error) {
-      toast.error(t("error_renaming_layer"));
-    } finally {
-      setNewLayerName("");
-    }
-  }
-
   function openPropertiesPanel(layer: ProjectLayer) {
     if (layer.id !== activeLayerId) {
       dispatch(setActiveLayer(layer.id));
@@ -441,6 +424,21 @@ const LayerPanel = ({ projectId }: PanelProps) => {
                 if (activeLayerMoreMenu.id === activeLayerId) {
                   dispatch(setActiveLayer(null));
                 }
+                mutateProject();
+                closeMoreMenu();
+              }}
+            />
+          )}
+
+          {moreMenuState?.id === MapLayerActions.RENAME && activeLayerMoreMenu && (
+            <ProjectLayerRenameModal
+              open={true}
+              onClose={closeMoreMenu}
+              projectLayer={activeLayerMoreMenu}
+              onRename={() => {
+                mutateProjectLayers(
+                  projectLayers?.map((l) => (l.id === activeLayerMoreMenu.id ? activeLayerMoreMenu : l))
+                );
                 mutateProject();
                 closeMoreMenu();
               }}
@@ -506,54 +504,23 @@ const LayerPanel = ({ projectId }: PanelProps) => {
                             </Typography>
                           </Stack>
 
-                          {renameLayer?.id === layer.id ? (
-                            <TextField
-                              autoFocus
-                              variant="standard"
-                              size="small"
-                              sx={{
-                                width: `calc(100% - ${
-                                  getActionLayerWidthOffset(layer) ? getActionLayerWidthOffset(layer) : 0
-                                }px)`,
-                              }}
-                              inputProps={{
-                                style: {
-                                  fontSize: "0.875rem",
-                                  fontWeight: "bold",
-                                },
-                              }}
-                              defaultValue={renameLayer.name}
-                              onChange={(e) => {
-                                setNewLayerName(e.target.value);
-                              }}
-                              onBlur={async () => {
-                                if (newLayerName !== "" && layer.name !== newLayerName) {
-                                  await renameLayerName(layer);
-                                } else {
-                                  setNewLayerName("");
-                                  setRenameLayer(undefined);
-                                }
-                              }}
-                            />
-                          ) : (
-                            <Stack
-                              direction="row"
-                              sx={{
-                                width: `calc(100% - ${
-                                  getActionLayerWidthOffset(layer) ? getActionLayerWidthOffset(layer) : 0
-                                }px)`,
+                          <Stack
+                            direction="row"
+                            sx={{
+                              width: `calc(100% - ${
+                                getActionLayerWidthOffset(layer) ? getActionLayerWidthOffset(layer) : 0
+                              }px)`,
+                            }}>
+                            <OverflowTypograpy
+                              variant="body2"
+                              fontWeight="bold"
+                              tooltipProps={{
+                                placement: "bottom",
+                                arrow: true,
                               }}>
-                              <OverflowTypograpy
-                                variant="body2"
-                                fontWeight="bold"
-                                tooltipProps={{
-                                  placement: "bottom",
-                                  arrow: true,
-                                }}>
-                                {layer.name}
-                              </OverflowTypograpy>
-                            </Stack>
-                          )}
+                              {layer.name}
+                            </OverflowTypograpy>
+                          </Stack>
                         </>
                       }
                       actions={
@@ -689,8 +656,6 @@ const LayerPanel = ({ projectId }: PanelProps) => {
                                 openPropertiesPanel(layer);
                               } else if (menuItem.id === MapLayerActions.DUPLICATE) {
                                 await duplicateLayer(layer);
-                              } else if (menuItem.id === MapLayerActions.RENAME) {
-                                setRenameLayer(layer);
                               } else if (menuItem.id === MapLayerActions.ZOOM_TO) {
                                 if (map) {
                                   zoomToLayer(map, layer.extent);

@@ -102,7 +102,7 @@ export const useLayerSettingsMoreMenu = () => {
           ]),
         {
           id: ContentActions.DELETE,
-          label: t("remove"),
+          label: t("delete"),
           icon: ICON_NAME.TRASH,
           color: "error.main",
         },
@@ -142,7 +142,7 @@ export const useLayerSettingsMoreMenu = () => {
         },
         {
           id: ContentActions.DELETE,
-          label: t("remove"),
+          label: t("delete"),
           icon: ICON_NAME.TRASH,
           color: "error.main",
         },
@@ -174,7 +174,7 @@ export const useLayerSettingsMoreMenu = () => {
         },
         {
           id: ContentActions.DELETE,
-          label: t("remove"),
+          label: t("delete"),
           icon: ICON_NAME.TRASH,
           color: "error.main",
         },

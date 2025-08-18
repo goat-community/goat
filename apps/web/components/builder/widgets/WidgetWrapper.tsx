@@ -108,7 +108,7 @@ const DraggableWidgetContainer: React.FC<DraggableWidgetContainerProps> = ({
               <Icon iconName={ICON_NAME.GRIP_VERTICAL} style={{ fontSize: "12px" }} />
             </IconButton>
           </Tooltip>
-          <Tooltip title={t("remove")} placement="top" arrow>
+          <Tooltip title={t("delete")} placement="top" arrow>
             <IconButton
               sx={{ borderRadius: 0, color: "white" }}
               onClick={(e) => {
