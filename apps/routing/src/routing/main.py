@@ -2,7 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-import geoapi._dotenv  # noqa: E402, F401, I001
+import routing._dotenv  # noqa: E402, F401, I001
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html
