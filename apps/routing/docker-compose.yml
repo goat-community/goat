@@ -1,0 +1,13 @@
+networks:
+  default:
+    name: goat-routing-network
+
+services:
+  api:
+    image: routing-test-3
+    container_name: goat_routing
+    hostname: goat_routing
+    env_file:
+      - .env
+    ports:
+      - "8100:8000"

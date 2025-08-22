@@ -405,7 +405,7 @@ class CRUDCatchmentAreaPT(CRUDCatchmentAreaBase):
             )
             shapes_sorted = []
             for i in shapes_data.index:
-                shapes_sorted.append((shapes["geometry"][i], shapes["minute"][i]))
+                shapes_sorted.append((shapes_data["geometry"][i], shapes_data["minute"][i]))
             shapes_sorted = sorted(shapes_sorted, key=lambda x: x[1], reverse=True)
             insert_string = ""
             for shape in shapes_sorted:
@@ -443,7 +443,7 @@ class CRUDCatchmentAreaPT(CRUDCatchmentAreaBase):
         layer_catchment_area = IFeatureLayerToolCreate(
             name=DefaultResultLayerName.catchment_area_pt.value,
             feature_layer_geometry_type=FeatureGeometryType[
-                CatchmentAreaGeometryTypeMapping[params.catchment_area_type]
+                CatchmentAreaGeometryTypeMapping[params.catchment_area_type.value]
             ],
             attribute_mapping={"integer_attr1": "travel_cost"},
             tool_type=params.tool_type.value,

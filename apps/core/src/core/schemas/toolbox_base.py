@@ -117,9 +117,9 @@ class CatchmentAreaType(str, Enum):
 class CatchmentAreaGeometryTypeMapping(str, Enum):
     """Catchment area geometry type mapping schema."""
 
-    polygon = FeatureGeometryType.polygon
-    network = FeatureGeometryType.line
-    rectangular_grid = FeatureGeometryType.polygon
+    polygon = FeatureGeometryType.polygon.value
+    network = FeatureGeometryType.line.value
+    rectangular_grid = FeatureGeometryType.polygon.value
 
 
 class IToolResponse(BaseModel):
