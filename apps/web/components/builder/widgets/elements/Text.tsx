@@ -1,4 +1,4 @@
-import { Box, Button, Paper, Stack, styled } from "@mui/material";
+import { Box, Button, Stack, styled } from "@mui/material";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
@@ -22,13 +22,13 @@ export const TipTapEditorContent = styled(EditorContent)(({ theme }) => ({
 }));
 
 // Styled menu for better appearance
-const MenuContainer = styled(Paper)(({ theme }) => ({
-  display: "flex",
-  padding: theme.spacing(0.5),
-  gap: theme.spacing(0.5),
-  boxShadow: theme.shadows[3],
-  borderRadius: theme.shape.borderRadius,
-}));
+// const MenuContainer = styled(Paper)(({ theme }) => ({
+//   display: "flex",
+//   padding: theme.spacing(0.5),
+//   gap: theme.spacing(0.5),
+//   boxShadow: theme.shadows[3],
+//   borderRadius: theme.shape.borderRadius,
+// }));
 
 const TextElementWidget = ({ config }: { config: TextElementSchema }) => {
   const editor = useEditor({

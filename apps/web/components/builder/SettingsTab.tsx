@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Stack, Switch, Typography } from "@mui/material";
+import { Box, Button, Stack, Switch, Typography } from "@mui/material";
 
 import { useTranslation } from "@/i18n/client";
 
