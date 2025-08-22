@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { ZodDefault, ZodNullable, ZodObject, ZodOptional, z } from "zod";
 
 export function getDefaults<Schema extends z.AnyZodObject>(schema: Schema) {

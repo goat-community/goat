@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { Checkbox, FormControlLabel, Stack, Tooltip, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
