@@ -1,4 +1,5 @@
 import json
+from typing import Any
 from uuid import UUID
 
 from fastapi_pagination import Page
@@ -36,7 +37,7 @@ from core.schemas.project import (
 )
 
 
-class CRUDProject(CRUDBase):
+class CRUDProject(CRUDBase[Project, Any, Any]):
     async def create(
         self,
         async_session: AsyncSession,
@@ -79,20 +80,20 @@ class CRUDProject(CRUDBase):
                 layer_ids=[settings.BASE_STREET_NETWORK],
             )
         # Doing unneeded type conversion to make sure the relations of project are not loaded
-        return IProjectRead(**project.dict())
+        return IProjectRead(**project.model_dump())
 
     async def get_projects(
         self,
         async_session: AsyncSession,
         user_id: UUID,
         page_params: PaginationParams,
-        folder_id: UUID = None,
-        search: str = None,
-        order_by: str = None,
-        order: OrderEnum = None,
-        ids: list = None,
-        team_id: UUID = None,
-        organization_id: UUID = None,
+        folder_id: UUID | None = None,
+        search: str | None = None,
+        order_by: str | None = None,
+        order: OrderEnum | None = None,
+        ids: list | None = None,
+        team_id: UUID | None = None,
+        organization_id: UUID | None = None,
     ) -> Page[IProjectRead]:
         """Get projects for a user and folder"""
 
@@ -154,7 +155,7 @@ class CRUDProject(CRUDBase):
         """Update project base"""
 
         # Update project
-        project = await update_content_by_id(
+        updated_project = await update_content_by_id(
             async_session=async_session,
             id=id,
             model=Project,
@@ -162,10 +163,13 @@ class CRUDProject(CRUDBase):
             content_in=project,
         )
 
-        return IProjectRead(**project.dict())
+        if updated_project is None:
+            raise Exception("Project not found")
+
+        return IProjectRead(**updated_project.model_dump())
 
     async def get_public_project(
-        self, *, async_session: AsyncSession, project_id: str
+        self, *, async_session: AsyncSession, project_id: UUID
     ) -> ProjectPublicRead | None:
         project_public = select(ProjectPublic).where(
             ProjectPublic.project_id == project_id
@@ -178,24 +182,42 @@ class CRUDProject(CRUDBase):
         return project_public_read
 
     async def publish_project(
-        self, *, async_session: AsyncSession, project_id: str, user_id: UUID
+        self, *, async_session: AsyncSession, project_id: UUID
     ) -> ProjectPublic:
-        project = select(Project).where(Project.id == project_id)
-        project = await async_session.execute(project)
-        project: Project | None = project.scalars().first()
+        project = (
+            (
+                await async_session.execute(
+                    select(Project).where(Project.id == project_id)
+                )
+            )
+            .scalars()
+            .first()
+        )
         if not project:
             raise Exception("Project not found")
-        project_public = select(ProjectPublic).where(
-            ProjectPublic.project_id == project_id
+        project_public: ProjectPublic | None = (
+            (
+                await async_session.execute(
+                    select(ProjectPublic).where(ProjectPublic.project_id == project_id)
+                )
+            )
+            .scalars()
+            .first()
         )
-        project_public = await async_session.execute(project_public)
-        project_public: ProjectPublic | None = project_public.scalars().first()
-        user_project = await crud_user_project.get_by_multi_keys(
-                async_session, keys={"user_id": user_id, "project_id": project_id}
+        user_project = (
+            (
+                await async_session.execute(
+                    select(UserProjectLink).where(
+                        and_(
+                            UserProjectLink.project_id == project_id,
+                            Project.user_id == UserProjectLink.user_id,
+                        )
+                    )
+                )
+            )
+            .scalars()
+            .first()
         )
-        user_project = user_project[0] if user_project else None
-        if not user_project:
-            raise Exception("User project not found")
         if project_public:
             await async_session.delete(project_public)
 
@@ -231,11 +253,15 @@ class CRUDProject(CRUDBase):
     async def unpublish_project(
         self, *, async_session: AsyncSession, project_id: str
     ) -> None:
-        public_project = select(ProjectPublic).where(
-            ProjectPublic.project_id == project_id
+        public_project = (
+            (
+                await async_session.execute(
+                    select(ProjectPublic).where(ProjectPublic.project_id == project_id)
+                )
+            )
+            .scalars()
+            .first()
         )
-        public_project = await async_session.execute(public_project)
-        public_project = public_project.scalars().first()
         if public_project:
             await async_session.delete(public_project)
             await async_session.commit()

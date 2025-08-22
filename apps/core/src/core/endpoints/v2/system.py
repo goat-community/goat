@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Body, Depends
 from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,21 +30,28 @@ async def read_system_settings(
     *,
     async_session: AsyncSession = Depends(get_db),
     user_id: UUID4 = Depends(get_user_id),
-):
+) -> SystemSettingsRead:
     """Retrieve system settings"""
-    system_settings = await crud_system_setting.get_by_multi_keys(
+
+    existing_settings = await crud_system_setting.get_by_multi_keys(
         async_session, keys={"user_id": user_id}
     )
-    if not system_settings or len(system_settings) == 0:
+
+    if not existing_settings or len(existing_settings) == 0:
         default_system_settings_obj_in = SystemSettingsCreate(
-            **default_system_settings.dict()
+            **default_system_settings.model_dump()
         )
         default_system_settings_obj_in.user_id = user_id
-        system_settings = await crud_system_setting.create(
-            async_session, obj_in=default_system_settings_obj_in
+
+        return SystemSettingsRead(
+            **(
+                await crud_system_setting.create(
+                    async_session, obj_in=default_system_settings_obj_in
+                )
+            ).model_dump()
         )
-        system_settings = [system_settings]
-    return system_settings[0]
+
+    return SystemSettingsRead(**existing_settings[0].model_dump())
 
 
 @router.put(
@@ -60,22 +68,29 @@ async def update_system_settings(
     system_settings_in: SystemSettingsUpdate = Body(
         ..., example=system_settings_request_examples["update"]
     ),
-):
+) -> SystemSettingsRead:
     """Update system settings"""
-    system_settings = await crud_system_setting.get_by_multi_keys(
+
+    existing_settings = await crud_system_setting.get_by_multi_keys(
         async_session, keys={"user_id": user_id}
     )
-    if not system_settings or len(system_settings) == 0:
+
+    if not existing_settings or len(existing_settings) == 0:
         new_system_settings = SystemSettingsCreate(**system_settings_in.dict())
         new_system_settings.user_id = user_id
-        system_settings = await crud_system_setting.create(
-            async_session, obj_in=new_system_settings
+
+        return SystemSettingsRead(
+            **(
+                await crud_system_setting.create(
+                    async_session, obj_in=new_system_settings
+                )
+            ).model_dump()
         )
-        system_settings = [system_settings]
-        return system_settings
 
-    system_settings = await crud_system_setting.update(
-        async_session, db_obj=system_settings[0], obj_in=system_settings_in
+    return SystemSettingsRead(
+        **(
+            await crud_system_setting.update(
+                async_session, db_obj=existing_settings[0], obj_in=system_settings_in
+            )
+        ).model_dump()
     )
-
-    return system_settings

@@ -1,111 +1,25 @@
-import { DragOverlay, useDndMonitor, useDraggable } from "@dnd-kit/core";
-import {
-  Bookmark as BookmarksIcon,
-  Category as CategoriesIcon,
-  Comment as CommentsIcon,
-  HorizontalRule as DividerIcon,
-  List as FeatureListIcon,
-  FilterList as FilterIcon,
-  NearMe as FindNearestIcon,
-  BarChart as HistogramIcon,
-  Image as ImageIcon,
-  Layers as LayersIcon,
-  Functions as NumbersIcon,
-  PieChart as PieChartIcon,
-  Search as SearchIcon,
-  TableChart as TableIcon,
-  TextFields as TextIcon,
-  Timeline as TimelineIcon,
-} from "@mui/icons-material";
-import { Box, Divider, Grid, InputAdornment, Stack, TextField, Typography, styled } from "@mui/material";
+import { useDraggable } from "@dnd-kit/core";
+import { Search as SearchIcon } from "@mui/icons-material";
+import { Box, Grid, InputAdornment, Stack, TextField } from "@mui/material";
 import React, { useMemo, useState } from "react";
 
-import { createSnapToCursorModifier } from "@/lib/utils/dnd-modifier";
+import { useTranslation } from "@/i18n/client";
 
-const iconMap = {
-  search: SearchIcon,
-  layers: LayersIcon,
-  bookmarks: BookmarksIcon,
-  comments: CommentsIcon,
-  filter: FilterIcon,
-  table: TableIcon,
-  numbers: NumbersIcon,
-  featureList: FeatureListIcon,
-  timeline: TimelineIcon,
-  findNearest: FindNearestIcon,
-  categories: CategoriesIcon,
-  histogram: HistogramIcon,
-  pieChart: PieChartIcon,
-  text: TextIcon,
-  image: ImageIcon,
-  divider: DividerIcon,
-};
+import type { WidgetTypes } from "@/lib/validations/widget";
+import { chartTypes, dataTypes, elementTypes, informationTypes } from "@/lib/validations/widget";
 
-type MenuItem = {
-  id: string; // Unique ID for each item (required for dnd-kit)
-  label: string;
-  icon: keyof typeof iconMap;
-  action?: () => void;
-};
-
-type MenuSection = {
-  title: string;
-  items: MenuItem[];
-};
-
-interface WidgetTabProps {
-  sections: MenuSection[];
-}
-
-const SquareItem = styled(Box)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  height: 64,
-  width: 64,
-  borderRadius: 8,
-  border: `1px solid ${theme.palette.divider}`,
-  "&:hover": {
-    borderColor: theme.palette.primary.main,
-    backgroundColor: theme.palette.action.hover,
-  },
-}));
-
-const CardTile = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-start",
-  height: 64,
-  width: 160,
-  borderRadius: 8,
-  border: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
-  boxShadow: theme.shadows[4], // Add elevation (shadow)
-  padding: theme.spacing(3), // Add some padding
-}));
-
-const Label = styled(Typography)(({ theme }) => ({
-  marginTop: theme.spacing(0.5),
-  textAlign: "center",
-  maxWidth: 64,
-  wordWrap: "break-word",
-  overflowWrap: "break-word",
-  whiteSpace: "normal",
-}));
-
-const CardTileLabel = styled(Typography)(({ theme }) => ({
-  marginLeft: theme.spacing(1.5), // Add spacing between icon and label
-  textAlign: "left",
-  whiteSpace: "nowrap", // Prevent label from wrapping
-  overflow: "hidden",
-  textOverflow: "ellipsis", // Add ellipsis for long labels
-}));
+import { DraggableItem } from "@/components/builder/widgets/common/DraggableItem";
+import SettingsGroupHeader from "@/components/builder/widgets/common/SettingsGroupHeader";
 
 function Draggable(props) {
   const Element = props.element || "div";
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: props.id,
+    data: {
+      config: {
+        type: props.id,
+      },
+    },
   });
 
   return (
@@ -115,64 +29,72 @@ function Draggable(props) {
   );
 }
 
-interface DraggableItemProps {
-  item: MenuItem;
-  isDragging?: boolean;
-}
-
-const DraggableItem = ({ item, isDragging = false }: DraggableItemProps) => {
-  return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "grab" }}>
-      {isDragging ? (
-        <CardTile>
-          {iconMap[item.icon] && React.createElement(iconMap[item.icon], { fontSize: "medium" })}
-          <CardTileLabel variant="body2">{item.label}</CardTileLabel>
-        </CardTile>
-      ) : (
-        <>
-          <SquareItem onClick={item.action}>
-            {iconMap[item.icon] && React.createElement(iconMap[item.icon], { fontSize: "medium" })}
-          </SquareItem>
-          <Label variant="caption">{item.label}</Label>
-        </>
-      )}
-    </Box>
-  );
-};
-
-const WidgetTab = ({ sections }: WidgetTabProps) => {
+const WidgetTab = () => {
+  const { t } = useTranslation("common");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeId, setActiveId] = useState(null);
-  const filteredSections = sections
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => item.label.toLowerCase().includes(searchTerm.toLowerCase())),
-    }))
-    .filter((section) => section.items.length > 0);
+  const sections = useMemo(
+    () => [
+      {
+        group: "information",
+        widgets: [
+          informationTypes.enum.layers,
+          // informationTypes.enum.bookmarks, //Todo
+          // informationTypes.enum.comments, //Todo
+        ] as WidgetTypes[],
+      },
+      {
+        group: "data",
+        widgets: [
+          dataTypes.enum.filter,
+          // dataTypes.enum.table, //Todo
+          dataTypes.enum.numbers,
+          // dataTypes.enum.feature_list, //Todo
+        ] as WidgetTypes[],
+      },
+      {
+        group: "charts",
+        widgets: [
+          chartTypes.enum.categories_chart,
+          chartTypes.enum.histogram_chart,
+          chartTypes.enum.pie_chart,
+        ] as WidgetTypes[],
+      },
+      {
+        group: "project_elements",
+        widgets: [
+          elementTypes.enum.text,
+          elementTypes.enum.divider,
+          elementTypes.enum.image,
+        ] as WidgetTypes[],
+      },
+    ],
+    []
+  );
 
-  function handleDragStart(event) {
-    setActiveId(event.active.id);
-  }
-
-  function handleDragEnd() {
-    setActiveId(null);
-  }
-
-  useDndMonitor({
-    onDragStart: handleDragStart,
-    onDragEnd: handleDragEnd,
-  });
-
-  const activeItem: MenuItem | undefined = useMemo(() => {
-    return sections.flatMap((section) => section.items).find((item) => item.id === activeId);
-  }, [sections, activeId]);
-
+  const filteredSections = useMemo(() => {
+    if (!searchTerm) {
+      return sections;
+    }
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return sections
+      .map((section) => ({
+        ...section,
+        widgets: section.widgets.filter((widget) => {
+          const translatedWidgetName = t(widget).toLowerCase();
+          const originalWidgetKey = widget.toLowerCase();
+          return (
+            translatedWidgetName.includes(lowerSearchTerm) || originalWidgetKey.includes(lowerSearchTerm)
+          );
+        }),
+      }))
+      .filter((section) => section.widgets.length > 0);
+  }, [sections, searchTerm, t]);
   return (
     <>
       <Stack direction="column" height="100%" width="100%">
         <TextField
           fullWidth
-          placeholder="Search..."
+          placeholder={t("search")}
           sx={{ p: 3 }}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -193,29 +115,25 @@ const WidgetTab = ({ sections }: WidgetTabProps) => {
             height: "100%",
           }}>
           <Stack spacing={4} sx={{ p: 3 }}>
-            {filteredSections.map((section) => (
-              <Box key={section.title}>
-                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: "bold" }}>
-                  {section.title}
-                </Typography>
-                <Divider sx={{ mt: 0, mb: 4 }} />
-                <Grid container spacing={4}>
-                  {section.items.map((item) => (
-                    <Grid item xs={3} key={item.id}>
-                      <Draggable id={item.id}>
-                        <DraggableItem item={item} />
-                      </Draggable>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            ))}
+            <Box>
+              {filteredSections.map((section) => (
+                <Box key={section.group} sx={{ mb: 8 }}>
+                  <SettingsGroupHeader label={t(section.group)} />
+                  <Grid container spacing={4}>
+                    {section.widgets.map((widget) => (
+                      <Grid item xs={6} key={widget}>
+                        <Draggable id={widget}>
+                          <DraggableItem widgetType={widget} />
+                        </Draggable>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              ))}
+            </Box>
           </Stack>
         </Box>
       </Stack>
-      <DragOverlay dropAnimation={null} modifiers={[createSnapToCursorModifier("topCenter")]}>
-        {activeItem ? <DraggableItem item={activeItem} isDragging={true} /> : null}
-      </DragOverlay>
     </>
   );
 };

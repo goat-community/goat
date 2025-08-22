@@ -1,5 +1,5 @@
 # Standard library imports
-from typing import List, Union
+from typing import Any, Dict, List, Tuple, Union
 from uuid import UUID
 
 # Third party imports
@@ -7,19 +7,24 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel, TypeAdapter, ValidationError
 from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import SQLModel
 
 from core.core.layer import CRUDLayerBase
 from core.core.statistics import StatisticsBase
 from core.db.models._link_model import LayerProjectLink
 from core.db.models.layer import Layer
 from core.db.models.project import Project
+from core.expression_converter import QgsExpressionToSqlConverter
 from core.schemas.error import LayerNotFoundError, UnsupportedLayerTypeError
 from core.schemas.layer import (
     FeatureGeometryType,
     LayerType,
 )
 from core.schemas.project import (
+    IFeatureStandardProjectRead,
+    IFeatureStreetNetworkProjectRead,
+    IFeatureToolProjectRead,
+    IRasterProjectRead,
+    ITableProjectRead,
     layer_type_mapping_read,
     layer_type_mapping_update,
 )
@@ -29,7 +34,6 @@ from core.utils import (
     build_where_clause,
     search_value,
 )
-from core.expression_converter import QgsExpressionToSqlConverter
 
 # Local application imports
 from .base import CRUDBase
@@ -37,15 +41,23 @@ from .base import CRUDBase
 
 class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
     async def layer_projects_to_schemas(
-        self, async_session: AsyncSession, layers_project
-    ):
+        self,
+        async_session: AsyncSession,
+        layers_project: List[Tuple[Layer, LayerProjectLink]],
+    ) -> List[
+        IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | IFeatureStreetNetworkProjectRead
+        | ITableProjectRead
+        | IRasterProjectRead
+    ]:
         """Convert layer projects to schemas."""
         layer_projects_schemas = []
 
         # Loop through layer and layer projects
         for layer_project_tuple in layers_project:
             layer = layer_project_tuple[0]
-            layer_project = layer_project_tuple[1]
+            layer_project_model = layer_project_tuple[1]
 
             # Get layer type
             if layer.feature_layer_type is not None:
@@ -53,15 +65,30 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
             else:
                 layer_type = layer.type
 
-            layer_dict = layer.dict()
+            layer_dict = layer.model_dump()
             # Delete id from layer
             del layer_dict["id"]
             # Update layer with layer project
-            layer_dict.update(layer_project.dict())
-            layer_project = layer_type_mapping_read[layer_type](**layer_dict)
+            layer_dict.update(layer_project_model.model_dump())
+            layer_project: Union[
+                IFeatureStandardProjectRead
+                | IFeatureToolProjectRead
+                | IFeatureStreetNetworkProjectRead
+                | ITableProjectRead
+                | IRasterProjectRead
+            ] = layer_type_mapping_read[layer_type](**layer_dict)
 
             # Get feature cnt for all feature layers and tables
             if layer_project.type in [LayerType.feature.value, LayerType.table.value]:
+                assert isinstance(
+                    layer_project,
+                    (
+                        IFeatureStandardProjectRead,
+                        IFeatureToolProjectRead,
+                        IFeatureStreetNetworkProjectRead,
+                        ITableProjectRead,
+                    ),
+                )
                 feature_cnt = await self.get_feature_cnt(
                     async_session=async_session, layer_project=layer_project
                 )
@@ -77,7 +104,13 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
         self,
         async_session: AsyncSession,
         project_id: UUID,
-    ):
+    ) -> List[
+        IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | IFeatureStreetNetworkProjectRead
+        | ITableProjectRead
+        | IRasterProjectRead
+    ]:
         """Get all layers from a project"""
 
         # Get all layers from project
@@ -87,32 +120,44 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
         )
 
         # Get all layers from project
-        layers_project = await self.get_multi(
-            async_session,
-            query=query,
-        )
         layer_projects_to_schemas = await self.layer_projects_to_schemas(
-            async_session, layers_project
+            async_session,
+            await self.get_multi(
+                async_session,
+                query=query,
+            ),
         )
         return layer_projects_to_schemas
 
-    async def get_by_ids(self, async_session: AsyncSession, ids: list[int]):
+    async def get_by_ids(
+        self, async_session: AsyncSession, ids: list[int]
+    ) -> List[
+        IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | IFeatureStreetNetworkProjectRead
+        | ITableProjectRead
+        | IRasterProjectRead
+    ]:
         """Get all layer projects links by the ids"""
 
         # Get all layers from project by id
-        query = select(Layer, LayerProjectLink).where(
-            LayerProjectLink.id.in_(ids),
-        ).where(
-            Layer.id == LayerProjectLink.layer_id,
+        query = (
+            select(Layer, LayerProjectLink)
+            .where(
+                LayerProjectLink.id.in_(ids),
+            )
+            .where(
+                Layer.id == LayerProjectLink.layer_id,
+            )
         )
 
         # Get all layers from project
-        layer_projects = await self.get_multi(
-            async_session,
-            query=query,
-        )
         layer_projects = await self.layer_projects_to_schemas(
-            async_session, layer_projects
+            async_session,
+            await self.get_multi(
+                async_session,
+                query=query,
+            ),
         )
         return layer_projects
 
@@ -125,7 +170,7 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
             LayerType.feature
         ],
         expected_geometry_types: List[FeatureGeometryType] | None = None,
-    ):
+    ) -> BaseModel:
         """Get internal layer from layer project"""
 
         # Get layer project
@@ -134,18 +179,18 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
             Layer.id == LayerProjectLink.layer_id,
             LayerProjectLink.project_id == project_id,
         )
-        layer_project = await self.get_multi(
-            db=async_session,
-            query=query,
-        )
-        layer_project = await self.layer_projects_to_schemas(
-            async_session, layer_project
+        all_layer_projects = await self.layer_projects_to_schemas(
+            async_session,
+            await self.get_multi(
+                db=async_session,
+                query=query,
+            ),
         )
 
         # Make sure layer project exists
-        if layer_project == []:
-            raise LayerNotFoundError("Layer project not found")
-        layer_project = layer_project[0]
+        if all_layer_projects == []:
+            raise LayerNotFoundError("Layer projects not found")
+        layer_project = all_layer_projects[0]
         # Check if one of the expected layer types is given
         if layer_project.type not in expected_layer_types:
             raise UnsupportedLayerTypeError(
@@ -170,7 +215,7 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
         async_session: AsyncSession,
         project_id: UUID,
         layer_ids: List[UUID],
-    ):
+    ) -> List[BaseModel]:
         """Create a link between a project and a layer"""
 
         # Remove duplicate layer_ids
@@ -257,6 +302,12 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
         async_session: AsyncSession,
         id: int,
         layer_in: dict,
+    ) -> (
+        IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | IFeatureStreetNetworkProjectRead
+        | ITableProjectRead
+        | IRasterProjectRead
     ):
         """Update a link between a project and a layer"""
 
@@ -321,9 +372,13 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
     async def get_feature_cnt(
         self,
         async_session: AsyncSession,
-        layer_project: SQLModel | BaseModel,
-        where_query: str = None,
-    ):
+        layer_project: IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | IFeatureStreetNetworkProjectRead
+        | IFeatureStreetNetworkProjectRead
+        | ITableProjectRead,
+        where_query: str | None = None,
+    ) -> Dict[str, Any]:
         """Get feature count for a layer or a layer project."""
 
         # Get feature count total
@@ -348,9 +403,12 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
         self,
         async_session: AsyncSession,
         max_feature_cnt: int,
-        layer,
+        layer: IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | IFeatureStreetNetworkProjectRead
+        | ITableProjectRead,
         where_query: str,
-    ):
+    ) -> Dict[str, Any]:
         """Check if feature count is exceeding the defined limit."""
         feature_cnt = await self.get_feature_cnt(
             async_session=async_session, layer_project=layer, where_query=where_query
@@ -373,7 +431,7 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
         async_session: AsyncSession,
         layer_id: UUID,
         new_layer_id: UUID,
-    ):
+    ) -> None:
         """Update layer id in layer project link."""
 
         # Update all layers from project by id
@@ -396,31 +454,34 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
         async_session: AsyncSession,
         project_id: UUID,
         layer_project_id: int,
-        column_name: str | None,
-        operation: ColumnStatisticsOperation | None,
+        operation_type: ColumnStatisticsOperation,
+        operation_value: str | None,
         group_by_column_name: str | None,
-        expression: str | None,
         size: int,
         query: str,
         order: str,
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """Get aggregated statistics for a numeric column based on the supplied group-by column and CQL-filter."""
 
         # Get layer project data
-        layer_project = await self.get_internal(
+        layer_project: (
+            IFeatureStandardProjectRead | IFeatureToolProjectRead
+        ) = await self.get_internal(
             async_session=async_session, project_id=project_id, id=layer_project_id
         )
 
         mapped_statistics_field = None
 
         # For expression-based operations, validate columns and attribute mapping
-        if expression:
-            converter = QgsExpressionToSqlConverter(expression)
+        if operation_type == ColumnStatisticsOperation.expression and operation_value is not None:
+            converter = QgsExpressionToSqlConverter(operation_value)
             column_names = converter.extract_field_names()
             for column in column_names:
                 try:
                     # Check if column is in attribute mapping
-                    column_mapped = search_value(layer_project.attribute_mapping, column)
+                    column_mapped = search_value(
+                        layer_project.attribute_mapping, column
+                    )
                 except ValueError:
                     raise HTTPException(
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -433,25 +494,28 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
             # Convert expression to SQL
             statistics_column_query, mapped_group_by_field = converter.translate()
         else:
+
             # Check if mapped statistics field is float, integer or biginteger
             mapped_statistics_field = (
                 await self.check_column_statistics(
                     layer_project=layer_project,
-                    column_name=column_name,
-                    operation=operation,
+                    column_name=operation_value,
+                    operation=operation_type,
                 )
             )["mapped_statistics_field"]
 
             # TODO: Consider performing a data type check on the group-by column
-            mapped_group_by_field = search_value(
-                layer_project.attribute_mapping,
-                group_by_column_name,
-            )
+            mapped_group_by_field = None
+            if group_by_column_name is not None:
+                mapped_group_by_field = search_value(
+                    layer_project.attribute_mapping,
+                    group_by_column_name,
+                )
 
             # Build statistics portion of select clause
             statistics_column_query = self.get_statistics_sql(
                 field=mapped_statistics_field,
-                operation=operation,
+                operation=operation_type,
             )
 
         # Build where clause combining layer project and CQL query
@@ -470,20 +534,22 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
 
         # Build count query
         sql_count_query = f"""
-            SELECT COUNT({mapped_statistics_field if mapped_statistics_field else '*'})
+            SELECT COUNT({mapped_statistics_field if mapped_statistics_field else "*"})
             FROM {layer_project.table_name}
             {where_query};
         """
         total_count = (await async_session.execute(text(sql_count_query))).scalar_one()
 
         # Build final statistics queries
-        group_by_clause = f"GROUP BY {mapped_group_by_field}" if mapped_group_by_field else ""
+        group_by_clause = (
+            f"GROUP BY {mapped_group_by_field}" if mapped_group_by_field else ""
+        )
         order_mapped = {"descendent": "DESC", "ascendent": "ASC"}[order]
         sql_data_query = f"""
             SELECT *
             FROM (
                 SELECT {statistics_column_query} operation_value
-                    {f',{mapped_group_by_field}' if mapped_group_by_field else ''}
+                    {f",{mapped_group_by_field}" if mapped_group_by_field else ""}
                 FROM {layer_project.table_name}
                 {where_query}
                 {group_by_clause}
@@ -515,11 +581,13 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
         num_bins: int,
         query: str,
         order: str,
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """Get histogram statistics for a numeric column based on the specified number of bins and CQL-filter."""
 
         # Get layer project data
-        layer_project = await self.get_internal(
+        layer_project: (
+            IFeatureStandardProjectRead | IFeatureToolProjectRead
+        ) = await self.get_internal(
             async_session=async_session, project_id=project_id, id=layer_project_id
         )
 
@@ -553,41 +621,60 @@ class CRUDLayerProject(CRUDLayerBase, StatisticsBase):
             {where_query};
         """
         result = (await async_session.execute(text(sql_metadata_query))).fetchone()
+        if result is None:
+            raise ValueError("Unable to fetch metadata for histogram statistics")
         total_count, min_val, max_val = result[0], result[1], result[2]
 
-        # Build final statistics queries
-        order_mapped = {"descendent": "DESC", "ascendent": "ASC"}[order]
-        sql_data_query = f"""
-            WITH bins AS (
-                SELECT generate_series(1, {num_bins}) AS bin_number
-            ),
-            histogram AS (
-                SELECT
-                    width_bucket({mapped_statistics_field}, {min_val}, {max_val + 1}, {num_bins}) AS bin_number,
-                    COUNT(*) AS count
-                FROM {layer_project.table_name}
-                {where_query}
-                AND {mapped_statistics_field} IS NOT NULL
-                GROUP BY bin_number
-            )
-            SELECT
-                bins.bin_number,
-                ROUND(({min_val} + (bins.bin_number - 1) * ({max_val} - {min_val}) / {num_bins})::NUMERIC, 2) AS lower_bound,
-                ROUND(({min_val} + bins.bin_number * ({max_val} - {min_val}) / {num_bins})::NUMERIC, 2) AS upper_bound,
-                COALESCE(histogram.count, 0) AS count
-            FROM bins
-            LEFT JOIN histogram ON bins.bin_number = histogram.bin_number
-            ORDER BY bins.bin_number {order_mapped};
-        """
-        result = (await async_session.execute(text(sql_data_query))).fetchall()
+        # The specified num_bins value is a limit, update the number of bins if necessary
+        if max_val is not None and min_val is not None:
+            if num_bins > max_val:
+                num_bins = (max_val + 1) - min_val
+        else:
+            num_bins = 0
 
         # Create a response object
-        missing_count = total_count - sum([res[3] for res in result])
         response = {
-            "bins": [{"range": [res[1], res[2]], "count": res[3]} for res in result],
-            "missing_count": missing_count,
-            "total_rows": total_count,
+            "bins": [],
+            "missing_count": 0,
+            "total_rows": 0,
         }
+
+        # Execute final statistics query
+        if num_bins:
+            order_mapped = {"descendent": "DESC", "ascendent": "ASC"}[order]
+            sql_data_query = f"""
+                WITH bins AS (
+                    SELECT generate_series(1, {num_bins}) AS bin_number
+                ),
+                histogram AS (
+                    SELECT
+                        width_bucket({mapped_statistics_field}, {min_val}, {max_val + 1}, {num_bins}) AS bin_number,
+                        COUNT(*) AS count
+                    FROM {layer_project.table_name}
+                    {where_query}
+                    AND {mapped_statistics_field} IS NOT NULL
+                    GROUP BY bin_number
+                )
+                SELECT
+                    bins.bin_number,
+                    ROUND(({min_val} + (bins.bin_number - 1) * ({max_val} - {min_val}) / {num_bins})::NUMERIC, 2) AS lower_bound,
+                    ROUND(({min_val} + bins.bin_number * ({max_val} - {min_val}) / {num_bins})::NUMERIC, 2) AS upper_bound,
+                    COALESCE(histogram.count, 0) AS count
+                FROM bins
+                LEFT JOIN histogram ON bins.bin_number = histogram.bin_number
+                ORDER BY bins.bin_number {order_mapped};
+            """
+            final_result = (
+                await async_session.execute(text(sql_data_query))
+            ).fetchall()
+
+            # Update response object
+            missing_count = total_count - sum([res[3] for res in final_result])
+            response["bins"] = [
+                {"range": [res[1], res[2]], "count": res[3]} for res in final_result
+            ]
+            response["missing_count"] = missing_count
+            response["total_rows"] = total_count
         return response
 
 

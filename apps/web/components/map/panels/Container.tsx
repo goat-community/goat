@@ -11,7 +11,7 @@ interface ContainerProps {
   direction?: "left" | "right";
   body?: React.ReactNode;
   action?: React.ReactNode;
-  close: (item: MapSidebarItem | undefined) => void;
+  close?: (item: MapSidebarItem | undefined) => void;
   disablePadding?: boolean;
   backgroundColor?: string;
   disableClose?: boolean;
@@ -49,7 +49,7 @@ export default function Container(props: ContainerProps) {
                   width: "100%",
                 }}>
                 {header}
-                {disableClose !== true && (
+                {disableClose !== true && close && (
                   <IconButton onClick={() => close(undefined)}>
                     <Icon iconName={ICON_NAME.CLOSE} fontSize="small" />
                   </IconButton>
@@ -72,7 +72,7 @@ export default function Container(props: ContainerProps) {
                   }}>
                   {title}
                 </Typography>
-                {disableClose !== true && (
+                {disableClose !== true && close && (
                   <IconButton onClick={() => close(undefined)}>
                     <Icon iconName={ICON_NAME.CLOSE} fontSize="small" />
                   </IconButton>

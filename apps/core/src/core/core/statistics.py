@@ -1,13 +1,12 @@
-from pydantic import BaseModel
+from typing import Any, Dict
 
+from core.db.models.layer import FeatureGeometryType
 from core.schemas.error import (
     ColumnTypeError,
     GeometryTypeError,
 )
-from core.schemas.layer import (
-    FeatureGeometryType,
-    OgrPostgresType,
-)
+from core.schemas.layer import OgrPostgresType
+from core.schemas.project import IFeatureStandardProjectRead, IFeatureToolProjectRead
 from core.schemas.toolbox_base import (
     ColumnStatisticsOperation,
 )
@@ -17,7 +16,7 @@ from core.utils import search_value
 class StatisticsBase:
     """Helper functions that support statistical operations for endpoints."""
 
-    def convert_geom_measurement_field(self, field):
+    def convert_geom_measurement_field(self, field: str) -> str:
         if field.endswith("$intersected_area"):
             field = f"ST_AREA({field.replace('$intersected_area', 'geom')}::geography)"
         elif field.endswith("$length"):
@@ -28,7 +27,7 @@ class StatisticsBase:
         self,
         field: str | None,
         operation: ColumnStatisticsOperation,
-    ):
+    ) -> str:
         # Parse pseudo columns when a column name is supplied
         if field:
             field = self.convert_geom_measurement_field(field)
@@ -52,10 +51,10 @@ class StatisticsBase:
 
     async def check_column_statistics(
         self,
-        layer_project: BaseModel,
+        layer_project: IFeatureStandardProjectRead | IFeatureToolProjectRead,
         column_name: str | None,
         operation: ColumnStatisticsOperation,
-    ):
+    ) -> Dict[str, Any]:
         """Check if the column statistics field is valid and return the mapped statistics field and the mapped statistics field type."""
 
         column_statistics_field = column_name
@@ -98,7 +97,7 @@ class StatisticsBase:
             "mapped_statistics_field_type": mapped_statistics_field_type,
         }
 
-    async def check_is_number(self, data_type: str | None):
+    async def check_is_number(self, data_type: str | None) -> None:
         """Check if the data type is a number."""
         if data_type not in [
             OgrPostgresType.Integer,

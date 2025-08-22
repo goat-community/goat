@@ -13,8 +13,8 @@ import { pieChartConfigSchema } from "@/lib/validations/widget";
 
 import { useChartWidget } from "@/hooks/map/DashboardBuilderHooks";
 
-import { ChartStatusContainer } from "@/components/builder/widgets/chart/ChartStatusContainer";
-import { StaleDataLoader } from "@/components/builder/widgets/chart/StaleDataLoader";
+import { StaleDataLoader } from "@/components/builder/widgets/common/StaleDataLoader";
+import { WidgetStatusContainer } from "@/components/builder/widgets/common/WidgetStatusContainer";
 
 const FALLBACK_COLORS = ["#5A1846", "#900C3F", "#C70039", "#E3611C", "#F1920E", "#FFC300"];
 const OPACITY_MODIFIER = "33";
@@ -103,13 +103,19 @@ export const PieChartWidget = ({ config: rawConfig }: { config: PieChartSchema }
     }
   };
 
+  const isChartConfigured = useMemo(() => {
+    return config?.setup?.layer_project_id && queryParams;
+  }, [config, queryParams]);
+
   return (
     <>
-      <ChartStatusContainer
-        config={config}
-        queryParams={queryParams}
-        isLoading={isLoading && !aggregationStats}
+      <WidgetStatusContainer
+        isLoading={isLoading && !aggregationStats && !isError}
+        isNotConfigured={!isChartConfigured}
         isError={isError}
+        height={150}
+        isNotConfiguredMessage={t("please_configure_chart")}
+        errorMessage={t("cannot_render_chart_error")}
       />
 
       {config && !isError && aggregationStats && (

@@ -1,11 +1,14 @@
+from typing import Any, Dict
 from uuid import UUID
 
-from pydantic import BaseModel
-from sqlalchemy import text
+from fastapi import BackgroundTasks
+from sqlalchemy import TextClause, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
 from core.core.job import job_init, job_log, run_background_or_immediately
 from core.core.tool import CRUDToolBase
+from core.db.models.layer import FeatureGeometryType
 from core.schemas.heatmap import (
     TRAVELTIME_MATRIX_RESOLUTION,
     TRAVELTIME_MATRIX_TABLE,
@@ -15,21 +18,32 @@ from core.schemas.heatmap import (
     MotorizedRoutingHeatmapType,
 )
 from core.schemas.job import JobStatusType
-from core.schemas.layer import FeatureGeometryType, IFeatureLayerToolCreate
+from core.schemas.layer import IFeatureLayerToolCreate
+from core.schemas.project import (
+    IFeatureStandardProjectRead,
+    IFeatureToolProjectRead,
+)
 from core.schemas.toolbox_base import DefaultResultLayerName
 from core.utils import format_value_null_sql
 
 
 class CRUDHeatmapConnectivity(CRUDToolBase):
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
 
     async def create_distributed_opportunity_table(
         self,
         routing_type: ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType,
-        layer_project: BaseModel,
-        scenario_id: UUID,
-    ):
+        layer_project: IFeatureStandardProjectRead | IFeatureToolProjectRead,
+        scenario_id: UUID | None,
+    ) -> str:
         """Create distributed table for user-specified opportunities."""
 
         # Create temp table name for points
@@ -58,7 +72,7 @@ class CRUDHeatmapConnectivity(CRUDToolBase):
         reference_area_table: str,
         result_table: str,
         result_layer_id: str,
-    ):
+    ) -> TextClause:
         """Builds SQL query to compute heatmap connectivity."""
 
         h3_cell_area = f"((3 * SQRT(3) / 2) * POWER(h3_get_hexagon_edge_length_avg({TRAVELTIME_MATRIX_RESOLUTION[params.routing_type]}, 'm'), 2))"
@@ -79,8 +93,11 @@ class CRUDHeatmapConnectivity(CRUDToolBase):
     async def heatmap(
         self,
         params: IHeatmapConnectivityActive | IHeatmapConnectivityMotorized,
-    ):
+    ) -> Dict[str, Any]:
         """Compute heatmap connectivity."""
+
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         # Fetch reference area table
         reference_area_layer = await self.get_layers_project(params)
@@ -97,7 +114,7 @@ class CRUDHeatmapConnectivity(CRUDToolBase):
         layer_heatmap = IFeatureLayerToolCreate(
             name=(
                 DefaultResultLayerName.heatmap_connectivity_active_mobility.value
-                if type(params.routing_type) == ActiveRoutingHeatmapType
+                if type(params.routing_type) is ActiveRoutingHeatmapType
                 else DefaultResultLayerName.heatmap_connectivity_motorized_mobility.value
             ),
             feature_layer_geometry_type=FeatureGeometryType.polygon,
@@ -133,5 +150,5 @@ class CRUDHeatmapConnectivity(CRUDToolBase):
     async def run_heatmap(
         self,
         params: IHeatmapConnectivityActive | IHeatmapConnectivityMotorized,
-    ):
+    ) -> Dict[str, Any]:
         return await self.heatmap(params=params)

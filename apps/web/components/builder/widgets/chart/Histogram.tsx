@@ -16,8 +16,8 @@ import { histogramChartConfigSchema } from "@/lib/validations/widget";
 
 import { useChartWidget } from "@/hooks/map/DashboardBuilderHooks";
 
-import { ChartStatusContainer } from "@/components/builder/widgets/chart/ChartStatusContainer";
-import { StaleDataLoader } from "@/components/builder/widgets/chart/StaleDataLoader";
+import { StaleDataLoader } from "@/components/builder/widgets/common/StaleDataLoader";
+import { WidgetStatusContainer } from "@/components/builder/widgets/common/WidgetStatusContainer";
 
 const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
   const { t } = useTranslation("common");
@@ -51,16 +51,22 @@ export const HistogramChartWidget = ({ config: rawConfig }: { config: HistogramC
   );
   // Memoized chart data
   const chartData = useMemo(() => histogramStats?.bins || [], [histogramStats]);
+
+  const isChartConfigured = useMemo(() => {
+    return config?.setup?.layer_project_id && queryParams;
+  }, [config, queryParams]);
   return (
     <>
-      <ChartStatusContainer
-        config={config}
-        queryParams={queryParams}
+      <WidgetStatusContainer
         isLoading={isLoading && !histogramStats && !isError}
+        isNotConfigured={!isChartConfigured}
         isError={isError}
+        height={150}
+        isNotConfiguredMessage={t("please_configure_chart")}
+        errorMessage={t("cannot_render_chart_error")}
       />
 
-      {config && histogramStats && !isError && (
+      {config && histogramStats && !isError && isChartConfigured && (
         <ResponsiveContainer width="100%" aspect={1.2}>
           <BarChart data={chartData} margin={{ top: 10, right: 20, bottom: 10 }}>
             {/* Optimized XAxis */}
@@ -123,18 +129,18 @@ export const HistogramChartWidget = ({ config: rawConfig }: { config: HistogramC
             i18nKey="common:all_features_have_column"
             values={{
               nr_features: histogramStats.total_rows,
-              column_name: config.setup.column_name,
+              column_name: config?.setup?.column_name,
             }}
             components={{ b: <b /> }}
           />
         </Typography>
       )}
-      {config && histogramStats?.total_rows === 0 && config.options.filter_by_viewport && !isError && (
+      {config && histogramStats?.total_rows === 0 && config?.options?.filter_by_viewport && !isError && (
         <Typography variant="caption" align="left" gutterBottom>
           {t("no_features_in_viewport")}
         </Typography>
       )}
-      {config && histogramStats?.total_rows === 0 && !config.options.filter_by_viewport && !isError && (
+      {config && histogramStats?.total_rows === 0 && !config?.options?.filter_by_viewport && !isError && (
         <Typography variant="caption" align="left" gutterBottom>
           {t("no_features_in_layer")}
         </Typography>

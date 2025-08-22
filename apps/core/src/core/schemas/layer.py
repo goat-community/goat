@@ -595,14 +595,14 @@ def get_layer_schema(
         # Check if layer is feature
         if feature_layer_type:
             schema_class = class_mapping[layer_type][feature_layer_type]
-            if not isinstance(schema_class, FeatureUpdateBase):
+            if not issubclass(schema_class, FeatureUpdateBase):
                 raise ValueError(
                     f"Feature layer type ({feature_layer_type}) is invalid for layer type ({layer_type})"
                 )
             return schema_class
         else:
             schema_class = class_mapping[layer_type]
-            if not isinstance(schema_class, IRasterUpdate | ITableUpdate):
+            if not issubclass(schema_class, IRasterUpdate | ITableUpdate):
                 raise ValueError(
                     f"Layer type ({layer_type}) is invalid for the provided class mapping"
                 )

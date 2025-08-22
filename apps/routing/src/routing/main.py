@@ -2,13 +2,13 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-import routing._dotenv  # noqa: E402, F401, I001
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import HTMLResponse
 from starlette.middleware.cors import CORSMiddleware
 
+import routing._dotenv  # noqa: E402, F401, I001
 from routing.core.config import settings
 from routing.endpoints.v2.api import router as api_router_v2
 

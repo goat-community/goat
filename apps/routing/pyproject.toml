@@ -25,6 +25,7 @@ dependencies = [
     "connectorx>=0.4.3",
     "polars==1.31.0",
     "rich>=13.9.4",
+    "pydantic-settings==2.9.1",
 ]
 
 [build-system]

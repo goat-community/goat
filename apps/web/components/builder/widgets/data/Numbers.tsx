@@ -12,8 +12,8 @@ import { type NumbersDataSchema, numbersDataConfigSchema } from "@/lib/validatio
 
 import { useChartWidget } from "@/hooks/map/DashboardBuilderHooks";
 
-import { ChartStatusContainer } from "@/components/builder/widgets/chart/ChartStatusContainer";
-import { StaleDataLoader } from "@/components/builder/widgets/chart/StaleDataLoader";
+import { StaleDataLoader } from "@/components/builder/widgets/common/StaleDataLoader";
+import { WidgetStatusContainer } from "@/components/builder/widgets/common/WidgetStatusContainer";
 
 interface NumbersDataProps {
   config: NumbersDataSchema;
@@ -21,8 +21,8 @@ interface NumbersDataProps {
   viewOnly?: boolean;
 }
 
-const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
-  const { t, i18n } = useTranslation("common");
+export const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
+  const { i18n } = useTranslation("common");
   const theme = useTheme();
   const { config, queryParams, projectId } = useChartWidget(
     rawConfig,
@@ -69,17 +69,20 @@ const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
     return null;
   }, [config?.setup?.icon, theme.palette.mode]);
 
+  const isWidgetConfigured = useMemo(() => {
+    return config?.setup?.layer_project_id && queryParams;
+  }, [config, queryParams]);
+
   return (
     <>
-      <ChartStatusContainer
-        config={config}
-        queryParams={queryParams}
-        isLoading={isLoading && !aggregationStats}
+      <WidgetStatusContainer
+        isLoading={isLoading && !aggregationStats && !isError}
+        isNotConfigured={!isWidgetConfigured}
         isError={isError}
-        errorMessage={t("cannot_render_widget_error")}
+        height={100}
       />
 
-      {config && !isError && aggregationStats && (
+      {config && !isError && aggregationStats && isWidgetConfigured && (
         <Stack direction="row" spacing={4} alignItems="center">
           {renderIcon}
           <Typography variant="h4" fontWeight="bold">
@@ -92,5 +95,3 @@ const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
     </>
   );
 };
-
-export default NumbersDataWidget;

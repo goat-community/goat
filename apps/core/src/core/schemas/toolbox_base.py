@@ -22,6 +22,8 @@ class ColumnStatisticsOperation(str, Enum):
     sum = "sum"
     min = "min"
     max = "max"
+    expression = "expression"
+
 
 
 class ColumnStatistic(BaseModel):
@@ -244,7 +246,7 @@ class CommonToolParams:
         background_tasks: BackgroundTasks,
         async_session: AsyncSession = Depends(get_db),
         user_id: UUID = Depends(get_user_id),
-        project_id: str = Query(
+        project_id: UUID = Query(
             ...,
             title="Project ID of the project that contains the layers.",
             description="The project ID of the project that contains the layers.",

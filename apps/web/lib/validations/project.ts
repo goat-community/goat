@@ -1,11 +1,16 @@
 import * as z from "zod";
 
-import { contentMetadataSchema, getContentQueryParamsSchema, orderByEnum } from "@/lib/validations/common";
+import { basicLayout } from "@/lib/constants/dashboard-builder-template-layouts";
+import {
+  contentMetadataSchema,
+  getContentQueryParamsSchema,
+  orderByEnum,
+  statisticOperationEnum,
+} from "@/lib/validations/common";
 import { layerSchema } from "@/lib/validations/layer";
 import { responseSchema } from "@/lib/validations/response";
 import { publicUserSchema } from "@/lib/validations/user";
 import { configSchemas } from "@/lib/validations/widget";
-import { basicLayout } from "@/lib/constants/dashboard-builder-template-layouts";
 
 export const projectRoleEnum = z.enum(["project-owner", "project-viewer", "project-editor"]);
 
@@ -79,13 +84,12 @@ export const builderConfigSchema = z.object({
     toolbar: z.boolean().default(true),
     project_info: z.boolean().default(true),
   }),
-  interface: z
-    .preprocess(
-      // Convert empty arrays to `undefined` to trigger the default, todo: remove this when dashboard is completed
-      (val) => (Array.isArray(val) && val.length === 0 ? undefined : val),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      z.array(builderPanelSchema).default(basicLayout.interface as any)
-    )
+  interface: z.preprocess(
+    // Convert empty arrays to `undefined` to trigger the default, todo: remove this when dashboard is completed
+    (val) => (Array.isArray(val) && val.length === 0 ? undefined : val),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    z.array(builderPanelSchema).default(basicLayout.interface as any)
+  ),
 });
 
 export const projectSchema = contentMetadataSchema.extend({
@@ -162,12 +166,35 @@ export const projectResponseSchema = responseSchema(projectSchema);
 export const projectLayersResponseSchema = responseSchema(projectLayerSchema);
 
 // Stats for project layer
-export const aggregationStatsQueryParams = z.object({
-  expression: z.string().optional(),
-  size: z.number().default(10),
-  query: z.string().optional(),
-  order: orderByEnum.optional(),
-});
+export const aggregationStatsQueryParams = z
+  .object({
+    operation_type: statisticOperationEnum,
+    operation_value: z.string().optional(),
+    group_by_column_name: z.string().optional(),
+    size: z.number().default(10),
+    query: z.string().optional(),
+    order: orderByEnum.optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.operation_type !== statisticOperationEnum.Values.count && !val.operation_value) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "operation_value is required unless operation_type is 'count'",
+        path: ["operation_value"],
+      });
+    }
+  })
+  .transform((data) => {
+    if (data.operation_type === statisticOperationEnum.Enum.count) {
+      delete data.operation_value;
+    }
+    Object.keys(data).forEach((key) => {
+      if (data[key] === undefined) {
+        delete data[key];
+      }
+    });
+    return data;
+  });
 
 export const aggregationStatsResponseSchema = z.object({
   items: z.array(

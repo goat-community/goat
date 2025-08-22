@@ -1,12 +1,13 @@
-import { Box, Divider, Tab, Tabs, Typography } from "@mui/material";
-import { styled, useTheme } from "@mui/material/styles";
+import { Box, Divider, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import React, { useMemo, useState } from "react";
 
 import { useTranslation } from "@/i18n/client";
 
 import { setSelectedBuilderItem } from "@/lib/store/map/slice";
-import type { BuilderPanelSchema, Project } from "@/lib/validations/project";
+import type { BuilderPanelSchema, BuilderWidgetSchema, Project } from "@/lib/validations/project";
 import { builderConfigSchema } from "@/lib/validations/project";
+import { widgetTypesWithoutConfig } from "@/lib/validations/widget";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
@@ -23,56 +24,26 @@ interface ConfigPanelProps {
   onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
 }
 
-const sections = [
-  {
-    title: "Information",
-    items: [
-      { id: "layers", label: "Layers", icon: "layers" },
-      { id: "bookmarks", label: "Bookmarks", icon: "bookmarks" },
-      { id: "comments", label: "Comments", icon: "comments" },
-    ],
-  },
-  {
-    title: "Data",
-    items: [
-      { id: "filter", label: "Filter", icon: "filter" },
-      { id: "table", label: "Table", icon: "table" },
-      { id: "numbers", label: "Numbers", icon: "numbers" },
-      { id: "featureList", label: "Feature List", icon: "featureList" },
-    ],
-  },
-  {
-    title: "Charts",
-    items: [
-      { id: "categories", label: "Categories", icon: "categories" },
-      { id: "histogram", label: "Histogram", icon: "histogram" },
-      { id: "pieChart", label: "Pie chart", icon: "pieChart" },
-    ],
-  },
-  {
-    title: "Project Elements",
-    items: [
-      { id: "text", label: "Text", icon: "text" },
-      { id: "divider", label: "Divider", icon: "divider" },
-      { id: "image", label: "Image", icon: "image" },
-    ],
-  },
-];
 const Container = styled(Box)(({ theme }) => ({
-  width: "350px",
-  backgroundColor: theme.palette.background.paper,
-  boxShadow: "0px 0px 10px 0px rgba(58, 53, 65, 0.1)",
+  backgroundColor: theme.palette.background.default,
+  boxShadow: `0px 0px 10px 0px ${
+    theme.palette.mode === "dark" ? "rgba(0, 0, 0, 0.7)" : "rgba(58, 53, 65, 0.1)"
+  }`,
 }));
+
+const PanelStack = styled(Stack)({
+  width: "300px",
+  height: "calc(100% - 40px)",
+});
 
 const TabPanel = (props: { children?: React.ReactNode; index: number; value: number }) => {
   const { children, value, index, ...other } = props;
-
   return (
     <div
       role="tabpanel"
       hidden={value !== index}
       id={`tabpanel-${index}`}
-      style={{ height: "100%" }}
+      style={{ height: "100%", overflowY: "auto" }}
       aria-labelledby={`tab-${index}`}
       {...other}>
       {value === index && <>{children}</>}
@@ -83,8 +54,7 @@ const TabPanel = (props: { children?: React.ReactNode; index: number; value: num
 const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) => {
   const dispatch = useAppDispatch();
   const selectedBuilderItem = useAppSelector((state) => state.map.selectedBuilderItem);
-  const [value, setValue] = useState(1);
-  const theme = useTheme();
+  const [value, setValue] = useState(0);
   const { t } = useTranslation("common");
   const builderConfig = useMemo(() => {
     const parsed = builderConfigSchema.safeParse(project?.builder_config);
@@ -147,6 +117,32 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
     if (updatedPanels) handleMapInterfaceChange(updatedPanels);
   };
 
+  const onWidgetChange = (widget: BuilderWidgetSchema) => {
+    if (!selectedBuilderItem || selectedBuilderItem.type !== "widget" || !builderConfig) {
+      return;
+    }
+    dispatch(setSelectedBuilderItem(widget));
+    const updatedPanels = builderConfig?.interface.map((panel) => {
+      if (panel.type === "panel") {
+        const updatedWidgets = panel.widgets.map((w) => {
+          if (w.id === widget.id) {
+            return widget;
+          }
+          return w;
+        });
+        return {
+          ...panel,
+          widgets: updatedWidgets,
+        };
+      }
+      return panel;
+    });
+    if (updatedPanels) {
+      builderConfig["interface"] = updatedPanels;
+      onProjectUpdate?.("builder_config", builderConfig, false);
+    }
+  };
+
   const renderConfiguration = () => {
     if (!selectedBuilderItem) {
       return null;
@@ -159,16 +155,31 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
           onChange={onPanelChange}
         />
       ),
-      widget: <WidgetConfiguration />,
+      widget: <WidgetConfiguration onChange={onWidgetChange} />,
     };
 
     return configComponents[selectedBuilderItem?.type] || null;
   };
 
+  const showConfiguration = useMemo(() => {
+    if (!selectedBuilderItem) {
+      return false;
+    }
+    if (selectedBuilderItem.type === "panel" && selectedBuilderItem.config) {
+      return true;
+    }
+
+    if (selectedBuilderItem.type === "widget" && selectedBuilderItem.config) {
+      const widgetType = selectedBuilderItem.config?.type;
+      return !widgetTypesWithoutConfig.includes(widgetType as never);
+    }
+    return false;
+  }, [selectedBuilderItem]);
+
   return (
     <Container>
-      {!selectedBuilderItem && (
-        <>
+      {!showConfiguration && (
+        <PanelStack>
           <Tabs
             sx={{ minHeight: "40px" }}
             value={value}
@@ -176,7 +187,6 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
             aria-label="config panel tabs"
             variant="fullWidth">
             <Tab
-              disabled
               sx={{ minHeight: "40px", height: "40px" }}
               label={
                 <Typography variant="body2" fontWeight="bold" sx={{ ml: 2 }} color="inherit">
@@ -199,7 +209,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
           </Tabs>
           <Divider sx={{ mt: 0 }} />
           <TabPanel value={value} index={0}>
-            <WidgetsTab sections={sections as never} />
+            <WidgetsTab />
           </TabPanel>
           <TabPanel value={value} index={1}>
             <SettingsTab
@@ -208,23 +218,28 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ project, onProjectUpdate }) =
               onReset={handleMapSettingsReset}
             />
           </TabPanel>
-        </>
+        </PanelStack>
       )}
-      {selectedBuilderItem && (
-        <SelectedItemContainer
-          backgroundColor={theme.palette.background.paper}
-          disableClose
-          header={
-            <ToolsHeader
-              title="Settings"
-              onBack={() => {
-                dispatch(setSelectedBuilderItem(undefined));
-              }}
-            />
-          }
-          body={renderConfiguration()}
-          close={() => {}}
-        />
+      {showConfiguration && (
+        <PanelStack>
+          <SelectedItemContainer
+            disableClose
+            header={
+              <ToolsHeader
+                title={`${
+                  selectedBuilderItem?.type === "panel"
+                    ? t("panel")
+                    : t(selectedBuilderItem?.config?.type || "widget")
+                } - ${t("settings")}`}
+                onBack={() => {
+                  dispatch(setSelectedBuilderItem(undefined));
+                }}
+              />
+            }
+            body={renderConfiguration()}
+            close={() => {}}
+          />
+        </PanelStack>
       )}
     </Container>
   );

@@ -19,7 +19,7 @@ interface LayerInformationProps {
   viewOnly?: boolean;
 }
 
-const LayerInformationWidget = ({
+export const LayerInformationWidget = ({
   projectLayers: publishedProjectLayers,
   viewOnly,
 }: LayerInformationProps) => {
@@ -72,5 +72,3 @@ const LayerInformationWidget = ({
     </Box>
   );
 };
-
-export default LayerInformationWidget;

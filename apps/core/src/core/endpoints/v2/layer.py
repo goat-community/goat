@@ -56,6 +56,9 @@ from core.schemas.layer import (
     AreaStatisticsOperation,
     ComputeBreakOperation,
     ICatalogLayerGet,
+    IFeatureStandardLayerRead,
+    IFeatureStreetNetworkLayerRead,
+    IFeatureToolLayerRead,
     IFileUploadExternalService,
     IFileUploadMetadata,
     ILayerExport,
@@ -66,6 +69,7 @@ from core.schemas.layer import (
     IMetadataAggregateRead,
     IRasterCreate,
     IRasterLayerRead,
+    ITableLayerRead,
     IUniqueValue,
     MaxFileSizeType,
 )
@@ -205,7 +209,7 @@ async def _create_layer_from_dataset(
     ),
     layer_in: ILayerFromDatasetCreate = Body(
         ...,
-        examples=layer_request_examples["create"],
+        example=layer_request_examples["create"],
         description="Layer to create",
     ),
 ) -> Dict[str, UUID]:
@@ -258,7 +262,7 @@ async def create_layer_feature_standard(
     ),
     layer_in: ILayerFromDatasetCreate = Body(
         ...,
-        examples=layer_request_examples["create"][LayerType.feature],
+        example=layer_request_examples["create"],
         description="Layer to create",
     ),
 ) -> Dict[str, Any]:
@@ -286,16 +290,16 @@ async def create_layer_raster(
     user_id: UUID4 = Depends(get_user_id),
     layer_in: IRasterCreate = Body(
         ...,
-        examples=layer_request_examples["create"][LayerType.raster],
+        example=layer_request_examples["create"],
         description="Layer to create",
     ),
 ) -> BaseModel:
     """Create a new raster layer from a service hosted externally."""
 
-    layer = await crud_layer.create(
+    layer = IRasterLayerRead(**(await crud_layer.create(
         db=async_session,
         obj_in=Layer(**layer_in.model_dump(), user_id=user_id).model_dump(),
-    )
+    )))
     return layer
 
 
@@ -318,7 +322,7 @@ async def create_layer_table(
     ),
     layer_in: ILayerFromDatasetCreate = Body(
         ...,
-        examples=layer_request_examples["create"][LayerType.table],
+        example=layer_request_examples["create"],
         description="Layer to create",
     ),
 ) -> Dict[str, Any]:
@@ -352,7 +356,7 @@ async def export_layer(
     ),
     layer_in: ILayerExport = Body(
         ...,
-        examples=layer_request_examples["export"],
+        example=layer_request_examples["export"],
         description="Layer to export",
     ),
 ) -> FileResponse:
@@ -427,7 +431,6 @@ async def read_layers(
     user_id: UUID4 = Depends(get_user_id),
     obj_in: ILayerGet = Body(
         None,
-        examples={},
         description="Layer to get",
     ),
     team_id: UUID | None = Query(
@@ -450,7 +453,7 @@ async def read_layers(
         description="Specify the order to apply. There are the option ascendent or descendent.",
         example="descendent",
     ),
-):
+) -> Page:
     """This endpoints returns a list of layers based one the specified filters."""
 
     with HTTPErrorHandler():
@@ -469,6 +472,7 @@ async def read_layers(
             team_id=team_id,
             organization_id=organization_id,
         )
+
     return layers
 
 
@@ -486,7 +490,6 @@ async def read_catalog_layers(
     user_id: UUID4 = Depends(get_user_id),
     obj_in: ICatalogLayerGet = Body(
         None,
-        examples={},
         description="Layer to get",
     ),
     order_by: str = Query(
@@ -499,7 +502,7 @@ async def read_catalog_layers(
         description="Specify the order to apply. There are the option ascendent or descendent.",
         example="descendent",
     ),
-):
+) -> Page:
     """This endpoints returns a list of layers based one the specified filters."""
 
     with HTTPErrorHandler():
@@ -512,6 +515,7 @@ async def read_catalog_layers(
             order=order,
             page_params=page_params,
         )
+
     return layers
 
 
@@ -530,15 +534,24 @@ async def update_layer(
         example="3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ),
     layer_in: Dict[Any, Any] = Body(
-        ..., examples=layer_request_examples["update"], description="Layer to update"
+        ..., example=layer_request_examples["update"], description="Layer to update"
     ),
-):
+) -> ILayerRead:
     with HTTPErrorHandler():
-        return await crud_layer.update(
+        result: SQLModel = await crud_layer.update(
             async_session=async_session,
             id=layer_id,
             layer_in=layer_in,
         )
+        assert type(result) is (
+            IFeatureStandardLayerRead
+            | IFeatureStreetNetworkLayerRead
+            | IFeatureToolLayerRead
+            | ITableLayerRead
+            | IRasterLayerRead
+        )
+
+    return result
 
 
 @router.put(
@@ -559,7 +572,7 @@ async def update_layer_dataset(
     dataset_id: UUID = Query(
         ..., description="The ID of the dataset to update the layer with"
     ),
-):
+) -> Dict[str, UUID]:
     """Update the dataset of a layer."""
 
     # Ensure updating the dataset of this layer is permitted
@@ -626,7 +639,7 @@ async def delete_layer(
         description="The ID of the layer to get",
         example="3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ),
-):
+) -> None:
     """Delete a layer and its data in case of an internal layer."""
 
     with HTTPErrorHandler():
@@ -656,7 +669,7 @@ async def get_feature_count(
         description="CQL2-Filter in JSON format",
         example='{"op": "=", "args": [{"property": "category"}, "bus_stop"]}',
     ),
-):
+) -> Dict[str, Any]:
     """Get feature count. Based on the passed CQL-filter."""
 
     with HTTPErrorHandler():
@@ -702,7 +715,7 @@ async def get_area_statistics(
         description="CQL2-Filter in JSON format",
         example='{"op": ">", "args": [{"property": "id"}, "10"]}',
     ),
-):
+) -> Dict[str, Any]:
     """Get statistics on the area size of a polygon layer. The area is computed using geography datatype and the unit is m²."""
 
     with HTTPErrorHandler():
@@ -748,15 +761,14 @@ async def get_unique_values(
         description="Specify the order to apply. There are the option ascendent or descendent.",
         example="descendent",
     ),
-):
+) -> Page[IUniqueValue]:
     """Get unique values of a column. Based on the passed CQL-filter and order."""
 
     # Check authorization status
     try:
         await auth_z_lite(request, async_session)
     except HTTPException:
-
-        public_layer = (
+        public_layer_query = (
             select(LayerProjectLink)
             .join(
                 ProjectPublic,
@@ -767,10 +779,10 @@ async def get_unique_values(
             )
             .limit(1)
         )
-        result = await async_session.execute(public_layer)
-        public_layer = result.scalars().first()
+        result = await async_session.execute(public_layer_query)
+
         # Check if layer is public
-        if not public_layer:
+        if not result.scalars().first():
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
             )
@@ -828,7 +840,7 @@ async def class_breaks(
         description="Stripe zeros from the column before performing the operation",
         example=True,
     ),
-):
+) -> Dict[str, Any] | None:
     """Get statistics of a column. Based on the saved layer filter in the project."""
 
     with HTTPErrorHandler():
@@ -860,7 +872,7 @@ async def metadata_aggregate(
         None,
         description="Filter for metadata to aggregate",
     ),
-):
+) -> IMetadataAggregateRead:
     """Return the count of layers for different metadata values acting as filters."""
     with HTTPErrorHandler():
         result = await crud_layer.metadata_aggregate(

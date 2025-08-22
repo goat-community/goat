@@ -18,7 +18,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import AddSectionButton from "@/components/builder/AddSectionButton";
 import type { BuilderPanelSchemaWithPosition } from "@/components/builder/PanelContainer";
-import PanelContainer from "@/components/builder/PanelContainer";
+import { Container } from "@/components/builder/PanelContainer";
 import Header from "@/components/header/Header";
 import AttributionControl from "@/components/map/controls/Attribution";
 import { BasemapSelector } from "@/components/map/controls/BasemapSelector";
@@ -45,7 +45,6 @@ const PublicProjectLayout = ({
 }: PublicProjectLayoutProps) => {
   const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
-  const disableEditing = true;
   const project = useMemo(() => {
     const parsedProject = projectSchema.safeParse(_project);
     if (parsedProject.success) {
@@ -220,8 +219,24 @@ const PublicProjectLayout = ({
   };
 
   const handlePanelClick = (panel: BuilderPanelSchema) => {
-    if (viewOnly || disableEditing) return;
+    if (viewOnly) return;
     dispatch(setSelectedBuilderItem(panel));
+  };
+
+  const onWidgetDelete = (widgetId: string) => {
+    if (viewOnly) return;
+    const updatedPanels = panels.map((panel) => {
+      if (panel.widgets) {
+        panel.widgets = panel.widgets.filter((widget) => widget.id !== widgetId);
+      }
+      return panel;
+    });
+    const builderConfig = {
+      interface: updatedPanels,
+      settings: { ...project?.builder_config?.settings },
+    };
+    onProjectUpdate?.("builder_config", builderConfig);
+    dispatch(setSelectedBuilderItem(undefined));
   };
 
   // Add a new panel to the specified position
@@ -304,20 +319,21 @@ const PublicProjectLayout = ({
           {panelsWithPosition?.length > 0 && (
             <>
               {panelsWithPosition.map((panel: BuilderPanelSchemaWithPosition) => (
-                <PanelContainer
+                <Container
                   key={panel.id}
                   panel={panel}
                   projectLayers={projectLayers}
-                  viewOnly={viewOnly || disableEditing}
+                  viewOnly={viewOnly}
                   selected={selectedPanel?.type === "panel" && selectedPanel?.id === panel.id}
                   onChangeOrder={handleChangeOrder}
+                  onWidgetDelete={onWidgetDelete}
                   onClick={() => handlePanelClick(panel)}
                 />
               ))}
             </>
           )}
           {/* Center Content */}
-          {!viewOnly && !disableEditing && (
+          {!viewOnly && (
             <Box
               sx={{
                 flexGrow: 1,

@@ -1,24 +1,44 @@
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar, Union
+from uuid import UUID
 
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from pydantic import BaseModel, ValidationError
-from sqlalchemy import delete, func, or_
+from sqlalchemy import func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import RelationshipProperty, selectinload
 from sqlalchemy.sql import Select
-from sqlmodel import SQLModel
 
+from core.db.models import (
+    Folder,
+    Job,
+    Layer,
+    Project,
+    Scenario,
+    Status,
+    SystemSetting,
+    User,
+)
 from core.schemas import OrderEnum
+from core.schemas.folder import FolderCreate, FolderUpdate
+from core.schemas.scenario import IScenarioCreate, IScenarioUpdate
+from core.schemas.system_setting import SystemSettingsCreate, SystemSettingsUpdate
 
-ModelType = TypeVar("ModelType", bound=BaseModel)
-CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
-UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+ModelType = TypeVar(
+    "ModelType",
+    bound=Layer | Project | User | Folder | Job | Scenario | Status | SystemSetting,
+)
+CreateSchemaType = TypeVar(
+    "CreateSchemaType", bound=FolderCreate | SystemSettingsCreate | IScenarioCreate
+)
+UpdateSchemaType = TypeVar(
+    "UpdateSchemaType", bound=FolderUpdate | SystemSettingsUpdate | IScenarioUpdate
+)
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
-    def __init__(self, model: Type[ModelType]):
+    def __init__(self, model: Type[ModelType]) -> None:
         """
         CRUD object with default methods to Create, Read, Update, Delete (CRUD).
         **Parameters**
@@ -28,8 +48,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     def extend_statement(
-        self, statement: select, *, extra_fields: List[Any] = []
-    ) -> select:
+        self, statement: Select[Any], *, extra_fields: List[Any] = []
+    ) -> Select[Any]:
         for field in extra_fields:
             if (
                 hasattr(field, "property")
@@ -41,7 +61,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def get(
         self, db: AsyncSession, id: Any, extra_fields: List[Any] = []
-    ) -> SQLModel | None:
+    ) -> ModelType | None:
         statement = select(self.model).where(self.model.id == id)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         result = await db.execute(statement)
@@ -53,15 +73,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         statement = select(self.model)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         result = await db.execute(statement)
-        return result.scalars().all()
-
-    async def get_by_key(
-        self, db: AsyncSession, *, key: str, value: Any, extra_fields: List[Any] = []
-    ) -> Optional[ModelType]:
-        statement = select(self.model).where(getattr(self.model, key) == value)
-        statement = self.extend_statement(statement)
-        result = await db.execute(statement)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def get_by_multi_keys(
         self, db: AsyncSession, *, keys: Dict[str, Any], extra_fields: List[Any] = []
@@ -76,22 +88,23 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             statement = statement.where(getattr(self.model, key) == value)
         statement = self.extend_statement(statement, extra_fields=extra_fields)
         result = await db.execute(statement)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def get_multi(
         self,
         db: AsyncSession,
         *,
-        query: SQLModel | Select | None = None,
+        query: Select[Any] | None = None,
         page_params: Params | None = None,
         order_by: str | None = None,
         order: OrderEnum | None = OrderEnum.ascendent,
         extra_fields: List[Any] = [],
-        search_text: dict | None = None,
-    ) -> Page[ModelType] | List[ModelType]:
+        search_text: Dict[str, Any] | None = None,
+    ) -> Page[ModelType] | List[Tuple[ModelType]]:
         if query is None:
             query = select(self.model)
         query = self.extend_statement(query, extra_fields=extra_fields)
+        assert type(query) is Select
 
         # Search for text in specified column
         if search_text is not None:
@@ -112,11 +125,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         if page_params is None:
             result = await db.execute(query)
-            items = result.all()
+            items: List[Tuple[ModelType]] = []
+            for row in result.all():
+                items.append(tuple(row))
             return items
         else:
-            assert type(query) == Select
             result = await paginate(db, query, page_params)
+
+            if not isinstance(result, Page):
+                raise ValueError("Invalid paginated result.")
+
             return result
 
     async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:
@@ -130,15 +148,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self,
         db: AsyncSession,
         *,
-        db_obj: SQLModel,
+        db_obj: ModelType,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]] | None = None,
-    ) -> SQLModel:
+    ) -> ModelType:
+        fields: List[str]
         if isinstance(obj_in, dict):
             update_data = obj_in
-            fields = obj_in.keys()
+            fields = list(obj_in.keys())
         elif isinstance(obj_in, BaseModel):
-            update_data = obj_in.dict(exclude_unset=True)
-            fields = obj_in.__fields__.keys()
+            update_data = obj_in.model_dump(exclude_unset=True)
+            fields = list(type(obj_in).model_fields.keys())
         elif obj_in is None:
             update_data = {}
             fields = []
@@ -155,7 +174,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await db.refresh(db_obj)
 
         # Create a new object from the updated object to validate it in case the layer has validators.
-        if hasattr(self.model, '__pydantic_decorators__') and self.model.__pydantic_decorators__.validators:
+        if (
+            hasattr(self.model, "__pydantic_decorators__")
+            and self.model.__pydantic_decorators__.validators
+        ):
             try:
                 validated_obj = self.model(**db_obj.model_dump())
                 for field in self.model.model_fields.keys():
@@ -179,8 +201,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 update_data = obj_in
                 fields = obj_in.keys()
             else:
-                update_data = obj_in.dict(exclude_unset=True)
-                fields = obj_in.__fields__.keys()
+                update_data = obj_in.model_dump(exclude_unset=True)
+                fields = type(obj_in).model_fields.keys()
             for field in fields:
                 if field in update_data:
                     setattr(db_obj, field, update_data[field])
@@ -192,47 +214,20 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         ids = [db_obj.id for db_obj in db_objs]
         statement = select(self.model).where(self.model.id.in_(ids))
         result = await db.execute(statement)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
-    async def remove(self, db: AsyncSession, *, id: int) -> ModelType:
+    async def remove(self, db: AsyncSession, *, id: int | UUID) -> ModelType:
         obj = await db.get(self.model, id)
+
+        if not obj:
+            raise ValueError(f"Object with id {id} not found.")
+
         await db.delete(obj)
         await db.commit()
         return obj
 
-    async def delete(self, db: AsyncSession, *, id: int) -> ModelType:
+    async def delete(self, db: AsyncSession, *, id: int | UUID) -> ModelType:
         return await self.remove(db, id=id)
-
-    async def remove_multi(
-        self, db: AsyncSession, *, ids: Union[int, List[int]]
-    ) -> ModelType:
-        if type(ids) == int:
-            ids = [ids]
-        statement = delete(self.model).where(self.model.id.in_(ids))
-        await db.execute(statement)
-        await db.commit()
-
-        # Return empty string at the moment
-        # TODO: add removed items instead.
-        return ""
-
-    async def remove_multi_by_key(
-        self, db: AsyncSession, *, key: str, values: Any
-    ) -> ModelType:
-        if not type(values) == list:
-            values = [values]
-        statement = delete(self.model).where(getattr(self.model, key).in_(values))
-        await db.execute(statement)
-        await db.commit()
-
-        # Return empty string at the moment
-        # TODO: add removed items instead.
-        return ""
-
-    async def get_n_rows(self, db: AsyncSession, *, n: int) -> ModelType:
-        statement = select(self.model).limit(n)
-        result = await db.execute(statement)
-        return result.scalars().all()
 
     async def count(self, db: AsyncSession) -> int:
         """

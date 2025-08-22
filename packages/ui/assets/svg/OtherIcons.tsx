@@ -256,3 +256,39 @@ export const panelAppearance: IconDefinition = {
   iconName: "xyz" as IconName,
   prefix: "fas" as IconPrefix,
 };
+
+export const divider: IconDefinition = {
+  icon: [24, 24, [], "", "M21 11a1 1 0 1 1 0 2H3a1 1 0 1 1 0-2z"],
+  iconName: "divider" as IconName,
+  prefix: "fas" as IconPrefix,
+};
+
+export const number: IconDefinition = {
+  icon: [
+    24,
+    24,
+    [],
+    "",
+    "M19.319 4.25h1.872v1.167h-2.31v2.5h2.622V9.75h-2.496V9H16.51v.833c0 1.258.973 2.417 2.34 2.417h2.81c1.367 0 2.34-1.16 2.34-2.417v-2c0-.529-.172-1.04-.474-1.456c.105-.276.162-.574.162-.877V4.167c0-1.258-.973-2.417-2.34-2.417h-2.185c-1.368 0-2.341 1.16-2.341 2.417V5h2.497zm-9.238-2.5c-1.368 0-2.341 1.16-2.341 2.417V5h2.497v-.75h2.496v1.176L9.115 7.117c-.867.405-1.375 1.286-1.375 2.201v2.932h7.24v-2.5h-4.743v-.398l3.618-1.691c.867-.405 1.375-1.286 1.375-2.201V4.166c0-1.258-.974-2.416-2.34-2.416zM1.746 5.356q-.475.143-.997.144H0V3h.749c.55 0 .997-.446.997-1h2.5v7.75h1.746v2.5H0v-2.5h1.746zM19.5 14.5L24 19l-4.5 4.5H18v-3.25H0v-2.5h18V14.5z",
+  ],
+  iconName: "number" as IconName,
+  prefix: "fas" as IconPrefix,
+};
+
+export const categories: IconDefinition = {
+  icon: [
+    24,
+    24,
+    [],
+    "",
+    "M7.425 9.475L11.15 3.4q.15-.25.375-.363T12 2.925t.475.113t.375.362l3.725 6.075q.15.25.15.525t-.125.5t-.35.363t-.525.137h-7.45q-.3 0-.525-.137T7.4 10.5t-.125-.5t.15-.525M17.5 22q-1.875 0-3.187-1.312T13 17.5t1.313-3.187T17.5 13t3.188 1.313T22 17.5t-1.312 3.188T17.5 22M3 20.5v-6q0-.425.288-.712T4 13.5h6q.425 0 .713.288T11 14.5v6q0 .425-.288.713T10 21.5H4q-.425 0-.712-.288T3 20.5",
+  ],
+  iconName: "categories" as IconName,
+  prefix: "fas" as IconPrefix,
+};
+
+export const horizontalBarChart: IconDefinition = {
+  icon: [24, 24, [], "", "M12 3v4H3V3zm4 14v4H3v-4zm6-7v4H3v-4z"],
+  iconName: "horizontal-bar-chart" as IconName,
+  prefix: "fas" as IconPrefix,
+};

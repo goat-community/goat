@@ -1,3 +1,9 @@
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { Box, IconButton, Stack, Typography, useTheme } from "@mui/material";
 import { alpha } from "@mui/material";
 import { useState } from "react";
@@ -20,12 +26,13 @@ export interface BuilderPanelSchemaWithPosition extends BuilderPanelSchema {
   };
 }
 
-interface PanelContainerProps {
+interface ContainerProps {
   panel: BuilderPanelSchemaWithPosition; // A single panel
   projectLayers: ProjectLayer[];
   selected?: boolean; // Whether the panel is selected
   onClick?: () => void;
   onChangeOrder?: (panelId: string, position: "top" | "bottom" | "left" | "right") => void;
+  onWidgetDelete?: (widgetId: string) => void;
   viewOnly?: boolean;
 }
 
@@ -67,12 +74,13 @@ const ChangeOrderButton: React.FC<{
   );
 };
 
-const PanelContainer: React.FC<PanelContainerProps> = ({
+export const Container: React.FC<ContainerProps> = ({
   panel,
   projectLayers,
   selected,
   onClick,
   onChangeOrder,
+  onWidgetDelete,
   viewOnly,
 }) => {
   const theme = useTheme();
@@ -80,9 +88,20 @@ const PanelContainer: React.FC<PanelContainerProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const handleMouseEnter = () => setIsHovered(true);
   const handleMouseLeave = () => setIsHovered(false);
+
+  const widgetIds = panel.widgets?.map((widget) => widget.id) || [];
+  const sortingStrategy =
+    panel.orientation === "horizontal" ? horizontalListSortingStrategy : verticalListSortingStrategy;
+
+  const { setNodeRef } = useDroppable({
+    id: panel.id,
+    data: panel,
+  });
+
   return (
     // OUTER SECTION
     <Box
+      ref={setNodeRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
@@ -249,7 +268,39 @@ const PanelContainer: React.FC<PanelContainerProps> = ({
                   </>
                 )}
               </Stack>
+            ) : !viewOnly ? (
+              <SortableContext items={widgetIds} strategy={sortingStrategy}>
+                {panel.widgets?.map((widget) => (
+                  <Box
+                    key={widget.id}
+                    sx={{
+                      transition: "all 0.3s",
+                      ...(panel.config?.options?.style === "floated" && {
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor: alpha(
+                          theme.palette.background.paper,
+                          panel.config?.appearance?.opacity
+                        ),
+                        backdropFilter: `blur(${panel.config.appearance.backgroundBlur}px)`,
+                        boxShadow: `rgba(0, 0, 0, 0.2) 0px 0px ${panel.config.appearance.shadow}px`,
+                        margin: "0.5rem",
+                        borderRadius: "1rem",
+                        height: "fit-content",
+                        width: "calc(100% - 1rem)",
+                      }),
+                    }}>
+                    <WidgetWrapper
+                      widget={widget}
+                      projectLayers={projectLayers}
+                      viewOnly={viewOnly}
+                      onWidgetDelete={onWidgetDelete}
+                    />
+                  </Box>
+                ))}
+              </SortableContext>
             ) : (
+              // Render normally if viewOnly
               panel.widgets?.map((widget) => (
                 <Box
                   key={widget.id}
@@ -270,7 +321,12 @@ const PanelContainer: React.FC<PanelContainerProps> = ({
                       width: "calc(100% - 1rem)",
                     }),
                   }}>
-                  <WidgetWrapper widget={widget} projectLayers={projectLayers} viewOnly={viewOnly} />
+                  <WidgetWrapper
+                    widget={widget}
+                    projectLayers={projectLayers}
+                    viewOnly={viewOnly}
+                    onWidgetDelete={onWidgetDelete}
+                  />
                 </Box>
               ))
             )}
@@ -280,5 +336,3 @@ const PanelContainer: React.FC<PanelContainerProps> = ({
     </Box>
   );
 };
-
-export default PanelContainer;

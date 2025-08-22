@@ -1,6 +1,8 @@
 import asyncio
+from typing import Any, Dict
 from uuid import UUID
 
+from fastapi import BackgroundTasks
 from httpx import AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,6 +17,7 @@ from core.schemas.catchment_area import (
     CatchmentAreaRoutingModeCar,
     CatchmentAreaTravelTimeCostActiveMobility,
     CatchmentAreaTravelTimeCostMotorizedMobility,
+    CatchmentAreaTypePT,
     ICatchmentAreaActiveMobility,
     ICatchmentAreaCar,
     ICatchmentAreaPT,
@@ -27,7 +30,7 @@ from core.schemas.error import (
     SQLError,
 )
 from core.schemas.job import JobStatusType
-from core.schemas.layer import IFeatureLayerToolCreate, UserDataGeomType
+from core.schemas.layer import FeatureGeometryType, IFeatureLayerToolCreate
 from core.schemas.toolbox_base import (
     CatchmentAreaGeometryTypeMapping,
     DefaultResultLayerName,
@@ -39,14 +42,14 @@ async def call_routing_endpoint(
     routing_mode: CatchmentAreaRoutingModeActiveMobility | CatchmentAreaRoutingModeCar,
     request_payload: dict,
     http_client: AsyncClient,
-):
+) -> None:
     try:
         # Call GOAT Routing endpoint multiple times for upto 20 seconds / 10 retries
         for i in range(settings.CRUD_NUM_RETRIES):
             # Call GOAT Routing endpoint to compute catchment area
             url = (
                 f"{settings.GOAT_ROUTING_URL}/active-mobility/catchment-area"
-                if type(routing_mode) == CatchmentAreaRoutingModeActiveMobility
+                if type(routing_mode) is CatchmentAreaRoutingModeActiveMobility
                 else f"{settings.GOAT_ROUTING_URL}/motorized-mobility/catchment-area"
             )
             response = await http_client.post(
@@ -73,7 +76,7 @@ async def call_routing_endpoint(
         )
 
 
-async def create_temp_isochrone_table(async_session: AsyncSession, job_id: UUID):
+async def create_temp_isochrone_table(async_session: AsyncSession, job_id: UUID) -> str:
     try:
         # Create result table to store catchment area geometry
         catchment_area_table = f"temporal.temp_{str(job_id).replace('-', '')}"
@@ -100,7 +103,14 @@ async def create_temp_isochrone_table(async_session: AsyncSession, job_id: UUID)
 
 
 class CRUDCatchmentAreaBase(CRUDToolBase):
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
         self.table_starting_points = (
             f"{settings.USER_DATA_SCHEMA}.point_{str(self.user_id).replace('-', '')}"
@@ -116,11 +126,13 @@ class CRUDCatchmentAreaBase(CRUDToolBase):
             | CatchmentAreaNearbyStationAccess
         ),
     ) -> IFeatureLayerToolCreate:
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         # Create layer object
         layer = IFeatureLayerToolCreate(
             name=layer_name.value,
-            feature_layer_geometry_type=UserDataGeomType.point.value,
+            feature_layer_geometry_type=FeatureGeometryType.point,
             attribute_mapping={},
             tool_type=params.tool_type.value,
             job_id=self.job_id,
@@ -147,8 +159,10 @@ class CRUDCatchmentAreaBase(CRUDToolBase):
                 )
             """)
             # Execute query
-            cnt_not_intersecting = await self.async_session.execute(sql)
-            cnt_not_intersecting = cnt_not_intersecting.scalars().first()
+            cnt_not_intersecting = (
+                (await self.async_session.execute(sql)).scalars().first()
+            )
+            assert cnt_not_intersecting is not None
 
             if cnt_not_intersecting > 0:
                 raise OutOfGeofenceError(
@@ -180,7 +194,7 @@ class CRUDCatchmentAreaBase(CRUDToolBase):
             | ICatchmentAreaPT
             | CatchmentAreaNearbyStationAccess
         ),
-    ):
+    ) -> Dict[str, Any]:
         # Check if starting points are a layer else create layer
         if params.starting_points.layer_project_id:
             layer_starting_points = await self.get_layers_project(params)
@@ -233,13 +247,13 @@ class CRUDCatchmentAreaBase(CRUDToolBase):
 class CRUDCatchmentAreaActiveMobility(CRUDCatchmentAreaBase):
     def __init__(
         self,
-        job_id,
-        background_tasks,
-        async_session,
-        user_id,
-        project_id,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
         http_client: AsyncClient,
-    ):
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
 
         self.http_client = http_client
@@ -247,9 +261,12 @@ class CRUDCatchmentAreaActiveMobility(CRUDCatchmentAreaBase):
     async def catchment_area(
         self,
         params: ICatchmentAreaActiveMobility | CatchmentAreaNearbyStationAccess,
-        result_params: dict = None,
-    ):
+        result_params: Dict[str, Any] | None = None,
+    ) -> Dict[str, Any]:
         """Compute active mobility catchment area using GOAT Routing endpoint."""
+
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         # Fetch starting points
         starting_points = await self.get_lats_lons(
@@ -268,8 +285,8 @@ class CRUDCatchmentAreaActiveMobility(CRUDCatchmentAreaBase):
             # Create feature layer to store computed catchment area output
             layer_catchment_area = IFeatureLayerToolCreate(
                 name=DefaultResultLayerName.catchment_area_active_mobility.value,
-                feature_layer_geometry_type=CatchmentAreaGeometryTypeMapping[
-                    params.catchment_area_type.value
+                feature_layer_geometry_type=FeatureGeometryType[
+                    CatchmentAreaGeometryTypeMapping[params.catchment_area_type.value]
                 ],
                 attribute_mapping={"integer_attr1": "travel_cost"},
                 tool_type=params.tool_type.value,
@@ -293,7 +310,7 @@ class CRUDCatchmentAreaActiveMobility(CRUDCatchmentAreaBase):
                     "steps": params.travel_cost.steps,
                     "speed": params.travel_cost.speed,
                 }
-                if type(params.travel_cost) == CatchmentAreaTravelTimeCostActiveMobility
+                if type(params.travel_cost) is CatchmentAreaTravelTimeCostActiveMobility
                 else {
                     "max_distance": params.travel_cost.max_distance,
                     "steps": params.travel_cost.steps,
@@ -343,55 +360,62 @@ class CRUDCatchmentAreaActiveMobility(CRUDCatchmentAreaBase):
         }
 
     @job_log(job_step_name="catchment_area")
-    async def catchment_area_job(self, params: ICatchmentAreaActiveMobility):
+    async def catchment_area_job(
+        self, params: ICatchmentAreaActiveMobility
+    ) -> Dict[str, Any]:
         return await self.catchment_area(params=params)
 
     @run_background_or_immediately(settings)
     @job_init()
-    async def run_catchment_area(self, params: ICatchmentAreaActiveMobility):
+    async def run_catchment_area(
+        self, params: ICatchmentAreaActiveMobility
+    ) -> Dict[str, Any]:
         return await self.catchment_area_job(params=params)
 
 
 class CRUDCatchmentAreaPT(CRUDCatchmentAreaBase):
     def __init__(
         self,
-        job_id,
-        background_tasks,
-        async_session,
-        user_id,
-        project_id,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
         http_client: AsyncClient,
-    ):
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
 
         self.http_client = http_client
 
     async def write_catchment_area_result(
         self,
-        catchment_area_type,
-        layer_id,
-        result_table,
-        shapes,
-        grid,
-        polygon_difference,
-    ):
+        catchment_area_type: CatchmentAreaTypePT,
+        layer_id: UUID,
+        result_table: str,
+        shapes: Dict[str, Any],
+        grid: Any,
+        polygon_difference: bool,
+    ) -> None:
         """Save the result of the catchment area computation to the database."""
 
         if catchment_area_type == "polygon":
             # Save catchment area geometry data (shapes)
-            shapes = shapes["incremental"] if polygon_difference else shapes["full"]
+            shapes_data = (
+                shapes["incremental"] if polygon_difference else shapes["full"]
+            )
             shapes_sorted = []
-            for i in shapes.index:
-                shapes_sorted.append((shapes["geometry"][i], shapes["minute"][i]))
+            for i in shapes_data.index:
+                shapes_sorted.append((shapes_data["geometry"][i], shapes_data["minute"][i]))
             shapes_sorted = sorted(shapes_sorted, key=lambda x: x[1], reverse=True)
             insert_string = ""
             for shape in shapes_sorted:
                 insert_string += f"('{layer_id}', ST_MakeValid(ST_SetSRID(ST_GeomFromText('{shape[0]}'), 4326)), {shape[1]}),"
-            insert_string = text(f"""
+            await self.async_session.execute(
+                text(f"""
                 INSERT INTO {result_table} (layer_id, geom, integer_attr1)
                 VALUES {insert_string.rstrip(",")};
             """)
-            await self.async_session.execute(insert_string)
+            )
         else:
             # Save catchment area grid data
             pass
@@ -400,8 +424,11 @@ class CRUDCatchmentAreaPT(CRUDCatchmentAreaBase):
     async def catchment_area(
         self,
         params: ICatchmentAreaPT,
-    ):
+    ) -> Dict[str, Any]:
         """Compute public transport catchment area using R5 routing endpoint."""
+
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         # Fetch starting points from previously created layer if required
         starting_pojnts = await self.get_lats_lons(
@@ -415,8 +442,8 @@ class CRUDCatchmentAreaPT(CRUDCatchmentAreaBase):
         # Create feature layer to store computed catchment area output
         layer_catchment_area = IFeatureLayerToolCreate(
             name=DefaultResultLayerName.catchment_area_pt.value,
-            feature_layer_geometry_type=CatchmentAreaGeometryTypeMapping[
-                params.catchment_area_type.value
+            feature_layer_geometry_type=FeatureGeometryType[
+                CatchmentAreaGeometryTypeMapping[params.catchment_area_type.value]
             ],
             attribute_mapping={"integer_attr1": "travel_cost"},
             tool_type=params.tool_type.value,
@@ -555,8 +582,8 @@ class CRUDCatchmentAreaPT(CRUDCatchmentAreaBase):
             try:
                 # Save result to database
                 await self.write_catchment_area_result(
-                    catchment_area_type=params.catchment_area_type.value,
-                    layer_id=str(layer_catchment_area.id),
+                    catchment_area_type=params.catchment_area_type,
+                    layer_id=layer_catchment_area.id,
                     result_table=result_table,
                     shapes=catchment_area_shapes,
                     grid=catchment_area_grid,
@@ -586,20 +613,20 @@ class CRUDCatchmentAreaPT(CRUDCatchmentAreaBase):
 
     @run_background_or_immediately(settings)
     @job_init()
-    async def run_catchment_area(self, params: ICatchmentAreaPT):
+    async def run_catchment_area(self, params: ICatchmentAreaPT) -> Dict[str, Any]:
         return await self.catchment_area(params=params)
 
 
 class CRUDCatchmentAreaCar(CRUDCatchmentAreaBase):
     def __init__(
         self,
-        job_id,
-        background_tasks,
-        async_session,
-        user_id,
-        project_id,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
         http_client: AsyncClient,
-    ):
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
 
         self.http_client = http_client
@@ -607,9 +634,12 @@ class CRUDCatchmentAreaCar(CRUDCatchmentAreaBase):
     async def catchment_area(
         self,
         params: ICatchmentAreaCar,
-        result_params: dict = None,
-    ):
+        result_params: Dict[str, Any] | None = None,
+    ) -> Dict[str, Any]:
         """Compute car catchment area using GOAT Routing endpoint."""
+
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         # Fetch starting points
         starting_points = await self.get_lats_lons(
@@ -628,8 +658,8 @@ class CRUDCatchmentAreaCar(CRUDCatchmentAreaBase):
             # Create feature layer to store computed catchment area output
             layer_catchment_area = IFeatureLayerToolCreate(
                 name=DefaultResultLayerName.catchment_area_active_mobility.value,
-                feature_layer_geometry_type=CatchmentAreaGeometryTypeMapping[
-                    params.catchment_area_type.value
+                feature_layer_geometry_type=FeatureGeometryType[
+                    CatchmentAreaGeometryTypeMapping[params.catchment_area_type.value]
                 ],
                 attribute_mapping={"integer_attr1": "travel_cost"},
                 tool_type=params.tool_type.value,
@@ -653,7 +683,7 @@ class CRUDCatchmentAreaCar(CRUDCatchmentAreaBase):
                     "steps": params.travel_cost.steps,
                 }
                 if type(params.travel_cost)
-                == CatchmentAreaTravelTimeCostMotorizedMobility
+                is CatchmentAreaTravelTimeCostMotorizedMobility
                 else {
                     "max_distance": params.travel_cost.max_distance,
                     "steps": params.travel_cost.steps,
@@ -703,10 +733,10 @@ class CRUDCatchmentAreaCar(CRUDCatchmentAreaBase):
         }
 
     @job_log(job_step_name="catchment_area")
-    async def catchment_area_job(self, params: ICatchmentAreaCar):
+    async def catchment_area_job(self, params: ICatchmentAreaCar) -> Dict[str, Any]:
         return await self.catchment_area(params=params)
 
     @run_background_or_immediately(settings)
     @job_init()
-    async def run_catchment_area(self, params: ICatchmentAreaCar):
+    async def run_catchment_area(self, params: ICatchmentAreaCar) -> Dict[str, Any]:
         return await self.catchment_area_job(params=params)

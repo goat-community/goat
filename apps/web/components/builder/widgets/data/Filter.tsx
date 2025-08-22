@@ -12,6 +12,7 @@ import { type FilterDataSchema, filterLayoutTypes } from "@/lib/validations/widg
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
+import { WidgetStatusContainer } from "@/components/builder/widgets/common/WidgetStatusContainer";
 import SelectorLayerValue from "@/components/map/panels/common/SelectorLayerValue";
 
 // Helper function for deep comparison using JSON.stringify
@@ -29,7 +30,7 @@ interface FilterDataProps {
   viewOnly?: boolean;
 }
 
-const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataProps) => {
+export const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataProps) => {
   const dispatch = useAppDispatch();
   const { map } = useMap();
   const [selectedValues, setSelectedValues] = useState<string[] | string | undefined>(
@@ -132,6 +133,8 @@ const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataPr
 
   return (
     <Box sx={{ mb: 2 }}>
+      <WidgetStatusContainer isNotConfigured={!layer || !rawConfig?.setup?.column_name} height={100} />
+
       {layer &&
         rawConfig?.setup.column_name &&
         rawConfig?.setup.layout === filterLayoutTypes.Values.select && (
@@ -155,5 +158,3 @@ const FilterDataWidget = ({ id, config: rawConfig, projectLayers }: FilterDataPr
     </Box>
   );
 };
-
-export default FilterDataWidget;

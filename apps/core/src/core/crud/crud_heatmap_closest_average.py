@@ -1,11 +1,14 @@
-from typing import List
+from typing import Any, Dict, List
 from uuid import UUID
 
-from sqlalchemy import text
+from fastapi import BackgroundTasks
+from sqlalchemy import TextClause, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
 from core.core.job import job_init, job_log, run_background_or_immediately
 from core.crud.crud_heatmap import CRUDHeatmapBase
+from core.db.models.layer import FeatureGeometryType
 from core.schemas.heatmap import (
     ROUTING_MODE_DEFAULT_SPEED,
     TRAVELTIME_MATRIX_RESOLUTION,
@@ -16,22 +19,32 @@ from core.schemas.heatmap import (
     MotorizedRoutingHeatmapType,
 )
 from core.schemas.job import JobStatusType
-from core.schemas.layer import FeatureGeometryType, IFeatureLayerToolCreate
+from core.schemas.layer import IFeatureLayerToolCreate
+from core.schemas.project import IFeatureStandardProjectRead, IFeatureToolProjectRead
 from core.schemas.toolbox_base import DefaultResultLayerName
 from core.utils import format_value_null_sql
 
 
 class CRUDHeatmapClosestAverage(CRUDHeatmapBase):
-    def __init__(self, job_id, background_tasks, async_session, user_id, project_id):
+    def __init__(
+        self,
+        job_id: UUID,
+        background_tasks: BackgroundTasks,
+        async_session: AsyncSession,
+        user_id: UUID,
+        project_id: UUID,
+    ) -> None:
         super().__init__(job_id, background_tasks, async_session, user_id, project_id)
 
     async def create_distributed_opportunity_table(
         self,
         routing_type: ActiveRoutingHeatmapType | MotorizedRoutingHeatmapType,
-        layers: List[dict],
-        scenario_id: UUID,
-        opportunity_geofence_layer,
-    ):
+        layers: List[Dict[str, Any]],
+        scenario_id: UUID | None,
+        opportunity_geofence_layer: IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | None,
+    ) -> str:
         """Create distributed table for user-specified opportunities."""
 
         # Create temp table name for points
@@ -91,7 +104,7 @@ class CRUDHeatmapClosestAverage(CRUDHeatmapBase):
         opportunity_table: str,
         result_table: str,
         result_layer_id: str,
-    ):
+    ) -> TextClause:
         """Builds SQL query to compute heatmap closest-average."""
 
         query = text(f"""
@@ -125,8 +138,11 @@ class CRUDHeatmapClosestAverage(CRUDHeatmapBase):
     async def heatmap(
         self,
         params: IHeatmapClosestAverageActive | IHeatmapClosestAverageMotorized,
-    ):
+    ) -> Dict[str, Any]:
         """Compute heatmap closest-average."""
+
+        if not self.job_id:
+            raise ValueError("Job ID not defined")
 
         # Fetch opportunity tables
         layers, opportunity_geofence_layer = await self.fetch_opportunity_layers(params)
@@ -144,7 +160,7 @@ class CRUDHeatmapClosestAverage(CRUDHeatmapBase):
         layer_heatmap = IFeatureLayerToolCreate(
             name=(
                 DefaultResultLayerName.heatmap_closest_average_active_mobility.value
-                if type(params.routing_type) == ActiveRoutingHeatmapType
+                if type(params.routing_type) is ActiveRoutingHeatmapType
                 else DefaultResultLayerName.heatmap_closest_average_motorized_mobility.value
             ),
             feature_layer_geometry_type=FeatureGeometryType.polygon,
@@ -182,5 +198,5 @@ class CRUDHeatmapClosestAverage(CRUDHeatmapBase):
     async def run_heatmap(
         self,
         params: IHeatmapClosestAverageActive | IHeatmapClosestAverageMotorized,
-    ):
+    ) -> Dict[str, Any]:
         return await self.heatmap(params=params)
