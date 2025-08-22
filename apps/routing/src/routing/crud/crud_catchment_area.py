@@ -200,7 +200,7 @@ class CRUDCatchmentArea:
                     schema_overrides=SEGMENT_DATA_SCHEMA,  # type: ignore
                 )
                 new_segment = new_segment.with_columns(
-                    pl.col("coordinates_3857").str.json_extract()
+                    pl.col("coordinates_3857").str.json_decode()
                 )
                 sub_network.extend(new_segment)
             # Remove segments which are deleted or modified due to the scenario
@@ -264,7 +264,7 @@ class CRUDCatchmentArea:
                 ],
                 schema_overrides=SEGMENT_DATA_SCHEMA,  # type: ignore
             )
-            new_df = new_df.with_columns(pl.col("coordinates_3857").str.json_extract())
+            new_df = new_df.with_columns(pl.col("coordinates_3857").str.json_decode())
             sub_network.extend(new_df)
         if len(origin_point_connectors) == 0:
             raise DisconnectedOriginError(
