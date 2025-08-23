@@ -59,7 +59,7 @@ def dijkstra(start_vertices, adj_list, travel_time, use_distance=False):
     """
     n = len(adj_list)
     # distances = [np.Inf for _ in range(n)]
-    distances = np.full(n, np.Inf, np.double)
+    distances = np.full(n, np.inf, np.double)
     # loop over all start vertices
     for start_vertex in start_vertices:
         distances[start_vertex] = 0.0
@@ -103,11 +103,11 @@ def dijkstra_h3(start_vertices, adj_list, travel_time, use_distance=False):
     """
     distances_list = []
     n = len(adj_list)
-    # distances = [np.Inf for _ in range(n)]
+    # distances = [np.inf for _ in range(n)]
 
     # loop over all start vertices
     for start_vertex in start_vertices:
-        distances = np.full(n, np.Inf, np.double)
+        distances = np.full(n, np.inf, np.double)
         distances[start_vertex] = 0.0
         # visited = [False for _ in range(n)]
         visited = np.full(n, False, np.bool8)
