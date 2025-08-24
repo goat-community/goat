@@ -11,7 +11,7 @@ Dieser Indikator zeigt die **durchschnittliche Anzahl der Abfahrten öffentliche
 
 ## 1. Erklärung
 
-Das Werkzeug "Afahrten ÖPNV" zeigt die *durchschnittliche Anzahl der Abfahrten öffentlicher Verkehrsmittel pro Stunde** für ein ausgewähltes **Zeitfenster** für jede Haltestelle des öffentlichen Verkehrs auf einem Punkt-Layer an. Die Ergebnisse können entweder als Summe aller Verkehrsmittel oder durch Fokussierung auf einen bestimmtes davon (z.B. Bus, Straßenbahn, U-Bahn, Bahn) visualisiert werden.
+Das Werkzeug "Abfahrten ÖPNV" zeigt die *durchschnittliche Anzahl der Abfahrten öffentlicher Verkehrsmittel pro Stunde** für ein ausgewähltes **Zeitfenster** für jede Haltestelle des öffentlichen Verkehrs auf einem Punkt-Layer an. Die Ergebnisse können entweder als Summe aller Verkehrsmittel oder durch Fokussierung auf einen bestimmtes davon (z.B. Bus, Straßenbahn, U-Bahn, Bahn) visualisiert werden.
 
 Dieser Indikator dient als Grundlage für die [ÖV-Güteklassen](./oev_gueteklassen.md), kann aber auch eigenständig als einfache Maßnahme für das Angebot an öffentlichen Verkehrsmitteln auf **Haltestellenebene** verwendet werden. Er gibt eine Zusammenfassung der Abfahrten einer Haltestelle während eines bestimmten Zeitfensters und Tages und bietet einen wertvollen Überblick über das öffentliche Verkehrsangebot in einer Stadt. Daher wird der Indikator oft in **Schwachstellenanalysen von lokalen Verkehrsplänen** verwendet (siehe unter anderem [Richtlinie für die Nahverkehrsplanung in Bayern](https://www.demografie-leitfaden-bayern.de/index.html)).
 

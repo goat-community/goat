@@ -120,6 +120,16 @@ Subsequently, **buffers** or **network catchment areas** of the size shown are c
 
 ![Determination of Public Transport Quality Classes](/img/toolbox/accessibility_indicators/gueteklassen/determination_oev_gueteklasse_en.webp "Determination of Public Transport Quality Classes")
 
+<div></div>
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <img src={require('/img/toolbox/accessibility_indicators/gueteklassen/oev_figure_en.png').default} alt="ÖV-Güteklassen calculation figure" style={{ maxHeight: "600px", maxWidth: "600px", alignItems:'center'}}/>
+</div> 
+
+<div></div>
+
+*Overview figure illustrating the calculation of the ÖV-Güteklassen*
+
 ### Visualization
 
 The created buffers/network catchment areas are visualized around the stations in the corresponding colors to highlight the **quality class** (<span style={{color: "#199741"}}>A</span>-<span style={{color: "#E4696A"}}>F</span>).
