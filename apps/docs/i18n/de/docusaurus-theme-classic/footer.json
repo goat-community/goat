@@ -33,7 +33,7 @@
   },
   "link.item.label.GitHub": {
     "message": "GitHub",
-    "description": "Die Beschriftung des Fußzeilen-Links mit label=Github verweist auf https://github.com/goat-community"
+    "description": "Die Beschriftung des Fußzeilen-Links mit label=Github verweist auf https://github.com/plan4better"
   },
   "copyright": {
     "message": "Copyright © 2024 Plan4Better, Inc. Built with Docusaurus.",
