@@ -1,7 +1,7 @@
 # ==== STAGE 1: General debian environment ====
 FROM debian:bookworm-slim AS linux-base
 
-LABEL org.opencontainers.image.source=https://github.com/goat-community/goat
+LABEL org.opencontainers.image.source=https://github.com/plan4better/goat
 LABEL org.opencontainers.image.description="Goat GeoAPI"
 LABEL org.opencontainers.image.licenses="GPL-3.0"
 
