@@ -137,6 +137,14 @@ class CatchmentAreaRoutingTypeCar(str, Enum):
     car = "car"
 
 
+H3_CELL_RESOLUTION = {
+    CatchmentAreaRoutingTypeActiveMobility.walking: 10,
+    CatchmentAreaRoutingTypeActiveMobility.bicycle: 9,
+    CatchmentAreaRoutingTypeActiveMobility.pedelec: 9,
+    CatchmentAreaRoutingTypeCar.car: 8,
+}
+
+
 class CatchmentAreaTravelTimeCostActiveMobility(BaseModel):
     """Travel time cost schema."""
 

@@ -31,6 +31,9 @@ RETURNS SETOF basic.artificial_segment
 LANGUAGE plpgsql
 AS $function$
 DECLARE
+	-- Compute the maximum allowed snapping distance between origin points and the street network
+	origin_buffer_dist FLOAT := (SELECT GREATEST(100, h3_get_hexagon_edge_length_avg(point_cell_resolution, 'm')));
+
 	edge_network_table TEXT := 'user_data.street_network_line_' || REPLACE((
 		SELECT user_id FROM customer.layer WHERE id = street_network_edge_layer_id
 	)::TEXT, '-', '');
@@ -65,7 +68,7 @@ BEGIN
                 WITH origin AS  (
                     SELECT
                         id, geom,
-                        ST_SETSRID(ST_Buffer(geom::geography, 100)::GEOMETRY, 4326) AS buffer_geom,
+                        ST_SETSRID(ST_Buffer(geom::geography, %s)::GEOMETRY, 4326) AS buffer_geom,
                         basic.to_short_h3_3(h3_lat_lng_to_cell(ST_Centroid(geom)::point, 3)::bigint) AS h3_3
                     FROM %s
                     LIMIT %s::int
@@ -89,8 +92,8 @@ BEGIN
                 FROM %I s, origin o
                 WHERE ST_Intersects(s.geom, o.buffer_geom)
                 AND edit_type = ''n'';',
-                combined_network_table, origin_points_table, num_origin_points, edge_network_table,
-                network_modifications_table, network_modifications_table
+                combined_network_table, origin_buffer_dist, origin_points_table, num_origin_points,
+				edge_network_table, network_modifications_table, network_modifications_table
         );
 
         EXECUTE FORMAT(
@@ -106,7 +109,7 @@ BEGIN
             'WITH origin AS  (
                 SELECT
                     id, geom,
-                    ST_SETSRID(ST_Buffer(geom::geography, 100)::GEOMETRY, 4326) AS buffer_geom,
+                    ST_SETSRID(ST_Buffer(geom::geography, %s)::GEOMETRY, 4326) AS buffer_geom,
                     basic.to_short_h3_3(h3_lat_lng_to_cell(ST_Centroid(geom)::point, 3)::bigint) AS h3_3
                 FROM %s
                 LIMIT %s::int
@@ -139,7 +142,8 @@ BEGIN
                 bs.id, bs.class_, bs.impedance_slope, bs.impedance_slope_reverse,
                 bs.impedance_surface, bs.maxspeed_forward, bs.maxspeed_backward,
                 bs."source", bs.target, bs.geom, bs.h3_3, bs.h3_6;',
-            origin_points_table, num_origin_points, combined_network_table, classes, additional_filters
+            origin_buffer_dist, origin_points_table, num_origin_points, combined_network_table,
+			classes, additional_filters
         );
 	LOOP
 		FETCH custom_cursor INTO origin_segment;

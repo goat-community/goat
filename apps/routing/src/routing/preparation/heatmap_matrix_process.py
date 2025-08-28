@@ -129,7 +129,7 @@ class HeatmapMatrixProcess:
 
     async def get_cell_grid(
         self, h3_6_index: str
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[list, np.ndarray, np.ndarray]:
         """For an origin H3_6 index, fetch a buffered grid of potentially accessible cells."""
         if self.db_connection is None:
             raise ValueError("Database connection is not initialized")
@@ -151,7 +151,7 @@ class HeatmapMatrixProcess:
         result_raw = await self.db_connection.execute(sql_get_relevant_cells)
         result: List[Tuple[str, float, float]] = [tuple(row) for row in result_raw.fetchall()]
 
-        h3_index: np.ndarray = np.array([r[0] for r in result])
+        h3_index: list = [r[0] for r in result]
         x_centroids: np.ndarray = np.empty(len(result), dtype=np.float64)
         y_centroids: np.ndarray = np.empty(len(result), dtype=np.float64)
 
@@ -200,7 +200,7 @@ class HeatmapMatrixProcess:
             )
             VALUES {self.insert_string.rstrip(",")}
             ON CONFLICT (orig_id, traveltime, h3_3)
-            DO NOTHING;
+            DO UPDATE SET dest_id = EXCLUDED.dest_id;
         """)
         await self.db_connection.execute(sql_insert_into_table)
         await self.db_connection.commit()
@@ -209,7 +209,7 @@ class HeatmapMatrixProcess:
         event_loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
         asyncio.set_event_loop(event_loop)
 
-        self.db_connection = event_loop.run_until_complete(async_session())
+        self.db_connection = async_session()
         crud_catchment_area: CRUDCatchmentArea = CRUDCatchmentArea(
             db_connection=self.db_connection,
             redis=None,
@@ -268,12 +268,12 @@ class HeatmapMatrixProcess:
                 event_loop.run_until_complete(self.db_connection.rollback())  # type: ignore
                 if isinstance(e, DisconnectedOriginError):
                     print_error(
-                        f"Thread {self.thread_id}: Skipping {h3_6_index} due to disconnected origin. Starting points table: [{input_table}]"
+                        f"Thread {self.thread_id}: Skipping {h3_6_index} due to disconnected origin. Starting points table: {input_table}"
                     )
                     continue
                 elif isinstance(e, BufferExceedsNetworkError):
                     print_error(
-                        f"Thread {self.thread_id}: Skipping {h3_6_index} due to buffer exceeding network. Starting points table: [{input_table}]"
+                        f"Thread {self.thread_id}: Skipping {h3_6_index} due to buffer exceeding network. Starting points table: {input_table}"
                     )
                     continue
                 else:
@@ -356,7 +356,7 @@ class HeatmapMatrixProcess:
 
                     self.add_to_insert_string(
                         orig_id=str(origin_point_cell_index[i]),
-                        dest_id=list(h3_index),
+                        dest_id=h3_index,
                         costs=mapped_cost,
                         orig_h3_3=str(origin_point_h3_3[i]),
                     )
