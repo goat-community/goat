@@ -4,7 +4,10 @@ from typing import List, Tuple
 import psycopg
 from routing.core.config import settings
 from routing.preparation.heatmap_matrix_process import HeatmapMatrixProcess
-from routing.schemas.catchment_area import CatchmentAreaRoutingTypeActiveMobility
+from routing.schemas.catchment_area import (
+    CatchmentAreaRoutingTypeActiveMobility,
+    CatchmentAreaRoutingTypeCar,
+)
 from routing.utils import print_info
 
 """
@@ -24,8 +27,10 @@ from routing.utils import print_info
 class HeatmapMatrixPreparation:
     def __init__(self) -> None:
         # User configurable
-        self.ROUTING_TYPE: CatchmentAreaRoutingTypeActiveMobility = CatchmentAreaRoutingTypeActiveMobility.walking
-        self.NUM_THREADS: int = 12
+        self.ROUTING_TYPE: (
+            CatchmentAreaRoutingTypeActiveMobility | CatchmentAreaRoutingTypeCar
+        ) = CatchmentAreaRoutingTypeActiveMobility.walking
+        self.NUM_THREADS: int = 4
         self.REPLACE_EXISTING_TABLE: bool = False
 
         # Current heamtap matrix regions deployed in GOAT
@@ -38,9 +43,12 @@ class HeatmapMatrixPreparation:
             "SELECT ST_Union(geom) AS geom FROM public.nuts WHERE cntr_code = 'LV' AND levl_code = 0",
             "SELECT ST_Union(geom) AS geom FROM public.nuts WHERE cntr_code = 'BG' AND levl_code = 0",
             "SELECT ST_Union(geom) AS geom FROM public.nuts WHERE cntr_code = 'DE' AND levl_code = 0",
+            "SELECT ST_Union(geom) AS geom FROM public.nuts WHERE nuts_name = 'Haut-Rhin'",
         ]
 
-    def get_cells_to_process(self, db_cursor: psycopg.Cursor, region_geofence: str) -> List[str]:
+    def get_cells_to_process(
+        self, db_cursor: psycopg.Cursor, region_geofence: str
+    ) -> List[str]:
         """Produce a grid of H3_6 cells to prepare the heatmap matrix in batches."""
 
         print_info("Producing H3_6 grid of traveltime matrix region.")
@@ -65,7 +73,9 @@ class HeatmapMatrixPreparation:
 
         return cells_to_process
 
-    def split_cells_into_chunks(self, cells_to_process: List[str], region_geofence: str) -> List[Tuple[int, List[str], str]]:
+    def split_cells_into_chunks(
+        self, cells_to_process: List[str], region_geofence: str
+    ) -> List[Tuple[int, List[str], str]]:
         """Split cells to process into NUM_THREADS chunks."""
 
         # Calculate chunk size and remainder
@@ -76,13 +86,17 @@ class HeatmapMatrixPreparation:
         chunks: List[Tuple[int, List[str], str]] = []
         start = 0
         for i in range(self.NUM_THREADS):
-            end = start + chunk_size + (1 if i < remainder else 0) # Use 1 if i < remainder else 0 for boolean to int conversion
+            end = (
+                start + chunk_size + (1 if i < remainder else 0)
+            )  # Use 1 if i < remainder else 0 for boolean to int conversion
             chunks.append((i, cells_to_process[start:end], region_geofence))
             start = end
 
         return chunks
 
-    def initialize_traveltime_matrix_table(self, db_cursor: psycopg.Cursor, db_connection: psycopg.Connection) -> None:
+    def initialize_traveltime_matrix_table(
+        self, db_cursor: psycopg.Cursor, db_connection: psycopg.Connection
+    ) -> None:
         """Create table to store traveltime matrix."""
 
         traveltime_matrix_table = f"basic.traveltime_matrix_{self.ROUTING_TYPE.value}_{settings.HEATMAP_MATRIX_DATE_SUFFIX}"
@@ -129,7 +143,9 @@ class HeatmapMatrixPreparation:
 
     def run(self) -> None:
         # Connect to database
-        db_connection: psycopg.Connection = psycopg.connect(settings.POSTGRES_DATABASE_URI)
+        db_connection: psycopg.Connection = psycopg.connect(
+            settings.POSTGRES_DATABASE_URI
+        )
         db_cursor: psycopg.Cursor = db_connection.cursor()
 
         # Initialize traveltime matrix table

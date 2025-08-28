@@ -109,12 +109,14 @@ class StreetNetworkUtil:
 
         h3_3_cells: List[int] = []
         try:
+            # Fetch H3_3 cells covering the region
+            # Include a buffer distance of 80km to account for car routing
             sql_fetch_h3_3_cells = f"""
                 WITH region AS (
                     {region_geofence}
                 )
                 SELECT g.h3_short FROM region r,
-                LATERAL basic.fill_polygon_h3_3(r.geom) g;
+                LATERAL basic.fill_polygon_h3_3(ST_Buffer(r.geom::geography, 80000)::geometry) g;
             """
             result = (
                 await self.db_connection.execute(text(sql_fetch_h3_3_cells))
