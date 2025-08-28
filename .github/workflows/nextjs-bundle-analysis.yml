@@ -21,10 +21,10 @@ jobs:
 
       - name: 📥 Checkout PR
         if: ${{ github.event_name == 'pull_request' }}
-        uses: goat-community/.github/.github/actions/pr-git-checkout@main
+        uses: plan4better/.github/.github/actions/pr-git-checkout@main
 
       - name: 📥 Monorepo install
-        uses: goat-community/.github/.github/actions/pnpm-install@main
+        uses: plan4better/.github/.github/actions/pnpm-install@main
         with:
           enable-corepack: true
           cwd: ${{ github.workspace }}

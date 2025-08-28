@@ -1,5 +1,5 @@
 """
-Translated from https://github.com/goat-community/goat/blob/0089611acacbebf4e2978c404171ebbae75591e2/app/client/src/utils/Jsolines.js
+Translated from https://github.com/plan4better/goat/blob/0089611acacbebf4e2978c404171ebbae75591e2/app/client/src/utils/Jsolines.js
 """
 
 import math

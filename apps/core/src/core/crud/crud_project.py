@@ -6,6 +6,7 @@ from fastapi_pagination import Page
 from fastapi_pagination import Params as PaginationParams
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import and_
 
 from core.core.config import settings
 from core.core.content import (
