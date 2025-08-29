@@ -244,7 +244,7 @@ class CRUDProject(CRUDBase[Project, Any, Any]):
             project=new_project_public_project_config,
         )
         new_project_public = ProjectPublic(
-            project_id=project_id, config=json.loads(new_project_public_config.json())
+            project_id=project_id, config=json.loads(new_project_public_config.model_dump_json())
         )
 
         async_session.add(new_project_public)

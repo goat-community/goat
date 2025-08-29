@@ -320,7 +320,13 @@ class ProjectPublicProjectConfig(BaseModel):
 
 
 class ProjectPublicConfig(BaseModel):
-    layers: list[BaseModel] = Field(..., description="Layers of the project")
+    layers: list[
+        IFeatureStreetNetworkProjectRead
+        | IFeatureStandardProjectRead
+        | IFeatureToolProjectRead
+        | ITableProjectRead
+        | IRasterProjectRead
+    ] = Field(..., description="Layers of the project")
     project: ProjectPublicProjectConfig = Field(
         ..., description="Project configuration"
     )

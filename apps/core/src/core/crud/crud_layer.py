@@ -281,7 +281,7 @@ class CRUDLayer(CRUDLayerBase):
         )
         with open(metadata_path, "w") as f:
             # Convert dict to json
-            json.dump(metadata.json(), f)
+            json.dump(metadata.model_dump_json(), f)
 
         # Add layer_type and file_size to validation_result
         return metadata
