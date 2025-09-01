@@ -1,5 +1,6 @@
 import { Box } from "@mui/material";
 import React, { useMemo } from "react";
+import { v4 } from "uuid";
 
 import { useTranslation } from "@/i18n/client";
 
@@ -10,7 +11,6 @@ import {
   type Project,
   type ProjectLayer,
   builderPanelSchema,
-  projectSchema,
 } from "@/lib/validations/project";
 
 import { useBasemap } from "@/hooks/map/MapHooks";
@@ -39,21 +39,12 @@ export interface PublicProjectLayoutProps {
 
 const PublicProjectLayout = ({
   projectLayers = [],
-  project: _project,
+  project,
   onProjectUpdate,
   viewOnly,
 }: PublicProjectLayoutProps) => {
   const { t } = useTranslation("common");
   const dispatch = useAppDispatch();
-  const project = useMemo(() => {
-    const parsedProject = projectSchema.safeParse(_project);
-    if (parsedProject.success) {
-      return parsedProject.data;
-    } else {
-      console.error("Invalid project data:", parsedProject.error);
-      return undefined;
-    }
-  }, [_project]);
 
   const { translatedBaseMaps, activeBasemap } = useBasemap(project);
   const selectedPanel = useAppSelector((state) => state.map.selectedBuilderItem) as BuilderPanelSchema;
@@ -247,7 +238,7 @@ const PublicProjectLayout = ({
         config: {},
         type: "panel",
         widgets: [],
-        id: `panel-${Date.now()}`,
+        id: v4(),
       };
       const _newPanel = builderPanelSchema.safeParse(newPanelObj);
       if (_newPanel.success) {

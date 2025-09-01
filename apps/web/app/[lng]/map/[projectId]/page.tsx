@@ -26,7 +26,7 @@ import { setSelectedBuilderItem } from "@/lib/store/map/slice";
 import { addOrUpdateMarkerImages, addPatternImages } from "@/lib/transformers/map-image";
 import { createSnapToCursorModifier } from "@/lib/utils/dnd-modifier";
 import type { FeatureLayerPointProperties } from "@/lib/validations/layer";
-import { type BuilderWidgetSchema, builderWidgetSchema } from "@/lib/validations/project";
+import { type BuilderWidgetSchema, builderWidgetSchema, projectSchema } from "@/lib/validations/project";
 import { widgetSchemaMap } from "@/lib/validations/widget";
 
 import { useAuthZ } from "@/hooks/auth/AuthZ";
@@ -53,7 +53,7 @@ export default function MapPage({ params: { projectId } }) {
   const dispatch = useAppDispatch();
 
   const {
-    project,
+    project: _project,
     isLoading: isProjectLoading,
     isError: projectError,
     mutate: mutateProject,
@@ -70,6 +70,17 @@ export default function MapPage({ params: { projectId } }) {
     layers: projectLayers,
     mutate: mutateProjectLayers,
   } = useFilteredProjectLayers(projectId, ["table"], []);
+
+  const project = useMemo(() => {
+    if (!_project) return undefined;
+    const parsedProject = projectSchema.safeParse(_project);
+    if (parsedProject.success) {
+      return parsedProject.data;
+    } else {
+      console.error("Invalid project data:", parsedProject.error);
+      return undefined;
+    }
+  }, [_project]);
 
   const { activeBasemap } = useBasemap(project);
 

@@ -13,7 +13,7 @@ import type { RootState } from "@/lib/store";
 import { selectFilteredProjectLayers } from "@/lib/store/layer/selectors";
 import { setProjectLayers } from "@/lib/store/layer/slice";
 import { setMapMode, setProject } from "@/lib/store/map/slice";
-import type { Project, ProjectLayer } from "@/lib/validations/project";
+import { type Project, type ProjectLayer, projectSchema } from "@/lib/validations/project";
 
 import { useBasemap } from "@/hooks/map/MapHooks";
 import { useAppDispatch } from "@/hooks/store/ContextHooks";
@@ -31,7 +31,7 @@ export default function MapPage({ params: { projectId } }) {
   const projectLayers = useMemo(() => {
     return sharedProject?.config?.["layers"] ?? ([] as ProjectLayer[]);
   }, [sharedProject]);
-  const project = sharedProject?.config?.["project"] as Project;
+  const _project = sharedProject?.config?.["project"] as Project;
   const mapRef = useRef<MapRef | null>(null);
   const initialView = sharedProject?.config?.["project"]?.["initial_view_state"] ?? {};
 
@@ -39,6 +39,17 @@ export default function MapPage({ params: { projectId } }) {
     (state: RootState) => selectFilteredProjectLayers(state, ["table"]),
     shallowEqual
   );
+
+  const project = useMemo(() => {
+    if (!_project) return undefined;
+    const parsedProject = projectSchema.safeParse(_project);
+    if (parsedProject.success) {
+      return parsedProject.data;
+    } else {
+      console.error("Invalid project data:", parsedProject.error);
+      return undefined;
+    }
+  }, [_project]);
 
   useEffect(() => {
     if (projectLayers && project) {

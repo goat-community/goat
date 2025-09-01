@@ -1,3 +1,4 @@
+
 export const basicLayout = {
   settings: {
     basemap: true,
@@ -11,7 +12,7 @@ export const basicLayout = {
   },
   interface: [
     {
-      id: "panel-1743756324718",
+      id: "5a3051f4-4e87-4441-85b9-a15e9d887acf",
       type: "panel",
       config: {
         options: { style: "default" },
@@ -20,7 +21,7 @@ export const basicLayout = {
       },
       widgets: [
         {
-          id: "widget-173979401723482234234234",
+          id: "da45d41f-72fc-4ffc-971d-47fa1d4634b8",
           type: "widget",
           config: {
             type: "layers",
