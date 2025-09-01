@@ -140,6 +140,7 @@ export function UserLocation(props: UserLocationProps) {
               onClick={findLocation}
               size="small"
               sx={{
+                pointerEvents: "all",
                 backgroundColor: theme.palette.background.paper,
                 marginTop: theme.spacing(1),
                 marginBottom: theme.spacing(1),
