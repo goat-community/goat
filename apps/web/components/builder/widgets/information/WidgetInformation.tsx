@@ -24,7 +24,7 @@ const WidgetInformation: React.FC<WidgetInformationProps> = ({ config, projectLa
         <LayerInformationWidget config={config} projectLayers={projectLayers} viewOnly={viewOnly} />
       )}
       {config.options?.description && (
-        <Typography variant="body1" align="left">
+        <Typography variant="body2" align="left">
           {config.options.description}
         </Typography>
       )}
