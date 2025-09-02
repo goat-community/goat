@@ -21,3 +21,4 @@ export const SYSTEM_LAYERS_IDS = [STREET_NETWORK_LAYER_ID];
 export const GEOFENCE_LAYERS_PATH = "https://assets.plan4better.de/other/geofence";
 export const DEFAULT_WKT_EXTENT = "POLYGON((-180 -90, -180 90, 180 90, 180 -90, -180 -90))";
 
+export const ASSETS_URL = "https://assets.plan4better.de";

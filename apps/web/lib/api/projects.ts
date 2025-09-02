@@ -1,6 +1,6 @@
 import useSWR from "swr";
 
-import { fetchWithAuth, fetcher } from "@/lib/api/fetcher";
+import { apiRequestAuth, fetcher } from "@/lib/api/fetcher";
 import type { GetContentQueryParams } from "@/lib/validations/common";
 import type {
   AggregationStatsQueryParams,
@@ -173,7 +173,7 @@ export const useProjectLayerHistogramStats = (
 };
 
 export const updateProjectInitialViewState = async (projectId: string, payload: ProjectViewState) => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/initial-view-state`, {
+  const response = await apiRequestAuth(`${PROJECTS_API_BASE_URL}/${projectId}/initial-view-state`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -187,7 +187,7 @@ export const updateProjectInitialViewState = async (projectId: string, payload: 
 };
 
 export const updateProjectLayer = async (projectId: string, layerId: number, payload: ProjectLayer) => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/layer/${layerId}`, {
+  const response = await apiRequestAuth(`${PROJECTS_API_BASE_URL}/${projectId}/layer/${layerId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -201,7 +201,7 @@ export const updateProjectLayer = async (projectId: string, layerId: number, pay
 };
 
 export const deleteProjectLayer = async (projectId: string, layerId: number) => {
-  const response = await fetchWithAuth(
+  const response = await apiRequestAuth(
     `${PROJECTS_API_BASE_URL}/${projectId}/layer?layer_project_id=${layerId}`,
     {
       method: "DELETE",
@@ -220,7 +220,7 @@ export const addProjectLayers = async (projectId: string, layerIds: string[]) =>
     return `layer_ids=${layerId}`;
   });
 
-  const response = await fetchWithAuth(
+  const response = await apiRequestAuth(
     `${PROJECTS_API_BASE_URL}/${projectId}/layer?${layerIdsParams.join("&")}`,
     {
       method: "POST",
@@ -236,7 +236,7 @@ export const addProjectLayers = async (projectId: string, layerIds: string[]) =>
 };
 
 export const updateProject = async (projectId: string, payload: PostProject) => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}`, {
+  const response = await apiRequestAuth(`${PROJECTS_API_BASE_URL}/${projectId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -250,7 +250,7 @@ export const updateProject = async (projectId: string, payload: PostProject) => 
 };
 
 export const createProject = async (payload: PostProject): Promise<Project> => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}`, {
+  const response = await apiRequestAuth(`${PROJECTS_API_BASE_URL}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -264,7 +264,7 @@ export const createProject = async (payload: PostProject): Promise<Project> => {
 };
 
 export const deleteProject = async (id: string) => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${id}`, {
+  const response = await apiRequestAuth(`${PROJECTS_API_BASE_URL}/${id}`, {
     method: "DELETE",
   });
   if (!response.ok) {
@@ -274,7 +274,7 @@ export const deleteProject = async (id: string) => {
 };
 
 export const createProjectScenario = async (projectId: string, payload: PostScenario) => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/scenario`, {
+  const response = await apiRequestAuth(`${PROJECTS_API_BASE_URL}/${projectId}/scenario`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -288,7 +288,7 @@ export const createProjectScenario = async (projectId: string, payload: PostScen
 };
 
 export const updateProjectScenario = async (projectId: string, scenarioId: string, payload: PostScenario) => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/scenario/${scenarioId}`, {
+  const response = await apiRequestAuth(`${PROJECTS_API_BASE_URL}/${projectId}/scenario/${scenarioId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -303,7 +303,7 @@ export const updateProjectScenario = async (projectId: string, scenarioId: strin
 
 export const deleteProjectScenario = async (projectId: string, scenarioId: string) => {
   try {
-    await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/scenario/${scenarioId}`, {
+    await apiRequestAuth(`${PROJECTS_API_BASE_URL}/${projectId}/scenario/${scenarioId}`, {
       method: "DELETE",
     });
   } catch (error) {
@@ -326,7 +326,7 @@ export const deleteProjectScenarioFeature = async (
     url += `?h3_3=${h33}`;
   }
 
-  const response = await fetchWithAuth(url, {
+  const response = await apiRequestAuth(url, {
     method: "DELETE",
   });
 
@@ -340,7 +340,7 @@ export const updateProjectScenarioFeatures = async (
   scenarioId: string,
   payload: ScenarioFeatureUpdate[]
 ) => {
-  const response = await fetchWithAuth(
+  const response = await apiRequestAuth(
     `${PROJECTS_API_BASE_URL}/${projectId}/layer/${project_layer_id}/scenario/${scenarioId}/features`,
     {
       method: "PUT",
@@ -362,7 +362,7 @@ export const createProjectScenarioFeatures = async (
   scenarioId: string,
   payload: ScenarioFeaturePost[]
 ) => {
-  const response = await fetchWithAuth(
+  const response = await apiRequestAuth(
     `${PROJECTS_API_BASE_URL}/${projectId}/layer/${project_layer_id}/scenario/${scenarioId}/features`,
     {
       method: "POST",
@@ -393,7 +393,7 @@ export const usePublicProject = (projectId: string) => {
 };
 
 export const publishProject = async (projectId: string) => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/publish`, {
+  const response = await apiRequestAuth(`${PROJECTS_API_BASE_URL}/${projectId}/publish`, {
     method: "POST",
   });
   if (!response.ok) {
@@ -403,7 +403,7 @@ export const publishProject = async (projectId: string) => {
 };
 
 export const unpublishProject = async (projectId: string) => {
-  const response = await fetchWithAuth(`${PROJECTS_API_BASE_URL}/${projectId}/unpublish`, {
+  const response = await apiRequestAuth(`${PROJECTS_API_BASE_URL}/${projectId}/unpublish`, {
     method: "DELETE",
   });
   if (!response.ok) {

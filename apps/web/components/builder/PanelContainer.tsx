@@ -12,7 +12,7 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { useTranslation } from "@/i18n/client";
 
-import type { BuilderPanelSchema, ProjectLayer } from "@/lib/validations/project";
+import type { BuilderPanelSchema, BuilderWidgetSchema, ProjectLayer } from "@/lib/validations/project";
 
 import WidgetWrapper from "@/components/builder/widgets/WidgetWrapper";
 
@@ -33,6 +33,7 @@ interface ContainerProps {
   onClick?: () => void;
   onChangeOrder?: (panelId: string, position: "top" | "bottom" | "left" | "right") => void;
   onWidgetDelete?: (widgetId: string) => void;
+  onWidgetUpdate?: (updatedWidget: BuilderWidgetSchema) => void;
   viewOnly?: boolean;
 }
 
@@ -81,6 +82,7 @@ export const Container: React.FC<ContainerProps> = ({
   onClick,
   onChangeOrder,
   onWidgetDelete,
+  onWidgetUpdate,
   viewOnly,
 }) => {
   const theme = useTheme();
@@ -295,6 +297,7 @@ export const Container: React.FC<ContainerProps> = ({
                       projectLayers={projectLayers}
                       viewOnly={viewOnly}
                       onWidgetDelete={onWidgetDelete}
+                      onWidgetUpdate={onWidgetUpdate}
                     />
                   </Box>
                 ))}
@@ -321,12 +324,7 @@ export const Container: React.FC<ContainerProps> = ({
                       width: "calc(100% - 1rem)",
                     }),
                   }}>
-                  <WidgetWrapper
-                    widget={widget}
-                    projectLayers={projectLayers}
-                    viewOnly={viewOnly}
-                    onWidgetDelete={onWidgetDelete}
-                  />
+                  <WidgetWrapper widget={widget} projectLayers={projectLayers} viewOnly={viewOnly} />
                 </Box>
               ))
             )}

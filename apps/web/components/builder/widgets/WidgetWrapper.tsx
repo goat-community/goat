@@ -30,6 +30,7 @@ interface WidgetWrapper {
   projectLayers: ProjectLayer[];
   viewOnly?: boolean;
   onWidgetDelete?: (widgetId: string) => void;
+  onWidgetUpdate?: (updatedWidget: BuilderWidgetSchema) => void;
 }
 
 interface DraggableWidgetContainerProps {
@@ -136,7 +137,13 @@ const DraggableWidgetContainer: React.FC<DraggableWidgetContainerProps> = ({
   );
 };
 
-const WidgetWrapper: React.FC<WidgetWrapper> = ({ widget, projectLayers, viewOnly, onWidgetDelete }) => {
+const WidgetWrapper: React.FC<WidgetWrapper> = ({
+  widget,
+  projectLayers,
+  viewOnly,
+  onWidgetDelete,
+  onWidgetUpdate,
+}) => {
   const widgetContent = (
     <Box sx={{ p: 1 }}>
       {widget.config?.type && informationTypes.options.includes(widget.config?.type as any) && (
@@ -158,7 +165,13 @@ const WidgetWrapper: React.FC<WidgetWrapper> = ({ widget, projectLayers, viewOnl
         <WidgetChart config={widget.config as WidgetChartConfig} viewOnly={viewOnly} />
       )}
       {widget.config?.type && elementTypes.options.includes(widget.config?.type as any) && (
-        <WidgetElement config={widget.config as WidgetElementConfig} viewOnly={viewOnly} />
+        <WidgetElement
+          config={widget.config as WidgetElementConfig}
+          viewOnly={viewOnly}
+          onWidgetUpdate={(newConfig) => {
+            onWidgetUpdate?.({ ...widget, config: newConfig });
+          }}
+        />
       )}
     </Box>
   );

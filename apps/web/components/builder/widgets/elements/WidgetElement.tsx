@@ -9,14 +9,17 @@ import TextElementWidget from "@/components/builder/widgets/elements/Text";
 interface WidgetElementProps {
   config: WidgetElementConfig;
   viewOnly?: boolean;
+  onWidgetUpdate?: (newData: WidgetElementConfig) => void;
 }
 
-const WidgetElement: React.FC<WidgetElementProps> = ({ config }) => {
+const WidgetElement: React.FC<WidgetElementProps> = ({ config, onWidgetUpdate, viewOnly }) => {
   return (
     <Box sx={{ width: "100%" }}>
       {config.type === "text" && <TextElementWidget config={config} />}
       {config.type === "divider" && <DividerElementWidget config={config} />}
-      {config.type === "image" && <ImageElementWidget config={config} />}
+      {config.type === "image" && (
+        <ImageElementWidget config={config} viewOnly={viewOnly} onWidgetUpdate={onWidgetUpdate} />
+      )}
     </Box>
   );
 };

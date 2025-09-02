@@ -137,6 +137,7 @@ class Settings(BaseSettings):
         "https://goat-app-assets.s3.eu-central-1.amazonaws.com/logos/goat_green.png"
     )
     ASSETS_URL: Optional[str] = None
+    ASSETS_MAX_FILE_SIZE: Optional[int] = 4194304
 
     THUMBNAIL_DIR_LAYER: Optional[str] = None
 

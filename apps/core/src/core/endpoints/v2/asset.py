@@ -44,7 +44,7 @@ async def upload_asset(
     user_id: UUID4 = Depends(get_user_id),
     file: UploadFile = File(...),
     asset_type: AssetType = Form(...),
-):
+) -> UploadedAsset:
     """
     Uploads a new asset to S3 and records its metadata in the database.
     Performs validation to ensure only allowed image and icon types are uploaded.
@@ -71,6 +71,13 @@ async def upload_asset(
         )
 
     file_content = await file.read()
+
+    if len(file_content) > settings.ASSETS_MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File too large. Maximum allowed size is {settings.ASSETS_MAX_FILE_SIZE // (1024 * 1024)}MB.",
+        )
+
     content_hash = s3_service.calculate_sha256(file_content)
 
     existing_asset = await async_session.execute(

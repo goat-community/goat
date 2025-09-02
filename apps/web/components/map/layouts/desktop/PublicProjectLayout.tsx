@@ -8,6 +8,7 @@ import { MAPBOX_TOKEN } from "@/lib/constants";
 import { setSelectedBuilderItem } from "@/lib/store/map/slice";
 import {
   type BuilderPanelSchema,
+  BuilderWidgetSchema,
   type Project,
   type ProjectLayer,
   builderPanelSchema,
@@ -230,6 +231,27 @@ const PublicProjectLayout = ({
     dispatch(setSelectedBuilderItem(undefined));
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onWidgetUpdate = (updatedWidget: BuilderWidgetSchema) => {
+    if (viewOnly) return;
+    const updatedPanels = panels.map((panel) => {
+      if (panel.widgets) {
+        panel.widgets = panel.widgets.map((widget) => {
+          if (widget.id === updatedWidget.id) {
+            return { ...widget, ...updatedWidget };
+          }
+          return widget;
+        });
+      }
+      return panel;
+    });
+    const builderConfig = {
+      interface: updatedPanels,
+      settings: { ...project?.builder_config?.settings },
+    };
+    onProjectUpdate?.("builder_config", builderConfig);
+  };
+
   // Add a new panel to the specified position
   const onAddSection = async (position: "top" | "bottom" | "left" | "right") => {
     if (canAddPanel(position)) {
@@ -318,6 +340,7 @@ const PublicProjectLayout = ({
                   selected={selectedPanel?.type === "panel" && selectedPanel?.id === panel.id}
                   onChangeOrder={handleChangeOrder}
                   onWidgetDelete={onWidgetDelete}
+                  onWidgetUpdate={onWidgetUpdate}
                   onClick={() => handlePanelClick(panel)}
                 />
               ))}
