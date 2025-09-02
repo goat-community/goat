@@ -32,7 +32,6 @@ from rich import print as print
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# Local application imports
 from core.core.config import settings
 from core.db.models import Scenario, ScenarioScenarioFeatureLink
 from core.schemas.common import CQLQuery, CQLQueryObject

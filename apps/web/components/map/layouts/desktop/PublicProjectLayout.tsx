@@ -6,9 +6,9 @@ import { useTranslation } from "@/i18n/client";
 
 import { MAPBOX_TOKEN } from "@/lib/constants";
 import { setSelectedBuilderItem } from "@/lib/store/map/slice";
+import type { BuilderWidgetSchema } from "@/lib/validations/project";
 import {
   type BuilderPanelSchema,
-  BuilderWidgetSchema,
   type Project,
   type ProjectLayer,
   builderPanelSchema,
