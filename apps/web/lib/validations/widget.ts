@@ -15,7 +15,7 @@ export const widgetTypes = z.enum([
   ...elementTypes.options,
 ]);
 
-export const widgetTypesWithoutConfig = [elementTypes.Values.text];
+export const widgetTypesWithoutConfig = [elementTypes.Values.text, elementTypes.Values.divider];
 
 export const formatNumberTypes = z.enum([
   "none", // 1000
@@ -203,7 +203,6 @@ export const dividerElementConfigSchema = z.object({
   type: z.literal("divider"),
   setup: z
     .object({
-      color: z.string().optional().default("#000000"),
       size: z.number().min(1).max(10).optional().default(1),
     })
     .default({}),
