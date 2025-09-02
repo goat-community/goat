@@ -818,7 +818,7 @@ class CRUDLayerImport(CRUDFailedJob):
         )
 
         # Populate layer_in with additional attributes
-        layer_model_obj = Layer(
+        layer_in = Layer(
             **layer_in.model_dump(exclude_none=True),
             **additional_attributes,
             job_id=self.job_id,
@@ -826,11 +826,11 @@ class CRUDLayerImport(CRUDFailedJob):
 
         # Update size
         layer_in.size = await CRUDLayer(Layer).get_feature_layer_size(
-            async_session=self.async_session, layer=layer_model_obj
+            async_session=self.async_session, layer=layer_in
         )
         layer: Layer = await CRUDLayer(Layer).create(
             db=self.async_session,
-            obj_in=layer_model_obj.model_dump(),
+            obj_in=layer_in.model_dump(),
         )
         assert layer.id is not None
 
