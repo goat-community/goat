@@ -14,6 +14,7 @@ from routing.core.jsoline import generate_jsolines
 from routing.core.street_network.street_network_util import StreetNetworkUtil
 from routing.schemas.catchment_area import (
     BICYCLE_SPEED_FOOTWAYS,
+    H3_CELL_RESOLUTION,
     SEGMENT_DATA_SCHEMA,
     VALID_BICYCLE_CLASSES,
     VALID_CAR_CLASSES,
@@ -38,16 +39,15 @@ class CRUDCatchmentArea:
         self.db_connection = db_connection
         self.redis = redis
         self.routing_network: Optional[Dict[Any, pl.DataFrame]] = None
+
     async def read_network(
         self,
         routing_network: Dict[Any, pl.DataFrame],
         obj_in: Union[ICatchmentAreaActiveMobility, ICatchmentAreaCar],
         input_table: str,
         num_points: int,
-        origin_point_cell_resolution: int = 10,
-    ) -> Tuple[
-        Dict[str, np.ndarray], str, List[int], List[int], List[str]
-    ]:
+        origin_point_cell_resolution: int,
+    ) -> Tuple[Dict[str, np.ndarray], str, List[int], List[int], List[str]]:
         """Read relevant sub-network for catchment area calculation from polars dataframe."""
         # Get valid segment classes based on transport mode
         valid_segment_classes: List[str]
@@ -58,19 +58,17 @@ class CRUDCatchmentArea:
                 valid_segment_classes = VALID_BICYCLE_CLASSES
             elif obj_in.routing_type == CatchmentAreaRoutingTypeActiveMobility.pedelec:
                 valid_segment_classes = VALID_BICYCLE_CLASSES
-            elif obj_in.routing_type == CatchmentAreaRoutingTypeActiveMobility.wheelchair:
+            elif (
+                obj_in.routing_type == CatchmentAreaRoutingTypeActiveMobility.wheelchair
+            ):
                 valid_segment_classes = VALID_WHEELCHAIR_CLASSES
             else:
-                raise ValueError(
-                    f"Invalid routing type: {obj_in.routing_type}"
-                )
+                raise ValueError(f"Invalid routing type: {obj_in.routing_type}")
         else:
             if obj_in.routing_type == CatchmentAreaRoutingTypeCar.car:
                 valid_segment_classes = VALID_CAR_CLASSES
             else:
-                raise ValueError(
-                    f"Invalid routing type: {obj_in.routing_type}"
-                )
+                raise ValueError(f"Invalid routing type: {obj_in.routing_type}")
         # Compute buffer distance for identifying relevant H3_6 cells
         buffer_dist: Union[float, int]
         if type(obj_in.travel_cost) is CatchmentAreaTravelTimeCostActiveMobility:
@@ -238,7 +236,9 @@ class CRUDCatchmentArea:
             await self.db_connection.execute(sql_get_artificial_segments)
         ).fetchall()  # TODO Check if artificial segments are even required for car routing
         for a_seg in result_artificial_segments:
-            if a_seg[0] is not None:  # point_id is not null, indicating a new artificial segment
+            if (
+                a_seg[0] is not None
+            ):  # point_id is not null, indicating a new artificial segment
                 origin_point_connectors.append(a_seg[12])  # type: ignore
                 origin_point_cell_index.append(a_seg[16])  # type: ignore
                 origin_point_h3_3.append(a_seg[17])  # type: ignore
@@ -281,10 +281,7 @@ class CRUDCatchmentArea:
         ]:
             # If producing a travel time cost based catchment area, compute segment cost accordingly
             calculated_speed: Optional[float] = None
-            if (
-                type(obj_in.travel_cost)
-                is CatchmentAreaTravelTimeCostActiveMobility
-            ):
+            if type(obj_in.travel_cost) is CatchmentAreaTravelTimeCostActiveMobility:
                 calculated_speed = obj_in.travel_cost.speed / 3.6
             sub_network = self.compute_segment_cost(
                 sub_network=sub_network,
@@ -316,7 +313,10 @@ class CRUDCatchmentArea:
             origin_point_cell_index,
             origin_point_h3_3,
         )
-    async def create_input_table(self, obj_in: Union[ICatchmentAreaActiveMobility, ICatchmentAreaCar]) -> Tuple[str, int]:
+
+    async def create_input_table(
+        self, obj_in: Union[ICatchmentAreaActiveMobility, ICatchmentAreaCar]
+    ) -> Tuple[str, int]:
         """Create the input table for the catchment area calculation."""
         # Generate random table name
         table_name: str = str(uuid.uuid4()).replace("-", "_")
@@ -363,8 +363,11 @@ class CRUDCatchmentArea:
         await self.db_connection.commit()
         # Get actual count of starting points
         sql_get_count = text(f"SELECT COUNT(*) FROM {table_name};")
-        num_points: int = (await self.db_connection.execute(sql_get_count)).fetchone()[0]  # type: ignore
+        num_points: int = (await self.db_connection.execute(sql_get_count)).fetchone()[
+            0
+        ]  # type: ignore
         return table_name, num_points
+
     async def drop_temp_tables(
         self, input_table: str, network_modifications_table: Optional[str]
     ) -> None:
@@ -375,7 +378,15 @@ class CRUDCatchmentArea:
                 text(f'DROP TABLE "{network_modifications_table}";')
             )
         await self.db_connection.commit()
-    def compute_segment_cost(self, sub_network: pl.DataFrame, mode: Union[CatchmentAreaRoutingTypeActiveMobility, CatchmentAreaRoutingTypeCar], speed: Optional[float]) -> pl.DataFrame:
+
+    def compute_segment_cost(
+        self,
+        sub_network: pl.DataFrame,
+        mode: Union[
+            CatchmentAreaRoutingTypeActiveMobility, CatchmentAreaRoutingTypeCar
+        ],
+        speed: Optional[float],
+    ) -> pl.DataFrame:
         """Compute the cost of a segment based on the mode, speed, impedance, etc."""
         if mode == CatchmentAreaRoutingTypeActiveMobility.walking:
             if speed is None:
@@ -467,7 +478,13 @@ class CRUDCatchmentArea:
             )
         else:
             raise ValueError(f"Invalid routing type for cost computation: {mode}")
-    async def get_h3_10_grid(self, db_connection: AsyncSession, obj_in: Union[ICatchmentAreaActiveMobility, ICatchmentAreaCar], origin_h3_10: List[str]) -> Tuple[List[str], np.ndarray, np.ndarray]:
+
+    async def get_h3_10_grid(
+        self,
+        db_connection: AsyncSession,
+        obj_in: Union[ICatchmentAreaActiveMobility, ICatchmentAreaCar],
+        origin_h3_10: List[str],
+    ) -> Tuple[List[str], np.ndarray, np.ndarray]:
         """Get H3_10 cell grid required for computing a grid-type catchment area."""
         # Compute buffer distance for identifying relevant H3_10 cells
         buffer_dist: Union[float, int]
@@ -504,7 +521,15 @@ class CRUDCatchmentArea:
         x_centroids: np.ndarray = np.array([r[1] for r in result])
         y_centroids: np.ndarray = np.array([r[2] for r in result])
         return h3_index, x_centroids, y_centroids
-    async def save_result(self, obj_in: Union[ICatchmentAreaActiveMobility, ICatchmentAreaCar], shapes: Any, network: Any, grid_index: Optional[List[str]], grid: Optional[np.ndarray]) -> None:
+
+    async def save_result(
+        self,
+        obj_in: Union[ICatchmentAreaActiveMobility, ICatchmentAreaCar],
+        shapes: Any,
+        network: Any,
+        grid_index: Optional[List[str]],
+        grid: Optional[np.ndarray],
+    ) -> None:
         """Save the result of the catchment area computation to the database."""
         # Compute step size for the catchment area
         step_size: Union[float, int]
@@ -570,7 +595,9 @@ class CRUDCatchmentArea:
             # Save catchment area network data
             # Assuming network is a dictionary with a 'features' key that points to a list of dicts.
             if network is None:
-                raise ValueError("Network data is required for 'network' catchment area type.")
+                raise ValueError(
+                    "Network data is required for 'network' catchment area type."
+                )
             for batch_index in range(
                 0, len(network["features"]), settings.DATA_INSERT_BATCH_SIZE
             ):
@@ -582,8 +609,15 @@ class CRUDCatchmentArea:
                         batch_index + settings.DATA_INSERT_BATCH_SIZE,
                     ),
                 ):
-                    coordinates: List[List[float]] = network["features"][i]["geometry"]["coordinates"]
-                    cost: float = math.ceil(network["features"][i]["properties"]["cost"] / step_size) * step_size
+                    coordinates: List[List[float]] = network["features"][i]["geometry"][
+                        "coordinates"
+                    ]
+                    cost: float = (
+                        math.ceil(
+                            network["features"][i]["properties"]["cost"] / step_size
+                        )
+                        * step_size
+                    )
                     points_string: str = ""
                     for pair in coordinates:
                         points_string += f"ST_MakePoint({pair[0]}, {pair[1]}),"
@@ -610,7 +644,9 @@ class CRUDCatchmentArea:
         else:  # obj_in.catchment_area_type == "rectangular_grid"
             # Save catchment area grid data
             if grid_index is None or grid is None:
-                raise ValueError("Grid index and grid data are required for 'rectangular_grid' catchment area type.")
+                raise ValueError(
+                    "Grid index and grid data are required for 'rectangular_grid' catchment area type."
+                )
             for batch_index in range(
                 0, len(grid_index), settings.DATA_INSERT_BATCH_SIZE
             ):
@@ -643,6 +679,7 @@ class CRUDCatchmentArea:
                         raise Exception(
                             f"Error inserting into table {obj_in.result_table}: {str(e).splitlines()[:5]}"
                         ) from e
+
     async def run(self, obj_in_dict: Dict[str, Any]) -> None:
         """Compute catchment areas for the given request parameters."""
         obj_in: Union[ICatchmentAreaActiveMobility, ICatchmentAreaCar]
@@ -681,6 +718,7 @@ class CRUDCatchmentArea:
                 obj_in,
                 input_table,
                 num_points,
+                H3_CELL_RESOLUTION[obj_in.routing_type],
             )
             # Delete input table for catchment area origin points
             await self.drop_temp_tables(input_table, network_modifications_table)
@@ -722,7 +760,9 @@ class CRUDCatchmentArea:
             catchment_area_grid_index: Optional[List[str]] = None
 
             if sub_routing_network is None or origin_connector_ids is None:
-                raise ValueError("Sub-routing network or origin connectors are not initialized.")
+                raise ValueError(
+                    "Sub-routing network or origin connectors are not initialized."
+                )
 
             if obj_in.catchment_area_type != "rectangular_grid":
                 catchment_area_grid, catchment_area_network = compute_isochrone(
@@ -738,12 +778,14 @@ class CRUDCatchmentArea:
                     is_distance_based=(not is_travel_time_catchment_area),
                 )
             else:
-                catchment_area_grid_index, h3_centroid_x, h3_centroid_y = (
-                    await self.get_h3_10_grid(
-                        self.db_connection,
-                        obj_in=obj_in,
-                        origin_h3_10=origin_point_h3_10,
-                    )
+                (
+                    catchment_area_grid_index,
+                    h3_centroid_x,
+                    h3_centroid_y,
+                ) = await self.get_h3_10_grid(
+                    self.db_connection,
+                    obj_in=obj_in,
+                    origin_h3_10=origin_point_h3_10,
                 )
                 catchment_area_grid = compute_isochrone_h3(
                     edge_network_input=sub_routing_network,
@@ -762,7 +804,9 @@ class CRUDCatchmentArea:
             print("Computed catchment area grid & network.")
             if obj_in.catchment_area_type == "polygon":
                 if catchment_area_grid is None:
-                    raise ValueError("Catchment area grid is required to generate jsolines.")
+                    raise ValueError(
+                        "Catchment area grid is required to generate jsolines."
+                    )
                 catchment_area_shapes = generate_jsolines(
                     grid=catchment_area_grid,
                     travel_time=(

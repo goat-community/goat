@@ -121,7 +121,18 @@
         "group": "frontend",
         "order": 2
       }
-    }
+    },
+    {
+      "name": "Heatmap Matrix Preparation",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/routing/preparation/heatmap_matrix.py",
+      "cwd": "${workspaceFolder}/apps/routing",
+      "justMyCode": false,
+      "jinja": true,
+      "envFile": "${workspaceFolder}/.env",
+      "preLaunchTask": "uv-sync",
+    },
   ],
   "compounds": [
     {
