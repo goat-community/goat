@@ -193,7 +193,7 @@ Konnektivitäts Formel:
 Dabei ist ***i*** ein Reisezeitschritt, ***n*** das Reisezeitlimit,und ***Anzahl der Zellen*** ist die Anzahl der Zellen, von denen aus Ursprungsorte die betrachtete Lage in i Minuten erreichen. Diese Funktion berechnet die gesamte geographische Fläche (in Quadratmetern), von der aus die Zielzelle in Ihrer AOI erreichbar ist.
 
 ### Klassifizierung
-Zur Klassifizierung der Konnektivitätsstufen, die für jede Rasterzelle berechnet wurden (für die farbliche Darstellung), wird standardmäßig eine Klassifizierung auf der Grundlage von Quantilen verwendet. Es können jedoch auch verschiedene andere Klassifizierungsmethoden verwendet werden. Weitere Informationen finden Sie im Abschnitt **[Datenklassifizierungsmethoden](../../map/layer_style/attribute_based_styling# datenklassifizierungsmethoden)** auf der Seite *Attributbasiertes Styling*.
+Zur Klassifizierung der Konnektivitätsstufen, die für jede Rasterzelle berechnet wurden (für die farbliche Darstellung), wird standardmäßig eine Klassifizierung auf der Grundlage von Quantilen verwendet. Es können jedoch auch verschiedene andere Klassifizierungsmethoden verwendet werden. Weitere Informationen finden Sie im Abschnitt **[Datenklassifizierungsmethoden](../../map/layer_style/style/attribute_based_styling#datenklassifizierungsmethoden)** auf der Seite *Attributbasiertes Styling*.
 
 ### Visualisierung 
 

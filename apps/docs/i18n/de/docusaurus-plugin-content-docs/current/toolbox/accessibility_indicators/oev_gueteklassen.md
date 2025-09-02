@@ -117,6 +117,16 @@ Anschließend werden **Puffer** oder **Netzwerk-Einzugsgebiete** der angegebenen
 
 ![Bestimmung der ÖV-Güteklassen](/img/toolbox/accessibility_indicators/gueteklassen/determination_oev_gueteklasse_de.webp "Bestimmung der ÖV-Güteklassen")
 
+<div></div>
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <img src={require('/img/toolbox/accessibility_indicators/gueteklassen/oev_figure_de.png').default} alt="ÖV-Güteklassen calculation figure" style={{ maxHeight: "600px", maxWidth: "600px", alignItems:'center'}}/>
+</div> 
+
+<div></div>
+
+*Übersichtsabbildung zur Veranschaulichung der Berechnung der ÖV-Güteklassen*
+
 ### Visualisierung
 
 Die erstellten Puffer/Netzwerk-Einzugsgebiete werden um die Haltestellen in den entsprechenden Farben visualisiert, um die **Güteklasse** (<span style={{color: "#199741"}}>A</span>-<span style={{color: "#E4696A"}}>F</span>) hervorzuheben.
