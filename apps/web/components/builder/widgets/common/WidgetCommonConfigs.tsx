@@ -110,6 +110,10 @@ export const WidgetInfo = ({ sectionLabel, config, onChange }: WidgetConfigProps
     return hasNestedSchemaPath(schema, "options.description");
   }, [schema]);
 
+  const hasAltTextDef = useMemo(() => {
+    return hasNestedSchemaPath(schema, "setup.alt");
+  }, [schema]);
+
   const handleConfigChange = useCallback(
     (parentKey: "setup" | "options", propertyKey: string, value: string) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,8 +131,8 @@ export const WidgetInfo = ({ sectionLabel, config, onChange }: WidgetConfigProps
   );
 
   const hasInfo = useMemo(() => {
-    return hasTitleDef || hasDescriptionDef;
-  }, [hasTitleDef, hasDescriptionDef]);
+    return hasTitleDef || hasDescriptionDef || hasAltTextDef;
+  }, [hasTitleDef, hasDescriptionDef, hasAltTextDef]);
 
   return (
     <>
@@ -171,6 +175,20 @@ export const WidgetInfo = ({ sectionLabel, config, onChange }: WidgetConfigProps
                     value={(config as any)?.options?.description || ""}
                     onChange={(value: string) => {
                       handleConfigChange("options", "description", value);
+                    }}
+                  />
+                )}
+                {hasAltTextDef && (
+                  <TextFieldInput
+                    type="text"
+                    label={t("alternative_text")}
+                    placeholder={t("add_image_alternative_text")}
+                    clearable={false}
+                    // Safely access alt text, using 'as any' for now to match context
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    value={(config as any)?.setup?.alt || ""}
+                    onChange={(value: string) => {
+                      handleConfigChange("setup", "alt", value);
                     }}
                   />
                 )}
@@ -342,6 +360,10 @@ export const WidgetOptions = ({ active = true, sectionLabel, config, onChange }:
     return hasNestedSchemaPath(schema, "options.format");
   }, [schema]);
 
+  const hasPaddingDef = useMemo(() => {
+    return hasNestedSchemaPath(schema, "options.has_padding");
+  }, [schema]);
+
   const handleOptionChange = useCallback(
     (key: string, value: any) => {
       const updatedOptions = {
@@ -357,8 +379,14 @@ export const WidgetOptions = ({ active = true, sectionLabel, config, onChange }:
   );
 
   const hasOption = useMemo(() => {
-    return hasCrossFilterDef || hasFilterViewPortDef || hasZoomToSelectionDef || hasNumberFormatDef;
-  }, [hasCrossFilterDef, hasFilterViewPortDef, hasZoomToSelectionDef, hasNumberFormatDef]);
+    return (
+      hasCrossFilterDef ||
+      hasFilterViewPortDef ||
+      hasZoomToSelectionDef ||
+      hasNumberFormatDef ||
+      hasPaddingDef
+    );
+  }, [hasCrossFilterDef, hasFilterViewPortDef, hasZoomToSelectionDef, hasNumberFormatDef, hasPaddingDef]);
 
   return (
     <>
@@ -446,6 +474,22 @@ export const WidgetOptions = ({ active = true, sectionLabel, config, onChange }:
                       onNumberFormatChange={(format) => handleOptionChange("format", format)}
                     />
                   </Stack>
+                )}
+                {hasPaddingDef && (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        size="small"
+                        color="primary"
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        checked={!!(config as any)?.options?.has_padding}
+                        onChange={(e) => {
+                          handleOptionChange("has_padding", e.target.checked);
+                        }}
+                      />
+                    }
+                    label={<Typography variant="body2">{t("padding")}</Typography>}
+                  />
                 )}
               </Stack>
             }

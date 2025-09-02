@@ -22,7 +22,7 @@ const WidgetChart: React.FC<WidgetChartProps> = ({ config }) => {
       {config.type === chartTypes.Values.pie_chart && <PieChartWidget config={config} />}
       {config.type === chartTypes.Values.categories_chart && <CategoriesChartWidget config={config} />}
       {config.options?.description && (
-        <Typography variant="body1" align="left">
+        <Typography variant="body2" align="left">
           {config.options.description}
         </Typography>
       )}

@@ -102,7 +102,13 @@ const ImageElementWidget = ({
 
   if (viewOnly) {
     return (
-      <Box sx={{ height: "fit-content", maxHeight: "fit-content", width: "100%" }}>
+      <Box
+        sx={{
+          height: "fit-content",
+          maxHeight: "fit-content",
+          width: "100%",
+          ...(config.options?.has_padding && { p: 2 }),
+        }}>
         <ImageElementBase config={config} />
       </Box>
     );
@@ -143,6 +149,7 @@ const ImageElementWidget = ({
           opacity: 1,
           transform: "translateY(0)",
         },
+        ...(config.options?.has_padding && { p: 2 }),
       }}>
       {/* Overlay */}
       <Box
