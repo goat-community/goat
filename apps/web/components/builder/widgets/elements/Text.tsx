@@ -1,10 +1,20 @@
-import { Box, Button, Stack, styled } from "@mui/material";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { Box, Divider, Paper, Stack, styled } from "@mui/material";
+import { debounce } from "@mui/material/utils";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
+import type { Editor } from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useEffect, useState } from "react";
+
+import { ICON_NAME } from "@p4b/ui/components/Icon";
 
 import type { TextElementSchema } from "@/lib/validations/widget";
 
 import { ArrowPopper } from "@/components/ArrowPoper";
+import MenuButton from "@/components/builder/widgets/elements/text/MenuButton";
+
+const extensions = [StarterKit, Subscript, Superscript];
 
 export const TipTapEditorContent = styled(EditorContent)(({ theme }) => ({
   flexGrow: 1,
@@ -21,53 +31,173 @@ export const TipTapEditorContent = styled(EditorContent)(({ theme }) => ({
   },
 }));
 
-// Styled menu for better appearance
-// const MenuContainer = styled(Paper)(({ theme }) => ({
-//   display: "flex",
-//   padding: theme.spacing(0.5),
-//   gap: theme.spacing(0.5),
-//   boxShadow: theme.shadows[3],
-//   borderRadius: theme.shape.borderRadius,
-// }));
+const ToolbarContainer = styled(Paper)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  padding: theme.spacing(2),
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: theme.shadows[4],
+  backgroundColor: theme.palette.background.paper,
+}));
 
-const TextElementWidget = ({ config }: { config: TextElementSchema }) => {
+const TextElementWidgetViewOnly = ({ config }: { config: TextElementSchema }) => {
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions,
     content: config.setup.text || "",
-    immediatelyRender: false,
+    immediatelyRender: true,
+    shouldRerenderOnTransaction: false,
+    editable: false,
+  });
+
+  return <TipTapEditorContent editor={editor} />;
+};
+
+const TextElementWidgetEditable = ({
+  config,
+  onWidgetUpdate,
+}: {
+  config: TextElementSchema;
+  onWidgetUpdate?: (newConfig: TextElementSchema) => void;
+}) => {
+  const editor = useEditor({
+    extensions,
+    content: config.setup.text || "",
+    immediatelyRender: true,
+    shouldRerenderOnTransaction: false,
     editable: true,
   });
+
+  const [toolbarOpen, setToolbarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleFocus = () => setToolbarOpen(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleBlur = ({ event }: any) => {
+      if (event?.relatedTarget && (event.relatedTarget as HTMLElement).closest(".tiptap-toolbar")) return;
+      setToolbarOpen(false);
+    };
+
+    editor.on("focus", handleFocus);
+    editor.on("blur", handleBlur);
+
+    return () => {
+      editor.off("focus", handleFocus);
+      editor.off("blur", handleBlur);
+    };
+  }, [editor]);
+
+  const editorState = useEditorState({
+    editor,
+    selector: ({ editor }: { editor: Editor }) => ({
+      isBold: editor.isActive("bold"),
+      isItalic: editor.isActive("italic"),
+      isUnderline: editor.isActive("underline"),
+      isStrike: editor.isActive("strike"),
+      isSuperscript: editor.isActive("superscript"),
+      isSubscript: editor.isActive("subscript"),
+    }),
+  });
+
+  const debouncedUpdate = debounce(() => {
+    if (editor && onWidgetUpdate) {
+      onWidgetUpdate({
+        ...config,
+        setup: { ...config.setup, text: editor.getHTML() },
+      });
+    }
+  }, 300); // Adjust debounce delay as needed
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleUpdate = () => {
+      debouncedUpdate();
+    };
+
+    editor.on("update", handleUpdate);
+
+    return () => {
+      editor.off("update", handleUpdate);
+    };
+  }, [editor, debouncedUpdate]);
 
   return (
     <Box>
       <TipTapEditorContent editor={editor} />
-      {/* <div dangerouslySetInnerHTML={{ __html: config.setup.text }} /> */}
+
       <ArrowPopper
-        open={!!editor?.isFocused}
+        open={toolbarOpen}
         placement="bottom"
-        isClickAwayEnabled={false}
+        isClickAwayEnabled
         content={
-          <Stack>
-            {editor && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => editor.chain().focus().toggleBold().run()}
-                sx={{
-                  backgroundColor: editor.isActive("bold") ? "primary.light" : "transparent",
-                  color: editor.isActive("bold") ? "primary.contrastText" : "text.primary",
-                  "&:hover": {
-                    backgroundColor: editor.isActive("bold") ? "primary.main" : "action.hover",
-                  },
-                }}>
-                Bold
-              </Button>
-            )}
-          </Stack>
+          <ToolbarContainer className="tiptap-toolbar">
+            <Stack direction="row" spacing={1}>
+              {editor && (
+                <>
+                  <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 0.5 }} />
+                  <MenuButton
+                    value="bold"
+                    iconName={ICON_NAME.BOLD}
+                    selected={editorState?.isBold}
+                    onClick={() => editor.chain().focus().toggleBold().run()}
+                  />
+                  <MenuButton
+                    value="italic"
+                    iconName={ICON_NAME.ITALIC}
+                    selected={editorState?.isItalic}
+                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                  />
+                  <MenuButton
+                    value="underline"
+                    iconName={ICON_NAME.UNDERLINE}
+                    selected={editorState?.isUnderline}
+                    onClick={() => editor.chain().focus().toggleUnderline().run()}
+                  />
+                  <MenuButton
+                    value="strike"
+                    iconName={ICON_NAME.STRIKETHROUGH}
+                    selected={editorState?.isStrike}
+                    onClick={() => editor.chain().focus().toggleStrike().run()}
+                  />
+                  <MenuButton
+                    value="superscript"
+                    iconName={ICON_NAME.SUPERSCRIPT}
+                    selected={editorState?.isSuperscript}
+                    onClick={() => editor.chain().focus().toggleSuperscript().run()}
+                  />
+                  <MenuButton
+                    value="subscript"
+                    iconName={ICON_NAME.SUBSCRIPT}
+                    selected={editorState?.isSubscript}
+                    onClick={() => editor.chain().focus().toggleSubscript().run()}
+                  />
+                  <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 0.5 }} />
+                </>
+              )}
+            </Stack>
+          </ToolbarContainer>
         }>
         <Box />
       </ArrowPopper>
     </Box>
+  );
+};
+
+const TextElementWidget = ({
+  config,
+  viewOnly = false,
+  onWidgetUpdate,
+}: {
+  config: TextElementSchema;
+  viewOnly?: boolean;
+  onWidgetUpdate?: (newConfig: TextElementSchema) => void;
+}) => {
+  return viewOnly ? (
+    <TextElementWidgetViewOnly config={config} />
+  ) : (
+    <TextElementWidgetEditable config={config} onWidgetUpdate={onWidgetUpdate} />
   );
 };
 

@@ -20,7 +20,9 @@ const hasOptions = (
 const WidgetElement: React.FC<WidgetElementProps> = ({ config, onWidgetUpdate, viewOnly }) => {
   return (
     <Box sx={{ width: "100%" }}>
-      {config.type === "text" && <TextElementWidget config={config} />}
+      {config.type === "text" && (
+        <TextElementWidget config={config} viewOnly={viewOnly} onWidgetUpdate={onWidgetUpdate} />
+      )}
       {config.type === "divider" && <DividerElementWidget config={config} />}
       {config.type === "image" && (
         <ImageElementWidget config={config} viewOnly={viewOnly} onWidgetUpdate={onWidgetUpdate} />
