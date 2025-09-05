@@ -4,7 +4,7 @@ import type { WidgetElementConfig } from "@/lib/validations/widget";
 
 import DividerElementWidget from "@/components/builder/widgets/elements/Divider";
 import ImageElementWidget from "@/components/builder/widgets/elements/Image";
-import TextElementWidget from "@/components/builder/widgets/elements/Text";
+import TextElementWidget from "@/components/builder/widgets/elements/text/Text";
 
 interface WidgetElementProps {
   config: WidgetElementConfig;

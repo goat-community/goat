@@ -2,6 +2,7 @@ import { Box, Divider, Paper, Stack, styled } from "@mui/material";
 import { debounce } from "@mui/material/utils";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
+import TextAlign from "@tiptap/extension-text-align";
 import type { Editor } from "@tiptap/react";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -12,9 +13,18 @@ import { ICON_NAME } from "@p4b/ui/components/Icon";
 import type { TextElementSchema } from "@/lib/validations/widget";
 
 import { ArrowPopper } from "@/components/ArrowPoper";
+import { AlignSelect } from "@/components/builder/widgets/elements/text/AlignSelect";
+import { BlockTypeSelect } from "@/components/builder/widgets/elements/text/BlockTypeSelect";
 import MenuButton from "@/components/builder/widgets/elements/text/MenuButton";
 
-const extensions = [StarterKit, Subscript, Superscript];
+const extensions = [
+  StarterKit,
+  Subscript,
+  Superscript,
+  TextAlign.configure({
+    types: ["heading", "paragraph"],
+  }),
+];
 
 export const TipTapEditorContent = styled(EditorContent)(({ theme }) => ({
   flexGrow: 1,
@@ -97,6 +107,7 @@ const TextElementWidgetEditable = ({
       isStrike: editor.isActive("strike"),
       isSuperscript: editor.isActive("superscript"),
       isSubscript: editor.isActive("subscript"),
+      isLink: editor.isActive("link"),
     }),
   });
 
@@ -129,14 +140,17 @@ const TextElementWidgetEditable = ({
 
       <ArrowPopper
         open={toolbarOpen}
+        disablePortal={false}
         placement="bottom"
         isClickAwayEnabled
         content={
           <ToolbarContainer className="tiptap-toolbar">
-            <Stack direction="row" spacing={1}>
-              {editor && (
-                <>
-                  <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 0.5 }} />
+            {editor && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <BlockTypeSelect editor={editor} />
+                {/* <ListTypeSelect editor={editor} /> */}
+                <Divider flexItem orientation="vertical" />
+                <Stack direction="row" spacing={0.5} alignItems="center">
                   <MenuButton
                     value="bold"
                     iconName={ICON_NAME.BOLD}
@@ -166,17 +180,30 @@ const TextElementWidgetEditable = ({
                     iconName={ICON_NAME.SUPERSCRIPT}
                     selected={editorState?.isSuperscript}
                     onClick={() => editor.chain().focus().toggleSuperscript().run()}
+                    disabled={!editor.can().toggleSuperscript()}
                   />
                   <MenuButton
                     value="subscript"
                     iconName={ICON_NAME.SUBSCRIPT}
                     selected={editorState?.isSubscript}
                     onClick={() => editor.chain().focus().toggleSubscript().run()}
+                    disabled={!editor.can().toggleSubscript()}
                   />
-                  <Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 0.5 }} />
-                </>
-              )}
-            </Stack>
+                </Stack>
+                <Divider flexItem orientation="vertical" />
+                <AlignSelect editor={editor} />
+                <Divider flexItem orientation="vertical" />
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <MenuButton
+                    value="link"
+                    iconName={ICON_NAME.LINK}
+                    selected={editorState?.isLink}
+                    // onClick={() => editor.chain().focus().toggleLink().run()}
+                    disabled={!editor.can().toggleLink()}
+                  />
+                </Stack>
+              </Stack>
+            )}
           </ToolbarContainer>
         }>
         <Box />

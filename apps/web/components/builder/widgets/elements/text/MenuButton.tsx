@@ -32,7 +32,11 @@ export default function MenuButton({
   ref,
   ...toggleButtonProps
 }: MenuButtonProps) {
-  const renderContent = children ?? (iconName ? <Icon iconName={iconName} fontSize="small" /> : null);
+  const renderContent =
+    children ??
+    (iconName ? (
+      <Icon iconName={iconName} fontSize="small" color={toggleButtonProps.selected ? "primary" : "inherit"} />
+    ) : null);
 
   return (
     <Root>
