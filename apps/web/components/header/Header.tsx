@@ -226,6 +226,7 @@ export default function Header(props: HeaderProps) {
               <>
                 <MoreMenu
                   menuItems={mapMenuItems}
+                  disablePortal={false}
                   menuButton={
                     <Button
                       color="secondary"
