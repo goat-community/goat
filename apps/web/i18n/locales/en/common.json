@@ -3136,5 +3136,10 @@
   "field_missing_in_layer": "{{tool}} uses the field “{{field}}” ({{param}}), which “{{layer}}” does not have. The node is marked so you can pick another field.",
   "fields_not_in_input_layer": "Fields not in the input layer",
   "datasets_replaced": "Datasets replaced",
-  "oev_station_config_transport_mode": "Transport mode"
+  "oev_station_config_transport_mode": "Transport mode",
+  "osm_tag_needs_area": "Choose a reference area first",
+  "osm_tag_needs_key": "Choose a key first",
+  "osm_tag_loading": "Reading the area …",
+  "osm_tag_failed": "Could not read the area — see the browser console",
+  "osm_tag_no_data": "No mirrored map data covers this area"
 }

@@ -256,16 +256,19 @@ class PreviewReader:
                     con.execute(f"INSTALL {extension}; LOAD {extension};")
                 except duckdb.Error:
                     con.execute(f"LOAD {extension};")
-            endpoint = (
-                (self._settings.s3_endpoint_url or "")
-                .replace("https://", "")
-                .replace("http://", "")
-            )
+            configured = self._settings.s3_endpoint_url or ""
+            endpoint = configured.replace("https://", "").replace("http://", "")
+            # The scheme has to survive the strip. DuckDB's s3 secret defaults to
+            # USE_SSL true, so a plaintext endpoint was reassembled as
+            # `https://<host>` and every read failed with "SSL connect error" --
+            # which is what a local MinIO looks like when the scheme is dropped
+            # on the floor. Stated explicitly rather than left to the default.
+            use_ssl = not configured.startswith("http://")
             con.execute(
-                """
+                f"""
                 CREATE OR REPLACE SECRET catalog_data (
                     TYPE s3, KEY_ID ?, SECRET ?, ENDPOINT ?, REGION ?,
-                    URL_STYLE 'path'
+                    URL_STYLE 'path', USE_SSL {'true' if use_ssl else 'false'}
                 )
                 """,
                 [

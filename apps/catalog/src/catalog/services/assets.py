@@ -123,16 +123,17 @@ class AssetReader:
                 con.execute("INSTALL httpfs; LOAD httpfs;")
             except duckdb.Error:
                 con.execute("LOAD httpfs;")
-            endpoint = (
-                (self._settings.s3_endpoint_url or "")
-                .replace("https://", "")
-                .replace("http://", "")
-            )
+            configured = self._settings.s3_endpoint_url or ""
+            endpoint = configured.replace("https://", "").replace("http://", "")
+            # Same reason as the preview reader: DuckDB's s3 secret defaults to
+            # USE_SSL true, so a plaintext endpoint is reassembled as
+            # `https://<host>` and every read fails. Stated, not defaulted.
+            use_ssl = not configured.startswith("http://")
             con.execute(
-                """
+                f"""
                 CREATE OR REPLACE SECRET catalog_assets (
                     TYPE s3, KEY_ID ?, SECRET ?, ENDPOINT ?, REGION ?,
-                    URL_STYLE 'path'
+                    URL_STYLE 'path', USE_SSL {'true' if use_ssl else 'false'}
                 )
                 """,
                 [

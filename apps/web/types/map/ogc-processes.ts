@@ -193,6 +193,7 @@ export type InferredInputType =
   | "starting-points" // Starting points selector (map clicks or layer)
   | "field-statistics" // Field statistics selector (operation + field)
   | "chips" // Editable chips (x-ui.widget is chips)
+  | "osm-tag" // OSM tag key or value, offered from the reference area
   | "unknown"; // Fallback
 
 /**

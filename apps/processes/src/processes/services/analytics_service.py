@@ -286,6 +286,35 @@ class AnalyticsService:
 
         return result.model_dump()
 
+    def osm_tag_values(
+        self,
+        collection: str,
+        feature_type: str = "points",
+        key: str | None = None,
+        limit: int = 100,
+        source: str = "osm",
+    ) -> dict[str, Any]:
+        """Tag keys, or one key's values, occurring inside a reference area.
+
+        The layer bounds the question rather than being read for its own
+        attributes: the answer comes from the OSM mirror, clipped to it.
+        """
+        from goatlib.tools.data_integration import tag_values
+
+        table_name = self._get_table_name(collection)
+        with self._connection(table_name) as con:
+            return tag_values(
+                con,
+                area_table=table_name,
+                feature_type=feature_type,
+                key=key,
+                limit=limit,
+                # Keyed by the layer, so the parsed tags are built once per area
+                # rather than once per question asked about it.
+                cache_key=collection,
+                source_name=source,
+            )
+
     def class_breaks(
         self,
         collection: str,

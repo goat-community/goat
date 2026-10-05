@@ -3136,5 +3136,10 @@
   "field_missing_in_layer": "{{tool}} verwendet das Feld „{{field}}“ ({{param}}), das „{{layer}}“ nicht hat. Der Knoten wird markiert, damit Sie ein anderes Feld wählen können.",
   "fields_not_in_input_layer": "Felder nicht im Eingabe-Layer",
   "datasets_replaced": "Datensätze ersetzt",
-  "oev_station_config_transport_mode": "Verkehrsmittel"
+  "oev_station_config_transport_mode": "Verkehrsmittel",
+  "osm_tag_needs_area": "Wählen Sie zuerst ein Referenzgebiet",
+  "osm_tag_needs_key": "Wählen Sie zuerst einen Schlüssel",
+  "osm_tag_loading": "Gebiet wird gelesen …",
+  "osm_tag_failed": "Gebiet konnte nicht gelesen werden — siehe Browser-Konsole",
+  "osm_tag_no_data": "Für dieses Gebiet liegen keine gespiegelten Kartendaten vor"
 }

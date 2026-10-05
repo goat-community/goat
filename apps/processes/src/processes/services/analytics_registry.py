@@ -58,6 +58,31 @@ class UniqueValuesProcessInput(UniqueValuesInput):
     collection: str = Field(description="Layer ID (UUID)")
 
 
+class OsmTagValuesProcessInput(BaseModel):
+    """Which OSM tag keys, or which values of one key, occur in an area."""
+
+    collection: str = Field(description="Reference area layer ID (UUID)")
+    source: str = Field("osm", description="Which mirror: osm or overture")
+    feature_type: str = Field(
+        "points", description="OSM layer, or Overture type when source is overture"
+    )
+    key: str | None = Field(
+        None, description="Tag key whose values to list; omitted lists the keys"
+    )
+    limit: int = Field(100, ge=1, le=1000, description="Maximum entries")
+
+
+class OsmTagValue(BaseModel):
+    value: str
+    count: int
+
+
+class OsmTagValuesResult(BaseModel):
+    key: str | None = None
+    total: int = 0
+    values: list[OsmTagValue] = Field(default_factory=list)
+
+
 class ClassBreaksProcessInput(ClassBreaksInput):
     """Class breaks input with collection (layer ID)."""
 
@@ -147,6 +172,17 @@ ANALYTICS_DEFINITIONS: dict[str, dict[str, Any]] = {
         "output_model": UniqueValuesResult,
         "keywords": ["analytics", "statistics", "unique", "values"],
         "tool_key": "unique_values",
+        "hidden": True,
+    },
+    "osm-tag-values": {
+        "title": "OSM Tag Values",
+        "description": (
+            "Tag keys, or the values of one key, present in a reference area"
+        ),
+        "input_model": OsmTagValuesProcessInput,
+        "output_model": OsmTagValuesResult,
+        "keywords": ["analytics", "osm", "tags", "values"],
+        "tool_key": "osm_tag_values",
         "hidden": True,
     },
     "class-breaks": {

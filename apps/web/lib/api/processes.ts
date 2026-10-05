@@ -530,6 +530,31 @@ export async function getUniqueValues(
   return executeProcess<UniqueValuesInput, UniqueValuesOutput>("unique-values", inputs);
 }
 
+export type OsmTagValue = { value: string; count: number };
+export type OsmTagValuesOutput = { key: string | null; total: number; values: OsmTagValue[] };
+
+/**
+ * Tag keys, or the values of one key, present inside a reference area.
+ *
+ * The area is a layer rather than the attribute source: the answer comes from
+ * the OSM mirror clipped to it, which is why this is not `unique-values`.
+ */
+export async function getOsmTagValues(
+  referenceAreaLayerId: string,
+  featureType: string,
+  key?: string,
+  limit = 200,
+  source = "osm"
+): Promise<OsmTagValuesOutput> {
+  return executeProcess<Record<string, unknown>, OsmTagValuesOutput>("osm-tag-values", {
+    collection: referenceAreaLayerId,
+    source,
+    feature_type: featureType,
+    ...(key ? { key } : {}),
+    limit,
+  });
+}
+
 /**
  * Get class breaks for a numeric attribute
  */

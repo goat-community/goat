@@ -129,7 +129,12 @@ PUBLIC_ALLOWED_PROCESSES = frozenset(
 # plus the two authenticated-only SQL helpers). Membership here routes a
 # request into `_execute_analytics_sync`; `PUBLIC_ALLOWED_PROCESSES` then
 # decides whether it may run without a caller.
-SYNC_ANALYTICS_PROCESSES = PUBLIC_ALLOWED_PROCESSES | {"preview-sql", "validate-sql"}
+SYNC_ANALYTICS_PROCESSES = PUBLIC_ALLOWED_PROCESSES | {
+    "preview-sql",
+    "validate-sql",
+    # Reads a user's own reference-area layer, so it is sync but not public.
+    "osm-tag-values",
+}
 
 
 # Cheap overload guard for layer-search fan-outs: reject instead of queueing
@@ -245,6 +250,14 @@ def _execute_analytics_sync(process_id: str, inputs: dict[str, Any]) -> dict[str
                 filter_expr=inputs.get("filter"),
                 limit=inputs.get("limit", 100),
                 offset=inputs.get("offset", 0),
+            )
+        elif process_id == "osm-tag-values":
+            return analytics_service.osm_tag_values(
+                collection=inputs["collection"],
+                feature_type=inputs.get("feature_type", "points"),
+                key=inputs.get("key"),
+                limit=inputs.get("limit", 100),
+                source=inputs.get("source", "osm"),
             )
         elif process_id == "class-breaks":
             return analytics_service.class_breaks(
