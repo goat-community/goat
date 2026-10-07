@@ -40,6 +40,7 @@ from goatlib.analysis.schemas.heatmap_v2 import (
 )
 from goatlib.config.settings import settings
 from goatlib.models.io import DatasetMetadata
+from goatlib.tools._routing_limits import MAX_TIME_ACTIVE_MIN, MAX_TIME_CAR_MIN
 
 logger = logging.getLogger(__name__)
 
@@ -79,13 +80,13 @@ _CONNECTIVITY_MAX_CELLS = 50_000
 # opportunities covers all the cells, so memory follows the network loaded
 # over the area: measured on a 4 GB worker (Basel + buffers,
 # Baden-Württemberg). The active value is bound by bicycle, whose coarser cells
-# cover ~7x the ground of walking's. Car matches connectivity's cap; at k = 10
-# it nears ~3.4 GB.
+# cover ~7x the ground of walking's. Car ran 72,740 cells (Switzerland and
+# surroundings) at k = 1 in 48 s; higher k needs more memory.
 _CLOSEST_AVERAGE_MAX_CELLS: dict[RoutingMode, int] = {
-    RoutingMode.walking: 200_000,
-    RoutingMode.bicycle: 200_000,
-    RoutingMode.pedelec: 200_000,
-    RoutingMode.car: 50_000,
+    RoutingMode.walking: 150_000,
+    RoutingMode.bicycle: 150_000,
+    RoutingMode.pedelec: 150_000,
+    RoutingMode.car: 75_000,
 }
 # Modes a PT leg can be made in — each has its own precomputed table. PT itself
 # is never an access/egress mode.
@@ -129,6 +130,31 @@ def _unbounded_by_reference_area(params: HeatmapV2Params) -> bool:
         and bool(params.reference_area_path)
         and params.routing_mode != RoutingMode.pt
     )
+
+
+def _within_area_reach(
+    opp_groups: list[tuple[list[tuple[float, float]], float, float, float]],
+    area_cells: list[tuple[float, float]],
+    params: HeatmapV2Params,
+) -> list[tuple[list[tuple[float, float]], float, float, float]]:
+    """Opportunities the engine can count for a reference area: within the
+    mode's maximum travel time of the area's bbox. At full speed, a superset
+    of the engine's own reach (it sizes it at 0.8x), which drops the rest."""
+    car = params.routing_mode == RoutingMode.car
+    minutes = MAX_TIME_CAR_MIN if car else MAX_TIME_ACTIVE_MIN
+    speed = 50.0 if car else (params.speed or _MODE_SPEED_DEFAULTS[params.routing_mode])
+    xs = [x for x, _ in area_cells]
+    ys = [y for _, y in area_cells]
+    furthest_y = max(ys, key=abs)
+    lat = 2 * math.atan(math.exp(furthest_y / 6378137.0)) - math.pi / 2
+    margin = minutes / 60 * speed * 1000 / max(math.cos(lat), 0.05)
+    min_x, max_x = min(xs) - margin, max(xs) + margin
+    min_y, max_y = min(ys) - margin, max(ys) + margin
+    return [
+        g
+        for g in opp_groups
+        if any(min_x <= x <= max_x and min_y <= y <= max_y for x, y in g[0])
+    ]
 
 
 def _check_reference_area_cells(n_cells: int, max_cells: int) -> None:
@@ -483,6 +509,7 @@ class HeatmapV2Tool(HeatmapToolBase):
     def _resolve_opportunity_layers(
         self: Self,
         params: HeatmapV2Params,
+        area_cells: list[tuple[float, float]] | None = None,
     ) -> list[
         tuple[
             str,
@@ -528,6 +555,8 @@ class HeatmapV2Tool(HeatmapToolBase):
         res = DEFAULT_H3_RESOLUTION[params.routing_mode]
         for idx, opp in enumerate(params.opportunities):
             opp_groups = self._load_opportunity_points(opp, idx, res)
+            if area_cells:
+                opp_groups = _within_area_reach(opp_groups, area_cells, params)
             if not opp_groups:
                 logger.warning(
                     "Opportunity layer %s yielded 0 opportunities; skipping",
@@ -804,7 +833,13 @@ class HeatmapV2Tool(HeatmapToolBase):
             last_t = now
             return elapsed_ms
 
-        layer_specs = self._resolve_opportunity_layers(params)
+        # Before the opportunities, so only those within the area's reach load
+        # and count toward the seed cap.
+        area_cells: list[tuple[float, float]] | None = None
+        if _unbounded_by_reference_area(params):
+            area_cells = self._reference_area_cells(params)
+            logger.info("[Heatmap] Reference-area cells: %.0f ms", lap())
+        layer_specs = self._resolve_opportunity_layers(params, area_cells)
         if not layer_specs:
             raise ValueError("No opportunity layers produced any points.")
         total_opps = sum(len(opps) for _, opps, _, _, _ in layer_specs)
@@ -831,10 +866,6 @@ class HeatmapV2Tool(HeatmapToolBase):
                     scratch_dir,
                 )
                 logger.info("[Heatmap] 2SFCA demand rasterized: %.0f ms", lap())
-            area_cells: list[tuple[float, float]] | None = None
-            if _unbounded_by_reference_area(params):
-                area_cells = self._reference_area_cells(params)
-                logger.info("[Heatmap] Reference-area cells: %.0f ms", lap())
             score_tables: list[tuple[str, str]] = []
             for idx, (col, opp_pts, sens, max_cost, n_dest) in enumerate(layer_specs):
                 table = self._compute_layer_scores(
