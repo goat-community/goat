@@ -120,7 +120,21 @@ namespace routing::data
         filter.h3_3_cells.assign(h3_3_set.begin(), h3_3_set.end());
         filter.h3_6_cells.assign(h3_6_set.begin(), h3_6_set.end());
         filter.bbox = box;
+        filter.cells_cover_points = true;
         return filter;
+    }
+
+    std::string short_h3_6_sql(std::string const &x_3857,
+                               std::string const &y_3857)
+    {
+        constexpr uint64_t kMaskH3_6 = 0x000fffffff000000ULL;
+        std::ostringstream sql;
+        sql << std::setprecision(17) << "((h3_latlng_to_cell("
+            << "DEGREES(2.0 * ATAN(EXP((" << y_3857 << ") / " << kEarthRadius
+            << "))) - 90.0, "
+            << "DEGREES((" << x_3857 << ") / " << kEarthRadius << "), 6)"
+            << "::bigint & " << kMaskH3_6 << ") >> 24)::int";
+        return sql.str();
     }
 
     SpatialFilter compute_spatial_filter_bbox(duckdb::Connection &con,
