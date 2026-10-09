@@ -482,6 +482,17 @@ async def import_bundle(
                     "segments and connectors GeoParquet)"
                 ),
             )
+        # Refused here, not by the job: past this size the import cannot be
+        # built at all, and the bundle it would create would only fail.
+        spec = get_spec(bundle_type)
+        if spec.max_upload_bytes and os.path.getsize(tmp_path) > spec.max_upload_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"{spec.name} upload too large. Limit is "
+                    f"{spec.max_upload_bytes // 1024 // 1024} MB."
+                ),
+            )
     finally:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)

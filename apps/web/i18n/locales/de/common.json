@@ -3107,6 +3107,7 @@
   "thumbnail_invalid_type": "Wählen Sie ein PNG-, JPEG- oder WebP-Bild.",
   "reset_to_generated": "Auf generiertes Bild zurücksetzen",
   "bundle_upload_note_pt_network_gtfs": "Datenpakete für ÖPNV-Netze müssen mit einem Straßennetz-Datenpaket verknüpft werden, damit GOAT Haltestellen mit Straßen verbinden kann. Wählen Sie ein Straßennetz-Datenpaket, das dieselbe Region abdeckt, um fortzufahren.",
+  "bundle_upload_too_large": "Wählen Sie eine Datei für {{type}} mit höchstens {{mb}} MiB.",
   "street_network_bundle": "Straßennetz-Datenpaket",
   "default_network": "Standard (Europa)",
   "default_pt_network": "Standard",

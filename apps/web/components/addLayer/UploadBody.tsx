@@ -155,6 +155,7 @@ const UploadBody = ({
         {BUNDLE_TYPES.map((type, index) => (
           <span key={type.type}>
             <b>{type.uploadHint}</b>
+            {type.maxSizeMiB ? ` · max ${type.maxSizeMiB} MiB` : ""}
             {index < BUNDLE_TYPES.length - 1 ? ", " : ""}
           </span>
         ))}
