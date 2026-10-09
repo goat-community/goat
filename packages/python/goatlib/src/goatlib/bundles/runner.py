@@ -23,7 +23,7 @@ from pydantic import BaseModel
 from goatlib.bundles.artifacts.build_mixin import BundleArtifactBuildMixin
 from goatlib.bundles.artifacts.storage import delete_bundle_artifacts
 from goatlib.bundles.importers import get_importer
-from goatlib.bundles.importers.base import ValidationResult
+from goatlib.bundles.importers.base import ValidationResult, bound_duckdb
 from goatlib.io.converter import IOConverter
 from goatlib.models.bundle import (
     BundleStatus,
@@ -239,10 +239,16 @@ class BundleImportRunner(BundleArtifactBuildMixin, BaseToolRunner):
         bundle_name = await db.get_bundle_name(bundle_id)
         stages = _Stages("Import")
         with tempfile.TemporaryDirectory() as workdir:
+            # The converter's and the lake connection's DuckDB share the
+            # worker with everything else the import holds, so both are
+            # bounded and spill into the workdir.
+            bound_duckdb(converter.con, workdir)
             layers = importer.extract_layers(source_path, workdir)
             stages.done("Extract", f"{len(layers)} layer(s)")
             try:
                 for i, extracted in enumerate(layers):
+                    # Recycled after every layer, so bounded again each time.
+                    bound_duckdb(self.duckdb_con, workdir)
                     layer_id = str(uuid4())
                     # Tracked before ingest so a table created by a failing step
                     # is still dropped during cleanup.

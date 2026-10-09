@@ -20,6 +20,7 @@ from goatlib.bundles.importers.base import (
     BundleMetadata,
     ExtractedLayer,
     ValidationResult,
+    bound_duckdb,
     register_importer,
 )
 from goatlib.models.bundle import BundleTypeName
@@ -412,7 +413,8 @@ class GtfsImporter(BundleImporter):
             f"read_csv('{src}', all_varchar=true, header=true, delim=',', "
             f"quote='\"', escape='\"', strict_mode=false)"
         )
-        con = duckdb.connect()
+        # Bounded, spilling next to the output: see bound_duckdb.
+        con = bound_duckdb(duckdb.connect(), os.path.dirname(os.path.abspath(out_path)))
         try:
             select = f"SELECT * FROM {read}"
             if not point:
@@ -443,19 +445,31 @@ class GtfsImporter(BundleImporter):
         A drawing of the shapes table, not a copy of it: points whose sequence or
         coordinates do not parse are left out of the line but stay in the table,
         and a shape with fewer than two drawable points gets no line.
+
+        DuckDB sorts the points, which spills to disk under the import's memory
+        bound; the lines are then assembled one shape at a time as the sorted
+        points stream past. Aggregating each shape's points into a list in SQL
+        holds every shape in memory at once and cannot spill, which a city's
+        shapes.txt outgrows.
         """
+        import struct
+
         import duckdb
+        import pyarrow as pa
+        import pyarrow.parquet as pq
 
         from goatlib.io.geoparquet import write_optimized_parquet
 
         src = shapes_path.replace("'", "''")
-        con = duckdb.connect()
+        lines_path = f"{out_path}.lines.parquet"
+        schema = pa.schema([("shape_id", pa.string()), ("wkb", pa.binary())])
+        # Bounded, spilling next to the output: see bound_duckdb.
+        con = bound_duckdb(duckdb.connect(), os.path.dirname(os.path.abspath(out_path)))
         try:
             con.execute("INSTALL spatial; LOAD spatial")
-            write_optimized_parquet(
-                con,
+            cursor = con.execute(
                 f"""
-                SELECT shape_id, ST_MakeLine(list(ST_Point(lon, lat) ORDER BY seq)) AS geometry
+                SELECT shape_id, lon, lat
                 FROM (
                     SELECT shape_id,
                            TRY_CAST(trim(shape_pt_sequence) AS BIGINT) AS seq,
@@ -464,13 +478,54 @@ class GtfsImporter(BundleImporter):
                     FROM read_parquet('{src}')
                 )
                 WHERE seq IS NOT NULL AND lon IS NOT NULL AND lat IS NOT NULL
-                GROUP BY shape_id
-                HAVING count(*) >= 2
-                """,
+                ORDER BY shape_id NULLS LAST, seq, lon, lat
+                """
+            )
+            ids: List[Optional[str]] = []
+            wkbs: List[bytes] = []
+            with pq.ParquetWriter(lines_path, schema) as writer:
+
+                def line(shape_id: Optional[str], coords: List[float]) -> None:
+                    n = len(coords) // 2
+                    if n < 2:
+                        return
+                    # WKB LineString, little-endian: byte order, type 2, count.
+                    ids.append(shape_id)
+                    wkbs.append(struct.pack(f"<BII{2 * n}d", 1, 2, n, *coords))
+                    if len(ids) >= 1000:
+                        flush()
+
+                def flush() -> None:
+                    if ids:
+                        writer.write_table(
+                            pa.table({"shape_id": ids, "wkb": wkbs}, schema=schema)
+                        )
+                        ids.clear()
+                        wkbs.clear()
+
+                current: Optional[str] = None
+                coords: List[float] = []
+                started = False
+                while rows := cursor.fetchmany(10_000):
+                    for shape_id, lon, lat in rows:
+                        if started and shape_id != current:
+                            line(current, coords)
+                            coords = []
+                        current, started = shape_id, True
+                        coords += (lon, lat)
+                if started:
+                    line(current, coords)
+                flush()
+            write_optimized_parquet(
+                con,
+                f"SELECT shape_id, ST_GeomFromWKB(wkb) AS geometry "
+                f"FROM read_parquet('{lines_path.replace(chr(39), chr(39) * 2)}')",
                 out_path,
             )
         finally:
             con.close()
+            if os.path.exists(lines_path):
+                os.remove(lines_path)
         return out_path
 
 
