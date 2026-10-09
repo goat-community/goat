@@ -59,6 +59,25 @@ namespace routing::data
     std::string short_h3_6_sql(std::string const &x_3857,
                                std::string const &y_3857);
 
+    // Split points into spatially compact groups, for a computation whose
+    // points are independent and can be run one group at a time.
+    //
+    // A network load covers the area around all of its points, so its memory
+    // follows the area they span, not how many there are: one load for points
+    // scattered across a region holds most of the region. Points are binned
+    // by H3 res-6 cell, the cells are taken in H3 index order (which keeps
+    // neighbours together), and a group is closed when the next cell would
+    // stretch its points beyond `max_span_m` of ground along either axis. A
+    // cell is never split. `max_span_m <= 0` returns a single group.
+    //
+    // Returns indices into `points`, every index exactly once; within a cell
+    // the input order is kept. Uses the DuckDB H3 community extension (INSTALL
+    // + LOAD is the caller's responsibility).
+    std::vector<std::vector<size_t>> group_points_by_extent(
+        duckdb::Connection &con,
+        std::vector<Point3857> const &points,
+        double max_span_m);
+
     // Cover a bounding box (EPSG:3857) expanded by margin.
     SpatialFilter compute_spatial_filter_bbox(duckdb::Connection &con,
                                               double min_x, double min_y,
