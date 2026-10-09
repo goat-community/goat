@@ -121,6 +121,11 @@ namespace routing::kernel
             {
                 if (ei >= base_edge_count)
                     continue;
+                // Only street edges. A connector or split half injected for
+                // an earlier point is no street: a point snapped onto one
+                // hangs off that point's spur instead of the network.
+                if (net.edges[ei].id < 0)
+                    continue;
                 if (!checked_edges.insert(ei).second)
                     continue;
 
@@ -151,8 +156,13 @@ namespace routing::kernel
         int32_t origin_node = net.node_count++;
         net.node_coords.push_back(origin);
 
-        // Connector: origin → projected point on edge
-        double snap_cost = connector_cost(cand.proj.dist, cfg);
+        // Connector: origin → projected point on edge. The projection distance
+        // is in EPSG:3857 units; the cost is ground metres (or their walking
+        // time), the same as every street edge, so it is scaled back by
+        // cos(lat) — at 48°N the projected length is half as long again.
+        double const snap_ground_m =
+            cand.proj.dist / std::cosh(origin.y / kWebMercatorR);
+        double snap_cost = connector_cost(snap_ground_m, cfg);
         net.source.push_back(origin_node);
         net.target.push_back(proj_node);
         net.cost.push_back(snap_cost);
