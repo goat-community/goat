@@ -5,7 +5,8 @@ Two artifacts, from two different inputs:
 ``pt_network_graph`` is the nigiri ``.bin``, built by ``build_timetable`` from
 the feed alone — footpaths between stops are generated from stop coordinates,
 so no street network is involved. The date window comes from the feed's
-calendar span.
+calendar span: the year around today when the feed is in service, otherwise the
+year at the end of its span nearest today (see ``_window_from_dates``).
 
 ``pt_network_linkage`` is the access/egress lookup: for every served stop, the
 H3 res-9 cells reachable within a walking (or cycling, driving) budget and the
@@ -26,7 +27,7 @@ import os
 import shutil
 import tarfile
 import zipfile
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
 
@@ -46,6 +47,10 @@ from goatlib.models.bundle import (
 logger = logging.getLogger(__name__)
 
 _MAX_DAYS = 365
+
+#: Days kept either side of today when the feed is in service today: six
+#: months back and forward, so the window never exceeds ``_MAX_DAYS``.
+_HALF_WINDOW_DAYS = _MAX_DAYS // 2
 
 #: H3 resolution the access/egress tables are binned at. Fixed by the routing
 #: engine's egress lookup, and mirrored in the analysis layer's
@@ -548,11 +553,12 @@ class GtfsArtifactBuilder(ArtifactBuilder):
         )
         return BuiltArtifact(kind=kind, local_path=str(archive), size=size)
 
-    @staticmethod
-    def _date_window(source_path: str) -> Tuple[str, int]:
+    @classmethod
+    def _date_window(
+        cls, source_path: str, today: date | None = None
+    ) -> Tuple[str, int]:
         """Derive ``(start_date "YYYY-MM-DD", length_days)`` from the feed's
-        calendar, clamped to <= 1 year. Falls back to ``today + 365d`` when the
-        feed has no parseable service dates."""
+        calendar files, by the rule in ``_window_from_dates``."""
         raw: List[str] = []
         try:
             with zipfile.ZipFile(source_path) as zf:
@@ -568,44 +574,58 @@ class GtfsArtifactBuilder(ArtifactBuilder):
                             raw.append((row.get("date") or "").strip())
         except Exception as e:
             logger.warning("Could not read GTFS calendar for date window: %s", e)
-
-        parsed = sorted({v for v in raw if len(v) == 8 and v.isdigit()})
-        for lo, hi in ((parsed[0], parsed[-1]),) if parsed else ():
-            try:
-                start = date(int(lo[:4]), int(lo[4:6]), int(lo[6:8]))
-                end = date(int(hi[:4]), int(hi[4:6]), int(hi[6:8]))
-                length = (end - start).days + 1
-                if length >= 1:
-                    return start.isoformat(), min(length, _MAX_DAYS)
-            except ValueError as e:
-                logger.warning("Invalid GTFS service dates (%s..%s): %s", lo, hi, e)
-
-        return date.today().isoformat(), _MAX_DAYS
+        return cls._window_from_dates(raw, today)
 
     @staticmethod
-    def _window_from_dates(raw: Sequence[str]) -> Tuple[str, int]:
-        """The same window rule as ``_date_window``, over dates already read.
+    def _window_from_dates(
+        raw: Sequence[str], today: date | None = None
+    ) -> Tuple[str, int]:
+        """The service window a timetable is built for, from the feed's service
+        dates (``YYYYMMDD``), as ``(start "YYYY-MM-DD", length_days)``.
 
-        Split out because a rebuild reads the service dates from the member
-        layers rather than from an archive that is no longer kept, and the two
-        must agree on the window or a rebuilt timetable would cover a different
-        span than the one it replaces.
+        A timetable holds at most ``_MAX_DAYS``, and a feed can state years of
+        service — often one long-running service from long ago next to the
+        current ones. Taking the year from the feed's first date would build a
+        timetable of that old service alone, and every date offered against it
+        would miss what the feed runs today. So the window follows today,
+        clamped to the feed's span [first, last]:
+
+        - in service today: six months either side of today;
+        - starts after today: the year from its first date;
+        - ended before today: the year up to its last date.
+
+        A feed without parseable dates gets the year from today.
+
+        The import (``_date_window``, from the archive) and a rebuild (from the
+        member layers, the archive being gone) both come here, so the two
+        agree on the rule; each applies it on the day it runs.
         """
+        today = today or date.today()
         parsed = sorted({v for v in raw if len(v) == 8 and v.isdigit()})
         if parsed:
             try:
-                start = date(
+                first = date(
                     int(parsed[0][:4]), int(parsed[0][4:6]), int(parsed[0][6:8])
                 )
-                end = date(
+                last = date(
                     int(parsed[-1][:4]), int(parsed[-1][4:6]), int(parsed[-1][6:8])
                 )
-                length = (end - start).days + 1
-                if length >= 1:
-                    return start.isoformat(), min(length, _MAX_DAYS)
             except ValueError as e:
-                logger.warning("Invalid GTFS service dates: %s", e)
-        return date.today().isoformat(), _MAX_DAYS
+                logger.warning(
+                    "Invalid GTFS service dates (%s..%s): %s", parsed[0], parsed[-1], e
+                )
+            else:
+                if first <= today <= last:
+                    half = timedelta(days=_HALF_WINDOW_DAYS)
+                    start, end = max(first, today - half), min(last, today + half)
+                elif today < first:
+                    start = first
+                    end = min(last, first + timedelta(days=_MAX_DAYS - 1))
+                else:
+                    end = last
+                    start = max(first, last - timedelta(days=_MAX_DAYS - 1))
+                return start.isoformat(), (end - start).days + 1
+        return today.isoformat(), _MAX_DAYS
 
 
 def unpack_pt_linkage(archive: str | Path, dest_dir: str | Path, mode: str) -> str:
