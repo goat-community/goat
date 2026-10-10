@@ -9,6 +9,7 @@ the map; neither replaces the data it is drawn from.
 
 import csv
 import io
+import logging
 import os
 import re
 import shutil
@@ -24,6 +25,10 @@ from goatlib.bundles.importers.base import (
     register_importer,
 )
 from goatlib.models.bundle import BundleTypeName
+
+logger = logging.getLogger(__name__)
+
+_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 def _clean(value: Optional[str]) -> Optional[str]:
@@ -173,15 +178,27 @@ class GtfsImporter(BundleImporter):
             required = set(self.spec.required_role_keys())
             missing = sorted(r for r in required if _GTFS_FILE[r] not in names)
 
-            # Column checks for every present file (required or optional).
+            # Column checks for the files a feed cannot do without. An optional
+            # file that fails them is skipped at extraction instead: it is the
+            # file that is unusable, not the feed.
+            essential = self._essential_roles()
             for role in detected:
-                header = self._read_header(zf, _GTFS_FILE[role])
+                if role not in essential:
+                    continue
+                header, first = self._read_head(zf, _GTFS_FILE[role])
                 needed = _REQUIRED_COLUMNS.get(role, set())
                 absent = needed - set(header)
                 if absent:
                     errors.append(
                         f"{_GTFS_FILE[role]} is missing column(s): "
                         f"{', '.join(sorted(absent))}"
+                    )
+                elif first is not None and len(first) > len(header):
+                    # Read as CSV, such a file loses its header: the column
+                    # names would be taken from the first row instead.
+                    errors.append(
+                        f"{_GTFS_FILE[role]} has rows with {len(first)} values "
+                        f"but a header naming {len(header)} columns"
                     )
 
         for role in missing:
@@ -267,8 +284,15 @@ class GtfsImporter(BundleImporter):
         Files the spec does not name — agency extensions such as
         `route_directions.txt` — are imported too, with the file name as the
         role, so a feed written back out is the feed that was uploaded.
+
+        Only the files a feed cannot do without fail the import when they
+        cannot be read. An optional GTFS file that lacks a column it requires,
+        or does not convert, is skipped on its own; so is a file that is not a
+        GTFS table at all, such as release notes shipped in the archive. Each
+        skip is logged.
         """
         layers: List[ExtractedLayer] = []
+        essential = self._essential_roles()
         with zipfile.ZipFile(source_path) as zf:
             names = {
                 os.path.basename(n) for n in zf.namelist() if self._is_feed_file(n)
@@ -279,46 +303,53 @@ class GtfsImporter(BundleImporter):
                     continue
                 role_spec = self.spec.role(role)
                 label = role_spec.label if role_spec else role
+                if role not in essential:
+                    absent = _REQUIRED_COLUMNS.get(role, set()) - set(
+                        self._read_header(zf, fname)
+                    )
+                    if absent:
+                        logger.warning(
+                            "Skipping %s: missing column(s) %s",
+                            fname,
+                            ", ".join(sorted(absent)),
+                        )
+                        continue
                 txt_path = self._extract_member(zf, fname, workdir)
                 out_path = os.path.join(workdir, f"{role}.parquet")
-                if role == "stops":
-                    # The stop's position as a geometry next to its own columns.
-                    # Nullable: GTFS leaves coordinates empty for generic nodes
-                    # and boarding areas, and those stops are kept regardless.
-                    self._txt_to_parquet(txt_path, out_path, point=True)
-                    layers.append(
-                        ExtractedLayer(
-                            role=role,
-                            name=label,
-                            layer_type="feature",
-                            geometry_type="point",
-                            file_path=out_path,
-                        )
-                    )
+                # The stop's position as a geometry next to its own columns.
+                # Nullable: GTFS leaves coordinates empty for generic nodes and
+                # boarding areas, and those stops are kept regardless.
+                point = role == "stops"
+                if not self._convert(
+                    fname, txt_path, out_path, essential=role in essential, point=point
+                ):
                     continue
-                self._txt_to_parquet(txt_path, out_path)
                 layers.append(
                     ExtractedLayer(
                         role=role,
                         name=label,
-                        layer_type="table",
-                        geometry_type=None,
+                        layer_type="feature" if point else "table",
+                        geometry_type="point" if point else None,
                         file_path=out_path,
                     )
                 )
                 if role == "shapes":
                     lines_spec = self.spec.role("shape_lines")
-                    layers.append(
-                        ExtractedLayer(
-                            role="shape_lines",
-                            name=lines_spec.label if lines_spec else "Shape lines",
-                            layer_type="feature",
-                            geometry_type="line",
-                            file_path=self._shape_lines_parquet(
-                                out_path, os.path.join(workdir, "shape_lines.parquet")
-                            ),
+                    lines_path = os.path.join(workdir, "shape_lines.parquet")
+                    try:
+                        self._shape_lines_parquet(out_path, lines_path)
+                    except Exception as e:
+                        logger.warning("Skipping the shape lines: %s", e)
+                    else:
+                        layers.append(
+                            ExtractedLayer(
+                                role="shape_lines",
+                                name=lines_spec.label if lines_spec else "Shape lines",
+                                layer_type="feature",
+                                geometry_type="line",
+                                file_path=lines_path,
+                            )
                         )
-                    )
 
             known = set(_GTFS_FILE.values())
             for fname in sorted(names - known):
@@ -328,9 +359,13 @@ class GtfsImporter(BundleImporter):
                 # (a stray `shape_lines.txt` would otherwise collide with the
                 # derived layer) and the write-back knows what to call it.
                 role = fname
+                if not self._is_gtfs_table(self._read_header(zf, fname)):
+                    logger.warning("Skipping %s: not a GTFS table", fname)
+                    continue
                 txt_path = self._extract_member(zf, fname, workdir)
                 out_path = os.path.join(workdir, f"extra_{len(layers)}.parquet")
-                self._txt_to_parquet(txt_path, out_path)
+                if not self._convert(fname, txt_path, out_path, essential=False):
+                    continue
                 layers.append(
                     ExtractedLayer(
                         role=role,
@@ -342,6 +377,31 @@ class GtfsImporter(BundleImporter):
                 )
         return layers
 
+    def _convert(
+        self,
+        fname: str,
+        txt_path: str,
+        out_path: str,
+        *,
+        essential: bool,
+        point: bool = False,
+    ) -> bool:
+        """Convert one file; whether it became a layer.
+
+        A file the feed cannot do without raises, so the import fails with the
+        reason. Any other file is skipped with a warning: one unreadable
+        optional or extra file is no reason to refuse the feed."""
+        try:
+            self._txt_to_parquet(txt_path, out_path, point=point)
+        except Exception as e:
+            if essential:
+                raise ValueError(f"{fname} could not be read: {e}") from e
+            logger.warning("Skipping %s: not a readable GTFS table (%s)", fname, e)
+            if os.path.exists(out_path):
+                os.remove(out_path)
+            return False
+        return True
+
     # -- helpers -----------------------------------------------------------
 
     @staticmethod
@@ -350,6 +410,41 @@ class GtfsImporter(BundleImporter):
             if os.path.basename(n) == basename:
                 return n
         return None
+
+    @staticmethod
+    def _is_gtfs_table(header: List[str]) -> bool:
+        """Whether a file the spec does not name is a GTFS-style table.
+
+        GTFS and its extensions name every column as an identifier
+        (`route_id`, `direction_name`); release notes or a readme shipped in
+        the archive open with prose, which CSV would happily read as a
+        one-column table. A lone column counts when its name is a compound one,
+        as GTFS forms them, so a single prose word does not."""
+        fields = [f.strip() for f in header]
+        if not fields or not all(_IDENTIFIER.match(f) for f in fields):
+            return False
+        return len(fields) > 1 or "_" in fields[0]
+
+    def _essential_roles(self) -> Set[str]:
+        """The roles a feed cannot do without: the spec's required files and
+        the groups it needs one of (calendar / calendar_dates). Any other file
+        is optional and is skipped, rather than failing the import, when it
+        cannot be read."""
+        essential = set(self.spec.required_role_keys())
+        for keys in self.spec.required_role_groups().values():
+            essential.update(keys)
+        return essential
+
+    def _read_head(
+        self, zf: zipfile.ZipFile, basename: str
+    ) -> "tuple[List[str], Optional[List[str]]]":
+        """A file's header and its first data row (None when it has none)."""
+        name = self._resolve(zf, basename)
+        if name is None:
+            return [], None
+        with zf.open(name) as fh:
+            reader = csv.reader(io.TextIOWrapper(fh, encoding="utf-8-sig"))
+            return next(reader, []), next(reader, None)
 
     def _read_header(self, zf: zipfile.ZipFile, basename: str) -> List[str]:
         name = self._resolve(zf, basename)
