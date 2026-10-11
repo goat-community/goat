@@ -363,6 +363,35 @@ class TestProjectImportRunner:
         assert widget["layer_project_id"] == 48
         assert widget["options"]["downloadable_layers"] == [29, 48]
 
+    def test_remap_builder_config_remaps_interaction_rules(
+        self, runner: ProjectImportRunner
+    ) -> None:
+        """An imported dashboard's rules point at the imported entries and
+        groups, as in a copy (core's crud_project_copy)."""
+        config = {
+            "interactions": [
+                {
+                    "id": "sync",
+                    "trigger": {"type": "visibility_changed", "sourceId": 1},
+                    "action": {"type": "sync_visibility"},
+                    "mapping": [{"sourceId": 2, "actionParams": {}}],
+                },
+                {
+                    "id": "tabs",
+                    "trigger": {"type": "group_activated"},
+                    "action": {"type": "switch_tab", "targetWidgetId": "w"},
+                    "mapping": [{"sourceId": 7, "actionParams": {"tabId": "a"}}],
+                },
+            ]
+        }
+
+        result = runner._remap_builder_config(config, {1: 29, 2: 30}, {7: 70})
+
+        sync, tabs = result["interactions"]
+        assert sync["trigger"]["sourceId"] == 29
+        assert sync["mapping"][0]["sourceId"] == 30
+        assert tabs["mapping"][0]["sourceId"] == 70
+
     def test_remap_builder_config_remaps_group_icon_keys(
         self, runner: ProjectImportRunner
     ) -> None:
