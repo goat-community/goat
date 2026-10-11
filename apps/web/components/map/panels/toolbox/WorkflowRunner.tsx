@@ -12,7 +12,6 @@ import {
   Chip,
   CircularProgress,
   Stack,
-  TextField,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -33,11 +32,11 @@ import type { NodeExecutionInfo, NodeExecutionStatus } from "@/components/workfl
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
-import FormLabelHelper from "@/components/common/FormLabelHelper";
 import Container from "@/components/map/panels/Container";
 import SectionHeader from "@/components/map/panels/common/SectionHeader";
 import SectionOptions from "@/components/map/panels/common/SectionOptions";
 import ToolsHeader from "@/components/map/panels/common/ToolsHeader";
+import WorkflowRunVariableField from "@/components/map/panels/toolbox/WorkflowRunVariableField";
 
 interface WorkflowRunnerProps {
   workflowId: string;
@@ -387,28 +386,13 @@ export default function WorkflowRunner({ workflowId, onBack, onClose }: Workflow
                     {variables
                       .sort((a, b) => a.order - b.order)
                       .map((variable) => (
-                        <Stack key={variable.id}>
-                          <FormLabelHelper
-                            label={variable.name}
-                            color="inherit"
-                          />
-                          <TextField
-                            size="small"
-                            type={variable.type === "number" ? "number" : "text"}
-                            value={variableValues[variable.name] ?? ""}
-                            onChange={(e) => {
-                              const val =
-                                variable.type === "number"
-                                  ? e.target.value === ""
-                                    ? ""
-                                    : Number(e.target.value)
-                                  : e.target.value;
-                              setVariableValues((prev) => ({ ...prev, [variable.name]: val }));
-                            }}
-                            disabled={execState.isExecuting}
-                            fullWidth
-                          />
-                        </Stack>
+                        <WorkflowRunVariableField
+                          key={variable.id}
+                          variable={variable}
+                          value={variableValues[variable.name]}
+                          onChange={(val) => setVariableValues((prev) => ({ ...prev, [variable.name]: val }))}
+                          disabled={execState.isExecuting}
+                        />
                       ))}
                   </Stack>
                 }

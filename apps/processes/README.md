@@ -46,6 +46,7 @@ It was split from geoapi so that long-running analysis can never block tile and 
 - `preview-sql` and `validate-sql` can be executed but are not in `ANALYTICS_DEFINITIONS`, so `GET /processes` does not list them and `GET /processes/{id}` answers 404.
 - `GET /jobs` inlines the full Windmill result of every successful job it returns, and fetches details for export, print and workflow jobs concurrently. Large results make this endpoint memory-heavy.
 - `DELETE /jobs/{jobId}` cancels a queued or running job. For a finished job it only answers "dismissed"; nothing is deleted.
+- Workflow variables pass through `/workflows/{id}/execute` unvalidated. The runner resolves `{{@name}}` by `name` alone (`variable_map` in `packages/python/goatlib/src/goatlib/tools/workflow_runner.py`); a variable's optional `label` and `description` are for the editor only and never change a run.
 - Workflow temporary results live under the hardcoded `/app/data/temporary`, which processes reads directly. The processes container must share `/app/data` with the Windmill workers.
 - `TRAVELTIME_MATRICES_DIR` is passed to jobs as a path, so it must be valid on the **worker's** filesystem, not on the processes container.
 - `WINDMILL_TOKEN` is read from the process environment, then from the file named by `WINDMILL_TOKEN_FILE`, then from `/app/data/windmill/.token`. A `WINDMILL_TOKEN` line in a `.env` file is not picked up.

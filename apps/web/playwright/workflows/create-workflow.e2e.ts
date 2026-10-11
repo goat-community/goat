@@ -71,6 +71,81 @@ test.describe("Workflow Management", () => {
     });
   });
 
+  test("a variable's label and description show where it is picked", async ({ page }) => {
+    const label = "Maximum grouping distance";
+    const description = "Largest distance between two points of one group, in metres.";
+
+    await page.getByText("Workflows").click();
+    await newWorkflow(page);
+    await expect(page.getByRole("button", { name: "Run" })).toBeVisible({ timeout: 5000 });
+
+    // Define the variable on one row: the technical name expressions use and
+    // the label users see. The help text goes in the popover behind the row's
+    // description button.
+    await page.getByRole("button", { name: "Variables" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Add Variable" }).click();
+    await dialog.getByRole("textbox", { name: "Name" }).fill("max_abstand_gruppierung");
+    await dialog.getByRole("textbox", { name: "Label" }).fill(label);
+    await dialog.getByRole("spinbutton", { name: "Default" }).fill("250");
+    await dialog.getByRole("button", { name: "Add description" }).click();
+    const descriptionField = page.getByRole("textbox", { name: "Description" });
+    await descriptionField.fill(description);
+    // A click beside the popover closes it and keeps the text.
+    await page.mouse.click(5, 5);
+    await expect(descriptionField).toBeHidden();
+    await dialog.getByRole("button", { name: "Done" }).click();
+    await expect(dialog).toBeHidden();
+
+    // Reopened, the dialog shows what was saved: the label in its column, the
+    // description behind a button that now offers to edit it.
+    await page.getByRole("button", { name: "Variables" }).click();
+    await expect(dialog.getByRole("textbox", { name: "Label" })).toHaveValue(label);
+    const editDescription = dialog.getByRole("button", { name: "Edit description" });
+    await editDescription.hover();
+    await expect(page.getByRole("tooltip")).toHaveText(description);
+    await editDescription.click();
+    await expect(descriptionField).toHaveValue(description);
+    // Escape leaves the popover without changing anything.
+    await descriptionField.fill("Not kept");
+    await page.keyboard.press("Escape");
+    await expect(descriptionField).toBeHidden();
+    await dialog.getByRole("button", { name: "Done" }).click();
+    await expect(dialog).toBeHidden();
+
+    // A tool input's variable menu lists it by label, with the name to type
+    // beside it and the description on hover. Buffer's distances sit in its
+    // Configuration section, which stays disabled until the tool has an
+    // input layer, so a dataset node is connected to it first (an empty one
+    // is enough: the connection is what enables the section).
+    const pane = page.locator(".react-flow__pane");
+    await page
+      .getByText("Add dataset", { exact: true })
+      .first()
+      .dragTo(pane, { targetPosition: { x: 120, y: 150 } });
+    await page
+      .getByText("Buffer", { exact: true })
+      .first()
+      .dragTo(pane, { targetPosition: { x: 450, y: 150 } });
+    const buffer = page.locator(".react-flow__node").filter({ hasText: "Buffer" });
+    await expect(buffer).toBeVisible({ timeout: 10000 });
+    const dataset = page.locator(".react-flow__node").filter({ hasNotText: "Buffer" }).first();
+    await dataset.locator(".react-flow__handle.source").first().click();
+    await buffer.locator('.react-flow__handle.target[data-handleid="input_layer_id"]').click();
+    await expect(page.locator(".react-flow__edge")).toHaveCount(1);
+    await buffer.click();
+    await page.getByRole("button", { name: "Insert variable" }).first().click();
+    const item = page.getByRole("menuitem").filter({ hasText: label });
+    await expect(item).toContainText("{{@max_abstand_gruppierung}}");
+    await item.hover();
+    // Filtered: while the menu is open more than one tooltip is in the DOM.
+    await expect(page.getByRole("tooltip").filter({ hasText: description })).toHaveText(description);
+
+    // Picked, the field holds the reference and names the variable by label.
+    await item.click();
+    await expect(page.getByTestId("variable-reference-label")).toHaveText(label);
+  });
+
   test("the canvas zooms out below React Flow's default limit", async ({ page }) => {
     await page.getByText("Workflows").click();
     await newWorkflow(page);

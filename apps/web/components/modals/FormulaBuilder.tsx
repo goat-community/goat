@@ -51,6 +51,8 @@ import {
 import AppDialog, { AppDialogFooter } from "@/components/common/AppDialog";
 import FieldKindIcon, { fieldIndicatorKind } from "@/components/common/FieldKindIcon";
 
+import type { VariableInfo } from "./SqlCodeEditor";
+
 const SqlCodeEditor = dynamic(() => import("./SqlCodeEditor"), { ssr: false });
 
 // Operators definition for the formula builder
@@ -233,7 +235,7 @@ export interface FormulaBuilderProps {
   showGroupBy?: boolean;
   mode?: "expression" | "sql"; // Default: "expression"
   tables?: SqlTable[]; // For SQL mode: available tables with their columns
-  variables?: { name: string; type: string }[]; // Workflow variables for {{@var}} autocomplete
+  variables?: VariableInfo[]; // Workflow variables for {{@var}} autocomplete
 }
 
 export default function FormulaBuilder({
