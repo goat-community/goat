@@ -75,3 +75,5 @@ docker build -t goat-processes -f apps/processes/Dockerfile .   # from the repo 
 The image runs `fastapi run` on port 8000 as a non-root user, with the DuckDB extensions baked in. It needs the same environment as a local run, plus the shared `/app/data` volume.
 
 `apps/processes/workers/Dockerfile` builds the Windmill server and worker images (`server`, `worker-default`, `worker-tools`, `worker-print`) that execute the jobs this service submits.
+
+`worker-print` renders layouts in Chromium, which uses only fonts installed in the image. The layout font picker offers fonts the image has no file of (Verdana, Georgia, Garamond, Consolas), so open fonts stand in for them under their names (`workers/fonts/60-goat-print-fonts.conf`): Chromium takes a fontconfig font only when it carries the requested name, never through a plain alias. A font added to the picker needs one there too, or it prints in the generic fallback; the release smoke test checks that each of the four resolves.
