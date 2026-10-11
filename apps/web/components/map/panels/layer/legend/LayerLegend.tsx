@@ -2,6 +2,7 @@ import { Box, Stack, Typography } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import { cleanEditedText } from "@/lib/utils/editableText";
 import { getLegendColorMap, getLegendMarkerMap } from "@/lib/utils/map/legend";
 import type { RasterLayerProperties } from "@/lib/validations/layer";
 
@@ -40,13 +41,16 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
   // Editable heading helper
   const renderHeading = (defaultText: string, overrideKey: string) => {
     if (hideHeading) return null;
-    const displayText = editable && textOverrides?.[overrideKey] != null ? textOverrides[overrideKey] : defaultText;
+    const displayText =
+      editable && textOverrides?.[overrideKey] != null
+        ? cleanEditedText(textOverrides[overrideKey])
+        : defaultText;
     // Hide heading entirely when user has cleared the text
     if (editable && textOverrides?.[overrideKey] != null && !displayText.trim()) {
       return null;
     }
     const handleBlur = (e: React.FocusEvent<HTMLSpanElement>) => {
-      const newText = e.currentTarget.textContent ?? "";
+      const newText = cleanEditedText(e.currentTarget.textContent ?? "");
       if (newText !== displayText) {
         onTextSave?.(overrideKey, newText);
       }
@@ -99,7 +103,8 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
     // so skipping one would shift every later row's override onto its neighbour.
     const idx = rowIndex++;
     const overrideKey = `item_${idx}`;
-    const displayLabel = editable && textOverrides?.[overrideKey] != null ? textOverrides[overrideKey] : label;
+    const displayLabel =
+      editable && textOverrides?.[overrideKey] != null ? cleanEditedText(textOverrides[overrideKey]) : label;
 
     // Hide the row entirely when the user has cleared its label, so the icon
     // goes with it instead of lingering on its own.
@@ -108,7 +113,7 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
     }
 
     const handleBlur = (e: React.FocusEvent<HTMLSpanElement>) => {
-      const newText = e.currentTarget.textContent ?? "";
+      const newText = cleanEditedText(e.currentTarget.textContent ?? "");
       if (newText !== displayLabel) {
         onTextSave?.(overrideKey, newText);
       }
@@ -373,7 +378,8 @@ const RasterLayerLegend = ({ style, itemTypographySx, editable, textOverrides, o
     // renderRow above.
     const idx = rowIndex++;
     const overrideKey = `item_${idx}`;
-    const displayLabel = editable && textOverrides?.[overrideKey] != null ? textOverrides[overrideKey] : label;
+    const displayLabel =
+      editable && textOverrides?.[overrideKey] != null ? cleanEditedText(textOverrides[overrideKey]) : label;
 
     // Hide the row entirely when the user has cleared its label, so the colour
     // swatch goes with it.
@@ -382,7 +388,7 @@ const RasterLayerLegend = ({ style, itemTypographySx, editable, textOverrides, o
     }
 
     const handleBlur = (e: React.FocusEvent<HTMLSpanElement>) => {
-      const newText = e.currentTarget.textContent ?? "";
+      const newText = cleanEditedText(e.currentTarget.textContent ?? "");
       if (newText !== displayLabel) {
         onTextSave?.(overrideKey, newText);
       }
@@ -444,8 +450,14 @@ const RasterLayerLegend = ({ style, itemTypographySx, editable, textOverrides, o
       style.max_value?.toString() ||
       style.color_map[style.color_map.length - 1]?.[0]?.toString() ||
       "Max";
-    const minLabel = editable && textOverrides?.["item_min"] != null ? textOverrides["item_min"] : minLabelRaw;
-    const maxLabel = editable && textOverrides?.["item_max"] != null ? textOverrides["item_max"] : maxLabelRaw;
+    const minLabel =
+      editable && textOverrides?.["item_min"] != null
+        ? cleanEditedText(textOverrides["item_min"])
+        : minLabelRaw;
+    const maxLabel =
+      editable && textOverrides?.["item_max"] != null
+        ? cleanEditedText(textOverrides["item_max"])
+        : maxLabelRaw;
 
     const editableSx = editable
       ? {
@@ -475,7 +487,7 @@ const RasterLayerLegend = ({ style, itemTypographySx, editable, textOverrides, o
             contentEditable={editable}
             suppressContentEditableWarning
             onBlur={editable ? (e) => {
-              const t = e.currentTarget.textContent ?? "";
+              const t = cleanEditedText(e.currentTarget.textContent ?? "");
               if (t !== minLabel) onTextSave?.("item_min", t);
             } : undefined}>
             {minLabel}
@@ -487,7 +499,7 @@ const RasterLayerLegend = ({ style, itemTypographySx, editable, textOverrides, o
             contentEditable={editable}
             suppressContentEditableWarning
             onBlur={editable ? (e) => {
-              const t = e.currentTarget.textContent ?? "";
+              const t = cleanEditedText(e.currentTarget.textContent ?? "");
               if (t !== maxLabel) onTextSave?.("item_max", t);
             } : undefined}>
             {maxLabel}
