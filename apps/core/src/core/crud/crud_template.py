@@ -2147,6 +2147,14 @@ class CRUDTemplate:
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Unknown role {obj_in.role!r}",
             )
+        # Sharing stays inside the caller's organization (D14), settled before
+        # anything is written: core's engine runs in AUTOCOMMIT, so a refusal
+        # after the insert would leave the grant behind.
+        await crud_share.assert_grantees_in_organization(
+            db,
+            granted_by=user_id,
+            wanted=[(obj_in.grantee_type, obj_in.grantee_id, obj_in.role)],
+        )
         row = (
             await db.execute(
                 text(
