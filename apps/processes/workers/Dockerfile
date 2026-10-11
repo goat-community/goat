@@ -304,25 +304,15 @@ RUN --mount=type=bind,from=playwright-build,source=/opt/playwright,target=/opt/p
 # Open fonts standing in for the layout font picker's choices the image has
 # no file of, each under that font's name (fonts/60-goat-print-fonts.conf
 # says which and why): without them a layout prints in another font, wider or
-# narrower than in the editor. Gelasio is not packaged by Debian; it comes
-# from Google Fonts (OFL) at a pinned commit, checked against its hashes.
-ARG GELASIO_URL=https://raw.githubusercontent.com/google/fonts/a60a77e14f28abd4ef243a1b5dfc48df0cec5205/ofl/gelasio
+# narrower than in the editor. The cache is rebuilt after the configuration,
+# which renames the fonts when they are scanned.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-dejavu-core \
     fonts-ebgaramond \
     fonts-inconsolata \
     && rm -rf /var/lib/apt/lists/*
-ADD --chmod=644 ${GELASIO_URL}/Gelasio%5Bwght%5D.ttf /usr/share/fonts/truetype/gelasio/Gelasio-wght.ttf
-ADD --chmod=644 ${GELASIO_URL}/Gelasio-Italic%5Bwght%5D.ttf /usr/share/fonts/truetype/gelasio/Gelasio-Italic-wght.ttf
-ADD --chmod=644 ${GELASIO_URL}/OFL.txt /usr/share/fonts/truetype/gelasio/OFL.txt
 COPY apps/processes/workers/fonts/60-goat-print-fonts.conf /etc/fonts/conf.d/60-goat-print-fonts.conf
-RUN cd /usr/share/fonts/truetype/gelasio \
-    && printf '%s\n' \
-        "4daecea457258c9ebeb8bc99ed3fd24353618bfad3ea4b93fa0b5d0468fc04e4  Gelasio-wght.ttf" \
-        "52559e845a4d33514e5f93bb9ae7dbeae1894a53f2c565a15f18af40cd337c09  Gelasio-Italic-wght.ttf" \
-        "b393cb01867c919b44381512120dc3e4c954c7b47e2035c405f3a324799a4d29  OFL.txt" \
-        | sha256sum -c - \
-    && fc-cache -f
+RUN fc-cache -f
 
 # Python, venv and extensions last (see worker-base)
 COPY --from=python-build $UV_PYTHON_INSTALL_DIR $UV_PYTHON_INSTALL_DIR
