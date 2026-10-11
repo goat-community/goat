@@ -46,6 +46,8 @@ import {
   type IfStatisticExpression,
   type WorkflowNode,
   type WorkflowVariable,
+  getVariableDisplayName,
+  hasVariableLabel,
 } from "@/lib/validations/workflow";
 
 import type { LayerFieldType } from "@/lib/validations/layer";
@@ -129,6 +131,7 @@ import LayerFieldSelector from "@/components/map/common/LayerFieldSelector";
 import Selector from "@/components/map/panels/common/Selector";
 import ToolsHeader from "@/components/map/panels/common/ToolsHeader";
 import { useNodeExecutionStatus } from "@/components/workflows/context/WorkflowExecutionContext";
+import WorkflowVariableMenuItem from "@/components/workflows/inputs/WorkflowVariableMenuItem";
 
 interface IfNodeSettingsProps {
   node: WorkflowNode;
@@ -188,7 +191,7 @@ interface VariableTextFieldProps {
   appendSeparator?: string;
 }
 
-function VariableTextField({
+export function VariableTextField({
   value,
   onChange,
   variables,
@@ -200,6 +203,15 @@ function VariableTextField({
   const [menuOpen, setMenuOpen] = useState(false);
 
   const isVariableRef = VARIABLE_REF_REGEX.test(value);
+  // A field holding exactly one labelled variable shows that label beneath it.
+  const referencedVariable = useMemo(() => {
+    const match = value.match(VARIABLE_REF_REGEX);
+    return match ? variables.find((v) => v.name === match[1]) : undefined;
+  }, [value, variables]);
+  const referencedLabel =
+    referencedVariable && hasVariableLabel(referencedVariable)
+      ? getVariableDisplayName(referencedVariable)
+      : undefined;
 
   const insertVariable = useCallback(
     (varName: string) => {
@@ -219,6 +231,7 @@ function VariableTextField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        helperText={referencedLabel}
         sx={
           isVariableRef
             ? {
@@ -262,14 +275,7 @@ function VariableTextField({
           </MenuItem>
         ) : (
           variables.map((v) => (
-            <MenuItem key={v.id} onClick={() => insertVariable(v.name)}>
-              <Typography variant="body2" fontFamily="monospace">
-                {`{{@${v.name}}}`}
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                ({v.type})
-              </Typography>
-            </MenuItem>
+            <WorkflowVariableMenuItem key={v.id} variable={v} onSelect={(selected) => insertVariable(selected.name)} />
           ))
         )}
       </Menu>

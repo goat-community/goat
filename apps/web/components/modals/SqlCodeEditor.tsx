@@ -94,9 +94,39 @@ function variableTrigger(variables: VariableInfo[]): ReturnType<typeof EditorVie
   });
 }
 
-interface VariableInfo {
+export interface VariableInfo {
   name: string;
   type: string;
+  /** Display label; the completion shows it with the name to type beside it. */
+  label?: string;
+  /** Help text, shown in the completion's info panel. */
+  description?: string;
+}
+
+/**
+ * One {{@variable}} completion option. Matching runs on the name (what is
+ * typed); the list shows the label, with the name next to it in the detail.
+ */
+export function variableCompletionOption(
+  v: VariableInfo,
+  closingBraces: number
+): Completion {
+  const label = v.label?.trim();
+  const description = v.description?.trim();
+  return {
+    label: v.name,
+    ...(label && label !== v.name && { displayLabel: label }),
+    detail: label && label !== v.name ? `${v.name} · ${v.type}` : v.type,
+    ...(description && { info: description }),
+    type: "variable",
+    apply: (view: EditorView, _completion: Completion, from: number, to: number) => {
+      const insert = `${v.name}}}`;
+      view.dispatch({
+        changes: { from, to: to + closingBraces, insert },
+        selection: { anchor: from + insert.length },
+      });
+    },
+  };
 }
 
 /** CodeMirror completion source for {{@variable}} references */
@@ -116,18 +146,7 @@ function variableCompletionSource(variables: VariableInfo[]): CompletionSource {
 
     return {
       from,
-      options: variables.map((v) => ({
-        label: v.name,
-        detail: v.type,
-        type: "variable",
-        apply: (view: EditorView, _completion: Completion, from: number, to: number) => {
-          const insert = `${v.name}}}`;
-          view.dispatch({
-            changes: { from, to: to + closingBraces, insert },
-            selection: { anchor: from + insert.length },
-          });
-        },
-      })),
+      options: variables.map((v) => variableCompletionOption(v, closingBraces)),
     };
   };
 }

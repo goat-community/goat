@@ -87,6 +87,16 @@ class WorkflowResult(BaseModel):
     )
 
 
+def variable_map(variables: list[dict[str, Any]]) -> dict[str, Any]:
+    """Each workflow variable's value, keyed by the name references use.
+
+    A variable is resolved by ``name`` alone: the editor's optional ``label``
+    and ``description`` are display-only and ride along in the payload
+    without affecting a run. Entries without a name are skipped.
+    """
+    return {v["name"]: v.get("defaultValue") for v in variables if v.get("name")}
+
+
 # Regex to match {{@variable_name}} references
 VARIABLE_PATTERN = re.compile(r"\{\{@([a-zA-Z_][a-zA-Z0-9_]*)\}\}")
 
@@ -550,12 +560,9 @@ def build_tool_inputs(
     inputs: dict[str, Any] = dict(node_data.get("config", {}))
 
     # Substitute workflow variables in config values
-    if params.variables:
-        var_map = {
-            v["name"]: v.get("defaultValue") for v in params.variables if v.get("name")
-        }
-        if var_map:
-            inputs = substitute_variables_in_config(inputs, var_map)
+    var_map = variable_map(params.variables)
+    if var_map:
+        inputs = substitute_variables_in_config(inputs, var_map)
 
     # Coerce scalar values to lists where the tool schema expects arrays
     process_id = node_data.get("processId")
@@ -919,9 +926,7 @@ def main(
     errors: list[dict] = []
 
     # Variable map for If-node condition evaluation
-    if_var_map: dict[str, Any] = {
-        v["name"]: v.get("defaultValue") for v in params.variables if v.get("name")
-    }
+    if_var_map = variable_map(params.variables)
 
     # Execute each tool node
     # Child jobs have parent_job set automatically, so backend can query
