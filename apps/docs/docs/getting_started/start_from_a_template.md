@@ -18,7 +18,7 @@ This page focuses on **project templates**. For the other two, see [Save a workf
 On the **Home** page, the `Start from a template` row shows the available templates. You can:
 
 - **Filter by kind**: `All templates`, `Project`, `Workflow`, or `Layout`.
-- **Filter by source**: who the template came from (`Everyone`, `GOAT`, `Mine`, `Team`, or `Organization`).
+- **Filter by source**: who the template came from (`Everyone`, `GOAT`, `Mine`, `Team`, `Organization`, or `Shared with me`). A template shared with your team or organization, directly or through a folder, is listed under `Team` or `Organization`.
 - Click `All templates` to open the full template browser, where you can **search** templates and **preview** one before using it.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -61,6 +61,6 @@ A raster dataset, or one read from an external service, has no features to copy,
 When someone uses the template, GOAT first creates the project or workflow with your dataset and then makes their copies in the background; you can follow them under [Job status](../workspace/workspace_interface.md#job-status). Until a copy is ready, the dataset is shown read-only. Once it is ready, it takes the place of your dataset everywhere in their project: on the map, in the dashboard and in workflows.
 
 :::info
-A copy is made from your dataset **as it is when the template is used**. Changes you make to your dataset afterwards do not reach copies that already exist, and changes others make to their copy never reach your dataset. Everyone who may use the template must be able to read the datasets it ships or copies with content: sharing the template shares them as viewer. An empty copy only takes the columns, geometry type and styling, so your dataset itself stays private: it is not shared and never becomes public.
+A copy is made from your dataset **as it is when the template is used**. Changes you make to your dataset afterwards do not reach copies that already exist, and changes others make to their copy never reach your dataset. Everyone who may use the template can read the datasets it ships or copies with content, however the template was shared with them, also through a shared folder. A dataset that was only shared with you to view is not passed on this way. An empty copy only takes the columns, geometry type and styling, so your dataset itself stays private: it is not shared and never becomes public.
 :::
 

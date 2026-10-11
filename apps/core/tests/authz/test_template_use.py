@@ -147,16 +147,24 @@ async def test_stranger_who_cannot_read_the_shipped_dataset_gets_an_unresolved_i
     make_project: Callable[..., Awaitable[Project]],
     roles: dict[str, UUID],
 ) -> None:
-    """Scenario 2: the template is shared to a stranger via a grant, but the
-    shipped dataset itself is not - using it leaves the input unresolved
-    and adds no layer. Scenario 3: `bindings` with the stranger's own
-    layer resolves it instead."""
+    """Scenario 2: the template is shared to a stranger via a grant, but it
+    ships a dataset its author may only view, so the template cannot pass it
+    on (rule 6c) - using it leaves the input unresolved and adds no layer.
+    Scenario 3: `bindings` with the stranger's own layer resolves it
+    instead."""
     home = str(fixture_get_home_folder["id"])
     owner = await db_session.get(User, fixture_create_user)
     assert owner is not None
-    home_folder = await db_session.get(Folder, UUID(home))
-    assert home_folder is not None
-    layer = await make_layer(owner, home_folder)
+    lender = await make_user()
+    layer = await make_layer(lender, await make_folder(lender))
+    await db_session.execute(
+        text(
+            f"INSERT INTO {S}.resource_grant "
+            "(resource_type, resource_id, grantee_type, grantee_id, role_id, granted_by) "
+            "VALUES ('layer', :l, 'user', :u, :r, :b)"
+        ),
+        {"l": layer.id, "u": owner.id, "r": roles["layer-viewer"], "b": lender.id},
+    )
     await db_session.commit()
 
     source_project_id = await _create_project(client, home, name="source")
