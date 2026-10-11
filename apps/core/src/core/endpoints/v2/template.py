@@ -87,8 +87,8 @@ async def list_templates(
     user_id: UUID4 = Depends(get_user_id),
     space_id: UUID | None = Query(None, description="Restrict to one space"),
     folder_id: UUID | None = Query(None, description="Restrict to one folder"),
-    source: Literal["all", "goat", "mine", "team", "org"] = Query(
-        "all", description="goat | mine | team | org | all"
+    source: Literal["all", "goat", "mine", "team", "org", "shared"] = Query(
+        "all", description="goat | mine | team | org | shared | all"
     ),
     kind: Literal["workflow", "project", "layout"] | None = Query(
         None, description="workflow | project | layout"
@@ -115,8 +115,10 @@ async def list_templates(
 ) -> TemplatePage:
     """List the caller's readable templates (T3/T4): `source=goat` is the
     published catalog shelf; `mine`/`team`/`org` are the caller's own
-    spaces of that kind; `all` unions every scope. Every returned row
-    passes `effective_role IS NOT NULL`.
+    spaces of that kind, `team`/`org` together with what is shared with the
+    caller's teams or organization; `shared` is what is shared with the
+    caller alone; `all` unions every scope. Every returned row passes
+    `effective_role IS NOT NULL`.
     """
     return await crud_template.list_templates(
         async_session,
@@ -146,8 +148,8 @@ async def list_template_categories(
     *,
     async_session: AsyncSession = Depends(get_db),
     user_id: UUID4 = Depends(get_user_id),
-    source: Literal["all", "goat", "mine", "team", "org"] = Query(
-        "all", description="goat | mine | team | org | all"
+    source: Literal["all", "goat", "mine", "team", "org", "shared"] = Query(
+        "all", description="goat | mine | team | org | shared | all"
     ),
     kind: Literal["workflow", "project", "layout"] | None = Query(
         None, description="workflow | project | layout"

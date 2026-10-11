@@ -990,12 +990,22 @@ async def test_a_dataset_the_user_cannot_read_is_not_copied(
     roles: dict[str, UUID],
     processes: AsyncMock,
 ) -> None:
-    """A template granted without its datasets (the author could not share
-    them): the frozen copy links the dataset anyway, but no job starts."""
+    """A template whose dataset its author may only view, so the template
+    cannot pass it on (rule 6c): the frozen copy links the dataset anyway,
+    but no job starts."""
     owner, folder, home = await _setup(
         client, db_session, fixture_create_user, fixture_get_home_folder, make_layer
     )
-    planned = await make_layer(owner, folder)
+    lender = await make_user()
+    planned = await make_layer(lender, await make_folder(lender))
+    await db_session.execute(
+        text(
+            f"INSERT INTO {S}.resource_grant "
+            "(resource_type, resource_id, grantee_type, grantee_id, role_id, granted_by) "
+            "VALUES ('layer', :l, 'user', :u, :r, :b)"
+        ),
+        {"l": planned.id, "u": owner.id, "r": roles["layer-viewer"], "b": lender.id},
+    )
     stranger = await make_user()
     stranger_folder = await make_folder(stranger)
     await db_session.commit()

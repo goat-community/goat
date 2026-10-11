@@ -104,6 +104,30 @@ COPY_STAMP = "template_copy"
 # table the `layer_copy` job can copy.
 COPYABLE_LAYER_TYPES = ("feature", "table")
 
+# The grants each narrower source filter of the template list takes in, as a
+# condition on a `resource_grant` row `rg`: to one of the caller's teams, to
+# the caller's organisation, or to the caller alone.
+_SHARED_THROUGH = {
+    "team": """rg.grantee_type = 'team' AND EXISTS (
+                   SELECT 1 FROM {schema}.user_team ut
+                    WHERE ut.team_id = rg.grantee_id AND ut.user_id = :user_id)""",
+    "org": """rg.grantee_type = 'organization' AND EXISTS (
+                  SELECT 1 FROM {schema}."user" u
+                   WHERE u.id = :user_id AND u.organization_id = rg.grantee_id)""",
+    "shared": "rg.grantee_type = 'user' AND rg.grantee_id = :user_id",
+}
+
+
+def _shared_through_sql(schema: str, grantee_condition: str) -> str:
+    """A template `t` reached through a grant matching `grantee_condition`,
+    on the template itself or on a folder above it."""
+    return f"""EXISTS (
+        SELECT 1 FROM {schema}.resource_grant rg
+         WHERE ((rg.resource_type = 'template' AND rg.resource_id = t.id)
+             OR (rg.resource_type = 'folder' AND rg.resource_id IN (
+                     SELECT fc FROM {schema}.folder_chain(t.folder_id) AS fc)))
+           AND {grantee_condition.format(schema=schema)})"""
+
 
 @dataclass
 class _CopyPlan:
@@ -662,6 +686,50 @@ class CRUDTemplate:
             buckets[r.kind].append(r.id)
         return buckets
 
+    async def _shared_into_spaces(
+        self, db: AsyncSession, user_id: UUID, rows: list[Template]
+    ) -> dict[UUID, UUID | None]:
+        """`TemplateRead.shared_into_space_id` for each row: for a template
+        outside the caller's spaces, the caller's team space (or, failing
+        that, organisation space) whose team or organisation holds a grant on
+        the template or on a folder above it. None for the caller's own
+        spaces and for a template shared with the caller alone."""
+        buckets = await self._caller_spaces(db, user_id)
+        own = {space for kind in buckets.values() for space in kind}
+        outside = [row.id for row in rows if row.space_id not in own]
+        result: dict[UUID, UUID | None] = {row.id: None for row in rows if row.id}
+        if not outside:
+            return result
+        schema = settings.SCHEMA
+        found = (
+            await db.execute(
+                text(
+                    f"""
+                    SELECT t.id, (
+                        SELECT s.id FROM {schema}.resource_grant rg
+                          JOIN {schema}.space s ON s.id = ANY(:own) AND (
+                                 (rg.grantee_type = 'team' AND s.kind = 'team'
+                                  AND s.team_id = rg.grantee_id)
+                              OR (rg.grantee_type = 'organization'
+                                  AND s.kind = 'organization'
+                                  AND s.organization_id = rg.grantee_id))
+                         WHERE (rg.resource_type = 'template' AND rg.resource_id = t.id)
+                            OR (rg.resource_type = 'folder' AND rg.resource_id IN (
+                                    SELECT fc FROM {schema}.folder_chain(t.folder_id) AS fc))
+                         ORDER BY s.kind = 'organization', s.id
+                         LIMIT 1
+                    ) AS space_id
+                    FROM {schema}.template t
+                    WHERE t.id = ANY(:ids)
+                    """
+                ),
+                {"own": list(own), "ids": outside},
+            )
+        ).all()
+        for r in found:
+            result[r.id] = r.space_id
+        return result
+
     # ------------------------------------------------------------------
     # Preview
     # ------------------------------------------------------------------
@@ -980,27 +1048,31 @@ class CRUDTemplate:
             scoped_space_ids += buckets["organization"]
         if source in ("goat", "all"):
             include_goat = True
-        if not scoped_space_ids and not include_goat:
-            return None
 
         schema = settings.SCHEMA
         # A template shared with the caller (T3) lives in someone else's space,
-        # so no space bucket reaches it; `all` takes it in through its grant —
-        # a direct user grant, or one to a team or the organisation the caller
+        # so no space bucket reaches it; it comes in through its grant — a
+        # direct user grant, or one to a team or the organisation the caller
         # belongs to. `effective_role` still decides afterwards whether the
         # grant actually confers read.
         # A template reaches a non-member through a grant on the template
         # itself or on any folder above it — the same walk `effective_role`
         # makes for a single read, so the list agrees with what a read would
         # allow. Most templates travel that way: a folder shared with a team
-        # or an organisation, not a grant on each template.
-        granted = (
-            f"""({schema}.direct_grant_rank('template', t.id, :user_id) > 0
+        # or an organisation, not a grant on each template. `all` takes every
+        # such grant; `team` and `org` take the ones to the caller's teams or
+        # organisation, so a template shared with the organisation is listed
+        # under Organization, and `shared` the ones to the caller alone.
+        if source == "all":
+            granted = f"""({schema}.direct_grant_rank('template', t.id, :user_id) > 0
                  OR EXISTS (SELECT 1 FROM {schema}.folder_chain(t.folder_id) AS fc(folder_id)
                              WHERE {schema}.direct_grant_rank('folder', fc.folder_id, :user_id) > 0))"""
-            if source == "all"
-            else "FALSE"
-        )
+        elif source in _SHARED_THROUGH:
+            granted = _shared_through_sql(schema, _SHARED_THROUGH[source])
+        else:
+            granted = "FALSE"
+        if not scoped_space_ids and not include_goat and granted == "FALSE":
+            return None
         conditions = [
             "t.deleted_at IS NULL",
             "(t.space_id = ANY(:space_ids)"
@@ -1115,12 +1187,18 @@ class CRUDTemplate:
         ).all()
 
         total = rows[0].total if rows else 0
-        items: list[TemplateRead] = []
+        hydrated: list[tuple[Template, str]] = []
         for r in rows:
             row = await db.get(Template, r.id)
-            if row is None:
-                continue
-            read = await self._to_read(db, row, my_role=r.role)
+            if row is not None:
+                hydrated.append((row, r.role))
+        shared_into = await self._shared_into_spaces(
+            db, user_id, [row for row, _ in hydrated]
+        )
+        items: list[TemplateRead] = []
+        for row, role in hydrated:
+            read = await self._to_read(db, row, my_role=role)
+            read.shared_into_space_id = shared_into.get(row.id)
             items.append(read)
 
         return TemplatePage(items=items, total=total)
@@ -1206,6 +1284,9 @@ class CRUDTemplate:
         my_role = await authz.effective_role(db, "template", template_id, user_id)
         assert my_role is not None
         read = await self._to_read(db, row, my_role=my_role)
+        read.shared_into_space_id = (
+            await self._shared_into_spaces(db, user_id, [row])
+        ).get(template_id)
         read.source = await self._resolve_source(db, row, user_id)
         if (
             include_config

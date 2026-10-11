@@ -256,6 +256,9 @@ export const templateReadSchema = z.object({
   source_ref: z.record(z.unknown()).default({}),
   source: templateSourceInfoSchema.nullable().optional(),
   my_role: contentRole,
+  /** For a template outside the caller's spaces: the caller's team or
+   * organization space it is shared into, which the browser shelves it on. */
+  shared_into_space_id: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
   /** Only populated on `?include_config=true` for an owner/editor caller. */
@@ -333,7 +336,7 @@ export const templateGrantsResponseSchema = z.object({
 
 /** The template browser's source segments (T7/T9) — `all` unions every
  * scope the caller has. */
-export type TemplateSourceFilter = "all" | "goat" | "mine" | "team" | "org";
+export type TemplateSourceFilter = "all" | "goat" | "mine" | "team" | "org" | "shared";
 
 export type TemplateKind = z.infer<typeof templateKind>;
 export type TemplateBadgeKind = z.infer<typeof templateBadgeKind>;

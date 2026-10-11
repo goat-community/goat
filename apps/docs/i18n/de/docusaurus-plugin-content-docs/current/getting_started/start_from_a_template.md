@@ -18,7 +18,7 @@ Diese Seite behandelt vor allem **Projektvorlagen**. Für die anderen beiden sie
 Auf der **Startseite** zeigt die Reihe `Mit einer Vorlage starten` die verfügbaren Vorlagen. Sie können:
 
 - **Nach Art filtern**: `Alle Vorlagen`, `Projekt`, `Workflow` oder `Layout`.
-- **Nach Quelle filtern**: woher die Vorlage stammt (`Alle`, `GOAT`, `Meine`, `Team` oder `Organisation`).
+- **Nach Quelle filtern**: woher die Vorlage stammt (`Alle`, `GOAT`, `Meine`, `Team`, `Organisation` oder `Mit mir geteilt`). Eine Vorlage, die mit Ihrem Team oder Ihrer Organisation geteilt wurde, direkt oder über einen Ordner, steht unter `Team` oder `Organisation`.
 - Über `Alle Vorlagen` die vollständige Vorlagenübersicht öffnen, in der Sie Vorlagen **durchsuchen** und eine vor der Verwendung in der **Vorschau** ansehen können.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -61,6 +61,6 @@ Ein Raster-Datensatz oder ein Datensatz aus einem externen Dienst hat keine Feat
 Wenn jemand die Vorlage verwendet, erstellt GOAT zuerst das Projekt oder den Workflow mit Ihrem Datensatz und legt die Kopien anschließend im Hintergrund an; Sie können sie unter [Job Status](../workspace/workspace_interface.md#job-status) verfolgen. Bis eine Kopie fertig ist, wird der Datensatz schreibgeschützt angezeigt. Danach ersetzt sie Ihren Datensatz überall in diesem Projekt: auf der Karte, im Dashboard und in Workflows.
 
 :::info
-Eine Kopie entsteht aus Ihrem Datensatz **in dem Stand, in dem er beim Verwenden der Vorlage ist**. Spätere Änderungen an Ihrem Datensatz erreichen bereits vorhandene Kopien nicht, und Änderungen anderer an ihrer Kopie erreichen Ihren Datensatz nie. Alle, die die Vorlage verwenden dürfen, müssen die mitgelieferten oder mit Inhalt kopierten Datensätze lesen können: Wenn Sie die Vorlage teilen, werden diese als Betrachter mitgeteilt. Eine leere Kopie übernimmt nur Spalten, Geometrietyp und Stil. Ihr Datensatz selbst bleibt daher privat: Er wird nicht mitgeteilt und nie öffentlich.
+Eine Kopie entsteht aus Ihrem Datensatz **in dem Stand, in dem er beim Verwenden der Vorlage ist**. Spätere Änderungen an Ihrem Datensatz erreichen bereits vorhandene Kopien nicht, und Änderungen anderer an ihrer Kopie erreichen Ihren Datensatz nie. Alle, die die Vorlage verwenden dürfen, können die mitgelieferten oder mit Inhalt kopierten Datensätze lesen, egal wie die Vorlage mit ihnen geteilt wurde, auch über einen geteilten Ordner. Ein Datensatz, der mit Ihnen nur zum Ansehen geteilt wurde, wird auf diesem Weg nicht weitergegeben. Eine leere Kopie übernimmt nur Spalten, Geometrietyp und Stil. Ihr Datensatz selbst bleibt daher privat: Er wird nicht mitgeteilt und nie öffentlich.
 :::
 

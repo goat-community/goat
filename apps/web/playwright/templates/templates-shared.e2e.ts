@@ -657,16 +657,11 @@ test.describe("a viewer of the organization", () => {
 });
 
 test.describe("a template shared only through its folder", () => {
-  // Known bug: a template reaches the organization through a folder grant
-  // (`folder_chain` in the template list and `effective_role`), but only a
-  // grant on the template itself (or a team/organization destination)
-  // shares its datasets (`_share_shipped_datasets_with`, T6). Through the
-  // folder alone the members see and can use the template, but cannot read
-  // its datasets, so every copy is refused: on the review stack
-  // (11.10.2026) this body fails at `copy_jobs[0].error`, which is
-  // "source_not_readable". Pending until a folder grant shares a template's
-  // datasets too.
-  test.fixme("gives the organization's editors their copies", async () => {
+  // A template reaches the organization through a folder grant, and whoever
+  // may read a template may read the datasets it ships or copies with their
+  // rows (rule 6c of `effective_role`), so the copy is made although no
+  // grant on the template shared its datasets (T6).
+  test("gives the organization's editors their copies", async () => {
     const owner = await apiAs("owner");
     const editor = await apiAs("editor");
     let folderId: string | undefined;

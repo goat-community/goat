@@ -16,6 +16,7 @@ import {
   templateShelfOf,
   templateSourceLabel,
   templateSourceOf,
+  templateSourceOptions,
 } from "@/lib/utils/templates";
 import type { Space } from "@/lib/validations/content";
 import type { TemplateInput, TemplateRead, TemplateSourceInfo } from "@/lib/validations/template";
@@ -100,6 +101,17 @@ describe("templateSourceOf", () => {
 
   it("never reads a space the caller is not in as Mine", () => {
     expect(templateSourceOf(template({ space_id: "s9" }), spaces)).toBe("shared");
+  });
+
+  it("reads a template shared with the caller's organization or team as that shelf", () => {
+    // Someone else's personal space, shared with the organization (on the
+    // template or a folder above it): listed under Organization by the
+    // backend, so grouped and tagged there too.
+    const viaOrg = template({ space_id: "someone-elses", shared_into_space_id: "s3" });
+    expect(templateSourceOf(viaOrg, spaces)).toBe("org");
+    expect(templateShelfOf(viaOrg, spaces)).toEqual({ key: "s3", source: "org", space: org });
+    const viaTeam = template({ space_id: "someone-elses", shared_into_space_id: "s4" });
+    expect(templateShelfOf(viaTeam, spaces)).toEqual({ key: "s4", source: "team", space: planning });
   });
 
   it("orders the groups GOAT first, then the caller's own shelves, then what was shared", () => {
@@ -326,5 +338,23 @@ describe("copy inputs", () => {
     expect(canCopyInput({ layer_id: "l", layer_type: "table" })).toBe(true);
     expect(canCopyInput({ layer_id: "l", layer_type: "raster" })).toBe(false);
     expect(canCopyInput({ layer_id: null, layer_type: "feature" })).toBe(false);
+  });
+});
+
+describe("templateSourceOptions", () => {
+  it("offers Shared with me once the caller is in a team or an organization", () => {
+    expect(templateSourceOptions(spaces).map((option) => option.value)).toEqual([
+      "all",
+      "goat",
+      "mine",
+      "team",
+      "org",
+      "shared",
+    ]);
+    expect(templateSourceOptions([org]).map((option) => option.value)).toContain("shared");
+  });
+
+  it("offers nothing to an account with only its personal space that it has nothing behind", () => {
+    expect(templateSourceOptions([personal]).map((option) => option.value)).toEqual(["all", "goat", "mine"]);
   });
 });
