@@ -18,6 +18,8 @@ export const FIELD_KIND_ICONS: Record<FieldIndicatorKind, ICON_NAME> = {
   datetime: ICON_NAME.CALENDAR,
   boolean: ICON_NAME.CHECK,
   formula: ICON_NAME.CODE,
+  serial: ICON_NAME.HASHTAG,
+  uuid: ICON_NAME.HASHTAG,
   object: ICON_NAME.CODE,
   geometry: ICON_NAME.MAP,
 };
@@ -31,6 +33,8 @@ export const FIELD_KIND_LABEL_KEYS: Record<FieldIndicatorKind, string> = {
   datetime: "field_kind_date",
   boolean: "field_kind_boolean",
   formula: "field_kind_formula",
+  serial: "field_kind_serial",
+  uuid: "field_kind_uuid",
   object: "field_kind_object",
   geometry: "field_kind_geometry",
 };
@@ -39,6 +43,10 @@ export const FIELD_KIND_LABEL_KEYS: Record<FieldIndicatorKind, string> = {
 const FIELD_KIND_GLYPHS: Partial<Record<FieldIndicatorKind, string>> = {
   string: "A",
   number: "123",
+  // A running number and an identifier: both assigned by the server, so they
+  // read as labels rather than as values someone typed.
+  serial: "#",
+  uuid: "ID",
   object: "{}",
 };
 
@@ -81,8 +89,9 @@ interface FieldKindIconProps {
   error?: boolean;
 }
 
-/** Muted field-type chip, with the type name as tooltip. Text, number and
- * object render as "A" / "123" / "{}" glyphs; other kinds keep their icon.
+/** Muted field-type chip, with the type name as tooltip. Text, number, serial,
+ * UUID and object render as "A" / "123" / "#" / "ID" / "{}" glyphs; other kinds
+ * keep their icon.
  * The single source of truth for field-type indicators — use it wherever a
  * field's type is shown (tables, field lists, selectors). */
 const FieldKindIcon = ({ kind, error = false }: FieldKindIconProps) => {

@@ -630,6 +630,37 @@ class ToolDatabaseService:
             json.dumps(field_config),
         )
 
+    async def copy_layer_serial_counters(
+        self: Self, source_layer_id: str, layer_id: str
+    ) -> None:
+        """Give a copy its source's serial high-water marks.
+
+        A copy of a layer keeps the source's numbers, so it also keeps the
+        knowledge of which numbers were handed out and deleted since: without
+        it, a copy whose highest feature had been deleted in the source would
+        hand that number out again. A database that predates the counter table
+        has no marks to copy, and the copy falls back to its own maximum.
+        """
+        try:
+            await self.pool.execute(
+                f"""
+                INSERT INTO {self.schema}.layer_serial_counter
+                    (layer_id, field_name, last_value)
+                SELECT $2, field_name, last_value
+                FROM {self.schema}.layer_serial_counter
+                WHERE layer_id = $1
+                ON CONFLICT (layer_id, field_name) DO UPDATE
+                SET last_value = greatest(
+                    {self.schema}.layer_serial_counter.last_value,
+                    excluded.last_value
+                )
+                """,
+                uuid_module.UUID(source_layer_id),
+                uuid_module.UUID(layer_id),
+            )
+        except asyncpg.UndefinedTableError:
+            logger.warning("layer_serial_counter is missing; no serial marks copied")
+
     async def get_bundle_artifact(
         self: Self, bundle_id: str, kind: str
     ) -> "dict | None":
