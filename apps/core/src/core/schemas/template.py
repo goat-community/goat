@@ -94,6 +94,14 @@ class TemplateInput(BaseModel):
     from_catalog: bool = False
     public_read: bool = False
 
+    @property
+    def empty_copy(self) -> bool:
+        """A "copy" without its rows: users get only the dataset's columns,
+        field settings and style, so the dataset itself never has to be
+        readable by them (not made public on publish, not granted on save or
+        share). The copy job reads it on the template's behalf."""
+        return self.mode == "copy" and not self.copy_content
+
     @field_validator("layer_type", mode="before")
     @classmethod
     def _normalize_layer_type(cls, value: Any) -> Any:

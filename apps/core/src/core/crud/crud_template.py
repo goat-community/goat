@@ -490,10 +490,11 @@ class CRUDTemplate:
         """T6's `datasets_needing_share`: every ship or copy input whose
         layer needs a viewer grant (`_needs_share`) into `destination_space`
         — a copy is made from the author's dataset, so its users need to
-        read it just like a shipped one."""
+        read it just like a shipped one. An empty copy needs no read of the
+        dataset (`TemplateInput.empty_copy`), so it is never listed."""
         lines: list[DatasetShareLine] = []
         for i in inputs:
-            if i.mode not in DATASET_MODES or i.layer_id is None:
+            if i.mode not in DATASET_MODES or i.layer_id is None or i.empty_copy:
                 continue
             layer = await db.get(Layer, i.layer_id)
             if layer is None:
@@ -612,6 +613,7 @@ class CRUDTemplate:
                 or i.layer_id is None
                 or i.public_read
                 or i.from_catalog
+                or i.empty_copy  # its users never read the dataset itself
             ):
                 continue
             layer = await db.get(Layer, i.layer_id)
@@ -1573,7 +1575,12 @@ class CRUDTemplate:
                 if (
                     layer is not None
                     and layer.deleted_at is None
-                    and await authz.can(db, "layer", candidate, user_id, "read")
+                    # An empty copy of the template's own dataset needs no
+                    # read of it: the copy job reads it for the template.
+                    and (
+                        (copies and i.empty_copy)
+                        or await authz.can(db, "layer", candidate, user_id, "read")
+                    )
                 ):
                     layer_id = candidate
             if layer_id is None:
@@ -1695,7 +1702,15 @@ class CRUDTemplate:
                 "template_id": str(template_id),
                 "copy_content": plan.copy_content,
             }
-            if not await authz.can(db, "layer", plan.source_layer_id, user_id, "read"):
+            # With its rows, the copy needs a read of the dataset; an empty
+            # one only of the template (processes checks the same).
+            if plan.copy_content:
+                readable = await authz.can(
+                    db, "layer", plan.source_layer_id, user_id, "read"
+                )
+            else:
+                readable = await authz.can(db, "template", template_id, user_id, "read")
+            if not readable:
                 job.error = "source_not_readable"
                 await self._stamp_copy_entries(
                     db, plan.link_ids, {**stamp, "status": "failed", "error": job.error}
@@ -1960,7 +1975,9 @@ class CRUDTemplate:
         bad_layers: list[dict[str, str]] = []
         to_make_public: list[Layer] = []
         for i in inputs:
-            if i.mode not in DATASET_MODES or i.layer_id is None:
+            # An empty copy is made on the template's behalf from the
+            # author's dataset, which stays private (`TemplateInput.empty_copy`).
+            if i.mode not in DATASET_MODES or i.layer_id is None or i.empty_copy:
                 continue
             layer = await db.get(Layer, i.layer_id)
             if layer is not None and (

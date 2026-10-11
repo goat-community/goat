@@ -61,6 +61,6 @@ A raster dataset, or one read from an external service, has no features to copy,
 When someone uses the template, GOAT first creates the project or workflow with your dataset and then makes their copies in the background; you can follow them under [Job status](../workspace/workspace_interface.md#job-status). Until a copy is ready, the dataset is shown read-only. Once it is ready, it takes the place of your dataset everywhere in their project: on the map, in the dashboard and in workflows.
 
 :::info
-A copy is made from your dataset **as it is when the template is used**. Changes you make to your dataset afterwards do not reach copies that already exist, and changes others make to their copy never reach your dataset. Everyone who may use the template must be able to read the datasets it ships or copies: sharing the template shares them as viewer.
+A copy is made from your dataset **as it is when the template is used**. Changes you make to your dataset afterwards do not reach copies that already exist, and changes others make to their copy never reach your dataset. Everyone who may use the template must be able to read the datasets it ships or copies with content: sharing the template shares them as viewer. An empty copy only takes the columns, geometry type and styling, so your dataset itself stays private: it is not shared and never becomes public.
 :::
 

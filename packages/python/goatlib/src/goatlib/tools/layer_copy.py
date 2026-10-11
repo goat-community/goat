@@ -329,11 +329,17 @@ async def point_links_at_copy(
 
     An entry of a catalog source drops the catalog keys it froze when it was
     added (``CATALOG_LINK_KEYS``), or the copy would read as a read-only
-    catalog dataset."""
+    catalog dataset.
+
+    The entries become ``shareable``: the copy is the user's own layer, so the
+    project's other members may read it through them. An entry added for a
+    user without ``share`` on the source was not, and would keep hiding the
+    copy from everyone the project is shared with."""
     rows = await conn.fetch(
         f"""
         UPDATE {schema}.layer_project
         SET layer_id = $3,
+            shareable = TRUE,
             other_properties = ((
                 CASE WHEN jsonb_typeof(other_properties) = 'object'
                      THEN other_properties ELSE '{{}}'::jsonb END
