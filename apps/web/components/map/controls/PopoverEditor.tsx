@@ -9,7 +9,7 @@ import TemporalPicker from "@p4b/ui/components/TemporalPicker";
 import { useDayjsLocale } from "@/i18n/utils";
 
 import { fieldEditability, selectedVocabularyItem } from "@/lib/utils/allowedValues";
-import { BOOLEAN_SELECT_ITEMS, booleanToSelectValue, parseBooleanInput } from "@/lib/utils/fieldInput";
+import { booleanToSelectValue, getBooleanSelectItems, parseBooleanInput } from "@/lib/utils/fieldInput";
 import { formatFieldValue } from "@/lib/utils/formatFieldValue";
 import type { FieldKind } from "@/lib/validations/layer";
 import { resolveDisplayKind } from "@/lib/validations/layer";
@@ -217,7 +217,7 @@ const MapPopoverEditor: React.FC<MapPopoverEditorProps> = ({
                       {!isPicker && !isReadOnly && field.type === "boolean" && (
                         <Selector
                           label={field.name}
-                          selectedItems={BOOLEAN_SELECT_ITEMS.find(
+                          selectedItems={getBooleanSelectItems(t).find(
                             (i) => i.value === booleanToSelectValue(featureProperties[field.name])
                           )}
                           setSelectedItems={(item) => {
@@ -227,7 +227,7 @@ const MapPopoverEditor: React.FC<MapPopoverEditorProps> = ({
                               [field.name]: parseBooleanInput(String(value ?? "")),
                             }));
                           }}
-                          items={[...BOOLEAN_SELECT_ITEMS]}
+                          items={getBooleanSelectItems(t)}
                         />
                       )}
                       {!isPicker &&

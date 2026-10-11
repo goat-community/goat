@@ -11,6 +11,7 @@ import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import type { ReactNode } from "react";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
@@ -51,20 +52,24 @@ export const DEFAULT_INLINE_EXTENSIONS: AnyExtension[] = [
   }),
 ];
 
-const HEADING_LEVELS: Array<{ value: 0 | 1 | 2 | 3; label: string }> = [
-  { value: 0, label: "Body" },
-  { value: 1, label: "Heading 1" },
-  { value: 2, label: "Heading 2" },
-  { value: 3, label: "Heading 3" },
+const HEADING_LEVELS: Array<{ value: 0 | 1 | 2 | 3; labelKey: string }> = [
+  { value: 0, labelKey: "body_text" },
+  { value: 1, labelKey: "heading_1" },
+  { value: 2, labelKey: "heading_2" },
+  { value: 3, labelKey: "heading_3" },
 ];
 
 const FONT_SIZE_PRESETS = [10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48];
 
-const ALIGN_OPTIONS: Array<{ value: "left" | "center" | "right" | "justify"; icon: ICON_NAME }> = [
-  { value: "left", icon: ICON_NAME.ALIGN_LEFT },
-  { value: "center", icon: ICON_NAME.ALIGN_CENTER },
-  { value: "right", icon: ICON_NAME.ALIGN_RIGHT },
-  { value: "justify", icon: ICON_NAME.ALIGN_JUSTIFY },
+const ALIGN_OPTIONS: Array<{
+  value: "left" | "center" | "right" | "justify";
+  icon: ICON_NAME;
+  labelKey: string;
+}> = [
+  { value: "left", icon: ICON_NAME.ALIGN_LEFT, labelKey: "align_left" },
+  { value: "center", icon: ICON_NAME.ALIGN_CENTER, labelKey: "align_center" },
+  { value: "right", icon: ICON_NAME.ALIGN_RIGHT, labelKey: "align_right" },
+  { value: "justify", icon: ICON_NAME.ALIGN_JUSTIFY, labelKey: "justify" },
 ];
 
 interface ToolbarState {
@@ -236,6 +241,7 @@ export function InlineRichTextEditor({
   minHeight = 96,
   contentSx,
 }: InlineRichTextEditorProps) {
+  const { t } = useTranslation("common");
   const editor = useEditor({
     immediatelyRender: false,
     extensions: extensions ?? DEFAULT_INLINE_EXTENSIONS,
@@ -271,7 +277,7 @@ export function InlineRichTextEditor({
   };
 
   const headingLabel =
-    state.headingLevel === 0 ? "Body" : `H${state.headingLevel}`;
+    state.headingLevel === 0 ? t("body_text") : `H${state.headingLevel}`;
   const currentColorHex = state.color ?? "#000000";
 
   return (
@@ -307,7 +313,7 @@ export function InlineRichTextEditor({
                   close();
                 }}
                 sx={{ fontSize: 13 }}>
-                {h.label}
+                {t(h.labelKey)}
               </MenuItem>
             ))
           }
@@ -444,15 +450,15 @@ export function InlineRichTextEditor({
                   close();
                 }}>
                 <Icon iconName={a.icon} style={{ fontSize: 14, marginRight: 8 }} />
-                <Typography variant="caption" sx={{ fontSize: 13, textTransform: "capitalize" }}>
-                  {a.value}
+                <Typography variant="caption" sx={{ fontSize: 13 }}>
+                  {t(a.labelKey)}
                 </Typography>
               </MenuItem>
             ))
           }
         </ToolbarDropdown>
         {sep}
-        <Tooltip title={state.isLink ? "Edit link" : "Add link"}>
+        <Tooltip title={state.isLink ? t("edit_link") : t("add_link")}>
           <IconButton
             ref={linkRef}
             size="small"
@@ -480,7 +486,7 @@ export function InlineRichTextEditor({
         </Tooltip>
         <ToolbarBtn
           onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
-          tooltip="Clear formatting">
+          tooltip={t("clear_formatting")}>
           <Typography
             component="span"
             sx={{

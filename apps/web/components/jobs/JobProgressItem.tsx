@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
+import { useDateFnsLocale } from "@/i18n/utils";
+
 import type { JobStatusType, JobType } from "@/lib/api/processes";
 
 import { OverflowTypograpy } from "@/components/common/OverflowTypography";
@@ -35,6 +37,7 @@ const statusIcons: Record<JobStatusType, ICON_NAME> = {
 export default function JobProgressItem(props: JobProgressItemProps) {
   const { t } = useTranslation("common");
   const theme = useTheme();
+  const dateLocale = useDateFnsLocale();
   const { type, status, name, date, inPopover } = props;
   const [showDetails, setShowDetails] = useState(false);
 
@@ -83,8 +86,7 @@ export default function JobProgressItem(props: JobProgressItemProps) {
                 arrow: true,
               }}>
               <>
-                {t(type)} -{" "}
-                {format(parseISO(date), "hh:mma dd/MM/yyyy").replace("PM", " PM").replace("AM", " AM")}
+                {t(type)} - {format(parseISO(date), "Pp", { locale: dateLocale })}
               </>
             </OverflowTypograpy>
           </Box>

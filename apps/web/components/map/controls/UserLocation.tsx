@@ -2,6 +2,7 @@ import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 import GpsOffIcon from "@mui/icons-material/GpsOff";
 import { CircularProgress, Fab, Stack, Tooltip, useTheme } from "@mui/material";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMap } from "react-map-gl/maplibre";
 import { toast } from "react-toastify";
 import useSWR from "swr";
@@ -29,6 +30,7 @@ const fetchPermission = async () => {
 
 export function UserLocation(props: UserLocationProps) {
   const theme = useTheme();
+  const { t } = useTranslation("common");
   const { map } = useMap();
   const errorToastShown = useRef(false);
   const dispatch = useAppDispatch();
@@ -65,15 +67,12 @@ export function UserLocation(props: UserLocationProps) {
       // turn on location
       if (error) {
         if (!toast.isActive(ERROR_TOAST_ID)) {
-          toast.error(
-            "Location access is currently disabled. Please review your location permissions and try again.",
-            {
-              toastId: ERROR_TOAST_ID,
-              onClose: () => {
-                errorToastShown.current = false;
-              },
-            }
-          );
+          toast.error(t("location_access_disabled"), {
+            toastId: ERROR_TOAST_ID,
+            onClose: () => {
+              errorToastShown.current = false;
+            },
+          });
           errorToastShown.current = true;
         }
       } else {
@@ -81,7 +80,7 @@ export function UserLocation(props: UserLocationProps) {
         setLocationRequested(true);
       }
     }
-  }, [locationActive, error, dispatch, requestLocation]);
+  }, [locationActive, error, dispatch, requestLocation, t]);
 
   useEffect(() => {
     if (location && locationRequested && map) {

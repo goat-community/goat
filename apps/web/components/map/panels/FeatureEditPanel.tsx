@@ -17,7 +17,7 @@ import {
   updatePendingProperties,
 } from "@/lib/store/featureEditor/slice";
 import { fieldEditability, selectedVocabularyItem } from "@/lib/utils/allowedValues";
-import { BOOLEAN_SELECT_ITEMS, booleanToSelectValue, parseBooleanInput } from "@/lib/utils/fieldInput";
+import { booleanToSelectValue, getBooleanSelectItems, parseBooleanInput } from "@/lib/utils/fieldInput";
 import { formatFieldValue } from "@/lib/utils/formatFieldValue";
 import type { FieldKind } from "@/lib/validations/layer";
 import { resolveDisplayKind } from "@/lib/validations/layer";
@@ -253,12 +253,12 @@ const FeatureEditPanel: React.FC = () => {
                 <Selector
                   key={field.name}
                   label={field.name}
-                  selectedItems={BOOLEAN_SELECT_ITEMS.find((i) => i.value === current)}
+                  selectedItems={getBooleanSelectItems(t).find((i) => i.value === current)}
                   setSelectedItems={(item) => {
                     const value = Array.isArray(item) ? item[0]?.value : item?.value;
                     handlePropertyChange(field.name, String(value ?? ""));
                   }}
-                  items={[...BOOLEAN_SELECT_ITEMS]}
+                  items={getBooleanSelectItems(t)}
                 />
               );
             }

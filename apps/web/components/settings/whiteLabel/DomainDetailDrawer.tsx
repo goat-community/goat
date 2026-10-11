@@ -82,7 +82,7 @@ export function DomainDetailDrawer({
           <Typography variant="h6">
             {t("white_label_detail_title", "Domain details")}
           </Typography>
-          <IconButton onClick={onClose} aria-label="close">
+          <IconButton onClick={onClose} aria-label={t("close")}>
             <Icon iconName={ICON_NAME.CLOSE} fontSize="small" />
           </IconButton>
         </Stack>

@@ -47,4 +47,9 @@ describe("shortcutLabel", () => {
     expect(shortcutLabel("K", { userAgentData: { platform: "Windows" } })).toBe("Ctrl+K");
     expect(shortcutLabel("K", { platform: "Linux x86_64" })).toBe("Ctrl+K");
   });
+
+  it("names the Ctrl key as the caller's keyboard labels it", () => {
+    expect(shortcutLabel("K", { platform: "Win32" }, "Strg")).toBe("Strg+K");
+    expect(shortcutLabel("K", { platform: "MacIntel" }, "Strg")).toBe("⌘K");
+  });
 });

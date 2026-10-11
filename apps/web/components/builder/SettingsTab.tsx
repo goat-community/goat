@@ -169,8 +169,16 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 value: cb.id,
                 label: cb.name,
               }));
+              // Translated like the map's basemap selector; built-ins sharing a
+              // title (the BKG maps) are told apart by their subtitle.
+              const builtInTitle = (b: (typeof BASEMAPS)[number]) =>
+                t(`basemap_types.${b.value}.title`, { defaultValue: b.title });
+              const builtInLabel = (b: (typeof BASEMAPS)[number]) =>
+                BASEMAPS.filter((other) => builtInTitle(other) === builtInTitle(b)).length > 1
+                  ? `${builtInTitle(b)} – ${t(`basemap_types.${b.value}.subtitle`, { defaultValue: b.subtitle })}`
+                  : builtInTitle(b);
               const allBasemapItems = [
-                ...BASEMAPS.map((b) => ({ value: b.value, label: b.title })),
+                ...BASEMAPS.map((b) => ({ value: b.value, label: builtInLabel(b) })),
                 ...customBasemapItems,
               ];
               return (

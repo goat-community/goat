@@ -28,7 +28,7 @@ export default function DocumentCard({ document, enableActions, onMenuSelect }: 
     { id: "delete", label: t("delete"), icon: ICON_NAME.TRASH, color: theme.palette.error.main },
   ];
 
-  const typeLabel = MIME_LABEL[document.mime_type] ?? "FILE";
+  const typeLabel = MIME_LABEL[document.mime_type] ?? t("file").toUpperCase();
 
   return (
     <Tooltip title={document.file_name} placement="top" disableInteractive>

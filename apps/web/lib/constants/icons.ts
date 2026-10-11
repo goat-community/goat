@@ -6,6 +6,7 @@ export const NO_ICON_ICON = "hospital";
 export const MAKI_ICON_TYPES = [
   {
     name: "Urban Infrastructure",
+    labelKey: "icon_category_urban_infrastructure",
     icons: [
       "bridge",
       "building-alt1",
@@ -64,6 +65,7 @@ export const MAKI_ICON_TYPES = [
   },
   {
     name: "Cultural and Landmark",
+    labelKey: "icon_category_cultural_landmark",
     icons: [
       "art-gallery",
       "castle-JP",
@@ -96,6 +98,7 @@ export const MAKI_ICON_TYPES = [
   },
   {
     name: "Shopping & Services",
+    labelKey: "icon_category_shopping_services",
     icons: [
       "shop",
       "shop-solid",
@@ -122,6 +125,7 @@ export const MAKI_ICON_TYPES = [
   },
   {
     name: "Recreation and Entertainment",
+    labelKey: "icon_category_recreation_entertainment",
     icons: [
       "amusement-park",
       "aquarium",
@@ -167,6 +171,7 @@ export const MAKI_ICON_TYPES = [
   },
   {
     name: "Nature and Environment",
+    labelKey: "icon_category_nature_environment",
     icons: [
       "beach",
       "farm",
@@ -184,6 +189,7 @@ export const MAKI_ICON_TYPES = [
   },
   {
     name: "Health and Safety",
+    labelKey: "icon_category_health_safety",
     icons: [
       "defibrillator",
       "drinking-water",
@@ -196,6 +202,7 @@ export const MAKI_ICON_TYPES = [
   },
   {
     name: "Transportation and Vehicles",
+    labelKey: "icon_category_transportation_vehicles",
     icons: [
       "aerialway",
       "bicycle-share",

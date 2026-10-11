@@ -31,7 +31,7 @@ const RangeFilter = ({
   color = "#0e58ff",
 }: RangeFilterProps) => {
   const theme = useTheme();
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
 
   // Local state for input fields (to allow typing without immediate updates)
   const [localMin, setLocalMin] = useState<string>("");
@@ -207,7 +207,7 @@ const RangeFilter = ({
             max={dataRange.max}
             step={(dataRange.max - dataRange.min) / 100}
             valueLabelDisplay="auto"
-            valueLabelFormat={(value) => formatNumber(value)}
+            valueLabelFormat={(value) => formatNumber(value, undefined, i18n.language)}
             sx={{
               color: color,
               "& .MuiSlider-thumb": {

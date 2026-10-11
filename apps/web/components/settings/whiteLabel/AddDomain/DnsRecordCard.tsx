@@ -54,7 +54,7 @@ function CopyableCell({ value }: CopyableCellProps) {
             ? t("white_label_dns_copied", "Copied")
             : t("white_label_dns_copy", "Copy")
         }>
-        <IconButton size="small" onClick={handleCopy} aria-label="copy">
+        <IconButton size="small" onClick={handleCopy} aria-label={t("copy")}>
           <Icon iconName={ICON_NAME.COPY} fontSize="small" />
         </IconButton>
       </Tooltip>

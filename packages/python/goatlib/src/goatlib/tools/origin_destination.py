@@ -36,8 +36,7 @@ SECTION_RESULT_OD = UISection(
     id="result",
     order=7,
     icon="save",
-    label="Result Layer",
-    label_de="Ergebnisebene",
+    label_key="result_layer_section",
     depends_on={"geometry_layer_id": {"$ne": None}},
 )
 

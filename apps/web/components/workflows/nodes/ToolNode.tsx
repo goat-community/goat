@@ -300,6 +300,9 @@ const ToolNode: React.FC<ToolNodeProps> = ({ id, data, selected }) => {
         displayValue = value ? t("enabled") : t("disabled");
       } else if (Array.isArray(value)) {
         if (value.length === 0) continue; // Skip empty arrays
+        // Arrays of objects (statistics, field mappings) have no one-line form;
+        // skip them like single objects instead of printing "[object Object]".
+        if (value.some((v) => typeof v === "object" && v !== null)) continue;
         // For arrays, join and truncate if too long
         const joined = value
           .map((v) => {
@@ -459,7 +462,7 @@ const ToolNode: React.FC<ToolNodeProps> = ({ id, data, selected }) => {
           <Tooltip
             title={
               effectiveInputHandles[0]
-                ? `${effectiveInputHandles[0].title}${effectiveInputHandles[0].dataTypeInfo ? ` (${formatDataType(effectiveInputHandles[0].dataTypeInfo)})` : ""}`
+                ? `${effectiveInputHandles[0].title}${effectiveInputHandles[0].dataTypeInfo ? ` (${formatDataType(effectiveInputHandles[0].dataTypeInfo, t)})` : ""}`
                 : ""
             }
             placement="top"
@@ -475,7 +478,7 @@ const ToolNode: React.FC<ToolNodeProps> = ({ id, data, selected }) => {
           effectiveInputHandles.map((input, index) => (
             <Tooltip
               key={input.name}
-              title={`${input.title}${input.dataTypeInfo ? ` (${formatDataType(input.dataTypeInfo)})` : ""}`}
+              title={`${input.title}${input.dataTypeInfo ? ` (${formatDataType(input.dataTypeInfo, t)})` : ""}`}
               placement="top"
               arrow>
               <StyledHandle
@@ -493,7 +496,7 @@ const ToolNode: React.FC<ToolNodeProps> = ({ id, data, selected }) => {
 
         {/* Output handle - right */}
         <Tooltip
-          title={`${t("output")} (${outputDataType ? formatDataType(outputDataType) : "any"})`}
+          title={`${t("output")} (${formatDataType(outputDataType ?? { dataType: undefined }, t)})`}
           placement="top"
           arrow>
           <StyledHandle type="source" position={Position.Right} id="output" selected={selected} />

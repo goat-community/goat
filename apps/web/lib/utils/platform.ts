@@ -29,7 +29,8 @@ export const isApplePlatform = (info: PlatformInfo): boolean => {
 /**
  * How a Ctrl/Cmd shortcut is written on this platform: `⌘K` on Apple, where
  * the convention is the bare symbol, and `Ctrl+K` everywhere else, where it is
- * spelled out.
+ * spelled out. The Ctrl key's name follows the keyboard's language: German
+ * keyboards label it `Strg`, so the caller passes the translated name.
  */
-export const shortcutLabel = (letter: string, info: PlatformInfo): string =>
-  isApplePlatform(info) ? `⌘${letter}` : `Ctrl+${letter}`;
+export const shortcutLabel = (letter: string, info: PlatformInfo, ctrlKey = "Ctrl"): string =>
+  isApplePlatform(info) ? `⌘${letter}` : `${ctrlKey}+${letter}`;

@@ -110,7 +110,18 @@ class BufferParams(BaseModel):
     ] = Field(
         "meters",
         description="Measurement units for buffer distances.",
-        json_schema_extra=ui_field(section="configuration", field_order=3),
+        json_schema_extra=ui_field(
+            section="configuration",
+            field_order=3,
+            enum_labels={
+                "meters": "enums.units.meters",
+                "kilometers": "enums.units.kilometers",
+                "feet": "enums.units.feet",
+                "miles": "enums.units.miles",
+                "nautical_miles": "enums.units.nautical_miles",
+                "yards": "enums.units.yards",
+            },
+        ),
     )
 
     # Controls whether overlapping buffers are merged (unioned) into a single geometry per distance
@@ -150,14 +161,28 @@ class BufferParams(BaseModel):
         "CAP_ROUND",
         description="Style for line endpoints: 'CAP_ROUND', 'CAP_FLAT', or 'CAP_SQUARE'.",
         json_schema_extra=ui_field(
-            section="configuration", field_order=11, advanced=True
+            section="configuration",
+            field_order=11,
+            advanced=True,
+            enum_labels={
+                "CAP_ROUND": "enums.cap_style.CAP_ROUND",
+                "CAP_FLAT": "enums.cap_style.CAP_FLAT",
+                "CAP_SQUARE": "enums.cap_style.CAP_SQUARE",
+            },
         ),
     )
     join_style: Literal["JOIN_ROUND", "JOIN_MITRE", "JOIN_BEVEL"] = Field(
         "JOIN_ROUND",
         description="Corner join style between line segments: 'JOIN_ROUND', 'JOIN_MITRE', 'JOIN_BEVEL'.",
         json_schema_extra=ui_field(
-            section="configuration", field_order=12, advanced=True
+            section="configuration",
+            field_order=12,
+            advanced=True,
+            enum_labels={
+                "JOIN_ROUND": "enums.join_style.JOIN_ROUND",
+                "JOIN_MITRE": "enums.join_style.JOIN_MITRE",
+                "JOIN_BEVEL": "enums.join_style.JOIN_BEVEL",
+            },
         ),
     )
     mitre_limit: float = Field(
