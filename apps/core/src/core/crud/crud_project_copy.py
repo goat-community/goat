@@ -6,7 +6,7 @@ import re
 from typing import Any
 from uuid import UUID
 
-from goatlib.utils.builder_config import remap_layer_project_ids
+from goatlib.utils.builder_config import remap_interactions, remap_layer_project_ids
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -538,7 +538,7 @@ def _remap_builder_config(
     remapped: dict[str, Any] = remap_layer_project_ids(config, lp_id_map)
     if group_id_map:
         remapped = _remap_group_ids_in_config(remapped, group_id_map)
-    return remapped
+    return remap_interactions(remapped, lp_id_map, group_id_map or {})  # type: ignore[no-any-return]
 
 
 def _remap_group_ids_in_config(node: Any, group_id_map: dict[int, int]) -> Any:

@@ -43,7 +43,7 @@ from goatlib.tools.project_schemas import (
     ExportWorkflow,
 )
 from goatlib.tools.schemas import ToolInputBase
-from goatlib.utils.builder_config import remap_layer_project_ids
+from goatlib.utils.builder_config import remap_interactions, remap_layer_project_ids
 from goatlib.utils.layer import layer_schema_name, layer_table_path
 
 logger = logging.getLogger(__name__)
@@ -301,7 +301,7 @@ class ProjectImportRunner(SimpleToolRunner):
         remapped = remap_layer_project_ids(config, lp_id_map)
         if group_id_map:
             remapped = self._remap_group_ids_in_config(remapped, group_id_map)
-        return remapped  # type: ignore[no-any-return]
+        return remap_interactions(remapped, lp_id_map, group_id_map or {})  # type: ignore[no-any-return]
 
     def _remap_basemap_layer_config(
         self: Self,
