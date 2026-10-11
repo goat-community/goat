@@ -179,6 +179,7 @@ const FeatureEditPanel: React.FC = () => {
             const {
               computed: isComputed,
               locked: isLocked,
+              generated: isGenerated,
               readOnly: isReadOnly,
               vocabulary: isVocabulary,
               suggestions: hasSuggestions,
@@ -269,12 +270,26 @@ const FeatureEditPanel: React.FC = () => {
                 label={field.name}
                 type={isReadOnly || field.type !== "number" ? "text" : "number"}
                 placeholder={
-                  isReadOnly ? "" : field.type === "number" ? t("enter_a_number") : t("enter_text")
+                  // A new feature has no serial number or UUID until it is
+                  // saved; say so rather than showing an empty box.
+                  isGenerated
+                    ? t("assigned_automatically")
+                    : isReadOnly
+                      ? ""
+                      : field.type === "number"
+                        ? t("enter_a_number")
+                        : t("enter_text")
                 }
                 value={displayValue}
                 disabled={isReadOnly}
-                locked={isLocked}
-                tooltip={isLocked ? t("field_locked_tooltip") : undefined}
+                locked={isLocked || isGenerated}
+                tooltip={
+                  isGenerated
+                    ? t("generated_field_tooltip")
+                    : isLocked
+                      ? t("field_locked_tooltip")
+                      : undefined
+                }
                 onChange={(value) => {
                   if (isReadOnly) return;
                   handlePropertyChange(field.name, value);

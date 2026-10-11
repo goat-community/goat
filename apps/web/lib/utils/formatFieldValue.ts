@@ -96,7 +96,9 @@ export function formatFieldValue(
 ): string {
   if (value === null || value === undefined) return "";
 
-  if (kind === "string") return String(value);
+  // A serial number and a UUID are identifiers: shown exactly as stored, never
+  // with decimals, separators or abbreviation ("1.2K" would be a different id).
+  if (kind === "string" || kind === "serial" || kind === "uuid") return String(value);
 
   if (kind === "boolean") {
     if (value === true) return "True";

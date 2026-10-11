@@ -38,6 +38,11 @@ from goatlib.models.bundle import (
     RoleSpec,
     get_spec,
 )
+from goatlib.utils.generated_fields import (
+    GeneratedValues,
+    SerialCounters,
+    generated_fields,
+)
 from pydantic import BaseModel, Field
 from pyproj import Transformer
 from shapely.geometry import LineString, Point, shape
@@ -59,6 +64,7 @@ from geoapi.services.computed_columns import (
     validate_allowed_values,
 )
 from geoapi.services.layer_service import layer_service
+from geoapi.services.layer_write_lock import layer_write_lock
 
 logger = logging.getLogger(__name__)
 
@@ -578,9 +584,12 @@ async def apply_bundle_edits(
             validate_allowed_values(
                 field_config, _fill_class_defaults(edit.properties, field_config)
             )
-        changes = await loop.run_in_executor(
-            None, _apply, layer_info, nodes_info, body, field_config
-        )
+        # The edges layer's serial numbers are handed out under its lock, like
+        # every other create into a layer that has them.
+        async with layer_write_lock(layer_info.layer_id, field_config) as counters:
+            changes = await loop.run_in_executor(
+                None, _apply, layer_info, nodes_info, body, field_config, counters
+            )
     except (DegenerateEdgeError, ValueError) as e:
         # The layers are unchanged, so handing the claim back is the whole
         # repair: the artifacts are current again at the revision they were
@@ -637,6 +646,9 @@ class _Batch:
     field_config: dict[str, Any] | None
     edges: EdgeChanges
     nodes: NodeChanges
+    # The edges layer's serial numbers and UUIDs, handed out per new edge. Read
+    # once inside the transaction, so a batch's edges get consecutive numbers.
+    generated: GeneratedValues | None = None
 
     def is_junction(self, node_id: str) -> bool:
         """Whether anything else meets at this node."""
@@ -683,8 +695,13 @@ def _apply(
     nodes_info: LayerInfo,
     body: BundleEditBatch,
     field_config: dict[str, Any] | None = None,
+    serial_counters: SerialCounters | None = None,
 ) -> tuple[EdgeChanges, NodeChanges]:
-    """Derive and write, in one transaction."""
+    """Derive and write, in one transaction.
+
+    ``serial_counters`` carries the edges layer's serial high-water marks in
+    and the numbers this batch hands out back to the lock holder.
+    """
     edges_table = edges_info.full_table_name
     nodes_table = nodes_info.full_table_name
     edge_changes = EdgeChanges()
@@ -733,6 +750,7 @@ def _apply(
                     node_columns=node_columns,
                 )
 
+            generated = [f for f in generated_fields(field_config) if f.name in columns]
             batch = _Batch(
                 con=con,
                 edges_table=edges_table,
@@ -756,6 +774,7 @@ def _apply(
                 * _mercator_scale(_bbox_to_4326(bbox_3857)[1] if written else 0.0),
                 edges=edge_changes,
                 nodes=node_changes,
+                generated=GeneratedValues(con, edges_table, generated, serial_counters),
             )
 
             # Nodes the save might orphan: the endpoints of everything it
@@ -786,6 +805,7 @@ def _apply(
                     segment.source_node,
                     segment.target_node,
                     field_config,
+                    generated=batch.generated.next_row() if batch.generated else None,
                 )
                 edge_changes.created.append(new_id)
                 batch.record(
@@ -832,6 +852,7 @@ def _apply(
                     head.source_node,
                     head.target_node,
                     field_config,
+                    generated_fields=generated,
                 )
                 edge_changes.updated.append(own_id)
                 batch.record(
@@ -999,6 +1020,7 @@ def _materialise(decision: Any, batch: _Batch, fallback: tuple[float, float]) ->
             right,
             node_id,
             batch.field_config,
+            next_generated=batch.generated.next_row if batch.generated else None,
         )
         batch.edges.split.append(
             EdgeSplit(original_id=decision.edge_id, halves=[left, right])

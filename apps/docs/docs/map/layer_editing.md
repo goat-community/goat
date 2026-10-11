@@ -21,7 +21,7 @@ In GOAT, you can **create your own layers** and **edit features directly on the 
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">In the <b>Define Fields</b> step, you will see a default <code>name</code> field. Click <code>+ Add field</code> to add more fields. For each field, enter a <b>field name</b> and select its <b>Field type</b>: <code>Text</code> or <code>Number</code>. To remove a field, click the <code>—</code> icon next to it. Click <code>Create Layer</code> when done.</div>
+  <div class="content">In the <b>Define Fields</b> step, you will see a default <code>name</code> field. Click <code>+ Add field</code> to add more fields. For each field, enter a <b>field name</b> and select its <b>Field type</b>: <code>Text</code>, <code>Number</code>, <code>Date</code>, <code>Boolean</code>, <code>Serial</code> or <code>UUID</code>. A <code>Serial</code> or <code>UUID</code> field is filled in by GOAT for every feature you add (see <a href="../data/data_types">Field Types</a>); for a Serial field you can set the first number under <code>Start at</code>. To remove a field, click the <code>—</code> icon next to it. Click <code>Create Layer</code> when done.</div>
 </div>
 
 ## Edit Features
@@ -54,7 +54,7 @@ Once a layer is created, you can add and edit features directly on the map.
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Click <code>Edit fields</code> in the table toolbar to open the <b>Edit fields</b> dialog, then click <code>+ Add field</code>. A new field is added to the list. Select its <b>Field type</b> on the right (<code>Text</code>, <code>Number</code>, <code>Date</code>, <code>Boolean</code>, or <code>Formula</code>, a computed field, see <a href="#formula-fields">Formula fields</a> below), and rename the field in the list. To remove a field, click the <code>—</code> icon next to it. Click <code>Save</code> when done.</div>
+  <div class="content">Click <code>Edit fields</code> in the table toolbar to open the <b>Edit fields</b> dialog, then click <code>+ Add field</code>. A new field is added to the list. Select its <b>Field type</b> on the right (<code>Text</code>, <code>Number</code>, <code>Date</code>, <code>Boolean</code>, <code>Serial</code>, <code>UUID</code>, or <code>Formula</code>, a computed field, see <a href="#formula-fields">Formula fields</a> below). A new <code>Serial</code> or <code>UUID</code> field is filled in for all existing features when you save, and rename the field in the list. To remove a field, click the <code>—</code> icon next to it. Click <code>Save</code> when done.</div>
 </div>
 
 <div class="step">

@@ -134,6 +134,7 @@ const MapPopoverEditor: React.FC<MapPopoverEditorProps> = ({
                   const {
                     computed: isComputed,
                     locked: isLocked,
+                    generated: isGenerated,
                     readOnly: isReadOnly,
                     vocabulary: isVocabulary,
                     suggestions: hasSuggestions,
@@ -239,8 +240,15 @@ const MapPopoverEditor: React.FC<MapPopoverEditorProps> = ({
                             label={field.name}
                             clearable={false}
                             disabled={isReadOnly}
-                            locked={isLocked}
-                            tooltip={isLocked ? t("field_locked_tooltip") : undefined}
+                            locked={isLocked || isGenerated}
+                            tooltip={
+                              isGenerated
+                                ? t("generated_field_tooltip")
+                                : isLocked
+                                  ? t("field_locked_tooltip")
+                                  : undefined
+                            }
+                            placeholder={isGenerated ? t("assigned_automatically") : undefined}
                             value={displayValue}
                             onChange={(value: string) => {
                               if (isReadOnly) return;
