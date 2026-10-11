@@ -71,6 +71,23 @@ test.describe("Workflow Management", () => {
     });
   });
 
+  test("the canvas zooms out below React Flow's default limit", async ({ page }) => {
+    await page.getByText("Workflows").click();
+    await newWorkflow(page);
+    await expect(page.getByRole("button", { name: "Run" })).toBeVisible({ timeout: 5000 });
+
+    // React Flow stops at 0.5 by default, too tight to see a large workflow
+    // as a whole; the canvas allows zooming out to 0.1.
+    const scale = async () =>
+      page
+        .locator(".react-flow__viewport")
+        .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a);
+    const zoomOut = page.getByRole("button", { name: "Zoom Out" });
+    for (let i = 0; i < 20; i++) await zoomOut.click();
+    await expect.poll(scale).toBeLessThan(0.5);
+    expect(await scale()).toBeGreaterThanOrEqual(0.1 - 1e-6);
+  });
+
   test("tools panel search works", async ({ page }) => {
     await page.getByText("Workflows").click();
     await newWorkflow(page);
