@@ -56,7 +56,11 @@ vi.mock("@/lib/api/content", () => ({
 }));
 vi.mock("@/i18n/utils", () => ({ useDateFnsLocale: () => undefined }));
 vi.mock("@/lib/api/folders", () => ({ useFolders: useFoldersMock }));
-vi.mock("@/lib/api/projects", () => ({ useProjectLayers: useProjectLayersMock }));
+vi.mock("@/lib/api/projects", () => ({
+  useProjectLayers: useProjectLayersMock,
+  projectLayersKey: (projectId: string) => [`projects/${projectId}/layer`],
+  projectLayerGroupsKey: (projectId: string) => [`projects/${projectId}/group`],
+}));
 
 const personalSpace = {
   id: "space-1",
@@ -401,7 +405,7 @@ describe("UseTemplateFlow", () => {
     expect(toastSuccessMock).toHaveBeenCalled();
   });
 
-  it("refreshes the content feed and revalidates onboarding facts after a successful apply", async () => {
+  it("refreshes the content feed, the project's layers and onboarding facts after a successful apply", async () => {
     render(
       <UseTemplateFlow
         template={baseTemplate}
@@ -415,6 +419,9 @@ describe("UseTemplateFlow", () => {
 
     await waitFor(() => expect(refreshContentFeedMock).toHaveBeenCalled());
     expect(swrMutateMock).toHaveBeenCalledWith(`${USERS_API_BASE_URL}/me/onboarding`);
+    // The layer tree beside the dialog shows the added entries without a reload.
+    expect(swrMutateMock).toHaveBeenCalledWith(["projects/project-1/layer"]);
+    expect(swrMutateMock).toHaveBeenCalledWith(["projects/project-1/group"]);
   });
 
   it("shows a toast with the unresolved input count after a successful apply", async () => {

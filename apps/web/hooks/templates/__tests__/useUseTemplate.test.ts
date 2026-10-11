@@ -3,11 +3,22 @@
  * map page: it must emit the `?mode=`/`?workflow=`/`?layout=` query params
  * that `useMapUrlIntent` (hooks/map/useMapUrlIntent.ts) reads on mount.
  */
-import { describe, expect, it } from "vitest";
+import { mutate } from "swr";
+import { describe, expect, it, vi } from "vitest";
 
+import { PROJECTS_API_BASE_URL } from "@/lib/api/projects";
 import type { TemplateRead, TemplateUseResult } from "@/lib/validations/template";
 
-import { startedCopyJobIds, templateResultHref } from "@/hooks/templates/useUseTemplate";
+import {
+  refreshTemplateProject,
+  startedCopyJobIds,
+  templateResultHref,
+} from "@/hooks/templates/useUseTemplate";
+
+vi.mock("swr", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("swr")>()),
+  mutate: vi.fn(),
+}));
 
 const template = {} as TemplateRead;
 
@@ -62,5 +73,15 @@ describe("startedCopyJobIds", () => {
 
   it("follows nothing for a template without copies", () => {
     expect(startedCopyJobIds(baseResult)).toEqual([]);
+  });
+});
+
+describe("refreshTemplateProject", () => {
+  it("reloads the layers and groups of the project the template was used in", async () => {
+    // The layer tree beside "New workflow from a template" reads these keys,
+    // so the entries the template added show without a reload.
+    await refreshTemplateProject(baseResult);
+    expect(mutate).toHaveBeenCalledWith([`${PROJECTS_API_BASE_URL}/${baseResult.project_id}/layer`]);
+    expect(mutate).toHaveBeenCalledWith([`${PROJECTS_API_BASE_URL}/${baseResult.project_id}/group`]);
   });
 });

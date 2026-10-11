@@ -4,7 +4,7 @@ import { mutate } from "swr";
 
 import { refreshContentFeed, useContent, useSpaces } from "@/lib/api/content";
 import { useFolders } from "@/lib/api/folders";
-import { useProjectLayers } from "@/lib/api/projects";
+import { projectLayerGroupsKey, projectLayersKey, useProjectLayers } from "@/lib/api/projects";
 import { applyTemplate, refreshTemplates } from "@/lib/api/templates";
 import { USERS_API_BASE_URL } from "@/lib/api/users";
 import { addRunningJobIds } from "@/lib/store/jobs/slice";
@@ -70,6 +70,19 @@ const buildRequest = (
  * template can complete "Run your first analysis"/"Build a workflow" (T10),
  * so the checklist should not wait for its own poll. */
 const revalidateOnboardingFacts = () => mutate(`${USERS_API_BASE_URL}/me/onboarding`);
+
+/**
+ * Revalidates what using a template changed in its project: the entries it
+ * added and the groups they sit in, read by the layer tree, the workflow's
+ * dataset nodes and the layer pickers. Inside a project ("New workflow from a
+ * template") the caller is looking at that project, whose panels would
+ * otherwise show the new entries only once they remount.
+ */
+export const refreshTemplateProject = (result: TemplateUseResult): Promise<unknown[]> =>
+  Promise.all([
+    mutate(projectLayersKey(result.project_id)),
+    mutate(projectLayerGroupsKey(result.project_id)),
+  ]);
 
 /**
  * Drives `UseTemplateFlow`'s state machine: the location step's target
@@ -232,6 +245,7 @@ export const useUseTemplate = (template: TemplateRead, context: UseTemplateConte
       // caller's entries show their own copy instead of the template's.
       const copyJobIds = startedCopyJobIds(result);
       if (copyJobIds.length > 0) dispatch(addRunningJobIds(copyJobIds));
+      await refreshTemplateProject(result);
       refreshTemplates();
       refreshContentFeed();
       void revalidateOnboardingFacts();
