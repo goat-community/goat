@@ -434,54 +434,59 @@ class JoinToolRunner(BaseToolRunner[JoinToolParams]):
         input_schemas: dict[str, dict[str, str]],
         params: dict[str, Any],
     ) -> dict[str, str]:
-        """Predict join output schema.
+        """Predict join output schema: the columns ``process`` writes, in order.
 
-        Join outputs:
-        - All columns from target layer
-        - Columns from join layer (may be prefixed to avoid conflicts)
-        - Statistics columns if calculate_statistics is enabled
-        - join_count column for one-to-one joins
+        Workflows show this before a run, and SQL written against it must
+        still hold afterwards, so it follows the analysis exactly:
+
+        - disjoint: the target columns alone (an anti-semi-join adds nothing);
+        - one-to-one with statistics: the target columns, ``match_count``
+          unless a count statistic is configured, then one column per
+          statistic (join fields are not added);
+        - otherwise (one-to-many, or one-to-one keeping the first match): the
+          target columns, then each picked join field as ``join_<field>``, in
+          the join layer's order. Nothing is added while "add join fields" is
+          off, which a left join forces on.
         """
-        target_layer = input_schemas.get("target_layer_id", {})
+        columns = dict(input_schemas.get("target_layer_id", {}))
         join_layer = input_schemas.get("join_layer_id", {})
 
-        columns = dict(target_layer)
+        def add(name: str, dtype: str) -> None:
+            columns[cls.unique_column_name(columns, name)] = dtype
 
-        # Add join layer columns (excluding geometry)
-        for col, dtype in join_layer.items():
-            if col == "geometry":
-                continue
-            out_col = cls.unique_column_name(columns, col)
-            columns[out_col] = dtype
+        if (
+            params.get("use_spatial_relationship")
+            and params.get("spatial_relationship") == "disjoint"
+        ):
+            return columns
 
-        # Add join_count for one-to-one joins
-        join_operation = params.get("join_operation", "one_to_one")
-        if join_operation == "one_to_one":
-            col_name = cls.unique_column_name(columns, "join_count")
-            columns[col_name] = "BIGINT"
-
-        # Add statistics columns if enabled
-        calculate_statistics = params.get("calculate_statistics", False)
-        field_statistics = (
+        statistics = (
             params.get("field_statistics") or params.get("column_statistics") or []
         )
-        if calculate_statistics and field_statistics:
-            for stat in field_statistics:
+        if isinstance(statistics, dict):
+            statistics = [statistics]
+        one_to_one = params.get("join_operation", "one_to_one") == "one_to_one"
+        if one_to_one and params.get("calculate_statistics") and statistics:
+            if not any(s.get("operation", "count") == "count" for s in statistics):
+                add("match_count", "BIGINT")
+            for stat in statistics:
                 operation = stat.get("operation", "count")
-                field = stat.get("field")
-                result_name = stat.get("result_name")
-                # Use custom result_name if provided, otherwise generate default
-                if result_name:
-                    base_name = result_name
+                if stat.get("result_name"):
+                    name = stat["result_name"]
                 elif operation == "count":
-                    base_name = "count"
-                elif field:
-                    base_name = f"{field}_{operation}"
+                    name = "count"
+                elif stat.get("field"):
+                    name = f"{stat['field']}_{operation}"
                 else:
                     continue
-                col_name = cls.unique_column_name(columns, base_name)
-                columns[col_name] = "BIGINT" if operation == "count" else "DOUBLE"
+                add(name, "BIGINT" if operation == "count" else "DOUBLE")
+            return columns
 
+        add_fields = params.get("add_join_fields") or params.get("join_type") == "left"
+        picked = set(params.get("join_fields") or []) if add_fields else set()
+        for col, dtype in join_layer.items():
+            if col in picked:
+                add(f"join_{col}", dtype)
         return columns
 
     def process(
@@ -500,6 +505,25 @@ class JoinToolRunner(BaseToolRunner[JoinToolParams]):
         )
         output_path = temp_dir / "output.parquet"
 
+        tool = self.tool_class()
+        try:
+            results = tool.run(
+                self.analysis_params(params, target_path, join_path, output_path)
+            )
+            result_path, metadata = results[0]
+            return Path(result_path), metadata
+        finally:
+            tool.cleanup()
+
+    @staticmethod
+    def analysis_params(
+        params: JoinToolParams,
+        target_path: Path,
+        join_path: Path,
+        output_path: Path,
+    ) -> JoinParams:
+        """The analysis parameters a run of this tool uses (shared with the
+        schema prediction tests, so both read the same configuration)."""
         # Determine multiple_matching_records based on calculate_statistics toggle
         # If calculate_statistics is True, use statistics; otherwise use first_record (sorted by ID)
         multiple_matching_records = (
@@ -508,9 +532,8 @@ class JoinToolRunner(BaseToolRunner[JoinToolParams]):
             else MultipleMatchingRecordsType.first_record
         )
 
-        # Build JoinParams for the analysis tool
         # Sort by ID when using first_record (no sort_configuration needed)
-        analysis_params = JoinParams(
+        return JoinParams(
             target_path=str(target_path),
             join_path=str(join_path),
             output_path=str(output_path),
@@ -531,14 +554,6 @@ class JoinToolRunner(BaseToolRunner[JoinToolParams]):
             else None,
             join_fields=params.join_fields if params.add_join_fields else [],
         )
-
-        tool = self.tool_class()
-        try:
-            results = tool.run(analysis_params)
-            result_path, metadata = results[0]
-            return Path(result_path), metadata
-        finally:
-            tool.cleanup()
 
 
 def main(params: JoinToolParams) -> dict:
