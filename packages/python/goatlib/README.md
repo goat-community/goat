@@ -33,6 +33,24 @@ check. SQL a user writes goes through `validate_sql_query` /
 `validate_sql_expression` in `utils/sql_validation.py`, which allow the declared
 input aliases only.
 
+## Copies behind a project entry
+
+Two tools replace the layer a `layer_project` entry shows instead of adding a
+new entry: a workflow re-run that must not change a copied project
+(`tools/workflow_export_target.py`), and `layer_copy`, which gives a template
+user their own editable copy of a dataset (`tools/layer_copy.py`). Keeping the
+entry is the point: dashboards, layouts, filters and workflow dataset nodes
+name the entry (`layer_project_id`), so they follow the swap without being
+rewritten; only the nodes' saved `layerId` is retargeted
+(`tools/workflow_dataset_nodes.py`). Nodes saved with a `layerId` but no
+entry (common in older projects) are retargeted by layer, and given the entry,
+but only while no other entry of the project still shows the old layer: such a
+node could mean that one. `layer_copy` copies DuckLake table to
+table rather than through parquet, so an empty copy keeps its GEOMETRY column
+(DuckDB writes no GeoParquet metadata for an empty table); it is idempotent
+(an advisory lock per project and source, and a `template_copy` stamp on the
+copy and its entries), and a failed run leaves the entries on the source.
+
 ## Development
 
 The repo is a uv workspace — sync everything from the repo root:

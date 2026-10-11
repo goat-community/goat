@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  bindsDataset,
+  canCopyInput,
+  inputChoiceOf,
+  inputFieldsOf,
   publicOnPublishInputs,
   compareTemplateShelves,
   sourceLink,
@@ -288,5 +292,39 @@ describe("publicOnPublishInputs", () => {
       input({ key: "d", mode: "ship", layer_id: "00000000-0000-0000-0000-000000000004", public_read: true }),
     ];
     expect(publicOnPublishInputs(rows).map((r) => r.key)).toEqual(["a"]);
+  });
+});
+
+describe("copy inputs", () => {
+  it("publishing makes a copied dataset public as well, since every user copies from it", () => {
+    const rows = [
+      input({ key: "a", mode: "copy", layer_id: "00000000-0000-0000-0000-000000000001" }),
+      input({ key: "b", mode: "copy", layer_id: "00000000-0000-0000-0000-000000000002", public_read: true }),
+    ];
+    expect(publicOnPublishInputs(rows).map((r) => r.key)).toEqual(["a"]);
+  });
+
+  it("treats shipped and copied inputs as keeping the author's dataset", () => {
+    expect(bindsDataset({ mode: "ship" })).toBe(true);
+    expect(bindsDataset({ mode: "copy" })).toBe(true);
+    expect(bindsDataset({ mode: "ask" })).toBe(false);
+  });
+
+  it("splits a copy into one with rows and an empty one, both ways", () => {
+    expect(inputChoiceOf({ mode: "copy", copy_content: false })).toBe("copy_empty");
+    expect(inputChoiceOf({ mode: "copy", copy_content: true })).toBe("copy");
+    // An input stored before the flag existed copies its rows.
+    expect(inputChoiceOf({ mode: "copy" })).toBe("copy");
+    expect(inputChoiceOf({ mode: "ship", copy_content: false })).toBe("ship");
+    expect(inputFieldsOf("copy_empty")).toEqual({ mode: "copy", copy_content: false });
+    expect(inputFieldsOf("copy")).toEqual({ mode: "copy", copy_content: true });
+    expect(inputFieldsOf("ask")).toEqual({ mode: "ask", copy_content: true });
+  });
+
+  it("copies only datasets that have rows GOAT holds", () => {
+    expect(canCopyInput({ layer_id: "l", layer_type: "feature" })).toBe(true);
+    expect(canCopyInput({ layer_id: "l", layer_type: "table" })).toBe(true);
+    expect(canCopyInput({ layer_id: "l", layer_type: "raster" })).toBe(false);
+    expect(canCopyInput({ layer_id: null, layer_type: "feature" })).toBe(false);
   });
 });

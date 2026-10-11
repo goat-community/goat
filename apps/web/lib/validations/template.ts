@@ -21,12 +21,22 @@ export const templatePayloadKind = z.enum(["workflow", "layout", "project"]);
  * `published`; `proposed`/`declined` are reserved for the later submission flow. */
 export const templateCatalogStatus = z.enum(["none", "proposed", "published", "declined"]);
 
+/** How a template input's dataset reaches a user: `ship` links the author's
+ * dataset (read-only unless shared as editor), `ask` leaves a slot the user
+ * fills in on use (workflow templates only), `copy` gives every user their
+ * own editable copy of it — with its rows, or empty when `copy_content` is
+ * false. */
+export const templateInputMode = z.enum(["ship", "ask", "copy"]);
+
 /** A declared input slot on a saved template (T5) — mirrors
  * `core.schemas.template.TemplateInput`. */
 export const templateInputSchema = z.object({
   key: z.string(),
   label: z.string(),
-  mode: z.enum(["ship", "ask"]),
+  mode: templateInputMode,
+  /** Only read for `mode: "copy"`: copy the dataset's rows (true) or only
+   * its columns (false). Absent means true, the backend's default. */
+  copy_content: z.boolean().optional(),
   layer_id: z.string().uuid().nullable(),
   layer_type: z.enum(["feature", "table", "raster"]).nullable(),
   geometry_type: z.string().nullable(),
@@ -274,14 +284,29 @@ export const templateUseRequestSchema = z.object({
   bindings: z.record(z.string().uuid()).default({}),
 });
 
+/** One "copy" dataset of a used template: the `layer_copy` job writing the
+ * caller's own copy — mirrors `core.schemas.template.TemplateCopyJob`. Until
+ * the job finishes, its project entries show the template's dataset,
+ * read-only. `job_id` is null, with an `error`, when the job did not start. */
+export const templateCopyJobSchema = z.object({
+  key: z.string(),
+  source_layer_id: z.string().uuid(),
+  layer_project_ids: z.array(z.number().int()).default([]),
+  copy_content: z.boolean(),
+  job_id: z.string().nullable().optional(),
+  error: z.enum(["source_not_readable", "copy_not_started"]).nullable().optional(),
+});
+
 /** Response of `POST /template/{id}/use`: what got created, what got linked,
- * and which inputs still need the caller's attention. */
+ * which inputs still need the caller's attention, and the copy jobs started
+ * for the template's "copy" datasets. */
 export const templateUseResultSchema = z.object({
   project_id: z.string().uuid(),
   workflow_id: z.string().uuid().nullable().optional(),
   layout_id: z.string().uuid().nullable().optional(),
   added_layer_project_ids: z.array(z.number().int()).default([]),
   unresolved_inputs: z.array(templateInputSchema).default([]),
+  copy_jobs: z.array(templateCopyJobSchema).default([]),
 });
 
 /** Body of `POST /template/{id}/grant` — mirrors `TemplateGrantCreate`. */
@@ -315,6 +340,8 @@ export type TemplateBadgeKind = z.infer<typeof templateBadgeKind>;
 export type TemplatePayloadKind = z.infer<typeof templatePayloadKind>;
 export type TemplateCatalogStatus = z.infer<typeof templateCatalogStatus>;
 export type TemplateInput = z.infer<typeof templateInputSchema>;
+export type TemplateInputModeValue = z.infer<typeof templateInputMode>;
+export type TemplateCopyJob = z.infer<typeof templateCopyJobSchema>;
 export type TemplateSource = z.infer<typeof templateSourceSchema>;
 export type TemplateSourceInfo = z.infer<typeof templateSourceInfoSchema>;
 export type DatasetShareLine = z.infer<typeof datasetShareLineSchema>;

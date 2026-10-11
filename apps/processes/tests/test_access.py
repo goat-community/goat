@@ -76,6 +76,28 @@ class TestToolReferences:
             ("layer", LAYER, "write")
         }
 
+    def test_a_layer_copy_reads_its_source_and_entries_and_writes_the_project(
+        self,
+    ) -> None:
+        """The template copy job: the caller must read the dataset it copies
+        and the entries it repoints, and write the project they are in."""
+        refs = tool_references(
+            "layer_copy",
+            {
+                "source_layer_id": LAYER,
+                "project_id": PROJECT,
+                "layer_project_ids": [11, 12],
+                "copy_content": False,
+                "template_id": OTHER,
+            },
+        )
+        assert _entries(refs) == {
+            ("layer", LAYER, "read"),
+            ("layer_project", "11", "read"),
+            ("layer_project", "12", "read"),
+            ("project", PROJECT, "write"),
+        }
+
     def test_project_export_reads_the_project(self) -> None:
         assert _entries(tool_references("project_export", {"project_id": PROJECT})) == {
             ("project", PROJECT, "read")

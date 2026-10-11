@@ -16,6 +16,7 @@ const JOB_PROCESS_IDS = [
   "bundle_import",
   "catalog_materialize",
   "finalize_layer",
+  "layer_copy",
   "layer_create",
   "layer_delete",
   "layer_export",

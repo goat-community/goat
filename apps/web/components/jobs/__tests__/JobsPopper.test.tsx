@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Job } from "@/lib/api/processes";
@@ -12,7 +12,9 @@ const { useJobsMock, toastMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({
+    t: (key: string, vars?: Record<string, unknown>) => (vars ? `${key}:${JSON.stringify(vars)}` : key),
+  }),
 }));
 vi.mock("react-toastify", () => ({ toast: toastMock }));
 vi.mock("@/lib/api/processes", () => ({
@@ -77,3 +79,35 @@ describe("JobsPopper auto-download", () => {
     expect(toastMock.success).not.toHaveBeenCalled();
   });
 });
+
+describe("JobsPopper template copies", () => {
+  const copyJob = (status: Job["status"]): Job =>
+    ({
+      jobID: "copy-1",
+      processID: "layer_copy",
+      status,
+      created: "2026-10-10T21:00:00Z",
+      message: status === "failed" ? "Layer does not exist" : undefined,
+      inputs: { layer_name: "Vorhaben (Eingabe)", layer_project_ids: [748] },
+    }) as unknown as Job;
+
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it.each(["running", "failed"] as const)(
+    "names a %s copy after its dataset, and keeps it in the tray",
+    async (status) => {
+      setJobs([copyJob(status)]);
+      render(<JobsPopper />);
+
+      fireEvent.click(screen.getByRole("button"));
+
+      const label = `layer_copy_named:${JSON.stringify({ name: "Vorhaben (Eingabe)" })}`;
+      await waitFor(() => expect(screen.getByText(new RegExp(escape(label)))).toBeInTheDocument());
+    }
+  );
+});
+
+const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

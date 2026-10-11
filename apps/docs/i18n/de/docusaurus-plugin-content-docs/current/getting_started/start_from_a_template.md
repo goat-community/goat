@@ -1,5 +1,5 @@
 ---
-description: "Durchsuchen Sie Projekt-, Workflow- und Layout-Vorlagen auf der Startseite, filtern Sie nach Art und Quelle und erstellen Sie daraus ein neues Projekt."
+description: "Durchsuchen Sie Projekt-, Workflow- und Layout-Vorlagen auf der Startseite, filtern Sie nach Art und Quelle, erstellen Sie daraus ein neues Projekt und legen Sie fest, ob eine Vorlage ihre Datensätze mitliefert oder jedem Nutzer eine eigene Kopie gibt."
 sidebar_position: 4
 ---
 
@@ -47,3 +47,20 @@ Vorlagen von GOAT finden Sie außerdem im Tab `Vorlagen` des [Katalogs](../works
 :::info
 Eine Projektvorlage wird als **neues Projekt** geöffnet, das Ihnen gehört. Sie können es frei ändern, ohne die Vorlage zu beeinflussen.
 :::
+
+## Datensätze in einer Vorlage
+
+Wenn Sie ein Projekt als Vorlage speichern (`Projekt als Vorlage speichern…` im **Projektmenü**) oder einen Workflow als Vorlage speichern, listet die Tabelle `Eingaben` alle Datensätze auf, die darin verwendet werden. Für jeden legen Sie fest, wie ihn die Personen erhalten, die die Vorlage verwenden:
+
+- `Mitliefern (nur lesen)`: Alle sehen **Ihren Datensatz** in ihrem Projekt. Sie können ihn ansehen und analysieren, aber nicht ändern, es sei denn, Sie teilen ihn zusätzlich als Bearbeiter mit ihnen. Das ist die Voreinstellung.
+- `Kopie für jeden Nutzer (mit Inhalt)`: Alle, die die Vorlage verwenden, erhalten **eine eigene Kopie** des Datensatzes mit allen Features, Spalten, Stil, Auswahlfeldern und Beschreibung. Ihre Kopie können sie frei bearbeiten.
+- `Leere Kopie für jeden Nutzer`: wie eine Kopie, aber **ohne Features**: dieselben Spalten, derselbe Geometrietyp und derselbe Stil, bereit für eigene Eingaben, zum Beispiel geplante Vorhaben in einer Schulung.
+
+Ein Raster-Datensatz oder ein Datensatz aus einem externen Dienst hat keine Features, die kopiert werden könnten; er kann daher nur mitgeliefert werden. In einer Workflow-Vorlage können Sie einen Datensatz außerdem ausschalten, sodass die Vorlage beim Verwenden nach einem Layer fragt.
+
+Wenn jemand die Vorlage verwendet, erstellt GOAT zuerst das Projekt oder den Workflow mit Ihrem Datensatz und legt die Kopien anschließend im Hintergrund an; Sie können sie unter [Job Status](../workspace/workspace_interface.md#job-status) verfolgen. Bis eine Kopie fertig ist, wird der Datensatz schreibgeschützt angezeigt. Danach ersetzt sie Ihren Datensatz überall in diesem Projekt: auf der Karte, im Dashboard und in Workflows.
+
+:::info
+Eine Kopie entsteht aus Ihrem Datensatz **in dem Stand, in dem er beim Verwenden der Vorlage ist**. Spätere Änderungen an Ihrem Datensatz erreichen bereits vorhandene Kopien nicht, und Änderungen anderer an ihrer Kopie erreichen Ihren Datensatz nie. Alle, die die Vorlage verwenden dürfen, müssen die mitgelieferten oder kopierten Datensätze lesen können: Wenn Sie die Vorlage teilen, werden diese als Betrachter mitgeteilt.
+:::
+

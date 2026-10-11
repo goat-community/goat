@@ -10,6 +10,11 @@ geometry checks. A browser may still save an older copy of a workflow, so the
 runner also resolves every such node through its entry in the running
 project, and falls back to ``layerId`` when the entry is not there (removed,
 trashed, or another project's).
+
+Nodes that carry only a ``layerId`` (saved before entries were recorded, or
+copied from such a project) are retargeted by layer instead
+(``retarget_unlinked_dataset_nodes``), when no other entry of the project
+could be the one they mean.
 """
 
 import copy
@@ -75,6 +80,25 @@ async def current_layer_ids(
     return {row["id"]: row["layer_id"] for row in rows}
 
 
+def _swap_tool_config_ids(
+    nodes: list[dict[str, Any]], old_ids: set[str], layer_id: str
+) -> None:
+    """Rewrite tool configs' copies of ``old_ids`` to ``layer_id`` in place,
+    as the editor's "Replace datasets" does."""
+
+    def swap(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {key: swap(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [swap(item) for item in value]
+        return layer_id if isinstance(value, str) and value in old_ids else value
+
+    for node in nodes:
+        data = node.get("data") if isinstance(node, dict) else None
+        if isinstance(data, dict) and data.get("type") == "tool":
+            data["config"] = swap(data.get("config"))
+
+
 def _retargeted(
     config: dict[str, Any], link_id: int, layer_id: str
 ) -> dict[str, Any] | None:
@@ -92,18 +116,39 @@ def _retargeted(
             node["data"]["layerId"] = layer_id
     if not old_ids:
         return None
+    _swap_tool_config_ids(nodes, old_ids, layer_id)
+    return config
 
-    def swap(value: Any) -> Any:
-        if isinstance(value, dict):
-            return {key: swap(item) for key, item in value.items()}
-        if isinstance(value, list):
-            return [swap(item) for item in value]
-        return layer_id if isinstance(value, str) and value in old_ids else value
 
+def _unlinked_retargeted(
+    config: dict[str, Any],
+    *,
+    source_layer_id: str,
+    layer_id: str,
+    link_id: int,
+    project_link_ids: set[int],
+) -> dict[str, Any] | None:
+    """``config`` with the dataset nodes that read ``source_layer_id`` through
+    no entry of the project (no ``projectLayerId``, or one of another
+    project) pointed at ``layer_id`` and given ``link_id`` as their entry, and
+    tool configs' copies of the old id with them; None if nothing changed."""
+    config = copy.deepcopy(config)
+    nodes = config.get("nodes") or []
+    changed = False
     for node in nodes:
         data = node.get("data") if isinstance(node, dict) else None
-        if isinstance(data, dict) and data.get("type") == "tool":
-            data["config"] = swap(data.get("config"))
+        if not isinstance(data, dict) or data.get("type") != "dataset":
+            continue
+        if data.get("layerId") != source_layer_id:
+            continue
+        if _link_id(node) in project_link_ids:
+            continue
+        data["layerId"] = layer_id
+        data["projectLayerId"] = link_id
+        changed = True
+    if not changed:
+        return None
+    _swap_tool_config_ids(nodes, {source_layer_id}, layer_id)
     return config
 
 
@@ -144,3 +189,68 @@ async def retarget_dataset_nodes(
                 row["id"],
                 json.dumps(retargeted),
             )
+
+
+async def retarget_unlinked_dataset_nodes(
+    conn: Any,
+    schema: str,
+    *,
+    project_id: str,
+    source_layer_id: str,
+    layer_id: str,
+    link_id: int,
+) -> int:
+    """Point the saved dataset nodes that name ``source_layer_id`` without an
+    entry of the project at ``layer_id`` and at entry ``link_id``, in every
+    workflow of the project. Returns how many workflows changed.
+
+    Many saved nodes carry only a ``layerId`` (nodes made before entries
+    were recorded, and every node copied from such a project), so
+    ``retarget_dataset_nodes`` cannot find them when a new layer is put
+    behind the entry that shows their layer. Only safe while the project has
+    no other entry still showing ``source_layer_id``: such a node could mean
+    that entry instead, so then nothing is changed. Rows are locked; run it
+    inside the caller's transaction.
+    """
+    rows = await conn.fetch(
+        f"""
+        SELECT w.id, w.config,
+               ARRAY(SELECT lp.id FROM {schema}.layer_project lp
+                     WHERE lp.project_id = w.project_id) AS link_ids
+        FROM {schema}.workflow w
+        WHERE w.project_id = $1
+          AND NOT EXISTS (
+              SELECT 1 FROM {schema}.layer_project lp
+              WHERE lp.project_id = $1 AND lp.layer_id = $2
+          )
+          AND jsonb_path_exists(
+              w.config,
+              '$.nodes[*] ? (@.data.layerId == $layer)',
+              jsonb_build_object('layer', $2::text)
+          )
+        FOR UPDATE OF w
+        """,
+        uuid.UUID(project_id),
+        uuid.UUID(source_layer_id),
+    )
+    changed = 0
+    for row in rows:
+        config = row["config"]
+        if isinstance(config, str):
+            config = json.loads(config)
+        retargeted = _unlinked_retargeted(
+            config,
+            source_layer_id=source_layer_id,
+            layer_id=layer_id,
+            link_id=link_id,
+            project_link_ids=set(row["link_ids"] or []),
+        )
+        if retargeted is not None:
+            await conn.execute(
+                f"UPDATE {schema}.workflow SET config = $2::jsonb, updated_at = NOW() "
+                "WHERE id = $1",
+                row["id"],
+                json.dumps(retargeted),
+            )
+            changed += 1
+    return changed

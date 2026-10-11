@@ -2,14 +2,25 @@
 
 A template is a saved, reusable starting point for a workflow, layout or
 project. Saving one detects the dataset references in the source config
-(T5), lets the author decide ship/ask for each, freezes the payload
+(T5), lets the author decide ship/ask/copy for each, freezes the payload
 (``core.templates.snapshot``) and, for a project payload, points at a
 hidden frozen copy made via ``copy_project(mark_template_source=True)``
 (T2). Publishing beyond the team space widens who can read a shipped
 dataset, so saving into (or refreshing within) a team/organisation space
 can require viewer grants on the datasets it ships (T6).
+
+A "copy" input (workflow or project payload) gives every user of the
+template their own editable copy of the dataset: ``use`` links the author's
+dataset as for "ship", then starts one ``layer_copy`` job per copied dataset
+through the processes service, which writes the copy and points the new
+project entries at it (``goatlib.tools.layer_copy``). Core never touches the
+data itself.
 """
 
+import json
+import logging
+from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from datetime import datetime, timezone
 from typing import Any, Literal, cast
 from uuid import UUID
@@ -48,9 +59,11 @@ from core.schemas.share import (
     ShareWithUserSchema,
 )
 from core.schemas.template import (
+    DATASET_MODES,
     DatasetShareLine,
     DetectedInput,
     TemplateCategoryFacet,
+    TemplateCopyJob,
     TemplateCreate,
     TemplateGrantCreate,
     TemplateGrantRead,
@@ -68,6 +81,7 @@ from core.schemas.template import (
 )
 from core.schemas.workflow import WorkflowCreate
 from core.services.initial_view_state import resolve_initial_view_state
+from core.services.processes import execute_process
 from core.templates.snapshot import (
     bind_workflow_config,
     detect_workflow_inputs,
@@ -77,6 +91,30 @@ from core.templates.snapshot import (
     strip_layout_bindings,
     with_output_styles,
 )
+
+logger = logging.getLogger(__name__)
+
+# The processes tool that writes a "copy" input's dataset for its user
+# (`goatlib.tools.layer_copy`), and the stamp it and core keep on the project
+# entries of a copy (`COPY_STAMP` there).
+LAYER_COPY_PROCESS = "layer_copy"
+COPY_STAMP = "template_copy"
+
+# The layer types a "copy" input can name: the ones whose rows live in a
+# table the `layer_copy` job can copy.
+COPYABLE_LAYER_TYPES = ("feature", "table")
+
+
+@dataclass
+class _CopyPlan:
+    """A "copy" dataset of a template being used: the input(s) naming it,
+    the dataset, and the target project's entries the copy will replace it
+    behind."""
+
+    keys: list[str]
+    source_layer_id: UUID
+    link_ids: list[int] = dataclass_field(default_factory=list)
+    copy_content: bool = True
 
 
 class CRUDTemplate:
@@ -202,7 +240,8 @@ class CRUDTemplate:
                 )
         inputs = [TemplateInput(**i) for i in (row.inputs or [])]
         ships_data = any(
-            i.mode == "ship" and (i.from_catalog or i.public_read) for i in inputs
+            i.mode in DATASET_MODES and (i.from_catalog or i.public_read)
+            for i in inputs
         )
         assert row.id is not None
         page_mm = layout_page_mm(row.config) if row.payload_kind == "layout" else None
@@ -297,7 +336,9 @@ class CRUDTemplate:
         trusted. An "ask" input also has its `layer_id` cleared here
         regardless of what the client submitted: an ask slot carries no
         dataset reference (T5), so a client-supplied `layer_id` on one is
-        dropped, not just ignored."""
+        dropped, not just ignored. `copy_content` is only meaningful on a
+        "copy" input and is reset to its default everywhere else, so the
+        stored inputs never carry a choice nobody can act on."""
         out: list[TemplateInput] = []
         for i in inputs:
             if i.mode == "ask":
@@ -305,27 +346,32 @@ class CRUDTemplate:
                     i.model_copy(
                         update={
                             "layer_id": None,
+                            "copy_content": True,
                             **self._layer_flags(None),
                         }
                     )
                 )
                 continue
             layer = await db.get(Layer, i.layer_id) if i.layer_id is not None else None
-            out.append(i.model_copy(update=self._layer_flags(layer)))
+            update: dict[str, Any] = dict(self._layer_flags(layer))
+            if i.mode != "copy":
+                update["copy_content"] = True
+            out.append(i.model_copy(update=update))
         return out
 
     async def _assert_ship_inputs_readable(
         self, db: AsyncSession, inputs: list[TemplateInput], user_id: UUID
     ) -> None:
-        """Every ``mode == "ship"`` input's dataset must be one the caller
+        """Every "ship" or "copy" input's dataset must be one the caller
         may read (B3): the source project/workflow being readable does not
         imply every layer it references is — a shared project can point at
         a layer the sharer never granted the caller access to on its own.
         422s (``template_input_not_readable``) naming the first offending
-        layer rather than silently shipping an unreadable dataset.
+        layer rather than silently shipping an unreadable dataset. A copy
+        is made from the very same dataset, so it needs the same read.
         """
         for i in inputs:
-            if i.mode != "ship" or i.layer_id is None:
+            if i.mode not in DATASET_MODES or i.layer_id is None:
                 continue
             if not await authz.can(db, "layer", i.layer_id, user_id, "read"):
                 raise HTTPException(
@@ -335,6 +381,70 @@ class CRUDTemplate:
                         "layer_id": str(i.layer_id),
                     },
                 )
+
+    async def _assert_copy_inputs_copyable(
+        self, db: AsyncSession, inputs: list[TemplateInput]
+    ) -> None:
+        """Every "copy" input must name a live dataset whose rows GOAT holds:
+        a feature or table layer stored in DuckLake (or a catalog dataset).
+        A raster, or a layer read from an external service (WFS, MVT, WMS…),
+        has no table to copy, so asking for a copy of one is refused with 422
+        ``template_input_not_copyable`` naming the layer, instead of a
+        template whose copy job could only ever fail.
+        """
+        for i in inputs:
+            if i.mode != "copy":
+                continue
+            layer = await db.get(Layer, i.layer_id) if i.layer_id is not None else None
+            if (
+                layer is None
+                or layer.deleted_at is not None
+                or str(getattr(layer.type, "value", layer.type))
+                not in COPYABLE_LAYER_TYPES
+                or layer.data_type is not None
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    detail={
+                        "code": "template_input_not_copyable",
+                        "layer_id": str(i.layer_id) if i.layer_id else None,
+                    },
+                )
+
+    @staticmethod
+    def _apply_project_choices(
+        detected: list[TemplateInput], chosen: list[TemplateInput]
+    ) -> list[TemplateInput]:
+        """A project payload's inputs with the author's per-dataset choice
+        applied: each detected ``layer:<id>`` input takes the ``mode`` and
+        ``copy_content`` the author sent for its key, and stays "ship" when
+        nothing was sent — so a client that sends no inputs (or one written
+        before "copy" existed) saves exactly what it always did.
+
+        There is no "ask" for a project payload (the frozen copy already
+        shows a real layer for each dataset): an "ask" is read as "ship",
+        which is what the save dialog's "share this dataset" checkbox sends
+        when it is cleared. A key that names no dataset of the project is a
+        422, like a mismatched workflow input.
+        """
+        by_key = {i.key: i for i in detected}
+        unknown = [i.key for i in chosen if i.key not in by_key]
+        if unknown:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="inputs do not match the datasets of the source project",
+            )
+        choice = {i.key: i for i in chosen}
+        out: list[TemplateInput] = []
+        for d in detected:
+            c = choice.get(d.key)
+            if c is None or c.mode != "copy":
+                out.append(d)
+                continue
+            out.append(
+                d.model_copy(update={"mode": "copy", "copy_content": c.copy_content})
+            )
+        return out
 
     async def _project_inputs(
         self, db: AsyncSession, project_id: UUID
@@ -377,11 +487,13 @@ class CRUDTemplate:
         inputs: list[TemplateInput],
         destination_space: Space,
     ) -> list[DatasetShareLine]:
-        """T6's `datasets_needing_share`: every ship input whose layer needs
-        a viewer grant (`_needs_share`) into `destination_space`."""
+        """T6's `datasets_needing_share`: every ship or copy input whose
+        layer needs a viewer grant (`_needs_share`) into `destination_space`
+        — a copy is made from the author's dataset, so its users need to
+        read it just like a shipped one."""
         lines: list[DatasetShareLine] = []
         for i in inputs:
-            if i.mode != "ship" or i.layer_id is None:
+            if i.mode not in DATASET_MODES or i.layer_id is None:
                 continue
             layer = await db.get(Layer, i.layer_id)
             if layer is None:
@@ -486,7 +598,8 @@ class CRUDTemplate:
 
         A "ship" input is resolved on use only if the user may read that
         layer, so a template shared without its datasets arrives as an empty
-        workflow. Saving into a team or organisation space already grants the
+        workflow; a "copy" input is copied from that same layer, so it needs
+        the same read. Saving into a team or organisation space already grants the
         datasets to that space (T6); a grant on the template does the same for
         its grantee. Catalog layers are readable by everyone, and a layer the
         owner may not share is left alone — the template then resolves that
@@ -495,7 +608,7 @@ class CRUDTemplate:
         for raw in row.inputs or []:
             i = TemplateInput(**raw)
             if (
-                i.mode != "ship"
+                i.mode not in DATASET_MODES
                 or i.layer_id is None
                 or i.public_read
                 or i.from_catalog
@@ -686,7 +799,10 @@ class CRUDTemplate:
                     detail="inputs do not match the dataset references detected in the source config",
                 )
             for i in inputs:
-                if i.mode == "ship" and i.layer_id != detected_by_key[i.key].layer_id:
+                if (
+                    i.mode in DATASET_MODES
+                    and i.layer_id != detected_by_key[i.key].layer_id
+                ):
                     raise HTTPException(
                         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                         detail=f"input {i.key!r} layer_id does not match the detected reference",
@@ -712,6 +828,16 @@ class CRUDTemplate:
             source_project = await crud_project.get_live_or_404(
                 db, obj_in.source.project_id
             )
+            # The author's choices are checked against the source before the
+            # frozen copy is written: the engine autocommits, so a refusal
+            # after `copy_project` would leave a hidden copy nothing uses.
+            # The frozen copy links the very same layers, so the keys match.
+            planned = self._apply_project_choices(
+                await self._project_inputs(db, obj_in.source.project_id),
+                list(obj_in.inputs),
+            )
+            await self._assert_ship_inputs_readable(db, planned, user_id)
+            await self._assert_copy_inputs_copyable(db, planned)
             try:
                 frozen = await copy_project(
                     db,
@@ -729,13 +855,19 @@ class CRUDTemplate:
                 thumbnail_url = source_project.thumbnail_url
             assert frozen.id is not None
             # T5 v1: every layer linked to the FROZEN copy (not the source —
-            # the frozen copy is what the template actually points at) is a
-            # ship-only input; there is no ask option for a project payload.
-            inputs = await self._project_inputs(db, frozen.id)
+            # the frozen copy is what the template actually points at) is an
+            # input, shipped unless the author chose a copy for it; there is
+            # no ask option for a project payload.
+            inputs = self._apply_project_choices(
+                await self._project_inputs(db, frozen.id), list(obj_in.inputs)
+            )
 
         await self._assert_ship_inputs_readable(db, inputs, user_id)
+        await self._assert_copy_inputs_copyable(db, inputs)
 
-        ship_layer_ids = {i.layer_id for i in inputs if i.mode == "ship" and i.layer_id}
+        ship_layer_ids = {
+            i.layer_id for i in inputs if i.mode in DATASET_MODES and i.layer_id
+        }
         for layer_id in obj_in.share_datasets:
             if layer_id not in ship_layer_ids:
                 raise HTTPException(
@@ -1182,7 +1314,8 @@ class CRUDTemplate:
             # dataset flags recomputed live, since the layer's catalog
             # registration and visibility can have changed); a newly-detected key has no
             # prior author decision, so it defaults to "ask"; a key that no
-            # longer appears in the source is dropped.
+            # longer appears in the source is dropped. A surviving key keeps
+            # its `copy_content` too, so a "copy" input stays a copy.
             old_by_key = {i["key"]: TemplateInput(**i) for i in (row.inputs or [])}
             detected = detect_workflow_inputs(dict(wf.config or {}))
             reconciled: list[TemplateInput] = []
@@ -1211,6 +1344,7 @@ class CRUDTemplate:
                     )
             reconciled = await self._with_layer_flags(db, reconciled)
             await self._assert_ship_inputs_readable(db, reconciled, user_id)
+            await self._assert_copy_inputs_copyable(db, reconciled)
             row.inputs = [i.model_dump(mode="json") for i in reconciled]
             row.config = freeze_workflow_config(dict(wf.config or {}), reconciled)
             # T6: a reconciled ship input can newly need a share into the
@@ -1245,6 +1379,18 @@ class CRUDTemplate:
                     detail="The source project no longer exists",
                 )
             old_copy_id = row.source_project_id
+            # Each dataset keeps the author's ship/copy choice across the
+            # re-snapshot (keys are `layer:<id>`, the same layer in the new
+            # frozen copy); a dataset added to the source since is shipped,
+            # as on a first save, and one removed from it is dropped.
+            old_by_key = {i["key"]: TemplateInput(**i) for i in (row.inputs or [])}
+            source_inputs = await self._project_inputs(db, project_id)
+            kept_choices = [
+                old_by_key[i.key] for i in source_inputs if i.key in old_by_key
+            ]
+            planned = self._apply_project_choices(source_inputs, kept_choices)
+            await self._assert_ship_inputs_readable(db, planned, user_id)
+            await self._assert_copy_inputs_copyable(db, planned)
             new_copy = await copy_project(
                 db,
                 project_id=project_id,
@@ -1254,7 +1400,9 @@ class CRUDTemplate:
             )
             row.source_project_id = new_copy.id
             assert new_copy.id is not None
-            new_inputs = await self._project_inputs(db, new_copy.id)
+            new_inputs = self._apply_project_choices(
+                await self._project_inputs(db, new_copy.id), kept_choices
+            )
             await self._assert_ship_inputs_readable(db, new_inputs, user_id)
             row.inputs = [i.model_dump(mode="json") for i in new_inputs]
             if old_copy_id is not None and old_copy_id != new_copy.id:
@@ -1323,12 +1471,12 @@ class CRUDTemplate:
         user_id: UUID,
         bindings_in: dict[str, UUID],
         group_name: str,
-    ) -> tuple[dict[str, tuple[UUID | None, int | None]], list[int]]:
+    ) -> tuple[dict[str, tuple[UUID | None, int | None]], list[int], list[_CopyPlan]]:
         """Resolve a workflow template's declared inputs into the target
         project (T7, step 2 of "Using a template").
 
         For each input: the caller's ``bindings_in[key]`` override wins
-        when given; otherwise a "ship" input falls back to its shipped
+        when given; otherwise a "ship" or "copy" input falls back to its
         ``layer_id``. Either way the candidate only resolves if it is a
         live layer the caller may read — an unreadable or deleted shipped
         layer, and an "ask" input with no binding, are left unresolved
@@ -1340,15 +1488,27 @@ class CRUDTemplate:
         template — created once, lazily, only if there is at least one
         layer to put in it.
 
-        Returns ``(bindings, added_link_ids)``: ``bindings`` is what
-        ``bind_workflow_config`` expects, ``key -> (layer_id,
+        A "copy" input the caller did not bind gets a link of its own, never
+        an existing one: the ``layer_copy`` job puts the caller's copy behind
+        that link, and an entry the project already had keeps showing what
+        it showed. Two copy inputs naming the same dataset share one link,
+        and so one copy (with its rows if either asks for them). The link is
+        named after the dataset. An entry an earlier use made for a copy of
+        the same dataset (``template_copy`` stamp) is used again: bound to
+        as it is when its copy is there, and given its job again when the
+        copy never arrived.
+
+        Returns ``(bindings, added_link_ids, copy_plans)``: ``bindings`` is
+        what ``bind_workflow_config`` expects, ``key -> (layer_id,
         layer_project_id)`` with ``(None, None)`` for anything left
         unresolved; ``added_link_ids`` lists only the NEWLY created links
-        (a reused, already-existing link was not "added" by this call).
+        (a reused, already-existing link was not "added" by this call);
+        ``copy_plans`` the copies to start, one per copied dataset.
         """
         bindings: dict[str, tuple[UUID | None, int | None]] = {}
         added_ids: list[int] = []
         group_id: int | None = None
+        copy_plans: dict[UUID, _CopyPlan] = {}
 
         existing_rows = (
             await db.execute(
@@ -1360,10 +1520,52 @@ class CRUDTemplate:
             )
         ).all()
         existing_by_layer: dict[UUID, int] = {r.layer_id: r.id for r in existing_rows}
+        # Entries an earlier use of a copy template made for its copies, by
+        # source: a later use binds to that entry (and its copy) again
+        # instead of adding another entry and another copy each time.
+        copy_entries = (
+            await db.execute(
+                text(
+                    f"SELECT id, layer_id, "
+                    f"other_properties -> '{COPY_STAMP}' ->> 'source_layer_id' AS source "
+                    f"FROM {settings.SCHEMA}.layer_project "
+                    "WHERE project_id = :project_id "
+                    f"AND other_properties -> '{COPY_STAMP}' ->> 'source_layer_id' IS NOT NULL "
+                    "ORDER BY id"
+                ),
+                {"project_id": target_project_id},
+            )
+        ).all()
+        copy_entry_by_source: dict[UUID, Any] = {}
+        for r in copy_entries:
+            copy_entry_by_source.setdefault(UUID(r.source), r)
+
+        async def new_link(layer_id: UUID) -> int:
+            nonlocal group_id
+            if group_id is None:
+                group = LayerProjectGroup(project_id=target_project_id, name=group_name)
+                db.add(group)
+                await db.flush()
+                assert group.id is not None
+                group_id = group.id
+            created = await crud_layer_project.create(
+                db,
+                target_project_id,
+                [layer_id],
+                user_id=user_id,
+                group_id=group_id,
+            )
+            assert created
+            created_link: Any = created[0]
+            assert created_link.id is not None
+            link_id = cast(int, created_link.id)
+            added_ids.append(link_id)
+            return link_id
 
         for i in inputs:
             candidate = bindings_in.get(i.key)
-            if candidate is None and i.mode == "ship":
+            copies = i.mode == "copy" and candidate is None
+            if candidate is None and i.mode in DATASET_MODES:
                 candidate = i.layer_id
             layer_id: UUID | None = None
             if candidate is not None:
@@ -1377,32 +1579,190 @@ class CRUDTemplate:
             if layer_id is None:
                 bindings[i.key] = (None, None)
                 continue
+            if copies:
+                earlier = copy_entry_by_source.get(layer_id)
+                if earlier is not None and earlier.layer_id != layer_id:
+                    # Copied by an earlier use: bind to the copy, nothing to do.
+                    bindings[i.key] = (earlier.layer_id, earlier.id)
+                    continue
+                plan = copy_plans.get(layer_id)
+                if plan is None:
+                    if earlier is not None:
+                        # An earlier use's copy never arrived: start it again.
+                        link_id = cast(int, earlier.id)
+                    else:
+                        link_id = await new_link(layer_id)
+                        # The entry is named after the dataset, not the
+                        # "Copy from …" a second entry of a layer gets.
+                        await db.execute(
+                            text(
+                                f"UPDATE {settings.SCHEMA}.layer_project "
+                                "SET name = :name WHERE id = :id"
+                            ),
+                            {
+                                "name": layer.name if layer is not None else None,
+                                "id": link_id,
+                            },
+                        )
+                    plan = _CopyPlan(
+                        keys=[],
+                        source_layer_id=layer_id,
+                        link_ids=[link_id],
+                        copy_content=False,
+                    )
+                    copy_plans[layer_id] = plan
+                plan.keys.append(i.key)
+                plan.copy_content = plan.copy_content or i.copy_content
+                bindings[i.key] = (layer_id, plan.link_ids[0])
+                continue
             link_id = existing_by_layer.get(layer_id)
             if link_id is None:
-                if group_id is None:
-                    group = LayerProjectGroup(
-                        project_id=target_project_id, name=group_name
-                    )
-                    db.add(group)
-                    await db.flush()
-                    assert group.id is not None
-                    group_id = group.id
-                created = await crud_layer_project.create(
-                    db,
-                    target_project_id,
-                    [layer_id],
-                    user_id=user_id,
-                    group_id=group_id,
-                )
-                assert created
-                new_link: Any = created[0]
-                assert new_link.id is not None
-                link_id = cast(int, new_link.id)
+                link_id = await new_link(layer_id)
                 existing_by_layer[layer_id] = link_id
-                added_ids.append(link_id)
             bindings[i.key] = (layer_id, link_id)
 
-        return bindings, added_ids
+        return bindings, added_ids, list(copy_plans.values())
+
+    async def _project_copy_plans(
+        self, db: AsyncSession, inputs: list[TemplateInput], project_id: UUID
+    ) -> list[_CopyPlan]:
+        """The copies a project template's "copy" inputs need in the project
+        just made from it: one per dataset, covering every entry of that
+        project showing it (the frozen copy can show one dataset twice, with
+        two stylings — both then show the one copy)."""
+        plans: dict[UUID, _CopyPlan] = {}
+        for i in inputs:
+            if i.mode != "copy" or i.layer_id is None:
+                continue
+            plan = plans.setdefault(
+                i.layer_id,
+                _CopyPlan(keys=[], source_layer_id=i.layer_id, copy_content=False),
+            )
+            plan.keys.append(i.key)
+            plan.copy_content = plan.copy_content or i.copy_content
+        if not plans:
+            return []
+        rows = (
+            await db.execute(
+                text(
+                    f"SELECT id, layer_id FROM {settings.SCHEMA}.layer_project "
+                    "WHERE project_id = :project_id AND layer_id = ANY(:layer_ids) "
+                    "ORDER BY id"
+                ),
+                {"project_id": project_id, "layer_ids": list(plans)},
+            )
+        ).all()
+        for r in rows:
+            plans[r.layer_id].link_ids.append(r.id)
+        return [plan for plan in plans.values() if plan.link_ids]
+
+    async def _start_copy_jobs(
+        self,
+        db: AsyncSession,
+        plans: list[_CopyPlan],
+        *,
+        project_id: UUID,
+        template_id: UUID,
+        user_id: UUID,
+        access_token: str | None,
+    ) -> list[TemplateCopyJob]:
+        """Start one ``layer_copy`` job per copied dataset.
+
+        Runs after the project and its entries exist, since the job reads
+        them. A job that cannot start does not fail the use: its entries
+        keep showing the author's dataset (read-only, exactly like "ship"),
+        and the returned row says why. The caller is asked to read the
+        source once more here, as the job's own access check would: a
+        project template's frozen copy links every dataset whether or not
+        this caller may read it.
+
+        v1 copies the dataset as it is now, not as it was when the template
+        was saved: the job is handed the live layer. A snapshot frozen at
+        save time would be a layer of the template's own, named here
+        instead of ``source_layer_id``; nothing else about the job changes.
+        """
+        jobs: list[TemplateCopyJob] = []
+        for plan in plans:
+            job = TemplateCopyJob(
+                key=plan.keys[0],
+                source_layer_id=plan.source_layer_id,
+                layer_project_ids=plan.link_ids,
+                copy_content=plan.copy_content,
+            )
+            jobs.append(job)
+            stamp = {
+                "source_layer_id": str(plan.source_layer_id),
+                "template_id": str(template_id),
+                "copy_content": plan.copy_content,
+            }
+            if not await authz.can(db, "layer", plan.source_layer_id, user_id, "read"):
+                job.error = "source_not_readable"
+                await self._stamp_copy_entries(
+                    db, plan.link_ids, {**stamp, "status": "failed", "error": job.error}
+                )
+                continue
+            await self._stamp_copy_entries(
+                db, plan.link_ids, {**stamp, "status": "pending"}
+            )
+            entry_name = (
+                await db.execute(
+                    text(
+                        f"SELECT name FROM {settings.SCHEMA}.layer_project WHERE id = :id"
+                    ),
+                    {"id": plan.link_ids[0]},
+                )
+            ).scalar_one_or_none()
+            try:
+                job_id = await execute_process(
+                    process_id=LAYER_COPY_PROCESS,
+                    inputs={
+                        "source_layer_id": str(plan.source_layer_id),
+                        "project_id": str(project_id),
+                        "layer_project_ids": plan.link_ids,
+                        "copy_content": plan.copy_content,
+                        "template_id": str(template_id),
+                        "layer_name": entry_name,
+                    },
+                    access_token=access_token or "",
+                )
+            except Exception as exc:  # noqa: BLE001 - reported, never raised
+                logger.warning(
+                    "Copy of layer %s for project %s did not start: %s",
+                    plan.source_layer_id,
+                    project_id,
+                    exc,
+                )
+                job.error = "copy_not_started"
+            else:
+                if job_id:
+                    job.job_id = job_id
+                else:
+                    job.error = "copy_not_started"
+            if job.error is not None:
+                await self._stamp_copy_entries(
+                    db, plan.link_ids, {**stamp, "status": "failed", "error": job.error}
+                )
+        return jobs
+
+    async def _stamp_copy_entries(
+        self, db: AsyncSession, link_ids: list[int], stamp: dict[str, Any]
+    ) -> None:
+        """Record on the entries of a copy where it stands: ``pending`` once
+        its job is started, ``failed`` (with why) when it could not start.
+        The job sets ``done`` when it points them at the copy, or ``failed``
+        when it fails. A project can thus show a copy that never arrived
+        and start it again (a later use of the template does)."""
+        await db.execute(
+            text(
+                f"UPDATE {settings.SCHEMA}.layer_project "
+                "SET other_properties = (CASE WHEN jsonb_typeof(other_properties) = 'object' "
+                "THEN other_properties ELSE '{}'::jsonb END) "
+                f"|| jsonb_build_object('{COPY_STAMP}', CAST(:stamp AS jsonb)) "
+                "WHERE id = ANY(:ids)"
+            ),
+            {"ids": link_ids, "stamp": json.dumps(stamp)},
+        )
+        await db.commit()
 
     async def use(
         self,
@@ -1413,10 +1773,14 @@ class CRUDTemplate:
         req: TemplateUseRequest,
         headers: Any = None,
         peer: str | None = None,
+        access_token: str | None = None,
     ) -> TemplateUseResult:
         """Use a template (T7): create/insert its payload into a target,
         linking whatever shipped datasets the caller may read. Nothing is
-        executed — a workflow/layout row is only ever created, never run.
+        executed — a workflow/layout row is only ever created, never run —
+        except one ``layer_copy`` job per "copy" dataset, started with the
+        caller's ``access_token`` once everything else is in place
+        (``_start_copy_jobs``); the result lists them in ``copy_jobs``.
 
         Requires `read` on the template, plus `write` on the target:
         `project_id` (an existing project — workflow/layout payloads
@@ -1470,7 +1834,19 @@ class CRUDTemplate:
             await db.commit()
             await db.refresh(new_project)
             assert new_project.id is not None
-            return TemplateUseResult(project_id=new_project.id)
+            project_inputs = [TemplateInput(**i) for i in (row.inputs or [])]
+            plans = await self._project_copy_plans(db, project_inputs, new_project.id)
+            return TemplateUseResult(
+                project_id=new_project.id,
+                copy_jobs=await self._start_copy_jobs(
+                    db,
+                    plans,
+                    project_id=new_project.id,
+                    template_id=template_id,
+                    user_id=user_id,
+                    access_token=access_token,
+                ),
+            )
 
         # Workflow / layout payload: an existing project (write required),
         # or a brand-new one created in `target_folder_id`.
@@ -1490,7 +1866,7 @@ class CRUDTemplate:
 
         if row.payload_kind == "workflow":
             inputs = [TemplateInput(**i) for i in (row.inputs or [])]
-            bindings, added_ids = await self._resolve_workflow_inputs(
+            bindings, added_ids, plans = await self._resolve_workflow_inputs(
                 db,
                 inputs,
                 target_project_id=target_project_id,
@@ -1517,6 +1893,14 @@ class CRUDTemplate:
                 unresolved_inputs=[
                     inputs_by_key[k] for k in unresolved_keys if k in inputs_by_key
                 ],
+                copy_jobs=await self._start_copy_jobs(
+                    db,
+                    plans,
+                    project_id=target_project_id,
+                    template_id=template_id,
+                    user_id=user_id,
+                    access_token=access_token,
+                ),
             )
 
         # Layout payload: inserted as is, no layers (T5 — a layout carries
@@ -1554,8 +1938,9 @@ class CRUDTemplate:
         they're publishing (B1); this does not widen who may publish beyond
         the superuser check above, it only narrows it further.
 
-        Every ``mode == "ship"`` input's dataset must be readable by every
-        signed-in user once the template is on the shelf: a catalog dataset
+        Every "ship" or "copy" input's dataset must be readable by every
+        signed-in user once the template is on the shelf (a copy is made
+        from the author's dataset, so it needs the same read): a catalog dataset
         or a public one, checked live against the layer row (the stored
         flags are never trusted). A dataset that is neither is made public
         by the publish itself when the caller owns it (effective role
@@ -1575,7 +1960,7 @@ class CRUDTemplate:
         bad_layers: list[dict[str, str]] = []
         to_make_public: list[Layer] = []
         for i in inputs:
-            if i.mode != "ship" or i.layer_id is None:
+            if i.mode not in DATASET_MODES or i.layer_id is None:
                 continue
             layer = await db.get(Layer, i.layer_id)
             if layer is not None and (

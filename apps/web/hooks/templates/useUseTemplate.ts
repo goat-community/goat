@@ -7,7 +7,9 @@ import { useFolders } from "@/lib/api/folders";
 import { useProjectLayers } from "@/lib/api/projects";
 import { applyTemplate, refreshTemplates } from "@/lib/api/templates";
 import { USERS_API_BASE_URL } from "@/lib/api/users";
+import { addRunningJobIds } from "@/lib/store/jobs/slice";
 import { homeFolderOf } from "@/lib/utils/content";
+import { bindsDataset } from "@/lib/utils/templates";
 import type { ContentItem, Space } from "@/lib/validations/content";
 import type { Folder } from "@/lib/validations/folder";
 import type { ProjectLayer } from "@/lib/validations/project";
@@ -17,6 +19,13 @@ import type {
   TemplateUseRequest,
   TemplateUseResult,
 } from "@/lib/validations/template";
+
+import { useAppDispatch } from "@/hooks/store/ContextHooks";
+
+/** The copy jobs of a use result that started, by job id — the ones the job
+ * tray and the map's job watcher can follow. */
+export const startedCopyJobIds = (result: TemplateUseResult): string[] =>
+  result.copy_jobs.flatMap((job) => (job.job_id ? [job.job_id] : []));
 
 /** Where "Use template" was opened from: a panel already sitting inside a
  * project passes `in_project` and the payload is inserted there; Home,
@@ -73,6 +82,7 @@ const revalidateOnboardingFacts = () => mutate(`${USERS_API_BASE_URL}/me/onboard
  */
 export const useUseTemplate = (template: TemplateRead, context: UseTemplateContext) => {
   const { t } = useTranslation("common");
+  const dispatch = useAppDispatch();
   const { spaces } = useSpaces();
   const { folders } = useFolders({});
 
@@ -150,8 +160,11 @@ export const useUseTemplate = (template: TemplateRead, context: UseTemplateConte
   const setSelectedFolder = (folder: Folder | null) => setFolderOverride(folder);
 
   const askInputs = useMemo(() => template.inputs.filter((input) => input.mode === "ask"), [template.inputs]);
-  const shipInputs = useMemo(
-    () => template.inputs.filter((input) => input.mode === "ship"),
+  // Every dataset the template brings: linked as it is, or copied for the
+  // caller ("copy" — the copy replaces it once its job has run).
+  const shipInputs = useMemo(() => template.inputs.filter(bindsDataset), [template.inputs]);
+  const copyInputs = useMemo(
+    () => template.inputs.filter((input) => input.mode === "copy"),
     [template.inputs]
   );
   const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? null;
@@ -214,6 +227,11 @@ export const useUseTemplate = (template: TemplateRead, context: UseTemplateConte
     try {
       const body = buildRequest(template, selectedProjectId, name, selectedFolder?.id, bindings);
       const result = await applyTemplate(template.id, body);
+      // The copies are written by jobs: the tray shows them, and the map's
+      // job watcher reloads the project's layers once they are done, so the
+      // caller's entries show their own copy instead of the template's.
+      const copyJobIds = startedCopyJobIds(result);
+      if (copyJobIds.length > 0) dispatch(addRunningJobIds(copyJobIds));
       refreshTemplates();
       refreshContentFeed();
       void revalidateOnboardingFacts();
@@ -251,6 +269,8 @@ export const useUseTemplate = (template: TemplateRead, context: UseTemplateConte
     setSelectedFolder,
     askInputs,
     shipInputs,
+    /** The datasets every user gets their own editable copy of. */
+    copyInputs,
     /** The picked existing project's row, for wording; null for a new
      * project and inside a project (the caller is already looking at it). */
     selectedProject,

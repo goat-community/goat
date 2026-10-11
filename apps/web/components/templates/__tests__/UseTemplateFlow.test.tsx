@@ -17,7 +17,9 @@ const {
   useProjectLayersMock,
   toastSuccessMock,
   toastInfoMock,
+  toastWarningMock,
   swrMutateMock,
+  dispatchMock,
 } = vi.hoisted(() => ({
   applyTemplateMock: vi.fn(),
   refreshTemplatesMock: vi.fn(),
@@ -28,7 +30,9 @@ const {
   useProjectLayersMock: vi.fn(),
   toastSuccessMock: vi.fn(),
   toastInfoMock: vi.fn(),
+  toastWarningMock: vi.fn(),
   swrMutateMock: vi.fn(),
+  dispatchMock: vi.fn(),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -36,7 +40,10 @@ vi.mock("react-i18next", () => ({
     t: (key: string, vars?: Record<string, unknown>) => (vars ? `${key}:${JSON.stringify(vars)}` : key),
   }),
 }));
-vi.mock("react-toastify", () => ({ toast: { success: toastSuccessMock, info: toastInfoMock } }));
+vi.mock("react-toastify", () => ({
+  toast: { success: toastSuccessMock, info: toastInfoMock, warning: toastWarningMock },
+}));
+vi.mock("@/hooks/store/ContextHooks", () => ({ useAppDispatch: () => dispatchMock }));
 vi.mock("swr", () => ({ mutate: swrMutateMock }));
 vi.mock("@/lib/api/templates", () => ({
   applyTemplate: applyTemplateMock,
@@ -135,6 +142,17 @@ const useResult: TemplateUseResult = {
   layout_id: null,
   added_layer_project_ids: [],
   unresolved_inputs: [],
+  copy_jobs: [],
+};
+
+/** A dataset every user gets their own editable copy of. */
+const copyInput: TemplateInput = {
+  ...askInput,
+  key: "layer:copied",
+  label: "Planned housing",
+  mode: "copy",
+  copy_content: false,
+  layer_id: "4c1b9a51-0d8f-4c7e-8a10-3b0c6a2e5d1f",
 };
 
 /** Opens the layer picker of one input row and returns its listbox. */
@@ -152,7 +170,9 @@ describe("UseTemplateFlow", () => {
     refreshContentFeedMock.mockReset();
     toastSuccessMock.mockReset();
     toastInfoMock.mockReset();
+    toastWarningMock.mockReset();
     swrMutateMock.mockReset();
+    dispatchMock.mockReset();
     useSpacesMock
       .mockReset()
       .mockReturnValue({ spaces: [personalSpace], isLoading: false, isError: undefined });
@@ -666,6 +686,112 @@ describe("UseTemplateFlow", () => {
       expect(screen.queryByRole("button", { name: "add_to_a_project" })).not.toBeInTheDocument();
       expect(screen.queryByText("no_projects_yet_template")).not.toBeInTheDocument();
       expect(screen.getByLabelText("name")).toBeInTheDocument();
+    });
+  });
+
+  describe("copy datasets", () => {
+    const projectTemplate: TemplateRead = {
+      ...baseTemplate,
+      payload_kind: "project",
+      kinds: ["project"],
+      inputs: [copyInput, { ...copyInput, key: "layer:shipped", label: "Districts", mode: "ship" }],
+    };
+
+    it("tells the caller up front how many datasets they get their own copy of", () => {
+      render(
+        <UseTemplateFlow
+          template={projectTemplate}
+          context={{ kind: "outside_project" }}
+          onClose={noop}
+          onDone={noop}
+        />
+      );
+
+      expect(screen.getByTestId("template-copies-hint")).toHaveTextContent(
+        `template_copies_hint:${JSON.stringify({ count: 1 })}`
+      );
+    });
+
+    it("hands the started copy jobs to the job tray and announces them", async () => {
+      const result: TemplateUseResult = {
+        ...useResult,
+        workflow_id: null,
+        copy_jobs: [
+          {
+            key: "layer:copied",
+            source_layer_id: copyInput.layer_id as string,
+            layer_project_ids: [11],
+            copy_content: false,
+            job_id: "job-1",
+            error: null,
+          },
+          {
+            key: "layer:other",
+            source_layer_id: "0f0e8a4c-5d1f-4c1b-9a51-0d8f2c7e4a10",
+            layer_project_ids: [12],
+            copy_content: true,
+            job_id: null,
+            error: "copy_not_started",
+          },
+        ],
+      };
+      applyTemplateMock.mockReset().mockResolvedValue(result);
+      const onDone = vi.fn();
+      render(
+        <UseTemplateFlow
+          template={projectTemplate}
+          context={{ kind: "outside_project" }}
+          onClose={noop}
+          onDone={onDone}
+        />
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: "create" }));
+
+      await waitFor(() => expect(onDone).toHaveBeenCalledWith(result));
+      // Only the job that started is followed: the tray polls it, and the
+      // map's job watcher reloads the project's layers when it is done.
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: "jobs/addRunningJobIds",
+        payload: ["job-1"],
+      });
+      expect(toastInfoMock).toHaveBeenCalledWith(`template_copies_started:${JSON.stringify({ count: 1 })}`);
+      expect(toastWarningMock).toHaveBeenCalledWith(
+        `template_copies_not_started:${JSON.stringify({ count: 1 })}`
+      );
+    });
+
+    it("follows no job and announces no copies for a template without any", async () => {
+      render(
+        <UseTemplateFlow
+          template={baseTemplate}
+          context={{ kind: "in_project", projectId: "project-1" }}
+          onClose={noop}
+          onDone={noop}
+        />
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: "add_to_project" }));
+
+      await waitFor(() => expect(toastSuccessMock).toHaveBeenCalled());
+      expect(dispatchMock).not.toHaveBeenCalled();
+      expect(toastWarningMock).not.toHaveBeenCalled();
+      expect(screen.queryByTestId("template-copies-hint")).toBeNull();
+    });
+
+    it("lists a workflow's copy input as the caller's own copy", () => {
+      render(
+        <UseTemplateFlow
+          template={{ ...baseTemplate, inputs: [copyInput] }}
+          context={{ kind: "in_project", projectId: "project-1" }}
+          onClose={noop}
+          onDone={noop}
+        />
+      );
+
+      expect(screen.getByText("Planned housing")).toBeInTheDocument();
+      expect(screen.getByText("template_copy_for_you")).toBeInTheDocument();
+      expect(screen.queryByText("ships_with_template")).not.toBeInTheDocument();
     });
   });
 });

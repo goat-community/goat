@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 
 import type { TemplateRead, TemplateUseResult } from "@/lib/validations/template";
 
-import { templateResultHref } from "@/hooks/templates/useUseTemplate";
+import { startedCopyJobIds, templateResultHref } from "@/hooks/templates/useUseTemplate";
 
 const template = {} as TemplateRead;
 
@@ -17,6 +17,7 @@ const baseResult: TemplateUseResult = {
   layout_id: null,
   added_layer_project_ids: [],
   unresolved_inputs: [],
+  copy_jobs: [],
 };
 
 describe("templateResultHref", () => {
@@ -36,5 +37,30 @@ describe("templateResultHref", () => {
 
   it("lands on the plain project route for a project payload (no workflow/layout id)", () => {
     expect(templateResultHref(template, baseResult)).toBe("/map/11111111-1111-1111-1111-111111111111");
+  });
+});
+
+describe("startedCopyJobIds", () => {
+  const job = {
+    key: "layer:a",
+    source_layer_id: "44444444-4444-4444-4444-444444444444",
+    layer_project_ids: [7],
+    copy_content: true,
+  };
+
+  it("follows only the copy jobs that started", () => {
+    const result: TemplateUseResult = {
+      ...baseResult,
+      copy_jobs: [
+        { ...job, job_id: "job-1", error: null },
+        { ...job, key: "layer:b", job_id: null, error: "copy_not_started" },
+        { ...job, key: "layer:c", job_id: null, error: "source_not_readable" },
+      ],
+    };
+    expect(startedCopyJobIds(result)).toEqual(["job-1"]);
+  });
+
+  it("follows nothing for a template without copies", () => {
+    expect(startedCopyJobIds(baseResult)).toEqual([]);
   });
 });
