@@ -239,6 +239,14 @@ class TemplateRead(BaseModel):
     source_ref: dict[str, Any]
     source: TemplateSourceInfo | None = None
     my_role: Literal["owner", "editor", "viewer"]
+    shared_into_space_id: UUID | None = Field(
+        default=None,
+        description="For a template outside the caller's spaces: the caller's "
+        "team or organization space it is shared into, through a grant to that "
+        "team or organization on the template or on a folder above it. The "
+        "template browser shows it on that space's shelf. None for a template "
+        "in the caller's own spaces and for one shared with the caller alone.",
+    )
     created_at: datetime
     updated_at: datetime
     config: dict[str, Any] | None = Field(
