@@ -189,7 +189,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
             sx={{ minHeight: "40px" }}
             value={value}
             onChange={handleChange}
-            aria-label="config panel tabs"
+            aria-label={t("config_panel")}
             variant="fullWidth">
             <Tab
               sx={{ minHeight: "40px", height: "40px" }}

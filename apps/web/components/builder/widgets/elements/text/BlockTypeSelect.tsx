@@ -1,19 +1,20 @@
 import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
+import { useTranslation } from "react-i18next";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
 
 import type { MenuItemOption } from "@/components/builder/widgets/elements/text/MenuSelect";
 import { MenuSelect } from "@/components/builder/widgets/elements/text/MenuSelect";
 
-const BLOCK_TYPE_ITEMS: MenuItemOption[] = [
-  { label: "Text", value: "paragraph", icon: ICON_NAME.TEXT },
-  { label: "Heading 1", value: "heading1", icon: ICON_NAME.H1 },
-  { label: "Heading 2", value: "heading2", icon: ICON_NAME.H2 },
-  { label: "Heading 3", value: "heading3", icon: ICON_NAME.H3 },
-  { label: "Bulleted list", value: "bulletList", icon: ICON_NAME.BULLET_LIST },
-  { label: "Numbered list", value: "orderedList", icon: ICON_NAME.NUMBERED_LIST },
-  { label: "Code block", value: "codeBlock", icon: ICON_NAME.CODE },
+const BLOCK_TYPE_ITEMS: Array<Omit<MenuItemOption, "label"> & { labelKey: string }> = [
+  { labelKey: "text", value: "paragraph", icon: ICON_NAME.TEXT },
+  { labelKey: "heading_1", value: "heading1", icon: ICON_NAME.H1 },
+  { labelKey: "heading_2", value: "heading2", icon: ICON_NAME.H2 },
+  { labelKey: "heading_3", value: "heading3", icon: ICON_NAME.H3 },
+  { labelKey: "bulleted_list", value: "bulletList", icon: ICON_NAME.BULLET_LIST },
+  { labelKey: "numbered_list", value: "orderedList", icon: ICON_NAME.NUMBERED_LIST },
+  { labelKey: "code_block", value: "codeBlock", icon: ICON_NAME.CODE },
 ];
 
 const getCurrentBlock = (editor: Editor) => {
@@ -38,6 +39,7 @@ export const BlockTypeSelect = ({
   onClose?: () => void;
   forceClose?: boolean;
 }) => {
+  const { t } = useTranslation("common");
   const editorState = useEditorState({
     editor,
     selector: (snapshot) => {
@@ -51,7 +53,7 @@ export const BlockTypeSelect = ({
   return (
     <MenuSelect
       buttonValue="blockType"
-      items={BLOCK_TYPE_ITEMS}
+      items={BLOCK_TYPE_ITEMS.map(({ labelKey, ...item }) => ({ ...item, label: t(labelKey) }))}
       value={editorState?.currentBlock ?? "paragraph"}
       onOpen={onOpen}
       onClose={onClose}

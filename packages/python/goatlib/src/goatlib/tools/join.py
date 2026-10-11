@@ -40,8 +40,7 @@ SECTION_RESULT_JOIN = UISection(
     id="result",
     order=7,
     icon="save",
-    label="Result Layer",
-    label_de="Ergebnisebene",
+    label_key="result_layer_section",
     depends_on={"target_layer_id": {"$ne": None}},
 )
 
@@ -337,6 +336,7 @@ class JoinToolParams(ToolInputBase, BaseModel):
         json_schema_extra=ui_field(
             section="join_options",
             field_order=6,
+            label_key="field_statistics",
             widget="field-statistics-selector",
             widget_options={"source_layer": "join_layer_id"},
             visible_when={

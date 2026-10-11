@@ -67,7 +67,7 @@ export default function StartingPointsTable({ maxStartingPoints }: StartingPoint
 
   return (
     <>
-      <Table size="small" aria-label="starting point table" stickyHeader>
+      <Table size="small" aria-label={t("starting_points_table")} stickyHeader>
         <TableHead>
           <TableRow>
             <TableCell align="left" sx={{ backgroundColor: "transparent" }}>
@@ -88,7 +88,7 @@ export default function StartingPointsTable({ maxStartingPoints }: StartingPoint
       </Table>
       {/* Second table as workaround to make the table body scrollable */}
       <TableContainer style={{ marginTop: 0, maxHeight: 250 }}>
-        <Table size="small" aria-label="starting point table">
+        <Table size="small" aria-label={t("starting_points_table")}>
           <TableBody>
             {!startingPoints?.length && (
               <TableRow>

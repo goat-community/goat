@@ -164,7 +164,7 @@ export default function WorkflowRunner({ workflowId, onBack, onClose }: Workflow
       toast.dismiss();
       toast.success(t("workflow_started"));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Execution failed";
+      const message = error instanceof Error ? error.message : t("execution_failed");
       setExecState((s) => ({
         ...s,
         isExecuting: false,
@@ -317,7 +317,7 @@ export default function WorkflowRunner({ workflowId, onBack, onClose }: Workflow
       void claimJobAnnouncement(job.jobID).then((claimed) => {
         if (!claimed) return;
         toast.dismiss();
-        toast.error(`${t("workflow_failed")}: ${job.message || "Unknown error"}`);
+        toast.error(`${t("workflow_failed")}: ${job.message || t("unknown_error")}`);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

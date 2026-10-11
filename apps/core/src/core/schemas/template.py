@@ -11,6 +11,14 @@ from core.schemas.content import ContentCreator
 
 _LAYER_TYPES = ("feature", "table", "raster")
 
+TemplateInputMode = Literal["ship", "ask", "copy"]
+"""How a template input's dataset reaches a user (see ``TemplateInput``)."""
+
+# The modes whose input keeps the author's dataset bound: the user reads it
+# on use, so the author must be able to read it on save, and its audience is
+# widened by a template grant or a team/organisation destination (T6).
+DATASET_MODES: tuple[str, ...] = ("ship", "copy")
+
 
 def normalize_layer_type(value: Any) -> Any:
     """``value`` when it is one of the three layer types, else ``None``.
@@ -56,12 +64,18 @@ class TemplateInput(BaseModel):
     ``"node:<dataset node id>"`` for a workflow dataset (the first of the
     dataset nodes that use it), or
     ``"param:<node id>:<param>"`` for a tool-parameter slot (not produced by
-    this module yet). ``mode`` is the author's choice at save time: "ship"
+    this module yet), or ``"layer:<layer id>"`` for a project payload's
+    dataset. ``mode`` is the author's choice at save time: "ship"
     keeps ``layer_id`` bound so the dataset resolves for every user who can
-    read it (catalog datasets resolve for everyone through promote-on-use);
-    "ask" clears ``layer_id`` and turns the reference into a named, typed
-    slot the user fills in on use. ``layer_type`` holds ``None`` for an input
-    whose type is not one of the three types.
+    read it (catalog datasets resolve for everyone through promote-on-use),
+    read-only unless shared with them as editor; "ask" clears ``layer_id``
+    and turns the reference into a named, typed slot the user fills in on
+    use (workflow payloads only); "copy" keeps ``layer_id`` bound like
+    "ship", and on use gives every user their own editable copy of that
+    dataset (the ``layer_copy`` job), with its rows when ``copy_content``
+    is true or as an empty layer with the same columns otherwise.
+    ``copy_content`` is only read for "copy". ``layer_type`` holds ``None``
+    for an input whose type is not one of the three types.
 
     The two dataset flags are recomputed server-side from the layer row,
     never trusted from the client: ``from_catalog`` (a catalog dataset,
@@ -72,7 +86,8 @@ class TemplateInput(BaseModel):
 
     key: str
     label: str
-    mode: Literal["ship", "ask"]
+    mode: TemplateInputMode
+    copy_content: bool = True
     layer_id: UUID | None = None
     layer_type: Literal["feature", "table", "raster"] | None = None
     geometry_type: str | None = None
@@ -273,15 +288,38 @@ class TemplateUseRequest(BaseModel):
     bindings: dict[str, UUID] = {}
 
 
+class TemplateCopyJob(BaseModel):
+    """One "copy" dataset of a used template: the ``layer_copy`` job that
+    gives the caller their own editable copy of it.
+
+    ``layer_project_ids`` are the project entries that show the dataset
+    and that the job points at the copy once it has written it; until
+    then they show the author's dataset, read-only. ``job_id`` is the
+    processes job to poll; ``None`` together with ``error`` when the job
+    did not start (``source_not_readable``: the caller may not read the
+    dataset, ``copy_not_started``: the processes service refused or could
+    not be reached). Either way the entries keep showing the source.
+    """
+
+    key: str
+    source_layer_id: UUID
+    layer_project_ids: list[int]
+    copy_content: bool
+    job_id: str | None = None
+    error: Literal["source_not_readable", "copy_not_started"] | None = None
+
+
 class TemplateUseResult(BaseModel):
     """Response of ``POST /template/{id}/use``: what got created, what got
-    linked, and which inputs still need the caller's attention."""
+    linked, which inputs still need the caller's attention, and the copy
+    jobs started for the template's "copy" datasets."""
 
     project_id: UUID
     workflow_id: UUID | None = None
     layout_id: UUID | None = None
     added_layer_project_ids: list[int] = []
     unresolved_inputs: list[TemplateInput] = []
+    copy_jobs: list[TemplateCopyJob] = []
 
 
 class TemplateGrantCreate(BaseModel):

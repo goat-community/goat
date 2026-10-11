@@ -61,7 +61,12 @@ vi.mock("@/components/templates/UseTemplateFlow", () => ({
       {t.name}
       <button
         onClick={() =>
-          onDone({ project_id: "new-project", added_layer_project_ids: [], unresolved_inputs: [] })
+          onDone({
+            project_id: "new-project",
+            added_layer_project_ids: [],
+            unresolved_inputs: [],
+            copy_jobs: [],
+          })
         }>
         finish-use
       </button>

@@ -53,7 +53,7 @@ import {
 } from "@/lib/templates/thumbnailSnapshot";
 import { homeFolderOf, spaceDisplayName, spaceIconFor } from "@/lib/utils/content";
 import { tagColor } from "@/lib/utils/tagColor";
-import { publicOnPublishInputs } from "@/lib/utils/templates";
+import { inputChoiceOf, inputFieldsOf, publicOnPublishInputs } from "@/lib/utils/templates";
 import type { Space } from "@/lib/validations/content";
 import { templateBadgeKind } from "@/lib/validations/template";
 import type {
@@ -390,6 +390,10 @@ const SaveTemplateDialog = ({
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewErrorMessage, setPreviewErrorMessage] = useState<string | undefined>(undefined);
   const [inputModes, setInputModes] = useState<Record<string, TemplateInputMode>>({});
+  // A project payload has no "ask": clearing a dataset's share checkbox
+  // only keeps it out of `share_datasets`, it does not change the dataset's
+  // ship/copy choice.
+  const [projectShareOptOut, setProjectShareOptOut] = useState<Set<string>>(() => new Set());
 
   // What the preview actually depends on, as a value: callers build the
   // `source` prop inline, so a new object arrives on every parent render and
@@ -411,9 +415,10 @@ const SaveTemplateDialog = ({
         setPreview(result);
         const modes: Record<string, TemplateInputMode> = {};
         result.detected_inputs.forEach((input) => {
-          modes[input.key] = input.mode;
+          modes[input.key] = inputChoiceOf(input);
         });
         setInputModes(modes);
+        setProjectShareOptOut(new Set());
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -433,17 +438,32 @@ const SaveTemplateDialog = ({
   const keysForLayer = (layerId: string): string[] =>
     (preview?.detected_inputs ?? []).filter((input) => input.layer_id === layerId).map((input) => input.key);
 
+  // A dataset is shared when the template keeps it — shipped or copied for
+  // each user, who read it either way. Unsharing a workflow's dataset turns
+  // its inputs into "ask" slots; a project's only leaves the share out.
   const layerIncluded = (layerId: string): boolean => {
     const keys = keysForLayer(layerId);
-    return keys.length > 0 && keys.every((key) => modeFor(key) === "ship");
+    if (keys.length === 0) return false;
+    if (source.kind === "project") return !projectShareOptOut.has(layerId);
+    return keys.every((key) => modeFor(key) !== "ask");
   };
 
   const toggleLayerShare = (layerId: string, included: boolean) => {
+    if (source.kind === "project") {
+      setProjectShareOptOut((prev) => {
+        const next = new Set(prev);
+        if (included) next.delete(layerId);
+        else next.add(layerId);
+        return next;
+      });
+      return;
+    }
     const keys = keysForLayer(layerId);
     setInputModes((prev) => {
       const next = { ...prev };
       keys.forEach((key) => {
-        next[key] = included ? "ship" : "ask";
+        if (!included) next[key] = "ask";
+        else if ((prev[key] ?? "ask") === "ask") next[key] = "ship";
       });
       return next;
     });
@@ -457,7 +477,7 @@ const SaveTemplateDialog = ({
   // author's current ship/ask choices.
   const switchInputs = (preview?.detected_inputs ?? []).map((input) => ({
     ...input,
-    mode: modeFor(input.key),
+    ...inputFieldsOf(modeFor(input.key)),
   }));
   // A chosen template's catalog state is where its switch starts.
   const publishTargetId = editing ? current?.id : updateTarget?.id;
@@ -616,7 +636,7 @@ const SaveTemplateDialog = ({
       if (!targetFolderId) return;
       const inputs = (preview?.detected_inputs ?? []).map((input) => ({
         ...input,
-        mode: modeFor(input.key),
+        ...inputFieldsOf(modeFor(input.key)),
       }));
       const shareDatasets = shareRows.filter((row) => layerIncluded(row.layer_id)).map((row) => row.layer_id);
 
@@ -1041,7 +1061,10 @@ const SaveTemplateDialog = ({
                     <FormLabelHelper label={t("template_inputs")} color={theme.palette.text.secondary} />
                     <TemplateInputsTable
                       inputs={current.inputs}
-                      modeFor={(key) => current.inputs.find((input) => input.key === key)?.mode ?? "ask"}
+                      modeFor={(key) => {
+                        const input = current.inputs.find((candidate) => candidate.key === key);
+                        return input ? inputChoiceOf(input) : "ask";
+                      }}
                       onModeChange={() => undefined}
                       allowAsk={current.payload_kind !== "project"}
                       disabled
@@ -1075,6 +1098,11 @@ const SaveTemplateDialog = ({
                   onModeChange={(key, mode) => setInputModes((prev) => ({ ...prev, [key]: mode }))}
                   allowAsk={source.kind !== "project"}
                 />
+                {preview.detected_inputs.some((input) => modeFor(input.key).startsWith("copy")) && (
+                  <Typography sx={{ mt: 1, fontSize: 12, color: "text.secondary", lineHeight: 1.5 }}>
+                    {t("template_dataset_copy_hint")}
+                  </Typography>
+                )}
               </>
             )
           )}

@@ -1323,7 +1323,7 @@ const ReportsCanvas: React.FC<ReportsCanvasProps> = ({
 
                 {isAtlasLoading ? (
                   <Typography variant="body2" sx={{ minWidth: 100, textAlign: "center" }}>
-                    Loading...
+                    {t("loading")}
                   </Typography>
                 ) : (
                   <Stack direction="row" spacing={0.5} alignItems="center">

@@ -56,6 +56,7 @@ def is_temp_layer_id(text: str) -> bool:
 EXTRA_LAYER_FIELDS: dict[str, tuple[str, ...]] = {
     "catchment_area_v2": ("starting_points.layer_id",),
     "layer_create_filtered": ("source_layer_id", "input_layer_id"),
+    "layer_copy": ("source_layer_id",),
     "bundle_create_filtered": ("input_layer_id",),
     "merge": ("input_layer_id",),
     "custom_sql": ("input_layer_id",),
@@ -76,7 +77,12 @@ NOT_LAYER_REFERENCES: dict[str, str] = {
 # Tools that change or remove the layers they name: write, not read.
 LAYER_WRITE_TOOLS = frozenset({"layer_delete", "layer_delete_multi", "layer_update"})
 # Project-layer links (layer_project ids), checked as reads of their layer.
-LAYER_PROJECT_FIELDS: tuple[str, ...] = ("opportunities[].layer_project_id",)
+# `layer_copy` names the entries of its (write-checked) project it points at
+# the copy; the job itself refuses an entry of another project.
+LAYER_PROJECT_FIELDS: tuple[str, ...] = (
+    "opportunities[].layer_project_id",
+    "layer_project_ids[]",
+)
 BUNDLE_READ_FIELDS: tuple[str, ...] = (
     "street_network_bundle_id",
     "pt_network_bundle_id",

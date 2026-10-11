@@ -137,6 +137,7 @@ const fakeUseResult: TemplateUseResult = {
   layout_id: "layout-new",
   added_layer_project_ids: [],
   unresolved_inputs: [],
+  copy_jobs: [],
 };
 
 const project: Project = { id: "project-1" } as Project;
@@ -429,15 +430,15 @@ describe("ReportsConfigPanel — page sizes", () => {
   it("greys out DPI options the sheet cannot render and shows the export size", async () => {
     renderWith(withPage({ size: "A1", orientation: "portrait", dpi: 300 }));
     expect(screen.getByText(/export_pixels.*7016.*9933/)).toBeInTheDocument();
-    const list = await openSelect("300 (High)");
+    const list = await openSelect("300 (dpi_label_high)");
     await waitFor(() =>
-      expect(within(list).getByRole("option", { name: /600 \(Print\)/ })).toHaveAttribute(
+      expect(within(list).getByRole("option", { name: /600 \(dpi_label_print\)/ })).toHaveAttribute(
         "aria-disabled",
         "true"
       )
     );
     await waitFor(() =>
-      expect(within(list).getByRole("option", { name: /300 \(High\)/ })).not.toHaveAttribute(
+      expect(within(list).getByRole("option", { name: /300 \(dpi_label_high\)/ })).not.toHaveAttribute(
         "aria-disabled",
         "true"
       )

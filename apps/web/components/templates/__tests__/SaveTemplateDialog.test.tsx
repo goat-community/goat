@@ -366,7 +366,7 @@ describe("SaveTemplateDialog", () => {
     expect(screen.queryByText("template_inputs")).not.toBeInTheDocument();
   });
 
-  it("shows a static ships_with_template label (no switch) for a project payload, and always submits mode=ship", async () => {
+  it("offers ship or copy (no ask switch) for a project payload, and submits mode=ship by default", async () => {
     previewTemplateMock.mockResolvedValue({
       detected_inputs: [
         {
@@ -389,11 +389,11 @@ describe("SaveTemplateDialog", () => {
       <SaveTemplateDialog source={projectSource} defaultName="My Project" onClose={noop} onSaved={noop} />
     );
 
-    await screen.findByText("Parks");
-
-    expect(screen.getByText("ships_with_template")).toBeInTheDocument();
+    const choice = await screen.findByRole("combobox", { name: "Parks — template_dataset_handling" });
+    expect(choice).toHaveTextContent("template_dataset_ship");
     expect(screen.queryByRole("checkbox", { name: /ship_dataset/ })).not.toBeInTheDocument();
     expect(screen.queryByText("ask_on_use")).not.toBeInTheDocument();
+    expect(screen.queryByText("template_dataset_copy_hint")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "save" }));
 
@@ -401,6 +401,167 @@ describe("SaveTemplateDialog", () => {
       expect(createTemplateMock).toHaveBeenCalledWith(
         expect.objectContaining({
           inputs: [expect.objectContaining({ key: "layer:L1", mode: "ship" })],
+        })
+      )
+    );
+  });
+
+  it("saves an empty copy for every user when the author picks it for a project dataset", async () => {
+    previewTemplateMock.mockResolvedValue({
+      detected_inputs: [
+        {
+          key: "layer:L1",
+          label: "Planned housing",
+          mode: "ship",
+          layer_id: "L1",
+          layer_type: "feature",
+          geometry_type: "point",
+          from_catalog: false,
+          public_read: false,
+        },
+      ],
+      kinds: ["project"],
+      datasets_needing_share: [],
+    } satisfies TemplatePreview);
+    createTemplateMock.mockResolvedValue({ id: "tmpl-1" } as unknown as TemplateRead);
+
+    render(
+      <SaveTemplateDialog source={projectSource} defaultName="Bonn training" onClose={noop} onSaved={noop} />
+    );
+
+    const choice = await screen.findByRole("combobox", {
+      name: "Planned housing — template_dataset_handling",
+    });
+    fireEvent.mouseDown(choice);
+    const options = within(screen.getByRole("listbox")).getAllByRole("option");
+    expect(options.map((option) => option.textContent)).toEqual([
+      "template_dataset_ship",
+      "template_dataset_copy",
+      "template_dataset_copy_empty",
+    ]);
+    fireEvent.click(options[2]);
+
+    expect(choice).toHaveTextContent("template_dataset_copy_empty");
+    expect(screen.getByText("template_dataset_copy_hint")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "save" }));
+
+    await waitFor(() =>
+      expect(createTemplateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          inputs: [expect.objectContaining({ key: "layer:L1", mode: "copy", copy_content: false })],
+        })
+      )
+    );
+  });
+
+  it("copies a workflow dataset with its content when picked, and asks again once switched off", async () => {
+    previewTemplateMock.mockResolvedValue({
+      detected_inputs: [
+        {
+          key: "k1",
+          label: "Parks",
+          mode: "ship",
+          layer_id: "L1",
+          layer_type: "feature",
+          geometry_type: "polygon",
+          from_catalog: false,
+          public_read: false,
+        },
+        {
+          key: "k2",
+          label: "Elevation",
+          mode: "ship",
+          layer_id: "L2",
+          layer_type: "raster",
+          geometry_type: null,
+          from_catalog: false,
+          public_read: false,
+        },
+      ],
+      kinds: ["workflow"],
+      datasets_needing_share: [],
+    } satisfies TemplatePreview);
+    createTemplateMock.mockResolvedValue({ id: "tmpl-1" } as unknown as TemplateRead);
+
+    render(
+      <SaveTemplateDialog source={workflowSource} defaultName="My Workflow" onClose={noop} onSaved={noop} />
+    );
+
+    const choice = await screen.findByRole("combobox", { name: "Parks — template_dataset_handling" });
+    fireEvent.mouseDown(choice);
+    fireEvent.click(
+      within(screen.getByRole("listbox")).getByRole("option", { name: "template_dataset_copy" })
+    );
+    expect(choice).toHaveTextContent("template_dataset_copy");
+
+    // A raster has no table to copy: it can only ship (or be asked for).
+    expect(
+      screen.queryByRole("combobox", { name: "Elevation — template_dataset_handling" })
+    ).not.toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("template-input-row-k2")).getByText("template_dataset_ship")
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "save" }));
+
+    await waitFor(() =>
+      expect(createTemplateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          inputs: [
+            expect.objectContaining({ key: "k1", mode: "copy", copy_content: true }),
+            expect.objectContaining({ key: "k2", mode: "ship" }),
+          ],
+        })
+      )
+    );
+
+    // Switching the copied dataset off makes it an ask slot again.
+    fireEvent.click(screen.getByRole("checkbox", { name: "Parks — ship_dataset" }));
+    expect(within(screen.getByTestId("template-input-row-k1")).getByText("ask_on_use")).toBeInTheDocument();
+  });
+
+  it("keeps a copied dataset a copy when its share checkbox is toggled", async () => {
+    previewTemplateMock.mockResolvedValue({
+      detected_inputs: [
+        {
+          key: "layer:L1",
+          label: "Parks",
+          mode: "copy",
+          copy_content: true,
+          layer_id: "L1",
+          layer_type: "feature",
+          geometry_type: "polygon",
+          from_catalog: false,
+          public_read: false,
+        },
+      ],
+      kinds: ["project"],
+      datasets_needing_share: [
+        { layer_id: "L1", name: "Parks", from_catalog: false, current_audience: "personal" },
+      ],
+    } satisfies TemplatePreview);
+    createTemplateMock.mockResolvedValue({ id: "tmpl-1" } as unknown as TemplateRead);
+
+    render(
+      <SaveTemplateDialog source={projectSource} defaultName="My Project" onClose={noop} onSaved={noop} />
+    );
+
+    const share = await screen.findByRole("checkbox", { name: "Parks" });
+    expect(share).toHaveProperty("checked", true);
+    fireEvent.click(share);
+    expect(share).toHaveProperty("checked", false);
+    expect(screen.getByRole("combobox", { name: "Parks — template_dataset_handling" })).toHaveTextContent(
+      "template_dataset_copy"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "save" }));
+
+    await waitFor(() =>
+      expect(createTemplateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          inputs: [expect.objectContaining({ key: "layer:L1", mode: "copy", copy_content: true })],
+          share_datasets: [],
         })
       )
     );

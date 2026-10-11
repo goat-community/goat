@@ -57,11 +57,11 @@ const SqlCodeEditor = dynamic(() => import("./SqlCodeEditor"), { ssr: false });
 
 // Operators definition for the formula builder
 const OPERATORS = [
-  { symbol: "+", label: "Add", syntax: " + " },
-  { symbol: "-", label: "Subtract", syntax: " - " },
-  { symbol: "*", label: "Multiply", syntax: " * " },
-  { symbol: "/", label: "Divide", syntax: " / " },
-  { symbol: "%", label: "Modulo", syntax: " % " },
+  { symbol: "+", labelKey: "operator_add", syntax: " + " },
+  { symbol: "-", labelKey: "operator_subtract", syntax: " - " },
+  { symbol: "*", labelKey: "operator_multiply", syntax: " * " },
+  { symbol: "/", labelKey: "operator_divide", syntax: " / " },
+  { symbol: "%", labelKey: "operator_modulo", syntax: " % " },
 ] as const;
 
 // Common SQL aggregate functions for GROUP BY validation
@@ -629,7 +629,7 @@ export default function FormulaBuilder({
               success: false,
               columns: [],
               rows: [],
-              error: "No input schemas available. Connect dataset nodes first.",
+              error: t("no_input_schemas"),
             });
             return;
           }
@@ -702,7 +702,7 @@ export default function FormulaBuilder({
     } finally {
       setIsPreviewing(false);
     }
-  }, [expression, collectionId, groupByColumn, isSqlMode, tables]);
+  }, [expression, collectionId, groupByColumn, isSqlMode, tables, t]);
 
   // Stable refs so effects only fire on actual value changes, not callback identity
   const handleValidateRef = useRef(handleValidate);
@@ -1099,7 +1099,7 @@ export default function FormulaBuilder({
                                 <ListItemText
                                   primary={
                                     <Typography variant="body2" fontSize="0.8rem">
-                                      {op.label}
+                                      {t(op.labelKey)}
                                     </Typography>
                                   }
                                 />
@@ -1190,7 +1190,7 @@ export default function FormulaBuilder({
                         {hoveredOperator.symbol}
                       </Typography>
                       <Typography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
-                        {hoveredOperator.label}
+                        {t(hoveredOperator.labelKey)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         {t(`operator_${hoveredOperator.symbol}_desc`, {

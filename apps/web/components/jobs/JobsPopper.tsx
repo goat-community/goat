@@ -9,6 +9,7 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { type Job, dismissJob, useJobs } from "@/lib/api/processes";
 import { claimJobAnnouncement } from "@/lib/utils/jobAnnouncement";
+import { jobLabel } from "@/lib/utils/jobLabel";
 
 import { ArrowPopper as JobStatusMenu } from "@/components/ArrowPoper";
 import { HeaderPopoverHeader, HeaderPopoverList } from "@/components/header/HeaderPopover";
@@ -154,7 +155,7 @@ export default function JobsPopper() {
           void claimJobAnnouncement(job.jobID).then((claimed) => {
             if (!claimed) return;
             toast.dismiss();
-            const jobType = t(job.processID) || job.processID;
+            const jobType = jobLabel(job, t);
             toast.success(`"${jobType}" - ${t("job_success")}`);
             handleDownload(result);
           });
@@ -275,6 +276,7 @@ export default function JobsPopper() {
                     key={job.jobID}
                     id={job.jobID}
                     type={job.processID}
+                    label={jobLabel(job, t)}
                     status={job.status}
                     name={job.jobID}
                     date={job.updated || job.created || ""}

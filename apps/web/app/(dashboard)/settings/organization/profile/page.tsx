@@ -145,7 +145,7 @@ const OrganizationProfile = () => {
                   loading={isOrganizationUpdateBusy}
                   variant="contained"
                   startIcon={<Icon fontSize="small" iconName={ICON_NAME.SAVE} />}
-                  aria-label="update-profile"
+                  aria-label={t("update")}
                   name="update-profile"
                   disabled={isOrganizationUpdateBusy || !isDirty || !isValid}
                   type="submit">
@@ -200,7 +200,7 @@ const OrganizationProfile = () => {
               startIcon={<Icon fontSize="small" iconName={ICON_NAME.TRASH} />}
               variant="outlined"
               color="error"
-              aria-label="delete-organization"
+              aria-label={t("delete_organization")}
               name="delete-organization"
               loading={isDeleteOrganizationBusy}
               onClick={() => {

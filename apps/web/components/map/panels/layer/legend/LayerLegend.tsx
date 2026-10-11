@@ -86,8 +86,8 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
 
   // 2. Feature Layer Legends
   // Compute Maps
-  const colorMap = getLegendColorMap(properties, "color");
-  const strokeMap = getLegendColorMap(properties, "stroke_color");
+  const colorMap = getLegendColorMap(properties, "color", t("no_data"));
+  const strokeMap = getLegendColorMap(properties, "stroke_color", t("no_data"));
   const markerMap = getLegendMarkerMap(properties);
 
   // Track a running index for editable keys
@@ -159,11 +159,11 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
   if (markerMap.length > 1 && geometryType === "point" && hasMatchingFields) {
     return (
       <Box sx={sectionSx}>
-        {renderHeading(markerFieldName || "Legend", "heading")}
+        {renderHeading(markerFieldName || t("legend"), "heading")}
         {markerMap.map((item, index) => (
           <React.Fragment key={`${item.marker}-${item.value?.join(",") || index}`}>
             {renderRow(
-              item.value?.join(", ") || "Other",
+              item.value?.join(", ") || t("other"),
               <LayerIcon
                 type="point"
                 iconUrl={item.marker || ""}
@@ -186,7 +186,7 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
         {markerMap.map((item, index) => (
           <React.Fragment key={`${item.marker}-${item.value?.join(",") || index}`}>
             {renderRow(
-              item.value?.join(", ") || "Other",
+              item.value?.join(", ") || t("other"),
               <LayerIcon
                 type="point"
                 iconUrl={item.marker || ""}
@@ -203,7 +203,7 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
             {renderHeading(t("fill_color_based_on", { field: colorFieldName || t("color") }), "heading_color")}
             {colorMap.map((item, index) => (
               <React.Fragment key={`${item.color}-${item.value?.join(",") || index}`}>
-                {renderRow(item.label || item.value?.join(", ") || "Other", <LayerIcon type="point" color={item.color} />)}
+                {renderRow(item.label || item.value?.join(", ") || t("other"), <LayerIcon type="point" color={item.color} />)}
               </React.Fragment>
             ))}
           </>
@@ -218,11 +218,11 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
     return (
       <Box sx={sectionSx}>
         {/* Show the icon in each color instead of circles */}
-        {renderHeading(colorFieldName || "Legend", "heading")}
+        {renderHeading(colorFieldName || t("legend"), "heading")}
         {colorMap.map((item, index) => (
           <React.Fragment key={`${item.color}-${item.value?.join(",") || index}`}>
             {renderRow(
-              item.label || item.value?.join(", ") || "Other",
+              item.label || item.value?.join(", ") || t("other"),
               <LayerIcon
                 type="point"
                 iconUrl={singleMarker.marker || ""}
@@ -244,7 +244,7 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
         {markerMap.map((item, index) => (
           <React.Fragment key={`${item.marker}-${item.value?.join(",") || index}`}>
             {renderRow(
-              item.value?.join(", ") || "Other",
+              item.value?.join(", ") || t("other"),
               <LayerIcon
                 type="point"
                 iconUrl={item.marker || ""}
@@ -282,7 +282,7 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
           {colorMap.map((item, index) => (
             <React.Fragment key={`fill-${item.color}-${item.value?.join(",") || index}`}>
               {renderRow(
-                item.label || item.value?.join(", ") || "Other",
+                item.label || item.value?.join(", ") || t("other"),
                 <LayerIcon type={geometryType} color={item.color} filled={filled} />
               )}
             </React.Fragment>
@@ -293,7 +293,7 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
           {strokeMap.map((item, index) => (
             <React.Fragment key={`stroke-${item.color}-${item.value?.join(",") || index}`}>
               {renderRow(
-                item.label || item.value?.join(", ") || "Other",
+                item.label || item.value?.join(", ") || t("other"),
                 <LayerIcon type={geometryType} color={undefined} strokeColor={item.color} filled={false} />
               )}
             </React.Fragment>
@@ -306,11 +306,11 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
     const sameFieldStroke = strokeMap.length > 1;
     return (
       <Box sx={sectionSx}>
-        {renderHeading(colorFieldName || "Legend", "heading")}
+        {renderHeading(colorFieldName || t("legend"), "heading")}
         {colorMap.map((item, index) => (
           <React.Fragment key={`${item.color}-${item.value?.join(",") || index}`}>
             {renderRow(
-              item.label || item.value?.join(", ") || "Other",
+              item.label || item.value?.join(", ") || t("other"),
               <LayerIcon
                 type={geometryType}
                 color={item.color}
@@ -334,11 +334,11 @@ export const LayerLegendPanel = ({ properties, geometryType, itemTypographySx, h
       : undefined;
     return (
       <Box sx={sectionSx}>
-        {renderHeading((properties.stroke_color_field as { name?: string })?.name || "Legend", "heading")}
+        {renderHeading((properties.stroke_color_field as { name?: string })?.name || t("legend"), "heading")}
         {strokeMap.map((item, index) => (
           <React.Fragment key={`${item.color}-${item.value?.join(",") || index}`}>
             {renderRow(
-              item.label || item.value?.join(", ") || "Other",
+              item.label || item.value?.join(", ") || t("other"),
               <LayerIcon type={geometryType} color={filled ? fillColor : undefined} strokeColor={item.color} filled={filled} />
             )}
           </React.Fragment>
@@ -362,6 +362,7 @@ interface RasterLayerLegendProps {
 }
 
 const RasterLayerLegend = ({ style, itemTypographySx, editable, textOverrides, onTextSave }: RasterLayerLegendProps) => {
+  const { t } = useTranslation("common");
   if (!style) return null;
 
   let rowIndex = 0;
@@ -427,7 +428,7 @@ const RasterLayerLegend = ({ style, itemTypographySx, editable, textOverrides, o
       <Box sx={{ pb: 1, pr: 2, pt: 0.5 }}>
         {style.categories.map((cat) => (
           <React.Fragment key={`${cat.value}-${cat.color}`}>
-            {renderRow(cat.label || `Value ${cat.value}`, cat.color)}
+            {renderRow(cat.label || t("value_n", { value: cat.value }), cat.color)}
           </React.Fragment>
         ))}
       </Box>

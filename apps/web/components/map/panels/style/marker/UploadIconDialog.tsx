@@ -34,7 +34,7 @@ export const UploadIconDialog = ({ open, onClose, onUploaded }: UploadIconDialog
     if (f) {
       const maxSize = ASSETS_MAX_FILE_SIZE_MB * 1024 * 1024; // in bytes
       if (f.size > maxSize) {
-        toast.error(`${t(" maximum_image_size_is")} ${ASSETS_MAX_FILE_SIZE_MB}MB`);
+        toast.error(`${t("maximum_image_size_is")} ${ASSETS_MAX_FILE_SIZE_MB}MB`);
         handleClearFile();
         return;
       }

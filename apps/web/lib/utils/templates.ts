@@ -240,11 +240,46 @@ export const sourceLink = (source: TemplateSourceInfo): { project: string; paylo
   return { project, payload: null };
 };
 
-/** Shipped inputs that publishing to the GOAT catalog makes public: the
- * datasets that are neither catalog datasets nor public yet. The backend
- * flips the ones the publisher may share and refuses the rest by name
- * (`crud_template.publish`). */
+/** Whether an input keeps the author's dataset: shipped, or copied for each
+ * user from it. Either way every user of the template has to be able to read
+ * that dataset (`DATASET_MODES` in `core.schemas.template`). */
+export const bindsDataset = (input: Pick<TemplateInput, "mode">): boolean =>
+  input.mode === "ship" || input.mode === "copy";
+
+/** The author's choice for one dataset in the save dialog: the stored `mode`,
+ * with a copy split into "with its rows" and "empty". */
+export type TemplateInputChoice = "ship" | "ask" | "copy" | "copy_empty";
+
+/** The dialog's choice for a stored input. */
+export const inputChoiceOf = (input: Pick<TemplateInput, "mode" | "copy_content">): TemplateInputChoice =>
+  input.mode === "copy" ? (input.copy_content === false ? "copy_empty" : "copy") : input.mode;
+
+/** The stored `mode`/`copy_content` for a dialog choice. */
+export const inputFieldsOf = (choice: TemplateInputChoice): Pick<TemplateInput, "mode" | "copy_content"> =>
+  choice === "copy_empty"
+    ? { mode: "copy", copy_content: false }
+    : choice === "copy"
+      ? { mode: "copy", copy_content: true }
+      : { mode: choice, copy_content: true };
+
+/** The label of each dialog choice. */
+export const INPUT_CHOICE_LABEL_KEY: Record<TemplateInputChoice, string> = {
+  ship: "template_dataset_ship",
+  ask: "ask_on_use",
+  copy: "template_dataset_copy",
+  copy_empty: "template_dataset_copy_empty",
+};
+
+/** A copy needs rows in a table GOAT holds: a raster has none
+ * (`crud_template._assert_copy_inputs_copyable`). */
+export const canCopyInput = (input: Pick<TemplateInput, "layer_id" | "layer_type">): boolean =>
+  !!input.layer_id && input.layer_type !== "raster";
+
+/** Inputs that publishing to the GOAT catalog makes public: the shipped or
+ * copied datasets that are neither catalog datasets nor public yet. The
+ * backend flips the ones the publisher may share and refuses the rest by
+ * name (`crud_template.publish`). */
 export const publicOnPublishInputs = (inputs: TemplateInput[]): TemplateInput[] =>
   inputs.filter(
-    (input) => input.mode === "ship" && !!input.layer_id && !input.public_read && !input.from_catalog
+    (input) => bindsDataset(input) && !!input.layer_id && !input.public_read && !input.from_catalog
   );

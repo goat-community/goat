@@ -9,7 +9,7 @@ from pydantic import UUID4
 
 from core.crud.crud_template import template as crud_template
 from core.db.session import AsyncSession
-from core.deps.auth import auth_z, require_superuser, token_is_superuser
+from core.deps.auth import auth, auth_z, require_superuser, token_is_superuser
 from core.deps.auth import user_token as get_user_token
 from core.endpoints.deps import get_db, get_user_id
 from core.schemas.template import (
@@ -249,6 +249,7 @@ async def use_template(
     *,
     async_session: AsyncSession = Depends(get_db),
     user_id: UUID4 = Depends(get_user_id),
+    access_token: str = Depends(auth),
     template_id: UUID4,
     req: TemplateUseRequest = Body(...),
 ) -> TemplateUseResult:
@@ -260,8 +261,12 @@ async def use_template(
     workflow, every shipped dataset the caller may read is linked into
     that project (an existing link is reused, a new one is grouped under
     the template's name) and `bindings` overrides or fills the rest.
-    Nothing is executed. Requires read on the template and write on the
-    target (`project_id` or `target_folder_id`).
+    Nothing is executed, except that every "copy" dataset gets a
+    `layer_copy` job with the caller's token: it writes the caller's own
+    editable copy and points the new project entries at it. The jobs are
+    returned in `copy_jobs`; until one finishes its entries show the
+    template's dataset, read-only. Requires read on the template and write
+    on the target (`project_id` or `target_folder_id`).
     """
     return await crud_template.use(
         async_session,
@@ -270,6 +275,7 @@ async def use_template(
         req=req,
         headers=request.headers,
         peer=request.client.host if request.client else None,
+        access_token=access_token,
     )
 
 

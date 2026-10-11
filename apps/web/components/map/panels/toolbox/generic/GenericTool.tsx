@@ -625,7 +625,7 @@ export default function GenericTool({ processId, onBack, onClose }: GenericToolP
     };
 
     // Validate
-    const errors = validateInputs(process, payload);
+    const errors = validateInputs(process, payload, (field) => t("field_is_required", { field }));
     if (errors.length > 0) {
       errors.forEach((error) => toast.error(error));
       return;

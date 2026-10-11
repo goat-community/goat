@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 sidebar_label: Field Types
-description: "The field types of a GOAT column, from text, number, boolean and date to computed area, perimeter, length and formula, plus formatting and allowed values."
+description: "The field types of a GOAT column, from text, number, boolean and date to automatic serial numbers and UUIDs and computed area, perimeter, length and formula, plus formatting and allowed values."
 ---
 
 # Field Types
@@ -27,6 +27,8 @@ For a fuller picture of how the platform fits together, see [Architecture](../ne
 | **Number** | Whole numbers or decimals | `1`, `-5`, `3.14`, `45.67` |
 | **Boolean** | True or false values | `true`, `false` |
 | **Date** | A point in time | `2024-01-15 14:30:00` |
+| **Serial** | A running number GOAT assigns to every feature | `1`, `2`, `3` |
+| **UUID** | A unique identifier GOAT assigns to every feature | `0625b5a7-50e1-4cfa-8392-7b0852e0d980` |
 | **Area** | The surface area of a polygon | `1.25 ha`, `340 m²` |
 | **Perimeter** | The outline length of a polygon | `820 m` |
 | **Length** | The length of a line | `1.4 km` |
@@ -48,6 +50,38 @@ A **Number** column can be formatted for display. Formatting changes only how th
 The same settings are available on **Area**, **Perimeter** and **Length** columns, which additionally let you pick the **Unit** the value is shown in: `m²`, `ha` or `km²` for Area, and `m` or `km` for Perimeter and Length. Leave it on `auto` and GOAT picks a unit that suits the value.
 
 GOAT shows a live preview as you change these, so you can see the result before saving.
+
+### Columns GOAT numbers for you
+
+**Serial** and **UUID** columns are filled in by GOAT: every feature gets its value when it is created, whether you draw it on the map, add a row in the data table or upload it through the API. You cannot type or change the value. While you create a feature, the field shows <code>Assigned automatically</code>; the value appears once the feature is saved. Both types are available when you create a new dataset and when you edit the fields of an existing one.
+
+- A **Serial** column counts up: each new feature gets the next number after the highest one assigned so far. Set where it begins with <code>Start at</code> (default `1`), for example `1000` for project numbers. Numbers are never assigned twice, not even after a feature is deleted: deleting a feature leaves a gap, the numbers of the other features never change, and the next new feature always gets a number that has not been used before, even if the deleted feature had the highest one.
+- A **UUID** column gives each feature a random identifier that is unique across datasets, which is useful when the data is exchanged with other systems.
+
+When you add one of these columns to a dataset that already has features, GOAT fills it for all of them at once: a Serial column numbers them from <code>Start at</code> in the order the features were created. A copy made with <code>Save as new layer</code> keeps the values and carries on after the highest number ever assigned in the original. A dataset that arrives with an imported project carries on from its own highest number.
+
+For filters, styling and pop-ups, a Serial column is a number and a UUID column is text.
+
+#### Turning an existing Number column into a Serial
+
+If you have been typing numbers into a **Number** column by hand, GOAT can take over the numbering without renaming the column, so workflows, filters and dashboards that use it keep working.
+
+<div class="step">
+  <div class="step-number">1</div>
+  <div class="content">In the data table, click <code>Edit fields</code> and select the <strong>Number</strong> column.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">2</div>
+  <div class="content">Change its <code>Field type</code> to <code>Serial</code>. Optionally set <code>Start at</code>: it is used for features that have no number yet, if it is higher than the existing numbers.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">3</div>
+  <div class="content">Click <code>Save</code> and confirm with <code>Change type</code>.</div>
+</div>
+
+Existing values stay as they are, and features without a number get one. New features get the next number after the highest one; gaps are not filled. GOAT refuses the change, and tells you why, if a number appears more than once or a value is not a whole number: fix those values first. You can change a Serial column back to <code>Number</code> the same way; its values stay. A UUID column cannot be made from an existing column.
 
 ### Columns GOAT calculates
 
@@ -94,7 +128,7 @@ Some names are used internally by GOAT and cannot be given to a column, among th
 
 ## How to view field types
 
-GOAT marks each column with a small **field type chip**: `A` for Text, `123` for Number, and an icon for the other types. Hover over the chip to see the field type's name.
+GOAT marks each column with a small **field type chip**: `A` for Text, `123` for Number, `#` for Serial, `ID` for UUID, and an icon for the other types. Hover over the chip to see the field type's name.
 
 The chip appears wherever columns are listed: the data table, the field list in layer settings, column filters, and the field pickers in tools and the Formula builder.
 

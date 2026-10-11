@@ -374,7 +374,7 @@ export function useWorkflowExecution({ workflow, projectId, folderId }: UseWorkf
       toast.dismiss();
       toast.success(t("workflow_started"));
     } catch (error) {
-      let message = error instanceof Error ? error.message : "Execution failed";
+      let message = error instanceof Error ? error.message : t("execution_failed");
       let refusedStatuses: Record<string, NodeExecutionStatus> = {};
       if (error instanceof WorkflowRefusedError) {
         // Name the nodes as the canvas shows them, and mark them there.
@@ -426,7 +426,7 @@ export function useWorkflowExecution({ workflow, projectId, folderId }: UseWorkf
         toast.info(t("saving_layer"));
         return response.job_id;
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Save failed";
+        const message = error instanceof Error ? error.message : t("unknown_error");
         toast.error(`${t("save_failed")}: ${message}`);
         return null;
       }
@@ -675,7 +675,7 @@ export function useWorkflowExecution({ workflow, projectId, folderId }: UseWorkf
       void claimJobAnnouncement(job.jobID).then((claimed) => {
         if (!claimed) return;
         toast.dismiss();
-        toast.error(`${t("workflow_failed")}: ${job.message || "Unknown error"}`);
+        toast.error(`${t("workflow_failed")}: ${job.message || t("unknown_error")}`);
       });
     }
     // Note: Intentionally excluding runningJobIds from deps to avoid infinite loop

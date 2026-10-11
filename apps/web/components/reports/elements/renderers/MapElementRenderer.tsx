@@ -3,6 +3,7 @@
 import { Box, Chip, CircularProgress, useTheme } from "@mui/material";
 import type { StyleSpecification } from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Map, MapProvider, type MapRef, type ViewStateChangeEvent } from "react-map-gl/maplibre";
 
 import { getBasemapUrl } from "@/lib/constants/basemaps";
@@ -69,6 +70,7 @@ const MapElementRenderer: React.FC<MapElementRendererProps> = ({
   onMapLoaded,
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation("common");
   const mapRef = useRef<MapRef>(null);
   const [isNavigationMode, setIsNavigationMode] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -447,7 +449,7 @@ const MapElementRenderer: React.FC<MapElementRendererProps> = ({
             {isNavigationMode ? (
               <Chip
                 size="small"
-                label="Press ESC to exit"
+                label={t("press_esc_to_exit")}
                 sx={{
                   backgroundColor: theme.palette.primary.main,
                   color: "white",
@@ -458,7 +460,7 @@ const MapElementRenderer: React.FC<MapElementRendererProps> = ({
             ) : (
               <Chip
                 size="small"
-                label="Double-click to navigate"
+                label={t("double_click_to_navigate")}
                 sx={{
                   backgroundColor: "rgba(0,0,0,0.6)",
                   color: "white",
