@@ -17,9 +17,10 @@ import json
 import logging
 import math
 import uuid
-from typing import Any, Iterable, Sequence
+from typing import Any, Callable, Iterable, Sequence
 
 from goatlib.bundles.topology import EdgeCandidate, NodeCandidate
+from goatlib.utils.generated_fields import GeneratedField, refuse_generated_changes
 from shapely import wkt
 
 from geoapi.services.computed_columns import parse_computed_columns
@@ -308,23 +309,28 @@ def split_edge(
     right_id: str,
     new_node_id: str,
     field_config: dict[str, Any] | None = None,
+    next_generated: Callable[[], dict[str, Any]] | None = None,
 ) -> None:
     """Replace an edge with two halves meeting at a new node.
 
     Both halves inherit every attribute of the original except what its geometry
     derived — those are recomputed in the insert itself, or each half would
-    claim the whole original's length.
+    claim the whole original's length — and its generated values: each half is
+    a new edge, so it gets a serial number and a UUID of its own rather than two
+    edges sharing one identifier.
     """
     derived = _derived(columns, '"geometry"', field_config)
     for new_id, start, end, source, target in (
         (left_id, 0.0, fraction, None, new_node_id),
         (right_id, fraction, 1.0, new_node_id, None),
     ):
+        generated = next_generated() if next_generated else {}
         replacements = [
             '? AS "id"',
             "coalesce(?, source_node) AS source_node",
             "coalesce(?, target_node) AS target_node",
         ]
+        replacements += [f'? AS "{name}"' for name in generated]
         replacements += [f'{sql} AS "{name}"' for name, sql in derived]
         # The half replaces the geometry first, so everything above reads it
         # rather than the original's.
@@ -339,7 +345,7 @@ def split_edge(
         con.execute(
             f"INSERT INTO {edges_table} BY NAME "
             f"SELECT * REPLACE ({', '.join(replacements)}) FROM ({half})",
-            [new_id, source, target, edge_id],
+            [new_id, source, target, *generated.values(), edge_id],
         )
     con.execute(f'DELETE FROM {edges_table} WHERE "id" = ?', [edge_id])
 
@@ -360,12 +366,20 @@ def insert_edge(
     source_node: str,
     target_node: str,
     field_config: dict[str, Any] | None = None,
+    generated: dict[str, Any] | None = None,
 ) -> None:
-    """Add an edge with its resolved endpoints."""
+    """Add an edge with its resolved endpoints.
+
+    ``generated`` holds the new edge's serial numbers and UUIDs; a value the
+    client sent for one of those columns is ignored.
+    """
+    generated = generated or {}
     derived = _derived(column_names, _NEW_GEOM, field_config)
-    reserved = {"id", "geometry", "source_node", "target_node"} | {
-        name for name, _ in derived
-    }
+    reserved = (
+        {"id", "geometry", "source_node", "target_node"}
+        | {name for name, _ in derived}
+        | set(generated)
+    )
 
     columns = ['"id"', '"geometry"', '"source_node"', '"target_node"']
     selects = ["?", _NEW_GEOM, "?", "?"]
@@ -373,6 +387,10 @@ def insert_edge(
     for key, value in properties.items():
         if key in reserved or key not in column_names:
             continue
+        columns.append(f'"{key}"')
+        selects.append("?")
+        values.append(value)
+    for key, value in generated.items():
         columns.append(f'"{key}"')
         selects.append("?")
         values.append(value)
@@ -397,13 +415,30 @@ def update_edge(
     source_node: str,
     target_node: str,
     field_config: dict[str, Any] | None = None,
+    generated_fields: Sequence[GeneratedField] = (),
 ) -> None:
-    """Replace an edge's geometry, endpoints and attributes."""
+    """Replace an edge's geometry, endpoints and attributes.
+
+    The edge keeps its generated values: one the client sends back unchanged
+    is not written, a changed one is refused.
+    """
     src = f"src.{_NEW_GEOM}"
     derived = _derived(column_names, src, field_config)
-    reserved = {"id", "geometry", "source_node", "target_node"} | {
-        name for name, _ in derived
-    }
+    named = [f for f in generated_fields if f.name in properties]
+    if named:
+        selected = ", ".join(f'"{f.name}"' for f in named)
+        row = con.execute(
+            f'SELECT {selected} FROM {edges_table} WHERE "id" = ?', [edge_id]
+        ).fetchone()
+        if row is not None:
+            refuse_generated_changes(
+                named, {f.name: v for f, v in zip(named, row)}, properties
+            )
+    reserved = (
+        {"id", "geometry", "source_node", "target_node"}
+        | {name for name, _ in derived}
+        | {f.name for f in generated_fields}
+    )
 
     # Numbered rather than positional: DuckDB binds an UPDATE ... FROM by
     # walking the FROM clause before the SET list, so "?" would put the

@@ -65,8 +65,15 @@ const FolderModal: React.FC<FolderDialogProps> = ({
       }
 
       mutate((key) => Array.isArray(key) && key[0] === FOLDERS_API_BASE_URL);
-    } catch (error) {
-      toast.error(error.message);
+    } catch {
+      // The folder API throws a fixed English message, so the toast names the
+      // failed action in the reader's language instead.
+      const errorKey = {
+        create: "error_creating_folder",
+        update: "error_updating_folder",
+        delete: "error_deleting_folder",
+      }[type];
+      toast.error(t(errorKey));
     }
 
     setFolderName(selectedFolder?.name ?? "");

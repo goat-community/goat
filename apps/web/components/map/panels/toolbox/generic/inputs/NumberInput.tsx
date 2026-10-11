@@ -139,8 +139,8 @@ export default function NumberInput({
       // a silently different request. Typing one is already blocked, so this
       // catches values arriving from a saved config or a stale default.
       if (isInteger && !Number.isInteger(val)) return t("invalid_whole_number");
-      if (min !== undefined && val < min) return `Value must be at least ${min}`;
-      if (max !== undefined && val > max) return `Value must be at most ${max}`;
+      if (min !== undefined && val < min) return t("value_must_be_at_least", { min });
+      if (max !== undefined && val > max) return t("value_must_be_at_most", { max });
       // The bounds are interpolated into the message, so the limit strings never
       // restate a number the backend owns — bumping a cap in `_routing_limits`
       // updates the wording with it. Formatted via i18next's Intl integration

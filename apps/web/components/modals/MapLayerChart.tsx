@@ -153,7 +153,7 @@ const MapLayerChartModal: React.FC<MapLayerChartDialogProps> = ({ open, onClose,
               }}
               items={chartTypes}
               label={t("select_chart_type")}
-              placeholder="Test"
+              placeholder={t("select_chart_type")}
             />
             <Divider />
             <FormLabelHelper label={t("settings")} color="inherit" />

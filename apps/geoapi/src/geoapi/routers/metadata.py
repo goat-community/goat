@@ -5,6 +5,7 @@ from uuid import UUID
 
 import asyncpg
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
+from goatlib.utils.generated_fields import DEFAULT_SERIAL_START, is_generated_kind
 
 from geoapi.config import settings
 from geoapi.dependencies import LayerInfo, LayerInfoDep
@@ -62,7 +63,7 @@ def _apply_field_config_to_properties(
     in_bundle: bool = False,
 ) -> None:
     """Augment each property entry with kind, is_computed, is_locked,
-    is_protected, allowed_values and display_config.
+    is_protected, is_generated, allowed_values and display_config.
 
     Mutates *properties* in-place. Skips geometry entries (those that have
     a ``$ref`` key instead of a ``type`` key).
@@ -101,6 +102,11 @@ def _apply_field_config_to_properties(
             prop["allowed_values"] = entry["allowed_values"]
             prop["allow_other"] = entry.get("allow_other", False)
         prop["display_config"] = entry.get("display_config", {})
+        # Filled by the server on create and never changed afterwards, so an
+        # editor shows it read-only — "assigned automatically" until saved.
+        prop["is_generated"] = is_generated_kind(entry.get("kind"))
+        if entry.get("kind") == "serial":
+            prop["start"] = entry.get("start", DEFAULT_SERIAL_START)
         if entry.get("kind") == "formula":
             # The expression (for the editor) and the result kind (drives
             # value formatting and formatting options in the frontend).

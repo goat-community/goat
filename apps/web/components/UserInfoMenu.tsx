@@ -30,12 +30,12 @@ export default function UserInfoMenu({ withSupport = false }: { withSupport?: bo
         content={
           <HeaderPopoverPaper>
             <HeaderPopoverHeader
-              title={organization?.name ?? "Organization"}
+              title={organization?.name ?? t("organization")}
               leading={
                 organization?.avatar ? (
                   <Avatar
                     sx={{ width: 28, height: 28 }}
-                    alt={organization.name || "Organization"}
+                    alt={organization.name || t("organization")}
                     src={organization.avatar}
                   />
                 ) : (
@@ -106,11 +106,11 @@ export default function UserInfoMenu({ withSupport = false }: { withSupport?: bo
             {userProfile?.avatar ? (
               <Avatar
                 sx={{ width: 36, height: 36 }}
-                alt={userProfile.email || "User"}
+                alt={userProfile.email || t("user")}
                 src={userProfile?.avatar}
               />
             ) : (
-              <Avatar sx={{ width: 36, height: 36 }} alt={userProfile?.email || "User"}>
+              <Avatar sx={{ width: 36, height: 36 }} alt={userProfile?.email || t("user")}>
                 <Icon fontSize="inherit" iconName={ICON_NAME.USER} htmlColor="inherit" />
               </Avatar>
             )}

@@ -661,7 +661,7 @@ export const WidgetData = ({ sectionLabel, config, onChange }: WidgetConfigProps
                     const isExpanded = expandedMetricIndex === index;
 
                     // Build summary for collapsed state
-                    const methodLabel = metric.operation_type || "";
+                    const methodLabel = metric.operation_type ? t(metric.operation_type) : "";
                     const fieldLabel = metric.operation_value || "";
                     const summary = [methodLabel, fieldLabel].filter(Boolean).join(" · ");
 

@@ -156,7 +156,7 @@ function TeamProfile({ team }: { team: Team }) {
                   loading={isTeamUpdateBusy}
                   variant="contained"
                   startIcon={<Icon fontSize="small" iconName={ICON_NAME.SAVE} />}
-                  aria-label="update-profile"
+                  aria-label={t("update")}
                   name="update-profile"
                   disabled={isTeamUpdateBusy || !isDirty || !isValid}
                   type="submit">
@@ -218,7 +218,7 @@ function TeamProfile({ team }: { team: Team }) {
               }
               variant="outlined"
               color="error"
-              aria-label="delete-team"
+              aria-label={isTeamOwner ? t("delete_team") : t("leave_team")}
               name="delete-team"
               disabled={confirmDeleteOrLeaveTeamDialogOpen}
               loading={isDeleteOrLeaveTeamBusy}

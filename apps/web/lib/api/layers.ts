@@ -263,6 +263,8 @@ export type CreateEmptyLayerPayload = {
      * means when a column is added to a layer that already exists. */
     allowed_values?: (string | number)[];
     allow_other?: boolean;
+    /** kind="serial" only: the first number the empty layer hands out. */
+    start?: number;
   }>;
 };
 
@@ -661,6 +663,9 @@ export interface AddColumnPayload {
   allow_other?: boolean;
   /** SQL expression for kind="formula" (validated server-side) */
   formula?: string;
+  /** kind="serial" only: existing rows are numbered from it in feature order,
+   * new features continue after the highest number (default 1). */
+  start?: number;
 }
 
 export const addColumn = async (layerId: string, payload: AddColumnPayload) => {
@@ -686,6 +691,10 @@ export interface ColumnPatch {
   allow_other?: boolean;
   display_config?: Record<string, unknown>;
   default_value?: unknown;
+  /** Change what the column is — number to "serial" or back — on its own. */
+  kind?: FieldKind;
+  /** With kind="serial": where blank rows start being numbered. */
+  start?: number;
 }
 
 /**

@@ -204,13 +204,13 @@ export const LayerInformationWidget = ({
       }
     } catch (error) {
       console.error("LayerInformationWidget - Error updating tree:", error);
-      toast.error("Failed to update tree");
+      toast.error(t("error_updating_layer_tree"));
       if (!viewOnly) {
         mutateProjectLayers();
         mutateProjectLayerGroups();
       }
     }
-  }, [viewOnly, reduxProjectLayers, reduxProjectLayerGroups, editProjectLayers, editProjectLayerGroups, dispatch, projectId, mutateProjectLayers, mutateProjectLayerGroups]);
+  }, [viewOnly, reduxProjectLayers, reduxProjectLayerGroups, editProjectLayers, editProjectLayerGroups, dispatch, projectId, mutateProjectLayers, mutateProjectLayerGroups, t]);
 
   const options = config.options;
   const layoutStyle = options?.layout_style || "tree";

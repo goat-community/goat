@@ -74,7 +74,7 @@ import type { EditableField, FieldEditability } from "@/lib/utils/allowedValues"
 import { fieldEditability } from "@/lib/utils/allowedValues";
 import { isCatalogLayer } from "@/lib/utils/catalog-layer";
 import { filterColumnType } from "@/lib/utils/columnFilterOperators";
-import { BOOLEAN_SELECT_ITEMS, parseBooleanInput } from "@/lib/utils/fieldInput";
+import { getBooleanSelectItems, parseBooleanInput } from "@/lib/utils/fieldInput";
 import { formatFieldValue } from "@/lib/utils/formatFieldValue";
 import { canEditLayerFeatures, canEditLayerFields } from "@/lib/utils/layerPermissions";
 import type { FieldKind } from "@/lib/validations/layer";
@@ -362,9 +362,13 @@ const EditableDataTable: React.FC<EditableDataTableProps> = ({
               ? "boolean"
               : "string";
       const displayConfig = (prop as { display_config?: Record<string, unknown> }).display_config ?? {};
-      // The header icon shows the declared kind (a formula column keeps the
-      // formula icon), while `kind` drives value formatting and editing.
-      const iconKind: FieldKind = declaredKind === "formula" ? "formula" : kind;
+      // The header icon shows the declared kind (a formula, serial or UUID
+      // column keeps its own icon), while `kind` drives value formatting and
+      // editing — a serial formats as a number and a UUID as text.
+      const iconKind: FieldKind =
+        declaredKind === "formula" || declaredKind === "serial" || declaredKind === "uuid"
+          ? declaredKind
+          : kind;
       // Read-only, pick-from-a-vocabulary or type-with-suggestions: the same
       // derivation the attribute panel and the popover editor use, so a column
       // cannot be editable in one surface and not in another. The items are
@@ -1492,7 +1496,7 @@ const EditableDataTable: React.FC<EditableDataTableProps> = ({
                                       border: "none",
                                     },
                                   }}>
-                                  {BOOLEAN_SELECT_ITEMS.map((item) => (
+                                  {getBooleanSelectItems(t).map((item) => (
                                     <MenuItem key={item.value} value={item.value}>
                                       {item.label}
                                     </MenuItem>
@@ -1553,9 +1557,11 @@ const EditableDataTable: React.FC<EditableDataTableProps> = ({
                                       // is no formula and nothing to
                                       // recompute — something else maintains
                                       // the value.
-                                      editability?.locked
-                                        ? t("field_locked_tooltip")
-                                        : t("computed_read_only", { defaultValue: "Computed (read-only)" })
+                                      editability?.generated
+                                        ? t("generated_field_tooltip")
+                                        : editability?.locked
+                                          ? t("field_locked_tooltip")
+                                          : t("computed_read_only", { defaultValue: "Computed (read-only)" })
                                     }>
                                     <LockIcon sx={{ fontSize: 10, color: "text.disabled", flexShrink: 0 }} />
                                   </Tooltip>

@@ -172,7 +172,7 @@ const MembersTable = ({
             onChange={handleSearchFilter}
           />
         </Stack>
-        <Table sx={{ minWidth: 650 }} aria-label="members table">
+        <Table sx={{ minWidth: 650 }} aria-label={t("members_table")}>
           <TableHead>
             <TableRow>
               <TableCell />

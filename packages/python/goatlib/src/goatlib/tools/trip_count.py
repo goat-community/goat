@@ -17,7 +17,7 @@ from goatlib.analysis.accessibility import (
 from goatlib.analysis.accessibility import (
     TripCountStationParams as AnalysisTripCountParams,
 )
-from goatlib.analysis.schemas.catchment_area import Weekday
+from goatlib.analysis.schemas.catchment_area import WEEKDAY_LABELS, Weekday
 from goatlib.analysis.schemas.ui import (
     UISection,
     ui_field,
@@ -45,8 +45,7 @@ SECTION_RESULT_TRIP = UISection(
     id="result",
     order=7,
     icon="save",
-    label="Result Layer",
-    label_de="Ergebnisebene",
+    label_key="result_layer_section",
     depends_on={"reference_area_layer_id": {"$ne": None}},
 )
 
@@ -93,6 +92,7 @@ class TripCountToolParams(ToolInputBase):
             section="calculation_time",
             field_order=1,
             label_key="weekday",
+            enum_labels=WEEKDAY_LABELS,
             # The default network's schedule is an average of three kinds of
             # day; a bundle is counted on a real date instead.
             visible_when={"_pt_network_bundle_id_is_custom": False},

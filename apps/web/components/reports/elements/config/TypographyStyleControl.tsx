@@ -60,10 +60,10 @@ const FONT_FAMILY_ITEMS: SelectorItem[] = FONT_FAMILIES.map((f) => ({
   value: f.value,
 }));
 
-// Font weight selector items
+// Font weight selector items (labels are translation keys)
 const FONT_WEIGHT_ITEMS: SelectorItem[] = [
-  { label: "Normal", value: "normal" },
-  { label: "Bold", value: "bold" },
+  { label: "normal", value: "normal" },
+  { label: "bold", value: "bold" },
 ];
 
 interface TypographyStyleControlProps {
@@ -86,7 +86,8 @@ const TypographyStyleControl: React.FC<TypographyStyleControlProps> = ({ value, 
   const currentColor = value.fontColor || "#000000";
 
   const selectedFamilyItem = FONT_FAMILY_ITEMS.find((item) => item.value === currentFamily) || FONT_FAMILY_ITEMS[0];
-  const selectedWeightItem = FONT_WEIGHT_ITEMS.find((item) => item.value === currentWeight) || FONT_WEIGHT_ITEMS[0];
+  const fontWeightItems = FONT_WEIGHT_ITEMS.map((item) => ({ ...item, label: t(item.label) }));
+  const selectedWeightItem = fontWeightItems.find((item) => item.value === currentWeight) || fontWeightItems[0];
 
   const handleFamilyChange = (item: SelectorItem | SelectorItem[] | undefined) => {
     if (!item || Array.isArray(item)) return;
@@ -152,7 +153,7 @@ const TypographyStyleControl: React.FC<TypographyStyleControlProps> = ({ value, 
       <Selector
         selectedItems={selectedWeightItem}
         setSelectedItems={handleWeightChange}
-        items={FONT_WEIGHT_ITEMS}
+        items={fontWeightItems}
         label={t("font_weight")}
       />
 
