@@ -343,9 +343,22 @@ async def copy_project(
     # 8a. Point the copied workflows' dataset nodes at the copy's links
     # ------------------------------------------------------------------
     if old_to_new_link_id:
+        # A layer the copy shows through exactly one entry: a dataset node
+        # naming it without an entry of its own is given that entry.
+        links_by_layer: dict[str, list[int]] = {}
+        for source_link in source_links:
+            assert source_link.id is not None
+            links_by_layer.setdefault(str(source_link.layer_id), []).append(
+                old_to_new_link_id[source_link.id]
+            )
+        unique_link_by_layer = {
+            layer_id: ids[0]
+            for layer_id, ids in links_by_layer.items()
+            if len(ids) == 1
+        }
         for new_workflow in new_workflows:
             new_workflow.config = _remap_dataset_node_links(
-                new_workflow.config, old_to_new_link_id
+                new_workflow.config, old_to_new_link_id, unique_link_by_layer
             )
             async_session.add(new_workflow)
 
@@ -403,7 +416,9 @@ async def copy_project(
 
 
 def _remap_dataset_node_links(
-    config: dict[str, Any] | None, old_to_new_link_id: dict[int, int]
+    config: dict[str, Any] | None,
+    old_to_new_link_id: dict[int, int],
+    unique_link_by_layer: dict[str, int] | None = None,
 ) -> dict[str, Any] | None:
     """Point dataset nodes' `projectLayerId` at the copy's links, and the
     copies of those ids that tool configs keep.
@@ -414,6 +429,13 @@ def _remap_dataset_node_links(
     then falls back to the node's `layerId`. Tool configs are rewritten for
     the node's own link ids only — the same rewrite template binding and the
     editor's "Replace datasets" apply — so unrelated numbers stay.
+
+    A node that names its layer without an entry of the source project (no
+    `projectLayerId`, as nodes saved before entries were recorded do) is
+    given the copy's entry for that layer when the copy shows the layer
+    through exactly one (`unique_link_by_layer`). The runner reads it the
+    same either way, but only a node with an entry follows a new layer put
+    behind it later: a workflow re-run's copy-on-write, a template's copy.
     """
     if not isinstance(config, dict):
         return config
@@ -428,6 +450,8 @@ def _remap_dataset_node_links(
         if isinstance(link_id, int) and link_id in old_to_new_link_id:
             data["projectLayerId"] = old_to_new_link_id[link_id]
             replacements.append((link_id, old_to_new_link_id[link_id]))
+        elif unique_link_by_layer and str(data.get("layerId")) in unique_link_by_layer:
+            data["projectLayerId"] = unique_link_by_layer[str(data["layerId"])]
     _rewrite_tool_configs(nodes, replacements)
     return remapped
 

@@ -137,6 +137,7 @@ const fakeUseResult: TemplateUseResult = {
   layout_id: "layout-new",
   added_layer_project_ids: [],
   unresolved_inputs: [],
+  copy_jobs: [],
 };
 
 const project: Project = { id: "project-1" } as Project;

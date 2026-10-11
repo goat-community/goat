@@ -18,6 +18,8 @@ interface JobProgressItemProps {
   status: JobStatusType;
   errorMessage?: string;
   name: string;
+  /** What the row says the job is; the tool's label when not given. */
+  label?: string;
   date: string;
   /** Optional custom action button to replace the default status icon */
   actionButton?: ReactNode;
@@ -38,7 +40,7 @@ export default function JobProgressItem(props: JobProgressItemProps) {
   const { t } = useTranslation("common");
   const theme = useTheme();
   const dateLocale = useDateFnsLocale();
-  const { type, status, name, date, inPopover } = props;
+  const { type, status, name, label, date, inPopover } = props;
   const [showDetails, setShowDetails] = useState(false);
 
   // OGC status to color mapping
@@ -86,7 +88,7 @@ export default function JobProgressItem(props: JobProgressItemProps) {
                 arrow: true,
               }}>
               <>
-                {t(type)} - {format(parseISO(date), "Pp", { locale: dateLocale })}
+                {label ?? t(type)} - {format(parseISO(date), "Pp", { locale: dateLocale })}
               </>
             </OverflowTypograpy>
           </Box>

@@ -1,4 +1,4 @@
-import { type APIRequestContext, type Page, type TestType, request } from "@playwright/test";
+import { type APIRequestContext, type Page, type TestType, request, test } from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -12,11 +12,13 @@ import * as path from "path";
  * the owner's view exists: role-specific specs skip themselves.
  */
 
-export type Role = "owner" | "admin" | "editor" | "viewer" | "outsider" | "newcomer" | "invitee";
+export type Role = "owner" | "admin" | "editor" | "editor2" | "viewer" | "outsider" | "newcomer" | "invitee";
 
 /** Roles with a saved browser session; newcomer and invitee log in inside
- * the specs that test their first login. */
-export const SESSION_ROLES: Role[] = ["owner", "admin", "editor", "viewer", "outsider"];
+ * the specs that test their first login. editor2 is a second editor of the
+ * owner's organization, for specs that need two members to act
+ * independently (e.g. two users of one template). */
+export const SESSION_ROLES: Role[] = ["owner", "admin", "editor", "editor2", "viewer", "outsider"];
 
 export const AUTH_ON = !!process.env.E2E_AUTH;
 
@@ -103,6 +105,11 @@ export const logIn = async (page: Page, email: string, password: string): Promis
   await page.locator("input[name=username]").fill(email);
   await page.locator("input[name=password]").fill(password);
   await page.locator("button[name=login]").click();
-  // Back in the app (port 3000) from Keycloak's page (port 8080).
-  await page.waitForURL((url) => url.port === "3000", { timeout: 30000 });
+  // Back in the app (CI: port 3000) from Keycloak's page (CI: port 8080). A
+  // stack that serves Keycloak on the app's own port (the config's baseURL) is told
+  // apart by Keycloak's /realms/ paths.
+  const appPort = new URL(test.info().project.use.baseURL ?? "http://localhost:3000/").port;
+  await page.waitForURL((url) => url.port === appPort && !url.pathname.startsWith("/realms/"), {
+    timeout: 30000,
+  });
 };
