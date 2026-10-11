@@ -287,9 +287,7 @@ export default function Header(props: HeaderProps) {
             {props.mapHeader && <Divider orientation="vertical" flexItem />}
             {project?.updated_at && (
               <Typography variant="caption" noWrap>
-                {`${t("common:last_saved")}: ${format(parseISO(project.updated_at), "hh:mma dd/MM/yyyy")
-                  .replace("PM", " PM")
-                  .replace("AM", " AM")}`}
+                {`${t("common:last_saved")}: ${format(parseISO(project.updated_at), "Pp", { locale: dateLocale })}`}
               </Typography>
             )}
             {project?.tags &&

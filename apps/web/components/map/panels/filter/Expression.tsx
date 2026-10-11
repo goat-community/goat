@@ -433,7 +433,7 @@ const Expression: React.FC<ExpressionProps> = (props) => {
                   <Tooltip title={t("use_current_map_extent")} arrow>
                     <IconButton
                       color="secondary"
-                      aria-label="refresh map extent coords"
+                      aria-label={t("use_current_map_extent")}
                       onClick={() => {
                         const bbox = map?.getBounds().toArray().flat();
                         if (bbox) {
@@ -459,7 +459,9 @@ const Expression: React.FC<ExpressionProps> = (props) => {
                   </Tooltip>
                 </Stack>
               )}
-              {selectedIntersection?.value === SpatialIntersectionGeomType.BOUNDARY && <div>Boundary</div>}
+              {selectedIntersection?.value === SpatialIntersectionGeomType.BOUNDARY && (
+                <div>{t("boundary")}</div>
+              )}
             </>
           )}
         </Stack>

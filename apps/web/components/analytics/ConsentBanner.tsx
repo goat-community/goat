@@ -324,7 +324,7 @@ function SettingsView({
           checked={statistikEnabled}
           onChange={(e) => onToggleStatistik(e.target.checked)}
           color="primary"
-          inputProps={{ "aria-label": "statistik-toggle" }}
+          inputProps={{ "aria-label": t("consent_category_statistik", "Statistik") }}
         />
       </Stack>
 

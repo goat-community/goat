@@ -1,4 +1,5 @@
 import { Fab, Stack, Tooltip, useTheme } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { useMap } from "react-map-gl/maplibre";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
@@ -10,6 +11,7 @@ type ToolboxProps = {
 
 export function Toolbox(props: ToolboxProps) {
   const theme = useTheme();
+  const { t } = useTranslation("common");
   const { map } = useMap();
 
   return (
@@ -22,7 +24,7 @@ export function Toolbox(props: ToolboxProps) {
               alignItems: "flex-start",
               my: 1,
             }}>
-            <Tooltip title={props.open ? "Close Toolbox" : "Open Toolbox"} arrow placement="right">
+            <Tooltip title={props.open ? t("close_toolbox") : t("open_toolbox")} arrow placement="right">
               <Fab
                 onClick={() => props.onToggle && props.onToggle(!props.open)}
                 size="small"

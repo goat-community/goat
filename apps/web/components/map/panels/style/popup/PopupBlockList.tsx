@@ -39,7 +39,9 @@ const BLOCK_TYPES: BlockTypeMeta[] = [
   { value: "divider", label: "divider_block", icon: ICON_NAME.DIVIDER },
 ];
 
-function makeBlock(type: PopupBlock["type"]): PopupBlock {
+/** `buttonLabel` is the default text of a new button block, in the editor's
+ * language: it is stored with the block and shown to every popup reader. */
+function makeBlock(type: PopupBlock["type"], buttonLabel: string): PopupBlock {
   const id = v4();
   switch (type) {
     case "text":
@@ -56,7 +58,7 @@ function makeBlock(type: PopupBlock["type"]): PopupBlock {
         aspect: "16/9",
       };
     case "button":
-      return { id, type, label: "Open", url_template: "", style: "link" };
+      return { id, type, label: buttonLabel, url_template: "", style: "link" };
     case "badge":
       // `field` is required (.min(1)); user must replace this placeholder
       // before save in the block edit popper.
@@ -163,7 +165,7 @@ export function PopupBlockList({
             <MenuItem
               key={bt.value}
               onClick={() => {
-                onChange([...blocks, makeBlock(bt.value)]);
+                onChange([...blocks, makeBlock(bt.value, t("open"))]);
                 setMenuAnchor(null);
               }}
               sx={{ py: 0.75, px: 1.5, gap: 1.5 }}>

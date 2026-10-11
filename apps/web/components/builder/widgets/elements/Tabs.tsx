@@ -263,7 +263,7 @@ const TabsWidget: React.FC<TabsWidgetProps> = ({
         <MuiTabs
           value={Math.min(activeTab, Math.max(0, tabs.length - 1))}
           onChange={handleTabChange}
-          aria-label="tabs widget"
+          aria-label={t("tabs_widget")}
           variant={useFullWidth ? "fullWidth" : "scrollable"}
           scrollButtons={useFullWidth ? false : "auto"}
           sx={{ minHeight: 32 }}>

@@ -11,6 +11,12 @@ export const BOOLEAN_SELECT_ITEMS = [
   { value: "false", label: "False" },
 ] as const;
 
+/** {@link BOOLEAN_SELECT_ITEMS} with the true/false labels in the reader's language. */
+export const getBooleanSelectItems = (t: (key: string) => string) =>
+  BOOLEAN_SELECT_ITEMS.map((item) =>
+    item.value === "" ? item : { ...item, label: t(item.value === "true" ? "boolean_true" : "boolean_false") }
+  );
+
 /** Select-input string -> stored boolean value ("" -> NULL). */
 export const parseBooleanInput = (value: string): boolean | null =>
   value === "" ? null : value === "true";

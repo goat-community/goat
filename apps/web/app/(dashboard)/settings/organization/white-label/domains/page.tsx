@@ -115,7 +115,7 @@ export default function WhiteLabelDomainsPage() {
               sx={{ whiteSpace: "nowrap" }}
               startIcon={<Icon fontSize="small" iconName={ICON_NAME.PLUS} />}
               onClick={() => setAddOpen(true)}
-              aria-label="add-custom-domain"
+              aria-label={t("white_label_add_domain_title", "Add custom domain")}
               name="add-custom-domain">
               {t("white_label_add_domain_title", "Add custom domain")}
             </Button>
@@ -125,14 +125,14 @@ export default function WhiteLabelDomainsPage() {
 
         <Alert severity="info" icon={<Icon iconName={ICON_NAME.INFO} fontSize="small" />}>
           <Trans
-            i18nKey="white_label_custom_domains_dns_banner_subdomain"
+            i18nKey="common:white_label_custom_domains_dns_banner_subdomain"
             defaults="Subdomain (e.g. <code>maps.example.com</code>): create a CNAME record pointing at <code>{{target}}</code>."
             values={{ target: customDomainConfig?.cname_target ?? "" }}
             components={{ code: <code style={{ fontFamily: "monospace" }} /> }}
           />
           <br />
           <Trans
-            i18nKey="white_label_custom_domains_dns_banner_apex"
+            i18nKey="common:white_label_custom_domains_dns_banner_apex"
             defaults="Apex (e.g. <code>example.com</code>): create an A record pointing at <code>{{ip}}</code>."
             values={{ ip: customDomainConfig?.apex_ipv4 ?? "" }}
             components={{ code: <code style={{ fontFamily: "monospace" }} /> }}

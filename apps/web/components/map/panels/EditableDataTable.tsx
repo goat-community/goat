@@ -74,7 +74,7 @@ import type { EditableField, FieldEditability } from "@/lib/utils/allowedValues"
 import { fieldEditability } from "@/lib/utils/allowedValues";
 import { isCatalogLayer } from "@/lib/utils/catalog-layer";
 import { filterColumnType } from "@/lib/utils/columnFilterOperators";
-import { BOOLEAN_SELECT_ITEMS, parseBooleanInput } from "@/lib/utils/fieldInput";
+import { getBooleanSelectItems, parseBooleanInput } from "@/lib/utils/fieldInput";
 import { formatFieldValue } from "@/lib/utils/formatFieldValue";
 import { canEditLayerFeatures, canEditLayerFields } from "@/lib/utils/layerPermissions";
 import type { FieldKind } from "@/lib/validations/layer";
@@ -1492,7 +1492,7 @@ const EditableDataTable: React.FC<EditableDataTableProps> = ({
                                       border: "none",
                                     },
                                   }}>
-                                  {BOOLEAN_SELECT_ITEMS.map((item) => (
+                                  {getBooleanSelectItems(t).map((item) => (
                                     <MenuItem key={item.value} value={item.value}>
                                       {item.label}
                                     </MenuItem>

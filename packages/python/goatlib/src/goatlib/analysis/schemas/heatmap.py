@@ -120,6 +120,19 @@ class PotentialExpression(StrEnum):
     perimeter = "perimeter"
 
 
+# Potential labels for i18n (maps enum values to translation keys)
+POTENTIAL_TYPE_LABELS: dict[str, str] = {
+    "field": "enums.potential_type.field",
+    "constant": "enums.potential_type.constant",
+    "expression": "enums.potential_type.expression",
+}
+
+POTENTIAL_EXPRESSION_LABELS: dict[str, str] = {
+    "area": "enums.potential_expression.area",
+    "perimeter": "enums.potential_expression.perimeter",
+}
+
+
 # Icon mapping for routing modes (matches @p4b/ui ICON_NAME values)
 # Values must be lowercase to match the enum values in Icon.tsx
 ROUTING_MODE_ICONS: dict[str, str] = {
@@ -283,6 +296,7 @@ class OpportunityGravity(OpportunityBase):
             section="opportunities",
             field_order=4,
             visible_when={"input_path": {"$ne": None}},
+            enum_labels=POTENTIAL_TYPE_LABELS,
             widget_options={
                 # Only show "expression" option when input_path is a polygon layer
                 "enum_geometry_filter": {
@@ -321,6 +335,7 @@ class OpportunityGravity(OpportunityBase):
             section="opportunities",
             field_order=7,
             visible_when={"input_path": {"$ne": None}, "potential_type": "expression"},
+            enum_labels=POTENTIAL_EXPRESSION_LABELS,
         ),
     )
 
@@ -478,6 +493,7 @@ class Opportunity2SFCA(OpportunityBase):
             section="opportunities",
             field_order=4,
             visible_when={"input_path": {"$ne": None}},
+            enum_labels=POTENTIAL_TYPE_LABELS,
             widget_options={
                 # Only show "expression" option when input_path is a polygon layer
                 "enum_geometry_filter": {
@@ -520,6 +536,7 @@ class Opportunity2SFCA(OpportunityBase):
             section="opportunities",
             field_order=7,
             visible_when={"input_path": {"$ne": None}, "capacity_type": "expression"},
+            enum_labels=POTENTIAL_EXPRESSION_LABELS,
         ),
     )
 

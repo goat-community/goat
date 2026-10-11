@@ -9,6 +9,7 @@
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { Autocomplete, Chip, InputAdornment, Stack, TextField, Tooltip } from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { ProcessedInput } from "@/types/map/ogc-processes";
 
@@ -24,6 +25,7 @@ interface ChipsInputProps {
 }
 
 export default function ChipsInput({ input, value, onChange, disabled, formValues = {}, onValidationChange }: ChipsInputProps) {
+  const { t } = useTranslation("common");
   const [inputValue, setInputValue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -85,10 +87,10 @@ export default function ChipsInput({ input, value, onChange, disabled, formValue
     if (vals.length === 0 || activeLimit === undefined) return null;
     const lastChip = vals[vals.length - 1];
     if (lastChip !== activeLimit) {
-      return `The last step size must equal the limit (${activeLimit})`;
+      return t("last_step_must_equal_limit", { limit: activeLimit });
     }
     return null;
-  }, [activeLimit]);
+  }, [activeLimit, t]);
 
   // Clear error when chips become valid (e.g. after regeneration)
   useEffect(() => {
@@ -166,7 +168,7 @@ export default function ChipsInput({ input, value, onChange, disabled, formValue
           <TextField
             {...params}
             error={!!error}
-            placeholder={chips.length >= maxChips ? "" : "Type value + Enter"}
+            placeholder={chips.length >= maxChips ? "" : t("type_value_enter")}
             InputProps={{
               ...params.InputProps,
               ...(error

@@ -27,6 +27,8 @@ from goatlib.analysis.schemas.catchment_area_v2 import (
     Weekday,
 )
 from goatlib.analysis.schemas.heatmap import (
+    POTENTIAL_EXPRESSION_LABELS,
+    POTENTIAL_TYPE_LABELS,
     ROUTING_MODE_ICONS,
     ROUTING_MODE_LABELS,
     PotentialExpression,
@@ -311,6 +313,7 @@ class OpportunityV2PointGravity(OpportunityV2PointBase):
             section="opportunities",
             field_order=4,
             visible_when={"input_path": {"$ne": None}},
+            enum_labels=POTENTIAL_TYPE_LABELS,
             widget_options={
                 "enum_geometry_filter": {
                     "source_layer": "input_path",
@@ -360,6 +363,7 @@ class OpportunityV2PointGravity(OpportunityV2PointBase):
                 "input_path": {"$ne": None},
                 "potential_type": "expression",
             },
+            enum_labels=POTENTIAL_EXPRESSION_LABELS,
         ),
     )
 

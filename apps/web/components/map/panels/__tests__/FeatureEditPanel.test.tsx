@@ -69,7 +69,7 @@ const selectOption = async (user: ReturnType<typeof userEvent.setup>, label: str
   await user.click(within(listbox).getByText(label));
 };
 
-const selectTrue = (user: ReturnType<typeof userEvent.setup>) => selectOption(user, "True");
+const selectTrue = (user: ReturnType<typeof userEvent.setup>) => selectOption(user, "boolean_true");
 
 describe("FeatureEditPanel boolean field", () => {
   beforeEach(() => {
@@ -105,10 +105,10 @@ describe("FeatureEditPanel boolean field", () => {
       </Provider>
     );
 
-    await selectOption(user, "True");
+    await selectOption(user, "boolean_true");
     expect(store.getState().featureEditor.pendingFeatures["feat-1"].properties.flag).toBe(true);
 
-    await selectOption(user, "False");
+    await selectOption(user, "boolean_false");
     expect(store.getState().featureEditor.pendingFeatures["feat-1"].properties.flag).toBe(false);
 
     await selectOption(user, "—");
