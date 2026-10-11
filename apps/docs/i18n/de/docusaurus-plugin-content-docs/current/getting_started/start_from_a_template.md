@@ -61,6 +61,6 @@ Ein Raster-Datensatz oder ein Datensatz aus einem externen Dienst hat keine Feat
 Wenn jemand die Vorlage verwendet, erstellt GOAT zuerst das Projekt oder den Workflow mit Ihrem Datensatz und legt die Kopien anschließend im Hintergrund an; Sie können sie unter [Job Status](../workspace/workspace_interface.md#job-status) verfolgen. Bis eine Kopie fertig ist, wird der Datensatz schreibgeschützt angezeigt. Danach ersetzt sie Ihren Datensatz überall in diesem Projekt: auf der Karte, im Dashboard und in Workflows.
 
 :::info
-Eine Kopie entsteht aus Ihrem Datensatz **in dem Stand, in dem er beim Verwenden der Vorlage ist**. Spätere Änderungen an Ihrem Datensatz erreichen bereits vorhandene Kopien nicht, und Änderungen anderer an ihrer Kopie erreichen Ihren Datensatz nie. Alle, die die Vorlage verwenden dürfen, müssen die mitgelieferten oder kopierten Datensätze lesen können: Wenn Sie die Vorlage teilen, werden diese als Betrachter mitgeteilt.
+Eine Kopie entsteht aus Ihrem Datensatz **in dem Stand, in dem er beim Verwenden der Vorlage ist**. Spätere Änderungen an Ihrem Datensatz erreichen bereits vorhandene Kopien nicht, und Änderungen anderer an ihrer Kopie erreichen Ihren Datensatz nie. Alle, die die Vorlage verwenden dürfen, müssen die mitgelieferten oder mit Inhalt kopierten Datensätze lesen können: Wenn Sie die Vorlage teilen, werden diese als Betrachter mitgeteilt. Eine leere Kopie übernimmt nur Spalten, Geometrietyp und Stil. Ihr Datensatz selbst bleibt daher privat: Er wird nicht mitgeteilt und nie öffentlich.
 :::
 

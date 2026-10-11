@@ -79,15 +79,16 @@ class TestToolReferences:
     def test_a_layer_copy_reads_its_source_and_entries_and_writes_the_project(
         self,
     ) -> None:
-        """The template copy job: the caller must read the dataset it copies
-        and the entries it repoints, and write the project they are in."""
+        """The template copy job with the dataset's rows: the caller must read
+        the dataset it copies and the entries it repoints, and write the
+        project they are in."""
         refs = tool_references(
             "layer_copy",
             {
                 "source_layer_id": LAYER,
                 "project_id": PROJECT,
                 "layer_project_ids": [11, 12],
-                "copy_content": False,
+                "copy_content": True,
                 "template_id": OTHER,
             },
         )
@@ -97,6 +98,33 @@ class TestToolReferences:
             ("layer_project", "12", "read"),
             ("project", PROJECT, "write"),
         }
+
+    def test_an_empty_layer_copy_reads_the_template_not_the_dataset(self) -> None:
+        """ "Copy, empty" copies only the structure: reading the template is
+        enough, so the author's rows need not be readable by its users."""
+        refs = tool_references(
+            "layer_copy",
+            {
+                "source_layer_id": LAYER,
+                "project_id": PROJECT,
+                "layer_project_ids": [11],
+                "copy_content": False,
+                "template_id": OTHER,
+            },
+        )
+        # The entries still show the dataset, so they are not read either;
+        # the project they are in is written.
+        assert _entries(refs) == {
+            ("template", OTHER, "read"),
+            ("project", PROJECT, "write"),
+        }
+
+    def test_an_empty_layer_copy_without_a_template_reads_the_dataset(self) -> None:
+        refs = tool_references(
+            "layer_copy",
+            {"source_layer_id": LAYER, "project_id": PROJECT, "copy_content": False},
+        )
+        assert ("layer", LAYER, "read") in _entries(refs)
 
     def test_project_export_reads_the_project(self) -> None:
         assert _entries(tool_references("project_export", {"project_id": PROJECT})) == {
@@ -556,3 +584,61 @@ def test_a_malformed_workflow_node_is_refused_not_a_server_error(data: Any) -> N
     with pytest.raises(HTTPException) as refused:
         workflow_references([{"id": "a", "data": data}], PROJECT, FOLDER)
     assert refused.value.status_code == 422
+
+
+class _Pool:
+    """The one query `ensure_empty_copy_of_template` sends, answered."""
+
+    def __init__(self, found: bool) -> None:
+        self.found = found
+        self.asked: list[tuple[Any, ...]] = []
+
+    async def fetchval(self, sql: str, *args: Any) -> bool:
+        self.asked.append(args)
+        return self.found
+
+
+@pytest.mark.parametrize("found", [True, False])
+def test_an_empty_copy_runs_only_for_a_copy_input_of_that_template(
+    monkeypatch: pytest.MonkeyPatch, found: bool
+) -> None:
+    """The template must have the dataset as a "copy, empty" input; naming
+    any template the caller can read is not enough."""
+    from processes.deps.auth import get_optional_user_id
+
+    pool = _Pool(found)
+
+    async def get_pool() -> _Pool:
+        return pool
+
+    submitted: list[dict[str, Any]] = []
+
+    async def submit(script_path: str, args: dict[str, Any], **_: Any) -> str:
+        submitted.append(args)
+        return "job-1"
+
+    monkeypatch.setattr(access, "_get_pool", get_pool)
+    monkeypatch.setattr(processes_router.windmill_client, "run_script_async", submit)
+    app.dependency_overrides[get_optional_user_id] = lambda: USER
+    try:
+        response = TestClient(app).post(
+            "/processes/layer_copy/execution",
+            json={
+                "inputs": {
+                    "source_layer_id": LAYER,
+                    "project_id": PROJECT,
+                    "layer_project_ids": [11],
+                    "copy_content": False,
+                    "template_id": OTHER,
+                }
+            },
+        )
+    finally:
+        app.dependency_overrides.pop(get_optional_user_id, None)
+    assert pool.asked == [(OTHER, LAYER)]
+    if found:
+        assert response.status_code < 300, response.text
+        assert len(submitted) == 1
+    else:
+        assert response.status_code == 404, response.text
+        assert submitted == []

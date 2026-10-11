@@ -689,18 +689,20 @@ async def test_a_template_grant_lets_the_grantee_read_the_datasets_it_copies(
 
 
 @pytest.mark.asyncio
-async def test_publishing_makes_a_copied_dataset_public_too(
+async def test_a_template_grant_gives_no_read_of_a_dataset_copied_empty(
     client: AsyncClient,
     db_session: AsyncSession,
     fixture_create_user: UUID,
     fixture_get_home_folder: dict[str, object],
     make_layer: MakeLayer,
+    make_user: MakeUser,
     roles: dict[str, UUID],
 ) -> None:
     owner, folder, home = await _setup(
         client, db_session, fixture_create_user, fixture_get_home_folder, make_layer
     )
     planned = await make_layer(owner, folder)
+    stranger = await make_user()
     await db_session.commit()
     project_id = await _create_project(client, home)
     await _add_layers(client, project_id, planned.id)
@@ -709,13 +711,64 @@ async def test_publishing_makes_a_copied_dataset_public_too(
     )
     assert template.status_code == 201, template.text
 
+    grant = await client.post(
+        f"{API}/template/{template.json()['id']}/grant",
+        json={
+            "grantee_type": "user",
+            "grantee_id": str(stranger.id),
+            "role": "template-viewer",
+        },
+    )
+
+    assert grant.status_code in (200, 201), grant.text
+    readable = (
+        await db_session.execute(
+            text(f"SELECT {S}.can('layer', :l, :u, 'read')"),
+            {"l": planned.id, "u": stranger.id},
+        )
+    ).scalar()
+    assert readable is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("copy_content", [True, False])
+async def test_publishing_makes_a_dataset_copied_with_its_rows_public(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    fixture_create_user: UUID,
+    fixture_get_home_folder: dict[str, object],
+    make_layer: MakeLayer,
+    roles: dict[str, UUID],
+    copy_content: bool,
+) -> None:
+    """A copy with its rows is read from the author's dataset, so it becomes
+    public like a shipped one. An empty copy only takes the structure, made
+    on the template's behalf: the author's rows stay private."""
+    owner, folder, home = await _setup(
+        client, db_session, fixture_create_user, fixture_get_home_folder, make_layer
+    )
+    planned = await make_layer(owner, folder)
+    await db_session.commit()
+    project_id = await _create_project(client, home)
+    await _add_layers(client, project_id, planned.id)
+    template = await _project_template(
+        client, home, project_id, [_choice(planned, "copy", copy_content=copy_content)]
+    )
+    assert template.status_code == 201, template.text
+
     published = await client.post(f"{API}/template/{template.json()['id']}/publish")
 
     assert published.status_code == 200, published.text
     (copied,) = published.json()["inputs"]
     assert copied["mode"] == "copy"
-    assert copied["public_read"] is True
-    assert published.json()["ships_data"] is True
+    assert copied["public_read"] is copy_content
+    assert published.json()["ships_data"] is copy_content
+    public = (
+        await db_session.execute(
+            text(f"SELECT public_read FROM {S}.layer WHERE id = :l"), {"l": planned.id}
+        )
+    ).scalar()
+    assert public is copy_content
 
 
 # ----------------------------------------------------------------------------
@@ -977,6 +1030,71 @@ async def test_a_dataset_the_user_cannot_read_is_not_copied(
     (job,) = use.json()["copy_jobs"]
     assert (job["job_id"], job["error"]) == (None, "source_not_readable")
     processes.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_an_empty_copy_starts_although_the_user_cannot_read_the_dataset(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    fixture_create_user: UUID,
+    fixture_get_home_folder: dict[str, object],
+    make_layer: MakeLayer,
+    make_user: MakeUser,
+    make_folder: MakeFolder,
+    roles: dict[str, UUID],
+    processes: AsyncMock,
+) -> None:
+    """Only the template has to be readable: the job is started for the
+    template (processes checks the template has this "copy, empty" input),
+    and the author's dataset stays unreadable to the user."""
+    owner, folder, home = await _setup(
+        client, db_session, fixture_create_user, fixture_get_home_folder, make_layer
+    )
+    planned = await make_layer(owner, folder)
+    stranger = await make_user()
+    stranger_folder = await make_folder(stranger)
+    await db_session.commit()
+    project_id = await _create_project(client, home)
+    await _add_layers(client, project_id, planned.id)
+    template = await _project_template(
+        client, home, project_id, [_choice(planned, "copy", copy_content=False)]
+    )
+    tid = template.json()["id"]
+    await db_session.execute(
+        text(
+            f"INSERT INTO {S}.resource_grant "
+            "(resource_type, resource_id, grantee_type, grantee_id, role_id, granted_by) "
+            "VALUES ('template', :t, 'user', :u, :r, :b)"
+        ),
+        {
+            "t": UUID(tid),
+            "u": stranger.id,
+            "r": roles["template-viewer"],
+            "b": owner.id,
+        },
+    )
+    await db_session.commit()
+
+    use = await client.post(
+        f"{API}/template/{tid}/use",
+        json={"target_folder_id": str(stranger_folder.id)},
+        headers={"Authorization": f"Bearer {_unverified_bearer(stranger.id)}"},
+    )
+
+    assert use.status_code == 200, use.text
+    (job,) = use.json()["copy_jobs"]
+    assert job["error"] is None
+    processes.assert_awaited_once()
+    inputs = processes.await_args.kwargs["inputs"]
+    assert inputs["copy_content"] is False
+    assert inputs["template_id"] == tid
+    readable = (
+        await db_session.execute(
+            text(f"SELECT {S}.can('layer', :l, :u, 'read')"),
+            {"l": planned.id, "u": stranger.id},
+        )
+    ).scalar()
+    assert readable is False
 
 
 # ----------------------------------------------------------------------------
@@ -1242,6 +1360,71 @@ async def test_after_the_copy_the_user_edits_their_own_layer_and_not_the_authors
         )
     ).scalar_one()
     assert copies == 1
+
+
+@pytest.mark.asyncio
+async def test_an_entry_put_on_the_users_copy_becomes_shareable(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    fixture_create_user: UUID,
+    fixture_get_home_folder: dict[str, object],
+    make_layer: MakeLayer,
+    make_user: MakeUser,
+    make_folder: MakeFolder,
+    roles: dict[str, UUID],
+    processes: AsyncMock,
+) -> None:
+    """The user had no `share` on the author's dataset, so the entry made for
+    it was not shareable. Once it shows the user's own copy it is, or the
+    copy would stay hidden from everyone the project is shared with."""
+    owner, folder, home = await _setup(
+        client, db_session, fixture_create_user, fixture_get_home_folder, make_layer
+    )
+    planned = await make_layer(owner, folder)
+    stranger = await make_user()
+    stranger_folder = await make_folder(stranger)
+    await db_session.commit()
+    project_id = await _create_project(client, home)
+    await _add_layers(client, project_id, planned.id)
+    template = await _project_template(
+        client, home, project_id, [_choice(planned, "copy", copy_content=False)]
+    )
+    tid = template.json()["id"]
+    await db_session.execute(
+        text(
+            f"INSERT INTO {S}.resource_grant "
+            "(resource_type, resource_id, grantee_type, grantee_id, role_id, granted_by) "
+            "VALUES ('template', :t, 'user', :u, :r, :b)"
+        ),
+        {
+            "t": UUID(tid),
+            "u": stranger.id,
+            "r": roles["template-viewer"],
+            "b": owner.id,
+        },
+    )
+    await db_session.commit()
+    use = await client.post(
+        f"{API}/template/{tid}/use",
+        json={"target_folder_id": str(stranger_folder.id)},
+        headers={"Authorization": f"Bearer {_unverified_bearer(stranger.id)}"},
+    )
+    assert use.status_code == 200, use.text
+    new_project = use.json()["project_id"]
+    entries = f"SELECT layer_id, shareable FROM {S}.layer_project WHERE project_id = :p"
+    before = (await db_session.execute(text(entries), {"p": new_project})).all()
+    assert [(r.layer_id, r.shareable) for r in before] == [(planned.id, False)]
+    (submitted,) = processes.await_args_list
+
+    output = await _run_copy_job(
+        submitted.kwargs["inputs"], stranger.id, feature_count=0
+    )
+
+    assert output.copied is True
+    after = (await db_session.execute(text(entries), {"p": new_project})).all()
+    assert [(r.layer_id, r.shareable) for r in after] == [
+        (UUID(str(output.layer_id)), True)
+    ]
 
 
 @pytest.mark.asyncio
