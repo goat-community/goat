@@ -126,7 +126,8 @@ class CRUDOrganization(CRUDBase[Organization, OrganizationCreate, OrganizationUp
         user.organization = organization
         db.add(organization)
         db.add(user)
-        # Add Roles to the user as organization owner
+        # The owner role replaces any organization role the user still holds.
+        await crud_role.remove_organization_roles(db, user.id)
         role = await crud_role.get_by_key(
             db=db, key="name", value=OrganizationRolesEnum.owner
         )

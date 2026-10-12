@@ -18,7 +18,9 @@ EMAIL = "new.colleague@example.com"
 
 
 def _organization() -> SimpleNamespace:
-    return SimpleNamespace(id=ORG_ID, name="Org", avatar=None, region="EU")
+    return SimpleNamespace(
+        id=ORG_ID, name="Org", avatar=None, region="EU", suspended=False
+    )
 
 
 def _stored_invitation() -> AsyncMock:
@@ -267,8 +269,9 @@ async def test_provisioned_invitee_accepts_with_mixed_case_token_email() -> None
             "role": "organization-editor",
         },
     )
-    user = SimpleNamespace(organization=None)
+    user = SimpleNamespace(id=uuid4(), organization=None, organization_id=None)
     update_invitation = AsyncMock()
+    remove_roles = AsyncMock()
     with (
         patch.object(users.crud_invitation, "get", AsyncMock(return_value=invitation)),
         patch.object(
@@ -282,6 +285,7 @@ async def test_provisioned_invitee_accepts_with_mixed_case_token_email() -> None
         ),
         patch.object(users, "UserRoleLink", MagicMock()),
         patch.object(users.crud_invitation, "update", update_invitation),
+        patch.object(users.crud_role, "remove_organization_roles", remove_roles),
     ):
         await users.accept_invitation(
             db=AsyncMock(add=MagicMock()),
@@ -289,6 +293,6 @@ async def test_provisioned_invitee_accepts_with_mixed_case_token_email() -> None
             token="token",
             invitation_id=str(invitation.id),
         )
-    assert user.organization is not None
+    remove_roles.assert_awaited_once()
     update_invitation.assert_awaited_once()
     assert update_invitation.await_args.kwargs["obj_in"] == {"status": "accepted"}

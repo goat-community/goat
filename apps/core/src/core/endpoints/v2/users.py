@@ -8,7 +8,7 @@ from fastapi.params import Query
 from fastapi_pagination import Page
 from fastapi_pagination import Params as PaginationParams
 from keycloak.exceptions import KeycloakError
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
@@ -20,6 +20,7 @@ from core.crud.crud_user import user as crud_user
 from core.db.models._link_model import UserRoleLink
 from core.db.models.invitation import Invitation, InvitationStatusEnum, InvitationType
 from core.db.models.organization import Organization
+from core.db.models.user import User
 from core.deps.auth import auth, auth_z, token_is_superuser, user_token
 from core.deps.keycloak import get_keycloak_user, keycloak_admin
 from core.endpoints.deps import get_db, get_user_id
@@ -93,16 +94,41 @@ async def accept_invitation(
 
     if invitation.type == InvitationType.organization:
         user_id = user_token["sub"]
-        organization_id = invitation.payload["organization_id"]
-        role = invitation.payload["role"]
         user = await crud_user.create_if_not_exists(user_id=user_id, db_session=db)
-        organization_obj = await crud_organization.get(db=db, id=organization_id)
-        user.organization = organization_obj
-        # Add Roles to the user as organization owner
-        role = await crud_role.get_by_key(db=db, key="name", value=role)
-        role = role[0]
-        user_role = UserRoleLink(role=role, user=user)
-        db.add(user_role)
+        organization_obj = await crud_organization.get(
+            db=db, id=invitation.payload["organization_id"]
+        )
+        roles = await crud_role.get_by_key(
+            db=db, key="name", value=invitation.payload["role"]
+        )
+        # Everything is checked before the first write: statements commit one
+        # by one, so a later failure would leave the user half moved.
+        if organization_obj is None or organization_obj.suspended or not roles:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Invitation not found",
+            )
+        # A user belongs to one organization. Creating the invitation checks
+        # this, but the invitee may have set up an organization of their own
+        # since. One conditional update claims the user, so of two
+        # invitations accepted at once only one can.
+        claimed = (
+            await db.execute(
+                update(User)
+                .where(User.id == user.id, User.organization_id.is_(None))
+                .values(organization_id=organization_obj.id)
+                .returning(User.id)
+            )
+        ).scalar_one_or_none()
+        if claimed is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User already has an organization",
+            )
+        # Any organization role the user still holds would count in the one
+        # they join: they get only the role they were invited with.
+        await crud_role.remove_organization_roles(db, user.id)
+        db.add(UserRoleLink(role=roles[0], user=user))
         await db.commit()
 
     await crud_invitation.update(
