@@ -42,8 +42,9 @@ def calculate_class_breaks(
     attribute = require_column(con, table_name, attribute, "attribute")
     attr_col = quote_identifier(attribute)
 
-    # Build full where clause with null check and optional zero stripping
-    full_where = f"({where_clause}) AND {attr_col} IS NOT NULL"
+    # Build full where clause with null check and optional zero stripping.
+    # Infinity and NaN can't be classified and would overflow AVG/STDDEV.
+    full_where = f"({where_clause}) AND {attr_col} IS NOT NULL AND isfinite({attr_col})"
     if strip_zeros:
         full_where = f"{full_where} AND {attr_col} != 0"
 

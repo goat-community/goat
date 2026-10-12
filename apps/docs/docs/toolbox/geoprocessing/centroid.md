@@ -1,4 +1,5 @@
 ---
+description: "Create a point at the geometric center of each polygon or line feature, for example to turn building footprints into points or to label city districts."
 sidebar_position: 3
 ---
 

@@ -1,11 +1,11 @@
 {
   "logo.alt": {
-    "message": "Plan4Better",
+    "message": "GOAT by Plan4Better",
     "description": "Der Alt-Text des Navbar-Logos"
   },
-  "item.label.Tutorial": {
-    "message": "Tutorial",
-    "description": "Navbar-Element mit Beschriftung Tutorial"
+  "item.label.Tutorials": {
+    "message": "Tutorials",
+    "description": "Navbar-Element mit Beschriftung Tutorials"
   },
   "item.label.Blog": {
     "message": "Blog",

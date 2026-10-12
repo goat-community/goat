@@ -1,0 +1,59 @@
+{{- /*
+The bootstrap Job writes the windmill API token to a K8s Secret via the
+in-cluster API. It needs a ServiceAccount with permission to create/patch
+Secrets in the release namespace. Scoped to just the token Secret name to
+keep the blast radius minimal. When it hands the token to processes it also
+reads and patches (restarts) that one Deployment.
+*/}}
+{{- if and .Values.windmill.server.enabled .Values.windmill.bootstrap.enabled -}}
+{{- $saName := printf "%s-windmill-bootstrap" (include "goat.fullname" .) -}}
+{{- $tokenSecret := default (printf "%s-windmill-token" (include "goat.fullname" .)) .Values.windmill.bootstrap.tokenSecret.name -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $saName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "windmill-bootstrap") | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $saName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "windmill-bootstrap") | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    # `create` is unbounded — we can't use `resourceNames` on create per K8s
+    # API spec. get/patch ARE scoped to the token Secret. Worst-case abuse
+    # is creating extra Secrets in this namespace, no cluster-wide reach.
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: [{{ $tokenSecret | quote }}]
+    verbs: ["get", "patch", "update"]
+  {{- if include "goat.windmill.bootstrapWiresProcesses" . }}
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: [{{ include "goat.serviceFullname" (dict "context" . "component" "processes") | quote }}]
+    verbs: ["get", "patch"]
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $saName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "windmill-bootstrap") | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $saName }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $saName }}
+{{- end -}}

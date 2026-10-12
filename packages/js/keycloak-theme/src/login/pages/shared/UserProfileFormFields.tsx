@@ -15,6 +15,7 @@ import { useMemo, useEffect, Fragment } from "react";
 
 import type { I18n } from "../../i18n";
 import { getCountries } from "../../i18n";
+import { getThemeProperty } from "../../themeProperties";
 
 interface Steps {
   [key: number]: string[];
@@ -56,6 +57,7 @@ export function UserProfileFormFields(props: UserProfileFormFieldsProps) {
     i18n,
   });
   const { msg, advancedMsgStr } = i18n;
+  const privacyUrl = getThemeProperty(kcContext, "privacyUrl");
 
   const attributesWithPasswordOrdered = useMemo(() => {
     if (steps === undefined) {
@@ -317,15 +319,21 @@ export function UserProfileFormFields(props: UserProfileFormFieldsProps) {
             >
               <Typography variant="body2">
                 {msg("accept")}
-                <Link
-                  sx={{
-                    marginLeft: "2px",
-                  }}
-                  href="https://plan4better.de/en/privacy/"
-                  target="_blank"
-                >
-                  {msg("terms")}
-                </Link>
+                {privacyUrl ? (
+                  <Link
+                    sx={{
+                      marginLeft: "2px",
+                    }}
+                    href={privacyUrl}
+                    target="_blank"
+                  >
+                    {msg("terms")}
+                  </Link>
+                ) : (
+                  <Box component="span" sx={{ marginLeft: "2px" }}>
+                    {msg("terms")}
+                  </Box>
+                )}
               </Typography>
             </Box>
           }

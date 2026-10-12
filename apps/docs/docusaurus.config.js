@@ -1,21 +1,30 @@
 // @ts-nocheck
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require("prism-react-renderer/themes/github");
-// const darkCodeTheme = require('prism-react-renderer/themes/dracula');
-// const DarkTheme = require('@site/src/custom_theme.ts');
+const { themes: prismThemes } = require("prism-react-renderer");
+const { sidebarItemsGenerator } = require("./src/sidebar/sections");
+const { lastUpdatedVcs } = require("./src/vcs/lastUpdated");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: "GOAT DOCS",
-  tagline: "GOATs are cool",
+  title: "GOAT Docs",
+  tagline: "Guides and reference for GOAT, the open-source WebGIS for integrated planning",
   favicon: "img/favicon.ico",
   url: "https://goat.plan4better.de",
   baseUrl: "/docs/",
   organizationName: "plan4better",
   projectName: "goat",
-  onBrokenLinks: "warn",
-  onBrokenMarkdownLinks: "warn",
+  trailingSlash: false,
+  onBrokenLinks: "throw",
+  onBrokenAnchors: "throw",
+  future: {
+    experimental_vcs: lastUpdatedVcs(),
+  },
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: "throw",
+    },
+  },
   i18n: {
     defaultLocale: "en",
     locales: ["en", "de"],
@@ -38,20 +47,17 @@ const config = {
         docs: {
           routeBasePath: "/",
           sidebarPath: require.resolve("./sidebars.js"),
-          editUrl: ({ locale, versionDocsDirPath, docPath }) => {
+          sidebarItemsGenerator,
+          showLastUpdateTime: true,
+          editUrl: ({ locale, docPath }) => {
             const translation = locale || 'en';
             if (translation !== 'en') {
               return `https://github.com/plan4better/goat/edit/main/apps/docs/i18n/${translation}/docusaurus-plugin-content-docs/current/${docPath}`;
             }
             return `https://github.com/plan4better/goat/edit/main/apps/docs/docs/${docPath}`;
           },
-          lastVersion: "current",
-          versions: {
-            current: {
-              path: "",
-            },
-          },
         },
+        blog: false,
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
         },
@@ -59,6 +65,8 @@ const config = {
     ],
   ],
   plugins: [
+    require.resolve("./src/plugins/markdown-source.js"),
+    require.resolve("./src/plugins/glossary.js"),
     [
       "@docusaurus/plugin-content-docs",
       {
@@ -66,6 +74,7 @@ const config = {
         path: "tutorials",
         routeBasePath: "tutorials",
         sidebarPath: require.resolve("./sidebarsTutorials.js"),
+        showLastUpdateTime: true,
         editUrl: ({ locale, docPath }) => {
           const translation = locale || 'en';
           if (translation !== 'en') {
@@ -76,23 +85,31 @@ const config = {
       },
     ],
     [
-      "@docusaurus/plugin-content-blog",
-      {
-        id: "releases",
-        routeBasePath: "releases",
-        path: "./releases",
-        blogTitle: "Release notes",
-        blogSidebarTitle: "Release notes",
-        showReadingTime: false,
-        feedOptions: { type: null },
-      },
-    ],
-    [
       "@docusaurus/plugin-client-redirects",
       {
+        // Earlier addresses of the first-steps tutorial pages.
+        redirects: [
+          { from: "/tutorials/goat-first-steps", to: "/tutorials/first-steps" },
+          ...[
+            "start-here",
+            "goat-ui",
+            "exercise-introduction",
+            "create-project",
+            "add-data",
+            "data-preparation",
+            "style-layers",
+            "catchment-areas",
+            "create-catchment-areas",
+            "share-map",
+            "congratulations",
+          ].map((step) => ({
+            from: `/tutorials/tutorials/goat-erste-schritte/${step}`,
+            to: `/tutorials/first-steps/${step}`,
+          })),
+        ],
         createRedirects(existingPath) {
-          // Redirect old /2.0/ versioned URLs to the new unversioned paths
-          return [`/2.0${existingPath}`];
+          // Links to /2.0/<page> land on <page>.
+          return existingPath.endsWith("/404.html") ? [] : [`/2.0${existingPath}`];
         },
       },
     ],
@@ -101,45 +118,40 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      // Replace with your project's social card
-      image: "img/GOAT_logo_white_green_crop_b.png",
+      image: "img/social-card.png",
       navbar: {
         logo: {
-          alt: "Plan4Better",
-          src: "https://assets.plan4better.de/img/logo/plan4better_standard.svg",
+          alt: "GOAT by Plan4Better",
+          src: "img/goat-lockup.svg",
         },
         items: [
           {
             type: "docSidebar",
             sidebarId: "tutorialSidebar",
-            position: "left",
+            position: "right",
             label: "Docs",
           },
           {
             to: "/tutorials",
             label: "Tutorials",
-            position: "left",
+            position: "right",
             activeBaseRegex: `/tutorials/`,
           },
           {
             to: "https://plan4better.de/en/blog/",
             label: "Blog",
-            position: "left",
+            position: "right",
           },
           {
             type: "localeDropdown",
             position: "right"
           },
-          // Re-enable when multiple doc versions exist:
-          // {
-          //   type: "docsVersionDropdown",
-          //   position: "right",
-          //   dropdownActiveClassDisabled: true,
-          // },
           {
             href: "https://github.com/plan4better/goat",
             label: "GitHub",
             position: "right",
+            className: "header-github-link",
+            "aria-label": "GitHub",
           },
         ],
       },
@@ -185,6 +197,10 @@ const config = {
           },
         ],
         copyright: `Plan4Better GmbH 2026 | All Rights Reserved`,
+      },
+      prism: {
+        theme: prismThemes.github,
+        darkTheme: prismThemes.vsDark,
       },
       algolia: {
         indexName: 'goat-plan4better',

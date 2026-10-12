@@ -1,4 +1,5 @@
 ---
+description: "Gruppieren Sie bis zu 2.000 Punkte in eine feste Zahl von Zonen, per K-Means oder als Ausgeglichene Zonen, die nach Anzahl oder Feldwert gleich groß werden."
 sidebar_position: 6
 ---
 
@@ -19,9 +20,9 @@ Das Werkzeug Räumliches Clustering **erstellt geclusterte Zonen durch Gruppieru
 
 Das Werkzeug Räumliches Clustering gruppiert eine Menge räumlicher Features in eine angegebene Anzahl räumlicher Zonen. Es bietet zwei Clustering-Methoden:
 
-- **K-Means** — Eine schnelle, geometriebasierte Methode, die Features nach Nähe zu Clusterzentren gruppiert. Diese Methode zielt nicht darauf ab, gleich große Zonen bereitzustellen.
+- **K-Means**: Eine schnelle, geometriebasierte Methode, die Features nach Nähe zu Clusterzentren gruppiert. Diese Methode zielt nicht darauf ab, gleich große Zonen bereitzustellen.
 
-- **Ausgeglichene Zonen** — Ein genetischer Algorithmus, der Zonen mit **annähernd gleicher Größe** erstellt, entweder nach Anzahl der Features oder nach einem numerischen Feldwert. Diese Methode unterstützt auch **Kompaktheitseinschränkungen**, um die räumliche Ausdehnung jeder Zone zu begrenzen.
+- **Ausgeglichene Zonen**: Ein genetischer Algorithmus, der Zonen mit **annähernd gleicher Größe** erstellt, entweder nach Anzahl der Features oder nach einem numerischen Feldwert. Diese Methode unterstützt auch **Kompaktheitseinschränkungen**, um die räumliche Ausdehnung jeder Zone zu begrenzen.
 
 <!-- TODO: Add illustration showing K-means vs Balanced zones
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
@@ -68,7 +69,7 @@ Das Werkzeug für räumliches Clustering ist derzeit **auf Punkt-Features beschr
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Legen Sie die <code>Anzahl der Cluster</code> fest – die Anzahl der zu erstellenden Zonen (Standard: 10).</div>
+  <div class="content">Legen Sie die <code>Anzahl der Cluster</code> fest, also die Anzahl der zu erstellenden Zonen (Standard: 10).</div>
 </div>
 
 ### Konfiguration
@@ -105,7 +106,7 @@ Zusätzliche Konfigurationsoptionen werden verfügbar:
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">Wenn Sie <b>Feldwert</b> verwenden, wählen Sie das <code>Größenfeld</code> – ein numerisches Feld aus Ihrem Eingabe-Layer, das als Ausgleichsgewichtung verwendet wird.</div>
+  <div class="content">Wenn Sie <b>Feldwert</b> verwenden, wählen Sie das <code>Größenfeld</code>: ein numerisches Feld aus Ihrem Eingabe-Layer, das als Ausgleichsgewichtung verwendet wird.</div>
 </div>
 
 <div class="step">
@@ -122,8 +123,8 @@ Zusätzliche Konfigurationsoptionen werden verfügbar:
 
 Sobald die Berechnung abgeschlossen ist, werden **zwei Ergebnis-Layer** zur Karte hinzugefügt:
 
-1. **Features-Layer** — Die ursprünglichen Eingabe-Features, denen jeweils eine `cluster_id` zugewiesen wurde.
-2. **Zusammenfassungs-Layer** — Ein Multigeometrie-Feature pro Zone mit Zonenstatistiken (Größe, maximale Distanz zwischen Features).
+1. **Features-Layer**: Die ursprünglichen Eingabe-Features, denen jeweils eine `cluster_id` zugewiesen wurde.
+2. **Zusammenfassungs-Layer**: Ein Multigeometrie-Feature pro Zone mit Zonenstatistiken (Größe, maximale Distanz zwischen Features).
 
 
 <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -142,9 +143,9 @@ Möchten Sie visuell ansprechende Karten erstellen, die eine klare Geschichte er
 
 Der K-Means-Algorithmus arbeitet iterativ:
 
-1. **Initialisierung** — *k* anfängliche Zentroide werden unter Verwendung einer Furthest-Point-Strategie für eine bessere Verteilung ausgewählt.
-2. **Zuordnung** — Jedes Feature wird basierend auf der euklidischen Distanz (in projizierten Koordinaten) dem nächstgelegenen Zentroid zugeordnet.
-3. **Aktualisierung** — Zentroide werden als mittlere Position aller zugeordneten Features neu berechnet.
+1. **Initialisierung**: *k* anfängliche Zentroide werden unter Verwendung einer Furthest-Point-Strategie für eine bessere Verteilung ausgewählt.
+2. **Zuordnung**: Jedes Feature wird basierend auf der euklidischen Distanz (in projizierten Koordinaten) dem nächstgelegenen Zentroid zugeordnet.
+3. **Aktualisierung**: Zentroide werden als mittlere Position aller zugeordneten Features neu berechnet.
 4. **Wiederholung** bis die Zentroide konvergieren oder die maximale Anzahl an Iterationen erreicht ist.
 
 ### Ausgeglichene Zonen
@@ -157,16 +158,16 @@ Die Methode Ausgeglichene Zonen verwendet einen **genetischen Algorithmus**, um 
 4. Die besten Lösungen werden über mehrere Generationen hinweg kombiniert und mutiert, um das Ergebnis schrittweise zu verbessern.
 5. Der Algorithmus stoppt, wenn keine weitere Verbesserung gefunden wird oder die maximale Anzahl an Generationen erreicht ist.
 
-Der Algorithmus verwendet **räumliche Nachbarschaftsgraphen**, um zusammenhängendes Zonenwachstum sicherzustellen — Features werden Zonen durch ihre räumlichen Nachbarn zugewiesen, was kompakte und verbundene Cluster fördert.
+Der Algorithmus verwendet **räumliche Nachbarschaftsgraphen**, um zusammenhängendes Zonenwachstum sicherzustellen: Features werden Zonen durch ihre räumlichen Nachbarn zugewiesen, was kompakte und verbundene Cluster fördert.
 
 
 #### Fitness-Funktion:
 Jede Lösungskandidat wird bewertet basierend auf:
-- **Größenvarianz** — Wie gleichmäßig die Zonen dimensioniert sind (primäres Ziel).
-- **Kompaktheitsstrafe** (optional) — Bestraft Zonen, bei denen der maximale Distanzschwellenwert überschritten wird.
+- **Größenvarianz**: Wie gleichmäßig die Zonen dimensioniert sind (primäres Ziel).
+- **Kompaktheitsstrafe** (optional): Bestraft Zonen, bei denen der maximale Distanzschwellenwert überschritten wird.
 
 
-Alle Einschränkungen (gleiche Größe, Kompaktheit) sind **weiche Einschränkungen** — der Algorithmus optimiert darauf hin, erzwingt sie jedoch nicht als harte Grenzen.
+Alle Einschränkungen (gleiche Größe, Kompaktheit) sind **weiche Einschränkungen**: Der Algorithmus optimiert darauf hin, erzwingt sie jedoch nicht als harte Grenzen.
 
 #### Algorithmus-Parameter:
 

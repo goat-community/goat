@@ -1,0 +1,72 @@
+suite: windmill worker legacy PVCs
+templates:
+  - windmill/worker-tools/pvc.yaml
+  - windmill/worker-workflows/pvc.yaml
+tests:
+  - it: tools legacy PVC is not created when the shared data volume is in use
+    template: windmill/worker-tools/pvc.yaml
+    set:
+      windmill.workers.tools.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: tools legacy PVC is created when the shared data volume is disabled
+    template: windmill/worker-tools/pvc.yaml
+    set:
+      windmill.workers.tools.enabled: true
+      data.enabled: false
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-windmill-tools-data
+      - equal:
+          path: metadata.annotations["helm.sh/resource-policy"]
+          value: keep
+      - notExists:
+          path: spec.storageClassName
+  - it: tools legacy PVC honours global.storageClass when set
+    template: windmill/worker-tools/pvc.yaml
+    set:
+      windmill.workers.tools.enabled: true
+      data.enabled: false
+      global.storageClass: gp3
+    asserts:
+      - equal:
+          path: spec.storageClassName
+          value: gp3
+  - it: workflows legacy PVC is not created when the shared data volume is in use
+    template: windmill/worker-workflows/pvc.yaml
+    set:
+      windmill.workers.workflows.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: workflows legacy PVC is created when the shared data volume is disabled
+    template: windmill/worker-workflows/pvc.yaml
+    set:
+      windmill.workers.workflows.enabled: true
+      data.enabled: false
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-windmill-workflows-data
+      - equal:
+          path: metadata.annotations["helm.sh/resource-policy"]
+          value: keep
+      - notExists:
+          path: spec.storageClassName
+  - it: workflows legacy PVC honours global.storageClass when set
+    template: windmill/worker-workflows/pvc.yaml
+    set:
+      windmill.workers.workflows.enabled: true
+      data.enabled: false
+      global.storageClass: gp3
+    asserts:
+      - equal:
+          path: spec.storageClassName
+          value: gp3
+

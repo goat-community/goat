@@ -39,6 +39,7 @@ ROLES = [
 
 PERMISSIONS = [
     "manage-folder",
+    "read-folder",
     "read-bundle",
     "manage-bundle",
     "manage-asset",
@@ -103,6 +104,7 @@ ROLE_PERMISSIONS = {
         "create-workflow",
     ],
     "organization-viewer": [
+        "read-folder",
         "read-organization",
         "manage-user",
         "read-billing",
@@ -237,9 +239,26 @@ RESOURCES_PERMISSIONS = [
         "method": ["GET", "PUT", "DELETE"],
         "permissions": ["read-layer"],
     },
+    # Reading folders is open to every member, viewers included: the
+    # Content page, the move dialog and the dataset picker list them. What
+    # each folder lets a caller see is decided per folder (`effective_role`).
+    {
+        # Support tickets. No permissions: any authenticated user; who may see
+        # which ticket is decided per ticket by SupportService (author,
+        # follower, org owner/admin). 404 on self-hosted (settings unset).
+        "url_pattern": "support",
+        "method": ["GET", "POST", "PUT"],
+    },
     {
         "url_pattern": "folder",
-        "method": ["GET", "POST", "PUT", "DELETE"],
+        "method": ["GET"],
+        "permissions": [
+            "read-folder",
+        ],
+    },
+    {
+        "url_pattern": "folder",
+        "method": ["POST", "PUT", "DELETE"],
         "permissions": [
             "manage-folder",
         ],
@@ -474,6 +493,13 @@ RESOURCES_PERMISSIONS = [
     {
         "url_pattern": "teams/invite/accept",
         "method": ["POST"],
+        "permissions": ["read-team"],
+    },
+    # Adding and removing members: any member of the organization reaches the
+    # handler, which decides (owner adds and removes, a member only leaves).
+    {
+        "url_pattern": "teams/{team_id}/users/{user_id}",
+        "method": ["POST", "DELETE"],
         "permissions": ["read-team"],
     },
     {

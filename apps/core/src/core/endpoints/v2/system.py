@@ -75,8 +75,16 @@ async def update_system_settings(
     )
 
     if not existing_settings or len(existing_settings) == 0:
-        new_system_settings = SystemSettingsCreate(**system_settings_in.dict())
-        new_system_settings.user_id = user_id
+        # A first save: the defaults, with what the request sets on top. The
+        # update schema leaves every field optional, so it cannot stand in
+        # for a full row on its own.
+        new_system_settings = SystemSettingsCreate(
+            **{
+                **default_system_settings.model_dump(),
+                **system_settings_in.model_dump(exclude_unset=True, exclude_none=True),
+                "user_id": user_id,
+            }
+        )
 
         return SystemSettingsRead(
             **(

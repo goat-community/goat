@@ -1,11 +1,12 @@
 ---
+description: "Klassifizieren Sie die ÖV-Qualität von A bis F mit Puffern um Haltestellen, nach GTFS-Abfahrtsfrequenz und Stationstyp, für beliebige Tage und Uhrzeiten."
 sidebar_position: 7
 ---
 
 
 # ÖV-Güteklassen
 
-Der ÖV-Güteklassen Indikator **klassifiziert die Qualität der öffentlichen Verkehrsdienste in einem bestimmten Gebiet** und hilft Planern und Interessengruppen dabei, gut versorgte und unterversorgte Standorte schnell zu identifizieren.
+Der ÖV-Güteklassen Indikator **klassifiziert die Qualität der öffentlichen Verkehrsdienste in einem bestimmten Gebiet** und hilft Planern und Interessengruppen dabei, gut versorgte und [unterversorgte Standorte](https://www.plan4better.de/de/glossar/defizitgebiet) schnell zu identifizieren.
 
 <div style={{ display: 'flex', justifyContent: 'center' }}>
 <iframe width="674" height="378" src="https://www.youtube.com/embed/hX0Lau9-slg?si=jBL2tJB2QLp83qAZ&amp;start=46" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
@@ -19,7 +20,7 @@ Der ÖV-Güteklassen-Indikator ist entscheidend und kann verwendet werden, um De
 
 :::info
 
-Die Berechnung der ÖV-Güteklassen ist für Gebiete verfügbar, in denen GTFS-Daten des öffentlichen Verkehrs in GOAT integriert sind. Derzeit unterstützte Regionen umfassen **Deutschland, die Schweiz und die Region Haut-Rhin in Frankreich**. Wenn Sie Analysen außerhalb dieser Regionen benötigen, [kontaktieren Sie uns gerne](https://plan4better.de/de/contact/).
+Die Berechnung der ÖV-Güteklassen ist für Gebiete verfügbar, in denen [GTFS-Daten](https://www.plan4better.de/de/glossar/gtfs) des öffentlichen Verkehrs in GOAT integriert sind. Derzeit unterstützte Regionen umfassen **Deutschland, die Schweiz und die Region Haut-Rhin in Frankreich**. Wenn Sie Analysen außerhalb dieser Regionen benötigen, können Sie [ein eigenes ÖPNV-Netz importieren](../../data/builtin_datasets.md#eigenes-öpnv-netz) oder uns gerne [kontaktieren](https://plan4better.de/de/contact/), damit wir das für Sie übernehmen.
 
 :::
 
@@ -63,12 +64,12 @@ Die Berechnung der ÖV-Güteklassen ist für Gebiete verfügbar, in denen GTFS-D
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Wählen Sie das <code>Referenzgebiet</code> — einen Polygon-Layer, der das Untersuchungsgebiet definiert.</div>
+  <div class="content">Wählen Sie das <code>Referenzgebiet</code>: einen Polygon-Layer, der das Untersuchungsgebiet definiert.</div>
 </div>
 
 <div class="step">
   <div class="step-number">6</div>
-  <div class="content">Optional: Klicken Sie auf <code>Haltestellenkonfiguration</code>, um die Klassifizierungsgrenzen und Pufferabstände für Stationskategorien anzupassen.</div>
+  <div class="content">Optional: Klicken Sie auf <code>Haltestellenkonfiguration</code>, um zu ändern, wie Haltestellen klassifiziert werden. Der Dialog geht von einem vorgefertigten Profil aus und lässt Sie die Taktgrenzen, die Verkehrsmittelgruppen, die Haltestellenkategorien und die Güteklasse je Pufferabstand anpassen. Klicken Sie auf <code>Anwenden</code>, um Ihre Änderungen zu übernehmen. Siehe <a href="#haltestellenkonfiguration">Haltestellenkonfiguration</a> für die Bedeutung der einzelnen Einstellungen.</div>
 </div>
 
 ### Ergebnis-Layer
@@ -104,7 +105,7 @@ Wenn Sie auf eine beliebige Station klicken, können Sie Details wie den **Halte
 
 ### Wissenschaftlicher Hintergrund
 
-Die Qualität und Häufigkeit von Verkehrsangeboten ist ein **entscheidender** Indikator in der öffentlichen Verkehrspolitik und Raumplanung. Er kann verwendet werden, um Defizite im Verkehrsangebot aufzuzeigen und gut versorgte Standorte als attraktive Entwicklungsgebiete zu identifizieren. Der Ansatz der ÖV-Güteklassen ist **methodisch überlegen** gegenüber den üblichen Einzugsgebieten. 2011 begann das [Schweizer Bundesamt für Raumentwicklung (ARE)](https://www.are.admin.ch/are/de/home.html) mit der Nutzung des Indikators ÖV-Güteklassen, um die **Attraktivität des öffentlichen Verkehrs** in die Bewertung der Entwicklungsqualität einzubeziehen; seitdem werden diese als wichtiges Instrument in formellen Planungsprozessen in der Schweiz betrachtet. Zudem diente das Schweizer Modell als Inspiration für die Anwendung in Österreich (z.B. Vorarlberg) und findet erste Anwendungen in Deutschland (z.B. durch [KCW](https://www.plan4better.de/de/references/calculation-of-public-transport-quality-classes-in-germany) und [Agora Verkehrswende](https://www.plan4better.de/de/references/accessibility-analyses-for-the-mobility-guarantee-and-public-transport-atlas-projects)).
+Die Qualität und Häufigkeit von Verkehrsangeboten ist ein **entscheidender** Indikator in der öffentlichen Verkehrspolitik und Raumplanung. Er kann verwendet werden, um Defizite im Verkehrsangebot aufzuzeigen und gut versorgte Standorte als attraktive Entwicklungsgebiete zu identifizieren. Der Ansatz der ÖV-Güteklassen ist **methodisch überlegen** gegenüber den üblichen [Einzugsgebieten](https://www.plan4better.de/de/glossar/einzugsgebiet). 2011 begann das [Schweizer Bundesamt für Raumentwicklung (ARE)](https://www.are.admin.ch/are/de/home.html) mit der Nutzung des Indikators ÖV-Güteklassen, um die **Attraktivität des öffentlichen Verkehrs** in die Bewertung der Entwicklungsqualität einzubeziehen; seitdem werden diese als wichtiges Instrument in formellen Planungsprozessen in der Schweiz betrachtet. Zudem diente das Schweizer Modell als Inspiration für die Anwendung in Österreich (z.B. Vorarlberg) und findet erste Anwendungen in Deutschland (z.B. durch [KCW](https://www.plan4better.de/de/references/calculation-of-public-transport-quality-classes-in-germany) und [Agora Verkehrswende](https://www.plan4better.de/de/references/accessibility-analyses-for-the-mobility-guarantee-and-public-transport-atlas-projects)).
 
 Die Institutionalisierung des Indikators im deutschsprachigen Raum sowie die nachvollziehbare und zugleich differenzierte Berechnungsmethodik sind wichtige Vorteile der ÖV-Güteklassen.
 
@@ -131,14 +132,33 @@ Zunächst wird die Anzahl der Abfahrten pro öffentlichem Verkehrsmittel (Zug, U
     <img src={require('/img/toolbox/accessibility_indicators/gueteklassen/determination_oev_gueteklasse_de.webp').default} alt="Bestimmung der ÖV-Güteklassen" style={{ maxHeight: "auto", maxWidth: "45%", objectFit: "cover"}}/>
   </div>
 
-  <img src={require('/img/toolbox/accessibility_indicators/gueteklassen/oev_figure_de.png').default} alt="ÖV-Güteklassen Berechnung" style={{ maxHeight: "auto", maxWidth: "30%", objectFit: "cover"}}/>
+  <img src={require('/img/toolbox/accessibility_indicators/gueteklassen/oev_figure_de.png').default} alt="ÖV-Güteklassen Berechnung" style={{ maxHeight: "400px", maxWidth: "100%", objectFit: "contain", marginTop: "24px"}}/>
 </div>
 
 <div></div>
 
+### Haltestellenkonfiguration
+
+Standardmäßig klassifiziert GOAT Haltestellen mit dem oben beschriebenen Standardschema des Schweizer ARE-Modells. Wenn Sie ein anderes Schema benötigen, öffnen Sie im Werkzeug die <code>Haltestellenkonfiguration</code> und passen es an. Der Dialog besteht aus fünf Teilen, die in dieser Reihenfolge zusammenwirken: Das durchschnittliche Taktintervall einer Haltestelle und ihr Verkehrsmittel bestimmen ihre **Kategorie**, und Kategorie und Pufferabstand bestimmen dann die **Güteklasse**, die jeder Ring des Einzugsgebiets erhält.
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <img src={require('/img/toolbox/accessibility_indicators/gueteklassen/station_configuration_de.webp').default} alt="Der Dialog Haltestellenkonfiguration mit seinen Standardwerten" style={{ maxWidth: "100%", objectFit: "contain"}}/>
+</div>
+<p> </p>
+
+- <code>Konfigurationsprofil</code>: ein vorgefertigter Ausgangspunkt. Es gibt drei Profile: <code>Takt bis 60 Minuten</code>, <code>Takt bis 120 Minuten</code> (Standard) und <code>Takt bis 210 Minuten</code>. Sie unterscheiden sich darin, wie viele Taktstufen sie abdecken, und damit in ihren Haltestellenkategorien und darin, wie weit jede Kategorie reicht; <code>Takt bis 210 Minuten</code> ergänzt einen Ring von <code>1250</code> m und eine Güteklasse G. Sobald Ihre Einstellungen zu keinem Profil mehr passen, zeigt die Auswahl <code>Benutzerdefiniert</code>.
+
+- <code>Taktgrenzen (Minuten)</code>: die Taktintervalle, nach denen Haltestellen einsortiert werden, als Minutenwerte eingegeben (Standard <code>5, 10, 20, 40, 60, 120</code>). Jeder Wert ist die Obergrenze eines Intervalls, sodass die Stufen "bis 5 Minuten", "über 5 bis 10 Minuten" und so weiter lauten. Eine Haltestelle wird nach ihrer **durchschnittlichen Taktung** einer Stufe zugeordnet: Je häufiger sie bedient wird, desto höher die Stufe. Eine Haltestelle, deren durchschnittliches Intervall länger als die letzte Grenze ist, erhält keine Kategorie und kein Einzugsgebiet. Mit einer niedrigeren letzten Grenze, etwa bei <code>Takt bis 60 Minuten</code>, fallen selten bediente Haltestellen daher aus dem Ergebnis.
+
+- <code>Verkehrsmittelgruppen</code>: Jedes Verkehrsmittel gehört zu einer von drei Gruppen, <code>A</code>, <code>B</code> oder <code>C</code>. Standardmäßig sind <code>Bahn</code> und <code>U-Bahn</code> in Gruppe A, <code>Tram</code> und <code>Standseilbahn</code> in Gruppe B sowie <code>Bus</code> und <code>Gondelbahn</code> in Gruppe C. Fähren und manche Seilbahnen haben keine eigene Zeile: Je nachdem, wie die Fahrplandaten sie codieren, gehören sie zu Gruppe C oder bleiben in der Berechnung unberücksichtigt. Gruppe A hat den höchsten Rang. Wird eine Haltestelle von mehreren Verkehrsmitteln bedient, bestimmt die höchste vorhandene Gruppe ihren Typ.
+
+- <code>Haltestellenkategorien</code>: eine Tabelle mit einer Zeile je Taktstufe und einer Spalte je Verkehrsmittelgruppe (A, B, C). Jede Zelle enthält die **Kategorie**, die eine Haltestelle in dieser Stufe und Gruppe erhält. Dies ist die zentrale Zuordnung, die Takt und Verkehrsmittel zu einer einzigen Haltestellenkategorie zusammenführt.
+
+- <code>Distanzklassen</code>: eine Tabelle mit einer Zeile je Haltestellenkategorie und einer Spalte je Pufferabstand in Metern (<code>300</code>, <code>500</code>, <code>750</code> und <code>1000</code> m, bei <code>Takt bis 210 Minuten</code> zusätzlich <code>1250</code> m). Die Abstände gehören zum Profil und lassen sich nicht ändern; Sie legen die Klasse in jeder Zelle als Buchstaben fest. Eine leere Zelle bedeutet keinen Ring in diesem Abstand. Jede Zelle enthält die **Güteklasse**, die ein Pufferring dieser Größe um eine Haltestelle dieser Kategorie erhält. Damit wird festgelegt, wie weit jede Kategorie reicht. Wo sich Ringe verschiedener Haltestellen überlappen, gewinnt die bessere Klasse.
+
 ### Visualisierung
 
-Die erstellten Puffer-Einzugsgebiete werden um die Haltestellen in den entsprechenden Farben visualisiert, um die **Güteklasse** (<span style={{color: "#199741"}}>A</span>-<span style={{color: "#E4696A"}}>F</span>) hervorzuheben.
+Die erstellten Puffer-Einzugsgebiete werden um die Haltestellen in den entsprechenden Farben visualisiert, um die **Güteklasse** (<span style={{color: "#199741"}}>A</span>-<span style={{color: "#E4696A"}}>F</span>, bei <code>Takt bis 210 Minuten</code> zusätzlich G) hervorzuheben.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <img src={require('/img/toolbox/accessibility_indicators/gueteklassen/visualization.webp').default} alt="Visualisierung der ÖV-Güteklassen" style={{ maxHeight: "400px", maxWidth: "100%", objectFit: "cover"}}/>
@@ -155,7 +175,7 @@ Beispielprojekte, in denen ÖV-Güteklassen verwendet wurden:
 
 ## 6. Referenzen
 
-Bundesamt für Raumentwicklung ARE, 2022. [ÖV-Güteklassen Berechnungsmethodik ARE (Grundlagenbericht)](https://www.are.admin.ch/are/de/home/medien-und-publikationen/publikationen/verkehr/ov-guteklassen-berechnungsmethodik-are.html "Open Reference").
+Bundesamt für Raumentwicklung ARE, 2022. [ÖV-Güteklassen Berechnungsmethodik ARE (Grundlagenbericht)](https://www.are.admin.ch/dam/de/sd-web/AZsFQRE7tiOY/oev-gueteklassen-berechnungsmethodikare.pdf "Open Reference").
 
 Hiess, H., 2017. [Entwicklung eines Umsetzungskonzeptes für österreichweite ÖV-Güteklassen](https://www.oerok.gv.at/fileadmin/user_upload/Bilder/2.Reiter-Raum_u._Region/1.OEREK/OEREK_2011/PS_RO_Verkehr/OeV-G%C3%BCteklassen_Bericht_Final_2017-04-12.pdf "Open Reference").
 

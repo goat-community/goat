@@ -1,0 +1,170 @@
+suite: core Deployment
+templates:
+  - core/deployment.yaml
+  - core/configmap.yaml          # needed so envFrom refs validate
+tests:
+  - it: renders Deployment with default image and probes (Phase 1)
+    set:
+      core.enabled: true
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    template: core/deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-core
+      - equal:
+          path: spec.replicas
+          value: 1
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "^ghcr\\.io/plan4better/goat/core:.+"
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8000
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /api/healthz
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /api/healthz
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: RELEASE-NAME-goat-core
+
+  - it: honors global.imageRegistry mirror
+    set:
+      core.enabled: true
+      global.imageRegistry: "harbor.internal"
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    template: core/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "^harbor\\.internal/plan4better/goat/core:.+"
+
+  - it: applies replicaCount override
+    set:
+      core.enabled: true
+      core.replicaCount: 3
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    template: core/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: not rendered when core.enabled false
+    set:
+      core.enabled: false
+    template: core/deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: applies imagePullSecrets from global
+    set:
+      core.enabled: true
+      global.imagePullSecrets:
+        - name: my-pull-secret
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    template: core/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.imagePullSecrets
+          content:
+            name: my-pull-secret
+
+  - it: auth.enabled with existingSecret injects KEYCLOAK env from secret
+    set:
+      core.enabled: true
+      core.auth.enabled: true
+      core.auth.existingSecret: "goat-keycloak-creds"
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    template: core/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: goat-keycloak-creds
+                key: server-url
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: goat-keycloak-creds
+                key: client-secret
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+
+  - it: auth.enabled without existingSecret does NOT inject from secret (placeholder mode)
+    set:
+      core.enabled: true
+      core.auth.enabled: true
+      core.auth.existingSecret: ""
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    template: core/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_CLIENT_SECRET
+
+  - it: mounts the catalog mirror and geoip database read-only
+    template: core/deployment.yaml
+    set:
+      core.enabled: true
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: goat-data
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: RELEASE-NAME-goat-data
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /app/data/catalog
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].subPath
+          value: catalog
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /app/data/geoip
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].readOnly
+          value: true
+  - it: mounts nothing when the data volume is disabled
+    template: core/deployment.yaml
+    set:
+      core.enabled: true
+      data.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - notExists:
+          path: spec.template.spec.volumes
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts

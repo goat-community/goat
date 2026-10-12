@@ -55,14 +55,19 @@ class S3Service:
                 **public_extra,
             )
 
-        # Separate client for the assets bucket (avatars, documents). This bucket
-        # lives on AWS with its own credentials, independent of the data bucket's
-        # provider (which may be Hetzner/MinIO).
+        # Separate client for the assets bucket (avatars, documents), with its
+        # own credentials, independent of the data bucket's provider. It is on
+        # AWS unless ASSETS_S3_ENDPOINT_URL points at an S3-compatible store.
         self.assets_client = boto3.client(
             "s3",
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             region_name=settings.AWS_REGION,
+            **boto_client_kwargs(
+                endpoint_url=settings.ASSETS_S3_ENDPOINT_URL,
+                provider=None if settings.ASSETS_S3_ENDPOINT_URL else "aws",
+                force_path_style=settings.ASSETS_S3_FORCE_PATH_STYLE,
+            ),
         )
 
     def upload_asset(self, fileobj: BinaryIO, s3_key: str, content_type: str) -> None:
@@ -221,7 +226,8 @@ class S3Service:
     ) -> str | None:
         """Convert a thumbnail S3 key to a presigned URL.
 
-        If the thumbnail_key is already a full URL (http/https), returns it as-is.
+        If the thumbnail_key is already a full URL (http/https) or a
+        root-relative path (the artwork the web app ships), returns it as-is.
         If it's an S3 key (starts with 'thumbnails/'), generates a presigned URL.
         If it's None or empty, returns the default_url.
 
@@ -233,8 +239,8 @@ class S3Service:
         if not thumbnail_key:
             return default_url
 
-        # If already a full URL, return as-is
-        if thumbnail_key.startswith(("http://", "https://")):
+        # A full URL or a root-relative path is returned as-is
+        if thumbnail_key.startswith(("http://", "https://", "/")):
             return thumbnail_key
 
         # It's an S3 key, generate presigned URL using public client if available

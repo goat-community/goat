@@ -235,8 +235,8 @@ class WindmillTaskSyncer:
         return results
 
 
-def main() -> int:
-    """CLI entry point."""
+def build_parser() -> argparse.ArgumentParser:
+    """CLI arguments; defaults come from the environment when this is called."""
     parser = argparse.ArgumentParser(
         description="Sync goatlib tasks to Windmill",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -244,7 +244,7 @@ def main() -> int:
 Environment variables:
   WINDMILL_URL        Windmill base URL (default: http://localhost:8110)
   WINDMILL_TOKEN      Windmill API token (required)
-  WINDMILL_WORKSPACE  Windmill workspace (default: plan4better)
+  WINDMILL_WORKSPACE  Windmill workspace (default: goat)
 
 Examples:
   # Using environment variables
@@ -274,7 +274,7 @@ Examples:
     )
     parser.add_argument(
         "--workspace",
-        default=os.getenv("WINDMILL_WORKSPACE", "plan4better"),
+        default=os.getenv("WINDMILL_WORKSPACE", "goat"),
         help="Windmill workspace",
     )
     parser.add_argument(
@@ -299,7 +299,12 @@ Examples:
         help="Enable verbose output",
     )
 
-    args = parser.parse_args()
+    return parser
+
+
+def main() -> int:
+    """CLI entry point."""
+    args = build_parser().parse_args()
 
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)

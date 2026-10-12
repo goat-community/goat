@@ -1,0 +1,39 @@
+# DEV ONLY — not part of the release bundle. Builds every GOAT image from this
+# checkout instead of pulling released ones:
+#   GOAT_REGISTRY=goat-local GOAT_VERSION=dev \
+#     docker compose -f compose.yaml -f compose.build.yaml build
+x-build-context: &ctx ../..
+
+services:
+  web:
+    build: { context: *ctx, dockerfile: apps/web/Dockerfile }
+  core:
+    build: { context: *ctx, dockerfile: apps/core/Dockerfile }
+  core-migrate:
+    build: { context: *ctx, dockerfile: apps/core/Dockerfile }
+  geoapi:
+    build: { context: *ctx, dockerfile: apps/geoapi/Dockerfile }
+  ducklake-init:
+    build: { context: *ctx, dockerfile: apps/geoapi/Dockerfile }
+  processes:
+    build: { context: *ctx, dockerfile: apps/processes/Dockerfile }
+  catalog:
+    build: { context: *ctx, dockerfile: apps/catalog/Dockerfile }
+  keycloak:
+    build: { context: *ctx, dockerfile: packages/js/keycloak-theme/Dockerfile }
+  windmill-server:
+    build: { context: *ctx, dockerfile: apps/processes/workers/Dockerfile, target: server }
+  windmill-worker-default:
+    build: { context: *ctx, dockerfile: apps/processes/workers/Dockerfile, target: worker-default }
+  windmill-worker-tools:
+    build: { context: *ctx, dockerfile: apps/processes/workers/Dockerfile, target: worker-tools }
+  windmill-worker-workflows:
+    build: { context: *ctx, dockerfile: apps/processes/workers/Dockerfile, target: worker-tools }
+  windmill-bootstrap:
+    build: { context: *ctx, dockerfile: apps/processes/workers/Dockerfile, target: worker-tools }
+  windmill-sync:
+    build: { context: *ctx, dockerfile: apps/processes/workers/Dockerfile, target: worker-tools }
+  garage-init:
+    build: { context: *ctx, dockerfile: apps/processes/workers/Dockerfile, target: worker-tools }
+  windmill-worker-print:
+    build: { context: *ctx, dockerfile: apps/processes/workers/Dockerfile, target: worker-print }

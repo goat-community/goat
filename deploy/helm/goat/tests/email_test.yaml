@@ -1,0 +1,195 @@
+suite: core email, email links and invited accounts
+templates:
+  - core/configmap.yaml
+  - core/deployment.yaml
+set:
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+tests:
+  - it: renders no SMTP settings while email.host is empty
+    template: core/configmap.yaml
+    asserts:
+      - notExists:
+          path: data.SMTP_HOST
+      - notExists:
+          path: data.SMTP_PORT
+      - notExists:
+          path: data.EMAILS_FROM_NAME
+
+  - it: renders the email block into core's ConfigMap
+    template: core/configmap.yaml
+    set:
+      email.host: smtp.example.org
+      email.port: 25
+      email.security: none
+      email.from: goat@example.org
+      email.fromName: GOAT Bonn
+      email.brandName: GOAT Bonn
+      email.contactUrl: https://example.org/contact
+    asserts:
+      - equal:
+          path: data.SMTP_HOST
+          value: smtp.example.org
+      - equal:
+          path: data.SMTP_PORT
+          value: "25"
+      - equal:
+          path: data.SMTP_SECURITY
+          value: none
+      - equal:
+          path: data.SMTP_FROM
+          value: goat@example.org
+      - equal:
+          path: data.EMAILS_FROM_NAME
+          value: GOAT Bonn
+      - equal:
+          path: data.EMAIL_BRAND_NAME
+          value: GOAT Bonn
+      - equal:
+          path: data.EMAIL_CONTACT_URL
+          value: https://example.org/contact
+      - notExists:
+          path: data.SMTP_USER
+      - notExists:
+          path: data.EMAIL_LOGO_URL
+
+  - it: a key set in core.config wins over the email block
+    template: core/configmap.yaml
+    set:
+      email.host: smtp.example.org
+      core.config.SMTP_PORT: "2525"
+    asserts:
+      - equal:
+          path: data.SMTP_PORT
+          value: "2525"
+
+  - it: reads the SMTP password from email.existingSecret
+    template: core/deployment.yaml
+    set:
+      email.host: smtp.example.org
+      email.user: goat
+      email.existingSecret: goat-smtp
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: goat-smtp
+                key: smtp-password
+
+  - it: sets no SMTP password without a Secret
+    template: core/deployment.yaml
+    set:
+      email.host: smtp.example.org
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_PASSWORD
+          any: true
+
+  - it: an SMTP_PASSWORD in core.extraEnv is left alone
+    template: core/deployment.yaml
+    set:
+      email.host: smtp.example.org
+      email.existingSecret: goat-smtp
+      core.extraEnv:
+        - name: SMTP_PASSWORD
+          value: from-extra-env
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_PASSWORD
+            value: from-extra-env
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: goat-smtp
+                key: smtp-password
+
+  - it: builds the email links from the public web and API URLs
+    template: core/configmap.yaml
+    set:
+      web.auth.publicUrl: https://goat.example.org/
+      web.publicUrls.api: https://api.goat.example.org
+    asserts:
+      - equal:
+          path: data.CLIENT_URL
+          value: https://goat.example.org
+      - equal:
+          path: data.API_URL
+          value: https://api.goat.example.org/api/v2
+
+  - it: derives the email links from the web and core ingresses
+    template: core/configmap.yaml
+    set:
+      web.ingress.enabled: true
+      web.ingress.hosts:
+        - host: goat.example.org
+          paths: [{path: /, pathType: Prefix}]
+      web.ingress.tls:
+        - hosts: [goat.example.org]
+          secretName: goat-tls
+      core.ingress.enabled: true
+      core.ingress.hosts:
+        - host: goat.example.org
+          paths: [{path: /api, pathType: Prefix}]
+      core.ingress.tls:
+        - hosts: [goat.example.org]
+          secretName: goat-tls
+    asserts:
+      - equal:
+          path: data.CLIENT_URL
+          value: https://goat.example.org
+      - equal:
+          path: data.API_URL
+          value: https://goat.example.org/api/v2
+
+  - it: CLIENT_URL and API_URL set in core.config win
+    template: core/configmap.yaml
+    set:
+      web.auth.publicUrl: https://goat.example.org
+      web.publicUrls.api: https://goat.example.org
+      core.config.CLIENT_URL: https://portal.example.org
+      core.config.API_URL: https://portal.example.org/api/v2
+    asserts:
+      - equal:
+          path: data.CLIENT_URL
+          value: https://portal.example.org
+      - equal:
+          path: data.API_URL
+          value: https://portal.example.org/api/v2
+
+  - it: leaves account creation for invites off by default
+    template: core/configmap.yaml
+    asserts:
+      - equal:
+          path: data.KEYCLOAK_PROVISION_INVITED_USERS
+          value: "false"
+
+  - it: creates accounts for invites with global.auth.provisionInvitedUsers
+    template: core/configmap.yaml
+    set:
+      global.auth.provisionInvitedUsers: true
+    asserts:
+      - equal:
+          path: data.KEYCLOAK_PROVISION_INVITED_USERS
+          value: "true"
+
+  - it: ships no assets or S3 placeholders
+    template: core/configmap.yaml
+    asserts:
+      - notExists:
+          path: data.ASSETS_URL
+      - notExists:
+          path: data.AWS_S3_ASSETS_BUCKET
+      - notExists:
+          path: data.S3_ENDPOINT_URL
+      - notExists:
+          path: data.S3_BUCKET_NAME

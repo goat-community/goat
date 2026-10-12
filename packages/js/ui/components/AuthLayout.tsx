@@ -1,6 +1,17 @@
 import type { SxProps } from "@mui/material";
-import { Box, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
+
+import authArtwork from "../assets/img/auth-artwork.png";
+import { GOATLogoFullWhite } from "../assets/svg/GOATLogoFullWhite";
+
+/** The URL of a bundled image. The artwork is imported, so each app's bundler
+ * ships it with its own build and serves it from wherever that build lives:
+ * Next.js yields `{ src }`, Create React App (the Keycloak theme) a string. */
+const importedUrl = (image: unknown): string =>
+  typeof image === "string" ? image : (image as { src: string }).src;
+
+const ARTWORK_URL = importedUrl(authArtwork);
 
 export default function AuthLayout({
   children,
@@ -9,8 +20,6 @@ export default function AuthLayout({
   children: React.ReactNode;
   sx?: SxProps;
 }) {
-  const theme = useTheme();
-
   return (
     <Box
       component="main"
@@ -37,34 +46,6 @@ export default function AuthLayout({
           }}
         >
           <Box
-            component="header"
-            sx={{
-              left: 0,
-              p: 3,
-              position: "fixed",
-              top: 0,
-              width: "100%",
-            }}
-          >
-            <Box
-              component="a"
-              href="https://www.plan4better.de/"
-              target="_blank"
-              sx={{
-                display: "inline-flex",
-                width: 160,
-              }}
-            >
-              <img
-                width="100%"
-                src={`https://assets.plan4better.de/img/logo/plan4better_${
-                  theme.palette.mode === "light" ? "standard" : "white"
-                }.svg`}
-                alt="Plan4Better Logo"
-              />
-            </Box>
-          </Box>
-          <Box
             component="div"
             sx={{
               flex: "1 1 auto",
@@ -82,8 +63,7 @@ export default function AuthLayout({
           lg={6}
           sx={{
             alignItems: "center",
-            background:
-              "radial-gradient(50% 50% at 50% 50%, rgba(40,54,72,0.8) 0%, rgba(40,54,72,0.9) 100%), url(https://assets.plan4better.de/img/login/artwork_1.png) no-repeat center",
+            background: `radial-gradient(50% 50% at 50% 50%, rgba(40,54,72,0.8) 0%, rgba(40,54,72,0.9) 100%), url(${ARTWORK_URL}) no-repeat center`,
             backgroundSize: "cover",
             display: "flex",
             justifyContent: "center",
@@ -93,11 +73,9 @@ export default function AuthLayout({
           }}
         >
           <Box sx={{ p: 3, width: 350 }} component="div">
-            <img
-              width="100%"
-              src="https://assets.plan4better.de/img/logo/goat_white.svg"
-              alt="Plan4Better Logo"
-            />
+            <Box role="img" aria-label="GOAT" sx={{ "& svg": { display: "block", width: "100%" } }}>
+              <GOATLogoFullWhite />
+            </Box>
           </Box>
         </Grid>
       </Grid>

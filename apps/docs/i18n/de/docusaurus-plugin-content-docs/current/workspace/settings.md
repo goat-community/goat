@@ -1,4 +1,5 @@
 ---
+description: "Verwalten Sie Profil, Präferenzen, Teams, Organisation und Abrechnung und richten Sie eigene Domains und Matomo-Analytics für veröffentlichte Dashboards ein."
 sidebar_position: 5
 ---
 
@@ -93,7 +94,7 @@ Unter **White Label** können Sie Dashboards auf Ihrer eigenen Domain veröffent
 
 ### Eigene Domains
 
-**Veröffentlichen Sie Ihre Dashboards unter Ihrer eigenen Domain.** Jede Domain bedient ein veröffentlichtes Projekt. Um eine Domain einem Projekt zuzuweisen, verwenden Sie den Teilen-Dialog im Dashboard-Builder.
+**Veröffentlichen Sie Ihre Dashboards unter Ihrer eigenen Domain.** Jede Domain bedient ein veröffentlichtes Projekt. Um eine Domain einem Projekt zuzuweisen, wählen Sie sie im Dialog `Teilen` des Projekts im Tab `Öffentlich` unter `Adresse`; siehe [Öffentliches Teilen](../sharing/public).
 
 **So fügen Sie eine eigene Domain hinzu:**
 
@@ -104,12 +105,13 @@ Unter **White Label** können Sie Dashboards auf Ihrer eigenen Domain veröffent
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Geben Sie im Dialog <strong>Eigene Domain hinzufügen</strong> Ihren <code>Domainnamen</code> ein — entweder eine Subdomain (z. B. <code>dashboards.example.com</code>) oder eine Apex-Domain (z. B. <code>example.com</code>). Klicken Sie auf <code>Weiter</code>.</div>
+  <div class="content">Geben Sie im Dialog <strong>Eigene Domain hinzufügen</strong> Ihren <code>Domainnamen</code> ein, entweder eine Subdomain (z. B. <code>dashboards.example.com</code>) oder eine Apex-Domain (z. B. <code>example.com</code>). Klicken Sie auf <code>Weiter</code>.</div>
 </div>
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Der Schritt <strong>DNS konfigurieren</strong> öffnet sich und zeigt den genauen Eintrag, den Sie bei Ihrem DNS-Anbieter erstellen müssen. Der Eintragstyp hängt von Ihrer Domain ab:
+  <div class="content">
+  Der Schritt <strong>DNS konfigurieren</strong> öffnet sich und zeigt den genauen Eintrag, den Sie bei Ihrem DNS-Anbieter erstellen müssen. Der Eintragstyp hängt von Ihrer Domain ab:
     <br/><br/>
     <strong>Subdomain</strong> (z. B. <code>maps.example.com</code>):
     <table><thead><tr><th>Typ</th><th>Host</th><th>Ziel</th><th>TTL</th></tr></thead><tbody><tr><td>CNAME</td><td>maps</td><td>cname.goat.plan4better.de</td><td>3600</td></tr></tbody></table>
@@ -123,7 +125,7 @@ Unter **White Label** können Sie Dashboards auf Ihrer eigenen Domain veröffent
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Sobald DNS verifiziert ist, zeigt der Dialog eine <strong>DNS verifiziert</strong>-Bestätigung und GOAT stellt automatisch ein SSL-Zertifikat von <strong>Let's Encrypt</strong> aus — meist in unter 2 Minuten. Der Domain-Status wechselt zu <strong>Zertifikat wird ausgestellt</strong> und danach zu <strong>Aktiv</strong>.</div>
+  <div class="content">Sobald DNS verifiziert ist, zeigt der Dialog eine <strong>DNS verifiziert</strong>-Bestätigung und GOAT stellt automatisch ein SSL-Zertifikat von <strong>Let's Encrypt</strong> aus, meist in unter 2 Minuten. Der Domain-Status wechselt zu <strong>Zertifikat wird ausgestellt</strong> und danach zu <strong>Aktiv</strong>.</div>
 </div>
 
 **Domain-Status in der Liste:**
@@ -141,7 +143,7 @@ Um eine Domain von einem Projekt zu entfernen, ohne sie zu löschen, verwenden S
 
 ### Analytics
 
-**Konfigurieren Sie Analytics-Tracking für Ihre veröffentlichten Dashboards.** Sie können mehrere Analytics-Instanzen hinzufügen — eine pro Matomo-Site. Das Tracking erfolgt per Opt-in pro Dashboard über den Teilen-Dialog.
+**Konfigurieren Sie Analytics-Tracking für Ihre veröffentlichten Dashboards.** Sie können mehrere Analytics-Instanzen hinzufügen, eine pro Matomo-Site. Das Tracking erfolgt per Opt-in pro Dashboard über den Teilen-Dialog.
 
 GOAT unterstützt derzeit **Matomo** als Analytics-Anbieter.
 
@@ -154,12 +156,13 @@ GOAT unterstützt derzeit **Matomo** als Analytics-Anbieter.
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Füllen Sie im Dialog <strong>Analytics hinzufügen</strong> folgende Felder aus:
+  <div class="content">
+  Füllen Sie im Dialog <strong>Analytics hinzufügen</strong> folgende Felder aus:
     <ul>
-      <li><code>Name</code> — ein Label zur Unterscheidung der Instanzen, z. B. <code>Client XY Matomo</code>.</li>
-      <li><code>Anbieter</code> — wählen Sie <code>Matomo</code>.</li>
-      <li><code>Matomo-URL</code> — die URL Ihrer Matomo-Instanz inklusive abschließendem Schrägstrich (z. B. <code>https://matomo.example.org/</code>).</li>
-      <li><code>Site-ID</code> — zu finden in Matomo → Administration → Websites.</li>
+      <li><code>Name</code>: ein Label zur Unterscheidung der Instanzen, z. B. <code>Client XY Matomo</code>.</li>
+      <li><code>Anbieter</code>: wählen Sie <code>Matomo</code>.</li>
+      <li><code>Matomo-URL</code>: die URL Ihrer Matomo-Instanz inklusive abschließendem Schrägstrich (z. B. <code>https://matomo.example.org/</code>).</li>
+      <li><code>Site-ID</code>: zu finden in Matomo → Administration → Websites.</li>
     </ul>
   </div>
 </div>

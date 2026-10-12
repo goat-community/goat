@@ -2,8 +2,10 @@
 
 import { Box, Stack, Typography } from "@mui/material";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import type { TypographyStyle } from "@/lib/constants/typography";
 import { DEFAULT_FONT_FAMILY, LEGEND_TYPOGRAPHY_DEFAULTS } from "@/lib/constants/typography";
+import { cleanEditedText } from "@/lib/utils/editableText";
 import { rgbToHex } from "@/lib/utils/helpers";
 import type { RGBColor } from "@/types/map/color";
 import type { ProjectLayer } from "@/lib/validations/project";
@@ -91,9 +93,10 @@ const EditableText: React.FC<{
   variant?: "caption" | "subtitle2" | "body2";
   children?: React.ReactNode;
 }> = ({ text, editable, onSave, sx, variant = "caption", children }) => {
+  const shownText = cleanEditedText(text);
   const handleBlur = (e: React.FocusEvent<HTMLSpanElement>) => {
-    const newText = e.currentTarget.textContent ?? "";
-    if (newText !== text) {
+    const newText = cleanEditedText(e.currentTarget.textContent ?? "");
+    if (newText !== shownText) {
       onSave(newText);
     }
   };
@@ -114,7 +117,7 @@ const EditableText: React.FC<{
       contentEditable={editable}
       suppressContentEditableWarning
       onBlur={editable ? handleBlur : undefined}>
-      {children ?? text}
+      {children ?? shownText}
     </Typography>
   );
 };
@@ -144,6 +147,7 @@ const LegendElementRenderer: React.FC<LegendElementRendererProps> = ({
   zoom = 1,
   onElementUpdate,
 }) => {
+  const { t } = useTranslation("common");
   // Extract legend config
   const config = element.config as LegendElementConfig;
   const titleText = config?.title?.text ?? "";
@@ -274,7 +278,7 @@ const LegendElementRenderer: React.FC<LegendElementRendererProps> = ({
       {/* Legend content */}
       {filteredLayers.length === 0 ? (
         <Typography variant="caption" color="text.secondary">
-          No layers to display
+          {t("no_layers_to_display")}
         </Typography>
       ) : (
         <Box

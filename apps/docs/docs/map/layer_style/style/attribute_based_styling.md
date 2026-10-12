@@ -1,10 +1,11 @@
 ---
+description: "Style fill, stroke, stroke width, markers or point radius by a data field, using color palettes and classification methods such as quantile or custom breaks."
 sidebar_position: 2
 ---
 
 # Attribute-based Styling
 
-**You can style layers based on data attributes to easily identify differences and trends.** Each visualization aspect—Fill Color, Stroke Color, Stroke Width, Custom Marker, and Point Settings—can be styled by any field in your layer's data.
+**You can style layers based on data attributes to easily identify differences and trends.** Each visualization aspect (Fill Color, Stroke Color, Stroke Width, Custom Marker, and Point Settings) can be styled by any field in your layer's data.
 
 <iframe width="100%" height="500" src="https://www.youtube.com/embed/cLIPMCOu4FQ?si=aydSJN_Pf0fusO9x" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
@@ -12,7 +13,7 @@ sidebar_position: 2
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content">Click <code>Layer Design <img src={require('/img/icons/styling.png').default} alt="Styling Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/></code>, and open the <code>Style section</code></div>
+  <div class="content">In the <code>Layers</code> panel, click your layer. Its settings panel opens on the right with the tabs <code>Style</code>, <code>Filter</code> and <code>Metadata</code>, and the <code>Style</code> tab selected. The styling options are in the <code>Style</code> section of this tab.</div>
 </div>
 
 import Tabs from '@theme/Tabs';
@@ -23,12 +24,12 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">On <code>Fill color</code>, click <code>Options <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/></code> and more settings will appear </div>
+  <div class="content">On <code>Fill Color</code>, click the options icon <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> and the <code>Advanced Options</code> will appear.</div>
 </div>
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">In <code>Color based on</code>, select the <strong>field to style by</strong>.</div>
+  <div class="content">In <code>Color based on</code>, select the <strong>text or number field to style by</strong>.</div>
 </div>
 
 <div class="step">
@@ -38,12 +39,12 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">In <code>Color Scale</code>, choose your <strong>data classification method</strong>. See all methods in the <a href="#data-classification-methods">Data Classification</a> section.</div>
+  <div class="content">Click <code>Color scale</code> and choose your <strong>data classification method</strong>. See all methods in the <a href="#data-classification-methods">Data Classification</a> section.</div>
 </div>
 
 <div class="step">
   <div class="step-number">6</div>
-  <div class="content">At the bottom of the <code>Color Scale</code> panel, toggle <code>No data</code> to assign a color to features where the selected field has no value. The default color is grey (<code>#CCCCCC</code>). Click the color swatch to change it.</div>
+  <div class="content">At the bottom of the <code>Color scale</code> panel, toggle <code>No data</code> to assign a color to features where the selected field has no value. The default color is grey (<code>#CCCCCC</code>). Click the color swatch to change it.</div>
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
@@ -57,12 +58,12 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">On <code>Stroke color</code>, click <code>Options <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/></code> and more settings will appear </div>
+  <div class="content">On <code>Stroke Color</code> (labelled <code>Color</code> for line layers), click the options icon <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> and the <code>Advanced Options</code> will appear.</div>
 </div>
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">In <code>Color based on</code>, select the <strong>field to style by</strong>.</div>
+  <div class="content">In <code>Color based on</code>, select the <strong>text or number field to style by</strong>.</div>
 </div>
 
 <div class="step">
@@ -72,12 +73,12 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">In <code>Color Scale</code>, choose your <strong>data classification method</strong>. See all methods in the <a href="#data-classification-methods">Data Classification</a> section.</div>
+  <div class="content">Click <code>Color scale</code> and choose your <strong>data classification method</strong>. See all methods in the <a href="#data-classification-methods">Data Classification</a> section.</div>
 </div>
 
 <div class="step">
   <div class="step-number">6</div>
-  <div class="content">At the bottom of the <code>Color Scale</code> panel, toggle <code>No data</code> to assign a color to features where the selected field has no value. The default color is grey (<code>#CCCCCC</code>). Click the color swatch to change it.</div>
+  <div class="content">At the bottom of the <code>Color scale</code> panel, toggle <code>No data</code> to assign a color to features where the selected field has no value. The default color is grey (<code>#CCCCCC</code>). Click the color swatch to change it.</div>
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
@@ -91,22 +92,22 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">On <code>Custom Marker</code>, click <code>Options <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/></code> and more settings will appear </div>
+  <div class="content">On <code>Custom Marker</code>, enable the toggle and click the options icon <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/>. The <code>Advanced Options</code> will appear.</div>
 </div>
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">In <code>Marker based on</code>, select the <strong>field to style by</strong>.</div>
+  <div class="content">In <code>Marker based on</code>, select the <strong>text field to style by</strong>.</div>
 </div>
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">On <code>Ordinal Markers</code>, choose the marker for each category value — pick from the Library or upload your own.</div>
+  <div class="content">Click <code>Ordinal Markers</code> and choose the marker for each category value: pick from the <code>Library</code> or upload your own under <code>Custom</code>.</div>
 </div>
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Under <code>Marker Settings</code>, adjust the <code>Size</code> slider to set the base marker size, and use <code>Placement</code> to control where the icon is anchored relative to the map point (Center, Top, Bottom, Left, Right).</div>
+  <div class="content">Under <code>Marker Settings</code>, adjust the <code>Size</code> slider to set the base marker size, and use <code>Placement</code> to control where the icon is anchored relative to the map point (<code>Center</code>, <code>Top</code>, <code>Bottom</code>, <code>Left</code>, <code>Right</code> or a corner position such as <code>Top Left</code>).</div>
 </div>
 
 <div class="step">
@@ -116,7 +117,7 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">Optionally, expand <code>Advanced Options</code> under Marker Settings and set <code>Marker size based on</code> to a numeric field to vary the marker size per feature. See the <a href="#point-settings">Point Settings</a> tab for details on size classification.</div>
+  <div class="content">Optionally, click the options icon <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> next to <code>Marker Settings</code> to show its <code>Advanced Options</code> and set <code>Marker size based on</code> to a numeric field to vary the marker size per feature. See the <a href="#point-settings">Point Settings</a> tab for details on size classification.</div>
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
@@ -130,7 +131,7 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">On <code>Stroke Width</code>, click <code>Options <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/></code> and more settings will appear.</div>
+  <div class="content">On <code>Stroke Width</code>, click the options icon <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> and the <code>Advanced Options</code> will appear.</div>
 </div>
 
 <div class="step">
@@ -152,7 +153,7 @@ Stroke Width attribute-based styling applies to **lines, polygons, and points**.
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">On <code>Point Settings</code>, click <code>Options <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/></code> and more settings will appear.</div>
+  <div class="content">On <code>Point Settings</code>, click the options icon <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> and the <code>Advanced Options</code> will appear.</div>
 </div>
 
 <div class="step">
@@ -162,7 +163,7 @@ Stroke Width attribute-based styling applies to **lines, polygons, and points**.
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Click <code>Size scale</code> to open the classification panel. Choose a <strong>classification method</strong> and set the number of <strong>Steps</strong> (2–10). Each step shows a size preview alongside the value range. The same methods as color classification are available: Quantile, Standard Deviation, Equal Interval, Heads and Tails, Custom Breaks, and Custom Ordinal.</div>
+  <div class="content">Click <code>Size scale</code> to open the classification panel. Choose a <strong>classification method</strong> and set the number of <strong>Steps</strong> (2–10). Each step shows a size preview alongside the value range. The same methods as color classification are available: [Quantile](https://www.plan4better.de/en/glossary/quantile-classification), [Standard Deviation](https://www.plan4better.de/en/glossary/standard-deviation-classification), [Equal Interval](https://www.plan4better.de/en/glossary/equal-interval-classification), Heads and Tails, Custom Breaks, and Custom Ordinal.</div>
 </div>
 
 :::note
@@ -177,7 +178,7 @@ Point Settings is only available for **point layers without a Custom Marker**. F
 
 A palette is a set of colors representing your data values or categories.
 
-You can customize your palette by selecting the <code>Type</code>, adjusting <code>Steps</code>, <code>Reversing</code> colors, or enabling <code>Custom</code> for your own color range.
+You can customize your palette by selecting the <code>Type</code>, adjusting <code>Steps</code>, enabling <code>Reversed</code> to reverse the colors, or enabling <code>Custom</code> for your own color range.
 
 GOAT offers four predefined palette types:
 
@@ -198,7 +199,7 @@ GOAT offers four predefined palette types:
 
 ## Data Classification Methods
 
-The <code>Color Scale</code> determines how data values map to colors. GOAT offers six data classification methods: **Quantile, Standard Deviation, Equal Interval, Heads and Tails, Custom Breaks, and Custom Ordinal.** All the methods default to 7 classes, but you can adjust this number as needed.
+The <code>Color scale</code> determines how data values map to colors. GOAT offers six data classification methods: **Quantile, Standard Deviation, Equal Interval, Heads and Tails, Custom Breaks, and Custom Ordinal.** For text fields, only Custom Ordinal is available. All the methods default to 7 classes, but you can adjust this number as needed.
 
 ### Quantile
 
@@ -264,5 +265,5 @@ You can add more steps and select multiple string values per group from the <cod
 
 
 :::tip HINT
-To reuse your dataset with the styling settings in other projects, [save your style as default](./styling#default-settings).
+To reuse your dataset with the styling settings in other projects, [save your style as default](./styling.md#copy-and-paste-style).
 :::

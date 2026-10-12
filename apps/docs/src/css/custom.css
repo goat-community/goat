@@ -1,72 +1,620 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * Global styles. Colours, type and shapes follow the Plan4Better website;
+ * the --goat-* tokens below are mapped onto Infima's --ifm-* variables.
  */
 
-/* You can override the default Infima variables here. */
+@import "./fonts/titillium-web.css";
+@import "./fonts/noto-color-emoji.css";
+
+/* ---------------------------------------------------------------------------
+ * Tokens
+ * ------------------------------------------------------------------------- */
+
 :root {
-  --ifm-background-color:#ff0000;
-  --ifm-color-primary: #2e8555;
-  --ifm-footer-background-color: #283648;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-footer-link-color: #fff;
-  --ifm-footer-title-color: #fff;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --goat-color-brand: #2bb381;
+  --goat-color-brand-ink: #1e7d5b;
+  --goat-color-brand-ink-hover: #186449;
+  --goat-color-brand-tint: rgba(43, 179, 129, 0.1);
+  --goat-color-ink: #141b24;
+  --goat-color-body: #616a76;
+  --goat-color-label: #616a76;
+  --goat-color-surface: #fff;
+  --goat-color-surface-muted: #edf1f5;
+  --goat-color-surface-dark: #182230;
+  --goat-color-surface-darker: #141b24;
+  --goat-color-surface-dark-soft: #283648;
+  --goat-color-hairline: #d8dde2;
+  --goat-color-on-dark: #edf1f5;
+  --goat-color-on-dark-muted: #89919b;
+
+  --goat-font-family: "Titillium Web", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", "GOAT Emoji";
+  --goat-content-max-width: 760px;
+  --goat-radius-pill: 999px;
+  --goat-github-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>');
+
+  /* Infima */
+  --ifm-color-primary: var(--goat-color-brand-ink);
+  --ifm-color-primary-dark: #1b7152;
+  --ifm-color-primary-darker: #1a6a4d;
+  --ifm-color-primary-darkest: #155740;
+  --ifm-color-primary-light: #218964;
+  --ifm-color-primary-lighter: #239069;
+  --ifm-color-primary-lightest: #27a375;
+  --ifm-link-color: var(--goat-color-brand-ink);
+  --ifm-link-hover-color: var(--goat-color-brand-ink-hover);
+
+  --ifm-background-color: var(--goat-color-surface);
+  --ifm-background-surface-color: var(--goat-color-surface);
+  --ifm-font-color-base: var(--goat-color-body);
+  --ifm-heading-color: var(--goat-color-ink);
+  --ifm-color-content: var(--goat-color-body);
+  --ifm-color-content-secondary: var(--goat-color-body);
+
+  --ifm-font-family-base: var(--goat-font-family);
+  --ifm-heading-font-family: var(--goat-font-family);
+  --ifm-font-size-base: 100%;
+  --ifm-line-height-base: 1.65;
+  --ifm-heading-font-weight: 700;
+  --ifm-heading-line-height: 1.25;
+
+  --ifm-global-radius: 0.5rem;
+  --ifm-button-border-radius: var(--goat-radius-pill);
+  --ifm-alert-border-radius: 0.75rem;
+  --ifm-code-border-radius: 0.375rem;
+  --ifm-code-font-size: 88%;
+  --ifm-code-background: var(--goat-color-surface-muted);
+  --ifm-code-padding-horizontal: 0.35rem;
+  --ifm-code-padding-vertical: 0.1rem;
+  --ifm-table-border-color: var(--goat-color-hairline);
+  --ifm-table-stripe-background: transparent;
+  --ifm-hr-background-color: var(--goat-color-hairline);
+  --ifm-toc-border-color: var(--goat-color-hairline);
+  --ifm-color-emphasis-300: var(--goat-color-hairline);
+
+  --ifm-navbar-height: 4rem;
+  --ifm-navbar-background-color: var(--goat-color-surface-dark);
+  --ifm-navbar-link-color: var(--goat-color-on-dark-muted);
+  --ifm-navbar-link-hover-color: #fff;
+  --ifm-navbar-shadow: none;
+  --ifm-navbar-padding-horizontal: 1.25rem;
+
+  --doc-sidebar-width: 280px;
+  --ifm-menu-color: var(--goat-color-body);
+  --ifm-menu-color-active: var(--goat-color-brand-ink);
+  --ifm-menu-color-background-active: var(--goat-color-brand-tint);
+  --ifm-menu-color-background-hover: var(--goat-color-surface-muted);
+  --ifm-menu-link-padding-horizontal: 0.75rem;
+  --ifm-menu-link-padding-vertical: 0.375rem;
+  /* A chevron pointing up; Infima turns it to point right (collapsed) or down (expanded). */
+  --ifm-menu-link-sublist-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="rgba(97,106,118,1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m7 14.5 5-5 5 5"/></svg>');
+
+  --ifm-footer-background-color: var(--goat-color-surface-darker);
+  --ifm-footer-color: var(--goat-color-on-dark-muted);
+  --ifm-footer-link-color: var(--goat-color-on-dark-muted);
+  --ifm-footer-link-hover-color: #fff;
+  --ifm-footer-title-color: var(--goat-color-on-dark);
+  --ifm-footer-padding-vertical: 3rem;
+
+  --docusaurus-highlighted-code-line-bg: rgba(43, 179, 129, 0.12);
+
+  --docsearch-primary-color: var(--goat-color-brand-ink);
+  --docsearch-highlight-color: var(--goat-color-brand-ink);
+  --docsearch-text-color: var(--goat-color-ink);
+  --docsearch-muted-color: var(--goat-color-body);
+  --docsearch-container-background: rgba(20, 27, 36, 0.6);
+  --docsearch-modal-background: var(--goat-color-surface-muted);
+  --docsearch-hit-background: var(--goat-color-surface);
+  --docsearch-hit-shadow: none;
+  --docsearch-searchbox-focus-background: var(--goat-color-surface);
+  --docsearch-searchbox-shadow: inset 0 0 0 2px var(--goat-color-brand);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
+html[data-theme="dark"] {
+  --goat-color-brand-ink: #2bb381;
+  --goat-color-brand-ink-hover: #52c79b;
+  --goat-color-brand-tint: rgba(43, 179, 129, 0.16);
+  --goat-color-ink: #edf1f5;
+  --goat-color-body: #c3cad3;
+  --goat-color-label: #89919b;
+  --goat-color-surface: var(--goat-color-surface-darker);
+  --goat-color-surface-muted: var(--goat-color-surface-dark);
+  --goat-color-hairline: var(--goat-color-surface-dark-soft);
 
-[data-theme='light'] {
-  --ifm-background-color: #F8F7F3;
-  --ifm-navbar-background-color: #F8F7F3;
-  --ifm-color-primary: #2BB381;
-  --ifm-color-secondary: #F8F7F3;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #2bb381;
+  --ifm-color-primary-dark: #27a174;
+  --ifm-color-primary-darker: #25986e;
+  --ifm-color-primary-darkest: #1e7d5b;
+  --ifm-color-primary-light: #3fc392;
+  --ifm-color-primary-lighter: #4cc79a;
+  --ifm-color-primary-lightest: #6fd2ad;
+
+  --ifm-background-color: var(--goat-color-surface-darker);
+  --ifm-background-surface-color: var(--goat-color-surface-dark);
+  --ifm-navbar-background-color: var(--goat-color-surface-dark);
+  --ifm-footer-background-color: #10161e;
+  --ifm-code-background: var(--goat-color-surface-dark-soft);
+  --ifm-menu-color-background-hover: var(--goat-color-surface-dark);
+  --ifm-menu-link-sublist-icon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="rgba(137,145,155,1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m7 14.5 5-5 5 5"/></svg>');
+  --ifm-menu-link-sublist-icon-filter: none;
+
+  --docusaurus-highlighted-code-line-bg: rgba(43, 179, 129, 0.18);
+
+  --docsearch-text-color: var(--goat-color-on-dark);
+  --docsearch-muted-color: var(--goat-color-on-dark-muted);
+  --docsearch-container-background: rgba(8, 12, 17, 0.7);
+  --docsearch-modal-background: var(--goat-color-surface-dark);
+  --docsearch-modal-shadow: none;
+  --docsearch-footer-background: var(--goat-color-surface-darker);
+  --docsearch-footer-shadow: none;
+  --docsearch-hit-background: var(--goat-color-surface-dark-soft);
+  --docsearch-hit-color: var(--goat-color-on-dark);
+  --docsearch-searchbox-focus-background: var(--goat-color-surface-darker);
+  --docsearch-key-gradient: none;
+  --docsearch-key-shadow: none;
 }
 
-
-html[data-theme='dark'] {
-  --ifm-background-color:#314157;
-  --ifm-footer-background-color: #283648;
-  --ifm-card-background-color: #283648;
-  --ifm-navbar-background-color: #283648;
-  --ifm-color-primary: #2BB381;
-  --ifm-color-secondary: #F8F7F3;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+body {
+  background-color: var(--ifm-background-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-[data-theme='dark'] .menu {
-  background-color: #283648;
+/* ---------------------------------------------------------------------------
+ * Top bar
+ * ------------------------------------------------------------------------- */
+
+.navbar {
+  border-bottom: 1px solid rgba(237, 241, 245, 0.06);
 }
 
-[data-theme='light'] .footer__copyright {
-  color: #F8F7F3;
+.navbar__logo {
+  height: 1.5rem;
 }
+
+.navbar__brand {
+  flex: 0 0 auto;
+  margin-right: 0;
+}
+
+/* Nav links and the language switch never wrap onto a second line; the
+   search field is the part of the bar that gives way. */
+.navbar .navbar__item,
+.navbar .navbar__link {
+  white-space: nowrap;
+}
+
+.navbar__items--right .navbar__item {
+  padding: 0.375rem 0.625rem;
+}
+
+.navbar .navbar__link {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.navbar .navbar__link--active {
+  color: #fff;
+}
+
+/* External-link arrows are left to the mobile menu. */
+.navbar__items--right .navbar__link svg[class*="iconExternalLink"] {
+  display: none;
+}
+
+.navbar__toggle,
+.navbar .clean-btn {
+  color: var(--goat-color-on-dark-muted);
+}
+
+.navbar .clean-btn:hover {
+  background: rgba(237, 241, 245, 0.08);
+  color: #fff;
+}
+
+.navbar .dropdown__menu {
+  border: 1px solid var(--goat-color-hairline);
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 32px -12px rgba(20, 27, 36, 0.35);
+}
+
+/* GitHub: an icon in the top bar, a labelled link in the mobile menu. */
+.header-github-link::before {
+  content: "";
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: currentColor;
+  vertical-align: middle;
+  -webkit-mask: var(--goat-github-icon) center / contain no-repeat;
+  mask: var(--goat-github-icon) center / contain no-repeat;
+}
+
+.navbar__link.header-github-link {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0;
+}
+
+.menu__link.header-github-link {
+  justify-content: flex-start;
+}
+
+.menu__link.header-github-link::before {
+  margin-right: 0.5rem;
+}
+
+.menu__link.header-github-link svg[class*="iconExternalLink"] {
+  display: none;
+}
+
+/* Search: a wide pill in the middle of the top bar. */
+.navbar .DocSearch-Button {
+  width: 100%;
+  height: 2.5rem;
+  margin: 0;
+  padding: 0 0.5rem 0 1rem;
+  border: 1px solid rgba(237, 241, 245, 0.1);
+  border-radius: var(--goat-radius-pill);
+  background: var(--goat-color-surface-dark-soft);
+  box-shadow: none;
+  color: var(--goat-color-on-dark-muted);
+  font-family: var(--goat-font-family);
+  transition:
+    border-color var(--ifm-transition-fast),
+    background-color var(--ifm-transition-fast);
+}
+
+.navbar .DocSearch-Button:hover,
+.navbar .DocSearch-Button:focus {
+  border-color: var(--goat-color-brand);
+  background: #2d3d52;
+  box-shadow: none;
+  color: var(--goat-color-on-dark);
+}
+
+.navbar .DocSearch-Button .DocSearch-Search-Icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: currentColor;
+}
+
+.navbar .DocSearch-Button-Placeholder {
+  padding: 0 0 0 0.625rem;
+  color: var(--goat-color-on-dark-muted);
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.navbar .DocSearch-Button-Keys {
+  min-width: auto;
+  gap: 0.25rem;
+}
+
+.navbar .DocSearch-Button-Key {
+  top: 0;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  margin: 0;
+  padding: 0 0.375rem;
+  border: 0;
+  border-radius: 0.375rem;
+  background: rgba(237, 241, 245, 0.08);
+  box-shadow: none;
+  color: var(--goat-color-on-dark-muted);
+  font-family: var(--goat-font-family);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+@media (max-width: 1279px) {
+  .navbar__items--right .navbar__item {
+    padding: 0.375rem 0.5rem;
+  }
+
+  .navbar .DocSearch-Button-Keys {
+    display: none;
+  }
+}
+
+@media (max-width: 996px) {
+  .navbar .DocSearch-Button {
+    width: 2.5rem;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .navbar .DocSearch-Button-Placeholder,
+  .navbar .DocSearch-Button-Keys {
+    display: none;
+  }
+}
+
+.navbar-sidebar {
+  background-color: var(--ifm-background-color);
+}
+
+.navbar-sidebar__brand {
+  background-color: var(--goat-color-surface-dark);
+}
+
+/* ---------------------------------------------------------------------------
+ * Docs sidebar
+ * ------------------------------------------------------------------------- */
+
+.theme-doc-sidebar-container {
+  border-right-color: var(--goat-color-hairline) !important;
+}
+
+.theme-doc-sidebar-menu {
+  padding: 1.5rem 0.875rem 2rem;
+  font-size: 0.9375rem;
+}
+
+.menu__link {
+  border-radius: 0.5rem;
+  line-height: 1.4;
+}
+
+.menu__link--active:not(.menu__link--sublist),
+.menu__list-item-collapsible--active .menu__link {
+  font-weight: 600;
+}
+
+.menu__link--sublist-caret::after,
+.menu__caret::before {
+  width: 1rem;
+  min-width: 1rem;
+  height: 1rem;
+  background-size: 1rem 1rem;
+}
+
+.menu__list .menu__list {
+  margin-top: 0.125rem;
+  margin-left: 0.75rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--goat-color-hairline);
+}
+
+.menu__list-item:not(:first-child) {
+  margin-top: 0.125rem;
+}
+
+.sidebar-section + .sidebar-section,
+.sidebar-section + .menu__list-item {
+  margin-top: 1.75rem;
+}
+
+.sidebar-section__label {
+  padding: 0 var(--ifm-menu-link-padding-horizontal) 0.5rem;
+  color: var(--goat-color-label);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.menu__list .sidebar-section__items {
+  margin: 0;
+  padding: 0;
+  border-left: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Content
+ * ------------------------------------------------------------------------- */
+
+.markdown {
+  --ifm-h1-font-size: 2.5rem;
+  --ifm-h2-font-size: 1.625rem;
+  --ifm-h3-font-size: 1.25rem;
+  --ifm-h4-font-size: 1.0625rem;
+  --ifm-h1-vertical-rhythm-bottom: 1;
+  --ifm-heading-vertical-rhythm-top: 2.25;
+}
+
+.markdown h1:first-child {
+  --ifm-h1-font-size: 2.5rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  font-weight: 600;
+}
+
+.markdown strong,
+.markdown b {
+  color: var(--goat-color-ink);
+  font-weight: 600;
+}
+
+.markdown code {
+  border: 0;
+  color: var(--goat-color-ink);
+}
+
+.markdown img {
+  border-radius: 0.5rem;
+}
+
+.markdown table thead tr {
+  background: var(--goat-color-surface-muted);
+}
+
+.markdown table th {
+  color: var(--goat-color-ink);
+  font-weight: 600;
+  text-align: left;
+}
+
+.markdown iframe,
+.markdown video {
+  max-width: 100%;
+  border-radius: 0.75rem;
+}
+
+.theme-code-block {
+  border: 1px solid var(--goat-color-hairline);
+  border-radius: 0.75rem;
+  box-shadow: none;
+}
+
+.theme-admonition {
+  border-width: 1px;
+  border-style: solid;
+  border-left-width: 4px;
+  box-shadow: none;
+}
+
+.button {
+  border-radius: var(--goat-radius-pill);
+  font-weight: 600;
+}
+
+.theme-doc-breadcrumbs .breadcrumbs__link {
+  padding: 0.125rem 0.375rem;
+  background: none;
+  color: var(--goat-color-body);
+  font-size: 0.8125rem;
+}
+
+.theme-doc-breadcrumbs a.breadcrumbs__link:hover {
+  background: none;
+  color: var(--goat-color-brand-ink);
+}
+
+.theme-doc-breadcrumbs .breadcrumbs__item--active .breadcrumbs__link {
+  background: none;
+  color: var(--goat-color-ink);
+  font-weight: 600;
+}
+
+.theme-doc-breadcrumbs .breadcrumbs__item:not(:last-child)::after {
+  opacity: 0.4;
+}
+
+/* "On this page" */
+.theme-doc-toc-desktop .table-of-contents {
+  padding: 0;
+  font-size: 0.8125rem;
+}
+
+.theme-doc-toc-desktop .table-of-contents ul {
+  padding-left: 0;
+}
+
+.theme-doc-toc-desktop .table-of-contents li {
+  margin: 0;
+}
+
+.theme-doc-toc-desktop .table-of-contents__link {
+  display: block;
+  margin-left: -1px;
+  padding: 0.25rem 0 0.25rem 0.875rem;
+  border-left: 2px solid transparent;
+  color: var(--goat-color-body);
+  line-height: 1.45;
+}
+
+.theme-doc-toc-desktop .table-of-contents ul .table-of-contents__link {
+  padding-left: 1.625rem;
+}
+
+.theme-doc-toc-desktop .table-of-contents__link:hover {
+  color: var(--goat-color-ink);
+  text-decoration: none;
+}
+
+.theme-doc-toc-desktop .table-of-contents__link--active {
+  border-left-color: var(--goat-color-brand);
+  color: var(--goat-color-brand-ink);
+  font-weight: 600;
+}
+
+.theme-doc-toc-mobile {
+  border-radius: 0.75rem;
+  background: var(--goat-color-surface-muted);
+}
+
+.pagination-nav__link {
+  border-color: var(--goat-color-hairline);
+  border-radius: 0.875rem;
+  transition: border-color var(--ifm-transition-fast);
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--goat-color-brand);
+}
+
+.pagination-nav__sublabel {
+  color: var(--goat-color-body);
+  font-size: 0.8125rem;
+}
+
+.pagination-nav__label {
+  color: var(--goat-color-ink);
+  font-weight: 600;
+}
+
+/* Cards of the generated category index pages */
+.card {
+  border: 1px solid var(--goat-color-hairline);
+  border-radius: 0.875rem;
+  box-shadow: none;
+}
+
+a.card:hover {
+  border-color: var(--goat-color-brand);
+  box-shadow: 0 8px 24px -12px rgba(20, 27, 36, 0.25);
+}
+
+/* ---------------------------------------------------------------------------
+ * Footer
+ * ------------------------------------------------------------------------- */
+
+.footer__title {
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.footer__link-item {
+  font-size: 0.9375rem;
+}
+
+.footer__copyright {
+  color: var(--goat-color-on-dark-muted);
+  font-size: 0.875rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Helpers used by the docs content
+ * ------------------------------------------------------------------------- */
 
 .hidden {
   display: none !important;
 }
 
 .subscription_button {
-  background-color: #f5f5f5; 
+  background-color: #f5f5f5;
   cursor: pointer;
-  border: none; 
-  padding: 8px 22px; 
-  font-size: 15px; 
+  border: none;
+  padding: 8px 22px;
+  font-size: 15px;
   color: #283648;
   transition: all 0.3s ease-in-out;
   border-radius: 24px;
 }
 
 .subscription_button:hover {
-  background-color: #cacaca; 
+  background-color: #cacaca;
 }
 
 .input_subscription {
@@ -83,61 +631,178 @@ html[data-theme='dark'] {
 .step {
   display: flex;
   align-items: center;
+  min-height: 3.5rem; /* the divider is as tall as the step; keep it a line */
   margin-bottom: 20px; /* for space between steps */
 }
 
 .step-number {
+  /* The same width for every step, room for two digits (1.2em) plus the gap
+     to the line, so steps 10 and up line up with the rest. */
+  flex: 0 0 calc(1.2em + 20px);
   text-align: right;
-  font-size: 2rem; 
-  font-weight: bold; 
-  color: #3a3a3a; /* color of the number */
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--goat-color-brand-ink);
   position: relative; /* This is needed to position the line */
-  padding-right: 30px; /* Space between the number and the line */
+  padding-right: 20px; /* Space between the number and the line */
   margin-right: 20px; /* Additional space if needed */
-}
-[data-theme='dark'] .step-number {
-  color: #F8F7F3;
+  /* Fill the step's height so the divider spans exactly the step: a fixed
+     length stuck out above and below a short step, into a table or tab bar
+     next to it. The number stays centred. */
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .step-number::after {
-  content: ''; 
-  position: absolute; 
-  top: 50%; /* Align the line in the middle vertically */
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
   right: 0; /* Align the line to the right of the number */
-  transform: translateY(-50%); /* Center the line with respect to the number */
-  border-left: 2px solid #3a3a3a; /* Solid line to the right of the number */
-  height: 60px; /* Length of the line */
-}
-[data-theme='dark'] .step-number::after {
-  border-left: 2px solid #F8F7F3;
+  border-left: 2px solid var(--goat-color-hairline); /* Solid line to the right of the number */
 }
 
-
-
-[data-theme='light'] .menu-content, [data-theme='light'] .rygJf{
-  background-color: #F8F7F3;
+/* Step text that runs over several lines is its own paragraph; it sits flush
+   like single-line step text. */
+.step .content p {
+  margin: 0;
 }
 
-/* [data-theme='light'] .cqVkUp, [data-theme='dark'] .cqVkUp {
-  padding: 0;
-} */
- 
-[data-theme='light'] .fMZBAB, .cBEcqm{
-  background-color: #283648;
-} 
-
-[data-theme='dark'] .menu-content, [data-theme='dark'] .cMEczu{
-  background-color: #283648;
+/* Tabs straight after a step show that step's options: indent them to the
+   step text (number box 2.4rem + 20px, then 20px to the text). */
+.step + .tabs-container {
+  margin-left: calc(2.4rem + 40px);
 }
 
-[data-theme='light'] .eKEMWz, [data-theme='dark'] .jOwgVr, [data-theme='dark'] .eDeKjd {
-  background-color: #ffffff;
-}
-
-html[data-theme='dark'] .navbar .navbar__logo {
-  content: url(https://assets.plan4better.de/img/logo/plan4better_white.svg)
-}
-
-.tabItemBox{
+.tabItemBox {
   margin-left: 10px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Media in page content
+ * Pages size images with inline max-width values (often wider than the
+ * content column) and embed videos with a fixed width; neither may push the
+ * column wider than the screen. Small inline icons keep their own size.
+ * ------------------------------------------------------------------------- */
+
+/* break-word, not anywhere: it still wraps an overlong URL or token, but
+   leaves words whole when a table works out its column widths. */
+.theme-doc-markdown {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* Running text may break a long token (a hostname, a path) anywhere, so a
+   step box or list item never grows wider than the screen. */
+.theme-doc-markdown p,
+.theme-doc-markdown li {
+  overflow-wrap: anywhere;
+}
+
+.theme-doc-markdown th,
+.theme-doc-markdown td,
+.theme-doc-markdown td p,
+.theme-doc-markdown td li {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: manual;
+}
+
+/* Setting names and values in tables stay on one line; a table wider than
+   the column scrolls sideways inside its own box. */
+.theme-doc-markdown td code {
+  white-space: nowrap;
+}
+
+/* A short first column (a row label) keeps its words on one line. */
+.theme-doc-markdown td:first-child,
+.theme-doc-markdown th:first-child {
+  min-width: 7rem;
+}
+
+.theme-doc-markdown img,
+.theme-doc-markdown video,
+.theme-doc-markdown picture,
+.theme-doc-markdown svg:not([class*="icon"]) {
+  max-width: 100% !important;
+  height: auto;
+}
+
+/* Inline UI icons: the rule above would override their inline size, so
+   restore it and line them up with the text around them. */
+.theme-doc-markdown img[style*="max-width: 16px"] {
+  max-width: 16px !important;
+}
+
+.theme-doc-markdown img[style*="max-width: 20px"] {
+  max-width: 20px !important;
+}
+
+.theme-doc-markdown img[style*="max-width: 25px"] {
+  max-width: 25px !important;
+}
+
+.theme-doc-markdown img[style*="max-width: 40px"] {
+  max-width: 40px !important;
+}
+
+.theme-doc-markdown img:is(
+    [style*="max-width: 16px"],
+    [style*="max-width: 20px"],
+    [style*="max-width: 25px"],
+    [style*="max-width: 40px"]
+  ) {
+  vertical-align: middle;
+  border-radius: 0;
+}
+
+.theme-doc-markdown iframe {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.theme-doc-markdown iframe[width] {
+  max-width: min(100%, 674px);
+}
+
+/* Charts are drawn on a fixed-size canvas; scale it down with the column. */
+.theme-doc-markdown canvas {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* A formula wider than the column scrolls inside its own box. */
+.theme-doc-markdown .MJXc-display,
+.theme-doc-markdown .MathJax_Preview:has(.MJXp-display),
+.theme-doc-markdown .MJXp-display,
+.theme-doc-markdown .MathJax_Display,
+.theme-doc-markdown mjx-container[display="true"] {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Flex rows in pages (numbered steps, centring wrappers): their children may
+   shrink below their content, so a wide table inside scrolls instead of
+   widening the page. */
+.theme-doc-markdown .step > *,
+.theme-doc-markdown div[style*="flex"] > * {
+  min-width: 0;
+}
+
+/* Wrappers some pages put around media (flex centring, fixed-width divs). */
+.theme-doc-markdown div[style] {
+  max-width: 100%;
+}
+
+.theme-doc-markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
 }

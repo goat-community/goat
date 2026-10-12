@@ -5,8 +5,11 @@ name: "PR"
 on:
   pull_request:
     branches: [main]
-  merge_group:
   workflow_dispatch:
+
+# The workflow token gets read access only; jobs that need more ask for it.
+permissions:
+  contents: read
 
 concurrency:
   # Key on PR number, not head_ref: fork branches often share names (several
@@ -19,6 +22,9 @@ jobs:
   file-changes:
     name: file-changes
     uses: ./.github/workflows/checks.yml
+    permissions:
+      contents: read
+      pull-requests: read
     secrets: inherit
 
   lint:
@@ -42,12 +48,14 @@ jobs:
     with:
       web: ${{ needs.file-changes.outputs.web == 'true' }}
       core: ${{ needs.file-changes.outputs.core == 'true' }}
-      # goatlib is a shared lib; run its suite on any python-package change.
+      # goatlib is a shared lib; run its suite on any python-package change,
+      # and on routing changes, which it tests.
       goatlib: >-
         ${{ needs.file-changes.outputs.core == 'true'
         || needs.file-changes.outputs.geoapi == 'true'
         || needs.file-changes.outputs.processes == 'true'
-        || needs.file-changes.outputs.catalog == 'true' }}
+        || needs.file-changes.outputs.catalog == 'true'
+        || needs.file-changes.outputs.workers == 'true' }}
       geoapi: ${{ needs.file-changes.outputs.geoapi == 'true' }}
       processes: ${{ needs.file-changes.outputs.processes == 'true' }}
       catalog: ${{ needs.file-changes.outputs.catalog == 'true' }}
@@ -58,18 +66,10 @@ jobs:
     uses: ./.github/workflows/build.yml
     secrets: inherit
     with:
-      web: >-
-        ${{ needs.file-changes.outputs.web == 'true'
-        || needs.file-changes.outputs.storybook == 'true' }}
+      web: ${{ needs.file-changes.outputs.web == 'true' }}
+      storybook: ${{ needs.file-changes.outputs.storybook == 'true' }}
       keycloak-theme: ${{ needs.file-changes.outputs.keycloak-theme == 'true' }}
       docs: ${{ needs.file-changes.outputs.docs == 'true' }}
-
-  analyze:
-    name: analyze
-    needs: [file-changes, build]
-    if: ${{ needs.file-changes.outputs.web == 'true' || needs.file-changes.outputs.storybook == 'true' }}
-    uses: ./.github/workflows/nextjs-bundle-analysis.yml
-    secrets: inherit
 
   file-size:
     name: file-size
@@ -79,7 +79,7 @@ jobs:
       # The PR's merge commit and its parents, trees only: the check fetches
       # just the blobs of the files the PR adds or modifies.
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 2
           filter: blob:none
@@ -87,15 +87,77 @@ jobs:
       - name: 📏 Keep large files out of the repository
         run: scripts/check-file-sizes.sh HEAD^1 HEAD
 
+  doc-references:
+    name: doc-references
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # The docs being checked plus the service code their setting names are
+      # looked up in; the web app and everything else stays out of the checkout.
+      - name: 📥 Checkout
+        uses: actions/checkout@v7
+        with:
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*.md
+            /.gitignore
+            /scripts/
+            /apps/*/CLAUDE.md
+            /apps/*/README.md
+            /apps/core/
+            /apps/geoapi/
+            /apps/processes/
+            /apps/catalog/
+            /packages/python/goatlib/
+      - name: 📚 READMEs and CLAUDE.md name only files and settings that exist
+        run: python3 scripts/check-doc-references.py
+
+  compose-bundle:
+    name: compose-bundle
+    needs: file-changes
+    if: ${{ needs.file-changes.outputs.compose-bundle == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: deploy/compose
+      - name: 🧪 setup.sh derives every deployment variant
+        run: bash deploy/compose/tests/setup-check.sh
+      - name: 🧪 compose.yaml and Caddyfile render for every variant
+        run: bash deploy/compose/tests/config-check.sh
+
+  helm-chart:
+    name: helm-chart
+    needs: file-changes
+    if: ${{ needs.file-changes.outputs.helm == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            deploy/helm
+            .github/actions/helm-tools
+      - uses: ./.github/actions/helm-tools
+      - name: 🧪 Lint, unit tests, render and schema-check every fixture
+        run: ./deploy/helm/check.sh
+
   required:
-    needs: [lint, test, build, analyze, file-size]
+    # file-changes too: when it fails, every job after it is skipped, not
+    # failed, and would count as passed.
+    needs: [file-changes, lint, test, build, file-size, doc-references, compose-bundle, helm-chart]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       # Fail only on real failures/cancellations. `skipped` is expected and OK:
       # change-detection legitimately skips jobs for unaffected areas (e.g.
-      # build-goat on a core-only PR). Advisory jobs use continue-on-error so
-      # they report success and never reach here.
+      # the web build on a core-only PR). Advisory steps use continue-on-error
+      # so their job still succeeds.
       - name: fail if required jobs failed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: exit 1

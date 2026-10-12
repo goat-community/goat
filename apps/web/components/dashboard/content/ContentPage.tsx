@@ -275,27 +275,10 @@ const ContentPage = ({
   const documentsFolderId = active.kind === "space" ? (folderId ?? homeFolder?.id) : undefined;
   const { documents } = useDocuments(documentsFolderId);
 
-  // "Shared with {space}" only makes sense at a team/org space's own root —
-  // a personal space has nothing shared into it, and inside a folder the
-  // grant is on the space, not that particular folder.
-  const sharedWithSpaceScopeSpaceId = space && space.kind !== "personal" && !folderId ? space.id : null;
-  const { page: sharedWithSpacePage } = useSharedWithSpace(sharedWithSpaceScopeSpaceId);
-
-  // Items shared into a team/organisation space are listed with the space's
-  // own: the page heading already names the space, and each such item carries
-  // its "Shared" chip, so they sort into the same kind sections rather than
-  // a section of their own. Merged in the feed's own order.
-  const items = useMemo(() => {
-    const shared = sharedWithSpacePage?.items ?? [];
-    if (shared.length === 0) return feed.items;
-    const merged = [...feed.items, ...shared];
-    const dir = order === "ascendent" ? 1 : -1;
-    return merged.sort((a, b) => {
-      const av = String(a[orderBy] ?? "");
-      const bv = String(b[orderBy] ?? "");
-      return (orderBy === "name" ? av.localeCompare(bv) : av < bv ? -1 : av > bv ? 1 : 0) * dir;
-    });
-  }, [feed.items, sharedWithSpacePage?.items, orderBy, order]);
+  // Items shared into a team/organisation space are part of the space's
+  // root listing itself (`view=space` returns them, sorted and paged with
+  // the space's own); each such item carries its "Shared" chip.
+  const items = feed.items;
   const grouped: Record<SectionKey, ContentItem[]> = {
     folders: items.filter((i) => sectionOf(i) === "folders"),
     shortcuts: items.filter((i) => sectionOf(i) === "shortcuts"),
@@ -411,6 +394,15 @@ const ContentPage = ({
   const spaceUnknown = !!spaceId && !space && !spacesLoading && spaces.length > 0;
   // A folder shared into the browsed space heads the trail of anything
   // opened inside it — its own ancestors belong to the space it came from.
+  // Which folders were shared into the space is asked only when a folder
+  // from another space is open under a team/org space.
+  const browsingForeignFolder =
+    !!folderId &&
+    !!space &&
+    space.kind !== "personal" &&
+    !!currentFolder &&
+    currentFolder.space_id !== space.id;
+  const { page: sharedWithSpacePage } = useSharedWithSpace(browsingForeignFolder ? space.id : null);
   const sharedRootFolderId = useMemo(() => {
     if (!sharedWithSpacePage?.items.length || !folderId) return null;
     const sharedFolders = new Set(
@@ -447,9 +439,7 @@ const ContentPage = ({
   // section, which is a separate listing — resolve the row from both so the
   // dialog's own Share/Move gates see the real item either way.
   const previewedId = previewLayerId ?? previewBundleId;
-  const previewTarget = previewedId
-    ? [...items, ...(sharedWithSpacePage?.items ?? [])].find((i) => i.id === previewedId)
-    : undefined;
+  const previewTarget = previewedId ? items.find((i) => i.id === previewedId) : undefined;
 
   const openItem = (item: ContentItem) => {
     if (item.is_shortcut) {

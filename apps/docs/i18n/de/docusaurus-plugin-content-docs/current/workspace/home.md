@@ -1,4 +1,5 @@
 ---
+description: "Auf der Startseite durchsuchen Sie alle Bereiche, legen Projekte oder Datensätze an, öffnen zuletzt Genutztes, wählen Vorlagen und folgen der Checkliste."
 sidebar_position: 2
 ---
 
@@ -27,7 +28,7 @@ Mit den Pfeiltasten wechseln Sie zwischen den Treffern, mit `Enter` öffnen Sie 
 Unter dem Suchfeld stehen drei Schaltflächen:
 
 - `Neues Projekt`: ein leeres Projekt beginnen oder ein aus GOAT exportiertes importieren
-- `Datensatz hinzufügen`: eine Datei von Ihrem Gerät hochladen (GeoPackage, GeoJSON, Shapefile, KML, CSV, XLSX, Parquet). Externe Dienste wie WFS oder WMS verbinden Sie innerhalb eines Projekts über [Dienst verbinden](../map/layers#layer-hinzufügen)
+- `Datensatz hochladen`: eine Datei von Ihrem Gerät hochladen (GeoPackage, GeoJSON, Shapefile, KML, CSV, XLSX, Parquet). Externe Dienste wie WFS oder WMS verbinden Sie über `Dienst verbinden`, unter [Neu](content#eine-externe-quelle-verbinden) auf der Seite Inhalt oder [Layer hinzufügen](../map/layers#layer-hinzufügen) in einem Projekt
 - `Katalog durchsuchen`: den [Katalog](../workspace/catalog.md) öffnen, um fertige Daten zu finden
 
 ## Weitermachen
@@ -36,7 +37,7 @@ Ihre zuletzt geöffneten Projekte, die neuesten zuerst. Jedes zeigt, wann Sie zu
 
 ## Mit einer Vorlage starten
 
-Mit Vorlagen beginnen Sie mit einem bereits eingerichteten Projekt, Workflow oder Layout. Filtern Sie die Reihe nach Art (`Alle Vorlagen`, `Workflow`, `Projekt` oder `Layout`) und danach, woher die Vorlage stammt: `Alle`, `GOAT`, `Meine`, `Team` oder `Organisation`. Über `Alle Vorlagen` gelangen Sie zur vollständigen Übersicht.
+Mit Vorlagen beginnen Sie mit einem bereits eingerichteten Projekt, Workflow oder Layout. Filtern Sie die Reihe nach Art (`Alle Vorlagen`, `Workflow`, `Projekt` oder `Layout`) und danach, woher die Vorlage stammt: `Alle`, `GOAT`, `Meine`, `Team`, `Organisation` oder `Mit mir geteilt`. Über `Alle Vorlagen` gelangen Sie zur vollständigen Übersicht.
 
 ## Aktuelle Datensätze
 

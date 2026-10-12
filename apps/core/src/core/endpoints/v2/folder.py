@@ -180,19 +180,22 @@ async def read_folder(
         examples=["3fa85f64-5717-4562-b3fc-2c963f66afa6"],
     ),
 ) -> FolderRead:
-    """Retrieve a folder by its ID."""
-    folder = await crud_folder.get_by_multi_keys(
-        async_session, keys={"id": folder_id, "user_id": user_id}
-    )
-
-    if len(folder) == 0 or folder[0].deleted_at is not None:
+    """Retrieve a folder by its ID: any folder the caller may read, not only
+    the ones they created. 404 without read access, so a folder outside the
+    caller's spaces is indistinguishable from a missing one."""
+    folder = await crud_folder.get(async_session, id=folder_id)
+    if (
+        folder is None
+        or folder.deleted_at is not None
+        or not await authz.can(async_session, "folder", folder_id, user_id, "read")
+    ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
 
-    assert folder[0].id is not None
-    depth = await crud_folder.depth(async_session, folder[0].id)
-    return FolderRead(**folder[0].model_dump(), depth=depth)
+    assert folder.id is not None
+    depth = await crud_folder.depth(async_session, folder.id)
+    return FolderRead(**folder.model_dump(), depth=depth)
 
 
 @router.get(
@@ -605,25 +608,6 @@ async def share_folder(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unknown role: {payload.role}",
-        )
-
-    # Check for conflicting grant (different grantee)
-    conflict_result = await async_session.execute(
-        select(ResourceGrant.id)
-        .where(
-            ResourceGrant.resource_type == "folder",
-            ResourceGrant.resource_id == folder_id,
-            or_(
-                ResourceGrant.grantee_type != payload.grantee_type,
-                ResourceGrant.grantee_id != payload.grantee_id,
-            ),
-        )
-        .limit(1)
-    )
-    if conflict_result.first() is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="This folder is already shared with another team or organization. Remove the existing grant first.",
         )
 
     # Upsert: delete existing grant for this grantee, then insert fresh

@@ -20,6 +20,7 @@ from . import (
     report_layout,
     share,
     space,
+    support,
     system,
     teams,
     template,
@@ -38,6 +39,7 @@ router.include_router(teams.router, prefix="/teams", tags=["Teams"])
 router.include_router(space.router, prefix="/space", tags=["Space"])
 router.include_router(users.router, prefix="/users", tags=["Users"])
 router.include_router(share.router, prefix="/share", tags=["Share"])
+router.include_router(support.router, prefix="/support", tags=["Support"])
 router.include_router(billing.router, prefix="/billing", tags=["Billing"])
 router.include_router(webhooks.router, prefix="/webhooks", tags=["Webhooks"])
 
@@ -61,12 +63,12 @@ router.include_router(template.router, prefix="/template", tags=["Template"])
 router.include_router(transfer.router, prefix="/content/transfer", tags=["Transfer"])
 router.include_router(
     organization_domain.router,
-    prefix="/organizations/{organization_id}/domains",
+    prefix="/organizations",
     tags=["Organization Domain"],
 )
 router.include_router(
     organization_analytics.router,
-    prefix="/organizations/{organization_id}/analytics",
+    prefix="/organizations",
     tags=["Organization Analytics"],
 )
 router.include_router(

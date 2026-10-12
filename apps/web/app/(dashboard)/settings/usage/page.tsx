@@ -7,7 +7,10 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Trans } from "react-i18next";
 
+import { useDateFnsLocale } from "@/i18n/utils";
+
 import { useOrganization } from "@/lib/api/users";
+import { CONTACT_URL } from "@/lib/constants";
 import { getNextMonthDate } from "@/lib/utils/helpers";
 
 import QuotaStatus from "@/components/common/QuotaStatus";
@@ -16,6 +19,7 @@ export default function Usage() {
   const { t, i18n } = useTranslation("common");
   const theme = useTheme();
   const { organization } = useOrganization();
+  const dateLocale = useDateFnsLocale();
 
   const isQuotaFull = useMemo(() => {
     if (!organization)
@@ -31,6 +35,13 @@ export default function Usage() {
       isProjectsFull: organization.used_projects >= organization.total_projects,
     };
   }, [organization]);
+
+  // Without a contact page the alerts keep the word, unlinked.
+  const contactAnchor = CONTACT_URL ? (
+    <Link sx={{ fontWeight: "bold" }} target="_blank" href={CONTACT_URL} />
+  ) : (
+    <span />
+  );
 
   return (
     <>
@@ -54,13 +65,7 @@ export default function Usage() {
                         i18nKey="common:organization_credits_quota_alert"
                         components={{
                           b: <b />,
-                          anchor: (
-                            <Link
-                              sx={{ fontWeight: "bold" }}
-                              target="_blank"
-                              href="https://plan4better.de/contact"
-                            />
-                          ),
+                          anchor: contactAnchor,
                         }}
                       />
                     </Alert>
@@ -95,7 +100,7 @@ export default function Usage() {
                 />
                 <Stack sx={{ mt: 1 }} alignItems="flex-end">
                   <Typography variant="caption">
-                    {t("resets_on") + ": " + format(getNextMonthDate(), "MMM d, yyyy", {})}
+                    {t("resets_on") + ": " + format(getNextMonthDate(), "PP", { locale: dateLocale })}
                   </Typography>
                 </Stack>
                 <Stack sx={{ mt: 1 }}>
@@ -111,13 +116,7 @@ export default function Usage() {
                       i18nKey="common:organization_storage_quota_alert"
                       components={{
                         b: <b />,
-                        anchor: (
-                          <Link
-                            sx={{ fontWeight: "bold" }}
-                            target="_blank"
-                            href="https://plan4better.de/contact"
-                          />
-                        ),
+                        anchor: contactAnchor,
                       }}
                     />
                   </Alert>
@@ -166,13 +165,7 @@ export default function Usage() {
                       i18nKey="common:organization_projects_quota_alert"
                       components={{
                         b: <b />,
-                        anchor: (
-                          <Link
-                            sx={{ fontWeight: "bold" }}
-                            target="_blank"
-                            href="https://plan4better.de/contact"
-                          />
-                        ),
+                        anchor: contactAnchor,
                       }}
                     />
                   </Alert>

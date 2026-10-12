@@ -299,6 +299,8 @@ class TestFieldKinds:
             ("number", pa.float64()),
             ("datetime", pa.timestamp("us", tz="UTC")),
             ("boolean", pa.bool_()),
+            ("serial", pa.int64()),
+            ("uuid", pa.string()),
         ],
     )
     def test_every_kind_maps_to_its_storage_type(self, kind, expected, tmp_path):
@@ -312,3 +314,92 @@ class TestFieldKinds:
         output, _ = runner.process(params, tmp_path)
         schema = pq.read_schema(output)
         assert schema.field("value").type == expected
+
+
+class TestGeneratedKinds:
+    """A serial or UUID field declared up front: stored as BIGINT/text, and
+    described in field_config the same way geoapi describes one added later, so
+    the first feature drawn into the empty layer gets its value."""
+
+    def test_serial_entry_starts_at_one_by_default(self):
+        entry = FieldDefinition(name="vorhaben_id", kind="serial").field_config_entry()
+        assert entry == {
+            "kind": "serial",
+            "start": 1,
+            "is_computed": False,
+            "depends_on": [],
+            "display_config": {},
+        }
+
+    def test_serial_entry_keeps_its_start(self):
+        field = FieldDefinition(name="vorhaben_id", kind="serial", start=1000)
+        assert field.field_config_entry()["start"] == 1000
+
+    def test_uuid_entry_has_no_settings(self):
+        entry = FieldDefinition(name="uid", kind="uuid").field_config_entry()
+        assert entry["kind"] == "uuid"
+        assert "start" not in entry
+
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {"kind": "serial", "start": -1},
+            {"kind": "serial", "allowed_values": [1, 2]},
+            {"kind": "uuid", "start": 5},
+            {"kind": "uuid", "allowed_values": ["a"]},
+            {"kind": "number", "start": 5},
+        ],
+    )
+    def test_invalid_generated_fields_fail_before_the_layer_exists(self, kwargs):
+        with pytest.raises(ValidationError):
+            FieldDefinition(name="x", **kwargs)
+
+    def test_the_field_config_written_for_the_new_layer(self, monkeypatch):
+        written = {}
+
+        async def persist(layer_id, config):
+            written[layer_id] = config
+
+        runner = LayerCreateToolRunner()
+        monkeypatch.setattr(runner, "_persist_field_config", persist)
+        params = LayerCreateParams(
+            user_id="00000000-0000-0000-0000-000000000001",
+            name="Vorhaben (Eingabe)",
+            geometry_type="point",
+            fields=[
+                FieldDefinition(name="vorhaben_id", kind="serial", start=100),
+                FieldDefinition(name="uid", kind="uuid"),
+                FieldDefinition(name="titel", kind="string"),
+            ],
+        )
+        runner._write_field_config(params, {"layer_id": "L1"})
+        assert written["L1"]["vorhaben_id"]["kind"] == "serial"
+        assert written["L1"]["vorhaben_id"]["start"] == 100
+        assert written["L1"]["uid"]["kind"] == "uuid"
+        assert written["L1"]["titel"]["kind"] == "string"
+
+    def test_the_empty_layer_numbers_its_first_feature_from_start(self, tmp_path):
+        """What geoapi does with the layer next: the first create into the
+        created (empty) table gets ``start``, the second ``start + 1``."""
+        import duckdb
+        from goatlib.utils.generated_fields import GeneratedValues, generated_fields
+
+        params = LayerCreateParams(
+            user_id="00000000-0000-0000-0000-000000000001",
+            name="Vorhaben",
+            geometry_type=None,
+            fields=[
+                FieldDefinition(name="vorhaben_id", kind="serial", start=100),
+                FieldDefinition(name="uid", kind="uuid"),
+            ],
+        )
+        output, _ = LayerCreateToolRunner().process(params, tmp_path)
+        config = {f.name: f.field_config_entry() for f in params.fields}
+
+        con = duckdb.connect()
+        con.execute(f"CREATE TABLE t AS SELECT * FROM read_parquet('{output}')")
+        assert con.execute("DESCRIBE t").fetchall()[0][1] == "BIGINT"
+        generator = GeneratedValues(con, "t", generated_fields(config))
+        first, second = generator.next_row(), generator.next_row()
+        assert (first["vorhaben_id"], second["vorhaben_id"]) == (100, 101)
+        assert first["uid"] != second["uid"]

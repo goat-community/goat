@@ -10,6 +10,7 @@ Tests the layer export functionality including:
 
 from unittest.mock import MagicMock, patch
 
+import duckdb
 import pytest
 from goatlib.tools.layer_export import (
     FORMAT_MAP,
@@ -615,3 +616,48 @@ class TestLayerExportFormats:
             call_args = runner._duckdb_con.execute.call_args_list[-1]
             sql = call_args[0][0]
             assert "FORMAT CSV" in sql  # Falls back to CSV
+
+
+class TestGeoPackageWithFidColumn:
+    """A dataset with its own `fid` column, common in data that came from a
+    GeoPackage or QGIS, exports to GeoPackage with that column intact."""
+
+    @pytest.fixture
+    def runner(self, tmp_path):
+        geojson = tmp_path / "stops.geojson"
+        geojson.write_text(
+            '{"type": "FeatureCollection", "features": ['
+            + ", ".join(
+                f'{{"type": "Feature", "properties": {{"fid": {fid}, "name": "s{fid}"}},'
+                f' "geometry": {{"type": "Point", "coordinates": [11.5, 48.{fid}]}}}}'
+                for fid in (7, 3, 42)
+            )
+            + "]}"
+        )
+        con = duckdb.connect()
+        con.execute("INSTALL spatial; LOAD spatial")
+        # The relation shape DuckLake layers have: lake.<schema>.<table>.
+        con.execute("ATTACH ':memory:' AS lake")
+        con.execute(
+            "CREATE TABLE lake.main.t_stops AS SELECT fid, name, geom AS geometry"
+            f" FROM ST_Read('{geojson}')"
+        )
+        runner = LayerExportRunner()
+        runner._duckdb_con = con
+        yield runner
+        con.close()
+
+    def test_the_fid_column_survives_a_geopackage_export(self, runner, tmp_path):
+        output = tmp_path / "stops.gpkg"
+        with patch.object(runner, "_get_table_name", return_value="lake.main.t_stops"):
+            runner._export_to_file(
+                layer_id="00000000-0000-0000-0000-000000000001",
+                user_id="00000000-0000-0000-0000-000000000002",
+                output_path=str(output),
+                output_format="GPKG",
+            )
+
+        rows = runner._duckdb_con.execute(
+            f"SELECT fid, name FROM ST_Read('{output}') ORDER BY name"
+        ).fetchall()
+        assert rows == [(3, "s3"), (42, "s42"), (7, "s7")]

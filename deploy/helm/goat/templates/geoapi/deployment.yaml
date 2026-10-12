@@ -1,0 +1,134 @@
+{{- if .Values.geoapi.enabled -}}
+{{- $component := "geoapi" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ .Values.geoapi.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "goat.serviceSelectorLabels" $ctx | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" $ctx | nindent 8 }}
+        {{- with .Values.geoapi.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.geoapi.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.geoapi.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.ducklakeBootstrap.enabled }}
+      initContainers:
+        {{- include "goat.ducklakeInit.container" (dict "context" $ "component" $component "values" .Values.geoapi) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: geoapi
+          image: {{ include "goat.image" (dict "image" .Values.geoapi.image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ .Values.geoapi.image.pullPolicy }}
+          {{- with .Values.geoapi.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.geoapi.service.targetPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "goat.serviceFullname" $ctx }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.postgresql.secretName" . }}
+                  key: {{ include "goat.postgresql.userKey" . }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.postgresql.secretName" . }}
+                  key: {{ include "goat.postgresql.passwordKey" . }}
+            {{- if include "goat.redis.authEnabled" . }}
+            # Must precede REDIS_URL: $(VAR) only resolves against earlier entries.
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.redis.secretName" . }}
+                  key: {{ include "goat.redis.passwordKey" . }}
+            {{- end }}
+            - name: REDIS_URL
+              value: {{ include "goat.redis.url" . | quote }}
+            {{- /* AUTH is always set explicitly: the geoapi code defaults to AUTH on,
+                   against plan4better's own Keycloak. When auth is on, the
+                   Keycloak URL + realm come from the Secret, else from
+                   core.config. See goat.auth.backendEnv. */}}
+            {{- include "goat.auth.backendEnv" (dict "values" .Values.geoapi "root" $ "fallback" true) | trim | nindent 12 }}
+            {{- include "goat.s3.env" (dict "root" $ "values" .Values.geoapi "assets" false) | trim | nindent 12 }}
+            {{- with .Values.geoapi.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.geoapi.livenessProbe.enabled }}
+          livenessProbe:
+            {{- $lp := omit .Values.geoapi.livenessProbe "enabled" }}
+            {{- toYaml $lp | nindent 12 }}
+          {{- end }}
+          {{- if .Values.geoapi.readinessProbe.enabled }}
+          readinessProbe:
+            {{- $rp := omit .Values.geoapi.readinessProbe "enabled" }}
+            {{- toYaml $rp | nindent 12 }}
+          {{- end }}
+          {{- with .Values.geoapi.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.data.enabled .Values.geoapi.extraVolumeMounts }}
+          volumeMounts:
+            {{- if .Values.data.enabled }}
+            {{- include "goat.data.mounts.full" . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.geoapi.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+      {{- if or .Values.data.enabled .Values.geoapi.extraVolumes }}
+      volumes:
+        {{- if .Values.data.enabled }}
+        {{- include "goat.data.volume" . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.geoapi.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.geoapi.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.geoapi.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.geoapi.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

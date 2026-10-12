@@ -1,0 +1,14 @@
+suite: company CA bundle, conflicting sources
+templates:
+  - core/configmap.yaml
+set:
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+tests:
+  - it: refuses a ConfigMap and a Secret at once
+    set:
+      global.caBundle.existingConfigMap: corp-ca
+      global.caBundle.existingSecret: corp-ca
+    asserts:
+      - failedTemplate:
+          errorPattern: "set existingConfigMap or existingSecret, not both"

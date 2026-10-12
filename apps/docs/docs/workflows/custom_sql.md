@@ -1,3 +1,7 @@
+---
+description: "Write SQL queries against up to three connected inputs (input_1 to input_3) in a Custom SQL workflow node, with spatial functions and workflow variables."
+---
+
 # Custom SQL
 
 The **Custom SQL** tool allows you to write custom SQL queries for data analysis directly within your workflows. This powerful feature enables advanced data processing that goes beyond GOAT's built-in tools.
@@ -22,12 +26,12 @@ The Custom SQL tool connects to GOAT's DuckDB backend, giving you direct access 
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content">From the <strong>Tools Panel</strong>, drag the <strong>Custom SQL</strong> tool onto your workflow canvas.</div>
+  <div class="content">In the <strong>Tools</strong> tab of the right panel, find <strong>Custom SQL</strong> under <strong>Data Management</strong> and drag it onto your workflow canvas.</div>
 </div>
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Connect input dataset nodes or other tools to provide data sources for your query.</div>
+  <div class="content">Connect up to three dataset or tool nodes to provide data sources for your query. They are listed under <strong>Connected Inputs</strong>.</div>
 </div>
 
 <div class="step">
@@ -37,36 +41,56 @@ The Custom SQL tool connects to GOAT's DuckDB backend, giving you direct access 
 
 ### Writing SQL Queries
 
-In the configuration panel, you'll find a SQL editor where you can write your custom query:
+In the **SQL Query** section of the configuration panel, click **Write SQL Query** (or **Edit SQL Query** once a query exists) to open the **Custom SQL Editor**, and write your query in the editor at the top:
 
 ```sql
-SELECT 
+SELECT
   h.*,
-  p.population_density,
-  ST_Distance(h.geom, p.geom) AS distance_to_center
+  p.population_density
 FROM input_1 h
-JOIN input_2 p ON ST_Intersects(h.geom, p.geom)
+JOIN input_2 p ON ST_Intersects(h.geometry, p.geometry)
 WHERE p.population_density > 1000
-ORDER BY distance_to_center
 ```
+
+The editor capitalizes SQL keywords and suggests table and column names as you type; press `Tab` to accept a suggestion. On the **Build** tab below the editor, pick **Tables**, **Operators** or a function category on the left and click an entry in the middle list to insert it at the cursor; clicking a column inserts it with its table name, for example `input_1.height`. The **Help** panel on the right describes the entry under your mouse pointer.
+
+When the query is ready, click **Apply** to save it to the node. The query is then shown in the **SQL Query** section; click it to open the editor again.
 
 #### Input References
 
-- **input_1, input_2, input_3...**: Reference your connected datasets using these table names
+- **input_1, input_2, input_3**: Reference your connected datasets using these table names
 - The number corresponds to the connection order on the node
 - You can connect up to 3 input datasets per Custom SQL node
+
+#### Additional Layers
+
+Besides the connected inputs, you can query up to two more layers without connecting them on the canvas. Under **Additional Layers**, click **Add layer** and choose **From Project** or **My datasets**. Each added layer is referenced by its **Table Alias** (`extra_1` and `extra_2` by default), which you can change; aliases may contain only letters, numbers and underscores.
+
+#### Geometry and Units
+
+Every layer has its geometry in a column named `geometry`, in WGS 84 longitude and latitude (EPSG:4326). Spatial functions therefore measure in degrees: `ST_Distance(a.geometry, b.geometry)` returns degrees, not metres. For metres and square metres, first transform the geometry into a projected coordinate system, for example UTM zone 32N, which covers most of Germany:
+
+```sql
+ST_Transform(geometry, 'EPSG:4326', 'EPSG:25832', always_xy := true)
+```
+
+For other regions, use the UTM zone of the area. Return the original `geometry` column, or transform the result back to EPSG:4326, so the result shows in the right place on the map.
 
 #### Available Functions
 
 The Custom SQL tool supports standard SQL functions plus spatial operations:
 
 **Spatial Functions:**
-- `ST_Distance()` - Calculate distances between geometries
 - `ST_Intersects()` - Check if geometries intersect
 - `ST_Within()` - Test if geometry is within another
+- `ST_DWithin()` - Test if geometries are within a distance of each other
+- `ST_Distance()` - Calculate distances between geometries
 - `ST_Buffer()` - Create buffers around geometries
 - `ST_Area()` - Calculate geometry area
 - `ST_Length()` - Calculate line length
+- `ST_Transform()` - Transform geometries to another coordinate system
+
+Distances, areas, lengths and buffer sizes are in the units of the coordinate system; see [Geometry and Units](#geometry-and-units).
 
 **Analytical Functions:**
 - `AVG()`, `SUM()`, `COUNT()` - Statistical aggregations
@@ -78,55 +102,64 @@ The Custom SQL tool supports standard SQL functions plus spatial operations:
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content"><strong>Syntax Check</strong>: The editor highlights syntax errors as you type.</div>
+  <div class="content"><strong>Automatic Check</strong>: Shortly after you stop typing, the query is checked against the columns of its input tables. A green check mark in the top-right corner of the editor means the query is valid. If it is invalid, a red cross appears, the editor border turns red and the first error message is shown below the editor. <strong>Apply</strong> stays disabled until the error is fixed.</div>
 </div>
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content"><strong>Preview Results</strong>: Use the <code>Preview</code> button to see the first few rows of results.</div>
+  <div class="content"><strong>Preview Results</strong>: Switch to the <strong>Preview</strong> tab to run the query and see the first 10 rows of the result, with the name and type of each column. If no input data is available yet, for example because an upstream tool has not been run, the preview lists only the columns the query will return.</div>
 </div>
 
 ## Examples
 
 ### Basic Filtering and Selection
 ```sql
--- Select buildings within a certain area
-SELECT building_type, height, geom
-FROM input_1 
-WHERE building_type = 'residential' 
+-- Residential buildings taller than 10 m
+SELECT building_type, height, geometry
+FROM input_1
+WHERE building_type = 'residential'
   AND height > 10
 ```
 
 ### Spatial Join Analysis
 ```sql
--- Find all amenities within 500m of transit stops
-SELECT 
-  a.name as amenity_name,
+-- Amenities within 500 m of a transit stop, with the distance in metres
+WITH a AS (
+  SELECT name, amenity_type, geometry,
+    ST_Transform(geometry, 'EPSG:4326', 'EPSG:25832', always_xy := true) AS geom_m
+  FROM input_1
+), t AS (
+  SELECT stop_name,
+    ST_Transform(geometry, 'EPSG:4326', 'EPSG:25832', always_xy := true) AS geom_m
+  FROM input_2
+)
+SELECT
+  a.name AS amenity_name,
   a.amenity_type,
   t.stop_name,
-  ST_Distance(a.geom, t.geom) as distance
-FROM input_1 a
-JOIN input_2 t ON ST_DWithin(a.geom, t.geom, 500)
-ORDER BY distance
+  ST_Distance(a.geom_m, t.geom_m) AS distance_m,
+  a.geometry
+FROM a
+JOIN t ON ST_DWithin(a.geom_m, t.geom_m, 500)
+ORDER BY distance_m
 ```
 
 ### Aggregation by Area
 ```sql
--- Count points by administrative area
-SELECT 
+-- Number of points in each district, including districts without points
+SELECT
   admin.district_name,
-  COUNT(points.*) as point_count,
-  admin.geom
-FROM input_1 points
-RIGHT JOIN input_2 admin 
-  ON ST_Within(points.geom, admin.geom)
-GROUP BY admin.district_name, admin.geom
+  COUNT(points.geometry) AS point_count,
+  ANY_VALUE(admin.geometry) AS geometry
+FROM input_2 admin
+LEFT JOIN input_1 points ON ST_Within(points.geometry, admin.geometry)
+GROUP BY admin.district_name
 ```
 
 ## Best Practices
 
 :::tip Performance
-- Use spatial indexes by including geometric predicates in WHERE clauses
+- Join tables on spatial predicates such as `ST_Intersects()` or `ST_Within()` rather than comparing every pair of rows yourself
 - Limit results during development with `LIMIT 100`
 - Test with small datasets first, then scale up
 :::
@@ -139,7 +172,7 @@ GROUP BY admin.district_name, admin.geom
 
 ### Query Optimization
 
-**Use Spatial Predicates**: Always include spatial filters like `ST_DWithin()` when possible to utilize spatial indexes.
+**Use Spatial Predicates**: Join on spatial predicates such as `ST_Intersects()`, `ST_Within()` or `ST_DWithin()`, so the database can match nearby geometries efficiently.
 
 **Column Selection**: Select only the columns you need rather than using `SELECT *`.
 
@@ -149,28 +182,34 @@ GROUP BY admin.district_name, admin.geom
 
 Common issues and solutions:
 
-- **"Table not found"**: Ensure input datasets are properly connected
-- **"Column doesn't exist"**: Check column names in your input datasets  
-- **"Geometry error"**: Verify geometry columns are valid and properly formatted
-- **"Timeout"**: Break complex queries into smaller steps or increase timeout
+- **Unknown table**: Ensure input datasets are properly connected and that the query uses their table names (`input_1` to `input_3`, or the **Table Alias** of an additional layer)
+- **Unknown column**: Check column names in your input datasets; the **Tables** list on the **Build** tab shows the columns of each table
+- **Geometry error**: Verify geometry columns are valid and properly formatted
+- **Only SELECT statements are allowed**: Write a single `SELECT` query (optionally starting with `WITH`); statements that change data, such as `CREATE`, `INSERT`, `UPDATE` or `DELETE`, are rejected
+- **Long-running query**: Break complex queries into smaller steps
 
 ## Output and Integration
 
-The Custom SQL tool creates a new temporary layer containing your query results. You can:
+The Custom SQL tool creates a new temporary layer containing your query results, named after the **Result Layer Name** field in the **Output** section (default: `Custom SQL`). After a successful run, the configuration panel shows the **Dataset details** of the result and these **Actions**:
+
+- **Table**: Show the result in the data view below the canvas
+- **Map**: Show the result on a map (only for results with a geometry column)
+- **Save dataset**: Save the result as a permanent dataset
+
+You can also:
 
 - Connect the output to other workflow tools for further analysis
-- Add an export node to save results as a permanent dataset
-- Use the results in visualizations and styling
+- Add a **Save as dataset** node to save the results as a permanent dataset each time the workflow runs
 
 :::info Variables Support
-Custom SQL queries support [workflow variables](variables.md) using the `{{@variable_name}}` syntax for parameterized queries.
+Custom SQL queries support [workflow variables](variables.md) using the `{{@variable_name}}` syntax for parameterized queries. Type `{{@` in the editor to get a list of the workflow's variables.
 :::
 
 ## Limitations
 
-- Maximum of 3 input datasets per Custom SQL node
-- Queries must return at least one geometry column for mapping
+- Maximum of 3 connected inputs and 2 additional layers per Custom SQL node
+- Only a single `SELECT` statement is allowed
+- Results without a geometry column are created as a table and cannot be shown on the map
 - Some advanced DuckDB functions may not be available
-- Query execution time is limited by the configured timeout
 
 For more complex analysis requirements, consider using multiple Custom SQL nodes or combining with other workflow tools.

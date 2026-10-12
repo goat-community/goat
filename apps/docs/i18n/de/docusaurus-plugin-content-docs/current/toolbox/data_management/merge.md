@@ -1,4 +1,5 @@
 ---
+description: "Führen Sie zwei oder mehr Layer zu einem zusammen: gleichnamige Felder werden vereint, übrige bleiben erhalten, optional mit Quellspalte und Multi-Geometrien."
 sidebar_position: 2
 ---
 
@@ -8,7 +9,7 @@ Mit diesem Werkzeug können Sie **zwei oder mehr Layer zu einem einzigen Ausgabe
 
 ## 1. Erklärung
 
-Beim Zusammenführen werden Objekte aus mehreren Layern in einem Layer vereint. Im Gegensatz zur Verbindung (Join) ist kein Abgleich erforderlich — alle Objekte aller Eingabe-Layer werden einfach kombiniert. Dies ist hilfreich, wenn Sie denselben Datentyp auf mehrere Layer aufgeteilt haben und damit als einheitlichen Datensatz arbeiten möchten.
+Beim Zusammenführen werden Objekte aus mehreren Layern in einem Layer vereint. Im Gegensatz zur Verbindung (Join) ist kein Abgleich erforderlich: Alle Objekte aller Eingabe-Layer werden einfach kombiniert. Dies ist hilfreich, wenn Sie denselben Datentyp auf mehrere Layer aufgeteilt haben und damit als einheitlichen Datensatz arbeiten möchten.
 
 **Wichtige Verhaltensweisen:**
 - Objekte aller Eingabe-Layer sind im Ergebnis enthalten.
@@ -44,11 +45,12 @@ Beim Zusammenführen werden Objekte aus mehreren Layern in einem Layer vereint. 
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Öffnen Sie <code>Merge-Optionen</code> und konfigurieren Sie die folgenden Schalter:
+  <div class="content">
+  Öffnen Sie <code>Merge-Optionen</code> und konfigurieren Sie die folgenden Schalter:
   <ul>
-    <li><code>Add Source Column</code> — fügt dem Ergebnis eine Spalte hinzu, die angibt, aus welchem Eingabe-Layer ein Objekt stammt.</li>
-    <li><code>Validate Geometry Types</code> — prüft vor dem Zusammenführen, ob alle Eingabe-Layer denselben Geometrietyp aufweisen.</li>
-    <li><code>Promote To Multi</code> — konvertiert einteilige Geometrien in mehrteilige (z. B. Polygon → MultiPolygon), um die Kompatibilität zwischen den Eingaben sicherzustellen.</li>
+    <li><code>Add Source Column</code>: fügt dem Ergebnis eine Spalte hinzu, die angibt, aus welchem Eingabe-Layer ein Objekt stammt.</li>
+    <li><code>Validate Geometry Types</code>: prüft vor dem Zusammenführen, ob alle Eingabe-Layer denselben Geometrietyp aufweisen.</li>
+    <li><code>Promote To Multi</code>: konvertiert einteilige Geometrien in mehrteilige (z. B. Polygon → MultiPolygon), um die Kompatibilität zwischen den Eingaben sicherzustellen.</li>
   </ul>
   </div>
 </div>
@@ -57,9 +59,3 @@ Beim Zusammenführen werden Objekte aus mehreren Layern in einem Layer vereint. 
   <div class="step-number">5</div>
   <div class="content">Klicken Sie auf <code>Ausführen</code>, um das Zusammenführen zu starten. Der Ergebnis-Layer wird der Karte hinzugefügt.</div>
 </div>
-
-:::tip Hinweis
-
-Die Berechnungsdauer variiert je nach Einstellungen. Den Fortschritt können Sie in der [Statusleiste](../../workspace/home#status-bar) verfolgen.
-
-:::

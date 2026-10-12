@@ -1,0 +1,28 @@
+suite: web Service
+templates:
+  - web/service.yaml
+tests:
+  - it: renders Service with default ports
+    set:
+      web.enabled: true
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-web
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 80
+      - equal:
+          path: spec.ports[0].targetPort
+          value: http
+  - it: not rendered when web disabled
+    set:
+      web.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

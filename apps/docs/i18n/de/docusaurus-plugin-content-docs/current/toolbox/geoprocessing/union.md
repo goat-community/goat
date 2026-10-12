@@ -1,4 +1,5 @@
 ---
+description: "Vereinigen Sie zwei Polygon-Layer samt aller Geometrien; Überlappungen werden geteilt und erhalten Attribute beider Layer, Überdeckungsfelder ein Präfix."
 sidebar_position: 6
 ---
 

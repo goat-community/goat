@@ -103,6 +103,11 @@ class ArtifactBuilder(ABC):
         """
         return get_spec(self.bundle_type).artifacts_build_from_layers
 
+    #: Whether this builder can build from the uploaded source. Both may be
+    #: true: a GTFS feed is the truth at import, when the upload is still in
+    #: hand, and its member layers are the truth afterwards, when it is not.
+    builds_from_source: bool = False
+
     def build(
         self,
         *,

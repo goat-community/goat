@@ -68,7 +68,7 @@ async def publish_project(
 
     result = ProjectPublicRead.model_validate(
         await crud_project.publish_project(
-            async_session=async_session, project_id=project_id
+            async_session=async_session, project_id=project_id, user_id=user_id
         )
     )
 

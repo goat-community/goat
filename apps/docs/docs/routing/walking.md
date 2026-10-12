@@ -1,4 +1,5 @@
 ---
+description: "How GOAT routes walking trips: an Overture Maps network filtered to pedestrian road classes, edge cost as length divided by speed, and a Dijkstra search."
 sidebar_position: 1
  
 ---
@@ -10,7 +11,7 @@ The **Walk Routing** is used for all analyses in GOAT that contain walking trips
  
 ## 1. Objectives
 
-Walk routing is used for many indicators in GOAT, such as [Catchment Areas](../toolbox/accessibility_indicators/catchments "Visit Docs on Catchment Areas"), [Heatmaps](../toolbox/accessibility_indicators/connectivity "Visit Docs on Heatmaps"), the [Huff Model](../toolbox/accessibility_indicators/huff_model "Visit Docs on the Huff Model"), and the [Travel Cost Matrix](../toolbox/accessibility_indicators/travel_cost_matrix "Visit Docs on the Travel Cost Matrix"). A **custom routing algorithm** is used for the mode of walking, which **only considers paths that are suitable for pedestrians**. The walking `speed` can be adjusted by the user whenever an accessibility analysis is performed. 
+[Walk routing](https://www.plan4better.de/en/glossary/routing) is used for many indicators in GOAT, such as [Catchment Areas](../toolbox/accessibility_indicators/catchments "Visit Docs on Catchment Areas"), [Heatmaps](../toolbox/accessibility_indicators/connectivity "Visit Docs on Heatmaps"), the [Huff Model](../toolbox/accessibility_indicators/huff_model "Visit Docs on the Huff Model"), and the [Travel Cost Matrix](../toolbox/accessibility_indicators/travel_cost_matrix "Visit Docs on the Travel Cost Matrix"). A **custom routing algorithm** is used for the mode of walking, which **only considers paths that are suitable for pedestrians**. The walking `speed` can be adjusted by the user whenever an [accessibility analysis](https://www.plan4better.de/en/glossary/accessibility-analysis) is performed. 
 
 ## 2. Data
 
@@ -26,7 +27,7 @@ Data from the **[Overture Maps Foundation](https://overturemaps.org/)** is used 
 The following steps are performed on the data to enable **quick** and **accurate** routing for walking:
 
  1. **Attribute Parsing:** Categorizing attributes of edges (road `class`).
- 2. **Geospatial Indexing:**  Utilizing **[Uber's H3 grid-based](../further_reading/glossary#h3-grid)** indexing for efficient routing.
+ 2. **Geospatial Indexing:**  Utilizing **[Uber's H3 grid-based](https://www.plan4better.de/en/glossary/h3-grid)** indexing for efficient routing.
 
 
 ### Routing Process Steps
@@ -59,7 +60,7 @@ To compute the shortest path from the origin point to various destinations, a cu
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <Video src={require('/img/routing/walk/dijkstra.mp4').default}  alt="Dijkstra Algorithm" style={{ width: "auto", height: "auto", objectFit: "cover"}}/>
-<p style={{ textAlign: 'center' }}>GIF: <a href="https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra Algorithm</a></p>
+<p style={{ textAlign: 'center' }}><a href="https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra Algorithm</a></p>
 </div>
 
 The implementation has a time complexity of *O(ElogV)*, is written in **Python**, and uses the just-in-time compiler **Numba**.

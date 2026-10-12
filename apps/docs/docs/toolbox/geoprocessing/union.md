@@ -1,4 +1,5 @@
 ---
+description: "Combine two polygon layers into one that keeps all geometry from both, splitting overlaps with attributes from both layers and prefixing the overlay fields."
 sidebar_position: 6
 ---
 

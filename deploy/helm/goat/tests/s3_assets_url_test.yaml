@@ -1,0 +1,27 @@
+suite: object storage, assets URL required outside AWS
+templates:
+  - core/configmap.yaml
+set:
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+  global.s3.bucket: goat-uploads
+  global.s3.endpointUrl: https://s3.example.org
+tests:
+  - it: fails without a public URL for the assets bucket
+    asserts:
+      - failedTemplate:
+          errorPattern: "global.s3.assets.publicUrl is required with global.s3.endpointUrl"
+
+  - it: accepts core.config.ASSETS_URL instead
+    set:
+      core.config.ASSETS_URL: https://assets.example.org
+    asserts:
+      - isKind:
+          of: ConfigMap
+
+  - it: needs no assets URL on AWS
+    set:
+      global.s3.endpointUrl: ""
+    asserts:
+      - isKind:
+          of: ConfigMap

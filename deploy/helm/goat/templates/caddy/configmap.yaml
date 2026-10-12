@@ -1,0 +1,40 @@
+{{- if .Values.caddy.enabled -}}
+{{- $component := "caddy" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+{{- $upstreamHost := default (printf "%s-web" (include "goat.fullname" .)) .Values.caddy.upstream.host -}}
+{{- $askHost := default (printf "%s-core" (include "goat.fullname" .)) .Values.caddy.ask.host -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+data:
+  Caddyfile: |
+    {
+      email {{ .Values.caddy.acmeEmail }}
+      on_demand_tls {
+        ask http://{{ $askHost }}:{{ .Values.caddy.ask.port }}{{ .Values.caddy.ask.path }}
+      }
+    }
+
+    # Catch-all virtualhost for any approved domain
+    :443 {
+      tls {
+        on_demand
+      }
+      reverse_proxy http://{{ $upstreamHost }}:{{ .Values.caddy.upstream.port }}
+    }
+
+    # HTTP-01 challenge listener (and HTTP->HTTPS redirect for any approved domain)
+    :80 {
+      @acme_challenge path /.well-known/acme-challenge/*
+      handle @acme_challenge {
+        respond "(acme handler)" 200
+      }
+      handle {
+        redir https://{host}{uri} permanent
+      }
+    }
+{{- end }}

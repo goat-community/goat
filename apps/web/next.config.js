@@ -2,6 +2,27 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",
 });
 
+/** `next/image` hosts besides the defaults: the static product asset host
+ * when `NEXT_PUBLIC_ASSETS_URL` is an absolute URL at build time. The
+ * default root-relative `/assets` is served by this app and needs none. */
+const imageRemotePatterns = () => {
+  const patterns = [
+    { protocol: "https", hostname: "assets.plan4better.de" },
+    { protocol: "https", hostname: "source.unsplash.com" },
+  ];
+  const assetsUrl = (process.env.NEXT_PUBLIC_ASSETS_URL ?? "").trim();
+  if (!/^https?:\/\//i.test(assetsUrl)) return patterns;
+  try {
+    const { protocol, hostname, port } = new URL(assetsUrl);
+    if (!patterns.some((p) => p.hostname === hostname)) {
+      patterns.push({ protocol: protocol.replace(/:$/, ""), hostname, ...(port ? { port } : {}) });
+    }
+  } catch {
+    // Not a parseable URL: only the defaults apply.
+  }
+  return patterns;
+};
+
 const nextConfig = {
   output: "standalone",
   env: {
@@ -20,6 +41,12 @@ const nextConfig = {
     NEXT_PUBLIC_APP_ENVIRONMENT:
       process.env.NEXT_PUBLIC_APP_ENVIRONMENT ?? process.env.ENVIRONMENT ?? "",
   },
+  // Hostnames besides localhost that may load the dev server's own resources
+  // (HMR, /_next/*), e.g. when it is opened over a VPN name. Comma-separated.
+  allowedDevOrigins: (process.env.NEXT_ALLOWED_DEV_ORIGINS ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   reactStrictMode: true,
   transpilePackages: ["@p4b/ui", "@p4b/tsconfig"],
   // The pwa-icon routes use sharp, whose libvips shared library is loaded by
@@ -30,10 +57,7 @@ const nextConfig = {
     "/api/pwa-icon/**": ["../../node_modules/.pnpm/@img+sharp-libvips-*/**/*"],
   },
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "assets.plan4better.de" },
-      { protocol: "https", hostname: "source.unsplash.com" },
-    ],
+    remotePatterns: imageRemotePatterns(),
   },
 };
 

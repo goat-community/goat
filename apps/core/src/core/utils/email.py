@@ -1,10 +1,68 @@
+import contextlib
 import logging
+import smtplib
+import ssl
 from typing import Any, Dict
 
+import certifi
 import emails
 
 from core.core.config import settings
 from core.utils.i18n import jinja_env
+
+
+def render_email_html(
+    environment: Dict[str, Any],
+    html_template: str = "email/template.html",
+) -> str:
+    template = jinja_env.get_template(html_template)
+    # Mail clients fetch images from outside GOAT: root-relative paths are
+    # resolved against CLIENT_URL.
+    environment = dict(environment)
+    if environment.get("artwork_url"):
+        environment["artwork_url"] = settings.absolute_url(environment["artwork_url"])
+    logo_url = settings.EMAIL_LOGO_URL
+    return template.render(
+        static_assets_url=settings.email_artwork_url,
+        brand_name=settings.EMAIL_BRAND_NAME,
+        brand_url=settings.CLIENT_URL,
+        logo_url=settings.absolute_url(logo_url) if logo_url else None,
+        contact_url=settings.EMAIL_CONTACT_URL,
+        privacy_url=settings.EMAIL_PRIVACY_URL,
+        **environment,
+    )
+
+
+SMTP_TIMEOUT = 30  # seconds
+
+
+def _tls_context() -> ssl.SSLContext:
+    """Verifies the relay's certificate against the public CAs and the
+    certificates in GOAT_CA_BUNDLE."""
+    context = ssl.create_default_context(cafile=certifi.where())
+    if settings.GOAT_CA_BUNDLE:
+        context.load_verify_locations(cafile=settings.GOAT_CA_BUNDLE)
+    return context
+
+
+def _deliver(sender: str, email_to: str, message: str) -> None:
+    host, port = settings.SMTP_HOST or "", settings.SMTP_PORT
+    client: smtplib.SMTP
+    if settings.SMTP_SECURITY == "ssl":
+        client = smtplib.SMTP_SSL(
+            host, port, timeout=SMTP_TIMEOUT, context=_tls_context()
+        )
+    else:
+        client = smtplib.SMTP(host, port, timeout=SMTP_TIMEOUT)
+    try:
+        if settings.SMTP_SECURITY == "starttls":
+            client.starttls(context=_tls_context())
+        if settings.SMTP_USER:
+            client.login(settings.SMTP_USER, settings.SMTP_PASSWORD or "")
+        client.sendmail(sender, [email_to], message)
+    finally:
+        with contextlib.suppress(smtplib.SMTPException, OSError):
+            client.quit()
 
 
 def send_email(
@@ -13,24 +71,28 @@ def send_email(
     html_template: str = "email/template.html",
     environment: Dict[str, Any] = {},
 ) -> None:
-    if not settings.SMTP_USER:
+    if not settings.SMTP_HOST:
         logging.info(f"SMTP not configured, skipping email to {email_to}: {subject}")
         return
-    template = jinja_env.get_template(html_template)
+    sender = settings.smtp_sender
+    if not sender:
+        logging.error(
+            f"SMTP_HOST is set but neither SMTP_FROM nor SMTP_USER is, "
+            f"skipping email to {email_to}: {subject}"
+        )
+        return
     message = emails.Message(
         subject=subject,
-        html=template,
-        mail_from=(settings.EMAILS_FROM_NAME, settings.SMTP_USER),
+        html=render_email_html(environment, html_template),
+        mail_from=(settings.EMAILS_FROM_NAME, sender),
+        mail_to=email_to,
     )
-    smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}
-    if settings.SMTP_TLS:
-        smtp_options["tls"] = True
-    if settings.SMTP_USER:
-        smtp_options["user"] = settings.SMTP_USER
-    if settings.SMTP_PASSWORD:
-        smtp_options["password"] = settings.SMTP_PASSWORD
-    response = message.send(to=email_to, render=environment, smtp=smtp_options)
-    logging.info(f"send email result: {response}")
+    try:
+        _deliver(sender, email_to, message.as_string())
+    except (smtplib.SMTPException, ssl.SSLError, OSError):
+        logging.exception(f"Sending email to {email_to} failed: {subject}")
+        return
+    logging.info(f"Sent email to {email_to}: {subject}")
 
 
 email_content_config = {

@@ -1,0 +1,87 @@
+suite: bundled redis
+templates:
+  - redis/deployment.yaml
+  - redis/service.yaml
+  - redis/secret.yaml
+tests:
+  - it: runs the official image as a cache that keeps nothing on disk
+    template: redis/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/redis:7.4-alpine
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: allkeys-lru
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: $(REDIS_PASSWORD)
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-goat-redis
+                key: redis-password
+
+  - it: generates the password Secret
+    template: redis/secret.yaml
+    asserts:
+      - isKind:
+          of: Secret
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-redis
+      - matchRegex:
+          path: stringData.redis-password
+          pattern: ^[A-Za-z0-9]{32}$
+
+  - it: uses an existing Secret and generates none
+    set:
+      redis.auth.existingSecret: goat-redis-pw
+      redis.auth.existingSecretPasswordKey: pw
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: redis/secret.yaml
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: goat-redis-pw
+                key: pw
+        template: redis/deployment.yaml
+
+  - it: runs without a password when auth is off
+    template: redis/deployment.yaml
+    set:
+      redis.auth.enabled: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: --requirepass
+      - notExists:
+          path: spec.template.spec.containers[0].env
+
+  - it: serves port 6379 under the name the services use
+    template: redis/service.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-redis
+      - equal:
+          path: spec.ports[0].port
+          value: 6379
+
+  - it: renders nothing when disabled
+    set:
+      redis.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

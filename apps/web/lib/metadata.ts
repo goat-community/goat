@@ -1,3 +1,4 @@
+import { ASSETS_URL } from "@/lib/constants";
 import { isValidUrl } from "@/lib/utils/helpers";
 import { serverAppUrl } from "@/lib/utils/server-env";
 import type { Metadata } from "next";
@@ -22,14 +23,24 @@ const defaultContentMap: Record<string, LanguageMetadataContent> = {
     title: "GOAT | WebGIS with Planning Intelligence",
     description: "Intelligent software for modern web mapping and integrated planning",
     locale: "en_US",
-    image: "https://assets.plan4better.de/img/thumbnails/goat/social_media_preview_en.png",
+    image: `${ASSETS_URL}/img/thumbnails/goat/social_media_preview_en.png`,
   },
   de: {
     title: "GOAT | WebGIS mit Planungsintelligenz",
     description: "Intelligente Software für modernes Web-Mapping und integrierte Planung",
     locale: "de_DE",
-    image: "https://assets.plan4better.de/img/thumbnails/goat/social_media_preview_de.png",
+    image: `${ASSETS_URL}/img/thumbnails/goat/social_media_preview_de.png`,
   },
+};
+
+/**
+ * `url` made absolute against `base`. Link previews (OpenGraph, Twitter) are
+ * fetched by crawlers that need a full URL, while the product artwork sits at
+ * a root-relative path by default. Left as it is without a usable base.
+ */
+export const absoluteUrl = (url: string, base: string | undefined): string => {
+  if (!base || !isValidUrl(base) || isValidUrl(url)) return url;
+  return new URL(url, base).href;
 };
 
 export function getLocalizedMetadata(
@@ -48,6 +59,7 @@ export function getLocalizedMetadata(
   };
 
   const openGraphUrl = otherOptions.openGraphUrl || serverAppUrl()
+  content.image = absoluteUrl(content.image, openGraphUrl);
 
   let robotsIndex = otherOptions.robotsIndex !== undefined ? !!otherOptions.robotsIndex : false;
 

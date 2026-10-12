@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  workflowReducer as reducer,
+  selectWorkflow,
+  setNodes,
+  setVariables,
+  setWorkflows,
+  syncToWorkflowConfig,
+} from "@/lib/store/workflow/slice";
 import type { Workflow } from "@/lib/validations/workflow";
-
-import { selectWorkflow, setNodes, setWorkflows, workflowReducer as reducer } from "@/lib/store/workflow/slice";
 
 const node = (id: string) => ({
   id,
@@ -53,5 +59,43 @@ describe("workflow slice — a workflow selected before the list carried it", ()
     state = reducer(state, selectWorkflow("wf-1"));
     state = reducer(state, setWorkflows([workflow("wf-1", ["a", "b"]), workflow("wf-2", ["z"])]));
     expect(state.nodes.map((n) => n.id)).toEqual(["a", "b"]);
+  });
+});
+
+describe("workflow slice — variable labels and descriptions", () => {
+  const labelled = {
+    id: "var-1",
+    name: "max_abstand_gruppierung",
+    label: "Maximaler Abstand",
+    description: "Größter Abstand zwischen zwei Punkten einer Gruppe, in Metern.",
+    type: "number" as const,
+    defaultValue: 250,
+    order: 0,
+  };
+  const legacy = { id: "var-2", name: "radius", type: "number" as const, defaultValue: 100, order: 1 };
+
+  const withVariables = (variables: unknown[]): Workflow =>
+    ({
+      ...workflow("wf-vars", ["a"]),
+      config: { nodes: [node("a")], edges: [], viewport: { x: 0, y: 0, zoom: 1 }, variables },
+    }) as unknown as Workflow;
+
+  it("loads label and description with the workflow, and a legacy variable as it was", () => {
+    let state = reducer(initial, setWorkflows([withVariables([labelled, legacy])]));
+    state = reducer(state, selectWorkflow("wf-vars"));
+
+    expect(state.variables).toEqual([labelled, legacy]);
+    expect(state.variables[1]).not.toHaveProperty("label");
+    expect(state.variables[1]).not.toHaveProperty("description");
+  });
+
+  it("writes them back into the config it saves", () => {
+    let state = reducer(initial, setWorkflows([withVariables([legacy])]));
+    state = reducer(state, selectWorkflow("wf-vars"));
+    state = reducer(state, setVariables([labelled, legacy]));
+    state = reducer(state, syncToWorkflowConfig());
+
+    const saved = state.workflows.find((w) => w.id === "wf-vars")?.config.variables;
+    expect(saved).toEqual([labelled, legacy]);
   });
 });

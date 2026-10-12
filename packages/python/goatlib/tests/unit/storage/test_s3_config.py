@@ -14,12 +14,63 @@ def addressing(kwargs: dict[str, Any]) -> str | None:
     return None if config is None else config.s3["addressing_style"]
 
 
+def checksums(kwargs: dict[str, Any]) -> tuple[str, str]:
+    config = kwargs["config"]
+    return config.request_checksum_calculation, config.response_checksum_validation
+
+
 @pytest.mark.unit
 def test_aws_without_endpoint_keeps_boto_defaults() -> None:
-    assert (
-        boto_client_kwargs(endpoint_url=None, provider="aws", force_path_style=False)
-        == {}
+    kwargs = boto_client_kwargs(
+        endpoint_url=None, provider="aws", force_path_style=False
     )
+    assert set(kwargs) == {"config"}
+    config = kwargs["config"]
+    assert config.signature_version is None
+    assert config.s3 is None
+    assert checksums(kwargs) == ("when_required", "when_required")
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("endpoint", "provider", "force"),
+    [
+        (None, "aws", False),
+        (None, None, False),
+        ("http://garage:3900", None, True),
+        ("http://minio:9000", "minio", False),
+        ("https://nbg1.example", "hetzner", False),
+        (None, "hetzner", False),
+    ],
+)
+def test_every_branch_sends_checksums_only_when_required(
+    endpoint: str | None, provider: str | None, force: bool
+) -> None:
+    # S3-compatible stores that do not accept the checksum trailers boto3
+    # sends by default reject those requests.
+    kwargs = boto_client_kwargs(
+        endpoint_url=endpoint, provider=provider, force_path_style=force
+    )
+    assert checksums(kwargs) == ("when_required", "when_required")
+
+
+@pytest.mark.unit
+def test_garage_client_signs_path_style_with_checksums_when_required() -> None:
+    import boto3
+
+    client = boto3.client(
+        "s3",
+        aws_access_key_id="k",
+        aws_secret_access_key="s",
+        region_name="garage",
+        **boto_client_kwargs(
+            endpoint_url="http://garage:3900", provider=None, force_path_style=True
+        ),
+    )
+    assert client.meta.endpoint_url == "http://garage:3900"
+    assert client.meta.config.s3["addressing_style"] == "path"
+    assert client.meta.config.request_checksum_calculation == "when_required"
+    assert client.meta.config.response_checksum_validation == "when_required"
 
 
 @pytest.mark.unit

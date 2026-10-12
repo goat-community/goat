@@ -1,4 +1,5 @@
 ---
+description: "Erstellen Sie ein GOAT-Konto, bestätigen Sie es per E-Mail und melden Sie sich an, mit Hilfe bei vergessenem Passwort oder fehlender Bestätigungs-E-Mail."
 sidebar_position: 2
 ---
 

@@ -1,4 +1,5 @@
 ---
+description: "Scientific publications on the development, application and evaluation of GOAT, with authors, dates, keywords, DOI links and abstracts for each paper."
 sidebar_position: 5
 ---
 

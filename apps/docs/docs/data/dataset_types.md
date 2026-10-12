@@ -1,10 +1,11 @@
 ---
+description: "The dataset types in GOAT: feature datasets, tables, Overture street networks, GTFS public transport networks, bundles, and WMS, WMTS, XYZ or COG rasters."
 sidebar_position: 1
 ---
 
 # Dataset Types
 
-On GOAT, you can work with datasets from Plan4Better’s catalog, upload your own, or connect to an external service by URL (**WFS**, **WMS**, **WMTS**, **XYZ Tiles** or **COG**). It accepts various formats for both **Feature Datasets** and **Raster Datasets**, as well as [**Street Networks**](#street-networks) and [**Public Transport Networks**](#public-transport-networks). Here we explain the different types of datasets you can use in GOAT.
+On GOAT, you can work with datasets from Plan4Better’s catalog, upload your own, or connect to an external service by URL (**WFS**, **WMS**, **WMTS**, **XYZ Tiles** or **COG**). It accepts various formats for both **Feature Datasets** and **[Raster Datasets](https://www.plan4better.de/en/glossary/raster-data)**, as well as [**Street Networks**](#street-networks) and [**Public Transport Networks**](#public-transport-networks). Here we explain the different types of datasets you can use in GOAT.
 
 ## Feature Datasets
 
@@ -23,7 +24,7 @@ GOAT recognizes two types of feature datasets based on their source:
 
 - **Feature Dataset Standard**: These are the datasets you upload yourself (like GeoJSON, GPKG, KML, and ZIP files), including the layers that arrive with a [Street Network](#street-networks) or a [Public Transport Network](#public-transport-networks). Think of these as your "raw materials" - the original data you bring into GOAT to work with.
 
-- **Feature Dataset Tool**: These are datasets created by GOAT's analysis tools. When you run an analysis (like creating catchment areas or heatmaps), the results become this type of dataset.
+- **Feature Dataset Tool**: These are datasets created by GOAT's analysis tools. When you run an analysis (like creating [catchment areas](https://www.plan4better.de/en/glossary/catchment-area) or [heatmaps](https://www.plan4better.de/en/glossary/heatmap)), the results become this type of dataset.
 
 ### 1.2 Non-Spatial Datasets
 
@@ -36,9 +37,9 @@ GOAT recognizes two types of feature datasets based on their source:
 
 ## Street Networks
 
-A **Street Network** is a routable representation of roads, paths and cycleways. GOAT provides a built-in network, and you can import your own whenever you want routing to run on data you control: a network you maintain yourself, or a planned one you want to test before it is built.
+A **Street Network** is a routable representation of roads, paths and cycleways. GOAT provides a built-in network, and you can import your own whenever you want [routing](https://www.plan4better.de/en/glossary/routing) to run on data you control: a network you maintain yourself, or a planned one you want to test before it is built.
 
-Your data must follow the **Overture** format, segments and connectors as Parquet files, packed into a `.zip` whose name contains `overture`, for example `overture.zip` or `berlin_overture.zip`. Other street data, including OpenStreetMap, is not supported at the moment.
+Your data must follow the **[Overture](https://www.plan4better.de/en/glossary/overture-maps)** format, segments and connectors as Parquet files, packed into a `.zip` whose name contains `overture`, for example `overture.zip` or `berlin_overture.zip`. Other street data, including OpenStreetMap, is not supported at the moment.
 
 A street network is made up of two layers that GOAT keeps together:
 
@@ -51,7 +52,7 @@ Street networks power GOAT's [Walking](../routing/walking), [Cycling](../routing
 
 A **Public Transport Network** describes the stops, lines and timetables of a transit system. GOAT provides a built-in network, and you can import your own whenever you want to analyse a service you control: your own feed, or a timetable you are planning.
 
-Your data must follow the **GTFS** format, packed into a `.zip` whose name contains `gtfs`, for example `gtfs.zip` or `vbb_gtfs.zip`.
+Your data must follow the **[GTFS](https://www.plan4better.de/en/glossary/gtfs)** format, packed into a `.zip` whose name contains `gtfs`, for example `gtfs.zip` or `vbb_gtfs.zip`.
 
 The member layers follow the GTFS feed itself: **Stops**, **Routes**, **Trips** and **Stop times** are always present, and **Agency**, **Calendar** and **Shapes** are added when the feed provides them.
 

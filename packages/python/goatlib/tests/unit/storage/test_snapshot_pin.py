@@ -150,11 +150,13 @@ def test_apply_failure_keeps_current_and_arms_rate_limit() -> None:
     assert pin.force_refresh() is False
     assert pin.current == 1
     # a failed rebuild arms the rate limit: the next force_refresh must wait
-    # out the gap before retrying, so miss-storms cannot hot-loop rebuilds
+    # out the gap before retrying, so miss-storms cannot hot-loop rebuilds.
+    # Measured from when the failure armed it, not from a later stopwatch: a
+    # busy runner spends part of the gap between the two calls.
+    armed_at = pin._last_refresh_at
     h.apply_error = None
-    t0 = time.monotonic()
     assert pin.force_refresh() is True
-    assert time.monotonic() - t0 >= 0.25
+    assert time.monotonic() - armed_at >= 0.3 - 1e-3
     assert pin.current == 6
 
 

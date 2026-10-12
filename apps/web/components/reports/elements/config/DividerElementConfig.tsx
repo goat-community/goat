@@ -33,10 +33,10 @@ export interface DividerConfig {
   thickness?: number;
 }
 
-// Orientation options for dropdown
+// Orientation options for dropdown (labels are translation keys)
 const ORIENTATION_OPTIONS: SelectorItem[] = [
-  { label: "Horizontal", value: "horizontal" },
-  { label: "Vertical", value: "vertical" },
+  { label: "horizontal", value: "horizontal" },
+  { label: "vertical", value: "vertical" },
 ];
 
 // Thickness options in mm (same as border width)
@@ -139,7 +139,8 @@ const DividerElementConfig: React.FC<DividerElementConfigProps> = ({ element, on
   const thickness = setup.thickness ?? 1;
 
   // Selected items for dropdowns
-  const selectedOrientationItem = ORIENTATION_OPTIONS.find((item) => item.value === orientation);
+  const orientationOptions = ORIENTATION_OPTIONS.map((item) => ({ ...item, label: t(item.label) }));
+  const selectedOrientationItem = orientationOptions.find((item) => item.value === orientation);
   const selectedThicknessItem = THICKNESS_OPTIONS.find((item) => item.value === thickness);
 
   const handleOrientationChange = (item: SelectorItem[] | SelectorItem | undefined) => {
@@ -215,7 +216,7 @@ const DividerElementConfig: React.FC<DividerElementConfigProps> = ({ element, on
             <Selector
               selectedItems={selectedOrientationItem}
               setSelectedItems={handleOrientationChange}
-              items={ORIENTATION_OPTIONS}
+              items={orientationOptions}
               label={t("orientation")}
             />
           </Stack>

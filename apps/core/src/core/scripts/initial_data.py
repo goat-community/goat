@@ -34,21 +34,10 @@ async def main() -> None:
             async with session_manager.session() as session:
                 await seed_default_user_org(session)
             logger.info("Default user/organization ensured (AUTH disabled).")
-        # Runs after the AUTH=False block above: with no configured
-        # GOAT_TEMPLATES_ORGANIZATION_ID it falls back to the default
-        # user's personal space, which only exists while AUTH is disabled.
-        # A real deployment without the organization id skips the starters
-        # instead of failing on the missing default user.
-        if (
-            settings.AUTH is False
-            or settings.GOAT_TEMPLATES_ORGANIZATION_ID is not None
-        ):
-            async with session_manager.session() as session:
-                await seed_templates(session)
-        else:
-            logger.info(
-                "GOAT_TEMPLATES_ORGANIZATION_ID is unset; skipping the GOAT starter templates."
-            )
+        # Runs after the AUTH=False block above, whose default user owns the
+        # starters when AUTH is off and no organization is configured.
+        async with session_manager.session() as session:
+            await seed_templates(session)
         logger.info("Initial data setup completed.")
     finally:
         await session_manager.close()

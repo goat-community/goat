@@ -1,4 +1,5 @@
 ---
+description: "Create print layouts with maps, text, legends and scale bars, set page size, orientation and resolution, save them as templates and export as PDF, PNG or JPEG."
 sidebar_position: 1
 ---
 
@@ -40,8 +41,33 @@ The Settings Panel allows you to create a new layout, customize the overall layo
   <div class="content">Now you are ready to start working on your Layout. Once is finished click <code>Print Layout</code> at the bottom to <b>export your layout</b> as PDF, PNG, or JPEG.</div>
 </div>
 
-## Layout Preview
-The Layout Preview is the main area that displays the current layout you are working on. You can interact with the elements, move them around, and see how they will appear in the final report.
+### Save as a template
+
+A layout you have designed can be saved as a **template** and reused for other reports.
+
+<div class="step">
+  <div class="step-number">1</div>
+  <div class="content">Open the layout's <code>more options</code> menu and choose <code>Save as template…</code>.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">2</div>
+  <div class="content">Give the template a <code>Name</code> and, optionally, a <code>Description</code> and categories.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">3</div>
+  <div class="content">Choose the <code>Location</code> (a space and folder) where it is saved. Everyone who can open that folder can use the template.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">4</div>
+  <div class="content">Click <code>Save</code>. The template then appears as a choice when you create a new layout.</div>
+</div>
+
+:::info Update instead of duplicate
+If a template was already saved from this layout, you can <code>Update template from source</code> with the current version instead of creating a duplicate.
+:::
 
 ## Elements Panel
 The Elements Panel contains all the tools you need to add and customize elements in your layout. You can add maps, text boxes, images, legends, scale bars, north arrows, and more.
@@ -65,9 +91,3 @@ The Elements Panel contains all the tools you need to add and customize elements
   <div class="step-number">4</div>
   <div class="content">With an element selected, use the <code>Properties Panel</code> on the right to <b>customize its appearance</b> and settings.</div>
 </div>
-
-## Layout Navigation
-
-You can use the <code>zoom controls</code> on the bottom right to <b>zoom in or out</b> for detailed positioning. You can also click the <code>fit to screen</code> button to <b>see the entire layout</b> at once.
-
-

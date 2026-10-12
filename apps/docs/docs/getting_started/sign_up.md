@@ -1,4 +1,5 @@
 ---
+description: "Create a GOAT account from the login page, confirm it by email and sign in, plus what to do about a forgotten password or a missing verification email."
 sidebar_position: 2
 ---
 

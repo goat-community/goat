@@ -20,7 +20,7 @@ from core.crud.crud_user import user as crud_user
 from core.db.models._link_model import UserRoleLink
 from core.db.models.invitation import Invitation, InvitationStatusEnum, InvitationType
 from core.db.models.organization import Organization
-from core.deps.auth import auth, auth_z, is_superuser, user_token
+from core.deps.auth import auth, auth_z, token_is_superuser, user_token
 from core.deps.keycloak import get_keycloak_user, keycloak_admin
 from core.endpoints.deps import get_db, get_user_id
 from core.schemas.common import OrderEnum
@@ -43,12 +43,12 @@ async def get_organization(
     *,
     db: AsyncSession = Depends(get_db),
     user_token: dict = Depends(user_token),
-    user_id: str | None = None,
 ) -> Any:
     """
     Get an organization
     """
-    user_id = user_id or user_token["sub"]
+    # Always the caller: these routes act on one's own account only.
+    user_id = user_token["sub"]
     user = await crud_user.get(db=db, id=user_id)
     if not user:
         raise HTTPException(
@@ -203,12 +203,12 @@ async def get_profile(
     *,
     db: AsyncSession = Depends(get_db),
     user_token: dict = Depends(user_token),
-    user_id: str | None = None,
 ) -> Any:
     """
     Get user profile
     """
-    user_id = user_id or user_token["sub"]
+    # Always the caller: these routes act on one's own account only.
+    user_id = user_token["sub"]
     db_user = await crud_user.get_user_with_roles(db_session=db, user_id=user_id)
     if not db_user:
         raise HTTPException(
@@ -226,7 +226,7 @@ async def get_profile(
         enabled=keycloak_user.get("enabled"),
         topt=keycloak_user.get("totp"),
         roles=roles,
-        is_superuser=is_superuser(user_token, False),
+        is_superuser=token_is_superuser(user_token),
     )
     return user
 
@@ -256,12 +256,12 @@ async def update_profile(
     db: AsyncSession = Depends(get_db),
     user: UserProfileUpdate = Body(..., examples=[request_examples["user"]["update"]]),
     user_token: dict = Depends(user_token),
-    user_id: str | None = None,
 ) -> Any:
     """
     Update user profile
     """
-    user_id = user_id or user_token["sub"]
+    # Always the caller: these routes act on one's own account only.
+    user_id = user_token["sub"]
     db_user = await crud_user.get(db=db, id=user_id)
     if not db_user:
         raise HTTPException(
@@ -308,7 +308,9 @@ async def update_profile(
             f"img/users/{settings.ENVIRONMENT}/{file_name}",
             f"image/{extension}",
         )
-        user.avatar = f"https://assets.plan4better.de/img/users/{settings.ENVIRONMENT}/{file_name}"
+        user.avatar = (
+            f"{settings.ASSETS_URL}/img/users/{settings.ENVIRONMENT}/{file_name}"
+        )
     user_update = UserUpdate(
         **user.model_dump(exclude_unset=True, exclude_none=True),
     )
@@ -327,9 +329,9 @@ async def delete_account(
     *,
     db: AsyncSession = Depends(get_db),
     user_token: dict = Depends(user_token),
-    user_id: str | None = None,
 ) -> None:
-    user_id = user_id or user_token["sub"]
+    # Always the caller: these routes act on one's own account only.
+    user_id = user_token["sub"]
     admin = await keycloak_admin()
     if admin:
         admin.delete_user(user_id)

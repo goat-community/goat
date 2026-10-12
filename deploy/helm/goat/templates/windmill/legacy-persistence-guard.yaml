@@ -1,0 +1,72 @@
+{{/*
+Upgrade guard for the per-worker PVCs of chart 0.4.x (renders no documents).
+
+Before 0.5.0, `windmill.workers.{tools,workflows}.persistence` created
+<fullname>-windmill-tools-data / <fullname>-windmill-workflows-data. Since
+0.5.0 the shared `data` volume supersedes them, so at the default
+`data.enabled: true` this release no longer renders them — and Helm DELETES
+every resource the previous revision had that the new one does not render.
+
+The only thing that stops that deletion is `helm.sh/resource-policy: keep`
+on the LIVE object: Helm fetches the object and reads the annotation from
+the cluster just before deleting it (verified on k3d: an annotated claim
+survived, an unannotated one went Terminating). The annotation in this
+chart's own pvc.yaml cannot help on the 0.4.x -> 0.5.0 hop — 0.4.x never set
+it, and a template this release no longer renders applies nothing.
+`data.existingClaim` does NOT help either: it does not put the old claim
+back in the manifest.
+
+So: if a legacy claim of this release exists in the namespace, this release
+will not render it, and it lacks the annotation, fail the render with the
+exact command that protects it. `lookup` returns nothing under
+`helm template` and client-side `--dry-run`, so offline rendering (CI,
+GitOps renderers) never trips this.
+
+Bypass: windmill.workers.legacyPersistence.acknowledgeDeletion: true.
+The claim-name / rendered helpers live in _helpers.tpl.
+*/}}
+{{- $ack := false -}}
+{{- with .Values.windmill.workers.legacyPersistence -}}
+{{- $ack = .acknowledgeDeletion -}}
+{{- end -}}
+{{- if not $ack -}}
+{{- $unprotected := list -}}
+{{- range $worker := list "tools" "workflows" -}}
+{{- $p := dict "root" $ "worker" $worker -}}
+{{- if not (include "goat.windmill.workerPvc.rendered" $p) -}}
+{{- $name := include "goat.windmill.workerPvc.name" $p -}}
+{{- $pvc := lookup "v1" "PersistentVolumeClaim" $.Release.Namespace $name -}}
+{{- if $pvc -}}
+{{- $ann := $pvc.metadata.annotations | default dict -}}
+{{- $owner := index $ann "meta.helm.sh/release-name" | default "" -}}
+{{- $policy := index $ann "helm.sh/resource-policy" | default "" -}}
+{{- /* A claim another release owns is not ours to delete; skip it. */ -}}
+{{- if and (or (eq $owner "") (eq $owner $.Release.Name)) (ne $policy "keep") -}}
+{{- $unprotected = append $unprotected $name -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- if $unprotected -}}
+{{- fail (printf `
+
+REFUSING TO UPGRADE: this upgrade would DELETE PersistentVolumeClaim(s) %s
+in namespace %q, and the data on them.
+
+Chart 0.5.0 replaced windmill.workers.{tools,workflows}.persistence with the
+shared "data" volume, so this release no longer renders those claims, and
+Helm deletes every resource it stops rendering. Setting data.existingClaim
+does NOT prevent that. The only protection is the helm.sh/resource-policy=keep
+annotation on the LIVE claim. Add it now, then re-run the same helm upgrade:
+
+  kubectl -n %s annotate pvc %s helm.sh/resource-policy=keep
+
+Helm then leaves the claim(s) in place (no longer managed by the release).
+Copy their data onto the shared volume, or point data.existingClaim at one
+of them — see README "Upgrading 0.4.x -> 0.5.0" note 1.
+
+To let Helm delete them instead, set
+windmill.workers.legacyPersistence.acknowledgeDeletion=true.
+` (join ", " $unprotected) $.Release.Namespace $.Release.Namespace (join " " $unprotected)) -}}
+{{- end -}}
+{{- end -}}

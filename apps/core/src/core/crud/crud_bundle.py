@@ -67,7 +67,9 @@ async def member_thumbnails(
     for bundle_id, bundle_type, own_thumbnail, role, thumbnail in rows:
         # The task writes a real URL; the column's default is the shared
         # placeholder, which is not a picture of anything.
-        if own_thumbnail and own_thumbnail != settings.DEFAULT_LAYER_THUMBNAIL:
+        if own_thumbnail and not settings.is_same_artwork(
+            own_thumbnail, settings.DEFAULT_LAYER_THUMBNAIL
+        ):
             own[bundle_id] = own_thumbnail
         type_value = getattr(bundle_type, "value", bundle_type)
         if type_value not in known:

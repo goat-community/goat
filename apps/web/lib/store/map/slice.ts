@@ -88,6 +88,9 @@ export interface MapState {
   project: Project | undefined;
   basemaps: Basemap[];
   activeBasemap: Basemap | undefined;
+  // The project activeBasemap was chosen for. The store outlives the map page,
+  // so a project opened next must not start from the previous one's basemap.
+  activeBasemapProjectId: string | undefined;
   // Ephemeral live-preview of basemap layer settings while the edit dialog is
   // open. undefined = no preview (use the persisted activeBasemap.layer_config).
   basemapLayerConfigOverride: BasemapLayerConfig | undefined;
@@ -132,6 +135,7 @@ const initialState = {
   basemaps: BASEMAPS,
   maskLayer: undefined,
   activeBasemap: undefined,
+  activeBasemapProjectId: undefined,
   basemapLayerConfigOverride: undefined,
   activeLeftPanel: MapSidebarItemID.LAYERS,
   toolboxStartingPoints: undefined,
@@ -172,8 +176,9 @@ const mapSlice = createSlice({
         state.project = { ...state.project, ...action.payload };
       }
     },
-    setActiveBasemap: (state, action: PayloadAction<Basemap>) => {
-      state.activeBasemap = action.payload;
+    setActiveBasemap: (state, action: PayloadAction<{ basemap: Basemap; projectId: string | undefined }>) => {
+      state.activeBasemap = action.payload.basemap;
+      state.activeBasemapProjectId = action.payload.projectId;
     },
     // Live preview of basemap layer settings (dialog edits before save). Set
     // while the dialog is open; the map renderer prefers it over the persisted

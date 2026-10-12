@@ -8,8 +8,12 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import type { HomeStage } from "@/hooks/dashboard/home/useHomeStage";
 
+import { addLayerSource } from "@/components/addLayer/sources";
 import { NewProjectButton } from "@/components/dashboard/common/NewProjectMenu";
 import HelpStrip from "@/components/dashboard/home/HelpStrip";
+
+// The Upload dataset quick action, labelled and drawn as in the Add layer menu.
+const uploadSource = addLayerSource("upload");
 
 interface HomeHeroProps {
   stage: HomeStage;
@@ -102,10 +106,10 @@ const HomeHero = ({
             <NewProjectButton location={{ folderId: homeFolderId }} />
             <Button
               variant="outlined"
-              startIcon={<Icon iconName={ICON_NAME.DATABASE} style={{ fontSize: 14 }} />}
+              startIcon={<Icon iconName={uploadSource.icon} style={{ fontSize: 14 }} />}
               onClick={onAddDataset}
               sx={quickActionSx}>
-              {t("add_dataset")}
+              {t(uploadSource.labelKey)}
             </Button>
             <Button
               variant="outlined"

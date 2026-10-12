@@ -49,8 +49,15 @@ const OrgMemberInviteModal: React.FC<OrgMemberInviteDialogProps> = ({ open, onCl
       if (!organization) return;
       setIsBusy(true);
       const payload = getValues();
-      await inviteMember(organization.id, payload);
-      toast.success(t("common:member_invited_success"));
+      const response = await inviteMember(organization.id, payload);
+      const invitation = await response.json().catch(() => null);
+      // "manual": the login account was created but its set-password email
+      // could not be sent, so an administrator has to set the password.
+      if (invitation?.account_setup === "manual") {
+        toast.warning(t("common:member_invited_account_manual"));
+      } else {
+        toast.success(t("common:member_invited_success"));
+      }
     } catch {
       toast.error(t("common:member_invite_error"));
     } finally {

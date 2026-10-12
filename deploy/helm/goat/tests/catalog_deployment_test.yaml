@@ -1,0 +1,158 @@
+suite: catalog Deployment
+templates:
+  - catalog/deployment.yaml
+  - catalog/configmap.yaml
+tests:
+  - it: renders a Deployment on port 8400 with health probes on
+    template: catalog/deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-catalog
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/plan4better/goat/catalog:v3.0.3
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8400
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /healthz
+  - it: mounts the catalog mirror read-only
+    template: catalog/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /app/data/catalog
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].subPath
+          value: catalog
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: true
+  - it: bounds DuckDB so a heavy query cannot OOM the pod
+    template: catalog/configmap.yaml
+    asserts:
+      - equal:
+          path: data.CATALOG_DUCKDB_MEMORY_LIMIT
+          value: "2GB"
+      - equal:
+          path: data.CATALOG_DUCKDB_THREADS
+          value: "4"
+  - it: not rendered when catalog.enabled false
+    template: catalog/deployment.yaml
+    set:
+      catalog.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: wires Keycloak from the auth secret when auth is enabled
+    template: catalog/deployment.yaml
+    set:
+      catalog.auth.enabled: true
+      catalog.auth.existingSecret: goat-oidc
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: goat-oidc
+                key: server-url
+  - it: wires the catalog bucket when S3 is configured
+    template: catalog/deployment.yaml
+    set:
+      catalog.s3.bucket: goat-catalog
+      catalog.s3.endpointUrl: https://s3.example.com
+      catalog.s3.existingSecret: catalog-s3
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CATALOG_S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: catalog-s3
+                key: access_key
+  - it: sets AUTH false and no S3 env by default
+    template: catalog/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "false"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CATALOG_S3_ACCESS_KEY_ID
+  - it: points Open-in-GOAT links at the web app's public URL
+    template: catalog/configmap.yaml
+    set:
+      web.auth.publicUrl: https://goat.example.com
+    asserts:
+      - equal:
+          path: data.CATALOG_GOAT_UI_BASE_URL
+          value: https://goat.example.com
+  - it: falls back to the web app's NEXTAUTH_URL when no public URL is set
+    template: catalog/configmap.yaml
+    asserts:
+      - equal:
+          path: data.CATALOG_GOAT_UI_BASE_URL
+          value: http://localhost:3000
+  - it: falls back to web.ingress's host when web.auth.publicUrl is unset (real ingress installs must not stay on localhost, or catalog CORS blocks the browser)
+    template: catalog/configmap.yaml
+    set:
+      web.ingress.enabled: true
+      web.ingress.hosts:
+        - host: goat.example.org
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - equal:
+          path: data.CATALOG_GOAT_UI_BASE_URL
+          value: http://goat.example.org
+  - it: prefers web.auth.publicUrl over web.ingress when both are set
+    template: catalog/configmap.yaml
+    set:
+      web.auth.publicUrl: https://goat.example.com
+      web.ingress.enabled: true
+      web.ingress.hosts:
+        - host: goat.example.org
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - equal:
+          path: data.CATALOG_GOAT_UI_BASE_URL
+          value: https://goat.example.com
+  - it: uses https for web.ingress when TLS is configured
+    template: catalog/configmap.yaml
+    set:
+      web.ingress.enabled: true
+      web.ingress.hosts:
+        - host: goat.example.org
+          paths:
+            - path: /
+              pathType: Prefix
+      web.ingress.tls:
+        - secretName: goat-tls
+          hosts:
+            - goat.example.org
+    asserts:
+      - equal:
+          path: data.CATALOG_GOAT_UI_BASE_URL
+          value: https://goat.example.org
+

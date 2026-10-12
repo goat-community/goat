@@ -1,4 +1,5 @@
 ---
+description: "Map accessibility to opportunities on a hexagonal grid with a gravity formula, weighting destinations by travel cost, sensitivity and destination potential."
 sidebar_position: 2
 ---
 import Tabs from '@theme/Tabs';
@@ -15,17 +16,17 @@ The Heatmap - Gravity indicator **produces a color-coded map to visualize the ac
 
 ## 1. Explanation
 
-The heatmap Gravity displays a **color-coded hexagonal grid showing the accessibility of destinations (opportunities) based on travel cost (time or distance) and destination attractiveness**. Accessibility is calculated using real-world transport networks and a gravity-based formula that reflects how people’s willingness to travel decreases with distance.
+The [heatmap](https://www.plan4better.de/en/glossary/heatmap) Gravity displays a **color-coded hexagonal grid showing the accessibility of destinations (opportunities) based on travel cost (time or distance) and destination attractiveness**. Accessibility is calculated using real-world transport networks and a [gravity-based formula](https://www.plan4better.de/en/glossary/gravity-model) that reflects how people’s willingness to travel decreases with distance.
 
 You can specify the **routing type**, **opportunity layer**, **travel cost limit**, and adjust **sensitivity** and **destination potential** to fine-tune how accessibility is calculated.
 
-- The **Opportunity layer contains point-based destination data** (such as POIs, transit stops, schools, amenities, or custom points). You can select multiple opportunity layers, which will be combined into a single unified heatmap.
+- The **Opportunity layer contains point or polygon based destination data** (such as [POIs](https://www.plan4better.de/en/glossary/point-of-interest), transit stops, schools, amenities, parks, or custom data). You can select multiple opportunity layers, which will be combined into a single unified heatmap.
 
 - The **Sensitivity controls how quickly accessibility decreases with increasing travel cost**, while the **Destination potential lets you give more weight to destinations with higher capacity or quality** (e.g., a larger supermarket or a bus stop with more departures). Together with the chosen **Impedance function, these settings define how accessibility is calculated**.
 
-- The **Potential Type** determines how each opportunity's weight is derived: use **Constant** to apply the same value to all opportunities, or **Field** to use a numeric attribute from the input layer (e.g., number of departures, seats, or capacity).
+- The **Potential Type** determines how each opportunity's weight is derived: use **Constant** to apply the same value to all opportunities, **Field** to use a numeric attribute from the input layer (e.g., number of departures, seats, or capacity), or, for polygon layers, **Expression** to weight each polygon by its area or perimeter.
 
-- Using **Destination potential helps prioritize certain opportunities over others**. For example, a larger but farther supermarket can be valued more than a smaller nearby one. This allows you to include qualitative information—such as size, frequency, or service level—when computing accessibility, resulting in a more realistic heatmap.
+- Using **Destination potential helps prioritize certain opportunities over others**. For example, a larger but farther supermarket can be valued more than a smaller nearby one. This allows you to include qualitative information, such as size, frequency, or service level, when computing accessibility, resulting in a more realistic heatmap.
 
 Influenced by all these properties, **the accessibility of a point can model complex real-world human behavior** and is a powerful measure for transport and accessibility planning.
 
@@ -38,7 +39,7 @@ Influenced by all these properties, **the accessibility of a point can model com
 
 :::info
 
-Heatmap computation is available across **over 30 European countries** for `Walk`, `Bicycle`, `Pedelec`, and `Car`. For `Public Transport`, Germany, Switzerland, and the Haut-Rhin region of France are supported. If you need analyses beyond these regions, feel free to [contact us](https://plan4better.de/en/contact/).
+Heatmap computation is available across **over 30 European countries** for `Walk`, `Bicycle`, `Pedelec`, and `Car`. For `Public Transport`, Germany, Switzerland, and the Haut-Rhin region of France are supported. If you need analyses beyond these regions, you can [import your own routing network](../../data/builtin_datasets.md#bringing-your-own-networks) or [contact us](https://plan4better.de/en/contact/) and we will do it for you.
 
 :::
 
@@ -48,7 +49,7 @@ Heatmap computation is available across **over 30 European countries** for `Walk
 
  - Are there areas with high potential for transit-oriented development or opportunities for improving non-motorized transportation infrastructure, such as bike lanes or pedestrian-friendly streets?
 
- - What is the impact of a new amenity on local accessibility?
+ - What is the impact of a new amenity on [local accessibility](https://www.plan4better.de/en/glossary/local-accessibility)?
 
  - Is there potential to expand the availability of services such as bike sharing or car sharing stations?
 
@@ -77,7 +78,7 @@ Heatmap computation is available across **over 30 European countries** for `Walk
 | Bicycle | All paths accessible by bicycle (taking into account surface and slope) |
 | Pedelec | All paths accessible by pedelec (taking into account surface and slope) |
 | Car | All paths accessible by car (taking into account speed limits and one-way restrictions) |
-| Public Transport | All journeys possible by public transport (according to official GTFS schedules), considering walking access and egress to and from stops |
+| Public Transport | All journeys possible by public transport (according to official [GTFS](https://www.plan4better.de/en/glossary/gtfs) schedules), considering walking access and egress to and from stops |
 
 <div class="step">
   <div class="step-number">4</div>
@@ -118,22 +119,21 @@ This function counts every destination within the travel cost limit equally, app
 
 </Tabs>
 
+<div class="step">
+  <div class="step-number">5</div>
+  <div class="content">Set how travel is measured. The options depend on the <code>Transport mode</code> you picked in step 3:</div>
+</div>
+
 <Tabs>
 <TabItem value="active-car" label="Walk / Bicycle / Pedelec / Car" default className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">5</div>
-  <div class="content">In the <code>Calculate by</code> menu, choose either the Time (minutes) or Distance (metres) cost type.</div>
-</div>
+In the <code>Calculate by</code> menu, choose either the Time (minutes) or Distance (metres) cost type.
 
 </TabItem>
 
 <TabItem value="public transport" label="Public Transport (PT)" className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">5</div>
-  <div class="content">Choose <code>PT modes</code> to analyze: Bus, Tram, Rail, Subway, Ferry, Cable Car, Gondola, and/or Funicular. Then, select the <code>Day</code> and <code>Arrival time</code> for the analysis. The best public transport journeys that reach the opportunities at or before this time will be considered.</div>
-</div>
+Choose <code>PT modes</code> to analyze: Bus, Tram, Rail, Subway, Ferry, Cable Car, Gondola, and/or Funicular. Then, select the <code>Day</code> and <code>Arrival time</code> for the analysis. The best public transport journeys that reach the opportunities at or before this time will be considered.
 
 </TabItem>
 </Tabs>
@@ -144,19 +144,19 @@ Optionally, enable <code>Advanced options</code> to configure additional setting
 
 <div class="step">
   <div class="step-number">6</div>
-  <div class="content">Select a <code>Reference area</code> - a polygon layer that represents your study area. When set, the heatmap extends to cover all H3 cells within that polygon, with inaccessible cells assigned a value of <code>NULL</code> to expose coverage gaps and underserved areas.</div>
+  <div class="content">Select a <code>Reference area</code> - a polygon layer that represents your study area. When set, the heatmap extends to cover all H3 cells within that polygon, with inaccessible cells assigned a value of <code>NULL</code> to expose [coverage gaps](https://www.plan4better.de/en/glossary/service-gaps) and underserved areas.</div>
 </div>
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">Configure various routing options for your selected transport mode such as travel speed, max transfers, access/egress limits and more. Further information about mode-specific options can be found under the <a href="/docs/category/routing">Routing</a> section.</div>
+  <div class="content">Configure various routing options for your selected transport mode such as travel speed, max transfers, access/egress limits and more. Further information about mode-specific options can be found under the [Routing](../../category/routing) section.</div>
 </div>
 
 ### Opportunities
 
 <div class="step">
   <div class="step-number">8</div>
-  <div class="content">Select your <code>Input Layer</code> from the drop-down menu. This can be any previously created layer containing point-based data.</div>
+  <div class="content">Select your <code>Input Layer</code> from the drop-down menu. This can be any previously created layer containing point or polygon based data.</div>
 </div>
 
 <div class="step">
@@ -164,18 +164,14 @@ Optionally, enable <code>Advanced options</code> to configure additional setting
   <div class="content">Choose a travel cost <code>Limit</code> for your heatmap. This will be used in the context of your previously selected <i>Transport mode</i>.</div>
 </div>
 
-:::tip Hint
-
-Need help choosing a suitable travel time limit for various common amenities? The ["Standort-Werkzeug"](https://www.chemnitz.de/chemnitz/media/unsere-stadt/verkehr/verkehrsplanung/vep2040_standortwerkzeug.pdf) of the City of Chemnitz can provide helpful guidance.
-
-:::
-
 <div class="step">
   <div class="step-number">10</div>
-  <div class="content">Choose a <code>Potential Type</code> to define how each opportunity is weighted:
+  <div class="content">
+  Choose a <code>Potential Type</code> to define how each opportunity is weighted:
     <ul>
-      <li><b>Constant</b> — all opportunities have the same weight. Enter a numeric value (default: 1.0).</li>
-      <li><b>Field</b> — use a numeric field from the <i>Input Layer</i> as the weight (e.g. number of departures, seats, or capacity).</li>
+      <li><b>Constant</b>: all opportunities have the same weight. Enter a numeric value (default: 1.0).</li>
+      <li><b>Field</b>: use a numeric field from the <i>Input Layer</i> as the weight (e.g. number of departures, seats, or capacity).</li>
+      <li><b>Expression</b>: offered for polygon layers only. Under <code>Potential expression</code>, choose <b>Area</b> or <b>Perimeter</b> to weight each polygon by its size, so a large park counts for more than a small one. Both are measured in the web map projection, so they work as relative weights within your study area rather than as exact square metres or metres.</li>
     </ul>
   </div>
 </div>
@@ -191,7 +187,7 @@ Need help choosing a suitable travel time limit for various common amenities? Th
 
 **How to choose the sensitivity value?**
 
-The best **sensitivity (β)** value depends on your analysis — there’s no single correct number. It defines **how quickly accessibility decreases as travel cost increases**.
+The best **sensitivity (β)** value depends on your analysis. There is no single correct number. It defines **how quickly accessibility decreases as travel cost increases**.
 
 - **Low β (urban scale):** Use a lower sensitivity for city-level analyses. This makes accessibility drop faster with distance, which fits urban contexts where many destinations are nearby and people usually choose the closest one.
 - **High β (regional scale):** Use a higher sensitivity for regional or rural analyses. This makes accessibility decrease more slowly, which reflects that people are willing to travel longer distances when options are fewer.
@@ -267,7 +263,7 @@ In simple terms, the accessibility (**A**) of a cell (**i**) depends on:
 - the **number or importance of destinations** (**O**) nearby, and  
 - the **travel cost** (**tᵢⱼ**) needed to reach them.
 
-The function **f(tᵢⱼ)** reduces the influence of destinations that are farther away — this is called the **impedance function**. In GOAT you can choose between different impedance types: `gaussian`, `linear`, `exponential`, `power`, or `cumulative`.
+The function **f(tᵢⱼ)** reduces the influence of destinations that are farther away. This is the **impedance function**. In GOAT you can choose between different impedance types: `gaussian`, `linear`, `exponential`, `power`, or `cumulative`.
 
 and adjust how strongly distance affects accessibility using the **sensitivity (β)** parameter. If **destination potential** is included, it further increases the weight of destinations with higher capacity or quality (e.g., larger stores or frequent transit stops).
 
@@ -341,7 +337,7 @@ Leveraging the *sensitivity* you define, the Gaussian function allows you to mod
 </MathJax.Provider>
 </div>
 
-Unlike the other functions, the cumulative function applies **no distance decay** within the travel cost limit **t̄**: every reachable destination counts equally. It therefore does not use the *sensitivity (β)* parameter — it simply counts the opportunities reachable within the limit.
+Unlike the other functions, the cumulative function applies **no distance decay** within the travel cost limit **t̄**: every reachable destination counts equally. It therefore does not use the *sensitivity (β)* parameter. It simply counts the opportunities reachable within the limit.
 
 The *sensitivity* parameter determines how accessibility changes with increasing travel cost. As the *sensitivity* parameter is decisive when measuring accessibility, GOAT allows you to adjust this. The graph shows how the willingness to walk decreases with increasing travel cost based on the selected impedance function and sensitivity value (β).
 
@@ -354,7 +350,7 @@ import ImpedanceFunction from '@site/src/components/ImpedanceFunction';
 </div>
 
 ### Classification
-In order to classify the accessibility levels that were computed for each grid cell (for color-coded visualization), a classification based on **8 quantile group is used by default**. That means, each color covers 12,5 % of the grid cells. The area outside of the computed layer has no access within the defined travel cost.
+In order to classify the accessibility levels that were computed for each grid cell (for color-coded visualization), a classification based on **8 [quantile](https://www.plan4better.de/en/glossary/quantile-classification) group is used by default**. That means, each color covers 12,5 % of the grid cells. The area outside of the computed layer has no access within the defined travel cost.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
 <img src={require('/img/toolbox/accessibility_indicators/heatmaps/gravity_based/gravity_default_classification.png').default} alt="gravity-default-classification" style={{ maxHeight: "auto", maxWidth: "40%"}}/>
@@ -365,7 +361,7 @@ However, various other classification methods may be used instead. Read more in 
 
 ### Visualization 
 
-Heatmaps in GOAT utilize **[Uber's H3 grid-based](../../further_reading/glossary#h3-grid)** solution for efficient computation and easy-to-understand visualization. Behind the scenes, accessibility is computed on-the-fly by GOAT's own routing engine. For each *routing type*, the engine routes outward from the opportunities to discover the reachable H3 cells and their travel costs, then aggregates these into a per-cell accessibility score. Public transport uses the RAPTOR-based engine, while the active mobility and car modes use GOAT's Dijkstra implementation.
+Heatmaps in GOAT utilize **[Uber's H3 grid-based](https://www.plan4better.de/en/glossary/h3-grid)** solution for efficient computation and easy-to-understand visualization. Behind the scenes, accessibility is computed on-the-fly by GOAT's own routing engine. For each *routing type*, the engine routes outward from the opportunities to discover the reachable H3 cells and their travel costs, then aggregates these into a per-cell accessibility score. Public transport uses the RAPTOR-based engine, while the [active mobility](https://www.plan4better.de/en/glossary/active-mobility) and car modes use GOAT's Dijkstra implementation.
 
 The resolution and dimensions of the hexagonal grid used depend on the selected *routing type*:
 

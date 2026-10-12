@@ -12,6 +12,7 @@ from pydantic import Field, field_validator, model_validator
 
 from goatlib.analysis.geoanalysis.aggregate_points import AggregatePointsTool
 from goatlib.analysis.schemas.aggregate import (
+    AGGREGATION_AREA_TYPE_LABELS,
     AggregateFieldStatistic,
     AggregatePointsParams,
     AggregationAreaType,
@@ -112,6 +113,7 @@ class AggregatePointsToolParams(ToolInputBase, AggregatePointsParams):
             section="area",
             field_order=1,
             label_key="select_area_type",
+            enum_labels=AGGREGATION_AREA_TYPE_LABELS,
         ),
     )
 

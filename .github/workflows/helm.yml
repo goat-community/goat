@@ -1,0 +1,125 @@
+name: "Helm chart"
+
+# The Helm chart in deploy/helm/goat. Pull requests check it in pr.yml;
+# this workflow checks pushes to main, and for every `helm-<version>` tag
+# checks the chart, installs it on a fresh k3d cluster (smoke) and only then
+# publishes it. Started by hand, it runs the checks and the smoke test on the
+# chosen branch without publishing anything.
+#
+# Chart tags are separate from the GOAT release tags (v*): the chart has its
+# own version, the one in Chart.yaml, e.g. tag `helm-0.5.2` for version 0.5.2.
+# A chart release creates no GitHub release, so the repository's releases
+# stay GOAT releases; the chart's changes are in its README.
+on:
+  push:
+    branches: [main]
+    # Path filters do not apply to tag pushes: every chart tag runs.
+    paths:
+      - "deploy/helm/**"
+      - ".github/actions/helm-tools/**"
+      - ".github/workflows/helm.yml"
+    tags:
+      - "helm-[0-9]+.[0-9]+.[0-9]+"
+      - "helm-[0-9]+.[0-9]+.[0-9]+-*"
+  workflow_dispatch:
+
+# The workflow token gets read access only; jobs that need more ask for it.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v7
+
+      # First, so a mistyped tag fails before the smoke test runs.
+      - name: 🏷️ Tag matches Chart.yaml
+        id: version
+        if: ${{ startsWith(github.ref, 'refs/tags/helm-') }}
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=${TAG#helm-}
+          chart_version=$(awk '/^version:/ {gsub(/"/, "", $2); print $2}' deploy/helm/goat/Chart.yaml)
+          if [ "$chart_version" != "$version" ]; then
+            echo "::error::Tag $TAG does not match deploy/helm/goat/Chart.yaml version $chart_version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/helm-tools
+      - name: 🧪 Lint, unit tests, render and schema-check every fixture
+        run: ./deploy/helm/check.sh
+
+  # Builds a k3d cluster and pulls every GOAT image: too slow for every
+  # push, so it runs for chart tags and when started by hand.
+  smoke:
+    name: smoke
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/helm-') }}
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v7
+      - uses: ./.github/actions/helm-tools
+      - name: ⚙️ k3d
+        run: curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+      - name: 🧪 Install on a fresh cluster, upgrade, check every service
+        run: ./deploy/helm/smoke-k3d.sh
+
+  # Packages the chart, pushes it to oci://ghcr.io/plan4better/charts/goat
+  # and signs it with cosign (keyless). Only after the smoke test passed.
+  release:
+    name: release
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/helm-') }}
+    needs: [check, smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write # push to ghcr.io
+      id-token: write # cosign keyless signing
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v7
+
+      - name: ⚙️ Helm
+        uses: azure/setup-helm@v5.0.1
+        with:
+          version: v3.20.1
+
+      - name: ⚙️ cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: v2.2.4
+
+      - name: 📦 Package
+        run: |
+          helm dependency update deploy/helm/goat/
+          helm package deploy/helm/goat/ --destination dist/
+
+      - name: 🔑 Log in to ghcr.io
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🚀 Push to ghcr.io
+        id: push
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          set -o pipefail
+          output=$(helm push "dist/goat-${VERSION}.tgz" oci://ghcr.io/${{ github.repository_owner }}/charts 2>&1 | tee /dev/stderr)
+          echo "digest=$(echo "$output" | awk '/^Digest:/ {print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: ✍️ Sign
+        run: cosign sign --yes "ghcr.io/${{ github.repository_owner }}/charts/goat@${{ steps.push.outputs.digest }}"

@@ -41,7 +41,7 @@ async def _call(user_update: UserProfileUpdate, admin: MagicMock):
         patch.object(users.s3_service, "upload_asset", MagicMock()),
     ):
         result = await users.update_profile(
-            db=MagicMock(), user=user_update, user_token=TOKEN, user_id=None
+            db=MagicMock(), user=user_update, user_token=TOKEN
         )
     return result, update_mock
 

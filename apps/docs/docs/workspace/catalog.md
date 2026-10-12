@@ -1,10 +1,11 @@
 ---
+description: "Search and filter the GOAT Data Catalog by keyword, location, category, publisher or licence, save favourites and add read-only catalog datasets to a project."
 sidebar_position: 4
 ---
 
 # Catalog
 
-The Data Catalog is your gateway to exploring Plan4Better's comprehensive collection of high-quality [geospatial datasets](../further_reading/glossary#geospatial-data). **This curated library provides reliable, ready-to-use data from official open-data providers and other trusted sources**, enabling you to immediately start analysis and visualization within your GOAT projects. From the Catalog you can:
+The Data Catalog is your gateway to exploring Plan4Better's comprehensive collection of high-quality [geospatial datasets](https://www.plan4better.de/en/glossary/geospatial-data). **This curated library provides reliable, ready-to-use data from official open-data providers and other trusted sources**, enabling you to immediately start analysis and visualization within your GOAT projects. From the Catalog you can:
 
 - **Explore our dataset collection** spanning multiple thematic areas and geographic regions
 - **Search and filter through it** by keyword, location, category, publisher, licence and more
@@ -132,7 +133,7 @@ These portals carry far more than spatial planning needs, including budget table
 
 ### Plan4Better datasets
 
-Alongside the harvested portals, the catalog holds datasets Plan4Better prepares and maintains. Points of interest are built from OpenStreetMap through a pipeline that regroups the raw tags into planning categories and corrects them. Public transport stops, stations and lines are derived from the GTFS feeds of transport operators, covering local, regional and long-distance services.
+Alongside the harvested portals, the catalog holds datasets Plan4Better prepares and maintains. [Points of interest](https://www.plan4better.de/en/glossary/point-of-interest) are built from OpenStreetMap through a pipeline that regroups the raw tags into planning categories and corrects them. Public transport stops, stations and lines are derived from the [GTFS](https://www.plan4better.de/en/glossary/gtfs) feeds of transport operators, covering local, regional and long-distance services.
 
 ## Data quality and maintenance
 

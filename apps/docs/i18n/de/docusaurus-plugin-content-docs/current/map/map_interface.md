@@ -1,4 +1,5 @@
 ---
+description: "Orientieren Sie sich auf der Kartenoberfläche: obere Leiste, Layer Panel, Suche, Werkzeuge und Messungen, Stil- und Filterbereich sowie die Kartennavigation."
 sidebar_position: 1
 ---
 
@@ -45,7 +46,7 @@ Die Werkzeuge befinden sich auf der rechten Seite des Layer Panels:
 
 - <img src={require('/img/icons/magnifying-glass.png').default} alt="Adressen- und Koordinatensuche" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Such-Button</code>: <strong>Suchen Sie nach Adressen</strong> oder Koordinaten, um schnell zu einem bestimmten Ort auf der Karte zu navigieren.
 
-- <img src={require('/img/icons/toolbox.png').default} alt="Werkzeuge" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Werkzeuge</code>: <strong>Zugriff auf die Werkzeuge</strong>. Lesen Sie mehr in <a href="/category/toolbox">Werkzeuge</a>.
+- <img src={require('/img/icons/toolbox.png').default} alt="Werkzeuge" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Werkzeuge</code>: <strong>Zugriff auf die Werkzeuge</strong>. Lesen Sie mehr in [Werkzeuge](../category/toolbox).
 
 - <img src={require('/img/icons/ruler-horizontal.png').default} alt="Messungen" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Messungen</code>: Benutzer können <strong>Distanzen und Flächen messen</strong>, wie z. B. Routen, Linien und Polygone.
 
@@ -53,9 +54,9 @@ Die Werkzeuge befinden sich auf der rechten Seite des Layer Panels:
 
 Wenn Sie einen Layer im Layer Panel auswählen, erscheint der Bearbeitungsbereich auf der rechten Seite der Kartenoberfläche. Dieses Panel bietet Zugriff auf verschiedene Optionen:
 
-- <code>Stil</code>: <strong>Passen Sie das visuelle Erscheinungsbild an</strong> des ausgewählten Layers, indem Sie Farben, Deckkraft und andere Gestaltungsoptionen ändern. Lesen Sie mehr in <a href="/category/layer-design">Layer-Styling</a>.
+- <code>Stil</code>: <strong>Passen Sie das visuelle Erscheinungsbild an</strong> des ausgewählten Layers, indem Sie Farben, Deckkraft und andere Gestaltungsoptionen ändern. Lesen Sie mehr in [Layer-Styling](../category/layer-design).
 
-- <code>Filter</code>: <strong>Wenden Sie Filter an</strong> auf den ausgewählten Layer, um nur bestimmte Objekte basierend auf Attributwerten anzuzeigen. Lesen Sie mehr in <a href="/map/filter">Layer-Filterung</a>.
+- <code>Filter</code>: <strong>Wenden Sie Filter an</strong> auf den ausgewählten Layer, um nur bestimmte Objekte basierend auf Attributwerten anzuzeigen. Lesen Sie mehr in [Layer-Filterung](filter).
 
 - <code>Metadaten</code>: <strong>Metadaten anzeigen und bearbeiten</strong> für den ausgewählten Layer.
 

@@ -1,0 +1,81 @@
+{{- /*
+Post-install/post-upgrade Helm hook. Provisions the windmill workspace,
+mints an API token, and rotates the default `changeme` superadmin
+password to a chart-managed (or operator-supplied) value.
+
+Idempotent: re-running picks up the new desired password and keeps the
+stored token while windmill still accepts it. Token is stored in the K8s
+Secret named `windmill.bootstrap.tokenSecret.name` (default:
+`<release>-windmill-token`) under the `token` key — that's the secret
+the `processes` deployment references via secretKeyRef. When the token is
+new, the hook restarts that deployment so its pods pick it up.
+*/}}
+{{- if and .Values.windmill.server.enabled .Values.windmill.bootstrap.enabled -}}
+{{- $name := printf "%s-windmill-bootstrap" (include "goat.fullname" .) -}}
+{{- $tokenSecret := default (printf "%s-windmill-token" (include "goat.fullname" .)) .Values.windmill.bootstrap.tokenSecret.name -}}
+{{- $passwordSecret := default (printf "%s-windmill-admin-cred" (include "goat.fullname" .)) .Values.windmill.bootstrap.adminPasswordSecret.name -}}
+{{- $passwordKey := default "password" .Values.windmill.bootstrap.adminPasswordSecret.key -}}
+{{- $serverSvc := printf "%s-windmill-server" (include "goat.fullname" .) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "windmill-bootstrap") | nindent 4 }}
+  annotations:
+    "helm.sh/hook": "post-install,post-upgrade"
+    "helm.sh/hook-weight": "0"
+    # Reap on success, but ALSO before each new install so previous runs'
+    # immutable Job specs don't conflict with the new one.
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" (dict "context" . "component" "windmill-bootstrap") | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ $name }}
+      containers:
+        - name: bootstrap
+          image: python:3.11-slim
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: WINDMILL_URL
+              value: "http://{{ $serverSvc }}"
+            - name: WINDMILL_WORKSPACE
+              value: {{ .Values.windmill.bootstrap.workspace | quote }}
+            - name: ADMIN_EMAIL
+              value: {{ .Values.windmill.bootstrap.adminEmail | quote }}
+            - name: DEFAULT_ADMIN_PASSWORD
+              value: "changeme"
+            - name: DESIRED_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $passwordSecret }}
+                  key: {{ $passwordKey }}
+            - name: TOKEN_SECRET_NAME
+              value: {{ $tokenSecret | quote }}
+            - name: TOKEN_SECRET_KEY
+              value: {{ default "token" .Values.windmill.bootstrap.tokenSecret.key | quote }}
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            {{- if include "goat.windmill.bootstrapWiresProcesses" . }}
+            - name: PROCESSES_DEPLOYMENT
+              value: {{ include "goat.serviceFullname" (dict "context" . "component" "processes") | quote }}
+            {{- end }}
+          command: ["python", "/scripts/bootstrap.py"]
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: {{ include "goat.fullname" . }}-windmill-bootstrap
+{{- end -}}

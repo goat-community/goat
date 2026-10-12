@@ -1,4 +1,5 @@
 ---
+description: "Beschriften Sie Features nach einem Attributfeld und legen Sie Größe, Farbe, Platzierung, Offset und Überlappung sowie Halo-Farbe und Halo-Breite fest."
 sidebar_position: 3
 ---
 import Tabs from '@theme/Tabs';
@@ -22,12 +23,12 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content">Wählen Sie Ihren Layer und navigieren Sie zu <code>Layer Design</code> <img src={require('/img/icons/styling.png').default} alt="Styling Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> und finden Sie den <code>Beschriftungsbereich</code>.</div>
+  <div class="content">Klicken Sie im <code>Layer</code>-Panel auf Ihren Layer. Rechts öffnet sich das Einstellungs-Panel des Layers mit den Tabs <code>Stil</code>, <code>Filtern</code> und <code>Metadaten</code>; der Tab <code>Stil</code> ist ausgewählt. Öffnen Sie dort den Bereich <code>Beschriftungen</code>.</div>
 </div>
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Bei <code>Beschriftung nach</code> wählen Sie das <strong>Attributfeld</strong>, dessen Werte Sie als Beschriftungen anzeigen möchten.</div>
+  <div class="content">Bei <code>Beschriftung nach</code> wählen Sie das <strong>Attributfeld</strong> (Text oder Zahl), dessen Werte Sie als Beschriftungen anzeigen möchten. Sobald ein Feld ausgewählt ist, erscheinen darunter die <code>Beschriftungseinstellungen</code>.</div>
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
@@ -37,17 +38,17 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Bei <code>Größe</code> stellen Sie die <strong>Beschriftungsgröße</strong> mit dem Schieberegler (5-100) ein oder geben Sie den Wert manuell ein.</div>
+  <div class="content">Unter <code>Beschriftungseinstellungen</code> stellen Sie bei <code>Größe</code> die <strong>Beschriftungsgröße</strong> mit dem Schieberegler (1-100) ein oder geben Sie den Wert manuell ein.</div>
 </div>
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Bei <code>Farbe</code> wählen Sie eine <strong>Beschriftungsfarbe</strong> mit dem Farbwähler oder wählen Sie aus den voreingestellten Farben.</div>
+  <div class="content">Bei <code>Farbe</code> wählen Sie eine <strong>Beschriftungsfarbe</strong> mit dem <code>Farbwähler</code> oder aus den <code>Standardfarben</code>.</div>
 </div>
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Stellen Sie die <code>Platzierung</code> ein, um zu definieren, <strong>wo Beschriftungen relativ zu den Features erscheinen</strong> (Mitte, oben, unten, links, rechts oder Eckpositionen).</div>
+  <div class="content">Stellen Sie die <code>Position</code> ein, um zu definieren, <strong>wo Beschriftungen relativ zu den Features erscheinen</strong> (<code>Mitte</code>, <code>Oben</code>, <code>Unten</code>, <code>Links</code>, <code>Rechts</code> oder die Eckpositionen wie <code>Oben Links</code>; bei Linien-Layern <code>Mitte</code>, <code>Oben</code> oder <code>Unten</code>).</div>
 </div>
 
 
@@ -55,17 +56,17 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">6</div>
-  <div class="content">Klicken Sie auf den <code>Erweiterte Einstellungen</code> <img src={require('/img/icons/options.png').default} alt="Optionen" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> Button, um <strong>zusätzliche Optionen</strong> zu erreichen.</div>
+  <div class="content">Klicken Sie neben <code>Beschriftungseinstellungen</code> auf das Optionen-Symbol <img src={require('/img/icons/options.png').default} alt="Optionen" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/>, um den Bereich <code>Erweiterte Optionen</code> einzublenden.</div>
 </div>
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">Passen Sie <code>Offset X</code> und <code>Offset Y</code> an, um die <strong>Beschriftungsposition</strong> durch horizontale oder vertikale Bewegung feinzustellen.</div>
+  <div class="content">Passen Sie <code>Offset x</code> und <code>Offset y</code> an, um die <strong>Beschriftungsposition</strong> durch horizontale oder vertikale Bewegung feinzustellen.</div>
 </div>
 
 <div class="step">
   <div class="step-number">8</div>
-  <div class="content">Konfigurieren Sie <code>Überlappung zulassen</code>: <strong>Aktivieren</strong> um alle Beschriftungen zu zeigen (kann visuelles Durcheinander verursachen) oder <strong>Deaktivieren</strong> für automatische Gruppierung bei niedrigeren Zoom-Stufen (saubereres Aussehen).</div>
+  <div class="content">Konfigurieren Sie das Kontrollkästchen <code>Überlappung zulassen</code>: <strong>Aktivieren</strong> Sie es, um alle Beschriftungen zu zeigen (kann visuelles Durcheinander verursachen), oder <strong>deaktivieren</strong> Sie es, um Beschriftungen auszublenden, die andere überlappen würden, besonders bei niedrigeren Zoom-Stufen (saubereres Aussehen).</div>
 </div>
 
 <div class="step">

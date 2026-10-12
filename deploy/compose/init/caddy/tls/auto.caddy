@@ -1,0 +1,3 @@
+# Let's Encrypt certificate for the site's hostname
+{$GOAT_TLS_EMAIL_LINE}
+header Strict-Transport-Security "max-age=31536000"

@@ -12,6 +12,9 @@ import SliderInput from "@/components/map/panels/common/SliderInput";
 import SizeScaleSelector from "@/components/map/panels/style/classification/SizeScaleSelector";
 import MarkerSettings from "@/components/map/panels/style/marker/MarkerSettings";
 
+/** The size slider's upper bound (`SliderInput`'s default `max`). */
+const SIZE_SLIDER_MAX = 100;
+
 const Settings = ({
   type,
   layerStyle,
@@ -120,6 +123,14 @@ const Settings = ({
               selectedField={selectedField}
               setSelectedField={(field) => {
                 const newStyle = JSON.parse(JSON.stringify(layerStyle)) || {};
+                // The size range defaults to start at 0, which renders the smallest
+                // features invisibly. On first use start it at the fixed size instead,
+                // within what the size slider can show.
+                const size = newStyle[type];
+                const range = newStyle[`${type}_range`] ?? [0, 50];
+                if (field && !newStyle[`${type}_field`] && range[0] === 0 && typeof size === "number" && size > 0) {
+                  newStyle[`${type}_range`] = [size, Math.min(SIZE_SLIDER_MAX, Math.max(range[1], size * 2))];
+                }
                 newStyle[`${type}_field`] = field;
                 if (onStyleChange) {
                   onStyleChange(newStyle);

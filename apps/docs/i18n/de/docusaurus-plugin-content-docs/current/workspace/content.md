@@ -1,4 +1,5 @@
 ---
+description: "Verwalten Sie Projekte, Datensätze und Vorlagen in eigenen, Team- und Organisationsbereichen: teilen, verschieben, übertragen, wiederherstellen, hochladen."
 sidebar_position: 3
 ---
 
@@ -58,9 +59,9 @@ Wählen Sie ein Element aus, oder mehrere, um damit zu arbeiten. Das Menü auf e
 
 **Teilen** gewährt Zugriff, während Sie Besitzer bleiben. Das ist sinnvoll, wenn Kolleginnen und Kollegen etwas sehen oder bearbeiten sollen, das weiterhin in Ihrer Verantwortung liegt.
 
-**Rechte übertragen** verschiebt das Element dauerhaft in den Bereich einer anderen Person. Das ist der richtige Weg, wenn ein Projekt tatsächlich den Besitzer wechselt, etwa bei einer Übergabe vor dem Wechsel aus einem Team.
+**Rechte übertragen** verschiebt das Element dauerhaft in den Bereich eines Teams oder der Organisation. Das ist der richtige Weg, wenn ein Projekt tatsächlich den Besitzer wechselt, etwa bei einer Übergabe vor dem Wechsel aus einem Team.
 
-Im Ursprungsbereich bleibt eine **Verknüpfung** zurück, als solche gekennzeichnet und mit dem echten Namen des Elements. Sie ist ein Verweis: Ein Klick darauf führt Sie zum Element an seinem neuen Ort.
+Standardmäßig bleibt im Ursprungsbereich eine **Verknüpfung** zurück, als solche gekennzeichnet und mit dem echten Namen des Elements. Sie ist ein Verweis: Ein Klick darauf führt Sie zum Element an seinem neuen Ort.
 
 :::info Wer was sehen kann
 Ein Element zeigt seine **Sichtbarkeit**: privat, mit einzelnen Personen geteilt, mit einem Team oder der Organisation geteilt, oder öffentlich. Ordner und Datenpakete können mit Teams und der Organisation geteilt werden.
@@ -68,7 +69,7 @@ Ein Element zeigt seine **Sichtbarkeit**: privat, mit einzelnen Personen geteilt
 
 ### Papierkorb und Wiederherstellen
 
-Gelöschte Inhalte verschwinden nicht sofort: Sie landen im **Papierkorb**, aus dem der Besitzer sie **Wiederherstellen** kann. Sie bleiben dort, bis sie endgültig entfernt werden. Ein versehentliches Löschen lässt sich also rückgängig machen.
+Gelöschte Inhalte verschwinden nicht sofort: Sie landen im **Papierkorb**, aus dem der Besitzer sie **Wiederherstellen** kann. Sie bleiben dort **30 Tage** lang und werden dann endgültig entfernt. Ein versehentliches Löschen lässt sich also rückgängig machen. Wo Sie den Papierkorb finden, steht unter [Papierkorb](../sharing/sharing.md#papierkorb).
 
 ## Inhalte hinzufügen
 
@@ -76,7 +77,8 @@ Gelöschte Inhalte verschwinden nicht sofort: Sie landen im **Papierkorb**, aus 
 
 - **Neuer Ordner**, um Inhalte so zu gruppieren, wie es Ihnen passt
 - **Leeres Projekt** oder **Projekt importieren**
-- **Datensatz**, um eine Datei von Ihrem Gerät hochzuladen (GeoPackage, GeoJSON, Shapefile, KML, CSV, XLSX, Parquet sowie GTFS- und Overture-Archive)
+- **Datensatz hochladen**, um eine Datei von Ihrem Gerät hochzuladen (GeoPackage, GeoJSON, Shapefile, KML, CSV, XLSX, Parquet sowie [GTFS](https://www.plan4better.de/de/glossar/gtfs)- und [Overture](https://www.plan4better.de/de/glossar/overture-maps)-Archive)
+- **Dienst verbinden**, um einen externen Layer per URL hinzuzufügen (WFS, WMS, WMTS, XYZ-Kacheln oder COG)
 - **Dokument hochladen**, für eine Datei, die zur Arbeit gehört, ohne selbst Daten zu sein
 
 Ein Projekt lässt sich auch von der Startseite aus beginnen.
@@ -125,7 +127,7 @@ Sie können ein Projekt importieren, das aus GOAT als `.zip`-Datei exportiert wu
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/workspace/projects/project_import.webp').default} alt="Ein Projekt in GOAT importieren" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
+  <img src={require('/img/workspace/projects/project_import_de.webp').default} alt="Ein Projekt in GOAT importieren" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
 </div>
 
 ### Einen Datensatz hochladen
@@ -139,7 +141,7 @@ GOAT unterstützt mehrere Dateiformate zum Hochladen: **GeoPackage**, **GeoJSON*
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Klicken Sie auf <code>Neu</code> und wählen Sie <code>Datensatz</code>.</div>
+  <div class="content">Klicken Sie auf <code>Neu</code> und wählen Sie <code>Datensatz hochladen</code>.</div>
 </div>
 
 <div class="step">
@@ -154,7 +156,8 @@ GOAT unterstützt mehrere Dateiformate zum Hochladen: **GeoPackage**, **GeoJSON*
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content"><strong>Nur für CSV- und XLSX-Dateien:</strong> Klicken Sie auf <code>Spalten einrichten</code>, um eine Vorschau der ersten Zeilen zu prüfen.
+  <div class="content">
+  <strong>Nur für CSV- und XLSX-Dateien:</strong> Klicken Sie auf <code>Spalten einrichten</code>, um eine Vorschau der ersten Zeilen zu prüfen.
     <ul>
       <li><code>Arbeitsblatt</code>: Bei XLSX-Dateien mit mehreren Blättern wählen Sie aus, welches Blatt importiert werden soll.</li>
       <li><code>Erste Zeile ist Kopfzeile</code>: standardmäßig aktiviert. Deaktivieren Sie die Option, wenn die erste Zeile Daten enthält; die Spaltennamen werden dann erzeugt und können später in den Layer-Einstellungen umbenannt werden.</li>
@@ -170,7 +173,12 @@ GOAT unterstützt mehrere Dateiformate zum Hochladen: **GeoPackage**, **GeoJSON*
 
 ### Eine externe Quelle verbinden
 
-Ein Dienst, der die Daten bereits veröffentlicht, etwa ein **Web Feature Service (WFS)**, **Web Map Service (WMS)**, **Web Map Tile Service (WMTS)**, **XYZ-Kacheln** oder ein **Cloud Optimized GeoTIFF (COG)**, wird nicht auf dieser Seite, sondern innerhalb eines Projekts verbunden. Klicken Sie in der Karte in der linken Leiste auf `+ Layer hinzufügen` und wählen Sie `Dienst verbinden`. Die Schritte finden Sie unter [Layer hinzufügen](../map/layers#layer-hinzufügen).
+Ein Dienst, der die Daten bereits veröffentlicht, etwa ein **Web Feature Service (WFS)**, **Web Map Service (WMS)**, **Web Map Tile Service (WMTS)**, **XYZ-Kacheln** oder ein **Cloud Optimized GeoTIFF (COG)**, wird mit `Dienst verbinden` hinzugefügt. Klicken Sie auf dieser Seite auf `Neu` und wählen Sie `Dienst verbinden`, um ihn zum aktuellen Ordner hinzuzufügen. Innerhalb eines Projekts erreichen Sie die Funktion außerdem über `+ Layer hinzufügen` in der Karte. Die Schritte finden Sie unter [Layer hinzufügen](../map/layers#layer-hinzufügen).
+
+Nach dem Hinzufügen erscheint ein verbundener Layer auf dieser Seite wie jeder andere Datensatz, mit zwei Unterschieden, die die Herkunft der Daten kennzeichnen:
+
+- Ein **`Verbunden`**-Tag bedeutet, dass der Layer **live vom externen Dienst gezeichnet** wird und nicht in GOAT gespeichert ist. Sein Inhalt kann sich ändern oder verschwinden, wenn sich der Dienst ändert.
+- Eine **Quellenzeile** zeigt Format und Host an, zum Beispiel `WMS, verbunden mit wms.nrw.de`. Ein **WFS**-Layer wird stattdessen als Kopie in GOAT importiert und zeigt `Aus WFS importiert (wfs.nrw.de)`.
 
 ## Mit einem Datensatz arbeiten
 

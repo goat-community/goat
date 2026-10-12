@@ -1,0 +1,162 @@
+{{- if .Values.core.enabled -}}
+{{- $component := "core" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ .Values.core.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "goat.serviceSelectorLabels" $ctx | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" $ctx | nindent 8 }}
+        {{- with .Values.core.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.core.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.core.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: core
+          image: {{ include "goat.image" (dict "image" .Values.core.image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ .Values.core.image.pullPolicy }}
+          {{- with .Values.core.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.core.service.targetPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "goat.serviceFullname" $ctx }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.postgresql.secretName" . }}
+                  key: {{ include "goat.postgresql.userKey" . }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.postgresql.secretName" . }}
+                  key: {{ include "goat.postgresql.passwordKey" . }}
+            {{- $auth := dict "values" .Values.core "root" $ }}
+            {{- if include "goat.auth.wired" $auth }}
+            {{- $secret := include "goat.auth.secretName" $auth }}
+            # OIDC env from the Keycloak Secret (core.auth / global.auth) —
+            # replaces the Keycloak placeholders in core.config (the ConfigMap
+            # drops them). A key set in core.extraEnv is left to extraEnv; AUTH
+            # set in core.config / core.extraEnv is left to that value.
+            {{- if not (include "goat.env.userSet" (dict "values" .Values.core "key" "AUTH")) }}
+            - name: AUTH
+              value: "true"
+            {{- end }}
+            {{- range $pair := list (list "KEYCLOAK_SERVER_URL" "serverUrl") (list "REALM_NAME" "realm") (list "KEYCLOAK_CLIENT_ID" "clientId") (list "KEYCLOAK_CLIENT_SECRET" "clientSecret") }}
+            {{- if not (include "goat.env.inExtraEnv" (dict "values" $.Values.core "key" (index $pair 0))) }}
+            - name: {{ index $pair 0 }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secret }}
+                  key: {{ include "goat.auth.secretKey" (merge (dict "key" (index $pair 1)) $auth) }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- include "goat.s3.env" (dict "root" $ "values" .Values.core "assets" true) | trim | nindent 12 }}
+            {{- with .Values.email }}
+            {{- if and .host .existingSecret (not (include "goat.env.inExtraEnv" (dict "values" $.Values.core "key" "SMTP_PASSWORD"))) }}
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .existingSecret }}
+                  key: {{ .existingSecretKey | default "smtp-password" }}
+            {{- end }}
+            {{- end }}
+            {{- $odoo := .Values.odoo | default dict }}
+            {{- with $odoo.support }}
+            {{- if and $odoo.url .existingSecret (not (include "goat.env.inExtraEnv" (dict "values" $.Values.core "key" "ODOO_SUPPORT_API_KEY"))) }}
+            - name: ODOO_SUPPORT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .existingSecret }}
+                  key: {{ .existingSecretKey | default "api-key" }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.core.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.core.livenessProbe.enabled }}
+          livenessProbe:
+            {{- $lp := omit .Values.core.livenessProbe "enabled" }}
+            {{- toYaml $lp | nindent 12 }}
+          {{- end }}
+          {{- if .Values.core.readinessProbe.enabled }}
+          readinessProbe:
+            {{- $rp := omit .Values.core.readinessProbe "enabled" }}
+            {{- toYaml $rp | nindent 12 }}
+          {{- end }}
+          {{- with .Values.core.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- $caBundle := include "goat.caBundle.enabled" . }}
+          {{- if or .Values.data.enabled .Values.core.extraVolumeMounts $caBundle }}
+          volumeMounts:
+            {{- if .Values.data.enabled }}
+            {{- include "goat.data.mounts.core" . | nindent 12 }}
+            {{- end }}
+            {{- if $caBundle }}
+            {{- include "goat.caBundle.mount" . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.core.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+      {{- if or .Values.data.enabled .Values.core.extraVolumes $caBundle }}
+      volumes:
+        {{- if .Values.data.enabled }}
+        {{- include "goat.data.volume" . | nindent 8 }}
+        {{- end }}
+        {{- if $caBundle }}
+        {{- include "goat.caBundle.volume" . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.core.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.core.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.core.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.core.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

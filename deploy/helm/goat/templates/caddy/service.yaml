@@ -1,0 +1,31 @@
+{{- if .Values.caddy.enabled -}}
+{{- $component := "caddy" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+  {{- with .Values.caddy.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.caddy.service.type }}
+  {{- with .Values.caddy.service.loadBalancerIP }}
+  loadBalancerIP: {{ . }}
+  {{- end }}
+  ports:
+    - name: http
+      port: {{ .Values.caddy.service.httpPort }}
+      targetPort: http
+      protocol: TCP
+    - name: https
+      port: {{ .Values.caddy.service.httpsPort }}
+      targetPort: https
+      protocol: TCP
+  selector:
+    {{- include "goat.serviceSelectorLabels" $ctx | nindent 4 }}
+{{- end }}

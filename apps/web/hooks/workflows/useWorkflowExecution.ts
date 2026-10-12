@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { dismissJob, useJobs } from "@/lib/api/processes";
 import {
   type WorkflowExecuteRequest,
+  WorkflowRefusedError,
   cleanupWorkflowTemp,
   executeWorkflow,
   finalizeWorkflowLayer,
@@ -15,6 +16,7 @@ import {
 import type { AppDispatch } from "@/lib/store";
 import { setRunningJobIds } from "@/lib/store/jobs/slice";
 import { selectEdges, selectNodes, selectVariables } from "@/lib/store/workflow/selectors";
+import { claimJobAnnouncement } from "@/lib/utils/jobAnnouncement";
 
 import { useAppSelector } from "@/hooks/store/ContextHooks";
 
@@ -372,12 +374,27 @@ export function useWorkflowExecution({ workflow, projectId, folderId }: UseWorkf
       toast.dismiss();
       toast.success(t("workflow_started"));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Execution failed";
+      let message = error instanceof Error ? error.message : t("execution_failed");
+      let refusedStatuses: Record<string, NodeExecutionStatus> = {};
+      if (error instanceof WorkflowRefusedError) {
+        // Name the nodes as the canvas shows them, and mark them there.
+        const names = error.refusedNodes
+          .map((id) => nodes.find((node) => node.id === id)?.data as { label?: string } | undefined)
+          .map((data) => data?.label)
+          .filter((label): label is string => !!label);
+        message =
+          names.length > 0
+            ? t("workflow_datasets_refused", { names: names.join(", ") })
+            : error.destinationRefused
+              ? t("workflow_destination_refused")
+              : message;
+        refusedStatuses = Object.fromEntries(error.refusedNodes.map((id) => [id, "failed" as const]));
+      }
       setState((s) => ({
         ...s,
         isExecuting: false,
         error: message,
-        nodeStatuses: {},
+        nodeStatuses: refusedStatuses,
       }));
       toast.dismiss();
       toast.error(`${t("workflow_failed")}: ${message}`);
@@ -409,7 +426,7 @@ export function useWorkflowExecution({ workflow, projectId, folderId }: UseWorkf
         toast.info(t("saving_layer"));
         return response.job_id;
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Save failed";
+        const message = error instanceof Error ? error.message : t("unknown_error");
         toast.error(`${t("save_failed")}: ${message}`);
         return null;
       }
@@ -588,8 +605,12 @@ export function useWorkflowExecution({ workflow, projectId, folderId }: UseWorkf
       // Allow reconnection if the same workflow is run again
       reconnectedRef.current = null;
 
-      toast.dismiss();
-      toast.success(t("workflow_completed"));
+      // Every tab with this workflow open sees the run end; only one says so
+      void claimJobAnnouncement(job.jobID).then((claimed) => {
+        if (!claimed) return;
+        toast.dismiss();
+        toast.success(t("workflow_completed"));
+      });
     } else if (job.status === "failed") {
       // Skip if we've already processed this job failure
       if (processedJobIdsRef.current.has(job.jobID)) {
@@ -651,8 +672,11 @@ export function useWorkflowExecution({ workflow, projectId, folderId }: UseWorkf
       // Allow reconnection if the same workflow is run again
       reconnectedRef.current = null;
 
-      toast.dismiss();
-      toast.error(`${t("workflow_failed")}: ${job.message || "Unknown error"}`);
+      void claimJobAnnouncement(job.jobID).then((claimed) => {
+        if (!claimed) return;
+        toast.dismiss();
+        toast.error(`${t("workflow_failed")}: ${job.message || t("unknown_error")}`);
+      });
     }
     // Note: Intentionally excluding runningJobIds from deps to avoid infinite loop
     // The dispatch only happens on job completion which happens once

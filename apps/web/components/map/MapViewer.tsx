@@ -136,14 +136,23 @@ const MapViewer: React.FC<MapProps> = ({
   // style change, so MapLibre's diff leaves them mounted and their tiles are
   // NOT refetched. Feeding the changed style through the prop instead would make
   // react-map-gl replace the whole style, dropping and re-adding every source.
+  //
+  // react-map-gl creates the map asynchronously, so the basemap can change
+  // before there is a map to swap (e.g. the editor correcting a basemap left in
+  // Redux by the previously opened project). That change stays pending here and
+  // handleMapLoad applies it, instead of it being dropped.
   const initialMapStyleRef = useRef(mapStyle);
   const appliedMapStyleRef = useRef(mapStyle);
-  useEffect(() => {
-    if (mapStyle === appliedMapStyleRef.current) return;
+  const latestMapStyleRef = useRef(mapStyle);
+  latestMapStyleRef.current = mapStyle;
+  const applyPendingMapStyle = useCallback(() => {
+    const target = latestMapStyleRef.current;
+    if (target === appliedMapStyleRef.current) return;
     const map = mapRef?.current?.getMap();
     if (!map) return;
-    const target = mapStyle;
     const swap = () => {
+      // handleMapLoad may already have applied it while this waited for idle.
+      if (appliedMapStyleRef.current === target) return;
       map.setStyle(target, {
         diff: true,
         transformStyle: (previous, next) => {
@@ -166,7 +175,10 @@ const MapViewer: React.FC<MapProps> = ({
     };
     if (map.isStyleLoaded()) swap();
     else map.once("idle", swap);
-  }, [mapStyle, mapRef]);
+  }, [mapRef]);
+  useEffect(() => {
+    applyPendingMapStyle();
+  }, [mapStyle, applyPendingMapStyle]);
 
   // Look up the layer that owns the currently-clicked feature. The clicked
   // ProjectLayer's own id (`projectLayerId`) wins — the same dataset can back
@@ -712,9 +724,11 @@ const MapViewer: React.FC<MapProps> = ({
 
       // Apply label language based on current locale
       applyMapLanguage(map, i18n.language);
+
+      applyPendingMapStyle();
     }
     onLoad && onLoad();
-  }, [layers, mapRef, onLoad, dispatch, i18n.language]);
+  }, [layers, mapRef, onLoad, dispatch, i18n.language, applyPendingMapStyle]);
 
   // Re-apply label language when locale changes or basemap style reloads
   useEffect(() => {
@@ -829,6 +843,8 @@ const MapViewer: React.FC<MapProps> = ({
           dragRotate={dragRotate}
           touchZoomRotate={touchZoomRotate}
           attributionControl={false}
+          // MapLibre's own UI strings; the canvas is announced by this title.
+          locale={{ "Map.Title": t("map") }}
           onMoveEnd={onMoveEnd}
           onClick={handleMapClick}
           onTouchStart={handleMapTouchStart}

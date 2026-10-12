@@ -275,10 +275,14 @@ describe("StarterCard", () => {
     );
 
     expect(screen.queryByText("Mobility")).not.toBeInTheDocument();
-    // One rendering only on a phone: the count, whatever the grid's width.
+    // One rendering only on a phone: the count, shown by the same container
+    // query as on a wider screen, so a narrow grid cell drops it instead of
+    // pushing it past the card's edge.
     expect(screen.queryByTestId("template-category-tags")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("template-category-count")).not.toBeInTheDocument();
+    const count = screen.getByTestId("template-category-count");
+    expect(count.getAttribute("aria-hidden")).toBeNull();
     const marker = screen.getByText("+3");
+    expect(count).toContainElement(marker);
     expect(marker.parentElement?.getAttribute("aria-label")).toBe("Mobility, Bicycle, Accessibility");
     expect(screen.getByText("3 hours ago")).toHaveStyle({ flexShrink: 0 });
   });

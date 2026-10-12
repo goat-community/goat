@@ -25,24 +25,34 @@ def boto_client_kwargs(
 ) -> dict[str, Any]:
     """Extra keyword arguments for ``boto3.client("s3", ...)``.
 
-    AWS without a custom endpoint keeps boto3's defaults. Anything else gets
+    Every client computes and validates checksums only where the operation
+    requires one: S3-compatible stores that do not accept the checksum
+    trailers boto3 sends by default reject those requests. Beyond that, AWS
+    without a custom endpoint keeps boto3's defaults, and anything else gets
     SigV4 with the addressing style chosen by ``use_path_style``.
     """
     from botocore.client import Config
 
+    checksums = Config(
+        request_checksum_calculation="when_required",
+        response_checksum_validation="when_required",
+    )
     kwargs: dict[str, Any] = {}
     if endpoint_url:
         kwargs["endpoint_url"] = endpoint_url
     if not endpoint_url and (provider or "aws").lower() == "aws":
+        kwargs["config"] = checksums
         return kwargs
-    kwargs["config"] = Config(
-        signature_version="s3v4",
-        s3={
-            "payload_signing_enabled": False,
-            "addressing_style": "path"
-            if use_path_style(provider, force_path_style)
-            else "virtual",
-        },
+    kwargs["config"] = checksums.merge(
+        Config(
+            signature_version="s3v4",
+            s3={
+                "payload_signing_enabled": False,
+                "addressing_style": "path"
+                if use_path_style(provider, force_path_style)
+                else "virtual",
+            },
+        )
     )
     return kwargs
 

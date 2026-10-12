@@ -1,10 +1,11 @@
 ---
+description: "Add a custom vector or raster basemap by URL or a single color, with sample URLs from common providers, sub-layer ordering and allowed basemaps in dashboards."
 sidebar_position: 7
 ---
 
 # Basemaps
 
-**Basemaps provide the background map layer for your project**, giving geographic context to your data — streets, terrain, satellite imagery, or a plain colour. GOAT supports any provider that offers a Style JSON URL (vector) or XYZ tile URL (raster).
+**Basemaps provide the background map layer for your project**, giving geographic context to your data: streets, terrain, satellite imagery, or a plain colour. GOAT supports any provider that offers a Style JSON URL (vector) or XYZ tile URL (raster).
 
 ## How to add a custom basemap
 
@@ -29,7 +30,7 @@ sidebar_position: 7
 </div>
 
 :::tip Single colour background
-Use the **Single Color** tab instead of a URL to set a flat colour as the map background — useful for print layouts or minimalist dashboards.
+Use the **Single Color** tab instead of a URL to set a flat colour as the map background, useful for print layouts or minimalist dashboards.
 :::
 
 ## Most common providers
@@ -66,7 +67,7 @@ Your MapTiler API key will be visible in shared projects. Use MapTiler Cloud's k
 
 ### Esri / ArcGIS
 
-Esri provides a variety of professional basemaps — no account or API key required.
+Esri provides a variety of professional basemaps. No account or API key is required.
 
 **Sample URL:**
 ```
@@ -77,7 +78,7 @@ https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/til
 
 ### OpenStreetMap
 
-OpenStreetMap (OSM) provides free, community-maintained basemaps — no account or API key required.
+OpenStreetMap (OSM) provides free, community-maintained basemaps. No account or API key is required.
 
 **Sample URL:**
 ```
@@ -92,7 +93,7 @@ OpenStreetMap's tile servers are intended for light use. For production or high-
 
 ### OpenFreeMap
 
-OpenFreeMap serves free vector basemaps built from OpenStreetMap data — no account, no API key and no usage limit. Its tiles follow the same OpenMapTiles schema the commercial providers use, so styles are largely interchangeable between them. GOAT's own built-in vector basemaps are served from here.
+OpenFreeMap serves free vector basemaps built from OpenStreetMap data, with no account, no API key and no usage limit. Its tiles follow the same OpenMapTiles schema the commercial providers use, so styles are largely interchangeable between them. GOAT's own built-in vector basemaps are served from here.
 
 **Sample URL:**
 ```
@@ -109,7 +110,7 @@ OpenFreeMap is a donation-funded service with no uptime guarantee. Its tiles are
 
 ### Carto Dark Matter
 
-Carto's Dark Matter style offers a dark, minimal basemap well suited to data-heavy maps where bright data visualisations need to stand out — no account or API key required.
+Carto's Dark Matter style offers a dark, minimal basemap well suited to data-heavy maps where bright data visualisations need to stand out. No account or API key is required.
 
 **Sample URL:**
 ```
@@ -122,7 +123,7 @@ For a broader list of compatible basemap providers and connection guides, see th
 
 ## Arrange basemap layers
 
-When editing a custom basemap, the **Layer** tab lets you control how each sub-layer group of that basemap is stacked relative to your own data layers — and toggle individual groups on or off.
+When editing a custom basemap, the **Layer** tab lets you control how each sub-layer group of that basemap is stacked relative to your own data layers, and toggle individual groups on or off.
 
 To access it, click the edit icon on a custom basemap in the basemap panel, then select the **Layer** tab.
 
@@ -137,9 +138,9 @@ The basemap is organised into five layer groups:
 | **Other** | Remaining layers |
 
 For each group you can:
-- **Toggle visibility** — show or hide the group entirely using the switch on the right
-- **Position** — choose `Above` or `Below` to control whether the group renders above or below your own layers
-- **Reference layer** — select which of your layers acts as the boundary (defaults to *All my layers*)
+- **Toggle visibility**: show or hide the group entirely using the switch on the right
+- **Position**: choose `Above` or `Below` to control whether the group renders above or below your own layers
+- **Reference layer**: select which of your layers acts as the boundary (defaults to *All my layers*)
 
 Click **Reset** to restore all groups to their default positions and visibility.
 
@@ -149,4 +150,4 @@ Place **Streets** above your data to keep roads legible over polygon overlays. P
 
 ## Basemaps in shared dashboards
 
-When you share a project as a public dashboard via the **Dashboard**, you can control which basemaps viewers are allowed to switch between. In the **Dashboard**, open the **Settings** tab and find the **Allowed basemaps** field. Select the basemaps you want to make available — if no restriction is set, all basemaps are shown to viewers.
+When you share a project as a public dashboard via the **Dashboard**, you can control which basemaps viewers are allowed to switch between. In the **Dashboard**, open the **Settings** tab and find the **Allowed basemaps** field. Select the basemaps you want to make available. If no restriction is set, all basemaps are shown to viewers.

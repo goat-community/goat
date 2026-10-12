@@ -1,0 +1,276 @@
+suite: DuckLake catalog init container (geoapi + processes)
+templates:
+  - geoapi/deployment.yaml
+  - geoapi/configmap.yaml
+  - processes/deployment.yaml
+  - processes/configmap.yaml
+tests:
+  - it: geoapi gets a ducklake-init init container in its own image, on by default
+    template: geoapi/deployment.yaml
+    set:
+      geoapi.image.tag: "v9.9.9"
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.initContainers
+          count: 1
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: ducklake-init
+      - equal:
+          path: spec.template.spec.initContainers[0].image
+          value: ghcr.io/plan4better/goat/geoapi:v9.9.9
+      - equal:
+          path: spec.template.spec.initContainers[0].command
+          value: ["sh", "-c"]
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "python -m goatlib\\.storage\\.ducklake_init"
+      - notMatchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "pip install"
+
+  - it: processes gets the same init container in the processes image
+    template: processes/deployment.yaml
+    set:
+      processes.image.tag: "v9.9.9"
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: ducklake-init
+      - equal:
+          path: spec.template.spec.initContainers[0].image
+          value: ghcr.io/plan4better/goat/processes:v9.9.9
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "python -m goatlib\\.storage\\.ducklake_init"
+
+  - it: honours global.imageRegistry like the main container
+    template: geoapi/deployment.yaml
+    set:
+      global.imageRegistry: my-mirror.example.com
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].image
+          pattern: "^my-mirror\\.example\\.com/plan4better/goat/geoapi:.+"
+
+  - it: carries the actionable DuckLake 0.3 -> 1.0 version-mismatch guidance
+    template: geoapi/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "\\[Cc\\]atalog\\\\ version\\\\ mismatch"
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "docs/ducklake-15-upgrade\\.md"
+
+  - it: redacts the Postgres password DuckDB echoes in attach errors
+    template: geoapi/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "password=REDACTED"
+
+  - it: redacts the literal POSTGRES_PASSWORD value, not just a password= token
+    template: geoapi/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: 'os\.environ\.get\("POSTGRES_PASSWORD",""\)'
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: 'd\.replace\(t,"REDACTED"\)'
+
+  # A catalog created with another DATA_PATH makes goatlib's init (which
+  # attaches WITHOUT OVERRIDE_DATA_PATH) fail forever, although the services
+  # (which pass it) run fine: treat that exact DuckDB error as success.
+  - it: exits 0 with a note when the catalog exists under a different data path
+    template: processes/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: '\*"does not match existing data path"\*\)\n(\s+echo [^\n]*\n)+\s+exit 0\n'
+
+  - it: gets the service's ConfigMap, Postgres credentials and extraEnv (S3_*)
+    template: geoapi/deployment.yaml
+    set:
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      geoapi.extraEnv:
+        - name: S3_ACCESS_KEY_ID
+          value: placeholder-s3-key
+        - name: S3_SECRET_ACCESS_KEY
+          value: placeholder-s3-secret
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].envFrom[0].configMapRef.name
+          value: RELEASE-NAME-goat-geoapi
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
+          value: RELEASE-NAME-goat-geoapi
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pg-secret
+                key: password
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: pg-secret
+                key: username
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: S3_ACCESS_KEY_ID
+            value: placeholder-s3-key
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: S3_SECRET_ACCESS_KEY
+            value: placeholder-s3-secret
+
+  - it: mounts the shared data volume at /app/data, like the service
+    template: processes/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].volumeMounts
+          value:
+            - name: goat-data
+              mountPath: /app/data
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: goat-data
+              mountPath: /app/data
+
+  - it: mounts the component's extraVolumeMounts too (e.g. a Postgres CA)
+    template: geoapi/deployment.yaml
+    set:
+      geoapi.extraVolumes:
+        - name: pg-ca
+          secret:
+            secretName: pg-ca
+      geoapi.extraVolumeMounts:
+        - name: pg-ca
+          mountPath: /etc/pg-ca
+          readOnly: true
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].volumeMounts
+          value:
+            - name: goat-data
+              mountPath: /app/data
+            - name: pg-ca
+              mountPath: /etc/pg-ca
+              readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: pg-ca
+            secret:
+              secretName: pg-ca
+
+  - it: extraVolumeMounts alone when the shared data volume is off
+    template: processes/deployment.yaml
+    set:
+      data.enabled: false
+      processes.extraVolumes:
+        - name: pg-ca
+          secret:
+            secretName: pg-ca
+      processes.extraVolumeMounts:
+        - name: pg-ca
+          mountPath: /etc/pg-ca
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].volumeMounts
+          value:
+            - name: pg-ca
+              mountPath: /etc/pg-ca
+
+  - it: no data mount when the shared data volume is off
+    template: geoapi/deployment.yaml
+    set:
+      data.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers[0].volumeMounts
+
+  - it: not rendered on geoapi when ducklakeBootstrap.enabled is false
+    template: geoapi/deployment.yaml
+    set:
+      ducklakeBootstrap.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+
+  - it: not rendered on processes when ducklakeBootstrap.enabled is false
+    template: processes/deployment.yaml
+    set:
+      ducklakeBootstrap.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+
+  # ── The catalog location the init container creates == the one read ─────
+  - it: geoapi ConfigMap pins DUCKLAKE_DATA_DIR / DUCKLAKE_CATALOG_SCHEMA to GOAT's defaults
+    template: geoapi/configmap.yaml
+    asserts:
+      - equal:
+          path: data.DUCKLAKE_DATA_DIR
+          value: /app/data/ducklake
+      - equal:
+          path: data.DUCKLAKE_CATALOG_SCHEMA
+          value: ducklake
+
+  - it: processes ConfigMap pins the same values
+    template: processes/configmap.yaml
+    asserts:
+      - equal:
+          path: data.DUCKLAKE_DATA_DIR
+          value: /app/data/ducklake
+      - equal:
+          path: data.DUCKLAKE_CATALOG_SCHEMA
+          value: ducklake
+
+  - it: ducklakeBootstrap.dataDir / catalogSchema drive both ConfigMaps
+    set:
+      ducklakeBootstrap.dataDir: /app/data/lake2
+      ducklakeBootstrap.catalogSchema: lake2
+    asserts:
+      - equal:
+          path: data.DUCKLAKE_DATA_DIR
+          value: /app/data/lake2
+        template: geoapi/configmap.yaml
+      - equal:
+          path: data.DUCKLAKE_CATALOG_SCHEMA
+          value: lake2
+        template: geoapi/configmap.yaml
+      - equal:
+          path: data.DUCKLAKE_DATA_DIR
+          value: /app/data/lake2
+        template: processes/configmap.yaml
+      - equal:
+          path: data.DUCKLAKE_CATALOG_SCHEMA
+          value: lake2
+        template: processes/configmap.yaml
+
+  - it: a component's own config key wins over ducklakeBootstrap.*
+    set:
+      processes.config.DUCKLAKE_DATA_DIR: /custom/lake
+      geoapi.config.DUCKLAKE_CATALOG_SCHEMA: custom
+    asserts:
+      - equal:
+          path: data.DUCKLAKE_DATA_DIR
+          value: /custom/lake
+        template: processes/configmap.yaml
+      - equal:
+          path: data.DUCKLAKE_CATALOG_SCHEMA
+          value: custom
+        template: geoapi/configmap.yaml

@@ -53,7 +53,11 @@ const getWidgetDisplayName = (widget: BuilderWidgetSchema, t: (key: string) => s
   // Try to get title from setup
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const title = (config as any)?.setup?.title;
-  if (title) return title;
+  if (typeof title === "string" && title) {
+    // Widget titles are rich-text HTML; list them as plain text.
+    const text = new DOMParser().parseFromString(title, "text/html").body.textContent?.trim();
+    if (text) return text;
+  }
 
   // Fall back to translated type name
   return t(config.type);

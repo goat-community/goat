@@ -89,7 +89,7 @@ describe("FeatureTable", () => {
 
   it("offers an expander only when the layer has an object field", () => {
     const { rerender } = render(<FeatureTable fields={FIELDS} data={data([{ name: "Alpha" }])} />);
-    expect(screen.queryByLabelText("expand row")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("expand_row")).not.toBeInTheDocument();
 
     rerender(
       <FeatureTable
@@ -97,7 +97,7 @@ describe("FeatureTable", () => {
         data={data([{ name: "Alpha", details: { a: 1 } }])}
       />
     );
-    const expander = screen.getByLabelText("expand row");
+    const expander = screen.getByLabelText("expand_row");
     expect(expander).toBeInTheDocument();
     // The object column is not a data column of its own.
     expect(screen.queryByText("details")).not.toBeInTheDocument();

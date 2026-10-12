@@ -102,6 +102,8 @@ describe("parseCQLQueryToObject", () => {
     expect(
       roundTrip(expression({ attribute: "groundelev", expression: "is_at_least", value: 5 }))
     ).toMatchObject({ expression: "is_at_least", value: 5 });
+    expect(roundTrip(expression({ expression: "is_true" }))).toMatchObject({ expression: "is_true" });
+    expect(roundTrip(expression({ expression: "is_false" }))).toMatchObject({ expression: "is_false" });
   });
 
   it("returns nothing for an absent filter", () => {

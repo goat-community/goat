@@ -1,4 +1,5 @@
 ---
+description: "Group up to 2,000 points into a set number of zones with fast K-Means or Balanced Zones, a genetic algorithm that evens out zone size by count or field value."
 sidebar_position: 6
 ---
 
@@ -19,9 +20,9 @@ The Spatial Clustering tool **creates clustered zones by grouping nearby feature
 
 The Spatial Clustering tool groups a set of spatial features into a specified number of spatial zones. It offers two clustering methods:
 
-- **K-Means** — A fast, geometry-based method that groups features by proximity to cluster centers. This method does not aim to provide equal-sized zones.
+- **K-Means**: A fast, geometry-based method that groups features by proximity to cluster centers. This method does not aim to provide equal-sized zones.
 
-- **Balanced Zones** — A genetic algorithm that creates zones with **near-equal sizes**, either by feature count or by a numeric field value. This method also supports **compactness constraints** to limit the spatial spread of each zone.
+- **Balanced Zones**: A genetic algorithm that creates zones with **near-equal sizes**, either by feature count or by a numeric field value. This method also supports **compactness constraints** to limit the spatial spread of each zone.
 
 <!-- TODO: Add illustration showing K-means vs Balanced zones
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
@@ -68,7 +69,7 @@ The Spatial Clustering tool is currently **limited to point features only**. It 
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Set the <code>Number of Clusters</code> — the number of zones to create (default: 10).</div>
+  <div class="content">Set the <code>Number of Clusters</code>: the number of zones to create (default: 10).</div>
 </div>
 
 ### Configuration
@@ -105,7 +106,7 @@ Additional configuration options become available:
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">If using <b>Field Value</b>, select the <code>Size Field</code> — a numeric field from your input layer to use as the balancing weight.</div>
+  <div class="content">If using <b>Field Value</b>, select the <code>Size Field</code>: a numeric field from your input layer to use as the balancing weight.</div>
 </div>
 
 <div class="step">
@@ -122,8 +123,8 @@ Additional configuration options become available:
 
 Once the calculation is complete, **two result layers** will be added to the map:
 
-1. **Features layer** — The original input features, each assigned a `cluster_id`.
-2. **Summary layer** — One multigeometry feature per zone, with zone statistics (size, maximum distance between features).
+1. **Features layer**: The original input features, each assigned a `cluster_id`.
+2. **Summary layer**: One multigeometry feature per zone, with zone statistics (size, maximum distance between features).
 
 
 <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -142,9 +143,9 @@ Want to create visually compelling maps that tell a clear story? Learn how to cu
 
 The K-Means algorithm works iteratively:
 
-1. **Initialization** — *k* initial centroids are chosen using a furthest-point strategy for better spread.
-2. **Assignment** — Each feature is assigned to the nearest centroid based on Euclidean distance (in projected coordinates).
-3. **Update** — Centroids are recalculated as the mean position of all assigned features.
+1. **Initialization**: *k* initial centroids are chosen using a furthest-point strategy for better spread.
+2. **Assignment**: Each feature is assigned to the nearest centroid based on Euclidean distance (in projected coordinates).
+3. **Update**: Centroids are recalculated as the mean position of all assigned features.
 4. **Repeat** until centroids converge or the maximum number of iterations is reached.
 
 ### Balanced Zones 
@@ -157,16 +158,16 @@ The Balanced Zones method uses a **genetic algorithm** to find optimal spatial g
 4. The best solutions are combined and mutated across multiple generations to progressively improve the result.
 5. The algorithm stops when no further improvement is found or the maximum number of generations is reached.
 
-The algorithm uses **spatial neighbor graphs** to ensure contiguous zone growth — features are assigned to zones through their spatial neighbors, promoting compact and connected clusters.
+The algorithm uses **spatial neighbor graphs** to ensure contiguous zone growth: features are assigned to zones through their spatial neighbors, promoting compact and connected clusters.
 
 
 #### Fitness function:
 Each candidate solution is scored based on:
-- **Size variance** — How evenly the zones are sized (primary objective).
-- **Compactness penalty** (optional) — Penalizes zones where the maximum distance threshold is exceeded.
+- **Size variance**: How evenly the zones are sized (primary objective).
+- **Compactness penalty** (optional): Penalizes zones where the maximum distance threshold is exceeded.
 
 
-All constraints (equal size, compactness) are **soft constraints** — the algorithm optimizes toward them but does not enforce them as hard limits.
+All constraints (equal size, compactness) are **soft constraints**: the algorithm optimizes toward them but does not enforce them as hard limits.
 
 #### Algorithm parameters:
 

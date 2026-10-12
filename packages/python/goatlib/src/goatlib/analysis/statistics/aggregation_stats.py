@@ -56,6 +56,10 @@ def calculate_aggregation_stats(
             f"operation_column is required for operation '{operation.value}'"
         )
 
+    # Written into the SQL, so it must be a number whatever the caller passed:
+    # a string here would be SQL.
+    limit = max(int(limit), 0)
+
     # One DESCRIBE for every identifier this call validates. Only the
     # expression operation is exempt: there `operation_column` carries raw SQL
     # that the caller has already put through the expression validator.

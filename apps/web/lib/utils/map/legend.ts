@@ -38,7 +38,9 @@ const createRangeAndColor = (
 
 export function getLegendColorMap(
   properties: Record<string, unknown> | null,
-  type: "color" | "stroke_color"
+  type: "color" | "stroke_color",
+  /** Label of the "no data" row when the style gives none, in the reader's language. */
+  noDataFallback = "No data"
 ): ColorMapItem[] {
   const colorMap: ColorMapItem[] = [];
   if (!properties) return colorMap;
@@ -190,7 +192,7 @@ export function getLegendColorMap(
   // 3. Append "No data" entry when a visible no-data color is configured
   const noDataColor = properties[`${type}_no_data`] as string | undefined;
   if (noDataColor && noDataColor !== "transparent" && properties[`${type}_field`]) {
-    const noDataLabel = colorLegends?.["no_data"] || "No data";
+    const noDataLabel = colorLegends?.["no_data"] || noDataFallback;
     colorMap.push({ value: null, color: noDataColor, label: noDataLabel });
   }
 

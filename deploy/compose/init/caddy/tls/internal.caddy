@@ -1,0 +1,3 @@
+# Certificate from Caddy's own CA (root in caddy-data: caddy/pki/authorities/local/root.crt)
+tls internal
+header Strict-Transport-Security "max-age=31536000"

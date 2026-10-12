@@ -50,6 +50,13 @@ from processes.models.processes import (
     StatusCode,
     StatusInfo,
 )
+from processes.services.access import (
+    analytics_references,
+    empty_copy_of_template,
+    ensure_allowed,
+    ensure_empty_copy_of_template,
+    tool_references,
+)
 from processes.services.analytics_registry import (
     LayerSearchProcessInput,
     analytics_registry,
@@ -223,7 +230,9 @@ def is_public_allowed_process(process_id: str) -> bool:
     return process_id in PUBLIC_ALLOWED_PROCESSES
 
 
-def _execute_analytics_sync(process_id: str, inputs: dict[str, Any]) -> dict[str, Any]:
+def _execute_analytics_sync(
+    process_id: str, inputs: dict[str, Any], user_id: UUID | None = None
+) -> dict[str, Any]:
     """Execute an analytics process synchronously.
 
     Args:
@@ -309,6 +318,7 @@ def _execute_analytics_sync(process_id: str, inputs: dict[str, Any]) -> dict[str
             return analytics_service.preview_sql(
                 sql_query=inputs.get("sql_query", ""),
                 layers=inputs.get("layers", {}),
+                user_id=user_id,
                 limit=inputs.get("limit", 10),
                 offset=inputs.get("offset", 0),
                 filter_expr=inputs.get("filter_expr"),
@@ -560,6 +570,38 @@ async def get_process(request: Request, process_id: str) -> ProcessDescription:
 # === Process Execution ===
 
 
+# Numeric analytics inputs -> their cap. Statistics write some of them into
+# their SQL, so anything but a whole number is refused before a query is
+# built; a larger number is lowered to the cap, so a request cannot size the
+# work (bins, classes, rows) without bound.
+_WHOLE_NUMBER_INPUTS: dict[str, int | None] = {
+    "limit": 10_000,
+    "offset": None,
+    "breaks": 100,
+    "num_bins": 1_000,
+}
+
+
+def _require_whole_numbers(inputs: dict[str, Any]) -> None:
+    for name, cap in _WHOLE_NUMBER_INPUTS.items():
+        value = inputs.get(name)
+        if value is None:
+            continue
+        if not isinstance(value, bool) and isinstance(value, int) and value >= 0:
+            if cap is not None and value > cap:
+                inputs[name] = cap
+            continue
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "type": OGC_EXCEPTION_INVALID_PARAMETER,
+                "title": "Invalid parameter",
+                "status": 422,
+                "detail": f"{name} must be a whole number",
+            },
+        )
+
+
 @router.post(
     "/processes/{process_id}/execution",
     summary="Execute a process",
@@ -655,6 +697,12 @@ async def execute_process(
                 },
                 headers={"WWW-Authenticate": "Bearer"},
             )
+        _require_whole_numbers(execute_request.inputs)
+        # Every layer the query reads must be readable by the caller (a
+        # layer of a published project is readable by anyone).
+        await ensure_allowed(
+            user_id, analytics_references(process_id, execute_request.inputs)
+        )
         global _layer_search_inflight
         is_search = process_id == "layer-search"
         if is_search and _layer_search_inflight >= _LAYER_SEARCH_MAX_INFLIGHT:
@@ -685,6 +733,7 @@ async def execute_process(
                         _execute_analytics_sync,
                         process_id,
                         execute_request.inputs,
+                        user_id,
                     ),
                     timeout=settings.ANALYTICS_QUERY_TIMEOUT,
                 )
@@ -728,11 +777,27 @@ async def execute_process(
             },
         )
 
+    # The tool runs with service credentials: check here that the caller may
+    # read every layer it names and write where it puts its result.
+    await ensure_allowed(
+        user_id, tool_references(tool_info.name, execute_request.inputs, user_id)
+    )
+    empty_copy = empty_copy_of_template(tool_info.name, execute_request.inputs)
+    if empty_copy:
+        await ensure_empty_copy_of_template(*empty_copy)
+
     # Use the windmill_path from the registry (ensures correct casing)
     script_path = tool_info.windmill_path
 
-    # Add user_id to inputs for job tracking
-    job_inputs = {**execute_request.inputs, "user_id": str(user_id)}
+    # The server says who runs the job; a caller-supplied identity is dropped.
+    job_inputs = {
+        **{
+            key: value
+            for key, value in execute_request.inputs.items()
+            if key not in ("_triggered_by_email", "triggered_by_email")
+        },
+        "user_id": str(user_id),
+    }
 
     # Pass access_token and refresh_token to print_report for Playwright authentication
     # The refresh_token allows the worker to refresh expired access tokens during long atlas jobs

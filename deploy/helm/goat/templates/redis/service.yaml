@@ -1,0 +1,19 @@
+{{- if .Values.redis.enabled -}}
+{{- $ctx := dict "context" . "component" "redis" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+      protocol: TCP
+  selector:
+    {{- include "goat.serviceSelectorLabels" $ctx | nindent 4 }}
+{{- end -}}

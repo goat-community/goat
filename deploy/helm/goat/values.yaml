@@ -1,0 +1,1179 @@
+# Ships templates for: core, web, catalog, geoapi, processes, windmill,
+# caddy, ducklake/postgresql bootstrap. Defaults: core, web, catalog, geoapi
+# and processes enabled (a bare install deploys the full data plane);
+# windmill and caddy remain opt-in (see comments above each block for why).
+
+
+# ─── Global ────────────────────────────────────────────────────────────────
+nameOverride: ""
+fullnameOverride: ""
+
+global:
+  imageRegistry: ""                # override for airgap mirrors (e.g. "harbor.internal")
+  imagePullSecrets: []             # e.g. [{name: ghcr-pull-secret}]
+  commonLabels: {}
+  storageClass: ""                 # default StorageClass for all PVCs ("" = cluster default)
+
+  # ── Authentication (OIDC / Keycloak) — ONE switch for the whole release ──
+  # core, web, geoapi, processes and catalog all follow `global.auth.enabled`
+  # unless their own `<service>.auth.enabled` says otherwise. Every service
+  # always gets an explicit AUTH=true/false; none falls back to its code
+  # default (geoapi and processes default to AUTH on, against plan4better's
+  # own Keycloak — chart 0.5.0 left them there while the rest ran auth off).
+  #
+  # Off (default): every service runs without login. core seeds a default
+  # user/organization and the others act as that user. Fine for a
+  # single-tenant evaluation install; put it behind your own access control.
+  #
+  # On, with `existingSecret` (recommended): the chart reads Keycloak from
+  # that K8s Secret (release namespace) via secretKeyRef:
+  #   core      AUTH=true, KEYCLOAK_SERVER_URL, REALM_NAME, KEYCLOAK_CLIENT_ID,
+  #             KEYCLOAK_CLIENT_SECRET
+  #   web       AUTH=true, NEXT_PUBLIC_AUTH=true, NEXT_PUBLIC_KEYCLOAK_ISSUER
+  #             (built from server-url + realm), NEXT_PUBLIC_KEYCLOAK_CLIENT_ID,
+  #             KEYCLOAK_CLIENT_SECRET, NEXTAUTH_SECRET
+  #   geoapi, processes, catalog
+  #             AUTH=true, KEYCLOAK_SERVER_URL, REALM_NAME
+  #
+  # On, without a Secret: AUTH=true only. geoapi and processes (and the
+  # catalog, on or off) take KEYCLOAK_SERVER_URL / REALM_NAME from
+  # core.config.KEYCLOAK_SERVER_URL / core.config.REALM_NAME when set; core
+  # and web keep whatever their `config` holds (placeholders by default).
+  #
+  # Per-service overrides: `<service>.auth.enabled: true|false` beats this
+  # switch, `<service>.auth.existingSecret` beats `existingSecret`, and each
+  # `<service>.auth.existingSecretKeys.<key>` beats the one here. A key set
+  # explicitly in `<service>.config` or `<service>.extraEnv` (AUTH,
+  # KEYCLOAK_SERVER_URL, REALM_NAME) beats all of it — the chart then renders
+  # that key nowhere else. The one exception: the Keycloak PLACEHOLDERS that
+  # core.config and web.config ship by default are replaced by the Secret
+  # whenever that service is wired to one (as in 0.5.0).
+  auth:
+    enabled: false
+    existingSecret: ""
+    # Key names inside the Secret. Only the keys a service reads need to
+    # exist: geoapi/processes/catalog read serverUrl + realm; core adds
+    # clientId + clientSecret; web adds nextauthSecret.
+    existingSecretKeys:
+      serverUrl: server-url          # e.g. https://idm.example.com (no /realms/...)
+      realm: realm                   # e.g. goat
+      clientId: client-id            # e.g. goat-web (core token validation + web login)
+      clientSecret: client-secret    # the Keycloak-generated client secret
+      nextauthSecret: nextauth-secret  # NextAuth.js signing key (web only)
+
+    # Invitations to an email with no Keycloak account yet: true makes core
+    # create the account and Keycloak email a link to set the password
+    # (KEYCLOAK_PROVISION_INVITED_USERS). Needed when the realm has
+    # self-registration off; core's client then needs a service account with
+    # the realm-management roles `view-users` and `manage-users`. false (the
+    # default) leaves account creation to the realm's own registration page.
+    provisionInvitedUsers: false
+
+  # ── Company CA ───────────────────────────────────────────────────────────
+  # A private CA certificate (PEM) the services trust in addition to the
+  # public CAs: core for the SMTP relay (GOAT_CA_BUNDLE), web for Keycloak
+  # (NODE_EXTRA_CA_CERTS), the Windmill print, tools and workflows workers
+  # for the pages and services they call (GOAT_CA_BUNDLE). Name a ConfigMap
+  # or a Secret in the release namespace and the key holding the PEM; the
+  # chart mounts it at /etc/goat/ca/ca.pem. Both empty = public CAs only.
+  caBundle:
+    existingConfigMap: ""
+    existingSecret: ""
+    key: ca.crt
+
+  # ── Object storage (S3) — ONE store for the whole release ────────────────
+  # GOAT keeps uploads (datasets, exports, prints) in `bucket` and uploaded
+  # images in `assets.bucket`. core, geoapi, processes and the Windmill print,
+  # tools and workflows workers all get these settings once `bucket` is set;
+  # a variable set in a service's own `config` or `extraEnv` wins.
+  # Unset, the services start without storage: uploads and prints fail.
+  s3:
+    bucket: ""                     # S3_BUCKET_NAME, e.g. goat-uploads
+    provider: ""                   # S3_PROVIDER: aws, hetzner, minio, garage, …; minio forces path-style URLs
+    endpointUrl: ""                # S3_ENDPOINT_URL, how the pods reach the store; empty = AWS
+    publicEndpointUrl: ""          # S3_PUBLIC_ENDPOINT_URL, how browsers reach it (upload links), if different
+    region: ""                     # S3_REGION
+    forcePathStyle: false          # S3_FORCE_PATH_STYLE: path-style URLs (most stores outside AWS)
+    # Access key pair, from a Secret in the release namespace.
+    existingSecret: ""
+    existingSecretKeys:
+      accessKeyId: access-key-id
+      secretAccessKey: secret-access-key
+    # Uploaded images (project and dataset thumbnails, avatars, dashboard
+    # images), in the same store: core serves them from `publicUrl`, the
+    # bucket's public URL, so the bucket must be publicly readable. With an
+    # `endpointUrl` set, `publicUrl` is required.
+    assets:
+      bucket: goat-assets          # AWS_S3_ASSETS_BUCKET
+      publicUrl: ""                # ASSETS_URL, e.g. https://assets.example.org
+
+# ─── Email ─────────────────────────────────────────────────────────────────
+# The SMTP server core sends invitations and notifications through. Email is
+# off while `host` is empty. Keycloak sends its own emails (password resets,
+# the set-password link for invited accounts) with the SMTP settings of its
+# realm: set the same server there (Realm settings → Email).
+# Every key here is rendered into core's environment unless core.config or
+# core.extraEnv sets the same variable.
+email:
+  host: ""                         # SMTP_HOST, e.g. smtp.example.org
+  port: 587                        # SMTP_PORT
+  security: starttls               # SMTP_SECURITY: starttls (usually 587), ssl (465) or none (e.g. a relay on 25)
+  user: ""                         # SMTP_USER; empty for a relay that accepts mail without login
+  from: ""                         # SMTP_FROM; defaults to `user`, required for a relay without login
+  fromName: GOAT                   # EMAILS_FROM_NAME
+  # The SMTP password (SMTP_PASSWORD), from a Secret in the release namespace.
+  existingSecret: ""
+  existingSecretKey: smtp-password
+  # Branding of GOAT's own emails. Without a logo URL they carry GOAT's logo
+  # from the web app (<web URL>/assets/...); without contact or privacy URL
+  # the footer has no links.
+  brandName: GOAT                  # EMAIL_BRAND_NAME
+  logoUrl: ""                      # EMAIL_LOGO_URL
+  contactUrl: ""                   # EMAIL_CONTACT_URL
+  privacyUrl: ""                   # EMAIL_PRIVACY_URL
+
+# ─── Plan4Better's Odoo ────────────────────────────────────────────────────
+# Optional, off by default, SaaS only. GOAT's Odoo integrations share the
+# connection (`url`, `db`); each has its own block and its own API key, which
+# Plan4Better issues for its own Odoo: leave this block empty on your own
+# installation unless you received one. Every key here is rendered into core's
+# environment unless core.config or core.extraEnv sets the same variable.
+odoo:
+  url: ""                          # ODOO_URL, e.g. https://odoo.example.org
+  db: ""                           # ODOO_DB
+  # Support tickets: GOAT hands problem reports to an Odoo Helpdesk. Without
+  # it the app shows "Report a problem" as an email address plus the
+  # documentation, and core serves no /api/v2/support routes. On only when
+  # `odoo.url`, `odoo.db`, `teamId` and the API key (`existingSecret`) are set.
+  # Uploads on /api/v2/support take up to 55 MiB per request: an ingress or
+  # proxy in front of core must allow bodies of at least 56 MB there
+  # (ingress-nginx: `nginx.ingress.kubernetes.io/proxy-body-size: "56m"` on
+  # core.ingress, plus generous `proxy-read-timeout` / `proxy-send-timeout`).
+  support:
+    teamId: ""                     # ODOO_SUPPORT_TEAM_ID, the Helpdesk team's numeric id
+    # Odoo server action that posts a message as the ticket participant
+    postAction: "GOAT: post message as ticket participant"   # ODOO_SUPPORT_POST_ACTION
+    # The API key (ODOO_SUPPORT_API_KEY), from a Secret in the release namespace.
+    existingSecret: ""
+    existingSecretKey: api-key
+
+# ─── Shared data volume ────────────────────────────────────────────────────
+# ONE volume, mounted by seven components. The windmill tools and workflows
+# workers WRITE to it (the catalog mirror via sync_catalog, the geoip database
+# via sync_geoip, materialized catalog layers and their PMTiles); catalog, core
+# and geoapi READ from it. Without a volume they all share, those features
+# silently do nothing — catalog serves an empty STAC, core skips the geoip
+# lookup, geoapi finds no materialized layers.
+#
+# ⚠ accessMode: on a MULTI-NODE cluster this must be ReadWriteMany, and your
+# cluster must have an RWX-capable StorageClass (NFS, CephFS, Longhorn RWX).
+# The default is ReadWriteOnce because it works out of the box on single-node
+# and default-StorageClass clusters; with RWX requested and no RWX storage
+# available the PVC sits Pending and `helm install --wait` hangs with no
+# obvious cause. Set it deliberately.
+data:
+  enabled: true
+  # Bring your own claim (e.g. a pre-provisioned NFS PVC). When set, the chart
+  # mounts it and creates no PVC of its own.
+  existingClaim: ""
+  accessMode: ReadWriteOnce
+  size: 200Gi
+  storageClassName: ""             # falls back to global.storageClass
+
+# ─── Core service ──────────────────────────────────────────────────────────
+core:
+  enabled: true                    # default ON per spec D11 (chart-level maximal)
+  replicaCount: 1
+  image:
+    registry: ghcr.io
+    repository: plan4better/goat/core
+    tag: ""                        # "" = use .Chart.AppVersion
+    pullPolicy: IfNotPresent
+
+  # Static, non-secret env vars (rendered into a ConfigMap in Task 6)
+  config:
+    ENVIRONMENT: prod
+    # Trust X-Forwarded-Proto/-Host/-For from the ingress. TLS usually ends at
+    # the ingress, so without this uvicorn only trusts 127.0.0.1, sees plain
+    # http, and builds redirects (and geoapi's OGC links) as http:// on an
+    # https site. "*" is safe when the pod is reachable only through the
+    # ingress and the cluster network; narrow it to the ingress controller's
+    # pod CIDR if other clients can reach the pod directly.
+    FORWARDED_ALLOW_IPS: "*"
+    REGION_MAPPING_PT_TABLE: "basic.region_mapping_pt_04022025"
+    JOB_TIMEOUT_DEFAULT: "500"
+    CRUD_NUM_RETRIES: "40"
+    CRUD_RETRY_INTERVAL: "3"
+    # The two subtrees of the shared `data` volume core reads, and only reads.
+    # Defaults match the mount paths the chart sets up; change them only if you
+    # mount the volume somewhere else.
+    CATALOG_DATA_DIR: "/app/data/catalog"
+    GEOIP_DATA_DIR: "/app/data/geoip"
+    # S3 for uploads and uploaded images comes from global.s3. To keep the
+    # images in another store, set AWS_S3_ASSETS_BUCKET, ASSETS_URL,
+    # ASSETS_S3_ENDPOINT_URL and ASSETS_S3_FORCE_PATH_STYLE here (with
+    # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY in extraEnv); they win.
+    #
+    # GOAT's own artwork (default thumbnails, avatars, logos) ships in the web
+    # image and is served under /assets. Set STATIC_ASSETS_URL only to load it
+    # from somewhere else.
+    # STATIC_ASSETS_URL: ""
+    #
+    # CLIENT_URL (links in invitation emails) and API_URL (links in activation
+    # emails) are derived from web.auth.publicUrl or web's ingress, and from
+    # web.publicUrls.api or core's ingress (+ /api/v2). Set them here to
+    # override.
+    #
+    # Placeholders that let the pod start; override with real values for any
+    # features you actually use.
+    MAPBOX_TOKEN: "placeholder"
+    KEYCLOAK_SERVER_URL: "http://placeholder-keycloak"
+    GOAT_ROUTING_HOST: "http://placeholder-routing"
+    R5_HOST: "http://placeholder-r5"
+    R5_AUTHORIZATION: "placeholder"
+    GOAT_ROUTING_AUTHORIZATION: "placeholder"
+    # Where new projects open, as a JSON object with InitialViewState's keys.
+    # Hosted GOAT leaves this unset and geolocates the creator — but on-prem
+    # users arrive from private addresses, which never geolocate, so set this
+    # to pin your deployment to its own region. ALL SEVEN fields are required
+    # (apps/core/src/core/schemas/project.py InitialViewState has no
+    # defaults) — an incomplete value fails validation and is silently
+    # IGNORED (only a log line, no startup error, new projects keep falling
+    # through to the world view). Example:
+    # DEFAULT_PROJECT_VIEW_STATE: '{"latitude":48.14,"longitude":11.57,"zoom":11,"min_zoom":0,"max_zoom":20,"bearing":0,"pitch":0}'
+    #
+    # Organization whose space owns the seeded GOAT layout starters. Empty
+    # falls back to the default user's personal space.
+    # GOAT_TEMPLATES_ORGANIZATION_ID: "<uuid>"
+
+  # Arbitrary extra env (name/value or valueFrom entries, passthrough).
+  extraEnv: []
+
+  # Mount extra volumes alongside the chart-managed `data` volume (e.g. CA
+  # bundles). Both lists are appended to what the chart mounts, never replace it.
+  extraVolumes: []
+  extraVolumeMounts: []
+
+  # OIDC/Keycloak — per-service override of `global.auth` (see there). Leave
+  # everything unset to follow the global switch. When wired to a Secret,
+  # core reads server-url, realm, client-id and client-secret from it and the
+  # Keycloak placeholders above are dropped from the ConfigMap. The
+  # civitas-goat-addon provisions this Secret in civitas-core deployments.
+  auth:
+    enabled: null                  # null = global.auth.enabled; true/false overrides it
+    existingSecret: ""             # "" = global.auth.existingSecret
+    existingSecretKeys: {}         # per key; unset keys = global.auth.existingSecretKeys
+
+  # Schema migrations + SQL function/trigger install, run as a Helm hook
+  # (post-install for the fresh-install bootstrap, pre-upgrade so migrations
+  # land before new pods roll). `alembic upgrade head` +
+  # `core.scripts.initial_data`; both idempotent. Disable to manage the
+  # schema out-of-band.
+  migrate:
+    enabled: true
+    # Seconds to wait for Postgres before giving up (fresh installs: the
+    # bundled CNPG cluster needs time to come up).
+    waitForDbSeconds: 300
+    resources: {}
+
+  resources: {}                    # request/limit; empty = no enforcement
+
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+    annotations: {}
+
+  ingress:
+    enabled: false                 # consumers turn on as needed
+    className: ""
+    # With the `support` block on, this ingress must accept request bodies of
+    # at least 56 MB on /api/v2/support (ingress-nginx defaults to 1 MB), e.g.
+    #   nginx.ingress.kubernetes.io/proxy-body-size: "56m"
+    #   nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    #   nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    annotations: {}
+    hosts: []
+    tls: []
+
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  podLabels: {}
+
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /api/healthz
+      port: http
+    initialDelaySeconds: 20
+    timeoutSeconds: 60
+    periodSeconds: 120
+    failureThreshold: 3
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /api/healthz
+      port: http
+    initialDelaySeconds: 10
+    timeoutSeconds: 60
+    periodSeconds: 120
+    failureThreshold: 3
+    successThreshold: 1
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+# ─── Web (Next.js frontend) ────────────────────────────────────────────────
+web:
+  enabled: true
+  replicaCount: 1
+  image:
+    registry: ghcr.io
+    repository: plan4better/goat/web
+    tag: ""                        # "" = .Chart.AppVersion
+    pullPolicy: IfNotPresent
+  config:
+    HOSTNAME: "0.0.0.0"
+    # NextAuth env vars — needed even when auth disabled (Next.js validates presence)
+    NEXTAUTH_URL: "http://localhost:3000"
+    NEXTAUTH_SECRET: "placeholder-nextauth-secret"
+    KEYCLOAK_ISSUER: "http://placeholder-keycloak/realms/placeholder"
+    KEYCLOAK_CLIENT_ID: "goat-web"
+    KEYCLOAK_CLIENT_SECRET: "placeholder"
+    NEXT_PUBLIC_AUTH: "false"
+  # Browser-facing URLs, substituted into the client bundle by the image
+  # entrypoint. These are what the USER'S BROWSER calls, so cluster DNS will
+  # not do — they must be the public ingress URLs.
+  #
+  # Left empty, each is derived from that service's own ingress block (scheme
+  # from its TLS, host from its first entry). Set one here to override.
+  #
+  # IMPORTANT: if `api` stays empty AND core.ingress has no hosts, the web
+  # UI WILL NOT LOAD. The browser bundle is built with literal
+  # APP_NEXT_PUBLIC_* sentinels that the entrypoint only rewrites for
+  # variables it can resolve; an unresolved NEXT_PUBLIC_API_URL reaches
+  # client JS as that sentinel string, and `new URL(..., NEXT_PUBLIC_API_URL)`
+  # throws at module load, white-screening the app. Set at least `api` here,
+  # or give `core` an ingress with a host, before relying on this default.
+  publicUrls:
+
+    api: ""                        # NEXT_PUBLIC_API_URL      — core
+    geoapi: ""                     # NEXT_PUBLIC_GEOAPI_URL   — geoapi
+    processes: ""                  # NEXT_PUBLIC_PROCESSES_URL — processes
+    # NEXT_PUBLIC_CATALOG_URL. The app falls back to ${geoapi}/stac when unset,
+    # which is right when the catalog is path-routed behind the geoapi host.
+    # The chart gives catalog its own Service, so it sets this explicitly
+    # whenever catalog has an ingress of its own.
+    catalog: ""
+
+  # Home's blog strip, "What's new" popper and status card, all fetched by the
+  # browser. Every one of those surfaces stays hidden while these are empty,
+  # which is the right default for a self-hosted install: they point at
+  # plan4better's own feeds.
+  websiteUrl: ""                   # NEXT_PUBLIC_WEBSITE_URL
+  statusFeedUrl: ""                # NEXT_PUBLIC_STATUS_FEED_URL
+  # Address of "Report a problem" (a mailto link while support tickets are off)
+  # and of the "support unavailable" messages. Empty = support@plan4better.de;
+  # set your own address for a white-label installation.
+  supportEmail: ""                 # NEXT_PUBLIC_SUPPORT_EMAIL
+  extraEnv: []
+  # Mount extra volumes (e.g. CA bundles for NextAuth to trust self-signed
+  # Keycloak certs via NODE_EXTRA_CA_CERTS).
+  extraVolumes: []
+  extraVolumeMounts: []
+  # OIDC/Keycloak — per-service override of `global.auth` (see there). When
+  # wired to a Secret, web reads server-url, realm, client-id, client-secret
+  # and nextauth-secret (a NextAuth.js signing key; the civitas addon generates
+  # one per release) from it, replacing the placeholders in web.config.
+  auth:
+    enabled: null                  # null = global.auth.enabled; true/false overrides it
+    existingSecret: ""             # "" = global.auth.existingSecret
+    existingSecretKeys: {}         # per key; unset keys = global.auth.existingSecretKeys
+    # NEXTAUTH_URL is the public URL of the web frontend (e.g. https://goat.civitas.test).
+    # When set, overrides the placeholder in web.config.NEXTAUTH_URL.
+    publicUrl: ""
+  resources: {}
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+    annotations: {}
+  ingress:
+    enabled: false                 # set true AND populate hosts/tls below to expose externally
+    className: ""
+    annotations: {}
+    hosts: []                      # e.g. [{host: goat.example.com, paths: [{path: /, pathType: Prefix}]}]
+    tls: []
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  podLabels: {}
+  livenessProbe:
+    enabled: false                 # Next.js doesn't ship a health endpoint by default
+  readinessProbe:
+    enabled: false
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+# ─── GeoAPI (geospatial API) ───────────────────────────────────────────────
+# Enabled by default since chart 0.5.0. geoapi attaches the DuckLake catalog
+# READ-ONLY at startup and cannot start until it exists — GOAT has no
+# self-creating "DUCKLAKE_CREATE_IF_NOT_EXISTS" variable (that key does not
+# exist in GOAT; do not reintroduce it here). The `ducklake-init` init
+# container (`ducklakeBootstrap.enabled`, default on) creates it first — see
+# `ducklakeBootstrap` below.
+geoapi:
+  enabled: true
+  replicaCount: 1
+  image:
+    registry: ghcr.io
+    repository: plan4better/goat/geoapi
+    tag: ""
+    pullPolicy: IfNotPresent
+  config:
+    ENVIRONMENT: prod
+    # Trust X-Forwarded-Proto/-Host/-For from the ingress. TLS usually ends at
+    # the ingress, so without this uvicorn only trusts 127.0.0.1, sees plain
+    # http, and builds redirects (and geoapi's OGC links) as http:// on an
+    # https site. "*" is safe when the pod is reachable only through the
+    # ingress and the cluster network; narrow it to the ingress controller's
+    # pod CIDR if other clients can reach the pod directly.
+    FORWARDED_ALLOW_IPS: "*"
+    # Path prefix when this service sits behind a path-routing gateway on a
+    # shared host (e.g. "/geoapi"). Needs GOAT >= v3.0.3. The service then builds its
+    # OGC/STAC self/next/collection links and docs URLs with the prefix; the
+    # gateway may strip the prefix or pass it through. Leave unset when the
+    # service has its own host.
+    # ROOT_PATH: "/geoapi"
+    MAPBOX_TOKEN: "placeholder"
+    # Materialized catalog layers and their PMTiles, on the shared data volume.
+    CATALOG_LAYERS_DIR: "/app/data/catalog/layers"
+    CATALOG_TILES_DIR: "/app/data/catalog/tiles"
+    # Read-authorization gate for tile/feature/metadata endpoints. Shadow mode
+    # (false) only logs would-be denials; turn on once that log is quiet.
+    ENFORCE_READ_AUTHZ: "false"
+  extraEnv: []
+  # OIDC/Keycloak — per-service override of `global.auth` (see there). NEW in
+  # 0.5.1: before, the chart set no AUTH here, so the geoapi code default
+  # (AUTH on, validating against plan4better's own dev Keycloak) applied.
+  # Wired to a Secret, geoapi reads server-url and realm from it; auth on
+  # without a Secret takes them from core.config.KEYCLOAK_SERVER_URL /
+  # core.config.REALM_NAME. AUTH, KEYCLOAK_SERVER_URL or REALM_NAME set in
+  # `geoapi.config` / `geoapi.extraEnv` win over all of this.
+  auth:
+    enabled: null                  # null = global.auth.enabled; true/false overrides it
+    existingSecret: ""             # "" = global.auth.existingSecret
+    existingSecretKeys: {}         # per key; unset keys = global.auth.existingSecretKeys
+  # Mount extra volumes (e.g. CA bundles when Keycloak runs on a self-signed
+  # cert and Python requests/httpx need to trust it via REQUESTS_CA_BUNDLE).
+  extraVolumes: []
+  extraVolumeMounts: []
+  resources: {}
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []
+    tls: []
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  podLabels: {}
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+# ─── Processes (OGC API Processes) ─────────────────────────────────────────
+# Enabled by default since chart 0.5.0. processes attaches the DuckLake
+# catalog READ-ONLY at startup and cannot start until it exists — GOAT has
+# no self-creating "DUCKLAKE_CREATE_IF_NOT_EXISTS" variable (that key does
+# not exist in GOAT; do not reintroduce it here). The `ducklake-init` init
+# container (`ducklakeBootstrap.enabled`, default on) creates it first — see
+# `ducklakeBootstrap` below.
+processes:
+  enabled: true
+  replicaCount: 1
+  image:
+    registry: ghcr.io
+    repository: plan4better/goat/processes
+    tag: ""
+    pullPolicy: IfNotPresent
+  config:
+    ENVIRONMENT: prod
+    # Trust X-Forwarded-Proto/-Host/-For from the ingress. TLS usually ends at
+    # the ingress, so without this uvicorn only trusts 127.0.0.1, sees plain
+    # http, and builds redirects (and geoapi's OGC links) as http:// on an
+    # https site. "*" is safe when the pod is reachable only through the
+    # ingress and the cluster network; narrow it to the ingress controller's
+    # pod CIDR if other clients can reach the pod directly.
+    FORWARDED_ALLOW_IPS: "*"
+    # Path prefix when this service sits behind a path-routing gateway on a
+    # shared host (e.g. "/processes"). Needs GOAT >= v3.0.3. The service then builds its
+    # OGC/STAC self/next/collection links and docs URLs with the prefix; the
+    # gateway may strip the prefix or pass it through. Leave unset when the
+    # service has its own host.
+    # ROOT_PATH: "/processes"
+  extraEnv: []
+  # OIDC/Keycloak — per-service override of `global.auth` (see there). NEW in
+  # 0.5.1: before, the chart set no AUTH here, so the processes code default
+  # (AUTH on, validating against plan4better's own dev Keycloak) applied.
+  # Wired to a Secret, processes reads server-url and realm from it; auth on
+  # without a Secret takes them from core.config.KEYCLOAK_SERVER_URL /
+  # core.config.REALM_NAME. AUTH, KEYCLOAK_SERVER_URL or REALM_NAME set in
+  # `processes.config` / `processes.extraEnv` win over all of this.
+  auth:
+    enabled: null                  # null = global.auth.enabled; true/false overrides it
+    existingSecret: ""             # "" = global.auth.existingSecret
+    existingSecretKeys: {}         # per key; unset keys = global.auth.existingSecretKeys
+  # When `windmill.server.enabled`, auto-inject WINDMILL_URL +
+  # WINDMILL_WORKSPACE + WINDMILL_TOKEN (from the bootstrap-managed Secret)
+  # into processes pods. Set to false to wire these yourself via
+  # `processes.extraEnv` — useful when pointing at an external windmill.
+  windmillAutoWire: true
+  # Mount extra volumes (e.g. CA bundles when Keycloak runs on a self-signed
+  # cert and Python requests/httpx need to trust it via REQUESTS_CA_BUNDLE).
+  extraVolumes: []
+  extraVolumeMounts: []
+  resources: {}
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []
+    tls: []
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  podLabels: {}
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+# ─── Catalog (STAC API + MCP server) ───────────────────────────────────────
+# Database-less. Serves the catalog mirror from the shared `data` volume
+# (${DATA_DIR}/catalog/mirror_items.parquet + mirror_collections.parquet,
+# written by the goatlib sync_catalog task on the tools worker). With no mirror
+# present it serves an empty but valid STAC API, so it is safe to run before a
+# sync has ever happened.
+catalog:
+  enabled: true
+  replicaCount: 1
+  image:
+    registry: ghcr.io
+    repository: plan4better/goat/catalog
+    tag: ""                        # "" = .Chart.AppVersion
+    pullPolicy: IfNotPresent
+  config:
+    ENVIRONMENT: prod
+    # Trust X-Forwarded-Proto/-Host/-For from the ingress. TLS usually ends at
+    # the ingress, so without this uvicorn only trusts 127.0.0.1, sees plain
+    # http, and builds redirects (and geoapi's OGC links) as http:// on an
+    # https site. "*" is safe when the pod is reachable only through the
+    # ingress and the cluster network; narrow it to the ingress controller's
+    # pod CIDR if other clients can reach the pod directly.
+    FORWARDED_ALLOW_IPS: "*"
+    # Path prefix when this service sits behind a path-routing gateway on a
+    # shared host (e.g. "/catalog"). Needs GOAT >= v3.0.3. The service then builds its
+    # OGC/STAC self/next/collection links and docs URLs with the prefix; the
+    # gateway may strip the prefix or pass it through. Leave unset when the
+    # service has its own host.
+    # ROOT_PATH: "/catalog"
+    # Bound DuckDB's working set. Unset, DuckDB helps itself to 80% of node RAM
+    # and a heavy concurrent moment OOM-kills the pod instead of spilling.
+    CATALOG_DUCKDB_MEMORY_LIMIT: "2GB"
+    CATALOG_DUCKDB_THREADS: "4"
+    CATALOG_ENABLE_MCP: "true"
+    # Host header the /mcp Streamable HTTP transport accepts (DNS-rebinding
+    # protection). ["*"] disables the check; name your real ingress host once
+    # you have one, e.g. '["catalog.goat.example.com"]'.
+    CATALOG_MCP_ALLOWED_HOSTS: '["*"]'
+
+  # OIDC/Keycloak — per-service override of `global.auth` (see there). The
+  # catalog reads the bare AUTH, KEYCLOAK_SERVER_URL and REALM_NAME variables
+  # (it accepts CATALOG_-prefixed overrides too, but the chart sets the bare
+  # names, as it does for core). Wired to a Secret, it reads server-url and
+  # realm from it.
+  #
+  # Cross-component read: when no Secret is configured, the catalog
+  # ConfigMap sources KEYCLOAK_SERVER_URL from `core.config.KEYCLOAK_SERVER_URL`
+  # (and REALM_NAME from `core.config.REALM_NAME`, when set) instead
+  # (templates/catalog/configmap.yaml). Set either in `catalog.config` to
+  # override it for the catalog alone.
+  auth:
+    enabled: null                  # null = global.auth.enabled; true/false overrides it
+    existingSecret: ""             # "" = global.auth.existingSecret
+    existingSecretKeys: {}         # per key; unset keys = global.auth.existingSecretKeys
+
+
+  # Data previews (GET /stac/items/{id}/preview) and assets (thumbnails,
+  # styles) are the only routes that read the catalog bucket rather than the
+  # local mirror. Leave `bucket` unset and those routes answer 404 — by
+  # design: an endpoint this deployment does not offer simply is not there.
+  # The rest of the STAC API is unaffected.
+  #
+  # If you set `bucket` but leave `existingSecret` empty, the chart still
+  # emits CATALOG_S3_BUCKET/ENDPOINT_URL/REGION (so `catalog.extraEnv` can
+  # supply CATALOG_S3_ACCESS_KEY_ID/SECRET_ACCESS_KEY from your own
+  # secretKeyRef) but no credential env vars of its own — previews and assets
+  # will fail auth until credentials reach the pod one way or the other. The
+  # rendered NOTES.txt warns about this half-configured state.
+  s3:
+    bucket: ""
+    endpointUrl: ""
+    region: "us-east-1"
+    existingSecret: ""             # K8s Secret holding the two keys below
+    accessKeyIdKey: access_key
+    secretAccessKeyKey: secret_key
+  extraEnv: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  resources: {}
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8400
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []
+    tls: []
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  podLabels: {}
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /healthz
+      port: http
+    initialDelaySeconds: 20
+    timeoutSeconds: 30
+    periodSeconds: 60
+    failureThreshold: 3
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /healthz
+      port: http
+    initialDelaySeconds: 10
+    timeoutSeconds: 30
+    periodSeconds: 60
+    failureThreshold: 3
+    successThreshold: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+# ─── Windmill (workflow automation) ────────────────────────────────────────
+windmill:
+  # The windmill server hosts the workflow UI + API and queues jobs in postgres.
+  # Workers (below) pull jobs from the queue.
+  #
+  # Windmill's first migration does `GRANT ... TO windmill_admin` and requires
+  # role-creation privileges. Pointing it at the shared goat DB (`db.reuseGoatConnection: true`)
+  # often fails or pollutes the goat schema with ~100 windmill tables, so the
+  # safe default below is `false` — windmill uses its own database.
+  #
+  # When `postgresql.cluster.enabled: true` (chart-managed CNPG), the chart
+  # creates the windmill DB (init container, see `db` below), the
+  # `windmill_owner_user`/`windmill_admin`/`windmill_user` roles, and a Secret
+  # for the connection password — no extra config needed.
+  #
+  # When `postgresql.cluster.enabled: false` (external Postgres), fill
+  # `db.external.*` AND ensure the windmill DB + roles exist beforehand. See
+  # the chart README for the SQL you need to run.
+  db:
+    reuseGoatConnection: false
+    # With chart-managed CNPG (and reuseGoatConnection: false), the
+    # `windmill` database is created by a `windmill-db-init` init container
+    # on the windmill server and on every worker, running psql from
+    # `postgresql.cluster.image` — no hook, no extra image, no PyPI egress.
+    # See templates/_initcontainers.tpl.
+    external:
+      host: ""
+      port: 5432
+      database: windmill
+      existingSecret: ""
+      existingSecretUserKey: username
+      existingSecretPasswordKey: password
+
+
+  # Post-install bootstrap: creates the workspace, rotates the default
+  # superadmin password, and keeps (or mints) the API token that `processes`
+  # consumes via secretKeyRef on `windmill-token` — restarting processes
+  # when the token is new, since its pods read it at start.
+  bootstrap:
+    enabled: true
+    # Workspace that the bootstrap creates; same name `processes` expects via
+    # WINDMILL_WORKSPACE.
+    workspace: "goat"
+    # Email of the windmill superadmin user. `admin@windmill.dev` is the
+    # default windmill creates on first start; override here if your default
+    # admin email is different.
+    adminEmail: "admin@windmill.dev"
+    # Password used after rotation. If `name` is empty (default) the chart
+    # generates one with randAlphaNum 32 and persists it in the K8s Secret
+    # `<release>-windmill-admin-cred` (kept across upgrade/uninstall via
+    # `helm.sh/resource-policy: keep`). To use an operator-supplied password,
+    # set `name` to your existing Secret.
+    adminPasswordSecret:
+      name: ""
+      key: password
+    # K8s Secret name + key where the minted API token is stored. The
+    # `processes` deployment template references the same default.
+    tokenSecret:
+      name: ""           # default: <release>-windmill-token
+      key: token
+
+  # Optional: sync goatlib's bundled tools/tasks (Python scripts) into the
+  # windmill workspace. Off by default — needs the `windmill-worker-tools`
+  # image which is larger than `python:3.11-slim`. Turn on if you want
+  # plan4better's tools pre-loaded after install.
+  scriptSync:
+    enabled: false
+    image:
+      registry: ghcr.io
+      repository: plan4better/goat/windmill-worker-tools
+      tag: ""                       # "" = .Chart.AppVersion
+      pullPolicy: IfNotPresent
+
+  server:
+    enabled: true
+    replicaCount: 1
+    image:
+      registry: ghcr.io
+      repository: plan4better/goat/windmill-server
+      tag: ""                       # "" = .Chart.AppVersion
+      pullPolicy: IfNotPresent
+    config:
+      MODE: "server"
+      # BASE_URL is set per-environment via `set` or per-consumer values
+      BASE_URL: "http://localhost:8000"
+    extraEnv: []
+    resources: {}
+    service:
+      type: ClusterIP
+      port: 80
+      targetPort: 8000
+      annotations: {}
+    ingress:
+      enabled: false
+      className: ""
+      annotations: {}
+      hosts: []
+      tls: []
+    podSecurityContext: {}
+    securityContext: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    podAnnotations: {}
+    podLabels: {}
+    livenessProbe:
+      enabled: true
+      httpGet:
+        path: /api/version
+        port: http
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      failureThreshold: 5
+    readinessProbe:
+      enabled: true
+      httpGet:
+        path: /api/version
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
+
+  # Worker pods. Each worker connects to windmill's own DB via DATABASE_URL
+  # (synthesized from `_WMILL_DB_USER` / `_WMILL_DB_PASSWORD`, internal env
+  # vars whose values come from the windmill postgres secret).
+  #
+  # The print, tools and workflows workers run GOAT's jobs, and the chart gives
+  # them what those jobs read: the GOAT database (POSTGRES_*, from the chart's
+  # PostgreSQL settings) and DuckLake, S3 (global.s3), the catalog bucket
+  # (catalog.s3), PRINT_BASE_URL (the web service) and, with auth wired to a
+  # Secret, the Keycloak client the print worker logs in with. Windmill hands
+  # a job only the variables named in WHITELIST_ENVS; the chart builds that
+  # list from everything above plus every name in the worker's `config` and
+  # `extraEnv`, so a variable added there reaches the jobs too. A variable
+  # set in `config` or `extraEnv` wins over the chart's; a WHITELIST_ENVS set
+  # there replaces the built list.
+  workers:
+    # Upgrade guard for the 0.4.x per-worker PVCs (<fullname>-windmill-tools-data,
+    # <fullname>-windmill-workflows-data). At `data.enabled: true` this chart no
+    # longer renders them, so `helm upgrade` from 0.4.x DELETES them and their
+    # data unless the LIVE claim carries `helm.sh/resource-policy: keep`. While
+    # this is false, an upgrade that finds such a claim of this release in the
+    # namespace without that annotation FAILS and prints the `kubectl annotate`
+    # command that protects it (README "Upgrading 0.4.x -> 0.5.0" note 1).
+    # Set true only if you WANT Helm to delete those claims and their data.
+    # (Uses `lookup`, so `helm template` / client-side --dry-run never trip it.)
+    legacyPersistence:
+      acknowledgeDeletion: false
+
+    # The "default" worker handles small, fast jobs.
+    default:
+      enabled: true
+      replicaCount: 1
+      image:
+        registry: ghcr.io
+        repository: plan4better/goat/windmill-worker-default
+        tag: ""                       # "" = .Chart.AppVersion
+        pullPolicy: IfNotPresent
+      config:
+        MODE: "worker"
+        WORKER_GROUP: "default"
+        # Seconds a job may run before Windmill cancels it.
+        JOB_DEFAULT_TIMEOUT: "300"
+      extraEnv: []
+      resources: {}
+      podSecurityContext: {}
+      securityContext: {}
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      podAnnotations: {}
+      podLabels: {}
+
+    # The "print" worker generates PDFs / atlases (heavier; chromium-based).
+    print:
+      enabled: false
+      replicaCount: 1
+      image:
+        registry: ghcr.io
+        repository: plan4better/goat/windmill-worker-print
+        tag: ""                       # "" = .Chart.AppVersion
+        pullPolicy: IfNotPresent
+      config:
+        MODE: "worker"
+        WORKER_GROUP: "print"
+        WORKER_TAGS: "print"
+        JOB_DEFAULT_TIMEOUT: "300"
+      extraEnv: []
+      resources: {}
+      podSecurityContext: {}
+      securityContext: {}
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      podAnnotations: {}
+      podLabels: {}
+
+    # The "tools" worker runs heavy geodata pipelines. Pinned to a tainted
+    # `geodata` node + mounts a shared geodata PVC. Enable only on clusters
+    # that have these.
+    tools:
+      enabled: false
+      replicaCount: 1
+      image:
+        registry: ghcr.io
+        repository: plan4better/goat/windmill-worker-tools
+        tag: ""                       # "" = .Chart.AppVersion
+        pullPolicy: IfNotPresent
+      config:
+        MODE: "worker"
+        WORKER_GROUP: "tools"
+        WORKER_TAGS: "tools"
+        # Analyses on large datasets run long.
+        JOB_DEFAULT_TIMEOUT: "2500"
+      extraEnv: []
+      resources: {}
+      podSecurityContext: {}
+      securityContext: {}
+      nodeSelector:
+        node.kubernetes.io/server-usage: geodata
+      tolerations:
+        - key: geodata
+          value: "true"
+          effect: NoSchedule
+      affinity: {}
+      podAnnotations: {}
+      podLabels: {}
+      # When enabled, mount this shared PVC at /app/data for the worker
+      persistence:
+        enabled: true
+        storageClassName: ""        # defaults to global.storageClass
+        size: 200Gi
+        accessMode: ReadWriteOnce
+        existingClaim: ""           # set to use a pre-existing PVC
+
+    # The "workflows" worker runs orchestration jobs. Same node-pinning + PVC
+    # mount pattern as `tools` (they share the same physical resources).
+    workflows:
+      enabled: false
+      replicaCount: 1
+      image:
+        registry: ghcr.io
+        repository: plan4better/goat/windmill-worker-tools     # SAME image as tools, different group/tags
+        tag: ""                       # "" = .Chart.AppVersion
+        pullPolicy: IfNotPresent
+      config:
+        MODE: "worker"
+        WORKER_GROUP: "workflows"
+        WORKER_TAGS: "workflows"
+        # A workflow waits for the tool jobs it starts.
+        JOB_DEFAULT_TIMEOUT: "1800"
+      extraEnv: []
+      resources: {}
+      podSecurityContext: {}
+      securityContext: {}
+      nodeSelector:
+        node.kubernetes.io/server-usage: geodata
+      tolerations:
+        - key: geodata
+          value: "true"
+          effect: NoSchedule
+      affinity: {}
+      podAnnotations: {}
+      podLabels: {}
+      persistence:
+        enabled: true
+        storageClassName: ""
+        size: 200Gi
+        accessMode: ReadWriteOnce
+        existingClaim: ""           # if set, uses this PVC; otherwise creates a new one named goat-windmill-workflows-data
+
+# ─── Caddy (custom-domains feature) ────────────────────────────────────────
+# Reverse proxy with on-demand TLS that handles the "customers point their
+# own DNS at GOAT" flow. ACME challenges are answered for any domain the
+# core /api/v2/custom-domain-lookup endpoint approves.
+#
+# Disabled by default: needs a LoadBalancer Service (cluster-dependent),
+# the core service reachable for the lookup callback, and public DNS
+# pointing at the LB so Let's Encrypt can validate domains.
+caddy:
+  enabled: false
+  replicaCount: 1
+  image:
+    registry: docker.io
+    repository: caddy
+    tag: "2.8-alpine"
+    pullPolicy: IfNotPresent
+
+  # Where caddy forwards traffic for approved domains. By default, the
+  # in-chart web service. Set to an external host:port for clusters where
+  # the frontend lives elsewhere.
+  upstream:
+    # If empty, defaults to the in-chart web service (goat-web)
+    host: ""
+    port: 80
+
+  # Where caddy calls to ask "should I issue an ACME cert for this domain?".
+  # By default, the in-chart core service's /api/v2/custom-domain-lookup.
+  ask:
+    # If empty, defaults to the in-chart core service
+    host: ""
+    port: 80
+    path: "/api/v2/custom-domain-lookup"
+
+  service:
+    type: LoadBalancer
+    httpPort: 80
+    httpsPort: 443
+    annotations: {}
+    # For clusters with MetalLB or similar: set a static IP here.
+    loadBalancerIP: ""
+
+  # ACME state — losing it forces re-issuance of every cert (Let's Encrypt
+  # rate-limits!). KEEP this persistent in any non-throwaway deployment.
+  persistence:
+    enabled: true
+    storageClassName: ""        # defaults to global.storageClass
+    size: 1Gi
+    accessMode: ReadWriteOnce
+    existingClaim: ""
+
+  # Email used for ACME issuance. Required by Let's Encrypt for revocation
+  # notices and rate-limit policy. Override per deployment.
+  acmeEmail: "admin@example.com"
+
+  resources: {}
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  podLabels: {}
+
+# ─── DuckLake catalog bootstrap ────────────────────────────────────────────
+# `geoapi` and `processes` attach the DuckLake catalog READ-ONLY; DuckDB
+# refuses if it doesn't exist yet. With `enabled: true` (the default since
+# 0.5.0) each of them gets a `ducklake-init` INIT CONTAINER, in its own image,
+# that runs GOAT's idempotent `python -m goatlib.storage.ducklake_init`
+# before the service starts: it creates the catalog on a fresh install and is
+# a no-op against an existing one. (Before 0.5.0 this key switched a
+# post-install hook Job, off by default; the hook is gone — it deadlocked a
+# single `helm install --wait`.)
+#
+# The init container gets the same ConfigMap, Postgres credentials,
+# `<component>.extraEnv` and data mount as its service, so it needs nothing
+# configured here beyond the two locations below. Set `enabled: false` only
+# when you manage the DuckLake catalog out-of-band.
+ducklakeBootstrap:
+  enabled: true
+
+  # Emitted as DUCKLAKE_CATALOG_SCHEMA (the Postgres schema holding the
+  # DuckLake metadata) and DUCKLAKE_DATA_DIR (the DATA_PATH of the catalog's
+  # parquet files) into the geoapi and processes ConfigMaps, which both the
+  # services and their init containers read. `geoapi.config.*` /
+  # `processes.config.*` keys of the same name win. Defaults match GOAT's own
+  # (geoapi/processes config.py); the data dir sits on the shared `data`
+  # volume.
+  catalogSchema: "ducklake"
+  dataDir: "/app/data/ducklake"
+
+# ─── Postgres ──────────────────────────────────────────────────────────────
+# Values under this key configure the cloudnative-pg dependency subchart
+# (the operator Deployment + RBAC). Its own CRDs are disabled here because
+# this chart vendors them directly under crds/ instead — see the note
+# above the `dependencies:` block in Chart.yaml for why.
+cloudnative-pg:
+  crds:
+    create: false
+
+postgresql:
+  operator:
+    enabled: true                  # bundled by default; set false to use a pre-existing CNPG operator or external Postgres
+  cluster:
+    enabled: true                  # CNPG Cluster CR created by THIS chart
+    instances: 1
+    # CNPG's own default Postgres image does NOT include PostGIS, but this
+    # chart's postInitApplicationSQL unconditionally runs `CREATE EXTENSION
+    # postgis` against it — with the plain CNPG image that fails every time
+    # ("extension "postgis" is not available"), and the Cluster never
+    # leaves initdb (found running this chart's k3d smoke test against a
+    # genuinely fresh cluster). Point at an image that actually has it.
+    #
+    # GOAT's schema needs exactly PostGIS + uuid-ossp (see
+    # apps/core/alembic/versions/init.py in the main goat repo; uuid-ossp
+    # is stock contrib, self-installed by that migration, trusted since
+    # PG13, no superuser needed). It does NOT use pgRouting or
+    # postgis_topology anywhere (grep the whole goat repo for `pgrouting`
+    # or `pgr_`: zero hits) — an earlier version of this chart defaulted to
+    # a pgRouting-flavored image purely to obtain PostGIS, which was wrong:
+    # it dragged in a whole routing extension GOAT never uses, and its
+    # `postgres` user's UID/GID (999/999, upstream docker-library/postgres
+    # convention) needed overriding away from CNPG's own default (26/26),
+    # for no reason tied to anything this chart actually needs.
+    #
+    # `ghcr.io/cloudnative-pg/postgis` is CNPG's own official PostGIS
+    # image — Postgres 18 / PostGIS 3.6 in this tag — and is what P4B's own
+    # production CNPG cluster already runs
+    # (infra/argocd/apps/cloudnative-pg/templates/cluster.yaml), with no
+    # postgresUID/postgresGID override, confirmed working end-to-end by
+    # this chart's own k3d smoke test too. Override for your own
+    # CNPG-compatible PostGIS image (must match a Postgres major version
+    # your CNPG operator supports); "" falls back to the operator's own
+    # default image (broken for this chart's bundled-Postgres path, kept
+    # only for advanced overrides).
+    image: "ghcr.io/cloudnative-pg/postgis:18-3.6-system-trixie"
+    # Escape hatch for operators overriding `image` above with a custom
+    # PostGIS build whose `postgres` user isn't CNPG's own default UID/GID
+    # (26/26). Inert (rendered only `{{- with }}`) unless set — the default
+    # CNPG PostGIS image above needs neither. See the long comment above.
+    # postgresUID: 999
+    # postgresGID: 999
+    storage:
+      size: 20Gi
+      storageClass: ""             # falls back to global.storageClass
+
+    backup:
+      enabled: false
+  external:
+    host: ""
+    port: 5432
+    database: goat
+    existingSecret: ""             # required when cluster.enabled: false
+    existingSecretUserKey: username
+    existingSecretPasswordKey: password
+    sslMode: prefer
+
+# ─── Redis ─────────────────────────────────────────────────────────────────
+# ─── Redis ─────────────────────────────────────────────────────────────────
+# geoapi's cache (vector tiles and the like), on the official Redis image. It
+# keeps nothing on disk and, at `maxmemory`, evicts the least recently used
+# keys, so losing it only costs a warm-up.
+redis:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: redis
+    tag: "7.4-alpine"
+    pullPolicy: IfNotPresent
+  maxmemory: 256mb
+  auth:
+    enabled: true
+    # A Secret with the password. Empty: the chart generates one on install and
+    # keeps it on every upgrade. Set one when a tool renders the chart without
+    # cluster access (Argo CD, `helm template`): it cannot read the generated
+    # password back and would replace it on every sync.
+    existingSecret: ""
+    existingSecretPasswordKey: redis-password
+  resources:
+    limits:
+      memory: 320Mi                # maxmemory plus Redis' own overhead
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  podLabels: {}
+  # Used when `enabled: false` — point the chart at a Redis you already run.
+  external:
+    host: ""
+    port: 6379
+    database: 0
+    existingSecret: ""             # omit for an unauthenticated Redis
+    existingSecretPasswordKey: password

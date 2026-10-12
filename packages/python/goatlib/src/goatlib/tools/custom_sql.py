@@ -29,75 +29,9 @@ from goatlib.analysis.schemas.ui import (
 from goatlib.models.io import DatasetMetadata
 from goatlib.tools.base import BaseToolRunner
 from goatlib.tools.schemas import ToolInputBase
+from goatlib.utils.sql_validation import validate_sql_query
 
 logger = logging.getLogger(__name__)
-
-# SQL keywords that indicate non-SELECT statements
-FORBIDDEN_SQL_KEYWORDS = {
-    "CREATE",
-    "DROP",
-    "INSERT",
-    "UPDATE",
-    "DELETE",
-    "ALTER",
-    "TRUNCATE",
-    "COPY",
-    "ATTACH",
-    "DETACH",
-    "EXPORT",
-    "IMPORT",
-    "LOAD",
-    "INSTALL",
-    "GRANT",
-    "REVOKE",
-    "PRAGMA",
-    "SET",
-    "CALL",
-}
-
-
-def validate_sql_query(sql: str) -> None:
-    """Validate that a SQL query is a safe SELECT statement.
-
-    Args:
-        sql: The SQL query to validate
-
-    Raises:
-        ValueError: If the query contains forbidden statements
-    """
-    if not sql or not sql.strip():
-        raise ValueError("SQL query cannot be empty")
-
-    # Normalize whitespace and strip comments
-    cleaned = re.sub(r"--.*$", "", sql, flags=re.MULTILINE)  # line comments
-    cleaned = re.sub(r"/\*.*?\*/", "", cleaned, flags=re.DOTALL)  # block comments
-    cleaned = cleaned.strip()
-
-    if not cleaned:
-        raise ValueError("SQL query cannot be empty after removing comments")
-
-    # Check that the query starts with SELECT or WITH (for CTEs)
-    first_word = cleaned.split()[0].upper()
-    if first_word not in ("SELECT", "WITH"):
-        raise ValueError(f"Only SELECT statements are allowed. Got: {first_word}")
-
-    # Check for forbidden keywords at statement boundaries
-    # Split on semicolons to handle multi-statement injection attempts
-    statements = [s.strip() for s in cleaned.split(";") if s.strip()]
-    if len(statements) > 1:
-        raise ValueError("Multiple SQL statements are not allowed")
-
-    # Check for forbidden keywords as standalone words (not inside strings)
-    # Remove string literals first to avoid false positives
-    no_strings = re.sub(r"'[^']*'", "", cleaned)
-    words = re.findall(r"\b[A-Za-z_]+\b", no_strings)
-    upper_words = {w.upper() for w in words}
-
-    forbidden_found = upper_words & FORBIDDEN_SQL_KEYWORDS
-    if forbidden_found:
-        raise ValueError(
-            f"Forbidden SQL keywords found: {', '.join(sorted(forbidden_found))}"
-        )
 
 
 class CustomSqlToolParams(ToolInputBase):
@@ -356,8 +290,20 @@ class CustomSqlToolRunner(BaseToolRunner[CustomSqlToolParams]):
                 f"numbers, and underscores, and start with a letter or underscore"
             )
 
+        # DuckDB writes no GeoParquet metadata for an empty table, so an empty
+        # input (e.g. an intermediate workflow result without rows) reads back
+        # with its geometry as WKB BLOB and spatial functions on it fail to
+        # bind. Restore the geometry type.
+        columns = con.execute(
+            f"DESCRIBE SELECT * FROM read_parquet('{parquet_path}')"
+        ).fetchall()
+        select = "*"
+        if any(c[0] == "geometry" and str(c[1]).upper() == "BLOB" for c in columns):
+            select = '* REPLACE (ST_GeomFromWKB("geometry") AS "geometry")'
+
         con.execute(
-            f"CREATE VIEW \"{alias}\" AS SELECT * FROM read_parquet('{parquet_path}')"
+            f'CREATE VIEW "{alias}" AS SELECT {select} '
+            f"FROM read_parquet('{parquet_path}')"
         )
         logger.info(f"Registered view '{alias}' from {parquet_path}")
 
@@ -371,8 +317,13 @@ class CustomSqlToolRunner(BaseToolRunner[CustomSqlToolParams]):
         3. Execute the user's SELECT statement
         4. Write result to parquet
         """
-        # Step 1: Validate SQL
-        validate_sql_query(params.sql_query)
+        # Step 1: Validate SQL: it may read only the inputs registered below
+        aliases = {"input_1", "input_2", "input_3"} | {
+            str(layer.get("alias"))
+            for layer in params.additional_layers or []
+            if isinstance(layer, dict) and layer.get("alias")
+        }
+        validate_sql_query(params.sql_query, aliases)
 
         # Create a fresh in-memory DuckDB for isolated execution
         con = duckdb.connect()

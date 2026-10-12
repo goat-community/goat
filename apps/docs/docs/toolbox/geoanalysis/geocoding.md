@@ -1,4 +1,5 @@
 ---
+description: "Convert addresses from a layer into points with the Pelias geocoder, from one full-address column or from separate street, postal code, city and country fields."
 sidebar_position: 5
 ---
 import Tabs from '@theme/Tabs';
@@ -36,7 +37,8 @@ Geocoding is the process of **converting addresses (like "Agnes-Pockels-Bogen 1,
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Choose the input mode for your addresses:
+  <div class="content">
+  Choose the input mode for your addresses:
     <ul>
       <li><code>Full Address:</code> Use this if you have a single column containing complete addresses (e.g., "Marienplatz 1, Munich, Germany")</li>
       <li><code>Structured:</code> Use this if your address components are in separate columns (street, city, postal code, etc.)</li>
@@ -46,7 +48,8 @@ Geocoding is the process of **converting addresses (like "Agnes-Pockels-Bogen 1,
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Configure the address mapping based on your chosen input mode:
+  <div class="content">
+  Configure the address mapping based on your chosen input mode:
 
 <Tabs>
   <TabItem value="full-address" label="Full Address" default>

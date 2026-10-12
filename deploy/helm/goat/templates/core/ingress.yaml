@@ -1,0 +1,38 @@
+{{- if and .Values.core.enabled .Values.core.ingress.enabled -}}
+{{- $component := "core" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+  {{- with .Values.core.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.core.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.core.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range .Values.core.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "goat.serviceFullname" $ctx }}
+                port:
+                  number: {{ $.Values.core.service.port }}
+          {{- end }}
+    {{- end }}
+{{- end }}

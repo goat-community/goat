@@ -149,11 +149,17 @@ export function applyMapLanguage(map: maplibregl.Map, locale: string) {
   }
 }
 
-export const useBasemap = (project: { custom_basemaps?: CustomBasemap[] | null; basemap?: string | null } | undefined) => {
+export const useBasemap = (
+  project: { id?: string; custom_basemaps?: CustomBasemap[] | null; basemap?: string | null } | undefined
+) => {
   const { t, i18n } = useTranslation("common");
 
   const builtIns = useAppSelector((state) => state.map.basemaps) as BuiltInBasemap[];
-  const localBasemap = useAppSelector((state) => state.map.activeBasemap);
+  const storedBasemap = useAppSelector((state) => state.map.activeBasemap);
+  const storedBasemapProjectId = useAppSelector((state) => state.map.activeBasemapProjectId);
+  // A basemap stored for another project is left over from the previously
+  // opened one: ignoring it lets the map start on this project's own basemap.
+  const localBasemap = storedBasemapProjectId === project?.id ? storedBasemap : undefined;
   const dispatch = useAppDispatch();
 
   const customs: CustomBasemap[] = useMemo(
@@ -200,9 +206,9 @@ export const useBasemap = (project: { custom_basemaps?: CustomBasemap[] | null; 
   const setActiveBasemap = useCallback(
     (value: string) => {
       const resolved = resolveActiveBasemap(value, builtIns, customs);
-      dispatch(setActiveBasemapAction(resolved));
+      dispatch(setActiveBasemapAction({ basemap: resolved, projectId: project?.id }));
     },
-    [builtIns, customs, dispatch]
+    [builtIns, customs, dispatch, project?.id]
   );
 
   return {

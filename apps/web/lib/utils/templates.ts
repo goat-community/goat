@@ -20,6 +20,7 @@ export const TEMPLATE_EMPTY_HINT_KEY: Record<TemplateSourceFilter, string> = {
   mine: "empty_templates_mine",
   team: "empty_templates_team",
   org: "empty_templates_org",
+  shared: "empty_templates_shared",
 };
 
 const SCOPE_LABEL_KEY: Record<TemplateSourceFilter, string> = {
@@ -28,6 +29,7 @@ const SCOPE_LABEL_KEY: Record<TemplateSourceFilter, string> = {
   mine: "source_mine",
   team: "source_team",
   org: "source_organization",
+  shared: "shared_with_me",
 };
 
 /** The title an empty template shelf reads as: the unscoped "No templates
@@ -72,11 +74,11 @@ export const templateBrowserEmptyCopy = (
 };
 
 /** Which shelf a template sits on, as the browser groups and tags them.
- * The first four mirror the `source` filters `crud_template.list_templates`
- * answers (`goat|mine|team|org`), so a row's tag says the same thing the
- * segment that would return it does. `shared` is what "Everyone" adds on
- * top: a template in a space the caller is not in, reached through a grant
- * on it or on a folder above it. */
+ * They mirror the `source` filters `crud_template.list_templates` answers
+ * (`goat|mine|team|org|shared`), so a row's tag says the same thing the
+ * segment that would return it does. A template shared with one of the
+ * caller's teams or with their organization sits on that space's shelf;
+ * `shared` is one shared with the caller alone. */
 export type TemplateSourceKey = "goat" | "mine" | "team" | "org" | "shared";
 
 /** The order the shelves are stacked in under the "Everyone" segment: the
@@ -106,13 +108,21 @@ export interface TemplateShelf {
  * `mine`), so a browser that groups rows takes the published shelf first.
  *
  * `spaces` are the caller's own spaces (`useSpaces`). A template in a space
- * that is not among them — most often someone else's personal space, reached
- * through a shared folder — is `shared`: it is not the caller's, and the
- * backend has no segment for it beyond "Everyone".
+ * that is not among them, most often someone else's personal space reached
+ * through a shared folder, is shelved by `shared_into_space_id`: the team or
+ * organization space it was shared into, as the backend's `team`/`org`
+ * filters list it. Without one it was shared with the caller alone: `shared`.
  */
+/** The caller's space a template is shelved under: the one it lives in, or
+ * the team or organization space it was shared into. */
+const shelfSpaceOf = (template: TemplateRead, spaces: Space[]): Space | undefined => {
+  const spaceId = template.shared_into_space_id ?? template.space_id;
+  return spaces.find((entry) => entry.id === spaceId);
+};
+
 export const templateSourceOf = (template: TemplateRead, spaces: Space[]): TemplateSourceKey => {
   if (template.catalog_status === "published") return "goat";
-  const space = spaces.find((entry) => entry.id === template.space_id);
+  const space = shelfSpaceOf(template, spaces);
   if (!space) return "shared";
   if (space.kind === "team") return "team";
   if (space.kind === "organization") return "org";
@@ -124,7 +134,7 @@ export const templateSourceOf = (template: TemplateRead, spaces: Space[]): Templ
 export const templateShelfOf = (template: TemplateRead, spaces: Space[]): TemplateShelf => {
   const source = templateSourceOf(template, spaces);
   if (source === "goat" || source === "mine" || source === "shared") return { key: source, source };
-  const space = spaces.find((entry) => entry.id === template.space_id);
+  const space = shelfSpaceOf(template, spaces);
   return { key: space?.id ?? source, source, space };
 };
 
@@ -147,7 +157,7 @@ export const compareTemplateShelves = (a: TemplateShelf, b: TemplateShelf): numb
 
 /** The source choices a caller has: Everyone, GOAT and Mine always, Team
  * only once they are in a team space, Organization only once an organization
- * space exists — one list, so the inline segments and the dialog's filter
+ * space exists, Shared with me once either does — one list, so the inline segments and the dialog's filter
  * popover offer exactly the same choices, and a personal-only account never
  * sees a source it has nothing behind. */
 export const templateSourceOptions = (
@@ -161,6 +171,11 @@ export const templateSourceOptions = (
     : []),
   ...(spaces.some((space) => space.kind === "organization")
     ? [{ value: "org" as const, labelKey: "source_organization" }]
+    : []),
+  // Sharing stays inside an organization, so only a caller in a team or an
+  // organization can have anything shared with them alone.
+  ...(spaces.some((space) => space.kind === "team" || space.kind === "organization")
+    ? [{ value: "shared" as const, labelKey: "shared_with_me" }]
     : []),
 ];
 
@@ -240,11 +255,46 @@ export const sourceLink = (source: TemplateSourceInfo): { project: string; paylo
   return { project, payload: null };
 };
 
-/** Shipped inputs that publishing to the GOAT catalog makes public: the
- * datasets that are neither catalog datasets nor public yet. The backend
- * flips the ones the publisher may share and refuses the rest by name
- * (`crud_template.publish`). */
+/** Whether an input keeps the author's dataset: shipped, or copied for each
+ * user from it. Either way every user of the template has to be able to read
+ * that dataset (`DATASET_MODES` in `core.schemas.template`). */
+export const bindsDataset = (input: Pick<TemplateInput, "mode">): boolean =>
+  input.mode === "ship" || input.mode === "copy";
+
+/** The author's choice for one dataset in the save dialog: the stored `mode`,
+ * with a copy split into "with its rows" and "empty". */
+export type TemplateInputChoice = "ship" | "ask" | "copy" | "copy_empty";
+
+/** The dialog's choice for a stored input. */
+export const inputChoiceOf = (input: Pick<TemplateInput, "mode" | "copy_content">): TemplateInputChoice =>
+  input.mode === "copy" ? (input.copy_content === false ? "copy_empty" : "copy") : input.mode;
+
+/** The stored `mode`/`copy_content` for a dialog choice. */
+export const inputFieldsOf = (choice: TemplateInputChoice): Pick<TemplateInput, "mode" | "copy_content"> =>
+  choice === "copy_empty"
+    ? { mode: "copy", copy_content: false }
+    : choice === "copy"
+      ? { mode: "copy", copy_content: true }
+      : { mode: choice, copy_content: true };
+
+/** The label of each dialog choice. */
+export const INPUT_CHOICE_LABEL_KEY: Record<TemplateInputChoice, string> = {
+  ship: "template_dataset_ship",
+  ask: "ask_on_use",
+  copy: "template_dataset_copy",
+  copy_empty: "template_dataset_copy_empty",
+};
+
+/** A copy needs rows in a table GOAT holds: a raster has none
+ * (`crud_template._assert_copy_inputs_copyable`). */
+export const canCopyInput = (input: Pick<TemplateInput, "layer_id" | "layer_type">): boolean =>
+  !!input.layer_id && input.layer_type !== "raster";
+
+/** Inputs that publishing to the GOAT catalog makes public: the shipped or
+ * copied datasets that are neither catalog datasets nor public yet. The
+ * backend flips the ones the publisher may share and refuses the rest by
+ * name (`crud_template.publish`). */
 export const publicOnPublishInputs = (inputs: TemplateInput[]): TemplateInput[] =>
   inputs.filter(
-    (input) => input.mode === "ship" && !!input.layer_id && !input.public_read && !input.from_catalog
+    (input) => bindsDataset(input) && !!input.layer_id && !input.public_read && !input.from_catalog
   );

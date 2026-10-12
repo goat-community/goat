@@ -1,0 +1,90 @@
+suite: shared template helpers
+templates:
+  - core/deployment.yaml
+tests:
+  - it: default render produces RELEASE-NAME-goat-core with standard labels
+    set:
+      core.enabled: true
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-core
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: goat
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+      - matchRegex:
+          path: metadata.labels["app.kubernetes.io/version"]
+          pattern: '^(latest|v?[0-9]+\.[0-9]+\.[0-9]+)'
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: core
+
+  - it: respects fullnameOverride
+    set:
+      fullnameOverride: my-goat
+      core.enabled: true
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-goat-core
+
+  - it: goat.image uses chart.appVersion when tag is empty
+    set:
+      core.enabled: true
+      core.image.registry: "ghcr.io"
+      core.image.repository: "plan4better/goat/core"
+      core.image.tag: ""
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: '^ghcr\.io/plan4better/goat/core:(latest|v?[0-9]+\.[0-9]+\.[0-9]+)'
+
+  - it: goat.image honors explicit core.image.tag
+    set:
+      core.enabled: true
+      core.image.registry: "ghcr.io"
+      core.image.repository: "plan4better/goat/core"
+      core.image.tag: "custom-tag"
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "ghcr.io/plan4better/goat/core:custom-tag"
+
+  - it: goat.image honors global.imageRegistry mirror override
+    set:
+      core.enabled: true
+      global.imageRegistry: "harbor.internal"
+      core.image.registry: "ghcr.io"
+      core.image.repository: "plan4better/goat/core"
+      core.image.tag: "2.5.0"
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "harbor.internal/plan4better/goat/core:2.5.0"
+
+  - it: default image tag follows appVersion v3.0.3
+    template: core/deployment.yaml
+    set:
+      core.enabled: true
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/plan4better/goat/core:v3.0.3

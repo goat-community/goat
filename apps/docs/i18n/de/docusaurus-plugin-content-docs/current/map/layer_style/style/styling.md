@@ -1,4 +1,5 @@
 ---
+description: "Legen Sie Füll- und Strichfarbe, Deckkraft, Strichbreite, Linienstil, Clustering, eigene Marker und Punktgröße fest und kopieren Sie Stile in andere Layer."
 sidebar_position: 1
 ---
 
@@ -14,12 +15,12 @@ sidebar_position: 1
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content">Wählen Sie Ihren Layer aus und navigieren Sie zu <code>Layer-Design</code> <img src={require('/img/icons/styling.png').default} alt="Styling-Symbol" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> und finden Sie den <code>Stil-Bereich</code></div>
+  <div class="content">Klicken Sie im <code>Layer</code>-Panel auf Ihren Layer. Rechts öffnet sich das Einstellungs-Panel des Layers mit den Tabs <code>Stil</code>, <code>Filtern</code> und <code>Metadaten</code>; der Tab <code>Stil</code> ist ausgewählt. Die Styling-Optionen finden Sie dort im Bereich <code>Stil</code>.</div>
 </div>
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Wählen Sie die Styling-Kategorie, die Sie ändern möchten: <code>Füllfarbe</code>, <code>Strichfarbe</code>, <code>Strichbreite</code>, <code>Linienstil</code> (nur Linien-Layer), <code>Clustering</code>, <code>Benutzerdefinierter Marker</code> und <code>Punkteinstellungen</code> (nur Punkt-Layer).</div>
+  <div class="content">Wählen Sie die Styling-Kategorie, die Sie ändern möchten: <code>Füllfarbe</code> (Punkt- und Polygon-Layer), <code>Strichfarbe</code> (bei Linien-Layern mit <code>Farbe</code> beschriftet), <code>Strichbreite</code>, <code>Linienstil</code> (nur Linien-Layer), <code>Clustering</code>, <code>Benutzerdefiniertes Symbol</code> und <code>Punkteinstellungen</code> (nur Punkt-Layer).</div>
 </div>
 
 
@@ -30,16 +31,20 @@ Füllfarbe definiert das Innere Erscheinungsbild von Punkt- und Polygon-Features
 <div class="step">
   <div class="step-number">3</div>
   <div class="content">
-    Bei <code>Farbe</code> verwenden Sie den <strong>Farbwähler, um Ihre Farbe auszuwählen</strong> oder die <strong>Vordefinierten Farben, um aus der vordefinierten Farbpalette zu wählen</strong>.
+    Bei <code>Farbe</code> verwenden Sie den <strong>Farbwähler, um Ihre Farbe auszuwählen</strong> oder die <strong>Standardfarben, um aus der vordefinierten Farbpalette zu wählen</strong>.
   </div>
 </div>
 
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Verwenden Sie den <code>Transparenz-Regler</code> oder geben Sie einen Wert zwischen 0 (transparent) und 1 (undurchsichtig) ein, um <strong>die Transparenz zu steuern</strong>.</div>
+  <div class="content">Klicken Sie neben <code>Füllfarbe</code> auf das Optionen-Symbol <img src={require('/img/icons/options.png').default} alt="Options Icon" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/>, um die erweiterten Optionen einzublenden. Bewegen Sie unter <code>Deckkraft</code> den Regler oder geben Sie einen Wert zwischen 0 (transparent) und 1 (undurchsichtig) ein, um <strong>die Transparenz zu steuern</strong>.</div>
 </div>
 
+
+:::info
+<code>Deckkraft</code> gilt nur für die Füllung. <code>Strichfarbe</code> hat keine Einstellung für die Deckkraft: Umrisse von Punkten und Polygonen werden immer vollständig deckend gezeichnet. Linien-Layer haben keine Füllung, daher finden Sie ihren Regler <code>Deckkraft</code> in den erweiterten Optionen von <code>Farbe</code>.
+:::
 
 ### Strichfarbe
 Strichfarbe gilt für die Umrisse und Kanten von Karten-Features. Sie hilft dabei, Features zu unterscheiden und ihre Sichtbarkeit zu verbessern.
@@ -47,7 +52,7 @@ Strichfarbe gilt für die Umrisse und Kanten von Karten-Features. Sie hilft dabe
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Bei <code>Farbe</code> verwenden Sie den <strong>Farbwähler</strong> oder die <strong>Vordefinierten Farben</strong>, um <strong>das Strich-Erscheinungsbild anzupassen</strong>.</div>
+  <div class="content">Bei <code>Farbe</code> verwenden Sie den <strong>Farbwähler</strong> oder die <strong>Standardfarben</strong>, um <strong>das Strich-Erscheinungsbild anzupassen</strong>.</div>
 </div>
 
 
@@ -74,12 +79,13 @@ Der Abschnitt **Linienstil** ist nur für **Linien-Layer** verfügbar und steuer
 
 <div class="step">
   <div class="step-number">8</div>
-  <div class="content">Wählen Sie unter <code>Pfeile</code> die Pfeilrichtung: <code>Keine</code>, <code>Vorwärts</code>, <code>Rückwärts</code> oder <code>Beide</code>. Bei Auswahl einer Richtung erscheinen weitere Einstellungen:
+  <div class="content">
+  Wählen Sie unter <code>Pfeile</code> die Pfeilrichtung: <code>Keine</code>, <code>Vorwärts</code>, <code>Rückwärts</code> oder <code>Beide</code>. Bei Auswahl einer Richtung erscheinen weitere Einstellungen:
     <ul>
-      <li><code>Position</code> — wo die Pfeile platziert werden: <code>Wiederholen entlang der Linie</code>, <code>Linienanfang</code>, <code>Linienende</code>, <code>Beide Enden</code> oder <code>Mitte (eine pro Linie)</code>.</li>
-      <li><code>Pfeilgröße</code> — Regler zur Steuerung der Pfeilgröße.</li>
-      <li><code>Pfeilabstand</code> — Regler zum Steuern des Abstands zwischen wiederholten Pfeilen (nur sichtbar wenn Position <code>Wiederholen entlang der Linie</code> ist).</li>
-      <li><code>Überlappung zulassen</code> — Checkbox, um zu verhindern, dass Pfeile bei Überlappung ausgeblendet werden.</li>
+      <li><code>Position</code>: wo die Pfeile platziert werden (<code>Wiederholen entlang der Linie</code>, <code>Linienanfang</code>, <code>Linienende</code>, <code>Beide Enden</code> oder <code>Mitte (eine pro Linie)</code>).</li>
+      <li><code>Pfeilgröße</code>: Regler zur Steuerung der Pfeilgröße.</li>
+      <li><code>Pfeilabstand</code>: Regler zum Steuern des Abstands zwischen wiederholten Pfeilen (nur sichtbar wenn Position <code>Wiederholen entlang der Linie</code> ist).</li>
+      <li><code>Überlappung zulassen</code>: Checkbox, um zu verhindern, dass Pfeile bei Überlappung ausgeblendet werden.</li>
     </ul>
   </div>
 </div>
@@ -88,11 +94,12 @@ Der Abschnitt **Linienstil** ist nur für **Linien-Layer** verfügbar und steuer
 
 <div class="step">
   <div class="step-number">9</div>
-  <div class="content">Erweitern Sie <code>Erweiterte Optionen</code>, um folgende Einstellungen vorzunehmen:
+  <div class="content">
+  Erweitern Sie <code>Erweiterte Optionen</code>, um folgende Einstellungen vorzunehmen:
     <ul>
-      <li><code>Linienende</code> — wie Linienendpunkte dargestellt werden: <code>Stumpf</code>, <code>Rund</code> oder <code>Quadratisch</code>.</li>
-      <li><code>Linienverbindung</code> — wie Ecken zwischen Liniensegmenten aussehen: <code>Abgeschrägt</code>, <code>Rund</code> oder <code>Spitz</code>.</li>
-      <li><code>Versatz</code> — verschiebt die Linie visuell nach links oder rechts von ihrer tatsächlichen Geometrie. Nützlich für parallele Straßen oder Richtungsfahrbahnen. Hinweis: Nur visuell — Auswahl und Fangen verwenden weiterhin die Originalgeometrie.</li>
+      <li><code>Linienende</code>: wie Linienendpunkte dargestellt werden (<code>Stumpf</code>, <code>Rund</code> oder <code>Quadratisch</code>).</li>
+      <li><code>Linienverbindung</code>: wie Ecken zwischen Liniensegmenten aussehen (<code>Abgeschrägt</code>, <code>Rund</code> oder <code>Spitz</code>).</li>
+      <li><code>Versatz</code>: verschiebt die Linie visuell nach links oder rechts von ihrer tatsächlichen Geometrie. Nützlich für parallele Straßen oder Richtungsfahrbahnen. Hinweis: nur visuell. Auswahl und Fangen verwenden weiterhin die Originalgeometrie.</li>
     </ul>
   </div>
 </div>
@@ -115,19 +122,19 @@ Clustering fasst nahe beieinander liegende Punkt-Features zu einem einzelnen Mar
   <div class="content">Erweitern Sie optional <code>Erweiterte Optionen</code>, um <code>Minimale Clustergröße</code>, <code>Max. Zoom für Clustering</code>, <code>Clusterfarbe</code> und <code>Textfarbe</code> weiter zu konfigurieren.</div>
 </div>
 
-### Benutzerdefinierte Marker
+### Benutzerdefinierte Symbole
 Für Punkt-Layer können Sie benutzerdefinierte Marker anstelle von Grundformen verwenden.
 
 
 <div class="step">
   <div class="step-number">10</div>
-  <div class="content">Im Styling-Menü schalten Sie den <code>Benutzerdefinierter Marker</code>-Umschalter ein, um <strong>benutzerdefinierte Marker zu aktivieren</strong>.</div>
+  <div class="content">Im Styling-Menü schalten Sie den <code>Benutzerdefiniertes Symbol</code>-Umschalter ein, um <strong>benutzerdefinierte Marker zu aktivieren</strong>.</div>
 </div>
 
 
 <div class="step">
   <div class="step-number">11</div>
-  <div class="content">Klicken Sie auf <code>Marker auswählen</code> und <strong>durchsuchen Sie die Symbol-Bibliothek</strong> oder <strong>laden Sie Ihren eigenen Marker hoch</strong>, indem Sie auf den <code>Benutzerdefiniert</code>-Tab klicken und Ihre Datei hochladen (JPEG-, PNG- oder SVG-Format).</div>
+  <div class="content">Klicken Sie auf <code>Symbol auswählen</code> und <strong>durchsuchen Sie die Symbol-Bibliothek</strong> oder <strong>laden Sie Ihren eigenen Marker hoch</strong>, indem Sie auf den <code>Benutzerdefiniert</code>-Tab klicken und Ihre Datei hochladen (JPEG-, PNG- oder SVG-Format).</div>
 </div>
 
 
@@ -153,31 +160,31 @@ Sie können nur die Farbe von Symbolen aus der Bibliothek bearbeiten, nicht von 
 :::
 
 
-### Punkt-Einstellungen
+### Punkteinstellungen
 
 <div class="step">
   <div class="step-number">14</div>
-  <div class="content">Unter <code>Punkt-Einstellungen</code>, bei <code>Größe</code> <strong>passen Sie den Radius an</strong> mit dem Regler oder geben Sie präzise Werte in das Textfeld für exakte Kontrolle ein.</div>
+  <div class="content">Unter <code>Punkteinstellungen</code>, bei <code>Größe</code> <strong>passen Sie den Radius an</strong> mit dem Regler oder geben Sie präzise Werte in das Textfeld für exakte Kontrolle ein.</div>
 </div>
 
 
 ## Stil kopieren und einfügen
 
-Das Layer-Design-Panel bietet drei Schnellzugriff-Symbole oben im Panel zur Verwaltung von Stilen zwischen Layern: **Stil kopieren**, **Stil einfügen** und **Als Standard setzen**. So können Sie einen einheitlichen Stil auf mehrere Layer anwenden, ohne jeden einzeln zu konfigurieren.
+Der Tab <code>Stil</code> im Einstellungs-Panel eines Layers bietet oben drei Schnellzugriff-Symbole zur Verwaltung von Stilen zwischen Layern: **Stil kopieren**, **Stil einfügen** und **Als Standard setzen**. So können Sie einen einheitlichen Stil auf mehrere Layer anwenden, ohne jeden einzeln zu konfigurieren.
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content">Wählen Sie den Layer, dessen Stil Sie kopieren möchten, und öffnen Sie <code>Layer-Design</code> <img src={require('/img/icons/styling.png').default} alt="Styling-Symbol" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/>.</div>
+  <div class="content">Klicken Sie im <code>Layer</code>-Panel auf den Layer, dessen Stil Sie kopieren möchten. Sein Einstellungs-Panel öffnet sich mit ausgewähltem Tab <code>Stil</code>.</div>
 </div>
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Klicken Sie auf das Symbol <code>Stil kopieren</code> oben im Panel.</div>
+  <div class="content">Klicken Sie auf das Symbol <code>Stil kopieren</code> oben im Tab.</div>
 </div>
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Wählen Sie den Ziel-Layer, öffnen Sie dessen <code>Layer-Design</code>-Panel und klicken Sie auf <code>Stil einfügen</code>, um den kopierten Stil anzuwenden.</div>
+  <div class="content">Klicken Sie im <code>Layer</code>-Panel auf den Ziel-Layer und oben in dessen Tab <code>Stil</code> auf <code>Stil einfügen</code>, um den kopierten Stil anzuwenden.</div>
 </div>
 
 <div class="step">

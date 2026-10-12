@@ -3,6 +3,7 @@
 import { Box, useTheme } from "@mui/material";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import React, { useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { MapProvider } from "react-map-gl/maplibre";
 import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
@@ -59,6 +60,7 @@ const WorkflowsLayoutInner: React.FC<WorkflowsLayoutProps> = ({
   onProjectUpdate: _onProjectUpdate,
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation("common");
   const dispatch = useDispatch<AppDispatch>();
   const reactFlowInstance = useReactFlow();
 
@@ -316,7 +318,7 @@ const WorkflowsLayoutInner: React.FC<WorkflowsLayoutProps> = ({
               position,
               data: {
                 type: "dataset",
-                label: "Dataset",
+                label: t("dataset"),
               },
             })
           );
@@ -344,7 +346,7 @@ const WorkflowsLayoutInner: React.FC<WorkflowsLayoutProps> = ({
             position,
             data: {
               type: "export",
-              label: "Export Dataset",
+              label: t("export_dataset"),
               datasetName: "",
               addToProject: true,
               overwritePrevious: false,
@@ -353,10 +355,10 @@ const WorkflowsLayoutInner: React.FC<WorkflowsLayoutProps> = ({
           })
         );
       } else if (nodeType === "if") {
-        dispatch(addNode(createIfNode(`if-${uuidv4()}`, position)));
+        dispatch(addNode(createIfNode(`if-${uuidv4()}`, position, t("if_node"))));
       }
     },
-    [selectedWorkflowId, reactFlowInstance, dispatch]
+    [selectedWorkflowId, reactFlowInstance, dispatch, t]
   );
 
   return (

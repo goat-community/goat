@@ -3,20 +3,10 @@ name: Docker Build and Push
 on:
   workflow_call:
     inputs:
-      comment-enable:
-        description: Create a PR comment with image tags and labels
-        required: false
-        default: false
-        type: boolean
       context:
         description: Docker context (path) to start build from
         required: false
         type: string
-      dockerhub-enable:
-        description: Log into Docker Hub
-        required: false
-        default: false
-        type: boolean
       file:
         description: Dockerfile path relative to context
         required: false
@@ -27,26 +17,30 @@ on:
         type: string
         default: |
           latest=false
-      ghcr-enable:
-        description: Log into GHCR
-        required: false
-        default: true
-        type: boolean
       image-name:
         description: Docker image name to build
         required: true
         type: string
-        default: ghcr.io/${{ github.repository }}
+      title:
+        description: Human-readable image name
+        required: false
+        type: string
+      description:
+        description: >-
+          Short image description; GitHub shows it on the package page
+        required: false
+        type: string
+      smoke-command:
+        description: >-
+          Shell commands run inside the pushed image, as its default user,
+          before it is tagged; a failure stops the image from being tagged
+        required: false
+        type: string
       platforms:
         description: Platforms to build for
         required: false
         type: string
         default: linux/amd64
-      push:
-        description: Push image(s) to registry
-        required: false
-        default: true
-        type: boolean
       tag-rules:
         description: Tag rules for docker/metadata-action
         required: false
@@ -59,22 +53,45 @@ on:
         description: Docker build target stage name
         required: false
         type: string
-    secrets:
-      dockerhub-username:
+      fetch-history:
+        description: >-
+          Check out the full commit history (without file contents) instead
+          of only the built commit, for a prepare-command that reads git log
         required: false
-      dockerhub-token:
+        type: boolean
+        default: false
+      prepare-command:
+        description: >-
+          Shell commands run in the checkout before the image is built, e.g.
+          to generate files the build needs from git
         required: false
+        type: string
 
 permissions:
   contents: read
   packages: write
-  pull-requests: write
+  id-token: write
+  attestations: write
 
 jobs:
   build:
     # Each platform builds natively on its own runner: arm64 runners are free
     # for public repositories, and QEMU emulation made arm64 builds 2-3x slower.
     runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    # Builds of one image and platform for the same ref wait for each other
+    # instead of overlapping. The dev image updater deploys the most recently
+    # built image, so an older commit whose build happened to finish last
+    # would replace a newer one; queued, they finish in commit order, and the
+    # registry build cache is written in that order too. A build still
+    # waiting when a newer one queues is cancelled, which loses nothing: the
+    # newer commit contains its changes.
+    concurrency:
+      group: docker-build-${{ inputs.image-name }}-${{ matrix.platform }}-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -97,24 +114,24 @@ jobs:
           safe_image=${image//\//-}
           echo "SAFE_IMAGE=$safe_image" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: false
+          fetch-depth: ${{ inputs.fetch-history && '0' || '1' }}
+          filter: ${{ inputs.fetch-history && 'blob:none' || '' }}
+
+      - name: 🧰 Prepare build context
+        if: inputs.prepare-command != ''
+        env:
+          PREPARE: ${{ inputs.prepare-command }}
+        run: sh -ec "$PREPARE"
 
       - name: 🐳 Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: 🐳 Login to DockerHub
-        if: inputs.dockerhub-enable
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.dockerhub-username }}
-          password: ${{ secrets.dockerhub-token }}
+        uses: docker/setup-buildx-action@v4
 
       - name: 📦 Login to GHCR
-        if: inputs.ghcr-enable
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -122,15 +139,25 @@ jobs:
 
       - name: 🐳 Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ inputs.image-name }}
           flavor: ${{ inputs.flavor-rules }}
           tags: ${{ inputs.tag-rules }}
+          labels: |
+            ${{ inputs.description && format('org.opencontainers.image.description={0}', inputs.description) || '' }}
+            ${{ inputs.title && format('org.opencontainers.image.title={0}', inputs.title) || '' }}
+            org.opencontainers.image.vendor=Plan4Better GmbH
+            org.opencontainers.image.documentation=https://goat.plan4better.de/docs/
+          annotations: |
+            ${{ inputs.description && format('org.opencontainers.image.description={0}', inputs.description) || '' }}
+            ${{ inputs.title && format('org.opencontainers.image.title={0}', inputs.title) || '' }}
+            org.opencontainers.image.vendor=Plan4Better GmbH
+            org.opencontainers.image.documentation=https://goat.plan4better.de/docs/
 
       - name: 🐳 Build and Push per-platform (digest only)
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           provenance: false
           platforms: ${{ matrix.platform }}
@@ -149,6 +176,19 @@ jobs:
           cache-from: type=registry,ref=${{ inputs.image-name }}:buildcache-${{ env.PLATFORM_PAIR }}
           cache-to: type=registry,ref=${{ inputs.image-name }}:buildcache-${{ env.PLATFORM_PAIR }},mode=max
 
+      # The image is pushed by digest only, so nothing has tagged or deployed
+      # it yet. A failing check fails this platform's build, the merge job
+      # below never tags the image, and the dev and prod image updaters never
+      # see it.
+      - name: 🧪 Smoke test
+        if: inputs.smoke-command != ''
+        env:
+          IMAGE: ${{ inputs.image-name }}@${{ steps.build.outputs.digest }}
+          SMOKE: ${{ inputs.smoke-command }}
+        run: |
+          docker pull -q "$IMAGE"
+          docker run --rm --entrypoint sh "$IMAGE" -ec "$SMOKE"
+
       - name: 📤 Export digest
         run: |
           mkdir -p /tmp/digests
@@ -156,48 +196,23 @@ jobs:
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: 📤 Upload digest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: digests-${{ env.SAFE_IMAGE }}-${{ env.PLATFORM_PAIR }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
 
-      # --- Optional PR comment
-      - name: 💬 Find PR comment
-        if: github.event_name == 'pull_request' && inputs.comment-enable
-        id: fc
-        uses: peter-evans/find-comment@v4
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: github-actions[bot]
-          body-includes: "📦 Docker image tags pushed"
-
-      - name: 💬 Create/update PR comment
-        if: github.event_name == 'pull_request' && inputs.comment-enable
-        uses: peter-evans/create-or-update-comment@v5
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          edit-mode: replace
-          body: |
-            📦 Docker image tags pushed:
-            ```text
-            ${{ steps.meta.outputs.tags }}
-            ```
-            🏷 Labels added:
-            ```text
-            ${{ steps.meta.outputs.labels }}
-            ```
-
-      - name: 🏷 Output primary image tag
-        id: image-tag
-        run: echo "image-tag=${{ steps.meta.outputs.version }}" >> $GITHUB_OUTPUT
-
   merge:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
-    if: inputs.push
+    # id-token and attestations: write sign the provenance attestation.
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
     steps:
       - name: 📥 Prepare safe image identifier
         run: |
@@ -206,7 +221,7 @@ jobs:
           echo "SAFE_IMAGE=$safe_image" >> $GITHUB_ENV
 
       - name: 📥 Download digests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: /tmp/digests
           # ✅ only grab digests for THIS image
@@ -214,18 +229,10 @@ jobs:
           merge-multiple: true
 
       - name: 🐳 Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: 🐳 Login to DockerHub
-        if: inputs.dockerhub-enable
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.dockerhub-username }}
-          password: ${{ secrets.dockerhub-token }}
+        uses: docker/setup-buildx-action@v4
 
       - name: 📦 Login to GHCR
-        if: inputs.ghcr-enable
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -249,12 +256,22 @@ jobs:
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
           echo "tag=$GITHUB_REF_NAME highest=${highest:-none} latest=$latest"
 
+      # GitHub's package page reads the description, source and license of
+      # a multi-platform image from its index, not from the platform images,
+      # so the annotations are generated at index level for the merge below.
       - name: 🐳 Docker metadata extraction
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index
         with:
           images: ${{ inputs.image-name }}
           flavor: ${{ inputs.flavor-rules }}
+          annotations: |
+            ${{ inputs.description && format('org.opencontainers.image.description={0}', inputs.description) || '' }}
+            ${{ inputs.title && format('org.opencontainers.image.title={0}', inputs.title) || '' }}
+            org.opencontainers.image.vendor=Plan4Better GmbH
+            org.opencontainers.image.documentation=https://goat.plan4better.de/docs/
           tags: |
             ${{ inputs.tag-rules }}
             type=raw,value=latest,enable=${{ steps.latest.outputs.latest == 'true' }}
@@ -264,9 +281,27 @@ jobs:
         run: |
           echo "Merging digests for ${{ inputs.image-name }}..."
           ls -l .
-          docker buildx imagetools create \
-            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          # Arrays, not word splitting: annotation values contain spaces.
+          mapfile -t tags < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          mapfile -t annotations < <(jq -r '.annotations[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          args=()
+          for tag in "${tags[@]}"; do args+=(-t "$tag"); done
+          for annotation in "${annotations[@]}"; do args+=(--annotation "$annotation"); done
+          docker buildx imagetools create "${args[@]}" \
             $(printf '${{ inputs.image-name }}@sha256:%s ' *)
 
       - name: 🐳 Inspect Built Image
-        run: docker buildx imagetools inspect ${{ inputs.image-name }}:${{ steps.meta.outputs.version }}
+        id: inspect
+        run: |
+          ref="${{ inputs.image-name }}:${{ steps.meta.outputs.version }}"
+          docker buildx imagetools inspect "$ref"
+          echo "digest=$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest}}' | jq -r .digest)" >> "$GITHUB_OUTPUT"
+
+      # Signed provenance for the multi-platform image: which repository,
+      # workflow and commit built it. Anyone pulling it can check with
+      # `gh attestation verify oci://<image>:<tag> --owner plan4better`.
+      - name: 🔏 Attest build provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: ${{ inputs.image-name }}
+          subject-digest: ${{ steps.inspect.outputs.digest }}

@@ -1747,3 +1747,78 @@ async def test_a_template_under_a_shared_folder_is_listed_under_all(
         f"{settings.API_V2_STR}/template", params={"source": "mine"}, headers=headers
     )
     assert all(i["id"] != tid for i in mine.json()["items"])
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("ships_a_dataset", [True, False])
+async def test_a_template_grant_to_another_organization_is_refused_and_not_stored(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    fixture_create_user: UUID,
+    fixture_get_home_folder: dict[str, object],
+    make_user: Callable[..., Awaitable[Any]],
+    make_layer: Callable[..., Awaitable[Any]],
+    make_org: Callable[[], Awaitable[Organization]],
+    roles: dict[str, UUID],
+    ships_a_dataset: bool,
+) -> None:
+    """Sharing stays inside the owner's organization. The check ran only
+    after the grant was written (and, without a shipped dataset, not at
+    all); with core in AUTOCOMMIT the refused grant stayed, and the
+    stranger could use the template and read its datasets."""
+    home = str(fixture_get_home_folder["id"])
+    owner = await db_session.get(User, fixture_create_user)
+    assert owner is not None
+    home_folder = await db_session.get(Folder, UUID(home))
+    assert home_folder is not None
+    layer = await make_layer(owner, home_folder)
+    await db_session.commit()
+    project_id = await _create_project(client, home)
+    workflow_id = await _create_workflow(
+        client, project_id, _dataset_workflow_config(layer.id)
+    )
+    source = {"kind": "workflow", "project_id": project_id, "workflow_id": workflow_id}
+    preview = await client.post(
+        f"{settings.API_V2_STR}/template/preview",
+        json={"source": source, "folder_id": home},
+    )
+    inputs = preview.json()["detected_inputs"]
+    if not ships_a_dataset:
+        inputs = [{**i, "mode": "ask", "layer_id": None} for i in inputs]
+    create_resp = await client.post(
+        f"{settings.API_V2_STR}/template",
+        json={
+            "name": "Not for strangers",
+            "folder_id": home,
+            "source": source,
+            "inputs": inputs,
+        },
+    )
+    assert create_resp.status_code == 201, create_resp.text
+    tid = create_resp.json()["id"]
+    other_org = await make_org()
+    stranger = await make_user(other_org.id)
+    await db_session.commit()
+
+    grant = await client.post(
+        f"{settings.API_V2_STR}/template/{tid}/grant",
+        json={
+            "grantee_type": "user",
+            "grantee_id": str(stranger.id),
+            "role": "template-viewer",
+        },
+    )
+
+    assert grant.status_code == 403, grant.text
+    stored = (
+        await db_session.execute(
+            text(
+                f"SELECT count(*) FROM {S}.resource_grant "
+                "WHERE grantee_type = 'user' AND grantee_id = :u"
+            ),
+            {"u": stranger.id},
+        )
+    ).scalar()
+    assert stored == 0
+    listed = await client.get(f"{settings.API_V2_STR}/template/{tid}/grant")
+    assert all(g["grantee_id"] != str(stranger.id) for g in listed.json()["grants"])

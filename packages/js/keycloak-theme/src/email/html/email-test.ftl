@@ -1,14 +1,5 @@
 <#import "template.ftl" as layout>
-<@layout.emailLayout>
-    <tr>
-      <td style="padding-top: 40px;">
-        <img
-            alt=""
-            src="https://assets.plan4better.de/img/email/verify_email.png"
-            style="width: 250px"
-        />
-      </td>
-    </tr>
+<@layout.emailLayout artwork="verify_email.png">
     <tr>
       <td>
         <div style="${properties.titleStyle}">
@@ -25,14 +16,16 @@
         </div>
       </td>
     </tr>
+    <#if layout.appUrl?has_content>
     <tr>
       <td>
         <a
-          href="https://auth.plan4better.de"
+          href="${layout.appUrl}"
           style="${properties.actionButtonStyle}"
         >
           <b style="font-weight: 700">${msg("emailTestButton")}</b>
         </a>
       </td>
     </tr>
+    </#if>
 </@layout.emailLayout>

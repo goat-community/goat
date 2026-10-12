@@ -4,7 +4,8 @@ import os
 from typing import Optional
 
 from goatlib.api.root_path import normalize_root_path
-from pydantic import field_validator
+from goatlib.auth import AuthFlag, require_keycloak_url
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -52,12 +53,16 @@ class Settings(BaseSettings):
 
     DEBUG: bool = False
 
-    # Authentication settings
-    AUTH: bool = os.getenv("AUTH", "true").lower() == "true"
-    KEYCLOAK_SERVER_URL: str = os.getenv(
-        "KEYCLOAK_SERVER_URL", "https://auth.dev.plan4better.de"
-    )
-    REALM_NAME: str = os.getenv("REALM_NAME", "p4b")
+    # Authentication settings. KEYCLOAK_SERVER_URL is required when AUTH is
+    # on (see _require_keycloak).
+    AUTH: AuthFlag = True
+    KEYCLOAK_SERVER_URL: str = ""
+    REALM_NAME: str = "p4b"
+
+    @model_validator(mode="after")
+    def _require_keycloak(self) -> "Settings":
+        require_keycloak_url(self.AUTH, self.KEYCLOAK_SERVER_URL)
+        return self
 
     # PostgreSQL settings for DuckLake catalog
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")

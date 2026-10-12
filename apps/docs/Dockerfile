@@ -1,16 +1,32 @@
-FROM node:22-alpine AS installer
-RUN npm install -g corepack@latest
-RUN corepack enable && corepack prepare pnpm@latest --activate
+FROM node:22-alpine AS base
 
+# Only docs' own package and the lockfile entries it uses, so a change
+# elsewhere in the monorepo leaves the install and build below cached.
+FROM base AS builder
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
-
+RUN npm install -g turbo@2.10.7
 COPY . .
+RUN turbo prune @p4b/docs --docker
 
-RUN pnpm install
+FROM base AS installer
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+# corepack picks the pnpm release named in package.json's packageManager
+RUN npm install -g corepack@latest && corepack enable
+
+# First install the dependencies (as they change less often)
+COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+RUN pnpm install --frozen-lockfile
 
 # Build the project
+COPY --from=builder /app/out/full/ .
 WORKDIR /app/apps/docs
-RUN pnpm run build
+# Only build/ goes into the image. The webpack cache and the generated
+# sources the build leaves behind would stay in this layer, which is exported
+# to the build cache on every build, so they are removed in the same step.
+RUN pnpm run build && rm -rf node_modules/.cache .docusaurus
 
 # production stage
 FROM nginx:stable-alpine AS production-stage

@@ -1,0 +1,59 @@
+suite: geoapi ConfigMap
+templates:
+  - geoapi/configmap.yaml
+tests:
+  - it: points geoapi at the in-chart processes service
+    set:
+      geoapi.enabled: true
+      processes.enabled: true
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: data.GOAT_PROCESSES_URL
+          value: http://RELEASE-NAME-goat-processes
+
+  - it: omits the processes URL when processes is disabled
+    set:
+      geoapi.enabled: true
+      processes.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - notExists:
+          path: data.GOAT_PROCESSES_URL
+
+  - it: an explicit override wins over the auto-wire
+    # If the range's skip-guard regressed and both the range and the
+    # auto-wire block emitted GOAT_PROCESSES_URL, the rendered document
+    # would contain a duplicate mapping key. helm-unittest's YAML decoder
+    # hard-errors on duplicate keys ("mapping key already defined") rather
+    # than silently keeping the last one, so this assertion can only pass
+    # when the range genuinely skips the key — not because a duplicate
+    # happens to be emitted last.
+    set:
+      geoapi.enabled: true
+      processes.enabled: true
+      geoapi.config.GOAT_PROCESSES_URL: http://my-processes:8300
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: data.GOAT_PROCESSES_URL
+          value: http://my-processes:8300
+
+  - it: renders the v3 catalog directories and read-authz gate
+    set:
+      geoapi.enabled: true
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: data.CATALOG_LAYERS_DIR
+          value: /app/data/catalog/layers
+      - equal:
+          path: data.CATALOG_TILES_DIR
+          value: /app/data/catalog/tiles
+      - equal:
+          path: data.ENFORCE_READ_AUTHZ
+          value: "false"

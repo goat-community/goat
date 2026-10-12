@@ -390,6 +390,12 @@ def execute_if_node(
                 logger.warning(
                     "Custom expression variable substitution failed: %s", exc
                 )
+            if boolean_sql:
+                # It runs inside a query on a DuckLake connection: only an
+                # expression over the upstream layer's columns is allowed.
+                from goatlib.utils.sql_validation import validate_sql_expression
+
+                validate_sql_expression(boolean_sql)
 
     # Compile the upstream layer's filter to a WHERE clause so the condition is
     # evaluated only over matching rows (same CQL→WHERE helper used above for

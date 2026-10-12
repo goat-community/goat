@@ -1,9 +1,12 @@
-export const MAKI_ICONS_BASE_URL = "https://assets.plan4better.de/icons/maki";
+import { ASSETS_URL } from "@/lib/constants";
+
+export const MAKI_ICONS_BASE_URL = `${ASSETS_URL}/icons/maki`;
 export const MAKI_ICON_SIZE = 24; // px
 export const NO_ICON_ICON = "hospital";
 export const MAKI_ICON_TYPES = [
   {
     name: "Urban Infrastructure",
+    labelKey: "icon_category_urban_infrastructure",
     icons: [
       "bridge",
       "building-alt1",
@@ -56,12 +59,13 @@ export const MAKI_ICON_TYPES = [
       "traffic-light-solid",
       "water-solid",
       "wheelchair-solid",
-      "wind-turbine-solid-pro",
+      "wind_turbine",
       "waste-basket"
     ]
   },
   {
     name: "Cultural and Landmark",
+    labelKey: "icon_category_cultural_landmark",
     icons: [
       "art-gallery",
       "castle-JP",
@@ -94,6 +98,7 @@ export const MAKI_ICON_TYPES = [
   },
   {
     name: "Shopping & Services",
+    labelKey: "icon_category_shopping_services",
     icons: [
       "shop",
       "shop-solid",
@@ -111,16 +116,16 @@ export const MAKI_ICON_TYPES = [
       "cart-shopping-solid",
       "basket-shopping-solid",
       "tags-solid",
-      "bread-loaf-solid",
-      "butcher_meat",
-      "farm_shop_basket",
-      "library-icon",
-      "grocery-or-supermarket",
+      "bakery",
+      "meat",
+      "library",
+      "grocery",
       "pharmacy"
     ]
   },
   {
     name: "Recreation and Entertainment",
+    labelKey: "icon_category_recreation_entertainment",
     icons: [
       "amusement-park",
       "aquarium",
@@ -166,6 +171,7 @@ export const MAKI_ICON_TYPES = [
   },
   {
     name: "Nature and Environment",
+    labelKey: "icon_category_nature_environment",
     icons: [
       "beach",
       "farm",
@@ -183,6 +189,7 @@ export const MAKI_ICON_TYPES = [
   },
   {
     name: "Health and Safety",
+    labelKey: "icon_category_health_safety",
     icons: [
       "defibrillator",
       "drinking-water",
@@ -195,12 +202,12 @@ export const MAKI_ICON_TYPES = [
   },
   {
     name: "Transportation and Vehicles",
+    labelKey: "icon_category_transportation_vehicles",
     icons: [
       "aerialway",
       "bicycle-share",
-      "bike_parking_big",
+      "bicycle_parked",
       "bicycle",
-      "electric-bike-icon",
       "bus",
       "ferry-JP",
       "ferry",

@@ -139,7 +139,7 @@ class CRUDOrganization(CRUDBase[Organization, OrganizationCreate, OrganizationUp
 
         # Send email
         email_content = EmailTemplateContent(
-            artwork_url="https://assets.plan4better.de/img/email/account_trial_started.png",
+            artwork_url=f"{settings.email_artwork_url}/img/email/account_trial_started.png",
             title=_("Thank you for signing up for the free demo!"),
             message=_(
                 "We are delighted that you are becoming part of the GOAT community! During your trial period, you will have full access to the GOAT platform"
@@ -168,7 +168,7 @@ class CRUDOrganization(CRUDBase[Organization, OrganizationCreate, OrganizationUp
 
         if keycloak_user.get("email"):
             email_content = EmailTemplateContent(
-                artwork_url="https://assets.plan4better.de/img/email/organization_suspended.png",
+                artwork_url=f"{settings.email_artwork_url}/img/email/organization_suspended.png",
                 title=_("Organization has been deleted"),
                 message=_("Your organization has been deleted."),
             )
@@ -198,7 +198,9 @@ class CRUDOrganization(CRUDBase[Organization, OrganizationCreate, OrganizationUp
                 f"img/users/{settings.ENVIRONMENT}/{file_name}",
                 f"image/{extension}",
             )
-            organization_obj.avatar = f"https://assets.plan4better.de/img/users/{settings.ENVIRONMENT}/{file_name}"
+            organization_obj.avatar = (
+                f"{settings.ASSETS_URL}/img/users/{settings.ENVIRONMENT}/{file_name}"
+            )
         updated_organization = await self.update(
             db=db, db_obj=db_obj, obj_in=organization_obj
         )
@@ -489,7 +491,7 @@ class CRUDOrganization(CRUDBase[Organization, OrganizationCreate, OrganizationUp
             await crud_invitations.remove_multi(db, ids=invitations_ids_to_remove)
 
         email_content = EmailTemplateContent(
-            artwork_url="https://assets.plan4better.de/img/email/user_removed_from_organization.png",
+            artwork_url=f"{settings.email_artwork_url}/img/email/user_removed_from_organization.png",
             title=_("You have been removed from the organization"),
             message=_("You have been removed from the organization."),
         )

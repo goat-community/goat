@@ -1,4 +1,5 @@
 ---
+description: "How GOAT routes bicycle and pedelec trips on the Overture Maps network, adjusting edge cost for surface and, for bicycles, slope from Copernicus elevation data."
 sidebar_position: 2
 
 ---
@@ -12,7 +13,7 @@ The **Bicycle/Pedelec Routing** is used for all analyses in GOAT that contain cy
  
 ## 1. Objectives
 
-Bicycle/Pedelec routing is used for many indicators in GOAT, such as [Catchment Areas](../toolbox/accessibility_indicators/catchments "Visit Docs on Catchment Areas"), [Heatmaps](../toolbox/accessibility_indicators/connectivity "Visit Docs on Heatmaps"), the [Huff Model](../toolbox/accessibility_indicators/huff_model "Visit Docs on the Huff Model"), and the [Travel Cost Matrix](../toolbox/accessibility_indicators/travel_cost_matrix "Visit Docs on the Travel Cost Matrix"). A **custom routing algorithm** is used for the mode of bicycle/pedelec, which **only considers paths that are suitable for cycling**. Furthermore, the `surface` and `slope` have an impact on the cycling speed and are therefore considered in the routing. The average cycling `speed` can be adjusted by the user whenever an accessibility analysis is performed. Depending on the slope and surface of a path segment, the speed is adjusted accordingly. 
+[Bicycle/Pedelec routing](https://www.plan4better.de/en/glossary/routing) is used for many indicators in GOAT, such as [Catchment Areas](../toolbox/accessibility_indicators/catchments "Visit Docs on Catchment Areas"), [Heatmaps](../toolbox/accessibility_indicators/connectivity "Visit Docs on Heatmaps"), the [Huff Model](../toolbox/accessibility_indicators/huff_model "Visit Docs on the Huff Model"), and the [Travel Cost Matrix](../toolbox/accessibility_indicators/travel_cost_matrix "Visit Docs on the Travel Cost Matrix"). A **custom routing algorithm** is used for the mode of bicycle/pedelec, which **only considers paths that are suitable for cycling**. Furthermore, the `surface` and `slope` have an impact on the cycling speed and are therefore considered in the routing. The average cycling `speed` can be adjusted by the user whenever an [accessibility analysis](https://www.plan4better.de/en/glossary/accessibility-analysis) is performed. Depending on the slope and surface of a path segment, the speed is adjusted accordingly. 
 
 
 ## 2. Data
@@ -34,7 +35,7 @@ Elevation data is sourced from **[Copernicus](https://www.copernicus.eu/en)** as
 The following steps are performed on the data to enable **quick** and **accurate** routing for bicycle/pedelec:
 
  1. **Attribute Parsing:** Categorizing attributes of edges (street `class` and `surface`).
- 2. **Geospatial Indexing:**  Utilizing **[Uber's H3 grid-based](../further_reading/glossary#h3-grid)** indexing for efficient routing.
+ 2. **Geospatial Indexing:**  Utilizing **[Uber's H3 grid-based](https://www.plan4better.de/en/glossary/h3-grid)** indexing for efficient routing.
  3. **Surface Impedance Computation:** Calculating impedance considering surface properties.
  4. **Slope Impedance Computation:** Overlaying DEM on edges to compute slope profiles.
 
@@ -69,7 +70,7 @@ Cost function for **pedelec**:
 If an edge is of class `pedestrian` or `crosswalk`, we assume the rider would dismount and walk their bicycle/pedelec. The cost for this type of segment is: `cost = length / speed`
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '0.75rem' }}>
-  <img src={require('/img/routing/bicycle_edge_cost.png').default} alt="Cycling network edge cost by topology — surface and slope multipliers" style={{ maxWidth: "100%", objectFit: "contain"}}/>
+  <img src={require('/img/routing/bicycle_edge_cost.png').default} alt="Cycling network edge cost by topology: surface and slope multipliers" style={{ maxWidth: "100%", objectFit: "contain"}}/>
 </div>
 
 :::note
@@ -83,7 +84,7 @@ To compute the shortest path from the origin point to various destinations, a cu
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <Video src={require('/img/routing/walk/dijkstra.mp4').default}  alt="Dijkstra Algorithm" style={{ width: "auto", height: "auto", objectFit: "cover"}}/>
-<p style={{ textAlign: 'center' }}>GIF: <a href="https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra Algorithm</a></p>
+<p style={{ textAlign: 'center' }}><a href="https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra Algorithm</a></p>
 </div>
 
 

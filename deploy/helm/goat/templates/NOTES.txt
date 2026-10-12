@@ -1,0 +1,111 @@
+GOAT Helm chart v{{ .Chart.Version }} (app {{ .Chart.AppVersion }}) installed
+into namespace "{{ .Release.Namespace }}" as release "{{ .Release.Name }}".
+
+Enabled services follow your values (core, web, catalog, geoapi and processes on
+by default, plus the windmill server and default worker; the heavier windmill
+workers and caddy are opt-in).
+{{- if .Values.web.enabled }}
+{{- /* Same three sources web/configmap.yaml resolves NEXT_PUBLIC_API_URL from. */}}
+{{- $apiResolved := or .Values.web.publicUrls.api (include "goat.ingressUrl" (dict "ingress" .Values.core.ingress)) .Values.web.config.NEXT_PUBLIC_API_URL }}
+{{- if not $apiResolved }}
+
+WARNING: the web UI will NOT LOAD. None of web.publicUrls.api, a core.ingress
+with hosts, or web.config.NEXT_PUBLIC_API_URL is set, so NEXT_PUBLIC_API_URL
+cannot be resolved.
+The browser bundle keeps its literal APP_NEXT_PUBLIC_API_URL sentinel and
+throws building `new URL(...)` calls on first load (white screen). Set
+web.publicUrls.api (and .geoapi / .processes / .catalog) to the services'
+public URLs, or give core.ingress a host, then upgrade. See README "Quick start".
+{{- end }}
+{{- end }}
+{{- if and .Values.core.enabled .Values.core.migrate.enabled }}
+
+Schema migrations + SQL functions are applied by a Helm hook (job:
+{{ include "goat.fullname" . }}-core-migrate): after the pods are up on install,
+before the new pods roll on upgrade.
+{{- end }}
+{{- $dlInit := and .Values.ducklakeBootstrap.enabled (or .Values.geoapi.enabled .Values.processes.enabled) }}
+{{- $wmInit := and (include "goat.windmillDbInit.enabled" .) (or .Values.windmill.server.enabled .Values.windmill.workers.default.enabled .Values.windmill.workers.tools.enabled .Values.windmill.workers.workflows.enabled .Values.windmill.workers.print.enabled) }}
+{{- if or $dlInit $wmInit }}
+
+One-time bootstrap runs in init containers, so no extra helm step is needed:
+{{- if $dlInit }}
+  - ducklake-init (geoapi, processes) creates the DuckLake catalog if missing:
+      kubectl -n {{ .Release.Namespace }} logs deploy/{{ include "goat.fullname" . }}-{{ if .Values.geoapi.enabled }}geoapi{{ else }}processes{{ end }} -c ducklake-init
+{{- end }}
+{{- if $wmInit }}
+  - windmill-db-init (windmill server, workers) creates the `windmill` database if missing:
+      kubectl -n {{ .Release.Namespace }} logs deploy/{{ include "goat.fullname" . }}-windmill-server -c windmill-db-init
+{{- end }}
+On a fresh install those pods wait in Init:0/1 until Postgres is up.
+{{- end }}
+
+To check core health from inside the cluster:
+  kubectl -n {{ .Release.Namespace }} exec deploy/{{ .Release.Name }}-core -- curl -sf http://localhost:8000/api/healthz
+
+If you bundled redis (redis.enabled=true), its password is in:
+  kubectl -n {{ .Release.Namespace }} get secret {{ include "goat.redis.secretName" . }} -o jsonpath='{.data.{{ include "goat.redis.passwordKey" . }}}' | base64 -d
+
+For external Postgres, ensure the secret named in
+postgresql.external.existingSecret exists in namespace "{{ .Release.Namespace }}"
+before `helm install`. See README.md for details.
+{{- if and .Values.data.enabled (or (and .Values.windmill.workers.tools.enabled .Values.windmill.workers.tools.persistence.enabled) (and .Values.windmill.workers.workflows.enabled .Values.windmill.workers.workflows.persistence.enabled)) }}
+
+WARNING: windmill.workers.{tools,workflows}.persistence is IGNORED because the
+shared `data` volume is enabled. Both workers now mount {{ include "goat.data.claimName" . }}.
+Coming from chart 0.4.x: this release no longer renders
+{{ include "goat.fullname" . }}-windmill-tools-data / {{ include "goat.fullname" . }}-windmill-workflows-data,
+so `helm upgrade` DELETES them and their data unless the LIVE claims carry
+helm.sh/resource-policy=keep — Helm reads that annotation from the cluster at
+delete time; data.existingClaim alone does not stop it. This note prints only
+AFTER an upgrade, too late to act on; protect the claims BEFORE upgrading:
+  kubectl -n {{ .Release.Namespace }} annotate pvc {{ include "goat.fullname" . }}-windmill-tools-data {{ include "goat.fullname" . }}-windmill-workflows-data helm.sh/resource-policy=keep
+(name only the claims that exist). The chart refuses an upgrade that would
+delete an unannotated claim of this release, unless
+windmill.workers.legacyPersistence.acknowledgeDeletion=true. Annotated claims
+stay behind, unmanaged: copy their data onto the shared volume or point
+data.existingClaim at one. See README "Upgrading 0.4.x -> 0.5.0" note 1.
+{{- end }}
+{{- if and .Values.data.enabled (not .Values.data.existingClaim) (eq .Values.data.accessMode "ReadWriteOnce") }}
+{{- $mounters := 0 }}
+{{- if .Values.catalog.enabled }}{{ $mounters = add1 $mounters }}{{ end }}
+{{- if .Values.core.enabled }}{{ $mounters = add1 $mounters }}{{ end }}
+{{- if .Values.geoapi.enabled }}{{ $mounters = add1 $mounters }}{{ end }}
+{{- if .Values.processes.enabled }}{{ $mounters = add1 $mounters }}{{ end }}
+{{- if .Values.windmill.workers.tools.enabled }}{{ $mounters = add1 $mounters }}{{ end }}
+{{- if .Values.windmill.workers.workflows.enabled }}{{ $mounters = add1 $mounters }}{{ end }}
+{{- if gt $mounters 1 }}
+
+NOTE: data.accessMode is ReadWriteOnce and {{ $mounters }} components mount the
+shared volume. That is correct on a single-node cluster. If this cluster has more
+than one node, an RWO volume can only be mounted by one node and pods scheduled
+elsewhere will not start — set data.accessMode: ReadWriteMany with an RWX-capable
+StorageClass (NFS, CephFS, Longhorn RWX), or supply your own claim via
+data.existingClaim.
+{{- end }}
+{{- end }}
+{{- if and .Values.catalog.enabled .Values.catalog.s3.bucket (not .Values.catalog.s3.existingSecret) }}
+
+WARNING: catalog.s3.bucket is set but catalog.s3.existingSecret is empty. The
+bucket is configured but no credentials were supplied via
+catalog.s3.existingSecret, so previews and assets will fail unless
+credentials are provided through catalog.extraEnv.
+{{- end }}
+{{- $authOn := list }}
+{{- $authOff := list }}
+{{- range $svc := list "core" "web" "geoapi" "processes" "catalog" }}
+{{- $vals := index $.Values $svc }}
+{{- if $vals.enabled }}
+{{- $v := include "goat.auth.effectiveValue" (dict "values" $vals "root" $) }}
+{{- if eq $v "true" }}{{ $authOn = append $authOn $svc }}{{ else if eq $v "false" }}{{ $authOff = append $authOff $svc }}{{ end }}
+{{- end }}
+{{- end }}
+{{- if and $authOn $authOff }}
+
+WARNING: mixed authentication. AUTH is ON for {{ join ", " $authOn }} but OFF
+for {{ join ", " $authOff }}. A service with AUTH off accepts requests without
+a token and acts as the default user; with web off and an API on, the browser
+sends no token and that API answers 401. Use one switch, global.auth.enabled
+(plus global.auth.existingSecret), unless the split is deliberate. See README
+"Authentication".
+{{- end }}

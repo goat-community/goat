@@ -1,4 +1,5 @@
 ---
+description: "Remove the parts of input features that overlap an overlay layer and keep only what lies outside it, the opposite of Clip, for example to drop protected areas."
 sidebar_position: 7
 ---
 

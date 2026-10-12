@@ -1,0 +1,38 @@
+{{- if and .Values.windmill.server.enabled .Values.windmill.server.ingress.enabled -}}
+{{- $component := "windmill-server" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+  {{- with .Values.windmill.server.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.windmill.server.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.windmill.server.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range .Values.windmill.server.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "goat.serviceFullname" $ctx }}
+                port:
+                  number: {{ $.Values.windmill.server.service.port }}
+          {{- end }}
+    {{- end }}
+{{- end }}

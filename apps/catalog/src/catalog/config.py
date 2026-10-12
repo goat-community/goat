@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from goatlib.api.root_path import normalize_root_path
+from goatlib.auth import AuthFlag, require_keycloak_url
 from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -52,15 +53,16 @@ class CatalogSettings(BaseSettings):
     # here, this reads the bare `AUTH` env var, NOT `CATALOG_AUTH` -- an
     # explicit validation_alias bypasses env_prefix for just this field
     # (CATALOG_AUTH is kept as a fallback alias for a catalog-only override).
-    auth: bool = Field(
+    auth: AuthFlag = Field(
         default=True, validation_alias=AliasChoices("AUTH", "CATALOG_AUTH")
     )
     # Repo-wide Keycloak config (see .env.example): read the bare env var by
     # default, but let a CATALOG_-prefixed variant override it -- unlike
     # `auth` above, a per-service Keycloak endpoint override is a legitimate
     # deployment need, so the catalog-specific alias is checked FIRST.
+    # Required when auth is on (see _require_keycloak).
     keycloak_server_url: str = Field(
-        default="https://auth.dev.plan4better.de",
+        default="",
         validation_alias=AliasChoices(
             "CATALOG_KEYCLOAK_SERVER_URL", "KEYCLOAK_SERVER_URL"
         ),
@@ -202,6 +204,11 @@ class CatalogSettings(BaseSettings):
     @classmethod
     def _normalize_root_path(cls, value: str | None) -> str:
         return normalize_root_path(value)
+
+    @model_validator(mode="after")
+    def _require_keycloak(self) -> "CatalogSettings":
+        require_keycloak_url(self.auth, self.keycloak_server_url)
+        return self
 
     @model_validator(mode="after")
     def _default_cors_to_goat_ui(self) -> "CatalogSettings":

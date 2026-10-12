@@ -7,14 +7,7 @@ import * as z from "zod";
 /**
  * Status of a workflow node during execution
  */
-export const nodeStatusSchema = z.enum([
-  "idle",
-  "pending",
-  "running",
-  "completed",
-  "error",
-  "skipped",
-]);
+export const nodeStatusSchema = z.enum(["idle", "pending", "running", "completed", "error", "skipped"]);
 
 export type NodeStatus = z.infer<typeof nodeStatusSchema>;
 
@@ -99,6 +92,9 @@ export const exportNodeDataSchema = z.object({
   // Execution state
   status: nodeStatusSchema.default("idle"),
   exportedLayerId: z.string().uuid().optional(), // Resulting permanent layer ID after export
+  // The author's style for the result, from a workflow template: applied when
+  // the export creates a new layer; an overwritten result keeps its own style
+  outputStyle: z.record(z.unknown()).optional(),
   jobId: z.string().optional(), // Windmill job ID during finalization
   error: z.string().optional(), // Error message if status is "error"
 });
@@ -219,9 +215,20 @@ export type WorkflowEdge = z.infer<typeof workflowEdgeSchema>;
 // Workflow Variable
 // ============================================================================
 
+/** Longest display label a workflow variable may carry. */
+export const WORKFLOW_VARIABLE_LABEL_MAX = 120;
+/** Longest help text a workflow variable may carry. */
+export const WORKFLOW_VARIABLE_DESCRIPTION_MAX = 500;
+
 /**
  * A workflow-level variable that can be referenced in tool parameters
- * using {{@variable_name}} syntax
+ * using {{@variable_name}} syntax.
+ *
+ * `name` is the identifier expressions and SQL use. `label` and `description`
+ * are optional and display-only: users see the label (falling back to the
+ * name) wherever they pick or fill in a variable, and the description as help
+ * text. The runner resolves variables by `name` alone, so neither affects a
+ * run. Workflows saved before they existed simply lack both keys.
  */
 export const workflowVariableSchema = z.object({
   id: z.string(),
@@ -230,12 +237,31 @@ export const workflowVariableSchema = z.object({
     .min(1)
     .max(64)
     .regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/),
+  label: z.string().max(WORKFLOW_VARIABLE_LABEL_MAX).optional(),
+  description: z.string().max(WORKFLOW_VARIABLE_DESCRIPTION_MAX).optional(),
   type: z.enum(["string", "number"]),
   defaultValue: z.union([z.string(), z.number()]).optional(),
   order: z.number().int().default(0),
 });
 
 export type WorkflowVariable = z.infer<typeof workflowVariableSchema>;
+
+/** What users see for a variable: its label, or its name when it has none. */
+export function getVariableDisplayName(variable: Pick<WorkflowVariable, "name" | "label">): string {
+  const label = variable.label?.trim();
+  return label ? label : variable.name;
+}
+
+/** Whether the variable's display name differs from its technical name. */
+export function hasVariableLabel(variable: Pick<WorkflowVariable, "name" | "label">): boolean {
+  return getVariableDisplayName(variable) !== variable.name;
+}
+
+/** The variable's help text, or undefined when it has none worth showing. */
+export function getVariableDescription(variable: Pick<WorkflowVariable, "description">): string | undefined {
+  const description = variable.description?.trim();
+  return description ? description : undefined;
+}
 
 // ============================================================================
 // Workflow Config

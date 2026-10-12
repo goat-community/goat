@@ -1,22 +1,26 @@
 name: "Release"
 
+# Releases are the v* tag pushes. Publishing a GitHub release for that tag
+# is not a trigger: it ran the whole pipeline a second time for the same
+# commit and pushed the same image tags concurrently.
 on:
-  release:
-    types: [published]
   push:
     branches: [main]
     tags:
       - "v*"
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+# The workflow token gets read access only; jobs that need more ask for it.
+permissions:
+  contents: read
 
 jobs:
   file-changes:
     name: file-changes
     uses: ./.github/workflows/checks.yml
+    permissions:
+      contents: read
+      pull-requests: read
     secrets: inherit
 
   lint:
@@ -38,7 +42,7 @@ jobs:
 
   # Gate releases on the test suites. Change-detection picks the affected
   # suites on branch pushes; tag releases run everything (same override the
-  # release jobs use). Advisory suites report green and never block.
+  # release jobs use).
   # A push that touches none of their paths skips every suite, and a skipped
   # `test` would skip each release job below that needs it. So those jobs
   # check `!failure() && !cancelled()` rather than the implicit success():
@@ -60,6 +64,7 @@ jobs:
         || needs.file-changes.outputs.geoapi == 'true'
         || needs.file-changes.outputs.processes == 'true'
         || needs.file-changes.outputs.catalog == 'true'
+        || needs.file-changes.outputs.workers == 'true'
         || startsWith(github.ref, 'refs/tags/v') }}
       geoapi: >-
         ${{ needs.file-changes.outputs.geoapi == 'true'
@@ -71,6 +76,10 @@ jobs:
         ${{ needs.file-changes.outputs.catalog == 'true'
         || startsWith(github.ref, 'refs/tags/v') }}
 
+  # Each image job gives the image a smoke test (smoke-command), run inside
+  # the pushed image before it is tagged: a failure keeps a broken image
+  # from being tagged and deployed. id-token and attestations: write sign
+  # its provenance attestation.
   release-docker-web:
     needs: [file-changes, lint, test]
     if: ${{ !failure() && !cancelled() && (needs.file-changes.outputs.web == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
@@ -78,14 +87,23 @@ jobs:
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/web/Dockerfile
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/web
+      title: "GOAT Web"
+      description: "GOAT's web application: the frontend for maps, dashboards, workflows and reports."
+      smoke-command: |
+        cd /app
+        node apps/web/server.js > /tmp/web.log 2>&1 &
+        for i in $(seq 1 30); do
+          node -e "fetch('http://127.0.0.1:3000/').then(r => { console.log('HTTP', r.status); process.exit(0) }, () => process.exit(1))" && exit 0
+          sleep 1
+        done
+        cat /tmp/web.log
+        exit 1
 
   release-docker-core:
     needs: [file-changes, lint, test]
@@ -94,14 +112,20 @@ jobs:
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/core/Dockerfile
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/core
+      title: "GOAT Core"
+      description: "GOAT's core API for users, organizations, projects and layer metadata."
+      # AUTH=false: with auth on the settings require a Keycloak URL, which
+      # an import check does not need.
+      smoke-command: |
+        cd /app
+        export AUTH=false POSTGRES_SERVER=localhost POSTGRES_USER=smoke POSTGRES_PASSWORD=smoke POSTGRES_DB=smoke
+        python -c "import core.main"
 
   release-docker-geoapi:
     needs: [file-changes, lint, test]
@@ -110,14 +134,22 @@ jobs:
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/geoapi/Dockerfile
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/geoapi
+      title: "GOAT GeoAPI"
+      description: "GOAT's OGC API Features and Tiles service for layer data."
+      # AUTH=false: with auth on the settings require a Keycloak URL, which
+      # an import check does not need.
+      smoke-command: |
+        cd /app
+        export AUTH=false
+        python -c "import geoapi.main"
+        python -c "import duckdb; c = duckdb.connect(config={'autoinstall_known_extensions': False}); [c.execute(f'LOAD {e}') for e in ('spatial', 'httpfs', 'postgres', 'ducklake', 'h3')]"
+        command -v tippecanoe-overzoom
 
   release-docker-catalog:
     needs: [file-changes, lint, test]
@@ -126,14 +158,21 @@ jobs:
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/catalog/Dockerfile
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/catalog
+      title: "GOAT Catalog"
+      description: "GOAT's STAC API for searching and browsing the data catalog."
+      # AUTH=false: with auth on the settings require a Keycloak URL, which
+      # an import check does not need.
+      smoke-command: |
+        cd /app
+        export AUTH=false
+        python -c "import catalog.main"
+        python -c "import duckdb, os; c = duckdb.connect(config={'extension_directory': os.environ['DUCKDB_EXTENSION_DIRECTORY'], 'autoinstall_known_extensions': False}); c.execute('LOAD spatial')"
 
   release-docker-processes:
     needs: [file-changes, lint, test]
@@ -142,14 +181,21 @@ jobs:
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/processes/Dockerfile
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/processes
+      title: "GOAT Processes"
+      description: "GOAT's OGC API Processes service, which runs the analysis tools."
+      # AUTH=false: with auth on the settings require a Keycloak URL, which
+      # an import check does not need.
+      smoke-command: |
+        cd /app
+        export AUTH=false
+        python -c "import processes.main"
+        python -c "import duckdb; c = duckdb.connect(config={'autoinstall_known_extensions': False}); [c.execute(f'LOAD {e}') for e in ('spatial', 'httpfs', 'postgres', 'ducklake', 'h3')]"
 
   release-docker-storybook:
     needs: [file-changes, lint, test]
@@ -158,14 +204,17 @@ jobs:
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/storybook/Dockerfile
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/storybook
+      title: "GOAT Storybook"
+      description: "GOAT's UI component library, as a Storybook site."
+      smoke-command: |
+        nginx -t
+        test -s /usr/share/nginx/html/storybook/index.html
 
   release-docker-docs:
     needs: [file-changes, lint, test]
@@ -174,14 +223,21 @@ jobs:
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/docs/Dockerfile
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/docs
+      # The image has no .git; the pages' "last updated" dates come from
+      # this file instead.
+      fetch-history: true
+      prepare-command: node apps/docs/src/vcs/lastUpdated.js
+      title: "GOAT Docs"
+      description: "GOAT's user documentation site."
+      smoke-command: |
+        nginx -t
+        test -s /usr/share/nginx/html/docs/index.html
 
   release-docker-keycloak:
     needs: [file-changes, lint, test]
@@ -190,80 +246,153 @@ jobs:
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./packages/js/keycloak-theme/Dockerfile
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/keycloak
+      title: "GOAT Keycloak"
+      description: "Keycloak with GOAT's login theme."
+      smoke-command: |
+        for jar in p4b-keycloak-theme keycloak-metrics-spi-4.0.0 io.phasetwo.keycloak-keycloak-events-0.19; do
+          test -s "/opt/bitnami/keycloak/providers/$jar.jar"
+        done
 
-  # Windmill images - server and workers
+  # Windmill images. The server and default worker only change with the
+  # Windmill version in the worker Dockerfile; tools and print carry goatlib
+  # and routing.
   release-docker-windmill-server:
     needs: [file-changes, lint, test]
-    if: ${{ !failure() && !cancelled() && (needs.file-changes.outputs.processes == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
+    if: ${{ !failure() && !cancelled() && (needs.file-changes.outputs.windmill == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
     uses: ./.github/workflows/reusable-docker-build.yml
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/processes/workers/Dockerfile
       target: server
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/windmill-server
+      title: "GOAT Windmill Server"
+      description: "Windmill server that schedules and runs GOAT's background jobs."
+      smoke-command: |
+        /usr/src/app/windmill --version
 
   release-docker-windmill-worker-default:
     needs: [file-changes, lint, test]
-    if: ${{ !failure() && !cancelled() && (needs.file-changes.outputs.processes == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
+    if: ${{ !failure() && !cancelled() && (needs.file-changes.outputs.windmill == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
     uses: ./.github/workflows/reusable-docker-build.yml
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/processes/workers/Dockerfile
       target: worker-default
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/windmill-worker-default
+      title: "GOAT Windmill Worker"
+      description: "Windmill worker for GOAT's scheduled and system jobs."
+      smoke-command: |
+        /usr/src/app/windmill --version
 
   release-docker-windmill-worker-tools:
     needs: [file-changes, lint, test]
-    if: ${{ !failure() && !cancelled() && (needs.file-changes.outputs.processes == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
+    if: ${{ !failure() && !cancelled() && (needs.file-changes.outputs.workers == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
     uses: ./.github/workflows/reusable-docker-build.yml
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/processes/workers/Dockerfile
       target: worker-tools
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/windmill-worker-tools
+      title: "GOAT Windmill Tools Worker"
+      description: "Windmill worker that runs GOAT's analysis tools, such as catchment areas, heatmaps and buffers."
+      smoke-command: |
+        python -c "import importlib; from goatlib.tools.registry import TOOL_REGISTRY; from goatlib.tasks.registry import TASK_REGISTRY; ds = [d for d in (*TOOL_REGISTRY, *TASK_REGISTRY) if d.worker_tag == 'tools']; [importlib.import_module(d.module_path) for d in ds]; print(len(ds), 'tools modules import')"
+        python -c "import duckdb; c = duckdb.connect(config={'autoinstall_known_extensions': False}); [c.execute(f'LOAD {e}') for e in ('spatial', 'httpfs', 'postgres', 'ducklake', 'h3')]"
+        tippecanoe --version
+        ogr2ogr --version
 
   release-docker-windmill-worker-print:
     needs: [file-changes, lint, test]
-    if: ${{ !failure() && !cancelled() && (needs.file-changes.outputs.processes == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
+    if: ${{ !failure() && !cancelled() && (needs.file-changes.outputs.workers == 'true' || startsWith(github.ref, 'refs/tags/v')) }}
     uses: ./.github/workflows/reusable-docker-build.yml
     permissions:
       contents: read
       packages: write
-      pull-requests: write
+      id-token: write
+      attestations: write
     with:
-      dockerhub-enable: false
-      ghcr-enable: true
-      push: ${{ github.event_name != 'pull_request' }}
       file: ./apps/processes/workers/Dockerfile
       target: worker-print
       platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/${{ github.repository }}/windmill-worker-print
+      title: "GOAT Windmill Print Worker"
+      description: "Windmill worker that renders GOAT's map layouts to PDF or PNG and creates project and layer thumbnails."
+      smoke-command: |
+        python -c "import importlib; from goatlib.tools.registry import TOOL_REGISTRY; from goatlib.tasks.registry import TASK_REGISTRY; ds = [d for d in (*TOOL_REGISTRY, *TASK_REGISTRY) if d.worker_tag == 'print']; [importlib.import_module(d.module_path) for d in ds]; print(len(ds), 'print modules import')"
+        python -c "import duckdb; c = duckdb.connect(config={'autoinstall_known_extensions': False}); [c.execute(f'LOAD {e}') for e in ('spatial', 'httpfs', 'postgres', 'ducklake', 'h3')]"
+        python -c "
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            b = p.chromium.launch()
+            page = b.new_page()
+            page.set_content('<h1>GOAT</h1>')
+            page.pdf(path='/tmp/smoke.pdf')
+            b.close()
+        "
+        for font in Verdana Garamond Consolas; do fc-list ":family=$font" | grep -q . || { echo "no font stands in for $font"; exit 1; }; done
+
+  # The single-server deployment bundle (deploy/compose), pinned to this
+  # release's images. Attached to the tag's GitHub release; created as a
+  # draft when the release does not exist yet.
+  release-compose-bundle:
+    needs:
+      - release-docker-web
+      - release-docker-core
+      - release-docker-geoapi
+      - release-docker-catalog
+      - release-docker-processes
+      - release-docker-keycloak
+      - release-docker-windmill-server
+      - release-docker-windmill-worker-default
+      - release-docker-windmill-worker-tools
+      - release-docker-windmill-worker-print
+    if: ${{ !failure() && !cancelled() && startsWith(github.ref, 'refs/tags/v') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: deploy/compose
+      - name: Check the bundle
+        run: |
+          bash deploy/compose/tests/setup-check.sh
+          bash deploy/compose/tests/config-check.sh
+      - name: Build the bundle
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p dist/goat-compose
+          rsync -a --exclude compose.build.yaml --exclude tests deploy/compose/ dist/goat-compose/
+          sed -i "s/^GOAT_VERSION=.*/GOAT_VERSION=${TAG}/" dist/goat-compose/.env.example
+          grep -q "^GOAT_VERSION=${TAG}$" dist/goat-compose/.env.example
+          tar -C dist -czf "dist/goat-compose-${TAG}.tar.gz" goat-compose
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || gh release create "$TAG" --draft --verify-tag --title "$TAG" --notes ""
+          gh release upload "$TAG" "dist/goat-compose-${TAG}.tar.gz" --clobber

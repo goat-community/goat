@@ -434,6 +434,28 @@ def test_dry_run_changes_nothing(zone: Path, server: _Server, data_dir: Path) ->
     assert list(data_dir.iterdir()) == []
 
 
+def test_dry_run_of_a_fresh_install_reports_dependent_data_sets(
+    zone: Path, server: _Server, data_dir: Path
+) -> None:
+    publish(zone, "street_network", "2026-09-17", STREET_V1)
+    publish(
+        zone,
+        "public_transport",
+        "2026-09-17",
+        PT_V1,
+        requires={"street_network": "2026-09-17"},
+    )
+    set_channel(
+        zone, {"street_network": "2026-09-17", "public_transport": "2026-09-17"}
+    )
+
+    result = run(server.url, data_dir, dry_run=True)
+
+    assert result["street_network"]["status"] == "would_install"
+    assert result["public_transport"]["status"] == "would_install"
+    assert list(data_dir.iterdir()) == []
+
+
 # ─── regions ───────────────────────────────────────────────────────────────
 
 

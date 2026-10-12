@@ -205,11 +205,22 @@ PYBIND11_MODULE(_routing, m)
         .def_readwrite("chunk_size",     &routing::preprocessing::AccessEgressConfig::chunk_size)
         .def_readwrite("spacing_m",      &routing::preprocessing::AccessEgressConfig::spacing_m);
 
+    // Long C++ work releases the GIL for its duration.
+    //
+    // Windmill's worker sends a liveness ping from Python. A call that holds the
+    // GIL blocks that ping for as long as it runs, so a large job looks like a dead
+    // worker and the job is restarted — which, for a bundle import, re-runs it
+    // against a bundle whose members already exist. Released around the computation
+    // only: `py::print` below touches Python objects and needs the GIL back.
     m.def("compute_catchment",
           [elapsed_ms](routing::RequestConfig const &config)
           {
               auto t0 = std::chrono::steady_clock::now();
-              auto result = routing::compute_catchment(config);
+              std::string result;
+              {
+                  py::gil_scoped_release release;
+                  result = routing::compute_catchment(config);
+              }
               auto t1 = std::chrono::steady_clock::now();
               py::print("[routing] compute_catchment total_ms=",
                         elapsed_ms(t0, t1));
@@ -221,13 +232,17 @@ PYBIND11_MODULE(_routing, m)
     m.def("compute_travel_cost_matrix",
           &routing::compute_travel_cost_matrix,
           py::arg("config"),
+          py::call_guard<py::gil_scoped_release>(),
           "Compute many-to-many travel cost matrix between origins and destinations");
 
     m.def("compute_heatmap",
           [elapsed_ms](routing::HeatmapConfig const &config)
           {
               auto t0 = std::chrono::steady_clock::now();
-              routing::compute_heatmap(config);
+              {
+                  py::gil_scoped_release release;
+                  routing::compute_heatmap(config);
+              }
               auto t1 = std::chrono::steady_clock::now();
               py::print("[routing] compute_heatmap total_ms=",
                         elapsed_ms(t0, t1));
@@ -240,7 +255,10 @@ PYBIND11_MODULE(_routing, m)
           [elapsed_ms](routing::HeatmapConfig const &config)
           {
               auto t0 = std::chrono::steady_clock::now();
-              routing::compute_od_costs(config);
+              {
+                  py::gil_scoped_release release;
+                  routing::compute_od_costs(config);
+              }
               auto t1 = std::chrono::steady_clock::now();
               py::print("[routing] compute_od_costs total_ms=",
                         elapsed_ms(t0, t1));
@@ -254,7 +272,11 @@ PYBIND11_MODULE(_routing, m)
           [elapsed_ms](routing::preprocessing::AccessEgressConfig const &config)
           {
               auto t0 = std::chrono::steady_clock::now();
-              auto out = routing::preprocessing::build_access_egress_table(config);
+              std::string out;
+              {
+                  py::gil_scoped_release release;
+                  out = routing::preprocessing::build_access_egress_table(config);
+              }
               auto t1 = std::chrono::steady_clock::now();
               py::print("[routing] build_access_egress_table total_ms=",
                         elapsed_ms(t0, t1));

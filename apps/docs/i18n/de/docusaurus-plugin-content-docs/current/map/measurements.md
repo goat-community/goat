@@ -1,4 +1,5 @@
 ---
+description: "Messen Sie Linien, Polygonflächen, Kreise, Luftlinien sowie geroutete Strecken zu Fuß oder mit dem Auto auf der Karte, mit Einrasten an bestehenden Ebenen."
 sidebar_position: 4
 ---
 

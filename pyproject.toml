@@ -2,7 +2,7 @@
 name = "goat-monorepo"
 description = "GOAT, an intelligent software for modern web mapping and integrated planning"
 version = "2.0.0"
-requires-python = ">3.10,<3.12"
+requires-python = ">=3.11,<3.12"
 dependencies = [
     "boto3>=1.38.23",
     "dotenv>=0.9.9",
@@ -56,13 +56,14 @@ ignore_missing_imports = true
 # without explicit bases every app's conftest.py would map to the same bare
 # `conftest` module and mypy aborts on the duplicate before checking anything.
 explicit_package_bases = true
-exclude = ["venv", ".venv", "alembic", "data", "packages/rust", "packages/cpp"]
+exclude = ["venv", ".venv", "alembic", "data", "packages/cpp"]
 
 # mypy is the Python type gate. Pyright/Pylance type checking is disabled so it
 # does not flood SQLModel/SQLAlchemy code with false positives; it still reports
 # unresolved imports and syntax errors and powers autocomplete/navigation.
 [tool.pyright]
 typeCheckingMode = "off"
+exclude = ["**/node_modules", "**/__pycache__", "**/.*", "**/data", "apps/docs/build"]
 
 [tool.ruff.lint]
 select = ["F", "E", "W", "N", "I", "ANN"]

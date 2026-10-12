@@ -1,4 +1,5 @@
 ---
+description: "Compare facility capacity with population demand per hexagonal cell using the two-step floating catchment method, in Standard, Enhanced or Modified form."
 sidebar_position: 5
 ---
 
@@ -18,12 +19,12 @@ The Heatmap 2SFCA (Two-Step Floating Catchment Area) tool **produces a color-cod
 
 ## 1. Explanation
 
-The 2SFCA method measures **spatial accessibility by considering both supply (capacity of facilities) and demand (population)**. Unlike simple supply-demand ratios per administrative unit, 2SFCA accounts for cross-boundary access — people can reach facilities in neighboring areas, and facilities serve populations beyond their own district.
+The 2SFCA method measures **spatial accessibility by considering both supply (capacity of facilities) and demand (population)**. Unlike simple supply-demand ratios per administrative unit, 2SFCA accounts for cross-boundary access: people can reach facilities in neighboring areas, and facilities serve populations beyond their own district.
 The result is a **supply-to-demand ratio at the level of hexagonal grid cells**. The tool works in two steps:
 
-1. **Step 1 — Capacity Demand Ratios:** For each facility location, compute how much capacity is available relative to the total demand (population) within its catchment area. This produces a supply-to-demand ratio per facility.
+1. **Step 1: Capacity Demand Ratios.** For each facility location, compute how much capacity is available relative to the total demand (population) within its [catchment area](https://www.plan4better.de/en/glossary/catchment-area). This produces a supply-to-demand ratio per facility.
 
-2. **Step 2 — Cumulative Accessibility:** For each grid cell, sum the capacity ratios of all reachable facilities. The result represents how well-served each location is.
+2. **Step 2: Cumulative Accessibility.** For each grid cell, sum the capacity ratios of all reachable facilities. The result represents how well-served each location is.
 
 You can configure the **routing type**, **opportunity layers** (with capacity fields), **demand layer** (with population field), **travel time limits**, and choose between three **2SFCA variants**.
 - The **Opportunity layers contain facility data** with a capacity attribute (e.g., number of hospital beds, square meters of retail space, school seats).
@@ -44,7 +45,7 @@ You can configure the **routing type**, **opportunity layers** (with capacity fi
 
 :::info
 
-Heatmap computation is available across **over 30 European countries** for `Walk`, `Bicycle`, `Pedelec`, and `Car`. For `Public Transport`, Germany, Switzerland, and the Haut-Rhin region of France are supported. If you need analyses beyond these regions, feel free to [contact us](https://plan4better.de/en/contact/).
+Heatmap computation is available across **over 30 European countries** for `Walk`, `Bicycle`, `Pedelec`, and `Car`. For `Public Transport`, Germany, Switzerland, and the Haut-Rhin region of France are supported. If you need analyses beyond these regions, you can [import your own routing network](../../data/builtin_datasets.md#bringing-your-own-networks) or [contact us](https://plan4better.de/en/contact/) and we will do it for you.
 
 :::
 
@@ -81,24 +82,23 @@ Heatmap computation is available across **over 30 European countries** for `Walk
 | Bicycle | All paths accessible by bicycle (taking into account surface and slope) |
 | Pedelec | All paths accessible by pedelec (taking into account surface and slope) |
 | Car | All paths accessible by car (taking into account speed limits and one-way restrictions) |
-| Public Transport | All journeys possible by public transport (according to official GTFS schedules), considering walking access and egress to and from stops |
+| Public Transport | All journeys possible by public transport (according to official [GTFS](https://www.plan4better.de/en/glossary/gtfs) schedules), considering walking access and egress to and from stops |
+
+<div class="step">
+  <div class="step-number">4</div>
+  <div class="content">Set how travel is measured. The options depend on the <code>Transport mode</code> you picked in step 3:</div>
+</div>
 
 <Tabs>
 <TabItem value="active-car" label="Walk / Bicycle / Pedelec / Car" default className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">4</div>
-  <div class="content">In the <code>Calculate by</code> menu, choose either the Time (minutes) or Distance (metres) cost type.</div>
-</div>
+In the <code>Calculate by</code> menu, choose either the Time (minutes) or Distance (metres) cost type.
 
 </TabItem>
 
 <TabItem value="public transport" label="Public Transport (PT)" className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">4</div>
-  <div class="content">Choose <code>PT modes</code> to analyze: Bus, Tram, Rail, Subway, Ferry, Cable Car, Gondola, and/or Funicular. Then, select the <code>Day</code> and <code>Arrival time</code> for the analysis. The best public transport journeys that reach the opportunities at or before this time will be considered.</div>
-</div>
+Choose <code>PT modes</code> to analyze: Bus, Tram, Rail, Subway, Ferry, Cable Car, Gondola, and/or Funicular. Then, select the <code>Day</code> and <code>Arrival time</code> for the analysis. The best public transport journeys that reach the opportunities at or before this time will be considered.
 
 </TabItem>
 </Tabs>
@@ -112,7 +112,7 @@ Heatmap computation is available across **over 30 European countries** for `Walk
 
 <TabItem value="twosfca" label="Standard 2SFCA" default className="tabItemBox">
 
-The standard 2SFCA method uses **binary catchments**: a facility either serves a population location (if within the travel time limit) or it does not. There is no distance weighting — all locations within the catchment are treated equally.
+The standard 2SFCA method uses **binary catchments**: a facility either serves a population location (if within the travel time limit) or it does not. There is no distance weighting: all locations within the catchment are treated equally.
 
 This is the simplest variant and works well when you want a straightforward supply-demand ratio.
 
@@ -120,7 +120,7 @@ This is the simplest variant and works well when you want a straightforward supp
 
 <TabItem value="e2sfca" label="Enhanced 2SFCA (E2SFCA)" className="tabItemBox">
 
-The Enhanced 2SFCA method adds **distance decay weighting** using an impedance function. In both steps, interactions are weighted by how far apart the facility and population are — closer locations receive higher weight. This produces more realistic results, reflecting that people are more likely to use nearby facilities.
+The Enhanced 2SFCA method adds **distance decay weighting** using an impedance function. In both steps, interactions are weighted by how far apart the facility and population are, so closer locations receive higher weight. This produces more realistic results, reflecting that people are more likely to use nearby facilities.
 
 Requires selecting an **impedance function** and **sensitivity** value.
 
@@ -169,7 +169,7 @@ Calculates weights using a power function. The sensitivity parameter controls th
 
 <TabItem value="cumulative" label="Cumulative" className="tabItemBox">
 
-Applies a full weight of 1 to every facility within the travel time limit and 0 beyond it, with no distance decay. Unlike the other functions, it does not use the sensitivity parameter — all reachable facilities count equally. For details, see [Technical details](#calculation).
+Applies a full weight of 1 to every facility within the travel time limit and 0 beyond it, with no distance decay. Unlike the other functions, it does not use the sensitivity parameter, so all reachable facilities count equally. For details, see [Technical details](#calculation).
 
 </TabItem>
 
@@ -181,12 +181,12 @@ Optionally, enable <code>Advanced options</code> to configure additional setting
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">Select a <code>Reference area</code> - a polygon layer that represents your study area. When set, the heatmap extends to cover all H3 cells within that polygon, with inaccessible cells assigned a value of <code>NULL</code> to expose coverage gaps and underserved areas.</div>
+  <div class="content">Select a <code>Reference area</code> - a polygon layer that represents your study area. When set, the heatmap extends to cover all H3 cells within that polygon, with inaccessible cells assigned a value of <code>NULL</code> to expose [coverage gaps](https://www.plan4better.de/en/glossary/service-gaps) and underserved areas.</div>
 </div>
 
 <div class="step">
   <div class="step-number">8</div>
-  <div class="content">Configure various routing options for your selected transport mode such as travel speed, max transfers, access/egress limits and more. Further information about mode-specific options can be found under the <a href="/docs/category/routing">Routing</a> section.</div>
+  <div class="content">Configure various routing options for your selected transport mode such as travel speed, max transfers, access/egress limits and more. Further information about mode-specific options can be found under the [Routing](../../category/routing) section.</div>
 </div>
 
 ### Demand
@@ -198,7 +198,7 @@ Optionally, enable <code>Advanced options</code> to configure additional setting
 
 <div class="step">
   <div class="step-number">10</div>
-  <div class="content">Choose the <code>Demand Field</code> — a numeric field from your demand layer representing the number of potential users (e.g., population, number of households).</div>
+  <div class="content">Choose the <code>Demand Field</code>: a numeric field from your demand layer representing the number of potential users (e.g., population, number of households).</div>
 </div>
 
 ### Opportunities
@@ -215,19 +215,14 @@ Optionally, enable <code>Advanced options</code> to configure additional setting
 
 <div class="step">
   <div class="step-number">13</div>
-  <div class="content">Choose a <code>Potential Type</code> to define how each facility's capacity is determined:
+  <div class="content">
+  Choose a <code>Potential Type</code> to define how each facility's capacity is determined:
     <ul>
-      <li><b>Constant</b> — all facilities have the same capacity. Enter a numeric value (default: 1.0).</li>
-      <li><b>Field</b> — use a numeric field from the <i>Input Layer</i> as the capacity (e.g., number of beds, seats, or square meters).</li>
+      <li><b>Constant</b>: all facilities have the same capacity. Enter a numeric value (default: 1.0).</li>
+      <li><b>Field</b>: use a numeric field from the <i>Input Layer</i> as the capacity (e.g., number of beds, seats, or square meters).</li>
     </ul>
   </div>
 </div>
-
-:::tip Hint
-
-Need help choosing a suitable travel time limit for various common amenities? The ["Standort-Werkzeug"](https://www.chemnitz.de/chemnitz/media/unsere-stadt/verkehr/verkehrsplanung/vep2040_standortwerkzeug.pdf) of the City of Chemnitz can provide helpful guidance.
-
-:::
 
 <div class="step">
   <div class="step-number">14</div>
@@ -241,7 +236,7 @@ Need help choosing a suitable travel time limit for various common amenities? Th
 
 <div class="step">
   <div class="step-number">16</div>
-  <div class="content">Optionally, expand <code>Advanced Options</code> and select a <code>Reference Area</code> — a polygon layer that defines the full study area. When set, the heatmap extends to cover all H3 cells within that polygon, with cells outside the computed reach shown as <code>NULL</code> to expose coverage gaps and underserved areas.</div>
+  <div class="content">Optionally, expand <code>Advanced Options</code> and select a <code>Reference Area</code>: a polygon layer that defines the full study area. When set, the heatmap extends to cover all H3 cells within that polygon, with cells outside the computed reach shown as <code>NULL</code> to expose coverage gaps and underserved areas.</div>
 </div>
 
 ### Result Layer
@@ -258,7 +253,7 @@ Need help choosing a suitable travel time limit for various common amenities? Th
 
 ### Results
 
-Once the calculation is complete, a result layer will be added to the map. This *Heatmap 2SFCA* layer contains a color-coded hexagonal grid where each cell shows the computed accessibility value — the supply-to-demand ratio at that location.
+Once the calculation is complete, a result layer will be added to the map. This *Heatmap 2SFCA* layer contains a color-coded hexagonal grid where each cell shows the computed accessibility value, the supply-to-demand ratio at that location.
 
 - **Higher values** indicate better accessibility: more supply capacity is available relative to the local demand.
 - **Lower values** indicate underserved areas: the population exceeds the available capacity of reachable facilities.
@@ -314,7 +309,7 @@ When multiple edges (streets) of the road network intersect a hexagonal cell, th
 
 The 2SFCA method computes accessibility in two steps:
 
-#### Step 1 — Capacity Demand Ratio
+#### Step 1: Capacity Demand Ratio
 
 For each facility location *j*, compute the ratio of its capacity to the total demand within its catchment:
 
@@ -332,7 +327,7 @@ Where:
 - *t<sub>0</sub>* = travel time limit (maximum catchment)
 - *f(t<sub>kj</sub>)* = impedance function (distance weight)
 
-#### Step 2 — Cumulative Accessibility
+#### Step 2: Cumulative Accessibility
 
 For each grid cell *i*, sum the capacity demand ratios of all reachable facilities:
 
@@ -371,7 +366,7 @@ The different calculation approaches change how distance is perceived and measur
 
 - The **Enhanced 2SFCA** introduces **distance decay weighting** producing  differenciation of the accessibility based on the distance, with a **higher accessibility**  (value of 1.1) for closer cells. However, cells equidistant from facilities receive identical accessibility regardless of absolute distance (e.g., two cells both 1-minute away or in 2-minute away all get **1**).
 
-- The **Modified 2SFCA** applies **squared impedance weights** in Step 2, producing stronger distance penalties with values like **0.9** and **0.5** (compared to E2SFCA's **1.1** and **0.9** for similar positions). It takes into account absolute distance in opposition to E2SFCA — for example, two cells both 2 minutes away get lower accessibility (**0.6**) than two cells both 1 minute away (**0.8**).
+- The **Modified 2SFCA** applies **squared impedance weights** in Step 2, producing stronger distance penalties with values like **0.9** and **0.5** (compared to E2SFCA's **1.1** and **0.9** for similar positions). It takes into account absolute distance in opposition to E2SFCA. For example, two cells both 2 minutes away get lower accessibility (**0.6**) than two cells both 1 minute away (**0.8**).
 
 **Choosing the appropriate variant** depends on your specific analysis objectives and how sensitive your target population is to travel distance. 
 
@@ -453,12 +448,12 @@ The cumulative function applies **no distance decay** and does not use the *sens
 
 ### Classification
 
-In order to classify the accessibility levels that were computed for each grid cell, a classification based on quantiles is used by default. 
+In order to classify the accessibility levels that were computed for each grid cell, a classification based on [quantiles](https://www.plan4better.de/en/glossary/quantile-classification) is used by default. 
 However, various other classification methods may be used instead. Read more in the **[Data Classification Methods](../../map/layer_style/style/attribute_based_styling#data-classification-methods)** section of the *Attribute-based Styling* page.
 
 ### Visualization 
 
-Heatmaps in GOAT utilize **[Uber's H3 grid-based](../../further_reading/glossary#h3-grid)** solution for efficient computation and easy-to-understand visualization. Behind the scenes, accessibility is computed on-the-fly by GOAT's own routing engine. For each *routing type*, the engine routes outward from the opportunities to discover the reachable H3 cells and their travel costs, then aggregates these into a per-cell accessibility score. Public transport uses the RAPTOR-based engine, while the active mobility and car modes use GOAT's Dijkstra implementation.
+Heatmaps in GOAT utilize **[Uber's H3 grid-based](https://www.plan4better.de/en/glossary/h3-grid)** solution for efficient computation and easy-to-understand visualization. Behind the scenes, accessibility is computed on-the-fly by GOAT's own routing engine. For each *routing type*, the engine routes outward from the opportunities to discover the reachable H3 cells and their travel costs, then aggregates these into a per-cell accessibility score. Public transport uses the RAPTOR-based engine, while the [active mobility](https://www.plan4better.de/en/glossary/active-mobility) and car modes use GOAT's Dijkstra implementation.
 
 The resolution and dimensions of the hexagonal grid used depend on the selected *routing type*:
 

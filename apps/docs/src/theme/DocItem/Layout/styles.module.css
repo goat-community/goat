@@ -1,0 +1,85 @@
+.docItemContainer {
+  max-width: var(--goat-content-max-width);
+  min-width: 0;
+  margin: 0 auto;
+}
+
+/* Grid and flex children default to their content's width; the content
+   column has to be allowed to shrink below its widest image. */
+.docItemCol {
+  min-width: 0;
+}
+
+.docItemContainer header + *,
+.docItemContainer article > *:first-child {
+  margin-top: 0;
+}
+
+.docHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2rem;
+  margin-bottom: 1rem;
+}
+
+.docHeaderBreadcrumbs {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.docHeaderBreadcrumbs :global(.theme-doc-breadcrumbs) {
+  margin-bottom: 0;
+}
+
+.docHeaderAction {
+  flex: 0 0 auto;
+}
+
+.aside {
+  position: sticky;
+  top: calc(var(--ifm-navbar-height) + 2rem);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--ifm-navbar-height) - 3rem);
+  padding-left: 0.5rem;
+}
+
+.asideTitle {
+  margin-bottom: 0.5rem;
+  color: var(--goat-color-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* The aside is sticky as a whole, so the table of contents inside it scrolls
+   on its own instead of sticking separately. */
+.aside :global(.theme-doc-toc-desktop) {
+  position: static;
+  top: auto;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
+.feedbackAside {
+  flex: 0 0 auto;
+  margin-top: 1.5rem;
+}
+
+.feedbackBottom {
+  margin-top: 3rem;
+}
+
+@media (min-width: 997px) {
+  .docItemCol {
+    max-width: 75% !important;
+  }
+}
+
+@media (max-width: 996px) {
+  .docItemContainer {
+    padding: 0 0.3rem;
+  }
+}

@@ -35,4 +35,32 @@ describe("ShortcutHint", () => {
     const { container } = render(<ShortcutHint letter="K" />);
     expect(container.querySelector("kbd")).not.toBeNull();
   });
+
+  describe("on a device without a mouse or trackpad", () => {
+    const original = window.matchMedia;
+    const setFinePointer = (fine: boolean) => {
+      window.matchMedia = ((query: string) =>
+        ({
+          matches: query.includes("pointer: fine") ? fine : false,
+          media: query,
+        }) as MediaQueryList) as typeof window.matchMedia;
+    };
+    afterEach(() => {
+      window.matchMedia = original;
+    });
+
+    it("shows nothing on a phone or tablet, which has no keyboard to press it on", () => {
+      setPlatform("iPhone");
+      setFinePointer(false);
+      const { container } = render(<ShortcutHint letter="K" />);
+      expect(container.querySelector("kbd")).toBeNull();
+    });
+
+    it("shows the hint where a mouse or trackpad is attached", () => {
+      setPlatform("Win32");
+      setFinePointer(true);
+      render(<ShortcutHint letter="K" />);
+      expect(screen.getByText("Ctrl+K")).toBeInTheDocument();
+    });
+  });
 });

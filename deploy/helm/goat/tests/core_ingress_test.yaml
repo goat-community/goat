@@ -1,0 +1,37 @@
+suite: core Ingress
+templates:
+  - core/ingress.yaml
+tests:
+  - it: not rendered when ingress disabled
+    set:
+      core.enabled: true
+      core.ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: rendered with className + tls when enabled
+    set:
+      core.enabled: true
+      core.ingress.enabled: true
+      core.ingress.className: nginx
+      core.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /api/v2
+              pathType: Prefix
+      core.ingress.tls:
+        - secretName: api-tls
+          hosts: [api.example.com]
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+      - equal:
+          path: spec.rules[0].host
+          value: api.example.com
+      - equal:
+          path: spec.tls[0].secretName
+          value: api-tls

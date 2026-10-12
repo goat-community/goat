@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export type PlanCardData = {
   title: string;
@@ -50,6 +51,7 @@ const StyledDivider = styled(Divider)(({ theme }) => ({
 }));
 
 export function PlanCard({ plan }: { plan: PlanCardData }) {
+  const { t } = useTranslation("common");
   return (
     <StyledCard active={plan.active}>
       <CardContent
@@ -74,7 +76,7 @@ export function PlanCard({ plan }: { plan: PlanCardData }) {
       <StyledDivider />
       <CardContent sx={{ px: 0 }}>
         <Typography variant="body1" fontWeight="bold">
-          {plan.featuresHeader || "What's included"}
+          {plan.featuresHeader || t("whats_included")}
         </Typography>
         {plan.featuresSubHeader && (
           <Typography variant="body2" fontWeight="bold" color="text.secondary">

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { usePreferences } from "@/lib/api/preferences";
 import { useReleases } from "@/lib/api/releases";
+import { WELCOME_VIDEO } from "@/lib/constants";
 
 import { useAnnouncementPreview } from "@/hooks/dashboard/home/useAnnouncementPreview";
 import { useHomeStage } from "@/hooks/dashboard/home/useHomeStage";
@@ -29,9 +30,11 @@ const HomeAnnouncements = () => {
   const { stage } = useHomeStage();
   const preview = useAnnouncementPreview();
 
+  // The Welcome is its intro video: without one it never opens, and is never
+  // recorded as seen.
   const welcome = useWelcome(stage, preferences, {
     preview: preview.welcome,
-    suppress: Boolean(preview.spotlight),
+    suppress: !WELCOME_VIDEO || Boolean(preview.spotlight),
   });
   const spotlight = useSpotlight(entries, preferences, stage, {
     preview: preview.spotlight,

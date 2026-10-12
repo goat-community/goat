@@ -20,7 +20,7 @@ import ConnectBody from "@/components/addLayer/ConnectBody";
 import CreateBody from "@/components/addLayer/CreateBody";
 import DatasetPickerBody from "@/components/addLayer/DatasetPickerBody";
 import UploadBody from "@/components/addLayer/UploadBody";
-import { ADD_LAYER_SOURCES, type AddLayerSourceId } from "@/components/addLayer/sources";
+import { type AddLayerSourceId, addLayerSource } from "@/components/addLayer/sources";
 import AppDialog, { AppDialogFooter } from "@/components/common/AppDialog";
 
 /**
@@ -45,7 +45,7 @@ const AddLayerFrame = ({
   children: ReactNode;
 }) => {
   const { t } = useTranslation("common");
-  const source = ADD_LAYER_SOURCES.find((entry) => entry.id === sourceId);
+  const source = addLayerSource(sourceId);
 
   const close = () => {
     controller.reset();
@@ -56,15 +56,15 @@ const AddLayerFrame = ({
     <AppDialog
       open
       onClose={close}
-      icon={source?.icon ?? ICON_NAME.PLUS}
-      title={t(source?.labelKey ?? "add_layer")}
+      icon={source.icon}
+      title={t(source.labelKey)}
       // Set outright rather than capped, because each source has a width of its own and
       // MUI's paper rules would otherwise win.
-      maxWidth={source?.width ?? 860}
+      maxWidth={source.width ?? 860}
       // A browsing source lays out its own edges — a filter rail has to reach the frame —
       // so the dialog does not pad it and leave it to undo that. Forms keep their padding.
-      bleed={source?.wide}
-      bodySx={source?.wide ? undefined : { pt: 5 }}
+      bleed={source.wide}
+      bodySx={source.wide ? undefined : { pt: 5 }}
       notice={
         controller.action.notice ? (
           <Alert severity="info" icon={<Icon iconName={ICON_NAME.USERS} style={{ fontSize: 15 }} />}>

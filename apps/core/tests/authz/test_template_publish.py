@@ -564,7 +564,13 @@ async def test_grant_a_team_viewer_role_then_delete_it(
     assert create_resp.status_code == 201, create_resp.text
     tid = create_resp.json()["id"]
 
+    # Template grants stay inside the owner's organization (D14), so the
+    # owner and the team share one.
     org = await make_org()
+    await db_session.execute(
+        text(f'UPDATE {S}."user" SET organization_id = :o WHERE id = :u'),
+        {"o": org.id, "u": fixture_create_user},
+    )
     member = User(
         id=uuid4(),
         email=f"member-{uuid4().hex[:8]}@goat.test",

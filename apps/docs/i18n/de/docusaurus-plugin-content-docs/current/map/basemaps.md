@@ -1,10 +1,11 @@
 ---
+description: "Fügen Sie eigene Vektor- oder Raster-Grundkarten per URL oder als Volltonfarbe hinzu, mit Beispiel-URLs gängiger Anbieter und Anordnung der Basemap-Layer."
 sidebar_position: 7
 ---
 
 # Grundkarten
 
-**Grundkarten bilden die Kartenbasis Ihres Projekts** und geben Ihren Daten geografischen Kontext — Straßen, Gelände, Satellitenbilder oder eine einfarbige Fläche. GOAT unterstützt alle Anbieter, die eine Style-JSON-URL (Vektor) oder eine XYZ-Kachel-URL (Raster) bereitstellen.
+**Grundkarten bilden die Kartenbasis Ihres Projekts** und geben Ihren Daten geografischen Kontext: Straßen, Gelände, Satellitenbilder oder eine einfarbige Fläche. GOAT unterstützt alle Anbieter, die eine Style-JSON-URL (Vektor) oder eine XYZ-Kachel-URL (Raster) bereitstellen.
 
 ## So fügen Sie eine eigene Grundkarte hinzu
 
@@ -29,7 +30,7 @@ sidebar_position: 7
 </div>
 
 :::tip Einfarbiger Hintergrund
-Verwenden Sie den Tab <strong>Einfarbig</strong> anstelle einer URL, um eine Volltonfarbe als Kartenhintergrund festzulegen — nützlich für Drucklayouts oder minimalistische Dashboards.
+Verwenden Sie den Tab <strong>Einfarbig</strong> anstelle einer URL, um eine Volltonfarbe als Kartenhintergrund festzulegen, nützlich für Drucklayouts oder minimalistische Dashboards.
 :::
 
 ## Häufig verwendete Anbieter
@@ -66,7 +67,7 @@ Ihr MapTiler-API-Schlüssel ist in geteilten Projekten sichtbar. Verwenden Sie d
 
 ### Esri / ArcGIS
 
-Esri bietet eine Vielzahl professioneller Grundkarten — kein Konto oder API-Schlüssel erforderlich.
+Esri bietet eine Vielzahl professioneller Grundkarten. Ein Konto oder API-Schlüssel ist nicht erforderlich.
 
 **Beispiel-URL:**
 ```
@@ -77,7 +78,7 @@ https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/til
 
 ### OpenStreetMap
 
-OpenStreetMap (OSM) bietet kostenlose, gemeinschaftlich gepflegte Grundkarten — kein Konto oder API-Schlüssel erforderlich.
+OpenStreetMap (OSM) bietet kostenlose, gemeinschaftlich gepflegte Grundkarten. Ein Konto oder API-Schlüssel ist nicht erforderlich.
 
 **Beispiel-URL:**
 ```
@@ -92,7 +93,7 @@ Die Kachelserver von OpenStreetMap sind für geringen Datenverkehr ausgelegt. F�
 
 ### OpenFreeMap
 
-OpenFreeMap stellt kostenlose Vektor-Grundkarten auf Basis von OpenStreetMap-Daten bereit — ohne Konto, ohne API-Schlüssel und ohne Nutzungsbegrenzung. Die Kacheln folgen demselben OpenMapTiles-Schema, das auch die kommerziellen Anbieter verwenden, sodass sich Kartenstile weitgehend untereinander austauschen lassen. Die integrierten Vektor-Grundkarten von GOAT werden von hier ausgeliefert.
+OpenFreeMap stellt kostenlose Vektor-Grundkarten auf Basis von OpenStreetMap-Daten bereit, ohne Konto, ohne API-Schlüssel und ohne Nutzungsbegrenzung. Die Kacheln folgen demselben OpenMapTiles-Schema, das auch die kommerziellen Anbieter verwenden, sodass sich Kartenstile weitgehend untereinander austauschen lassen. Die integrierten Vektor-Grundkarten von GOAT werden von hier ausgeliefert.
 
 **Beispiel-URL:**
 ```
@@ -109,7 +110,7 @@ OpenFreeMap ist ein spendenfinanzierter Dienst ohne Verfügbarkeitsgarantie. Die
 
 ### Carto Dark Matter
 
-Der Dark-Matter-Stil von Carto bietet eine dunkle, minimalistische Grundkarte, die sich besonders für datenintensive Karten eignet, bei denen helle Datenvisualisierungen hervorstechen sollen — kein Konto oder API-Schlüssel erforderlich.
+Der Dark-Matter-Stil von Carto bietet eine dunkle, minimalistische Grundkarte, die sich besonders für datenintensive Karten eignet, bei denen helle Datenvisualisierungen hervorstechen sollen. Ein Konto oder API-Schlüssel ist nicht erforderlich.
 
 **Beispiel-URL:**
 ```
@@ -122,7 +123,7 @@ Eine umfangreichere Liste kompatibler Grundkartenanbieter und Verbindungsanleitu
 
 ## Basemap-Layer anordnen
 
-Beim Bearbeiten einer eigenen Grundkarte ermöglicht der Tab **Layer** die einzelnen Teilebenengruppen der Grundkarte relativ zu Ihren eigenen Datenlayern anzuordnen — und einzelne Gruppen ein- oder auszublenden.
+Beim Bearbeiten einer eigenen Grundkarte ermöglicht der Tab **Layer** die einzelnen Teilebenengruppen der Grundkarte relativ zu Ihren eigenen Datenlayern anzuordnen und einzelne Gruppen ein- oder auszublenden.
 
 Um darauf zuzugreifen, klicken Sie auf das Bearbeitungssymbol einer eigenen Grundkarte im Grundkarten-Panel und wählen Sie dann den Tab **Layer**.
 
@@ -137,9 +138,9 @@ Die Grundkarte ist in fünf Layer-Gruppen unterteilt:
 | **Sonstiges** | Übrige Layer |
 
 Für jede Gruppe können Sie:
-- **Sichtbarkeit umschalten** — die Gruppe mit dem Schalter rechts vollständig ein- oder ausblenden
-- **Position** — `Über` oder `Unter` wählen, um festzulegen, ob die Gruppe über oder unter Ihren eigenen Layern dargestellt wird
-- **Bezugslayer** — auswählen, welcher Ihrer Layer als Referenz dient (Standard: *Alle meine Layer*)
+- **Sichtbarkeit umschalten**: die Gruppe mit dem Schalter rechts vollständig ein- oder ausblenden
+- **Position**: `Über` oder `Unter` wählen, um festzulegen, ob die Gruppe über oder unter Ihren eigenen Layern dargestellt wird
+- **Bezugslayer**: auswählen, welcher Ihrer Layer als Referenz dient (Standard: *Alle meine Layer*)
 
 Klicken Sie auf **Zurücksetzen**, um alle Gruppen auf ihre Standardpositionen und -sichtbarkeit zurückzusetzen.
 
@@ -149,4 +150,4 @@ Platzieren Sie **Straßen** über Ihren Daten, damit Straßen über Polygon-Over
 
 ## Grundkarten in geteilten Dashboards
 
-Wenn Sie ein Projekt als öffentliches Dashboard teilen, können Sie im **Dashboard** festlegen, zwischen welchen Grundkarten die Betrachter wechseln dürfen. Öffnen Sie im **Dashboard** den Tab **Einstellungen** und suchen Sie das Feld **Erlaubte Hintergrundkarten**. Wählen Sie die gewünschten Grundkarten aus — wenn keine Einschränkung festgelegt ist, werden alle Grundkarten für die Betrachter angezeigt.
+Wenn Sie ein Projekt als öffentliches Dashboard teilen, können Sie im **Dashboard** festlegen, zwischen welchen Grundkarten die Betrachter wechseln dürfen. Öffnen Sie im **Dashboard** den Tab **Einstellungen** und suchen Sie das Feld **Erlaubte Hintergrundkarten**. Wählen Sie die gewünschten Grundkarten aus. Wenn keine Einschränkung festgelegt ist, werden alle Grundkarten für die Betrachter angezeigt.

@@ -1,0 +1,69 @@
+{{- /*
+Optional post-install hook (weight 20 — runs after the bootstrap hook).
+Syncs goatlib's `tools` and `tasks` (Python scripts in the upstream
+goat repo's `goatlib`) into the windmill workspace so they're available
+for jobs to call. Uses the `windmill-worker-tools` image which ships
+goatlib pre-installed.
+
+Off by default. Operators who want plan4better's scripts pre-loaded
+should set `windmill.scriptSync.enabled: true`.
+*/}}
+{{- if and .Values.windmill.server.enabled .Values.windmill.bootstrap.enabled .Values.windmill.scriptSync.enabled -}}
+{{- $name := printf "%s-windmill-script-sync" (include "goat.fullname" .) -}}
+{{- $tokenSecret := default (printf "%s-windmill-token" (include "goat.fullname" .)) .Values.windmill.bootstrap.tokenSecret.name -}}
+{{- $tokenKey := default "token" .Values.windmill.bootstrap.tokenSecret.key -}}
+{{- $serverSvc := printf "%s-windmill-server" (include "goat.fullname" .) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "windmill-script-sync") | nindent 4 }}
+  annotations:
+    "helm.sh/hook": "post-install,post-upgrade"
+    "helm.sh/hook-weight": "20"
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" (dict "context" . "component" "windmill-script-sync") | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: sync
+          image: {{ include "goat.image" (dict "image" .Values.windmill.scriptSync.image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ .Values.windmill.scriptSync.image.pullPolicy }}
+          env:
+            - name: WINDMILL_URL
+              value: "http://{{ $serverSvc }}"
+            - name: WINDMILL_WORKSPACE
+              value: {{ .Values.windmill.bootstrap.workspace | quote }}
+            - name: WINDMILL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $tokenSecret }}
+                  key: {{ $tokenKey }}
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              echo "Syncing goatlib tools..."
+              python -m goatlib.tools.sync_windmill \
+                --url "$WINDMILL_URL" \
+                --workspace "$WINDMILL_WORKSPACE" \
+                --token "$WINDMILL_TOKEN"
+              echo "Syncing goatlib tasks..."
+              python -m goatlib.tasks.sync_windmill \
+                --url "$WINDMILL_URL" \
+                --workspace "$WINDMILL_WORKSPACE" \
+                --token "$WINDMILL_TOKEN"
+              echo "Script sync complete."
+{{- end -}}

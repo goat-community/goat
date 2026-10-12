@@ -1,10 +1,19 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 
 import { layoutDrawing } from "@/lib/templates/layoutDrawing";
 import { LAYOUT_SNAPSHOT_PALETTE, renderLayoutSnapshot, svgForLayout } from "@/lib/templates/layoutSnapshot";
 import { SCAFFOLD_FRAME, SNAPSHOT_SIZE } from "@/lib/templates/previewGeometry";
 import { STATIC_MAP_TIMEOUT, clearStaticMapCache } from "@/lib/templates/staticMap";
 import type { TemplateLayoutPreview } from "@/lib/validations/template";
+
+// The static basemap frame is drawn only with a MapTiler key, read when the
+// constants module is first evaluated.
+vi.hoisted(() => {
+  vi.stubEnv("NEXT_PUBLIC_MAPTILER_KEY", "test-key");
+});
+afterAll(() => {
+  vi.unstubAllEnvs();
+});
 
 const descriptor: TemplateLayoutPreview = {
   kind: "layout",

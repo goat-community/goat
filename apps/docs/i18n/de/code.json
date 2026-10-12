@@ -99,10 +99,6 @@
     "message": "Breadcrumbs",
     "description": "Das ARIA-Label für die Breadcrumbs"
   },
-  "theme.docs.DocCard.categoryDescription": {
-    "message": "{count} Einträge",
-    "description": "Die Standardbeschreibung für eine Kategoriekarte im generierten Index, die angibt, wie viele Elemente diese Kategorie umfasst"
-  },
   "theme.docs.paginator.navAriaLabel": {
     "message": "Dokumentation Seiten Navigation",
     "description": "Das ARIA-Label für die Paginierung der Dokumente"
@@ -159,7 +155,7 @@
     "description": "Die Worte, mit denen beschrieben wird, von wem die Seite zuletzt aktualisiert wurde"
   },
   "theme.lastUpdated.lastUpdatedAtBy": {
-    "message": "Letztes Update{atDate}{byUser}",
+    "message": "Zuletzt aktualisiert{atDate}{byUser}",
     "description": "Der Satz, mit dem angezeigt wird, wann und von wem eine Seite zuletzt aktualisiert wurde"
   },
   "theme.navbar.mobileVersionsDropdown.label": {
@@ -193,10 +189,6 @@
   "theme.CodeBlock.wordWrapToggle": {
     "message": "Toggle word wrap",
     "description": "Das Titelattribut für die Schaltfläche zum Umschalten des Zeilenumbruchs von Codeblöcken"
-  },
-  "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
-    "message": "Umschalten der Seitenleiste mit einklappbarer Kategorie '{label}'",
-    "description": "Das ARIA-Label zum Umschalten der ausklappbaren Seitenleistenkategorie"
   },
   "theme.NavBar.navAriaLabel": {
     "message": "Haupt",
@@ -269,5 +261,153 @@
   "theme.tags.tagsPageTitle": {
     "message": "Tags",
     "description": "Der Titel der Tag-Listenseite"
+  },
+  "theme.SearchBar.label": {
+    "message": "Suchen…",
+    "description": "The ARIA label and placeholder for search button"
+  },
+  "goat.copyPage.label": {
+    "message": "Seite kopieren",
+    "description": "Label of the button that copies a doc page's Markdown"
+  },
+  "goat.copyPage.title": {
+    "message": "Diese Seite als Markdown kopieren",
+    "description": "Tooltip of the button that copies a doc page's Markdown source"
+  },
+  "goat.copyPage.copied": {
+    "message": "Kopiert",
+    "description": "Shown after a doc page's Markdown was copied"
+  },
+  "goat.copyPage.failed": {
+    "message": "Kopieren fehlgeschlagen",
+    "description": "Shown when copying a doc page's Markdown failed"
+  },
+  "goat.feedback.question": {
+    "message": "War das hilfreich?",
+    "description": "Question of the doc page feedback widget"
+  },
+  "goat.feedback.thanks": {
+    "message": "Danke für Ihr Feedback!",
+    "description": "Shown after a reader rated a doc page"
+  },
+  "goat.feedback.notHelpful": {
+    "message": "Nicht hilfreich",
+    "description": "Feedback face"
+  },
+  "goat.feedback.somewhatHelpful": {
+    "message": "Teilweise hilfreich",
+    "description": "Feedback face"
+  },
+  "goat.feedback.helpful": {
+    "message": "Hilfreich",
+    "description": "Feedback face"
+  },
+  "goat.home.cards.label": {
+    "message": "Bereiche der Dokumentation",
+    "description": "ARIA label of the section cards on the docs landing page"
+  },
+  "goat.home.card.gettingStarted.title": {
+    "message": "Erste Schritte",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.gettingStarted.description": {
+    "message": "Registrieren Sie sich, machen Sie die Schnellstart-Tour und starten Sie ein Projekt mit einer Vorlage.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.workspace.title": {
+    "message": "Workspace",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.workspace.description": {
+    "message": "Verwalten Sie Ihre Projekte, Datensätze, Teams und Einstellungen.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.data.title": {
+    "message": "Daten",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.data.description": {
+    "message": "Nutzen Sie die integrierten Datensätze oder laden Sie eigene hoch und binden Sie sie an.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.map.title": {
+    "message": "Karte",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.map.description": {
+    "message": "Fügen Sie Layer hinzu, gestalten und filtern Sie sie und messen Sie auf der Karte.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.toolbox.title": {
+    "message": "Werkzeuge",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.toolbox.description": {
+    "message": "Erreichbarkeitsindikatoren, Geoanalyse, Geoverarbeitung und Datenmanagement.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.workflows.title": {
+    "message": "Workflows",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.workflows.description": {
+    "message": "Verketten Sie Datensätze und Werkzeuge zu wiederverwendbaren Analyse-Workflows.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.layouts.title": {
+    "message": "Layouts",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.layouts.description": {
+    "message": "Gestalten Sie Kartenberichte und exportieren Sie sie als PDF oder PNG.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.dashboard.title": {
+    "message": "Dashboard",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.dashboard.description": {
+    "message": "Erstellen Sie interaktive Dashboards mit Widgets, Diagrammen und Karten.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.sharing.title": {
+    "message": "Teilen",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.sharing.description": {
+    "message": "Arbeiten Sie im Team zusammen oder veröffentlichen Sie öffentliche und eingebettete Karten.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.routing.title": {
+    "message": "Routing",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.routing.description": {
+    "message": "Wie GOAT Reisezeiten für Fußverkehr, Radverkehr, ÖV und Auto berechnet.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.tutorials.title": {
+    "message": "Tutorials",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.tutorials.description": {
+    "message": "Schritt-für-Schritt-Übungen, die Sie durch GOAT führen.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "goat.home.card.troubleshooting.title": {
+    "message": "Fehlerbehebung",
+    "description": "Title of a section card on the docs landing page"
+  },
+  "goat.home.card.troubleshooting.description": {
+    "message": "Lösungen für fehlgeschlagene Jobs und andere häufige Probleme.",
+    "description": "Description of a section card on the docs landing page"
+  },
+  "glossary.preview.label": {
+    "message": "Glossar",
+    "description": "Small label above a glossary term preview"
+  },
+  "glossary.preview.readMore": {
+    "message": "Weiterlesen",
+    "description": "Button in a glossary term preview that opens the full entry"
   }
 }

@@ -1,4 +1,5 @@
 ---
+description: "Configure a dashboard's map controls and layout, allowed basemaps, zoom limits, branding, social sharing preview, language and interactions between elements."
 sidebar_position: 3
 ---
 
@@ -12,8 +13,8 @@ In the Settings section, **you can configure the map controls, branding, social 
 
 ## Map
 
-- `Toolbar` — shows the top bar with the GOAT logo, project name, last saved timestamp, and project info in Viewer mode.
-- `Scalebar` — shows a scale on the map for measuring distances from one point to another.
+- `Toolbar`: shows the top bar with the GOAT logo, project name, last saved timestamp, and project info in Viewer mode.
+- `Scalebar`: shows a scale on the map for measuring distances from one point to another.
 
 ### Control layout
 
@@ -33,7 +34,7 @@ Available controls:
 
 ### Allowed basemaps
 
-Restrict which basemaps viewers can switch to. Select one or more basemaps from the dropdown — viewers will only see the ones you enable here. Only shown when `Basemap switcher` is placed in any position.
+Restrict which basemaps viewers can switch to. Select one or more basemaps from the dropdown, and viewers will only see the ones you enable here. Only shown when `Basemap switcher` is placed in any position.
 
 ### Zoom limits
 
@@ -45,11 +46,11 @@ Limit how far dashboard viewers can zoom in and out. A range slider lets you set
 
 Customize the visual identity of your dashboard for Viewer mode.
 
-- `Font` — select a typeface from the dropdown. Choose `Custom…` to enter a **Font file URL** and **Font Family** name for a custom typeface.
-- `Primary Color` — set the main accent color used for buttons and highlights.
-- `Icon Color` — set the color for icons throughout the dashboard.
-- `Font Color` — set the text color used across the dashboard.
-- `Favicon` — upload a custom browser tab icon. Click `×` to remove it.
+- `Font`: select a typeface from the dropdown. Choose `Custom…` to enter a **Font file URL** and **Font Family** name for a custom typeface.
+- `Primary Color`: set the main accent color used for buttons and highlights.
+- `Icon Color`: set the color for icons throughout the dashboard.
+- `Font Color`: set the text color used across the dashboard.
+- `Favicon`: upload a custom browser tab icon. Click `×` to remove it.
 
 ---
 
@@ -57,14 +58,14 @@ Customize the visual identity of your dashboard for Viewer mode.
 
 Customize how your dashboard appears when shared via social media or messaging apps.
 
-- **Preview image** — drag and drop or click to upload an image (recommended: 1200×630 pixels). Falls back to the default GOAT preview when unset.
-- **Description** — add a short description (up to 300 characters) used in social previews and search results.
+- **Preview image**: drag and drop or click to upload an image (recommended: 1200×630 pixels). Falls back to the default GOAT preview when unset.
+- **Description**: add a short description (up to 300 characters) used in social previews and search results.
 
 ---
 
 ## General
 
-- `Language` — set the dashboard display language. Options: `Auto (Browser Default)`, `English`, `Deutsch`.
+- `Language`: set the dashboard display language. Options: `Auto (Browser Default)`, `English`, `Deutsch`.
 
 ---
 
@@ -87,7 +88,7 @@ When a viewer activates a layer group, a Tabs widget switches to a tab you choos
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Select the <code>Target widget</code> — the Tabs widget whose active tab should change.</div>
+  <div class="content">Select the <code>Target widget</code>: the Tabs widget whose active tab should change.</div>
 </div>
 
 <div class="step">
@@ -106,7 +107,7 @@ When a viewer shows or hides a layer, one or more other layers are shown or hidd
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Select the <code>Source layer</code> — the layer whose visibility is watched.</div>
+  <div class="content">Select the <code>Source layer</code>: the layer whose visibility is watched.</div>
 </div>
 
 <div class="step">

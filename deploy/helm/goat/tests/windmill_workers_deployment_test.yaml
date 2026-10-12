@@ -1,0 +1,224 @@
+suite: windmill workers Deployments
+templates:
+  - windmill/worker-default/deployment.yaml
+  - windmill/worker-default/configmap.yaml
+  - windmill/worker-print/deployment.yaml
+  - windmill/worker-print/configmap.yaml
+  - windmill/worker-tools/deployment.yaml
+  - windmill/worker-tools/configmap.yaml
+  - windmill/worker-workflows/deployment.yaml
+  - windmill/worker-workflows/configmap.yaml
+tests:
+  # ── default worker ───────────────────────────────────────────────────────
+  - it: default worker is enabled by default and renders Deployment
+    set:
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.reuseGoatConnection: false
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+    template: windmill/worker-default/deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-windmill-worker-default
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "^ghcr\\.io/plan4better/goat/windmill-worker-default:.+"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_URL
+            value: "postgres://$(_WMILL_DB_USER):$(_WMILL_DB_PASSWORD)@pg.example.com:5432/windmill?sslmode=prefer"
+
+  - it: default worker honors replicaCount
+    set:
+      windmill.workers.default.replicaCount: 4
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.reuseGoatConnection: false
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+    template: windmill/worker-default/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 4
+
+  - it: default worker not rendered when disabled
+    set:
+      windmill.workers.default.enabled: false
+    template: windmill/worker-default/deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  # ── print worker ─────────────────────────────────────────────────────────
+  - it: print worker disabled by default
+    template: windmill/worker-print/deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: print worker renders when enabled
+    set:
+      windmill.workers.print.enabled: true
+      windmill.workers.print.replicaCount: 2
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.reuseGoatConnection: false
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+    template: windmill/worker-print/deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-windmill-worker-print
+      - equal:
+          path: spec.replicas
+          value: 2
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "^ghcr\\.io/plan4better/goat/windmill-worker-print:.+"
+
+  # ── tools worker ─────────────────────────────────────────────────────────
+  - it: tools worker disabled by default
+    template: windmill/worker-tools/deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: tools worker pins to geodata node and mounts the legacy PVC (data disabled)
+    set:
+      windmill.workers.tools.enabled: true
+      data.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.reuseGoatConnection: false
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+    template: windmill/worker-tools/deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-windmill-worker-tools
+      - equal:
+          path: spec.template.spec.nodeSelector["node.kubernetes.io/server-usage"]
+          value: geodata
+      - contains:
+          path: spec.template.spec.tolerations
+          content:
+            key: geodata
+            value: "true"
+            effect: NoSchedule
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: data
+            mountPath: /app/data
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: RELEASE-NAME-goat-windmill-tools-data
+
+  - it: tools worker uses existingClaim when provided
+    set:
+      windmill.workers.tools.enabled: true
+      data.enabled: false
+      windmill.workers.tools.persistence.existingClaim: "my-existing-pvc"
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.reuseGoatConnection: false
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+    template: windmill/worker-tools/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: my-existing-pvc
+
+  # ── workflows worker ─────────────────────────────────────────────────────
+  - it: workflows worker disabled by default
+    template: windmill/worker-workflows/deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: workflows worker pins to geodata node and mounts the legacy PVC (data disabled)
+    set:
+      windmill.workers.workflows.enabled: true
+      data.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.reuseGoatConnection: false
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+    template: windmill/worker-workflows/deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-windmill-worker-workflows
+      - equal:
+          path: spec.template.spec.nodeSelector["node.kubernetes.io/server-usage"]
+          value: geodata
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: data
+            mountPath: /app/data
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: RELEASE-NAME-goat-windmill-workflows-data
+
+  # ── shared data volume (v3.0.2: supersedes per-worker persistence) ───────
+  - it: tools worker mounts the shared data volume, not its own claim
+    template: windmill/worker-tools/deployment.yaml
+    set:
+      windmill.workers.tools.enabled: true
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: goat-data
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: RELEASE-NAME-goat-data
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /app/data
+  - it: workflows worker mounts the same shared claim as tools
+    template: windmill/worker-workflows/deployment.yaml
+    set:
+      windmill.workers.workflows.enabled: true
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: goat-data
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: RELEASE-NAME-goat-data
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /app/data
+  - it: falls back to the legacy per-worker claim when data is disabled
+    template: windmill/worker-tools/deployment.yaml
+    set:
+      windmill.workers.tools.enabled: true
+      data.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: RELEASE-NAME-goat-windmill-tools-data

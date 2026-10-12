@@ -1,0 +1,21 @@
+{{- if and .Values.caddy.enabled .Values.caddy.persistence.enabled (not .Values.caddy.persistence.existingClaim) -}}
+{{- $component := "caddy" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.caddy.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.caddy.persistence.size }}
+  {{- $sc := default .Values.global.storageClass .Values.caddy.persistence.storageClassName -}}
+  {{- with $sc }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}

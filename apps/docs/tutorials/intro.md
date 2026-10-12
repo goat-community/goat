@@ -1,4 +1,5 @@
 ---
+description: "Step-by-step GOAT tutorials: learn the planning and accessibility tools on a real example, from your first project to a shared map."
 sidebar_position: 1
 slug: /
 ---
@@ -13,7 +14,7 @@ Welcome to the GOAT tutorials section! Here you'll find step-by-step guides to h
   <div className="col col--6">
     <DocCard item={{
       type: 'link',
-      href: '/tutorials/goat-first-steps/',
+      href: '/tutorials/first-steps',
       label: '🚀 GOAT First Steps',
       description: 'Learn the fundamentals of GOAT through a comprehensive supermarket accessibility analysis in Mannheim. Perfect for beginners to get started with spatial analysis.',
       customProps: {

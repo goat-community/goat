@@ -170,10 +170,24 @@ const CustomColorScale = (props: CustomColorScaleProps) => {
   const { colorSet, activeLayerField, activeLayerId } = props;
   const { t } = useTranslation("common");
 
+  // Every style change deep-clones the layer style, so the saved color map
+  // arrives as a new array even when nothing in it changed. Keying on its
+  // content keeps unsaved row edits across unrelated changes (e.g. No data).
+  const savedColorMap = colorSet.selectedColor.color_map;
+  const savedColorLegends = colorSet.selectedColor.color_legends;
+  const savedColorMapKey = React.useMemo(
+    () => JSON.stringify({ colorMap: savedColorMap ?? null, colorLegends: savedColorLegends ?? null }),
+    [savedColorMap, savedColorLegends]
+  );
+
   const getValueMaps = React.useCallback(() => {
-    const colorLegends = colorSet.selectedColor.color_legends as ColorLegends | undefined;
+    const saved = JSON.parse(savedColorMapKey) as {
+      colorMap: ColorMap | null;
+      colorLegends: ColorLegends | null;
+    };
+    const colorLegends = saved.colorLegends ?? undefined;
     const valueMaps =
-      colorSet.selectedColor.color_map?.map((colorMapEntry, index) => {
+      saved.colorMap?.map((colorMapEntry, index) => {
         const color = colorMapEntry[1] as string;
         const values = colorMapEntry[0] as string[] | null;
         // Look up label by category value first, fall back to color key for backward compat
@@ -196,7 +210,7 @@ const CustomColorScale = (props: CustomColorScaleProps) => {
       return sorted.map((item) => ({ ...item, id: v4() }));
     }
     return valueMaps;
-  }, [colorSet.selectedColor.color_map, colorSet.selectedColor.color_legends, props.selectedColorScaleMethod]);
+  }, [savedColorMapKey, props.selectedColorScaleMethod]);
 
   const [valueMaps, setValueMaps] = React.useState<ColorMapItem[]>(getValueMaps());
 
@@ -238,7 +252,9 @@ const CustomColorScale = (props: CustomColorScaleProps) => {
   }
 
   function deleteStep(item: ColorItem) {
-    if (valueMaps.length === 2) {
+    // Breaks need two steps to form an interval; an ordinal map can style a single value.
+    const minSteps = props.selectedColorScaleMethod === "custom_breaks" ? 2 : 1;
+    if (valueMaps.length <= minSteps) {
       return;
     }
     const index = valueMaps.findIndex((color) => color.id === item.id);

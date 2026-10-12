@@ -65,7 +65,9 @@ class CRUDTeam(CRUDBase[Team, TeamCreate, TeamUpdate]):
                 f"img/users/{settings.ENVIRONMENT}/{file_name}",
                 f"image/{extension}",
             )
-            team_obj.avatar = f"https://assets.plan4better.de/img/users/{settings.ENVIRONMENT}/{file_name}"
+            team_obj.avatar = (
+                f"{settings.ASSETS_URL}/img/users/{settings.ENVIRONMENT}/{file_name}"
+            )
         updated_team = await self.update(db=db, db_obj=db_obj, obj_in=team_obj)
 
         return updated_team
@@ -191,6 +193,17 @@ class CRUDTeam(CRUDBase[Team, TeamCreate, TeamUpdate]):
         ]
 
         return member_list
+
+    async def get_member_role(
+        self, *, db: AsyncSession, team_id: str, user_id: str
+    ) -> str | None:
+        """The user's role name in the team, or None when they are not in it."""
+        statement = (
+            select(Role.name)
+            .join(UserTeamLink, UserTeamLink.role_id == Role.id)
+            .where(UserTeamLink.team_id == team_id, UserTeamLink.user_id == user_id)
+        )
+        return (await db.execute(statement)).scalar_one_or_none()
 
     async def add_team_member(
         self,

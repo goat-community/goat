@@ -1,4 +1,5 @@
 ---
+description: "Keep only the features, or parts of features, of an input layer that fall inside an overlay polygon layer, preserving input attributes but not the clip layer's."
 sidebar_position: 2
 ---
 
@@ -8,7 +9,7 @@ This tool allows you to **extract input features that fall within the clip layer
 
 ## 1. Explanation
 
-Refers to the process of **extracting a portion of a vector dataset based on the boundary of another polygon layer.** It acts like a "cookie cutter"—only the features (or parts of features) from the input layer that fall inside the clip layer are retained. The attributes of the input features are preserved, but the clip layer's attributes are not transferred.
+Refers to the process of **extracting a portion of a vector dataset based on the boundary of another polygon layer.** It acts like a "cookie cutter": only the features (or parts of features) from the input layer that fall inside the clip layer are retained. The attributes of the input features are preserved, but the clip layer's attributes are not transferred.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
@@ -40,7 +41,7 @@ Refers to the process of **extracting a portion of a vector dataset based on the
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Select the <code>Overlay layer</code> you want to use as the clip layer.</div>
+  <div class="content">Select the <code>Overlay Layer</code> you want to use as the clip layer.</div>
 </div>
 
 <div class="step">

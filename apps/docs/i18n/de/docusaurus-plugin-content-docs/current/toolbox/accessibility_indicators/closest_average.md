@@ -1,4 +1,5 @@
 ---
+description: "Zeigen Sie je Sechseckzelle die durchschnittliche Reisezeit oder Entfernung zu den n nächsten Gelegenheiten, abhängig von Verkehrsmittel und Reisekostenlimit."
 sidebar_position: 3
 ---
 
@@ -16,28 +17,28 @@ Der **Heatmap - Durchschnitt Reisezeit** Indikator erstellt eine farbkodierte Ka
 
 ## 1. Erklärung
 
-Die Heatmap zeigt ein farbkodiertes sechseckiges Raster, das **die durchschnittlichen Reisekosten zu Zielen (Gelegenheiten)** anhand realer Verkehrsnetze darstellt. Sie können das **Verkehrsmittel**, die **Maßeinheit (Zeit oder Entfernung)**, den **Gelegenheits-Layer**, die **Anzahl der Ziele** und das **Reisekostenlimit** spezifizieren, um die Visualisierung zu erstellen.
+Die [Heatmap](https://www.plan4better.de/de/glossar/heatmap) zeigt ein farbkodiertes sechseckiges Raster, das **die durchschnittlichen Reisekosten zu Zielen (Gelegenheiten)** anhand realer Verkehrsnetze darstellt. Sie können das **Verkehrsmittel**, die **Maßeinheit (Zeit oder Entfernung)**, den **Gelegenheits-Layer**, die **Anzahl der Ziele** und das **Reisekostenlimit** spezifizieren, um die Visualisierung zu erstellen.
 
-- Der Gelegenheits-Layer enthält punkt- oder polygonbasierte Ziele (POIs, Haltestellen, Schulen, Einrichtungen, Parks oder benutzerdefinierte Daten), **für die Sie die Erreichbarkeit analysieren möchten**. Sie können mehrere Gelegenheits-Layer verwenden, die zu einer einheitlichen Heatmap kombiniert werden.
+- Der Gelegenheits-Layer enthält punkt- oder polygonbasierte Ziele ([POIs](https://www.plan4better.de/de/glossar/point-of-interest), Haltestellen, Schulen, Einrichtungen, Parks oder benutzerdefinierte Daten), **für die Sie die Erreichbarkeit analysieren möchten**. Sie können mehrere Gelegenheits-Layer verwenden, die zu einer einheitlichen Heatmap kombiniert werden.
 
 - Mit <code>Anzahl der Ziele</code> begrenzen Sie die Berechnung der durchschnittlichen Reisekosten auf bis zu *n* nächstgelegene Gelegenheiten. So erhalten Sie eine gezieltere Erreichbarkeitsanalyse.
 
 :::tip
 
-**Hauptunterschied:** Heatmaps zeigen den *Zugang* von vielen Ausgangspunkten zu spezifischen Zielen, während Einzugsgebiete die *Reichweite* von spezifischen Ausgangspunkten zu vielen Zielen zeigen.
+**Hauptunterschied:** Heatmaps zeigen den *Zugang* von vielen Ausgangspunkten zu spezifischen Zielen, während [Einzugsgebiete](https://www.plan4better.de/de/glossar/einzugsgebiet) die *Reichweite* von spezifischen Ausgangspunkten zu vielen Zielen zeigen.
 
 :::
 
 
 :::info
 
-Die Heatmap-Berechnung ist für `Walk`, `Bicycle`, `Pedelec` und `Auto` in **über 30 europäischen Ländern** verfügbar. Für `Öffentliche Verkehrsmittel` werden Deutschland, die Schweiz und die Region Haut-Rhin in Frankreich unterstützt. Wenn Sie Analysen außerhalb dieser Regionen benötigen, [kontaktieren Sie uns](https://plan4better.de/de/contact/) gerne.
+Die Heatmap-Berechnung ist für `Walk`, `Bicycle`, `Pedelec` und `Auto` in **über 30 europäischen Ländern** verfügbar. Für `Öffentliche Verkehrsmittel` werden Deutschland, die Schweiz und die Region Haut-Rhin in Frankreich unterstützt. Wenn Sie Analysen außerhalb dieser Regionen benötigen, können Sie [ein eigenes Routing-Netz importieren](../../data/builtin_datasets.md#eigene-netze-importieren) oder uns gerne [kontaktieren](https://plan4better.de/de/contact/), damit wir das für Sie übernehmen.
 
 :::
 
 ## 2. Anwendungsbeispiele
 
- - Haben Bewohner in bestimmten Gebieten längere durchschnittliche Reisezeiten zu Einrichtungen als andere?
+ - Haben Bewohner in bestimmten Gebieten längere durchschnittliche [Reisezeiten](https://www.plan4better.de/de/glossar/reisezeit) zu Einrichtungen als andere?
 
  - Wie variiert die durchschnittliche Reisezeit zu Einrichtungen zwischen verschiedenen Verkehrsmitteln?
 
@@ -70,24 +71,23 @@ Die Heatmap-Berechnung ist für `Walk`, `Bicycle`, `Pedelec` und `Auto` in **üb
 | Fahrrad | Alle mit dem Fahrrad befahrbaren Wege (unter Berücksichtigung von Oberfläche und Steigung) |
 | Pedelec | Alle mit dem Pedelec befahrbaren Wege (unter Berücksichtigung von Oberfläche und Steigung) |
 | Auto | Alle mit dem Auto befahrbaren Wege (unter Berücksichtigung von Tempolimits und Einbahnstraßen) |
-| Öffentlicher Verkehr | Alle mit dem ÖV möglichen Fahrten (gemäß offiziellen GTFS-Fahrplänen), unter Berücksichtigung von Zu- und Abgang zu Fuß zu und von den Haltestellen |
+| Öffentlicher Verkehr | Alle mit dem ÖV möglichen Fahrten (gemäß offiziellen [GTFS](https://www.plan4better.de/de/glossar/gtfs)-Fahrplänen), unter Berücksichtigung von Zu- und Abgang zu Fuß zu und von den Haltestellen |
+
+<div class="step">
+  <div class="step-number">4</div>
+  <div class="content">Legen Sie fest, wie die Reise gemessen wird. Die Optionen hängen vom <code>Verkehrsmittel</code> ab, das Sie in Schritt 3 gewählt haben:</div>
+</div>
 
 <Tabs>
 <TabItem value="active-car" label="Zu Fuß / Fahrrad / Pedelec / Auto" default className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">4</div>
-  <div class="content">Wählen Sie im Menü <code>Berechnung nach</code>, ob die Reisekosten als Zeit (Minuten) oder als Entfernung (Meter) gemessen werden.</div>
-</div>
+Wählen Sie im Menü <code>Berechnung nach</code>, ob die Reisekosten als Zeit (Minuten) oder als Entfernung (Meter) gemessen werden.
 
 </TabItem>
 
 <TabItem value="public transport" label="Öffentlicher Verkehr (ÖV)" className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">4</div>
-  <div class="content">Wählen Sie die zu analysierenden <code>ÖV-Modi</code>: Bus, Straßenbahn, Bahn, U-Bahn, Fähre, Seilbahn, Gondel und/oder Standseilbahn. Wählen Sie anschließend <code>Tag</code> und <code>Ankunftszeit</code> für die Analyse. Berücksichtigt werden die besten ÖV-Fahrten, die die Gelegenheiten bis zu dieser Zeit erreichen.</div>
-</div>
+Wählen Sie die zu analysierenden <code>ÖV-Modi</code>: Bus, Straßenbahn, Bahn, U-Bahn, Fähre, Seilbahn, Gondel und/oder Standseilbahn. Wählen Sie anschließend <code>Tag</code> und <code>Ankunftszeit</code> für die Analyse. Berücksichtigt werden die besten ÖV-Fahrten, die die Gelegenheiten bis zu dieser Zeit erreichen.
 
 </TabItem>
 </Tabs>
@@ -98,12 +98,12 @@ Optional können Sie <code>Erweiterte Optionen</code> aktivieren, um weitere Ein
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Wählen Sie ein <code>Referenzgebiet</code> — einen Polygon-Layer, der Ihr Untersuchungsgebiet darstellt. Wenn festgelegt, erweitert sich die Heatmap auf alle H3-Zellen innerhalb dieses Polygons; nicht erreichbare Zellen erhalten den Wert <code>NULL</code> und zeigen so Versorgungslücken und unterversorgte Gebiete auf.</div>
+  <div class="content">Wählen Sie ein <code>Referenzgebiet</code>: einen Polygon-Layer, der Ihr Untersuchungsgebiet darstellt. Wenn festgelegt, erweitert sich die Heatmap auf alle H3-Zellen innerhalb dieses Polygons; nicht erreichbare Zellen erhalten den Wert <code>NULL</code> und zeigen so [Versorgungslücken](https://www.plan4better.de/de/glossar/versorgungsluecken) und unterversorgte Gebiete auf.</div>
 </div>
 
 <div class="step">
   <div class="step-number">6</div>
-  <div class="content">Konfigurieren Sie verschiedene Routing-Optionen für das gewählte Verkehrsmittel, etwa Reisegeschwindigkeit, maximale Anzahl an Umstiegen, Zu- und Abgangslimits und mehr. Weitere Informationen zu verkehrsmittelspezifischen Optionen finden Sie im Abschnitt <a href="/category/routing">Routing</a>.</div>
+  <div class="content">Konfigurieren Sie verschiedene Routing-Optionen für das gewählte Verkehrsmittel, etwa Reisegeschwindigkeit, maximale Anzahl an Umstiegen, Zu- und Abgangslimits und mehr. Weitere Informationen zu verkehrsmittelspezifischen Optionen finden Sie im Abschnitt [Routing](../../category/routing).</div>
 </div>
 
 ### Gelegenheiten
@@ -184,11 +184,11 @@ Die Formel für die durchschnittliche Reisezeit lautet:
 Für jede Zelle (**i**) summiert das Tool die Reisezeiten (**tij**) zu allen erreichbaren Gelegenheiten (**j**), bis zu **n** davon, und teilt durch **n**, um die durchschnittliche Reisezeit zu erhalten.
 
 ### Klassifizierung
-Um die berechneten Erreichbarkeitswerte für jede Rasterzelle zu klassifizieren, wird standardmäßig eine Klassifizierung auf Basis von Quantilen verwendet. Es können jedoch auch verschiedene andere Klassifizierungsmethoden eingesetzt werden. Weitere Informationen finden Sie im Abschnitt **[Datenklassifizierungsmethoden](../../map/layer_style/style/attribute_based_styling#datenklassifizierungsmethoden)** auf der Seite *Attributbasiertes Styling*.
+Um die berechneten Erreichbarkeitswerte für jede Rasterzelle zu klassifizieren, wird standardmäßig eine Klassifizierung auf Basis von [Quantilen](https://www.plan4better.de/de/glossar/quantilklassifizierung) verwendet. Es können jedoch auch verschiedene andere Klassifizierungsmethoden eingesetzt werden. Weitere Informationen finden Sie im Abschnitt **[Datenklassifizierungsmethoden](../../map/layer_style/style/attribute_based_styling#datenklassifizierungsmethoden)** auf der Seite *Attributbasiertes Styling*.
 
 ### Visualisierung
 
-Heatmaps in GOAT nutzen die **[Uber H3 Gitter-basierte](../../further_reading/glossary#h3-gitter)** Lösung für effiziente Berechnungen und eine leicht verständliche Visualisierung. Hinter den Kulissen wird die Erreichbarkeit direkt zur Laufzeit von GOATs eigener Routing-Engine berechnet. Für jedes *Verkehrsmittel* routet die Engine von den Gelegenheiten ausgehend nach außen, um die erreichbaren H3-Zellen und deren Reisekosten zu ermitteln, und aggregiert diese anschließend zu einem Erreichbarkeitswert pro Zelle. Der öffentliche Verkehr nutzt die RAPTOR-basierte Engine, während die Verkehrsträger der aktiven Mobilität und das Auto GOATs Dijkstra-Implementierung verwenden.
+Heatmaps in GOAT nutzen die **[Uber H3 Gitter-basierte](https://www.plan4better.de/de/glossar/h3-gitter)** Lösung für effiziente Berechnungen und eine leicht verständliche Visualisierung. Hinter den Kulissen wird die Erreichbarkeit direkt zur Laufzeit von GOATs eigener Routing-Engine berechnet. Für jedes *Verkehrsmittel* routet die Engine von den Gelegenheiten ausgehend nach außen, um die erreichbaren H3-Zellen und deren Reisekosten zu ermitteln, und aggregiert diese anschließend zu einem Erreichbarkeitswert pro Zelle. Der öffentliche Verkehr nutzt die RAPTOR-basierte Engine, während die Verkehrsträger der [aktiven Mobilität](https://www.plan4better.de/de/glossar/aktive-mobilitaet) und das Auto GOATs Dijkstra-Implementierung verwenden.
 
 Die Auflösung und die Dimensionen des verwendeten sechseckigen Gitters hängen vom gewählten *Verkehrsmittel* ab:
 

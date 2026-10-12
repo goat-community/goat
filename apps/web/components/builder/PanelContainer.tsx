@@ -490,18 +490,19 @@ export const Container: React.FC<ContainerProps> = ({
                   fontSize: theme.typography.body2.fontSize,
                   fontWeight: 700,
                   lineHeight: theme.typography.body2.lineHeight,
-                  ...(panel.orientation === "vertical" && {
-                    transform: panel.position === "left" ? "rotate(-90deg)" : "rotate(90deg)",
-                  }),
                   whiteSpace: "nowrap",
-                  // For horizontal panels constrain width; for vertical, overflow
-                  // clipping is handled by the container since rotate() swaps
-                  // CSS width↔visual height — maxWidth here would clip the visual height.
-                  ...(panel.orientation === "horizontal" && {
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    maxWidth: "80%",
-                  }),
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  // Vertical panels run the text top-to-bottom (bottom-to-top on the
+                  // left) with a real vertical box, so it starts at the panel's top
+                  // edge and ends before the centered collapse button.
+                  ...(panel.orientation === "vertical"
+                    ? {
+                        writingMode: "vertical-rl",
+                        ...(panel.position === "left" && { transform: "rotate(180deg)" }),
+                        maxHeight: "calc(50% - 40px)",
+                      }
+                    : { maxWidth: "80%" }),
                   userSelect: "none",
                   "& p": { margin: 0, display: "inline" },
                   "& a": { color: theme.palette.primary.main, textDecoration: "underline" },

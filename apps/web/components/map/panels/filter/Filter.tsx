@@ -48,8 +48,8 @@ export const createExpression = (type: FilterType): ExpressionType => ({
 /**
  * Whether every expression is complete enough to build a query from.
  *
- * The operators that test for absence carry no value of their own, so they
- * count as answered without one.
+ * The operators that test for absence or a boolean carry no value of their
+ * own, so they count as answered without one.
  */
 export const validateExpressions = (expressions: ExpressionType[]): boolean =>
   expressions.every((expression) => {
@@ -57,7 +57,9 @@ export const validateExpressions = (expressions: ExpressionType[]): boolean =>
       expression.expression === "is_empty_string" ||
       expression.expression === "is_not_empty_string" ||
       expression.expression === "is_blank" ||
-      expression.expression === "is_not_blank";
+      expression.expression === "is_not_blank" ||
+      expression.expression === "is_true" ||
+      expression.expression === "is_false";
     const hasValue = valueless || !!expression.value?.toString();
     return !!expression.attribute && !!expression.expression && hasValue;
   });

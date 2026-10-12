@@ -1,4 +1,5 @@
 ---
+description: "Organise projects, datasets and templates in personal, team and organisation spaces: share, move, transfer or restore them, import projects, upload datasets."
 sidebar_position: 3
 ---
 
@@ -56,11 +57,11 @@ Select an item, or several, to act on them. The kebab menu on a card and the act
 
 ### Sharing and transferring are different
 
-**Sharing** grants access while you remain the owner. That suits colleagues need to see or edit something that is still yours to look after.
+**Sharing** grants access while you remain the owner. That suits cases where colleagues need to see or edit something that is still yours to look after.
 
-**Transferring ownership** moves the item into someone else's space for good. Reach for it when a project genuinely changes hands, for example when you hand a piece of work over before leaving a team.
+**Transferring ownership** moves the item into a team's or the organization's space for good. Reach for it when a project genuinely changes hands, for example when you hand a piece of work over before leaving a team.
 
-A transfer leaves a **shortcut** behind in the space the item came from, badged as such and carrying the item's real name. It is a pointer, so opening it takes you to the item where it now lives.
+By default, a transfer leaves a **shortcut** behind in the space the item came from, badged as such and carrying the item's real name. It is a pointer, so opening it takes you to the item where it now lives.
 
 :::info Who can see what
 An item shows its **audience**: private, shared with named people, shared with a team or organisation, or public. Folders and bundles can be shared with teams and the organisation.
@@ -68,16 +69,17 @@ An item shows its **audience**: private, shared with named people, shared with a
 
 ### Trash and restore
 
-Deleting content does not remove it straight away: it goes to the **Trash**, where the owner can **Restore** it. Content stays there until it is purged, so a delete made in error is recoverable.
+Deleting content does not remove it straight away: it goes to the **Trash**, where the owner can **Restore** it. Content stays there for **30 days** and is then removed for good, so a delete made in error is recoverable. See [Trash](../sharing/sharing.md#trash) for where to find it.
 
 ## Adding content
 
 `Add new` on the Content page offers:
 
-- **New Folder**, to group content however suits you
+- **New folder**, to group content however suits you
 - **Blank project** or **Import project**
-- **Dataset**, to upload a file from your device (GeoPackage, GeoJSON, Shapefile, KML, CSV, XLSX, Parquet, and GTFS or Overture archives)
-- **Upload Document**, for a file that belongs with the work without being data
+- **Upload dataset**, to upload a file from your device (GeoPackage, GeoJSON, Shapefile, KML, CSV, XLSX, Parquet, and [GTFS](https://www.plan4better.de/en/glossary/gtfs) or [Overture](https://www.plan4better.de/en/glossary/overture-maps) archives)
+- **Connect service**, to add an external layer by URL (WFS, WMS, WMTS, XYZ Tiles or COG)
+- **Upload document**, for a file that belongs with the work without being data
 
 A project can also be started from the Home page.
 
@@ -139,7 +141,7 @@ GOAT supports multiple file formats for upload: **GeoPackage**, **GeoJSON**, **S
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Click <code>Add new</code> and select <code>Dataset</code>.</div>
+  <div class="content">Click <code>Add new</code> and select <code>Upload dataset</code>.</div>
 </div>
 
 <div class="step">
@@ -154,7 +156,8 @@ GOAT supports multiple file formats for upload: **GeoPackage**, **GeoJSON**, **S
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content"><strong>CSV and XLSX files only:</strong> click <code>Set up columns</code> to check a preview of the first rows.
+  <div class="content">
+  <strong>CSV and XLSX files only:</strong> click <code>Set up columns</code> to check a preview of the first rows.
     <ul>
       <li><code>Worksheet</code>: for XLSX files with several sheets, select which sheet to import.</li>
       <li><code>First row is header</code>: on by default. Turn it off if the first row is data; column names are then generated, and you can rename them later in the layer settings.</li>
@@ -170,7 +173,12 @@ GOAT supports multiple file formats for upload: **GeoPackage**, **GeoJSON**, **S
 
 ### Connecting to an external source
 
-A service that already publishes the data, such as a **Web Feature Service (WFS)**, **Web Map Service (WMS)**, **Web Map Tile Service (WMTS)**, **XYZ Tiles** or a **Cloud Optimized GeoTIFF (COG)**, is connected from inside a project rather than from this page. In the map, click `+ Add layer` on the left panel and choose `Connect service`. See [Add Layers](../map/layers#add-layers) for the steps.
+A service that already publishes the data, such as a **Web Feature Service (WFS)**, **Web Map Service (WMS)**, **Web Map Tile Service (WMTS)**, **XYZ Tiles** or a **Cloud Optimized GeoTIFF (COG)**, is added with `Connect service`. On this page, click `Add new` and choose `Connect service` to add it to the current folder. Inside a project you can also reach it from `+ Add layer` on the map. See [Add Layers](../map/layers#add-layers) for the steps.
+
+Once added, a connected layer appears on this page like any other dataset, with two differences that show where its data comes from:
+
+- A **`Linked`** tag, meaning the layer is **drawn live from the external service** rather than stored in GOAT. Its content can change or disappear if the service does.
+- A **source line** showing the format and host, for example `WMS, linked from wms.nrw.de`. A **WFS** layer is imported as a copy into GOAT instead, and reads `Imported from WFS (wfs.nrw.de)`.
 
 ## Working with a dataset
 

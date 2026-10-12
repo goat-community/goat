@@ -1,4 +1,5 @@
 ---
+description: "Wissenschaftliche Veröffentlichungen zur Entwicklung, Anwendung und Bewertung von GOAT, jeweils mit Autoren, Datum, Stichwörtern, DOI-Link und Abstract."
 sidebar_position: 5
 ---
 

@@ -29,7 +29,12 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { formatFieldValue } from "@/lib/utils/formatFieldValue";
 import type { FieldDefinition, FieldKind } from "@/lib/validations/layer";
-import { ALLOWED_KINDS_BY_GEOM_TYPE, COMPUTED_KINDS, RESERVED_FIELD_NAMES } from "@/lib/validations/layer";
+import {
+  ALLOWED_KINDS_BY_GEOM_TYPE,
+  COMPUTED_KINDS,
+  RESERVED_FIELD_NAMES,
+  isGeneratedKind,
+} from "@/lib/validations/layer";
 
 import type { SelectorItem } from "@/types/map/common";
 
@@ -51,6 +56,8 @@ const UNIT_OPTIONS_BY_KIND: Record<FieldKind, string[]> = {
   datetime: [],
   boolean: [],
   formula: [],
+  serial: [],
+  uuid: [],
 };
 
 const PREVIEW_VALUES_BY_KIND: Record<FieldKind, number[]> = {
@@ -62,6 +69,8 @@ const PREVIEW_VALUES_BY_KIND: Record<FieldKind, number[]> = {
   datetime: [],
   boolean: [],
   formula: [],
+  serial: [],
+  uuid: [],
 };
 
 interface FieldEditorProps {
@@ -73,6 +82,15 @@ interface FieldEditorProps {
   onRemoveOverride?: (id: string) => void;
   /** IDs of fields whose type cannot be changed (existing DB columns) */
   lockedFieldIds?: Set<string>;
+  /**
+   * Kinds a locked (existing) field may still be switched between, by field id
+   * — e.g. an existing number column to "serial" and back. The type selector
+   * of such a field offers only these instead of being disabled.
+   */
+  kindChoicesByField?: Record<string, FieldKind[]>;
+  /** Fields whose serial start may still be set although they are locked: an
+   * existing column about to become a serial. */
+  startEditableFieldIds?: Set<string>;
   /** Layer geometry type — controls which computed kinds are offered. */
   geometryType?: "point" | "multipoint" | "line" | "multiline" | "polygon" | "multipolygon" | null;
   /**
@@ -95,10 +113,15 @@ const ALL_FIELD_KINDS: FieldKind[] = [
   "length",
   "datetime",
   "boolean",
+  "serial",
+  "uuid",
   "formula",
 ];
 
 const NUMERIC_KINDS: FieldKind[] = ["number", "area", "perimeter", "length"];
+
+/** Kinds a layer without geometry can carry: no geometry-derived ones. */
+const TABLE_KINDS: FieldKind[] = ["string", "number", "datetime", "boolean", "serial", "uuid", "formula"];
 
 // --- Sortable field row ---
 
@@ -329,6 +352,8 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
   onSelectField,
   onRemoveOverride,
   lockedFieldIds,
+  kindChoicesByField,
+  startEditableFieldIds,
   geometryType,
   onAddField,
   layerId,
@@ -348,7 +373,11 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
         .map((f) => {
           const kind = f.kind === "formula" ? (f.output_kind ?? "string") : f.kind;
           const type =
-            kind === "number" || kind === "area" || kind === "perimeter" || kind === "length"
+            kind === "number" ||
+            kind === "area" ||
+            kind === "perimeter" ||
+            kind === "length" ||
+            kind === "serial"
               ? "number"
               : kind === "boolean"
                 ? "boolean"
@@ -367,8 +396,8 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
   // present). At creation there is no `field_config` yet to carry the expression
   // or the compute SQL, so such a column would be made and never filled.
   const baseKinds: FieldKind[] = geometryType
-    ? (ALLOWED_KINDS_BY_GEOM_TYPE[geometryType] ?? ["string", "number", "datetime", "boolean", "formula"])
-    : ["string", "number", "datetime", "boolean", "formula"];
+    ? (ALLOWED_KINDS_BY_GEOM_TYPE[geometryType] ?? TABLE_KINDS)
+    : TABLE_KINDS;
   const availableKinds: FieldKind[] = baseKinds.filter((k) => !COMPUTED_KINDS.has(k) || !!layerId);
 
   const allFieldTypeItems = useMemo(
@@ -462,6 +491,7 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
       kind: field.kind,
       is_computed: field.is_computed,
       display_config: field.display_config,
+      ...(field.kind === "serial" && field.start !== undefined ? { start: field.start } : {}),
     };
     const idx = fields.findIndex((f) => f.id === field.id);
     const next = [...fields];
@@ -518,9 +548,18 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
           kind,
           allowed_values: allowed?.length ? allowed : undefined,
           allow_other: allowed?.length ? f.allow_other : undefined,
+          // Only a serial counts from somewhere.
+          start: kind === "serial" ? f.start : undefined,
         };
       })
     );
+  };
+
+  const handleStartChange = (id: string, raw: string) => {
+    // Blank means the default (1); anything else must be a whole number >= 0.
+    const value = raw.trim() === "" ? undefined : Number(raw);
+    if (value !== undefined && (!Number.isInteger(value) || value < 0)) return;
+    onChange(fields.map((f) => (f.id === id ? { ...f, start: value } : f)));
   };
 
   const handleDisplayConfigChange = (id: string, partial: Record<string, unknown>) => {
@@ -656,6 +695,14 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
                     </Typography>
                   </Box>
                 )}
+                {isGeneratedKind(selectedField.kind) && (
+                  <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
+                    <Icon iconName={ICON_NAME.LOCK} style={{ fontSize: 12 }} />
+                    <Typography variant="caption" color="text.secondary">
+                      {t(selectedField.kind === "serial" ? "serial_field_hint" : "uuid_field_hint")}
+                    </Typography>
+                  </Box>
+                )}
                 <Selector
                   label={t("field_type")}
                   selectedItems={
@@ -663,9 +710,35 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
                     fieldTypeItems.find((i) => i.value === selectedField.kind)
                   }
                   setSelectedItems={(item) => handleTypeChange(selectedField.id, item)}
-                  items={fieldTypeItems}
-                  disabled={lockedFieldIds?.has(selectedField.id)}
+                  items={
+                    kindChoicesByField?.[selectedField.id]?.map((k) => allFieldTypeItems[k]) ?? fieldTypeItems
+                  }
+                  disabled={lockedFieldIds?.has(selectedField.id) && !kindChoicesByField?.[selectedField.id]}
                 />
+
+                {selectedField.kind === "serial" &&
+                  (() => {
+                    // Existing rows were numbered from it when the column was
+                    // added; changing it afterwards would not renumber them.
+                    // An existing column about to become a serial still takes
+                    // one, for its blank rows.
+                    const startFixed =
+                      !!lockedFieldIds?.has(selectedField.id) &&
+                      !startEditableFieldIds?.has(selectedField.id);
+                    return (
+                      <TextField
+                        size="small"
+                        type="number"
+                        label={t("serial_start")}
+                        helperText={t(startFixed ? "serial_start_fixed" : "serial_start_help")}
+                        value={selectedField.start ?? ""}
+                        placeholder="1"
+                        inputProps={{ min: 0, step: 1, "data-testid": "serial-start" }}
+                        disabled={startFixed}
+                        onChange={(e) => handleStartChange(selectedField.id, e.target.value)}
+                      />
+                    );
+                  })()}
 
                 {(selectedField.kind === "string" || selectedField.kind === "number") && (
                   <Stack spacing={1}>
@@ -733,42 +806,49 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
 
                 {showFormat && (
                   <>
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-                      {t("number_format")}
-                    </Typography>
-                    <Stack direction="row" spacing={1}>
-                      <Select
-                        size="small"
-                        fullWidth
-                        value={String(cfg.decimals ?? "auto")}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          handleDisplayConfigChange(selectedField.id, {
-                            decimals: v === "auto" ? "auto" : Number(v),
-                          });
-                        }}>
-                        {DECIMALS_OPTIONS.map((o) => (
-                          <MenuItem key={String(o)} value={String(o)}>
-                            {o === "auto" ? t("auto") : o}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {unitOptions.length > 0 && (
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                      <Stack spacing={0.5} sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {t("decimals")}
+                        </Typography>
                         <Select
                           size="small"
                           fullWidth
-                          value={cfg.unit ?? "auto"}
-                          onChange={(e) =>
+                          value={String(cfg.decimals ?? "auto")}
+                          onChange={(e) => {
+                            const v = e.target.value;
                             handleDisplayConfigChange(selectedField.id, {
-                              unit: e.target.value,
-                            })
-                          }>
-                          {unitOptions.map((u) => (
-                            <MenuItem key={u} value={u}>
-                              {u === "auto" ? t("auto") : u}
+                              decimals: v === "auto" ? "auto" : Number(v),
+                            });
+                          }}>
+                          {DECIMALS_OPTIONS.map((o) => (
+                            <MenuItem key={String(o)} value={String(o)}>
+                              {o === "auto" ? t("auto") : o}
                             </MenuItem>
                           ))}
                         </Select>
+                      </Stack>
+                      {unitOptions.length > 0 && (
+                        <Stack spacing={0.5} sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {t("unit")}
+                          </Typography>
+                          <Select
+                            size="small"
+                            fullWidth
+                            value={cfg.unit ?? "auto"}
+                            onChange={(e) =>
+                              handleDisplayConfigChange(selectedField.id, {
+                                unit: e.target.value,
+                              })
+                            }>
+                            {unitOptions.map((u) => (
+                              <MenuItem key={u} value={u}>
+                                {u === "auto" ? t("auto") : u}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </Stack>
                       )}
                     </Stack>
                     <FormControlLabel

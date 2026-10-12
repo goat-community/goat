@@ -1,0 +1,32 @@
+{{- if .Values.catalog.enabled -}}
+{{- $auth := dict "values" .Values.catalog "root" . -}}
+{{- $coreCfg := .Values.core.config | default dict -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "goat.serviceFullname" (dict "context" . "component" "catalog") }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "catalog") | nindent 4 }}
+data:
+  {{- range $k, $v := .Values.catalog.config }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+  CATALOG_GOAT_UI_BASE_URL: {{ include "goat.web.publicUrl" . | quote }}
+  {{- /* Wired to a Secret: Keycloak comes from it in the deployment; nothing
+         here. Otherwise fall back to core's non-secret values. A key set in
+         catalog.config / catalog.extraEnv wins and is not rendered again. */}}
+  {{- if not (include "goat.auth.wired" $auth) }}
+  {{- if not (include "goat.env.userSet" (dict "values" .Values.catalog "key" "KEYCLOAK_SERVER_URL")) }}
+  KEYCLOAK_SERVER_URL: {{ $coreCfg.KEYCLOAK_SERVER_URL | quote }}
+  {{- end }}
+  {{- if and $coreCfg.REALM_NAME (not (include "goat.env.userSet" (dict "values" .Values.catalog "key" "REALM_NAME"))) }}
+  REALM_NAME: {{ $coreCfg.REALM_NAME | quote }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.catalog.s3.bucket }}
+  CATALOG_S3_BUCKET: {{ .Values.catalog.s3.bucket | quote }}
+  CATALOG_S3_ENDPOINT_URL: {{ .Values.catalog.s3.endpointUrl | quote }}
+  CATALOG_S3_REGION: {{ .Values.catalog.s3.region | quote }}
+  {{- end }}
+{{- end }}

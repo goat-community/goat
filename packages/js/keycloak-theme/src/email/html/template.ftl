@@ -1,4 +1,28 @@
-<#macro emailLayout>
+<#-- Branding from theme.properties; blank values count as unset. -->
+<#assign brandName = (properties.brandName!"")?trim>
+<#if !brandName?has_content><#assign brandName = "GOAT"></#if>
+<#assign logoUrl = (properties.logoUrl!"")?trim>
+<#assign contactUrl = (properties.contactUrl!"")?trim>
+<#assign privacyUrl = (properties.privacyUrl!"")?trim>
+<#assign appUrl = (properties.appUrl!"")?trim?remove_ending("/")>
+<#assign assetsUrl = (properties.staticAssetsUrl!"")?trim?remove_ending("/")>
+<#if !assetsUrl?has_content && appUrl?has_content><#assign assetsUrl = appUrl + "/assets"></#if>
+
+<#macro brandMark>
+  <#if logoUrl?has_content>
+    <img
+      alt="${brandName}"
+      src="${logoUrl}"
+      style="max-width: 140px"
+      title=""
+    />
+  <#else>
+    ${brandName}
+  </#if>
+</#macro>
+
+<#-- artwork: file name under <assets>/img/email/, shown above the title. -->
+<#macro emailLayout artwork="">
 <!DOCTYPE html>
 <html lang="${msg("emailLangCode")}" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
     <head>
@@ -44,18 +68,27 @@
       <thead>
         <tr>
           <td>
-            <a href="https://plan4better.de">
-              <img
-                alt=""
-                src="https://assets.plan4better.de/img/logo/plan4better_standard.png"
-                style="max-width: 140px; margin-top: 20px; margin-bottom: 20px"
-                title=""
-              />
-            </a>
+            <#assign brandStyle = "display: inline-block; margin-top: 20px; margin-bottom: 20px; color: #4d4d4d; font-size: 22px; font-weight: 700; text-decoration: none;">
+            <#if appUrl?has_content>
+            <a href="${appUrl}" style="${brandStyle}"><@brandMark /></a>
+            <#else>
+            <span style="${brandStyle}"><@brandMark /></span>
+            </#if>
           </td>
         </tr>
       </thead>
       <tbody style="background: #ffffff; background-color: #ffffff">
+        <#if artwork?has_content && assetsUrl?has_content>
+        <tr>
+          <td style="padding-top: 40px;">
+            <img
+                alt=""
+                src="${assetsUrl}/img/email/${artwork}"
+                style="width: 250px"
+            />
+          </td>
+        </tr>
+        </#if>
         <#nested>
         <tr>
           <td style="padding-top: 40px">
@@ -83,15 +116,17 @@
         <tr>
           <td>
             <div style="margin-top: 20px">
-              &copy; Plan4Better GmbH 2023 | ${msg("allRightsReserved")}
+              &copy; ${brandName} ${.now?string("yyyy")} | ${msg("allRightsReserved")}
             </div>
           </td>
         </tr>
+        <#if privacyUrl?has_content || contactUrl?has_content>
         <tr>
           <td>
             <div>
+              <#if privacyUrl?has_content>
               <a
-                href="https://plan4better.de/privacy/"
+                href="${privacyUrl}"
                 style="
                   -webkit-text-size-adjust: 100%;
                   -ms-text-size-adjust: 100%;
@@ -100,9 +135,11 @@
                 "
                 >${msg("privacy")}</a
               >
-              |
+              </#if>
+              <#if privacyUrl?has_content && contactUrl?has_content>|</#if>
+              <#if contactUrl?has_content>
               <a
-                href="https://plan4better.de/kontakt/"
+                href="${contactUrl}"
                 style="
                   -webkit-text-size-adjust: 100%;
                   -ms-text-size-adjust: 100%;
@@ -111,56 +148,11 @@
                 "
                 >${msg("contactUs")}</a
               >
-              |
-              <a
-                href="https://plan4better.de/team/"
-                style="
-                  -webkit-text-size-adjust: 100%;
-                  -ms-text-size-adjust: 100%;
-                  font-weight: normal;
-                  color: #c7c8ca;
-                "
-                >${msg("aboutUs")}</a
-              >
+              </#if>
             </div>
           </td>
         </tr>
-        <tr>
-          <td>
-            <div
-              style="display: inline-flex; margin-top: 5px; text-align: center"
-            >
-              <a href="https://twitter.com/plan4better"
-                ><img
-                  alt="Twitter"
-                  src="https://assets.plan4better.de/img/icons/twitter_gray.png"
-                  style="
-                    -ms-interpolation-mode: bicubic;
-                    height: auto;
-                    outline: none;
-                    text-decoration: none;
-                    padding-right: 2px;
-                    padding-left: 2px;
-                    border: 0;
-                  "
-              /></a>
-              <a href="https://www.linkedin.com/company/plan4better/"
-                ><img
-                  alt="LinkedIn"
-                  src="https://assets.plan4better.de/img/icons/linkedin_gray.png"
-                  style="
-                    -ms-interpolation-mode: bicubic;
-                    height: auto;
-                    outline: none;
-                    text-decoration: none;
-                    padding-right: 2px;
-                    padding-left: 2px;
-                    border: 0;
-                  "
-              /></a>
-            </div>
-          </td>
-        </tr>
+        </#if>
       </tfoot>
     </table>
   </body>

@@ -1,0 +1,14 @@
+/* Noto Color Emoji (SIL Open Font License 1.1), subset from Google Fonts to the
+   emoji used in the docs. It is the last entry of the font stack, so it only
+   draws an emoji the reader's system has no emoji font for (e.g. Linux without
+   Noto Color Emoji installed). Emoji outside this subset use the system font. */
+@font-face {
+  font-family: "GOAT Emoji";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./noto-color-emoji/noto-color-emoji-docs-subset.woff2") format("woff2");
+  unicode-range: U+200D, U+2705, U+270F, U+FE0F, U+1F389, U+1F3A5, U+1F3AF, U+1F3C6, U+1F3FB, U+1F410, U+1F449,
+    U+1F44B, U+1F4A1, U+1F4AC, U+1F4BB, U+1F4D6, U+1F4DA, U+1F4E7, U+1F50D, U+1F517, U+1F5A5, U+1F5FA, U+1F64F,
+    U+1F680, U+1F9D1;
+}

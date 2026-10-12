@@ -12,6 +12,7 @@ from collections.abc import Awaitable, Callable
 from typing import cast
 from uuid import UUID, uuid4
 
+import pytest
 import pytest_asyncio
 from core.core.config import settings
 from core.db.models._link_model import UserTeamLink
@@ -299,3 +300,87 @@ async def call_check_team(
         f"SELECT {S}.check_team(:uid, CAST(:tids AS uuid[]), :rid)",
         {"uid": user_id, "tids": team_ids, "rid": resource_id},
     )
+
+
+# --- Real authorization (AUTH on) -------------------------------------------
+#
+# The rest of the suite runs with AUTH=False, where auth_z returns True and no
+# token is verified, so the route layer is never exercised over HTTP. A module
+# that requests `auth_on` runs its requests the way production does: tokens
+# are RS256-signed by a key generated for the test session, verified by the
+# same KeycloakAuth instance the app uses, and every auth_z route goes through
+# authorization() for real. Keycloak itself is never contacted: the public key
+# is set on the instance before any request needs it.
+
+_RSA_KEYS: tuple[str, str] | None = None
+
+
+def _rsa_keys() -> tuple[str, str]:
+    global _RSA_KEYS
+    if _RSA_KEYS is None:
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+
+        key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        private_pem = key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8,
+            serialization.NoEncryption(),
+        ).decode()
+        public_pem = (
+            key.public_key()
+            .public_bytes(
+                serialization.Encoding.PEM,
+                serialization.PublicFormat.SubjectPublicKeyInfo,
+            )
+            .decode()
+        )
+        _RSA_KEYS = (private_pem, public_pem)
+    return _RSA_KEYS
+
+
+def signed_token(
+    user_id: UUID,
+    *,
+    roles: list[str] | None = None,
+    private_pem: str | None = None,
+    **claims: object,
+) -> str:
+    """An RS256 token the app accepts while `auth_on` is active."""
+    import time
+
+    from core.deps.auth import ISSUER_URL
+    from jose import jwt
+
+    payload: dict[str, object] = {
+        "sub": str(user_id),
+        "email": f"{str(user_id)[:8]}@goat.test",
+        "given_name": "Auth",
+        "family_name": "Test",
+        "iss": ISSUER_URL,
+        "exp": int(time.time()) + 600,
+        "realm_access": {"roles": roles or []},
+        **claims,
+    }
+    return jwt.encode(payload, private_pem or _rsa_keys()[0], algorithm="RS256")
+
+
+def bearer(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest_asyncio.fixture
+async def auth_on(
+    authz_sql: None, monkeypatch: "pytest.MonkeyPatch"
+) -> Callable[..., dict[str, str]]:
+    """Switch real authorization on for one test; returns a header factory."""
+    from core.deps import auth as auth_module
+
+    monkeypatch.setattr(settings, "AUTH", True)
+    monkeypatch.setattr(auth_module._keycloak_auth, "_verify_signature", True)
+    monkeypatch.setattr(auth_module._keycloak_auth, "_public_key", _rsa_keys()[1])
+
+    def headers(user_id: UUID, *, roles: list[str] | None = None) -> dict[str, str]:
+        return bearer(signed_token(user_id, roles=roles))
+
+    return headers

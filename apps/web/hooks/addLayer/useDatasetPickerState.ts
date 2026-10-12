@@ -11,7 +11,7 @@ import type {
   ContentOrder,
   ContentOrderBy,
 } from "@/hooks/dashboard/content/useContentPageState";
-import { LAYOUT_STORAGE_KEY } from "@/hooks/dashboard/content/useContentPageState";
+import { LAYOUT_STORAGE_KEY, scopeFeedParams } from "@/hooks/dashboard/content/useContentPageState";
 import { useDebouncedValue } from "@/hooks/dashboard/home/useDebouncedValue";
 
 /** What the picker lists by default: folders to navigate, datasets and
@@ -131,14 +131,8 @@ export const useDatasetPickerState = ({
       types,
       ...(debouncedSearch ? { search: debouncedSearch } : {}),
     };
-    if (active.kind === "view") return { view: active.view, ...base };
-    if (!active.spaceId) return null;
-    return {
-      view: "space",
-      space_id: active.spaceId,
-      ...(folderId ? { folder_id: folderId } : {}),
-      ...base,
-    };
+    const scope = scopeFeedParams(active, folderId);
+    return scope ? { ...scope, ...base } : null;
   }, [active, folderId, debouncedSearch, orderBy, order, types]);
 
   const scopeKey = useMemo(

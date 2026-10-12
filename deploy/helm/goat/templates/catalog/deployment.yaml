@@ -1,0 +1,120 @@
+{{- if .Values.catalog.enabled -}}
+{{- $component := "catalog" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ .Values.catalog.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "goat.serviceSelectorLabels" $ctx | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" $ctx | nindent 8 }}
+        {{- with .Values.catalog.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.catalog.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.catalog.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: catalog
+          image: {{ include "goat.image" (dict "image" .Values.catalog.image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ .Values.catalog.image.pullPolicy }}
+          {{- with .Values.catalog.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.catalog.service.targetPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "goat.serviceFullname" $ctx }}
+          env:
+            {{- /* AUTH always set explicitly; KEYCLOAK_SERVER_URL + REALM_NAME from
+                   the Keycloak Secret when wired (the non-secret fallback lives
+                   in the ConfigMap). */}}
+            {{- include "goat.auth.backendEnv" (dict "values" .Values.catalog "root" $ "fallback" false) | trim | nindent 12 }}
+            {{- if and .Values.catalog.s3.bucket .Values.catalog.s3.existingSecret }}
+            - name: CATALOG_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.catalog.s3.existingSecret }}
+                  key: {{ .Values.catalog.s3.accessKeyIdKey }}
+            - name: CATALOG_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.catalog.s3.existingSecret }}
+                  key: {{ .Values.catalog.s3.secretAccessKeyKey }}
+            {{- end }}
+            {{- with .Values.catalog.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.catalog.livenessProbe.enabled }}
+          livenessProbe:
+            {{- $lp := omit .Values.catalog.livenessProbe "enabled" }}
+            {{- toYaml $lp | nindent 12 }}
+          {{- end }}
+          {{- if .Values.catalog.readinessProbe.enabled }}
+          readinessProbe:
+            {{- $rp := omit .Values.catalog.readinessProbe "enabled" }}
+            {{- toYaml $rp | nindent 12 }}
+          {{- end }}
+          {{- with .Values.catalog.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.data.enabled .Values.catalog.extraVolumeMounts }}
+          volumeMounts:
+            {{- if .Values.data.enabled }}
+            {{- include "goat.data.mounts.catalog" . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.catalog.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+      {{- if or .Values.data.enabled .Values.catalog.extraVolumes }}
+      volumes:
+        {{- if .Values.data.enabled }}
+        {{- include "goat.data.volume" . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.catalog.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.catalog.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.catalog.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.catalog.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

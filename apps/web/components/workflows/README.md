@@ -888,7 +888,7 @@ export const duplicateWorkflow = async (projectId: string, workflowId: string, n
 - [ ] Modify `BaseToolRunner._create_db_records()` to skip `add_to_project()` when `temporary=True`
 - [ ] Add `is_temporary` column to `customer.layer` table (Alembic migration)
 - [ ] Create `workflow_runner.py` in `goatlib/tools/`
-- [ ] Sync `workflow_runner` to Windmill via `sync-tools.sh`
+- [ ] Sync `workflow_runner` to Windmill via `python -m goatlib.tools.sync_windmill`
 - [ ] Add execute endpoint: `POST /projects/{id}/workflows/{id}/execute`
 - [ ] Add finalize endpoint: `POST /layers/{id}/finalize`
 

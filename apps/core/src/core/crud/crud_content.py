@@ -32,6 +32,7 @@ from core.schemas.content import (
     ResourceType,
     SharedWith,
 )
+from core.schemas.template import DATASET_MODES
 from core.templates.snapshot import kinds_for
 
 _ORDER_COLUMNS: dict[str, str] = {
@@ -209,6 +210,18 @@ def _shortcut_folder_scope(col: str) -> str:
     )
 
 
+# The Content page shows a space in sections (folders, shortcuts, projects,
+# templates, datasets) built from the pages it has loaded. Ranking by section
+# before the chosen order fills each page in the order the sections render, so
+# a folder with many recently edited datasets still lists all its projects on
+# the first page instead of only those that sort ahead of the datasets.
+_SPACE_SECTION_RANK = """CASE WHEN i.type = 'folder' THEN 0
+              WHEN i.is_shortcut THEN 1
+              WHEN i.type = 'project' THEN 2
+              WHEN i.type = 'template' THEN 3
+              ELSE 4 END"""
+
+
 def _space_view_sql(schema: str, order_col: str, order_dir: str) -> str:
     return f"""
 WITH RECURSIVE scope AS (
@@ -314,53 +327,67 @@ WITH RECURSIVE scope AS (
       JOIN {schema}.bundle b ON b.id = cs.target_id AND cs.target_type = 'bundle'
      WHERE cs.space_id = :space_id AND b.deleted_at IS NULL
        {_item_scope("cs.folder_id")}
+    -- Items shared into a team or organisation space from elsewhere, listed
+    -- with the space's own at its root: what a space "contains" is one
+    -- answer, the same for every surface that lists a space. `_list_space`
+    -- passes the granted ids only at a team/org space's root; inside a
+    -- folder, or in a personal space, every `:<type>_ids` is empty.
+    UNION ALL
+{_granted_items_cte(schema, shared_into_space=True)}
 )
 {_ITEMS_TAIL.format(S=schema)}
- ORDER BY (i.type = 'folder') DESC, {order_col} {order_dir}, i.type {order_dir}, i.id {order_dir}
+ ORDER BY {_SPACE_SECTION_RANK}, {order_col} {order_dir}, i.type {order_dir}, i.id {order_dir}
  LIMIT :size OFFSET :offset
 """
 
 
-def _granted_items_cte(schema: str) -> str:
-    """The four `id = ANY(:<type>_ids)` branches shared by the
-    `shared_with_me` and `shared_with_space` views."""
+def _granted_items_cte(schema: str, *, shared_into_space: bool = False) -> str:
+    """The `id = ANY(:<type>_ids)` branches shared by the `shared_with_me`
+    and `shared_with_space` views and, with `shared_into_space`, by the
+    space view's root: there each row also carries the `is_shortcut` column
+    the space view's items have, and only items living outside the listed
+    space count (an item inside it is already one of the space's own rows)."""
+    shortcut = ", FALSE AS is_shortcut" if shared_into_space else ""
+    elsewhere = (
+        " AND {}.space_id IS DISTINCT FROM :space_id" if shared_into_space else ""
+    )
     return f"""
     SELECT 'folder' AS type, f.id, f.name, f.space_id, f.parent_id AS folder_id, f.updated_at, f.created_at,
            NULL::text AS layer_type, NULL::text AS feature_layer_geometry_type, NULL::text AS thumbnail_url,
-           FALSE AS is_public,
+           FALSE AS is_public{shortcut},
            {_restricted_cols(schema, "folder", "f", "f.parent_id")},
            f.user_id AS created_by_id
       FROM {schema}.folder f
-     WHERE f.deleted_at IS NULL AND f.id = ANY(:folder_ids) AND f.space_id IS NOT NULL
+     WHERE f.deleted_at IS NULL AND f.id = ANY(:folder_ids) AND f.space_id IS NOT NULL{elsewhere.format("f")}
     UNION ALL
     SELECT 'project', p.id, p.name, p.space_id, p.folder_id, p.updated_at, p.created_at, NULL, NULL, p.thumbnail_url,
-           {_public_col(schema, "p")},
+           {_public_col(schema, "p")}{shortcut},
            {_restricted_cols(schema, "project", "p", "p.folder_id")},
            p.user_id AS created_by_id
       FROM {schema}.project p
-     WHERE p.deleted_at IS NULL AND p.id = ANY(:project_ids) AND p.space_id IS NOT NULL
+     WHERE p.deleted_at IS NULL AND p.id = ANY(:project_ids) AND p.space_id IS NOT NULL{elsewhere.format("p")}
        AND NOT p.is_template_source
     UNION ALL
     SELECT 'layer', l.id, l.name, l.space_id, l.folder_id, l.updated_at, l.created_at, l.type::text, l.feature_layer_geometry_type::text, l.thumbnail_url,
-           l.public_read,
+           l.public_read{shortcut},
            {_restricted_cols(schema, "layer", "l", "l.folder_id")},
            l.user_id AS created_by_id
       FROM {schema}.layer l
-     WHERE l.deleted_at IS NULL AND l.id = ANY(:layer_ids) AND l.space_id IS NOT NULL
+     WHERE l.deleted_at IS NULL AND l.id = ANY(:layer_ids) AND l.space_id IS NOT NULL{elsewhere.format("l")}
     UNION ALL
     SELECT 'bundle', b.id, b.name, b.space_id, b.folder_id, b.updated_at, b.created_at, NULL, NULL, NULL,
-           FALSE,
+           FALSE{shortcut},
            {_restricted_cols(schema, "bundle", "b", "b.folder_id")},
            b.user_id AS created_by_id
       FROM {schema}.bundle b
-     WHERE b.deleted_at IS NULL AND b.id = ANY(:bundle_ids) AND b.space_id IS NOT NULL
+     WHERE b.deleted_at IS NULL AND b.id = ANY(:bundle_ids) AND b.space_id IS NOT NULL{elsewhere.format("b")}
     UNION ALL
     SELECT 'template', t.id, t.name, t.space_id, t.folder_id, t.updated_at, t.created_at, NULL, NULL, t.thumbnail_url,
-           FALSE,
+           FALSE{shortcut},
            {_restricted_cols(schema, "template", "t", "t.folder_id")},
            t.user_id AS created_by_id
       FROM {schema}.template t
-     WHERE t.deleted_at IS NULL AND t.id = ANY(:template_ids) AND t.space_id IS NOT NULL
+     WHERE t.deleted_at IS NULL AND t.id = ANY(:template_ids) AND t.space_id IS NOT NULL{elsewhere.format("t")}
 """
 
 
@@ -544,6 +571,7 @@ class CRUDContent:
     ) -> ContentPage:
         content_folder_id = folder_id
         exclude_folder_id: UUID | None = None
+        shared_in: dict[str, List[UUID]] = {}
 
         if folder_id is not None:
             # Per-target gate: a folder's grantee may open it even in a
@@ -604,6 +632,15 @@ class CRUDContent:
             home_id = await self._home_folder_id(db, space_id)
             content_folder_id = home_id
             exclude_folder_id = home_id
+            if space.kind != SpaceKind.personal:
+                # The root of a team/org space also lists what was shared
+                # into it (a grant to the team or organisation on an item
+                # living in another space). Nothing is shared *into* a
+                # personal space.
+                shared_in = {
+                    rt: await self._space_grantee_ids(db, rt, space)
+                    for rt in ("folder", "project", "layer", "bundle", "template")
+                }
 
         schema = settings.SCHEMA
         rows, total = await self._fetch_rows(
@@ -614,6 +651,7 @@ class CRUDContent:
                 "folder_id": folder_id,
                 "content_folder_id": content_folder_id,
                 "exclude_folder_id": exclude_folder_id,
+                **{f"{rt}_ids": shared_in.get(rt, []) for rt in _RESOURCE_TYPES},
                 "user_id": user_id,
                 "search": search,
                 "types": types,
@@ -999,7 +1037,7 @@ class CRUDContent:
                 )
             ships_data = any(
                 isinstance(inp, dict)
-                and inp.get("mode") == "ship"
+                and inp.get("mode") in DATASET_MODES
                 and (inp.get("from_catalog") or inp.get("public_read"))
                 for inp in (r.inputs or [])
             )

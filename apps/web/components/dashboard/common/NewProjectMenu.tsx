@@ -12,6 +12,7 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 import { refreshContentFeed } from "@/lib/api/content";
 import { createProject } from "@/lib/api/projects";
 import { USERS_API_BASE_URL } from "@/lib/api/users";
+import { ASSETS_URL } from "@/lib/constants";
 import type { Project } from "@/lib/validations/project";
 
 import NameDialog from "@/components/dashboard/common/NameDialog";
@@ -21,7 +22,7 @@ import ProjectImportModal from "@/components/modals/ProjectImport";
  * own. The starting *view* is deliberately not sent: the server picks it from
  * the creator's approximate location, the deployment's configured default, or
  * the project they last opened. */
-const NEW_PROJECT_THUMBNAIL = "https://assets.plan4better.de/img/goat_new_project_artwork.png";
+const NEW_PROJECT_THUMBNAIL = `${ASSETS_URL}/img/goat_new_project_artwork.png`;
 
 /** Same SWR key `useOnboardingFacts` (lib/api/onboarding.ts) reads, revalidated
  * here so the checklist and the header tray reflect a project that has just

@@ -1,7 +1,7 @@
 "use client";
 
 import Info from "@mui/icons-material/Info";
-import { Box, Button, Chip, IconButton, Link, Stack, Tooltip, Typography, useTheme } from "@mui/material";
+import { Box, Button, Chip, Link, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
 import Divider from "@mui/material/Divider";
 import { format, formatDistance, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
@@ -14,7 +14,7 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 import { useDateFnsLocale } from "@/i18n/utils";
 
 import { useOrganization, useUserProfile } from "@/lib/api/users";
-import { CONTACT_US_URL, DOCS_URL, WEBSITE_URL } from "@/lib/constants";
+import { CONTACT_URL, privacyPolicyUrl } from "@/lib/constants";
 import { setSelectedLayers } from "@/lib/store/layer/slice";
 import { setMapMode } from "@/lib/store/map/slice";
 import { setActiveRightPanel } from "@/lib/store/map/slice";
@@ -34,7 +34,8 @@ import WhatsNewPopper from "@/components/header/WhatsNewPopper";
 import JobsPopper from "@/components/jobs/JobsPopper";
 import ContentDeleteModal from "@/components/modals/ContentDelete";
 import Metadata from "@/components/modals/Metadata";
-import ShareModal from "@/components/modals/Share";
+import ProjectShareDialog from "@/components/modals/content/ProjectShareDialog";
+import SupportMenu from "@/components/support/SupportMenu";
 import SaveTemplateDialog from "@/components/templates/SaveTemplateDialog";
 
 import { Toolbar } from "./Toolbar";
@@ -63,6 +64,17 @@ export default function Header(props: HeaderProps) {
   const dateLocale = useDateFnsLocale();
   const lng = i18n.language === "de" ? "/de" : "";
   const dispatch = useAppDispatch();
+  // Below `md` the header has no room for another icon: the support entry moves into the user menu.
+  // The header icon is hidden there by CSS, so the server-rendered first paint (before this media
+  // query is known) never shows it on a phone; the user menu entries only render once opened.
+  const phone = useMediaQuery(theme.breakpoints.down("md"));
+  // Shown to everyone, read-only viewers included: without support tickets (or logged out) it
+  // offers an email and the docs.
+  const supportEntry = (
+    <Box sx={{ display: { xs: "none", md: "inline-flex" } }}>
+      <SupportMenu />
+    </Box>
+  );
 
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
   const [isEditingProjectMetadata, setIsEditingProjectMetadata] = useState(false);
@@ -139,26 +151,19 @@ export default function Header(props: HeaderProps) {
         },
       },
     ];
-    const commonMenuItems = [
-      {
-        id: "report_issue",
-        icon: ICON_NAME.BUG,
-        label: t("common:report_an_issue"),
-        group: "help",
-        onClick: () => {
-          window.open("mailto:info@plan4better.de?subject=GOAT%20Support%20Request");
-        },
-      },
-      {
+    const privacyUrl = privacyPolicyUrl(lng ? "de" : "en");
+    const commonMenuItems: PopperMenuItem[] = [];
+    if (privacyUrl) {
+      commonMenuItems.push({
         id: "privacy_policy",
         icon: ICON_NAME.COOKIES,
         label: t("common:privacy_policy"),
         group: "privacy",
         onClick: () => {
-          window.open(`${WEBSITE_URL}${lng}/about-us/privacy`, "_blank");
+          window.open(privacyUrl, "_blank");
         },
-      },
-    ];
+      });
+    }
 
     const homeItem = editorMenuItems[0]; // reuse the already-defined "home" item
 
@@ -186,13 +191,8 @@ export default function Header(props: HeaderProps) {
         />
       )}
 
-      {project && props.mapHeader && (
-        <ShareModal
-          open={showShareDialog}
-          onClose={() => setShowShareDialog(false)}
-          type="project"
-          content={project}
-        />
+      {project && props.mapHeader && showShareDialog && (
+        <ProjectShareDialog project={project} onClose={() => setShowShareDialog(false)} />
       )}
 
       {project && isEditingProjectMetadata && (
@@ -287,9 +287,7 @@ export default function Header(props: HeaderProps) {
             {props.mapHeader && <Divider orientation="vertical" flexItem />}
             {project?.updated_at && (
               <Typography variant="caption" noWrap>
-                {`${t("common:last_saved")}: ${format(parseISO(project.updated_at), "hh:mma dd/MM/yyyy")
-                  .replace("PM", " PM")
-                  .replace("AM", " AM")}`}
+                {`${t("common:last_saved")}: ${format(parseISO(project.updated_at), "Pp", { locale: dateLocale })}`}
               </Typography>
             )}
             {project?.tags &&
@@ -351,9 +349,13 @@ export default function Header(props: HeaderProps) {
                         fontStyle: "normal",
                       },
                     }}
-                    onClick={() => {
-                      window.open(CONTACT_US_URL, "_blank");
-                    }}
+                    onClick={
+                      CONTACT_URL
+                        ? () => {
+                            window.open(CONTACT_URL, "_blank");
+                          }
+                        : undefined
+                    }
                   />
                 )}
                 {props.mapHeader && (
@@ -379,24 +381,17 @@ export default function Header(props: HeaderProps) {
                 {!props.mapHeader && <OnboardingTray />}
                 {!props.mapHeader && <StatusDot />}
                 {!props.mapHeader && <WhatsNewPopper />}
-                <Tooltip title={t("common:open_documentation")}>
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      window.open(`${DOCS_URL}${lng}`, "_blank");
-                    }}>
-                    <Icon iconName={ICON_NAME.BOOK} fontSize="inherit" />
-                  </IconButton>
-                </Tooltip>
+                {supportEntry}
                 <JobsPopper />
                 <Divider orientation="vertical" flexItem />
-                <UserInfoMenu />
+                <UserInfoMenu withSupport={phone} />
               </Stack>
             )}
             {props.viewOnly && isLoggedIn && (
               <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
+                {supportEntry}
                 <Divider orientation="vertical" flexItem />
-                <UserInfoMenu />
+                <UserInfoMenu withSupport={phone} />
               </Stack>
             )}
           </>

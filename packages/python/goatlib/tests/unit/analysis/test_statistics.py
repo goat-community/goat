@@ -4,6 +4,9 @@ These tests use an in-memory DuckDB database with test data to verify
 the correctness of the statistics calculation functions.
 """
 
+import json
+import math
+
 import duckdb
 import pytest
 from goatlib.analysis.statistics import (
@@ -289,6 +292,35 @@ class TestClassBreaks:
 
         # Zero values should be excluded
         assert result.min == 10.0
+
+    @pytest.mark.parametrize(
+        "method",
+        [
+            ClassBreakMethod.quantile,
+            ClassBreakMethod.equal_interval,
+            ClassBreakMethod.standard_deviation,
+            ClassBreakMethod.heads_and_tails,
+        ],
+    )
+    def test_class_breaks_ignore_infinite_values(self, duckdb_connection, method):
+        """Infinity is not a classifiable value and must not leak into the stats."""
+        con = duckdb_connection
+        con.execute("CREATE TABLE test_inf (value DOUBLE)")
+        con.execute(
+            "INSERT INTO test_inf VALUES (10), (20), (30), (40), (50),"
+            " ('inf'::DOUBLE), ('-inf'::DOUBLE), ('nan'::DOUBLE)"
+        )
+
+        result = calculate_class_breaks(
+            con, "test_inf", "value", method=method, num_breaks=3
+        )
+
+        assert result.min == 10.0
+        assert result.max == 50.0
+        stats = [result.mean, result.std_dev, *result.breaks]
+        assert all(math.isfinite(v) for v in stats)
+        # The API returns this model as JSON, which has no Infinity or NaN.
+        json.loads(result.model_dump_json())
 
     def test_class_breaks_empty_result(self, duckdb_connection):
         """Test class breaks with no matching data."""

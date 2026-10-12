@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.core.config import settings
 from core.crud.crud_organization import organization as crud_organization
 from core.deps.stripe import get_stripe, stripe_webhook_payload
 from core.endpoints.deps import get_db
@@ -80,11 +81,11 @@ async def listen_stripe_webhooks(
     elif event_type == "customer.subscription.trial_will_end":
         if data_object["default_payment_method"] is None:
             email_content = EmailTemplateContent(
-                artwork_url="https://assets.plan4better.de/img/email/subscription_about_to_end.png",
+                artwork_url=f"{settings.email_artwork_url}/img/email/subscription_about_to_end.png",
                 title=_("Your trial is about to end"),
                 message=_("Please reach out to us to continue using GOAT."),
-                action_label=_("Contact us"),
-                action_url="https://plan4better.de/en/contact/",
+                action_label=(_("Contact us") if settings.EMAIL_CONTACT_URL else None),
+                action_url=settings.EMAIL_CONTACT_URL,
             )
             customer = stripe.Customer.retrieve(data_object["customer"])
             send_email(
@@ -103,11 +104,11 @@ async def listen_stripe_webhooks(
             organization.on_trial = False
             await db.commit()
             email_content = EmailTemplateContent(
-                artwork_url="https://assets.plan4better.de/img/email/organization_suspended.png",
+                artwork_url=f"{settings.email_artwork_url}/img/email/organization_suspended.png",
                 title=_("Your account is suspended"),
                 message=_("Please reach out to us to reactivate your subscription."),
-                action_label=_("Contact us"),
-                action_url="https://plan4better.de/en/contact/",
+                action_label=(_("Contact us") if settings.EMAIL_CONTACT_URL else None),
+                action_url=settings.EMAIL_CONTACT_URL,
             )
             customer = stripe.Customer.retrieve(data_object["customer"])
             send_email(

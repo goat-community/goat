@@ -10,6 +10,7 @@ import AuthContainer from "@p4b/ui/components/AuthContainer";
 import AuthLayout from "@p4b/ui/components/AuthLayout";
 
 import { useOrganization } from "@/lib/api/users";
+import { CONTACT_URL } from "@/lib/constants";
 
 export default function OrganizationSuspended() {
   const { t } = useTranslation("common");
@@ -29,22 +30,24 @@ export default function OrganizationSuspended() {
       <>
         {status == "authenticated" && !isOrgLoading && organization?.suspended && (
           <AuthContainer
-            headerTitle={<>{t("organization_suspended")}</>}
+            headerTitle={<Typography variant="h5">{t("organization_suspended")}</Typography>}
             body={
               <>
                 <Stack spacing={4}>
                   <Typography variant="body1">{t("organization_suspended_message")}</Typography>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    sx={{ mt: 2 }}
-                    onClick={() => {
-                      window.open("https://plan4better.de/en/contact/", "_blank");
-                    }}>
-                    <Typography variant="body1" fontWeight="bold" color="inherit">
-                      {t("contact_us")}
-                    </Typography>
-                  </Button>
+                  {CONTACT_URL && (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      sx={{ mt: 2 }}
+                      onClick={() => {
+                        window.open(CONTACT_URL, "_blank");
+                      }}>
+                      <Typography variant="body1" fontWeight="bold" color="inherit">
+                        {t("contact_us")}
+                      </Typography>
+                    </Button>
+                  )}
                   <Button variant="text" color="error" onClick={() => signOut({ callbackUrl: "/" })}>
                     {t("logout")}
                   </Button>

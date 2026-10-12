@@ -1,0 +1,71 @@
+{
+  "realm": "${GOAT_REALM}",
+  "enabled": true,
+  "sslRequired": "${GOAT_SSL_REQUIRED}",
+  "loginTheme": "p4b-keycloak-theme",
+  "emailTheme": "p4b-keycloak-theme",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "bruteForceProtected": true,
+  "smtpServer": {
+    "host": "${GOAT_SMTP_HOST}",
+    "port": "${GOAT_SMTP_PORT}",
+    "from": "${GOAT_SMTP_FROM}",
+    "fromDisplayName": "${GOAT_SMTP_FROM_NAME}",
+    "auth": "${GOAT_SMTP_AUTH}",
+    "user": "${GOAT_SMTP_USER}",
+    "password": "${GOAT_SMTP_PASSWORD}",
+    "starttls": "${GOAT_SMTP_STARTTLS}",
+    "ssl": "${GOAT_SMTP_SSL}"
+  },
+  "clients": [
+    {
+      "clientId": "${GOAT_CLIENT_ID}",
+      "name": "GOAT",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${GOAT_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "rootUrl": "${GOAT_PUBLIC_URL}",
+      "baseUrl": "/",
+      "redirectUris": ["${GOAT_PUBLIC_URL}/*"],
+      "webOrigins": ["${GOAT_PUBLIC_URL}"],
+      "attributes": {
+        "post.logout.redirect.uris": "${GOAT_PUBLIC_URL}/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "${GOAT_ADMIN_EMAIL}",
+      "email": "${GOAT_ADMIN_EMAIL}",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "GOAT",
+      "lastName": "Admin",
+      "realmRoles": ["default-roles-${GOAT_REALM}"],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${GOAT_ADMIN_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "service-account-${GOAT_CLIENT_ID}",
+      "enabled": true,
+      "serviceAccountClientId": "${GOAT_CLIENT_ID}",
+      "clientRoles": {
+        "realm-management": ["view-users", "manage-users"]
+      }
+    }
+  ]
+}

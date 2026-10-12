@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { addLayerSource } from "@/components/addLayer/sources";
 import ContentAddMenu from "@/components/dashboard/content/ContentAddMenu";
 
 const { createProjectMock, createFolderMock, pushMock, addLayerDialogMock, projectImportMock } = vi.hoisted(
@@ -16,6 +17,10 @@ const { createProjectMock, createFolderMock, pushMock, addLayerDialogMock, proje
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
+vi.mock("@p4b/ui/components/Icon", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@p4b/ui/components/Icon")>();
+  return { ...actual, Icon: ({ iconName }: { iconName: string }) => <span data-icon={iconName} /> };
+});
 vi.mock("react-toastify", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("swr", () => ({ mutate: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: pushMock }) }));
@@ -114,17 +119,29 @@ describe("ContentAddMenu", () => {
     );
   });
 
-  it("opens the upload dialog straight away for Dataset, with no source menu in between", () => {
+  it("opens the upload dialog straight away for Upload dataset, with no source menu in between", () => {
     render(
       <ContentAddMenu folderId="folder-a" homeFolderId="home-1" spaceId="space-1" spaceKind="personal" />
     );
 
     expect(addLayerDialogMock).not.toHaveBeenCalled();
 
-    pick("dataset");
+    pick("upload_dataset");
 
     expect(addLayerDialogMock).toHaveBeenCalledWith(
       expect.objectContaining({ source: "upload", defaultFolderId: "folder-a" })
+    );
+  });
+
+  it("opens Connect service for a map service, filing it into the folder being browsed", () => {
+    render(
+      <ContentAddMenu folderId="folder-a" homeFolderId="home-1" spaceId="space-1" spaceKind="personal" />
+    );
+
+    pick("connect_service");
+
+    expect(addLayerDialogMock).toHaveBeenCalledWith(
+      expect.objectContaining({ source: "connect", defaultFolderId: "folder-a" })
     );
   });
 
@@ -142,7 +159,7 @@ describe("ContentAddMenu", () => {
     );
   });
 
-  it("disables Project, Dataset and Document while a non-personal space has no root folder", () => {
+  it("disables Project, Upload dataset, Connect service and Document while a non-personal space has no root folder", () => {
     render(<ContentAddMenu folderId={null} homeFolderId={undefined} spaceId="space-team" spaceKind="team" />);
 
     fireEvent.click(screen.getByRole("button", { name: "add_new" }));
@@ -153,8 +170,28 @@ describe("ContentAddMenu", () => {
     // A folder can still be created — its root is `parent_id: null`, not the
     // space's `home` folder.
     expect(ariaDisabled("new_folder")).toBeNull();
-    for (const label of ["blank_project", "import_project", "dataset", "upload_document"]) {
+    for (const label of [
+      "blank_project",
+      "import_project",
+      "upload_dataset",
+      "connect_service",
+      "upload_document",
+    ]) {
       expect(ariaDisabled(label)).toBe("true");
+    }
+  });
+
+  it("shows the upload and connect entries exactly as the Add layer menu does", () => {
+    render(
+      <ContentAddMenu folderId="folder-a" homeFolderId="home-1" spaceId="space-1" spaceKind="personal" />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "add_new" }));
+
+    // One definition for both menus: the label key and icon of the shared source list.
+    for (const id of ["upload", "connect"] as const) {
+      const source = addLayerSource(id);
+      const item = screen.getByText(source.labelKey).closest("li")!;
+      expect(item.querySelector("[data-icon]")?.getAttribute("data-icon")).toBe(source.icon);
     }
   });
 });

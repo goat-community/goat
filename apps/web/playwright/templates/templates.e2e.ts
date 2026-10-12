@@ -1,13 +1,13 @@
 import type { APIRequestContext } from "@playwright/test";
-import { expect, request, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { locateContentCard } from "../fixtures/content";
+import { API_URL, apiAs } from "../fixtures/users";
 
 // Same base the web app builds its API clients from (see lib/api/templates.ts).
 // The source project and its workflow are fixtures, not part of what this spec
 // checks, so they are created straight against core rather than clicked
 // together through the map UI.
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
 const INITIAL_VIEW_STATE = {
   latitude: 48.1502132,
@@ -51,7 +51,7 @@ test.describe("Templates", () => {
   let usedProjectId: string | undefined;
 
   test.beforeAll(async () => {
-    apiContext = await request.newContext();
+    apiContext = await apiAs("owner");
 
     const spacesResponse = await apiContext.get(`${API_URL}/api/v2/space`);
     expect(spacesResponse.ok()).toBeTruthy();
@@ -175,9 +175,9 @@ test.describe("Templates", () => {
     const dialog = page.getByRole("dialog").filter({ hasText: "Save as template" });
     await expect(dialog).toBeVisible();
 
-    // The name field is the only one carrying a "Name" placeholder; the
-    // dialog's other inputs are a bare textarea and a "Categories" combobox.
-    await dialog.getByPlaceholder("Name").fill(templateName);
+    // The name field is labelled "Name"; the dialog's other inputs are a
+    // description textarea and a "Categories" combobox.
+    await dialog.getByLabel("Name", { exact: true }).fill(templateName);
 
     // The dataset node's input is detected as `ship`, so the location defaults
     // (My Content → home) are all this save needs. Save stays disabled until
@@ -194,7 +194,9 @@ test.describe("Templates", () => {
     const band = page.locator("section").filter({ hasText: "Start from a template" });
     await expect(band).toBeVisible({ timeout: 15000 });
 
-    await band.getByRole("button", { name: "Mine" }).click();
+    // The source is a menu behind a pill named after the current source.
+    await band.getByRole("button", { name: "Everyone", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Mine", exact: true }).click();
     await expect(band.getByText(templateName, { exact: true })).toBeVisible({ timeout: 15000 });
   });
 
@@ -203,7 +205,9 @@ test.describe("Templates", () => {
 
     const band = page.locator("section").filter({ hasText: "Start from a template" });
     await expect(band).toBeVisible({ timeout: 15000 });
-    await band.getByRole("button", { name: "Mine" }).click();
+    // The source is a menu behind a pill named after the current source.
+    await band.getByRole("button", { name: "Everyone", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Mine", exact: true }).click();
 
     // The card has no control of its own to open the preview — the whole
     // surface is the click target, so the name is what gets clicked.
@@ -223,10 +227,13 @@ test.describe("Templates", () => {
     await useDialog.getByLabel("Name", { exact: true }).fill(usedProjectName);
 
     // The inputs step lists the template's only input as shipping with it;
-    // there is nothing to bind, so it is a look and a click.
+    // there is nothing to bind, so it is a look and a click. That step no
+    // longer shows the "Add to a project" title, so the dialog is found by
+    // the new project's name, which it repeats in its summary.
     await useDialog.getByRole("button", { name: "Next" }).click();
-    await expect(useDialog.getByText("Ships with template")).toBeVisible();
-    await useDialog.getByRole("button", { name: "Create" }).click();
+    const inputsStep = page.getByRole("dialog").filter({ hasText: usedProjectName });
+    await expect(inputsStep.getByText("Ships with template")).toBeVisible();
+    await inputsStep.getByRole("button", { name: "Create" }).click();
 
     await expect(page).toHaveURL(/\/map\/[0-9a-f-]{36}/, { timeout: 60000 });
     usedProjectId = new URL(page.url()).pathname.split("/").pop();

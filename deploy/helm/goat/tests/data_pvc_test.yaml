@@ -1,0 +1,55 @@
+suite: shared data PVC
+templates:
+  - data/pvc.yaml
+tests:
+  - it: renders a PVC by default
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-data
+      - equal:
+          path: spec.accessModes[0]
+          value: ReadWriteOnce
+      - equal:
+          path: spec.resources.requests.storage
+          value: 200Gi
+  - it: omits storageClassName entirely when none is set, so the cluster default applies
+    asserts:
+      - notExists:
+          path: spec.storageClassName
+  - it: falls back to global.storageClass when data.storageClassName is unset
+    set:
+      global.storageClass: gp3
+    asserts:
+      - equal:
+          path: spec.storageClassName
+          value: gp3
+  - it: honours accessMode and size overrides
+    set:
+      data.accessMode: ReadWriteMany
+      data.size: 500Gi
+      data.storageClassName: nfs-csi
+    asserts:
+      - equal:
+          path: spec.accessModes[0]
+          value: ReadWriteMany
+      - equal:
+          path: spec.resources.requests.storage
+          value: 500Gi
+      - equal:
+          path: spec.storageClassName
+          value: nfs-csi
+  - it: does not create a PVC when an existing claim is named
+    set:
+      data.existingClaim: my-nfs-claim
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: does not create a PVC when data is disabled
+    set:
+      data.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

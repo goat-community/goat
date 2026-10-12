@@ -124,7 +124,7 @@ const ContentRow = ({
       <MarkBlock kind={markKindOf(item)} geometryType={item.feature_layer_geometry_type} />
 
       <Box sx={{ flex: "1 1 40%", minWidth: 0 }}>
-        <Typography component="div" noWrap sx={{ fontSize: 13.5, fontWeight: 700 }}>
+        <Typography component="div" noWrap title={item.name} sx={{ fontSize: 13.5, fontWeight: 700 }}>
           {item.name}
         </Typography>
         <Typography component="div" noWrap sx={{ fontSize: 11.5, color: theme.palette.text.secondary }}>

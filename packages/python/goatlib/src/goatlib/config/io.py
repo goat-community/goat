@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from goatlib.config.base import BaseSettingsModel
 
+#: Largest dataset file a user may upload, in bytes (5 GiB).
+DEFAULT_MAX_UPLOAD_BYTES = 5 * 1024 * 1024 * 1024
+
 
 class IOSettings(BaseSettingsModel):
     """Settings for dataset I/O and optional direct S3 access."""
@@ -18,4 +21,4 @@ class IOSettings(BaseSettingsModel):
     s3_session_token: str | None = None
     s3_bucket_name: str | None = "goat"
     s3_bucket_path: str | None = ""
-    max_upload_dataset_file_size: int = 300 * 1024 * 1024
+    max_upload_dataset_file_size: int = DEFAULT_MAX_UPLOAD_BYTES

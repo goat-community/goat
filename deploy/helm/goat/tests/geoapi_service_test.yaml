@@ -1,0 +1,28 @@
+suite: geoapi Service
+templates:
+  - geoapi/service.yaml
+tests:
+  - it: renders Service with default ports
+    set:
+      geoapi.enabled: true
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-geoapi
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 80
+      - equal:
+          path: spec.ports[0].targetPort
+          value: http
+  - it: not rendered when geoapi disabled
+    set:
+      geoapi.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

@@ -3,8 +3,10 @@
 Ports the layout configs `apps/web/components/modals/ReportTemplatePicker.tsx`
 builds client-side into frozen dicts (English strings resolved, no
 `layer_project_id` bindings) and publishes them as `Template` rows owned by
-the space of `GOAT_TEMPLATES_ORGANIZATION_ID`, falling back to the default
-user's personal space in local dev (no configured organization).
+the space of `GOAT_TEMPLATES_ORGANIZATION_ID`. Without a configured
+organization they go to the default user's personal space when AUTH is off,
+and to the space of the system organization (`GOAT_SYSTEM_ORGANIZATION_ID`)
+when AUTH is on.
 """
 
 import asyncio
@@ -14,10 +16,13 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.core.config import settings
+from core.core.config import GOAT_SYSTEM_ORGANIZATION_ID, WEB_ARTWORK_PATH, settings
+from core.crud.crud_organization import SELF_HOSTED_PLAN_METADATA
 from core.crud.crud_space import space as crud_space
+from core.db.models.organization import Organization
 from core.db.models.template import Template, TemplateCatalogStatus, TemplatePayloadKind
 from core.db.session import session_manager
 from core.templates.snapshot import strip_layout_bindings
@@ -61,7 +66,9 @@ _PAGE_A3_LANDSCAPE = {
     "showRulers": False,
 }
 _GRID_LAYOUT = {"type": "grid", "columns": 12, "rows": 12, "gap": 5}
-_LOGO_URL = "https://assets.plan4better.de/img/logo/plan4better_standard.svg"
+# The GOAT logo the web app ships, stored root-relative so the layout shows it
+# on any host (and the print worker, which loads the web app, renders it too).
+_LOGO_URL = f"{WEB_ARTWORK_PATH}/svg/goat-logo.svg"
 
 
 def _blank_config() -> dict[str, Any]:
@@ -506,16 +513,61 @@ STARTERS: list[dict[str, Any]] = [
 ]
 
 
+async def ensure_system_organization(db: AsyncSession) -> UUID:
+    """Create the system organization if it does not exist yet.
+
+    It has no members, no teams and no domains, so nobody can sign in to it,
+    be invited by one of its admins or find it in the member-facing views
+    (those only ever show the caller's own organization). Only superusers see
+    it, in the list of all organizations. An existing row is left as it is.
+    `contact_user_id` is required but has no foreign key; the nil UUID
+    matches no user.
+    """
+    await db.execute(
+        pg_insert(Organization)
+        .values(
+            id=GOAT_SYSTEM_ORGANIZATION_ID,
+            name="GOAT",
+            avatar=settings.ORGANIZATION_DEFAULT_AVATAR,
+            on_trial=False,
+            total_credits=SELF_HOSTED_PLAN_METADATA["credits"],
+            total_storage=SELF_HOSTED_PLAN_METADATA["storage"],
+            total_projects=SELF_HOSTED_PLAN_METADATA["projects"],
+            total_editors=SELF_HOSTED_PLAN_METADATA["editors"],
+            total_viewers=SELF_HOSTED_PLAN_METADATA["viewers"],
+            used_editors=0,
+            plan_name=SELF_HOSTED_PLAN_METADATA["plan_name"],
+            type="other",
+            industry="other",
+            department="system",
+            use_case="other",
+            phone_number="",
+            location="",
+            region="EU",
+            contact_user_id=UUID(int=0),
+            stripe_id=None,
+            suspended=False,
+        )
+        .on_conflict_do_nothing(index_elements=["id"])
+    )
+    return GOAT_SYSTEM_ORGANIZATION_ID
+
+
 async def _target_space_and_folder(db: AsyncSession) -> tuple[UUID, UUID]:
     """The space the seeded starters live in: the configured organization's
-    space, or the default user's personal space when unset (local dev)."""
+    space; without one, the default user's personal space (AUTH off) or the
+    system organization's space (AUTH on)."""
     if settings.GOAT_TEMPLATES_ORGANIZATION_ID is not None:
         target_space = await crud_space.ensure_organization(
             db, settings.GOAT_TEMPLATES_ORGANIZATION_ID
         )
-    else:
+    elif settings.AUTH is False:
         target_space = await crud_space.ensure_personal(
             db, UUID(settings.DEFAULT_USER_ID)
+        )
+    else:
+        target_space = await crud_space.ensure_organization(
+            db, await ensure_system_organization(db)
         )
     assert target_space.id is not None
     folder_id = await crud_space.ensure_root_folder(db, target_space.id)
@@ -531,7 +583,7 @@ async def seed_templates(db: AsyncSession) -> None:
     resets `catalog_status` back to `published` and `deleted_at` to `NULL`
     (a starter soft-deleted or unpublished by hand comes back on the next
     deploy) and moves the row to the currently configured destination space/
-    folder (`GOAT_TEMPLATES_ORGANIZATION_ID`, or its local-dev fallback, may
+    folder (`GOAT_TEMPLATES_ORGANIZATION_ID` and AUTH, which pick it, may
     change between runs).
 
     Matching is tolerant of a stray duplicate `seed_id` (two rows should

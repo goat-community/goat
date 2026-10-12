@@ -1,4 +1,5 @@
 ---
+description: "Aggregate polygon attributes onto polygons or an H3 grid with count, sum, mean, min, max or standard deviation, optionally weighted by intersection area."
 sidebar_position: 3
 ---
 
@@ -14,7 +15,7 @@ The Aggregate Polygons tool **performs statistical analysis of polygons, e.g. co
 
 The Aggregate Polygons tool can be used to **analyze the characteristics of polygons within a given area**. It aggregates the information of the polygons and allows calculation of the polygon count, the sum of polygon attributes, or derive e.g. the maximum value of a certain polygon attribute within an aggregation area.
 
-The example below shows the geometry of the *Source Layer* remains unchanged, while its attributes are enriched by aggregating information from the *Area of Aggregation*.
+In the example below, the polygons of the *layer to aggregate* are summarized onto hexagons: the result keeps the geometry of the *summary areas* and receives the statistics calculated from the polygons that intersect them.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
   <img src={require('/img/toolbox/geoanalysis/aggregate_polygons/polygon_aggregation.webp').default} alt="Polygon Aggregation" style={{ maxHeight: "auto", maxWidth: "40%", objectFit: "cover"}}/>
@@ -31,7 +32,7 @@ The example below shows the geometry of the *Source Layer* remains unchanged, wh
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content">Click on <code>Toolbox</code> <img src={require('/img/icons/toolbox.png').default} alt="Options" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/>. </div>
+  <div class="content">Click on <code>Tools</code> <img src={require('/img/icons/toolbox.png').default} alt="Options" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/>. </div>
 </div>
 
 <div class="step">
@@ -39,40 +40,34 @@ The example below shows the geometry of the *Source Layer* remains unchanged, wh
   <div class="content">Under the <code>Geoanalysis</code> menu, click on <code>Aggregate Polygons</code>.</div>
 </div>
 
-### Layer to aggregate
+### Layer to Aggregate
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Select your <code>Source Layer</code>, which contains the data you like to aggregate.</div>
+  <div class="content">Select your <code>Input Polygon Layer</code>, which contains the polygons you like to aggregate.</div>
 </div>
 
 ### Summary Areas
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Select on which <code> Area Type</code> you like to aggregate the source layer. You can choose between <b>Polygon</b> or <b>H3 grid</b>.</div>
+  <div class="content">Select the <code>Area Type</code> on which you like to aggregate the polygons. You can choose between <b>Polygon</b> or <b>H3 Grid</b>.</div>
 </div>
 
 <Tabs>
   <TabItem value="Polygon" label="Polygon" default className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">5</div>
-  <div class="content">Select the <code>Area Layer</code> which contains the polygons on which you like to aggregate your point data.</div>
-</div>
+Select the <code>Area Layer</code> which contains the polygons on which you like to aggregate your polygon data. Each polygon of the input layer is included in every area it intersects.
 
 
   </TabItem>
   <TabItem value="H3 Grid" label="H3 Grid" className="tabItemBox">
 
- <div class="step">
-  <div class="step-number">5</div>
-  <div class="content">Select the <code>H3 Grid Resolution</code>. You can choose resolutions between 3 (average edge length of 69km) and 10 (average edge length of 70m).</div>
-</div>
+Select the <code>H3 Resolution</code>. You can choose resolutions between 3 (average edge length of 69km) and 10 (average edge length of 70m). Higher values create smaller hexagons. Each polygon of the input layer is assigned to the hexagon that contains its centroid.
 
 :::tip NOTE
 
-To learn more about the H3 grid, you can visit the [Glossary](../../further_reading/glossary#H3-grid).
+To learn more about the H3 grid, you can visit the [Glossary](https://www.plan4better.de/en/glossary/h3-grid).
 
 :::
 
@@ -82,34 +77,58 @@ To learn more about the H3 grid, you can visit the [Glossary](../../further_read
 ### Statistics
 
 <div class="step">
-  <div class="step-number">6</div>
-  <div class="content">Select the <code> Statistic Method</code> and <code>Field Statistics</code> (the field in the source layer that is used to group the aggregation.).</div>
+  <div class="step-number">5</div>
+  <div class="content">Under <code>Statistics Configuration</code>, select the <code>Operation</code>. For all operations except <b>Count</b>, also select the <code>Field</code> of the polygon layer to calculate the statistic on. Only numeric fields can be selected.</div>
 </div>
 
-Available **Statistics Methods** are listed in the following. The available methods depend on the data type of the chosen attribute:
+The following **operations** are available:
 
-| Method | Type              | Description                                                                      |
-| ------ | ----------------- | -------------------------------------------------------------------------------- |
-| Count  | `string`,`number` | Counts the number of non-null values in the selected column                      |
-| Sum    | `number`          | Calculates the sum of all the numbers in the selected column                     |
-| Mean   | `number`          | Calculates the average (mean) value of all numeric values in the selected column |
-| Median | `number`          | Yields the middle value in the selected column's sorted list of numeric values   |
-| Min    | `number`          | Yields the minimum value of the selected column                                  |
-| Max    | `number`          | Yields the maximum value of the selected column                                  |
+| Operation          | Field    | Description                                                    |
+| ------------------ | -------- | -------------------------------------------------------------- |
+| Count              | –        | Counts the polygons in each area                               |
+| Sum                | `number` | Calculates the sum of the values of the selected field         |
+| Min                | `number` | Yields the minimum value of the selected field                 |
+| Max                | `number` | Yields the maximum value of the selected field                 |
+| Mean               | `number` | Calculates the average (mean) value of the selected field      |
+| Standard Deviation | `number` | Calculates the standard deviation of the selected field        |
 
+<div class="step">
+  <div class="step-number">6</div>
+  <div class="content">Optionally, enter a <code>Result Name</code> for the result column. If you leave it empty, the column is called <code>count</code> for Count and <code>&lt;operation&gt;_&lt;field&gt;</code> otherwise (e.g. <code>sum_population</code>).</div>
+</div>
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">If you want, you can enable the <code>Weighted by Intersection Area</code> by clicking on the <code>options button</code> <img src={require('/img/icons/toolbox.png').default} alt="Options" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/>. Therewith, <b>aggregated values are weighted by the share of the intersection area between the <i>Source Layer</i> and the <i>Aggregation Layer</i></b>.</div>
+  <div class="content">To calculate further statistics in the same run, click on <code>Add Statistics Configuration</code> and repeat steps 5 and 6. You can add up to 30 statistics; to remove one, click the trash icon above it.</div>
 </div>
 
 <div class="step">
   <div class="step-number">8</div>
-  <div class="content">Click on <code>Run</code>.</div>
+  <div class="content">If you want, enable <code>Weight by Intersection Area</code>. Therewith, <b>values are weighted by the share of each input polygon that lies inside the summary area</b>. The weighting applies to <b>Sum</b> and <b>Mean</b> with the area type <b>Polygon</b>; Count, Min, Max, Standard Deviation and the area type H3 Grid are not weighted.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">9</div>
+  <div class="content">Optionally, click the options icon <img src={require('/img/icons/options.png').default} alt="Options" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> in the <code>Statistics</code> header and select up to three <code>Group Fields</code> of the polygon layer. The statistics are then additionally calculated per group (per combination of values of these fields).</div>
 </div>
 
 ### Results
-As soon as the calculation process is finished, the resulting layer <b>Aggregation Polygon</b> will be added to the map. The result layer will consist of the information of the source layer and an <b>additional column</b> showing the results from the <b>statistical operation</b>. You can see the table by clicking on the polygon on the map.
+
+<div class="step">
+  <div class="step-number">10</div>
+  <div class="content">Optionally, change the <code>Result layer name</code> (default: <b>Aggregate Polygons</b>).</div>
+</div>
+
+<div class="step">
+  <div class="step-number">11</div>
+  <div class="content">Click on <code>Run</code>.</div>
+</div>
+
+As soon as the calculation process is finished, the resulting polygon layer is added to the map. It contains <b>one additional column per statistic</b> and is colored by the first statistic. You can see the values by clicking on a polygon on the map.
+
+- With the area type **Polygon**, the result contains all polygons of the area layer with their attributes. Areas without intersecting polygons get the value 0.
+- With the area type **H3 Grid**, the result contains the hexagons that contain the centroid of at least one polygon. The column <code>h3_&lt;resolution&gt;</code> (e.g. <code>h3_8</code>) holds the ID of the hexagon.
+- If you selected <code>Group Fields</code>, an additional column <code>&lt;result column&gt;_grouped</code> holds the value of each group.
 
 <img src={require('/img/toolbox/geoanalysis/aggregate_polygons/aggregate_polygons_result.webp').default} alt="Polygon Aggregation Result in GOAT" style={{ maxHeight: "auto", maxWidth: "auto"}}/>
 

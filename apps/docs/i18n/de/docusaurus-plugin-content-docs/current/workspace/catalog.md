@@ -1,10 +1,11 @@
 ---
+description: "Filtern Sie den Katalog nach Stichwort, Ort, Kategorie, Datengeber oder Lizenz, speichern Sie Favoriten und fügen Sie Katalog-Datensätze einem Projekt hinzu."
 sidebar_position: 4
 ---
 
 # Katalog
 
-Der **Daten-Katalog** ist Ihr Zugang zur Erkundung von Plan4Betters umfassender Sammlung hochwertiger [Geodaten](../further_reading/glossary#geodaten). **Diese kuratierte Bibliothek bietet zuverlässige, sofort einsatzfähige Daten von offiziellen Open-Data-Anbietern und anderen vertrauenswürdigen Quellen**, die es Ihnen ermöglichen, sofort mit der Analyse und Visualisierung in Ihren GOAT-**Projekten** zu beginnen. Aus dem **Katalog** können Sie:
+Der **Daten-Katalog** ist Ihr Zugang zur Erkundung von Plan4Betters umfassender Sammlung hochwertiger [Geodaten](https://www.plan4better.de/de/glossar/geodaten). **Diese kuratierte Bibliothek bietet zuverlässige, sofort einsatzfähige Daten von offiziellen Open-Data-Anbietern und anderen vertrauenswürdigen Quellen**, die es Ihnen ermöglichen, sofort mit der Analyse und Visualisierung in Ihren GOAT-**Projekten** zu beginnen. Aus dem **Katalog** können Sie:
 
 - **Unsere Datensatz-Sammlung erkunden**, die mehrere thematische Bereiche und geografische Regionen umfasst
 - **Durchsuchen und filtern** nach Stichwort, Ort, Kategorie, Datengeber, Lizenz und mehr
@@ -132,7 +133,7 @@ Diese Portale enthalten weit mehr, als die Raumplanung benötigt, etwa Haushalts
 
 ### Datensätze von Plan4Better
 
-Neben den geernteten Portalen enthält der Katalog Datensätze, die Plan4Better selbst aufbereitet und pflegt. Points of Interest entstehen aus OpenStreetMap über eine Pipeline, die die Rohdaten-Tags in planerische Kategorien überführt und korrigiert. Haltestellen, Bahnhöfe und Linien des öffentlichen Verkehrs werden aus den GTFS-Feeds der Verkehrsunternehmen abgeleitet, für den Nah-, Regional- und Fernverkehr.
+Neben den geernteten Portalen enthält der Katalog Datensätze, die Plan4Better selbst aufbereitet und pflegt. [Points of Interest](https://www.plan4better.de/de/glossar/point-of-interest) entstehen aus OpenStreetMap über eine Pipeline, die die Rohdaten-Tags in planerische Kategorien überführt und korrigiert. Haltestellen, Bahnhöfe und Linien des öffentlichen Verkehrs werden aus den [GTFS](https://www.plan4better.de/de/glossar/gtfs)-Feeds der Verkehrsunternehmen abgeleitet, für den Nah-, Regional- und Fernverkehr.
 
 ## Datenqualität und Pflege
 

@@ -45,7 +45,7 @@ describe("HomeHero", () => {
     expect(screen.getByText("welcome_to_goat")).toBeInTheDocument();
     expect(screen.queryByTestId("search-slot")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "new_project" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "add_dataset" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "upload_dataset" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "browse_catalog" })).not.toBeInTheDocument();
   });
 
@@ -56,7 +56,7 @@ describe("HomeHero", () => {
     expect(screen.queryByText("welcome_back")).not.toBeInTheDocument();
     expect(screen.getByTestId("search-slot")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "new_project" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "add_dataset" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "upload_dataset" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "browse_catalog" })).toBeInTheDocument();
   });
 

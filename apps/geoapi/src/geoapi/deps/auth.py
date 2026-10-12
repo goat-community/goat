@@ -22,8 +22,6 @@ _keycloak_auth = KeycloakAuth(
     verify_signature=settings.AUTH,
 )
 
-# Legacy alias for backward compatibility
-_auth_key = _keycloak_auth.public_key
 ISSUER_URL = _keycloak_auth.issuer_url
 
 oauth2_scheme = OAuth2PasswordBearer(

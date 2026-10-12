@@ -125,9 +125,7 @@ const LayerSettingsPanel = ({ projectId, projectLayers = [] }: LayerSettingsPane
           spacing={2}
           sx={{ height: "100%", p: 4, textAlign: "center", color: "text.secondary" }}>
           <LayersIcon sx={{ fontSize: 48, color: "action.active" }} />
-          <Typography variant="h6">
-            {selectedLayerIds.length} {t("layers_selected")}
-          </Typography>
+          <Typography variant="h6">{t("layers_selected", { count: selectedLayerIds.length })}</Typography>
           <Typography variant="body2">
             {t("bulk_actions_description", { defaultValue: "Select a single layer to edit styles." })}
           </Typography>
@@ -144,7 +142,7 @@ const LayerSettingsPanel = ({ projectId, projectLayers = [] }: LayerSettingsPane
               value={activeTab}
               onChange={(_, v) => handleTabChange(v)}
               variant="fullWidth"
-              aria-label="Layer Settings Tabs">
+              aria-label={t("layer_settings")}>
               {layerType === "raster" && <Tab label={t("style")} />}
               {layerType === "table" && <Tab label={t("filter")} />}
               {layerType !== "raster" && layerType !== "table" && <Tab label={t("style")} />}

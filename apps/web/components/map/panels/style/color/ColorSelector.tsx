@@ -85,7 +85,17 @@ const ColorSelector = (props: ColorSelectorProps) => {
             />
           )}
           <Stack
+            role="button"
+            tabIndex={0}
+            aria-label={props.label}
+            aria-expanded={open}
             onClick={() => setOpen(!open)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setOpen(!open);
+              }
+            }}
             direction="row"
             alignItems="center"
             sx={{

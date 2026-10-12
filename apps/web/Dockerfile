@@ -39,8 +39,18 @@ ARG NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=APP_NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
 ARG NEXT_PUBLIC_AUTH=APP_NEXT_PUBLIC_AUTH
 ARG NEXT_PUBLIC_WEBSITE_URL=APP_NEXT_PUBLIC_WEBSITE_URL
 ARG NEXT_PUBLIC_STATUS_FEED_URL=APP_NEXT_PUBLIC_STATUS_FEED_URL
+ARG NEXT_PUBLIC_MAPTILER_KEY=APP_NEXT_PUBLIC_MAPTILER_KEY
+ARG NEXT_PUBLIC_ASSETS_URL=APP_NEXT_PUBLIC_ASSETS_URL
+ARG NEXT_PUBLIC_DOCS_URL=APP_NEXT_PUBLIC_DOCS_URL
+ARG NEXT_PUBLIC_CONTACT_URL=APP_NEXT_PUBLIC_CONTACT_URL
+ARG NEXT_PUBLIC_SUPPORT_EMAIL=APP_NEXT_PUBLIC_SUPPORT_EMAIL
 
-RUN pnpm exec turbo run build --filter=@p4b/web
+# The runner stage copies only the standalone server, the static files and
+# public/. Next's compilation cache and turbo's copy of the build outputs
+# would stay in this layer, which is exported to the build cache on every
+# build, so they are removed in the same step.
+RUN pnpm exec turbo run build --filter=@p4b/web \
+    && rm -rf apps/web/.next/cache .turbo
 
 
 FROM base AS runner
@@ -60,6 +70,13 @@ COPY --from=installer /app/apps/web/package.json .
 COPY --from=installer --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=installer --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=installer --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+
+# A pristine copy of every file carrying an APP_NEXT_PUBLIC_* placeholder,
+# which entrypoint.sh restores before substituting on every start.
+RUN cd /app/apps/web \
+    && { grep -rlF APP_NEXT_PUBLIC_ .next || true; } > /tmp/next-templates.list \
+    && if [ -s /tmp/next-templates.list ]; then tar -cf .next-templates.tar -T /tmp/next-templates.list; fi \
+    && rm -f /tmp/next-templates.list
 
 ENV HOSTNAME=0.0.0.0
 

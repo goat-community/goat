@@ -10,6 +10,11 @@
     "clean": "rimraf node_modules public/keycloak-resources",
     "build-keycloak-theme": "pnpm build && keycloakify"
   },
+  "keycloakify": {
+    "extraThemeProperties": [
+      "privacyUrl=${env.EMAIL_PRIVACY_URL:}"
+    ]
+  },
   "keywords": [],
   "dependencies": {
     "@emotion/react": "^11.11.0",

@@ -43,8 +43,11 @@ export const NumbersDataWidget = ({ config: rawConfig }: NumbersDataProps) => {
   const renderIcon = useMemo(() => {
     const icon = config?.setup?.icon;
     if (!icon) return null;
-    // Check if the icon is a URL
-    if (typeof icon === "string" && (icon.startsWith("http://") || icon.startsWith("https://"))) {
+    // Check if the icon is a URL, absolute or root-relative (the shipped artwork)
+    if (
+      typeof icon === "string" &&
+      (icon.startsWith("http://") || icon.startsWith("https://") || icon.startsWith("/"))
+    ) {
       const isSvg = icon.endsWith(".svg");
       return (
         <img

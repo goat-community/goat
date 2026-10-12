@@ -1,4 +1,6 @@
-export const PATTERN_IMAGES_BASE_URL = "https://assets.plan4better.de/patterns";
+import { ASSETS_URL } from "@/lib/constants";
+
+export const PATTERN_IMAGES_BASE_URL = `${ASSETS_URL}/patterns`;
 
 export type PatternImage = {
   name: string;

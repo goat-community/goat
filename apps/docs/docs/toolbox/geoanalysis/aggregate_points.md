@@ -1,4 +1,5 @@
 ---
+description: "Aggregate point data onto polygons or an H3 grid and calculate the count, sum, mean, min, max or standard deviation of a point attribute for each area."
 sidebar_position: 1
 ---
 import Tabs from '@theme/Tabs';
@@ -33,7 +34,7 @@ The Aggregate Points tool can be used to **analyze the characteristics of points
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content">Click on <code>Toolbox</code> <img src={require('/img/icons/toolbox.png').default} alt="Options" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/>. </div>
+  <div class="content">Click on <code>Tools</code> <img src={require('/img/icons/toolbox.png').default} alt="Options" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/>. </div>
 </div>
 
 <div class="step">
@@ -41,40 +42,34 @@ The Aggregate Points tool can be used to **analyze the characteristics of points
   <div class="content">Under the <code>Geoanalysis</code> menu, click on <code>Aggregate Points</code>.</div>
 </div>
 
-### Layer to aggregate
+### Layer to Aggregate
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Select your <code> Source Layer</code>, which contains <strong>the data you like to aggregate</strong>.</div>
+  <div class="content">Select your <code>Input Point Layer</code>, which contains <strong>the points you like to aggregate</strong>.</div>
 </div>
 
 ### Summary Areas
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Select on which <code> Area Type</code> you like to aggregate the source layer. You can choose between <b>Polygon</b> or <b>H3 grid</b>.</div>
+  <div class="content">Select the <code>Area Type</code> on which you like to aggregate the points. You can choose between <b>Polygon</b> or <b>H3 Grid</b>.</div>
 </div>
 
 <Tabs>
   <TabItem value="Polygon" label="Polygon" default className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">5</div>
-  <div class="content">Select the <code>Area Layer</code> which contains the polygons on which you like to aggregate your point data.</div>
-</div>
+Select the <code>Area Layer</code> which contains the polygons on which you like to aggregate your point data.
 
 
   </TabItem>
   <TabItem value="H3 Grid" label="H3 Grid" className="tabItemBox">
 
- <div class="step">
-  <div class="step-number">5</div>
-  <div class="content">Select the <code>H3 Grid Resolution</code>. You can choose resolutions between 3 (average edge length of 69km) and 10 (average edge length of 70m).</div>
-</div>
+Select the <code>H3 Resolution</code>. You can choose resolutions between 3 (average edge length of 69km) and 10 (average edge length of 70m). Higher values create smaller hexagons.
 
 :::tip NOTE
 
-To learn more about the H3 grid, you can visit the [Glossary](../../further_reading/glossary#H3-grid).
+To learn more about the H3 grid, you can visit the [Glossary](https://www.plan4better.de/en/glossary/h3-grid).
 
 :::
 
@@ -84,30 +79,53 @@ To learn more about the H3 grid, you can visit the [Glossary](../../further_read
 ### Statistics
 
 <div class="step">
-  <div class="step-number">6</div>
-  <div class="content">Select the <code>Statistic Method</code>, and the field you like to use for the <code>Field Statistics</code> (the field in the source layer that is used to group the aggregated points for statistics).</div>
+  <div class="step-number">5</div>
+  <div class="content">Under <code>Statistics Configuration</code>, select the <code>Operation</code>. For all operations except <b>Count</b>, also select the <code>Field</code> of the point layer to calculate the statistic on. Only numeric fields can be selected.</div>
 </div>
 
-Available **Statistics Methods** are listed in the following. The available methods depend on the data type of the chosen attribute:
+The following **operations** are available:
 
-| Method | Type              | Description                                                                      |
-| ------ | ----------------- | -------------------------------------------------------------------------------- |
-| Count  | `string`,`number` | Counts the number of non-null values in the selected column                      |
-| Sum    | `number`          | Calculates the sum of all the numbers in the selected column                     |
-| Mean   | `number`          | Calculates the average (mean) value of all numeric values in the selected column |
-| Median | `number`          | Yields the middle value in the selected column's sorted list of numeric values   |
-| Min    | `number`          | Yields the minimum value of the selected column                                  |
-| Max    | `number`          | Yields the maximum value of the selected column                                  |
+| Operation          | Field    | Description                                                    |
+| ------------------ | -------- | -------------------------------------------------------------- |
+| Count              | –        | Counts the points in each area                                 |
+| Sum                | `number` | Calculates the sum of the values of the selected field         |
+| Min                | `number` | Yields the minimum value of the selected field                 |
+| Max                | `number` | Yields the maximum value of the selected field                 |
+| Mean               | `number` | Calculates the average (mean) value of the selected field      |
+| Standard Deviation | `number` | Calculates the standard deviation of the selected field        |
 
+<div class="step">
+  <div class="step-number">6</div>
+  <div class="content">Optionally, enter a <code>Result Name</code> for the result column. If you leave it empty, the column is called <code>count</code> for Count and <code>&lt;field&gt;_&lt;operation&gt;</code> otherwise (e.g. <code>population_sum</code>).</div>
+</div>
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">Click on <code>Run</code>.</div>
+  <div class="content">To calculate further statistics in the same run, click on <code>Add Statistics Configuration</code> and repeat steps 5 and 6. You can add up to 30 statistics; to remove one, click the trash icon above it.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">8</div>
+  <div class="content">Optionally, click the options icon <img src={require('/img/icons/options.png').default} alt="Options" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> in the <code>Statistics</code> header and select up to three <code>Group Fields</code> of the point layer. The statistics are then additionally calculated per group (per combination of values of these fields).</div>
 </div>
 
 ### Results
 
-As soon as the calculation process is finished, the resulting layer **"Aggregation Point"** will be added to the map. This layer consists of the information of the source layer and an **additional column** showing the results from the **statistical operation**. You can see the table by clicking on the polygon on the map.
+<div class="step">
+  <div class="step-number">9</div>
+  <div class="content">Optionally, change the <code>Result layer name</code> (default: <b>Aggregate Points</b>).</div>
+</div>
+
+<div class="step">
+  <div class="step-number">10</div>
+  <div class="content">Click on <code>Run</code>.</div>
+</div>
+
+As soon as the calculation process is finished, the resulting polygon layer is added to the map. It contains **one additional column per statistic** and is colored by the first statistic. You can see the values by clicking on a polygon on the map.
+
+- With the area type **Polygon**, the result contains all polygons of the area layer with their attributes. Areas without points get the value 0.
+- With the area type **H3 Grid**, the result contains the hexagons that contain at least one point. The column <code>h3_&lt;resolution&gt;</code> (e.g. <code>h3_8</code>) holds the ID of the hexagon.
+- If you selected <code>Group Fields</code>, an additional column <code>&lt;result column&gt;_grouped</code> holds the value of each group.
 
 <img src={require('/img/toolbox/geoanalysis/aggregate_points/aggregate_points_result.webp').default} alt="Point Aggregation Result in GOAT" style={{ maxHeight: "auto", maxWidth: "auto"}}/>
 

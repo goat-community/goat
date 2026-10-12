@@ -1,5 +1,7 @@
+import fcntl
 import logging
 import sys
+import tempfile
 import urllib.request
 from pathlib import Path
 from typing import Literal
@@ -249,11 +251,34 @@ TRAVELTIME_MATRICES_FILES = [
 
 
 def _download_file(url: str, dest: Path) -> None:
-    """Download a file from URL to destination path."""
+    """Download a file from URL to destination path.
+
+    Written to a temporary name of this process's own and renamed only once
+    complete: an interrupted download must not leave a partial file at
+    `dest`, which every later run would take for the real one.
+    """
     dest.parent.mkdir(parents=True, exist_ok=True)
     logger.info(f"Downloading {url} to {dest}...")
-    urllib.request.urlretrieve(url, dest)
+    with tempfile.NamedTemporaryFile(
+        dir=dest.parent, prefix=dest.name, suffix=".partial", delete=False
+    ) as handle:
+        partial = Path(handle.name)
+    try:
+        urllib.request.urlretrieve(url, partial)
+        partial.chmod(0o644)  # a temporary file starts private
+        partial.replace(dest)
+    finally:
+        partial.unlink(missing_ok=True)
     logger.info(f"Downloaded {dest.name} ({dest.stat().st_size / 1024 / 1024:.1f} MB)")
+
+
+def _is_complete_parquet(path: Path) -> bool:
+    """A Parquet file ends with its magic bytes; a truncated one does not."""
+    if not path.exists() or path.stat().st_size < 8:
+        return False
+    with path.open("rb") as f:
+        f.seek(-4, 2)
+        return f.read(4) == b"PAR1"
 
 
 @pytest.fixture(scope="session")
@@ -276,9 +301,16 @@ def traveltime_matrices_dir() -> Path:
 
     for rel_path in TRAVELTIME_MATRICES_FILES:
         local_path = matrices_dir / rel_path
-        if not local_path.exists():
-            url = f"{TRAVELTIME_MATRICES_BASE_URL}/{rel_path}"
-            _download_file(url, local_path)
+        if _is_complete_parquet(local_path):
+            continue
+        # CI runs the suite in several xdist workers, each with its own
+        # session: one downloads while the others wait, then find it complete.
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(local_path.with_name(local_path.name + ".lock"), "w") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            if not _is_complete_parquet(local_path):
+                url = f"{TRAVELTIME_MATRICES_BASE_URL}/{rel_path}"
+                _download_file(url, local_path)
 
     return matrices_dir
 

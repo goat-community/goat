@@ -1,0 +1,25 @@
+{{- if .Values.processes.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "goat.serviceFullname" (dict "context" . "component" "processes") }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "processes") | nindent 4 }}
+data:
+  {{- range $k, $v := .Values.processes.config }}
+  {{- /* DuckLake keys are emitted below, once */}}
+  {{- if not (has $k (list "DUCKLAKE_DATA_DIR" "DUCKLAKE_CATALOG_SCHEMA")) }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+  {{- end }}
+  POSTGRES_SERVER: {{ include "goat.postgresql.host" $ | quote }}
+  POSTGRES_DB: {{ include "goat.postgresql.database" $ | quote }}
+  POSTGRES_PORT: {{ include "goat.postgresql.port" $ | quote }}
+  {{- /* The DuckLake location this service attaches READ-ONLY. Its
+         ducklake-init init container reads this same ConfigMap, so it creates
+         the catalog exactly where the service looks. Defaults to
+         ducklakeBootstrap.*, which match GOAT's own defaults. */}}
+  DUCKLAKE_DATA_DIR: {{ .Values.processes.config.DUCKLAKE_DATA_DIR | default .Values.ducklakeBootstrap.dataDir | quote }}
+  DUCKLAKE_CATALOG_SCHEMA: {{ .Values.processes.config.DUCKLAKE_CATALOG_SCHEMA | default .Values.ducklakeBootstrap.catalogSchema | quote }}
+{{- end }}

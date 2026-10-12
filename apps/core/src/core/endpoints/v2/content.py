@@ -57,7 +57,8 @@ async def read_content(
 ) -> ContentPage:
     """List a space (or a folder inside it), "shared with me", "shared with
     a team/organisation space" or "recent" — one feed backing the Content
-    page. Folders sort first in `view=space`; every row carries the
+    page. `view=space` sorts by section first (folders, shortcuts, projects,
+    templates, datasets), then by `order_by`; every row carries the
     caller's `effective_role` as `my_role`. See `CRUDContent.list`.
     """
     type_list = [t.strip() for t in types.split(",") if t.strip()] if types else None

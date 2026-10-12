@@ -1,0 +1,20 @@
+{{- if and .Values.data.enabled (not .Values.data.existingClaim) -}}
+{{- $ctx := dict "context" . "component" "data" -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "goat.data.claimName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.data.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.data.size }}
+  {{- $sc := default .Values.global.storageClass .Values.data.storageClassName -}}
+  {{- with $sc }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end -}}

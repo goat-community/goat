@@ -59,8 +59,15 @@ async def test_team_profile_update_is_reachable_for_a_team_writer(
     viewer = await _user_with_role(
         db_session, make_user, org, roles["organization-viewer"]
     )
+    # A real team of the same organization: authorization() refuses a team
+    # id that is unknown or belongs to another organization.
+    team_id = uuid4()
+    await db_session.execute(
+        text(f"INSERT INTO {S}.team (id, name, organization_id) VALUES (:t, 'T', :o)"),
+        {"t": team_id, "o": org.id},
+    )
     await db_session.commit()
-    path = f"teams/{uuid4()}/profile"
+    path = f"teams/{team_id}/profile"
 
     assert await _authorized(db_session, editor.id, path) is True
     # A viewer reads teams but does not rename them: read-team only.

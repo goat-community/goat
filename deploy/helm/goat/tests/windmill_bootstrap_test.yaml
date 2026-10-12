@@ -1,0 +1,139 @@
+suite: windmill bootstrap — token handed to processes
+# Chart 0.5.0 left a fresh install's processes without a windmill token:
+# processes reads it from an optional secretKeyRef at pod start, but the
+# Secret is written by the post-install bootstrap hook, which runs after
+# `helm install --wait` has already brought processes up — and nothing
+# restarted it. Every tool run and GET /jobs failed until a manual restart.
+# The hook now restarts that one Deployment when the token changes (and
+# reuses a still-valid token instead of minting one per upgrade); these
+# tests pin its wiring. The script's own logic is exercised by the k3d smoke.
+templates:
+  - windmill/bootstrap-hook.yaml
+  - windmill/bootstrap-rbac.yaml
+  - windmill/bootstrap-script-configmap.yaml
+  - processes/deployment.yaml
+release:
+  name: goat
+set:
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+tests:
+  - it: the hook knows which Deployment to restart
+    template: windmill/bootstrap-hook.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PROCESSES_DEPLOYMENT
+            value: goat-processes
+
+  - it: the hook may get and patch only the processes Deployment
+    template: windmill/bootstrap-rbac.yaml
+    documentSelector:
+      path: kind
+      value: Role
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["apps"]
+            resources: ["deployments"]
+            resourceNames: ["goat-processes"]
+            verbs: ["get", "patch"]
+
+  - it: the script reuses a valid token and stamps a token fingerprint on processes
+    template: windmill/bootstrap-script-configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["bootstrap.py"]
+          pattern: 'api\(f"/w/\{WS\}/users/whoami", token=stored\)'
+      - matchRegex:
+          path: data["bootstrap.py"]
+          pattern: 'goat\.plan4better\.de/windmill-token-sha256'
+
+  - it: processes gets the token from the bootstrap Secret
+    template: processes/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WINDMILL_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: goat-windmill-token
+                key: token
+                optional: true
+
+  # `default true .Values.processes.windmillAutoWire` turned an explicit false
+  # back into true, so the documented opt-out never worked.
+  - it: windmillAutoWire false drops processes' windmill env
+    template: processes/deployment.yaml
+    set:
+      processes.windmillAutoWire: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WINDMILL_URL
+            value: http://goat-windmill-server
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: WINDMILL_TOKEN
+
+  - it: windmillAutoWire false leaves processes alone (no env, no RBAC)
+    set:
+      processes.windmillAutoWire: false
+    asserts:
+      - template: windmill/bootstrap-hook.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: PROCESSES_DEPLOYMENT
+      - template: windmill/bootstrap-rbac.yaml
+        documentSelector:
+          path: kind
+          value: Role
+        notContains:
+          path: rules
+          any: true
+          content:
+            resources: ["deployments"]
+
+  - it: processes disabled leaves no Deployment to restart
+    set:
+      processes.enabled: false
+    asserts:
+      - template: windmill/bootstrap-hook.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: PROCESSES_DEPLOYMENT
+      - template: windmill/bootstrap-rbac.yaml
+        documentSelector:
+          path: kind
+          value: Role
+        notContains:
+          path: rules
+          any: true
+          content:
+            resources: ["deployments"]
+
+  - it: bootstrap disabled means no token and no restart wiring
+    template: processes/deployment.yaml
+    set:
+      windmill.bootstrap.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WINDMILL_URL
+            value: http://goat-windmill-server
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: WINDMILL_TOKEN

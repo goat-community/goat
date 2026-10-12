@@ -1,14 +1,15 @@
 ---
+description: "Behalten Sie nur die Features oder Teile davon, die im Überlagerungs-Layer liegen; die Attribute des Eingabe-Layers bleiben, die des Überlagerungs-Layers nicht."
 sidebar_position: 2
 ---
 
 # Ausschneiden
 
-Mit diesem Werkzeug können Sie **Eingabe-Features extrahieren, die innerhalb des Zuschnitt-Layers liegen**.
+Mit diesem Werkzeug können Sie **Eingabe-Features extrahieren, die innerhalb des Überlagerungs-Layers liegen**.
 
 ## 1. Erklärung
 
-Bezieht sich auf den Prozess der **Extraktion eines Teils eines Vektor-Datensatzes basierend auf der Grenze eines anderen Polygon-Layers.** Es funktioniert wie ein "Plätzchenausstecher" – nur die Features (oder Teile von Features) aus dem Eingabe-Layer, die innerhalb des Zuschnitt-Layers liegen, werden beibehalten. Die Attribute der Eingabe-Features werden erhalten, aber die Attribute des Zuschnitt-Layers werden nicht übertragen.
+Bezieht sich auf den Prozess der **Extraktion eines Teils eines Vektor-Datensatzes basierend auf der Grenze eines anderen Polygon-Layers.** Es funktioniert wie ein "Plätzchenausstecher": Nur die Features (oder Teile von Features) aus dem Eingabe-Layer, die innerhalb des Überlagerungs-Layers liegen, werden beibehalten. Die Attribute der Eingabe-Features werden erhalten, aber die Attribute des Überlagerungs-Layers werden nicht übertragen.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
@@ -40,7 +41,7 @@ Bezieht sich auf den Prozess der **Extraktion eines Teils eines Vektor-Datensatz
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Wählen Sie den <code>Überdeckungs-Layer</code>, den Sie als Zuschnitt-Layer verwenden möchten.</div>
+  <div class="content">Wählen Sie den <code>Überlagerungs-Layer</code>, mit dem Sie den Eingabe-Layer ausschneiden möchten.</div>
 </div>
 
 <div class="step">

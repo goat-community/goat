@@ -1,9 +1,18 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 
 import type { TemplatePreviewDescriptor } from "@/lib/validations/template";
 
 import TemplatePreviewFallback from "@/components/templates/TemplatePreviewFallback";
+
+// The static basemap frame is drawn only with a MapTiler key, read when the
+// constants module is first evaluated.
+vi.hoisted(() => {
+  vi.stubEnv("NEXT_PUBLIC_MAPTILER_KEY", "test-key");
+});
+afterAll(() => {
+  vi.unstubAllEnvs();
+});
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({

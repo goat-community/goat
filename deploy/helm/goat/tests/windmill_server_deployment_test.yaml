@@ -1,0 +1,96 @@
+suite: windmill server Deployment
+templates:
+  - windmill/server/deployment.yaml
+  - windmill/server/configmap.yaml          # needed so envFrom refs validate
+tests:
+  - it: renders Deployment with default image and probes
+    set:
+      windmill.server.enabled: true
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.reuseGoatConnection: false
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+    template: windmill/server/deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-windmill-server
+      - equal:
+          path: spec.replicas
+          value: 1
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "^ghcr\\.io/plan4better/goat/windmill-server:.+"
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8000
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /api/version
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /api/version
+      - contains:
+          path: spec.template.spec.containers[0].envFrom
+          content:
+            configMapRef:
+              name: RELEASE-NAME-goat-windmill-server
+
+  - it: defines DATABASE_URL env constructed from postgres helpers
+    set:
+      windmill.server.enabled: true
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.reuseGoatConnection: false
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+    template: windmill/server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_URL
+            value: "postgres://$(_WMILL_DB_USER):$(_WMILL_DB_PASSWORD)@pg.example.com:5432/windmill?sslmode=prefer"
+
+  - it: applies replicaCount override
+    set:
+      windmill.server.enabled: true
+      windmill.server.replicaCount: 3
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.reuseGoatConnection: false
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+    template: windmill/server/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: not rendered when windmill.server.enabled false
+    set:
+      windmill.server.enabled: false
+    template: windmill/server/deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: honors global.imageRegistry mirror
+    set:
+      windmill.server.enabled: true
+      global.imageRegistry: "harbor.internal"
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.reuseGoatConnection: false
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+    template: windmill/server/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "^harbor\\.internal/plan4better/goat/windmill-server:.+"

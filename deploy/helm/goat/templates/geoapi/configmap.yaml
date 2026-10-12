@@ -1,0 +1,32 @@
+{{- if .Values.geoapi.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "goat.serviceFullname" (dict "context" . "component" "geoapi") }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "geoapi") | nindent 4 }}
+data:
+  {{- range $k, $v := .Values.geoapi.config }}
+  {{- /* Omit GOAT_PROCESSES_URL and the DuckLake keys here (emitted below so
+         they aren't rendered twice when an operator sets them explicitly) */}}
+  {{- if has $k (list "GOAT_PROCESSES_URL" "DUCKLAKE_DATA_DIR" "DUCKLAKE_CATALOG_SCHEMA") -}}
+  {{- /* skip */ -}}
+  {{- else }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+  {{- end }}
+  POSTGRES_SERVER: {{ include "goat.postgresql.host" $ | quote }}
+  POSTGRES_DB: {{ include "goat.postgresql.database" $ | quote }}
+  POSTGRES_PORT: {{ include "goat.postgresql.port" $ | quote }}
+  {{- /* The DuckLake location this service attaches READ-ONLY. Its
+         ducklake-init init container reads this same ConfigMap, so it creates
+         the catalog exactly where the service looks. Defaults to
+         ducklakeBootstrap.*, which match GOAT's own defaults. */}}
+  DUCKLAKE_DATA_DIR: {{ .Values.geoapi.config.DUCKLAKE_DATA_DIR | default .Values.ducklakeBootstrap.dataDir | quote }}
+  DUCKLAKE_CATALOG_SCHEMA: {{ .Values.geoapi.config.DUCKLAKE_CATALOG_SCHEMA | default .Values.ducklakeBootstrap.catalogSchema | quote }}
+  {{- $processesUrl := .Values.geoapi.config.GOAT_PROCESSES_URL | default (include "goat.processes.url" .) }}
+  {{- if $processesUrl }}
+  GOAT_PROCESSES_URL: {{ $processesUrl | quote }}
+  {{- end }}
+{{- end }}

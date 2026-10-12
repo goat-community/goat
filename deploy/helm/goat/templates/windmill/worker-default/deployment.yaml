@@ -1,0 +1,94 @@
+{{- if .Values.windmill.workers.default.enabled -}}
+{{- $component := "windmill-worker-default" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+{{- $worker := .Values.windmill.workers.default -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ $worker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "goat.serviceSelectorLabels" $ctx | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" $ctx | nindent 8 }}
+        {{- with $worker.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with $worker.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $worker.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if include "goat.windmillDbInit.enabled" . }}
+      initContainers:
+        {{- include "goat.windmillDbInit.container" . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: windmill-worker-default
+          image: {{ include "goat.image" (dict "image" $worker.image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ $worker.image.pullPolicy }}
+          {{- with $worker.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "goat.serviceFullname" $ctx }}
+          env:
+            # Windmill's connection to its own DB. We use namespaced names
+            # (_WMILL_DB_*) so that the POSTGRES_* namespace stays free for
+            # operator-supplied env consumed by user scripts (goatlib reads
+            # POSTGRES_USER/POSTGRES_PASSWORD for the *application* DB, which
+            # is generally NOT the same as the windmill DB).
+            - name: _WMILL_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "windmill.postgresql.secretName" . }}
+                  key: {{ include "windmill.postgresql.userKey" . }}
+            - name: _WMILL_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "windmill.postgresql.secretName" . }}
+                  key: {{ include "windmill.postgresql.passwordKey" . }}
+            - name: DATABASE_URL
+              value: "postgres://$(_WMILL_DB_USER):$(_WMILL_DB_PASSWORD)@{{ include "windmill.postgresql.host" . }}:{{ include "windmill.postgresql.port" . }}/{{ include "windmill.postgresql.database" . }}?sslmode=prefer"
+            {{- with $worker.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with $worker.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with $worker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $worker.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $worker.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

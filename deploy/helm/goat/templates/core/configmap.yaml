@@ -1,0 +1,81 @@
+{{- if .Values.core.enabled -}}
+{{- $s3 := .Values.global.s3 | default dict -}}
+{{- if and $s3.bucket $s3.endpointUrl (not ($s3.assets | default dict).publicUrl) (not (include "goat.env.userSet" (dict "values" .Values.core "key" "ASSETS_URL"))) -}}
+{{- fail "global.s3.assets.publicUrl is required with global.s3.endpointUrl: core serves uploaded images from the assets bucket's public URL (or set core.config.ASSETS_URL)" -}}
+{{- end -}}
+{{- $auth := dict "values" .Values.core "root" . -}}
+{{- $authWired := include "goat.auth.wired" $auth -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "goat.serviceFullname" (dict "context" . "component" "core") }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "core") | nindent 4 }}
+data:
+  {{- range $k, $v := .Values.core.config }}
+  {{- /* Omit the Keycloak placeholders when auth is wired to a Secret (the
+         deployment sets them from it), and GOAT_PROCESSES_URL (emitted by the
+         auto-wire below so it isn't rendered twice when an operator sets it
+         explicitly) */}}
+  {{- if or (and $authWired (has $k (list "KEYCLOAK_SERVER_URL" "REALM_NAME" "KEYCLOAK_CLIENT_ID" "KEYCLOAK_CLIENT_SECRET"))) (eq $k "GOAT_PROCESSES_URL") -}}
+  {{- /* skip */ -}}
+  {{- else }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+  {{- end }}
+  POSTGRES_SERVER: {{ include "goat.postgresql.host" $ | quote }}
+  POSTGRES_DB: {{ include "goat.postgresql.database" $ | quote }}
+  POSTGRES_PORT: {{ include "goat.postgresql.port" $ | quote }}
+  {{- /* Wired: AUTH=true comes from the deployment env. Set explicitly in
+         core.config / core.extraEnv: that value is used as is. */}}
+  {{- if not (or $authWired (include "goat.env.userSet" (dict "values" .Values.core "key" "AUTH"))) }}
+  AUTH: {{ include "goat.auth.value" $auth | quote }}
+  {{- end }}
+  {{- $processesUrl := .Values.core.config.GOAT_PROCESSES_URL | default (include "goat.processes.url" .) }}
+  {{- if $processesUrl }}
+  GOAT_PROCESSES_URL: {{ $processesUrl | quote }}
+  {{- end }}
+  {{- /* Links in core's emails. A key set in core.config / core.extraEnv is
+         used as is. */}}
+  {{- $clientUrl := include "goat.web.publicUrl" . | trimSuffix "/" }}
+  {{- if and $clientUrl (not (include "goat.env.userSet" (dict "values" .Values.core "key" "CLIENT_URL"))) }}
+  CLIENT_URL: {{ $clientUrl | quote }}
+  {{- end }}
+  {{- $apiUrl := include "goat.core.publicApiUrl" . }}
+  {{- if and $apiUrl (not (include "goat.env.userSet" (dict "values" .Values.core "key" "API_URL"))) }}
+  API_URL: {{ $apiUrl | quote }}
+  {{- end }}
+  {{- if not (include "goat.env.userSet" (dict "values" .Values.core "key" "KEYCLOAK_PROVISION_INVITED_USERS")) }}
+  KEYCLOAK_PROVISION_INVITED_USERS: {{ ternary "true" "false" (eq (toString .Values.global.auth.provisionInvitedUsers) "true") | quote }}
+  {{- end }}
+  {{- /* Email (the `email` block). Empty values are left out: core treats
+         an unset SMTP_HOST as email off. */}}
+  {{- $email := .Values.email | default dict }}
+  {{- range $pair := list (list "SMTP_HOST" $email.host) (list "SMTP_PORT" $email.port) (list "SMTP_SECURITY" $email.security) (list "SMTP_USER" $email.user) (list "SMTP_FROM" $email.from) (list "EMAILS_FROM_NAME" $email.fromName) (list "EMAIL_BRAND_NAME" $email.brandName) (list "EMAIL_LOGO_URL" $email.logoUrl) (list "EMAIL_CONTACT_URL" $email.contactUrl) (list "EMAIL_PRIVACY_URL" $email.privacyUrl) }}
+  {{- $key := index $pair 0 }}
+  {{- $value := toString (index $pair 1 | default "") }}
+  {{- if and $value $email.host (not (include "goat.env.userSet" (dict "values" $.Values.core "key" $key))) }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}
+  {{- /* Plan4Better's Odoo (the `odoo` block). Empty values are left out: the
+         connection only with `odoo.url`, an integration's settings only when
+         it is configured too (support: `odoo.support.teamId`). */}}
+  {{- $odoo := .Values.odoo | default dict }}
+  {{- $support := $odoo.support | default dict }}
+  {{- $odooPairs := list (list "ODOO_URL" $odoo.url) (list "ODOO_DB" $odoo.db) }}
+  {{- if $support.teamId }}
+  {{- $odooPairs = concat $odooPairs (list (list "ODOO_SUPPORT_TEAM_ID" $support.teamId) (list "ODOO_SUPPORT_POST_ACTION" $support.postAction)) }}
+  {{- end }}
+  {{- range $pair := $odooPairs }}
+  {{- $key := index $pair 0 }}
+  {{- $value := toString (index $pair 1 | default "") }}
+  {{- if and $value $odoo.url (not (include "goat.env.userSet" (dict "values" $.Values.core "key" $key))) }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}
+  {{- if and (include "goat.caBundle.enabled" .) (not (include "goat.env.userSet" (dict "values" .Values.core "key" "GOAT_CA_BUNDLE"))) }}
+  GOAT_CA_BUNDLE: {{ include "goat.caBundle.path" . | quote }}
+  {{- end }}
+{{- end }}

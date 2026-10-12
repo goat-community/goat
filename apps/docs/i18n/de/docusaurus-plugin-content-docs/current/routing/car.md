@@ -1,4 +1,5 @@
 ---
+description: "Wie GOAT Autofahrten im Overture-Maps-Netz berechnet: mit Tempolimit je Richtung, Einbahnstraßen und Dijkstra-Suche, noch ohne historische Verkehrsmuster."
 sidebar_position: 4
 
 ---
@@ -10,7 +11,7 @@ Das **Verkehrsmittel Auto** wird für alle Analysen in GOAT verwendet, die Autof
 
 ## 1. Ziele
 
-Car Routing wird für viele Indikatoren in GOAT verwendet, wie z.B. [Einzugsgebiete](../toolbox/accessibility_indicators/catchments) und [Heatmaps](../toolbox/accessibility_indicators/connectivity). 
+[Car Routing](https://www.plan4better.de/de/glossar/routing) wird für viele Indikatoren in GOAT verwendet, wie z.B. [Einzugsgebiete](../toolbox/accessibility_indicators/catchments) und [Heatmaps](../toolbox/accessibility_indicators/connectivity). 
 
 Für den Verkehrsträger Auto wird ein **angepasster Routing-Algorithmus** verwendet, der dabei **nur Wege berücksichtigt, die für das Fahren geeignet sind**.
 
@@ -28,7 +29,7 @@ Daten von der  **[Overture Maps Foundation](https://overturemaps.org/)**  werden
 Die folgenden Schritte werden an den Daten durchgeführt, um ein **schnelles** und **genaues** Routing für Autos zu ermöglichen:
 
 1.  **Attribut-Parsing:** Kategorisierung der Attribute von Kanten (Straßen `Klasse` und `Oberfläche`).
-2.  **Geospatial Indexing:**  Nutzung des  **[Uber H3 auf Gitter basierendes](../further_reading/glossary#h3-grid)**  Indexing für effizientes Routing.
+2.  **Geospatial Indexing:**  Nutzung des  **[Uber H3 auf Gitter basierendes](https://www.plan4better.de/de/glossar/h3-gitter)**  Indexing für effizientes Routing.
 3.  **Extrahieren von Beschränkungen:** Identifizieren von Einweg-Zugangsbeschränkungen zusätzlich zu den Geschwindigkeitsbegrenzungen für beide Richtungen der Kante (`Maximalgeschwindigkeit vorwärts` and `Maximalgeschwindigkeit rückwärts`).
 
 ### Routing-Prozess-Schritte
@@ -45,6 +46,10 @@ Für das Auto-Routing werden die Kanten der folgenden Straßenklassen berücksic
 Weitere Informationen zu dieser Klassifizierung finden Sie im [Overture Wiki](https://docs.overturemaps.org/schema/reference/transportation/segment).
 
 #### Erstellung künstlicher Kanten
+
+Vom Nutzer angegebene Startpunkte liegen in der Regel eine kurze Distanz vom Straßennetz entfernt. Um die zusätzliche Zeit (bzw. Kosten) für die Fahrt vom Startpunkt zur nächstgelegenen Straße zu berücksichtigen (z. B. über eine nicht kartierte Zufahrt), werden künstliche (bzw. simulierte) Kanten erstellt.
+
+#### Kantenkostenberechnung
 
 Für alle Kanten im Teilnetz wird ein Kostenwert (dargestellt als Zeit) auf der Grundlage von Weglänge und Fahrgeschwindigkeit berechnet.
 
@@ -68,7 +73,7 @@ Um den kürzesten Weg vom Ausgangspunkt zu verschiedenen Zielen zu berechnen, wi
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <Video src={require('/img/routing/walk/dijkstra.mp4').default}  alt="Dijkstra Algorithm" style={{ width: "auto", height: "auto", objectFit: "cover"}}/>
-<p style={{ textAlign: 'center' }}>GIF: <a href="https://de.wikipedia.org/wiki/Dijkstra-Algorithmus">Dijkstra Algorithm</a></p>
+<p style={{ textAlign: 'center' }}><a href="https://de.wikipedia.org/wiki/Dijkstra-Algorithmus">Dijkstra Algorithm</a></p>
 </div>
 
 Die Implementierung hat eine Zeitkomplexität von *O(ElogV)*, ist in **Python** geschrieben und verwendet den Just-in-Time-Compiler **Numba**.

@@ -1,4 +1,5 @@
 ---
+description: "Add layers by file upload, drawing, a WFS, WMS, WMTS, XYZ or COG service, your datasets or the Catalog, then reorder, hide, group and edit them."
 sidebar_position: 2
 ---
 
@@ -29,7 +30,7 @@ You can add layers from [different sources](../data/dataset_types) to your map:
 
 **New data**
 
-- **Upload file**: a dataset from your device (GeoPackage, GeoJSON, Shapefile, KML, CSV, XLSX, Parquet, and GTFS or Overture archives)
+- **Upload dataset**: a dataset from your device (GeoPackage, GeoJSON, Shapefile, KML, CSV, XLSX, Parquet, and [GTFS](https://www.plan4better.de/en/glossary/gtfs) or [Overture](https://www.plan4better.de/en/glossary/overture-maps) archives)
 - **Create layer**: a new empty layer you draw into
 - **Connect service**: a layer served by WFS, WMS, WMTS, XYZ Tiles or COG, added by URL
 
@@ -49,7 +50,7 @@ You can add layers from [different sources](../data/dataset_types) to your map:
 </div>
 
 <Tabs>
-  <TabItem value="Upload" label="Upload file" default className="tabItemBox">
+  <TabItem value="Upload" label="Upload dataset" default className="tabItemBox">
 
 <div class="step">
   <div class="step-number">3</div>
@@ -66,14 +67,14 @@ You can add layers from [different sources](../data/dataset_types) to your map:
   <div class="content">Click <code>Upload</code>.</div>
 </div>
 
-<div class="content"><strong>Street networks and GTFS feeds:</strong> a GTFS or Overture archive is imported as a <a href="../data/dataset_types#datasets-made-of-several-layers">bundle</a> rather than a single layer, and a public transport feed asks you to link it to a street network. See <a href="../data/builtin_datasets#bringing-your-own-networks">Network Datasets</a> for where to get this data and what happens on import.</div>
+<div class="content"><strong>Street networks and GTFS feeds:</strong> a GTFS or Overture archive is imported as a [bundle](../data/dataset_types#datasets-made-of-several-layers) rather than a single layer, and a public transport feed asks you to link it to a street network. See [Network Datasets](../data/builtin_datasets#bringing-your-own-networks) for where to get this data and what happens on import.</div>
 
   </TabItem>
   <TabItem value="Create" label="Create layer" className="tabItemBox">
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Enter a <strong>layer name</strong>, select the <strong>geometry type</strong> (<code>Point</code>, <code>Line</code>, <code>Polygon</code>, or <code>Table</code>), and define your <strong>fields</strong>. For full details, see <a href="./layer_editing">Layer Editing</a>.</div>
+  <div class="content">Enter a <strong>layer name</strong>, select the <strong>geometry type</strong> (<code>Point</code>, <code>Line</code>, <code>Polygon</code>, or <code>Table</code>), and define your <strong>fields</strong>. For full details, see [Layer Editing](./layer_editing).</div>
 </div>
 
   </TabItem>
@@ -94,7 +95,7 @@ You can add layers from [different sources](../data/dataset_types) to your map:
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Search and filter the <a href="../workspace/catalog">Catalog</a> for the dataset you need. The same filters as the Catalog page are available here.</div>
+  <div class="content">Search and filter the [Catalog](../workspace/catalog) for the dataset you need. The same filters as the Catalog page are available here.</div>
 </div>
 
 <div class="step">
@@ -126,6 +127,18 @@ You can add layers from [different sources](../data/dataset_types) to your map:
   <TabItem value="WMTS" label="WMTS" className="tabItemBox">
     <div class="step">
       <div class="content"><p>A WMTS can be added by <strong>direct URL</strong> or <strong>GetCapabilities</strong> link. If the URL carries more than one layer, only one can be added at a time.</p>The projection must be <strong>Web Mercator (EPSG:3857)</strong> and GoogleMaps compatible. Zoom levels differ otherwise, so a source that does not meet both will not appear in the list.</div>
+    </div>
+  </TabItem>
+
+  <TabItem value="XYZ" label="XYZ" className="tabItemBox">
+    <div class="step">
+      <div class="content"><p>An <strong>XYZ Tiles</strong> layer is any tile URL with <code>&#123;z&#125;/&#123;x&#125;/&#123;y&#125;</code> placeholders. The address is the layer, so there is no list to choose from &mdash; check the preview shows what you expect.</p></div>
+    </div>
+  </TabItem>
+
+  <TabItem value="COG" label="COG" className="tabItemBox">
+    <div class="step">
+      <div class="content"><p>A <strong>Cloud Optimized GeoTIFF (COG)</strong> is added by a direct <code>.tif</code>/<code>.tiff</code> link. The file is read in pieces straight from where it is stored, so nothing is uploaded to GOAT.</p></div>
     </div>
   </TabItem>
 </Tabs>

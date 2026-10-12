@@ -1,0 +1,24 @@
+name: "Helm tools"
+description: "Helm, the helm-unittest plugin and kubeconform at the versions the chart's tests expect"
+author: "Plan4Better GmbH"
+
+runs:
+  using: "composite"
+  steps:
+    - name: ⚙️ Helm
+      uses: azure/setup-helm@v5.0.1
+      with:
+        version: v3.20.1
+
+    # The tests use `kubernetesProvider` and `failedTemplate.errorPattern`,
+    # which older plugin versions silently ignore.
+    - name: ⚙️ helm-unittest
+      shell: bash
+      run: helm plugin install https://github.com/helm-unittest/helm-unittest --version v1.1.0
+
+    - name: ⚙️ kubeconform
+      shell: bash
+      run: |
+        curl -fsSL -o /tmp/kubeconform.tgz \
+          https://github.com/yannh/kubeconform/releases/download/v0.6.4/kubeconform-linux-amd64.tar.gz
+        sudo tar -xz -C /usr/local/bin -f /tmp/kubeconform.tgz kubeconform

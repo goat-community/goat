@@ -1,4 +1,4 @@
-import { Alert, Stack, useTheme } from "@mui/material";
+import { Alert, Stack, Typography, useTheme } from "@mui/material";
 import DarkModeSwitch from "@p4b/ui/components/DarkModeSwitch";
 import LanguageDropdown from "@p4b/ui/components/LanguageDropdown";
 import AuthLayout from "@p4b/ui/components/AuthLayout";
@@ -33,7 +33,7 @@ export default function Template(props: TemplateProps<KcContext, I18n>) {
       }}
     >
       <AuthContainer
-        headerTitle={headerNode}
+        headerTitle={<Typography variant="h5">{headerNode}</Typography>}
         headerAlert={
           displayMessage &&
           message !== undefined &&

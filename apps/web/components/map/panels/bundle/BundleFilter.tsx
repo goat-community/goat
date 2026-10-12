@@ -26,6 +26,7 @@ import { toast } from "react-toastify";
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import type { BundleRead } from "@/lib/api/bundles";
+import { useProject } from "@/lib/api/projects";
 import { setRunningJobIds } from "@/lib/store/jobs/slice";
 import { createTheCQLBasedOnExpression } from "@/lib/transformers/filter";
 import { type Expression as ExpressionType, FilterType } from "@/lib/validations/filter";
@@ -51,6 +52,9 @@ const BundleFilter = ({ bundle, projectId, memberLayerId }: BundleFilterProps) =
   const dispatch = useAppDispatch();
   const runningJobIds = useAppSelector((state) => state.jobs.runningJobIds);
   const { execute: executeProcess } = useProcessExecution();
+  // The copy lands in the project's folder, like every other tool's output:
+  // the source bundle's folder may be one the caller can only read.
+  const { project } = useProject(projectId);
   const { layerFields } = useLayerFields(memberLayerId || "");
   // No expression until the user adds one, so the tab opens the way a layer's
   // does. A bundle takes exactly one, so adding is disabled once it exists.
@@ -62,7 +66,7 @@ const BundleFilter = ({ bundle, projectId, memberLayerId }: BundleFilterProps) =
   const isComplete = useMemo(() => !!expression && validateExpressions([expression]), [expression]);
 
   const saveAsNewBundle = async () => {
-    if (!expression) return;
+    if (!expression || !project?.folder_id) return;
     const cql = createTheCQLBasedOnExpression([expression], layerFields, "and");
     if (!cql) return;
     setIsSaving(true);
@@ -70,7 +74,7 @@ const BundleFilter = ({ bundle, projectId, memberLayerId }: BundleFilterProps) =
       const result = await executeProcess("bundle_create_filtered", {
         source_bundle_id: bundle.id,
         cql_filter: cql,
-        folder_id: bundle.folder_id,
+        folder_id: project.folder_id,
         project_id: projectId,
         result_bundle_name: `${bundle.name} (${t("filtered")})`,
       });
@@ -129,7 +133,7 @@ const BundleFilter = ({ bundle, projectId, memberLayerId }: BundleFilterProps) =
             fullWidth
             size="small"
             loading={isSaving}
-            disabled={!isComplete}
+            disabled={!isComplete || !project?.folder_id}
             startIcon={<Icon iconName={ICON_NAME.SAVE} style={{ fontSize: "15px" }} />}
             onClick={saveAsNewBundle}>
             <Typography variant="body2" fontWeight="bold" color="inherit">

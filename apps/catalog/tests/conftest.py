@@ -39,7 +39,11 @@ def _settings_from_kwargs_only() -> Iterator[None]:
         aliased.update(c for c in choices if isinstance(c, str))
 
     saved = {k: os.environ.pop(k) for k in aliased if k in os.environ}
+    # Auth defaults to on, which requires a Keycloak server; this placeholder
+    # satisfies that check. Tests that exercise auth patch `validate_token`.
+    os.environ["KEYCLOAK_SERVER_URL"] = "http://keycloak.test"
     yield
+    os.environ.pop("KEYCLOAK_SERVER_URL", None)
     os.environ.update(saved)
 
 

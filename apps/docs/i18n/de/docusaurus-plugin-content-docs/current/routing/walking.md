@@ -1,4 +1,5 @@
 ---
+description: "Wie GOAT Fußwege berechnet: Overture-Maps-Netz, gefiltert auf Straßenklassen für Fußgänger, Kantenkosten als Länge durch Geschwindigkeit und Dijkstra-Suche."
 sidebar_position: 1
  
 ---
@@ -9,7 +10,7 @@ Das **Verkehrsmittel Zu Fuß**  wird für alle Analysen in GOAT verwendet, die z
  
 ## 1. Ziele
 
-Das Verkehrsmittel "Zu Fuß" wird für viele Indikatoren in GOAT verwendet, wie z.B. [Einzugsgebiete](../toolbox/accessibility_indicators/catchments "Dokumente der Einzugsgebiete"), [Heatmaps](../toolbox/accessibility_indicators/connectivity "Dokumente der Heatmaps"), das [Huff-Modell](../toolbox/accessibility_indicators/huff_model "Dokumente des Huff-Modells") und die [Reisekostenmatrix](../toolbox/accessibility_indicators/travel_cost_matrix "Dokumente der Reisekostenmatrix"). Für den Modus des Gehens wird ein **angepasster Routing-Algorithmus** verwendet, der dabei **nur Wege berücksichtigt, die für Fußgänger geeignet sind**. Die Gehgeschwindigkeit `Geschwindigkeit` kann vom Benutzer bei jeder Erreichbarkeitsanalyse angepasst werden. 
+Das Verkehrsmittel "Zu Fuß" wird für viele Indikatoren in GOAT verwendet, wie z.B. [Einzugsgebiete](../toolbox/accessibility_indicators/catchments "Dokumente der Einzugsgebiete"), [Heatmaps](../toolbox/accessibility_indicators/connectivity "Dokumente der Heatmaps"), das [Huff-Modell](../toolbox/accessibility_indicators/huff_model "Dokumente des Huff-Modells") und die [Reisekostenmatrix](../toolbox/accessibility_indicators/travel_cost_matrix "Dokumente der Reisekostenmatrix"). Für den Modus des Gehens wird ein **angepasster [Routing](https://www.plan4better.de/de/glossar/routing)-Algorithmus** verwendet, der dabei **nur Wege berücksichtigt, die für Fußgänger geeignet sind**. Die Gehgeschwindigkeit `Geschwindigkeit` kann vom Benutzer bei jeder [Erreichbarkeitsanalyse](https://www.plan4better.de/de/glossar/erreichbarkeitsanalyse) angepasst werden. 
 
 ## 2. Daten
 
@@ -24,7 +25,7 @@ Die Daten der **[Overture Maps Foundation](https://overturemaps.org/)** werden i
 Die folgenden Schritte werden an den Daten durchgeführt, um **schnelles** und **genaues** Gehen zu ermöglichen:
 
  1. **Attribut-Parsing:** Kategorisierung der Attribute der Kanten (Straßen `Klasse`).
- 2. **Geospatial Indexing:**  Nutzung des **[Uber H3 auf Gitter basierend](../further_reading/glossary#h3-grid)** Indexing für effizientes Routing.
+ 2. **Geospatial Indexing:**  Nutzung des **[Uber H3 auf Gitter basierend](https://www.plan4better.de/de/glossar/h3-gitter)** Indexing für effizientes Routing.
 
 ### Routing-Prozess-Schritte
 
@@ -56,7 +57,7 @@ Um den kürzesten Weg vom Ausgangspunkt zu verschiedenen Zielen zu berechnen, wi
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <Video src={require('/img/routing/walk/dijkstra.mp4').default}  alt="Dijkstra Algorithm" style={{ width: "auto", height: "auto", objectFit: "cover"}}/>
-<p style={{ textAlign: 'center' }}>GIF: <a href="https://de.wikipedia.org/wiki/Dijkstra-Algorithmus">Dijkstra Algorithm</a></p>
+<p style={{ textAlign: 'center' }}><a href="https://de.wikipedia.org/wiki/Dijkstra-Algorithmus">Dijkstra Algorithm</a></p>
 </div>
 
 Die Implementierung hat eine Zeitkomplexität von *O(ElogV)*, ist in **Python** geschrieben und verwendet den Just-in-Time-Compiler **Numba**.

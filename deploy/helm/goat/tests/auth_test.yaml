@@ -1,0 +1,588 @@
+suite: auth — one global switch, per-service overrides
+# Chart 0.5.0 set AUTH for core, web and catalog only; geoapi and processes
+# fell back to their code default (AUTH on, validating against
+# plan4better's own dev Keycloak), so a bare install ran mixed auth and every
+# geoapi write / processes job route answered 401. These tests pin the fix:
+# every service always gets an explicit AUTH, all five follow global.auth,
+# and a per-service value (auth block, config or extraEnv) wins.
+#
+# ConfigMap keys rendered twice would make the document unparseable
+# (helm-unittest's yaml.v3 decoder rejects duplicate mapping keys), so any
+# `equal` on a ConfigMap key below also proves it is rendered exactly once.
+# Env entries are counted with `contains ... any: true, count: 1`.
+templates:
+  - core/configmap.yaml
+  - core/deployment.yaml
+  - web/configmap.yaml
+  - web/deployment.yaml
+  - geoapi/configmap.yaml
+  - geoapi/deployment.yaml
+  - processes/configmap.yaml
+  - processes/deployment.yaml
+  - catalog/configmap.yaml
+  - catalog/deployment.yaml
+set:
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+tests:
+  # ── Bug 1: bare defaults ───────────────────────────────────────────────
+  - it: bare defaults render AUTH "false" for every service (none falls back to its code default)
+    asserts:
+      - template: core/configmap.yaml
+        equal:
+          path: data.AUTH
+          value: "false"
+      - template: web/configmap.yaml
+        equal:
+          path: data.AUTH
+          value: "false"
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "false"
+          count: 1
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "false"
+          count: 1
+      - template: catalog/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "false"
+          count: 1
+      # Auth off needs no Keycloak at all — nothing points at one.
+      - template: geoapi/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+          any: true
+      - template: geoapi/configmap.yaml
+        notExists:
+          path: data.KEYCLOAK_SERVER_URL
+      - template: processes/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+          any: true
+      - template: processes/configmap.yaml
+        notExists:
+          path: data.AUTH
+
+  # ── One switch ─────────────────────────────────────────────────────────
+  - it: global.auth on + existingSecret turns auth on for all five, geoapi/processes read Keycloak from the Secret
+    set:
+      global.auth.enabled: true
+      global.auth.existingSecret: kc
+    asserts:
+      # core: AUTH in env (not the ConfigMap), Keycloak from `kc`,
+      # placeholders dropped from the ConfigMap.
+      - template: core/configmap.yaml
+        notExists:
+          path: data.AUTH
+      - template: core/configmap.yaml
+        notExists:
+          path: data.KEYCLOAK_SERVER_URL
+      - template: core/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+          count: 1
+      - template: core/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: client-secret
+      # web
+      - template: web/configmap.yaml
+        notExists:
+          path: data.AUTH
+      - template: web/configmap.yaml
+        notExists:
+          path: data.NEXT_PUBLIC_AUTH
+      - template: web/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+          count: 1
+      - template: web/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NEXTAUTH_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: nextauth-secret
+      # geoapi
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+          count: 1
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: server-url
+          count: 1
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: realm
+          count: 1
+      # processes
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+          count: 1
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: server-url
+          count: 1
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: realm
+          count: 1
+      # catalog
+      - template: catalog/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+          count: 1
+      - template: catalog/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: realm
+      - template: catalog/configmap.yaml
+        notExists:
+          path: data.KEYCLOAK_SERVER_URL
+
+  - it: global.auth.existingSecretKeys renames keys for every service
+    set:
+      global.auth.enabled: true
+      global.auth.existingSecret: kc
+      global.auth.existingSecretKeys.serverUrl: url
+      global.auth.existingSecretKeys.realm: realm-name
+    asserts:
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: url
+      - template: core/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: realm-name
+      - template: web/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL_RAW
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: url
+
+  # ── Per-service overrides win, both directions ─────────────────────────
+  - it: global on + geoapi.auth.enabled false turns geoapi alone off (explicit false is not lost to the global true)
+    set:
+      global.auth.enabled: true
+      global.auth.existingSecret: kc
+      geoapi.auth.enabled: false
+      core.auth.enabled: false
+    asserts:
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "false"
+          count: 1
+      - template: geoapi/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+          any: true
+      - template: core/configmap.yaml
+        equal:
+          path: data.AUTH
+          value: "false"
+      - template: core/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+          any: true
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+          count: 1
+
+  - it: global off + core.auth.enabled true turns core alone on
+    set:
+      core.auth.enabled: true
+      core.auth.existingSecret: core-kc
+    asserts:
+      - template: core/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+          count: 1
+      - template: core/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: core-kc
+                key: server-url
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "false"
+          count: 1
+      - template: web/configmap.yaml
+        equal:
+          path: data.AUTH
+          value: "false"
+
+  - it: a per-service existingSecret and key name win over global's
+    set:
+      global.auth.enabled: true
+      global.auth.existingSecret: kc
+      processes.auth.existingSecret: processes-kc
+      processes.auth.existingSecretKeys.realm: processes-realm
+    asserts:
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+            valueFrom:
+              secretKeyRef:
+                name: processes-kc
+                key: processes-realm
+      # unset key name still inherits (global, then the built-in name)
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: processes-kc
+                key: server-url
+      # the other services keep the global Secret
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+            valueFrom:
+              secretKeyRef:
+                name: kc
+                key: realm
+
+  # ── Auth on without a Secret: non-secret fallback from core.config ─────
+  - it: auth on without a Secret takes Keycloak for geoapi/processes from core.config
+    set:
+      global.auth.enabled: true
+      core.config.KEYCLOAK_SERVER_URL: https://idm.example.com
+      core.config.REALM_NAME: goat
+    asserts:
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            value: https://idm.example.com
+          count: 1
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+            value: goat
+          count: 1
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            value: https://idm.example.com
+          count: 1
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+          count: 1
+      # core / web / catalog unchanged in this mode: AUTH in the ConfigMap
+      # (core, web), Keycloak from core.config.
+      - template: core/configmap.yaml
+        equal:
+          path: data.AUTH
+          value: "true"
+      - template: core/configmap.yaml
+        equal:
+          path: data.KEYCLOAK_SERVER_URL
+          value: https://idm.example.com
+      - template: web/configmap.yaml
+        equal:
+          path: data.AUTH
+          value: "true"
+      - template: catalog/configmap.yaml
+        equal:
+          path: data.KEYCLOAK_SERVER_URL
+          value: https://idm.example.com
+      - template: catalog/configmap.yaml
+        equal:
+          path: data.REALM_NAME
+          value: goat
+
+  - it: auth on without a Secret and no core.config.REALM_NAME emits no REALM_NAME
+    set:
+      geoapi.auth.enabled: true
+    asserts:
+      - template: geoapi/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+          any: true
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            value: http://placeholder-keycloak
+
+  # ── Explicit <svc>.config / extraEnv wins, rendered exactly once ───────
+  - it: civitas shape — AUTH + Keycloak set in geoapi.config/processes.config render once, with those values
+    set:
+      geoapi.config.AUTH: "true"
+      geoapi.config.KEYCLOAK_SERVER_URL: https://idm.civitas.test
+      geoapi.config.REALM_NAME: cc-loc
+      processes.config.AUTH: "true"
+      processes.config.KEYCLOAK_SERVER_URL: https://idm.civitas.test
+      processes.config.REALM_NAME: cc-loc
+    asserts:
+      - template: geoapi/configmap.yaml
+        equal:
+          path: data.AUTH
+          value: "true"
+      - template: geoapi/configmap.yaml
+        equal:
+          path: data.KEYCLOAK_SERVER_URL
+          value: https://idm.civitas.test
+      - template: geoapi/configmap.yaml
+        equal:
+          path: data.REALM_NAME
+          value: cc-loc
+      - template: geoapi/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+          any: true
+      - template: geoapi/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+          any: true
+      - template: geoapi/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+          any: true
+      - template: processes/configmap.yaml
+        equal:
+          path: data.AUTH
+          value: "true"
+      - template: processes/configmap.yaml
+        equal:
+          path: data.KEYCLOAK_SERVER_URL
+          value: https://idm.civitas.test
+      - template: processes/configmap.yaml
+        equal:
+          path: data.REALM_NAME
+          value: cc-loc
+      - template: processes/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+          any: true
+      - template: processes/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+          any: true
+
+  - it: civitas shape still wins once they also turn on global auth with a Secret
+    set:
+      global.auth.enabled: true
+      global.auth.existingSecret: kc
+      geoapi.config.AUTH: "true"
+      geoapi.config.KEYCLOAK_SERVER_URL: https://idm.civitas.test
+      geoapi.config.REALM_NAME: cc-loc
+    asserts:
+      - template: geoapi/configmap.yaml
+        equal:
+          path: data.KEYCLOAK_SERVER_URL
+          value: https://idm.civitas.test
+      - template: geoapi/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+          any: true
+      - template: geoapi/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+          any: true
+
+  - it: AUTH in extraEnv wins and is not emitted twice
+    set:
+      processes.extraEnv:
+        - name: AUTH
+          value: "true"
+      core.extraEnv:
+        - name: AUTH
+          value: "true"
+    asserts:
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+          any: true
+          count: 1
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+      - template: core/configmap.yaml
+        notExists:
+          path: data.AUTH
+
+  - it: AUTH in core.config / web.config is rendered once, with that value
+    set:
+      core.config.AUTH: "true"
+      web.config.AUTH: "true"
+    asserts:
+      - template: core/configmap.yaml
+        equal:
+          path: data.AUTH
+          value: "true"
+      - template: web/configmap.yaml
+        equal:
+          path: data.AUTH
+          value: "true"
+
+  - it: KEYCLOAK_SERVER_URL in catalog.config is rendered once, with that value
+    set:
+      catalog.config.KEYCLOAK_SERVER_URL: https://idm.catalog.test
+    asserts:
+      - template: catalog/configmap.yaml
+        equal:
+          path: data.KEYCLOAK_SERVER_URL
+          value: https://idm.catalog.test
+
+  - it: core wired to a Secret leaves a Keycloak key set in core.extraEnv to extraEnv
+    set:
+      core.auth.enabled: true
+      core.auth.existingSecret: kc
+      core.extraEnv:
+        - name: KEYCLOAK_SERVER_URL
+          value: https://idm.override.test
+    asserts:
+      - template: core/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+          any: true
+          count: 1
+      - template: core/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            value: https://idm.override.test

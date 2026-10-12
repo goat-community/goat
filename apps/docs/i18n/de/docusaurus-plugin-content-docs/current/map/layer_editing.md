@@ -1,4 +1,5 @@
 ---
+description: "Erstellen Sie Punkt-, Linien-, Polygon- oder Tabellen-Layer, bearbeiten Sie Features auf der Karte und Attribute in der Tabelle und ergänzen Sie Formelfelder."
 sidebar_position: 3
 ---
 
@@ -20,7 +21,7 @@ In GOAT können Sie **eigene Layer erstellen** und **Features direkt auf der Kar
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Im Schritt <b>Felder definieren</b> sehen Sie ein standardmäßiges <code>name</code>-Feld. Klicken Sie auf <code>+ Feld hinzufügen</code>, um weitere Felder hinzuzufügen. Geben Sie für jedes Feld einen <b>Feldnamen</b> ein und wählen Sie den <b>Feldtyp</b>: <code>Text</code> oder <code>Number</code>. Um ein Feld zu entfernen, klicken Sie auf das <code>—</code>-Symbol daneben. Klicken Sie auf <code>Layer erstellen</code>, wenn Sie fertig sind.</div>
+  <div class="content">Im Schritt <b>Felder definieren</b> sehen Sie ein standardmäßiges <code>name</code>-Feld. Klicken Sie auf <code>+ Feld hinzufügen</code>, um weitere Felder hinzuzufügen. Geben Sie für jedes Feld einen <b>Feldnamen</b> ein und wählen Sie den <b>Feldtyp</b>: <code>Text</code>, <code>Zahl</code>, <code>Datum</code>, <code>Boolesch</code>, <code>Laufende Nummer</code> oder <code>UUID (eindeutige Kennung)</code>. Felder vom Typ <code>Laufende Nummer</code> und <code>UUID (eindeutige Kennung)</code> befüllt GOAT für jedes neue Feature selbst (siehe <a href="../data/data_types">Feldtypen</a>); bei einer Laufenden Nummer legen Sie unter <code>Beginnt bei</code> die erste Nummer fest. Um ein Feld zu entfernen, klicken Sie auf das <code>—</code>-Symbol daneben. Klicken Sie auf <code>Layer erstellen</code>, wenn Sie fertig sind.</div>
 </div>
 
 ## Features bearbeiten
@@ -34,7 +35,7 @@ Sobald der Layer erstellt wurde, können Sie Features direkt auf der Karte hinzu
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Verwenden Sie die <strong>Bearbeitungsleiste</strong> am unteren Kartenrand: Klicken Sie auf <code>+</code>, um ein <strong>neues Feature hinzuzufügen</strong>, und klicken Sie auf die Karte, um die Geometrie zu zeichnen. Das Panel <b>Feature-Attribute</b> öffnet sich auf der rechten Seite — <strong>füllen Sie die Attributwerte</strong> aus und klicken Sie auf <code>Fertig</code>.</div>
+  <div class="content">Verwenden Sie die <strong>Bearbeitungsleiste</strong> am unteren Kartenrand: Klicken Sie auf <code>+</code>, um ein <strong>neues Feature hinzuzufügen</strong>, und klicken Sie auf die Karte, um die Geometrie zu zeichnen. Das Panel <b>Feature-Attribute</b> öffnet sich auf der rechten Seite. <strong>Füllen Sie die Attributwerte</strong> aus und klicken Sie auf <code>Fertig</code>.</div>
 </div>
 
 <div class="step">
@@ -53,7 +54,7 @@ Sobald der Layer erstellt wurde, können Sie Features direkt auf der Karte hinzu
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Klicken Sie in der Tabellen-Symbolleiste auf <code>Felder bearbeiten</code>, um den Dialog <b>Felder bearbeiten</b> zu öffnen, und klicken Sie dann auf <code>+ Feld hinzufügen</code>. Ein neues Feld wird der Liste hinzugefügt — wählen Sie rechts seinen <b>Feldtyp</b> (<code>Text</code>, <code>Number</code>, <code>Date</code>, <code>Boolean</code> oder <code>Formula</code>, ein berechnetes Feld, siehe <a href="#formelfelder">Formelfelder</a> unten) und benennen Sie das Feld in der Liste um. Um ein Feld zu entfernen, klicken Sie auf das <code>—</code>-Symbol daneben. Klicken Sie auf <code>Speichern</code>, wenn Sie fertig sind.</div>
+  <div class="content">Klicken Sie in der Tabellen-Symbolleiste auf <code>Felder bearbeiten</code>, um den Dialog <b>Felder bearbeiten</b> zu öffnen, und klicken Sie dann auf <code>+ Feld hinzufügen</code>. Ein neues Feld wird der Liste hinzugefügt. Wählen Sie rechts seinen <b>Feldtyp</b> (<code>Text</code>, <code>Zahl</code>, <code>Datum</code>, <code>Boolesch</code>, <code>Laufende Nummer</code>, <code>UUID (eindeutige Kennung)</code> oder <code>Formel</code>, ein berechnetes Feld, siehe <a href="#formelfelder">Formelfelder</a> unten). Ein neues Feld vom Typ <code>Laufende Nummer</code> oder <code>UUID (eindeutige Kennung)</code> wird beim Speichern für alle vorhandenen Features befüllt und benennen Sie das Feld in der Liste um. Um ein Feld zu entfernen, klicken Sie auf das <code>—</code>-Symbol daneben. Klicken Sie auf <code>Speichern</code>, wenn Sie fertig sind.</div>
 </div>
 
 <div class="step">
@@ -63,7 +64,7 @@ Sobald der Layer erstellt wurde, können Sie Features direkt auf der Karte hinzu
 
 ### Formelfelder
 
-Der Wert eines <b>Formula</b>-Felds wird aus einem Ausdruck berechnet, den Sie schreiben — ähnlich wie eine Formelspalte in einer Tabellenkalkulation. Der Ausdruck kann Ihre anderen Felder referenzieren — teilen Sie zum Beispiel die Bevölkerung durch die Fläche, um die Dichte zu erhalten — oder Textfelder zusammenführen. Das Ergebnis wird auf jedes Feature im Layer angewendet.
+Der Wert eines <b>Formula</b>-Felds wird aus einem Ausdruck berechnet, den Sie schreiben, ähnlich wie eine Formelspalte in einer Tabellenkalkulation. Der Ausdruck kann Ihre anderen Felder referenzieren (teilen Sie zum Beispiel die Bevölkerung durch die Fläche, um die Dichte zu erhalten) oder Textfelder zusammenführen. Das Ergebnis wird auf jedes Feature im Layer angewendet.
 
 <div class="step">
   <div class="step-number">1</div>
@@ -82,10 +83,10 @@ Der Wert eines <b>Formula</b>-Felds wird aus einem Ausdruck berechnet, den Sie s
 
 **Beispiele:**
 
-- <code>"population" / "area_km2"</code> — Bevölkerungsdichte
-- <code>round("population" / "area_km2", 1)</code> — Dichte auf eine Nachkommastelle gerundet
-- <code>concat_ws(', ', "city", "country")</code> — Textfelder zusammenführen (z. B. `Berlin, Germany`)
-- <code>if("population" &gt; 100000, 'large', 'small')</code> — nach einem Schwellenwert klassifizieren
+- <code>"population" / "area_km2"</code>: Bevölkerungsdichte
+- <code>round("population" / "area_km2", 1)</code>: Dichte auf eine Nachkommastelle gerundet
+- <code>concat_ws(', ', "city", "country")</code>: Textfelder zusammenführen (z. B. `Berlin, Germany`)
+- <code>if("population" &gt; 100000, 'large', 'small')</code>: nach einem Schwellenwert klassifizieren
 
 :::info
 Die Werte einer Formel werden automatisch aktualisiert, wenn sich die referenzierten Felder ändern. Eine Formel muss einen Zahlen-, Text-, Wahr/Falsch- oder Datumswert ergeben. Formelfelder sind nur für bereits vorhandene Layer verfügbar.

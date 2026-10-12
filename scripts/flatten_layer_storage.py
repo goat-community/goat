@@ -39,6 +39,27 @@ outside DuckLake's snapshot machinery. geoapi readers pinned to an older
 snapshot will keep resolving old paths until they refresh, so drain or restart
 them too.
 
+Running it (only installs that still hold pre-v3 `user_<uid>` directories need
+it at all; reads resolve each table's schema from the catalog, so the old
+layout keeps working and the move can have its own window):
+  * Deploy the goatlib with the flat layout to geoapi AND every worker before
+    --apply, in the same window. A worker on older code computes
+    `lake.user_<uid>.t_<layer>` for moved tables and every tool run fails.
+  * Check the --dry-run preflight ("N/M catalog tables have files under
+    <dir>"). A low share means the wrong lake: DATA_DIR and DUCKLAKE_DATA_DIR
+    are different settings and may be different filesystems. --apply refuses
+    below 50%.
+  * Keep the --archive on the lake's filesystem for the hard-linked default.
+  * A partial run is not a broken state: moved tables answer from `main`, the
+    rest from their old schema. Re-run to finish.
+  * Afterwards restart geoapi (it caches layer -> schema) and the workers, and
+    verify with a query that reads files,
+    `SELECT count(*) FROM (SELECT * FROM lake.main."t_<id>")`: a bare
+    count(*) is answered from catalog metadata and stays green on a table
+    whose files were left behind.
+  * Rollback: restore the catalog dump from the archive, then move each
+    inventory.json `dst` back to its `src`.
+
 Usage:
     python scripts/flatten_layer_storage.py --dry-run
     python scripts/flatten_layer_storage.py --archive /backup/pre-flatten

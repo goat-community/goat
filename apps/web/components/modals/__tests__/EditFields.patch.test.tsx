@@ -128,3 +128,39 @@ describe("EditFields save", () => {
     expect(patchColumnMock).not.toHaveBeenCalled();
   });
 });
+
+describe("EditFields adding a generated field", () => {
+  beforeEach(() => {
+    addColumnMock.mockReset();
+    addColumnMock.mockResolvedValue({});
+  });
+
+  it("sends a serial field with its start, and a uuid field without one", async () => {
+    edit = (fields) => [
+      ...fields,
+      {
+        id: "new-1",
+        name: "vorhaben_id",
+        kind: "serial",
+        is_computed: false,
+        display_config: {},
+        start: 1000,
+      },
+      { id: "new-2", name: "uid", kind: "uuid", is_computed: false, display_config: {} },
+    ];
+    render(<EditFields open onClose={() => {}} layerId="layer-1" />);
+
+    applyEdit();
+    save();
+    await vi.waitFor(() => expect(addColumnMock).toHaveBeenCalledTimes(2));
+
+    expect(addColumnMock.mock.calls[0]).toEqual([
+      "layer-1",
+      { name: "vorhaben_id", kind: "serial", display_config: {}, start: 1000 },
+    ]);
+    expect(addColumnMock.mock.calls[1]).toEqual([
+      "layer-1",
+      { name: "uid", kind: "uuid", display_config: {} },
+    ]);
+  });
+});

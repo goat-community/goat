@@ -1,4 +1,5 @@
 ---
+description: "Wandeln Sie Adressen eines Layers mit Pelias in Punkte um, aus einer Spalte mit vollständiger Adresse oder aus Feldern für Straße, Postleitzahl, Stadt und Land."
 sidebar_position: 5
 ---
 import Tabs from '@theme/Tabs';
@@ -36,7 +37,8 @@ Geokodierung ist der Prozess der **Umwandlung von Adressen (wie "Agnes-Pockels-B
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Wählen Sie den Eingabemodus für Ihre Adressen:
+  <div class="content">
+  Wählen Sie den Eingabemodus für Ihre Adressen:
     <ul>
       <li><code>Vollständige Adresse:</code> Verwenden Sie dies, wenn Sie eine einzelne Spalte mit vollständigen Adressen haben (z.B. "Marienplatz 1, München, Deutschland")</li>
       <li><code>Strukturiert:</code> Verwenden Sie dies, wenn Ihre Adresskomponenten in separaten Spalten stehen (Straße, Stadt, Postleitzahl, etc.)</li>
@@ -46,7 +48,8 @@ Geokodierung ist der Prozess der **Umwandlung von Adressen (wie "Agnes-Pockels-B
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Konfigurieren Sie die Adresszuordnung basierend auf Ihrem gewählten Eingabemodus:
+  <div class="content">
+  Konfigurieren Sie die Adresszuordnung basierend auf Ihrem gewählten Eingabemodus:
 
 <Tabs>
   <TabItem value="full-address" label="Vollständige Adresse" default>

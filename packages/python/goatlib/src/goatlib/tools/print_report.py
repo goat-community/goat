@@ -29,6 +29,7 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from goatlib.config.print import print_base_url
 from goatlib.config.settings import settings
 from goatlib.tools.base import SimpleToolRunner
 from goatlib.tools.schemas import ToolInputBase
@@ -350,6 +351,9 @@ class PrintReportRunner(SimpleToolRunner):
         if self._browser is None:
             from playwright.async_api import async_playwright
 
+            from goatlib.utils.browser_trust import ensure_extra_ca_trusted
+
+            ensure_extra_ca_trusted()
             self._playwright = await async_playwright().start()
             self._browser = await self._playwright.chromium.launch(
                 headless=True,
@@ -425,8 +429,7 @@ class PrintReportRunner(SimpleToolRunner):
         self: Self, params: PrintReportParams, page_index: int | None = None
     ) -> str:
         """Build the report preview URL."""
-        # Get base URL from environment (set via Windmill workspace env vars)
-        base_url = os.environ.get("PRINT_BASE_URL", "http://goat-web:3000")
+        base_url = print_base_url()
 
         # Use the public /print route that doesn't require authentication
         url = f"{base_url}/print/{params.project_id}/{params.layout_id}"
@@ -494,7 +497,7 @@ class PrintReportRunner(SimpleToolRunner):
 
         try:
             # First navigate to the base URL to set localStorage for auth token
-            base_url = os.environ.get("PRINT_BASE_URL", "http://localhost:3000")
+            base_url = print_base_url()
             logger.info(f"Navigating to base URL first: {base_url}/print")
             await page.goto(
                 f"{base_url}/print", wait_until="domcontentloaded", timeout=10000

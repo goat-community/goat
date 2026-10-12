@@ -172,7 +172,7 @@ const MembersTable = ({
             onChange={handleSearchFilter}
           />
         </Stack>
-        <Table sx={{ minWidth: 650 }} aria-label="members table">
+        <Table sx={{ minWidth: 650 }} aria-label={t("members_table")}>
           <TableHead>
             <TableRow>
               <TableCell />
@@ -254,7 +254,7 @@ const MembersTable = ({
                       <MoreMenu
                         menuItems={activeMemberMoreMenuOptions}
                         menuButton={
-                          <IconButton size="medium">
+                          <IconButton size="medium" aria-label={t("more_options")}>
                             <Icon iconName={ICON_NAME.MORE_VERT} fontSize="small" />
                           </IconButton>
                         }
@@ -274,7 +274,7 @@ const MembersTable = ({
                     <MoreMenu
                       menuItems={pendingInvitationMoreMenuOptions}
                       menuButton={
-                        <IconButton size="medium" disabled={isBusy}>
+                        <IconButton size="medium" disabled={isBusy} aria-label={t("more_options")}>
                           <Icon iconName={ICON_NAME.MORE_VERT} fontSize="small" />
                         </IconButton>
                       }

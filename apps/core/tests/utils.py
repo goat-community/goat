@@ -41,18 +41,22 @@ def make_organization(**overrides) -> Organization:
     return Organization(**values)
 
 
+#: Canonical target the custom-domain tests run with.
+TEST_CNAME_TARGET = "cname.goat.plan4better.de"
+
+
 def fake_dns_resolve(cname=(), base_a=(), canonical_a=("203.0.113.10",)):
     """Fake for ``core.services.domain_reconciliation._resolve(domain, rdtype)``.
 
     CNAME lookups return ``cname``. A lookups return ``canonical_a`` for the
-    canonical target (so the apex fallback can proceed) and ``base_a`` for the
-    customer's own domain.
+    canonical target ``TEST_CNAME_TARGET`` (so the apex fallback can proceed)
+    and ``base_a`` for the customer's own domain.
     """
 
     async def resolve(domain: str, rdtype: str) -> list[str]:
         if rdtype == "CNAME":
             return list(cname)
-        if domain == settings.CUSTOM_DOMAIN_CNAME_TARGET:
+        if domain == TEST_CNAME_TARGET:
             return list(canonical_a)
         return list(base_a)
 

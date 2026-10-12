@@ -7,7 +7,8 @@ Two callers, two query-param names on the lookup:
 
 Must NOT require authentication and must be cheap to call (single indexed
 JOIN). Returns 404 when the host is unknown, inactive, or not assigned to
-a published project.
+a published project, and for every host while custom domains are off
+(``CUSTOM_DOMAIN_CNAME_TARGET`` empty).
 """
 
 from typing import Any, Dict, Optional
@@ -43,7 +44,11 @@ async def custom_domain_config() -> Dict[str, Any]:
     the UI in sync with whatever ``cname.goat.plan4better.de`` resolves to
     today, so an LB migration only needs the canonical record updated — no
     code or config redeploy.
+
+    With custom domains off the target is empty and nothing is resolved.
     """
+    if not settings.custom_domains_enabled:
+        return {"cname_target": "", "apex_ipv4": None}
     target = settings.CUSTOM_DOMAIN_CNAME_TARGET
     apex_ipv4: Optional[str] = None
     try:
@@ -87,6 +92,11 @@ async def custom_domain_lookup(
             detail="missing 'host' or 'domain' query parameter",
         )
     host = raw.strip().lower()
+    if not settings.custom_domains_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="custom domains are not enabled",
+        )
 
     result = await async_session.execute(
         select(ProjectPublic.project_id)

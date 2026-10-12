@@ -197,6 +197,7 @@ const ContentCard = ({
           <Typography
             component="div"
             noWrap
+            title={item.name}
             sx={{
               flex: 1,
               minWidth: 0,

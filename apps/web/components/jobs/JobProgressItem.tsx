@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
+import { useDateFnsLocale } from "@/i18n/utils";
+
 import type { JobStatusType, JobType } from "@/lib/api/processes";
 
 import { OverflowTypograpy } from "@/components/common/OverflowTypography";
@@ -16,9 +18,13 @@ interface JobProgressItemProps {
   status: JobStatusType;
   errorMessage?: string;
   name: string;
+  /** What the row says the job is; the tool's label when not given. */
+  label?: string;
   date: string;
   /** Optional custom action button to replace the default status icon */
   actionButton?: ReactNode;
+  /** The measures of a header popover row (jobs popover) instead of the side panels' list item. */
+  inPopover?: boolean;
 }
 
 // OGC status to icon mapping
@@ -33,7 +39,8 @@ const statusIcons: Record<JobStatusType, ICON_NAME> = {
 export default function JobProgressItem(props: JobProgressItemProps) {
   const { t } = useTranslation("common");
   const theme = useTheme();
-  const { type, status, name, date } = props;
+  const dateLocale = useDateFnsLocale();
+  const { type, status, name, label, date, inPopover } = props;
   const [showDetails, setShowDetails] = useState(false);
 
   // OGC status to color mapping
@@ -57,12 +64,16 @@ export default function JobProgressItem(props: JobProgressItemProps) {
     <Box
       display="flex"
       alignItems="center"
-      sx={{
-        width: "100%",
-        pl: 4,
-        pr: 2,
-        py: 1,
-      }}
+      sx={
+        inPopover
+          ? { width: "100%", p: "9px 10px", borderRadius: "8px" }
+          : {
+              width: "100%",
+              pl: 4,
+              pr: 2,
+              py: 1,
+            }
+      }
       aria-label={name}
       role="job_item">
       <Box flexGrow={1} flexShrink={1} flexBasis="100%" sx={{ mr: 2 }} width="0">
@@ -71,13 +82,13 @@ export default function JobProgressItem(props: JobProgressItemProps) {
             <OverflowTypograpy
               variant="body2"
               fontWeight="bold"
+              {...(inPopover ? { sx: { fontSize: 13.5, fontWeight: 600 } } : {})}
               tooltipProps={{
                 placement: "top",
                 arrow: true,
               }}>
               <>
-                {t(type)} -{" "}
-                {format(parseISO(date), "hh:mma dd/MM/yyyy").replace("PM", " PM").replace("AM", " AM")}
+                {label ?? t(type)} - {format(parseISO(date), "Pp", { locale: dateLocale })}
               </>
             </OverflowTypograpy>
           </Box>
@@ -96,7 +107,12 @@ export default function JobProgressItem(props: JobProgressItemProps) {
             }}
           />
           <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="caption" fontWeight="bold">
+            <Typography
+              variant="caption"
+              fontWeight="bold"
+              {...(inPopover
+                ? { sx: { fontSize: 11.5, fontWeight: 400, color: theme.palette.text.secondary } }
+                : {})}>
               {t(statusTextMap[status])}
             </Typography>
             {props.errorMessage && (

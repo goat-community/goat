@@ -1,0 +1,150 @@
+{{- if .Values.processes.enabled -}}
+{{- $component := "processes" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ .Values.processes.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "goat.serviceSelectorLabels" $ctx | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" $ctx | nindent 8 }}
+        {{- with .Values.processes.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.processes.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.processes.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.ducklakeBootstrap.enabled }}
+      initContainers:
+        {{- include "goat.ducklakeInit.container" (dict "context" $ "component" $component "values" .Values.processes) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: processes
+          image: {{ include "goat.image" (dict "image" .Values.processes.image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ .Values.processes.image.pullPolicy }}
+          {{- with .Values.processes.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.processes.service.targetPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "goat.serviceFullname" $ctx }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.postgresql.secretName" . }}
+                  key: {{ include "goat.postgresql.userKey" . }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.postgresql.secretName" . }}
+                  key: {{ include "goat.postgresql.passwordKey" . }}
+            {{- /*
+            Auto-wire processes → windmill when both are enabled in the same
+            release. WINDMILL_URL points at the in-cluster Service;
+            WINDMILL_WORKSPACE matches what the bootstrap hook creates;
+            WINDMILL_TOKEN is the API token the bootstrap hook writes to a
+            K8s Secret (optional:true: on a fresh install processes is up
+            before that post-install hook runs, so the hook restarts this
+            Deployment once it has written a new token — see
+            windmill/bootstrap-script-configmap.yaml).
+            Disable with `processes.windmillAutoWire: false` if you wire
+            these yourself via `processes.extraEnv`.
+            */}}
+            {{- if include "goat.processes.windmillAutoWire" . }}
+            - name: WINDMILL_URL
+              value: "http://{{ include "goat.fullname" . }}-windmill-server"
+            - name: WINDMILL_WORKSPACE
+              value: {{ .Values.windmill.bootstrap.workspace | default "goat" | quote }}
+            {{- if .Values.windmill.bootstrap.enabled }}
+            - name: WINDMILL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-windmill-token" (include "goat.fullname" .)) .Values.windmill.bootstrap.tokenSecret.name }}
+                  key: {{ default "token" .Values.windmill.bootstrap.tokenSecret.key }}
+                  optional: true
+            {{- end }}
+            {{- end }}
+            {{- /* AUTH is always set explicitly: the processes code defaults to AUTH on,
+                   against plan4better's own Keycloak. When auth is on, the
+                   Keycloak URL + realm come from the Secret, else from
+                   core.config. See goat.auth.backendEnv. */}}
+            {{- include "goat.auth.backendEnv" (dict "values" .Values.processes "root" $ "fallback" true) | trim | nindent 12 }}
+            {{- include "goat.s3.env" (dict "root" $ "values" .Values.processes "assets" false) | trim | nindent 12 }}
+            {{- with .Values.processes.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.processes.livenessProbe.enabled }}
+          livenessProbe:
+            {{- $lp := omit .Values.processes.livenessProbe "enabled" }}
+            {{- toYaml $lp | nindent 12 }}
+          {{- end }}
+          {{- if .Values.processes.readinessProbe.enabled }}
+          readinessProbe:
+            {{- $rp := omit .Values.processes.readinessProbe "enabled" }}
+            {{- toYaml $rp | nindent 12 }}
+          {{- end }}
+          {{- with .Values.processes.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.data.enabled .Values.processes.extraVolumeMounts }}
+          volumeMounts:
+            {{- if .Values.data.enabled }}
+            {{- include "goat.data.mounts.full" . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.processes.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+      {{- if or .Values.data.enabled .Values.processes.extraVolumes }}
+      volumes:
+        {{- if .Values.data.enabled }}
+        {{- include "goat.data.volume" . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.processes.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.processes.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.processes.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.processes.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

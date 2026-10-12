@@ -90,7 +90,6 @@ packages/cpp/nigiri/
 apps/core/data/*
 python_modules/
 # Rust packages (experimental)
-packages/rust/fast-routing/target/
 packages/python/goatlib/tests/result/*
 !packages/python/goatlib/tests/result/.gitkeep
 # Test
@@ -114,3 +113,8 @@ base_networks/*
 .ds-sync/
 ds-bundle/
 .design-sync
+# Helm chart: written by `helm dependency update`
+deploy/helm/goat/Chart.lock
+
+# Playwright: provisioned e2e users and their saved sessions
+apps/web/playwright/.auth/

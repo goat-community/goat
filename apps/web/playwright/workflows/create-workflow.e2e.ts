@@ -1,6 +1,13 @@
-import { expect, test } from "@playwright/test";
+import { type Page, expect, test } from "@playwright/test";
 
 import { deleteContentItem } from "../fixtures/content";
+
+/** The Workflows panel's "New" button opens a menu; "From scratch" creates
+ * an empty workflow and opens its canvas. */
+const newWorkflow = async (page: Page) => {
+  await page.getByRole("button", { name: "New", exact: true }).click();
+  await page.getByRole("menuitem", { name: "From scratch" }).click();
+};
 
 test.describe("Workflow Management", () => {
   // Set by beforeEach, read by afterEach — safe as a describe-scoped
@@ -14,13 +21,13 @@ test.describe("Workflow Management", () => {
     // behind its "Add new" menu instead.
     await page.goto("/content");
     await page.getByRole("button", { name: "Add new" }).click();
-    await page.getByRole("menuitem", { name: "New Project" }).click();
-    await expect(page.getByRole("heading", { name: "New Project" })).toBeVisible();
+    await page.getByRole("menuitem", { name: "Blank project" }).click();
+    await expect(page.getByRole("dialog").getByText("New project", { exact: true })).toBeVisible();
 
     // The dialog asks for a name and nothing else — the destination is the
     // folder being browsed.
     projectName = `E2E Workflow Test ${Date.now()}`;
-    await page.getByLabel("New Project").fill(projectName);
+    await page.getByLabel("New project").fill(projectName);
     await page.getByRole("button", { name: "Create project" }).click();
 
     await expect(page).toHaveURL(/\/map\//, { timeout: 30000 });
@@ -36,10 +43,9 @@ test.describe("Workflow Management", () => {
 
     // Should see workflows panel
     await expect(page.getByRole("heading", { name: "Workflows" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Add Workflow" })).toBeVisible();
 
-    // Create a new workflow
-    await page.getByRole("button", { name: "Add Workflow" }).click();
+    // Create a new workflow: "New" opens a menu, "From scratch" starts empty.
+    await newWorkflow(page);
 
     // Should see the workflow canvas with toolbar
     await expect(page.getByRole("button", { name: "Run" })).toBeVisible({ timeout: 5000 });
@@ -52,79 +58,114 @@ test.describe("Workflow Management", () => {
     await expect(page.getByText("Accessibility Indicators")).toBeVisible();
   });
 
-  // Skip: ReactFlow drag-and-drop uses a ref (dragDataRef) set by React's onDragStart
-  // which doesn't trigger from synthetic DOM DragEvents. Use codegen/manual recording instead.
-  test.skip("add tool nodes to workflow via drag and drop", async ({ page }) => {
+  test("add a tool node by dragging it onto the canvas", async ({ page }) => {
     await page.getByText("Workflows").click();
-    await page.getByRole("button", { name: "Add Workflow" }).click();
+    await newWorkflow(page);
     await expect(page.getByRole("button", { name: "Run" })).toBeVisible({ timeout: 5000 });
 
-    // Get the canvas area and the source tool element
-    const canvas = page.locator(".react-flow");
-    await expect(canvas).toBeVisible();
-    const canvasBounds = await canvas.boundingBox();
-    expect(canvasBounds).toBeTruthy();
+    // A real pointer drag: the palette reads what is dragged in React's
+    // onDragStart, which synthetic DragEvents never reach.
+    await page.getByText("Buffer", { exact: true }).first().dragTo(page.locator(".react-flow__pane"));
+    await expect(page.locator(".react-flow__node").filter({ hasText: "Buffer" })).toBeVisible({
+      timeout: 10000,
+    });
+  });
 
-    const bufferTool = page.getByText("Buffer").first();
-    const toolBounds = await bufferTool.boundingBox();
-    expect(toolBounds).toBeTruthy();
+  test("a variable's label and description show where it is picked", async ({ page }) => {
+    const label = "Maximum grouping distance";
+    const description = "Largest distance between two points of one group, in metres.";
 
-    const startX = toolBounds!.x + toolBounds!.width / 2;
-    const startY = toolBounds!.y + toolBounds!.height / 2;
-    const endX = canvasBounds!.x + canvasBounds!.width / 2;
-    const endY = canvasBounds!.y + canvasBounds!.height / 2;
+    await page.getByText("Workflows").click();
+    await newWorkflow(page);
+    await expect(page.getByRole("button", { name: "Run" })).toBeVisible({ timeout: 5000 });
 
-    // ReactFlow requires custom dataTransfer data during drag/drop.
-    // We use page.evaluate to create proper DragEvent with DataTransfer.
-    await page.evaluate(
-      ({ sx, sy, ex, ey }) => {
-        const source = document.elementFromPoint(sx, sy);
-        const target = document.elementFromPoint(ex, ey);
-        if (!source || !target) return;
+    // Define the variable on one row: the technical name expressions use and
+    // the label users see. The help text goes in the popover behind the row's
+    // description button.
+    await page.getByRole("button", { name: "Variables" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Add Variable" }).click();
+    await dialog.getByRole("textbox", { name: "Name" }).fill("max_abstand_gruppierung");
+    await dialog.getByRole("textbox", { name: "Label" }).fill(label);
+    await dialog.getByRole("spinbutton", { name: "Default" }).fill("250");
+    await dialog.getByRole("button", { name: "Add description" }).click();
+    const descriptionField = page.getByRole("textbox", { name: "Description" });
+    await descriptionField.fill(description);
+    // A click beside the popover closes it and keeps the text.
+    await page.mouse.click(5, 5);
+    await expect(descriptionField).toBeHidden();
+    await dialog.getByRole("button", { name: "Done" }).click();
+    await expect(dialog).toBeHidden();
 
-        // Create a DataTransfer with the required data
-        const dt = new DataTransfer();
-        dt.setData("application/reactflow", "tool");
+    // Reopened, the dialog shows what was saved: the label in its column, the
+    // description behind a button that now offers to edit it.
+    await page.getByRole("button", { name: "Variables" }).click();
+    await expect(dialog.getByRole("textbox", { name: "Label" })).toHaveValue(label);
+    const editDescription = dialog.getByRole("button", { name: "Edit description" });
+    await editDescription.hover();
+    await expect(page.getByRole("tooltip")).toHaveText(description);
+    await editDescription.click();
+    await expect(descriptionField).toHaveValue(description);
+    // Escape leaves the popover without changing anything.
+    await descriptionField.fill("Not kept");
+    await page.keyboard.press("Escape");
+    await expect(descriptionField).toBeHidden();
+    await dialog.getByRole("button", { name: "Done" }).click();
+    await expect(dialog).toBeHidden();
 
-        // Dispatch dragstart on the tool
-        source.dispatchEvent(
-          new DragEvent("dragstart", { bubbles: true, dataTransfer: dt })
-        );
+    // A tool input's variable menu lists it by label, with the name to type
+    // beside it and the description on hover. Buffer's distances sit in its
+    // Configuration section, which stays disabled until the tool has an
+    // input layer, so a dataset node is connected to it first (an empty one
+    // is enough: the connection is what enables the section).
+    const pane = page.locator(".react-flow__pane");
+    await page
+      .getByText("Add dataset", { exact: true })
+      .first()
+      .dragTo(pane, { targetPosition: { x: 120, y: 150 } });
+    await page
+      .getByText("Buffer", { exact: true })
+      .first()
+      .dragTo(pane, { targetPosition: { x: 450, y: 150 } });
+    const buffer = page.locator(".react-flow__node").filter({ hasText: "Buffer" });
+    await expect(buffer).toBeVisible({ timeout: 10000 });
+    const dataset = page.locator(".react-flow__node").filter({ hasNotText: "Buffer" }).first();
+    await dataset.locator(".react-flow__handle.source").first().click();
+    await buffer.locator('.react-flow__handle.target[data-handleid="input_layer_id"]').click();
+    await expect(page.locator(".react-flow__edge")).toHaveCount(1);
+    await buffer.click();
+    await page.getByRole("button", { name: "Insert variable" }).first().click();
+    const item = page.getByRole("menuitem").filter({ hasText: label });
+    await expect(item).toContainText("{{@max_abstand_gruppierung}}");
+    await item.hover();
+    // Filtered: while the menu is open more than one tooltip is in the DOM.
+    await expect(page.getByRole("tooltip").filter({ hasText: description })).toHaveText(description);
 
-        // Dispatch dragover on the canvas
-        target.dispatchEvent(
-          new DragEvent("dragover", {
-            bubbles: true,
-            cancelable: true,
-            clientX: ex,
-            clientY: ey,
-            dataTransfer: dt,
-          })
-        );
+    // Picked, the field holds the reference and names the variable by label.
+    await item.click();
+    await expect(page.getByTestId("variable-reference-label")).toHaveText(label);
+  });
 
-        // Dispatch drop on the canvas
-        target.dispatchEvent(
-          new DragEvent("drop", {
-            bubbles: true,
-            cancelable: true,
-            clientX: ex,
-            clientY: ey,
-            dataTransfer: dt,
-          })
-        );
-      },
-      { sx: startX, sy: startY, ex: endX, ey: endY }
-    );
+  test("the canvas zooms out below React Flow's default limit", async ({ page }) => {
+    await page.getByText("Workflows").click();
+    await newWorkflow(page);
+    await expect(page.getByRole("button", { name: "Run" })).toBeVisible({ timeout: 5000 });
 
-    // Verify a Buffer node appeared on the canvas
-    await expect(
-      page.locator('[roledescription="node"]').filter({ hasText: "Buffer" })
-    ).toBeVisible({ timeout: 10000 });
+    // React Flow stops at 0.5 by default, too tight to see a large workflow
+    // as a whole; the canvas allows zooming out to 0.1.
+    const scale = async () =>
+      page
+        .locator(".react-flow__viewport")
+        .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a);
+    const zoomOut = page.getByRole("button", { name: "Zoom Out" });
+    for (let i = 0; i < 20; i++) await zoomOut.click();
+    await expect.poll(scale).toBeLessThan(0.5);
+    expect(await scale()).toBeGreaterThanOrEqual(0.1 - 1e-6);
   });
 
   test("tools panel search works", async ({ page }) => {
     await page.getByText("Workflows").click();
-    await page.getByRole("button", { name: "Add Workflow" }).click();
+    await newWorkflow(page);
     await expect(page.getByRole("button", { name: "Run" })).toBeVisible({ timeout: 5000 });
 
     // Search for a tool

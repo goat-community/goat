@@ -1,0 +1,3 @@
+# Certificate and key provided by the operator in ./certs
+tls /certs/cert.pem /certs/key.pem
+header Strict-Transport-Security "max-age=31536000"

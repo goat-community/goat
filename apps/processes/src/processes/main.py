@@ -28,6 +28,7 @@ from processes.ducklake import (
 )
 from processes.models import HealthCheck
 from processes.routers import processes_router, workflows_router
+from processes.services.access import close_pool as close_access_pool
 from processes.services.windmill_client import windmill_client
 
 # Configure logging
@@ -67,6 +68,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Cleanup
     logger.info("Shutting down Processes API...")
     await windmill_client.close()
+    await close_access_pool()
     ducklake_manager.close()
     preview_ducklake_manager.close()
     search_ducklake_manager.close()

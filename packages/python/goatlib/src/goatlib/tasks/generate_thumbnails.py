@@ -38,7 +38,6 @@ import io
 import json
 import logging
 import math
-import os
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -64,9 +63,16 @@ THUMBNAIL_DIR_PROJECT = "thumbnails/projects/"
 THUMBNAIL_DIR_LAYER = "thumbnails/layers/"
 THUMBNAIL_DIR_BUNDLE = "thumbnails/bundles/"
 
-# Default thumbnail for table layers with no data/columns
-DEFAULT_TABLE_THUMBNAIL_URL = (
-    "https://assets.plan4better.de/img/goat_new_dataset_thumbnail.png"
+# Default thumbnail for table layers with no data/columns: artwork the web app
+# ships, stored root-relative so it resolves on whichever host serves GOAT.
+DEFAULT_TABLE_THUMBNAIL_URL = "/assets/img/goat_new_dataset_thumbnail.png"
+# Every form the default is stored in; rows written with the hosted CDN URL
+# still carry the default.
+DEFAULT_TABLE_THUMBNAIL_URLS = frozenset(
+    {
+        DEFAULT_TABLE_THUMBNAIL_URL,
+        "https://assets.plan4better.de/img/goat_new_dataset_thumbnail.png",
+    }
 )
 
 # Default timeout for Playwright
@@ -359,6 +365,9 @@ class ThumbnailGeneratorTask:
         if self._browser is None:
             from playwright.async_api import async_playwright
 
+            from goatlib.utils.browser_trust import ensure_extra_ca_trusted
+
+            ensure_extra_ca_trusted()
             self._playwright = await async_playwright().start()
             self._browser = await self._playwright.chromium.launch(
                 headless=True,
@@ -1151,7 +1160,9 @@ class ThumbnailGeneratorTask:
         # default such a navigation came back 431 — the page never ran, so the
         # container this method waits for never existed. The page still reads
         # `?data=` when it is there, which keeps a URL pasteable by hand.
-        base_url = os.environ.get("PRINT_BASE_URL", "http://goat-web:3000")
+        from goatlib.config.print import print_base_url
+
+        base_url = print_base_url()
         data_param = self._build_thumbnail_data(item)
         url = f"{base_url}/thumbnail/{item.type}/{item.id}"
 
@@ -1623,7 +1634,7 @@ class ThumbnailGeneratorTask:
                 await self._update_thumbnail_url("layer", item.id, thumbnail_url)
 
                 # Delete old thumbnail if it was a custom one
-                if item.old_thumbnail_url != thumbnail_url:
+                if item.old_thumbnail_url not in DEFAULT_TABLE_THUMBNAIL_URLS:
                     self._delete_old_thumbnail(item.old_thumbnail_url, "layer")
 
                 logger.info(

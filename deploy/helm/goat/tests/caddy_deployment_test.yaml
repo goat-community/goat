@@ -1,0 +1,76 @@
+suite: caddy
+templates:
+  - caddy/deployment.yaml
+  - caddy/service.yaml
+  - caddy/configmap.yaml
+  - caddy/pvc.yaml
+tests:
+  - it: caddy disabled by default
+    set:
+      caddy.enabled: false
+    template: caddy/deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: deployment renders with TCP probes
+    set:
+      caddy.enabled: true
+    template: caddy/deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket.port
+          value: http
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: '^docker\.io/caddy:.*'
+
+  - it: service is LoadBalancer with http+https ports
+    set:
+      caddy.enabled: true
+    template: caddy/service.yaml
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+      - equal:
+          path: spec.ports[0].port
+          value: 80
+      - equal:
+          path: spec.ports[1].port
+          value: 443
+
+  - it: Caddyfile references default upstream when empty
+    set:
+      caddy.enabled: true
+    template: caddy/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["Caddyfile"]
+          pattern: "reverse_proxy http://RELEASE-NAME-goat-web:80"
+
+  - it: Caddyfile honors upstream override
+    set:
+      caddy.enabled: true
+      caddy.upstream.host: "external-web.example.com"
+      caddy.upstream.port: 8080
+    template: caddy/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["Caddyfile"]
+          pattern: "reverse_proxy http://external-web\\.example\\.com:8080"
+
+  - it: PVC created when persistence enabled + no existingClaim
+    set:
+      caddy.enabled: true
+    template: caddy/pvc.yaml
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: spec.resources.requests.storage
+          value: 1Gi

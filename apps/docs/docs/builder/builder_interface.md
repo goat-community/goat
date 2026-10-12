@@ -1,4 +1,5 @@
 ---
+description: "Build a dashboard by adding panels on any side of the map, setting their style, appearance, position and width, and dragging widgets into them from the sidebar."
 sidebar_position: 1
 ---
 
@@ -15,10 +16,10 @@ Switching to Dashboard mode opens the Dashboard Interface, where **you can desig
 
 The following controls are available on the dashboard map. Their position can be configured in [Settings](./settings).
 
-- **Location search** — search for an address or place and pan the map to it
-- **Zoom controls** — zoom in and out buttons
-- **Basemaps** — switch between available basemaps. See [Basemaps](../map/basemaps)
-- **Measurements** — measure distances, areas, and routes directly on the map. See [Measurements](../map/measurements)
+- **Location search**: search for an address or place and pan the map to it
+- **Zoom controls**: zoom in and out buttons
+- **Basemaps**: switch between available basemaps. See [Basemaps](../map/basemaps)
+- **Measurements**: measure distances, areas, and routes directly on the map. See [Measurements](../map/measurements)
 
 ## Panels
 
@@ -68,7 +69,7 @@ To delete a panel, click <code>Delete Panel</code> at the bottom of the settings
 
 ## Widgets
 
-**Widgets are the building blocks of your dashboard**. They let you display data, statistics, charts, and project elements—like text or images. Each widget is highly customizable: you can adjust its content, appearance, and behavior to fit your needs, whether you want to highlight key numbers, visualize trends, or add context with text and graphics.
+**Widgets are the building blocks of your dashboard**. They let you display data, statistics, charts, and project elements, like text or images. Each widget is highly customizable: you can adjust its content, appearance, and behavior to fit your needs, whether you want to highlight key numbers, visualize trends, or add context with text and graphics.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
   <img src={require('/img/builder/widgets.webp').default} alt="Dashboard Interface Overview in GOAT" style={{ maxHeight: "auto", maxWidth: "auto", objectFit: "cover"}}/>

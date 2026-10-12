@@ -184,7 +184,7 @@ const ContentSpacesPanel = ({
             />
           </Box>
         </Tooltip>
-        <Typography component="span" sx={rowLabelSx(selected)}>
+        <Typography component="span" title={label} sx={rowLabelSx(selected)}>
           {label}
         </Typography>
         {canOpenSettings(space) && selected && onOpenSettings && (

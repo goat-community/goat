@@ -1,0 +1,211 @@
+{{- /*
+Python bootstrap script run by the post-install Job (see bootstrap-hook.yaml).
+
+What it does, in order, idempotently:
+  1. Waits for the windmill API to return 200 on /api/version
+  2. Tries to log in as the configured superadmin with the DESIRED password
+  3. If that fails, falls back to the default `changeme` password — if it
+     succeeds, immediately rotates the password to the desired value
+  4. Creates the configured workspace (swallows "already exists")
+  5. Reuses the token already in the K8s Secret if windmill still accepts
+     it; otherwise mints a non-expiring API token and writes it to the
+     Secret via the in-cluster Kubernetes API (using the ServiceAccount
+     mounted into the pod). Re-minting on every upgrade used to leave one
+     more live token behind each time.
+  6. Restarts the processes Deployment when its pods don't have the current
+     token. They read it from an env var at start, and on a fresh install
+     they are already running when this hook creates the Secret — without
+     the restart they stay tokenless and every tool run / job listing fails.
+     The pod template carries a fingerprint of the token (first 16 hex of
+     its sha256), so a reused token doesn't restart anything.
+
+The script uses only the Python stdlib so no `pip install` is needed,
+keeping the Job image (`python:3.11-slim`) minimal and fast.
+*/}}
+{{- if and .Values.windmill.server.enabled .Values.windmill.bootstrap.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "goat.fullname" . }}-windmill-bootstrap
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "windmill-bootstrap") | nindent 4 }}
+data:
+  bootstrap.py: |
+    """Windmill post-install bootstrap. Idempotent."""
+    import base64
+    import hashlib
+    import json
+    import os
+    import ssl
+    import sys
+    import time
+    from urllib.error import HTTPError, URLError
+    from urllib.request import Request, urlopen
+
+    BASE = os.environ["WINDMILL_URL"].rstrip("/")
+    WS = os.environ["WINDMILL_WORKSPACE"]
+    EMAIL = os.environ["ADMIN_EMAIL"]
+    DEFAULT_PASS = os.environ.get("DEFAULT_ADMIN_PASSWORD", "changeme")
+    DESIRED_PASS = os.environ["DESIRED_ADMIN_PASSWORD"]
+    TOKEN_SECRET = os.environ["TOKEN_SECRET_NAME"]
+    TOKEN_KEY = os.environ.get("TOKEN_SECRET_KEY", "token")
+    NS = os.environ["NAMESPACE"]
+    # Empty when processes isn't wired to this windmill (disabled, or
+    # `processes.windmillAutoWire: false`): nothing to restart then.
+    PROCESSES_DEPLOYMENT = os.environ.get("PROCESSES_DEPLOYMENT", "")
+    FINGERPRINT_ANNOTATION = "goat.plan4better.de/windmill-token-sha256"
+
+    K8S = "https://kubernetes.default.svc"
+    with open("/var/run/secrets/kubernetes.io/serviceaccount/token") as f:
+        SA_TOKEN = f.read().strip()
+    K8S_CTX = ssl.create_default_context(
+        cafile="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    )
+
+    def k8s(path, method="GET", body=None, content_type="application/json"):
+        req = Request(f"{K8S}{path}", method=method,
+                     data=json.dumps(body).encode() if body is not None else None,
+                     headers={"Authorization": f"Bearer {SA_TOKEN}",
+                             "Content-Type": content_type})
+        with urlopen(req, context=K8S_CTX, timeout=10) as r:
+            return json.loads(r.read().decode() or "{}")
+
+    def api(path, method="GET", body=None, token=None, json_resp=True):
+        req = Request(f"{BASE}/api{path}", method=method)
+        req.add_header("Content-Type", "application/json")
+        if token:
+            req.add_header("Authorization", f"Bearer {token}")
+        data = json.dumps(body).encode() if body is not None else None
+        with urlopen(req, data=data, timeout=30) as r:
+            raw = r.read().decode()
+        if not raw:
+            return {} if json_resp else ""
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            return raw.strip()
+
+    def try_login(email, password):
+        try:
+            res = api("/auth/login", method="POST",
+                     body={"email": email, "password": password},
+                     json_resp=False)
+            return res if isinstance(res, str) and res else None
+        except HTTPError:
+            return None
+
+    # 1. Wait for server
+    for i in range(60):
+        try:
+            v = api("/version", json_resp=False)
+            print(f"windmill ready: version={v!r}", file=sys.stderr)
+            break
+        except (HTTPError, URLError, TimeoutError) as e:
+            print(f"  wait... {e}", file=sys.stderr)
+            time.sleep(2)
+    else:
+        sys.exit("windmill server never became ready")
+
+    # 2/3. Login + rotate password if still on default
+    session = try_login(EMAIL, DESIRED_PASS)
+    if session:
+        print("logged in with desired password", file=sys.stderr)
+    else:
+        session = try_login(EMAIL, DEFAULT_PASS)
+        if not session:
+            sys.exit(f"cannot log in as {EMAIL} with default OR desired password")
+        print(f"logged in with default password — rotating", file=sys.stderr)
+        if DESIRED_PASS != DEFAULT_PASS:
+            api("/users/setpassword", method="POST",
+                body={"password": DESIRED_PASS}, token=session,
+                json_resp=False)
+            session = try_login(EMAIL, DESIRED_PASS)
+            if not session:
+                sys.exit("password rotation succeeded but re-login failed")
+            print("password rotated", file=sys.stderr)
+
+    # 4. Workspace (idempotent: swallow any failure — token mint below will
+    # surface a genuinely-missing workspace anyway)
+    try:
+        api("/workspaces/create", method="POST",
+            body={"id": WS, "name": WS}, token=session, json_resp=False)
+        print(f"created workspace: {WS}", file=sys.stderr)
+    except Exception as e:
+        print(f"workspace create skipped: {e}", file=sys.stderr)
+
+    # 5. Reuse the stored token while windmill accepts it, else mint one
+    secrets = f"/api/v1/namespaces/{NS}/secrets"
+    stored = None
+    try:
+        data = k8s(f"{secrets}/{TOKEN_SECRET}").get("data") or {}
+        if data.get(TOKEN_KEY):
+            stored = base64.b64decode(data[TOKEN_KEY]).decode().strip()
+    except HTTPError as e:
+        if e.code != 404:
+            sys.exit(f"read secret failed: {e.code} {e.read().decode()}")
+
+    token = None
+    if stored:
+        try:
+            api(f"/w/{WS}/users/whoami", token=stored)
+            token = stored
+            print(f"reusing stored token: {token[:8]}...", file=sys.stderr)
+        except HTTPError as e:
+            print(f"stored token rejected ({e.code}) — minting a new one",
+                  file=sys.stderr)
+
+    if token is None:
+        token = api("/users/tokens/create", method="POST",
+                   body={"label": "goat-chart-bootstrap", "expiration": None},
+                   token=session, json_resp=False)
+        if not token or not isinstance(token, str):
+            sys.exit(f"token mint failed: {token!r}")
+        print(f"minted token: {token[:8]}...", file=sys.stderr)
+        encoded = {TOKEN_KEY: base64.b64encode(token.encode()).decode()}
+        if stored is None:
+            try:
+                k8s(secrets, method="POST", body={
+                    "apiVersion": "v1", "kind": "Secret",
+                    "metadata": {"name": TOKEN_SECRET},
+                    "type": "Opaque", "data": encoded,
+                })
+                print(f"created secret {NS}/{TOKEN_SECRET}", file=sys.stderr)
+            except HTTPError as e:
+                if e.code != 409:
+                    sys.exit(f"create secret failed: {e.code} {e.read().decode()}")
+                stored = ""  # exists after all (created concurrently) — patch
+        if stored is not None:
+            k8s(f"{secrets}/{TOKEN_SECRET}", method="PATCH",
+                body={"data": encoded},
+                content_type="application/merge-patch+json")
+            print(f"patched secret {NS}/{TOKEN_SECRET}", file=sys.stderr)
+
+    # 6. Restart processes if its pods were started without this token
+    if PROCESSES_DEPLOYMENT:
+        fingerprint = hashlib.sha256(token.encode()).hexdigest()[:16]
+        path = f"/apis/apps/v1/namespaces/{NS}/deployments/{PROCESSES_DEPLOYMENT}"
+        try:
+            dep = k8s(path)
+        except HTTPError as e:
+            if e.code != 404:
+                sys.exit(f"read deployment failed: {e.code} {e.read().decode()}")
+            dep = None
+            print(f"deployment {PROCESSES_DEPLOYMENT} not found — skipping restart",
+                  file=sys.stderr)
+        if dep is not None:
+            current = ((dep.get("spec", {}).get("template", {})
+                        .get("metadata", {}).get("annotations")) or {}
+                       ).get(FINGERPRINT_ANNOTATION)
+            if current == fingerprint:
+                print(f"{PROCESSES_DEPLOYMENT} already has the current token",
+                      file=sys.stderr)
+            else:
+                k8s(path, method="PATCH", body={"spec": {"template": {"metadata": {
+                        "annotations": {FINGERPRINT_ANNOTATION: fingerprint}}}}},
+                    content_type="application/merge-patch+json")
+                print(f"restarted {PROCESSES_DEPLOYMENT} to pick up the token",
+                      file=sys.stderr)
+
+    print("bootstrap done")
+{{- end -}}

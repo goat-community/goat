@@ -50,6 +50,7 @@ import {
   selectVariables,
 } from "@/lib/store/workflow/selectors";
 import { requestMapView, requestTableView, updateNode } from "@/lib/store/workflow/slice";
+import { sqlInputsByHandle } from "@/lib/utils/workflowHandles";
 import type { ContentItem } from "@/lib/validations/content";
 import type { WorkflowNode } from "@/lib/validations/workflow";
 
@@ -210,7 +211,7 @@ export default function SqlToolSettings({ node, onBack }: SqlToolSettingsProps) 
   const config = (node.data.type === "tool" ? node.data.config : {}) as SqlToolConfig;
   const [sqlQuery, setSqlQuery] = useState(config.sql_query || "");
   const [additionalLayers, setAdditionalLayers] = useState<AdditionalLayer[]>(config.additional_layers || []);
-  const [resultLayerName, setResultLayerName] = useState(config.result_layer_name || "Custom SQL");
+  const [resultLayerName, setResultLayerName] = useState(config.result_layer_name || t("custom_sql"));
 
   // Formula builder dialog state
   const [formulaBuilderOpen, setFormulaBuilderOpen] = useState(false);
@@ -255,7 +256,7 @@ export default function SqlToolSettings({ node, onBack }: SqlToolSettingsProps) 
     const cfg = (node.data.type === "tool" ? node.data.config : {}) as SqlToolConfig;
     setSqlQuery(cfg.sql_query || "");
     setAdditionalLayers(cfg.additional_layers || []);
-    setResultLayerName(cfg.result_layer_name || "Custom SQL");
+    setResultLayerName(cfg.result_layer_name || t("custom_sql"));
   }, [node.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Detect connected inputs
@@ -270,16 +271,14 @@ export default function SqlToolSettings({ node, onBack }: SqlToolSettingsProps) 
       layerName: string;
     }> = [];
 
-    for (const edge of incomingEdges) {
-      const handleName = edge.targetHandle || "input_layer_1_id";
-      const idx = inputs.length + 1;
-      const alias = `input_${idx}`;
+    // One entry per handle, under the aliases the runner registers (sqlInputsByHandle).
+    for (const { handle: handleName, edge, alias } of sqlInputsByHandle(incomingEdges)) {
       const sourceNode = nodes.find((n) => n.id === edge.source);
       const sourceData = sourceNode?.data as Record<string, unknown> | undefined;
 
       let layerUuid: string | undefined;
       // Use result_layer_name for tool nodes, fall back to translated processId or label
-      let layerName = `Input ${idx}`;
+      let layerName = `Input ${alias.slice("input_".length)}`;
       if (sourceData?.type === "tool") {
         const toolConfig = sourceData.config as Record<string, unknown> | undefined;
         layerName =
@@ -803,7 +802,7 @@ export default function SqlToolSettings({ node, onBack }: SqlToolSettingsProps) 
                         <TextField
                           size="small"
                           fullWidth
-                          placeholder="e.g. my_table"
+                          placeholder={t("table_name_placeholder")}
                           value={al.alias}
                           onChange={(e) =>
                             handleUpdateAlias(idx, e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))
@@ -1065,7 +1064,7 @@ export default function SqlToolSettings({ node, onBack }: SqlToolSettingsProps) 
         open={saveDialogOpen}
         onClose={() => setSaveDialogOpen(false)}
         onSave={handleSaveDataset}
-        defaultName={resultLayerName || "Custom SQL"}
+        defaultName={resultLayerName || t("custom_sql")}
         isSaving={isSaving}
       />
     </>

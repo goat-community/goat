@@ -1,0 +1,103 @@
+{{- /*
+Schema migration hook: `alembic upgrade head` + `core.scripts.initial_data`
+(SQL functions, triggers, authz seed; default user/org when AUTH=false).
+
+- post-install: fresh installs bootstrap the full schema once Postgres is
+  reachable (weight -5 → runs before the windmill workspace bootstrap hook).
+  Post-install hooks run only after every resource is Ready under
+  `helm install --wait`, which is fine because no pod needs the alembic
+  schema to become Ready. (The DuckLake catalog and the windmill database
+  are created by init containers, not hooks — templates/_initcontainers.tpl.)
+- pre-upgrade: migrations land BEFORE the new pods roll. Migrations must
+  therefore stay backward-compatible with the previous release's pods for
+  the duration of the rollout (additive first, destructive a release later).
+
+Both steps are idempotent and transactional — a failure rolls back and
+aborts the release, leaving the running version untouched.
+
+AUTH intentionally comes from the core ConfigMap (envFrom): with
+auth.enabled=false, initial_data seeds the default user/org that
+self-hosted installs rely on.
+*/}}
+{{- if and .Values.core.enabled .Values.core.migrate.enabled -}}
+{{- $ctx := dict "context" . "component" "core-migrate" -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "goat.fullname" . }}-core-migrate
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+  annotations:
+    "helm.sh/hook": "post-install,pre-upgrade"
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" $ctx | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: migrate
+          image: {{ include "goat.image" (dict "image" .Values.core.image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ .Values.core.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "goat.serviceFullname" (dict "context" . "component" "core") }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.postgresql.secretName" . }}
+                  key: {{ include "goat.postgresql.userKey" . }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.postgresql.secretName" . }}
+                  key: {{ include "goat.postgresql.passwordKey" . }}
+            - name: MIGRATE_WAIT_FOR_DB_SECONDS
+              value: {{ .Values.core.migrate.waitForDbSeconds | quote }}
+          command: ["bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              cd /app/apps/core
+              # Fresh installs: the bundled CNPG cluster may still be coming
+              # up when post-install hooks fire — wait for a real connection.
+              python - <<'PY'
+              import os, sys, time
+              import psycopg
+              dsn = (
+                  f"host={os.environ['POSTGRES_SERVER']} "
+                  f"port={os.environ.get('POSTGRES_PORT', '5432')} "
+                  f"dbname={os.environ['POSTGRES_DB']} "
+                  f"user={os.environ['POSTGRES_USER']} "
+                  f"password={os.environ['POSTGRES_PASSWORD']}"
+              )
+              deadline = time.monotonic() + int(os.environ.get("MIGRATE_WAIT_FOR_DB_SECONDS", "300"))
+              while True:
+                  try:
+                      psycopg.connect(dsn, connect_timeout=5).close()
+                      print("postgres is reachable")
+                      break
+                  except Exception as e:
+                      if time.monotonic() > deadline:
+                          print(f"gave up waiting for postgres: {e}", file=sys.stderr)
+                          sys.exit(1)
+                      print(f"waiting for postgres: {e}")
+                      time.sleep(5)
+              PY
+              alembic upgrade head
+              python -m core.scripts.initial_data
+          {{- with .Values.core.migrate.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end -}}

@@ -14,34 +14,39 @@ on:
         required: false
         default: true
 
+permissions:
+  contents: read
+
 jobs:
   web:
     # REQUIRED. lint-web.sh runs `tsc --noEmit` (typecheck) + eslint.
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: ${{ inputs.web }}
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
-
-      - name: 📥 Checkout PR
-        uses: plan4better/.github/.github/actions/pr-git-checkout@main
+        uses: actions/checkout@v7
 
       - name: 📥 Monorepo install
-        uses: plan4better/.github/.github/actions/pnpm-install@main
-        with:
-          enable-corepack: true
-          cwd: ${{ github.workspace }}
-          node_version: 22
+        uses: ./.github/actions/pnpm-install
 
       - name: 🔬 Run linting
         run: bash ${{ github.workspace }}/scripts/lint-web.sh
 
-      - name: 🔬 Annotate Code Linting Results
-        uses: ataylorme/eslint-annotate-action@v3
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          report-json: ${{ github.workspace }}/lint-results/eslint_report.json
-          only-pr-files: false
+      # ESLint findings as annotations on the PR's lines. They are workflow
+      # commands printed to the log, which need no token, so fork PRs get
+      # them too, and they run after a failed lint as well. GitHub shows ten
+      # errors and ten warnings per step, so errors come first.
+      - name: 🔬 Annotate lint results
+        if: always() && hashFiles('lint-results/goat.json') != ''
+        run: |
+          jq -r --arg root "$GITHUB_WORKSPACE/" '
+            def prop: tostring | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A") | gsub(":"; "%3A") | gsub(","; "%2C");
+            def msg: tostring | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
+            [ .[] | (.filePath | ltrimstr($root)) as $file | .messages[] | . + {file: $file} ]
+            | sort_by(-.severity) | .[]
+            | "::\(if .severity == 2 then "error" else "warning" end) file=\(.file | prop),line=\(.line // 1),col=\(.column // 1),title=\(.ruleId // "eslint" | prop)::\(.message | msg)"
+          ' lint-results/goat.json
 
       - name: 🔬 Upload ESLint report
         if: ${{ always() }}
@@ -50,48 +55,41 @@ jobs:
         # quota, a 403 from the artifact service) must not fail the job: this
         # workflow gates the release, so that would skip every image build.
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lint-results
           path: ${{ github.workspace }}/lint-results
 
   python:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: ${{ inputs.python }}
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
-
-      - name: 📥 Checkout PR
-        uses: plan4better/.github/.github/actions/pr-git-checkout@main
+        uses: actions/checkout@v7
 
       - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.9.2"
           enable-cache: true
+          prune-cache: true
 
-      # gdal is sdist-only and needs libgdal to build, and routing is a C++
-      # package that is slow to compile; ruff/mypy need neither installed.
-      - name: 🐍 Install Dependencies
-        run: uv sync --frozen --all-packages --all-extras --no-install-package gdal --no-install-package routing
+      # ruff reads the source only, so the dev group it is pinned in is all
+      # this job installs.
+      - name: 🐍 Install ruff
+        run: uv sync --frozen --only-dev
         working-directory: ${{ github.workspace }}
 
       # REQUIRED: ruff lint on the packages that are clean. Keeps them clean and
-      # blocks regressions. (Not goatlib — it still carries ruff debt — and not
-      # `ruff format --check`, which is currently dirty repo-wide.)
-      # --no-sync: a bare `uv run` re-syncs and would pull gdal back in.
+      # blocks regressions. Not goatlib, which still carries ruff debt. mypy
+      # --strict and `ruff format --check` are not run here either: no package
+      # passes them yet, so they would only report the same debt on every run
+      # (scripts/lint-python.sh runs them locally).
+      # --no-sync: a bare `uv run` would sync the whole workspace first.
       - name: 🔬 ruff check (clean packages, required)
         run: >-
           uv run --no-sync ruff check
           apps/core apps/geoapi apps/processes apps/catalog
           packages/python/goatobs
-        working-directory: ${{ github.workspace }}
-
-      # ADVISORY: full gate (mypy --strict + repo-wide ruff check + ruff format
-      # --check). Currently red on pre-existing debt — reports but does not
-      # block. Remove `continue-on-error` once the debt is cleared.
-      - name: 🔬 Full lint (mypy + ruff + format, advisory)
-        continue-on-error: true
-        run: uv run --no-sync bash scripts/lint-python.sh
         working-directory: ${{ github.workspace }}

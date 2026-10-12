@@ -1,0 +1,29 @@
+suite: uvicorn trusts the ingress's forwarded headers
+templates:
+  - core/configmap.yaml
+  - geoapi/configmap.yaml
+  - processes/configmap.yaml
+  - catalog/configmap.yaml
+tests:
+  - it: core trusts forwarded headers by default
+    template: core/configmap.yaml
+    asserts:
+      - equal: { path: data.FORWARDED_ALLOW_IPS, value: "*" }
+  - it: geoapi trusts forwarded headers by default
+    template: geoapi/configmap.yaml
+    asserts:
+      - equal: { path: data.FORWARDED_ALLOW_IPS, value: "*" }
+  - it: processes trusts forwarded headers by default
+    template: processes/configmap.yaml
+    asserts:
+      - equal: { path: data.FORWARDED_ALLOW_IPS, value: "*" }
+  - it: catalog trusts forwarded headers by default
+    template: catalog/configmap.yaml
+    asserts:
+      - equal: { path: data.FORWARDED_ALLOW_IPS, value: "*" }
+  - it: can be narrowed per service
+    template: geoapi/configmap.yaml
+    set:
+      geoapi.config.FORWARDED_ALLOW_IPS: "10.42.0.0/16"
+    asserts:
+      - equal: { path: data.FORWARDED_ALLOW_IPS, value: "10.42.0.0/16" }

@@ -1,4 +1,5 @@
 ---
+description: "Richten Sie das Layer-Widget im Dashboard ein: Layer auswählen, Legende und Download erlauben, Baum- oder Tab-Layout, Zoom-Verhalten und Layer-Aktionen wählen."
 sidebar_position: 1
 ---
 
@@ -26,10 +27,11 @@ Dieser Abschnitt **enthält Widgets, die Informationen über Ihre Projektlayer**
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Unter <code>Layer</code> wählen Sie mithilfe der Kontrollkästchen aus, welche Layer im Widget angezeigt werden sollen. Klicken Sie für jeden Layer auf das ⋮-Symbol, um layerspezifische Einstellungen aufzurufen:
+  <div class="content">
+  Unter <code>Layer</code> wählen Sie mithilfe der Kontrollkästchen aus, welche Layer im Widget angezeigt werden sollen. Klicken Sie für jeden Layer auf das ⋮-Symbol, um layerspezifische Einstellungen aufzurufen:
   <ul>
-    <li><code>In Legende anzeigen</code> — steuert, ob die Legende des Layers angezeigt wird</li>
-    <li><code>Herunterladen</code> — erlaubt Betrachtern, die Daten dieses Layers herunterzuladen</li>
+    <li><code>In Legende anzeigen</code>: steuert, ob die Legende des Layers angezeigt wird</li>
+    <li><code>Herunterladen</code>: erlaubt Betrachtern, die Daten dieses Layers herunterzuladen</li>
   </ul>
   Für Gruppen können Sie auf das Symbol klicken, um das <code>Symbol zu ändern</code>, und auf die ⓘ-Schaltfläche, um Gruppeninformationen hinzuzufügen oder zu bearbeiten (Markdown unterstützt).
   </div>
@@ -37,13 +39,14 @@ Dieser Abschnitt **enthält Widgets, die Informationen über Ihre Projektlayer**
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Unter <code>Layout</code> konfigurieren Sie die Darstellung der Layer-Liste:
+  <div class="content">
+  Unter <code>Layout</code> konfigurieren Sie die Darstellung der Layer-Liste:
   <ul>
     <li><code>Layout-Stil</code>: <code>Baum</code> (hierarchische Liste) oder <code>Tabs</code> (Tab-Navigation)</li>
-    <li><code>Schalterstil</code>: Symbol für den Ein-/Ausblenden-Schalter — <code>Augensymbol</code>, <code>Checkbox</code> oder <code>Schalter</code></li>
+    <li><code>Schalterstil</code>: Symbol für den Ein-/Ausblenden-Schalter (<code>Augensymbol</code>, <code>Checkbox</code> oder <code>Schalter</code>)</li>
     <li><code>Schalter-Position</code>: <code>Links</code> oder <code>Rechts</code></li>
     <li><code>Suchleiste anzeigen</code>: Suchfeld oberhalb der Layer-Liste hinzufügen</li>
-    <li>Wenn <code>Layout-Stil</code> auf <code>Tabs</code> gesetzt ist: Es erscheinen zusätzliche Optionen — <code>Gruppenname anzeigen</code>, <code>Gruppen-Symbole anzeigen</code> und <code>Alle-anzeigen-Schalter</code>. Wenn <code>Alle-anzeigen-Schalter</code> aktiviert ist, erscheint eine <strong>Alle anzeigen</strong>-Zeile oberhalb der Layer-Liste in jedem Tab, mit der Betrachter alle Layer des aktiven Tabs auf einmal ein- oder ausblenden können. Der Schalter verwendet denselben Stil (Augensymbol, Checkbox oder Schalter) wie der layerspezifische Sichtbarkeits-Schalter.</li>
+    <li>Wenn <code>Layout-Stil</code> auf <code>Tabs</code> gesetzt ist, erscheinen zusätzliche Optionen: <code>Gruppenname anzeigen</code>, <code>Gruppen-Symbole anzeigen</code> und <code>Alle-anzeigen-Schalter</code>. Wenn <code>Alle-anzeigen-Schalter</code> aktiviert ist, erscheint eine <strong>Alle anzeigen</strong>-Zeile oberhalb der Layer-Liste in jedem Tab, mit der Betrachter alle Layer des aktiven Tabs auf einmal ein- oder ausblenden können. Der Schalter verwendet denselben Stil (Augensymbol, Checkbox oder Schalter) wie der layerspezifische Sichtbarkeits-Schalter.</li>
     <li><code>Feldnamen ausblenden</code>: Feldnamen-Beschriftungen im Widget ausblenden</li>
   </ul>
   </div>
@@ -56,7 +59,7 @@ Dieser Abschnitt **enthält Widgets, die Informationen über Ihre Projektlayer**
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">Unter <code>Layer-Aktionen</code> wählen Sie den <code>Aktionsmodus</code> — <code>Kompaktmenü</code> (Aktionen hinter einem ⋮-Symbol) oder <code>Direktaktionen</code> (Aktionen direkt angezeigt) — und legen fest, welche Aktionen Betrachter pro Layer ausführen können: <code>Stil</code>, <code>Daten anzeigen</code>, <code>Eigenschaften</code>, <code>Zoomen auf</code>.</div>
+  <div class="content">Unter <code>Layer-Aktionen</code> wählen Sie den <code>Aktionsmodus</code>: <code>Kompaktmenü</code> (Aktionen hinter einem ⋮-Symbol) oder <code>Direktaktionen</code> (Aktionen direkt angezeigt), und legen fest, welche Aktionen Betrachter pro Layer ausführen können: <code>Stil</code>, <code>Daten anzeigen</code>, <code>Eigenschaften</code>, <code>Zoomen auf</code>.</div>
 </div>
 
 

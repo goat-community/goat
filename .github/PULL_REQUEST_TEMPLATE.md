@@ -12,6 +12,10 @@
 <!--- Include details of your testing environment, and the tests you ran to -->
 <!--- see how your change affects other areas of the code, etc. -->
 
+## Checklist
+- [ ] If this changes a service's purpose, design, storage, access rules or documented gotchas, its README is updated (`apps/*/README.md`, `packages/python/goatlib/README.md`)
+- [ ] If this adds, renames or removes a setting, a service, a port or an image, every deployment target is updated (see "Deployment Targets Follow Every Change" in `CLAUDE.md`)
+
 ## Screenshots (if appropriate):
 
 ## Related Issue

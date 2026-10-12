@@ -47,6 +47,8 @@ import asyncpg
 import duckdb
 
 from goatlib.bundles.artifacts.storage import resolve_artifact
+from goatlib.config.io import DEFAULT_MAX_UPLOAD_BYTES
+from goatlib.io.bbox_columns import star_excluding, stray_bbox_columns
 from goatlib.io.config import (
     PARQUET_COMPRESSION,
     PARQUET_ROW_GROUP_SIZE,
@@ -139,7 +141,7 @@ class ToolSettings:
     s3_region_name: str = "us-east-1"
     s3_bucket_name: str | None = None  # Bucket for user uploads/imports
     # Largest object a browser upload may be; checked before download.
-    max_upload_dataset_file_size: int = 5 * 1024 * 1024 * 1024
+    max_upload_dataset_file_size: int = DEFAULT_MAX_UPLOAD_BYTES
 
     # Schema for customer tables
     customer_schema: str = "customer"
@@ -215,8 +217,9 @@ class ToolSettings:
         except Exception:
             pass  # wmill not available or variable doesn't exist
 
-        # Fall back to environment variable
-        return os.environ.get(name, default)
+        # Fall back to environment variable. Empty counts as unset: Windmill
+        # passes whitelisted variables the worker lacks as "".
+        return os.environ.get(name) or default
 
     @classmethod
     def from_env(cls: type[Self]) -> Self:
@@ -292,7 +295,7 @@ class ToolSettings:
             # `CUSTOMER_SCHEMA` is accepted as a fallback for older deployments.
             max_upload_dataset_file_size=int(
                 cls._get_secret(
-                    "MAX_UPLOAD_DATASET_FILE_SIZE", str(5 * 1024 * 1024 * 1024)
+                    "MAX_UPLOAD_DATASET_FILE_SIZE", str(DEFAULT_MAX_UPLOAD_BYTES)
                 )
             ),
             customer_schema=cls._get_secret("SCHEMA", "")
@@ -1663,6 +1666,9 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
                     if "GEOMETRY" in col_type.upper():
                         geom_col = col_name
                         break
+                # Stray bounding-box copies stay out of the layer
+                # (goatlib.io.bbox_columns).
+                columns = star_excluding(stray_bbox_columns(cols))
 
                 # Create table from parquet with Hilbert ordering for spatial locality
                 # This ensures spatially-close rows are stored together in row groups,
@@ -1670,7 +1676,7 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
                 if geom_col:
                     con.execute(f"""
                         CREATE TABLE {table_name} AS
-                        SELECT * FROM read_parquet('{parquet_path}')
+                        SELECT {columns} FROM read_parquet('{parquet_path}')
                         ORDER BY ST_Hilbert({geom_col})
                     """)
                     logger.info(
@@ -1682,7 +1688,7 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
                 else:
                     con.execute(f"""
                         CREATE TABLE {table_name} AS
-                        SELECT * FROM read_parquet('{parquet_path}')
+                        SELECT {columns} FROM read_parquet('{parquet_path}')
                     """)
                     logger.info(
                         "Created DuckLake table: %s from %s", table_name, parquet_path

@@ -1,9 +1,11 @@
+import logging
 from typing import Any, List
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 from fastapi_pagination import Page
 from fastapi_pagination import Params as PaginationParams
+from keycloak.exceptions import KeycloakError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
@@ -14,11 +16,13 @@ from core.db.models import Organization
 from core.db.models.invitation import Invitation, InvitationStatusEnum, InvitationType
 from core.db.models.organization import OrganizationRolesEnum
 from core.db.models.user import User
-from core.deps.auth import auth_z, is_superuser, user_token
+from core.deps import keycloak as keycloak_deps
+from core.deps.auth import auth_z, require_superuser, token_is_superuser, user_token
 from core.endpoints.deps import get_db
 from core.schemas.email import EmailTemplateContent
 from core.schemas.invitations import (
     InvitationOrgCreate,
+    InvitationOrgCreateRead,
     InvitationOrgUpdate,
 )
 from core.schemas.organization import (
@@ -32,6 +36,8 @@ from core.schemas.organization import (
 from core.utils.email import send_email
 from core.utils.i18n import trans as _
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -39,7 +45,7 @@ router = APIRouter()
     "",
     summary="Get all organizations",
     response_model=Page[OrganizationRead],
-    dependencies=[Depends(is_superuser)],
+    dependencies=[Depends(require_superuser)],
 )
 async def get_organizations(
     *,
@@ -80,7 +86,6 @@ async def create_organization(
     *,
     db: AsyncSession = Depends(get_db),
     user_token: dict = Depends(user_token),
-    user_id: str | None = None,
     organization: OrganizationCreate = Body(
         ..., examples=[request_examples["organization"]["create"]]
     ),
@@ -89,14 +94,14 @@ async def create_organization(
     """
     Create a new organization
     """
-    user_id = user_id or user_token["sub"]
+    user_id = user_token["sub"]  # always the caller
     db_user = await crud_user.get(db=db, id=user_id)
     if db_user and db_user.organization_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User has already an organization",
         )
-    _is_superuser = is_superuser(user_token, False)
+    _is_superuser = token_is_superuser(user_token)
     organization = await crud_organization.create_organization(
         db=db,
         organization_obj=organization,
@@ -117,7 +122,6 @@ async def update_organization(
     *,
     db: AsyncSession = Depends(get_db),
     user_token: dict = Depends(user_token),
-    user_id: str | None = None,
     organization_id: str,
     organization: OrganizationUpdate = Body(
         ..., examples=[request_examples["organization"]["update"]]
@@ -126,7 +130,6 @@ async def update_organization(
     """
     Update an organization
     """
-    user_id = user_id or user_token["sub"]
     db_obj = await crud_organization.get(db=db, id=organization_id)
     if not db_obj:
         raise HTTPException(
@@ -148,13 +151,11 @@ async def delete_organization(
     *,
     db: AsyncSession = Depends(get_db),
     user_token: dict = Depends(user_token),
-    user_id: str | None = None,
     organization_id: str,
 ) -> None:
     """
     Delete an organization
     """
-    user_id = user_id or user_token["sub"]
     organization_obj = await crud_organization.get(db=db, id=organization_id)
     if not organization_obj:
         raise HTTPException(
@@ -273,7 +274,7 @@ async def update_user_role_in_organization(
 @router.post(
     "/{organization_id}/invitations",
     summary="Invite a user to an organization",
-    response_model=Invitation,
+    response_model=InvitationOrgCreateRead,
     dependencies=[Depends(auth_z)],
 )
 async def invite_user_to_organization(
@@ -281,7 +282,6 @@ async def invite_user_to_organization(
     db: AsyncSession = Depends(get_db),
     organization_id: str,
     user_token: dict = Depends(user_token),
-    user_id: str | None = None,
     payload: InvitationOrgCreate = Body(
         ..., examples=[request_examples["organization"]["invite"]]
     ),
@@ -290,7 +290,7 @@ async def invite_user_to_organization(
     Add a user to an organization
     """
     # - check if email is already registered and has another org
-    user_id = user_id or user_token["sub"]
+    user_id = user_token["sub"]  # always the caller
     invited_user = await crud_user.get_by_key(
         db=db, key="email", value=payload.user_email
     )
@@ -326,6 +326,26 @@ async def invite_user_to_organization(
     # check if organization organization has enough seats
     crud_organization.check_seats_quota(role=payload.role, organization=organization)
 
+    # An invitee who has used GOAT has a Keycloak account. For anyone else,
+    # create one before storing the invitation, so a failure leaves nothing
+    # half done.
+    created_keycloak_user_id = None
+    if not invited_user:
+        try:
+            created_keycloak_user_id = await keycloak_deps.create_invited_user(
+                payload.user_email
+            )
+        except KeycloakError:
+            logger.warning(
+                "keycloak account creation failed for an invitation to %s",
+                organization_id,
+                exc_info=True,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="The account for the invited email can't be created right now.",
+            )
+
     # create invitation in db
     new_invitation = Invitation(
         send_by=user_id,
@@ -345,13 +365,16 @@ async def invite_user_to_organization(
     )
 
     invitation = await crud_invitation.create(db=db, obj_in=new_invitation)
+    invitation_url = (
+        f"{settings.CLIENT_URL}/onboarding/organization/invite/{invitation.id}"
+    )
     email_content = EmailTemplateContent(
-        artwork_url="https://assets.plan4better.de/img/email/organization_invited.png",
+        artwork_url=f"{settings.email_artwork_url}/img/email/organization_invited.png",
         title=_("You have been invited to join an organization"),
         message=_(
             "You have been invited to join an organization. Click on the button below to accept the invitation."
         ),
-        action_url=f"{settings.CLIENT_URL}/onboarding/organization/invite/{invitation.id}",
+        action_url=invitation_url,
         action_label=_("Join organization"),
     )
     send_email(
@@ -360,7 +383,17 @@ async def invite_user_to_organization(
         environment=email_content.model_dump(),
     )
 
-    return invitation
+    account_setup = None
+    if created_keycloak_user_id:
+        # The invitee lands on the invitation after setting a password.
+        sent = await keycloak_deps.send_account_setup_email(
+            created_keycloak_user_id, redirect_uri=invitation_url
+        )
+        account_setup = "email_sent" if sent else "manual"
+
+    return InvitationOrgCreateRead(
+        **invitation.model_dump(), account_setup=account_setup
+    )
 
 
 @router.patch(
@@ -374,7 +407,6 @@ async def update_organization_invitation(
     db: AsyncSession = Depends(get_db),
     organization_id: str,
     user_token: dict = Depends(user_token),
-    user_id: str | None = None,
     invitation_id: str,
     payload: InvitationOrgUpdate = Body(
         ..., examples=[request_examples["organization"]["invite_update"]]
@@ -383,7 +415,6 @@ async def update_organization_invitation(
     """
     Update an invitation
     """
-    user_id = user_id or user_token["sub"]
 
     invitation = await crud_invitation.get(db=db, id=invitation_id)
 

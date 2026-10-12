@@ -1,4 +1,5 @@
 ---
+description: "Ermitteln Sie aus GTFS-Daten die durchschnittlichen ÖV-Abfahrten pro Stunde je Haltepunkt für Tag und Zeitfenster, gesamt und je Verkehrsmittel."
 sidebar_position: 8
 ---
 
@@ -15,11 +16,11 @@ Dieser Indikator zeigt die **durchschnittliche Anzahl der Abfahrten öffentliche
 
 **Anzahl Abfahrten Haltepunkte** zeigt die **durchschnittliche Anzahl der Abfahrten pro Stunde für ein ausgewähltes Zeitintervall an jedem Haltepunkt des öffentlichen Verkehrs**. Sie können die Summe für alle Verkehrsmittel anzeigen oder sich auf ein bestimmtes Verkehrsmittel konzentrieren (z.B. Bus, Straßenbahn, U-Bahn, Bahn).
 
-Dieser Indikator ist die Grundlage für die [ÖV-Güteklassen](./oev_gueteklassen.md) und ist nützlich für **Schwachstellenanalysen von lokalen Verkehrsplänen** (siehe unter anderem [Richtlinie für die Nahverkehrsplanung in Bayern](https://www.demografie-leitfaden-bayern.de/index.html)).
+Dieser Indikator ist die Grundlage für die [ÖV-Güteklassen](./oev_gueteklassen.md) und ist nützlich für **Schwachstellenanalysen von [lokalen Verkehrsplänen](https://www.plan4better.de/de/glossar/nahverkehrsplan)** (siehe unter anderem [Richtlinie für die Nahverkehrsplanung in Bayern](https://www.demografie-leitfaden-bayern.de/index.html)).
 
 :::info
 
-Die Berechnung der Anzahl Abfahrten ist für Gebiete verfügbar, in denen GTFS-Daten des öffentlichen Verkehrs in GOAT integriert sind. Derzeit unterstützte Regionen umfassen **Deutschland, die Schweiz und die Region Haut-Rhin in Frankreich**. Wenn Sie Analysen außerhalb dieser Regionen benötigen, [kontaktieren Sie uns gerne](https://plan4better.de/de/contact/).
+Die Berechnung der Anzahl Abfahrten ist für Gebiete verfügbar, in denen [GTFS-Daten](https://www.plan4better.de/de/glossar/gtfs) des öffentlichen Verkehrs in GOAT integriert sind. Derzeit unterstützte Regionen umfassen **Deutschland, die Schweiz und die Region Haut-Rhin in Frankreich**. Wenn Sie Analysen außerhalb dieser Regionen benötigen, können Sie [ein eigenes ÖPNV-Netz importieren](../../data/builtin_datasets.md#eigenes-öpnv-netz) oder uns gerne [kontaktieren](https://plan4better.de/de/contact/), damit wir das für Sie übernehmen.
 
 :::
 
@@ -52,7 +53,7 @@ Die Berechnung der Anzahl Abfahrten ist für Gebiete verfügbar, in denen GTFS-D
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Wählen Sie das <code>Referenzgebiet</code> — einen Polygon-Layer, der das Untersuchungsgebiet definiert.</div>
+  <div class="content">Wählen Sie das <code>Referenzgebiet</code>: einen Polygon-Layer, der das Untersuchungsgebiet definiert.</div>
 </div>
 
 ### Ergebnis-Layer

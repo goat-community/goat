@@ -1,10 +1,9 @@
 name: "Test"
 
 # Reusable test workflow. Driven by the change-detection booleans from
-# checks.yml so only affected areas run. Jobs that are not yet green on a clean
-# tree are marked `continue-on-error: true` (ADVISORY) — they run and report but
-# do not block the merge. Promote them to required (drop continue-on-error) as
-# each suite goes green.
+# checks.yml so only affected areas run. Every suite is required; one that is
+# not green on a clean tree can be marked `continue-on-error: true` until it
+# is.
 
 on:
   workflow_call:
@@ -36,29 +35,29 @@ jobs:
     name: web (vitest)
     if: ${{ inputs.web }}
     runs-on: ubuntu-latest
-    # REQUIRED. vitest suite is green (202 tests).
+    timeout-minutes: 15
+    # REQUIRED. vitest suite is green.
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
-      - name: 📥 Checkout PR
-        uses: plan4better/.github/.github/actions/pr-git-checkout@main
+        uses: actions/checkout@v7
       - name: 📥 Monorepo install
-        uses: plan4better/.github/.github/actions/pnpm-install@main
-        with:
-          enable-corepack: true
-          cwd: ${{ github.workspace }}
-          node_version: 22
+        uses: ./.github/actions/pnpm-install
       # vitest runs in jsdom and its config excludes playwright/ and
       # **/*.e2e.*, but lib/print/__tests__/pdf-renderer.test.ts is a plain
       # *.test.ts inside the tree and launches a real Chromium in beforeAll,
       # so the browser has to be here. The e2e suite is not run in CI at all —
       # running it needs a service stack, and that is a separate decision.
+      # Keyed on the Playwright release, which decides the browser build, not
+      # on the whole lockfile, which changes far more often.
+      - name: 🎭 Playwright version
+        id: playwright
+        run: echo "version=$(pnpm --filter web exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
       - name: 💾 Cache Playwright Chromium
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - name: 📥 Install Playwright Chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm --filter web exec playwright install --with-deps chromium
@@ -74,10 +73,11 @@ jobs:
     name: core (pytest)
     if: ${{ inputs.core }}
     runs-on: ubuntu-latest
-    # REQUIRED. The 100-test suite passes against PostGIS alone: it self-
+    timeout-minutes: 15
+    # REQUIRED. The suite passes against PostGIS alone: it self-
     # bootstraps schemas (DROP/CREATE + metadata.create_all in the session
     # fixture), the asset tests are pure-unit, and external services (S3, DNS,
-    # Caddy) are mocked/faked — no MinIO or network needed.
+    # Caddy) are mocked/faked — no S3 or network needed.
     services:
       postgres:
         image: postgis/postgis:16-3.4
@@ -116,14 +116,13 @@ jobs:
       AWS_MAX_ATTEMPTS: "1"
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
-      - name: 📥 Checkout PR
-        uses: plan4better/.github/.github/actions/pr-git-checkout@main
+        uses: actions/checkout@v7
       - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.9.2"
           enable-cache: true
+          prune-cache: true
       # gdal is sdist-only and needs libgdal to build; only goatlib's WFS/
       # converter paths import it (lazily), so this suite runs without it.
       # routing is the C++ package: compiling it was most of every job's
@@ -142,6 +141,7 @@ jobs:
     name: alembic (fresh upgrade)
     if: ${{ inputs.core }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # REQUIRED. The core suite builds its schema with metadata.create_all, so
     # nothing else here runs a migration. This walks the chain on an empty
     # database the way a fresh deploy does, then `alembic check` asserts the
@@ -170,14 +170,13 @@ jobs:
       ENVIRONMENT: dev
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
-      - name: 📥 Checkout PR
-        uses: plan4better/.github/.github/actions/pr-git-checkout@main
+        uses: actions/checkout@v7
       - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.9.2"
           enable-cache: true
+          prune-cache: true
       - name: 🐍 Install dependencies
         run: uv sync --frozen --all-packages --all-extras --no-install-package gdal --no-install-package routing
       # `init` creates its own schemas and both extensions, so an empty
@@ -193,18 +192,22 @@ jobs:
     name: goatlib (pytest)
     if: ${{ inputs.goatlib }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # REQUIRED. Data-dependent tests skip when their fixtures are absent;
     # travel-time matrices auto-download from assets.plan4better.de.
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
-      - name: 📥 Checkout PR
-        uses: plan4better/.github/.github/actions/pr-git-checkout@main
+        uses: actions/checkout@v7
+      # Its own cache entry: every uv job has the same default key and the
+      # first to finish saves it, which was never this one, the only job that
+      # compiles a wheel (gdal) the cache is there to keep.
       - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.9.2"
           enable-cache: true
+          prune-cache: true
+          cache-suffix: goatlib
       # Only suite that needs real gdal (WFS/converter tests). The compiled
       # wheel lands in the uv cache, so the source build runs once per
       # lockfile change, not per run. `tippecanoe` is needed because
@@ -216,18 +219,28 @@ jobs:
       # routing is the C++ package, and building it is most of this job's
       # install. uv rebuilds a path dependency after every checkout because its
       # files look new, so the wheel is cached here instead. The key covers what
-      # the build reads (the package's files, including CMakeLists.txt with the
-      # libduckdb and nigiri versions it pins, plus the lockfile and the Python
-      # version) and the runner image: any change there builds a fresh wheel.
-      - name: 🖥️ Runner image
+      # the build reads (the package's files but not its Python tests,
+      # CMakeLists.txt with the libduckdb version it pins among them, and the
+      # Python version), the nigiri SDK it downloads and the runner image: any
+      # change there builds a fresh wheel. The lockfile is left out because the
+      # wheel builds in an isolated environment that never reads it. The SDK
+      # comes from nigiri's `latest-cpp` release, whose assets are replaced in
+      # place, so it is keyed on their digests.
+      - name: 🖥️ Runner image and nigiri SDK
         id: image
-        run: echo "os=$ImageOS" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "os=$ImageOS" >> "$GITHUB_OUTPUT"
+          nigiri=$(gh api repos/plan4better/nigiri/releases/tags/latest-cpp \
+            --jq '[.assets[] | .name + "=" + .digest] | sort | join(",")' | sha256sum | cut -c1-16)
+          echo "nigiri=$nigiri" >> "$GITHUB_OUTPUT"
       - name: 📦 Restore routing wheel
         id: routing-wheel
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .routing-wheel
-          key: routing-wheel-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ hashFiles('packages/cpp/routing/**', 'uv.lock', '.python-version') }}
+          key: routing-wheel-${{ steps.image.outputs.os }}-${{ runner.arch }}-${{ steps.image.outputs.nigiri }}-${{ hashFiles('packages/cpp/routing/**', '!packages/cpp/routing/tests/**', '.python-version') }}
       - name: 🏗️ Build routing wheel
         if: steps.routing-wheel.outputs.cache-hit != 'true'
         run: uv build --wheel packages/cpp/routing --out-dir .routing-wheel
@@ -248,17 +261,17 @@ jobs:
     # into the core/geoapi/catalog filters that input is derived from.
     if: ${{ inputs.goatlib }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # REQUIRED. Pure unit suite — no services.
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
-      - name: 📥 Checkout PR
-        uses: plan4better/.github/.github/actions/pr-git-checkout@main
+        uses: actions/checkout@v7
       - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.9.2"
           enable-cache: true
+          prune-cache: true
       - name: 🐍 Install dependencies
         run: uv sync --frozen --all-packages --all-extras --no-install-package gdal --no-install-package routing
       - name: 🧪 pytest
@@ -269,17 +282,17 @@ jobs:
     name: geoapi (pytest)
     if: ${{ inputs.geoapi }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # REQUIRED. Suite is fully mocked (DuckLake/Postgres) — no services needed.
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
-      - name: 📥 Checkout PR
-        uses: plan4better/.github/.github/actions/pr-git-checkout@main
+        uses: actions/checkout@v7
       - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.9.2"
           enable-cache: true
+          prune-cache: true
       - name: 🐍 Install dependencies
         run: uv sync --frozen --all-packages --all-extras --no-install-package gdal --no-install-package routing
       - name: 🧪 pytest
@@ -290,17 +303,17 @@ jobs:
     name: processes (pytest)
     if: ${{ inputs.processes }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # REQUIRED. Suite is fully mocked (Windmill/DB) — no services needed.
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
-      - name: 📥 Checkout PR
-        uses: plan4better/.github/.github/actions/pr-git-checkout@main
+        uses: actions/checkout@v7
       - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.9.2"
           enable-cache: true
+          prune-cache: true
       - name: 🐍 Install dependencies
         run: uv sync --frozen --all-packages --all-extras --no-install-package gdal --no-install-package routing
       - name: 🧪 pytest
@@ -311,19 +324,19 @@ jobs:
     name: catalog (pytest)
     if: ${{ inputs.catalog }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # REQUIRED. Suite runs against generated parquet fixtures — no services
     # needed; DuckDB extensions (spatial/fts) are fetched on first run and
     # cached by setup-uv's cache thereafter.
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
-      - name: 📥 Checkout PR
-        uses: plan4better/.github/.github/actions/pr-git-checkout@main
+        uses: actions/checkout@v7
       - name: 🐍 Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.9.2"
           enable-cache: true
+          prune-cache: true
       - name: 🐍 Install dependencies
         run: uv sync --frozen --all-packages --all-extras --no-install-package gdal --no-install-package routing
       - name: 🧪 pytest

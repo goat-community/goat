@@ -1,0 +1,57 @@
+# Single-node k3d smoke profile. RWO is correct here: one node, so every pod
+# mounting the shared volume lands on it.
+data:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 5Gi
+
+core:
+  enabled: true
+  migrate:
+    enabled: true
+    waitForDbSeconds: 300
+web:
+  enabled: true
+  # No ingress in this smoke profile, so these must be set explicitly or the
+  # web UI white-screens (see C1 in the whole-branch review / README). The
+  # exact hostnames don't need to be browser-reachable for this smoke test —
+  # the assertion only checks that the entrypoint substituted them in place
+  # of the literal APP_NEXT_PUBLIC_* sentinels.
+  publicUrls:
+    api: "http://goat-smoke.test/api"
+    geoapi: "http://goat-smoke.test/geoapi"
+    processes: "http://goat-smoke.test/processes"
+    catalog: "http://goat-smoke.test/catalog/stac"
+
+geoapi:
+  enabled: true
+processes:
+  enabled: true
+catalog:
+  enabled: true
+
+postgresql:
+  operator:
+    enabled: true
+  cluster:
+    enabled: true
+    instances: 1
+    storage:
+      size: 5Gi
+
+redis:
+  enabled: true
+
+windmill:
+  server:
+    enabled: true
+  workers:
+    default:
+      enabled: true
+    # The heavy workers pin to a tainted geodata node that k3d does not have.
+    tools:
+      enabled: false
+    workflows:
+      enabled: false
+    print:
+      enabled: false

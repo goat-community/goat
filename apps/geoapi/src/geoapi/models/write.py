@@ -5,7 +5,16 @@ from typing import Any, Literal, Optional
 from pydantic import BaseModel, Field
 
 FieldKind = Literal[
-    "string", "number", "area", "perimeter", "length", "datetime", "boolean", "formula"
+    "string",
+    "number",
+    "area",
+    "perimeter",
+    "length",
+    "datetime",
+    "boolean",
+    "formula",
+    "serial",
+    "uuid",
 ]
 
 # --- Feature Write Models ---
@@ -137,6 +146,12 @@ class ColumnCreate(BaseModel):
         "accepted values.",
     )
     default_value: Optional[Any] = None
+    start: Optional[int] = Field(
+        None,
+        description="First number of a kind='serial' column (default 1). Rows "
+        "already in the layer are numbered from it in feature order; new "
+        "features continue after the highest number present.",
+    )
 
 
 class ColumnUpdate(BaseModel):
@@ -164,6 +179,19 @@ class ColumnUpdate(BaseModel):
         description="Value a new feature gets when this column is left blank. "
         "An empty string removes the default. Existing rows are untouched, and "
         "so is the column's DDL default — this is the default of record.",
+    )
+    kind: Optional[FieldKind] = Field(
+        None,
+        description="Change the column's kind. Supported: an integer-valued "
+        "number column to 'serial' (its values are kept, blank rows are "
+        "numbered, new features continue after the highest value), and a "
+        "'serial' column back to 'number'. Sent on its own, with `start` at "
+        "most.",
+    )
+    start: Optional[int] = Field(
+        None,
+        description="With kind='serial': the start of the numbering, used for "
+        "blank rows when it is above the column's highest value (default 1).",
     )
 
 

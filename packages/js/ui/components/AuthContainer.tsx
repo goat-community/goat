@@ -30,13 +30,15 @@ export default function AuthContainer({
             textAlign: "center",
           }}
         >
+          {/* Styled as a title but not a heading: callers render their own
+              heading inside, and a heading may not contain another. */}
           <Typography
             variant="h5"
+            component="div"
             sx={{
               pb: theme.spacing(4),
             }}
           >
-            {/* Title */}
             {headerTitle}
           </Typography>
           {/* Alert message*/}

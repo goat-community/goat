@@ -106,6 +106,68 @@ async def test_space_view_lists_children_with_folders_first(
 
 
 @pytest.mark.asyncio
+async def test_space_view_pages_projects_ahead_of_newer_datasets(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    fixture_create_user: UUID,
+) -> None:
+    """The Content page groups the rows it has loaded into sections, so a
+    folder whose datasets were all edited after its projects must still
+    hand out every project on the first page."""
+    me = fixture_create_user
+    sid = (
+        await db_session.execute(
+            text(f"SELECT id FROM {S}.space WHERE user_id = :u"), {"u": me}
+        )
+    ).scalar_one()
+    f = await client.post(f"{settings.API_V2_STR}/folder", json={"name": "Mixed"})
+    fid = f.json()["id"]
+    project_ids = []
+    for n in range(3):
+        p = await client.post(
+            f"{settings.API_V2_STR}/project",
+            json={
+                "name": f"project {n}",
+                "folder_id": fid,
+                "initial_view_state": {
+                    "latitude": 48.1,
+                    "longitude": 11.5,
+                    "zoom": 10,
+                    "min_zoom": 0,
+                    "max_zoom": 20,
+                    "bearing": 0,
+                    "pitch": 0,
+                },
+            },
+        )
+        assert p.status_code in (200, 201), p.text
+        project_ids.append(p.json()["id"])
+    await db_session.execute(
+        text(
+            f"UPDATE {S}.project SET updated_at = now() - interval '1 day' "
+            "WHERE id = ANY(CAST(:ids AS uuid[]))"
+        ),
+        {"ids": project_ids},
+    )
+    for n in range(5):
+        await db_session.execute(
+            text(
+                f"INSERT INTO {S}.layer (id, name, type, feature_layer_type, "
+                "feature_layer_geometry_type, user_id, folder_id, space_id, updated_at) "
+                "VALUES (gen_random_uuid(), :n, 'feature', 'standard', 'point', "
+                ":u, :f, :s, now()) "
+            ),
+            {"n": f"layer {n}", "u": me, "f": fid, "s": sid},
+        )
+    await db_session.commit()
+
+    page = await _feed(client, space_id=str(sid), folder_id=fid, size=4)
+    types = [i["type"] for i in page["items"]]
+    assert types == ["project", "project", "project", "layer"]
+    assert page["total"] == 8
+
+
+@pytest.mark.asyncio
 async def test_shared_with_me_lists_user_grants_and_folder_grants_only(
     client: AsyncClient,
     db_session: AsyncSession,
@@ -1288,3 +1350,101 @@ async def test_feed_tells_linked_layers_from_ones_goat_holds(
             "source_host": None,
         }.items()
     )
+
+
+@pytest.mark.asyncio
+async def test_space_root_lists_what_is_shared_into_the_space(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    fixture_create_user: UUID,
+    fixture_get_home_folder: dict[str, object],
+    roles: dict[str, UUID],
+) -> None:
+    """What a team or organisation space contains is one answer, served by
+    `view=space` itself: the space's own items plus the items shared into it
+    from other spaces. Every surface that lists a space (the Content page,
+    the dataset picker in a project) gets the same list from one request."""
+    # Unique: another test of this file creates a team for the same user, and
+    # the two may run at the same time under xdist.
+    team = await client.post(
+        f"{settings.API_V2_STR}/teams", json={"name": f"Space feed {uuid4().hex[:6]}"}
+    )
+    assert team.status_code == 200, team.text
+    team_id = team.json()["id"]
+    team_space_id = (
+        await db_session.execute(
+            text(f"SELECT id FROM {S}.space WHERE team_id = :t"), {"t": team_id}
+        )
+    ).scalar_one()
+    personal_space_id = (
+        await db_session.execute(
+            text(f"SELECT id FROM {S}.space WHERE user_id = :u"),
+            {"u": fixture_create_user},
+        )
+    ).scalar_one()
+
+    # One of the space's own folders, and a personal folder shared with the team.
+    own = await client.post(
+        f"{settings.API_V2_STR}/folder",
+        json={"name": "Lives in the team", "space_id": str(team_space_id)},
+    )
+    assert own.status_code == 201, own.text
+    shared = await client.post(
+        f"{settings.API_V2_STR}/folder", json={"name": "Shared into the team"}
+    )
+    shared_id = shared.json()["id"]
+    grant = await client.post(
+        f"{settings.API_V2_STR}/folder/{shared_id}/share",
+        json={"grantee_type": "team", "grantee_id": team_id, "role": "folder-viewer"},
+    )
+    assert grant.status_code in (200, 201), grant.text
+    # A personal layer shared with the team, the dataset-picker case.
+    layer = Layer(
+        id=uuid4(),
+        name="Shared dataset",
+        user_id=fixture_create_user,
+        folder_id=UUID(str(fixture_get_home_folder["id"])),
+        type="table",
+    )
+    db_session.add(layer)
+    await db_session.commit()
+    grant = await client.post(
+        f"{settings.API_V2_STR}/share/layer/{layer.id}",
+        json={"teams": [{"id": team_id, "role": "layer-viewer"}]},
+    )
+    assert grant.status_code in (200, 201), grant.text
+    # Something private, as a control.
+    await client.post(f"{settings.API_V2_STR}/folder", json={"name": "Private"})
+
+    page = await _feed(client, view="space", space_id=str(team_space_id))
+    by_name = {i["name"]: i for i in page["items"]}
+    assert set(by_name) == {
+        "Lives in the team",
+        "Shared into the team",
+        "Shared dataset",
+    }
+    assert page["total"] == 3
+    # Shared items keep their real location, which is how the UI tells them apart.
+    assert by_name["Shared into the team"]["space_id"] == str(personal_space_id)
+    assert by_name["Shared dataset"]["space_id"] == str(personal_space_id)
+    assert by_name["Lives in the team"]["space_id"] == str(team_space_id)
+    # Folders sort first, as in any space listing.
+    assert [i["type"] for i in page["items"]] == ["folder", "folder", "layer"]
+
+    # The type filter and the search apply to shared items as well.
+    page = await _feed(client, view="space", space_id=str(team_space_id), types="layer")
+    assert [i["name"] for i in page["items"]] == ["Shared dataset"]
+    page = await _feed(client, view="space", space_id=str(team_space_id), search="into")
+    assert [i["name"] for i in page["items"]] == ["Shared into the team"]
+
+    # Inside a folder of the space, only that folder's content is listed.
+    page = await _feed(
+        client, view="space", space_id=str(team_space_id), folder_id=own.json()["id"]
+    )
+    assert page["items"] == []
+
+    # A personal space's root lists its own items only.
+    page = await _feed(client, view="space", space_id=str(personal_space_id))
+    names = {i["name"] for i in page["items"]}
+    assert {"Shared into the team", "Shared dataset", "Private"} <= names
+    assert "Lives in the team" not in names

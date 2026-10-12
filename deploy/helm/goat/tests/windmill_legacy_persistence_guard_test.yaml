@@ -1,0 +1,191 @@
+suite: windmill legacy worker PVC upgrade guard
+templates:
+  - windmill/legacy-persistence-guard.yaml
+release:
+  name: goat
+  namespace: goat
+# `lookup` is mocked by kubernetesProvider; without it (and under
+# `helm template`) lookup returns nothing and the guard is inert.
+tests:
+  - it: renders nothing and does not fail when no legacy claim exists
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: fails when an unannotated legacy tools claim of this release exists
+    kubernetesProvider:
+      scheme:
+        "v1/PersistentVolumeClaim":
+          gvr:
+            version: v1
+            resource: persistentvolumeclaims
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: goat-windmill-tools-data
+            namespace: goat
+            annotations:
+              meta.helm.sh/release-name: goat
+              meta.helm.sh/release-namespace: goat
+    asserts:
+      - failedTemplate:
+          errorPattern: "kubectl -n goat annotate pvc goat-windmill-tools-data helm.sh/resource-policy=keep"
+
+  - it: names both claims in one annotate command when both are unprotected
+    kubernetesProvider:
+      scheme:
+        "v1/PersistentVolumeClaim":
+          gvr:
+            version: v1
+            resource: persistentvolumeclaims
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: goat-windmill-tools-data
+            namespace: goat
+            annotations:
+              meta.helm.sh/release-name: goat
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: goat-windmill-workflows-data
+            namespace: goat
+    asserts:
+      - failedTemplate:
+          errorPattern: "annotate pvc goat-windmill-tools-data goat-windmill-workflows-data helm.sh/resource-policy=keep"
+
+  - it: fails even when data.existingClaim points at the legacy claim
+    set:
+      data.existingClaim: goat-windmill-tools-data
+    kubernetesProvider:
+      scheme:
+        "v1/PersistentVolumeClaim":
+          gvr:
+            version: v1
+            resource: persistentvolumeclaims
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: goat-windmill-tools-data
+            namespace: goat
+            annotations:
+              meta.helm.sh/release-name: goat
+    asserts:
+      - failedTemplate:
+          errorPattern: "REFUSING TO UPGRADE"
+
+  - it: passes once the live claim carries resource-policy keep
+    kubernetesProvider:
+      scheme:
+        "v1/PersistentVolumeClaim":
+          gvr:
+            version: v1
+            resource: persistentvolumeclaims
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: goat-windmill-tools-data
+            namespace: goat
+            annotations:
+              meta.helm.sh/release-name: goat
+              helm.sh/resource-policy: keep
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: passes when acknowledgeDeletion is set
+    set:
+      windmill.workers.legacyPersistence.acknowledgeDeletion: true
+    kubernetesProvider:
+      scheme:
+        "v1/PersistentVolumeClaim":
+          gvr:
+            version: v1
+            resource: persistentvolumeclaims
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: goat-windmill-tools-data
+            namespace: goat
+            annotations:
+              meta.helm.sh/release-name: goat
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: passes when this release still renders the claim (data.enabled false)
+    set:
+      data.enabled: false
+      windmill.workers.tools.enabled: true
+    kubernetesProvider:
+      scheme:
+        "v1/PersistentVolumeClaim":
+          gvr:
+            version: v1
+            resource: persistentvolumeclaims
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: goat-windmill-tools-data
+            namespace: goat
+            annotations:
+              meta.helm.sh/release-name: goat
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: fails when data.enabled is false but the worker's persistence is now off
+    set:
+      data.enabled: false
+      windmill.workers.tools.enabled: true
+      windmill.workers.tools.persistence.enabled: false
+    kubernetesProvider:
+      scheme:
+        "v1/PersistentVolumeClaim":
+          gvr:
+            version: v1
+            resource: persistentvolumeclaims
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: goat-windmill-tools-data
+            namespace: goat
+            annotations:
+              meta.helm.sh/release-name: goat
+    asserts:
+      - failedTemplate:
+          errorPattern: "goat-windmill-tools-data"
+
+  - it: ignores a same-named claim owned by another release
+    kubernetesProvider:
+      scheme:
+        "v1/PersistentVolumeClaim":
+          gvr:
+            version: v1
+            resource: persistentvolumeclaims
+          namespaced: true
+      objects:
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: goat-windmill-tools-data
+            namespace: goat
+            annotations:
+              meta.helm.sh/release-name: some-other-release
+    asserts:
+      - hasDocuments:
+          count: 0

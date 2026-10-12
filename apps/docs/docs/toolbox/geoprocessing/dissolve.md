@@ -1,4 +1,5 @@
 ---
+description: "Merge features of a layer that share values in chosen fields, or all features into one geometry, removing inner boundaries and optionally adding statistics."
 sidebar_position: 5
 ---
 

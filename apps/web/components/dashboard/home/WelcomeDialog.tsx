@@ -3,7 +3,7 @@
 import { Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-import { WELCOME_VIDEO_POSTER, WELCOME_VIDEO_URL } from "@/lib/constants";
+import { WELCOME_VIDEO } from "@/lib/constants";
 
 import AnnouncementDialog from "@/components/common/AnnouncementDialog";
 
@@ -11,10 +11,13 @@ import AnnouncementDialog from "@/components/common/AnnouncementDialog";
  * The first-run Welcome: one screen with the intro video. Who sees it and
  * when is `useWelcome`'s business, orchestrated by `HomeAnnouncements`;
  * "Watch video" plays in a lightbox, "Skip guide" hands over to the
- * onboarding checklist underneath.
+ * onboarding checklist underneath. Renders nothing where no intro video is
+ * configured (`WELCOME_VIDEO`).
  */
 const WelcomeDialog = ({ onDismiss }: { onDismiss: () => void }) => {
   const { t } = useTranslation("common");
+
+  if (!WELCOME_VIDEO) return null;
 
   return (
     <AnnouncementDialog
@@ -36,7 +39,7 @@ const WelcomeDialog = ({ onDismiss }: { onDismiss: () => void }) => {
           {t("welcome_dialog_body_1")}
         </>,
       ]}
-      media={{ kind: "video", src: WELCOME_VIDEO_URL, poster: WELCOME_VIDEO_POSTER }}
+      media={{ kind: "video", src: WELCOME_VIDEO.url, poster: WELCOME_VIDEO.poster }}
       primary={{ label: t("watch_video"), playsVideo: true }}
       dismissLabel={t("skip_guide")}
       onDismiss={onDismiss}

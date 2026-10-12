@@ -1,4 +1,5 @@
 ---
+description: "How GOAT routes public transport from GTFS data with nigiri and RAPTOR, plus access and egress legs, and its options for modes, day, time window and transfers."
 sidebar_position: 3
 
 ---
@@ -9,7 +10,7 @@ The **Public Transport Routing** in GOAT is essential for performing analyses th
 
 ## 1. Objectives
 
-Public transport routing facilitates **intermodal analysis** by integrating access and egress modes, such as walking, cycling, or driving to and from the station. This is more complex than the other routing modes as it requires the merging of different datasets (such as sidewalks & bike lanes, public transport stops & schedules, etc.) and calculation approaches.
+[Public transport routing](https://www.plan4better.de/en/glossary/routing) facilitates **intermodal analysis** by integrating access and egress modes, such as walking, cycling, or driving to and from the station. This is more complex than the other routing modes as it requires the merging of different datasets (such as sidewalks & bike lanes, public transport stops & schedules, etc.) and calculation approaches.
 
 Public transport routing is used for indicators such as [Catchment Areas](../toolbox/accessibility_indicators/catchments) and [Heatmaps](../toolbox/accessibility_indicators/connectivity) in GOAT.
 
@@ -36,7 +37,7 @@ A public transport trip consists of three legs: an **access leg** from the origi
 
 Public transport routing is performed by GOAT's own high-performance routing engine, which wraps the open-source **[nigiri](https://github.com/motis-project/nigiri)** library. Nigiri is a C++ library from the **[MOTIS project](https://github.com/motis-project/motis)** that provides one-to-all public transport connection search using the **RAPTOR** algorithm.
 
-The **transit leg** is computed by nigiri, while the **access and egress legs** (first and last mile) use GOAT's own **Dijkstra** implementation — the same routing used for active mobility and car. This keeps street-level routing consistent across all transport modes.
+The **transit leg** is computed by nigiri, while the **access and egress legs** (first and last mile) use GOAT's own **Dijkstra** implementation, the same routing used for [active mobility](https://www.plan4better.de/en/glossary/active-mobility) and car. This keeps street-level routing consistent across all transport modes.
 
 
 ### Routing Options
@@ -57,7 +58,7 @@ The day of the week to consider for public transport routing. Choose between `We
 
 #### Start and End time
 
-A time window for public transport routing. The engine evaluates **every departure minute** within this window and keeps the **fastest** journey to each reachable location — it is not an average over the window. The result is therefore the best-case, largest possible catchment area from your specified origin point. A journey is considered to fall within the time window solely based on its start time, regardless of its end time or duration.
+A time window for public transport routing. The engine evaluates **every departure minute** within this window and keeps the **fastest** journey to each reachable location. It is not an average over the window. The result is therefore the best-case, largest possible [catchment area](https://www.plan4better.de/en/glossary/catchment-area) from your specified origin point. A journey is considered to fall within the time window solely based on its start time, regardless of its end time or duration.
 
 :::note
 
@@ -80,6 +81,6 @@ The **access leg** (origin to public transport stop) and the **egress leg** (pub
 | Huff Model | <code>Walk</code> | <code>Time</code> | 30 minutes |
 | Travel Cost Matrix | <code>Walk</code>, <code>Bicycle</code>, <code>Pedelec</code>, <code>Car</code> | <code>Time</code> or <code>Distance</code> | Upto overall <code>Limit</code> |
 
-- **Speed** — the travel speed used for the leg (when calculating by `Time`).
+- **Speed**: the travel speed used for the leg (when calculating by `Time`).
 
 By default, both the access and egress legs use `Walk`, a `Time` limit of `15 min`, and a speed of `5 km/h`.

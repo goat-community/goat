@@ -23,13 +23,11 @@ import {
   ClickAwayListener,
   IconButton,
   InputAdornment,
-  MenuItem,
   Paper,
   Popper,
   Stack,
   TextField,
   Tooltip,
-  Typography,
   useTheme,
 } from "@mui/material";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -39,9 +37,15 @@ import type { OGCInputSchema, ProcessedInput } from "@/types/map/ogc-processes";
 
 import FormLabelHelper from "@/components/common/FormLabelHelper";
 import { GenericInput } from "@/components/map/panels/toolbox/generic/inputs";
+import WorkflowVariableMenuItem from "@/components/workflows/inputs/WorkflowVariableMenuItem";
 
 import { getEffectiveSchema } from "@/lib/utils/ogc-utils";
-import type { WorkflowVariable } from "@/lib/validations/workflow";
+import {
+  type WorkflowVariable,
+  getVariableDescription,
+  getVariableDisplayName,
+  hasVariableLabel,
+} from "@/lib/validations/workflow";
 
 const VARIABLE_REF_REGEX = /^\{\{@([a-zA-Z_][a-zA-Z0-9_]*)\}\}$/;
 
@@ -99,6 +103,18 @@ function getCompatibleVariables(
 }
 
 /**
+ * Variables matching what was typed after {{@: names starting with it, or
+ * labels containing it (users may remember a variable by its label).
+ */
+export function filterVariables(variables: WorkflowVariable[], filter: string): WorkflowVariable[] {
+  if (!filter) return variables;
+  const lower = filter.toLowerCase();
+  return variables.filter(
+    (v) => v.name.toLowerCase().startsWith(lower) || (v.label ?? "").toLowerCase().includes(lower)
+  );
+}
+
+/**
  * Variable autocomplete dropdown — appears below the input when typing {{@
  */
 const VariableAutocomplete: React.FC<{
@@ -109,11 +125,7 @@ const VariableAutocomplete: React.FC<{
   onSelect: (variable: WorkflowVariable) => void;
   onClose: () => void;
 }> = ({ anchorEl, open, variables, filter, onSelect, onClose }) => {
-  const filtered = useMemo(() => {
-    if (!filter) return variables;
-    const lower = filter.toLowerCase();
-    return variables.filter((v) => v.name.toLowerCase().startsWith(lower));
-  }, [variables, filter]);
+  const filtered = useMemo(() => filterVariables(variables, filter), [variables, filter]);
 
   if (!open || !anchorEl || filtered.length === 0) return null;
 
@@ -126,30 +138,15 @@ const VariableAutocomplete: React.FC<{
       <ClickAwayListener onClickAway={onClose}>
         <Paper elevation={8} sx={{ maxHeight: 350, overflowY: "auto", mt: 0.5 }}>
           {filtered.map((v) => (
-            <MenuItem
+            <WorkflowVariableMenuItem
               key={v.id}
-              onClick={() => {
-                onSelect(v);
+              variable={v}
+              showIcon
+              onSelect={(selected) => {
+                onSelect(selected);
                 onClose();
               }}
-              sx={{ px: 2, py: 2 }}>
-              <VariableIcon sx={{ fontSize: 16, mr: 1.5, color: "primary.main" }} />
-              <Typography variant="body2" fontFamily="monospace" sx={{ flexGrow: 1 }}>
-                {v.name}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  ml: 2,
-                  px: 0.75,
-                  py: 0.125,
-                  borderRadius: 0.5,
-                  bgcolor: "action.hover",
-                  textTransform: "capitalize",
-                }}>
-                {v.type}
-              </Typography>
-            </MenuItem>
+            />
           ))}
         </Paper>
       </ClickAwayListener>
@@ -314,10 +311,16 @@ const VariableTextField: React.FC<{
     ? (isNumericArray ? t("array_input_placeholder_numeric") : t("array_input_placeholder"))
     : (input.defaultValue !== undefined ? String(input.defaultValue) : undefined);
 
-  // Helper text for undefined variables
-  const helperText = isUndefinedVariable
-    ? t("workflow_variable_undefined", { name: variableRef })
-    : undefined;
+  // Helper text: undefined variables are an error; a labelled variable shows
+  // its label under the technical reference, with its description on hover.
+  const referencedDescription = referencedVariable ? getVariableDescription(referencedVariable) : undefined;
+  const helperText = isUndefinedVariable ? (
+    t("workflow_variable_undefined", { name: variableRef })
+  ) : referencedVariable && (hasVariableLabel(referencedVariable) || referencedDescription) ? (
+    <Tooltip title={referencedDescription ?? ""} placement="bottom-start" describeChild>
+      <span data-testid="variable-reference-label">{getVariableDisplayName(referencedVariable)}</span>
+    </Tooltip>
+  ) : undefined;
 
   // Variable text color: primary for valid, error for undefined
   const varColor = isUndefinedVariable ? theme.palette.error.main : theme.palette.primary.main;
@@ -398,31 +401,12 @@ const VariableTextField: React.FC<{
                 }}
               >
                 {compatibleVars.map((v) => (
-                  <MenuItem
+                  <WorkflowVariableMenuItem
                     key={v.id}
-                    onClick={() => {
-                      handleSelectVariable(v);
-                    }}
-                    sx={{ px: 2, py: 2 }}
-                  >
-                    <VariableIcon sx={{ fontSize: 16, mr: 1.5, color: "primary.main" }} />
-                    <Typography variant="body2" fontFamily="monospace" sx={{ flexGrow: 1 }}>
-                      {v.name}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        ml: 2,
-                        px: 0.75,
-                        py: 0.125,
-                        borderRadius: 0.5,
-                        bgcolor: "action.hover",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {v.type}
-                    </Typography>
-                  </MenuItem>
+                    variable={v}
+                    showIcon
+                    onSelect={handleSelectVariable}
+                  />
                 ))}
               </Paper>
             </ClickAwayListener>

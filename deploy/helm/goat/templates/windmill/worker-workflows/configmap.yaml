@@ -1,0 +1,16 @@
+{{- if .Values.windmill.workers.workflows.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "goat.serviceFullname" (dict "context" . "component" "windmill-worker-workflows") }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "windmill-worker-workflows") | nindent 4 }}
+data:
+  {{- range $k, $v := .Values.windmill.workers.workflows.config }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+  {{- if and (include "goat.caBundle.enabled" .) (not (include "goat.env.userSet" (dict "values" .Values.windmill.workers.workflows "key" "GOAT_CA_BUNDLE"))) }}
+  GOAT_CA_BUNDLE: {{ include "goat.caBundle.path" . | quote }}
+  {{- end }}
+{{- end }}

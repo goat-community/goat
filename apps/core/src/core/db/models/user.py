@@ -8,6 +8,7 @@ from sqlmodel import (
     Column,
     Field,
     ForeignKey,
+    Integer,
     Relationship,
     SQLModel,
     Text,
@@ -34,6 +35,11 @@ class UserBase(SQLModel):
         default=None, sa_column=Column(Boolean, nullable=True)
     )
     hubspot_id: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    # Odoo contact (res.partner) this user is (see core.odoo). Set by the
+    # support module on the first lookup/creation; shared with billing.
+    odoo_contact_id: int | None = Field(
+        default=None, sa_column=Column(Integer, nullable=True)
+    )
     organization_id: Optional[UUID] = Field(
         default=None,
         sa_column=Column(

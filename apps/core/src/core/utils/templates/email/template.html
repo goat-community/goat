@@ -47,13 +47,28 @@
       <thead>
         <tr>
           <td>
-            <a href="https://plan4better.de">
+            <a
+              href="{{ brand_url }}"
+              style="
+                display: inline-block;
+                margin-top: 20px;
+                margin-bottom: 20px;
+                color: #4d4d4d;
+                font-size: 22px;
+                font-weight: 700;
+                text-decoration: none;
+              "
+            >
+              {% if logo_url %}
               <img
-                alt=""
-                src="https://assets.plan4better.de/img/logo/plan4better_standard.png"
-                style="max-width: 140px; margin-top: 20px; margin-bottom: 20px"
+                alt="{{ brand_name }}"
+                src="{{ logo_url }}"
+                style="max-width: 140px"
                 title=""
               />
+              {% else %}
+              {{ brand_name }}
+              {% endif %}
             </a>
           </td>
         </tr>
@@ -141,15 +156,17 @@
         <tr>
           <td>
             <div style="margin-top: 20px">
-              &copy; Plan4Better GmbH {{ now().year }} | {{ _('All Rights Reserved') }}
+              &copy; {{ brand_name }} {{ now().year }} | {{ _('All Rights Reserved') }}
             </div>
           </td>
         </tr>
+        {% if privacy_url or contact_url %}
         <tr>
           <td>
             <div>
+              {% if privacy_url %}
               <a
-                href="https://plan4better.de/privacy/"
+                href="{{ privacy_url }}"
                 style="
                   -webkit-text-size-adjust: 100%;
                   -ms-text-size-adjust: 100%;
@@ -158,9 +175,11 @@
                 "
                 >{{ _('Privacy') }}</a
               >
-              |
+              {% endif %}
+              {% if privacy_url and contact_url %}|{% endif %}
+              {% if contact_url %}
               <a
-                href="https://plan4better.de/kontakt/"
+                href="{{ contact_url }}"
                 style="
                   -webkit-text-size-adjust: 100%;
                   -ms-text-size-adjust: 100%;
@@ -169,56 +188,11 @@
                 "
                 >{{ _('Contact us') }}</a
               >
-              |
-              <a
-                href="https://plan4better.de/team/"
-                style="
-                  -webkit-text-size-adjust: 100%;
-                  -ms-text-size-adjust: 100%;
-                  font-weight: normal;
-                  color: #c7c8ca;
-                "
-                >{{ _('About us') }}</a
-              >
+              {% endif %}
             </div>
           </td>
         </tr>
-        <tr>
-          <td>
-            <div
-              style="display: inline-flex; margin-top: 5px; text-align: center"
-            >
-              <a href="https://twitter.com/plan4better"
-                ><img
-                  alt="Twitter"
-                  src="https://assets.plan4better.de/img/icons/twitter_gray.png"
-                  style="
-                    -ms-interpolation-mode: bicubic;
-                    height: auto;
-                    outline: none;
-                    text-decoration: none;
-                    padding-right: 2px;
-                    padding-left: 2px;
-                    border: 0;
-                  "
-              /></a>
-              <a href="https://www.linkedin.com/company/plan4better/"
-                ><img
-                  alt="LinkedIn"
-                  src="https://assets.plan4better.de/img/icons/linkedin_gray.png"
-                  style="
-                    -ms-interpolation-mode: bicubic;
-                    height: auto;
-                    outline: none;
-                    text-decoration: none;
-                    padding-right: 2px;
-                    padding-left: 2px;
-                    border: 0;
-                  "
-              /></a>
-            </div>
-          </td>
-        </tr>
+        {% endif %}
       </tfoot>
     </table>
   </body>

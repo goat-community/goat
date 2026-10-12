@@ -1,9 +1,12 @@
 """User-facing endpoints for the organization's analytics instances.
 
 An organization can register any number of instances (e.g. its own Matomo
-plus one per client); dashboards pick one in the Share dialog. Authz is
-delegated to ``auth_z`` (same gate as the other organization endpoints —
-UI gates by org-admin role).
+plus one per client); dashboards pick one in the Share dialog. Access is
+enforced by ``auth_z``: ``read-organization`` to list, ``update-organization``
+(organization admins and owners) to change, and the organization in the path
+must be the caller's own. The router is mounted under ``/organizations`` with
+the rest of the path on each route, so ``route_pattern`` keeps
+``{organization_id}`` as a placeholder.
 """
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, status
@@ -26,7 +29,7 @@ router = APIRouter()
 
 
 @router.get(
-    "/",
+    "/{organization_id}/analytics/",
     summary="List the organization's analytics instances",
     response_model=list[OrganizationAnalyticsRead],
     dependencies=[Depends(auth_z)],
@@ -51,7 +54,7 @@ async def list_analytics(
 
 
 @router.post(
-    "/",
+    "/{organization_id}/analytics/",
     summary="Create an analytics instance",
     response_model=OrganizationAnalyticsRead,
     status_code=status.HTTP_201_CREATED,
@@ -77,7 +80,7 @@ async def create_analytics(
 
 
 @router.put(
-    "/{analytics_id}",
+    "/{organization_id}/analytics/{analytics_id}",
     summary="Update an analytics instance",
     response_model=OrganizationAnalyticsRead,
     dependencies=[Depends(auth_z)],
@@ -108,7 +111,7 @@ async def update_analytics(
 
 
 @router.delete(
-    "/{analytics_id}",
+    "/{organization_id}/analytics/{analytics_id}",
     summary="Delete an analytics instance",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(auth_z)],
@@ -135,7 +138,7 @@ async def delete_analytics(
 
 
 @router.get(
-    "/dashboards",
+    "/{organization_id}/analytics/dashboards",
     summary="List the organization's published dashboards and their analytics assignment",
     response_model=list[AnalyticsDashboardRead],
     dependencies=[Depends(auth_z)],
@@ -158,7 +161,7 @@ async def list_analytics_dashboards(
 
 
 @router.put(
-    "/{analytics_id}/dashboards",
+    "/{organization_id}/analytics/{analytics_id}/dashboards",
     summary="Set which dashboards report to an analytics instance",
     response_model=list[AnalyticsDashboardRead],
     dependencies=[Depends(auth_z)],

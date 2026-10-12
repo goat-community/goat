@@ -2,7 +2,7 @@
 
 <p align="center">
 <a href="https://plan4better.de/goat" target="_blank" rel="noopener noreferrer">
-<img width="120" alt="GOAT Frontend Alternative Logo" src="https://assets.plan4better.de/img/logo/goat_icon_standard.png">
+<img width="120" alt="GOAT logo" src="apps/web/public/assets/svg/goat-logo.svg">
 </a>
 
 <h1 align="center">GOAT</h1>
@@ -27,11 +27,11 @@ Intelligent software for modern web mapping and integrated planning
 <p align="center">
   <picture>
     <!-- Dark theme -->
-    <source srcset="apps/docs/assets/goat_screenshot_dark.webp" media="(prefers-color-scheme: dark)">
+    <source srcset=".github/assets/goat_screenshot_dark.webp" media="(prefers-color-scheme: dark)">
     <!-- Light theme -->
-    <source srcset="apps/docs/assets/goat_screenshot_light.webp" media="(prefers-color-scheme: light)">
+    <source srcset=".github/assets/goat_screenshot_light.webp" media="(prefers-color-scheme: light)">
     <!-- Fallback -->
-    <img src="apps/docs/assets/goat_screenshot_light.webp" alt="GOAT Screenshot" width="1527">
+    <img src=".github/assets/goat_screenshot_light.webp" alt="GOAT Screenshot" width="1527">
   </picture>
 </p>
 
@@ -110,147 +110,46 @@ GOAT is a **monorepo** project leveraging a modern, full-stack architecture.
 ### ☁️ Cloud Version
 GOAT is also available as a fully hosted cloud service.  If you prefer not to manage your own infrastructure, you can get started instantly with our trial version and choose from one of our available subscription tiers. Get started at <a href="https://goat.plan4better.de" target="_blank" rel="noopener noreferrer">goat.plan4better.de</a>.
 
-### 🐳 Self-hosting (Docker)
+### 🖥️ Self-hosting
 
-**Official support:** We provide a maintained `compose.yaml` for running the full GOAT stack in a production‑like environment.
+GOAT runs on your own infrastructure in two ways:
 
-**Important:** While we provide Docker resources, **self‑hosted deployments are community‑supported**. We do not offer official support for managing your infrastructure.
+| | Docker Compose | Kubernetes (Helm) |
+|---|---|---|
+| **For** | A single Linux server | An existing Kubernetes cluster |
+| **Includes** | Everything: web app and APIs, login (Keycloak), object storage, PostgreSQL/PostGIS, the Windmill job engine and HTTPS | GOAT's services, PostgreSQL, Redis and Windmill; you provide S3 storage and, for login, Keycloak |
+| **Guide** | [Installation](https://goat.plan4better.de/docs/self_hosting/docker_compose/installation) | [Kubernetes](https://goat.plan4better.de/docs/self_hosting/kubernetes) |
 
-The images for each GOAT service are published on GitHub Container Registry.
-
-
-#### Requirements
-
-Make sure the following are installed on your server or local machine:
-
-- Docker  
-- Docker Compose (plugin syntax: `docker compose`)  
-- At least 12 GB RAM recommended
-
-#### Docker Compose Profiles
-
-The `compose.yaml` uses profiles to control which services start:
-
-| Profile | Description |
-|---------|-------------|
-| (none) | Infrastructure only: PostgreSQL, MinIO, Redis, Windmill server/worker |
-| `dev` | Infrastructure + devcontainer with local code mounts for development |
-| `prod` | Infrastructure + all production services (core, geoapi, web, processes, catalog, workers) |
-
-#### Running GOAT with Docker Compose (recommended for most users)
-
-The `prod` profile provisions:
-
-- PostgreSQL with PostGIS  
-- MinIO (S3 compatible storage)  
-- Redis  
-- Windmill (workflow engine for analytics tools)
-- GOAT Core (FastAPI backend)  
-- GOAT GeoAPI (FastAPI backend for geodata)  
-- GOAT Processes (OGC API Processes)
-- GOAT Catalog (STAC API for the data catalog)
-- GOAT Web (Next.js frontend)
-
-#### 1. Clone the repository
+**Docker Compose.** Every GOAT release ships the bundle as
+`goat-compose-<version>.tar.gz` on its
+[release page](https://github.com/plan4better/goat/releases). With Docker
+Engine 24+ and Docker Compose 2.23+ installed:
 
 ```bash
-git clone https://github.com/plan4better/goat.git
-cd goat
+tar xzf goat-compose-<version>.tar.gz && cd goat-compose
+./setup.sh             # public URL, HTTPS mode, admin email -> .env with generated passwords
+docker compose up -d
+./smoke.sh             # checks the installation end to end
 ```
 
-#### 2. Create your configuration file
-
-Copy `.env.example` to `.env`:
+**Kubernetes.** The Helm chart is published as
+`oci://ghcr.io/plan4better/charts/goat`:
 
 ```bash
-cp .env.example .env
+helm install goat oci://ghcr.io/plan4better/charts/goat \
+  --namespace goat --create-namespace --values your-values.yaml --wait --timeout 25m
 ```
 
-Update environment variables as needed (see "Environment Variables" section below).
+The [self-hosting guide](https://goat.plan4better.de/docs/self_hosting/overview) compares the two and covers the
+configuration, HTTPS, external services, backups and upgrades. The files
+behind both live in [`deploy/`](deploy/): the Compose bundle in
+[`deploy/compose`](deploy/compose/), the chart in
+[`deploy/helm/goat`](deploy/helm/goat/).
 
-#### 3. Start the GOAT stack
-
-```bash
-docker compose --profile prod up -d
-```
-
-This will automatically pull the latest images and start all services.
-
-#### 4. Access GOAT
-
-| Service | URL |
-|---------|-----|
-| Web UI | <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer">http://localhost:3000</a> |
-| Core API | <a href="http://localhost:8000/api" target="_blank" rel="noopener noreferrer">http://localhost:8000/api</a> |
-| GeoAPI | <a href="http://localhost:8100" target="_blank" rel="noopener noreferrer">http://localhost:8100</a> |
-| Processes API | <a href="http://localhost:8300" target="_blank" rel="noopener noreferrer">http://localhost:8300</a> |
-| Catalog API (STAC) | <a href="http://localhost:8400/stac" target="_blank" rel="noopener noreferrer">http://localhost:8400/stac</a> |
-| Windmill UI | <a href="http://localhost:8110" target="_blank" rel="noopener noreferrer">http://localhost:8110</a> |
-| MinIO Console | <a href="http://localhost:9001" target="_blank" rel="noopener noreferrer">http://localhost:9001</a> |
-
-#### Updating GOAT
-
-To update an existing installation:
-
-```bash
-docker compose --profile prod down
-docker compose --profile prod pull
-docker compose --profile prod up -d
-```
-
-#### Clean Restart (reset all data)
-
-To completely reset the installation including all data:
-
-```bash
-docker compose --profile prod down
-docker volume rm goat_goat-data
-docker compose --profile prod up -d
-```
-
-#### Build Images Locally
-
-If you are developing the GOAT codebase or making changes to `apps/core`, `apps/geoapi`, or `apps/web`, you may need to build images manually.
-
-```bash
-docker compose --profile prod up -d --build
-```
-
-Only use this if you're modifying the GOAT source code.
-
-
-#### Required Environment Variables
-
-| Variable | Description |
-|---------|-------------|
-| `POSTGRES_USER` | Username for PostgreSQL authentication |
-| `POSTGRES_PASSWORD` | Password for PostgreSQL authentication |
-| `POSTGRES_SERVER` | Hostname of the Postgres service (usually `db`) |
-| `POSTGRES_DB` | Name of the PostgreSQL database |
-| `S3_PROVIDER` | Storage provider (e.g., `minio`) |
-| `S3_ACCESS_KEY_ID` | Access key for S3 / MinIO |
-| `S3_SECRET_ACCESS_KEY` | Secret key for S3 / MinIO |
-| `S3_ENDPOINT_URL` | Internal S3 endpoint (`http://minio:9000`) |
-| `S3_BUCKET_NAME` | Name of the S3 bucket to create/use |
-| `S3_REGION` | Region (may remain empty for MinIO) |
-| `S3_PUBLIC_ENDPOINT_URL` | Public URL for accessing S3 objects |
-| `AUTH` | Auth switch for all services and the web app (True/False). With `False`, the Keycloak variables are not needed and a default user/organization is seeded |
-| `NEXT_PUBLIC_API_URL` | Public URL of the Core API |
-| `NEXT_PUBLIC_GEOAPI_URL` | Public URL of the GeoAPI (tiles/features) |
-| `NEXT_PUBLIC_PROCESSES_URL` | Public URL of the Processes API |
-| `NEXT_PUBLIC_DOCS_URL` | URL for documentation |
-| `NEXT_PUBLIC_MAPBOX_TOKEN` | Mapbox token for the map search control (geocoding) |
-| `KEYCLOAK_SERVER_URL` | Base URL of the Keycloak server (derives the issuer together with `REALM_NAME`) |
-| `REALM_NAME` | Keycloak realm |
-| `KEYCLOAK_CLIENT_ID` | Keycloak client (web login, core admin, print worker) |
-| `KEYCLOAK_CLIENT_SECRET` | Keycloak client secret |
-| `WINDMILL_TOKEN` | Token for the Windmill workflow engine (analytics tools) |
-| `NEXTAUTH_URL` | Public URL of the Web UI (also drives `NEXT_PUBLIC_APP_URL`) |
-| `NEXTAUTH_SECRET` | Secret key for Auth.js sessions |
-
-See [`.env.example`](/.env.example) for the full list, including optional
-settings such as the `AUTH=False` default identity (`DEFAULT_USER_*`,
-`DEFAULT_ORGANIZATION_NAME`, `DEFAULT_QUOTA_*`), SMTP, and Stripe.
+**Help with self-hosting:** questions and bug reports are welcome in
+[GitHub issues](https://github.com/plan4better/goat/issues), answered as time
+allows. Plan4Better also offers **managed on-premise deployment**, running GOAT
+on your own servers for you: [get in touch](https://plan4better.de/en/contact/).
 
 
 ## 👩‍⚖️ License
@@ -263,23 +162,23 @@ The full platform — including user management, teams, and organizations — is
 of the open-source core. Optional commercial services (hosting, support, and
 enterprise capabilities) are available for organizations that need them.
 
-This structure makes GOAT accessible for everyone, while providing extended functionalities through
-optional commercial services.
-
-
-|                                   | GPLv3 | Commercial |
-| --------------------------------- | :---: | :--------: |
-| Self‑host the core platform       | ✅    | ✅         |
-| Use for commercial purposes       | ✅    | ✅         |
-| Teams & organizations             | ✅    | ✅         |
-| Clone privately                   | ✅    | ✅         |
-| Fork publicly                     | ✅    | ✅         |
-| Modify and redistribute           | ✅    | ❌ (commercial components excluded) |
-| Keep derivative work private      | ❌    | ✅ (commercial components only) |
-| Authentication integrations       | ❌    | ✅         |
-| Hosted SaaS version               | ❌    | ✅         |
-| Official support                  | ❌    | ✅         |
-
 
 ## ✍️ Contributing
 We welcome contributions of all kinds, bug reports, documentation improvements, new features, and feedback that helps strengthen the platform. Please see our [contributing guide](/CONTRIBUTING.md).
+
+### Local development
+
+The `compose.yaml` in the repository root runs the infrastructure for local
+development (PostgreSQL, Garage for S3, Redis, Windmill); the apps run on your
+machine. Fill in the Garage secrets and key in `.env` first (the comments there
+say how to generate them):
+
+```bash
+cp .env.example .env
+docker compose up -d        # infrastructure; --profile auth adds Keycloak
+pnpm install && pnpm web    # web app on http://localhost:3000
+uv sync --all-packages      # Python services, then for example:
+cd apps/core && uv run uvicorn core.main:app --reload --port 8000
+```
+
+It is not a way to run GOAT in production; use the self-hosting options above.

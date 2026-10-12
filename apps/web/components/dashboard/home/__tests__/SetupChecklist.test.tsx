@@ -21,7 +21,7 @@ describe("SetupChecklist", () => {
     render(<SetupChecklist done={["project"]} onStep={vi.fn()} />);
 
     // "project" is done, so "data" is the first open step.
-    const dataCta = screen.getByRole("button", { name: "add_dataset" });
+    const dataCta = screen.getByRole("button", { name: "upload_dataset" });
     const catalogCta = screen.getByRole("button", { name: "browse_catalog" });
     expect(dataCta.className).toContain("MuiButton-contained");
     expect(catalogCta.className).toContain("MuiButton-outlined");
@@ -47,7 +47,7 @@ describe("SetupChecklist", () => {
     render(<SetupChecklist done={[]} compact onStep={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "new_project" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "add_dataset" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "upload_dataset" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "browse_catalog" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "pick_a_template" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "pick_a_workflow" })).not.toBeInTheDocument();

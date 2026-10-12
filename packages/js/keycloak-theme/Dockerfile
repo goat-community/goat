@@ -27,11 +27,12 @@ RUN cd packages/js/keycloak-theme \
   && pnpm run build-keycloak-theme \
   && mv build_keycloak/target/*.jar build_keycloak/target/p4b-keycloak-theme.jar
 
+# The SPI jars come from their upstream releases, pinned by checksum.
 FROM alpine:3.20 AS providers
 RUN wget -q -O /keycloak-metrics-spi-4.0.0.jar \
-    https://assets.plan4better.de/other/keycloak/keycloak-metrics-spi-4.0.0.jar \
+    https://github.com/aerogear/keycloak-metrics-spi/releases/download/4.0.0/keycloak-metrics-spi-4.0.0.jar \
   && wget -q -O /io.phasetwo.keycloak-keycloak-events-0.19.jar \
-    https://assets.plan4better.de/other/keycloak/phasetwo_keycloak_22.0.3/io.phasetwo.keycloak-keycloak-events-0.19.jar \
+    https://repo1.maven.org/maven2/io/phasetwo/keycloak/keycloak-events/0.19/keycloak-events-0.19.jar \
   && echo "0f434d06e73d6018b2c06a2ae611b875ca22ba7c86fc2d995fbde9e254b9bf8b  /keycloak-metrics-spi-4.0.0.jar" | sha256sum -c - \
   && echo "23454c7878ee8c8f72f2d3ce9ef57f07a8e888997483ca3cb81ac339ae5880e5  /io.phasetwo.keycloak-keycloak-events-0.19.jar" | sha256sum -c -
 

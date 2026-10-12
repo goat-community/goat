@@ -1,6 +1,9 @@
 /**
  * Shared typography constants for print-oriented report layouts.
- * Font families are system/web-safe fonts available in Playwright's Chromium.
+ * The editor draws a family with the viewer's own font of that name. The print
+ * worker has open fonts standing in for the ones it lacks, under their names
+ * (apps/processes/workers/fonts/60-goat-print-fonts.conf), so a family added
+ * here needs a font there too, or it prints in the generic fallback.
  */
 
 export interface FontFamilyOption {

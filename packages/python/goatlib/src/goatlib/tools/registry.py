@@ -760,6 +760,20 @@ TOOL_REGISTRY: tuple[ToolDefinition, ...] = (
         toolbox_hidden=True,
     ),
     ToolDefinition(
+        name="layer_copy",
+        display_name="Layer Copy",
+        description=(
+            "Give a project its own editable copy of a layer it shows, "
+            "with or without its rows (template datasets in copy mode)"
+        ),
+        module_path="goatlib.tools.layer_copy",
+        params_class_name="LayerCopyParams",
+        windmill_path="f/goat/tools/layer_copy",
+        category="data",
+        keywords=("copy", "duplicate", "layer", "template"),
+        toolbox_hidden=True,
+    ),
+    ToolDefinition(
         name="custom_sql",
         display_name="Custom SQL",
         description="Execute custom SQL query against workflow layers",

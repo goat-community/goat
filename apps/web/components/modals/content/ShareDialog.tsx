@@ -49,6 +49,7 @@ import {
 } from "@/lib/api/templates";
 import { useOrganization } from "@/lib/api/users";
 import { folderPath, restrictedAncestorName, spaceIconFor } from "@/lib/utils/content";
+import { bindsDataset } from "@/lib/utils/templates";
 import type { ContentItem, Space } from "@/lib/validations/content";
 import type { Folder } from "@/lib/validations/folder";
 import type { LayerSharedWith } from "@/lib/validations/layer";
@@ -88,10 +89,11 @@ interface SharesState {
 
 const EMPTY_SHARES: SharesState = { users: [], teams: [], organizations: [] };
 
-/** The fixed height of the tab body, so switching tabs never resizes the
- * dialog. Dropped when the dialog goes full-screen on a small viewport,
- * where the body takes whatever is left instead. */
-const TAB_BODY_HEIGHT = 330;
+/** The dialog keeps one height on every tab, and the tab body takes what the
+ * header, the notes and the actions leave. Public has no notes and no
+ * actions, so its body gets their room instead of the dialog shrinking. A
+ * full-screen dialog on a small viewport fills the screen the same way. */
+const DIALOG_HEIGHT = 566;
 
 const ROLE_PREFIX: Record<ContentItem["type"], RolePrefix> = {
   layer: "layer",
@@ -217,7 +219,7 @@ const ShareDialog = ({ item, space, folders, onClose, onTransfer }: ShareDialogP
   // the owner knows what else to share for the template to actually run.
   const { template } = useTemplate(isTemplate ? item.id : null);
   const shippedDatasetCount = (template?.inputs ?? []).filter(
-    (input) => input.mode === "ship" && input.layer_id !== null && !input.public_read && !input.from_catalog
+    (input) => bindsDataset(input) && input.layer_id !== null && !input.public_read && !input.from_catalog
   ).length;
 
   // `canActOn` already requires owner and rules out a shortcut (which carries
@@ -443,7 +445,7 @@ const ShareDialog = ({ item, space, folders, onClose, onTransfer }: ShareDialogP
       open
       onClose={onClose}
       fullScreen={fullScreen}
-      PaperProps={{ sx: contentDialogPaperSx(500, fullScreen) }}>
+      PaperProps={{ sx: contentDialogPaperSx(500, fullScreen, { height: DIALOG_HEIGHT }) }}>
       <ContentDialogHeader
         icon={isFolder ? ICON_NAME.FOLDER : ICON_NAME.SHARE}
         title={t("share_item", { name: item.name })}
@@ -583,8 +585,7 @@ const ShareDialog = ({ item, space, folders, onClose, onTransfer }: ShareDialogP
         id={`simple-tabpanel-${activeTabValue}`}
         aria-labelledby={`simple-tab-${activeTabValue}`}
         sx={{
-          height: fullScreen ? undefined : TAB_BODY_HEIGHT,
-          flex: fullScreen ? 1 : undefined,
+          flex: 1,
           minHeight: 0,
           display: "flex",
           flexDirection: "column",

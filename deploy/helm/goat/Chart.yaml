@@ -1,0 +1,241 @@
+apiVersion: v2
+name: goat
+description: |
+  Helm chart for GOAT (Geo Open Accessibility Tool) — a WebGIS platform for
+  spatial analysis, accessibility modeling, and collaborative mapping.
+
+  v0.6.0:
+
+  - NEW: `global.s3` — ONE S3 store (bucket, provider, endpoint, public
+    endpoint, region, path style, key pair from `existingSecret`, and the
+    assets bucket with its public URL) for core, geoapi, processes and the
+    Windmill workers. The S3 and assets placeholders in their `config` and
+    `extraEnv` defaults are gone; values set there keep winning.
+  - The print, tools and workflows workers get what GOAT's jobs read: the
+    GOAT database and DuckLake, S3, the catalog bucket, PRINT_BASE_URL (the
+    in-cluster web service; the code default only matched a release named
+    `goat`) and, with auth wired, the Keycloak client the print worker logs
+    in with. WHITELIST_ENVS is built from all of it plus every name in the
+    worker's `config` and `extraEnv`, instead of a fixed list that missed
+    newer variables. Before, the print worker got none of this.
+  - Redis: the chart runs its own on the official `redis:7.4-alpine`
+    image (the one the Docker Compose bundle runs) instead of the Bitnami
+    sub-chart, whose `bitnamilegacy/redis` image no longer gets updates.
+    One Deployment, nothing on disk, LRU eviction at `redis.maxmemory`;
+    `global.security.allowInsecureImages` is gone with it.
+  - Every worker gets a JOB_DEFAULT_TIMEOUT for its kind of work (tools
+    2500 s, workflows 1800 s, print and default 300 s), the values GOAT's
+    own deployments use, instead of Windmill's default.
+  - NEW: `email` — the SMTP server core sends invitations through (host,
+    port, security, user, sender, password from `existingSecret`) and the
+    branding of GOAT's emails. Core also gets CLIENT_URL and API_URL, the
+    links in its emails, from the web and API public URLs.
+  - NEW: `odoo`, Plan4Better's Odoo (optional, SaaS only): `url` and `db`
+    shared by GOAT's Odoo integrations, and `odoo.support` for support
+    tickets (Odoo Helpdesk): team id, the post action and the API key from
+    `existingSecret`, off while empty. `core.ingress` must accept request bodies of at least
+    56 MB on /api/v2/support when it is on.
+  - NEW: `web.supportEmail` (NEXT_PUBLIC_SUPPORT_EMAIL), the address of
+    "Report a problem" without tickets and of the "support unavailable"
+    messages; defaults to support@plan4better.de, set your own for a
+    white-label installation.
+  - NEW: `global.auth.provisionInvitedUsers` — invitations create the
+    Keycloak account (KEYCLOAK_PROVISION_INVITED_USERS) for realms without
+    self-registration.
+  - NEW: `global.caBundle` — a company CA certificate from a ConfigMap or
+    Secret, mounted into core (SMTP relay), web (Keycloak) and the print,
+    tools and workflows workers.
+  - `core.config` no longer ships `ASSETS_URL: https://example.com/assets`
+    or `AWS_S3_ASSETS_BUCKET: placeholder`: uploaded images got URLs on
+    example.com. `global.s3.assets.publicUrl` sets the real one.
+
+  v0.5.1:
+
+  - Tracks GOAT v3.0.3: the Windmill workers ship the Python runtimes
+    Windmill needs, so nothing is downloaded at runtime (air-gapped installs
+    work); geoapi, processes and catalog can be served under a path prefix
+    (`<service>.config.ROOT_PATH`); new `sync_base_data` task for the
+    routing and public-transport base data.
+  - NEW: `global.auth` — ONE auth switch (`enabled`) and ONE Keycloak
+    Secret (`existingSecret` + `existingSecretKeys`) for core, web, geoapi,
+    processes and catalog. `<service>.auth.enabled` now defaults to null
+    (inherit); an explicit true/false, a per-service `existingSecret` or
+    key name still win, so 0.5.0 values files keep working unchanged.
+  - Fix: geoapi and processes got no AUTH from the chart, so their code
+    default (AUTH on) applied while core/web/catalog ran auth off. A bare
+    install could view maps but every feature edit (geoapi) and every job
+    route (processes: running tools, listing jobs) answered 401. Every
+    service now gets an explicit AUTH=true/false.
+  - Fix: geoapi and processes were never given the Keycloak URL or realm, so
+    an auth-on install validated tokens against the code default
+    (plan4better's own dev Keycloak) — rejecting every customer token and
+    calling out to it at pod start (fatal air-gapped). They now get
+    KEYCLOAK_SERVER_URL + REALM_NAME from the Keycloak Secret, or from
+    core.config when no Secret is set. New `geoapi.auth` / `processes.auth`.
+  - AUTH, KEYCLOAK_SERVER_URL or REALM_NAME set explicitly in
+    `<service>.config` or `<service>.extraEnv` win and are rendered exactly
+    once (the chart no longer emits a second copy — duplicate ConfigMap keys
+    before, e.g. `core.config.AUTH`, `catalog.config.KEYCLOAK_SERVER_URL`).
+  - Fix: on a fresh install processes had no Windmill token (its pods start
+    before the post-install bootstrap hook writes it, and nothing restarted
+    them), so every tool run and job listing failed until a manual restart.
+    The hook now restarts processes when the token is new and keeps a valid
+    token instead of minting one per upgrade.
+  - Fix: `processes.windmillAutoWire: false` was ignored.
+  - core, geoapi, processes and catalog trust forwarded headers from the
+    ingress (`FORWARDED_ALLOW_IPS: "*"`), so redirects and OGC links use
+    https behind a TLS-terminating ingress.
+
+  v0.5.0:
+
+  - Tracks GOAT v3.0.2. NEW: the `catalog` service (STAC API + MCP server)
+    is a first-class component, enabled by default.
+  - NEW: a single top-level `data` volume shared by catalog, core, geoapi,
+    processes and the tools/workflows workers — the catalog mirror and the
+    geoip database are written by a worker and read by the others, so they
+    do nothing without it.
+  - BREAKING: `windmill.workers.{tools,workflows}.persistence` is superseded
+    by `data`. The old per-worker PVC templates render zero documents at the
+    new default, so `helm upgrade` to 0.5.0 DELETES
+    `<fullname>-windmill-tools-data` and `<fullname>-windmill-workflows-data`
+    (`<fullname>` = `<release>-goat`, or `<release>` if it contains `goat`)
+    and the data on them. FIRST, before `helm upgrade`, run
+    `kubectl -n <ns> annotate pvc <fullname>-windmill-tools-data
+    <fullname>-windmill-workflows-data helm.sh/resource-policy=keep`: Helm
+    reads that annotation from the LIVE claim when it would delete it, and
+    0.4.x never set it. `data.existingClaim` is safe to point at an old claim
+    only after that — on its own it does not stop the deletion. The upgrade
+    now FAILS with that exact command if an unannotated legacy claim of the
+    release exists (bypass:
+    `windmill.workers.legacyPersistence.acknowledgeDeletion: true`). See
+    README "Upgrading 0.4.x → 0.5.0" note 1.
+  - BREAKING: `geoapi` and `processes` now default to enabled.
+  - `core.config.GOAT_GEOAPI_HOST` is replaced by `GOAT_PROCESSES_URL`
+    (core still reads the old name as a fallback).
+  - Fixes: `REDIS_URL` is now wired to the bundled Redis (geoapi's tile cache
+    was silently dead); the web frontend gets its `NEXT_PUBLIC_*` URLs; the
+    windmill workers get a real `WHITELIST_ENVS` default (without it every
+    goatlib tool job sees an empty environment).
+  - Fixes found running the chart end-to-end on a real cluster for the first
+    time (k3d smoke test, see README "Bootstrapping onto a fresh cluster"):
+    `postgresql.cluster.image` now defaults to `ghcr.io/cloudnative-pg/postgis`
+    (CNPG's own default image has no PostGIS at all, so every
+    bundled-Postgres install failed at initdb: `extension "postgis" is not
+    available`) — an earlier fix of this defaulted to a pgRouting-flavored
+    image instead, which was wrong: GOAT's schema needs PostGIS + uuid-ossp
+    only, never pgRouting, and that image's non-default UID/GID had to be
+    overridden for no real reason. NOTE: this also moves the bundled Postgres
+    major version from 17 (CNPG's own operator default) to 18 (the tag pin
+    above, `18-3.6-system-trixie`) — an operator relying on the previous
+    default gets a major-version jump, not just an image swap; the windmill
+    database and roles/secret
+    are now provisioned independently of `windmill.server.enabled`
+    (previously tied to it, so turning windmill on after the Postgres
+    cluster already existed left it pointed at a database that would never
+    exist); the windmill database itself moved out of CNPG's one-shot
+    `postInitSQL` entirely — the role it needs as owner does not exist yet
+    at the point `postInitSQL` runs, so referencing it there failed initdb
+    outright every time, regardless of timing.
+  - A fresh cluster now installs with ONE `helm install --wait` (verified by
+    `deploy/helm/smoke-k3d.sh` against a new k3d cluster with the full bundled
+    profile). Two changes make that possible: the CNPG operator's CRDs are
+    vendored under `crds/` (subchart's own CRD creation off via
+    `cloudnative-pg.crds.create: false`), so the operator and the Postgres
+    `Cluster` CR land in the same call; and the one-time bootstrap is done
+    by INIT CONTAINERS instead of post-install hooks — `ducklake-init` on
+    geoapi/processes (`python -m goatlib.storage.ducklake_init` in the
+    component's own image) and `windmill-db-init` on the windmill server and
+    every worker (psql from `postgresql.cluster.image`). As hooks they
+    deadlocked `--wait` (Helm holds post-install hooks until every resource
+    is Ready; the pods that needed them could not go Ready first). The old
+    hooks and their `python:3.11-slim` image + install-time `pip install`
+    are gone; `windmill.db.bootstrapImage` is removed.
+  - `ducklakeBootstrap.enabled` now DEFAULTS TO TRUE and controls the
+    `ducklake-init` init container; `ducklakeBootstrap.s3.*` is no longer
+    read (the init container takes the service's own env).
+    `ducklakeBootstrap.dataDir`/`catalogSchema` are now emitted as
+    `DUCKLAKE_DATA_DIR`/`DUCKLAKE_CATALOG_SCHEMA` into the geoapi and
+    processes ConfigMaps, so the catalog is created exactly where the
+    services read it.
+  - UPGRADE NOTE: the DuckLake catalog is now bootstrapped by the
+    geoapi/processes images' own DuckDB (1.5.4, metadata format 1.0) on
+    every pod start. A catalog created by an older bootstrap (duckdb 1.4.3,
+    format 0.3) cannot be attached by it; the init container detects this
+    and fails with guidance, leaving the pods in Init:CrashLoopBackOff.
+    Follow docs/ducklake-15-upgrade.md in the main goat repo (pause
+    schedules, scale readers to 0, back up, migrate, VACUUM FULL, roll out
+    1.5.4 images) BEFORE upgrading past this chart version.
+
+  v0.4.1:
+
+  - `appVersion` is pinned to the GOAT release the chart was tested with
+    (`v2.4.60`); every GOAT image, including the Windmill images, follows it
+    unless `<service>.image.tag` is set.
+  - Browser uploads use presigned PUT; the object store's CORS rule must allow
+    `PUT` and the `Content-Type` header.
+  - New optional env `S3_FORCE_PATH_STYLE` (path-style addressing for any
+    S3-compatible store) and `MAX_UPLOAD_DATASET_FILE_SIZE`; both must be
+    listed in the Windmill workers' `WHITELIST_ENVS` to reach tool jobs.
+
+  v0.4.0:
+
+  - NEW: schema migrations run automatically as a Helm hook
+    (`core.migrate.*`, default on) — `alembic upgrade head` +
+    `initial_data` on post-install (fresh-install bootstrap, waits for
+    Postgres) and pre-upgrade (before new pods roll). Disable with
+    `core.migrate.enabled: false` to manage the schema out-of-band.
+  - BREAKING: `web.config.NEXT_PUBLIC_AUTH_DISABLED` is replaced by
+    `NEXT_PUBLIC_AUTH` (inverted meaning), matching the upstream single
+    AUTH switch.
+type: application
+version: 0.6.0
+appVersion: "v3.0.3"   # GOAT release every image defaults to; override per service with <service>.image.tag
+icon: https://goat.plan4better.de/favicon.ico
+home: https://github.com/plan4better/goat/tree/main/deploy/helm/goat
+sources:
+  - https://github.com/plan4better/goat          # chart (deploy/helm/goat) and application source
+maintainers:
+  - name: plan4better
+    email: info@plan4better.de
+    url: https://plan4better.de
+keywords:
+  - goat
+  - webgis
+  - geospatial
+  - accessibility
+  - routing
+
+# Sub-chart dependencies, each gated on its `enabled` value: the CloudNativePG
+# operator for the bundled PostgreSQL.
+# CNPG's CRDs are ALSO vendored directly under crds/cloudnative-pg-crds.yaml
+# (a verbatim, un-templated copy of the cloudnative-pg subchart's own
+# templates/crds/crds.yaml at the pinned 0.22.1 version below), with the
+# subchart's own CRD creation turned off (cloudnative-pg.crds.create:
+# false in values.yaml). Helm applies a chart's crds/ directory BEFORE
+# rendering or installing ANY templates, in the SAME `helm install` — this
+# is what makes a single-command bundled install possible at all: without
+# it, installing the CNPG operator (which owns the `Cluster` CRD) and this
+# chart's `Cluster` CR in the same call fails on a cluster that has never
+# seen the CRD, because Helm resolves every resource's kind against
+# cluster API discovery before creating anything (see README
+# "Bootstrapping onto a fresh cluster" for the full story).
+#
+# Caveats, both inherent to Helm's crds/ mechanism, not this chart:
+#   - crds/ is install-only. Helm NEVER upgrades or deletes CRDs from it on
+#     `helm upgrade` (documented Helm behavior, to avoid an upgrade
+#     silently deleting a CRD and the custom resources depending on it).
+#     Bumping the cloudnative-pg dependency version below does NOT update
+#     an already-installed cluster's CRDs — that needs an explicit, manual
+#     `kubectl apply -f deploy/helm/goat/crds/cloudnative-pg-crds.yaml` (or
+#     equivalent) as its own operational step.
+#   - The vendored copy must be kept in sync with the `cloudnative-pg`
+#     version pinned below by hand — there is no automation for this.
+#     Re-extract from the new version's own
+#     templates/crds/crds.yaml after any version bump (strip its wrapping
+#     `{{- if .Values.crds.create }}` / `{{- end }}` — the rest is already
+#     plain YAML).
+dependencies:
+  - name: cloudnative-pg
+    version: "0.22.x"
+    repository: https://cloudnative-pg.github.io/charts
+    condition: postgresql.operator.enabled

@@ -1,10 +1,15 @@
 """Pytest fixtures for GeoAPI tests."""
 
+import os
 from typing import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+
+# geoapi.config builds its settings at import and refuses AUTH on (the default)
+# without a Keycloak server; this placeholder satisfies that check.
+os.environ.setdefault("KEYCLOAK_SERVER_URL", "http://keycloak.test")
 
 
 @pytest.fixture

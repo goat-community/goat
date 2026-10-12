@@ -483,6 +483,7 @@ class WindmillClient:
                 # Jobs that need full details:
                 # - layer_export, project_export, print_report: need args for filtering and results for download
                 # - workflow_runner: need results for temp_layer_ids
+                # - layer_copy: needs args for its label once it has finished
                 # - failed jobs: need result to extract error name/message
                 jobs_needing_details = [
                     j
@@ -493,6 +494,8 @@ class WindmillClient:
                             "project_export",
                             "print_report",
                             "workflow_runner",
+                            # names its copy after the entry (`layer_name`) in the tray
+                            "layer_copy",
                         )
                     )
                     or j.get("success") is False  # Failed jobs need error details

@@ -12,6 +12,9 @@ coverage
 **/.next
 apps/web/out
 apps/storybook/out
+apps/storybook/storybook-static
+apps/docs/build
+apps/docs/.docusaurus
 
 # node
 **/dist
@@ -33,6 +36,7 @@ yarn-error.log*
 
 .vscode
 .github
+.claude
 **/.turbo
 .env
 
@@ -45,13 +49,22 @@ app.egg-info
 **/.ruff_cache
 .coverage
 htmlcov
-.venv
+**/.venv
 
 # Test fixtures — not needed at runtime, ~110MB in goatlib alone
 packages/python/*/tests
+packages/cpp/*/tests
+apps/catalog/tests
 apps/core/tests
 apps/geoapi/tests
 apps/processes/tests
+
+# The worker image definition. The processes image copies apps/processes, so
+# without this every change to the worker Dockerfile rebuilt the processes
+# image. BuildKit still reads a Dockerfile that is ignored here.
+apps/processes/workers
+# ...except the print worker's fontconfig file, which worker-print copies in.
+!apps/processes/workers/fonts
 
 # Large data directories
 data/

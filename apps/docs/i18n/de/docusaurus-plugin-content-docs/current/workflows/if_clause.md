@@ -1,6 +1,10 @@
+---
+description: "Leiten Sie einen Layer mit dem Bedingung-Knoten in den Wahr- oder Falsch-Zweig eines Workflows, anhand logischer oder statistischer Ausdrücke mit UND oder ODER."
+---
+
 # Bedingung
 
-Der **Bedingung**-Knoten leitet eine Eingabeebene basierend auf einer definierten Bedingung an den **Wahr**- oder **Falsch**-Zweig weiter. Die Ebene wird unverändert weitergegeben — eine Bedingung gilt als wahr, wenn mindestens ein Feature sie erfüllt.
+Der **Bedingung**-Knoten leitet eine Eingabeebene basierend auf einer definierten Bedingung an den **Wahr**- oder **Falsch**-Zweig weiter. Die Ebene wird unverändert weitergegeben. Eine Bedingung gilt als wahr, wenn mindestens ein Feature sie erfüllt.
 
 ## Knotenstruktur
 
@@ -24,10 +28,11 @@ Der **Bedingung**-Knoten leitet eine Eingabeebene basierend auf einer definierte
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Klicken Sie auf den Bedingung-Knoten, um die Konfiguration zu öffnen. Klicken Sie auf <strong>Ausdruck hinzufügen</strong> und wählen Sie einen Ausdruckstyp:
+  <div class="content">
+  Klicken Sie auf den Bedingung-Knoten, um die Konfiguration zu öffnen. Klicken Sie auf <strong>Ausdruck hinzufügen</strong> und wählen Sie einen Ausdruckstyp:
     <ul>
-      <li><strong>Logischer Ausdruck</strong> — Wählen Sie ein Feld aus der vorgelagerten Ebene, einen Operator (z. B. größer als, enthält) und geben Sie einen Wert ein.</li>
-      <li><strong>Statistischer Ausdruck</strong> — Wählen Sie eine Aggregationsmethode (<code>count</code>, <code>sum</code>, <code>mean</code>, <code>median</code>, <code>min</code>, <code>max</code>), sowie optional ein numerisches Feld, einen Vergleichsoperator und einen Schwellenwert.</li>
+      <li><strong>Logischer Ausdruck</strong>: Wählen Sie ein Feld aus der vorgelagerten Ebene, einen Operator (z. B. größer als, enthält) und geben Sie einen Wert ein.</li>
+      <li><strong>Statistischer Ausdruck</strong>: Wählen Sie eine Aggregationsmethode (<code>count</code>, <code>sum</code>, <code>mean</code>, <code>median</code>, <code>min</code>, <code>max</code>), sowie optional ein numerisches Feld, einen Vergleichsoperator und einen Schwellenwert.</li>
     </ul>
   </div>
 </div>
@@ -48,4 +53,4 @@ Klicken Sie auf das <code>{"{}"}</code>-Symbol in einem Wertfeld, um eine Workfl
 
 ## Ausführungsstatus
 
-Nach der Ausführung zeigt der Bedingung-Knoten einen Statuschip — **Abgeschlossen**, **Fehlgeschlagen** oder **Übersprungen** — der angibt, welcher Zweig genommen wurde. Um alle Bedingungen zu entfernen, klicken Sie auf **Filter löschen**.
+Nach der Ausführung zeigt der Bedingung-Knoten einen Statuschip (**Abgeschlossen**, **Fehlgeschlagen** oder **Übersprungen**), der angibt, welcher Zweig genommen wurde. Um alle Bedingungen zu entfernen, klicken Sie auf **Filter löschen**.

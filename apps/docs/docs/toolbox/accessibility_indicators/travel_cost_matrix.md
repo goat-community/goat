@@ -1,4 +1,5 @@
 ---
+description: "Compute travel time or distance for every origin-destination pair of two point layers, by routing mode or flight distance, as a table of travel costs."
 sidebar_position: 10
 ---
 
@@ -7,17 +8,17 @@ import TabItem from '@theme/TabItem';
 
 # Travel Cost Matrix
 
-The Travel Cost Matrix tool **computes travel time or distance between a set of origins and a set of destinations**, producing a table that can be used for accessibility analysis, location planning, and spatial modeling.
+The Travel Cost Matrix tool **computes [travel time](https://www.plan4better.de/en/glossary/travel-time) or distance between a set of origins and a set of destinations**, producing a table that can be used for [accessibility analysis](https://www.plan4better.de/en/glossary/accessibility-analysis), [location planning](https://www.plan4better.de/en/glossary/site-selection), and spatial modeling.
 
 ## 1. Explanation
 
-The Travel Cost Matrix calculates the **travel cost (time or distance) between every origin–destination pair** in two input layers, for a selected routing mode. The output is a table where each row represents one O-D connection and includes the origin identifier, destination identifier, and the computed travel cost.
+The Travel Cost Matrix calculates the **travel cost (time or distance) between every [origin–destination pair](https://www.plan4better.de/en/glossary/origin-destination-matrix)** in two input layers, for a selected routing mode. The output is a table where each row represents one O-D connection and includes the origin identifier, destination identifier, and the computed travel cost.
 
 The Travel Cost Matrix is designed for **batch computation across many origins and destinations at once**. This makes it the right tool when you need the raw cost data to feed into further analyses, such as location scoring, supply-demand matching, or custom accessibility indices.
 
 ## 2. Example use cases
 
-- Computing walking times from all residential buildings to the nearest schools to identify underserved areas.
+- Computing walking times from all residential buildings to the nearest schools to identify [underserved areas](https://www.plan4better.de/en/glossary/deficit-area).
 - Calculating car travel times between a set of warehouses (origins) and retail stores (destinations) for logistics optimization.
 - Building an input matrix for a custom accessibility score that weights travel time by destination attractiveness.
 - Assessing how many destinations are reachable within a given travel time threshold from each origin.
@@ -54,14 +55,14 @@ The Travel Cost Matrix is designed for **batch computation across many origins a
 </TabItem>
 <TabItem value="flight" label="Flight Distance" className="tabItemBox">
 
-**Computes the straight-line geodesic distance between every origin–destination pair.** No routing network is used. There are no configuration fields for this mode — simply select it and proceed to the Input section.
+**Computes the straight-line geodesic distance between every origin–destination pair.** No routing network is used. There are no configuration fields for this mode, so simply select it and proceed to the Input section.
 
 </TabItem>
 <TabItem value="pt" label="Public Transport (PT)" className="tabItemBox">
 
 - Select the <code>Choose PT Modes</code> to analyze: Bus, Tram, Rail, Subway, Ferry, Cable Car, Gondola, and/or Funicular.
 - Select the <code>Day</code> (<code>Weekday</code>, <code>Saturday</code>, or <code>Sunday</code>) and set the <code>Start Time</code> and <code>End Time</code> for the analysis time window.
-- Set the <code>Travel time limit (min)</code> — the maximum journey duration to consider.
+- Set the <code>Travel time limit (min)</code>: the maximum journey duration to consider.
 - Optionally, enable <code>Advanced options</code> to configure <code>Max. transfers</code>, <code>Access Mode</code>, and <code>Egress Mode</code>.
 
 </TabItem>
@@ -71,12 +72,12 @@ The Travel Cost Matrix is designed for **batch computation across many origins a
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Under <b>Origins</b>, select your <code>Origins layer</code> (a point layer where each feature is a starting location) and set the <code>Origins label</code> — the column used to identify origins in the result matrix.</div>
+  <div class="content">Under <b>Origins</b>, select your <code>Origins layer</code> (a point layer where each feature is a starting location) and set the <code>Origins label</code>: the column used to identify origins in the result matrix.</div>
 </div>
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Under <b>Destinations</b>, select your <code>Destinations layer</code> (a point layer where each feature is a target location) and set the <code>Destinations label</code> — the column used to identify destinations in the result matrix.</div>
+  <div class="content">Under <b>Destinations</b>, select your <code>Destinations layer</code> (a point layer where each feature is a target location) and set the <code>Destinations label</code>: the column used to identify destinations in the result matrix.</div>
 </div>
 
 ### Result layer
@@ -98,7 +99,7 @@ The Travel Cost Matrix is designed for **batch computation across many origins a
 
 :::tip Hint
 
-Calculation time scales with the number of O-D pairs. Check the [status bar](../../workspace/home#status-bar) for progress.
+Calculation time scales with the number of O-D pairs. Check the [status bar](../../workspace/workspace_interface.md#job-status) for progress.
 
 :::
 
@@ -114,7 +115,7 @@ Once the calculation finishes, a **table layer** is added to the map panel. Each
 
 O-D pairs that exceed the maximum travel cost are excluded from the output.
 
-A **Destinations** point layer is also added, containing all original destination attributes enriched with a computed **travel_cost** value for each point — the **minimum cost from any origin** to that destination. This makes the layer easy to map and style, showing how reachable each destination is from the nearest origin.
+A **Destinations** point layer is also added, containing all original destination attributes enriched with a computed **travel_cost** value for each point, the **minimum cost from any origin** to that destination. This makes the layer easy to map and style, showing how reachable each destination is from the nearest origin.
 
 :::tip Tip
 Want to use this matrix for further analysis? Connect the result table as input to other tools in a [Workflow](../../map/layers.md) or export it as CSV for use in external tools.
@@ -132,7 +133,7 @@ Travel costs are computed using the **same routing engine as the Catchment Area 
 
 ### Unbounded calculation limits
 
-When no maximum travel cost is set, the following limits apply based on the bounding-box diagonal of all origin–destination pairs (the straight-line distance across the smallest rectangle that contains all your origin and destination points — in other words, how far apart your two most distant points are):
+When no maximum travel cost is set, the following limits apply based on the bounding-box diagonal of all origin–destination pairs (the straight-line distance across the smallest rectangle that contains all your origin and destination points; in other words, how far apart your two most distant points are):
 
 | Routing mode | Maximum O-D extent (bounding-box diagonal) |
 |---|---|

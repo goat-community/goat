@@ -108,6 +108,7 @@ def test_anonymous_stored_query_on_published_layer_runs(
         {
             "sql_query": QUERY,
             "layers": {"input_1": LAYER_ID},
+            "user_id": None,
             "limit": 10,
             "offset": 0,
             "filter_expr": None,

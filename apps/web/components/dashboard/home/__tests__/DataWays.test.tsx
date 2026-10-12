@@ -21,7 +21,7 @@ describe("DataWays", () => {
     const onUpload = vi.fn();
     render(<DataWays onUpload={onUpload} onCatalog={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "add_dataset" }));
+    fireEvent.click(screen.getByRole("button", { name: "upload_dataset" }));
 
     expect(onUpload).toHaveBeenCalled();
   });

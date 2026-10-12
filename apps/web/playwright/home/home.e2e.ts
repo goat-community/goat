@@ -1,11 +1,11 @@
 import type { APIRequestContext } from "@playwright/test";
-import { expect, request, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-// Same base the web app itself builds its API clients from (see
-// lib/api/projects.ts) — the fixtures below talk to core directly rather
+import { API_URL, apiAs } from "../fixtures/users";
+
+// The fixtures below talk to core directly (as the owner, `apiAs`) rather
 // than through the UI, since a project's own layers/canvas play no part in
 // what these tests check.
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
 const INITIAL_VIEW_STATE = {
   latitude: 48.1502132,
@@ -30,7 +30,7 @@ test.describe("Home", () => {
   let projectId: string;
 
   test.beforeAll(async () => {
-    apiContext = await request.newContext();
+    apiContext = await apiAs("owner");
 
     // The create endpoint 400s on a bare folder-less body (folder_id ends
     // up required at the model layer despite being optional in the schema),

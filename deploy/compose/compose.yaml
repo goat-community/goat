@@ -1,0 +1,794 @@
+# =============================================================================
+# GOAT — single-node deployment
+# =============================================================================
+# Quick start:   ./setup.sh && docker compose up -d && ./smoke.sh
+# Configuration: .env (created by setup.sh from .env.example)
+#
+# Caddy is the only service reachable from outside. Everything else talks on
+# the internal "goat" network. The Windmill UI is bound to 127.0.0.1 for an
+# SSH tunnel.
+# =============================================================================
+
+name: goat
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
+x-restart: &restart
+  restart: unless-stopped
+  logging: *logging
+
+# --- Environment blocks -------------------------------------------------------
+
+x-env-db: &env-db
+  POSTGRES_SERVER: postgres
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: goat
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run ./setup.sh first}
+  POSTGRES_DB: goat
+  # DuckLake keeps its catalog connection open for the process lifetime and
+  # must reach Postgres directly.
+  DUCKLAKE_POSTGRES_SERVER: postgres
+  DUCKLAKE_DATA_DIR: /app/data/ducklake
+  DUCKLAKE_CATALOG_SCHEMA: ducklake
+
+x-env-s3: &env-s3
+  S3_PROVIDER: ${S3_PROVIDER:-garage}
+  S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-http://garage:3900}
+  S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:-${GOAT_PUBLIC_URL}}
+  S3_REGION: ${S3_REGION:-garage}
+  S3_BUCKET_NAME: ${S3_BUCKET_NAME:-goat-uploads}
+  S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+  # Checksums only where S3 requires them: several S3-compatible stores return
+  # multipart checksums that boto3's default validation rejects.
+  AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+  AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+
+x-env-auth: &env-auth
+  AUTH: ${AUTH:-True}
+  KEYCLOAK_SERVER_URL: ${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080/keycloak}
+  REALM_NAME: ${REALM_NAME:-goat}
+
+x-env-catalog-s3: &env-catalog-s3
+  CATALOG_S3_BUCKET: ${CATALOG_S3_BUCKET:-}
+  CATALOG_S3_ENDPOINT_URL: ${CATALOG_S3_ENDPOINT_URL:-}
+  CATALOG_S3_ACCESS_KEY_ID: ${CATALOG_S3_ACCESS_KEY_ID:-}
+  CATALOG_S3_SECRET_ACCESS_KEY: ${CATALOG_S3_SECRET_ACCESS_KEY:-}
+  CATALOG_S3_REGION: ${CATALOG_S3_REGION:-}
+
+x-env-service: &env-service
+  ENVIRONMENT: prod
+  # Only Caddy can reach the services, so its forwarded headers are trusted.
+  FORWARDED_ALLOW_IPS: "*"
+  DATA_DIR: /app/data
+  TILES_DATA_DIR: /app/data/tiles
+  BUNDLES_DATA_DIR: /app/data/bundles
+  GOAT_PROCESSES_URL: http://processes:8000
+  OTEL_ENABLED: ${OTEL_ENABLED:-false}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+
+x-env-windmill-db: &env-windmill-db
+  DATABASE_URL: postgres://windmill:${WINDMILL_DB_PASSWORD}@postgres:5432/windmill?sslmode=disable
+
+x-env-worker: &env-worker
+  <<: [*env-windmill-db, *env-db, *env-s3, *env-catalog-s3]
+  MODE: worker
+  DISABLE_NSJAIL: "true"
+  PYTHONDONTWRITEBYTECODE: "1"
+  ENVIRONMENT: prod
+  DATA_DIR: /app/data
+  TILES_DATA_DIR: /app/data/tiles
+  BUNDLES_DATA_DIR: /app/data/bundles
+  POSTGRES_DATABASE_URI: postgresql://goat:${POSTGRES_PASSWORD}@postgres:5432/goat
+  OD_MATRIX_BASE_PATH: /app/data/traveltime_matrices
+  GTFS_DATA_PATH: /app/data/gtfs
+  STREET_NETWORK_EDGES_BASE_PATH: /app/data/street_network/edges
+  STREET_NETWORK_NODES_BASE_PATH: /app/data/street_network/nodes
+  PT_NETWORK_BASE_PATH: /app/data/pt_network/gtfs.bin
+  CATALOG_LAYERS_DIR: /app/data/catalog/layers
+  CATALOG_TILES_DIR: /app/data/catalog/tiles
+  SCHEMA: customer
+  MAX_UPLOAD_DATASET_FILE_SIZE: "5368709120"
+  PMTILES_ENABLED: "true"
+  ATLAS_BATCH_SIZE: "2"
+  GEOCODING_URL: ${GEOCODING_URL:-}
+  GEOCODING_AUTHORIZATION: ${GEOCODING_AUTHORIZATION:-}
+  GOAT_BASE_DATA_URL: ${GOAT_BASE_DATA_URL:-}
+  PRINT_BASE_URL: http://web:3000
+  # Extra CA the print browser must trust for the public URL (GOAT_TLS=internal
+  # or a company CA)
+  GOAT_CA_BUNDLE: ${GOAT_CA_BUNDLE:-}
+  KEYCLOAK_SERVER_URL: ${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080/keycloak}
+  REALM_NAME: ${REALM_NAME:-goat}
+  KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-goat}
+  KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-}
+  # Windmill passes only these variables on to the jobs it runs.
+  WHITELIST_ENVS: >-
+    MAX_UPLOAD_DATASET_FILE_SIZE,POSTGRES_SERVER,POSTGRES_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,POSTGRES_DATABASE_URI,DUCKLAKE_POSTGRES_SERVER,DUCKLAKE_DATA_DIR,DUCKLAKE_CATALOG_SCHEMA,TILES_DATA_DIR,BUNDLES_DATA_DIR,DATA_DIR,CATALOG_LAYERS_DIR,CATALOG_TILES_DIR,SCHEMA,ENVIRONMENT,S3_PROVIDER,S3_FORCE_PATH_STYLE,S3_ENDPOINT_URL,S3_PUBLIC_ENDPOINT_URL,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_BUCKET_NAME,S3_REGION,AWS_REQUEST_CHECKSUM_CALCULATION,AWS_RESPONSE_CHECKSUM_VALIDATION,CATALOG_S3_BUCKET,CATALOG_S3_ENDPOINT_URL,CATALOG_S3_ACCESS_KEY_ID,CATALOG_S3_SECRET_ACCESS_KEY,CATALOG_S3_REGION,OD_MATRIX_BASE_PATH,STREET_NETWORK_EDGES_BASE_PATH,STREET_NETWORK_NODES_BASE_PATH,PT_NETWORK_BASE_PATH,GTFS_DATA_PATH,GEOCODING_URL,GEOCODING_AUTHORIZATION,GOAT_BASE_DATA_URL,PRINT_BASE_URL,KEYCLOAK_SERVER_URL,REALM_NAME,KEYCLOAK_CLIENT_ID,KEYCLOAK_CLIENT_SECRET,ATLAS_BATCH_SIZE,GOAT_CA_BUNDLE,PMTILES_ENABLED
+
+x-healthcheck: &healthcheck
+  interval: 15s
+  timeout: 10s
+  retries: 5
+  start_period: 30s
+
+networks:
+  goat:
+    name: goat
+
+volumes:
+  pg-data:
+  garage-meta:
+  garage-data:
+  goat-data:
+  caddy-data:
+  caddy-config:
+
+services:
+  # ===========================================================================
+  # Edge
+  # ===========================================================================
+  caddy:
+    <<: *restart
+    image: caddy:2.10-alpine
+    ports:
+      - "${GOAT_HTTP_PORT:-80}:${GOAT_HTTP_PORT:-80}"
+      # With GOAT_TLS=off nothing listens here; setup.sh then maps it to a
+      # random loopback port so 443 stays free for the operator's own proxy.
+      - "${GOAT_HTTPS_PUBLISH:-443:443}"
+      - "${GOAT_HTTPS_PUBLISH:-443:443}/udp"
+    environment:
+      GOAT_SITE_ADDRESS: ${GOAT_SITE_ADDRESS:?run ./setup.sh first}
+      GOAT_HOSTNAME: ${GOAT_HOSTNAME:-goat.localhost}
+      GOAT_TLS: ${GOAT_TLS:-auto}
+      GOAT_TLS_EMAIL_LINE: ${GOAT_ACME_EMAIL:+tls ${GOAT_ACME_EMAIL}}
+      GOAT_HTTP_PORT: ${GOAT_HTTP_PORT:-80}
+      GOAT_HTTPS_PORT: ${GOAT_HTTPS_PORT:-443}
+      GOAT_TRUSTED_PROXIES: ${GOAT_TRUSTED_PROXIES:-private_ranges}
+      GOAT_ADMIN_ALLOW_CIDRS: ${GOAT_ADMIN_ALLOW_CIDRS:-0.0.0.0/0 ::/0}
+    volumes:
+      - ./init/caddy:/etc/caddy:ro
+      - ./certs:/certs:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      goat:
+        # Containers that call the public URL (web server, login, print
+        # worker) reach Caddy directly instead of going out and back in.
+        aliases:
+          - ${GOAT_NETWORK_ALIAS:-goat-edge.internal}
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:2019/config/"]
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  # ===========================================================================
+  # Data
+  # ===========================================================================
+  postgres:
+    <<: *restart
+    image: postgis/postgis:18-3.6
+    environment:
+      POSTGRES_USER: goat
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run ./setup.sh first}
+      POSTGRES_DB: goat
+      WINDMILL_DB_PASSWORD: ${WINDMILL_DB_PASSWORD}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    command:
+      - postgres
+      - -c
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-1GB}
+      - -c
+      - effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-3GB}
+      - -c
+      - max_connections=${POSTGRES_MAX_CONNECTIONS:-200}
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=256MB
+      - -c
+      - random_page_cost=1.1
+    volumes:
+      - pg-data:/var/lib/postgresql
+      - ./init/postgres:/docker-entrypoint-initdb.d:ro
+    networks: [goat]
+    shm_size: 256m
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD-SHELL", "pg_isready -U goat -d goat -h 127.0.0.1"]
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+
+  redis:
+    <<: *restart
+    image: redis:7.4-alpine
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--appendonly", "no"]
+    networks: [goat]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "redis-cli", "ping"]
+    deploy:
+      resources:
+        limits:
+          memory: 320m
+
+  garage:
+    <<: *restart
+    profiles: [garage]
+    image: dxflrs/garage:v2.4.1
+    hostname: garage
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?run ./setup.sh first}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:?run ./setup.sh first}
+    volumes:
+      - ./init/garage/garage.toml:/etc/garage.toml:ro
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+    networks: [goat]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "/garage", "status"]
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  garage-init:
+    profiles: [garage]
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/windmill-worker-tools:${GOAT_VERSION:-latest}
+    restart: "no"
+    logging: *logging
+    entrypoint: ["python", "/init/garage-init.py"]
+    environment:
+      GARAGE_ADMIN_URL: http://garage:3903
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN}
+      GARAGE_S3_URL: http://garage:3900
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      GOAT_PUBLIC_URL: ${GOAT_PUBLIC_URL}
+      UPLOADS_BUCKET: ${S3_BUCKET_NAME:-goat-uploads}
+      ASSETS_BUCKET: ${ASSETS_BUCKET_NAME:-goat-assets}
+    volumes:
+      - ./init/garage:/init:ro
+    networks: [goat]
+    depends_on:
+      garage:
+        condition: service_healthy
+
+  # ===========================================================================
+  # Auth
+  # ===========================================================================
+  keycloak:
+    <<: *restart
+    profiles: [keycloak]
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/keycloak:${GOAT_VERSION:-latest}
+    environment: &env-keycloak
+      KEYCLOAK_DATABASE_VENDOR: postgresql
+      KEYCLOAK_DATABASE_HOST: postgres
+      KEYCLOAK_DATABASE_PORT: "5432"
+      KEYCLOAK_DATABASE_NAME: keycloak
+      KEYCLOAK_DATABASE_USER: keycloak
+      KEYCLOAK_DATABASE_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KEYCLOAK_HTTP_RELATIVE_PATH: /keycloak
+      KEYCLOAK_PROXY: edge
+      KEYCLOAK_PRODUCTION: "true"
+      KEYCLOAK_ENABLE_HEALTH_ENDPOINTS: "true"
+      KEYCLOAK_EXTRA_ARGS: --import-realm
+      # Browser-facing URLs use the public address; the GOAT services call
+      # Keycloak on the internal network.
+      KC_HOSTNAME_URL: ${GOAT_PUBLIC_URL}/keycloak
+      KC_HOSTNAME_ADMIN_URL: ${GOAT_PUBLIC_URL}/keycloak
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
+      # Branding of the login pages and of Keycloak's emails (theme.properties).
+      # Artwork comes from ${GOAT_PUBLIC_URL}/assets unless STATIC_ASSETS_URL
+      # is set.
+      EMAIL_BRAND_NAME: ${EMAIL_BRAND_NAME:-GOAT}
+      EMAIL_LOGO_URL: ${EMAIL_LOGO_URL:-}
+      EMAIL_CONTACT_URL: ${EMAIL_CONTACT_URL:-}
+      EMAIL_PRIVACY_URL: ${EMAIL_PRIVACY_URL:-}
+      STATIC_ASSETS_URL: ${STATIC_ASSETS_URL:-}
+      # Values the realm file refers to as ${...}
+      GOAT_PUBLIC_URL: ${GOAT_PUBLIC_URL}
+      GOAT_REALM: ${REALM_NAME:-goat}
+      GOAT_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-goat}
+      GOAT_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      GOAT_ADMIN_EMAIL: ${GOAT_ADMIN_EMAIL}
+      GOAT_ADMIN_PASSWORD: ${GOAT_ADMIN_PASSWORD}
+      GOAT_SSL_REQUIRED: ${GOAT_KEYCLOAK_SSL_REQUIRED:-external}
+      # Outgoing email (password reset), the same server core uses. Keycloak
+      # reads "true" as on and anything else, including "", as off.
+      GOAT_SMTP_HOST: ${SMTP_HOST:-}
+      GOAT_SMTP_PORT: ${SMTP_PORT:-587}
+      GOAT_SMTP_FROM: ${SMTP_FROM:-${SMTP_USER:-}}
+      GOAT_SMTP_FROM_NAME: ${EMAILS_FROM_NAME:-GOAT}
+      GOAT_SMTP_AUTH: ${SMTP_USER:+true}
+      GOAT_SMTP_USER: ${SMTP_USER:-}
+      GOAT_SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      GOAT_SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+      GOAT_SMTP_SSL: ${SMTP_SSL:-false}
+      # Company CA for the SMTP relay's certificate (see init/keycloak/truststore.sh)
+      GOAT_CA_BUNDLE: ${GOAT_CA_BUNDLE:-}
+    entrypoint: ["sh", "/init/truststore.sh"]
+    command: ["/opt/bitnami/scripts/keycloak/run.sh"]
+    volumes:
+      - ./init/keycloak/realm-goat.json:/opt/bitnami/keycloak/data/import/realm-goat.json:ro
+      - ./init/keycloak/truststore.sh:/init/truststore.sh:ro
+      - ./certs:/certs:ro
+      - caddy-data:/caddy-data:ro
+    networks: [goat]
+    healthcheck:
+      <<: *healthcheck
+      start_period: 120s
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/keycloak/health/ready"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  # ===========================================================================
+  # One-shot initialisation (idempotent, runs on every `up`)
+  # ===========================================================================
+  keycloak-sync:
+    profiles: [keycloak]
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/keycloak:${GOAT_VERSION:-latest}
+    restart: "no"
+    logging: *logging
+    entrypoint: ["sh", "/init/sync.sh"]
+    environment:
+      <<: *env-keycloak
+    volumes:
+      - ./init/keycloak:/init:ro
+    networks: [goat]
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  data-init:
+    image: alpine:3.22
+    restart: "no"
+    logging: *logging
+    # Subdirectories other services mount by subpath must exist first.
+    # Only these: the base data sync treats any other existing path as data
+    # it did not install and leaves it alone.
+    command: ["sh", "-c", "mkdir -p /data/catalog /data/geoip /data/windmill"]
+    volumes:
+      - goat-data:/data
+    network_mode: none
+
+  core-migrate:
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/core:${GOAT_VERSION:-latest}
+    restart: "no"
+    logging: *logging
+    working_dir: /app/apps/core
+    command: ["sh", "-c", "alembic upgrade head && python -m core.scripts.initial_data"]
+    environment:
+      <<: [*env-db, *env-auth]
+      GOAT_ADMIN_EMAIL: ${GOAT_ADMIN_EMAIL:-admin@goat.local}
+    networks: [goat]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ducklake-init:
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/geoapi:${GOAT_VERSION:-latest}
+    restart: "no"
+    logging: *logging
+    user: "0"
+    command: ["python", "-m", "goatlib.storage.ducklake_init"]
+    environment:
+      <<: [*env-db, *env-s3]
+    volumes:
+      - goat-data:/app/data
+    networks: [goat]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  windmill-bootstrap:
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/windmill-worker-tools:${GOAT_VERSION:-latest}
+    restart: "no"
+    logging: *logging
+    # The token also goes to stdout; keep it out of the container logs.
+    entrypoint: ["sh", "-c", "python -m goatlib.windmill_init > /dev/null"]
+    environment:
+      WINDMILL_URL: http://windmill-server:8000
+      WINDMILL_WORKSPACE: goat
+      WINDMILL_ADMIN_EMAIL: admin@windmill.dev
+      WINDMILL_ADMIN_PASSWORD: ${WINDMILL_ADMIN_PASSWORD:?run ./setup.sh first}
+      WINDMILL_TOKEN_FILE: /app/data/windmill/.token
+    volumes:
+      - goat-data:/app/data
+    networks: [goat]
+    depends_on:
+      windmill-server:
+        condition: service_healthy
+
+  windmill-sync:
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/windmill-worker-tools:${GOAT_VERSION:-latest}
+    restart: "no"
+    logging: *logging
+    entrypoint: ["sh", "/init/windmill-sync.sh"]
+    environment:
+      WINDMILL_URL: http://windmill-server:8000
+      WINDMILL_WORKSPACE: goat
+      WINDMILL_TOKEN_FILE: /app/data/windmill/.token
+      CATALOG_S3_BUCKET: ${CATALOG_S3_BUCKET:-}
+    volumes:
+      - goat-data:/app/data
+      - ./init/windmill:/init:ro
+    networks: [goat]
+    depends_on:
+      windmill-bootstrap:
+        condition: service_completed_successfully
+      garage-init:
+        condition: service_completed_successfully
+        required: false
+
+  # ===========================================================================
+  # Application
+  # ===========================================================================
+  core:
+    <<: *restart
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/core:${GOAT_VERSION:-latest}
+    environment:
+      <<: [*env-db, *env-s3, *env-auth, *env-service, *env-catalog-s3]
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-goat}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-}
+      # Self-registration is off, so inviting an unknown email creates its
+      # Keycloak account (only with AUTH on).
+      KEYCLOAK_PROVISION_INVITED_USERS: ${KEYCLOAK_PROVISION_INVITED_USERS:-true}
+      CLIENT_URL: ${GOAT_PUBLIC_URL}
+      API_URL: ${GOAT_PUBLIC_URL}/api/v2
+      POSTGRES_POOL_SIZE: ${POSTGRES_POOL_SIZE:-5}
+      POSTGRES_MAX_OVERFLOW: ${POSTGRES_MAX_OVERFLOW:-10}
+      # User-uploaded avatars and images
+      ASSETS_URL: ${ASSETS_URL:-${GOAT_PUBLIC_URL}/goat-assets}
+      AWS_S3_ASSETS_BUCKET: ${ASSETS_BUCKET_NAME:-goat-assets}
+      ASSETS_S3_ENDPOINT_URL: ${ASSETS_S3_ENDPOINT_URL:-${S3_ENDPOINT_URL:-http://garage:3900}}
+      ASSETS_S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+      AWS_ACCESS_KEY_ID: ${ASSETS_S3_ACCESS_KEY_ID:-${S3_ACCESS_KEY_ID}}
+      AWS_SECRET_ACCESS_KEY: ${ASSETS_S3_SECRET_ACCESS_KEY:-${S3_SECRET_ACCESS_KEY}}
+      AWS_REGION: ${S3_REGION:-garage}
+      # Product artwork: served by the web app under /assets unless a mirror
+      # is set
+      STATIC_ASSETS_URL: ${STATIC_ASSETS_URL:-}
+      CUSTOM_DOMAIN_CNAME_TARGET: ""
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURITY: ${SMTP_SECURITY:-starttls}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      EMAILS_FROM_NAME: ${EMAILS_FROM_NAME:-GOAT}
+      EMAIL_BRAND_NAME: ${EMAIL_BRAND_NAME:-GOAT}
+      EMAIL_LOGO_URL: ${EMAIL_LOGO_URL:-}
+      EMAIL_CONTACT_URL: ${EMAIL_CONTACT_URL:-}
+      EMAIL_PRIVACY_URL: ${EMAIL_PRIVACY_URL:-}
+      # Plan4Better's Odoo (shared connection) and support tickets (Odoo
+      # Helpdesk); support is off while any of the first four is empty
+      ODOO_URL: ${ODOO_URL:-}
+      ODOO_DB: ${ODOO_DB:-}
+      ODOO_SUPPORT_API_KEY: ${ODOO_SUPPORT_API_KEY:-}
+      ODOO_SUPPORT_TEAM_ID: ${ODOO_SUPPORT_TEAM_ID:-}
+      ODOO_SUPPORT_POST_ACTION: "${ODOO_SUPPORT_POST_ACTION:-GOAT: post message as ticket participant}"
+      # Company CA for the SMTP relay's certificate
+      GOAT_CA_BUNDLE: ${GOAT_CA_BUNDLE:-}
+    volumes:
+      - ./certs:/certs:ro
+      - caddy-data:/caddy-data:ro
+      - type: volume
+        source: goat-data
+        target: /app/data/catalog
+        read_only: true
+        volume:
+          subpath: catalog
+      - type: volume
+        source: goat-data
+        target: /app/data/geoip
+        read_only: true
+        volume:
+          subpath: geoip
+    networks: [goat]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/healthz', timeout=5)"]
+    depends_on:
+      data-init:
+        condition: service_completed_successfully
+      core-migrate:
+        condition: service_completed_successfully
+      ducklake-init:
+        condition: service_completed_successfully
+      garage-init:
+        condition: service_completed_successfully
+        required: false
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  geoapi:
+    <<: *restart
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/geoapi:${GOAT_VERSION:-latest}
+    # Shares the data volume with the root-run Windmill workers.
+    user: "0"
+    environment:
+      <<: [*env-db, *env-s3, *env-auth, *env-service]
+      ROOT_PATH: /geoapi
+      REDIS_URL: redis://redis:6379/0
+      GEOAPI_DUCKDB_MEMORY_LIMIT: 1GB
+    volumes:
+      - goat-data:/app/data
+    networks: [goat]
+    healthcheck:
+      <<: *healthcheck
+      start_period: 120s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5)"]
+    depends_on:
+      ducklake-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  processes:
+    <<: *restart
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/processes:${GOAT_VERSION:-latest}
+    user: "0"
+    environment:
+      <<: [*env-db, *env-s3, *env-auth, *env-service]
+      ROOT_PATH: /processes
+      WINDMILL_URL: http://windmill-server:8000
+      WINDMILL_WORKSPACE: goat
+      WINDMILL_TOKEN_FILE: /app/data/windmill/.token
+      TRAVELTIME_MATRICES_DIR: /app/data/traveltime_matrices
+      PRINT_BASE_URL: http://web:3000
+    volumes:
+      - goat-data:/app/data
+    networks: [goat]
+    healthcheck:
+      <<: *healthcheck
+      start_period: 60s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5)"]
+    depends_on:
+      ducklake-init:
+        condition: service_completed_successfully
+      windmill-sync:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          memory: 1536m
+
+  catalog:
+    <<: *restart
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/catalog:${GOAT_VERSION:-latest}
+    environment:
+      <<: [*env-auth, *env-catalog-s3]
+      ENVIRONMENT: prod
+      FORWARDED_ALLOW_IPS: "*"
+      ROOT_PATH: /catalog
+      DATA_DIR: /app/data
+      CATALOG_GOAT_UI_BASE_URL: ${GOAT_PUBLIC_URL}
+      CATALOG_MCP_ALLOWED_HOSTS: '["${GOAT_HOSTNAME:-goat.localhost}"]'
+      CATALOG_DUCKDB_MEMORY_LIMIT: 1GB
+      CATALOG_DUCKDB_THREADS: "2"
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+    volumes:
+      - type: volume
+        source: goat-data
+        target: /app/data/catalog
+        read_only: true
+        volume:
+          subpath: catalog
+    networks: [goat]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8400/healthz', timeout=5)"]
+    depends_on:
+      data-init:
+        condition: service_completed_successfully
+      windmill-sync:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          memory: 1536m
+
+  web:
+    <<: *restart
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/web:${GOAT_VERSION:-latest}
+    environment:
+      AUTH: ${AUTH:-True}
+      NEXT_PUBLIC_AUTH: ${AUTH:-True}
+      NEXTAUTH_URL: ${GOAT_PUBLIC_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?run ./setup.sh first}
+      NEXT_PUBLIC_APP_URL: ${GOAT_PUBLIC_URL}
+      NEXT_PUBLIC_API_URL: ${GOAT_PUBLIC_URL}
+      NEXT_PUBLIC_GEOAPI_URL: ${GOAT_PUBLIC_URL}/geoapi
+      NEXT_PUBLIC_PROCESSES_URL: ${GOAT_PUBLIC_URL}/processes
+      NEXT_PUBLIC_CATALOG_URL: ${GOAT_PUBLIC_URL}/catalog/stac
+      NEXT_PUBLIC_KEYCLOAK_ISSUER: ${KEYCLOAK_PUBLIC_URL:-${GOAT_PUBLIC_URL}/keycloak}/realms/${REALM_NAME:-goat}
+      NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-goat}
+      NEXT_PUBLIC_APP_ENVIRONMENT: prod
+      NEXT_PUBLIC_MAPTILER_KEY: ${NEXT_PUBLIC_MAPTILER_KEY:-}
+      NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN:-}
+      NEXT_PUBLIC_WEBSITE_URL: ${NEXT_PUBLIC_WEBSITE_URL:-}
+      NEXT_PUBLIC_STATUS_FEED_URL: ${NEXT_PUBLIC_STATUS_FEED_URL:-}
+      NEXT_PUBLIC_DOCS_URL: ${NEXT_PUBLIC_DOCS_URL:-}
+      NEXT_PUBLIC_SUPPORT_EMAIL: ${NEXT_PUBLIC_SUPPORT_EMAIL:-}
+      NEXT_PUBLIC_ASSETS_URL: ${STATIC_ASSETS_URL:-}
+      NEXT_PUBLIC_CONTACT_URL: ${EMAIL_CONTACT_URL:-}
+      # Server-side login flow: discovery and token refresh use the public
+      # issuer, which the network alias on Caddy resolves internally.
+      KEYCLOAK_SERVER_URL: ${KEYCLOAK_PUBLIC_URL:-${GOAT_PUBLIC_URL}/keycloak}
+      REALM_NAME: ${REALM_NAME:-goat}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-goat}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-}
+      API_URL: http://core:8000
+      NODE_OPTIONS: --max-http-header-size=65536
+      NODE_EXTRA_CA_CERTS: ${GOAT_CA_BUNDLE:-}
+    volumes:
+      - ./certs:/certs:ro
+      - caddy-data:/caddy-data:ro
+    networks: [goat]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/auth/providers"]
+    depends_on:
+      core:
+        condition: service_healthy
+      keycloak-sync:
+        condition: service_completed_successfully
+        required: false
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  # ===========================================================================
+  # Jobs (Windmill)
+  # ===========================================================================
+  windmill-server:
+    <<: *restart
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/windmill-server:${GOAT_VERSION:-latest}
+    environment:
+      <<: *env-windmill-db
+      MODE: server
+      BASE_URL: http://localhost:${WINDMILL_LOCAL_PORT:-8110}
+    ports:
+      - "127.0.0.1:${WINDMILL_LOCAL_PORT:-8110}:8000"
+    networks: [goat]
+    healthcheck:
+      <<: *healthcheck
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/api/version || wget -qO- http://127.0.0.1:8000/api/version"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  windmill-worker-default:
+    <<: *restart
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/windmill-worker-default:${GOAT_VERSION:-latest}
+    environment:
+      <<: *env-windmill-db
+      MODE: worker
+      WORKER_GROUP: default
+      JOB_DEFAULT_TIMEOUT: "300"
+      DISABLE_NSJAIL: "true"
+    networks: [goat]
+    depends_on:
+      windmill-server:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  windmill-worker-tools:
+    <<: *restart
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/windmill-worker-tools:${GOAT_VERSION:-latest}
+    environment:
+      <<: *env-worker
+      WORKER_GROUP: tools
+      WORKER_TAGS: tools
+      JOB_DEFAULT_TIMEOUT: "2500"
+    volumes:
+      - goat-data:/app/data
+    networks: [goat]
+    depends_on:
+      windmill-server:
+        condition: service_healthy
+      ducklake-init:
+        condition: service_completed_successfully
+    deploy:
+      replicas: ${GOAT_TOOLS_WORKERS:-2}
+      resources:
+        limits:
+          memory: 4g
+
+  windmill-worker-workflows:
+    <<: *restart
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/windmill-worker-tools:${GOAT_VERSION:-latest}
+    environment:
+      <<: *env-worker
+      WORKER_GROUP: workflows
+      WORKER_TAGS: workflows
+      JOB_DEFAULT_TIMEOUT: "1800"
+    volumes:
+      - goat-data:/app/data
+    networks: [goat]
+    depends_on:
+      windmill-server:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  windmill-worker-print:
+    <<: *restart
+    image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/windmill-worker-print:${GOAT_VERSION:-latest}
+    environment:
+      <<: *env-worker
+      WORKER_GROUP: print
+      WORKER_TAGS: print
+      JOB_DEFAULT_TIMEOUT: "300"
+    volumes:
+      - ./certs:/certs:ro
+      - caddy-data:/caddy-data:ro
+    networks: [goat]
+    depends_on:
+      windmill-server:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  # ===========================================================================
+  # Backups (profile: backup)
+  # ===========================================================================
+  backup:
+    <<: *restart
+    profiles: [backup]
+    image: postgis/postgis:18-3.6
+    entrypoint: ["sh", "/scripts/backup.sh"]
+    environment:
+      PGHOST: postgres
+      PGUSER: goat
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_TIME: ${BACKUP_TIME:-02:30}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+    volumes:
+      - ./init/backup:/scripts:ro
+      - ./backups:/backups
+      - goat-data:/volumes/goat-data:ro
+      - garage-meta:/volumes/garage-meta:ro
+      - garage-data:/volumes/garage-data:ro
+    networks: [goat]
+    depends_on:
+      postgres:
+        condition: service_healthy

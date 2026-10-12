@@ -1,4 +1,5 @@
 ---
+description: "Find your way around the Map interface: the upper bar, the Layers panel, search, toolbox and measurement tools, the style and filter panel, and map navigation."
 sidebar_position: 1
 ---
 
@@ -44,7 +45,7 @@ The tools are located on the right side of the Layers Panel:
 
 - <img src={require('/img/icons/magnifying-glass.png').default} alt="Address and coordinates search" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code> Search button</code>: <strong>Search for addresses</strong> or coordinates to quickly navigate to a specific location on the map. 
 
-- <img src={require('/img/icons/toolbox.png').default} alt="Toolbox" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Toolbox</code>: <strong>Access to the Toolbox</strong>. Read more in <a href="/category/toolbox">Toolbox</a>.
+- <img src={require('/img/icons/toolbox.png').default} alt="Toolbox" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Toolbox</code>: <strong>Access to the Toolbox</strong>. Read more in [Toolbox](../category/toolbox).
 
 
 -  <img src={require('/img/icons/ruler-horizontal.png').default} alt="Measurements" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Measurements</code>: Users can <strong>measure distances and areas</strong>, such as routes, lines and polygons.
@@ -53,9 +54,9 @@ The tools are located on the right side of the Layers Panel:
 
 When selecting a layer from the Layers Panel, the Editing Panel appears on the right side of the map interface. This panel provides access to various options:
 
-- <code>Style</code>: <strong>Customize the visual appearance</strong> of the selected layer by changing colors, opacity, and other styling options. Read more in <a href="/docs/category/layer-design">Layer Styling</a>.
+- <code>Style</code>: <strong>Customize the visual appearance</strong> of the selected layer by changing colors, opacity, and other styling options. Read more in [Layer Styling](../category/layer-design).
 
-- <code>Filter</code>: <strong>Apply filters</strong> to the selected layer to display only specific features based on attribute values. Read more in <a href="/docs/map/filter">Layer Filtering</a>.
+- <code>Filter</code>: <strong>Apply filters</strong> to the selected layer to display only specific features based on attribute values. Read more in [Layer Filtering](filter).
 
 - <code>Metadata</code>: <strong>View and edit metadata information</strong> for the selected layer. 
   

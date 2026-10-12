@@ -97,7 +97,6 @@
       "@types/react-dom": "^19.2.0",
       "@types/node": "^20.19.0",
       "wait-on@<8": "^8.0.5",
-      "@docusaurus/core>webpack": "~5.94.0",
       "webpack": "5.109.1",
       "@codemirror/state": "^6.7.4",
       "@codemirror/view": "^6.43.11",

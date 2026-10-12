@@ -1,4 +1,5 @@
 ---
+description: "Wie GOAT Fahrrad- und Pedelec-Routen im Overture-Maps-Netz berechnet, mit Kantenkosten nach Oberfläche und beim Fahrrad nach Steigung aus Copernicus-Höhendaten."
 sidebar_position: 2
 
 ---
@@ -12,7 +13,7 @@ Das ** Verkehrsmittel Fahrrad/Pedelec** wird für alle Analysen in GOAT verwende
  
 ## 1. Zielsetzung
 
-Das Fahrrad-/Pedelec-Routing wird für viele Indikatoren in GOAT verwendet, wie z.B. [Einzugsgebiete](../toolbox/accessibility_indicators/catchments "Dokumente der Einzugsgebiete"), [Heatmaps](../toolbox/accessibility_indicators/connectivity "Dokumente der Heatmaps"), das [Huff-Modell](../toolbox/accessibility_indicators/huff_model "Dokumente des Huff-Modells") und die [Reisekostenmatrix](../toolbox/accessibility_indicators/travel_cost_matrix "Dokumente der Reisekostenmatrix"). Für den Verkehrsträger Fahrrad/Pedelec wird ein **angepasster Routing-Algorithmus** verwendet, der dabei **nur Wege berücksichtigt, die für den Radverkehr geeignet sind**. Darüber hinaus haben die `Oberfläche` und die `Steigung` einen Einfluss auf die Radfahrgeschwindigkeit und werden daher bei der Routenplanung berücksichtigt. Die durchschnittliche `Geschwindigkeit` einer radfahrender Person kann vom Benutzer bei jeder Erreichbarkeitsanalyse angepasst werden. Abhängig von der Steigung und Oberfläche eines Wegabschnitts wird die Geschwindigkeit entsprechend angepasst. 
+Das Fahrrad-/Pedelec-[Routing](https://www.plan4better.de/de/glossar/routing) wird für viele Indikatoren in GOAT verwendet, wie z.B. [Einzugsgebiete](../toolbox/accessibility_indicators/catchments "Dokumente der Einzugsgebiete"), [Heatmaps](../toolbox/accessibility_indicators/connectivity "Dokumente der Heatmaps"), das [Huff-Modell](../toolbox/accessibility_indicators/huff_model "Dokumente des Huff-Modells") und die [Reisekostenmatrix](../toolbox/accessibility_indicators/travel_cost_matrix "Dokumente der Reisekostenmatrix"). Für den Verkehrsträger Fahrrad/Pedelec wird ein **angepasster Routing-Algorithmus** verwendet, der dabei **nur Wege berücksichtigt, die für den Radverkehr geeignet sind**. Darüber hinaus haben die `Oberfläche` und die `Steigung` einen Einfluss auf die Radfahrgeschwindigkeit und werden daher bei der Routenplanung berücksichtigt. Die durchschnittliche `Geschwindigkeit` einer radfahrender Person kann vom Benutzer bei jeder [Erreichbarkeitsanalyse](https://www.plan4better.de/de/glossar/erreichbarkeitsanalyse) angepasst werden. Abhängig von der Steigung und Oberfläche eines Wegabschnitts wird die Geschwindigkeit entsprechend angepasst. 
 
 
 ## 2. Daten
@@ -34,7 +35,7 @@ Die Höhendaten stammen von **[Copernicus](https://www.copernicus.eu/de)** als *
 Die folgenden Schritte werden an den Daten durchgeführt, um ein **schnelles** und **genaues** Routing für Fahrrad/Pedelec zu ermöglichen:
 
  1. **Attribute Parsing:**  Kategorisierung der Attribute der Kanten (Straßen `Klasse` und `Oberfläche`).
- 2. **Geospatial Indexing:**  Nutzen des **[Uber H3 auf Gitter basierenden](../further_reading/glossary#h3-grid)** Indexing für effizientes Routing.
+ 2. **Geospatial Indexing:**  Nutzen des **[Uber H3 auf Gitter basierenden](https://www.plan4better.de/de/glossar/h3-gitter)** Indexing für effizientes Routing.
  3. **Oberflächenwiderstandsberechnung:** Berechnung des Widerstands unter Berücksichtigung der Oberflächeneigenschaften.
  4. **Steigungswiderstandsberechnung:** Überlagerung von DEM auf Kanten zur Berechnung von Steigungsprofilen.
 
@@ -69,7 +70,7 @@ Kostenfunktion für **Pedelec**:
 Wenn eine Kante der Klasse `Fußgänger` oder `Zebrastreifen` angehört, gehen wir davon aus, dass der Fahrer absteigt und sein Fahrrad/Pedelec schiebt. Die Kosten für diese Art von Segmenten sind: `Kosten = Länge / Geschwindigkeit`
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '0.75rem' }}>
-  <img src={require('/img/routing/bicycle_edge_cost_de.png').default} alt="Fahrradnetzwerk Kantenkosten nach Topologie — Belag- und Steigungsmultiplikatoren" style={{ maxWidth: "100%", objectFit: "contain"}}/>
+  <img src={require('/img/routing/bicycle_edge_cost_de.png').default} alt="Fahrradnetzwerk Kantenkosten nach Topologie: Belag- und Steigungsmultiplikatoren" style={{ maxWidth: "100%", objectFit: "contain"}}/>
 </div>
 
 :::note
@@ -83,7 +84,7 @@ Um den kürzesten Weg vom Ausgangspunkt zu verschiedenen Zielen zu berechnen, wi
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <Video src={require('/img/routing/walk/dijkstra.mp4').default}  alt="Dijkstra Algorithm" style={{ width: "auto", height: "auto", objectFit: "cover"}}/>
-<p style={{ textAlign: 'center' }}>GIF: <a href="https://de.wikipedia.org/wiki/Dijkstra-Algorithmus">Dijkstra Algorithm</a></p>
+<p style={{ textAlign: 'center' }}><a href="https://de.wikipedia.org/wiki/Dijkstra-Algorithmus">Dijkstra Algorithm</a></p>
 </div>
 
 

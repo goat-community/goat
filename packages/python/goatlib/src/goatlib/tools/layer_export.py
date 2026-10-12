@@ -443,6 +443,15 @@ class LayerExportRunner(SimpleToolRunner):
             # Build GDAL COPY options for spatial formats
             # SRS sets the spatial reference metadata in the output file
             srs_option = f", SRS '{crs}'" if crs else ""
+            # A GeoPackage keeps its row id in a column named "fid" and refuses
+            # a dataset column of that name whose values are not the ids it
+            # assigns. Such a dataset gets a row id column of another name.
+            column_names = {col.lower() for col, _ in exportable_columns}
+            if output_format == "GPKG" and "fid" in column_names:
+                row_id = "gpkg_fid"
+                while row_id in column_names:
+                    row_id = f"_{row_id}"
+                srs_option += f", LAYER_CREATION_OPTIONS 'FID={row_id}'"
 
             # Use DuckDB's COPY TO with GDAL writer
             self.duckdb_con.execute(f"""

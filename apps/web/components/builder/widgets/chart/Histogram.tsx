@@ -26,13 +26,14 @@ interface CustomTooltipProps extends TooltipProps<ValueType, NameType> {
 }
 
 const CustomTooltip = ({ active, payload, isHighlightMode }: CustomTooltipProps) => {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   if (active && payload?.length) {
     const { rangeStart, rangeEnd, count, selectedCount } = payload[0].payload;
     return (
       <Stack>
         <Typography variant="caption" fontWeight="bold">
-          [{formatNumber(rangeStart)} - {formatNumber(rangeEnd)}]
+          [{formatNumber(rangeStart, undefined, i18n.language)} -{" "}
+          {formatNumber(rangeEnd, undefined, i18n.language)}]
         </Typography>
         <Typography variant="body2" fontWeight="bold">
           {`${t("count")}: ${count}`}
@@ -233,7 +234,7 @@ export const HistogramChartWidget = ({ config: rawConfig }: { config: HistogramC
               tickLine={false}
               tickMargin={10}
               tickFormatter={(value) =>
-                new Intl.NumberFormat("en-US", {
+                new Intl.NumberFormat(i18n.language, {
                   notation: "compact",
                   compactDisplay: "short",
                 }).format(value)

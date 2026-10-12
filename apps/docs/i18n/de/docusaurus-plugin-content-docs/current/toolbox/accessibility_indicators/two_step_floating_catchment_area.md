@@ -1,4 +1,5 @@
 ---
+description: "Setzen Sie mit der 2SFCA-Methode die Kapazität von Einrichtungen je Sechseckzelle ins Verhältnis zur Nachfrage, als Standard-, Enhanced- oder Modified-Variante."
 sidebar_position: 5
 ---
 
@@ -18,12 +19,12 @@ Die Heatmap 2SFCA (Two-Step Floating Catchment Area)-Methode **visualisiert räu
 
 ## 1. Erklärung
 
-Die 2SFCA-Methode misst die **räumliche Erreichbarkeit unter Berücksichtigung von Angebot (Kapazität der Einrichtungen) und Nachfrage (Bevölkerung)**. Im Gegensatz zu einfachen Angebot-Nachfrage-Verhältnissen pro Verwaltungseinheit berücksichtigt 2SFCA grenzüberschreitende Zugänge – Menschen können Einrichtungen in benachbarten Gebieten erreichen, und Einrichtungen versorgen Bevölkerungsgruppen über ihren eigenen Bezirk hinaus.
+Die 2SFCA-Methode misst die **räumliche Erreichbarkeit unter Berücksichtigung von Angebot (Kapazität der Einrichtungen) und Nachfrage (Bevölkerung)**. Im Gegensatz zu einfachen Angebot-Nachfrage-Verhältnissen pro Verwaltungseinheit berücksichtigt 2SFCA grenzüberschreitende Zugänge: Menschen können Einrichtungen in benachbarten Gebieten erreichen, und Einrichtungen versorgen Bevölkerungsgruppen über ihren eigenen Bezirk hinaus.
 Das Ergebnis ist ein **Verhältnis von Angebot zu Nachfrage auf der Ebene hexagonaler Rasterzellen**. Das Werkzeug arbeitet in zwei Schritten:
 
-1. **Schritt 1 — Kapazitäts-Nachfrage-Verhältnisse:** Für jeden Standort einer Einrichtung wird berechnet, wie viel Kapazität im Verhältnis zur Gesamtnachfrage (Bevölkerung) in ihrem Einzugsgebiet verfügbar ist. Dies ergibt ein Angebot-Nachfrage-Verhältnis pro Einrichtung.
+1. **Schritt 1: Kapazitäts-Nachfrage-Verhältnisse.** Für jeden Standort einer Einrichtung wird berechnet, wie viel Kapazität im Verhältnis zur Gesamtnachfrage (Bevölkerung) in ihrem [Einzugsgebiet](https://www.plan4better.de/de/glossar/einzugsgebiet) verfügbar ist. Dies ergibt ein Angebot-Nachfrage-Verhältnis pro Einrichtung.
 
-2. **Schritt 2 — Kumulative Erreichbarkeit:** Für jede Rasterzelle werden die Kapazitätsverhältnisse aller erreichbaren Einrichtungen summiert. Das Ergebnis zeigt, wie gut jeder Standort versorgt ist.
+2. **Schritt 2: Kumulative Erreichbarkeit.** Für jede Rasterzelle werden die Kapazitätsverhältnisse aller erreichbaren Einrichtungen summiert. Das Ergebnis zeigt, wie gut jeder Standort versorgt ist.
 
 Sie können den **Routing-Modus**, **Gelegenheits-Layer** (mit Kapazitätsfeld), **Bedarfs-Layer** (mit Bevölkerungsfeld), **Reisezeitlimits** konfigurieren und zwischen drei **2SFCA-Varianten** wählen.
 - Die **Gelegenheits-Layer enthalten Einrichtungsdaten** mit einem Kapazitätsattribut (z. B. Anzahl der Krankenhausbetten, Quadratmeter Verkaufsfläche, Schulplätze).
@@ -31,20 +32,20 @@ Sie können den **Routing-Modus**, **Gelegenheits-Layer** (mit Kapazitätsfeld),
 - Der **Bedarfs-Layer enthält Bevölkerungs- oder Nutzerdaten** (z. B. Einwohnerzahl, potenzielle Kunden), die die Nachfrage nach den Einrichtungen darstellen.
 
 - Der **2SFCA-Typ** steuert, wie die Distanzgewichtung angewendet wird:
-  - **Standard 2SFCA** verwendet binäre Einzugsgebiete (drinnen oder draußen) – alle Standorte innerhalb des Reisezeitlimits werden gleich gewichtet, unabhängig von ihrer tatsächlichen Entfernung zu den Einrichtungen. Dies liefert klare, einfache Angebot-Nachfrage-Verhältnisse.
+  - **Standard 2SFCA** verwendet binäre Einzugsgebiete (drinnen oder draußen): Alle Standorte innerhalb des Reisezeitlimits werden gleich gewichtet, unabhängig von ihrer tatsächlichen Entfernung zu den Einrichtungen. Dies liefert klare, einfache Angebot-Nachfrage-Verhältnisse.
   - **Enhanced 2SFCA (E2SFCA)** gewichtet mittels einer Widerstandsfunktion in beiden Berechnungsschritten, wodurch ein realistischer Distanzabfall entsteht, bei dem näher gelegene Einrichtungen stärker zur Erreichbarkeit beitragen als entfernte.
   - **Modified 2SFCA (M2SFCA)** verwendet quadrierte Widerstandsgewichte im zweiten Schritt, was eine noch stärkere Bevorzugung von Nähe erzeugt. Diese Variante betont stark nahegelegene Einrichtungen, berücksichtigt aber immer noch entfernte Optionen, was ideal ist, wenn Reisekomfort entscheidend ist.
 
 :::tip
 
-**Wesentlicher Unterschied:** Im Gegensatz zur *Gravitationsbasierten Heatmap*, die die allgemeine Erreichbarkeit von Zielen misst, modelliert die *2SFCA Heatmap* explizit das **Gleichgewicht von Angebot und Nachfrage** – und zeigt, wo die Kapazität im Verhältnis zur bedürftigen Bevölkerung ausreichend oder unzureichend ist.
+**Wesentlicher Unterschied:** Im Gegensatz zur *Gravitationsbasierten Heatmap*, die die allgemeine Erreichbarkeit von Zielen misst, modelliert die *2SFCA Heatmap* explizit das **Gleichgewicht von Angebot und Nachfrage** und zeigt, wo die Kapazität im Verhältnis zur bedürftigen Bevölkerung ausreichend oder unzureichend ist.
 
 :::
 
 
 :::info
 
-Die Heatmap-Berechnung ist für `Walk`, `Bicycle`, `Pedelec` und `Auto` in **über 30 europäischen Ländern** verfügbar. Für `Öffentliche Verkehrsmittel` werden Deutschland, die Schweiz und die Region Haut-Rhin in Frankreich unterstützt. Wenn Sie Analysen außerhalb dieser Regionen benötigen, [kontaktieren Sie uns](https://plan4better.de/de/contact/) gerne.
+Die Heatmap-Berechnung ist für `Walk`, `Bicycle`, `Pedelec` und `Auto` in **über 30 europäischen Ländern** verfügbar. Für `Öffentliche Verkehrsmittel` werden Deutschland, die Schweiz und die Region Haut-Rhin in Frankreich unterstützt. Wenn Sie Analysen außerhalb dieser Regionen benötigen, können Sie [ein eigenes Routing-Netz importieren](../../data/builtin_datasets.md#eigene-netze-importieren) oder uns gerne [kontaktieren](https://plan4better.de/de/contact/), damit wir das für Sie übernehmen.
 
 :::
 
@@ -81,45 +82,29 @@ Die Heatmap-Berechnung ist für `Walk`, `Bicycle`, `Pedelec` und `Auto` in **üb
 | Fahrrad | Alle mit dem Fahrrad befahrbaren Wege (unter Berücksichtigung von Oberfläche und Steigung) |
 | Pedelec | Alle mit dem Pedelec befahrbaren Wege (unter Berücksichtigung von Oberfläche und Steigung) |
 | Auto | Alle mit dem Auto befahrbaren Wege (unter Berücksichtigung von Tempolimits und Einbahnstraßen) |
-| Öffentlicher Verkehr | Alle mit dem ÖV möglichen Fahrten (gemäß offiziellen GTFS-Fahrplänen), unter Berücksichtigung von Zu- und Abgang zu Fuß zu und von den Haltestellen |
+| Öffentlicher Verkehr | Alle mit dem ÖV möglichen Fahrten (gemäß offiziellen [GTFS](https://www.plan4better.de/de/glossar/gtfs)-Fahrplänen), unter Berücksichtigung von Zu- und Abgang zu Fuß zu und von den Haltestellen |
+
+<div class="step">
+  <div class="step-number">4</div>
+  <div class="content">Legen Sie fest, wie die Reise gemessen wird. Die Optionen hängen vom <code>Verkehrsmittel</code> ab, das Sie in Schritt 3 gewählt haben:</div>
+</div>
 
 <Tabs>
 <TabItem value="active-car" label="Zu Fuß / Fahrrad / Pedelec / Auto" default className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">4</div>
-  <div class="content">Wählen Sie im Menü <code>Berechnung nach</code>, ob die Reisekosten als Zeit (Minuten) oder als Entfernung (Meter) gemessen werden.</div>
-</div>
+Wählen Sie im Menü <code>Berechnung nach</code>, ob die Reisekosten als Zeit (Minuten) oder als Entfernung (Meter) gemessen werden.
 
 </TabItem>
 
 <TabItem value="public transport" label="Öffentlicher Verkehr (ÖV)" className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">4</div>
-  <div class="content">Wählen Sie die zu analysierenden <code>ÖV-Modi</code>: Bus, Straßenbahn, Bahn, U-Bahn, Fähre, Seilbahn, Gondel und/oder Standseilbahn. Wählen Sie anschließend <code>Tag</code> und <code>Ankunftszeit</code> für die Analyse. Berücksichtigt werden die besten ÖV-Fahrten, die die Gelegenheiten bis zu dieser Zeit erreichen.</div>
-</div>
+Wählen Sie die zu analysierenden <code>ÖV-Modi</code>: Bus, Straßenbahn, Bahn, U-Bahn, Fähre, Seilbahn, Gondel und/oder Standseilbahn. Wählen Sie anschließend <code>Tag</code> und <code>Ankunftszeit</code> für die Analyse. Berücksichtigt werden die besten ÖV-Fahrten, die die Gelegenheiten bis zu dieser Zeit erreichen.
 
 </TabItem>
 </Tabs>
 
-#### Erweiterte Optionen
-
-Optional können Sie <code>Erweiterte Optionen</code> aktivieren, um weitere Einstellungen für Routing und Heatmap-Erstellung vorzunehmen.
-
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Wählen Sie ein <code>Referenzgebiet</code> — einen Polygon-Layer, der Ihr Untersuchungsgebiet darstellt. Wenn festgelegt, erweitert sich die Heatmap auf alle H3-Zellen innerhalb dieses Polygons; nicht erreichbare Zellen erhalten den Wert <code>NULL</code> und zeigen so Versorgungslücken und unterversorgte Gebiete auf.</div>
-</div>
-
-<div class="step">
-  <div class="step-number">6</div>
-  <div class="content">Konfigurieren Sie verschiedene Routing-Optionen für das gewählte Verkehrsmittel, etwa Reisegeschwindigkeit, maximale Anzahl an Umstiegen, Zu- und Abgangslimits und mehr. Weitere Informationen zu verkehrsmittelspezifischen Optionen finden Sie im Abschnitt <a href="/category/routing">Routing</a>.</div>
-</div>
-
-
-<div class="step">
-  <div class="step-number">7</div>
   <div class="content">Wählen Sie den <code>2SFCA-Typ</code>, den Sie verwenden möchten.</div>
 </div>
 
@@ -127,7 +112,7 @@ Optional können Sie <code>Erweiterte Optionen</code> aktivieren, um weitere Ein
 
 <TabItem value="twosfca" label="Standard 2SFCA" default className="tabItemBox">
 
-Die Standard 2SFCA-Methode verwendet **binäre Einzugsgebiete**: Eine Einrichtung versorgt einen Bevölkerungsstandort entweder (wenn innerhalb des Reisezeitlimits) oder nicht. Es gibt keine Distanzgewichtung – alle Standorte innerhalb des Einzugsgebiets werden gleich behandelt.
+Die Standard 2SFCA-Methode verwendet **binäre Einzugsgebiete**: Eine Einrichtung versorgt einen Bevölkerungsstandort entweder (wenn innerhalb des Reisezeitlimits) oder nicht. Es gibt keine Distanzgewichtung: Alle Standorte innerhalb des Einzugsgebiets werden gleich behandelt.
 
 Dies ist die einfachste Variante und eignet sich gut, wenn Sie ein direktes Angebot-Nachfrage-Verhältnis wünschen.
 
@@ -135,7 +120,7 @@ Dies ist die einfachste Variante und eignet sich gut, wenn Sie ein direktes Ange
 
 <TabItem value="e2sfca" label="Enhanced 2SFCA (E2SFCA)" className="tabItemBox">
 
-Die Enhanced 2SFCA-Methode fügt eine **Reisewiderstandsgewichtung** unter Verwendung einer Widerstandsfunktion hinzu. In beiden Schritten werden Interaktionen danach gewichtet, wie weit Einrichtung und Bevölkerung voneinander entfernt sind – nähere Standorte erhalten ein höheres Gewicht. Dies führt zu realistischeren Ergebnissen und spiegelt wider, dass Menschen eher nahegelegene Einrichtungen nutzen.
+Die Enhanced 2SFCA-Methode fügt eine **Reisewiderstandsgewichtung** unter Verwendung einer Widerstandsfunktion hinzu. In beiden Schritten werden Interaktionen danach gewichtet, wie weit Einrichtung und Bevölkerung voneinander entfernt sind: Nähere Standorte erhalten ein höheres Gewicht. Dies führt zu realistischeren Ergebnissen und spiegelt wider, dass Menschen eher nahegelegene Einrichtungen nutzen.
 
 Erfordert die Auswahl einer **Widerstandsfunktion** und eines **Sensitivitätswertes**.
 
@@ -152,7 +137,7 @@ Erfordert die Auswahl einer **Widerstandsfunktion** und eines **Sensitivitätswe
 </Tabs>
 
 <div class="step">
-  <div class="step-number">8</div>
+  <div class="step-number">6</div>
   <div class="content">Wenn Sie <b>E2SFCA</b> oder <b>M2SFCA</b> verwenden, wählen Sie die <code>Widerstandsfunktion</code> für die Distanzgewichtung.</div>
 </div>
 
@@ -160,35 +145,49 @@ Erfordert die Auswahl einer **Widerstandsfunktion** und eines **Sensitivitätswe
 
 <TabItem value="gaussian" label="Gauß" default className="tabItemBox">
 
-Berechnet Distanzgewichte unter Verwendung einer Gaußschen (glockenförmigen) Kurve. Die Erreichbarkeit nimmt für kurze Reisezeiten langsam ab und fällt jenseits eines bestimmten Schwellenwerts schnell ab. Dies ist die am häufigsten verwendete Widerstandsfunktion. Details siehe [Technische Details](#calculation).
+Berechnet Distanzgewichte unter Verwendung einer Gaußschen (glockenförmigen) Kurve. Die Erreichbarkeit nimmt für kurze Reisezeiten langsam ab und fällt jenseits eines bestimmten Schwellenwerts schnell ab. Dies ist die am häufigsten verwendete Widerstandsfunktion. Details siehe [Technische Details](#berechnung).
 
 </TabItem>
 
 <TabItem value="linear" label="Linear" className="tabItemBox">
 
-Behält eine direkte lineare Beziehung zwischen Reisezeit und Gewicht bei. Das Gewicht nimmt gleichmäßig von 1 (am Ursprung) bis 0 (bei maximaler Reisezeit) ab. Details siehe [Technische Details](#calculation).
+Behält eine direkte lineare Beziehung zwischen Reisezeit und Gewicht bei. Das Gewicht nimmt gleichmäßig von 1 (am Ursprung) bis 0 (bei maximaler Reisezeit) ab. Details siehe [Technische Details](#berechnung).
 
 </TabItem>
 
 <TabItem value="exponential" label="Exponentiell" className="tabItemBox">
 
-Berechnet Gewichte unter Verwendung einer exponentiellen Abklingkurve, gesteuert durch den Sensitivitätsparameter. Höhere Sensitivitätswerte erzeugen ein langsameres Abklingen. Details siehe [Technische Details](#calculation).
+Berechnet Gewichte unter Verwendung einer exponentiellen Abklingkurve, gesteuert durch den Sensitivitätsparameter. Höhere Sensitivitätswerte erzeugen ein langsameres Abklingen. Details siehe [Technische Details](#berechnung).
 
 </TabItem>
 
 <TabItem value="power" label="Potenz" className="tabItemBox">
 
-Berechnet Gewichte unter Verwendung einer Potenzfunktion. Der Sensitivitätsparameter steuert den Exponenten und bestimmt, wie schnell die Gewichte mit der Reisezeit abnehmen. Details siehe [Technische Details](#calculation).
+Berechnet Gewichte unter Verwendung einer Potenzfunktion. Der Sensitivitätsparameter steuert den Exponenten und bestimmt, wie schnell die Gewichte mit der Reisezeit abnehmen. Details siehe [Technische Details](#berechnung).
 
 </TabItem>
 
 <TabItem value="cumulative" label="Kumulativ" className="tabItemBox">
 
-Wendet innerhalb des Reisezeitlimits ein volles Gewicht von 1 auf jede Einrichtung an und 0 darüber hinaus, ohne Distanzabfall. Anders als die übrigen Funktionen verwendet sie den Sensitivitätsparameter nicht – alle erreichbaren Einrichtungen zählen gleich. Details siehe [Technische Details](#calculation).
+Wendet innerhalb des Reisezeitlimits ein volles Gewicht von 1 auf jede Einrichtung an und 0 darüber hinaus, ohne Distanzabfall. Anders als die übrigen Funktionen verwendet sie den Sensitivitätsparameter nicht: Alle erreichbaren Einrichtungen zählen gleich. Details siehe [Technische Details](#berechnung).
 
 </TabItem>
 
 </Tabs>
+
+#### Erweiterte Optionen
+
+Optional können Sie <code>Erweiterte Optionen</code> aktivieren, um weitere Einstellungen für Routing und Heatmap-Erstellung vorzunehmen.
+
+<div class="step">
+  <div class="step-number">7</div>
+  <div class="content">Wählen Sie ein <code>Referenzgebiet</code>: einen Polygon-Layer, der Ihr Untersuchungsgebiet darstellt. Wenn festgelegt, erweitert sich die Heatmap auf alle H3-Zellen innerhalb dieses Polygons; nicht erreichbare Zellen erhalten den Wert <code>NULL</code> und zeigen so [Versorgungslücken](https://www.plan4better.de/de/glossar/versorgungsluecken) und unterversorgte Gebiete auf.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">8</div>
+  <div class="content">Konfigurieren Sie verschiedene Routing-Optionen für das gewählte Verkehrsmittel, etwa Reisegeschwindigkeit, maximale Anzahl an Umstiegen, Zu- und Abgangslimits und mehr. Weitere Informationen zu verkehrsmittelspezifischen Optionen finden Sie im Abschnitt [Routing](../../category/routing).</div>
+</div>
 
 ### Bedarf
 
@@ -199,7 +198,7 @@ Wendet innerhalb des Reisezeitlimits ein volles Gewicht von 1 auf jede Einrichtu
 
 <div class="step">
   <div class="step-number">10</div>
-  <div class="content">Wählen Sie das <code>Nachfragefeld</code> – ein numerisches Feld aus Ihrem Bedarfs-Layer, das die Anzahl potenzieller Nutzer darstellt (z. B. Bevölkerung, Anzahl der Haushalte).</div>
+  <div class="content">Wählen Sie das <code>Nachfragefeld</code>: ein numerisches Feld aus Ihrem Bedarfs-Layer, das die Anzahl potenzieller Nutzer darstellt (z. B. Bevölkerung, Anzahl der Haushalte).</div>
 </div>
 
 ### Gelegenheiten
@@ -216,19 +215,14 @@ Wendet innerhalb des Reisezeitlimits ein volles Gewicht von 1 auf jede Einrichtu
 
 <div class="step">
   <div class="step-number">13</div>
-  <div class="content">Wählen Sie einen <code>Potenzialtyp</code>, um festzulegen, wie die Kapazität jeder Einrichtung bestimmt wird:
+  <div class="content">
+  Wählen Sie einen <code>Potenzialtyp</code>, um festzulegen, wie die Kapazität jeder Einrichtung bestimmt wird:
     <ul>
-      <li><b>Constant</b> — alle Einrichtungen haben die gleiche Kapazität. Geben Sie einen numerischen Wert ein (Standard: 1.0).</li>
-      <li><b>Field</b> — verwenden Sie ein numerisches Feld aus dem <i>Eingabe-Layer</i> als Kapazität (z. B. Anzahl der Betten, Sitze oder Quadratmeter).</li>
+      <li><b>Constant</b>: alle Einrichtungen haben die gleiche Kapazität. Geben Sie einen numerischen Wert ein (Standard: 1.0).</li>
+      <li><b>Field</b>: verwenden Sie ein numerisches Feld aus dem <i>Eingabe-Layer</i> als Kapazität (z. B. Anzahl der Betten, Sitze oder Quadratmeter).</li>
     </ul>
   </div>
 </div>
-
-:::tip Hinweis
-
-Benötigen Sie Hilfe bei der Auswahl einer geeigneten Reisezeitgrenze für verschiedene allgemeine Einrichtungen? Das ["Standort-Werkzeug"](https://www.chemnitz.de/chemnitz/media/unsere-stadt/verkehr/verkehrsplanung/vep2040_standortwerkzeug.pdf) der Stadt Chemnitz kann hilfreiche Orientierung bieten.
-
-:::
 
 <div class="step">
   <div class="step-number">14</div>
@@ -242,7 +236,7 @@ Benötigen Sie Hilfe bei der Auswahl einer geeigneten Reisezeitgrenze für versc
 
 <div class="step">
   <div class="step-number">16</div>
-  <div class="content">Optional können Sie unter <code>Erweiterte Optionen</code> ein <code>Referenzgebiet</code> auswählen — einen Polygon-Layer, der das vollständige Untersuchungsgebiet definiert. Wenn festgelegt, erweitert sich die Heatmap auf alle H3-Zellen innerhalb dieses Polygons; Zellen außerhalb der berechneten Erreichbarkeit werden als <code>NULL</code> dargestellt und zeigen so Versorgungslücken und unterversorgte Gebiete auf.</div>
+  <div class="content">Optional können Sie unter <code>Erweiterte Optionen</code> ein <code>Referenzgebiet</code> auswählen, also einen Polygon-Layer, der das vollständige Untersuchungsgebiet definiert. Wenn festgelegt, erweitert sich die Heatmap auf alle H3-Zellen innerhalb dieses Polygons; Zellen außerhalb der berechneten Erreichbarkeit werden als <code>NULL</code> dargestellt und zeigen so Versorgungslücken und unterversorgte Gebiete auf.</div>
 </div>
 
 ### Ergebnis-Layer
@@ -259,7 +253,7 @@ Benötigen Sie Hilfe bei der Auswahl einer geeigneten Reisezeitgrenze für versc
 
 ### Ergebnisse
 
-Sobald die Berechnung abgeschlossen ist, wird ein Ergebnis-Layer zur Karte hinzugefügt. Dieser *Heatmap 2SFCA*-Layer enthält ein farbcodiertes hexagonales Raster, wobei jede Zelle den berechneten Erreichbarkeitswert anzeigt – das Verhältnis von Angebot zu Nachfrage an diesem Standort.
+Sobald die Berechnung abgeschlossen ist, wird ein Ergebnis-Layer zur Karte hinzugefügt. Dieser *Heatmap 2SFCA*-Layer enthält ein farbcodiertes hexagonales Raster, wobei jede Zelle den berechneten Erreichbarkeitswert anzeigt, also das Verhältnis von Angebot zu Nachfrage an diesem Standort.
 
 - **Höhere Werte** weisen auf eine bessere Erreichbarkeit hin: Im Verhältnis zur lokalen Nachfrage ist mehr Angebotskapazität verfügbar.
 - **Niedrigere Werte** weisen auf unterversorgte Gebiete hin: Die Bevölkerung übersteigt die verfügbare Kapazität der erreichbaren Einrichtungen.
@@ -284,7 +278,7 @@ Möchten Sie visuell ansprechende Karten erstellen, die eine klare Geschichte er
 
 Das folgende Beispiel veranschaulicht, wie die 2SFCA-Methode für jeden Schritt funktioniert.
 
-- **Schritt 1** berechnet ein Kapazitätsverhältnis für jedes Ziel: `R_j = S_j / Σ D_k` – die Kapazität des Ziels geteilt durch die Gesamtbevölkerung in seinem Einzugsgebiet. Ein Ziel mit 100 Betten, das 100 Personen versorgt, hat ein Verhältnis von 1.
+- **Schritt 1** berechnet ein Kapazitätsverhältnis für jedes Ziel: `R_j = S_j / Σ D_k`, also die Kapazität des Ziels geteilt durch die Gesamtbevölkerung in seinem Einzugsgebiet. Ein Ziel mit 100 Betten, das 100 Personen versorgt, hat ein Verhältnis von 1.
 
 <div style={{ display: 'flex', justifyContent: 'center' }}>
 <img src={require('/img/toolbox/accessibility_indicators/heatmaps/two_step_floating_catchment_area/step1_2sfca.webp').default} alt="Heatmap 2SFCA Result in GOAT" style={{ maxHeight: "auto", maxWidth: "80%"}}/>
@@ -315,7 +309,7 @@ Wenn mehrere Kanten (Straßen) des Straßennetzes eine sechseckige Zelle schneid
 
 Die 2SFCA-Methode berechnet die Erreichbarkeit in zwei Schritten:
 
-#### Schritt 1 — Kapazitäts-Nachfrage-Verhältnis
+#### Schritt 1: Kapazitäts-Nachfrage-Verhältnis
 
 Für jeden Einrichtungsstandort *j* wird das Verhältnis seiner Kapazität zur Gesamtnachfrage in seinem Einzugsgebiet berechnet:
 
@@ -333,7 +327,7 @@ Wobei:
 - *t<sub>0</sub>* = Reisezeitlimit (maximales Einzugsgebiet)
 - *f(t<sub>kj</sub>)* = Widerstandsfunktion (Distanzgewicht)
 
-#### Schritt 2 — Kumulative Erreichbarkeit
+#### Schritt 2: Kumulative Erreichbarkeit
 
 Für jede Rasterzelle *i* werden die Kapazitäts-Nachfrage-Verhältnisse aller erreichbaren Einrichtungen summiert:
 
@@ -372,7 +366,7 @@ Die verschiedenen Berechnungsmethoden verändern, wie Distanz wahrgenommen und g
 
 - Die **Enhanced 2SFCA** führt eine **Reisewiderstandsgewichtung** ein, die eine Differenzierung der Erreichbarkeit basierend auf der Distanz erzeugt, mit einer **höheren Erreichbarkeit** (Wert von 1,1) für nähere Zellen. Zellen, die gleich weit von Einrichtungen entfernt sind, erhalten jedoch unabhängig von der absoluten Distanz dieselbe Erreichbarkeit (z. B. erhalten zwei Zellen, die beide 1 Minute entfernt sind, oder beide 2 Minuten entfernt sind, alle **1**).
 
-- Die **Modified 2SFCA** wendet in Schritt 2 **quadrierte Widerstandsgewichte** an, was stärkere Distanzstrafen mit Werten wie **0,9** und **0,5** erzeugt (verglichen mit 1,1 und 0,9 bei E2SFCA für ähnliche Positionen). Sie berücksichtigt im Gegensatz zu E2SFCA die absolute Distanz – zum Beispiel erhalten zwei Zellen, die beide 2 Minuten entfernt sind, eine geringere Erreichbarkeit (**0,6**) als zwei Zellen, die beide 1 Minute entfernt sind (**0,8**).
+- Die **Modified 2SFCA** wendet in Schritt 2 **quadrierte Widerstandsgewichte** an, was stärkere Distanzstrafen mit Werten wie **0,9** und **0,5** erzeugt (verglichen mit 1,1 und 0,9 bei E2SFCA für ähnliche Positionen). Sie berücksichtigt im Gegensatz zu E2SFCA die absolute Distanz. Zum Beispiel erhalten zwei Zellen, die beide 2 Minuten entfernt sind, eine geringere Erreichbarkeit (**0,6**) als zwei Zellen, die beide 1 Minute entfernt sind (**0,8**).
 
 **Die Wahl der geeigneten Variante** hängt von Ihren spezifischen Analysezielen ab und davon, wie empfindlich Ihre Zielbevölkerung auf Reisedistanzen reagiert.
 
@@ -452,12 +446,12 @@ Die kumulative Funktion wendet **keinen Distanzabfall** an und verwendet den Par
 
 ### Klassifizierung
 
-Um die berechneten Erreichbarkeitsniveaus für jede Rasterzelle zu klassifizieren, wird standardmäßig eine Klassifizierung basierend auf Quantilen verwendet. 
-Es können jedoch auch verschiedene andere Klassifizierungsmethoden verwendet werden. Lesen Sie mehr im Abschnitt **[Datenklassifizierungsmethoden](../../map/layer_style/style/attribute_based_styling#data-classification-methods)** auf der Seite *Attributbasiertes Styling*.
+Um die berechneten Erreichbarkeitsniveaus für jede Rasterzelle zu klassifizieren, wird standardmäßig eine Klassifizierung basierend auf [Quantilen](https://www.plan4better.de/de/glossar/quantilklassifizierung) verwendet. 
+Es können jedoch auch verschiedene andere Klassifizierungsmethoden verwendet werden. Lesen Sie mehr im Abschnitt **[Datenklassifizierungsmethoden](../../map/layer_style/style/attribute_based_styling#datenklassifizierungsmethoden)** auf der Seite *Attributbasiertes Styling*.
 
 ### Visualisierung 
 
-Heatmaps in GOAT nutzen **[Ubers H3-Raster](../../further_reading/glossary#h3-grid)**-Lösung für effiziente Berechnung und leicht verständliche Visualisierung. Im Hintergrund wird die Erreichbarkeit direkt zur Laufzeit von GOATs eigener Routing-Engine berechnet. Für jeden *Routing-Modus* routet die Engine von den Gelegenheiten ausgehend nach außen, um die erreichbaren H3-Zellen und deren Reisekosten zu ermitteln, und aggregiert diese anschließend zu einem Erreichbarkeitswert pro Zelle. Der öffentliche Verkehr nutzt die RAPTOR-basierte Engine, während die Verkehrsträger der aktiven Mobilität und das Auto GOATs Dijkstra-Implementierung verwenden.
+Heatmaps in GOAT nutzen **[Ubers H3-Raster](https://www.plan4better.de/de/glossar/h3-gitter)**-Lösung für effiziente Berechnung und leicht verständliche Visualisierung. Im Hintergrund wird die Erreichbarkeit direkt zur Laufzeit von GOATs eigener Routing-Engine berechnet. Für jeden *Routing-Modus* routet die Engine von den Gelegenheiten ausgehend nach außen, um die erreichbaren H3-Zellen und deren Reisekosten zu ermitteln, und aggregiert diese anschließend zu einem Erreichbarkeitswert pro Zelle. Der öffentliche Verkehr nutzt die RAPTOR-basierte Engine, während die Verkehrsträger der [aktiven Mobilität](https://www.plan4better.de/de/glossar/aktive-mobilitaet) und das Auto GOATs Dijkstra-Implementierung verwenden.
 
 Die Auflösung und Dimensionen des verwendeten hexagonalen Rasters hängen vom gewählten *Routing-Modus* ab:
 

@@ -80,7 +80,9 @@ const LinksElementWidget = ({ config }: { config: LinksElementSchema }) => {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 0.5,
-                  whiteSpace: "nowrap",
+                  maxWidth: "100%",
+                  textAlign: "left",
+                  overflowWrap: "anywhere",
                   background: "none",
                   border: "none",
                   cursor: "pointer",
@@ -100,7 +102,9 @@ const LinksElementWidget = ({ config }: { config: LinksElementSchema }) => {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 0.5,
-                  whiteSpace: "nowrap",
+                  maxWidth: "100%",
+                  textAlign: "left",
+                  overflowWrap: "anywhere",
                   "&:hover": { color: "primary.main" },
                 }}>
                 {link.label}

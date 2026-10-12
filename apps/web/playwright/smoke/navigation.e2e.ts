@@ -32,7 +32,7 @@ test.describe("Navigation & Smoke Tests", () => {
   test("home's hero shows the quick-create actions", async ({ page }) => {
     await page.goto("/home");
     await expect(page.getByRole("heading", { name: /Welcome/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: "New Project" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Add Dataset" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "New project" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Upload dataset" })).toBeVisible();
   });
 });

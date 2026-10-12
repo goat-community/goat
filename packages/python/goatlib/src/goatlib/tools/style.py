@@ -821,9 +821,10 @@ def get_trip_count_style(
     return style
 
 
-# Starting point marker configuration (same as GOAT core legacy)
+# Starting point marker configuration (same as GOAT core legacy). The icon is
+# one the web app ships, root-relative so it resolves on any host.
 STARTING_POINT_MARKER = {
-    "url": "https://assets.plan4better.de/icons/maki/foundation-marker.svg",
+    "url": "/assets/icons/maki/foundation-marker.svg",
     "name": "foundation-marker",
 }
 

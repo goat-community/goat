@@ -6,11 +6,12 @@ import { toast } from "react-toastify";
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { uploadAsset } from "@/lib/api/assets";
+import { ASSETS_URL } from "@/lib/constants";
 import { ASSETS_MAX_FILE_SIZE_MB, assetTypeEnum } from "@/lib/validations/assets";
 import type { ImageElementSchema } from "@/lib/validations/widget";
 
-const PLACEHOLDER_URL = "https://assets.plan4better.de/img/image-placeholder.webp";
-const IMAGE_NOT_FOUND_PLACEHOLDER = "https://assets.plan4better.de/img/image-not-found-placeholder.webp";
+const PLACEHOLDER_URL = `${ASSETS_URL}/img/image-placeholder.webp`;
+const IMAGE_NOT_FOUND_PLACEHOLDER = `${ASSETS_URL}/img/image-not-found-placeholder.webp`;
 
 // Base image component
 const ImageElementBase = ({
@@ -54,7 +55,7 @@ const ImageElementActionButtons = ({
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > ASSETS_MAX_FILE_SIZE_MB * 1024 * 1024) {
-        toast.error(`${t(" maximum_image_size_is")} ${ASSETS_MAX_FILE_SIZE_MB}MB`);
+        toast.error(`${t("maximum_image_size_is")} ${ASSETS_MAX_FILE_SIZE_MB}MB`);
         e.target.value = ""; // reset input
         return;
       }

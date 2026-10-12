@@ -1,0 +1,62 @@
+suite: core migrate hook
+templates:
+  - core/migrate-hook.yaml
+  - core/configmap.yaml          # needed so envFrom refs validate
+tests:
+  - it: renders the hook Job by default with hook annotations
+    set:
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    template: core/migrate-hook.yaml
+    asserts:
+      - isKind:
+          of: Job
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-core-migrate
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: post-install,pre-upgrade
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-5"
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: "^ghcr\\.io/plan4better/goat/core:.+"
+      - matchRegex:
+          path: spec.template.spec.containers[0].args[0]
+          pattern: "alembic upgrade head"
+      - matchRegex:
+          path: spec.template.spec.containers[0].args[0]
+          pattern: "core.scripts.initial_data"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: pg-secret
+                key: username
+
+  - it: is absent when core.migrate.enabled is false
+    set:
+      core.migrate.enabled: false
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    template: core/migrate-hook.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: is absent when core itself is disabled
+    set:
+      core.enabled: false
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    template: core/migrate-hook.yaml
+    asserts:
+      - hasDocuments:
+          count: 0

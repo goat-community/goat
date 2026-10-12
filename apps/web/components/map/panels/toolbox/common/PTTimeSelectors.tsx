@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 
 import TimePicker from "@p4b/ui/components/TimePicker";
 
+import { useDayjsLocale } from "@/i18n/utils";
+
 import type { SelectorItem } from "@/types/map/common";
 
 import FormLabelHelper from "@/components/common/FormLabelHelper";
@@ -31,6 +33,7 @@ const PTTimeSelectors: React.FC<PTTimeSelectorsProps> = ({
   isPTValid,
 }) => {
   const { t } = useTranslation("common");
+  const timeLocale = useDayjsLocale();
 
   return (
     <Stack spacing={2}>
@@ -46,6 +49,7 @@ const PTTimeSelectors: React.FC<PTTimeSelectorsProps> = ({
       <Stack>
         <FormLabelHelper label={t("pt_start_time")} color="inherit" tooltip={t("pt_start_time_tooltip")} />
         <TimePicker
+          locale={timeLocale}
           time={ptStartTime || 25200}
           onChange={(time) => {
             setPTStartTime(time);
@@ -56,6 +60,7 @@ const PTTimeSelectors: React.FC<PTTimeSelectorsProps> = ({
       <Stack>
         <FormLabelHelper label={t("pt_end_time")} color="inherit" tooltip={t("pt_end_time_tooltip")} />
         <TimePicker
+          locale={timeLocale}
           time={ptEndTime || 32400}
           onChange={(time) => {
             setPTEndTime(time);

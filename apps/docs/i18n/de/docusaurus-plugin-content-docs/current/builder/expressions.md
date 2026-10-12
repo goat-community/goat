@@ -1,4 +1,5 @@
 ---
+description: "QGIS-ähnliche Funktionen für die Widgets Zahlen, Kategorien, Kreisdiagramm und Rich Text: für Zahlen, Text, Datum, Typumwandlung, Aggregation und Geometrie."
 sidebar_position: 4
 ---
 
@@ -160,6 +161,6 @@ Die folgenden Funktionen arbeiten mit jedem Feldtyp. Die Eingabe und die Ausgabe
 
 :::tip
 
-Weitere Informationen finden Sie in der [QGIS-Dokumentation](https://docs.qgis.org/3.28/en/docs/user_manual/expressions/expressions.html).
+Weitere Informationen finden Sie in der [QGIS-Dokumentation](https://docs.qgis.org/latest/en/docs/user_manual/expressions/expression.html).
 
 :::

@@ -153,6 +153,12 @@ class OrganizationBase(SQLModel):
     region: AvailableRegionsEnum = Field(sa_column=Column(Text, nullable=False))
     stripe_id: str | None = Field(sa_column=Column(Text, nullable=True))
     hubspot_id: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    # Odoo company (res.partner, is_company) this org is (see core.odoo).
+    # Written by staff or the billing integration, never by the support bridge,
+    # which only reads it; optional.
+    odoo_company_id: int | None = Field(
+        default=None, sa_column=Column(Integer, nullable=True)
+    )
     newsletter_subscribe: bool | None = Field(sa_column=Column(Boolean, nullable=True))
     suspended: bool = Field(sa_column=Column(Boolean, nullable=False))
 

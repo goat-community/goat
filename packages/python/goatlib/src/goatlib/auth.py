@@ -5,12 +5,42 @@ used across core, geoapi, and processes services.
 """
 
 import logging
-from typing import Any, Protocol
+import threading
+import time
+from typing import Annotated, Any, Protocol
 
 import requests
 from jose import JOSEError, jwt
+from pydantic import BeforeValidator
 
 logger = logging.getLogger(__name__)
+
+
+def _unset_auth_is_on(value: object) -> object:
+    """Map an unset or empty AUTH value to True; leave the rest to pydantic."""
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return True
+    return value
+
+
+AuthFlag = Annotated[bool, BeforeValidator(_unset_auth_is_on)]
+"""The repo-wide ``AUTH`` flag as a settings field type.
+
+Parsed with pydantic's bool rules (``true/1/yes/on/t/y`` on,
+``false/0/no/off/f/n`` off, any case); unset or empty keeps auth on. The web
+reads the same variable with the same table (``isAuthDisabled`` in
+``apps/web/lib/utils/auth-flag.ts``).
+"""
+
+
+def require_keycloak_url(auth: bool, keycloak_server_url: str | None) -> None:
+    """Refuse a configuration that enables auth without a Keycloak server.
+
+    Raises:
+        ValueError: If ``auth`` is on and ``keycloak_server_url`` is empty.
+    """
+    if auth and not keycloak_server_url:
+        raise ValueError("AUTH is on but KEYCLOAK_SERVER_URL is not set")
 
 
 class AuthSettings(Protocol):
@@ -45,23 +75,28 @@ class KeycloakAuth:
         realm: str,
         verify_signature: bool = True,
         timeout: int = 10,
+        retry_interval: float = 10.0,
     ) -> None:
         """Initialize Keycloak authentication.
+
+        The realm public key is fetched on the first ``decode_token`` call, not
+        here, so a service can start while Keycloak is still unreachable.
 
         Args:
             keycloak_url: Base URL of Keycloak server
             realm: Keycloak realm name
             verify_signature: Whether to verify JWT signatures
             timeout: HTTP request timeout in seconds
+            retry_interval: Minimum seconds between two key fetch attempts
+                while the key is missing
         """
         self._verify_signature = verify_signature
         self._issuer_url = f"{keycloak_url}/realms/{realm}"
         self._public_key: str | None = None
         self._timeout = timeout
-
-        # Only fetch public key if signature verification is enabled
-        if self._verify_signature:
-            self._fetch_public_key()
+        self._retry_interval = retry_interval
+        self._last_attempt: float | None = None
+        self._lock = threading.Lock()
 
     def _fetch_public_key(self: "KeycloakAuth") -> None:
         """Fetch Keycloak public key for JWT verification."""
@@ -81,6 +116,26 @@ class KeycloakAuth:
         except Exception as e:
             logger.warning(f"Error processing Keycloak response: {e}")
 
+    def _ensure_public_key(self: "KeycloakAuth") -> str | None:
+        """Return the cached public key, fetching it if it is missing.
+
+        While the key is missing, at most one fetch is attempted per
+        ``retry_interval`` seconds; calls in between return ``None``.
+        """
+        if self._public_key is not None:
+            return self._public_key
+        with self._lock:
+            if self._public_key is not None:
+                return self._public_key
+            now = time.monotonic()
+            if (
+                self._last_attempt is None
+                or now - self._last_attempt >= self._retry_interval
+            ):
+                self._last_attempt = now
+                self._fetch_public_key()
+        return self._public_key
+
     def decode_token(self: "KeycloakAuth", token: str) -> dict[str, Any]:
         """Decode and validate a JWT token.
 
@@ -91,8 +146,11 @@ class KeycloakAuth:
             Decoded token payload as dict
 
         Raises:
-            JOSEError: If token is invalid or verification fails
+            JOSEError: If token is invalid, verification fails, or the
+                Keycloak public key cannot be fetched
         """
+        if self._verify_signature and self._ensure_public_key() is None:
+            raise JOSEError("Keycloak public key unavailable")
         return jwt.decode(
             token,
             key=self._public_key,
@@ -139,8 +197,10 @@ def create_keycloak_auth(settings: AuthSettings) -> KeycloakAuth:
 
 # Re-export JOSEError for convenience
 __all__ = [
+    "AuthFlag",
     "KeycloakAuth",
     "AuthSettings",
     "create_keycloak_auth",
+    "require_keycloak_url",
     "JOSEError",
 ]

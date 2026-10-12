@@ -1,0 +1,80 @@
+# CI fixture: external dependencies profile.
+# - Postgres provisioned outside the chart (consumer-provided Service + Secret)
+# - External Redis (consumer-provided cache, same shape as external Postgres)
+# - Windmill default-off (consumer brings its own workflow engine, or doesn't need one)
+# - Caddy off (consumer fronts the chart with their own gateway / Ingress)
+# - Ingress disabled (assumes an API gateway or external Ingress fronts the API)
+# - Company SMTP relay with login and a private CA (Secret + ConfigMap)
+
+global:
+  storageClass: local-path
+  imagePullSecrets: []
+  auth:
+    provisionInvitedUsers: true
+  caBundle:
+    existingConfigMap: corporate-ca
+    key: ca.crt
+
+email:
+  host: smtp.example.com
+  port: 587
+  security: starttls
+  user: goat@example.com
+  existingSecret: goat-smtp
+  contactUrl: https://example.com/contact
+
+core:
+  enabled: true
+  config:
+    ASSETS_URL: "https://assets.example.com"
+    ASSETS_S3_ENDPOINT_URL: "https://s3.example.com"
+    ASSETS_S3_FORCE_PATH_STYLE: "true"
+  ingress:
+    enabled: false
+  auth:
+    enabled: false
+
+windmill:
+  server:
+    enabled: false                # consumer either doesn't need it or runs their own
+  workers:
+    default:
+      enabled: false
+
+caddy:
+  enabled: false                  # consumer's gateway (e.g. APISIX, ingress-nginx) handles routing
+
+postgresql:
+  operator:
+    enabled: false
+  cluster:
+    enabled: false
+  external:
+    host: "postgres.example.com"
+    port: 5432
+    database: goat
+    existingSecret: "external-postgres-creds"
+    existingSecretUserKey: username
+    existingSecretPasswordKey: password
+    sslMode: prefer
+
+redis:
+  enabled: false
+  external:
+    host: cache.example.com
+    port: 6379
+    database: 0
+    existingSecret: redis-credentials
+
+catalog:
+  enabled: true
+
+web:
+  auth:
+    publicUrl: https://goat.example.com
+  publicUrls:
+    api: https://goat.example.com
+
+data:
+  enabled: true
+  existingClaim: my-preprovisioned-nfs-claim

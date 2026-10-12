@@ -1,4 +1,5 @@
 ---
+description: "Fügen Sie Layer per Upload, als neuen Layer, über WFS, WMS, WMTS, XYZ oder COG, aus Ihren Datensätzen oder dem Katalog hinzu und ordnen oder gruppieren Sie sie."
 sidebar_position: 2
 ---
 
@@ -20,13 +21,17 @@ import TabItem from '@theme/TabItem';
 
 Das Layer Panel ist Ihre zentrale Anlaufstelle für die Organisation und Steuerung aller Daten in Ihrem GOAT-Projekt. Hier können Sie neue Datensätze hinzufügen, die Layer-Reihenfolge für eine optimale Visualisierung anordnen, verwandte Layer gruppieren und die Sichtbarkeit steuern. Dieser Abschnitt führt Sie durch alle wesentlichen Layer-Verwaltungsfunktionen, um Ihnen beim Erstellen gut organisierter und visuell effektiver Karten zu helfen.
 
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <img src={require('/img/map/layers/add_layer_de.webp').default} alt="Layer in GOAT hinzufügen" style={{ maxHeight: "flex", maxWidth: "flex", objectFit: "cover"}}/>
+</div>
+
 ### Layer hinzufügen
 
 Sie können Layer aus [verschiedenen Quellen](../data/dataset_types) zu Ihrer Karte hinzufügen:
 
 **Neue Daten**
 
-- **Datei hochladen**: ein Datensatz von Ihrem Gerät (GeoPackage, GeoJSON, Shapefile, KML, CSV, XLSX, Parquet sowie GTFS- und Overture-Archive)
+- **Datensatz hochladen**: ein Datensatz von Ihrem Gerät (GeoPackage, GeoJSON, Shapefile, KML, CSV, XLSX, Parquet sowie [GTFS](https://www.plan4better.de/de/glossar/gtfs)- und [Overture](https://www.plan4better.de/de/glossar/overture-maps)-Archive)
 - **Layer erstellen**: ein neuer, leerer Layer, in den Sie zeichnen
 - **Dienst verbinden**: ein Layer, der über WFS, WMS, WMTS, XYZ-Kacheln oder COG bereitgestellt wird, per URL eingebunden
 
@@ -46,7 +51,7 @@ Sie können Layer aus [verschiedenen Quellen](../data/dataset_types) zu Ihrer Ka
 </div>
 
 <Tabs>
-  <TabItem value="Upload" label="Datei hochladen" default className="tabItemBox">
+  <TabItem value="Upload" label="Datensatz hochladen" default className="tabItemBox">
 
 <div class="step">
   <div class="step-number">3</div>
@@ -63,14 +68,14 @@ Sie können Layer aus [verschiedenen Quellen](../data/dataset_types) zu Ihrer Ka
   <div class="content">Klicken Sie auf <code>Hochladen</code>.</div>
 </div>
 
-<div class="content"><strong>Straßennetze und GTFS-Feeds:</strong> ein GTFS- oder Overture-Archiv wird als <a href="../data/dataset_types#datensätze-aus-mehreren-layern">Datenpaket</a> importiert, nicht als einzelner Layer. Bei einem ÖPNV-Feed werden Sie außerdem gebeten, ihn mit einem Straßennetz zu verknüpfen. Woher Sie diese Daten bekommen und was beim Import geschieht, steht unter <a href="../data/builtin_datasets#eigene-netze-importieren">Netz-Datensätze</a>.</div>
+<div class="content"><strong>Straßennetze und GTFS-Feeds:</strong> ein GTFS- oder Overture-Archiv wird als [Datenpaket](../data/dataset_types#datensätze-aus-mehreren-layern) importiert, nicht als einzelner Layer. Bei einem ÖPNV-Feed werden Sie außerdem gebeten, ihn mit einem Straßennetz zu verknüpfen. Woher Sie diese Daten bekommen und was beim Import geschieht, steht unter [Netz-Datensätze](../data/builtin_datasets#eigene-netze-importieren).</div>
 
   </TabItem>
   <TabItem value="Create" label="Layer erstellen" className="tabItemBox">
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Geben Sie einen <strong>Layer-Namen</strong> ein, wählen Sie den <strong>Geometrietyp</strong> (<code>Punkt</code>, <code>Linie</code>, <code>Polygon</code> oder <code>Tabelle</code>) und legen Sie die <strong>Felder</strong> fest. Ausführlich beschrieben in <a href="./layer_editing">Layer bearbeiten</a>.</div>
+  <div class="content">Geben Sie einen <strong>Layer-Namen</strong> ein, wählen Sie den <strong>Geometrietyp</strong> (<code>Punkt</code>, <code>Linie</code>, <code>Polygon</code> oder <code>Tabelle</code>) und legen Sie die <strong>Felder</strong> fest. Ausführlich beschrieben in [Layer bearbeiten](./layer_editing).</div>
 </div>
 
   </TabItem>
@@ -91,7 +96,7 @@ Sie können Layer aus [verschiedenen Quellen](../data/dataset_types) zu Ihrer Ka
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Durchsuchen und filtern Sie den <a href="../workspace/catalog">Katalog</a> nach dem passenden Datensatz. Es stehen dieselben Filter wie auf der Katalog-Seite zur Verfügung.</div>
+  <div class="content">Durchsuchen und filtern Sie den [Katalog](../workspace/catalog) nach dem passenden Datensatz. Es stehen dieselben Filter wie auf der Katalog-Seite zur Verfügung.</div>
 </div>
 
 <div class="step">
@@ -125,6 +130,18 @@ Sie können Layer aus [verschiedenen Quellen](../data/dataset_types) zu Ihrer Ka
       <div class="content"><p>Ein WMTS lässt sich über eine <strong>direkte URL</strong> oder einen <strong>GetCapabilities</strong>-Link einbinden. Enthält die URL mehrere Layer, kann jeweils nur einer hinzugefügt werden.</p>Die Projektion muss <strong>Web Mercator (EPSG:3857)</strong> und GoogleMaps-kompatibel sein. Andernfalls unterscheiden sich die Zoomstufen, und die Quelle erscheint nicht in der Liste.</div>
     </div>
   </TabItem>
+
+  <TabItem value="XYZ" label="XYZ" className="tabItemBox">
+    <div class="step">
+      <div class="content"><p>Ein <strong>XYZ-Kacheln</strong>-Layer ist jede Kachel-URL mit <code>&#123;z&#125;/&#123;x&#125;/&#123;y&#125;</code>-Platzhaltern. Die Adresse ist der Layer, es gibt also keine Layerliste zur Auswahl &mdash; prüfen Sie, ob die Vorschau zeigt, was Sie erwarten.</p></div>
+    </div>
+  </TabItem>
+
+  <TabItem value="COG" label="COG" className="tabItemBox">
+    <div class="step">
+      <div class="content"><p>Ein <strong>Cloud Optimized GeoTIFF (COG)</strong> wird über einen direkten <code>.tif</code>/<code>.tiff</code>-Link eingebunden. Die Datei wird stückweise direkt von ihrem Speicherort gelesen, es wird nichts zu GOAT hochgeladen.</p></div>
+    </div>
+  </TabItem>
 </Tabs>
 
   </TabItem>
@@ -136,31 +153,18 @@ Sie können alle Ihre Datensätze auf der [Inhalt-Seite](../workspace/content) v
 
 :::
 
-### Layer organisieren
-
-Sobald Sie einen Datensatz zur Karte hinzugefügt haben, wird er in der **Layer-Liste** sichtbar. Von dort aus können Sie die verschiedenen Layer organisieren.
-
-
-#### Layer-Reihenfolge
+### Layer-Reihenfolge
 
 Bei der Visualisierung mehrerer Datensätze gleichzeitig ist die Layer-Reihenfolge entscheidend für die Erstellung klarer, lesbarer Karten. Daher <strong>kann die Layer-Reihenfolge interaktiv geändert werden</strong>.
 
-Fahren Sie mit der Maus über den <strong>linken Rand</strong> des Layers in der Layer-Liste, bis ein Pfeilsymbol erscheint, dann <strong>ziehen und lassen Sie los, um</strong> den Layer an die gewünschte Position zu verschieben.
-
-<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-  <Video src={require('/img/map/layers/layer_order.mp4').default} alt="Layer-Reihenfolge" style={{ maxHeight: "flex", maxWidth: "flex", objectFit: "cover"}}/>
-</div> 
+Klicken Sie auf den Layer in der Layer-Liste und <strong>ziehen Sie ihn per Drag-and-drop</strong> an die gewünschte Position.
 
 
-#### Layer anzeigen / ausblenden
+### Layer anzeigen / ausblenden
 
 Klicken Sie auf das <img src={require('/img/icons/eye.png').default} alt="Layer anzeigen in GOAT" style={{ maxHeight: "flex", maxWidth: "flex", objectFit: "cover"}}/> Symbol neben dem Layer-Namen, um einen Layer vorübergehend aus der Kartenansicht <strong>auszublenden</strong>. Ein erneuter Klick auf das Auge macht den Layer <strong>wieder sichtbar</strong>.
 
-<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-  <Video src={require('/img/map/layers/hide_layers.mp4').default} alt="Layer ausblenden" style={{ maxHeight: "flex", maxWidth: "flex", objectFit: "cover"}}/>
-</div> 
-
-#### Layer gruppieren
+### Layer gruppieren
 
 Klicken Sie auf die <img src={require('/img/icons/layer.png').default} alt="Layer gruppieren" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code> Layer gruppieren</code> Schaltfläche oben im Layer Panel, um **Layer-Gruppen zu erstellen**, die dabei helfen, verwandte Datensätze zusammen zu organisieren.
 
@@ -189,14 +193,7 @@ Klicken Sie auf die <img src={require('/img/icons/layer.png').default} alt="Laye
   <div class="content">Verwenden Sie den <strong>Aufklappen/Zuklappen-Pfeil</strong> neben dem Gruppennamen, um den Gruppeninhalt anzuzeigen oder zu verbergen.</div>
 </div>
 
-Layer-Gruppen ermöglichen es Ihnen:
-- **Verwandte Layer** in logische Sammlungen zu organisieren
-- **Ganze Gruppen auf- oder zuzuklappen** für bessere Arbeitsbereich-Verwaltung
-- **Gruppenebenen-Operationen** wie das Anzeigen/Verbergen aller Layer in einer Gruppe anzuwenden
-- **Visuelle Hierarchie** in komplexen Projekten mit vielen Layern zu erhalten
-
-
-#### Optionen
+### Optionen
 
 Durch Klicken auf das <code>weitere Optionen</code> <img src={require('/img/icons/3dots.png').default} alt="Optionen" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> Symbol haben Sie weitere Optionen zur <strong>Verwaltung und Organisation</strong> des ausgewählten Layers.
 

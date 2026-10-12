@@ -16,10 +16,11 @@ Standards and best practices for GOAT documentation.
 
 ### Others
 
-- Include glossary links, e.g.:
+- Include glossary links to the term on the website glossary (`/en/glossary/...` on English pages, `/de/glossar/...` on German pages). They get a hover preview with the term's short description automatically, e.g.:
   ```markdown
-  [Join](../further_reading/glossary.md#join)
+  [H3 grid](https://www.plan4better.de/en/glossary/h3-grid)
   ```
+- Link to other docs pages with Markdown links, also inside step blocks, e.g. `[Routing](../../category/routing)`. Never use `<a href>` for them: the build checks Markdown links and points them to the page in the reader's language, but passes `<a href>` through unchecked, so a root-relative one such as `/category/routing` leaves the German docs. `<a href>` is fine for links to other websites.
 - Use info boxes for important notes: `:::info` and `:::tip`
 - After the main title and before the explanation, add the Youtube video, if available, using the following iframe format and size:
  <iframe width="674" height="378" src="https://www.youtube.com/embed/VIDEO_ID" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>

@@ -67,7 +67,7 @@ export const useProjectLayers = (projectId?: string) => {
 
 export const useProjectLayerGroups = (projectId?: string) => {
   const { data, isLoading, error, mutate, isValidating } = useSWR<ProjectLayerGroup[]>(
-    () => (projectId ? [`${PROJECTS_API_BASE_URL}/${projectId}/group`] : null),
+    () => (projectId ? projectLayerGroupsKey(projectId) : null),
     fetcher
   );
 
@@ -274,6 +274,9 @@ export const deleteProjectLayer = async (projectId: string, layerId: number) => 
 
 /** SWR key of a project's layer list — for targeted revalidation. */
 export const projectLayersKey = (projectId: string) => [`${PROJECTS_API_BASE_URL}/${projectId}/layer`];
+
+/** SWR key of a project's layer groups — for targeted revalidation. */
+export const projectLayerGroupsKey = (projectId: string) => [`${PROJECTS_API_BASE_URL}/${projectId}/group`];
 
 /**
  * Add catalog items to a project (promote-on-use).

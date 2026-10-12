@@ -1,10 +1,11 @@
 ---
+description: "Die Datensatz-Typen in GOAT: Feature-Datensätze, Tabellen, Overture-Straßennetze, GTFS-ÖPNV-Netze, Datenpakete sowie Raster über WMS, WMTS, XYZ oder COG."
 sidebar_position: 1
 ---
 
 # Datensatz-Typen
 
-Auf GOAT können Sie mit Datensätzen aus Plan4Betters Katalog arbeiten, Ihre eigenen hochladen oder einen externen Dienst per URL einbinden (**WFS**, **WMS**, **WMTS**, **XYZ-Kacheln** oder **COG**). Es akzeptiert verschiedene Formate für sowohl **Feature-Datensätze** als auch **Raster-Datensätze** sowie [**Straßennetze**](#straßennetze) und [**ÖPNV-Netze**](#öpnv-netze). Hier erklären wir die verschiedenen Typen von Datensätzen, die Sie in GOAT verwenden können.
+Auf GOAT können Sie mit Datensätzen aus Plan4Betters Katalog arbeiten, Ihre eigenen hochladen oder einen externen Dienst per URL einbinden (**WFS**, **WMS**, **WMTS**, **XYZ-Kacheln** oder **COG**). Es akzeptiert verschiedene Formate für sowohl **Feature-Datensätze** als auch **[Raster-Datensätze](https://www.plan4better.de/de/glossar/rasterdaten)** sowie [**Straßennetze**](#straßennetze) und [**ÖPNV-Netze**](#öpnv-netze). Hier erklären wir die verschiedenen Typen von Datensätzen, die Sie in GOAT verwenden können.
 
 ## Feature-Datensätze
 
@@ -23,7 +24,7 @@ GOAT erkennt zwei Typen von Feature-Datensätzen basierend auf ihrer Quelle:
 
 - **Feature-Datensatz Standard**: Dies sind die Datensätze, die Sie selbst hochladen (wie GeoJSON, GeoPackage, KML und ZIP-Dateien), einschließlich der Layer, die mit einem [Straßennetz](#straßennetze) oder einem [ÖPNV-Netz](#öpnv-netze) importiert werden. Betrachten Sie diese als Ihre "Rohmaterialien": die ursprünglichen Daten, die Sie in GOAT einbringen, um damit zu arbeiten.
 
-- **Feature-Datensatz Werkzeug**: Dies sind Datensätze, die von GOATs Analyse-Werkzeugen erstellt werden. Wenn Sie eine Analyse durchführen (wie die Erstellung von Einzugsgebieten oder Heatmaps), werden die Ergebnisse zu diesem Typ von Datensatz.
+- **Feature-Datensatz Werkzeug**: Dies sind Datensätze, die von GOATs Analyse-Werkzeugen erstellt werden. Wenn Sie eine Analyse durchführen (wie die Erstellung von [Einzugsgebieten](https://www.plan4better.de/de/glossar/einzugsgebiet) oder [Heatmaps](https://www.plan4better.de/de/glossar/heatmap)), werden die Ergebnisse zu diesem Typ von Datensatz.
 
 ### 1.2 Nicht-räumliche Datensätze
 
@@ -36,9 +37,9 @@ GOAT erkennt zwei Typen von Feature-Datensätzen basierend auf ihrer Quelle:
 
 ## Straßennetze
 
-Ein **Straßennetz** ist eine routingfähige Abbildung von Straßen, Wegen und Radwegen. GOAT stellt ein integriertes Netz bereit, und Sie können Ihr eigenes importieren, wenn das Routing auf Daten laufen soll, die Sie selbst verwalten: ein Netz, das Sie selbst pflegen, oder ein geplantes Netz, das Sie testen möchten, bevor es gebaut wird.
+Ein **Straßennetz** ist eine routingfähige Abbildung von Straßen, Wegen und Radwegen. GOAT stellt ein integriertes Netz bereit, und Sie können Ihr eigenes importieren, wenn das [Routing](https://www.plan4better.de/de/glossar/routing) auf Daten laufen soll, die Sie selbst verwalten: ein Netz, das Sie selbst pflegen, oder ein geplantes Netz, das Sie testen möchten, bevor es gebaut wird.
 
-Ihre Daten müssen dem **Overture**-Format entsprechen, Segments und Connectors als Parquet-Dateien, verpackt in einer `.zip`-Datei, deren Name `overture` enthält, zum Beispiel `overture.zip` oder `berlin_overture.zip`. Andere Straßendaten, einschließlich OpenStreetMap, werden derzeit nicht unterstützt.
+Ihre Daten müssen dem **[Overture](https://www.plan4better.de/de/glossar/overture-maps)**-Format entsprechen, Segments und Connectors als Parquet-Dateien, verpackt in einer `.zip`-Datei, deren Name `overture` enthält, zum Beispiel `overture.zip` oder `berlin_overture.zip`. Andere Straßendaten, einschließlich OpenStreetMap, werden derzeit nicht unterstützt.
 
 Ein Straßennetz besteht aus zwei Layern, die GOAT zusammenhält:
 
@@ -51,7 +52,7 @@ Straßennetze sind die Grundlage für das Routing zu [Fuß](../routing/walking),
 
 Ein **ÖPNV-Netz** beschreibt die Haltestellen, Linien und Fahrpläne eines Verkehrssystems. GOAT stellt ein integriertes Netz bereit, und Sie können Ihr eigenes importieren, wenn Sie ein Angebot analysieren möchten, das Sie selbst verwalten: Ihren eigenen Feed oder einen Fahrplan, den Sie planen.
 
-Ihre Daten müssen dem **GTFS**-Format entsprechen, verpackt in einer `.zip`-Datei, deren Name `gtfs` enthält, zum Beispiel `gtfs.zip` oder `vbb_gtfs.zip`.
+Ihre Daten müssen dem **[GTFS](https://www.plan4better.de/de/glossar/gtfs)**-Format entsprechen, verpackt in einer `.zip`-Datei, deren Name `gtfs` enthält, zum Beispiel `gtfs.zip` oder `vbb_gtfs.zip`.
 
 Die enthaltenen Layer entsprechen dem GTFS-Feed selbst: **Stops**, **Routes**, **Trips** und **Stop times** sind immer vorhanden, **Agency**, **Calendar** und **Shapes** kommen hinzu, sofern der Feed sie bereitstellt.
 

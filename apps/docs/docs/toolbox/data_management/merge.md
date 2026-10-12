@@ -1,4 +1,5 @@
 ---
+description: "Combine two or more layers into one output layer: same-named fields are merged, unique fields kept, with options for a source column and multi-part geometries."
 sidebar_position: 2
 ---
 
@@ -8,7 +9,7 @@ This tool allows you to **combine two or more layers into a single output layer*
 
 ## 1. Explanation
 
-Merging stacks features from multiple layers into one layer. Unlike a join, no matching is required — all features from all input layers are simply combined. This is useful when you have the same type of data split across multiple layers and want to work with it as a single dataset.
+Merging stacks features from multiple layers into one layer. Unlike a join, no matching is required: all features from all input layers are simply combined. This is useful when you have the same type of data split across multiple layers and want to work with it as a single dataset.
 
 **Key behaviour:**
 - Features from all input layers are included in the output.
@@ -44,11 +45,12 @@ Merging stacks features from multiple layers into one layer. Unlike a join, no m
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Expand <code>Merge Options</code> and configure the following toggles:
+  <div class="content">
+  Expand <code>Merge Options</code> and configure the following toggles:
   <ul>
-    <li><code>Add Source Column</code> — adds a column to the output indicating which input layer each feature came from.</li>
-    <li><code>Validate Geometry Types</code> — checks that all input layers share the same geometry type before merging.</li>
-    <li><code>Promote To Multi</code> — converts single-part geometries to multi-part (e.g. Polygon → MultiPolygon) to ensure compatibility across inputs.</li>
+    <li><code>Add Source Column</code>: adds a column to the output indicating which input layer each feature came from.</li>
+    <li><code>Validate Geometry Types</code>: checks that all input layers share the same geometry type before merging.</li>
+    <li><code>Promote To Multi</code>: converts single-part geometries to multi-part (e.g. Polygon → MultiPolygon) to ensure compatibility across inputs.</li>
   </ul>
   </div>
 </div>
@@ -57,9 +59,3 @@ Merging stacks features from multiple layers into one layer. Unlike a join, no m
   <div class="step-number">5</div>
   <div class="content">Click <code>Run</code> to execute the merge. The result layer will be added to the map.</div>
 </div>
-
-:::tip Hint
-
-Calculation time varies by settings. Check the [status bar](../../workspace/home#status-bar) for progress.
-
-:::

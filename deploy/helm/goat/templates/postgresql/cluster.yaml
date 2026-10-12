@@ -1,0 +1,121 @@
+{{- if .Values.postgresql.cluster.enabled -}}
+{{- $clusterName := printf "%s-pg" (include "goat.fullname" .) -}}
+{{- /*
+Deliberately NOT gated on .Values.windmill.server.enabled: CNPG's
+`postInitSQL`/`postInitApplicationSQL` below run exactly ONCE, at the
+cluster's original initdb — turning windmill.server on in a LATER
+`helm upgrade` (after the cluster already exists) would silently skip
+database creation forever if this depended on windmill.server.enabled at
+that later point. Provisioning the DB/role/secret whenever this chart
+manages Postgres and windmill isn't reusing its connection — regardless of
+whether the windmill server is currently on — means they already exist by
+the time anyone flips windmill.server.enabled on, whenever that happens.
+The database itself is created by the `windmill-db-init` init container on
+the windmill server/workers (templates/_initcontainers.tpl), which also
+covers a cluster that was bootstrapped before this existed.
+*/ -}}
+{{- $needsWindmillDB := not .Values.windmill.db.reuseGoatConnection -}}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ $clusterName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "postgresql") | nindent 4 }}
+spec:
+  instances: {{ .Values.postgresql.cluster.instances }}
+  {{- with .Values.postgresql.cluster.image }}
+  # CNPG's own default image has no PostGIS; postInitApplicationSQL below
+  # needs it, so this must point at an image that has it (see the comment
+  # on postgresql.cluster.image in values.yaml). No postgresUID/postgresGID
+  # override here: the default image (ghcr.io/cloudnative-pg/postgis) is
+  # uid=26/gid=102 for its `postgres` user, which CNPG's own defaults
+  # (26/26) work fine against in practice — confirmed both by P4B's own
+  # production CNPG cluster running this exact image with no override, and
+  # by this chart's own k3d smoke test. If you point `image` at a build
+  # whose UID/GID genuinely doesn't work with CNPG's 26/26 default, set
+  # postgresql.cluster.postgresUID/postgresGID explicitly to match it.
+  imageName: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.postgresql.cluster.postgresUID }}
+  postgresUID: {{ . }}
+  {{- end }}
+  {{- with .Values.postgresql.cluster.postgresGID }}
+  postgresGID: {{ . }}
+  {{- end }}
+  primaryUpdateStrategy: unsupervised
+  storage:
+    size: {{ .Values.postgresql.cluster.storage.size }}
+    {{- with (default .Values.global.storageClass .Values.postgresql.cluster.storage.storageClass) }}
+    storageClass: {{ . }}
+    {{- end }}
+  bootstrap:
+    initdb:
+      database: {{ include "goat.postgresql.database" . | quote }}
+      owner: goat
+      # postInitApplicationSQL runs in the goat DB as the goat owner.
+      # PostGIS only — GOAT's schema (apps/core/alembic/versions/init.py in
+      # the main goat repo) needs exactly PostGIS + uuid-ossp, nothing
+      # else. uuid-ossp is stock contrib and trusted (PG13+), so that
+      # migration installs it itself with no superuser needed; it isn't
+      # listed here too. postgis_topology/pgrouting were listed here once,
+      # on the mistaken assumption that GOAT used pgRouting — it doesn't
+      # (grep the whole goat repo for `pgrouting`/`pgr_`: zero hits), and
+      # neither extension is referenced anywhere in the schema.
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS postgis
+      # The windmill database is intentionally NOT created here via
+      # postInitSQL. postInitSQL runs as part of the one-shot initdb Job,
+      # BEFORE the cluster is up and BEFORE the operator's controller-level
+      # `managed.roles` reconciliation loop has ever run — `windmill_owner_user`
+      # (declared under `managed.roles` below) does not exist yet at that
+      # point, so `CREATE DATABASE ... OWNER windmill_owner_user` here fails
+      # initdb outright with `role "windmill_owner_user" does not exist`
+      # (found running this chart's k3d smoke test; an earlier version of
+      # this file did exactly that, on the mistaken assumption that managed
+      # roles are reconciled before postInitSQL runs). The
+      # `windmill-db-init` init container on the windmill server/workers
+      # (templates/_initcontainers.tpl) creates the database instead,
+      # self-service, using `windmill_owner_user`'s own CREATEDB grant, once
+      # that role actually exists.
+  {{- if $needsWindmillDB }}
+  # Windmill expects these role names to pre-exist BEFORE its first migration
+  # runs (which does `GRANT ... TO windmill_admin`). Names are hardcoded by
+  # windmill itself — do not rename. CNPG declarative roles handle creation,
+  # IN ROLE memberships, and password secrets in one place.
+  managed:
+    roles:
+      - name: windmill_user
+        ensure: present
+        login: false
+        comment: "windmill: app-level operational role; migrations grant table privs here"
+      - name: windmill_admin
+        ensure: present
+        login: false
+        bypassrls: true
+        inRoles:
+          - windmill_user
+        comment: "windmill: role used by SET ROLE in runtime queries; inherits windmill_user grants"
+      - name: windmill_owner_user
+        ensure: present
+        login: true
+        # CREATEDB so the `windmill-db-init` init container
+        # (templates/_initcontainers.tpl) can create the windmill database
+        # itself — self-service, no superuser credentials needed.
+        # managed.roles is reconciled continuously, so this grant lands
+        # even when applied to an already-existing role.
+        createdb: true
+        inRoles:
+          - windmill_admin
+          - windmill_user
+        passwordSecret:
+          name: {{ $clusterName }}-windmill-cred
+        comment: "windmill: connection role used by goat-windmill-server + workers"
+  {{- end }}
+  {{- with .Values.postgresql.cluster.backup }}
+  {{- if .enabled }}
+  backup:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,51 @@
+suite: redis wiring
+templates:
+  - geoapi/deployment.yaml
+tests:
+  - it: points geoapi at the bundled redis with its password
+    set:
+      geoapi.enabled: true
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-goat-redis
+                key: redis-password
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_URL
+            value: redis://:$(REDIS_PASSWORD)@RELEASE-NAME-goat-redis:6379/0
+  - it: omits the password when bundled redis auth is off
+    set:
+      geoapi.enabled: true
+      redis.auth.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_URL
+            value: redis://RELEASE-NAME-goat-redis:6379/0
+  - it: uses external redis when the bundled one is disabled
+    set:
+      geoapi.enabled: true
+      redis.enabled: false
+      redis.external.host: cache.example.com
+      redis.external.port: 6380
+      redis.external.database: 3
+      redis.external.existingSecret: my-redis
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_URL
+            value: redis://:$(REDIS_PASSWORD)@cache.example.com:6380/3

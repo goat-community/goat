@@ -100,6 +100,10 @@ const DashboardSidebar = (props: Props) => {
       }}
       sx={{
         width: hidden ? width : collapsedWidth,
+        // `hidden` is false on the server and the first client render, so a phone would paint
+        // the rail until hydration. Hide the permanent rail by breakpoint so the server HTML is
+        // already right; the temporary drawer (hidden) is a portal and must not be touched.
+        ...(!hidden && { display: { xs: "none", md: "block" } }),
         zIndex: (theme) => (hidden ? theme.zIndex.drawer + 2 : theme.zIndex.drawer),
         "& .MuiPaper-root": {
           ...(!hidden && {

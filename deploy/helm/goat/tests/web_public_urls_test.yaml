@@ -1,0 +1,77 @@
+suite: web public URLs
+templates:
+  - web/configmap.yaml
+tests:
+  - it: derives the API and catalog URLs from each service's ingress
+    set:
+      core.ingress.enabled: true
+      core.ingress.hosts:
+        - host: api.goat.example.com
+          paths: [{ path: /api/v2, pathType: Prefix }]
+      core.ingress.tls:
+        - secretName: api-tls
+          hosts: [api.goat.example.com]
+      catalog.ingress.enabled: true
+      catalog.ingress.hosts:
+        - host: catalog.goat.example.com
+          paths: [{ path: /, pathType: Prefix }]
+      catalog.ingress.tls:
+        - secretName: catalog-tls
+          hosts: [catalog.goat.example.com]
+    asserts:
+      - equal:
+          path: data.NEXT_PUBLIC_API_URL
+          value: https://api.goat.example.com
+      - equal:
+          path: data.NEXT_PUBLIC_CATALOG_URL
+          value: https://catalog.goat.example.com/stac
+  - it: falls back to http when the ingress has no TLS
+    set:
+      core.ingress.enabled: true
+      core.ingress.hosts:
+        - host: api.goat.example.com
+          paths: [{ path: /api/v2, pathType: Prefix }]
+    asserts:
+      - equal:
+          path: data.NEXT_PUBLIC_API_URL
+          value: http://api.goat.example.com
+  - it: an explicit publicUrl wins over the derived one
+    set:
+      core.ingress.enabled: true
+      core.ingress.hosts:
+        - host: api.goat.example.com
+          paths: [{ path: /api/v2, pathType: Prefix }]
+      web.publicUrls.api: https://custom.example.com
+    asserts:
+      - equal:
+          path: data.NEXT_PUBLIC_API_URL
+          value: https://custom.example.com
+  - it: emits nothing when there is no ingress and no override
+    asserts:
+      - notExists:
+          path: data.NEXT_PUBLIC_API_URL
+      - notExists:
+          path: data.NEXT_PUBLIC_WEBSITE_URL
+      - notExists:
+          path: data.NEXT_PUBLIC_SUPPORT_EMAIL
+  - it: web.supportEmail sets the support address
+    set:
+      web.supportEmail: help@goat.example.com
+    asserts:
+      - equal:
+          path: data.NEXT_PUBLIC_SUPPORT_EMAIL
+          value: help@goat.example.com
+  - it: an explicit catalog publicUrl wins over the derived one and is not suffixed again
+    set:
+      catalog.ingress.enabled: true
+      catalog.ingress.hosts:
+        - host: catalog.goat.example.com
+          paths: [{ path: /, pathType: Prefix }]
+      catalog.ingress.tls:
+        - secretName: catalog-tls
+          hosts: [catalog.goat.example.com]
+      web.publicUrls.catalog: https://custom.example.com/stac
+    asserts:
+      - equal:
+          path: data.NEXT_PUBLIC_CATALOG_URL
+          value: https://custom.example.com/stac

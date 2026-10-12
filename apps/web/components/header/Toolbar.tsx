@@ -44,11 +44,16 @@ export function Toolbar(props: MapToolbarProps) {
         }}>
         {showHambugerMenu && (
           <>
-            <IconButton onClick={onMenuIconClick}>
+            {/* Shown below md by CSS so the server-rendered HTML is right before hydration. */}
+            <IconButton onClick={onMenuIconClick} sx={{ display: { xs: "inline-flex", md: "none" } }}>
               <Icon iconName={ICON_NAME.HAMBURGER_MENU} fontSize="inherit" />
             </IconButton>
 
-            <Divider orientation="vertical" flexItem sx={{ ml: 2, mr: 3 }} />
+            <Divider
+              orientation="vertical"
+              flexItem
+              sx={{ ml: 2, mr: 3, display: { xs: "block", md: "none" } }}
+            />
           </>
         )}
 

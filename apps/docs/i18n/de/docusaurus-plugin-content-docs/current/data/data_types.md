@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 sidebar_label: Feldtypen
+description: "Die Feldtypen in GOAT, von Text, Zahl, Boolesch und Datum über automatische laufende Nummern und UUIDs bis zu berechneter Fläche, Umfang, Länge und Formel, dazu Zahlenformat und zulässige Werte."
 ---
 
 # Feldtypen
@@ -26,6 +27,8 @@ Einen umfassenderen Überblick, wie die Plattform zusammenspielt, gibt die Seite
 | **Zahl** | Ganze Zahlen oder Dezimalzahlen | `1`, `-5`, `3.14`, `45.67` |
 | **Boolesch** | Wahr- oder Falsch-Werte | `true`, `false` |
 | **Datum** | Einen Zeitpunkt | `2024-01-15 14:30:00` |
+| **Laufende Nummer** | Eine fortlaufende Nummer, die GOAT jedem Feature vergibt | `1`, `2`, `3` |
+| **UUID (eindeutige Kennung)** | Eine eindeutige Kennung, die GOAT jedem Feature vergibt | `0625b5a7-50e1-4cfa-8392-7b0852e0d980` |
 | **Fläche** | Die Fläche eines Polygons | `1,25 ha`, `340 m²` |
 | **Umfang** | Die Umrisslänge eines Polygons | `820 m` |
 | **Länge** | Die Länge einer Linie | `1,4 km` |
@@ -47,6 +50,38 @@ Eine **Zahl**-Spalte lässt sich für die Anzeige formatieren. Die Formatierung 
 Dieselben Einstellungen stehen für **Fläche**-, **Umfang**- und **Länge**-Spalten zur Verfügung. Dort können Sie zusätzlich die **Einheit** wählen, in der der Wert angezeigt wird: `m²`, `ha` oder `km²` für Fläche und `m` oder `km` für Umfang und Länge. Bei `auto` wählt GOAT eine zum Wert passende Einheit.
 
 GOAT zeigt dabei eine Live-Vorschau, sodass Sie das Ergebnis vor dem Speichern sehen.
+
+### Spalten, die GOAT automatisch vergibt
+
+Spalten vom Typ **Laufende Nummer** und **UUID (eindeutige Kennung)** befüllt GOAT selbst: Jedes Feature erhält seinen Wert beim Anlegen, egal ob Sie es auf der Karte zeichnen, in der Datentabelle eine Zeile hinzufügen oder es über die API hochladen. Den Wert können Sie weder eingeben noch ändern. Solange Sie ein Feature anlegen, zeigt das Feld <code>Wird automatisch vergeben</code>; nach dem Speichern erscheint der Wert. Beide Typen stehen beim Anlegen eines neuen Datensatzes und beim Bearbeiten der Felder eines bestehenden Datensatzes zur Verfügung.
+
+- Eine **Laufende Nummer** zählt hoch: Jedes neue Feature erhält die nächste Nummer nach der höchsten bisher vergebenen. Mit <code>Beginnt bei</code> legen Sie die erste Nummer fest (Standard `1`), zum Beispiel `1000` für Vorhabennummern. Nummern werden nie erneut vergeben, auch nicht nach dem Löschen: Wird ein Feature gelöscht, bleibt eine Lücke, die Nummern der übrigen Features ändern sich nie, und das nächste neue Feature erhält immer eine noch nie vergebene Nummer, selbst wenn das gelöschte Feature die höchste hatte.
+- Eine **UUID (eindeutige Kennung)** gibt jedem Feature eine zufällige Kennung, die auch über Datensätze hinweg eindeutig ist. Das ist nützlich, wenn die Daten mit anderen Systemen ausgetauscht werden.
+
+Fügen Sie eine solche Spalte zu einem Datensatz hinzu, der bereits Features enthält, befüllt GOAT sie für alle auf einmal: Eine Laufende Nummer nummeriert sie ab <code>Beginnt bei</code> in der Reihenfolge, in der die Features angelegt wurden. Eine mit <code>Als neuen Layer speichern</code> erstellte Kopie behält die Werte und zählt nach der höchsten jemals im Original vergebenen Nummer weiter. Ein Datensatz aus einem importierten Projekt zählt ab seiner eigenen höchsten Nummer weiter.
+
+Für Filter, Gestaltung und Popups ist eine Laufende Nummer eine Zahl und eine UUID ein Text.
+
+#### Eine bestehende Zahl-Spalte in eine Laufende Nummer umwandeln
+
+Haben Sie bisher Nummern von Hand in eine **Zahl**-Spalte eingetragen, kann GOAT die Nummerierung übernehmen, ohne die Spalte umzubenennen. Workflows, Filter und Dashboards, die sie verwenden, funktionieren weiter.
+
+<div class="step">
+  <div class="step-number">1</div>
+  <div class="content">Klicken Sie in der Datentabelle auf <code>Felder bearbeiten</code> und wählen Sie die <strong>Zahl</strong>-Spalte aus.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">2</div>
+  <div class="content">Ändern Sie den <code>Feldtyp</code> auf <code>Laufende Nummer</code>. Optional legen Sie <code>Beginnt bei</code> fest: Diese Nummer gilt für Features, die noch keine Nummer haben, wenn sie höher als die bestehenden Nummern ist.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">3</div>
+  <div class="content">Klicken Sie auf <code>Speichern</code> und bestätigen Sie mit <code>Typ ändern</code>.</div>
+</div>
+
+Bestehende Werte bleiben, wie sie sind, und Features ohne Nummer erhalten eine. Neue Features bekommen die nächste Nummer nach der höchsten; Lücken werden nicht aufgefüllt. Kommt eine Nummer mehrfach vor oder ist ein Wert keine ganze Zahl, lehnt GOAT die Änderung ab und nennt den Grund: Bereinigen Sie diese Werte zuerst. Auf demselben Weg machen Sie aus einer Laufenden Nummer wieder eine <code>Zahl</code>; die Werte bleiben erhalten. Eine UUID lässt sich nicht aus einer bestehenden Spalte erzeugen.
 
 ### Spalten, die GOAT berechnet
 
@@ -93,7 +128,7 @@ Einige Namen verwendet GOAT intern; sie können nicht an eine Spalte vergeben we
 
 ## Feldtypen anzeigen
 
-GOAT kennzeichnet jede Spalte mit einem kleinen **Feldtyp-Symbol**: `A` für Text, `123` für Zahl und ein Symbol für die übrigen Typen. Fahren Sie mit der Maus darüber, um den Namen des Feldtyps zu sehen.
+GOAT kennzeichnet jede Spalte mit einem kleinen **Feldtyp-Symbol**: `A` für Text, `123` für Zahl, `#` für Laufende Nummer, `ID` für UUID und ein Symbol für die übrigen Typen. Fahren Sie mit der Maus darüber, um den Namen des Feldtyps zu sehen.
 
 Das Symbol erscheint überall dort, wo Spalten aufgelistet sind: in der Datentabelle, in der Feldliste der Layer-Einstellungen, in Spaltenfiltern und in den Feldauswahlen von Werkzeugen und Formel-Editor.
 

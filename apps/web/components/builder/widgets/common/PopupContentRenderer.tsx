@@ -1,6 +1,7 @@
 import { Box, ClickAwayListener, Fade, Paper, Popper, Tooltip, Typography } from "@mui/material";
 import type { PopperPlacementType, TooltipProps } from "@mui/material";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 
 import { ICON_NAME } from "@p4b/ui/components/Icon";
@@ -80,6 +81,7 @@ const PopupContentRenderer = ({
   url,
   size = "md",
 }: PopupContentRendererProps) => {
+  const { t } = useTranslation("common");
   const popoverMaxWidth = POPOVER_MAX_WIDTH[size];
   const dialogMaxWidth = DIALOG_MAX_WIDTH[size];
   // Tooltip and popover are shown via `open` prop (not hover) and don't have
@@ -179,7 +181,7 @@ const PopupContentRenderer = ({
                         textDecoration: "none",
                         fontSize: 13,
                       }}>
-                      Learn more
+                      {t("learn_more")}
                       <Box component="span" sx={{ fontSize: 10 }}>
                         ↗
                       </Box>

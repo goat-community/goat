@@ -1,0 +1,38 @@
+{{- if and .Values.geoapi.enabled .Values.geoapi.ingress.enabled -}}
+{{- $component := "geoapi" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+  {{- with .Values.geoapi.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.geoapi.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.geoapi.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range .Values.geoapi.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "goat.serviceFullname" $ctx }}
+                port:
+                  number: {{ $.Values.geoapi.service.port }}
+          {{- end }}
+    {{- end }}
+{{- end }}

@@ -277,7 +277,7 @@ export default function PopupSection({ layer, onStyleChange }: PopupSectionProps
                   <Icon iconName={ICON_NAME.XCLOSE} style={{ fontSize: 14 }} />
                 </IconButton>
               </Stack>
-                <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", pt: 1 }}>
+                <Box key={editing.block.id} sx={{ flex: 1, minHeight: 0, overflowY: "auto", pt: 1 }}>
                 {editing.block.type === "text" && (
                   <TextBlockEditor
                     block={editing.block}

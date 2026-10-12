@@ -20,11 +20,16 @@ const protectedPaths = [
 
 const publicPaths = ["/map/public", "/print"];
 
+const MISSING_AUTH_CONFIG_MESSAGE =
+  "Authentication is enabled but NEXTAUTH_URL / NEXTAUTH_SECRET are not set";
+
+let missingAuthConfigLogged = false;
+
 export const withAuth: MiddlewareFactory = (next) => {
   return async (request: NextRequest, _next) => {
     // AUTH is read at runtime (middleware runs server-side); the client bundle
     // gets the same flag as NEXT_PUBLIC_AUTH, inlined at build time.
-    if (isAuthDisabled(process.env.AUTH) || !process.env.NEXTAUTH_URL || !process.env.NEXTAUTH_SECRET) {
+    if (isAuthDisabled(process.env.AUTH)) {
       return next(request, _next);
     }
     const { pathname, search, origin, basePath } = request.nextUrl;
@@ -37,10 +42,15 @@ export const withAuth: MiddlewareFactory = (next) => {
     const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
     if (!isProtected) return next(request, _next);
 
-    // Verify secret & token
+    // Auth is on but NextAuth cannot verify a session: refuse instead of
+    // serving protected pages unauthenticated.
     const nextAuthSecret = process.env.NEXTAUTH_SECRET;
-    if (!nextAuthSecret) {
-      return next(request, _next);
+    if (!process.env.NEXTAUTH_URL || !nextAuthSecret) {
+      if (!missingAuthConfigLogged) {
+        missingAuthConfigLogged = true;
+        console.error(MISSING_AUTH_CONFIG_MESSAGE);
+      }
+      return new NextResponse(MISSING_AUTH_CONFIG_MESSAGE, { status: 500 });
     }
 
     const token = await getToken({ req: request, secret: nextAuthSecret });

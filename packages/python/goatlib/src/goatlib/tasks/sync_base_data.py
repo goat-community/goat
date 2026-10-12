@@ -93,6 +93,12 @@ _STAGING = ".staging"
 _ADOPTED = "adopted"
 _USER_AGENT = "GOAT/1.0 (+https://plan4better.de)"
 
+
+def default_source_url() -> str:
+    """``GOAT_BASE_DATA_URL``, else ``DEFAULT_SOURCE_URL``; read on every call."""
+    return os.environ.get("GOAT_BASE_DATA_URL") or DEFAULT_SOURCE_URL
+
+
 #: The routing code's short H3 key: the resolution-3 digits of a cell,
 #: ``(cell & mask) >> 36`` (packages/cpp/routing/src/data/h3_util.cpp).
 _H3_3_MASK = 0x000FFFF000000000
@@ -152,9 +158,10 @@ class SyncBaseDataParams(BaseModel):
         ),
     )
     sources: list[BaseDataSource] = Field(
-        # Plain data, validated into models: the Windmill script is generated
-        # from this default and has no goatlib models in scope.
-        default=[{"url": DEFAULT_SOURCE_URL}],
+        # A factory, so the source is read from the env when the params are
+        # built on the worker: the Windmill script is generated from the
+        # field's default, and a plain default would be baked into it.
+        default_factory=lambda: [{"url": default_source_url()}],
         validate_default=True,
         description=(
             "Where to fetch from, first match per data set. Replace with an "
@@ -582,6 +589,8 @@ def _sync_dataset(
     files = _select(manifest["files"], cells)
     fresh = current in (None, _UNMANAGED)
     if params.dry_run:
+        # Data sets later in the order check their requirements against this one.
+        activated[dataset] = version
         return {
             "status": "would_install" if fresh else "would_update",
             "version": version,
@@ -736,9 +745,9 @@ def mirror(
     return copied
 
 
-def main(params: SyncBaseDataParams = SyncBaseDataParams()) -> dict[str, Any]:
+def main(params: SyncBaseDataParams | None = None) -> dict[str, Any]:
     """Entry point for the Windmill task."""
-    return sync(params)
+    return sync(params or SyncBaseDataParams())
 
 
 def _cli(argv: list[str] | None = None) -> int:
@@ -746,7 +755,7 @@ def _cli(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     m = sub.add_parser("mirror", help="copy the current versions into a folder")
     m.add_argument("--to", required=True, help="destination folder")
-    m.add_argument("--source", default=DEFAULT_SOURCE_URL)
+    m.add_argument("--source", default=default_source_url())
     m.add_argument("--datasets", default="street_network,public_transport")
     m.add_argument("--channel", default="stable")
     m.add_argument("--bbox", help="min_lon,min_lat,max_lon,max_lat")

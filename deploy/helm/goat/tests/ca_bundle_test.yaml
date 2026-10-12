@@ -1,0 +1,157 @@
+suite: company CA bundle (global.caBundle)
+templates:
+  - core/configmap.yaml
+  - core/deployment.yaml
+  - web/configmap.yaml
+  - web/deployment.yaml
+  - windmill/worker-print/configmap.yaml
+  - windmill/worker-print/deployment.yaml
+  - windmill/worker-tools/configmap.yaml
+  - windmill/worker-tools/deployment.yaml
+set:
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+  windmill.server.enabled: true
+  windmill.workers.print.enabled: true
+  windmill.workers.tools.enabled: true
+  windmill.workers.legacyPersistence.acknowledgeDeletion: true
+tests:
+  - it: sets no CA variable without a bundle
+    template: core/configmap.yaml
+    asserts:
+      - notExists:
+          path: data.GOAT_CA_BUNDLE
+
+  - it: mounts no CA volume without a bundle
+    template: web/deployment.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.volumes
+
+  - it: points core at the mounted bundle
+    template: core/configmap.yaml
+    set:
+      global.caBundle.existingConfigMap: corp-ca
+    asserts:
+      - equal:
+          path: data.GOAT_CA_BUNDLE
+          value: /etc/goat/ca/ca.pem
+
+  - it: mounts a ConfigMap bundle into core
+    template: core/deployment.yaml
+    set:
+      global.caBundle.existingConfigMap: corp-ca
+      global.caBundle.key: root.pem
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: goat-ca-bundle
+            configMap:
+              name: corp-ca
+              items:
+                - key: root.pem
+                  path: ca.pem
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: goat-ca-bundle
+            mountPath: /etc/goat/ca
+            readOnly: true
+
+  - it: mounts a Secret bundle into web and points Node at it
+    template: web/deployment.yaml
+    set:
+      global.caBundle.existingSecret: corp-ca
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: goat-ca-bundle
+            secret:
+              secretName: corp-ca
+              items:
+                - key: ca.crt
+                  path: ca.pem
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: goat-ca-bundle
+            mountPath: /etc/goat/ca
+            readOnly: true
+
+  - it: sets NODE_EXTRA_CA_CERTS for web
+    template: web/configmap.yaml
+    set:
+      global.caBundle.existingSecret: corp-ca
+    asserts:
+      - equal:
+          path: data.NODE_EXTRA_CA_CERTS
+          value: /etc/goat/ca/ca.pem
+
+  - it: a NODE_EXTRA_CA_CERTS set in web.config wins
+    template: web/configmap.yaml
+    set:
+      global.caBundle.existingSecret: corp-ca
+      web.config.NODE_EXTRA_CA_CERTS: /etc/ssl/custom.pem
+    asserts:
+      - equal:
+          path: data.NODE_EXTRA_CA_CERTS
+          value: /etc/ssl/custom.pem
+
+  - it: mounts the bundle into the print worker, which has no other volume
+    template: windmill/worker-print/deployment.yaml
+    set:
+      global.caBundle.existingConfigMap: corp-ca
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.volumes
+          count: 1
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: goat-ca-bundle
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /etc/goat/ca
+
+  - it: points the print worker at the bundle
+    template: windmill/worker-print/configmap.yaml
+    set:
+      global.caBundle.existingConfigMap: corp-ca
+    asserts:
+      - equal:
+          path: data.GOAT_CA_BUNDLE
+          value: /etc/goat/ca/ca.pem
+
+  - it: adds the bundle next to the data volume in the tools worker
+    template: windmill/worker-tools/deployment.yaml
+    set:
+      global.caBundle.existingConfigMap: corp-ca
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.volumes
+          count: 2
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: goat-ca-bundle
+            mountPath: /etc/goat/ca
+            readOnly: true
+
+  - it: points the tools worker at the bundle
+    template: windmill/worker-tools/configmap.yaml
+    set:
+      global.caBundle.existingConfigMap: corp-ca
+    asserts:
+      - equal:
+          path: data.GOAT_CA_BUNDLE
+          value: /etc/goat/ca/ca.pem
+
+  - it: passes GOAT_CA_BUNDLE on to the tools worker's jobs
+    template: windmill/worker-tools/deployment.yaml
+    set:
+      global.caBundle.existingConfigMap: corp-ca
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "WHITELIST_ENVS")].value
+          pattern: (^|,)GOAT_CA_BUNDLE(,|$)

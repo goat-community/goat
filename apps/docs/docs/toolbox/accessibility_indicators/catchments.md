@@ -1,4 +1,5 @@
 ---
+description: "Calculate how far people can travel on foot, by bicycle, pedelec, car or public transport within a time or distance limit, as polygons, networks or grids."
 sidebar_position: 1
 ---
 
@@ -11,7 +12,7 @@ import TabItem from '@theme/TabItem';
 <iframe width="674" height="378" src="https://www.youtube.com/embed/_clsR386b9w?si=ZInxlY_TjYiEda23" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 </div>
 
-Catchment Area shows **how far people can travel within a certain travel time or distance, using one or more transport modes** — with extended output shapes, custom step sizes, and additional public transport settings.
+Catchment Area shows **how far people can travel within a certain [travel time](https://www.plan4better.de/en/glossary/travel-time) or distance, using one or more transport modes**, with extended output shapes, custom step sizes, and additional public transport settings.
 
 ## 1. Explanation
 
@@ -21,16 +22,16 @@ Catchment Area includes the following additional features:
 
 **For all routing modes:**
 
-- **Custom step sizes** — define each isochrone step independently (e.g., 5, 10, 20, 30 minutes) instead of using equally-spaced intervals.
-- **Point Grid output shape** — a new result geometry option that represents the catchment as a grid of individual points, each showing its exact travel cost value.
+- **Custom step sizes**: define each [isochrone](https://www.plan4better.de/en/glossary/isochrone) step independently (e.g., 5, 10, 20, 30 minutes) instead of using equally-spaced intervals.
+- **Point Grid output shape**: a new result geometry option that represents the catchment as a grid of individual points, each showing its exact travel cost value.
 
 **For Public Transport only:**
 
-- **Maximum number of transfers** — limit how many PT connections a trip can include.
-- **Access and egress mode** — configure how users travel to and from PT stations (walking, cycling, pedelec, or car).
+- **Maximum number of transfers**: limit how many PT connections a trip can include.
+- **Access and egress mode**: configure how users travel to and from PT stations (walking, cycling, pedelec, or car).
 
 :::info
-Catchment Area computation is available across **over 30 European countries** for `Walk`, `Bicycle`, `Pedelec`, and `Car`. For `Public Transport`, Germany, Switzerland, and the Haut-Rhin region of France are supported. If you need analyses beyond these regions, feel free to [contact us](https://plan4better.de/en/contact/).
+Catchment Area computation is available across **over 30 European countries** for `Walk`, `Bicycle`, `Pedelec`, and `Car`. For `Public Transport`, Germany, Switzerland, and the Haut-Rhin region of France are supported. If you need analyses beyond these regions, you can [import your own routing network](../../data/builtin_datasets.md#bringing-your-own-networks) or [contact us](https://plan4better.de/en/contact/) and we will do it for you.
 :::
 
 ## 2. Example use cases
@@ -69,12 +70,6 @@ Catchment Area computation is available across **over 30 European countries** fo
   - <code>Hexagonal grid</code>: no further configuration is necessary.
   - <code>Point grid</code>: you need to select the <code>Point grid layer</code> where the values will be applied.
 
-:::tip Hint
-
-For suitable travel time limits by amenity type, see the [Location Tool](https://www.chemnitz.de/chemnitz/media/unsere-stadt/verkehr/verkehrsplanung/vep2040_standortwerkzeug.pdf) from the City of Chemnitz.
-
-:::
-
 </TabItem>
 
 <TabItem value="public transport" label="Public Transport (PT)" className="tabItemBox">
@@ -87,12 +82,6 @@ For suitable travel time limits by amenity type, see the [Location Tool](https:/
   - <code>Hexagonal grid</code>: no further configuration is necessary.
   - <code>Point grid</code>: you need to select the <code>Point grid layer</code> where the values will be applied.
 - Select the <code>Day</code>, <code>Start Time</code>, and <code>End Time</code> for the analysis time window.
-
-:::tip Hint
-
-For suitable travel time limits by amenity type, see the [Location Tool](https://www.chemnitz.de/chemnitz/media/unsere-stadt/verkehr/verkehrsplanung/vep2040_standortwerkzeug.pdf) from the City of Chemnitz.
-
-:::
 
 </TabItem>
 </Tabs>
@@ -109,19 +98,19 @@ For suitable travel time limits by amenity type, see the [Location Tool](https:/
 
 #### Shape style
 
-*(Walk, Bicycle, and Pedelec only — visible when Catchment area shape is set to Polygon)*
+*(Walk, Bicycle, and Pedelec only, visible when Catchment area shape is set to Polygon)*
 
 Choose how polygons are shaped when there are multiple starting points:
 
-- **Combined across origins** *(default)* — all starting points are merged into a single shared catchment polygon per step.
-- **Separated by origin** — each starting point gets its own individual catchment polygon per step.
+- **Combined across origins** *(default)*: all starting points are merged into a single shared catchment polygon per step.
+- **Separated by origin**: each starting point gets its own individual catchment polygon per step. If your starting points come from a layer, you can also choose a <code>Reference field</code>. Its value is written to each catchment polygon as `origin`, so every polygon can be traced back to the starting point it was computed from. If you leave it empty, `origin` simply numbers the starting points (1, 2, 3 …), so choose a field such as an ID if you want to match the results to your points. This makes the results easier to work with later, for example to [join them back](../data_management/join.md) to the starting points layer.
 
 #### Steps style
 
 Choose how the isochrone steps are displayed:
 
-- **Separated steps** — each step shows only the area reachable *between* that step and the previous one.
-- **Cumulative steps** — each step shows the *full area reachable up to* that travel cost.
+- **Separated steps**: each step shows only the area reachable *between* that step and the previous one.
+- **Cumulative steps**: each step shows the *full area reachable up to* that travel cost.
 
 <p></p>
 
@@ -135,19 +124,19 @@ For Public Transport, Advanced Options let you configure the <code>Steps style</
 
 Choose how the isochrone steps are displayed:
 
-- **Separate steps** — each step shows only the area reachable *between* that step and the previous one.
-- **Cumulative steps** — each step shows the *full area reachable up to* that travel cost.
+- **Separate steps**: each step shows only the area reachable *between* that step and the previous one.
+- **Cumulative steps**: each step shows the *full area reachable up to* that travel cost.
 
 #### Maximum Transfers
 
-Set the `Maximum transfers` to limit how many PT connections are allowed per trip. For example, setting it to `1` means only trips with at most one transfer are included — direct connections and one-change journeys.
+Set the `Maximum transfers` to limit how many PT connections are allowed per trip. For example, setting it to `1` means only trips with at most one transfer are included: direct connections and one-change journeys.
 
 #### Access & Egress Mode
 
 Configure how users travel **to** and **from** PT stations:
 
-- **Access mode** — Transport mode to reach the PT station (Walk, Bicycle, Pedelec, Car).
-- **Egress mode** — Transport mode from the PT station to the destination (Walk, Bicycle, Pedelec, Car).
+- **Access mode**: Transport mode to reach the PT station (Walk, Bicycle, Pedelec, Car).
+- **Egress mode**: Transport mode from the PT station to the destination (Walk, Bicycle, Pedelec, Car).
 
 For each mode, configure the **maximum travel time or distance** and the **travel speed**. For example, you can model a cyclist who rides at 15 km/h for up to 10 minutes to reach a train station.
 
@@ -181,18 +170,12 @@ For each mode, configure the **maximum travel time or distance** and the **trave
   <div class="content">Click on <code>Run</code> to start the calculation.</div>
 </div>
 
-:::tip Hint
-
-Calculation time varies by settings. Check the [status bar](../../workspace/home#status-bar) for progress.
-
-:::
-
 ### Results
 
 Once the calculation finishes, the resulting layer(s) are added to the map:
 
-- **Catchment Area** — the calculated isochrones in the selected shape (polygon, network, hexagonal grid, or point grid). Click any feature to inspect the **travel_cost** attribute, which shows travel time (minutes) or distance (meters) depending on your configuration.
-- **Starting Points** — a point layer with the selected starting locations (only created when starting points were placed on the map, not when using a pre-existing layer).
+- **Catchment Area**: the calculated isochrones in the selected shape (polygon, network, hexagonal grid, or point grid). Click any feature to inspect the **travel_cost** attribute, which shows travel time (minutes) or distance (meters) depending on your configuration.
+- **Starting Points**: a point layer with the selected starting locations (only created when starting points were placed on the map, not when using a pre-existing layer).
 
 The result layer is automatically styled with a color scale ranging from the shortest to the longest travel cost step.
 
@@ -209,14 +192,14 @@ The result layer is automatically styled with a color scale ranging from the sho
 
 ### Time window
 
-For public transport, the catchment is computed over a **time window** — defined by a day of the week and a start and end time — rather than for a single departure. The engine evaluates **every departure minute** within this window and retains the **fastest** journey to each reachable location. The result is not an average across departures, but the best case among them, yielding the largest possible catchment area. A journey is considered within the window based solely on its start time, independent of its end time or duration.
+For public transport, the catchment is computed over a **time window** (defined by a day of the week and a start and end time) rather than for a single departure. The engine evaluates **every departure minute** within this window and retains the **fastest** journey to each reachable location. The result is not an average across departures, but the best case among them, yielding the largest possible catchment area. A journey is considered within the window based solely on its start time, independent of its end time or duration.
 
 ### Visualization
 
 The algorithm used to derive the catchment shape depends on the routing mode:
 
-- **Walk, Bicycle, Pedelec, and Public Transport** — the shape is derived from the routing grid using the [Marching Squares contour line algorithm](https://en.wikipedia.org/wiki/Marching_squares), a computer graphics algorithm generating 2D contour lines from rectangular value arrays ([de Queiroz Neto et al. 2016](#6-references)). This transforms the routing grid from a 2D array into smooth polygon contours for visualization and spatial analysis.
-- **Car** — the shape is derived using DuckDB's [`ST_ConcaveHull`](https://duckdb.org/docs/current/core_extensions/spatial/functions#st_concavehull) function, which wraps tightly around the set of reachable points to produce the catchment polygon. A dynamic concavity ratio is applied based on the number of reached nodes: `0.5` for fewer than 10,000 nodes, `0.3` for fewer than 50,000, and `0.2` otherwise — lower values produce tighter, more concave shapes for large catchments, while higher values yield smoother outlines for small ones.
+- **Walk, Bicycle, Pedelec, and Public Transport**: the shape is derived from the routing grid using the [Marching Squares contour line algorithm](https://en.wikipedia.org/wiki/Marching_squares), a computer graphics algorithm generating 2D contour lines from rectangular value arrays ([de Queiroz Neto et al. 2016](#6-references)). This transforms the routing grid from a 2D array into smooth polygon contours for visualization and spatial analysis.
+- **Car**: the shape is derived using DuckDB's [`ST_ConcaveHull`](https://duckdb.org/docs/current/core_extensions/spatial/functions#st_concavehull) function, which wraps tightly around the set of reachable points to produce the catchment polygon. A dynamic concavity ratio is applied based on the number of reached nodes: `0.5` for fewer than 10,000 nodes, `0.3` for fewer than 50,000, and `0.2` otherwise. Lower values produce tighter, more concave shapes for large catchments, while higher values yield smoother outlines for small ones.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <img src={require('/img/toolbox/accessibility_indicators/catchments/wiki.webp').default} alt="Marching Squares illustration" style={{ maxHeight: "400px", maxWidth: "400px", objectFit: "contain"}}/>

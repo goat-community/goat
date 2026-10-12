@@ -1,6 +1,7 @@
 ---
 sidebar_position: 3
 sidebar_label: Netz-Datensätze
+description: "Die integrierten ÖPNV- und Straßennetze hinter dem Routing in GOAT, ihre Quellen und Aufbereitung, und wie Sie eigene Overture- oder GTFS-Netze importieren."
 ---
 
 # Netz-Datensätze
@@ -16,7 +17,7 @@ Das Verständnis dieser zugrundeliegenden Datensätze hilft Ihnen:
 - **Ergebnisse zu interpretieren** mit Kenntnis der Datenquellen
 
 :::info Netze vs. eigene Datensätze
-Auf dieser Seite geht es um die **Netz-Datensätze**, die hinter GOATs Routing- und Erreichbarkeitsanalysen stehen. Wie Sie eigene Datensätze hochladen oder fertige verwenden, erfahren Sie unter [Inhalt](../workspace/content.md) und im [Katalog](../workspace/catalog.md).
+Auf dieser Seite geht es um die **Netz-Datensätze**, die hinter GOATs [Routing](https://www.plan4better.de/de/glossar/routing)- und [Erreichbarkeitsanalysen](https://www.plan4better.de/de/glossar/erreichbarkeitsanalyse) stehen. Wie Sie eigene Datensätze hochladen oder fertige verwenden, erfahren Sie unter [Inhalt](../workspace/content.md) und im [Katalog](../workspace/catalog.md).
 :::
 
 ## Die integrierten Netze von GOAT
@@ -66,9 +67,9 @@ Unser Straßennetzwerk repräsentiert reale Verkehrsinfrastruktur einschließlic
 - **Höhendaten**: [Copernicus](https://www.copernicus.eu/en) Digitales Höhenmodell (DEM) für genaue Steigungsberechnungen
 
 **Verarbeitungsworkflow:**
-1. **Datenimport**: Straßennetzwerkdaten werden im Geoparquet-Format aus Overture Maps' [Transportation theme](https://docs.overturemaps.org/guides/transportation/) importiert
+1. **Datenimport**: Straßennetzwerkdaten werden im [Geoparquet](https://www.plan4better.de/de/glossar/geoparquet)-Format aus [Overture Maps](https://www.plan4better.de/de/glossar/overture-maps)' [Transportation theme](https://docs.overturemaps.org/guides/transportation/) importiert
 2. **Höhenverarbeitung**: Europäische DEM-Kacheln werden verarbeitet, um topografische Informationen zu extrahieren
-3. **Räumliche Indexierung**: Netzwerksegmente werden mit [Ubers H3-Gittersystem](../further_reading/glossary#h3-gitter) für effiziente Verarbeitung organisiert
+3. **Räumliche Indexierung**: Netzwerksegmente werden mit [Ubers H3-Gittersystem](https://www.plan4better.de/de/glossar/h3-gitter) für effiziente Verarbeitung organisiert
 4. **Steigungsberechnung**: Oberflächengfäle und Steigungswiderstand werden für jedes Straßensegment berechnet
 5. **Attributanalyse**: Straßenklassifizierungen, Geschwindigkeitsbegrenzungen, Abbiegebeschränkungen und Einbahnstraßenbezeichnungen werden identifiziert und standardisiert
 6. **Geschwindigkeitsbegrenzungs-Interpolation**: Fehlende Geschwindigkeitsbegrenzungen werden basierend auf Straßentyp und modalen Geschwindigkeiten geschätzt

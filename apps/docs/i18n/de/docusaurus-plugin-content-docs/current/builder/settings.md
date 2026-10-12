@@ -1,4 +1,5 @@
 ---
+description: "Konfigurieren Sie Kartensteuerung, Steuerungslayout, erlaubte Hintergrundkarten, Zoom-Grenzen, Branding, Social Sharing, Sprache und Interaktionen im Dashboard."
 sidebar_position: 3
 ---
 
@@ -12,8 +13,8 @@ Im Einstellungsbereich können Sie **die Kartensteuerung, das Branding, Social S
 
 ## Karte
 
-- `Werkzeugleiste` — zeigt die obere Leiste mit dem GOAT-Logo, Projektnamen, Zuletzt-gespeichert-Zeitstempel und Projektinfo im Betrachter-Modus.
-- `Maßstabsleiste` — zeigt eine Skala auf der Karte, mit der Abstände von einem Punkt zum anderen gemessen werden können.
+- `Werkzeugleiste`: zeigt die obere Leiste mit dem GOAT-Logo, Projektnamen, Zuletzt-gespeichert-Zeitstempel und Projektinfo im Betrachter-Modus.
+- `Maßstabsleiste`: zeigt eine Skala auf der Karte, mit der Abstände von einem Punkt zum anderen gemessen werden können.
 
 ### Steuerungslayout
 
@@ -33,7 +34,7 @@ Verfügbare Steuerelemente:
 
 ### Erlaubte Hintergrundkarten
 
-Legen Sie fest, welche Hintergrundkarten Betrachter verwenden können. Wählen Sie eine oder mehrere aus dem Dropdown aus — Betrachter sehen nur die hier aktivierten Optionen. Wird nur angezeigt, wenn `Auswahl Hintergrundkarten` an einer Position platziert ist.
+Legen Sie fest, welche Hintergrundkarten Betrachter verwenden können. Wählen Sie eine oder mehrere aus dem Dropdown aus, und Betrachter sehen nur die hier aktivierten Optionen. Wird nur angezeigt, wenn `Auswahl Hintergrundkarten` an einer Position platziert ist.
 
 ### Zoom-Grenzen
 
@@ -45,11 +46,11 @@ Begrenzen, wie weit Dashboard-Betrachter hinein- und herauszoomen können. Mit e
 
 Passen Sie die visuelle Identität Ihres Dashboards für den Betrachter-Modus an.
 
-- `Schriftart` — wählen Sie eine Schriftart aus dem Dropdown. Wählen Sie `Eigene…`, um eine **Schriftdatei-URL** und einen **Schriftart**-Namen für eine eigene Schriftart einzugeben.
-- `Primärfarbe` — legen Sie die Hauptakzentfarbe für Schaltflächen und Hervorhebungen fest.
-- `Symbolfarbe` — legen Sie die Farbe für Symbole im Dashboard fest.
-- `Schriftfarbe` — legen Sie die Textfarbe im gesamten Dashboard fest.
-- `Favicon` — laden Sie ein benutzerdefiniertes Browser-Tab-Symbol hoch. Klicken Sie auf `×`, um es zu entfernen.
+- `Schriftart`: wählen Sie eine Schriftart aus dem Dropdown. Wählen Sie `Eigene…`, um eine **Schriftdatei-URL** und einen **Schriftart**-Namen für eine eigene Schriftart einzugeben.
+- `Primärfarbe`: legen Sie die Hauptakzentfarbe für Schaltflächen und Hervorhebungen fest.
+- `Symbolfarbe`: legen Sie die Farbe für Symbole im Dashboard fest.
+- `Schriftfarbe`: legen Sie die Textfarbe im gesamten Dashboard fest.
+- `Favicon`: laden Sie ein benutzerdefiniertes Browser-Tab-Symbol hoch. Klicken Sie auf `×`, um es zu entfernen.
 
 ---
 
@@ -57,14 +58,14 @@ Passen Sie die visuelle Identität Ihres Dashboards für den Betrachter-Modus an
 
 Legen Sie fest, wie Ihr Dashboard beim Teilen in sozialen Medien oder Messenger-Apps erscheint.
 
-- **Vorschaubild** — Bild hierher ziehen oder klicken, um es hochzuladen (empfohlen: 1200×630 Pixel). Falls nicht gesetzt, wird das Standard-GOAT-Vorschaubild verwendet.
-- **Beschreibung** — fügen Sie eine kurze Beschreibung (bis zu 300 Zeichen) hinzu, die in Social-Media-Vorschauen und Suchergebnissen verwendet wird.
+- **Vorschaubild**: Bild hierher ziehen oder klicken, um es hochzuladen (empfohlen: 1200×630 Pixel). Falls nicht gesetzt, wird das Standard-GOAT-Vorschaubild verwendet.
+- **Beschreibung**: fügen Sie eine kurze Beschreibung (bis zu 300 Zeichen) hinzu, die in Social-Media-Vorschauen und Suchergebnissen verwendet wird.
 
 ---
 
 ## Allgemein
 
-- `Sprache` — legen Sie die Anzeigesprache des Dashboards fest. Optionen: `Automatisch (Browser-Standard)`, `English`, `Deutsch`.
+- `Sprache`: legen Sie die Anzeigesprache des Dashboards fest. Optionen: `Automatisch (Browser-Standard)`, `English`, `Deutsch`.
 
 ---
 
@@ -87,7 +88,7 @@ Wenn ein Betrachter eine Layer-Gruppe aktiviert, wechselt ein Tabs-Widget zu ein
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Wählen Sie das <code>Ziel-Widget</code> — das Tabs-Widget, dessen aktiver Tab gewechselt werden soll.</div>
+  <div class="content">Wählen Sie das <code>Ziel-Widget</code>: das Tabs-Widget, dessen aktiver Tab gewechselt werden soll.</div>
 </div>
 
 <div class="step">
@@ -106,7 +107,7 @@ Wenn ein Betrachter einen Layer ein- oder ausblendet, werden ein oder mehrere an
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Wählen Sie den <code>Quell-Layer</code> — den Layer, dessen Sichtbarkeit überwacht wird.</div>
+  <div class="content">Wählen Sie den <code>Quell-Layer</code>: den Layer, dessen Sichtbarkeit überwacht wird.</div>
 </div>
 
 <div class="step">

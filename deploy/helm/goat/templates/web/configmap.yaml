@@ -1,0 +1,55 @@
+{{- if .Values.web.enabled -}}
+{{- $auth := dict "values" .Values.web "root" . -}}
+{{- $authWired := include "goat.auth.wired" $auth -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "goat.serviceFullname" (dict "context" . "component" "web") }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "web") | nindent 4 }}
+data:
+  {{- range $k, $v := .Values.web.config }}
+  {{- /* Omit Keycloak/NextAuth placeholders when auth is wired via existingSecret */}}
+  {{- if and $authWired (or (eq $k "KEYCLOAK_ISSUER") (eq $k "KEYCLOAK_CLIENT_ID") (eq $k "KEYCLOAK_CLIENT_SECRET") (eq $k "NEXTAUTH_URL") (eq $k "NEXTAUTH_SECRET") (eq $k "NEXT_PUBLIC_AUTH")) -}}
+  {{- /* skip */ -}}
+  {{- else }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+  {{- end }}
+  {{- /* Wired: AUTH=true comes from the deployment env. Set explicitly in
+         web.config / web.extraEnv: that value is used as is. */}}
+  {{- if not (or $authWired (include "goat.env.userSet" (dict "values" .Values.web "key" "AUTH"))) }}
+  AUTH: {{ include "goat.auth.value" $auth | quote }}
+  {{- end }}
+  {{- $api := .Values.web.publicUrls.api | default (include "goat.ingressUrl" (dict "ingress" .Values.core.ingress)) }}
+  {{- if $api }}
+  NEXT_PUBLIC_API_URL: {{ $api | quote }}
+  {{- end }}
+  {{- $geoapi := .Values.web.publicUrls.geoapi | default (include "goat.ingressUrl" (dict "ingress" .Values.geoapi.ingress)) }}
+  {{- if $geoapi }}
+  NEXT_PUBLIC_GEOAPI_URL: {{ $geoapi | quote }}
+  {{- end }}
+  {{- $processes := .Values.web.publicUrls.processes | default (include "goat.ingressUrl" (dict "ingress" .Values.processes.ingress)) }}
+  {{- if $processes }}
+  NEXT_PUBLIC_PROCESSES_URL: {{ $processes | quote }}
+  {{- end }}
+  {{- $catalogBase := include "goat.ingressUrl" (dict "ingress" .Values.catalog.ingress) }}
+  {{- $catalog := .Values.web.publicUrls.catalog | default (ternary (printf "%s/stac" $catalogBase) "" (ne $catalogBase "")) }}
+  {{- if $catalog }}
+  NEXT_PUBLIC_CATALOG_URL: {{ $catalog | quote }}
+  {{- end }}
+  {{- with .Values.web.websiteUrl }}
+  NEXT_PUBLIC_WEBSITE_URL: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.web.statusFeedUrl }}
+  NEXT_PUBLIC_STATUS_FEED_URL: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.web.supportEmail }}
+  NEXT_PUBLIC_SUPPORT_EMAIL: {{ . | quote }}
+  {{- end }}
+  {{- /* Node adds this file to its trusted CAs (NextAuth → Keycloak). */}}
+  {{- if and (include "goat.caBundle.enabled" .) (not (include "goat.env.userSet" (dict "values" .Values.web "key" "NODE_EXTRA_CA_CERTS"))) }}
+  NODE_EXTRA_CA_CERTS: {{ include "goat.caBundle.path" . | quote }}
+  {{- end }}
+{{- end }}

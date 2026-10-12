@@ -108,7 +108,9 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
       if (classBreakType === classBreaks.Enum.custom_breaks && existingBreaks) {
         const breakValues = [] as string[];
         if (classBreakType === layerProperties[`${updateType}_scale`]) {
-          const colorMap = newStyle[`${updateType}_range`]?.color_map;
+          // A palette picked from the list carries colors only; keep the saved break values.
+          const colorMap =
+            newStyle[`${updateType}_range`]?.color_map ?? layerProperties[`${updateType}_range`]?.color_map;
           if (colorMap) {
             colorMap.forEach((colorMapItem) => {
               if (colorMapItem?.[0]?.[0] !== undefined) breakValues.push(colorMapItem[0][0]);
@@ -282,7 +284,8 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
 
           const colorMap = [] as ColorMap;
           uniqueValues.items.slice(0, actualCount).forEach((item: LayerUniqueValues, index: number) => {
-            colorMap.push([[item.value], colors[index]]);
+            // Boolean columns come back as true/false; the color map and the match expression compare strings.
+            colorMap.push([[typeof item.value === "boolean" ? String(item.value) : item.value], colors[index]]);
           });
           newStyle[`${updateType}_range`].color_map = colorMap;
           newStyle[`${updateType}_range`].colors = colors;
@@ -551,6 +554,7 @@ const LayerStylePanel = ({ projectId }: { projectId: string }) => {
 
                       <ColorOptions
                         type="stroke_color"
+                        showOpacity={activeLayer?.feature_layer_geometry_type === "line"}
                         layerStyle={layerProperties}
                         active={!!layerProperties.stroked}
                         layerFields={layerFields}

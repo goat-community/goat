@@ -1,4 +1,4 @@
-import { MAPTILER_KEY } from "@/lib/constants";
+import { ASSETS_URL, MAPTILER_KEY } from "@/lib/constants";
 import type { BuiltInBasemap } from "@/types/map/common";
 
 export type Basemap = BuiltInBasemap;
@@ -16,6 +16,22 @@ export type Basemap = BuiltInBasemap;
  * Imagery stays on MapTiler: no free provider serves comparable resolution. */
 const OFM_STYLE_URL = (style: string): string => `https://tiles.openfreemap.org/styles/${style}`;
 
+/** MapTiler's imagery basemap, offered only when a MapTiler key is configured.
+ * A project that saved it resolves to `DEFAULT_BASEMAP` without one. */
+const MAPTILER_BASEMAPS: BuiltInBasemap[] = MAPTILER_KEY
+  ? [
+      {
+        source: "builtin",
+        type: "vector",
+        value: "satellite",
+        url: `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`,
+        title: "Satellite",
+        subtitle: "As seen from space",
+        thumbnail: "https://cloud.maptiler.com/static/img/maps/satellite.png",
+      },
+    ]
+  : [];
+
 export const BASEMAPS: BuiltInBasemap[] = [
   {
     source: "builtin",
@@ -26,15 +42,7 @@ export const BASEMAPS: BuiltInBasemap[] = [
     subtitle: "Great for public presentations",
     thumbnail: "/assets/images/basemaps/liberty.png",
   },
-  {
-    source: "builtin",
-    type: "vector",
-    value: "satellite",
-    url: `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`,
-    title: "Satellite",
-    subtitle: "As seen from space",
-    thumbnail: "https://cloud.maptiler.com/static/img/maps/satellite.png",
-  },
+  ...MAPTILER_BASEMAPS,
   {
     source: "builtin",
     type: "vector",
@@ -84,7 +92,7 @@ export const BASEMAPS: BuiltInBasemap[] = [
     source: "builtin",
     type: "vector",
     value: "basemap_de_landuse",
-    url: `https://assets.plan4better.de/goat/basemaps/bm_web_col_landuse_plan4better.json`,
+    url: `${ASSETS_URL}/goat/basemaps/bm_web_col_landuse_plan4better.json`,
     title: "BKG Basemap",
     subtitle: "Landuse",
     thumbnail: "https://basemap.de/viewer/assets/basemap_hillshade.png",

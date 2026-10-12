@@ -5,6 +5,8 @@ import { patchPreferences, usePreferences } from "@/lib/api/preferences";
 import type { OnboardingFacts } from "@/lib/validations/home";
 import type { TemplateKind } from "@/lib/validations/template";
 
+import { addLayerSource } from "@/components/addLayer/sources";
+
 export type HomeStage = "new" | "getting_started" | "established";
 export type SetupStepId = "project" | "data" | "catalog" | "analysis" | "workflow" | "team";
 export const SETUP_STEPS: SetupStepId[] = ["project", "data", "catalog", "analysis", "workflow", "team"];
@@ -34,11 +36,12 @@ export const SETUP_STEP_META: Record<
     bodyKey: "step_project_body",
     ctaKey: "new_project",
   },
+  // The Upload dataset action, labelled and drawn as in the Add layer menu.
   data: {
-    icon: ICON_NAME.DATABASE,
+    icon: addLayerSource("upload").icon,
     titleKey: "step_data_title",
     bodyKey: "step_data_body",
-    ctaKey: "add_dataset",
+    ctaKey: addLayerSource("upload").labelKey,
   },
   catalog: {
     icon: ICON_NAME.GLOBE,

@@ -1,14 +1,5 @@
 <#import "template.ftl" as layout>
-<@layout.emailLayout>
-    <tr>
-      <td style="padding-top: 40px;">
-        <img
-            alt=""
-            src="https://assets.plan4better.de/img/email/verify_email.png"
-            style="width: 250px"
-        />
-      </td>
-    </tr>
+<@layout.emailLayout artwork="verify_email.png">
     <tr>
       <td>
         <div style="${properties.titleStyle}">

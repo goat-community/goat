@@ -11,6 +11,8 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlmodel import SQLModel
 
+from core.core.config import settings
+
 
 class DatabaseSessionManager:
     def __init__(self) -> None:
@@ -26,8 +28,8 @@ class DatabaseSessionManager:
             isolation_level="AUTOCOMMIT",
             pool_pre_ping=True,  # Check connection health before using
             pool_recycle=300,  # Recycle connections every 5 minutes
-            pool_size=5,
-            max_overflow=10,
+            pool_size=settings.POSTGRES_POOL_SIZE,
+            max_overflow=settings.POSTGRES_MAX_OVERFLOW,
         )
         self._session_maker = async_sessionmaker(
             bind=self._engine,

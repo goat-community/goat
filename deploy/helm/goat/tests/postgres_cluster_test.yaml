@@ -1,0 +1,114 @@
+suite: Postgres Cluster CR
+templates:
+  - postgresql/cluster.yaml
+tests:
+  - it: not rendered when cluster disabled
+    set:
+      postgresql.cluster.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: rendered with instances + storage when enabled
+    set:
+      postgresql.cluster.enabled: true
+      postgresql.cluster.instances: 2
+      postgresql.cluster.storage.size: 50Gi
+      postgresql.cluster.storage.storageClass: "longhorn"
+    asserts:
+      - isKind:
+          of: Cluster
+      - equal:
+          path: apiVersion
+          value: postgresql.cnpg.io/v1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-pg
+      - equal:
+          path: spec.instances
+          value: 2
+      - equal:
+          path: spec.storage.size
+          value: 50Gi
+      - equal:
+          path: spec.storage.storageClass
+          value: longhorn
+      - contains:
+          path: spec.bootstrap.initdb.postInitApplicationSQL
+          content: CREATE EXTENSION IF NOT EXISTS postgis
+      - notContains:
+          path: spec.bootstrap.initdb.postInitApplicationSQL
+          content: CREATE EXTENSION IF NOT EXISTS postgis_topology
+      - notContains:
+          path: spec.bootstrap.initdb.postInitApplicationSQL
+          content: CREATE EXTENSION IF NOT EXISTS pgrouting
+      - notExists:
+          path: spec.bootstrap.initdb.postInitSQL
+
+  - it: defaults to the PostGIS image, no postgresUID/postgresGID override (CNPG's own 26/26 apply)
+    set:
+      postgresql.cluster.enabled: true
+    asserts:
+      - equal:
+          path: spec.imageName
+          value: "ghcr.io/cloudnative-pg/postgis:18-3.6-system-trixie"
+      - notExists:
+          path: spec.postgresUID
+      - notExists:
+          path: spec.postgresGID
+
+  - it: omits imageName entirely when cleared (CNPG's own default image applies)
+    set:
+      postgresql.cluster.enabled: true
+      postgresql.cluster.image: ""
+    asserts:
+      - notExists:
+          path: spec.imageName
+
+  - it: wires a custom image + postgresUID/postgresGID when set
+    set:
+      postgresql.cluster.enabled: true
+      postgresql.cluster.image: "ghcr.io/example/postgis:18"
+      postgresql.cluster.postgresUID: 1000
+      postgresql.cluster.postgresGID: 1000
+    asserts:
+      - equal:
+          path: spec.imageName
+          value: "ghcr.io/example/postgis:18"
+      - equal:
+          path: spec.postgresUID
+          value: 1000
+      - equal:
+          path: spec.postgresGID
+          value: 1000
+
+  - it: declares windmill managed.roles even when windmill.server is disabled (decoupled)
+    set:
+      postgresql.cluster.enabled: true
+      windmill.server.enabled: false
+      windmill.workers.default.enabled: false
+      windmill.db.reuseGoatConnection: false
+    asserts:
+      - equal:
+          path: spec.managed.roles[0].name
+          value: windmill_user
+      - equal:
+          path: spec.managed.roles[1].name
+          value: windmill_admin
+      - equal:
+          path: spec.managed.roles[2].name
+          value: windmill_owner_user
+      - equal:
+          path: spec.managed.roles[2].createdb
+          value: true
+      - equal:
+          path: spec.managed.roles[2].passwordSecret.name
+          value: RELEASE-NAME-goat-pg-windmill-cred
+
+  - it: skips windmill managed.roles entirely when reusing the goat connection
+    set:
+      postgresql.cluster.enabled: true
+      windmill.db.reuseGoatConnection: true
+    asserts:
+      - notExists:
+          path: spec.managed.roles

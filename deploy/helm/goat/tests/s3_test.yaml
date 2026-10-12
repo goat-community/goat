@@ -1,0 +1,167 @@
+suite: object storage (global.s3)
+templates:
+  - core/deployment.yaml
+  - geoapi/deployment.yaml
+  - processes/deployment.yaml
+set:
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+  global.s3.bucket: goat-uploads
+  global.s3.provider: garage
+  global.s3.endpointUrl: http://s3.storage.svc:3900
+  global.s3.publicEndpointUrl: https://s3.example.org
+  global.s3.region: garage
+  global.s3.forcePathStyle: true
+  global.s3.existingSecret: goat-s3
+  global.s3.assets.publicUrl: https://assets.example.org
+tests:
+  - it: renders no S3 settings without a bucket
+    template: geoapi/deployment.yaml
+    set:
+      global.s3.bucket: ""
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_BUCKET_NAME
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_ACCESS_KEY_ID
+          any: true
+
+  - it: gives geoapi the store and the key pair from the Secret
+    template: geoapi/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_BUCKET_NAME
+            value: goat-uploads
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_ENDPOINT_URL
+            value: http://s3.storage.svc:3900
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_PUBLIC_ENDPOINT_URL
+            value: https://s3.example.org
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_FORCE_PATH_STYLE
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: goat-s3
+                key: access-key-id
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: goat-s3
+                key: secret-access-key
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ASSETS_URL
+          any: true
+
+  - it: gives processes the same store
+    template: processes/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_BUCKET_NAME
+            value: goat-uploads
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_REGION
+            value: garage
+
+  - it: gives core the assets bucket in the same store, with the same key pair
+    template: core/deployment.yaml
+    set:
+      global.s3.existingSecretKeys.accessKeyId: id
+      global.s3.existingSecretKeys.secretAccessKey: secret
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ASSETS_URL
+            value: https://assets.example.org
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_S3_ASSETS_BUCKET
+            value: goat-assets
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ASSETS_S3_ENDPOINT_URL
+            value: http://s3.storage.svc:3900
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ASSETS_S3_FORCE_PATH_STYLE
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: goat-s3
+                key: id
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: goat-s3
+                key: secret
+
+  - it: a variable set in the service's config or extraEnv wins
+    template: core/deployment.yaml
+    set:
+      core.config.S3_BUCKET_NAME: other-bucket
+      core.config.ASSETS_URL: https://cdn.example.org
+      core.extraEnv:
+        - name: AWS_ACCESS_KEY_ID
+          value: separate-assets-key
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_BUCKET_NAME
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ASSETS_URL
+          any: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_ACCESS_KEY_ID
+            value: separate-assets-key
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: goat-s3
+                key: access-key-id

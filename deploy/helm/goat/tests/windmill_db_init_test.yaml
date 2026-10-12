@@ -1,0 +1,191 @@
+suite: Windmill database init container (server + workers)
+templates:
+  - windmill/server/deployment.yaml
+  - windmill/worker-default/deployment.yaml
+  - windmill/worker-print/deployment.yaml
+  - windmill/worker-tools/deployment.yaml
+  - windmill/worker-workflows/deployment.yaml
+tests:
+  - it: windmill server gets a windmill-db-init init container from the CNPG Postgres image
+    template: windmill/server/deployment.yaml
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.initContainers
+          count: 1
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: windmill-db-init
+      - equal:
+          path: spec.template.spec.initContainers[0].image
+          value: ghcr.io/cloudnative-pg/postgis:18-3.6-system-trixie
+      - equal:
+          path: spec.template.spec.initContainers[0].command
+          value: ["sh", "-c"]
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.runAsUser
+          value: 26
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.capabilities.drop
+          value: ["ALL"]
+      - equal:
+          path: spec.template.spec.initContainers[0].securityContext.seccompProfile.type
+          value: RuntimeDefault
+
+  - it: checks pg_database, creates the database only if missing, tolerates a racing sibling
+    template: windmill/server/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "FROM pg_database WHERE datname = :'db'"
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "CREATE DATABASE :\"db\" OWNER :\"owner\""
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "created concurrently"
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "SET search_path = public"
+      - notMatchRegex:
+          path: spec.template.spec.initContainers[0].args[0]
+          pattern: "pip install"
+
+  - it: connects as windmill_owner_user's Secret to the chart-managed CNPG rw service
+    template: windmill/server/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: PGHOST
+            value: RELEASE-NAME-goat-pg-rw
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: PGPORT
+            value: "5432"
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: WINDMILL_DB
+            value: windmill
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-goat-pg-windmill-cred
+                key: username
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-goat-pg-windmill-cred
+                key: password
+
+  - it: every windmill worker gets the same init container
+    set:
+      windmill.workers.print.enabled: true
+      windmill.workers.tools.enabled: true
+      windmill.workers.workflows.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: windmill-db-init
+        template: windmill/worker-default/deployment.yaml
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: windmill-db-init
+        template: windmill/worker-print/deployment.yaml
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: windmill-db-init
+        template: windmill/worker-tools/deployment.yaml
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: windmill-db-init
+        template: windmill/worker-workflows/deployment.yaml
+      - equal:
+          path: spec.template.spec.initContainers[0].image
+          value: ghcr.io/cloudnative-pg/postgis:18-3.6-system-trixie
+        template: windmill/worker-tools/deployment.yaml
+
+  - it: follows postgresql.cluster.image
+    template: windmill/worker-default/deployment.yaml
+    set:
+      postgresql.cluster.image: registry.example.com/my/postgis:18
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].image
+          value: registry.example.com/my/postgis:18
+
+  - it: fails clearly when postgresql.cluster.image is empty
+    template: windmill/server/deployment.yaml
+    set:
+      postgresql.cluster.image: ""
+      # Only the server renders, so the render failure is attributed to it.
+      windmill.workers.default.enabled: false
+    asserts:
+      - failedTemplate:
+          errorPattern: "postgresql.cluster.image must be set"
+
+  - it: not rendered when windmill reuses the goat connection
+    set:
+      windmill.db.reuseGoatConnection: true
+      windmill.workers.print.enabled: true
+      windmill.workers.tools.enabled: true
+      windmill.workers.workflows.enabled: true
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+        template: windmill/server/deployment.yaml
+      - notExists:
+          path: spec.template.spec.initContainers
+        template: windmill/worker-default/deployment.yaml
+      - notExists:
+          path: spec.template.spec.initContainers
+        template: windmill/worker-print/deployment.yaml
+      - notExists:
+          path: spec.template.spec.initContainers
+        template: windmill/worker-tools/deployment.yaml
+      - notExists:
+          path: spec.template.spec.initContainers
+        template: windmill/worker-workflows/deployment.yaml
+
+  - it: not rendered when Postgres is not chart-managed
+    set:
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      windmill.db.external.host: "pg.example.com"
+      windmill.db.external.existingSecret: "windmill-pg-secret"
+      windmill.workers.print.enabled: true
+      windmill.workers.tools.enabled: true
+      windmill.workers.workflows.enabled: true
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+        template: windmill/server/deployment.yaml
+      - notExists:
+          path: spec.template.spec.initContainers
+        template: windmill/worker-default/deployment.yaml
+      - notExists:
+          path: spec.template.spec.initContainers
+        template: windmill/worker-print/deployment.yaml
+      - notExists:
+          path: spec.template.spec.initContainers
+        template: windmill/worker-tools/deployment.yaml
+      - notExists:
+          path: spec.template.spec.initContainers
+        template: windmill/worker-workflows/deployment.yaml

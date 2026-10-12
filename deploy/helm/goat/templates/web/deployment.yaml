@@ -1,0 +1,154 @@
+{{- if .Values.web.enabled -}}
+{{- $component := "web" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ .Values.web.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "goat.serviceSelectorLabels" $ctx | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" $ctx | nindent 8 }}
+        {{- with .Values.web.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.web.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.web.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: web
+          image: {{ include "goat.image" (dict "image" .Values.web.image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+          {{- with .Values.web.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.web.service.targetPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "goat.serviceFullname" $ctx }}
+          env:
+            {{- $auth := dict "values" .Values.web "root" $ }}
+            {{- if include "goat.auth.wired" $auth }}
+            {{- $secret := include "goat.auth.secretName" $auth }}
+            {{- if not (include "goat.env.userSet" (dict "values" .Values.web "key" "AUTH")) }}
+            - name: AUTH
+              value: "true"
+            {{- end }}
+            - name: NEXT_PUBLIC_AUTH
+              value: "true"
+            # The web app reads issuer & client-id from NEXT_PUBLIC_* env vars
+            # (baked into the bundle at build time as APP_* placeholders and
+            # substituted by entrypoint.sh at container start). The client
+            # secret stays server-only.
+            #
+            # KEYCLOAK_SERVER_URL_RAW and REALM_NAME_RAW must come BEFORE
+            # NEXT_PUBLIC_KEYCLOAK_ISSUER — K8s only substitutes $(VAR) for
+            # vars defined earlier in the env array.
+            - name: KEYCLOAK_SERVER_URL_RAW
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secret }}
+                  key: {{ include "goat.auth.secretKey" (merge (dict "key" "serverUrl") $auth) }}
+            - name: REALM_NAME_RAW
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secret }}
+                  key: {{ include "goat.auth.secretKey" (merge (dict "key" "realm") $auth) }}
+            - name: NEXT_PUBLIC_KEYCLOAK_ISSUER
+              value: $(KEYCLOAK_SERVER_URL_RAW)/realms/$(REALM_NAME_RAW)
+            - name: NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secret }}
+                  key: {{ include "goat.auth.secretKey" (merge (dict "key" "clientId") $auth) }}
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secret }}
+                  key: {{ include "goat.auth.secretKey" (merge (dict "key" "clientSecret") $auth) }}
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secret }}
+                  key: {{ include "goat.auth.secretKey" (merge (dict "key" "nextauthSecret") $auth) }}
+            {{- with .Values.web.auth.publicUrl }}
+            - name: NEXTAUTH_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.web.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.web.livenessProbe.enabled }}
+          livenessProbe:
+            {{- $lp := omit .Values.web.livenessProbe "enabled" }}
+            {{- toYaml $lp | nindent 12 }}
+          {{- end }}
+          {{- if .Values.web.readinessProbe.enabled }}
+          readinessProbe:
+            {{- $rp := omit .Values.web.readinessProbe "enabled" }}
+            {{- toYaml $rp | nindent 12 }}
+          {{- end }}
+          {{- with .Values.web.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- $caBundle := include "goat.caBundle.enabled" $ }}
+          {{- if or .Values.web.extraVolumeMounts $caBundle }}
+          volumeMounts:
+            {{- if $caBundle }}
+            {{- include "goat.caBundle.mount" $ | nindent 12 }}
+            {{- end }}
+            {{- with .Values.web.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+      {{- if or .Values.web.extraVolumes $caBundle }}
+      volumes:
+        {{- if $caBundle }}
+        {{- include "goat.caBundle.volume" $ | nindent 8 }}
+        {{- end }}
+        {{- with .Values.web.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.web.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.web.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.web.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

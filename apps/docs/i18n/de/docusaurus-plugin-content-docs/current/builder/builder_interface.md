@@ -1,4 +1,5 @@
 ---
+description: "Gestalten Sie ein Dashboard: Panels an jeder Kartenseite hinzufügen, Stil, Aussehen, Position und Breite anpassen und Widgets aus der Seitenleiste hineinziehen."
 sidebar_position: 1
 ---
 
@@ -17,10 +18,10 @@ Der Wechsel in den Builder-Modus öffnet die Builder-Kartenoberfläche, **in der
 
 Die folgenden Steuerelemente sind auf der Dashboard-Karte verfügbar. Ihre Position kann in den [Einstellungen](./settings) konfiguriert werden.
 
-- **Standortsuche** — suchen Sie nach einer Adresse oder einem Ort und zentrieren Sie die Karte darauf
-- **Zoom-Steuerung** — Schaltflächen zum Vergrößern und Verkleinern
-- **Grundkarten** — wechseln Sie zwischen verfügbaren Grundkarten. Siehe [Grundkarten](../map/basemaps)
-- **Messen** — messen Sie Abstände, Flächen und Routen direkt auf der Karte. Siehe [Messen](../map/measurements)
+- **Standortsuche**: suchen Sie nach einer Adresse oder einem Ort und zentrieren Sie die Karte darauf
+- **Zoom-Steuerung**: Schaltflächen zum Vergrößern und Verkleinern
+- **Grundkarten**: wechseln Sie zwischen verfügbaren Grundkarten. Siehe [Grundkarten](../map/basemaps)
+- **Messen**: messen Sie Abstände, Flächen und Routen direkt auf der Karte. Siehe [Messen](../map/measurements)
 
 ## Panels
 

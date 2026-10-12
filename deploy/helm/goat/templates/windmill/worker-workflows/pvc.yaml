@@ -1,0 +1,33 @@
+{{- if include "goat.windmill.workerPvc.rendered" (dict "root" . "worker" "workflows") -}}
+{{- $component := "windmill-worker-workflows" -}}
+{{- $ctx := dict "context" . "component" $component -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "goat.windmill.workerPvc.name" (dict "root" . "worker" "workflows") }}
+  namespace: {{ .Release.Namespace }}
+  # Helm reads this annotation from the LIVE object when it is about to
+  # delete it (a later upgrade that stops rendering this claim, or
+  # `helm uninstall`), so it protects the claim once an upgrade/install of
+  # this chart has applied it. It does NOT protect a 0.4.x claim on the
+  # 0.4.x -> 0.5.0 hop at `data.enabled: true`: this template no longer
+  # renders there, so nothing applies the annotation to the live claim, and
+  # 0.4.x never set it. Annotate the live claim by hand BEFORE that upgrade
+  # (templates/windmill/legacy-persistence-guard.yaml refuses the upgrade
+  # until you do). See README "Upgrading 0.4.x -> 0.5.0" note 1.
+  annotations:
+    "helm.sh/resource-policy": keep
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.windmill.workers.workflows.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.windmill.workers.workflows.persistence.size }}
+  {{- $sc := default .Values.global.storageClass .Values.windmill.workers.workflows.persistence.storageClassName -}}
+  {{- with $sc }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end -}}
+

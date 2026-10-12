@@ -204,7 +204,7 @@ export default function RepeatableObjectInput({
   layerDatasetIds,
   predictedColumns,
 }: RepeatableObjectInputProps) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const theme = useTheme();
 
   // Filters for nested layer inputs, keyed itemFilters[itemIndex][layerFieldName].
@@ -480,7 +480,14 @@ export default function RepeatableObjectInput({
         size="small"
         startIcon={<Icon iconName={ICON_NAME.PLUS} style={{ fontSize: "15px" }} />}>
         <Typography variant="body2" color="inherit">
-          {t("add")} {formatInputName(input.title.replace(/ies$/i, "y").replace(/s$/i, ""))}
+          {t("add_named_item", {
+            // The title is plural ("Opportunities"); English names one item to
+            // add, other languages keep the translated title as it is.
+            item:
+              i18n.language === "en"
+                ? formatInputName(input.title.replace(/ies$/i, "y").replace(/s$/i, ""))
+                : input.title,
+          })}
         </Typography>
       </Button>
     </Stack>

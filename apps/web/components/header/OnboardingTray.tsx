@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +17,13 @@ import {
 } from "@/hooks/dashboard/home/useHomeStage";
 
 import { ArrowPopper } from "@/components/ArrowPoper";
+import {
+  HeaderPopoverFooter,
+  HeaderPopoverFooterAction,
+  HeaderPopoverHeader,
+  HeaderPopoverList,
+  HeaderPopoverRow,
+} from "@/components/header/HeaderPopover";
 import HeaderPopoverPaper, { HEADER_POPOVER_PLACEMENT } from "@/components/header/HeaderPopoverPaper";
 
 const RING_SIZE = 22;
@@ -79,25 +86,10 @@ const OnboardingTray = () => {
         placement={HEADER_POPOVER_PLACEMENT}
         arrow={false}
         content={
-          <HeaderPopoverPaper width="min(340px, calc(100vw - 24px))">
-            <Box
-              sx={{
-                p: "14px 16px 12px",
-                borderBottom: `1px solid ${theme.palette.divider}`,
-              }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Typography sx={{ fontSize: 14.5, fontWeight: 700 }}>{t("getting_started")}</Typography>
-                <Typography
-                  sx={{
-                    fontSize: 10.5,
-                    fontWeight: 800,
-                    letterSpacing: "0.5px",
-                    textTransform: "uppercase",
-                    color: theme.palette.text.secondary,
-                  }}>
-                  {t("steps_completed", { done: done.length, total })}
-                </Typography>
-              </Stack>
+          <HeaderPopoverPaper>
+            <HeaderPopoverHeader
+              title={t("getting_started")}
+              aside={t("steps_completed", { done: done.length, total })}>
               <Box
                 sx={{
                   mt: "8px",
@@ -115,69 +107,38 @@ const OnboardingTray = () => {
                   }}
                 />
               </Box>
-            </Box>
-            <Stack sx={{ p: "6px" }}>
+            </HeaderPopoverHeader>
+            <HeaderPopoverList>
               {SETUP_STEPS.map((step) => {
                 const isDone = done.includes(step);
                 const meta = SETUP_STEP_META[step];
                 return (
-                  <Box
+                  <HeaderPopoverRow
                     key={step}
-                    component={isDone ? "div" : "button"}
-                    type={isDone ? undefined : "button"}
+                    muted={isDone}
                     onClick={isDone ? undefined : () => onStep(step)}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "11px",
-                      p: "9px 10px",
-                      width: "100%",
-                      border: "none",
-                      background: "none",
-                      textAlign: "left",
-                      borderRadius: "8px",
-                      fontSize: 13.5,
-                      fontWeight: 600,
-                      color: isDone ? theme.palette.text.secondary : theme.palette.text.primary,
-                      cursor: isDone ? "default" : "pointer",
-                      "&:hover": isDone ? undefined : { backgroundColor: theme.palette.action.hover },
-                    }}>
-                    <Icon
-                      iconName={isDone ? ICON_NAME.CIRCLECHECK : meta.icon}
-                      style={{
-                        fontSize: 15,
-                        color: isDone ? theme.palette.primary.main : theme.palette.text.secondary,
-                      }}
-                    />
-                    <span style={{ textDecoration: isDone ? "line-through" : "none" }}>
-                      {t(meta.titleKey)}
-                    </span>
-                  </Box>
+                    icon={
+                      isDone ? (
+                        <Icon
+                          iconName={ICON_NAME.CIRCLECHECK}
+                          style={{ fontSize: 15, color: theme.palette.primary.main }}
+                        />
+                      ) : (
+                        meta.icon
+                      )
+                    }
+                    label={
+                      <span style={{ textDecoration: isDone ? "line-through" : "none" }}>
+                        {t(meta.titleKey)}
+                      </span>
+                    }
+                  />
                 );
               })}
-            </Stack>
-            <Box
-              sx={{
-                p: "10px 16px",
-                borderTop: `1px solid ${theme.palette.divider}`,
-                backgroundColor: theme.palette.background.default,
-              }}>
-              <Box
-                component="button"
-                type="button"
-                onClick={onSkip}
-                sx={{
-                  border: "none",
-                  background: "none",
-                  p: 0,
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  color: theme.palette.primary.main,
-                  cursor: "pointer",
-                }}>
-                {t("skip_onboarding")}
-              </Box>
-            </Box>
+            </HeaderPopoverList>
+            <HeaderPopoverFooter>
+              <HeaderPopoverFooterAction onClick={onSkip}>{t("skip_onboarding")}</HeaderPopoverFooterAction>
+            </HeaderPopoverFooter>
           </HeaderPopoverPaper>
         }>
         <Box

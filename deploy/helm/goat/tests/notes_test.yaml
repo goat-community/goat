@@ -1,0 +1,120 @@
+suite: NOTES.txt warnings
+templates:
+  - NOTES.txt
+release:
+  name: goat
+  namespace: goat
+tests:
+  # C1: the bare-install white screen.
+  - it: warns that the web UI will not load on bare defaults
+    asserts:
+      - matchRegexRaw:
+          pattern: "WARNING: the web UI will NOT LOAD"
+  - it: does not warn when web.publicUrls.api is set
+    set:
+      web.publicUrls.api: https://api.example.org
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "web UI will NOT LOAD"
+  - it: does not warn when core has an ingress host
+    set:
+      core.ingress.enabled: true
+      core.ingress.hosts:
+        - host: api.example.org
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "web UI will NOT LOAD"
+  - it: still warns when core.ingress is enabled without hosts
+    set:
+      core.ingress.enabled: true
+      core.ingress.hosts: []
+    asserts:
+      - matchRegexRaw:
+          pattern: "web UI will NOT LOAD"
+  - it: does not warn when web.config.NEXT_PUBLIC_API_URL is set
+    set:
+      web.config.NEXT_PUBLIC_API_URL: https://api.example.org
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "web UI will NOT LOAD"
+  - it: does not warn when web is disabled
+    set:
+      web.enabled: false
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "web UI will NOT LOAD"
+
+  # C2: the 0.4.x worker-PVC upgrade warning.
+  - it: prints the worker PVC upgrade warning with the exact annotate command
+    set:
+      windmill.workers.tools.enabled: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "persistence is IGNORED because the\\s+shared `data` volume is enabled"
+      - matchRegexRaw:
+          pattern: "kubectl -n goat annotate pvc goat-windmill-tools-data goat-windmill-workflows-data helm.sh/resource-policy=keep"
+      - matchRegexRaw:
+          pattern: "BEFORE upgrading"
+  - it: prints the worker PVC upgrade warning for the workflows worker too
+    set:
+      windmill.workers.workflows.enabled: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "persistence is IGNORED"
+  - it: renders the real claim names for a release whose name lacks "goat"
+    release:
+      name: prod
+      namespace: gis
+    set:
+      windmill.workers.tools.enabled: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "kubectl -n gis annotate pvc prod-goat-windmill-tools-data prod-goat-windmill-workflows-data helm.sh/resource-policy=keep"
+  - it: has no worker PVC warning at defaults (heavy workers off)
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "persistence is IGNORED"
+  - it: has no worker PVC warning when the per-worker PVCs are still rendered
+    set:
+      data.enabled: false
+      windmill.workers.tools.enabled: true
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "persistence is IGNORED"
+
+  # Mixed auth (the 0.5.0 bare-install state was core/web off, geoapi/processes on).
+  - it: does not warn about mixed auth on bare defaults
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "mixed authentication"
+  - it: does not warn about mixed auth when global.auth is on
+    set:
+      global.auth.enabled: true
+      global.auth.existingSecret: kc
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "mixed authentication"
+  - it: warns about mixed auth when only core turns auth on
+    set:
+      core.auth.enabled: true
+      core.auth.existingSecret: kc
+    asserts:
+      - matchRegexRaw:
+          pattern: "WARNING: mixed authentication. AUTH is ON for core but OFF\nfor web, geoapi, processes, catalog"
+  - it: counts an explicit AUTH in <svc>.config (civitas shape, all on)
+    set:
+      global.auth.enabled: true
+      global.auth.existingSecret: kc
+      geoapi.auth.enabled: false
+      geoapi.config.AUTH: "true"
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "mixed authentication"
+
+  - it: names the bundled redis password Secret
+    asserts:
+      - matchRegexRaw:
+          pattern: get secret goat-redis -o jsonpath='\{\.data\.redis-password\}'

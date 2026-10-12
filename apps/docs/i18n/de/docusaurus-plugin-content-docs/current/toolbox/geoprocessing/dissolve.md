@@ -1,4 +1,5 @@
 ---
+description: "Führen Sie Features mit gleichen Werten in gewählten Feldern oder alle Features zu einer Geometrie zusammen, ohne innere Grenzen und optional mit Statistiken."
 sidebar_position: 5
 ---
 

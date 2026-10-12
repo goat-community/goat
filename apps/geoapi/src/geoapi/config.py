@@ -1,11 +1,13 @@
 """Configuration for GeoAPI service."""
 
+import json
 import os
-from typing import Optional
+from typing import Annotated, Optional
 
 from goatlib.api.root_path import normalize_root_path
-from pydantic import field_validator
-from pydantic_settings import BaseSettings
+from goatlib.auth import AuthFlag, require_keycloak_url
+from pydantic import AliasChoices, Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, NoDecode
 
 
 class Settings(BaseSettings):
@@ -28,17 +30,35 @@ class Settings(BaseSettings):
 
     DEBUG: bool = False
 
-    # Authentication settings
-    AUTH: bool = os.getenv("AUTH", "true").lower() == "true"
+    # Authentication settings. AUTH is the repo-wide switch (bare `AUTH`,
+    # with GEOAPI_AUTH as a fallback); an explicit validation_alias bypasses
+    # env_prefix for these fields.
+    AUTH: AuthFlag = Field(
+        default=True, validation_alias=AliasChoices("AUTH", "GEOAPI_AUTH")
+    )
 
     # Read authorization gate for tile/feature/metadata endpoints. Shadow
     # mode (False, default) only logs `read_authz.would_deny`; flip on dev
-    # only after that counter is quiet. Env: GEOAPI_ENFORCE_READ_AUTHZ.
-    ENFORCE_READ_AUTHZ: bool = False
-    KEYCLOAK_SERVER_URL: str = os.getenv(
-        "KEYCLOAK_SERVER_URL", "https://auth.dev.plan4better.de"
+    # only after that counter is quiet. Env: GEOAPI_ENFORCE_READ_AUTHZ, or the
+    # bare ENFORCE_READ_AUTHZ the Helm chart sets.
+    ENFORCE_READ_AUTHZ: bool = Field(
+        default=False,
+        validation_alias=AliasChoices(
+            "GEOAPI_ENFORCE_READ_AUTHZ", "ENFORCE_READ_AUTHZ"
+        ),
     )
-    REALM_NAME: str = os.getenv("REALM_NAME", "p4b")
+    # Keycloak: the bare env var, overridable per service with GEOAPI_*.
+    # Required when AUTH is on (see _require_keycloak).
+    KEYCLOAK_SERVER_URL: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "GEOAPI_KEYCLOAK_SERVER_URL", "KEYCLOAK_SERVER_URL"
+        ),
+    )
+    REALM_NAME: str = Field(
+        default="p4b",
+        validation_alias=AliasChoices("GEOAPI_REALM_NAME", "REALM_NAME"),
+    )
 
     # PostgreSQL settings for DuckLake catalog
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
@@ -79,14 +99,24 @@ class Settings(BaseSettings):
 
     # Hidden fields - columns to exclude from API responses (tiles and features)
     # These are internal/structural columns that shouldn't be exposed to clients
-    # Can be overridden via GEOAPI_HIDDEN_FIELDS env var (comma-separated)
-    HIDDEN_FIELDS: set[str] = {
+    # Can be overridden via GEOAPI_HIDDEN_FIELDS env var, comma-separated
+    # (bbox,$minx,$miny) or a JSON list.
+    HIDDEN_FIELDS: Annotated[set[str], NoDecode] = {
         "bbox",  # GeoParquet 1.1 bounding box struct
         "$minx",
         "$miny",
         "$maxx",
         "$maxy",  # Legacy scalar bbox columns
     }
+
+    @field_validator("HIDDEN_FIELDS", mode="before")
+    @classmethod
+    def _parse_hidden_fields(cls, value: object) -> object:
+        if isinstance(value, str):
+            if value.lstrip().startswith("["):
+                return json.loads(value)
+            return {f.strip() for f in value.split(",") if f.strip()}
+        return value
 
     # MVT Settings
     MAX_FEATURES_PER_TILE: int = 15000
@@ -152,6 +182,11 @@ class Settings(BaseSettings):
         "DUCKLAKE_POSTGRES_SERVER", ""
     ) or os.getenv("POSTGRES_SERVER", "localhost")
 
+    @model_validator(mode="after")
+    def _require_keycloak(self) -> "Settings":
+        require_keycloak_url(self.AUTH, self.KEYCLOAK_SERVER_URL)
+        return self
+
     @property
     def POSTGRES_DATABASE_URI(self) -> str:
         """Construct PostgreSQL URI."""
@@ -165,23 +200,4 @@ class Settings(BaseSettings):
     model_config = {"env_prefix": "GEOAPI_", "case_sensitive": True}
 
 
-def _get_hidden_fields() -> set[str]:
-    """Get hidden fields from env var or default.
-
-    Environment variable format: GEOAPI_HIDDEN_FIELDS=bbox,$minx,$miny,$maxx,$maxy
-    """
-    env_value = os.getenv("GEOAPI_HIDDEN_FIELDS")
-    if env_value:
-        return {f.strip() for f in env_value.split(",") if f.strip()}
-    return {
-        "bbox",  # GeoParquet 1.1 bounding box struct
-        "$minx",
-        "$miny",
-        "$maxx",
-        "$maxy",  # Legacy scalar bbox columns
-    }
-
-
-# Create settings and update HIDDEN_FIELDS from env var if set
 settings = Settings()
-settings.HIDDEN_FIELDS = _get_hidden_fields()

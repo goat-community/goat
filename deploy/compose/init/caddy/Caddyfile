@@ -1,0 +1,68 @@
+# GOAT edge proxy. Values in {$...} come from the caddy service environment
+# (see compose.yaml); GOAT_TLS picks one of the files in ./tls.
+{
+	http_port {$GOAT_HTTP_PORT}
+	https_port {$GOAT_HTTPS_PORT}
+	# Clients that connect to a bare IP send no server name; answer them with
+	# the site's certificate.
+	default_sni {$GOAT_HOSTNAME}
+	servers {
+		trusted_proxies static {$GOAT_TRUSTED_PROXIES}
+	}
+}
+
+{$GOAT_SITE_ADDRESS} {
+	import /etc/caddy/tls/{$GOAT_TLS}.caddy
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy same-origin
+		-Server
+	}
+
+	@keycloak_admin {
+		path /keycloak/admin*
+		not remote_ip {$GOAT_ADMIN_ALLOW_CIDRS}
+	}
+	respond @keycloak_admin 403
+
+	# S3 API for presigned uploads and downloads. The bucket name is the path
+	# and the request is signed over host and path, so neither may change.
+	handle /goat-uploads/* {
+		reverse_proxy garage:3900
+	}
+
+	# Public, unsigned reads of avatars and images (Garage website endpoint).
+	handle_path /goat-assets/* {
+		reverse_proxy garage:3902 {
+			header_up Host goat-assets.web.garage.internal
+		}
+	}
+
+	# No request body limit and no proxy read timeout are set on purpose:
+	# /api/v2/support takes uploads of up to 55 MiB per request.
+	handle /api/v2/* {
+		reverse_proxy core:8000
+	}
+	handle /api/healthz {
+		reverse_proxy core:8000
+	}
+	handle /geoapi/* {
+		reverse_proxy geoapi:8000
+	}
+	handle /processes/* {
+		reverse_proxy processes:8000
+	}
+	handle /catalog/* {
+		reverse_proxy catalog:8400
+	}
+	handle /keycloak/* {
+		reverse_proxy keycloak:8080
+	}
+
+	# Web app, including its own /api/auth, /api/pwa-icon and /api/preferences
+	handle {
+		encode zstd gzip
+		reverse_proxy web:3000
+	}
+}

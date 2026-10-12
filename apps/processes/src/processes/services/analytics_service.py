@@ -11,6 +11,7 @@ import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
+from uuid import UUID
 
 import duckdb
 from fastapi import HTTPException
@@ -30,7 +31,6 @@ from goatlib.analysis.statistics import (
     search_layer_features,
 )
 from goatlib.storage import build_cql_filter, configure_baked_extensions
-from goatlib.tools.custom_sql import validate_sql_query
 from goatlib.utils.layer import (
     catalog_layer_parquet,
     catalog_layer_relation,
@@ -39,6 +39,7 @@ from goatlib.utils.layer import (
     is_catalog_relation,
     table_path_parts,
 )
+from goatlib.utils.sql_validation import validate_sql_query
 
 from processes.dependencies import (
     _layer_id_to_table_name,
@@ -678,9 +679,9 @@ class AnalyticsService:
         Returns:
             Dict with valid, errors, columns
         """
-        # Step 1: Basic SQL security validation
+        # Step 1: Basic SQL security validation; only the given tables
         try:
-            validate_sql_query(sql_query)
+            validate_sql_query(sql_query, (table_schemas or {}).keys())
         except ValueError as e:
             return {"valid": False, "errors": [str(e)], "columns": {}}
 
@@ -753,13 +754,16 @@ class AnalyticsService:
         finally:
             con.close()
 
-    def _find_temp_parquet(self, temp_uuid: str) -> str | None:
-        """Find a temp parquet file by its UUID.
+    def _find_temp_parquet(self, temp_uuid: str, user_id: UUID | None) -> str | None:
+        """Find one of the caller's own temp parquet files by its UUID.
 
-        Searches DATA_DIR/temporary/ for t_{uuid}.parquet files.
+        Searches DATA_DIR/temporary/user_<caller>/ for t_{uuid}.parquet: temp
+        layers are per-user workflow results, and another user's are never
+        the caller's to read. An anonymous caller has none.
 
         Args:
             temp_uuid: The temp file UUID (hex, no dashes)
+            user_id: The caller
 
         Returns:
             Path to parquet file as string, or None if not found
@@ -767,11 +771,19 @@ class AnalyticsService:
         import os
         from pathlib import Path
 
-        temp_root = Path(os.getenv("DATA_DIR", "/app/data")) / "temporary"
+        if user_id is None:
+            return None
+        temp_root = (
+            Path(os.getenv("DATA_DIR", "/app/data"))
+            / "temporary"
+            / f"user_{str(user_id).replace('-', '')}"
+        )
         if not temp_root.exists():
             return None
 
         clean_uuid = temp_uuid.replace("-", "")
+        if not re.fullmatch(r"[0-9a-fA-F]{32}", clean_uuid):
+            return None
         matches = list(temp_root.glob(f"**/t_{clean_uuid}.parquet"))
         if matches:
             return str(matches[0])
@@ -821,20 +833,25 @@ class AnalyticsService:
         source_sql: str,
         filter_expr: str | None,
     ) -> None:
-        """Create a named view for a layer alias, with an optional CQL2 filter applied."""
+        """Create a named view for a layer alias, with an optional CQL2 filter applied.
+
+        TEMP, so the view belongs to this cursor alone: pooled cursors share
+        one database, and a plain `input_1` view could be replaced by another
+        request's between this request creating it and reading it.
+        """
         if not filter_expr:
-            con.execute(f'CREATE OR REPLACE VIEW "{alias}" AS {source_sql}')
+            con.execute(f'CREATE OR REPLACE TEMP VIEW "{alias}" AS {source_sql}')
             return
 
         src_alias = f"_src_{alias}"
-        con.execute(f'CREATE OR REPLACE VIEW "{src_alias}" AS {source_sql}')
+        con.execute(f'CREATE OR REPLACE TEMP VIEW "{src_alias}" AS {source_sql}')
 
         where_clause, params = self._build_where_clause_in_con(
             con, src_alias, filter_expr
         )
 
         if where_clause == "TRUE":
-            con.execute(f'CREATE OR REPLACE VIEW "{alias}" AS {source_sql}')
+            con.execute(f'CREATE OR REPLACE TEMP VIEW "{alias}" AS {source_sql}')
         else:
             try:
                 filt_table = f"_filt_{alias}"
@@ -845,7 +862,7 @@ class AnalyticsService:
                     params if params else [],
                 )
                 con.execute(
-                    f'CREATE OR REPLACE VIEW "{alias}" AS SELECT * FROM "{filt_table}"'
+                    f'CREATE OR REPLACE TEMP VIEW "{alias}" AS SELECT * FROM "{filt_table}"'
                 )
             except Exception as e:
                 logger.warning(
@@ -853,7 +870,7 @@ class AnalyticsService:
                     alias,
                     e,
                 )
-                con.execute(f'CREATE OR REPLACE VIEW "{alias}" AS {source_sql}')
+                con.execute(f'CREATE OR REPLACE TEMP VIEW "{alias}" AS {source_sql}')
 
     def preview_sql(
         self,
@@ -862,6 +879,7 @@ class AnalyticsService:
         limit: int = 10,
         offset: int = 0,
         filter_expr: str | None = None,
+        user_id: UUID | None = None,
     ) -> dict[str, Any]:
         """Preview a SQL query against actual layer data.
 
@@ -882,9 +900,10 @@ class AnalyticsService:
         Returns:
             Dict with success, columns, rows, error
         """
-        # Validate SQL first
+        # Validate SQL first: it runs on a connection with DuckLake attached,
+        # so it may read only the layers it declares, by their aliases.
         try:
-            validate_sql_query(sql_query)
+            validate_sql_query(sql_query, (layers or {}).keys())
         except ValueError as e:
             return {"success": False, "columns": [], "rows": [], "error": str(e)}
 
@@ -918,7 +937,7 @@ class AnalyticsService:
             try:
                 # Load temp layers from parquet files
                 for alias, temp_uuid in temp_layers.items():
-                    parquet_path = self._find_temp_parquet(temp_uuid)
+                    parquet_path = self._find_temp_parquet(temp_uuid, user_id)
                     if not parquet_path:
                         return {
                             "success": False,

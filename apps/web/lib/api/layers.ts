@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import useSWR from "swr";
 
 import { apiRequestAuth, fetcher } from "@/lib/api/fetcher";
@@ -102,12 +103,26 @@ export const updateLayerDataset = async (
   return executeProcessAsync("layer_update", inputs);
 };
 
-export const useDatasetCollectionItems = (datasetId: string, queryParams?: GetCollectionItemsQueryParams) => {
+export const useDatasetCollectionItems = (
+  datasetId: string,
+  queryParams?: GetCollectionItemsQueryParams,
+  options?: { keepPreviousPage?: boolean }
+) => {
   const { data, isLoading, error, mutate } = useSWR<DatasetCollectionItems>(
     () => (datasetId ? [`${COLLECTIONS_API_BASE_URL}/${datasetId}/items`, queryParams] : null),
     fetcher
   );
-  return { data, isLoading, isError: error, mutate };
+  // With keepPreviousPage, the current page stays visible while another page or
+  // sort order of the same dataset loads; a different dataset, or a request that
+  // failed, never shows it.
+  const previous = useRef<{ datasetId: string; data: DatasetCollectionItems } | null>(null);
+  if (data) previous.current = { datasetId, data };
+  const shown =
+    data ??
+    (options?.keepPreviousPage && !error && previous.current?.datasetId === datasetId
+      ? previous.current.data
+      : undefined);
+  return { data: shown, isLoading, isError: error, mutate };
 };
 
 export const useLayerQueryables = (layerId: string) => {
@@ -183,9 +198,10 @@ export const createLayer = async (
   projectId?: string
 ): Promise<Job> => {
   // Map to LayerImport process inputs
-  // user_id is extracted from JWT token by the server
+  // user_id is extracted from JWT token by the server. No layer id: the
+  // import names the layers it creates, and processes refuses a layer id
+  // the caller cannot read, which a new one never is.
   const inputs: Record<string, unknown> = {
-    layer_id: crypto.randomUUID(), // Generate new layer ID
     folder_id: payload.folder_id,
     name: payload.name,
     ...(payload.description && { description: payload.description }),
@@ -247,6 +263,8 @@ export type CreateEmptyLayerPayload = {
      * means when a column is added to a layer that already exists. */
     allowed_values?: (string | number)[];
     allow_other?: boolean;
+    /** kind="serial" only: the first number the empty layer hands out. */
+    start?: number;
   }>;
 };
 
@@ -645,6 +663,9 @@ export interface AddColumnPayload {
   allow_other?: boolean;
   /** SQL expression for kind="formula" (validated server-side) */
   formula?: string;
+  /** kind="serial" only: existing rows are numbered from it in feature order,
+   * new features continue after the highest number (default 1). */
+  start?: number;
 }
 
 export const addColumn = async (layerId: string, payload: AddColumnPayload) => {
@@ -670,6 +691,10 @@ export interface ColumnPatch {
   allow_other?: boolean;
   display_config?: Record<string, unknown>;
   default_value?: unknown;
+  /** Change what the column is — number to "serial" or back — on its own. */
+  kind?: FieldKind;
+  /** With kind="serial": where blank rows start being numbered. */
+  start?: number;
 }
 
 /**

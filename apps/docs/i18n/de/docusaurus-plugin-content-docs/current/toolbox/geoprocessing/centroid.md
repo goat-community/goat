@@ -1,4 +1,5 @@
 ---
+description: "Erzeugen Sie je Polygon- oder Linien-Feature einen Punkt im geometrischen Zentrum, etwa um Gebäude als Punkte darzustellen oder Stadtteile zu beschriften."
 sidebar_position: 3
 ---
 

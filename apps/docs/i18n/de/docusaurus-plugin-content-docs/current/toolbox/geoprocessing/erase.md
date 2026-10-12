@@ -1,4 +1,5 @@
 ---
+description: "Entfernen Sie Teile von Eingabe-Features, die einen Überdeckungs-Layer überlappen, sodass nur das außerhalb Liegende bleibt, als Gegenstück zum Ausschneiden."
 sidebar_position: 7
 ---
 

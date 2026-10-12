@@ -24,7 +24,14 @@ logger = logging.getLogger(__name__)
 
 
 async def reconcile() -> tuple[int, int]:
-    """Run one reconciliation pass. Returns (checked, transitioned)."""
+    """Run one reconciliation pass. Returns (checked, transitioned).
+
+    With custom domains off (``CUSTOM_DOMAIN_CNAME_TARGET`` empty) there is
+    no target to verify against, so the pass checks nothing.
+    """
+    if not settings.custom_domains_enabled:
+        logger.info("custom domains are not enabled; nothing to reconcile")
+        return 0, 0
     transitioned = 0
     session_manager.init(settings.ASYNC_SQLALCHEMY_DATABASE_URI)
     try:

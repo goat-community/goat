@@ -1,0 +1,222 @@
+suite: windmill workers, GOAT settings for the jobs they run
+templates:
+  - windmill/worker-print/deployment.yaml
+  - windmill/worker-tools/deployment.yaml
+  - windmill/worker-workflows/deployment.yaml
+  - windmill/worker-default/deployment.yaml
+  - windmill/worker-print/configmap.yaml
+  - windmill/worker-tools/configmap.yaml
+  - windmill/worker-workflows/configmap.yaml
+  - windmill/worker-default/configmap.yaml
+set:
+  postgresql.cluster.enabled: false
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+  windmill.db.reuseGoatConnection: false
+  windmill.db.external.host: "pg.example.com"
+  windmill.db.external.existingSecret: "windmill-pg-secret"
+  windmill.workers.print.enabled: true
+  windmill.workers.tools.enabled: true
+  windmill.workers.workflows.enabled: true
+  windmill.workers.legacyPersistence.acknowledgeDeletion: true
+tests:
+  - it: gives the print worker the GOAT database and the web app to print
+    template: windmill/worker-print/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_SERVER
+            value: pg.example.com
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DUCKLAKE_POSTGRES_SERVER
+            value: pg.example.com
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pg-secret
+                key: password
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PRINT_BASE_URL
+            value: http://RELEASE-NAME-goat-web
+
+  - it: gives the tools worker the store, the catalog bucket and DuckLake
+    template: windmill/worker-tools/deployment.yaml
+    set:
+      global.s3.bucket: goat-uploads
+      global.s3.existingSecret: goat-s3
+      catalog.s3.bucket: goat-catalog
+      catalog.s3.existingSecret: catalog-s3
+      ducklakeBootstrap.dataDir: /app/data/lake
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_BUCKET_NAME
+            value: goat-uploads
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: goat-s3
+                key: access-key-id
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CATALOG_S3_BUCKET
+            value: goat-catalog
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CATALOG_S3_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: catalog-s3
+                key: secret_key
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DUCKLAKE_DATA_DIR
+            value: /app/data/lake
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ASSETS_URL
+          any: true
+
+  - it: gives the print worker the Keycloak client when auth is wired to a Secret
+    template: windmill/worker-print/deployment.yaml
+    set:
+      global.auth.enabled: true
+      global.auth.existingSecret: goat-keycloak
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: goat-keycloak
+                key: client-secret
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+            valueFrom:
+              secretKeyRef:
+                name: goat-keycloak
+                key: realm
+
+  - it: gives no Keycloak settings with auth off
+    template: windmill/worker-print/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_CLIENT_SECRET
+          any: true
+
+  - it: whitelists what the chart sets and the worker's own config and extraEnv
+    template: windmill/worker-workflows/deployment.yaml
+    set:
+      global.s3.bucket: goat-uploads
+      windmill.workers.workflows.config.GEOCODING_URL: https://geocoder.example.org
+      windmill.workers.workflows.extraEnv:
+        - name: GEOCODING_AUTHORIZATION
+          value: token
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "WHITELIST_ENVS")].value
+          pattern: (^|,)POSTGRES_PASSWORD(,|$)
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "WHITELIST_ENVS")].value
+          pattern: (^|,)S3_BUCKET_NAME(,|$)
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "WHITELIST_ENVS")].value
+          pattern: (^|,)GEOCODING_URL(,|$)
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "WHITELIST_ENVS")].value
+          pattern: (^|,)GEOCODING_AUTHORIZATION(,|$)
+      - notMatchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "WHITELIST_ENVS")].value
+          pattern: (^|,)(DATABASE_URL|MODE|WORKER_GROUP|_WMILL_DB_PASSWORD)(,|$)
+
+  - it: a WHITELIST_ENVS in the worker's config replaces the built list
+    template: windmill/worker-tools/deployment.yaml
+    set:
+      windmill.workers.tools.config.WHITELIST_ENVS: "POSTGRES_SERVER"
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WHITELIST_ENVS
+          any: true
+
+  - it: a variable set in the worker's extraEnv wins
+    template: windmill/worker-print/deployment.yaml
+    set:
+      windmill.workers.print.extraEnv:
+        - name: PRINT_BASE_URL
+          value: http://web.other.svc
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PRINT_BASE_URL
+            value: http://web.other.svc
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PRINT_BASE_URL
+            value: http://RELEASE-NAME-goat-web
+
+  - it: leaves the default worker alone
+    template: windmill/worker-default/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_SERVER
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: WHITELIST_ENVS
+          any: true
+
+  - it: gives each worker the job timeout of its kind of work
+    template: windmill/worker-tools/configmap.yaml
+    asserts:
+      - equal:
+          path: data.JOB_DEFAULT_TIMEOUT
+          value: "2500"
+
+  - it: gives workflows time to wait for their tool jobs
+    template: windmill/worker-workflows/configmap.yaml
+    asserts:
+      - equal:
+          path: data.JOB_DEFAULT_TIMEOUT
+          value: "1800"
+
+  - it: keeps print and default jobs short
+    template: windmill/worker-print/configmap.yaml
+    asserts:
+      - equal:
+          path: data.JOB_DEFAULT_TIMEOUT
+          value: "300"
+
+  - it: keeps the default worker's jobs short
+    template: windmill/worker-default/configmap.yaml
+    asserts:
+      - equal:
+          path: data.JOB_DEFAULT_TIMEOUT
+          value: "300"

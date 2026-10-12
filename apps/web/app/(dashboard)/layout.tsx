@@ -17,7 +17,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       <Header
         height={52}
         title="Workspace"
-        showHambugerMenu={hidden}
+        // CSS (md breakpoint) decides whether the hamburger shows, so the phone layout is right
+        // in the server HTML; `hidden` (JS) only drives the drawer behaviour.
+        showHambugerMenu
         onMenuIconClick={() => {
           setNavVisible(!navVisible);
         }}

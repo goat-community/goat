@@ -1,0 +1,62 @@
+/* One row: logo and links keep their natural width, the search field takes
+   what is left (up to 36rem) and is the only part that shrinks. */
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.left {
+  flex: 0 0 auto;
+}
+
+.center {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: center;
+  min-width: 10rem;
+}
+
+.search {
+  width: 100%;
+  max-width: 36rem;
+  padding: 0;
+}
+
+.right {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  gap: 0.125rem;
+}
+
+.right > :last-child {
+  padding-right: 0;
+}
+
+/* Below the desktop breakpoint the links move into the mobile sidebar; the
+   search collapses to its icon next to the menu toggle. */
+@media (max-width: 996px) {
+  .inner {
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .center {
+    order: 3;
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .search {
+    position: static;
+    width: auto;
+  }
+
+  .right {
+    display: none;
+  }
+
+  .colorModeToggle {
+    display: none;
+  }
+}

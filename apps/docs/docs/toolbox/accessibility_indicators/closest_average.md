@@ -1,4 +1,5 @@
 ---
+description: "Map the average travel time or distance from each hexagonal cell to the n nearest opportunities, by transport mode, cost limit and number of destinations."
 sidebar_position: 3
 ---
 
@@ -15,27 +16,27 @@ The Heatmap - Closest Average indicator **produces a color-coded map visualizing
 
 ## 1. Explanation
 
-The heatmap displays a color-coded hexagonal grid showing **average travel costs to destinations (opportunities)** using real-world transport networks. You can specify the **routing type**, **cost type (time or distance)**, **opportunity layer**, **number of destinations** and **travel cost limit** to produce the visualization.
+The [heatmap](https://www.plan4better.de/en/glossary/heatmap) displays a color-coded hexagonal grid showing **average travel costs to destinations (opportunities)** using real-world transport networks. You can specify the **routing type**, **cost type (time or distance)**, **opportunity layer**, **number of destinations** and **travel cost limit** to produce the visualization.
 
-- The opportunity layer contains point or polygon based destinations (POIs, transit stations, schools, amenities, parks, or custom data) **that you want to analyze accessibility to**. You can use multiple opportunity layers and they will be combined to produce a unified heatmap.
+- The opportunity layer contains point or polygon based destinations ([POIs](https://www.plan4better.de/en/glossary/point-of-interest), transit stations, schools, amenities, parks, or custom data) **that you want to analyze accessibility to**. You can use multiple opportunity layers and they will be combined to produce a unified heatmap.
 
 - Setting <code>Number of destinations</code> limits the calculation of average travel costs to upto the *n* nearest opportunities. This allows you to produce a more targeted accessibility analysis.
 
 :::tip
 
-**Key difference:** Heatmaps show *access* from many origins to specific destinations, while catchment areas show *reach* from specific origins to many destinations.
+**Key difference:** Heatmaps show *access* from many origins to specific destinations, while [catchment areas](https://www.plan4better.de/en/glossary/catchment-area) show *reach* from specific origins to many destinations.
 
 :::
 
 :::info
 
-Heatmap computation is available across **over 30 European countries** for `Walk`, `Bicycle`, `Pedelec`, and `Car`. For `Public Transport`, Germany, Switzerland, and the Haut-Rhin region of France are supported. If you need analyses beyond these regions, feel free to [contact us](https://plan4better.de/en/contact/).
+Heatmap computation is available across **over 30 European countries** for `Walk`, `Bicycle`, `Pedelec`, and `Car`. For `Public Transport`, Germany, Switzerland, and the Haut-Rhin region of France are supported. If you need analyses beyond these regions, you can [import your own routing network](../../data/builtin_datasets.md#bringing-your-own-networks) or [contact us](https://plan4better.de/en/contact/) and we will do it for you.
 
 :::
 
 ## 2. Example use cases
 
- - Do residents in certain areas have longer average travel times to amenities than others?
+ - Do residents in certain areas have longer average [travel times](https://www.plan4better.de/en/glossary/travel-time) to amenities than others?
 
  - How does the average travel time to amenities vary across different modes of transport?
 
@@ -68,24 +69,23 @@ Heatmap computation is available across **over 30 European countries** for `Walk
 | Bicycle | All paths accessible by bicycle (taking into account surface and slope) |
 | Pedelec | All paths accessible by pedelec (taking into account surface and slope) |
 | Car | All paths accessible by car (taking into account speed limits and one-way restrictions) |
-| Public Transport | All journeys possible by public transport (according to official GTFS schedules), considering walking access and egress to and from stops |
+| Public Transport | All journeys possible by public transport (according to official [GTFS](https://www.plan4better.de/en/glossary/gtfs) schedules), considering walking access and egress to and from stops |
+
+<div class="step">
+  <div class="step-number">4</div>
+  <div class="content">Set how travel is measured. The options depend on the <code>Transport mode</code> you picked in step 3:</div>
+</div>
 
 <Tabs>
 <TabItem value="active-car" label="Walk / Bicycle / Pedelec / Car" default className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">4</div>
-  <div class="content">In the <code>Calculate by</code> menu, choose either the Time (minutes) or Distance (metres) cost type.</div>
-</div>
+In the <code>Calculate by</code> menu, choose either the Time (minutes) or Distance (metres) cost type.
 
 </TabItem>
 
 <TabItem value="public transport" label="Public Transport (PT)" className="tabItemBox">
 
-<div class="step">
-  <div class="step-number">4</div>
-  <div class="content">Choose <code>PT modes</code> to analyze: Bus, Tram, Rail, Subway, Ferry, Cable Car, Gondola, and/or Funicular. Then, select the <code>Day</code> and <code>Arrival time</code> for the analysis. The best public transport journeys that reach the opportunities at or before this time will be considered.</div>
-</div>
+Choose <code>PT modes</code> to analyze: Bus, Tram, Rail, Subway, Ferry, Cable Car, Gondola, and/or Funicular. Then, select the <code>Day</code> and <code>Arrival time</code> for the analysis. The best public transport journeys that reach the opportunities at or before this time will be considered.
 
 </TabItem>
 </Tabs>
@@ -96,12 +96,12 @@ Optionally, enable <code>Advanced options</code> to configure additional setting
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Select a <code>Reference area</code> - a polygon layer that represents your study area. When set, the heatmap extends to cover all H3 cells within that polygon, with inaccessible cells assigned a value of <code>NULL</code> to expose coverage gaps and underserved areas.</div>
+  <div class="content">Select a <code>Reference area</code> - a polygon layer that represents your study area. When set, the heatmap extends to cover all H3 cells within that polygon, with inaccessible cells assigned a value of <code>NULL</code> to expose [coverage gaps](https://www.plan4better.de/en/glossary/service-gaps) and underserved areas.</div>
 </div>
 
 <div class="step">
   <div class="step-number">6</div>
-  <div class="content">Configure various routing options for your selected transport mode such as travel speed, max transfers, access/egress limits and more. Further information about mode-specific options can be found under the <a href="/docs/category/routing">Routing</a> section.</div>
+  <div class="content">Configure various routing options for your selected transport mode such as travel speed, max transfers, access/egress limits and more. Further information about mode-specific options can be found under the [Routing](../../category/routing) section.</div>
 </div>
 
 ### Opportunities
@@ -181,11 +181,11 @@ The formula for average travel cost (time or distance) is:
 For each cell (i), the tool adds up the travel costs (tij) to all reachable opportunities (j), up to n of them, and divides by n to get the average travel cost.
 
 ### Classification
-In order to classify the accessibility levels that were computed for each grid cell, a classification based on quantiles is used by default. However, various other classification methods may be used instead. Read more in the **[Data Classification Methods](../../map/layer_style/style/attribute_based_styling#data-classification-methods)** section of the *Attribute-based Styling* page.
+In order to classify the accessibility levels that were computed for each grid cell, a classification based on [quantiles](https://www.plan4better.de/en/glossary/quantile-classification) is used by default. However, various other classification methods may be used instead. Read more in the **[Data Classification Methods](../../map/layer_style/style/attribute_based_styling#data-classification-methods)** section of the *Attribute-based Styling* page.
 
 ### Visualization 
 
-Heatmaps in GOAT utilize **[Uber's H3 grid-based](../../further_reading/glossary#h3-grid)** solution for efficient computation and easy-to-understand visualization. Behind the scenes, accessibility is computed on-the-fly by GOAT's own routing engine. For each *routing type*, the engine routes outward from the opportunities to discover the reachable H3 cells and their travel costs, then aggregates these into a per-cell accessibility score. Public transport uses the RAPTOR-based engine, while the active mobility and car modes use GOAT's Dijkstra implementation.
+Heatmaps in GOAT utilize **[Uber's H3 grid-based](https://www.plan4better.de/en/glossary/h3-grid)** solution for efficient computation and easy-to-understand visualization. Behind the scenes, accessibility is computed on-the-fly by GOAT's own routing engine. For each *routing type*, the engine routes outward from the opportunities to discover the reachable H3 cells and their travel costs, then aggregates these into a per-cell accessibility score. Public transport uses the RAPTOR-based engine, while the [active mobility](https://www.plan4better.de/en/glossary/active-mobility) and car modes use GOAT's Dijkstra implementation.
 
 The resolution and dimensions of the hexagonal grid used depend on the selected *routing type*:
 

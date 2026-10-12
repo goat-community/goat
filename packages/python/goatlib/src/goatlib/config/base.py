@@ -10,6 +10,9 @@ class BaseSettingsModel(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        # Windmill hands every whitelisted variable to a job, as "" when the
+        # worker does not set it; empty therefore means "use the default".
+        env_ignore_empty=True,
     )
 
 

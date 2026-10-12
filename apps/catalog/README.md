@@ -23,6 +23,24 @@ Items and collections are exposed as DuckDB **views** over the parquet files rat
 
 Same rationale as the geoapi/processes split: catalog browse/search traffic and MCP sessions from LLM clients must never contend with the latency-critical tile path. Because the service needs no database and no object storage at request time, it scales by simply running more replicas against the same read-only files.
 
+## Design Decisions
+
+- **Discovery is public, data stays inside GOAT.** Anyone may browse and search the metadata, so the catalog page can be embedded on a public website. GOAT never redistributes the harvested files: served items never reference GOAT's own GeoParquet copy. That location stays in the mirror's `parquet_url` column, which only the preview and promotion read, and `stac_build` drops every asset whose href is not an absolute http(s) URL. `/mcp` stays authenticated. Org-restricted entries must never enter the public catalog file; that is what makes anonymous serving safe.
+- **No database.** The mirror is a pair of local stac-geoparquet files queried by DuckDB, not a Postgres table. The service holds no connection pool and adds no pressure on the pooler, and the expected scale (up to around 100k items) fits DuckDB over parquet comfortably. Promotion state lives on core's `customer.layer`, so the mirror holds no GOAT state and can be rebuilt from the bucket at any time.
+- **A fully compliant STAC API**, not a private API behind a compliance layer, so external STAC tools (QGIS, pystac-client, stac-browser) work against it unchanged.
+- **Slim serving dependencies.** FastAPI, DuckDB and MCP; no asyncpg and no DuckLake. From goatlib it uses the small CQL2 evaluator. The service is named `catalog`, not `stac`, because it also serves NUTS regions and MCP.
+- **Promote-on-use with snapshot semantics** (implemented in core). Adding a catalog item to a project materializes it once into a shared, read-only `customer.layer` row, identified by `(catalog_external_uid, catalog_version)`. The partial unique index `uq_layer_catalog_identity` decides between concurrent promotes of the same version. Projects keep the version they added; moving to a newer version is a user action. Promotion reads the data from the catalog bucket, never from the original provider.
+
+## Harvester Contract
+
+The harvesting pipeline publishes to the catalog bucket and GOAT consumes it. What GOAT relies on:
+
+- **Two files at the bucket root**: `items.parquet` (one row per STAC Item) and `collections.parquet` (one row per Collection), following the stac-geoparquet convention: `properties.*` hoisted to top-level columns, `bbox` as a struct, `geometry` as WKB. GOAT reads only these two files; the static JSON tree next to them is for external STAC tools and is never walked.
+- **Data and assets under fixed prefixes**: `data/<id>.parquet` for the layer data, `styles/` for rendering styles, `thumbs/` for thumbnails.
+- **Change detection is the S3 ETag** of both files; the mirror's version marker is a hash of the two. A byte-identical rewrite must keep its ETag, or every sync rebuilds the mirror for nothing.
+- **Deletion means absence.** The mirror is rebuilt wholesale on every change, so an item that disappears from the file is gone from browse. Layers already promoted into projects keep working.
+- **Adding a column is free**: it is served and becomes searchable with no GOAT code change. **Renaming or removing a column is a breaking change** that needs coordinating with GOAT first.
+
 ## Endpoints
 
 | Endpoint | Description |

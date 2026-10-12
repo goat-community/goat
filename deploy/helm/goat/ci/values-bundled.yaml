@@ -1,0 +1,110 @@
+# CI fixture: fully bundled profile.
+# - Postgres deployed in-cluster via CloudNativePG operator + Cluster CR
+# - Bundled Redis
+# - Windmill server + default worker (heavier workers opt-in)
+# - Caddy custom-domains feature ON
+# - Public-facing Ingress with TLS via cert-manager
+# - An S3-compatible store for uploads and uploaded images (global.s3)
+
+global:
+  storageClass: longhorn
+  imagePullSecrets:
+    - name: ghcr-pull
+  s3:
+    bucket: goat-uploads
+    provider: minio
+    endpointUrl: http://minio.storage.svc:9000
+    publicEndpointUrl: https://s3.goat.example.com
+    region: us-east-1
+    forcePathStyle: true
+    existingSecret: goat-s3
+    assets:
+      bucket: goat-assets
+      publicUrl: https://s3.goat.example.com/goat-assets
+
+core:
+  enabled: true
+  replicaCount: 3
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: api.goat.example.com
+        paths:
+          - path: /api/v2
+            pathType: Prefix
+    tls:
+      - secretName: goat-api-tls
+        hosts: [api.goat.example.com]
+
+windmill:
+  server:
+    enabled: true
+    ingress:
+      enabled: true
+      className: nginx
+      hosts:
+        - host: windmill.goat.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: goat-windmill-tls
+          hosts: [windmill.goat.example.com]
+  workers:
+    default:
+      enabled: true
+      replicaCount: 1
+    print:
+      enabled: true
+      replicaCount: 1
+    tools:
+      enabled: false              # requires tainted geodata node
+    workflows:
+      enabled: false              # requires tainted geodata node
+
+caddy:
+  enabled: true
+  acmeEmail: "ops@example.com"
+  service:
+    type: LoadBalancer
+
+postgresql:
+  operator:
+    enabled: true
+  cluster:
+    enabled: true
+    instances: 3
+    storage:
+      size: 200Gi
+      storageClass: longhorn
+
+redis:
+  enabled: true
+
+catalog:
+  enabled: true
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: catalog.goat.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: goat-catalog-tls
+        hosts: [catalog.goat.example.com]
+  s3:
+    bucket: goat-catalog
+    endpointUrl: https://s3.example.com
+    existingSecret: catalog-s3-credentials
+
+data:
+  enabled: true
+  accessMode: ReadWriteMany
+  size: 500Gi
+
+web:
+  websiteUrl: https://www.example.com
+  statusFeedUrl: https://status.example.com/goat.json

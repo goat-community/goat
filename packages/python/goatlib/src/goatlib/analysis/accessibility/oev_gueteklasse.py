@@ -101,6 +101,23 @@ class OevGueteklasseTool(PTToolBase):
             logger.info("Importing GTFS stop_times...")
             self._import_gtfs_stop_times(str(params.stop_times_path))
 
+        # Results are keyed by parent station, which gtfs_stops leaves out, so
+        # their names and coordinates are read from the stops file on their own.
+        stops_path = (
+            params.bundle_stops_path
+            if params.bundle_stops_path and params.service_date
+            else params.stops_path
+        )
+        self.con.execute(f"""
+            CREATE OR REPLACE VIEW gtfs_stations AS
+            SELECT
+                stop_id,
+                stop_name,
+                ST_Point(CAST(stop_lon AS DOUBLE), CAST(stop_lat AS DOUBLE)) AS geom
+            FROM read_parquet('{stops_path}')
+            WHERE location_type = '1'
+        """)
+
         # Step 3: Get stations within reference area
         logger.info("Finding stations within reference area...")
         self._get_stations_in_area(ref_geom)
@@ -153,7 +170,8 @@ class OevGueteklasseTool(PTToolBase):
 
         # Aggregate trip counts by stop, considering parent stations
         # For parent stations, we aggregate all child stop counts
-        # We use the centroid of child stops as the parent station geometry
+        # The parent station's own coordinate is its geometry; the centroid of
+        # its child stops stands in when the feed lacks the station row
         # Track child_cnt (number of distinct child stops with service) to know
         # if we should divide trips by 2 later (per Swiss ARE methodology)
         self.con.execute("""
@@ -163,6 +181,8 @@ class OevGueteklasseTool(PTToolBase):
                 -- Also get centroid geometry
                 SELECT
                     parent_station,
+                    -- Fallback name for a station missing from the feed.
+                    MIN(stop_name) AS stop_name,
                     ST_Centroid(ST_Collect(LIST(DISTINCT geom))) AS geom,
                     COUNT(DISTINCT stop_id) AS child_cnt
                 FROM station_trip_counts
@@ -195,14 +215,17 @@ class OevGueteklasseTool(PTToolBase):
             )
             SELECT
                 c.stop_id,
-                COALESCE(orig.stop_name, c.stop_id) AS stop_name,
-                COALESCE(orig.geom, pcc.geom) AS geom,
+                COALESCE(
+                    orig.stop_name, sn.stop_name, pcc.stop_name, c.stop_id
+                ) AS stop_name,
+                COALESCE(orig.geom, sn.geom, pcc.geom) AS geom,
                 c.route_type,
                 c.trip_count,
                 c.child_cnt
             FROM child_counts c
             LEFT JOIN station_trip_counts orig ON c.stop_id = orig.stop_id
             LEFT JOIN parent_child_counts pcc ON c.stop_id = pcc.parent_station
+            LEFT JOIN gtfs_stations sn ON c.stop_id = sn.stop_id
         """)
 
         # Calculate station category

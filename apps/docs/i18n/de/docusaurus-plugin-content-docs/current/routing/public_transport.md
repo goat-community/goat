@@ -1,4 +1,5 @@
 ---
+description: "Wie GOAT ÖV-Fahrten aus GTFS-Daten mit nigiri und RAPTOR samt Zugangs- und Abgangsweg berechnet, mit Optionen für Modi, Tag, Zeitfenster und Umstiege."
 sidebar_position: 3
 
 ---
@@ -9,7 +10,7 @@ Das **Verkehrsmittel ÖPNV** in GOAT ist essentiell für die Durchführung von A
 
 ## 1. Zielsetzung
 
-Das ÖPNV-Routing erleichtert die **intermodale Analyse** durch die Wahl von Zu- und Abgang, wie z.B. zu Fuß, mit dem Fahrrad oder mit dem Auto zum und vom Bahnhof. Dies ist komplexer als die anderen Routing-Modi, da es die Zusammenführung verschiedener Datensätze (z. B. Bürgersteige und Radwege, Haltestellen und Fahrpläne des öffentlichen Verkehrs usw.) und Berechnungsansätze erfordert.
+Das ÖPNV-[Routing](https://www.plan4better.de/de/glossar/routing) erleichtert die **intermodale Analyse** durch die Wahl von Zu- und Abgang, wie z.B. zu Fuß, mit dem Fahrrad oder mit dem Auto zum und vom Bahnhof. Dies ist komplexer als die anderen Routing-Modi, da es die Zusammenführung verschiedener Datensätze (z. B. Bürgersteige und Radwege, Haltestellen und Fahrpläne des öffentlichen Verkehrs usw.) und Berechnungsansätze erfordert.
 
 Das Routing im öffentlichen Verkehr wird in GOAT für Indikatoren wie [Einzugsgebiete](../toolbox/accessibility_indicators/catchments) und [Heatmaps](../toolbox/accessibility_indicators/connectivity) verwendet.
 
@@ -36,14 +37,14 @@ Eine ÖPNV-Fahrt besteht aus drei Abschnitten: dem **Zugangsweg** vom Startpunkt
 
 Das Routing für den öffentlichen Verkehr wird von GOATs eigener leistungsstarker Routing-Engine durchgeführt, die die Open-Source-Bibliothek **[nigiri](https://github.com/motis-project/nigiri)** einbindet. Nigiri ist eine C++-Bibliothek aus dem **[MOTIS-Projekt](https://github.com/motis-project/motis)**, die eine One-to-All-Verbindungssuche im öffentlichen Verkehr mithilfe des **RAPTOR**-Algorithmus bereitstellt.
 
-Die **Transit-Etappe** wird von nigiri berechnet, während die **Zugangs- und Abgangs-Etappen** (erste und letzte Meile) GOATs eigene **Dijkstra**-Implementierung verwenden – dasselbe Routing wie für aktive Mobilität und Auto. Dadurch bleibt das straßenbasierte Routing über alle Verkehrsträger hinweg konsistent.
+Die **Transit-Etappe** wird von nigiri berechnet, während die **Zugangs- und Abgangs-Etappen** (erste und letzte Meile) GOATs eigene **Dijkstra**-Implementierung verwenden, also dasselbe Routing wie für [aktive Mobilität](https://www.plan4better.de/de/glossar/aktive-mobilitaet) und Auto. Dadurch bleibt das straßenbasierte Routing über alle Verkehrsträger hinweg konsistent.
 
 
 ### Routing-Optionen
 
 #### Modi
 
-Analysen für die folgenden öffentlichen Verkehrsmodi werden derzeit von GOAT unterstützt. Wählen Sie einen oder mehrere aus – beachten Sie dabei, dass einige Modi nicht in allen Regionen verfügbar sind.
+Analysen für die folgenden öffentlichen Verkehrsmodi werden derzeit von GOAT unterstützt. Wählen Sie einen oder mehrere aus. Beachten Sie dabei, dass einige Modi nicht in allen Regionen verfügbar sind.
 
 `Bus`, `Straßenbahn`, `Bahn`, `U-Bahn`, `Fähre`, `Seilbahn`, `Gondel`, `Standseilbahn`.
 
@@ -57,8 +58,8 @@ Der Wochentag, der beim Routing im öffentlichen Verkehr berücksichtigt wird. W
 
 #### Start- und Endzeit
 
-Ein Zeitfenster für das Routing im öffentlichen Verkehr. Die Engine wertet **jede Abfahrtsminute** innerhalb dieses Zeitfensters aus und behält die **schnellste** Verbindung zu jedem erreichbaren Ort – es handelt sich nicht um einen Durchschnitt über das Zeitfenster. Das Ergebnis ist daher das bestmögliche, größtmögliche Einzugsgebiet vom angegebenen Startpunkt.  
-Eine Verbindung gilt als innerhalb des Zeitfensters liegend, **ausschließlich basierend auf ihrer Startzeit** – unabhängig von ihrer Endzeit oder Gesamtdauer.
+Ein Zeitfenster für das Routing im öffentlichen Verkehr. Die Engine wertet **jede Abfahrtsminute** innerhalb dieses Zeitfensters aus und behält die **schnellste** Verbindung zu jedem erreichbaren Ort. Es handelt sich nicht um einen Durchschnitt über das Zeitfenster. Das Ergebnis ist daher das bestmögliche, größtmögliche [Einzugsgebiet](https://www.plan4better.de/de/glossar/einzugsgebiet) vom angegebenen Startpunkt.  
+Eine Verbindung gilt als innerhalb des Zeitfensters liegend, **ausschließlich basierend auf ihrer Startzeit**, unabhängig von ihrer Endzeit oder Gesamtdauer.
 
 
 :::note
@@ -83,6 +84,6 @@ Die **Zugangs-Etappe** (vom Ausgangsort zur ÖV-Haltestelle) und die **Abgangs-E
 | Huff-Modell | <code>Zu Fuß</code> | <code>Zeit</code> | 30 Minuten |
 | Reisekostenmatrix | <code>Zu Fuß</code>, <code>Fahrrad</code>, <code>Pedelec</code>, <code>Auto</code> | <code>Zeit</code> oder <code>Entfernung</code> | Bis zum gesamten <code>Limit</code> |
 
-- **Geschwindigkeit** — die für die Etappe verwendete Reisegeschwindigkeit (bei Berechnung nach `Zeit`).
+- **Geschwindigkeit**: die für die Etappe verwendete Reisegeschwindigkeit (bei Berechnung nach `Zeit`).
 
 Standardmäßig verwenden die Zugangs- und die Abgangs-Etappe `Zu Fuß`, ein `Zeit`-Limit von `15 Min` und eine Geschwindigkeit von `5 km/h`.

@@ -59,6 +59,10 @@ def calculate_unique_values(
         WHERE {full_where}
     """
 
+    # Both are written into the SQL, so they must be numbers whatever the
+    # caller passed: a string here would be SQL.
+    limit, offset = max(int(limit), 0), max(int(offset), 0)
+
     # Get unique values with counts
     # Cast value to VARCHAR for consistent string formatting with aggregation_stats
     data_query = f"""

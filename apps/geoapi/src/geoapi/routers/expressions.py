@@ -17,6 +17,7 @@ from goatlib.utils.expressions import (
     ExpressionValidator,
     FunctionCategory,
 )
+from goatlib.utils.sql_validation import validate_sql_expression
 from pydantic import BaseModel, Field
 
 from geoapi.dependencies import LayerInfoDep
@@ -238,6 +239,14 @@ async def preview_expression(
 
     The expression is validated before execution.
     """
+    # The filter is written into the query on a connection with the whole
+    # lake attached: a condition over this layer's columns, nothing more.
+    if request.where_clause:
+        try:
+            validate_sql_expression(request.where_clause)
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=str(e)) from e
+
     try:
         # Get layer metadata for validation
         metadata = await layer_service.get_layer_metadata(layer_info)

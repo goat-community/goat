@@ -12,17 +12,17 @@ import { deleteContentItem } from "../fixtures/content";
  * `datasets/upload-spatial.e2e.ts`).
  */
 test("adds two datasets from My datasets to a project", async ({ page }) => {
-  // A fresh project from Home's hero: "New Project" opens a menu of the three
+  // A fresh project from Home's hero: "New project" opens a menu of the
   // starts (`NewProjectButton`), and a blank one asks for a name only — Home
   // browses no folder of its own, so the project files into the caller's
   // personal home folder and opens the map.
   await page.goto("/home");
-  await page.getByRole("button", { name: "New Project" }).click();
+  await page.getByRole("button", { name: "New project" }).click();
   await page.getByRole("menuitem", { name: "Blank project" }).click();
-  await expect(page.getByRole("heading", { name: "New Project" })).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("New project", { exact: true })).toBeVisible();
 
   const projectName = `E2E Dataset Picker ${Date.now()}`;
-  const nameField = page.getByLabel("New Project");
+  const nameField = page.getByLabel("New project");
   await nameField.click();
   await nameField.fill(projectName);
   await page.getByRole("button", { name: "Create project" }).click();

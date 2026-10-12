@@ -180,6 +180,9 @@ class Project(ContentBaseAttributes, DateTimeBase, table=True):
             return value
         elif isinstance(value, HttpUrl):
             return str(value)
+        # A root-relative path names the artwork the web app ships.
+        if value.startswith("/"):
+            return value
         assert HttpUrl(value)
         return value
 

@@ -7,6 +7,24 @@ import type { ContentQueryParams, ContentType } from "@/lib/validations/content"
 
 export type ContentView = "shared_with_me" | "recent";
 export type ActiveScope = { kind: "space"; spaceId: string | null } | { kind: "view"; view: ContentView };
+
+/** The part of a content request that says *which* collection is listed: a
+ * cross-space view, or a space and optionally a folder in it. Every surface
+ * that lists content (the Content page, the dataset picker) builds its
+ * request from this, so they can never ask for a space differently. Null
+ * while the space is not yet known. */
+export const scopeFeedParams = (
+  active: ActiveScope,
+  folderId: string | null | undefined
+): Pick<ContentQueryParams, "view" | "space_id" | "folder_id"> | null => {
+  if (active.kind === "view") return { view: active.view };
+  if (!active.spaceId) return null;
+  return {
+    view: "space",
+    space_id: active.spaceId,
+    ...(folderId ? { folder_id: folderId } : {}),
+  };
+};
 export type ContentLayout = "grid" | "list";
 export type ContentOrderBy = "updated_at" | "created_at" | "name";
 export type ContentOrder = "ascendent" | "descendent";
@@ -219,14 +237,8 @@ export const useContentPageState = ({ spaceId, folderId, view }: ContentRoute = 
       ...(search ? { search } : {}),
       ...(types.length !== ALL_TYPES.length ? { types: types.join(",") } : {}),
     };
-    if (active.kind === "view") return { view: active.view, ...base };
-    if (!active.spaceId) return null;
-    return {
-      view: "space",
-      space_id: active.spaceId,
-      ...(folderId ? { folder_id: folderId } : {}),
-      ...base,
-    };
+    const scope = scopeFeedParams(active, folderId);
+    return scope ? { ...scope, ...base } : null;
   }, [active, folderId, search, types, orderBy, order]);
 
   return {

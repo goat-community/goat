@@ -101,7 +101,7 @@ const ContentFolderCard = ({
       <MarkBlock kind="folder" size={38} />
 
       <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-        <Typography component="div" noWrap sx={{ fontSize: 14.5, fontWeight: 700 }}>
+        <Typography component="div" noWrap title={item.name} sx={{ fontSize: 14.5, fontWeight: 700 }}>
           {item.name}
         </Typography>
         {location && (

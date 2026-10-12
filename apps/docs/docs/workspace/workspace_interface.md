@@ -1,4 +1,5 @@
 ---
+description: "The Workspace navigation bar with Home, Content, Catalog and Settings, plus the user profile menu and the Job status view of your uploads and analyses."
 sidebar_position: 1
 ---
 

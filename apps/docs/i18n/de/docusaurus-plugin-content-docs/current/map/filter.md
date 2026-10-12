@@ -1,4 +1,5 @@
 ---
+description: "Filtern Sie Layer und Tabellen nach Attributen oder Kartenausdehnung, verknüpfen Sie Ausdrücke mit UND/ODER und sichern Sie das Ergebnis als Layer."
 sidebar_position: 5
 ---
 import Tabs from '@theme/Tabs';
@@ -8,7 +9,7 @@ import TabItem from '@theme/TabItem';
 # Filter
 
 
-**Filter begrenzt die Datensichtbarkeit auf Ihrer Karte** durch logische Ausdrücke (z.B. Supermärkte mit bestimmten Namen) oder räumliche Ausdrücke (z.B. Punkte innerhalb eines Begrenzungsrahmens). **Das Filter-Tool ermöglicht es Ihnen, sich auf relevante Informationen zu konzentrieren, ohne die ursprünglichen Daten zu verändern.** Es funktioniert mit **Punkt-Layern** und **Polygon-Layern**, die `Zahlen`-, `String`-, `Datum`- und `Boolean`-Datentypen enthalten.
+**Filter begrenzt die Datensichtbarkeit auf Ihrer Karte** durch logische Ausdrücke (z.B. Supermärkte mit bestimmten Namen) oder räumliche Ausdrücke (z.B. Punkte innerhalb eines Begrenzungsrahmens). **Das Filter-Tool ermöglicht es Ihnen, sich auf relevante Informationen zu konzentrieren, ohne die ursprünglichen Daten zu verändern.** Es funktioniert mit **Punkt-, Linien- und Polygon-Layern** sowie mit **Tabellen**, die `Zahlen`-, `String`-, `Datum`- und `Boolean`-Datentypen enthalten.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
@@ -23,53 +24,48 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content">Wählen Sie Ihren Layer aus und navigieren Sie zu <code>Layer-Design</code> <img src={require('/img/icons/styling.png').default} alt="Styling-Symbol" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> und finden Sie den <code>Filter-Bereich</code>.</div>
+  <div class="content">Klicken Sie im <code>Layer</code>-Panel auf Ihren Layer. Rechts öffnet sich das Einstellungs-Panel des Layers mit den Tabs <code>Stil</code>, <code>Filtern</code> und <code>Metadaten</code>. Wählen Sie den Tab <code>Filtern</code>. Bei einer Tabelle hat das Panel nur die Tabs <code>Filtern</code> und <code>Metadaten</code> und öffnet sich direkt mit <code>Filtern</code>.</div>
 </div>
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Der <code>Aktive Layer</code>-Selektor <strong>zeigt den aktuell ausgewählten Layer</strong> für die Filterung an.</div>
-</div>
-
-<div class="step">
-  <div class="step-number">3</div>
   <div class="content">Klicken Sie auf <code>+ Ausdruck hinzufügen</code>, um <strong>einen neuen Filterausdruck hinzuzufügen</strong>.</div>
 </div>
 
 <div class="step">
-  <div class="step-number">4</div>
-  <div class="content">Wählen Sie <code>Logischer Ausdruck</code> oder <code>Räumlicher Ausdruck</code>, um <strong>Ihren Filtertyp zu definieren</strong>.</div>
+  <div class="step-number">3</div>
+  <div class="content">Wählen Sie <code>Logischer Ausdruck</code> oder <code>Räumlicher Ausdruck</code>, um <strong>Ihren Filtertyp zu definieren</strong>. Bei einer Tabelle wird direkt ein <code>Logischer Ausdruck</code> hinzugefügt.</div>
 </div>
 
 <Tabs>
   <TabItem value="Logical expression" label="Logischer Ausdruck" default className="tabItemBox">
 
 <div class="step">
-  <div class="step-number">5</div>
-  <div class="content">Wählen Sie das <code>Feld</code> (Attribut), um <strong>zu filtern</strong>.</div>
+  <div class="step-number">4</div>
+  <div class="content">Wählen Sie unter <code>Feld auswählen</code> das Attribut, <strong>nach dem gefiltert werden soll</strong>.</div>
 </div>
 
 <div class="step">
-  <div class="step-number">6</div>
-  <div class="content">Wählen Sie den <code>Operator</code>. Verfügbare Optionen variieren je nach Datentyp (<code>Zahl</code>, <code>String</code>, <code>Datum</code> und <code>Boolean</code>).</div>
+  <div class="step-number">5</div>
+  <div class="content">Wählen Sie unter <code>Operator auswählen</code> den Operator. Verfügbare Optionen variieren je nach Datentyp (<code>Zahl</code>, <code>String</code>, <code>Datum</code> und <code>Boolean</code>).</div>
 </div>
 
 <div style={{ display: 'flex', justifyContent: 'center' }}>
 
 | Ausdrücke für `Zahl` | Ausdrücke für `String` |
 | -------------------- | ---------------------- |
-| ist                  | ist                    |
-| ist nicht            | ist nicht              |
-| enthält              | enthält                |
-| schließt aus         | schließt aus           |
-| ist leer             | ist leer               |
-| ist nicht leer       | ist nicht leer         |
-| ist mindestens       | beginnt mit            |
-| ist weniger als      | endet mit              |
-| ist höchstens        | enthält den Text       |
-| ist größer als       | enthält den Text nicht |
-| liegt zwischen       | ist leerer String      |
-|                      | ist kein leerer String |
+| Ist                  | Ist                    |
+| Ist nicht            | Ist nicht              |
+| Enthält              | Enthält                |
+| Schließt aus         | Schließt aus           |
+| Ist leer             | Ist leer               |
+| Ist nicht leer       | Ist nicht leer         |
+| Ist mindestens       | Beginnt mit            |
+| Ist weniger als      | Endet mit              |
+| Ist höchstens        | Enthält den Text       |
+| Ist größer als       | Enthält nicht den Text |
+| Liegt zwischen       | Ist leer (leerer String) |
+|                      | Ist nicht leer (kein leerer String) |
 
 </div>
 
@@ -77,28 +73,28 @@ import TabItem from '@theme/TabItem';
 
 | Ausdrücke für `Datum` | Ausdrücke für `Boolean` |
 | --------------------- | ----------------------- |
-| ist am                | ist wahr                |
-| ist nicht am          | ist falsch              |
-| ist vorher            | ist leer                |
-| ist danach            | ist nicht leer          |
-| im letzten            |                         |
-| nicht im letzten      |                         |
-| liegt zwischen        |                         |
-| liegt nicht dazwischen |                        |
+| Ist am                | Ist wahr                |
+| Ist nicht am          | Ist falsch              |
+| Ist vorher            | Ist leer                |
+| Ist danach            | Ist nicht leer          |
+| Im letzten            |                         |
+| Nicht im letzten      |                         |
+| Liegt zwischen        |                         |
+| Liegt nicht dazwischen |                        |
 
 </div>
 
 :::tip Hinweis
-Bei `Datum`-Feldern wählen Sie ein Datum über den **Datumsauswähler**. **"liegt zwischen"** verwendet zwei Daten (**Von** und **Bis**), und **"im letzten"** erwartet eine **Anzahl von Tagen**. Bei `Boolean`-Feldern legt der Operator die Bedingung bereits fest, sodass kein Wert erforderlich ist.
+Bei `Datum`-Feldern wählen Sie ein Datum über den **Datumsauswähler** (`Datum auswählen`). **"Liegt zwischen"** verwendet zwei Daten (**Von** und **Bis**), und **"Im letzten"** erwartet eine **Anzahl der Tage**. Bei `Boolean`-Feldern legt der Operator die Bedingung bereits fest, sodass kein Wert erforderlich ist.
 :::
 
 :::tip Hinweis
-Für die Ausdrücke **"enthält"** und **"schließt aus"** können mehrere Werte ausgewählt werden.
+Für die Ausdrücke **"Enthält"** und **"Schließt aus"** können mehrere Werte ausgewählt werden.
 :::
 
 <div class="step">
-  <div class="step-number">7</div>
-  <div class="content">Legen Sie Ihre Filterkriterien fest. Die Karte wird <strong>automatisch aktualisiert</strong> und zeigt ein Filtersymbol auf dem gefilterten Layer an.</div>
+  <div class="step-number">6</div>
+  <div class="content">Legen Sie Ihre Filterkriterien je nach Operator unter <code>Wert auswählen</code>, <code>Werte auswählen</code> oder <code>Wert eingeben</code> fest. Sobald der Ausdruck vollständig ist, wird die Karte <strong>automatisch aktualisiert</strong> und der Layer zeigt im <code>Layer</code>-Panel ein Filtersymbol an.</div>
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -108,16 +104,14 @@ Für die Ausdrücke **"enthält"** und **"schließt aus"** können mehrere Werte
 
 <TabItem value="Spatial expression" label="Räumlicher Ausdruck" default className="tabItemBox">
 <div class="step">
-  <div class="step-number">5</div>
-  <div class="content">Wählen Sie die <code>Schnittmethode</code> für die <strong>räumliche Begrenzung</strong>.</div>
+  <div class="step-number">4</div>
+  <div class="content">Wählen Sie unter <code>Wählen Sie die Schnittmethode aus</code> die <strong>räumliche Begrenzung</strong>.</div>
 </div>
 
 <Tabs>
   <TabItem value="Map extent" label="Kartenausdehnung" default className="tabItemBox">
-<div class="step">
-  <div class="step-number">6</div>
-  <div class="content">Layer wird <strong>automatisch auf die aktuelle Kartenausdehnung zugeschnitten</strong>. Um den Filter zu ändern, <strong>zoomen Sie hinein/heraus</strong> und aktualisieren Sie die Kartenausdehnung.</div>
-</div>
+
+Mit <code>Kartenausdehnung</code> wird der Layer <strong>automatisch auf die aktuelle Kartenausdehnung zugeschnitten</strong>. Um den Filter zu ändern, <strong>zoomen Sie hinein/heraus</strong> und klicken Sie auf das Aktualisieren-Symbol (<code>Aktuelle Kartenausdehnung verwenden</code>).
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
 
@@ -141,7 +135,7 @@ Diese Funktion wird derzeit entwickelt. 🧑🏻‍💻
 
 ### Mehrfachausdruck-Filterung
 
-<strong>Kombinieren Sie mehrere Filter</strong>, indem Sie die Schritte 3-7 für jeden Ausdruck wiederholen. In <code>Filter Ergebnisse</code> wählen Sie <code>Alle Filter erfüllen</code> (UND) oder <code>Mindestens einen Filter erfüllen</code> (ODER), um <strong>zu steuern, wie Filter interagieren</strong>.
+<strong>Kombinieren Sie mehrere Filter</strong>, indem Sie die Schritte 2-6 für jeden Ausdruck wiederholen. Sobald es zwei oder mehr Ausdrücke gibt, erscheint darüber <code>Filter Ergebnisse</code>. Wählen Sie dort <code>Passen Sie alle Filter an</code> (UND) oder <code>Entspricht mindestens einem Filter</code> (ODER), um <strong>zu steuern, wie Filter interagieren</strong>.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <img src={require('/img/map/filter/filter-results_de.webp').default} alt="Logic Operators" style={{ maxHeight: "300px", maxWidth: "300px", objectFit: "cover"}}/>
@@ -155,9 +149,9 @@ Diese Funktion wird derzeit entwickelt. 🧑🏻‍💻
   <img src={require('/img/map/filter/filter_delete_clear_de.webp').default} alt="Delete expression and clear filters" style={{ maxHeight: "300px", maxWidth: "300px", objectFit: "cover"}}/>
 </div>
 
-<strong>Gesamten Filter entfernen</strong>: Klicken Sie auf <code>Filter löschen</code> am unteren Rand des Filtermenüs, um <strong>alle Filter zu entfernen</strong>.
+<strong>Gesamten Filter entfernen</strong>: Klicken Sie auf <code>Filter löschen</code> am unteren Rand des Tabs <code>Filtern</code>, um <strong>alle Filter zu entfernen</strong>.
 
 ### Als neuen Layer speichern
 
-Klicken Sie unten im <code>Filter</code>-Menü auf <code>Als neuen Layer speichern</code>, um das **gefilterte Ergebnis als neuen Datensatz** in Ihrem Workspace zu speichern. So können Sie mit den gefilterten Daten unabhängig weiterarbeiten.
+Sobald der Filter angewendet ist, klicken Sie unten im Tab <code>Filtern</code> auf <code>Als neuen Layer speichern</code>, um das **gefilterte Ergebnis als neuen Datensatz** in Ihrem Workspace zu speichern. So können Sie mit den gefilterten Daten unabhängig weiterarbeiten.
 

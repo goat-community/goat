@@ -1,0 +1,39 @@
+suite: default install shape
+templates:
+  - catalog/deployment.yaml
+  - geoapi/deployment.yaml
+  - processes/deployment.yaml
+  - data/pvc.yaml
+tests:
+  - it: a bare install deploys the catalog
+    template: catalog/deployment.yaml
+    set:
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - hasDocuments:
+          count: 1
+  - it: a bare install deploys geoapi
+    template: geoapi/deployment.yaml
+    set:
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - hasDocuments:
+          count: 1
+  - it: a bare install deploys processes
+    template: processes/deployment.yaml
+    set:
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - hasDocuments:
+          count: 1
+  - it: a bare install deploys the shared data PVC
+    template: data/pvc.yaml
+    set:
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+    asserts:
+      - hasDocuments:
+          count: 1

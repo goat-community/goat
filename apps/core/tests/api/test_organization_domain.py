@@ -9,11 +9,18 @@ from typing import Generator
 from uuid import UUID
 
 import pytest
+from core.core.config import settings
 from core.deps.provisioner import reset_provisioner, set_provisioner
 from core.services.provisioner import FakeProvisioner
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from tests.utils import fake_dns_resolve
+from tests.utils import TEST_CNAME_TARGET, fake_dns_resolve
+
+
+@pytest.fixture(autouse=True)
+def _custom_domains_on(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Custom domains are off by default; these tests run with them on."""
+    monkeypatch.setattr(settings, "CUSTOM_DOMAIN_CNAME_TARGET", TEST_CNAME_TARGET)
 
 
 @pytest.fixture(autouse=True)

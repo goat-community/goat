@@ -1,0 +1,13 @@
+{{- if .Values.windmill.server.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "goat.serviceFullname" (dict "context" . "component" "windmill-server") }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" (dict "context" . "component" "windmill-server") | nindent 4 }}
+data:
+  {{- range $k, $v := .Values.windmill.server.config }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+{{- end }}

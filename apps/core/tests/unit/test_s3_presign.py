@@ -64,3 +64,22 @@ def test_any_provider_gets_path_style_when_forced(
         bucket_name="goat", s3_key="k", content_type="text/csv"
     )
     assert presigned["url"].startswith("https://store.example/goat/k?")
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "stored",
+    [
+        "/assets/img/goat_new_dataset_thumbnail.png",
+        "https://assets.example.org/img/goat_new_dataset_thumbnail.png",
+    ],
+)
+def test_thumbnail_urls_and_root_relative_paths_are_not_presigned(
+    s3_settings: None, stored: str
+) -> None:
+    from core.schemas.layer import ThumbnailUrlMixin
+    from core.schemas.project import IProjectRead
+
+    assert S3Service().get_thumbnail_url(stored, default_url="d") == stored
+    assert ThumbnailUrlMixin.convert_thumbnail_to_presigned_url(stored) == stored
+    assert IProjectRead.convert_thumbnail_to_presigned_url(stored) == stored

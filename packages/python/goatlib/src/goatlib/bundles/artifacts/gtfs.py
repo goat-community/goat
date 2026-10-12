@@ -216,6 +216,7 @@ class GtfsArtifactBuilder(ArtifactBuilder):
         BundleArtifactKind.pt_network_graph,
         BundleArtifactKind.pt_network_linkage,
     )
+    builds_from_source = True
 
     def build(
         self,

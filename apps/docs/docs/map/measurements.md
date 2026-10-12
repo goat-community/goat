@@ -1,4 +1,5 @@
 ---
+description: "Measure lines, polygon areas, circles, flight distances and routed walking or car trips on the map, with snapping to layers and editable vertices."
 sidebar_position: 4
 ---
 

@@ -12,6 +12,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { type ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
@@ -45,6 +46,7 @@ const containsText = (text: string, searchText: string) =>
   text.toLowerCase().indexOf(searchText.toLowerCase()) > -1;
 
 const Selector = (props: SelectorProps) => {
+  const { t } = useTranslation("common");
   const theme = useTheme();
   const [searchText, setSearchText] = useState("");
   const {
@@ -133,6 +135,9 @@ const Selector = (props: SelectorProps) => {
           },
         }}
         IconComponent={() => null}
+        // The visible label is not a <label> tied to the field, so the
+        // combobox carries it as its accessible name.
+        SelectDisplayProps={{ "aria-label": label || placeholder }}
         sx={{ pr: 1 }}
         displayEmpty
         disabled={disabled}
@@ -189,7 +194,7 @@ const Selector = (props: SelectorProps) => {
                     />
                   )
                 )}
-                <Typography variant="body2" fontWeight="bold" noWrap>
+                <Typography variant="body2" fontWeight="bold" noWrap title={selectedItems.label}>
                   {selectedItems.label}
                 </Typography>
               </div>
@@ -218,7 +223,7 @@ const Selector = (props: SelectorProps) => {
             <TextField
               size="small"
               autoFocus
-              placeholder="Search"
+              placeholder={t("search_placeholder_short")}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -268,6 +273,7 @@ const Selector = (props: SelectorProps) => {
             <Typography
               variant="body2"
               fontWeight="bold"
+              title={item.label}
               style={{
                 overflow: "hidden",
                 textOverflow: "ellipsis",

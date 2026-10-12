@@ -356,6 +356,53 @@ class TestProjectExportRunner:
         )
         assert metadata["layers"][0]["field_config"] == field_config
 
+    @pytest.mark.parametrize(
+        ("thumbnail_url", "expected_key"),
+        [
+            ("thumbnails/projects/p_abc.png", "thumbnails/projects/p_abc.png"),
+            ("/assets/img/goat_new_project_artwork.png", None),
+            ("https://assets.example.org/img/goat_new_project_artwork.png", None),
+            (None, None),
+        ],
+    )
+    async def test_only_a_bucket_thumbnail_is_exported(
+        self,
+        runner: ProjectExportRunner,
+        thumbnail_url: str | None,
+        expected_key: str | None,
+    ) -> None:
+        """A URL or a root-relative artwork path is not an object in the bucket."""
+        project_id = uuid.UUID("00000000-0000-0000-0000-000000000099")
+        user_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
+
+        async def fake_fetchrow(query: str, *args: object) -> dict[str, Any] | None:
+            if "FROM customer.project" in query:
+                return {
+                    "id": project_id,
+                    "user_id": user_id,
+                    "name": "Test Project",
+                    "description": None,
+                    "basemap": None,
+                    "custom_basemaps": None,
+                    "max_extent": None,
+                    "builder_config": None,
+                    "tags": None,
+                    "thumbnail_url": thumbnail_url,
+                }
+            return None
+
+        conn = AsyncMock()
+        conn.fetchrow = AsyncMock(side_effect=fake_fetchrow)
+        conn.fetch = AsyncMock(return_value=[])
+        conn.set_type_codec = AsyncMock()
+        conn.close = AsyncMock()
+
+        with patch("goatlib.tools.project_export.asyncpg") as mock_asyncpg:
+            mock_asyncpg.connect = AsyncMock(return_value=conn)
+            metadata = await runner._gather_metadata(str(project_id), str(user_id))
+
+        assert metadata["thumbnail_s3_key"] == expected_key
+
     def test_run_preserves_multiple_links_for_same_layer(
         self, runner: ProjectExportRunner
     ) -> None:

@@ -3,16 +3,7 @@
 </#outputformat>
 
 <#import "template.ftl" as layout>
-<@layout.emailLayout>
-    <tr>
-      <td style="padding-top: 40px;">
-        <img
-            alt=""
-            src="https://assets.plan4better.de/img/email/reset_password.png"
-            style="width: 250px"
-        />
-      </td>
-    </tr>
+<@layout.emailLayout artwork="reset_password.png">
     <tr>
       <td>
         <div style="${properties.titleStyle}">

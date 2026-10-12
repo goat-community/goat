@@ -1,6 +1,7 @@
 ---
 sidebar_position: 3
 sidebar_label: Network Datasets
+description: "The built-in public transport and street networks behind GOAT's routing, their sources and processing, and how to import your own Overture or GTFS network."
 ---
 
 # Network Datasets
@@ -15,7 +16,7 @@ Understanding these underlying datasets helps you:
 - **Interpret results** with knowledge of the data sources
 
 :::info Networks vs. your own datasets
-This page is about the **network datasets** behind GOAT's routing and accessibility analyses. To upload ordinary datasets of your own, or to use ready-made ones, see [Content](../workspace/content.md) and the [Catalog](../workspace/catalog.md).
+This page is about the **network datasets** behind GOAT's [routing](https://www.plan4better.de/en/glossary/routing) and [accessibility analyses](https://www.plan4better.de/en/glossary/accessibility-analysis). To upload ordinary datasets of your own, or to use ready-made ones, see [Content](../workspace/content.md) and the [Catalog](../workspace/catalog.md).
 :::
 
 ## GOAT's built-in networks
@@ -65,9 +66,9 @@ Our street network represents real-world transportation infrastructure including
 - **Elevation Data**: [Copernicus](https://www.copernicus.eu/en) Digital Elevation Model (DEM) for accurate slope calculations
 
 **Processing Workflow:**
-1. **Data Import**: Street network data is imported in Geoparquet format from Overture Maps' [Transportation theme](https://docs.overturemaps.org/guides/transportation/)
+1. **Data Import**: Street network data is imported in [Geoparquet](https://www.plan4better.de/en/glossary/geoparquet) format from [Overture Maps](https://www.plan4better.de/en/glossary/overture-maps)' [Transportation theme](https://docs.overturemaps.org/guides/transportation/)
 2. **Elevation Processing**: European DEM tiles are processed to extract topographical information
-3. **Spatial Indexing**: Network segments are organized using [Uber's H3 grid system](../further_reading/glossary#h3-grid) for efficient processing
+3. **Spatial Indexing**: Network segments are organized using [Uber's H3 grid system](https://www.plan4better.de/en/glossary/h3-grid) for efficient processing
 4. **Slope Calculation**: Surface gradients and slope impedance are computed for each street segment
 5. **Attribute Parsing**: Street classifications, speed limits, turning restrictions, and one-way designations are identified and standardized
 6. **Speed Limit Interpolation**: Missing speed limits are estimated based on street type and modal speeds

@@ -348,6 +348,9 @@ function toExpressionObject(expressionsInsideLogicalOperator): Expression[] {
       expression.expression = "does_not_contains_the_text";
       expression.attribute = inner.args[0].property;
       expression.value = String(inner.args[1]).replace(/%/g, "");
+    } else if (expressionToBeProcessed.op === "=" && typeof value === "boolean") {
+      expression.expression = value ? "is_true" : "is_false";
+      expression.attribute = expressionToBeProcessed.args[0].property;
     } else if (expressionToBeProcessed.op === "=" && value === "") {
       expression.expression = "is_empty_string";
       expression.attribute = expressionToBeProcessed.args[0].property;

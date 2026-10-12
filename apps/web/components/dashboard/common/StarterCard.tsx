@@ -286,9 +286,18 @@ const StarterCard = ({ template, pinned, onTogglePin, onOpen, mobile }: StarterC
           </Tooltip>
           {categories.length > 0 &&
             (mobile ? (
-              // A phone's card carries the count alone, whatever the grid
-              // gives it: the full list is in the preview dialog.
-              <Box sx={CATEGORY_GROUP_SX}>
+              // A phone's card never spells a category out: it carries the
+              // count alone, and only on a card wide enough to hold it after
+              // the name and the time. The full list is in the preview dialog.
+              <Box
+                data-testid="template-category-count"
+                sx={{
+                  ...CATEGORY_GROUP_SX,
+                  display: "none",
+                  [`@container ${CARD_CONTAINER} (min-width: ${CATEGORY_COUNT_MIN_CARD}px)`]: {
+                    display: "flex",
+                  },
+                }}>
                 <CategoryMarker names={categories} />
               </Box>
             ) : (
