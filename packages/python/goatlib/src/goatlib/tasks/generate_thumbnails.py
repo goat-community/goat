@@ -311,6 +311,8 @@ class ThumbnailGeneratorTask:
         if self._pg_pool is None:
             import asyncpg
 
+            from goatlib.config.postgres import TASKS_APPLICATION_NAME
+
             if not self.settings:
                 raise RuntimeError("Call init_from_env() before running task")
 
@@ -320,11 +322,7 @@ class ThumbnailGeneratorTask:
             try:
                 self._pg_pool = await asyncio.wait_for(
                     asyncpg.create_pool(
-                        host=self.settings.postgres_server,
-                        port=self.settings.postgres_port,
-                        user=self.settings.postgres_user,
-                        password=self.settings.postgres_password,
-                        database=self.settings.postgres_db,
+                        **self.settings.postgres_connect_args(TASKS_APPLICATION_NAME),
                         min_size=1,
                         max_size=5,
                         command_timeout=60,  # 60 seconds per query
@@ -408,12 +406,15 @@ class ThumbnailGeneratorTask:
     def _get_ducklake_manager(self: Self) -> Any:
         """Get or create DuckLake manager for querying table data."""
         if self._ducklake_manager is None:
+            from goatlib.config.postgres import TASKS_APPLICATION_NAME
             from goatlib.storage.ducklake import BaseDuckLakeManager
 
             if not self.settings:
                 raise RuntimeError("Call init_from_env() before running task")
 
-            manager = BaseDuckLakeManager(read_only=True)
+            manager = BaseDuckLakeManager(
+                read_only=True, application_name=TASKS_APPLICATION_NAME
+            )
             manager.init_from_params(
                 postgres_uri=self.settings.ducklake_postgres_uri,
                 storage_path=self.settings.ducklake_data_dir,

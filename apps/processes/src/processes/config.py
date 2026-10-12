@@ -71,8 +71,8 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT", "5432"))
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "goat")
 
-    # Direct PostgreSQL host for DuckLake attaches (long-lived,
-    # idle-in-transaction sessions that waste transaction-pooler slots).
+    # Direct PostgreSQL host for DuckLake attaches (long-lived catalog
+    # connections, not verified behind a transaction pooler).
     # Unset = same host as POSTGRES_SERVER.
     DUCKLAKE_POSTGRES_SERVER: str = os.getenv(
         "DUCKLAKE_POSTGRES_SERVER", ""

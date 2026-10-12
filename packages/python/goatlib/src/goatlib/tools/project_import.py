@@ -509,11 +509,7 @@ class ProjectImportRunner(SimpleToolRunner):
                     reports.append(ExportReportLayout.model_validate(json.load(f)))
 
         conn = await asyncpg.connect(
-            host=self.settings.postgres_server,
-            port=self.settings.postgres_port,
-            user=self.settings.postgres_user,
-            password=self.settings.postgres_password,
-            database=self.settings.postgres_db,
+            **self.settings.postgres_connect_args(),
         )
 
         try:

@@ -20,6 +20,7 @@ from uuid import UUID
 import asyncpg
 from pydantic import BaseModel, Field
 
+from goatlib.config.postgres import TASKS_APPLICATION_NAME
 from goatlib.tools.base import ToolSettings
 from goatlib.tools.layer_delete_multi import (
     RECYCLE_DUCKDB_EVERY,
@@ -319,11 +320,7 @@ class PurgeTrashTask:
         out = PurgeTrashOutput(dry_run=params.dry_run)
 
         conn = await asyncpg.connect(
-            host=settings.postgres_server,
-            port=int(settings.postgres_port),
-            user=settings.postgres_user,
-            password=settings.postgres_password,
-            database=settings.postgres_db,
+            **settings.postgres_connect_args(TASKS_APPLICATION_NAME),
         )
         try:
             # Layers first: dropping a layer's DuckLake table must happen

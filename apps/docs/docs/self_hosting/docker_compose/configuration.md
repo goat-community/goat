@@ -78,6 +78,8 @@ The memory defaults suit a 16 GB machine. As a rule of thumb, set `POSTGRES_SHAR
 | `POSTGRES_POOL_SIZE` | `5` | Connection pool size of the Core API |
 | `POSTGRES_MAX_OVERFLOW` | `10` | Extra connections the Core API may open beyond the pool |
 
+GOAT's services name their database sessions after themselves (`goat-core`, `goat-geoapi`, `goat-processes`, `goat-tools`, …), so `pg_stat_activity` shows which one holds a connection. On the Windmill database, sessions without a `goat-` name are Windmill's own.
+
 ## Jobs (Windmill) {#jobs}
 
 | Setting | Default | Meaning |

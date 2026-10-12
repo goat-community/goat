@@ -594,7 +594,9 @@ async def _connect_windmill() -> asyncpg.Connection:
         )
     # Drop the query string (sslmode etc.) — asyncpg parses DSN itself.
     dsn = dsn.split("?", 1)[0]
-    return await asyncpg.connect(dsn=dsn, timeout=10)
+    return await asyncpg.connect(
+        dsn=dsn, timeout=10, server_settings={"application_name": "goat-core"}
+    )
 
 
 async def _fetch_user_org_map(

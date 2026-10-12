@@ -19,6 +19,7 @@ upstream DuckLake layer; the scalar result determines the active handle.
 import logging
 from typing import Any
 
+from goatlib.config.postgres import TOOLS_APPLICATION_NAME
 from goatlib.utils.layer import (
     catalog_layer_parquet,
     get_schema_for_layer,
@@ -242,7 +243,9 @@ def _fetch_layer_columns(layer_id: str, user_id: str) -> list[str]:
         from goatlib.tools.base import ToolSettings
 
         settings = ToolSettings.from_env()
-        manager = BaseDuckLakeManager(read_only=True)
+        manager = BaseDuckLakeManager(
+            read_only=True, application_name=TOOLS_APPLICATION_NAME
+        )
         manager.init_from_params(
             postgres_uri=settings.ducklake_postgres_uri,
             storage_path=settings.ducklake_data_dir,
@@ -284,7 +287,9 @@ def _evaluate_boolean_sql_against_layer(
         from goatlib.tools.base import ToolSettings
 
         settings = ToolSettings.from_env()
-        manager = BaseDuckLakeManager(read_only=True)
+        manager = BaseDuckLakeManager(
+            read_only=True, application_name=TOOLS_APPLICATION_NAME
+        )
         manager.init_from_params(
             postgres_uri=settings.ducklake_postgres_uri,
             storage_path=settings.ducklake_data_dir,

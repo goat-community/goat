@@ -73,6 +73,27 @@ table rather than through parquet, so an empty copy keeps its GEOMETRY column
 (an advisory lock per project and source, and a `template_copy` stamp on the
 copy and its entries), and a failed run leaves the entries on the source.
 
+## DuckLake catalog connections
+
+Every DuckLake read runs a few catalog queries inside a Postgres transaction,
+and DuckDB keeps that transaction open until the query's result has been read
+to the end. The managers in `storage/ducklake.py` read their own results fully
+and close whatever a caller left unread when a connection goes back to its
+lock or pool (`release_result`); otherwise the session stays `idle in
+transaction` and holds back vacuum for as long as the connection lives.
+Connections no manager takes back, such as a tool run's own, read single rows
+with `fetch_one`, which closes the result the same way.
+
+DuckDB also caches catalog connections per attach, by default a multiple of
+the host's cores, so every attach caps them (`cap_catalog_connections`).
+Service connections cap at what one query can use at once, one per DuckDB
+thread plus one; a lower cap makes DuckDB reconnect for every first read of a
+table. Tool runs, which read few tables, keep a small fixed number, and
+attaches that run one small query at a time (the snapshot poll) keep one.
+
+Sessions carry an `application_name` (`goat-geoapi-ducklake`, `goat-tools`,
+…) so operators can tell them apart in `pg_stat_activity`.
+
 ## Development
 
 The repo is a uv workspace — sync everything from the repo root:

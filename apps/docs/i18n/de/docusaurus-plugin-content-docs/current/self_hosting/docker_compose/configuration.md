@@ -78,6 +78,8 @@ Die Speichervorgaben passen zu einer Maschine mit 16 GB. Als Faustregel setzen S
 | `POSTGRES_POOL_SIZE` | `5` | Größe des Verbindungspools der Core API |
 | `POSTGRES_MAX_OVERFLOW` | `10` | Zusätzliche Verbindungen, die die Core API über den Pool hinaus öffnen darf |
 
+Die Dienste von GOAT benennen ihre Datenbanksitzungen nach sich selbst (`goat-core`, `goat-geoapi`, `goat-processes`, `goat-tools`, …), sodass `pg_stat_activity` zeigt, welcher Dienst eine Verbindung hält. Auf der Windmill-Datenbank gehören die Sitzungen ohne `goat-`-Namen Windmill selbst.
+
 ## Jobs (Windmill) {#jobs}
 
 | Einstellung | Vorgabe | Bedeutung |

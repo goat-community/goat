@@ -427,11 +427,7 @@ class LayerCopyRunner(BaseToolRunner[LayerCopyParams]):
         if self.settings is None:
             raise RuntimeError("Settings not initialized")
         return await asyncpg.connect(
-            host=self.settings.postgres_server,
-            port=self.settings.postgres_port,
-            user=self.settings.postgres_user,
-            password=self.settings.postgres_password,
-            database=self.settings.postgres_db,
+            **self.settings.postgres_connect_args(),
         )
 
     def _copy_table(
