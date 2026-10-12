@@ -15,7 +15,11 @@ from collections.abc import Callable
 from typing import Any, TypedDict
 
 import duckdb
-from goatlib.storage import configure_baked_extensions
+from goatlib.storage import (
+    cap_catalog_connections,
+    configure_baked_extensions,
+    uri_with_application_name,
+)
 
 from processes.config import settings
 
@@ -134,9 +138,11 @@ def _get_connection() -> duckdb.DuckDBPyConnection:
         if not configure_baked_extensions(con):
             con.execute("INSTALL postgres;")
         con.execute("LOAD postgres;")
-        con.execute(
-            f"ATTACH '{settings.POSTGRES_DATABASE_URI}' AS pubcfg (TYPE postgres, READ_ONLY)"
+        cap_catalog_connections(con, 1)
+        uri = uri_with_application_name(
+            settings.POSTGRES_DATABASE_URI, "goat-processes"
         )
+        con.execute(f"ATTACH '{uri}' AS pubcfg (TYPE postgres, READ_ONLY)")
         _con = con
     return _con
 
@@ -144,12 +150,13 @@ def _get_connection() -> duckdb.DuckDBPyConnection:
 def _fetch_config(project_id: uuid.UUID) -> dict[str, Any] | None:
     con = _get_connection()
     # postgres_query takes a SQL literal; project_id is a validated UUID.
-    row = con.execute(
+    # Read to the end: an unread result keeps the attach's transaction open.
+    rows = con.execute(
         "SELECT * FROM postgres_query('pubcfg', "
         f"'SELECT config::text AS config FROM customer.project_public "
         f"WHERE project_id = ''{project_id}''')"
-    ).fetchone()
-    return json.loads(row[0]) if row else None
+    ).fetchall()
+    return json.loads(rows[0][0]) if rows else None
 
 
 def _cache_get(key: str, now: float) -> Any | None:

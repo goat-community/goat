@@ -77,6 +77,75 @@ POSTGRES_KEEPALIVE_PARAMS = {
     "keepalives_count": "5",  # failed keepalives before disconnect
 }
 
+# The snapshot poll's attach runs one small query at a time.
+POLL_CATALOG_CONNECTIONS = 1
+
+
+def catalog_libpq(params: dict[str, str], application_name: str | None) -> str:
+    """libpq connection string for a catalog attach.
+
+    Adds TCP keepalives and the application_name operators see for these
+    sessions in pg_stat_activity.
+    """
+    params = {**params, **POSTGRES_KEEPALIVE_PARAMS}
+    if application_name:
+        params["application_name"] = application_name
+    return " ".join(f"{k}={v}" for k, v in params.items())
+
+
+def uri_with_application_name(uri: str, application_name: str) -> str:
+    """Postgres URI carrying the application_name shown in pg_stat_activity."""
+    separator = "&" if "?" in uri else "?"
+    return f"{uri}{separator}application_name={application_name}"
+
+
+def cap_catalog_connections(
+    con: duckdb.DuckDBPyConnection, max_connections: int | None = None
+) -> None:
+    """Cap the catalog connections DuckDB caches for attaches made after this.
+
+    DuckDB's postgres extension caches a multiple of the host's cores per
+    attach by default, and keeps idle ones for a minute. A query reads the
+    catalog in parallel on at most one connection per DuckDB thread plus one,
+    the default cap here: below that, DuckDB opens and closes a connection for
+    every extra read, which slows each first read of a table.
+    """
+    if max_connections is None:
+        threads = con.execute("SELECT current_setting('threads')").fetchall()[0][0]
+        max_connections = int(threads) + 1
+    con.execute(f"SET pg_pool_max_connections={max_connections}")
+
+
+def release_result(con: duckdb.DuckDBPyConnection) -> None:
+    """Close whatever result a caller left unread on `con`.
+
+    DuckDB streams results: until one is read to the end, its transaction stays
+    open, and so does the transaction of every catalog connection the query
+    used, which the server shows as `idle in transaction`. Running any
+    statement closes the pending result without reading the rest of it.
+    """
+    try:
+        con.execute("SELECT 1").fetchall()
+    except Exception:
+        # A broken connection has no transaction left to hold open.
+        pass
+
+
+def fetch_one(
+    con: duckdb.DuckDBPyConnection, query: str, params: list | tuple | None = None
+) -> tuple | None:
+    """First row of `query`, with the rest of its result closed (see release_result).
+
+    For connections no manager or pool takes back, such as a tool run's own.
+    """
+    row = (con.execute(query, params) if params else con.execute(query)).fetchone()
+    release_result(con)
+    return row
+
+
+class QueryTimeoutError(TimeoutError):
+    """A pooled query ran past its timeout and was interrupted."""
+
 
 def is_connection_error(error: Exception) -> bool:
     """Check if an error indicates a broken connection that should be retried."""
@@ -201,6 +270,7 @@ class BaseDuckLakeManager:
         read_only: bool = False,
         pin_snapshot: bool = False,
         refresh_interval: float = 5.0,
+        application_name: str | None = "goat-ducklake",
     ) -> None:
         self._connection: duckdb.DuckDBPyConnection | None = None
         self._lock = threading.Lock()
@@ -217,6 +287,7 @@ class BaseDuckLakeManager:
         self._threads: int | None = None
         self._pin_snapshot = pin_snapshot
         self._refresh_interval = refresh_interval
+        self._application_name = application_name
         self._pin: SnapshotPin | None = None
         self._poll_con: duckdb.DuckDBPyConnection | None = None
         self._poll_lock = threading.Lock()
@@ -244,11 +315,11 @@ class BaseDuckLakeManager:
 
     def init(self: "BaseDuckLakeManager", settings: DuckLakeSettings) -> None:
         """Initialize DuckLake connection."""
-        # DuckLake attaches are few, permanent, and idle-in-transaction —
-        # the worst clients for a transaction pooler (each pins a server
-        # slot forever). Deployments can point them directly at PostgreSQL
-        # via DUCKLAKE_POSTGRES_DATABASE_URI, keeping the pooler's slots
-        # for short-lived app queries. Falls back to the app-wide URI.
+        # DuckLake attaches are few and long-lived, keep their catalog
+        # connections open, and are not verified behind a transaction
+        # pooler. Deployments can point them directly at PostgreSQL via
+        # DUCKLAKE_POSTGRES_DATABASE_URI, keeping the pooler's slots for
+        # short-lived app queries. Falls back to the app-wide URI.
         self._postgres_uri = (
             getattr(settings, "DUCKLAKE_POSTGRES_DATABASE_URI", None)
             or settings.POSTGRES_DATABASE_URI
@@ -344,6 +415,7 @@ class BaseDuckLakeManager:
         self._install_extensions(con)
         self._load_extensions(con)
         self._setup_s3(con)
+        cap_catalog_connections(con)
         self._attach_ducklake(con, snapshot_version=snapshot_version)
         for hook in list(self._connection_hooks):
             try:
@@ -394,6 +466,7 @@ class BaseDuckLakeManager:
         self._install_extensions(con)
         self._load_extensions(con)
         self._setup_s3(con)
+        cap_catalog_connections(con)
         self._attach_ducklake(con)
 
     def _recycle_if_stale(self: "BaseDuckLakeManager") -> None:
@@ -445,7 +518,11 @@ class BaseDuckLakeManager:
             raise RuntimeError("DuckLakeManager not initialized")
         with self._lock:
             self._recycle_if_stale()
-            yield self._connection
+            con = self._connection
+            try:
+                yield con
+            finally:
+                release_result(con)
 
     @contextmanager
     def connection_with_retry(
@@ -463,7 +540,11 @@ class BaseDuckLakeManager:
         for attempt in range(max_retries + 1):
             try:
                 with self._lock:
-                    yield self._connection
+                    con = self._connection
+                    try:
+                        yield con
+                    finally:
+                        release_result(con)
                 return  # Success, exit
             except Exception as e:
                 if is_connection_error(e) and attempt < max_retries:
@@ -481,6 +562,11 @@ class BaseDuckLakeManager:
     def postgres_uri(self: "BaseDuckLakeManager") -> str | None:
         """libpq connection string of the catalog Postgres."""
         return self._postgres_uri
+
+    @property
+    def application_name(self: "BaseDuckLakeManager") -> str | None:
+        """Name this manager's catalog sessions carry in pg_stat_activity."""
+        return self._application_name
 
     @property
     def catalog_schema(self: "BaseDuckLakeManager") -> str | None:
@@ -622,12 +708,7 @@ class BaseDuckLakeManager:
         con: duckdb.DuckDBPyConnection,
         snapshot_version: int | None = None,
     ) -> None:
-        params = self._parse_postgres_uri()
-
-        # Add TCP keepalive settings to prevent SSL EOF errors on idle connections
-        params.update(POSTGRES_KEEPALIVE_PARAMS)
-
-        libpq_str = " ".join(f"{k}={v}" for k, v in params.items())
+        libpq_str = catalog_libpq(self._parse_postgres_uri(), self._application_name)
 
         options = [
             f"DATA_PATH '{self._storage_path}'",
@@ -672,17 +753,18 @@ class BaseDuckLakeManager:
                                 install_err,
                             )
                         con.execute("LOAD postgres")
-                        params = self._parse_postgres_uri()
-                        params.update(POSTGRES_KEEPALIVE_PARAMS)
-                        libpq = " ".join(f"{k}={v}" for k, v in params.items())
+                        cap_catalog_connections(con, POLL_CATALOG_CONNECTIONS)
+                        libpq = catalog_libpq(
+                            self._parse_postgres_uri(), self._application_name
+                        )
                         con.execute(
                             f"ATTACH '{libpq}' AS pincat (TYPE postgres, READ_ONLY)"
                         )
                         self._poll_con = con
-                    row = self._poll_con.execute(query).fetchone()
-                    if row is None or row[0] is None:
+                    rows = self._poll_con.execute(query).fetchall()
+                    if not rows or rows[0][0] is None:
                         raise RuntimeError("ducklake_snapshot is empty")
-                    return int(row[0])
+                    return int(rows[0][0])
                 except Exception:
                     if self._poll_con is not None:
                         try:
@@ -709,7 +791,7 @@ class BaseDuckLakeManager:
         """
         con.execute(
             "SELECT count(*) FROM duckdb_schemas() WHERE database_name = 'lake'"
-        ).fetchone()
+        ).fetchall()
 
     def _build_warm_and_swap(
         self: "BaseDuckLakeManager",
@@ -835,6 +917,7 @@ class DuckLakePool:
         pool_size: int = 2,
         pin_snapshot: bool = False,
         refresh_interval: float = 5.0,
+        application_name: str | None = "goat-ducklake",
     ) -> None:
         """Initialize connection pool.
 
@@ -845,6 +928,8 @@ class DuckLakePool:
                 request path by a background poll thread, instead of always
                 reading the latest snapshot.
             refresh_interval: Seconds between background snapshot polls.
+            application_name: Name the catalog sessions carry in
+                pg_stat_activity.
         """
         self._pool_size = pool_size
         self._pool: queue.Queue[tuple[duckdb.DuckDBPyConnection, float, int]] = (
@@ -863,6 +948,7 @@ class DuckLakePool:
         self._threads: int | None = None
         self._pin_snapshot = pin_snapshot
         self._refresh_interval = refresh_interval
+        self._application_name = application_name
         self._pin: SnapshotPin | None = None
         self._generation = 0
         self._poll_con: duckdb.DuckDBPyConnection | None = None
@@ -1013,17 +1099,18 @@ class DuckLakePool:
                                 install_err,
                             )
                         con.execute("LOAD postgres")
-                        params = self._parse_postgres_uri()
-                        params.update(POSTGRES_KEEPALIVE_PARAMS)
-                        libpq = " ".join(f"{k}={v}" for k, v in params.items())
+                        cap_catalog_connections(con, POLL_CATALOG_CONNECTIONS)
+                        libpq = catalog_libpq(
+                            self._parse_postgres_uri(), self._application_name
+                        )
                         con.execute(
                             f"ATTACH '{libpq}' AS pincat (TYPE postgres, READ_ONLY)"
                         )
                         self._poll_con = con
-                    row = self._poll_con.execute(query).fetchone()
-                    if row is None or row[0] is None:
+                    rows = self._poll_con.execute(query).fetchall()
+                    if not rows or rows[0][0] is None:
                         raise RuntimeError("ducklake_snapshot is empty")
-                    return int(row[0])
+                    return int(rows[0][0])
                 except Exception:
                     if self._poll_con is not None:
                         try:
@@ -1112,10 +1199,17 @@ class DuckLakePool:
             secret_key=self._s3_secret_key,
         )
 
+        # Pinned, this is the base every cursor of a generation queries
+        # through; _create_base_with_retry raises its threads to the pool's.
+        cap_catalog_connections(
+            con,
+            self._threads * self._pool_size + 1
+            if self._pin_snapshot and self._threads
+            else None,
+        )
+
         # Attach DuckLake catalog in read-only mode
-        params = self._parse_postgres_uri()
-        params.update(POSTGRES_KEEPALIVE_PARAMS)
-        libpq_str = " ".join(f"{k}={v}" for k, v in params.items())
+        libpq_str = catalog_libpq(self._parse_postgres_uri(), self._application_name)
 
         options = [
             f"DATA_PATH '{self._storage_path}'",
@@ -1145,7 +1239,7 @@ class DuckLakePool:
         """
         con.execute(
             "SELECT count(*) FROM duckdb_schemas() WHERE database_name = 'lake'"
-        ).fetchone()
+        ).fetchall()
 
     def _scaled_memory_limit(self) -> str | None:
         """The configured per-connection memory limit scaled to the pool size.
@@ -1464,9 +1558,11 @@ class DuckLakePool:
 
         con, created_at, gen = self._get_healthy_connection()
         connection_failed = False
+        timed_out = False
         try:
             yield con
         except Exception as e:
+            timed_out = isinstance(e, QueryTimeoutError)
             # On connection errors, mark for recreation
             if is_connection_error(e):
                 logger.warning("Connection error during query, will recreate: %s", e)
@@ -1477,6 +1573,10 @@ class DuckLakePool:
                     pass
             raise
         finally:
+            # An interrupted query has already ended its transaction, and its
+            # thread may still be winding down on this cursor.
+            if not connection_failed and not timed_out:
+                release_result(con)
             # Gate on the configured mode, not the pin object: bases exist
             # for every pinned pool even before/while the pin is (re)built.
             if self._pin_snapshot:
@@ -1643,7 +1743,9 @@ class DuckLakePool:
             logger.warning("Query timeout (%.1fs) exceeded, interrupting", timeout)
             con.interrupt()
             thread.join(timeout=1.0)  # Give it a moment to clean up
-            raise TimeoutError(f"Query exceeded {timeout}s timeout and was interrupted")
+            raise QueryTimeoutError(
+                f"Query exceeded {timeout}s timeout and was interrupted"
+            )
 
         if "error" in error_container:
             raise error_container["error"]

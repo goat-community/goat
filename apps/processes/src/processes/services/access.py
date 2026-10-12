@@ -458,7 +458,12 @@ async def _get_pool() -> asyncpg.Pool:
             database=settings.POSTGRES_DB,
             min_size=1,
             max_size=4,
+            # Close a connection once it has sat idle for a minute rather
+            # than five. asyncpg closes idle ones down to none, min_size
+            # included, so the first request after a quiet minute reconnects.
+            max_inactive_connection_lifetime=60,
             command_timeout=10,
+            server_settings={"application_name": "goat-processes"},
         )
     return _pool
 

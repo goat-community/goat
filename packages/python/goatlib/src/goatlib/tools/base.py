@@ -48,6 +48,7 @@ import duckdb
 
 from goatlib.bundles.artifacts.storage import resolve_artifact
 from goatlib.config.io import DEFAULT_MAX_UPLOAD_BYTES
+from goatlib.config.postgres import TOOLS_APPLICATION_NAME
 from goatlib.io.bbox_columns import star_excluding, stray_bbox_columns
 from goatlib.io.config import (
     PARQUET_COMPRESSION,
@@ -56,6 +57,11 @@ from goatlib.io.config import (
 )
 from goatlib.models.bundle import BundleArtifactState, artifact_state
 from goatlib.models.io import DatasetMetadata
+from goatlib.storage.ducklake import (
+    cap_catalog_connections,
+    fetch_one,
+    uri_with_application_name,
+)
 from goatlib.storage.s3_config import apply_duckdb_s3_settings, boto_client_kwargs
 from goatlib.tools.db import ToolDatabaseService
 from goatlib.tools.schemas import ToolInputBase, ToolOutputBase
@@ -67,6 +73,9 @@ from goatlib.utils.layer import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Catalog connections a tool run's DuckLake attach keeps between reads.
+TOOLS_CATALOG_CONNECTIONS = 3
 
 TParams = TypeVar("TParams", bound=ToolInputBase)
 
@@ -199,6 +208,23 @@ class ToolSettings:
             ),
         )
 
+    def postgres_connect_args(
+        self: Self, application_name: str = TOOLS_APPLICATION_NAME
+    ) -> dict[str, Any]:
+        """Keyword arguments for asyncpg.connect and asyncpg.create_pool.
+
+        `application_name` is what operators see for the session in
+        pg_stat_activity.
+        """
+        return {
+            "host": self.postgres_server,
+            "port": int(self.postgres_port),
+            "user": self.postgres_user,
+            "password": self.postgres_password,
+            "database": self.postgres_db,
+            "server_settings": {"application_name": application_name},
+        }
+
     @classmethod
     def _get_secret(cls: type[Self], name: str, default: str = "") -> str:
         """Get a secret value from Windmill or environment variable.
@@ -241,8 +267,8 @@ class ToolSettings:
             f"postgresql://{pg_user}:{pg_password}@{pg_server}:{pg_port}/{pg_db}"
         )
 
-        # DuckLake attaches hold idle-in-transaction sessions for the whole
-        # job, which pins transaction-pooler slots for nothing. When
+        # DuckLake attaches keep their catalog connections for the whole job
+        # and are not verified behind a transaction pooler. When
         # DUCKLAKE_POSTGRES_SERVER is set they connect straight to that host
         # (e.g. the CNPG primary); otherwise behavior is unchanged.
         ducklake_pg_server = cls._get_secret("DUCKLAKE_POSTGRES_SERVER", "")
@@ -381,8 +407,15 @@ class SimpleToolRunner:
             )
 
         storage_path = self.settings.ducklake_data_dir
+        catalog_uri = uri_with_application_name(
+            self.settings.ducklake_postgres_uri, TOOLS_APPLICATION_NAME
+        )
+        # Tools run DuckDB on every core of the node. A job reads few tables, so
+        # reconnecting for the odd parallel catalog read beats holding a
+        # node's worth of catalog connections for the whole job.
+        cap_catalog_connections(con, TOOLS_CATALOG_CONNECTIONS)
         con.execute(f"""
-            ATTACH 'ducklake:postgres:{self.settings.ducklake_postgres_uri}' AS lake (
+            ATTACH 'ducklake:postgres:{catalog_uri}' AS lake (
                 DATA_PATH '{storage_path}',
                 METADATA_SCHEMA '{self.settings.ducklake_catalog_schema}',
                 OVERRIDE_DATA_PATH true
@@ -655,7 +688,9 @@ class SimpleToolRunner:
                 self.duckdb_con,
                 layer_id,
                 self.settings.ducklake_catalog_schema,
-                self.settings.ducklake_postgres_uri,
+                uri_with_application_name(
+                    self.settings.ducklake_postgres_uri, TOOLS_APPLICATION_NAME
+                ),
             )
         except Exception as e:
             logger.warning(
@@ -702,11 +737,7 @@ class SimpleToolRunner:
             raise RuntimeError("Settings not initialized")
 
         return await asyncpg.create_pool(
-            host=self.settings.postgres_server,
-            port=self.settings.postgres_port,
-            user=self.settings.postgres_user,
-            password=self.settings.postgres_password,
-            database=self.settings.postgres_db,
+            **self.settings.postgres_connect_args(),
             min_size=1,
             max_size=5,
         )
@@ -1221,9 +1252,9 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
         # and metadata-catalog failures bubble up unchanged so they're not
         # misdiagnosed as missing layers.
         try:
-            check_result = self.duckdb_con.execute(
-                f"SELECT COUNT(*) FROM {table_name} LIMIT 1"
-            ).fetchone()
+            check_result = fetch_one(
+                self.duckdb_con, f"SELECT COUNT(*) FROM {table_name} LIMIT 1"
+            )
             logger.debug(f"Table {table_name} exists with data check: {check_result}")
         except duckdb.CatalogException as e:
             raise ValueError(
@@ -1740,7 +1771,7 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
         columns = {row[0]: row[1] for row in cols}
 
         # Get row count
-        count_result = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()
+        count_result = fetch_one(con, f"SELECT COUNT(*) FROM {table_name}")
         feature_count = count_result[0] if count_result else 0
 
         # Detect geometry column
@@ -1756,24 +1787,30 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
 
         if geom_col:
             # Get geometry type
-            type_result = con.execute(f"""
+            type_result = fetch_one(
+                con,
+                f"""
                 SELECT DISTINCT ST_GeometryType({geom_col})
                 FROM {table_name}
                 WHERE {geom_col} IS NOT NULL
                 LIMIT 1
-            """).fetchone()
+            """,
+            )
             if type_result:
                 geometry_type = type_result[0]
 
             # Get extent using ST_Extent_Agg (the correct aggregate function in DuckDB spatial)
-            extent_result = con.execute(f"""
+            extent_result = fetch_one(
+                con,
+                f"""
                 SELECT
                     ST_XMin(ST_Extent_Agg({geom_col})),
                     ST_YMin(ST_Extent_Agg({geom_col})),
                     ST_XMax(ST_Extent_Agg({geom_col})),
                     ST_YMax(ST_Extent_Agg({geom_col}))
                 FROM {table_name}
-            """).fetchone()
+            """,
+            )
             if extent_result and all(v is not None for v in extent_result):
                 extent = list(extent_result)
                 extent_wkt = (
@@ -1810,7 +1847,9 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
             Snapshot ID if found, None otherwise
         """
         try:
-            result = self.duckdb_con.execute(f"""
+            result = fetch_one(
+                self.duckdb_con,
+                f"""
                 SELECT t.begin_snapshot
                 FROM __ducklake_metadata_lake.ducklake.ducklake_table t
                 JOIN __ducklake_metadata_lake.ducklake.ducklake_schema s
@@ -1818,7 +1857,8 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
                 WHERE s.schema_name = '{schema_name}'
                 AND t.table_name = '{table_name}'
                 AND t.end_snapshot IS NULL
-            """).fetchone()
+            """,
+            )
 
             if result:
                 return result[0]
@@ -1925,11 +1965,7 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
             return  # Already initialized
 
         self._db_pool = await asyncpg.create_pool(
-            host=self.settings.postgres_server,
-            port=self.settings.postgres_port,
-            user=self.settings.postgres_user,
-            password=self.settings.postgres_password,
-            database=self.settings.postgres_db,
+            **self.settings.postgres_connect_args(),
             min_size=1,
             max_size=5,
         )

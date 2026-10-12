@@ -153,8 +153,8 @@ def test_fetch_latest_snapshot_id_installs_postgres_before_load(
             executed.append(sql)
             return self
 
-        def fetchone(self) -> tuple[int]:
-            return (5,)
+        def fetchall(self) -> list[tuple[int]]:
+            return [(5,)]
 
         def close(self) -> None:
             pass

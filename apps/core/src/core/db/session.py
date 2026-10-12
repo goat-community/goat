@@ -1,7 +1,7 @@
 import contextlib
 from typing import AsyncIterator
 
-from sqlalchemy import text
+from sqlalchemy import make_url, text
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncEngine,
@@ -23,8 +23,16 @@ class DatabaseSessionManager:
         if not host:
             raise ValueError("Database host must be provided")
 
+        # The name operators see for these sessions in pg_stat_activity;
+        # asyncpg takes server settings separately, psycopg as a libpq keyword.
+        connect_args: dict = (
+            {"server_settings": {"application_name": "goat-core"}}
+            if make_url(host).get_driver_name() == "asyncpg"
+            else {"application_name": "goat-core"}
+        )
         self._engine = create_async_engine(
             host,
+            connect_args=connect_args,
             isolation_level="AUTOCOMMIT",
             pool_pre_ping=True,  # Check connection health before using
             pool_recycle=300,  # Recycle connections every 5 minutes

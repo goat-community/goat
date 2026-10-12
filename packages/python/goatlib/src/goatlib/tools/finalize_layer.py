@@ -35,6 +35,7 @@ import asyncpg
 from pydantic import BaseModel, Field
 
 from goatlib.io.bbox_columns import star_excluding, stray_bbox_columns
+from goatlib.storage.ducklake import fetch_one
 from goatlib.tools.authz import authorize_workflow_export
 from goatlib.tools.base import BaseToolRunner, _get_or_create_event_loop
 from goatlib.tools.layer_replace import LayerReplaceMixin
@@ -205,11 +206,7 @@ class FinalizeLayerRunner(LayerReplaceMixin, BaseToolRunner[FinalizeLayerParams]
         if self.settings is None:
             raise RuntimeError("Settings not initialized")
         return await asyncpg.connect(
-            host=self.settings.postgres_server,
-            port=self.settings.postgres_port,
-            user=self.settings.postgres_user,
-            password=self.settings.postgres_password,
-            database=self.settings.postgres_db,
+            **self.settings.postgres_connect_args(),
         )
 
     async def _claim(
@@ -579,7 +576,7 @@ class FinalizeLayerRunner(LayerReplaceMixin, BaseToolRunner[FinalizeLayerParams]
 
         logger.info(f"Ingested temp layer to DuckLake: {table_name}")
 
-        count_result = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()
+        count_result = fetch_one(con, f"SELECT COUNT(*) FROM {table_name}")
         feature_count = count_result[0] if count_result else 0
 
         geometry_type = metadata.get("geometry_type")

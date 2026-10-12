@@ -22,6 +22,7 @@ from typing import Any, Self
 import asyncpg
 from pydantic import BaseModel, Field
 
+from goatlib.config.postgres import TASKS_APPLICATION_NAME
 from goatlib.tools.base import ToolSettings
 from goatlib.utils.layer import (
     catalog_layers_dir,
@@ -101,11 +102,7 @@ class CatalogGCTask:
         schema = self.settings.customer_schema
 
         conn = await asyncpg.connect(
-            host=self.settings.postgres_server,
-            port=int(self.settings.postgres_port),
-            user=self.settings.postgres_user,
-            password=self.settings.postgres_password,
-            database=self.settings.postgres_db,
+            **self.settings.postgres_connect_args(TASKS_APPLICATION_NAME),
         )
         try:
             rows = await conn.fetch(

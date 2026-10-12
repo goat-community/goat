@@ -173,10 +173,10 @@ class Settings(BaseSettings):
     # CORS settings
     CORS_ORIGINS: list[str] = ["*"]
 
-    # Direct PostgreSQL host for DuckLake attaches. These sessions are
-    # long-lived and idle-in-transaction, so routing them through a
-    # transaction pooler only burns its slots; point this at the primary
-    # (e.g. the CNPG rw service) to keep the pooler for app queries.
+    # Direct PostgreSQL host for DuckLake attaches. They keep their catalog
+    # connections for as long as they live and are not verified behind a
+    # transaction pooler; point this at the primary (e.g. the CNPG rw
+    # service) to keep the pooler for app queries.
     # Unset = same host as POSTGRES_SERVER.
     DUCKLAKE_POSTGRES_SERVER: str = os.getenv(
         "DUCKLAKE_POSTGRES_SERVER", ""

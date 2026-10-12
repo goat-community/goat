@@ -225,10 +225,15 @@ class LayerService:
             database=settings.POSTGRES_DB,
             min_size=2,
             max_size=10,
+            # Close a connection once it has sat idle for a minute rather
+            # than five. asyncpg closes idle ones down to none, min_size
+            # included, so the first request after a quiet minute reconnects.
+            max_inactive_connection_lifetime=60,
             # Connection health settings
             command_timeout=60,
             # Server settings for keepalive (PostgreSQL)
             server_settings={
+                "application_name": "goat-geoapi",
                 "tcp_keepalives_idle": "30",
                 "tcp_keepalives_interval": "5",
                 "tcp_keepalives_count": "5",

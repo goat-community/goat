@@ -46,7 +46,7 @@ Tiles and features are the latency-critical path every map view hits. Keeping th
 ## Gotchas
 
 - **Settings use the `GEOAPI_` prefix.** A bare name works only for the settings that read it explicitly (for example `AUTH`, `KEYCLOAK_SERVER_URL`, `POSTGRES_*`, `DUCKLAKE_DATA_DIR`, `DUCKLAKE_PIN_SNAPSHOT`, `REDIS_URL`, `GOAT_PROCESSES_URL`, `ENFORCE_READ_AUTHZ`); everything else, such as `DUCKLAKE_POOL_SIZE` or the timeouts, must be set as `GEOAPI_<NAME>`. All settings are in `src/geoapi/config.py`.
-- Point `DUCKLAKE_POSTGRES_SERVER` at Postgres directly, not through a transaction pooler: DuckLake attaches are long-lived and sit idle in a transaction.
+- Point `DUCKLAKE_POSTGRES_SERVER` at Postgres directly, not through a transaction pooler: DuckLake attaches keep their catalog connections for as long as they live and are not verified behind one.
 - Memory per pod is roughly `GEOAPI_DUCKDB_MEMORY_LIMIT × GEOAPI_DUCKLAKE_POOL_SIZE`, because pooled cursors share one DuckDB instance. Set `GEOAPI_DUCKDB_THREADS` to the container's CPU limit.
 - Updating a row inserted in the same DuckLake transaction leaves it with a transaction-local rowid that breaks MVT feature ids; `bundle_edit_service.py` writes derived columns in the insert itself for that reason.
 - Never enumerate all DuckLake tables (`information_schema`, `SHOW TABLES`) on a request path: it loads every table's metadata, which takes very long on a large catalog.

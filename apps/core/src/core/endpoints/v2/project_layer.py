@@ -239,7 +239,7 @@ async def add_catalog_items_to_project(
     if refusal:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=refusal)
 
-    conn = await asyncpg.connect(dsn)
+    conn = await asyncpg.connect(dsn, server_settings={"application_name": "goat-core"})
     try:
         for catalog_id in item_ids:
             result = await promote(
