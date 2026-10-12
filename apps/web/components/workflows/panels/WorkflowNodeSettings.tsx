@@ -1295,8 +1295,10 @@ export default function WorkflowNodeSettings({
                             }
                           }
 
-                          // Get visible fields based on current opportunity values
-                          const visibleFields = getVisibleInputs(opportunityFields, oppValues);
+                          // Merge the node's values in, as the toolbox does, so conditions
+                          // on routing_mode or the reference area resolve
+                          const oppFormValues = { ...effectiveValues, ...oppValues };
+                          const visibleFields = getVisibleInputs(opportunityFields, oppFormValues);
 
                           return (
                             <Box key={opp.handle}>
@@ -1319,7 +1321,7 @@ export default function WorkflowNodeSettings({
                                     input={field}
                                     value={oppValues[field.name] ?? field.defaultValue}
                                     onChange={(value) => handleInputChange(`${prefix}${field.name}`, value)}
-                                    formValues={oppValues}
+                                    formValues={oppFormValues}
                                     schemaDefs={process.$defs}
                                     layerDatasetIds={{
                                       ...layerDatasetIds,
