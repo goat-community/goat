@@ -7,3 +7,5 @@ Operators see which part of GOAT holds a connection by its application_name.
 TOOLS_APPLICATION_NAME = "goat-tools"
 # Scheduled maintenance and housekeeping tasks.
 TASKS_APPLICATION_NAME = "goat-tasks"
+# The one-shot bootstrap that creates the DuckLake catalog.
+DUCKLAKE_INIT_APPLICATION_NAME = "goat-ducklake-init"
