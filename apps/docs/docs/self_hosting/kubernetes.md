@@ -12,13 +12,13 @@ GOAT has a Helm chart for Kubernetes clusters, published at `oci://ghcr.io/plan4
 For a single server, the [Docker Compose bundle](./docker_compose/installation.md) is the recommended path. It includes the login server, object storage and HTTPS, which the Helm chart leaves to you.
 :::
 
-This page describes chart version **0.6.0**, which installs GOAT **v3.0.3** by default.
+This page describes chart version **0.7.0**, which installs GOAT **v3.0.3** by default.
 
 ## Install {#install}
 
 ```bash
 helm install goat oci://ghcr.io/plan4better/charts/goat \
-  --version 0.6.0 \
+  --version 0.7.0 \
   --namespace goat --create-namespace \
   --values your-values.yaml \
   --wait --timeout 25m
@@ -43,7 +43,9 @@ The chart does **not** include:
 - **Object storage.** GOAT needs an external S3-compatible storage.
 - **Keycloak.** If users should log in, you need an external Keycloak.
 
-You can also point the chart at an existing PostgreSQL or Redis instead of the bundled ones; the chart README lists the SQL your PostgreSQL needs.
+You can also point the chart at an existing PostgreSQL or Redis instead of the bundled ones; the chart README lists the SQL your PostgreSQL needs. If `postgresql.external.host` is a connection pooler in transaction mode, set `postgresql.external.ducklakeHost` to the database itself: DuckLake keeps its catalog connections open, so they bypass the pooler. The database must listen on the same port as the pooler; a pooler on another port is not supported yet.
+
+Every service has memory requests and limits by default, and a CPU request without a limit. The chart README lists them; raise them under `<service>.resources` if a service needs more, for example geoapi on a large catalog, and set requests and limits together.
 
 ## What you have to set {#required-values}
 
@@ -92,6 +94,8 @@ The default Windmill worker only handles small jobs. **Analysis tools, dataset i
 ### Storage for several nodes {#rwx}
 
 The shared data volume defaults to `ReadWriteOnce`, which works on a single node. On a cluster with several nodes, set `data.accessMode: ReadWriteMany` with an RWX-capable storage class (`data.storageClassName`), or supply your own claim with `data.existingClaim`.
+
+geoapi, processes and the Windmill workers all write to this volume, and a fresh RWX volume belongs to root, so they run as root. If your cluster does not allow that, see the chart README ("The shared data volume").
 
 ## Further reading {#further-reading}
 

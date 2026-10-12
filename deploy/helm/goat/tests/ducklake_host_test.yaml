@@ -1,0 +1,106 @@
+suite: DuckLake catalog host
+# DuckLake's catalog connections stay open for as long as a service runs, so
+# behind a transaction pooler they go to the database itself:
+# postgresql.external.ducklakeHost, or `host` when it is unset.
+templates:
+  - geoapi/configmap.yaml
+  - processes/configmap.yaml
+  - geoapi/deployment.yaml
+  - windmill/worker-tools/deployment.yaml
+set:
+  postgresql.cluster.enabled: false
+  postgresql.external.host: "pooler.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+  windmill.db.external.host: "pooler.example.com"
+  windmill.db.external.existingSecret: "wm-secret"
+  windmill.workers.tools.enabled: true
+tests:
+  # The services fall back to POSTGRES_SERVER, so an extraEnv override of it
+  # moves DuckLake and its init too.
+  - it: geoapi and processes leave it to POSTGRES_SERVER by default
+    templates:
+      - geoapi/configmap.yaml
+      - processes/configmap.yaml
+    asserts:
+      - notExists:
+          path: data.DUCKLAKE_POSTGRES_SERVER
+
+  - it: geoapi, processes and their DuckLake init use ducklakeHost when set
+    templates:
+      - geoapi/configmap.yaml
+      - processes/configmap.yaml
+    set:
+      postgresql.external.ducklakeHost: "primary.example.com"
+    asserts:
+      - equal:
+          path: data.POSTGRES_SERVER
+          value: pooler.example.com
+      - equal:
+          path: data.DUCKLAKE_POSTGRES_SERVER
+          value: primary.example.com
+
+  - it: an explicit config value wins, rendered once
+    template: geoapi/configmap.yaml
+    set:
+      postgresql.external.ducklakeHost: "primary.example.com"
+      geoapi.config.DUCKLAKE_POSTGRES_SERVER: "chosen.example.com"
+    asserts:
+      - equal:
+          path: data.DUCKLAKE_POSTGRES_SERVER
+          value: chosen.example.com
+
+  - it: the bundled cluster ignores ducklakeHost
+    template: geoapi/configmap.yaml
+    set:
+      postgresql.cluster.enabled: true
+      postgresql.external.ducklakeHost: "primary.example.com"
+    asserts:
+      - notExists:
+          path: data.DUCKLAKE_POSTGRES_SERVER
+
+  # Images before the bootstrap read DUCKLAKE_POSTGRES_SERVER take the host
+  # from POSTGRES_SERVER; the app container keeps the pooler.
+  - it: the DuckLake init gets ducklakeHost as POSTGRES_SERVER too
+    template: geoapi/deployment.yaml
+    set:
+      postgresql.external.ducklakeHost: "primary.example.com"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: POSTGRES_SERVER
+            value: primary.example.com
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_SERVER
+            value: primary.example.com
+
+  - it: the DuckLake init keeps the ConfigMap host by default
+    template: geoapi/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.initContainers[0].env
+          any: true
+          content:
+            name: POSTGRES_SERVER
+
+  - it: the workers use ducklakeHost when set
+    template: windmill/worker-tools/deployment.yaml
+    set:
+      postgresql.external.ducklakeHost: "primary.example.com"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DUCKLAKE_POSTGRES_SERVER
+            value: primary.example.com
+
+  - it: the workers use the same host as everything else by default
+    template: windmill/worker-tools/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DUCKLAKE_POSTGRES_SERVER
+            value: pooler.example.com

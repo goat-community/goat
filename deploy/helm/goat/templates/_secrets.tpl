@@ -54,6 +54,25 @@ Resolve the postgres HOST.
 {{- end -}}
 
 {{/*
+postgresql.external.ducklakeHost when it applies (external Postgres whose
+`host` is a transaction pooler): the database itself, for DuckLake's catalog
+connections. Empty otherwise.
+*/}}
+{{- define "goat.postgresql.ducklakeHostOverride" -}}
+{{- if not .Values.postgresql.cluster.enabled -}}
+{{- .Values.postgresql.external.ducklakeHost -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Resolve the host for DuckLake's catalog connections: the override above, or
+the same host as everything else.
+*/}}
+{{- define "goat.postgresql.ducklakeHost" -}}
+{{- include "goat.postgresql.ducklakeHostOverride" . | default (include "goat.postgresql.host" .) -}}
+{{- end -}}
+
+{{/*
 Postgres database name. Same for bundled and external in v1.
 */}}
 {{- define "goat.postgresql.database" -}}

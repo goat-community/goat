@@ -387,6 +387,9 @@
             },
             "postgresGID": {
               "type": "integer"
+            },
+            "resources": {
+              "type": "object"
             }
           }
         },
@@ -394,6 +397,9 @@
           "type": "object",
           "properties": {
             "host": {
+              "type": "string"
+            },
+            "ducklakeHost": {
               "type": "string"
             },
             "port": {

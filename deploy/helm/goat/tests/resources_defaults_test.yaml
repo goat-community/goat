@@ -1,0 +1,67 @@
+suite: default resources
+# Every service gets memory requests and limits out of the box, so it
+# neither starves on a busy node nor takes the node down with it; CPU gets
+# a request only (a CPU limit throttles). resources: null turns them off;
+# {} would merge with these defaults and keep them.
+templates:
+  - core/deployment.yaml
+  - web/deployment.yaml
+  - geoapi/deployment.yaml
+  - processes/deployment.yaml
+  - catalog/deployment.yaml
+  - windmill/server/deployment.yaml
+  - windmill/worker-default/deployment.yaml
+  - windmill/worker-print/deployment.yaml
+  - windmill/worker-tools/deployment.yaml
+  - windmill/worker-workflows/deployment.yaml
+  - postgresql/cluster.yaml
+  - geoapi/configmap.yaml
+set:
+  windmill.workers.print.enabled: true
+  windmill.workers.tools.enabled: true
+  windmill.workers.workflows.enabled: true
+tests:
+  - it: every service has memory requests and limits and no CPU limit
+    templates:
+      - core/deployment.yaml
+      - web/deployment.yaml
+      - geoapi/deployment.yaml
+      - processes/deployment.yaml
+      - catalog/deployment.yaml
+      - windmill/server/deployment.yaml
+      - windmill/worker-default/deployment.yaml
+      - windmill/worker-print/deployment.yaml
+      - windmill/worker-tools/deployment.yaml
+      - windmill/worker-workflows/deployment.yaml
+    asserts:
+      - exists:
+          path: spec.template.spec.containers[0].resources.requests.memory
+      - exists:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+      - exists:
+          path: spec.template.spec.containers[0].resources.limits.memory
+      - notExists:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+  - it: geoapi's DuckDB budgets are set to fit its memory limit
+    template: geoapi/configmap.yaml
+    asserts:
+      - equal:
+          path: data.GEOAPI_DUCKLAKE_POOL_SIZE
+          value: "2"
+      - equal:
+          path: data.GEOAPI_DUCKDB_MEMORY_LIMIT
+          value: 1GB
+  - it: resources null turns them off
+    template: geoapi/deployment.yaml
+    set:
+      geoapi.resources: null
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].resources
+  - it: the bundled Postgres gets a memory request and no limit
+    template: postgresql/cluster.yaml
+    asserts:
+      - exists:
+          path: spec.resources.requests.memory
+      - notExists:
+          path: spec.resources.limits

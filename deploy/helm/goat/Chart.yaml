@@ -4,6 +4,27 @@ description: |
   Helm chart for GOAT (Geo Open Accessibility Tool) — a WebGIS platform for
   spatial analysis, accessibility modeling, and collaborative mapping.
 
+  v0.7.0:
+
+  - Every service gets memory requests and limits and a CPU request, no
+    CPU limit, the limits GOAT's own production runs with.
+    `<service>.resources: null` drops them; `{}` merges with the defaults.
+    See "Resource defaults" in the README.
+  - `geoapi.config` sets GEOAPI_DUCKLAKE_POOL_SIZE "2" and
+    GEOAPI_DUCKDB_MEMORY_LIMIT "1GB", so geoapi's DuckDB budgets fit its
+    4Gi limit (the code default pool is 4).
+  - NEW: `postgresql.cluster.resources` — the bundled Postgres gets a
+    memory and CPU request, no limit.
+  - geoapi and processes run as root (`podSecurityContext.runAsUser: 0`),
+    like the Windmill workers, so their DuckLake init can create the
+    catalog directory on a fresh RWX volume that belongs to root.
+  - NEW: `postgresql.external.ducklakeHost` — the database itself for
+    DuckLake's catalog connections (geoapi, processes, their DuckLake init
+    and the print, tools and workflows workers) when
+    `postgresql.external.host` is a transaction pooler on the database's
+    port. Empty = `host`. The DuckLake init also gets it as POSTGRES_SERVER,
+    for images whose bootstrap reads only that.
+
   v0.6.0:
 
   - NEW: `global.s3` — ONE S3 store (bucket, provider, endpoint, public
@@ -188,7 +209,7 @@ description: |
     `NEXT_PUBLIC_AUTH` (inverted meaning), matching the upstream single
     AUTH switch.
 type: application
-version: 0.6.0
+version: 0.7.0
 appVersion: "v3.0.3"   # GOAT release every image defaults to; override per service with <service>.image.tag
 icon: https://goat.plan4better.de/favicon.ico
 home: https://github.com/plan4better/goat/tree/main/deploy/helm/goat

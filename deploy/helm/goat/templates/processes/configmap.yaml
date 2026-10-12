@@ -20,6 +20,14 @@ data:
          ducklake-init init container reads this same ConfigMap, so it creates
          the catalog exactly where the service looks. Defaults to
          ducklakeBootstrap.*, which match GOAT's own defaults. */}}
+  {{- /* Unset, the service falls back to POSTGRES_SERVER, so an extraEnv
+         override of that moves DuckLake too. A processes.config value renders
+         above. */}}
+  {{- if not .Values.processes.config.DUCKLAKE_POSTGRES_SERVER }}
+  {{- with include "goat.postgresql.ducklakeHostOverride" $ }}
+  DUCKLAKE_POSTGRES_SERVER: {{ . | quote }}
+  {{- end }}
+  {{- end }}
   DUCKLAKE_DATA_DIR: {{ .Values.processes.config.DUCKLAKE_DATA_DIR | default .Values.ducklakeBootstrap.dataDir | quote }}
   DUCKLAKE_CATALOG_SCHEMA: {{ .Values.processes.config.DUCKLAKE_CATALOG_SCHEMA | default .Values.ducklakeBootstrap.catalogSchema | quote }}
 {{- end }}
