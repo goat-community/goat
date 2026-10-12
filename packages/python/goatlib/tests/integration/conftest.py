@@ -67,6 +67,8 @@ class TmpSettings:
 def lake_env(tmp_path: Path) -> Iterator[tuple[TmpSettings, BaseDuckLakeManager]]:
     """A throwaway DuckLake catalog schema with one table, plus its writer."""
     if not _pg_reachable():
+        if os.getenv("CI"):
+            pytest.fail("PostgreSQL not reachable; CI provides it for these tests")
         pytest.skip("PostgreSQL not reachable")
     schema = f"ducklake_test_{uuid.uuid4().hex[:8]}"
     settings = TmpSettings(schema, str(tmp_path / "data"))
