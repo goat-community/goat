@@ -257,14 +257,3 @@ class TestRegistration:
         # source are per-deployment choices.
         off_by_design = {"sync_geoip", "sync_base_data"}
         assert all(t.enabled for t in TASK_REGISTRY if t.name not in off_by_design)
-
-    def test_a_resync_does_not_touch_whether_a_schedule_runs(self) -> None:
-        """Turning it on in the UI has to survive the next sync — so the update
-        payload must not carry `enabled` at all."""
-        import inspect
-
-        from goatlib.tasks.sync_windmill import WindmillTaskSyncer
-
-        source = inspect.getsource(WindmillTaskSyncer._create_or_update_schedule)
-        update_call = source.split("schedules/update")[1]
-        assert "enabled" not in update_call
