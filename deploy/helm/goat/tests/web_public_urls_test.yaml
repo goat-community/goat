@@ -52,6 +52,15 @@ tests:
           path: data.NEXT_PUBLIC_API_URL
       - notExists:
           path: data.NEXT_PUBLIC_WEBSITE_URL
+      - notExists:
+          path: data.NEXT_PUBLIC_SUPPORT_EMAIL
+  - it: web.supportEmail sets the support address
+    set:
+      web.supportEmail: help@goat.example.com
+    asserts:
+      - equal:
+          path: data.NEXT_PUBLIC_SUPPORT_EMAIL
+          value: help@goat.example.com
   - it: an explicit catalog publicUrl wins over the derived one and is not suffixed again
     set:
       catalog.ingress.enabled: true

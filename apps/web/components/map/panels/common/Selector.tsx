@@ -12,6 +12,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { type ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
@@ -45,6 +46,7 @@ const containsText = (text: string, searchText: string) =>
   text.toLowerCase().indexOf(searchText.toLowerCase()) > -1;
 
 const Selector = (props: SelectorProps) => {
+  const { t } = useTranslation("common");
   const theme = useTheme();
   const [searchText, setSearchText] = useState("");
   const {
@@ -221,7 +223,7 @@ const Selector = (props: SelectorProps) => {
             <TextField
               size="small"
               autoFocus
-              placeholder="Search"
+              placeholder={t("search_placeholder_short")}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

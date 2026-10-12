@@ -76,6 +76,56 @@ class TestToolReferences:
             ("layer", LAYER, "write")
         }
 
+    def test_a_layer_copy_reads_its_source_and_entries_and_writes_the_project(
+        self,
+    ) -> None:
+        """The template copy job with the dataset's rows: the caller must read
+        the dataset it copies and the entries it repoints, and write the
+        project they are in."""
+        refs = tool_references(
+            "layer_copy",
+            {
+                "source_layer_id": LAYER,
+                "project_id": PROJECT,
+                "layer_project_ids": [11, 12],
+                "copy_content": True,
+                "template_id": OTHER,
+            },
+        )
+        assert _entries(refs) == {
+            ("layer", LAYER, "read"),
+            ("layer_project", "11", "read"),
+            ("layer_project", "12", "read"),
+            ("project", PROJECT, "write"),
+        }
+
+    def test_an_empty_layer_copy_reads_the_template_not_the_dataset(self) -> None:
+        """ "Copy, empty" copies only the structure: reading the template is
+        enough, so the author's rows need not be readable by its users."""
+        refs = tool_references(
+            "layer_copy",
+            {
+                "source_layer_id": LAYER,
+                "project_id": PROJECT,
+                "layer_project_ids": [11],
+                "copy_content": False,
+                "template_id": OTHER,
+            },
+        )
+        # The entries still show the dataset, so they are not read either;
+        # the project they are in is written.
+        assert _entries(refs) == {
+            ("template", OTHER, "read"),
+            ("project", PROJECT, "write"),
+        }
+
+    def test_an_empty_layer_copy_without_a_template_reads_the_dataset(self) -> None:
+        refs = tool_references(
+            "layer_copy",
+            {"source_layer_id": LAYER, "project_id": PROJECT, "copy_content": False},
+        )
+        assert ("layer", LAYER, "read") in _entries(refs)
+
     def test_project_export_reads_the_project(self) -> None:
         assert _entries(tool_references("project_export", {"project_id": PROJECT})) == {
             ("project", PROJECT, "read")
@@ -246,6 +296,59 @@ def test_a_workflow_checks_datasets_tool_configs_and_its_destination() -> None:
     }
 
 
+def test_a_workflow_checks_only_the_tool_inputs_no_edge_replaces() -> None:
+    """The runner overwrites every connected input with the upstream node's
+    layer, so a stale id left in the config of a connected input is never
+    read and must not refuse the run; an unconnected one is read, so it is
+    still checked."""
+    stale, unconnected = "e3c4967b-906f-4f20-a83b-6812b1088ab2", OTHER
+    nodes = [
+        {"id": "points", "data": {"type": "dataset", "layerId": LAYER}},
+        {
+            "id": "sql",
+            "data": {
+                "type": "tool",
+                "processId": "custom_sql",
+                "config": {
+                    "input_layer_1_id": stale,
+                    "input_layer_2_id": unconnected,
+                },
+            },
+        },
+    ]
+    edges = [{"source": "points", "target": "sql", "targetHandle": "input_layer_1_id"}]
+    refs = workflow_references(nodes, PROJECT, FOLDER, edges=edges)
+    assert _entries(refs) == {
+        ("layer", LAYER, "read"),
+        ("layer", unconnected, "read"),
+        ("project", PROJECT, "write"),
+        ("folder", FOLDER, "write"),
+    }
+
+
+def test_the_default_network_names_no_bundle() -> None:
+    """A workflow saves the network selector's "default" in its config; it
+    is the default network, not a bundle to check."""
+    inputs = {"reference_area_layer_id": LAYER, "pt_network_bundle_id": "default"}
+    assert _entries(tool_references("oev_gueteklassen", inputs, USER)) == {
+        ("layer", LAYER, "read")
+    }
+    nodes = [
+        {
+            "id": "oev",
+            "data": {
+                "type": "tool",
+                "processId": "oev_gueteklassen",
+                "config": {"pt_network_bundle_id": "default"},
+            },
+        }
+    ]
+    assert _entries(workflow_references(nodes, PROJECT, FOLDER)) == {
+        ("project", PROJECT, "write"),
+        ("folder", FOLDER, "write"),
+    }
+
+
 @pytest.fixture
 def deny(monkeypatch: pytest.MonkeyPatch) -> list[Any]:
     """Every reference is refused; records what was asked."""
@@ -408,3 +511,134 @@ def test_numeric_statistics_inputs_are_capped(
     )
     assert response.status_code < 300, response.text
     assert received and received[0]["num_bins"] == 1_000
+
+
+def test_a_refused_workflow_names_the_nodes_it_cannot_use(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The run is refused as before, and the answer says which of the
+    caller's own nodes hold the datasets they may not read: ids and labels
+    the caller sent, so it reveals nothing about the data, not even whether
+    it exists."""
+    from uuid import UUID
+
+    from processes.deps.auth import get_user_id
+
+    async def refuse_other(
+        user_id: Any, entries: list[dict[str, str]]
+    ) -> list[dict[str, str]]:
+        # The shape the database answers with.
+        return [
+            {"kind": e["kind"], "raw_id": e["id"], "action": e["action"]}
+            for e in entries
+            if e["id"] == OTHER
+        ]
+
+    monkeypatch.setattr(access, "denied_references", refuse_other)
+    app.dependency_overrides[get_user_id] = lambda: UUID(USER)
+    try:
+        response = TestClient(app).post(
+            "/workflows/7a193b81-0000-4000-8000-000000000001/execute",
+            json={
+                "project_id": PROJECT,
+                "folder_id": FOLDER,
+                "nodes": [
+                    {
+                        "id": "readable",
+                        "data": {"type": "dataset", "label": "Mine", "layerId": LAYER},
+                    },
+                    {
+                        "id": "private",
+                        "data": {
+                            "type": "dataset",
+                            "label": "Schools",
+                            "layerId": OTHER,
+                        },
+                    },
+                    {
+                        "id": "buffer",
+                        "data": {
+                            "type": "tool",
+                            "processId": "buffer",
+                            "config": {"input_layer_id": OTHER},
+                        },
+                    },
+                ],
+                "edges": [],
+            },
+        )
+    finally:
+        app.dependency_overrides.pop(get_user_id, None)
+    assert response.status_code == 404, response.text
+    detail = response.json()["detail"]
+    assert detail["message"] == "Resource not found"
+    assert detail["refused_nodes"] == ["private", "buffer"]
+    assert detail["destination_refused"] is False
+
+
+@pytest.mark.parametrize(
+    "data",
+    ["oops", ["a"], {"type": "tool", "processId": "buffer", "config": "oops"}],
+)
+def test_a_malformed_workflow_node_is_refused_not_a_server_error(data: Any) -> None:
+    with pytest.raises(HTTPException) as refused:
+        workflow_references([{"id": "a", "data": data}], PROJECT, FOLDER)
+    assert refused.value.status_code == 422
+
+
+class _Pool:
+    """The one query `ensure_empty_copy_of_template` sends, answered."""
+
+    def __init__(self, found: bool) -> None:
+        self.found = found
+        self.asked: list[tuple[Any, ...]] = []
+
+    async def fetchval(self, sql: str, *args: Any) -> bool:
+        self.asked.append(args)
+        return self.found
+
+
+@pytest.mark.parametrize("found", [True, False])
+def test_an_empty_copy_runs_only_for_a_copy_input_of_that_template(
+    monkeypatch: pytest.MonkeyPatch, found: bool
+) -> None:
+    """The template must have the dataset as a "copy, empty" input; naming
+    any template the caller can read is not enough."""
+    from processes.deps.auth import get_optional_user_id
+
+    pool = _Pool(found)
+
+    async def get_pool() -> _Pool:
+        return pool
+
+    submitted: list[dict[str, Any]] = []
+
+    async def submit(script_path: str, args: dict[str, Any], **_: Any) -> str:
+        submitted.append(args)
+        return "job-1"
+
+    monkeypatch.setattr(access, "_get_pool", get_pool)
+    monkeypatch.setattr(processes_router.windmill_client, "run_script_async", submit)
+    app.dependency_overrides[get_optional_user_id] = lambda: USER
+    try:
+        response = TestClient(app).post(
+            "/processes/layer_copy/execution",
+            json={
+                "inputs": {
+                    "source_layer_id": LAYER,
+                    "project_id": PROJECT,
+                    "layer_project_ids": [11],
+                    "copy_content": False,
+                    "template_id": OTHER,
+                }
+            },
+        )
+    finally:
+        app.dependency_overrides.pop(get_optional_user_id, None)
+    assert pool.asked == [(OTHER, LAYER)]
+    if found:
+        assert response.status_code < 300, response.text
+        assert len(submitted) == 1
+    else:
+        assert response.status_code == 404, response.text
+        assert submitted == []

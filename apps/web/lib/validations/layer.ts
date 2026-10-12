@@ -70,6 +70,10 @@ const layerFieldType = z.object({
   allow_other: z.boolean().optional(),
   default_value: z.union([z.string(), z.number(), z.boolean()]).nullish(),
   display_config: z.record(z.string(), z.unknown()).optional(),
+  // Serial/uuid: the server assigns the value on create and never lets a write
+  // change it, so editors show it read-only. `start` is a serial's first number.
+  is_generated: z.boolean().optional(),
+  start: z.number().optional(),
 });
 
 export const layerClassBreaks = z.object({
@@ -781,13 +785,29 @@ export const fieldKindSchema = z.enum([
   "datetime",
   "boolean",
   "formula",
+  "serial",
+  "uuid",
 ]);
 export type FieldKind = z.infer<typeof fieldKindSchema>;
 
+/**
+ * Kinds whose values the server generates on every create — a running number
+ * (`serial`, stored as an integer) and a random identifier (`uuid`, stored as
+ * text). Never typed in by a user and never changed once assigned.
+ */
+export const GENERATED_KINDS: ReadonlySet<string> = new Set(["serial", "uuid"]);
+
+export const isGeneratedKind = (kind: string | undefined): boolean => !!kind && GENERATED_KINDS.has(kind);
+
 /** The kind used to FORMAT a field's values: formula fields format as their
- * inferred result kind (number/string/boolean/datetime). */
-export const resolveDisplayKind = (field: { kind?: string; output_kind?: string }): string | undefined =>
-  field.kind === "formula" ? (field.output_kind ?? "string") : field.kind;
+ * inferred result kind (number/string/boolean/datetime); a serial number is a
+ * number and a UUID a string wherever values are shown, filtered or styled. */
+export const resolveDisplayKind = (field: { kind?: string; output_kind?: string }): string | undefined => {
+  if (field.kind === "formula") return field.output_kind ?? "string";
+  if (field.kind === "serial") return "number";
+  if (field.kind === "uuid") return "string";
+  return field.kind;
+};
 
 const numericFormatSchema = z.object({
   decimals: z.union([z.literal("auto"), z.number().int().min(0).max(10)]).default("auto"),
@@ -846,6 +866,8 @@ export const fieldDefinitionSchema = z.object({
   // Formula fields only: the SQL expression and its inferred result kind
   formula: z.string().optional(),
   output_kind: z.string().optional(),
+  // Serial fields only: the first number handed out (default 1)
+  start: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
 });
 
 export const RESERVED_FIELD_NAMES = ["id", "geometry", "geom", "__duckdb_row_id"];
@@ -872,12 +894,12 @@ export type CreateEmptyLayerInput = z.infer<typeof createEmptyLayerSchema>;
 
 // Map of geometry types to allowed kinds for the Add-Field dropdown
 export const ALLOWED_KINDS_BY_GEOM_TYPE: Record<string, FieldKind[]> = {
-  point: ["string", "number", "datetime", "boolean", "formula"],
-  multipoint: ["string", "number", "datetime", "boolean", "formula"],
-  line: ["string", "number", "length", "datetime", "boolean", "formula"],
-  multiline: ["string", "number", "length", "datetime", "boolean", "formula"],
-  polygon: ["string", "number", "area", "perimeter", "datetime", "boolean", "formula"],
-  multipolygon: ["string", "number", "area", "perimeter", "datetime", "boolean", "formula"],
+  point: ["string", "number", "datetime", "boolean", "serial", "uuid", "formula"],
+  multipoint: ["string", "number", "datetime", "boolean", "serial", "uuid", "formula"],
+  line: ["string", "number", "length", "datetime", "boolean", "serial", "uuid", "formula"],
+  multiline: ["string", "number", "length", "datetime", "boolean", "serial", "uuid", "formula"],
+  polygon: ["string", "number", "area", "perimeter", "datetime", "boolean", "serial", "uuid", "formula"],
+  multipolygon: ["string", "number", "area", "perimeter", "datetime", "boolean", "serial", "uuid", "formula"],
 };
 
 /**
@@ -885,9 +907,11 @@ export const ALLOWED_KINDS_BY_GEOM_TYPE: Record<string, FieldKind[]> = {
  *
  * The rest — computed kinds and formula — need `field_config` written against an
  * existing layer for their values to be produced at all, so they belong to Edit
- * fields rather than to creation. `layer_create` accepts exactly this set.
+ * fields rather than to creation. `layer_create` accepts exactly this set. The
+ * generated kinds belong here: the new layer is empty, and the server fills
+ * them on every feature created in it.
  */
-const CREATABLE_KINDS = ["string", "number", "datetime", "boolean"] as const;
+const CREATABLE_KINDS = ["string", "number", "datetime", "boolean", "serial", "uuid"] as const;
 export type CreatableFieldKind = (typeof CREATABLE_KINDS)[number];
 
 export const isCreatableKind = (kind: FieldKind): kind is CreatableFieldKind =>

@@ -29,7 +29,8 @@ test("an anonymous visitor is sent to log in and brought back to the page they w
   await page.locator("input[name=password]").fill(PASSWORD);
   await page.locator("button[name=login]").click();
 
-  await page.waitForURL(/localhost:3000\/content/, { timeout: 30000 });
+  // Back on the app's page the sign-in started from (Keycloak's pages are under /realms)
+  await page.waitForURL((url) => url.pathname === "/content", { timeout: 30000 });
   await expect(page.getByRole("heading", { name: "Content" })).toBeVisible();
 });
 

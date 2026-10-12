@@ -45,6 +45,9 @@ def set_test_mode():
     settings.MAX_FOLDER_COUNT = 15
     settings.TEST_MODE = True
     settings.AUTH = False
+    # No test reaches a real Odoo through a local .env: the support tests turn
+    # support on with fakes, the staging integration tests read the env.
+    settings.ODOO_SUPPORT_API_KEY = None
 
 
 set_test_mode()

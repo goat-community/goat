@@ -100,11 +100,18 @@ LANGUAGE sql STABLE AS $$
 $$;
 
 /* THE rule (spec §3.2). Space owner/admin > space default for members > direct grant > ancestor-folder
-   grants > bundle grant > project→layer read > public dataset read > catalog read. Max role wins; the one exception is
-   Restricted (D9), which withholds the space default. A soft-deleted item is visible to the space
-   owner/admin only. Returns 'owner' | 'editor' | 'viewer' | NULL. */
-CREATE OR REPLACE FUNCTION customer.effective_role(resource_type_input TEXT, resource_id_input UUID, user_id_input UUID)
-RETURNS TEXT
+   grants > bundle grant > project→layer read > public dataset read > template dataset read > catalog read.
+   Max role wins; the one exception is Restricted (D9), which withholds the space default. A
+   soft-deleted item is visible to the space owner/admin only. Returns the rank: 3 owner, 2 editor,
+   1 viewer, 0 none; `effective_role` below is the role name over it.
+
+   `derived_reads` FALSE leaves out the layer reads that come from something holding the layer
+   (rules 6, 6b, 6c). They only ever grant viewer, so a check for editor or more, like "may this
+   user share the layer", is the same without them; and rule 6c needs exactly that check for
+   another user, which with the derived reads included could come back to rule 6c through that
+   user's templates and recurse without end. */
+CREATE OR REPLACE FUNCTION customer.effective_rank(resource_type_input TEXT, resource_id_input UUID, user_id_input UUID, derived_reads BOOLEAN)
+RETURNS INT
 LANGUAGE plpgsql STABLE AS $$
 DECLARE
     best        INT := 0;
@@ -132,7 +139,7 @@ BEGIN
     END IF;
 
     IF NOT FOUND THEN
-        RETURN NULL;
+        RETURN 0;
     END IF;
 
     /* 1–2. the space: owner/admin → owner, member → the space default */
@@ -142,20 +149,20 @@ BEGIN
 
     /* trash: only the space owner/admin keeps access (to restore) */
     IF deleted IS NOT NULL THEN
-        RETURN CASE WHEN space_level = 3 THEN 'owner' ELSE NULL END;
+        RETURN CASE WHEN space_level = 3 THEN 3 ELSE 0 END;
     END IF;
 
     IF space_level = 3 THEN
-        RETURN 'owner';
+        RETURN 3;
     END IF;
 
     /* catalog datasets: readable by everyone, including anonymous; never more than viewer */
     IF is_catalog THEN
-        RETURN 'viewer';
+        RETURN 1;
     END IF;
 
     IF user_id_input IS NULL THEN
-        RETURN NULL;
+        RETURN 0;
     END IF;
 
     /* 2 (Restricted, D9): a restricted item/folder does not hand members the space default */
@@ -186,7 +193,7 @@ BEGIN
               but only through a SHAREABLE link (D7). A link is non-shareable when whoever
               added the layer to the project lacked `share` on it, so adding a dataset you
               may only view cannot hand the project's other members access to it. */
-        IF best < 1 AND EXISTS (
+        IF derived_reads AND best < 1 AND EXISTS (
             SELECT 1 FROM customer.layer_project lp
              WHERE lp.layer_id = resource_id_input
                AND lp.shareable
@@ -198,10 +205,33 @@ BEGIN
         /* 6b. public dataset: its owner opened it to every signed-in user, in any
               organization. A floor, never a cap — the space role, grants and the
               project path above still decide anything higher, so editors keep
-              editing. Anonymous callers returned NULL above and never reach it. */
-        IF best < 1 AND EXISTS (
+              editing. Anonymous callers returned above and never reach it. */
+        IF derived_reads AND best < 1 AND EXISTS (
             SELECT 1 FROM customer.layer l
              WHERE l.id = resource_id_input AND l.public_read
+        ) THEN
+            best := 1;
+        END IF;
+
+        /* 6c. template dataset: a template ships its author's dataset to whoever may use it, so
+              whoever may read the template may read the datasets it links ("ship") or copies
+              with their rows ("copy"), however the template reached them: a grant on it, a
+              folder shared above it, its space, the catalog. Read live, so access ends as soon
+              as the dataset leaves the template, the template stops reaching the user, or its
+              author may no longer share the dataset; that last check keeps a dataset the author
+              may only view from travelling on through a template. An empty copy takes only the
+              columns, so its dataset stays private. Unindexed: templates are few and this runs
+              only for a layer nothing else lets the user read. */
+        IF derived_reads AND best < 1 AND EXISTS (
+            SELECT 1 FROM customer.template t
+             CROSS JOIN LATERAL jsonb_array_elements(COALESCE(t.inputs, '[]'::jsonb)) i
+             WHERE t.deleted_at IS NULL
+               AND t.inputs @> jsonb_build_array(jsonb_build_object('layer_id', resource_id_input::text))
+               AND i->>'layer_id' = resource_id_input::text
+               AND (i->>'mode' = 'ship'
+                    OR (i->>'mode' = 'copy' AND COALESCE((i->>'copy_content')::boolean, TRUE)))
+               AND customer.effective_rank('template', t.id, user_id_input, TRUE) >= 1
+               AND customer.effective_rank('layer', resource_id_input, t.user_id, FALSE) >= 2
         ) THEN
             best := 1;
         END IF;
@@ -211,7 +241,7 @@ BEGIN
           authenticated user regardless of the space it lives in. A fallback only:
           a member's own space role, a grant or a folder grant above still wins,
           so a team editor keeps editing its published template. Anonymous callers
-          returned NULL above and never reach the shelf. */
+          returned above and never reach the shelf. */
     IF best = 0 AND resource_type_input = 'template' AND EXISTS (
         SELECT 1 FROM customer.template t
          WHERE t.id = resource_id_input AND t.catalog_status = 'published' AND t.deleted_at IS NULL
@@ -219,8 +249,15 @@ BEGIN
         best := 1;
     END IF;
 
-    RETURN customer.rank_role(best);
+    RETURN best;
 END;
+$$;
+
+/* The rule as a role name: 'owner' | 'editor' | 'viewer' | NULL, every read included. */
+CREATE OR REPLACE FUNCTION customer.effective_role(resource_type_input TEXT, resource_id_input UUID, user_id_input UUID)
+RETURNS TEXT
+LANGUAGE sql STABLE AS $$
+    SELECT customer.rank_role(customer.effective_rank(resource_type_input, resource_id_input, user_id_input, TRUE))
 $$;
 
 CREATE OR REPLACE FUNCTION customer.can(resource_type_input TEXT, resource_id_input UUID, user_id_input UUID, action TEXT)

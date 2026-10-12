@@ -169,11 +169,13 @@ We welcome contributions of all kinds, bug reports, documentation improvements, 
 ### Local development
 
 The `compose.yaml` in the repository root runs the infrastructure for local
-development (PostgreSQL, MinIO, Redis, Windmill); the apps run on your machine:
+development (PostgreSQL, Garage for S3, Redis, Windmill); the apps run on your
+machine. Fill in the Garage secrets and key in `.env` first (the comments there
+say how to generate them):
 
 ```bash
 cp .env.example .env
-docker compose up -d        # infrastructure
+docker compose up -d        # infrastructure; --profile auth adds Keycloak
 pnpm install && pnpm web    # web app on http://localhost:3000
 uv sync --all-packages      # Python services, then for example:
 cd apps/core && uv run uvicorn core.main:app --reload --port 8000

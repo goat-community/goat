@@ -56,6 +56,25 @@ jq -e '.services | has("garage") and has("keycloak")' <<<"$j" >/dev/null || fail
 jq -e '.services.core.environment.SMTP_HOST == "" and .services.keycloak.environment.GOAT_SMTP_HOST == ""' <<<"$j" >/dev/null || fail "smtp host not empty by default"
 jq -e '.services.keycloak.environment.GOAT_SMTP_AUTH == ""' <<<"$j" >/dev/null || fail "keycloak smtp auth on without a user"
 
+# Odoo connection and support tickets off by default: all four settings empty, default post action.
+jq -e '.services.core.environment | .ODOO_URL == "" and .ODOO_DB == "" and .ODOO_SUPPORT_API_KEY == "" and .ODOO_SUPPORT_TEAM_ID == ""' <<<"$j" >/dev/null || fail "odoo settings not empty by default"
+jq -e '.services.core.environment.ODOO_SUPPORT_POST_ACTION == "GOAT: post message as ticket participant"' <<<"$j" >/dev/null || fail "support post action default"
+# The secret goes to core only, never to Windmill workers.
+jq -e '[.services[] | select(.environment | has("ODOO_SUPPORT_API_KEY"))] | length == 1' <<<"$j" >/dev/null || fail "support api key outside core"
+
+variant=support
+d2=$(make_variant --public-url https://goat.example.org --tls auto --acme-email ops@plan4better.de)
+cat >> "$d2/.env" <<'VARS'
+ODOO_URL=https://odoo.example.org
+ODOO_DB=odoo-db
+ODOO_SUPPORT_API_KEY=bridge-key
+ODOO_SUPPORT_TEAM_ID=7
+VARS
+j2=$(render "$d2"); check_common "$j2"
+jq -e '.services.core.environment | .ODOO_URL == "https://odoo.example.org" and .ODOO_DB == "odoo-db" and .ODOO_SUPPORT_API_KEY == "bridge-key" and .ODOO_SUPPORT_TEAM_ID == "7"' <<<"$j2" >/dev/null || fail "odoo settings not passed to core"
+# The edge proxy must not cap request bodies (support uploads take up to 55 MiB).
+! grep -q "^[[:space:]]*request_body" "$here/init/caddy/Caddyfile" || fail "Caddyfile caps the request body"
+
 variant=smtp
 cat >> "$d/.env" <<'VARS'
 SMTP_HOST=mail.example.org
@@ -67,6 +86,15 @@ j=$(render "$d"); check_common "$j"
 jq -e '.services.core.environment.SMTP_HOST == "mail.example.org" and .services.keycloak.environment.GOAT_SMTP_HOST == .services.core.environment.SMTP_HOST' <<<"$j" >/dev/null || fail "core and keycloak smtp host differ"
 jq -e '.services.keycloak.environment.GOAT_SMTP_PORT == .services.core.environment.SMTP_PORT' <<<"$j" >/dev/null || fail "core and keycloak smtp port differ"
 jq -e '.services.keycloak.environment | .GOAT_SMTP_AUTH == "true" and .GOAT_SMTP_FROM == "mailer@example.org"' <<<"$j" >/dev/null || fail "keycloak smtp login or sender"
+
+variant=support-email
+# NEXT_PUBLIC_SUPPORT_EMAIL reaches the web container, and is empty (the app uses its default) while unset.
+d=$(make_variant --public-url https://goat.example.org --tls off)
+j=$(render "$d")
+jq -e '.services.web.environment.NEXT_PUBLIC_SUPPORT_EMAIL == ""' <<<"$j" >/dev/null || fail "support email not empty by default"
+echo "NEXT_PUBLIC_SUPPORT_EMAIL=help@example.org" >> "$d/.env"
+j=$(render "$d"); check_common "$j"
+jq -e '.services.web.environment.NEXT_PUBLIC_SUPPORT_EMAIL == "help@example.org"' <<<"$j" >/dev/null || fail "support email not passed to web"
 
 variant=off-ip-port
 d=$(make_variant --public-url http://10.0.0.5:8080 --tls off)

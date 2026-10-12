@@ -301,6 +301,19 @@ RUN --mount=type=bind,from=playwright-build,source=/opt/playwright,target=/opt/p
     /opt/playwright/venv/bin/playwright install --with-deps --only-shell chromium \
     && rm -rf /var/lib/apt/lists/*
 
+# Open fonts standing in for the layout font picker's choices the image has
+# no file of, each under that font's name (fonts/60-goat-print-fonts.conf
+# says which and why): without them a layout prints in another font, wider or
+# narrower than in the editor. The cache is rebuilt after the configuration,
+# which renames the fonts when they are scanned.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    fonts-dejavu-core \
+    fonts-ebgaramond \
+    fonts-inconsolata \
+    && rm -rf /var/lib/apt/lists/*
+COPY apps/processes/workers/fonts/60-goat-print-fonts.conf /etc/fonts/conf.d/60-goat-print-fonts.conf
+RUN fc-cache -f
+
 # Python, venv and extensions last (see worker-base)
 COPY --from=python-build $UV_PYTHON_INSTALL_DIR $UV_PYTHON_INSTALL_DIR
 COPY --from=python-build $UV_PROJECT_ENVIRONMENT $UV_PROJECT_ENVIRONMENT

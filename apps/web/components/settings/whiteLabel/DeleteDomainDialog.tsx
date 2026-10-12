@@ -72,7 +72,7 @@ export function DeleteDomainDialog({
         <Box sx={{ pt: 1 }}>
           <Typography variant="body2" sx={{ mb: 2 }}>
             <Trans
-              i18nKey="white_label_delete_identify"
+              i18nKey="common:white_label_delete_identify"
               defaults="You are about to delete <b>{{domain}}</b>."
               values={{ domain: domain.base_domain }}
               components={{ b: <b /> }}
@@ -83,7 +83,7 @@ export function DeleteDomainDialog({
             <>
               <Alert severity="warning" sx={{ mb: 2 }}>
                 <Trans
-                  i18nKey="white_label_delete_assigned_warning"
+                  i18nKey="common:white_label_delete_assigned_warning"
                   defaults="This domain is currently assigned to <b>{{project}}</b>. Deleting it will immediately stop serving the dashboard at this URL."
                   values={{ project: assignedProjectName ?? "" }}
                   components={{ b: <b /> }}

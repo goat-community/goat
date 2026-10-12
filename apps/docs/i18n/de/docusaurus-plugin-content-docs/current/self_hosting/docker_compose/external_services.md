@@ -149,6 +149,22 @@ Standardmäßig zeigen die E-Mails von GOAT und von Keycloak den Namen `GOAT` un
 
 Die Bilder in den E-Mails kommen von GOATs öffentlicher URL (`<öffentliche URL>/assets`) oder von `STATIC_ASSETS_URL`, falls gesetzt. Die Mailprogramme der Empfänger laden sie von dort, die Adresse muss für sie also erreichbar sein.
 
+## Support-Tickets {#support}
+
+GOAT kann Problemmeldungen und Fragen seiner Benutzer an einen Odoo-Helpdesk weiterreichen, wo sie als Tickets mit Antworten erscheinen. Das ist optional und **standardmäßig aus**. Ohne diese Einstellungen zeigt *Problem melden* in der App eine E-Mail-Adresse und den Link *Dokumentation*, und die Routen unter `/api/v2/support` existieren nicht. Die Adresse ist standardmäßig `support@plan4better.de`; Ihre eigene legen Sie mit `NEXT_PUBLIC_SUPPORT_EMAIL` fest, siehe [Konfigurationsreferenz](./configuration.md#integrations).
+
+| Einstellung | Bedeutung |
+|---|---|
+| `ODOO_URL` | Adresse des Odoo, z. B. `https://odoo.example.org`. Gemeinsam für GOATs Odoo-Anbindungen. |
+| `ODOO_DB` | Die Odoo-Datenbank. Gemeinsam für GOATs Odoo-Anbindungen. |
+| `ODOO_SUPPORT_API_KEY` | API-Schlüssel des Support-Benutzers in diesem Odoo. Er ist ein Geheimnis. |
+| `ODOO_SUPPORT_TEAM_ID` | Numerische ID des Helpdesk-Teams, das die Tickets erhält |
+| `ODOO_SUPPORT_POST_ACTION` | Optional. Name der Odoo-Serveraktion, die eine Nachricht als Teilnehmer des Tickets veröffentlicht. Vorgabe `GOAT: post message as ticket participant`. |
+
+Support-Tickets sind nur eingeschaltet, wenn die ersten vier Einstellungen alle gesetzt sind; ist eine davon leer, bleiben sie aus. Den API-Schlüssel stellt Plan4Better für sein eigenes Odoo aus. Lassen Sie auf Ihrer eigenen Installation alle vier leer, es sei denn, Sie haben einen erhalten.
+
+Nachrichten zu einem Ticket können Anhänge von bis zu 55 MiB in einer Anfrage enthalten. Das mitgelieferte Caddy setzt keine Grenze für Anfragekörper. Stellen Sie einen eigenen Proxy oder Load Balancer davor, muss er für `/api/v2/support` Anfragekörper von mindestens 56 MB annehmen und großzügige Lese-Timeouts erlauben.
+
 ## Ohne Anmeldung {#no-login}
 
 Für lokale Tests und Demos kann GOAT ganz ohne Anmeldung laufen:

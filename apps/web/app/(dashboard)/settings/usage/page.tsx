@@ -7,6 +7,8 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Trans } from "react-i18next";
 
+import { useDateFnsLocale } from "@/i18n/utils";
+
 import { useOrganization } from "@/lib/api/users";
 import { CONTACT_URL } from "@/lib/constants";
 import { getNextMonthDate } from "@/lib/utils/helpers";
@@ -17,6 +19,7 @@ export default function Usage() {
   const { t, i18n } = useTranslation("common");
   const theme = useTheme();
   const { organization } = useOrganization();
+  const dateLocale = useDateFnsLocale();
 
   const isQuotaFull = useMemo(() => {
     if (!organization)
@@ -97,7 +100,7 @@ export default function Usage() {
                 />
                 <Stack sx={{ mt: 1 }} alignItems="flex-end">
                   <Typography variant="caption">
-                    {t("resets_on") + ": " + format(getNextMonthDate(), "MMM d, yyyy", {})}
+                    {t("resets_on") + ": " + format(getNextMonthDate(), "PP", { locale: dateLocale })}
                   </Typography>
                 </Stack>
                 <Stack sx={{ mt: 1 }}>

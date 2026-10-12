@@ -35,6 +35,7 @@ from goatlib.tools.schemas import ToolInputBase
 from goatlib.utils.layer import (
     quoted_relation,
 )
+from goatlib.utils.workflow_layers import drop_layer_refs, workflow_layer_refs
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +166,74 @@ class ProjectExportRunner(SimpleToolRunner):
                 project_uuid,
             )
 
-            layer_ids: list[uuid.UUID] = [row["layer_id"] for row in lp_rows]
+            # 4a. Workflows, read before the layers: the datasets they name
+            # besides the project's layers travel with the project too
+            wf_rows = await conn.fetch(
+                f"""
+                SELECT id, name, description, is_default, config, thumbnail_url
+                FROM {schema}.workflow
+                WHERE project_id = $1
+                """,
+                project_uuid,
+            )
+            workflows: list[dict[str, Any]] = [
+                {
+                    "id": str(row["id"]),
+                    "name": row["name"],
+                    "description": row["description"],
+                    "is_default": row["is_default"],
+                    "config": row["config"],
+                    "thumbnail_url": row["thumbnail_url"],
+                }
+                for row in wf_rows
+            ]
+
+            # A workflow can name datasets that are not the project's layers
+            # (picked from someone's own datasets). Those the exporter may read
+            # are packed like the project's layers; catalog layers and public
+            # datasets keep their id, as everyone may read them; any other is
+            # removed from the archive, so no copy names someone else's data,
+            # and its node asks for a dataset after the import.
+            project_layer_ids = {str(row["layer_id"]) for row in lp_rows}
+            named = (
+                set().union(*(workflow_layer_refs(wf["config"]) for wf in workflows))
+                - project_layer_ids
+            )
+            workflow_only_ids: list[uuid.UUID] = []
+            if named:
+                access_rows = await conn.fetch(
+                    f"""
+                    SELECT CAST(l AS text) AS id,
+                           {schema}.layer_is_catalog(l)
+                           OR EXISTS (
+                               SELECT 1 FROM {schema}.layer x
+                               WHERE x.id = l AND x.public_read
+                           ) AS everyone_reads,
+                           COALESCE({schema}.can('layer', l, $2, 'read'), FALSE)
+                               AS readable
+                    FROM unnest($1::uuid[]) AS l
+                    """,
+                    [uuid.UUID(layer_id) for layer_id in named],
+                    user_uuid,
+                )
+                kept = {r["id"] for r in access_rows if r["everyone_reads"]}
+                packed = {
+                    r["id"]
+                    for r in access_rows
+                    if r["readable"] and not r["everyone_reads"]
+                }
+                unreadable = named - kept - packed
+                if unreadable:
+                    workflows = [
+                        {**wf, "config": drop_layer_refs(wf["config"], unreadable)}
+                        for wf in workflows
+                    ]
+                workflow_only_ids = [uuid.UUID(layer_id) for layer_id in packed]
+
+            layer_ids: list[uuid.UUID] = [
+                *(row["layer_id"] for row in lp_rows),
+                *workflow_only_ids,
+            ]
 
             # Fetch layers in batch
             layers_by_id: dict[str, dict[str, Any]] = {}
@@ -267,27 +335,6 @@ class ProjectExportRunner(SimpleToolRunner):
                     "parent_id": row["parent_id"],
                 }
                 for row in group_rows
-            ]
-
-            # 6. Workflows
-            wf_rows = await conn.fetch(
-                f"""
-                SELECT id, name, description, is_default, config, thumbnail_url
-                FROM {schema}.workflow
-                WHERE project_id = $1
-                """,
-                project_uuid,
-            )
-            workflows: list[dict[str, Any]] = [
-                {
-                    "id": str(row["id"]),
-                    "name": row["name"],
-                    "description": row["description"],
-                    "is_default": row["is_default"],
-                    "config": row["config"],
-                    "thumbnail_url": row["thumbnail_url"],
-                }
-                for row in wf_rows
             ]
 
             # 7. ReportLayouts

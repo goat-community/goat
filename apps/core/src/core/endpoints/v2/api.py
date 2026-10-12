@@ -20,6 +20,7 @@ from . import (
     report_layout,
     share,
     space,
+    support,
     system,
     teams,
     template,
@@ -38,6 +39,7 @@ router.include_router(teams.router, prefix="/teams", tags=["Teams"])
 router.include_router(space.router, prefix="/space", tags=["Space"])
 router.include_router(users.router, prefix="/users", tags=["Users"])
 router.include_router(share.router, prefix="/share", tags=["Share"])
+router.include_router(support.router, prefix="/support", tags=["Support"])
 router.include_router(billing.router, prefix="/billing", tags=["Billing"])
 router.include_router(webhooks.router, prefix="/webhooks", tags=["Webhooks"])
 

@@ -19,6 +19,7 @@ import type {
 import {
   type UseTemplateContext,
   type UseTemplateTarget,
+  startedCopyJobIds,
   useUseTemplate,
 } from "@/hooks/templates/useUseTemplate";
 
@@ -73,7 +74,10 @@ const inputTypeLabel = (input: TemplateInput, t: (key: string) => string): strin
  * (`useUseTemplate`) — so this component stays a plain dialog with no
  * router dependency of its own. Either step is skipped when it doesn't
  * apply — `in_project` never asks for a location, and a template without
- * inputs has nothing to show on the second step.
+ * inputs has nothing to show on the second step. A "copy" dataset is
+ * announced on the way (your own copy) and once applied (copies are being
+ * made); its jobs are handed to the job tray, which reloads the project's
+ * layers when they finish.
  */
 const UseTemplateFlow = ({ template, context, onClose, onDone }: UseTemplateFlowProps) => {
   const { t } = useTranslation("common");
@@ -124,6 +128,14 @@ const UseTemplateFlow = ({ template, context, onClose, onDone }: UseTemplateFlow
     toast.success(t("template_created_in", { name: template.name }));
     if (result.unresolved_inputs.length > 0) {
       toast.info(t("unresolved_input_count", { count: result.unresolved_inputs.length }));
+    }
+    const copiesStarted = startedCopyJobIds(result).length;
+    const copiesNotStarted = result.copy_jobs.length - copiesStarted;
+    if (copiesStarted > 0) {
+      toast.info(t("template_copies_started", { count: copiesStarted }));
+    }
+    if (copiesNotStarted > 0) {
+      toast.warning(t("template_copies_not_started", { count: copiesNotStarted }));
     }
     onDone(result);
   };
@@ -335,7 +347,13 @@ const UseTemplateFlow = ({ template, context, onClose, onDone }: UseTemplateFlow
                 // own dataset stays the default.
                 const candidates = flow.candidatesFor(input).filter((layer) => !layer.locked);
                 const bound = candidates.find((layer) => layer.layer_id === flow.bindings[input.key]);
-                const defaultLabel = t(input.mode === "ship" ? "ships_with_template" : "decide_later");
+                const defaultLabel = t(
+                  input.mode === "copy"
+                    ? "template_copy_for_you"
+                    : input.mode === "ship"
+                      ? "ships_with_template"
+                      : "decide_later"
+                );
                 return (
                   <Box
                     key={input.key}
@@ -364,9 +382,9 @@ const UseTemplateFlow = ({ template, context, onClose, onDone }: UseTemplateFlow
                         )}
                       </Box>
                     </Box>
-                    {candidates.length === 0 && input.mode === "ship" ? (
+                    {candidates.length === 0 && input.mode !== "ask" ? (
                       <Chip
-                        label={t("ships_with_template")}
+                        label={defaultLabel}
                         size="small"
                         sx={{ height: 20, fontSize: 11, fontWeight: 700 }}
                       />
@@ -454,6 +472,14 @@ const UseTemplateFlow = ({ template, context, onClose, onDone }: UseTemplateFlow
               </Typography>
             )}
           </>
+        )}
+
+        {flow.copyInputs.length > 0 && (currentStep === "location" || currentStep === null) && (
+          <Typography
+            data-testid="template-copies-hint"
+            sx={{ mt: "14px", fontSize: 12.5, color: theme.palette.text.secondary }}>
+            {t("template_copies_hint", { count: flow.copyInputs.length })}
+          </Typography>
         )}
 
         {currentStep === null && (

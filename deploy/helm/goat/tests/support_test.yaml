@@ -1,0 +1,172 @@
+suite: core Odoo connection and support tickets, off by default
+templates:
+  - core/configmap.yaml
+  - core/deployment.yaml
+  - core/ingress.yaml
+set:
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+tests:
+  - it: renders no support settings by default
+    template: core/configmap.yaml
+    asserts:
+      - notExists:
+          path: data.ODOO_URL
+      - notExists:
+          path: data.ODOO_DB
+      - notExists:
+          path: data.ODOO_SUPPORT_TEAM_ID
+      - notExists:
+          path: data.ODOO_SUPPORT_POST_ACTION
+      - notExists:
+          path: data.ODOO_URL
+
+  - it: renders only the connection while support has no team (another integration)
+    template: core/configmap.yaml
+    set:
+      odoo.url: https://odoo.example.org
+      odoo.db: odoo-db
+    asserts:
+      - equal:
+          path: data.ODOO_URL
+          value: https://odoo.example.org
+      - equal:
+          path: data.ODOO_DB
+          value: odoo-db
+      - notExists:
+          path: data.ODOO_SUPPORT_TEAM_ID
+      - notExists:
+          path: data.ODOO_SUPPORT_POST_ACTION
+
+  - it: renders no API key by default
+    template: core/deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ODOO_SUPPORT_API_KEY
+          any: true
+
+  - it: renders the odoo block into core's ConfigMap
+    template: core/configmap.yaml
+    set:
+      odoo.url: https://odoo.example.org
+      odoo.db: odoo-db
+      odoo.support.teamId: 7
+    asserts:
+      - equal:
+          path: data.ODOO_URL
+          value: https://odoo.example.org
+      - equal:
+          path: data.ODOO_DB
+          value: odoo-db
+      - equal:
+          path: data.ODOO_SUPPORT_TEAM_ID
+          value: "7"
+      - equal:
+          path: data.ODOO_SUPPORT_POST_ACTION
+          value: "GOAT: post message as ticket participant"
+
+  - it: leaves the other settings out while odoo.url is empty
+    template: core/configmap.yaml
+    set:
+      odoo.db: odoo-db
+      odoo.support.teamId: 7
+    asserts:
+      - notExists:
+          path: data.ODOO_DB
+      - notExists:
+          path: data.ODOO_SUPPORT_TEAM_ID
+
+  - it: a key set in core.config wins over the odoo block
+    template: core/configmap.yaml
+    set:
+      odoo.url: https://odoo.example.org
+      odoo.db: odoo-db
+      core.config.ODOO_DB: other-db
+    asserts:
+      - equal:
+          path: data.ODOO_DB
+          value: other-db
+
+  - it: reads the API key from odoo.support.existingSecret
+    template: core/deployment.yaml
+    set:
+      odoo.url: https://odoo.example.org
+      odoo.support.existingSecret: goat-support
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ODOO_SUPPORT_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: goat-support
+                key: api-key
+
+  - it: takes the key name from odoo.support.existingSecretKey
+    template: core/deployment.yaml
+    set:
+      odoo.url: https://odoo.example.org
+      odoo.support.existingSecret: goat-support
+      odoo.support.existingSecretKey: bridge-key
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ODOO_SUPPORT_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: goat-support
+                key: bridge-key
+
+  - it: sets no API key without a Secret
+    template: core/deployment.yaml
+    set:
+      odoo.url: https://odoo.example.org
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ODOO_SUPPORT_API_KEY
+          any: true
+
+  - it: a ODOO_SUPPORT_API_KEY in core.extraEnv is left alone
+    template: core/deployment.yaml
+    set:
+      odoo.url: https://odoo.example.org
+      odoo.support.existingSecret: goat-support
+      core.extraEnv:
+        - name: ODOO_SUPPORT_API_KEY
+          value: from-extra-env
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ODOO_SUPPORT_API_KEY
+            value: from-extra-env
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ODOO_SUPPORT_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: goat-support
+                key: api-key
+
+  - it: core.ingress.annotations can raise the body size for support uploads
+    template: core/ingress.yaml
+    set:
+      core.ingress.enabled: true
+      core.ingress.className: nginx
+      core.ingress.annotations:
+        nginx.ingress.kubernetes.io/proxy-body-size: "56m"
+      core.ingress.hosts:
+        - host: api.example.com
+          paths:
+            - path: /api/v2
+              pathType: Prefix
+    asserts:
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-body-size"]
+          value: "56m"

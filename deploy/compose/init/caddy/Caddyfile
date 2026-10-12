@@ -39,6 +39,8 @@
 		}
 	}
 
+	# No request body limit and no proxy read timeout are set on purpose:
+	# /api/v2/support takes uploads of up to 55 MiB per request.
 	handle /api/v2/* {
 		reverse_proxy core:8000
 	}

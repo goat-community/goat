@@ -24,11 +24,53 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 import type { AppDispatch } from "@/lib/store";
 import { selectVariables } from "@/lib/store/workflow/selectors";
 import { setVariables } from "@/lib/store/workflow/slice";
-import type { WorkflowVariable } from "@/lib/validations/workflow";
+import {
+  WORKFLOW_VARIABLE_DESCRIPTION_MAX,
+  WORKFLOW_VARIABLE_LABEL_MAX,
+  type WorkflowVariable,
+} from "@/lib/validations/workflow";
 
 import AppDialog, { AppDialogFooter } from "@/components/common/AppDialog";
+import VariableDescriptionButton from "@/components/workflows/dialogs/VariableDescriptionButton";
 
 const VARIABLE_NAME_REGEX = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+type VariableErrors = Partial<Record<"name" | "label" | "description", string>>;
+
+// Column widths, shared by the header and every row. Name and label share
+// what is left after the fixed columns; the name gets a little more, so a
+// 32-character identifier stays fully visible at the dialog's full width.
+const COLUMN_SX = {
+  name: { flex: 1.1, minWidth: 0 },
+  label: { flex: 1, minWidth: 0 },
+  type: { width: 100, flexShrink: 0 },
+  default: { width: 100, flexShrink: 0 },
+  // The description and delete buttons.
+  actions: { width: 76, flexShrink: 0 },
+} as const;
+
+/**
+ * The variable as it is saved: order recomputed, a number default coerced,
+ * label and description trimmed, and either dropped when left empty, so a
+ * variable nobody labelled keeps the shape it always had. Only the schema's
+ * keys are kept.
+ */
+export function normalizeVariable(variable: WorkflowVariable, index: number): WorkflowVariable {
+  const { id, name, type, defaultValue } = variable;
+  const label = variable.label?.trim();
+  const description = variable.description?.trim();
+  return {
+    id,
+    name,
+    ...(label && { label }),
+    ...(description && { description }),
+    type,
+    ...(defaultValue !== undefined && {
+      defaultValue: type === "number" && defaultValue !== "" ? Number(defaultValue) : defaultValue,
+    }),
+    order: index,
+  };
+}
 
 interface WorkflowVariablesDialogProps {
   open: boolean;
@@ -42,7 +84,7 @@ const WorkflowVariablesDialog: React.FC<WorkflowVariablesDialogProps> = ({ open,
 
   // Local editable copy
   const [localVars, setLocalVars] = useState<WorkflowVariable[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, VariableErrors>>({});
 
   // Sync from Redux when dialog opens
   useEffect(() => {
@@ -53,24 +95,34 @@ const WorkflowVariablesDialog: React.FC<WorkflowVariablesDialogProps> = ({ open,
   }, [open, reduxVariables]);
 
   const validate = useCallback(
-    (vars: WorkflowVariable[]): Record<string, string> => {
-      const errs: Record<string, string> = {};
+    (vars: WorkflowVariable[]): Record<string, VariableErrors> => {
+      const errs: Record<string, VariableErrors> = {};
       const names = new Set<string>();
       for (const v of vars) {
+        const err: VariableErrors = {};
         if (!v.name.trim()) {
-          errs[v.id] = t("workflow_variable_name_required");
+          err.name = t("workflow_variable_name_required");
         } else if (!VARIABLE_NAME_REGEX.test(v.name)) {
-          errs[v.id] = t("workflow_variable_name_invalid");
+          err.name = t("workflow_variable_name_invalid");
         } else if (names.has(v.name)) {
-          errs[v.id] = t("workflow_variable_name_duplicate");
+          err.name = t("workflow_variable_name_duplicate");
         } else if (
           v.type === "number" &&
           v.defaultValue !== undefined &&
           v.defaultValue !== "" &&
           isNaN(Number(v.defaultValue))
         ) {
-          errs[v.id] = t("workflow_variable_invalid_number");
+          err.name = t("workflow_variable_invalid_number");
         }
+        if ((v.label?.trim().length ?? 0) > WORKFLOW_VARIABLE_LABEL_MAX) {
+          err.label = t("workflow_variable_label_too_long", { max: WORKFLOW_VARIABLE_LABEL_MAX });
+        }
+        if ((v.description?.trim().length ?? 0) > WORKFLOW_VARIABLE_DESCRIPTION_MAX) {
+          err.description = t("workflow_variable_description_too_long", {
+            max: WORKFLOW_VARIABLE_DESCRIPTION_MAX,
+          });
+        }
+        if (Object.keys(err).length > 0) errs[v.id] = err;
         names.add(v.name);
       }
       return errs;
@@ -113,16 +165,7 @@ const WorkflowVariablesDialog: React.FC<WorkflowVariablesDialogProps> = ({ open,
       setErrors(errs);
       return;
     }
-    // Normalize: recompute order, coerce number defaults
-    const normalized = localVars.map((v, i) => ({
-      ...v,
-      order: i,
-      defaultValue:
-        v.type === "number" && v.defaultValue !== undefined && v.defaultValue !== ""
-          ? Number(v.defaultValue)
-          : v.defaultValue,
-    }));
-    dispatch(setVariables(normalized));
+    dispatch(setVariables(localVars.map(normalizeVariable)));
     onClose();
   }, [localVars, validate, dispatch, onClose]);
 
@@ -132,7 +175,7 @@ const WorkflowVariablesDialog: React.FC<WorkflowVariablesDialogProps> = ({ open,
       onClose={onClose}
       icon={ICON_NAME.VARIABLE}
       title={t("workflow_variables")}
-      maxWidth={600}
+      maxWidth={900}
       // The rows between the variables run to the frame's edges; only the
       // vertical padding a dialog body has is kept.
       bleed
@@ -148,17 +191,26 @@ const WorkflowVariablesDialog: React.FC<WorkflowVariablesDialogProps> = ({ open,
       ) : (
         <Stack spacing={0} sx={{ mt: 1 }}>
           {/* Header row */}
-          <Box sx={{ display: "flex", gap: 1, px: 3, mb: 1 }}>
-            <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ flex: 2 }}>
-              {t("workflow_variable_name")}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ width: 100 }}>
-              {t("workflow_variable_type")}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ flex: 1.5 }}>
-              {t("workflow_variable_default")}
-            </Typography>
-            <Box sx={{ width: 36 }} />
+          <Box data-testid="workflow-variable-header" sx={{ display: "flex", gap: 1, px: 3, mb: 1 }}>
+            {(
+              [
+                ["name", "workflow_variable_name"],
+                ["label", "workflow_variable_label"],
+                ["type", "workflow_variable_type"],
+                ["default", "workflow_variable_default"],
+              ] as const
+            ).map(([column, key]) => (
+              <Typography
+                key={column}
+                variant="caption"
+                color="text.secondary"
+                fontWeight="bold"
+                noWrap
+                sx={COLUMN_SX[column]}>
+                {t(key)}
+              </Typography>
+            ))}
+            <Box sx={COLUMN_SX.actions} />
           </Box>
 
           <Divider />
@@ -166,16 +218,37 @@ const WorkflowVariablesDialog: React.FC<WorkflowVariablesDialogProps> = ({ open,
           {/* Variable rows */}
           {localVars.map((variable, index) => (
             <React.Fragment key={variable.id}>
-              <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start", px: 3, py: 1.5 }}>
+              <Box
+                data-testid="workflow-variable-row"
+                sx={{ display: "flex", gap: 1, alignItems: "flex-start", px: 3, py: 1.5 }}>
                 <TextField
                   size="small"
                   placeholder={t("workflow_variable_name_placeholder")}
                   value={variable.name}
                   onChange={(e) => handleUpdate(variable.id, { name: e.target.value.replace(/\s/g, "_") })}
-                  error={!!errors[variable.id]}
-                  helperText={errors[variable.id]}
-                  sx={{ flex: 2 }}
-                  inputProps={{ style: { fontSize: "0.8125rem", fontFamily: "monospace" } }}
+                  error={!!errors[variable.id]?.name}
+                  helperText={errors[variable.id]?.name}
+                  sx={COLUMN_SX.name}
+                  inputProps={{
+                    "aria-label": t("workflow_variable_name"),
+                    title: variable.name || undefined,
+                    style: { fontSize: "0.8125rem", fontFamily: "monospace" },
+                  }}
+                />
+                <TextField
+                  size="small"
+                  placeholder={t("workflow_variable_label_placeholder")}
+                  value={variable.label ?? ""}
+                  onChange={(e) => handleUpdate(variable.id, { label: e.target.value })}
+                  error={!!errors[variable.id]?.label}
+                  helperText={errors[variable.id]?.label}
+                  sx={COLUMN_SX.label}
+                  inputProps={{
+                    "aria-label": t("workflow_variable_label"),
+                    title: variable.label || undefined,
+                    maxLength: WORKFLOW_VARIABLE_LABEL_MAX,
+                    style: { fontSize: "0.8125rem" },
+                  }}
                 />
                 <Select
                   size="small"
@@ -186,7 +259,8 @@ const WorkflowVariablesDialog: React.FC<WorkflowVariablesDialogProps> = ({ open,
                       defaultValue: "",
                     })
                   }
-                  sx={{ width: 100, fontSize: "0.8125rem" }}>
+                  inputProps={{ "aria-label": t("workflow_variable_type") }}
+                  sx={{ ...COLUMN_SX.type, fontSize: "0.8125rem" }}>
                   <MenuItem value="string">{t("workflow_variable_type_string")}</MenuItem>
                   <MenuItem value="number">{t("workflow_variable_type_number")}</MenuItem>
                 </Select>
@@ -196,18 +270,28 @@ const WorkflowVariablesDialog: React.FC<WorkflowVariablesDialogProps> = ({ open,
                   type={variable.type === "number" ? "number" : "text"}
                   value={variable.defaultValue ?? ""}
                   onChange={(e) => handleUpdate(variable.id, { defaultValue: e.target.value })}
-                  sx={{ flex: 1.5 }}
-                  inputProps={{ style: { fontSize: "0.8125rem" } }}
+                  sx={COLUMN_SX.default}
+                  inputProps={{
+                    "aria-label": t("workflow_variable_default"),
+                    style: { fontSize: "0.8125rem" },
+                  }}
                 />
-                <Tooltip title={t("delete")}>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleRemove(variable.id)}
-                    color="error"
-                    sx={{ mt: 0.25 }}>
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+                <Box sx={{ ...COLUMN_SX.actions, display: "flex", gap: 0.5 }}>
+                  <VariableDescriptionButton
+                    value={variable.description}
+                    onChange={(description) => handleUpdate(variable.id, { description })}
+                    error={errors[variable.id]?.description}
+                  />
+                  <Tooltip title={t("delete")}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleRemove(variable.id)}
+                      color="error"
+                      sx={{ mt: 0.75 }}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               </Box>
               {index < localVars.length - 1 && <Divider />}
             </React.Fragment>

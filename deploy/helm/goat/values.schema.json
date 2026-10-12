@@ -178,6 +178,37 @@
         }
       }
     },
+    "odoo": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "db": {
+          "type": "string"
+        },
+        "support": {
+          "type": "object",
+          "properties": {
+            "teamId": {
+              "type": [
+                "integer",
+                "string"
+              ]
+            },
+            "postAction": {
+              "type": "string"
+            },
+            "existingSecret": {
+              "type": "string"
+            },
+            "existingSecretKey": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "data": {
       "type": "object",
       "properties": {
@@ -440,6 +471,9 @@
           "type": "string"
         },
         "statusFeedUrl": {
+          "type": "string"
+        },
+        "supportEmail": {
           "type": "string"
         },
         "extraEnv": {

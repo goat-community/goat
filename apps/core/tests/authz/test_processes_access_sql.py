@@ -161,3 +161,68 @@ async def test_unknown_and_malformed_ids_are_denied(world: dict[str, Any]) -> No
     ]
     expected = {(r["kind"], r["id"], r["action"]) for r in refs}
     assert await _denied(world["owner"], refs) == expected
+
+
+@pytest.mark.asyncio
+async def test_an_editor_of_a_shared_project_writes_results_into_its_folder(
+    db_session: AsyncSession,
+    roles: dict[str, UUID],
+    authz_sql: None,
+    make_org: Callable[[], Awaitable[Organization]],
+    make_user: Callable[..., Awaitable[User]],
+    make_folder: Callable[..., Awaitable[Any]],
+    make_project: Callable[..., Awaitable[Any]],
+) -> None:
+    """A tool run puts its result in the project's folder, which belongs to
+    the project's owner. An editor of the project may write there for that
+    project, and only for it: not into another of the owner's folders, and
+    not when the request names no project or one they cannot edit."""
+    org = await make_org()
+    owner, editor = await make_user(org.id), await make_user(org.id)
+    for user in (owner, editor):
+        await give_org_role(db_session, user.id, roles["organization-editor"])
+    home = await make_folder(owner)
+    other_folder = await make_folder(owner)
+    project = await make_project(owner, home)
+    unshared = await make_project(owner, home)
+    await db_session.execute(
+        text(
+            f"INSERT INTO {S}.resource_grant "
+            "(resource_type, resource_id, grantee_type, grantee_id, role_id, granted_by) "
+            "VALUES ('project', :p, 'user', :u, :role, :by)"
+        ),
+        {
+            "p": project.id,
+            "u": editor.id,
+            "role": roles["project-editor"],
+            "by": owner.id,
+        },
+    )
+    await db_session.commit()
+
+    into_project = [
+        _ref("project", project.id, "write"),
+        _ref("folder", home.id, "write"),
+    ]
+    assert await _denied(editor.id, into_project) == set()
+
+    elsewhere = [
+        _ref("project", project.id, "write"),
+        _ref("folder", other_folder.id, "write"),
+    ]
+    assert await _denied(editor.id, elsewhere) == {
+        ("folder", str(other_folder.id), "write")
+    }
+
+    assert await _denied(editor.id, [_ref("folder", home.id, "write")]) == {
+        ("folder", str(home.id), "write")
+    }
+
+    not_editable = [
+        _ref("project", unshared.id, "write"),
+        _ref("folder", home.id, "write"),
+    ]
+    assert await _denied(editor.id, not_editable) == {
+        ("project", str(unshared.id), "write"),
+        ("folder", str(home.id), "write"),
+    }

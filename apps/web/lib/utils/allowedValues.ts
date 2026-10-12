@@ -1,3 +1,5 @@
+import { isGeneratedKind } from "@/lib/validations/layer";
+
 import type { SelectorItem } from "@/types/map/common";
 
 /** A column constrained to a vocabulary, as the field metadata reports it. */
@@ -48,8 +50,10 @@ export function selectedVocabularyItem(items: SelectorItem[], current: unknown):
 
 /** A column's editing metadata, as the field metadata reports it. */
 export type EditableField = VocabularyField & {
+  kind?: string;
   is_computed?: boolean;
   is_locked?: boolean;
+  is_generated?: boolean;
 };
 
 /**
@@ -66,7 +70,10 @@ export type FieldEditability = {
    *  resolved against its nodes on every save. Not derived: there is no
    *  formula and nothing to recompute. */
   locked: boolean;
-  /** Shown but never edited, for either reason. */
+  /** Assigned by the server when the feature is created — a serial number or a
+   *  UUID — and never changed afterwards. Blank until the feature is saved. */
+  generated: boolean;
+  /** Shown but never edited, for any of these reasons. */
   readOnly: boolean;
   /** Edited by picking: the vocabulary is the whole set of accepted values. */
   vocabulary: boolean;
@@ -79,7 +86,10 @@ export type FieldEditability = {
 export function fieldEditability(field: EditableField, current?: unknown): FieldEditability {
   const computed = field.is_computed === true;
   const locked = field.is_locked === true;
-  const readOnly = computed || locked;
+  // The flag is what the server reports; the kind covers field metadata built
+  // before the flag existed (and the create dialog, which has no server yet).
+  const generated = field.is_generated === true || isGeneratedKind(field.kind);
+  const readOnly = computed || locked || generated;
   const constrained = !readOnly && hasVocabulary(field);
   // "Allow other values" makes the vocabulary a set of suggestions rather than
   // the domain: the backend accepts a value outside it, so the editor has to
@@ -88,6 +98,7 @@ export function fieldEditability(field: EditableField, current?: unknown): Field
   return {
     computed,
     locked,
+    generated,
     readOnly,
     vocabulary: constrained && !suggestions,
     suggestions,

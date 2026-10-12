@@ -2,14 +2,19 @@
 # GOAT Docker Compose
 # =============================================================================
 # Profiles:
-#   - (none): Infrastructure only (db, minio, redis, windmill-server,
+#   - (none): Infrastructure only (db, garage, redis, windmill-server,
 #             windmill-worker-default)
+#   - auth: + Keycloak with the compose bundle's realm, and Mailpit for its mail
 #   - dev: + devcontainer, tools worker with local goatlib mount, print worker
 #   - workers: + tools, workflows and print workers from the released images
 #
 # Usage:
 #   docker compose up                    # Infrastructure only
+#   docker compose --profile auth up     # + Keycloak (set AUTH=True to use it)
 #   docker compose --profile dev up      # + dev environment
+#
+# S3 is Garage, as in the compose bundle and the e2e workflow. garage-init
+# creates the layout, the access key from .env and the buckets on every start.
 #
 # To run GOAT itself (a deployment rather than local development), use the
 # bundle in deploy/compose/.
@@ -38,7 +43,7 @@ x-env-print: &env-print
   WORKER_TAGS: print
   JOB_DEFAULT_TIMEOUT: 300
   PYTHONDONTWRITEBYTECODE: "1"
-  WHITELIST_ENVS: "POSTGRES_SERVER,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,DUCKLAKE_DATA_DIR,DUCKLAKE_CATALOG_SCHEMA,S3_PROVIDER,S3_FORCE_PATH_STYLE,S3_ENDPOINT_URL,S3_PUBLIC_ENDPOINT_URL,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_BUCKET_NAME,S3_REGION,PRINT_BASE_URL,KEYCLOAK_SERVER_URL,REALM_NAME,KEYCLOAK_CLIENT_ID,KEYCLOAK_CLIENT_SECRET,ATLAS_BATCH_SIZE"
+  WHITELIST_ENVS: "POSTGRES_SERVER,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,DUCKLAKE_DATA_DIR,DUCKLAKE_CATALOG_SCHEMA,S3_PROVIDER,S3_FORCE_PATH_STYLE,S3_ENDPOINT_URL,S3_PUBLIC_ENDPOINT_URL,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_BUCKET_NAME,S3_REGION,AWS_REQUEST_CHECKSUM_CALCULATION,AWS_RESPONSE_CHECKSUM_VALIDATION,PRINT_BASE_URL,KEYCLOAK_SERVER_URL,REALM_NAME,KEYCLOAK_CLIENT_ID,KEYCLOAK_CLIENT_SECRET,ATLAS_BATCH_SIZE"
   ATLAS_BATCH_SIZE: ${ATLAS_BATCH_SIZE:-2}
   POSTGRES_SERVER: ${POSTGRES_SERVER}
   POSTGRES_USER: ${POSTGRES_USER}
@@ -46,13 +51,16 @@ x-env-print: &env-print
   POSTGRES_DB: goat
   DUCKLAKE_DATA_DIR: /app/data/ducklake
   DUCKLAKE_CATALOG_SCHEMA: ducklake
-  S3_PROVIDER: ${S3_PROVIDER:-hetzner}
+  S3_PROVIDER: ${S3_PROVIDER:-garage}
+  S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+  AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+  AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
   S3_ENDPOINT_URL: ${S3_ENDPOINT_URL}
   S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:-${S3_ENDPOINT_URL}}
   S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
   S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
   S3_BUCKET_NAME: ${S3_BUCKET_NAME}
-  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_REGION: ${S3_REGION:-garage}
   KEYCLOAK_SERVER_URL: ${KEYCLOAK_SERVER_URL:-https://auth.dev.plan4better.de}
   REALM_NAME: ${REALM_NAME:-p4b}
   KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-goat}
@@ -65,7 +73,7 @@ x-env-tools: &env-tools
   WORKER_TAGS: tools
   JOB_DEFAULT_TIMEOUT: 600
   PYTHONDONTWRITEBYTECODE: "1"
-  WHITELIST_ENVS: "MAX_UPLOAD_DATASET_FILE_SIZE,POSTGRES_SERVER,POSTGRES_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,POSTGRES_DATABASE_URI,DUCKLAKE_DATA_DIR,DUCKLAKE_CATALOG_SCHEMA,TILES_DATA_DIR,DATA_DIR,S3_PROVIDER,S3_FORCE_PATH_STYLE,S3_ENDPOINT_URL,S3_PUBLIC_ENDPOINT_URL,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_BUCKET_NAME,S3_REGION,CATALOG_S3_BUCKET,CATALOG_S3_ENDPOINT_URL,CATALOG_S3_ACCESS_KEY_ID,CATALOG_S3_SECRET_ACCESS_KEY,CATALOG_S3_REGION,OD_MATRIX_BASE_PATH,STREET_NETWORK_EDGES_BASE_PATH,STREET_NETWORK_NODES_BASE_PATH,PT_NETWORK_BASE_PATH,GTFS_DATA_PATH,GEOCODING_URL,GEOCODING_AUTHORIZATION"
+  WHITELIST_ENVS: "MAX_UPLOAD_DATASET_FILE_SIZE,POSTGRES_SERVER,POSTGRES_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,POSTGRES_DATABASE_URI,DUCKLAKE_DATA_DIR,DUCKLAKE_CATALOG_SCHEMA,TILES_DATA_DIR,DATA_DIR,S3_PROVIDER,S3_FORCE_PATH_STYLE,S3_ENDPOINT_URL,S3_PUBLIC_ENDPOINT_URL,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_BUCKET_NAME,S3_REGION,AWS_REQUEST_CHECKSUM_CALCULATION,AWS_RESPONSE_CHECKSUM_VALIDATION,CATALOG_S3_BUCKET,CATALOG_S3_ENDPOINT_URL,CATALOG_S3_ACCESS_KEY_ID,CATALOG_S3_SECRET_ACCESS_KEY,CATALOG_S3_REGION,OD_MATRIX_BASE_PATH,STREET_NETWORK_EDGES_BASE_PATH,STREET_NETWORK_NODES_BASE_PATH,PT_NETWORK_BASE_PATH,GTFS_DATA_PATH,GEOCODING_URL,GEOCODING_AUTHORIZATION"
   # Catalog bucket (read-only): the materialize job copies data assets from it.
   CATALOG_S3_BUCKET: ${CATALOG_S3_BUCKET:-}
   CATALOG_S3_ENDPOINT_URL: ${CATALOG_S3_ENDPOINT_URL:-}
@@ -81,13 +89,16 @@ x-env-tools: &env-tools
   DUCKLAKE_DATA_DIR: /app/data/ducklake
   DUCKLAKE_CATALOG_SCHEMA: ducklake
   TILES_DATA_DIR: /app/data/tiles
-  S3_PROVIDER: ${S3_PROVIDER:-hetzner}
+  S3_PROVIDER: ${S3_PROVIDER:-garage}
+  S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+  AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+  AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
   S3_ENDPOINT_URL: ${S3_ENDPOINT_URL}
   S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:-${S3_ENDPOINT_URL}}
   S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
   S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
   S3_BUCKET_NAME: ${S3_BUCKET_NAME}
-  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_REGION: ${S3_REGION:-garage}
   OD_MATRIX_BASE_PATH: /app/data/traveltime_matrices
   STREET_NETWORK_EDGES_BASE_PATH: ${STREET_NETWORK_EDGES_BASE_PATH:-/app/data/street_network/edges}
   STREET_NETWORK_NODES_BASE_PATH: ${STREET_NETWORK_NODES_BASE_PATH:-/app/data/street_network/nodes}
@@ -103,7 +114,7 @@ x-env-workflows: &env-workflows
   WORKER_TAGS: workflows
   JOB_DEFAULT_TIMEOUT: 1800 # 30 min for long workflow chains
   PYTHONDONTWRITEBYTECODE: "1"
-  WHITELIST_ENVS: "MAX_UPLOAD_DATASET_FILE_SIZE,POSTGRES_SERVER,POSTGRES_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,POSTGRES_DATABASE_URI,DUCKLAKE_DATA_DIR,DUCKLAKE_CATALOG_SCHEMA,TILES_DATA_DIR,S3_PROVIDER,S3_FORCE_PATH_STYLE,S3_ENDPOINT_URL,S3_PUBLIC_ENDPOINT_URL,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_BUCKET_NAME,S3_REGION,OD_MATRIX_BASE_PATH,STREET_NETWORK_EDGES_BASE_PATH,STREET_NETWORK_NODES_BASE_PATH,PT_NETWORK_BASE_PATH,GTFS_DATA_PATH,GEOCODING_URL,GEOCODING_AUTHORIZATION"
+  WHITELIST_ENVS: "MAX_UPLOAD_DATASET_FILE_SIZE,POSTGRES_SERVER,POSTGRES_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,POSTGRES_DATABASE_URI,DUCKLAKE_DATA_DIR,DUCKLAKE_CATALOG_SCHEMA,TILES_DATA_DIR,S3_PROVIDER,S3_FORCE_PATH_STYLE,S3_ENDPOINT_URL,S3_PUBLIC_ENDPOINT_URL,S3_ACCESS_KEY_ID,S3_SECRET_ACCESS_KEY,S3_BUCKET_NAME,S3_REGION,AWS_REQUEST_CHECKSUM_CALCULATION,AWS_RESPONSE_CHECKSUM_VALIDATION,OD_MATRIX_BASE_PATH,STREET_NETWORK_EDGES_BASE_PATH,STREET_NETWORK_NODES_BASE_PATH,PT_NETWORK_BASE_PATH,GTFS_DATA_PATH,GEOCODING_URL,GEOCODING_AUTHORIZATION"
   POSTGRES_SERVER: ${POSTGRES_SERVER}
   POSTGRES_PORT: 5432
   POSTGRES_USER: ${POSTGRES_USER}
@@ -113,13 +124,16 @@ x-env-workflows: &env-workflows
   DUCKLAKE_DATA_DIR: /app/data/ducklake
   DUCKLAKE_CATALOG_SCHEMA: ducklake
   TILES_DATA_DIR: /app/data/tiles
-  S3_PROVIDER: ${S3_PROVIDER:-hetzner}
+  S3_PROVIDER: ${S3_PROVIDER:-garage}
+  S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+  AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+  AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
   S3_ENDPOINT_URL: ${S3_ENDPOINT_URL}
   S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:-${S3_ENDPOINT_URL}}
   S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
   S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
   S3_BUCKET_NAME: ${S3_BUCKET_NAME}
-  S3_REGION: ${S3_REGION:-us-east-1}
+  S3_REGION: ${S3_REGION:-garage}
   OD_MATRIX_BASE_PATH: /app/data/traveltime_matrices
   STREET_NETWORK_EDGES_BASE_PATH: ${STREET_NETWORK_EDGES_BASE_PATH:-/app/data/street_network/edges}
   STREET_NETWORK_NODES_BASE_PATH: ${STREET_NETWORK_NODES_BASE_PATH:-/app/data/street_network/nodes}
@@ -178,6 +192,8 @@ networks:
 
 volumes:
   goat-data:
+  garage-meta:
+  garage-data:
 
 services:
   # ===========================================================================
@@ -239,42 +255,116 @@ services:
       - goat-data:/storage/data
       - ./scripts/db/init-db.sql:/rds/init/init-db.sql:ro
 
-  minio:
-    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
-    container_name: goat-minio
+  # S3 for uploads, exports and thumbnails. The S3 API is on 3900, the admin
+  # API on 3903. Uses the compose bundle's config: single node, path-style.
+  garage:
+    image: dxflrs/garage:v2.4.1
+    container_name: goat-garage
     restart: always
     networks:
       - goat
     ports:
-      - "9000:9000"
-      - "9001:9001"
-    command: ["server", "--console-address", ":9001", "/data/s3"]
-    volumes:
-      - goat-data:/data
-    healthcheck:
-      test: "mc ready local"
-      interval: 2s
-      timeout: 10s
-      retries: 5
+      - "3900:3900"
+      - "3903:3903"
     environment:
-      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID}
-      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY}
-      MINIO_DOMAIN: ${S3_PUBLIC_ENDPOINT_URL}
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?set GARAGE_RPC_SECRET in .env (openssl rand -hex 32)}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:?set GARAGE_ADMIN_TOKEN in .env (openssl rand -hex 32)}
+    volumes:
+      - ./deploy/compose/init/garage/garage.toml:/etc/garage.toml:ro
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+    healthcheck:
+      test: ["CMD", "/garage", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
-  minio-buckets:
-    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+  # Layout, the access key from .env, the buckets and their CORS rule.
+  # Idempotent, so it runs on every start.
+  garage-init:
+    image: ghcr.io/plan4better/goat/windmill-worker-tools:latest
+    restart: "no"
     networks:
       - goat
+    entrypoint: ["python", "/init/garage-init.py"]
+    environment:
+      GARAGE_ADMIN_URL: http://garage:3903
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN}
+      GARAGE_S3_URL: http://garage:3900
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      GOAT_PUBLIC_URL: ${CLIENT_URL:-http://localhost:3000}
+      GARAGE_CORS_ORIGINS: ${GARAGE_CORS_ORIGINS:-}
+      UPLOADS_BUCKET: ${S3_BUCKET_NAME:-goat}
+      ASSETS_BUCKET: ${AWS_S3_ASSETS_BUCKET:-goat-assets}
+    volumes:
+      - ./deploy/compose/init/garage:/init:ro
     depends_on:
-      minio:
+      garage:
         condition: service_healthy
-    restart: on-failure
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc alias set p4b http://minio:9000 ${S3_ACCESS_KEY_ID} ${S3_SECRET_ACCESS_KEY};
-      /usr/bin/mc mb p4b/${S3_BUCKET_NAME};
-      exit 0;
-      "
+
+  # ===========================================================================
+  # Sign-in (profile: auth)
+  # ===========================================================================
+
+  # Keycloak as a self-hosted install runs it: the GOAT image, importing the
+  # compose bundle's realm on first start. Its database is created by `db`.
+  keycloak:
+    profiles: [auth]
+    image: ghcr.io/plan4better/goat/keycloak:latest
+    container_name: goat-keycloak
+    restart: unless-stopped
+    networks:
+      - goat
+    ports:
+      - "${KEYCLOAK_PORT:-8080}:8080"
+    environment:
+      KEYCLOAK_DATABASE_VENDOR: postgresql
+      KEYCLOAK_DATABASE_HOST: ${KEYCLOAK_DATABASE_HOST:-db}
+      KEYCLOAK_DATABASE_PORT: 5432
+      KEYCLOAK_DATABASE_NAME: keycloak
+      KEYCLOAK_DATABASE_USER: ${POSTGRES_USER}
+      KEYCLOAK_DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KEYCLOAK_EXTRA_ARGS: --import-realm
+      KEYCLOAK_PRODUCTION: "false"
+      KEYCLOAK_ENABLE_HEALTH_ENDPOINTS: "true"
+      KC_HOSTNAME_STRICT: "false"
+      GOAT_PUBLIC_URL: ${CLIENT_URL:-http://localhost:3000}
+      GOAT_REALM: ${REALM_NAME:-goat}
+      GOAT_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-goat}
+      GOAT_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-}
+      GOAT_ADMIN_EMAIL: ${GOAT_ADMIN_EMAIL:-admin@goat.test}
+      GOAT_ADMIN_PASSWORD: ${GOAT_ADMIN_PASSWORD:-goat-admin}
+      GOAT_SSL_REQUIRED: none
+      GOAT_SMTP_HOST: mailpit
+      GOAT_SMTP_PORT: 1025
+      GOAT_SMTP_FROM: goat@goat.test
+      GOAT_SMTP_FROM_NAME: GOAT
+      GOAT_SMTP_AUTH: "false"
+      GOAT_SMTP_USER: ""
+      GOAT_SMTP_PASSWORD: ""
+      GOAT_SMTP_STARTTLS: "false"
+      GOAT_SMTP_SSL: "false"
+    volumes:
+      - ./deploy/compose/init/keycloak/realm-goat.json:/opt/bitnami/keycloak/data/import/realm-goat.json:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Catches the mail core and Keycloak send (invitations, password setup).
+  # Web UI on 8025.
+  mailpit:
+    profiles: [auth]
+    image: axllent/mailpit:v1.27
+    container_name: goat-mailpit
+    restart: unless-stopped
+    networks:
+      - goat
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
   redis:
     image: redis:7.4.1-alpine
@@ -410,8 +500,8 @@ services:
       - goat-data:/app/data
     depends_on:
       - db
-      - minio
-      - minio-buckets
+      - garage
+      - garage-init
       - redis
       - windmill-server
       - windmill-worker-default

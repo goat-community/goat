@@ -148,17 +148,15 @@ describe("CONTACT_URL", () => {
 describe("website-only surfaces", () => {
   it("are off without NEXT_PUBLIC_WEBSITE_URL", async () => {
     vi.stubEnv("NEXT_PUBLIC_WEBSITE_URL", "");
-    const { WELCOME_VIDEO, SUPPORT_MAILTO, privacyPolicyUrl } = await loadConstants();
+    const { WELCOME_VIDEO, privacyPolicyUrl } = await loadConstants();
     expect(WELCOME_VIDEO).toBeUndefined();
-    expect(SUPPORT_MAILTO).toBeUndefined();
     expect(privacyPolicyUrl("en")).toBeUndefined();
   });
 
   it("are on with NEXT_PUBLIC_WEBSITE_URL", async () => {
     vi.stubEnv("NEXT_PUBLIC_WEBSITE_URL", "https://www.site.test");
-    const { WELCOME_VIDEO, SUPPORT_MAILTO, privacyPolicyUrl } = await loadConstants();
+    const { WELCOME_VIDEO, privacyPolicyUrl } = await loadConstants();
     expect(WELCOME_VIDEO?.url).toMatch(/\.mp4$/);
-    expect(SUPPORT_MAILTO).toMatch(/^mailto:/);
     expect(privacyPolicyUrl("en")).toBe("https://www.site.test/en/about-us/privacy");
     expect(privacyPolicyUrl("de")).toBe("https://www.site.test/de/about-us/datenschutz");
   });
@@ -175,5 +173,51 @@ describe("DOCS_URL", () => {
     vi.stubEnv("NEXT_PUBLIC_DOCS_URL", "https://docs.client.test/goat/");
     const { DOCS_URL } = await loadConstants();
     expect(DOCS_URL).toBe("https://docs.client.test/goat");
+  });
+});
+
+describe("SUPPORT_EMAIL and SUPPORT_MAILTO", () => {
+  const MAILTO_SUBJECT = "?subject=GOAT%20Support%20Request";
+  const DEFAULT = "support@plan4better.de";
+
+  it("use NEXT_PUBLIC_SUPPORT_EMAIL, trimmed", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPPORT_EMAIL", " help@client.test ");
+    const { SUPPORT_EMAIL, SUPPORT_MAILTO } = await loadConstants();
+    expect(SUPPORT_EMAIL).toBe("help@client.test");
+    expect(SUPPORT_MAILTO).toBe(`mailto:help@client.test${MAILTO_SUBJECT}`);
+  });
+
+  it.each(["", "APP_NEXT_PUBLIC_SUPPORT_EMAIL"])(
+    "default to Plan4Better's address for %j, with or without a website",
+    async (value) => {
+      for (const website of ["", "https://www.site.test"]) {
+        vi.stubEnv("NEXT_PUBLIC_SUPPORT_EMAIL", value);
+        vi.stubEnv("NEXT_PUBLIC_WEBSITE_URL", website);
+        const { SUPPORT_EMAIL, SUPPORT_MAILTO } = await loadConstants();
+        expect(SUPPORT_EMAIL).toBe(DEFAULT);
+        expect(SUPPORT_MAILTO).toBe(`mailto:${DEFAULT}${MAILTO_SUBJECT}`);
+      }
+    }
+  );
+
+  it.each([
+    "not-an-address",
+    "a@b@c.test",
+    "help @client.test",
+    '"help"@client.test',
+    "<help@client.test>",
+    "help@client.test?cc=x@y.test",
+  ])("ignore the invalid value %j with one warning and use the default", async (value) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      vi.stubEnv("NEXT_PUBLIC_SUPPORT_EMAIL", value);
+      const { SUPPORT_EMAIL, SUPPORT_MAILTO } = await loadConstants();
+      expect(SUPPORT_EMAIL).toBe(DEFAULT);
+      expect(SUPPORT_MAILTO).toBe(`mailto:${DEFAULT}${MAILTO_SUBJECT}`);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toContain("NEXT_PUBLIC_SUPPORT_EMAIL");
+    } finally {
+      warn.mockRestore();
+    }
   });
 });

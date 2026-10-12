@@ -342,6 +342,41 @@ class Settings(BaseSettings):
     def custom_domains_enabled(self) -> bool:
         return bool(self.CUSTOM_DOMAIN_CNAME_TARGET.strip())
 
+    # ------------------------------------------------------------------
+    # Plan4Better's Odoo (SaaS only; see core.odoo). The connection is
+    # shared; each integration has its own key, from its own least-privilege
+    # Odoo user, and is on only when the connection and its settings are set.
+    # Self-hosted installs set none of them.
+    # ------------------------------------------------------------------
+    ODOO_URL: str | None = None
+    ODOO_DB: str | None = None
+    # Support tickets (Odoo Helpdesk), through the bridge portal user ("GOAT Support Bot").
+    ODOO_SUPPORT_API_KEY: str | None = None
+    ODOO_SUPPORT_TEAM_ID: int | None = None
+    ODOO_SUPPORT_POST_ACTION: str = "GOAT: post message as ticket participant"
+
+    @field_validator(
+        "ODOO_URL",
+        "ODOO_DB",
+        "ODOO_SUPPORT_API_KEY",
+        "ODOO_SUPPORT_TEAM_ID",
+        mode="before",
+    )
+    @classmethod
+    def _odoo_empty_is_unset(cls: type["Settings"], value: object) -> object:
+        return None if isinstance(value, str) and not value.strip() else value
+
+    @property
+    def support_enabled(self) -> bool:
+        return all(
+            (
+                self.ODOO_URL,
+                self.ODOO_DB,
+                self.ODOO_SUPPORT_API_KEY,
+                self.ODOO_SUPPORT_TEAM_ID,
+            )
+        )
+
     @model_validator(mode="after")
     def _require_keycloak(self) -> "Settings":
         require_keycloak_url(self.AUTH, self.KEYCLOAK_SERVER_URL)

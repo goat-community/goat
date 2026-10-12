@@ -3,8 +3,9 @@
 Creates the cast the role-based specs log in as, in Keycloak and, through
 core's real API, in GOAT:
 
-- owner, admin, editor, viewer: one organization (owner creates it, invites
-  the other three, who accept);
+- owner, admin, editor, editor2, viewer: one organization (owner creates
+  it, invites the other four, who accept); editor2 is a second editor, for
+  specs where two members act independently (two users of one template);
 - outsider: an organization of their own;
 - newcomer, invitee: Keycloak users without an organization (onboarding,
   invitation acceptance).
@@ -52,6 +53,7 @@ CAST: dict[str, dict[str, str]] = {
     "owner": {"firstname": "GOAT", "lastname": "Owner"},
     "admin": {"firstname": "Ada", "lastname": "Admin"},
     "editor": {"firstname": "Ed", "lastname": "Editor"},
+    "editor2": {"firstname": "Eva", "lastname": "Editor2"},
     "viewer": {"firstname": "Vi", "lastname": "Viewer"},
     "outsider": {"firstname": "Otto", "lastname": "Outsider"},
     "newcomer": {"firstname": "Nora", "lastname": "Newcomer"},
@@ -60,6 +62,7 @@ CAST: dict[str, dict[str, str]] = {
 MEMBERS = {
     "admin": "organization-admin",
     "editor": "organization-editor",
+    "editor2": "organization-editor",
     "viewer": "organization-viewer",
 }
 ORGANIZATION = {

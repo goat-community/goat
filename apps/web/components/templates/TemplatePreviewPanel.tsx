@@ -12,6 +12,7 @@ import { useDateFnsLocale } from "@/i18n/utils";
 
 import { layoutPageDescription } from "@/lib/templates/previewGeometry";
 import { THUMBNAIL_ACCEPT, thumbnailFileRejection } from "@/lib/templates/thumbnailFile";
+import { INPUT_CHOICE_LABEL_KEY, inputChoiceOf } from "@/lib/utils/templates";
 import type { TemplatePreviewDescriptor, TemplateRead } from "@/lib/validations/template";
 
 import ContentThumbnail from "@/components/dashboard/common/ContentThumbnail";
@@ -134,7 +135,13 @@ const TemplateInputsList = ({ template }: { template: TemplateRead }) => {
             {input.label}
           </Typography>
           <Chip
-            label={t(input.mode === "ship" ? "ship_dataset" : "ask_on_use")}
+            label={t(
+              input.mode === "copy"
+                ? INPUT_CHOICE_LABEL_KEY[inputChoiceOf(input)]
+                : input.mode === "ship"
+                  ? "ship_dataset"
+                  : "ask_on_use"
+            )}
             size="small"
             sx={{ height: 20, fontSize: 11, flexShrink: 0 }}
           />

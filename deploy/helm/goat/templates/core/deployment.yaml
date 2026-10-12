@@ -95,6 +95,16 @@ spec:
                   key: {{ .existingSecretKey | default "smtp-password" }}
             {{- end }}
             {{- end }}
+            {{- $odoo := .Values.odoo | default dict }}
+            {{- with $odoo.support }}
+            {{- if and $odoo.url .existingSecret (not (include "goat.env.inExtraEnv" (dict "values" $.Values.core "key" "ODOO_SUPPORT_API_KEY"))) }}
+            - name: ODOO_SUPPORT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .existingSecret }}
+                  key: {{ .existingSecretKey | default "api-key" }}
+            {{- end }}
+            {{- end }}
             {{- with .Values.core.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

@@ -18,6 +18,13 @@ TOKEN = os.environ["GARAGE_ADMIN_TOKEN"]
 KEY_ID = os.environ["S3_ACCESS_KEY_ID"]
 KEY_SECRET = os.environ["S3_SECRET_ACCESS_KEY"]
 PUBLIC_URL = os.environ["GOAT_PUBLIC_URL"].rstrip("/")
+# Browser origins allowed by the uploads bucket's CORS rule, comma-separated.
+# Defaults to the public URL; a dev machine with several app ports sets more.
+CORS_ORIGINS = [
+    o.strip().rstrip("/")
+    for o in (os.environ.get("GARAGE_CORS_ORIGINS") or PUBLIC_URL).split(",")
+    if o.strip()
+]
 UPLOADS = os.environ.get("UPLOADS_BUCKET", "goat-uploads")
 ASSETS = os.environ.get("ASSETS_BUCKET", "goat-assets")
 CAPACITY = int(os.environ.get("GARAGE_CAPACITY_BYTES", str(10 * 1024**4)))
@@ -141,7 +148,7 @@ def ensure_cors() -> None:
         CORSConfiguration={
             "CORSRules": [
                 {
-                    "AllowedOrigins": [PUBLIC_URL],
+                    "AllowedOrigins": CORS_ORIGINS,
                     "AllowedMethods": ["GET", "HEAD", "PUT"],
                     "AllowedHeaders": ["*"],
                     "ExposeHeaders": ["etag"],

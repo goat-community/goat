@@ -7,11 +7,10 @@ config around the author's ship/ask choice for each detected input.
 Tool-node ``config`` values are free-form per process (``Record<string,
 unknown>`` on the web side), so rewriting a layer reference inside them is
 best-effort: it walks the config tree and replaces scalar values equal to
-the old id, the same string/int replacement strategy ``_remap_builder_config``
-(``crud/crud_project_copy.py``) uses for builder widget configs. A tool
-parameter that is not itself a layer reference but happens to hold the same
-number or string would be rewritten too; this is accepted the same way the
-project-copy remap accepts it.
+the old id. A tool parameter that is not itself a layer reference but happens
+to hold the same number or string would be rewritten too; this is accepted
+because, unlike builder widget configs (``goatlib.utils.builder_config``),
+tool configs have no schema that says which fields hold a layer reference.
 """
 
 import copy
@@ -19,6 +18,7 @@ from typing import Any
 from uuid import UUID
 
 from core.schemas.template import (
+    DATASET_MODES,
     DetectedInput,
     TemplateInput,
     normalize_layer_type,
@@ -234,7 +234,9 @@ def freeze_workflow_config(
     keeps ``layerId``, drops ``projectLayerId`` (recorded first as
     ``data.templateSourceProjectLayerId`` so ``bind_workflow_config`` can
     later rewrite tool params that stored the numeric id), and sets
-    ``data.templateInput`` to the input's key; mode "ask" drops ``layerId``,
+    ``data.templateInput`` to the input's key; mode "copy" is frozen exactly
+    like "ship" (the node reads the author's dataset until the user's copy
+    replaces it behind the same project entry); mode "ask" drops ``layerId``,
     ``layerName`` and ``projectLayerId``, and sets ``data.templateInput`` and
     ``data.unresolved = True``. A tool node's ``config`` value equal to an
     "ask" node's dropped ``projectLayerId`` or ``layerId`` is replaced with
@@ -257,7 +259,7 @@ def freeze_workflow_config(
         data = node.setdefault("data", {})
         old_project_layer_id = data.get("projectLayerId")
         old_layer_id = data.get("layerId")
-        if template_input.mode == "ship":
+        if template_input.mode in DATASET_MODES:
             data.pop("projectLayerId", None)
             if old_project_layer_id is not None:
                 data["templateSourceProjectLayerId"] = old_project_layer_id
@@ -274,6 +276,28 @@ def freeze_workflow_config(
             if isinstance(old_layer_id, str):
                 replacements.append((old_layer_id, None))
             _rewrite_tool_configs(nodes, replacements)
+    return result
+
+
+def with_output_styles(
+    config: dict[str, Any], styles: dict[str, dict[str, Any]]
+) -> dict[str, Any]:
+    """Give each export node the style its result has in the source project.
+
+    ``styles`` maps an export node's id to the style of the project entry
+    showing that node's result (the author's styling after a run). The
+    runner applies ``outputStyle`` when the export creates a new layer, so a
+    template's users see the author's look on their first run; an export
+    that overwrites an earlier result keeps that layer's own style. Nodes
+    whose export never ran get nothing, so such configs stay as they were.
+    """
+    result = copy.deepcopy(config)
+    for node in result.get("nodes", []):
+        data = node.get("data")
+        if isinstance(data, dict) and data.get("type") == "export":
+            style = styles.get(str(node.get("id")))
+            if style:
+                data["outputStyle"] = style
     return result
 
 

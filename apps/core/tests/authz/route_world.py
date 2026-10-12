@@ -254,5 +254,9 @@ async def build_org_world(
         "resource_type": "project",
         "resource_id": project.id,
         "grant_id": grant.id,
+        # Support tickets live in Odoo, not in GOAT's database; support is off
+        # in the tests (set_test_mode), so these routes answer 404.
+        "ref": "00001",
+        "attachment_id": 1,
     }
     return {"org": org_a, "owner": a_owner.id, "member": a_member.id, "ids": ids}

@@ -76,11 +76,11 @@ export default function TemporalRangeInput({
     if (!base.isValid() || !end.isValid()) return null;
     return {
       steps: Math.max(0, end.startOf(unit).diff(base, unit)),
-      label: (v: number) => base.add(v, unit).format(LABEL_FORMAT[unit]),
+      label: (v: number) => base.add(v, unit).locale(dayjsLocale).format(LABEL_FORMAT[unit]),
       literal: (v: number, isEnd: boolean) =>
         (isEnd ? base.add(v, unit).endOf(unit) : base.add(v, unit).startOf(unit)).format(ISO),
     };
-  }, [isPicker, minData, maxData, fieldName, unit]);
+  }, [isPicker, minData, maxData, fieldName, unit, dayjsLocale]);
 
   const enableHistogram = !isPicker && showHistogram;
   const histogramBins = Math.min(Math.max((domain?.steps ?? 19) + 1, 1), 60);

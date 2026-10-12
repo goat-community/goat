@@ -480,6 +480,13 @@ services:
       EMAIL_LOGO_URL: ${EMAIL_LOGO_URL:-}
       EMAIL_CONTACT_URL: ${EMAIL_CONTACT_URL:-}
       EMAIL_PRIVACY_URL: ${EMAIL_PRIVACY_URL:-}
+      # Plan4Better's Odoo (shared connection) and support tickets (Odoo
+      # Helpdesk); support is off while any of the first four is empty
+      ODOO_URL: ${ODOO_URL:-}
+      ODOO_DB: ${ODOO_DB:-}
+      ODOO_SUPPORT_API_KEY: ${ODOO_SUPPORT_API_KEY:-}
+      ODOO_SUPPORT_TEAM_ID: ${ODOO_SUPPORT_TEAM_ID:-}
+      ODOO_SUPPORT_POST_ACTION: "${ODOO_SUPPORT_POST_ACTION:-GOAT: post message as ticket participant}"
       # Company CA for the SMTP relay's certificate
       GOAT_CA_BUNDLE: ${GOAT_CA_BUNDLE:-}
     volumes:
@@ -628,6 +635,7 @@ services:
       NEXT_PUBLIC_WEBSITE_URL: ${NEXT_PUBLIC_WEBSITE_URL:-}
       NEXT_PUBLIC_STATUS_FEED_URL: ${NEXT_PUBLIC_STATUS_FEED_URL:-}
       NEXT_PUBLIC_DOCS_URL: ${NEXT_PUBLIC_DOCS_URL:-}
+      NEXT_PUBLIC_SUPPORT_EMAIL: ${NEXT_PUBLIC_SUPPORT_EMAIL:-}
       NEXT_PUBLIC_ASSETS_URL: ${STATIC_ASSETS_URL:-}
       NEXT_PUBLIC_CONTACT_URL: ${EMAIL_CONTACT_URL:-}
       # Server-side login flow: discovery and token refresh use the public

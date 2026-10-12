@@ -24,6 +24,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/e2e.yml"
+      - "scripts/e2e/**"
       - "playwright.config.ts"
       - "apps/web/**"
       - "apps/core/**"
@@ -47,6 +48,9 @@ jobs:
     name: playwright
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # Steps that download or install have their own, shorter limits, several
+    # times their slowest healthy run: a hung package mirror then fails the
+    # step in minutes instead of holding the job for the full hour.
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v7
@@ -133,36 +137,12 @@ jobs:
           # last value of a name too.
           grep -E '^[A-Z_][A-Z0-9_]*=' .env | sed 's/"//g' >> "$GITHUB_ENV"
 
-      # S3 is Garage, as in the compose bundle (deploy/compose): MinIO no
-      # longer publishes images, so the root compose.yaml's cannot be pulled.
-      # Keycloak is the GOAT image with the compose bundle's realm, as a
-      # self-hosted install runs it; it shares the compose Postgres, whose
-      # init creates the keycloak database. Mailpit catches the mail that
-      # core and Keycloak send (invitations, password setup).
-      - name: 🐘 Infra (Postgres, Redis, Garage, Keycloak, Mailpit)
-        run: |
-          docker compose up -d --wait db redis
-          docker run -d --name garage -p 3900:3900 -p 3903:3903 \
-            -e GARAGE_RPC_SECRET -e GARAGE_ADMIN_TOKEN \
-            -v "$PWD/deploy/compose/init/garage/garage.toml:/etc/garage.toml:ro" \
-            dxflrs/garage:v2.4.1
-          docker run -d --name mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit:v1.27
-          docker run -d --name keycloak --network host \
-            -e KEYCLOAK_DATABASE_VENDOR=postgresql -e KEYCLOAK_DATABASE_HOST=localhost \
-            -e KEYCLOAK_DATABASE_PORT=5432 -e KEYCLOAK_DATABASE_NAME=keycloak \
-            -e KEYCLOAK_DATABASE_USER="$POSTGRES_USER" -e KEYCLOAK_DATABASE_PASSWORD="$POSTGRES_PASSWORD" \
-            -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD="$E2E_KEYCLOAK_ADMIN_PASSWORD" \
-            -e KEYCLOAK_EXTRA_ARGS=--import-realm -e KEYCLOAK_PRODUCTION=false \
-            -e KEYCLOAK_ENABLE_HEALTH_ENDPOINTS=true -e KC_HOSTNAME_STRICT=false \
-            -e GOAT_PUBLIC_URL=http://localhost:3000 -e GOAT_REALM=goat \
-            -e GOAT_CLIENT_ID=goat -e GOAT_CLIENT_SECRET="$KEYCLOAK_CLIENT_SECRET" \
-            -e GOAT_ADMIN_EMAIL=e2e-realm-admin@goat.test \
-            -e GOAT_ADMIN_PASSWORD="$E2E_KEYCLOAK_ADMIN_PASSWORD" -e GOAT_SSL_REQUIRED=none \
-            -e GOAT_SMTP_HOST=localhost -e GOAT_SMTP_PORT=1025 -e GOAT_SMTP_FROM=goat@e2e.test \
-            -e GOAT_SMTP_FROM_NAME=GOAT -e GOAT_SMTP_AUTH=false -e GOAT_SMTP_USER= \
-            -e GOAT_SMTP_PASSWORD= -e GOAT_SMTP_STARTTLS=false -e GOAT_SMTP_SSL=false \
-            -v "$PWD/deploy/compose/init/keycloak/realm-goat.json:/opt/bitnami/keycloak/data/import/realm-goat.json:ro" \
-            ghcr.io/plan4better/goat/keycloak:latest
+      # Setup runs side by side: everything that does not feed the web build
+      # (infra, Python, Chromium's system packages) starts in the background
+      # or runs while the build does, and is awaited where it is needed.
+      # scripts/e2e/bg.sh and await.sh keep each task's log in logs/.
+      - name: 🐘 Start the infra (Postgres, Redis, Garage, Keycloak, Mailpit)
+        run: scripts/e2e/bg.sh infra scripts/e2e/infra.sh
 
       - name: 🐍 Install uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
@@ -172,11 +152,49 @@ jobs:
           prune-cache: true
       # As in the test jobs: gdal and the C++ routing package are imported
       # lazily, by code paths the suite does not reach.
-      - name: 🐍 Python dependencies
-        run: uv sync --frozen --all-packages --all-extras --no-install-package gdal --no-install-package routing
+      - name: 🐍 Start the Python dependencies
+        run: scripts/e2e/bg.sh python uv sync --frozen --all-packages --all-extras --no-install-package gdal --no-install-package routing
 
       - name: 📥 JS dependencies
+        timeout-minutes: 10
         uses: ./.github/actions/pnpm-install
+
+      # Turbopack keeps its build work in apps/web/.next/cache (on by default
+      # since Next 16.3). Pull requests start from the cache main last saved;
+      # only main saves one, as a pull request's cache is visible to that
+      # pull request alone.
+      - name: 💾 Restore the web build cache
+        uses: actions/cache/restore@v6
+        with:
+          path: apps/web/.next/cache
+          key: next-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: next-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+      - name: 🏗️ Start the web build
+        run: scripts/e2e/bg.sh build pnpm --filter @p4b/web build
+
+      # While the web builds: the browser's version, for its cache key.
+      - name: 🎭 Playwright version
+        id: playwright
+        run: echo "version=$(pnpm --filter web exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: 💾 Cache Playwright Chromium
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      # Chromium and its system packages install in the background too; the
+      # tests are the first to need them.
+      - name: 📥 Start installing Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: scripts/e2e/bg.sh chromium pnpm --filter web exec playwright install --with-deps chromium
+      - name: 📥 Start installing Playwright's system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: scripts/e2e/bg.sh chromium pnpm --filter web exec playwright install-deps chromium
+
+      - name: ⏳ Infra and Python dependencies
+        run: |
+          scripts/e2e/await.sh infra 600
+          scripts/e2e/await.sh python 600
 
       - name: 🪣 Buckets
         env:
@@ -201,6 +219,7 @@ jobs:
       # 8000 from core. Windmill passes a job only the variables in
       # WHITELIST_ENVS, the compose bundle's list.
       - name: 🌬️ Windmill
+        timeout-minutes: 15
         run: |
           image=ghcr.io/plan4better/goat
           windmill_db="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/windmill?sslmode=disable"
@@ -274,8 +293,14 @@ jobs:
           # tolerated (its log is kept for the report).
           start catalog 8400
 
-      - name: 🏗️ Web build
-        run: pnpm --filter @p4b/web build
+      - name: ⏳ Web build
+        run: scripts/e2e/await.sh build 900
+      - name: 💾 Save the web build cache
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v6
+        with:
+          path: apps/web/.next/cache
+          key: next-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
 
       - name: 🌐 Web server
         run: |
@@ -293,24 +318,28 @@ jobs:
       - name: 👥 Test users, organizations, datasets
         run: uv run --no-sync python scripts/e2e/provision.py --datasets
 
-      - name: 🎭 Playwright version
-        id: playwright
-        run: echo "version=$(pnpm --filter web exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-      - name: 💾 Cache Playwright Chromium
-        id: playwright-cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-      - name: 📥 Install Playwright Chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm --filter web exec playwright install --with-deps chromium
-      - name: 📥 Playwright system dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm --filter web exec playwright install-deps chromium
+      - name: ⏳ Playwright Chromium
+        run: scripts/e2e/await.sh chromium 900
 
       - name: 🧪 Playwright
         run: pnpm exec playwright test --config=playwright.config.ts
+
+      # Where the suite spends its time, on every run: the slowest specs.
+      - name: ⏱️ Slowest specs
+        if: always()
+        run: |
+          [ -f test-results/reports/results.xml ] || exit 0
+          python3 - >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import xml.etree.ElementTree as ET
+          cases = [
+              (float(case.get("time") or 0), case.get("classname", ""), case.get("name", ""))
+              for case in ET.parse("test-results/reports/results.xml").iter("testcase")
+          ]
+          print("### Slowest specs\n\n| Seconds | Spec | Test |\n|---:|---|---|")
+          for seconds, spec, name in sorted(cases, reverse=True)[:15]:
+              print(f"| {seconds:.0f} | {spec.replace('apps/web/playwright/', '')} | {name} |")
+          print(f"\nTotal across {len(cases)} tests: {sum(c[0] for c in cases) / 60:.1f} min")
+          PY
 
       - name: 🗒️ Container logs
         if: failure()

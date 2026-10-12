@@ -30,6 +30,15 @@ description: |
     port, security, user, sender, password from `existingSecret`) and the
     branding of GOAT's emails. Core also gets CLIENT_URL and API_URL, the
     links in its emails, from the web and API public URLs.
+  - NEW: `odoo`, Plan4Better's Odoo (optional, SaaS only): `url` and `db`
+    shared by GOAT's Odoo integrations, and `odoo.support` for support
+    tickets (Odoo Helpdesk): team id, the post action and the API key from
+    `existingSecret`, off while empty. `core.ingress` must accept request bodies of at least
+    56 MB on /api/v2/support when it is on.
+  - NEW: `web.supportEmail` (NEXT_PUBLIC_SUPPORT_EMAIL), the address of
+    "Report a problem" without tickets and of the "support unavailable"
+    messages; defaults to support@plan4better.de, set your own for a
+    white-label installation.
   - NEW: `global.auth.provisionInvitedUsers` — invitations create the
     Keycloak account (KEYCLOAK_PROVISION_INVITED_USERS) for realms without
     self-registration.

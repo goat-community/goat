@@ -385,6 +385,10 @@ override the key names via the `existingSecretUserKey` /
 | `email.user` / `.from` / `.fromName` | string | `""` / `""` / `GOAT` | Login, sender address (defaults to `user`; required for a relay without login) and sender name. |
 | `email.existingSecret` / `.existingSecretKey` | string | `""` / `smtp-password` | Secret holding the SMTP password. |
 | `email.brandName` / `.logoUrl` / `.contactUrl` / `.privacyUrl` | string | `GOAT` / `""` | Name, logo and footer links of GOAT's emails. |
+| `odoo.url` / `.db` | string | `""` | Plan4Better's Odoo, shared by GOAT's Odoo integrations (`ODOO_URL`, `ODOO_DB`); optional, SaaS only. |
+| `odoo.support.teamId` | string / int | `""` | Odoo Helpdesk team that receives support tickets (`ODOO_SUPPORT_TEAM_ID`); off while this, `odoo.url`, `odoo.db` or the key is empty (see "Support tickets"). |
+| `odoo.support.postAction` | string | `GOAT: post message as ticket participant` | Odoo server action that posts a message as the ticket participant (`ODOO_SUPPORT_POST_ACTION`). |
+| `odoo.support.existingSecret` / `.existingSecretKey` | string | `""` / `api-key` | Secret holding the support bridge's Odoo API key (`ODOO_SUPPORT_API_KEY`). |
 | `core.ingress.enabled` | bool | `false` | Create Ingress resource for core API. |
 | `core.ingress.className` | string | `""` | Ingress controller name (`nginx`, `traefik`, …). |
 | `core.config.*` | map | see values.yaml | Non-secret env vars (rendered as ConfigMap). `MAX_UPLOAD_DATASET_FILE_SIZE` caps browser uploads (bytes, default 5 GB); set it in the Windmill workers' `config` too, for the jobs that import the files. |
@@ -427,6 +431,7 @@ override the key names via the `existingSecretUserKey` /
 | `catalog.config.CATALOG_MCP_ALLOWED_HOSTS` | string | `'["*"]'` | `/mcp` Host allow-list (DNS-rebinding protection); narrow once you have a real hostname. |
 | `web.publicUrls.api` / `.geoapi` / `.processes` / `.catalog` | string | `""` | Browser-facing service URLs; each is derived from that service's own ingress (scheme from its TLS, host from its first entry) when empty. |
 | `web.websiteUrl` | string | `""` | Home's blog + changelog feeds; the surfaces hide when empty. |
+| `web.supportEmail` | string | `""` | Address of "Report a problem" (a mailto link while support tickets are off) and of the "support unavailable" messages (`NEXT_PUBLIC_SUPPORT_EMAIL`). Defaults to `support@plan4better.de`; set your own address for a white-label installation. |
 | `redis.external.host` | string | `""` | External Redis host, used when `redis.enabled: false`. |
 | `redis.external.existingSecret` | string | `""` | Secret holding the external Redis password; omit for an unauthenticated Redis. |
 
@@ -537,6 +542,46 @@ The chart mounts it at `/etc/goat/ca/ca.pem` and sets `GOAT_CA_BUNDLE` in core
 and the print, tools and workflows workers and `NODE_EXTRA_CA_CERTS` in web.
 Each of them trusts it in addition to the public CAs. A variable you set
 yourself in that service's `config` or `extraEnv` wins.
+
+## Support tickets
+
+Optional and off by default. GOAT can hand problem reports to an Odoo
+Helpdesk; with the block empty the app shows "Report a problem" as an email
+address plus the documentation, and core serves no `/api/v2/support` routes.
+It is on only when `odoo.url`, `odoo.db`, `odoo.support.teamId` and the API
+key are all set. The key is a secret that Plan4Better issues for its own
+Odoo, so leave the `odoo` block empty on your own installation unless you
+received one.
+
+```bash
+kubectl -n goat create secret generic goat-support --from-literal=api-key='…'
+```
+
+```yaml
+odoo:
+  url: https://odoo.example.org
+  db: odoo-db
+  support:
+    teamId: 7
+    existingSecret: goat-support
+```
+
+Ticket messages can carry up to 55 MiB of attachments in one request. An
+ingress or proxy in front of core must accept bodies of at least 56 MB on
+`/api/v2/support` and give the request time to finish. ingress-nginx limits
+bodies to 1 MB by default, so with it set on `core.ingress.annotations`:
+
+```yaml
+core:
+  ingress:
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "56m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+```
+
+A variable you set yourself in `core.config` or `core.extraEnv` wins over the
+block.
 
 ## Object storage — `global.s3`
 
@@ -790,7 +835,7 @@ helm template my-release deploy/helm/goat/ -f deploy/helm/goat/ci/values-externa
 
 | Chart version | Adds | Notes |
 |---|---|---|
-| `0.6.0` | `global.s3` (one S3 store for core, geoapi, processes and the workers, uploads and uploaded images); the print, tools and workflows workers get GOAT's database, DuckLake, S3, catalog bucket, `PRINT_BASE_URL` and Keycloak client, with `WHITELIST_ENVS` built by the chart, and job timeouts per worker (`JOB_DEFAULT_TIMEOUT`); the chart's own Redis on the official image instead of the Bitnami sub-chart; `email` (SMTP for invitations, password from a Secret, email branding) with `CLIENT_URL` / `API_URL` derived for the links in emails; `global.auth.provisionInvitedUsers`; `global.caBundle` (company CA for core, web and the print, tools and workflows workers) | The S3 and assets placeholders are gone from `core`, `geoapi` and `processes`, and the workers' fixed `WHITELIST_ENVS` is replaced by a built one — see "Upgrading 0.5.1 → 0.6.0" |
+| `0.6.0` | `global.s3` (one S3 store for core, geoapi, processes and the workers, uploads and uploaded images); the print, tools and workflows workers get GOAT's database, DuckLake, S3, catalog bucket, `PRINT_BASE_URL` and Keycloak client, with `WHITELIST_ENVS` built by the chart, and job timeouts per worker (`JOB_DEFAULT_TIMEOUT`); the chart's own Redis on the official image instead of the Bitnami sub-chart; `email` (SMTP for invitations, password from a Secret, email branding) with `CLIENT_URL` / `API_URL` derived for the links in emails; `global.auth.provisionInvitedUsers`; `odoo` (Plan4Better's Odoo, optional: the shared connection and `odoo.support` for support tickets, API key from a Secret) and `web.supportEmail`; `global.caBundle` (company CA for core, web and the print, tools and workflows workers) | The S3 and assets placeholders are gone from `core`, `geoapi` and `processes`, and the workers' fixed `WHITELIST_ENVS` is replaced by a built one — see "Upgrading 0.5.1 → 0.6.0" |
 | `0.5.1` | GOAT v3.0.3 (no runtime downloads in the workers, `ROOT_PATH`, `sync_base_data`); `global.auth`: one auth switch + one Keycloak Secret for core, web, geoapi, processes, catalog; `geoapi.auth` / `processes.auth` | Fixes: geoapi + processes ran auth ON at chart defaults (401 on feature edits and every job route) and, with auth on, validated tokens against plan4better's dev Keycloak; a fresh install's processes had no windmill token (every tool run failed until a manual restart); `processes.windmillAutoWire: false` was ignored. No values change needed — see "Upgrading 0.5.0 → 0.5.1" |
 | `0.5.0` | GOAT v3.0.2: `catalog` service (STAC API + MCP); shared `data` volume; single-command fresh install (DuckLake + windmill DB bootstrap moved from hooks to init containers); `REDIS_URL`, web `NEXT_PUBLIC_*` and windmill `WHITELIST_ENVS` fixes; bundled Postgres image moves from CNPG's default major 17 to 18 (`ghcr.io/cloudnative-pg/postgis:18-3.6-system-trixie`) | BREAKING: `helm upgrade` DELETES `<fullname>-windmill-tools-data` and `<fullname>-windmill-workflows-data` unless you first `kubectl annotate` them `helm.sh/resource-policy=keep` (worker `persistence` superseded by `data`, no automatic migration; the upgrade fails until you do or set `windmill.workers.legacyPersistence.acknowledgeDeletion` — see upgrade note 1 below); geoapi + processes now default on |
 | `0.4.0` | automatic schema migrations (`core.migrate.*` hook); `NEXT_PUBLIC_AUTH_DISABLED` → `NEXT_PUBLIC_AUTH` | BREAKING: flip the web auth flag in your values |
@@ -828,6 +873,10 @@ helm template my-release deploy/helm/goat/ -f deploy/helm/goat/ci/values-externa
 5. **Core gets `CLIENT_URL` and `API_URL`** from the public web and API URLs,
    where it used to fall back to `http://localhost:3000` and
    `http://localhost:8000/api/v2`. Values you set in `core.config` win.
+
+6. **Support tickets** are new, optional and off until the `odoo` block
+   and `odoo.support` are set. If you turn them on, raise the body size limit of the ingress in
+   front of core to at least 56 MB (see "Support tickets").
 
 ### Upgrading 0.5.0 → 0.5.1
 

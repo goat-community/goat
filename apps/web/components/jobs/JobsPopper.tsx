@@ -1,16 +1,6 @@
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import DownloadIcon from "@mui/icons-material/Download";
-import {
-  Badge,
-  Box,
-  CircularProgress,
-  Divider,
-  IconButton,
-  Stack,
-  Tooltip,
-  Typography,
-  styled,
-} from "@mui/material";
+import { Badge, CircularProgress, IconButton, Tooltip, styled } from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -19,15 +9,17 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { type Job, dismissJob, useJobs } from "@/lib/api/processes";
 import { claimJobAnnouncement } from "@/lib/utils/jobAnnouncement";
+import { jobLabel } from "@/lib/utils/jobLabel";
 
 import { ArrowPopper as JobStatusMenu } from "@/components/ArrowPoper";
+import { HeaderPopoverHeader, HeaderPopoverList } from "@/components/header/HeaderPopover";
 import HeaderPopoverPaper, { HEADER_POPOVER_PLACEMENT } from "@/components/header/HeaderPopoverPaper";
 import JobProgressItem from "@/components/jobs/JobProgressItem";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
-    backgroundColor: "#44b700",
-    color: "#44b700",
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.primary.main,
     boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
     "&::after": {
       position: "absolute",
@@ -163,7 +155,7 @@ export default function JobsPopper() {
           void claimJobAnnouncement(job.jobID).then((claimed) => {
             if (!claimed) return;
             toast.dismiss();
-            const jobType = t(job.processID) || job.processID;
+            const jobType = jobLabel(job, t);
             toast.success(`"${jobType}" - ${t("job_success")}`);
             handleDownload(result);
           });
@@ -276,41 +268,24 @@ export default function JobsPopper() {
       {visibleJobs && visibleJobs.length > 0 && (
         <JobStatusMenu
           content={
-            <HeaderPopoverPaper sx={{ pt: 4, pb: 2 }}>
-              <Box>
-                <Typography variant="body1" fontWeight="bold" sx={{ px: 4, py: 1 }}>
-                  {t("job_status")}
-                </Typography>
-                <Divider sx={{ mb: 0, pb: 0 }} />
-              </Box>
-              <Box
-                sx={{
-                  maxHeight: "300px",
-                  overflowY: "auto",
-                  overflowX: "hidden",
-                  py: 2,
-                }}>
-                <Stack direction="column">
-                  {visibleJobs?.map((job, index) => {
-                    const actionButton = getActionButton(job);
-
-                    return (
-                      <Box key={job.jobID}>
-                        <JobProgressItem
-                          id={job.jobID}
-                          type={job.processID}
-                          status={job.status}
-                          name={job.jobID}
-                          date={job.updated || job.created || ""}
-                          errorMessage={job.status === "failed" ? job.message : undefined}
-                          actionButton={actionButton}
-                        />
-                        {index < visibleJobs.length - 1 && <Divider />}
-                      </Box>
-                    );
-                  })}
-                </Stack>
-              </Box>
+            <HeaderPopoverPaper>
+              <HeaderPopoverHeader title={t("job_status")} />
+              <HeaderPopoverList sx={{ maxHeight: 300, overflowY: "auto", overflowX: "hidden" }}>
+                {visibleJobs?.map((job) => (
+                  <JobProgressItem
+                    key={job.jobID}
+                    id={job.jobID}
+                    type={job.processID}
+                    label={jobLabel(job, t)}
+                    status={job.status}
+                    name={job.jobID}
+                    date={job.updated || job.created || ""}
+                    errorMessage={job.status === "failed" ? job.message : undefined}
+                    actionButton={getActionButton(job)}
+                    inPopover
+                  />
+                ))}
+              </HeaderPopoverList>
             </HeaderPopoverPaper>
           }
           open={open}

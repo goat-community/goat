@@ -149,6 +149,22 @@ By default, the emails from GOAT and from Keycloak show the name `GOAT` and no f
 
 The images in the emails come from GOAT's public URL (`<public URL>/assets`), or from `STATIC_ASSETS_URL` if you set it. Recipients' mail clients load them from there, so the address must be reachable for them.
 
+## Support tickets {#support}
+
+GOAT can hand problem reports and questions from its users to an Odoo Helpdesk, where they appear as tickets with replies. This is optional and **off by default**. Without it, *Report a problem* in the app shows an email address and the *Documentation* link, and the routes under `/api/v2/support` do not exist. The address defaults to `support@plan4better.de`; set your own with `NEXT_PUBLIC_SUPPORT_EMAIL`, see the [configuration reference](./configuration.md#integrations).
+
+| Setting | Meaning |
+|---|---|
+| `ODOO_URL` | Address of the Odoo, e.g. `https://odoo.example.org`. Shared by GOAT's Odoo integrations. |
+| `ODOO_DB` | The Odoo database. Shared by GOAT's Odoo integrations. |
+| `ODOO_SUPPORT_API_KEY` | API key of the support user in that Odoo. This is a secret. |
+| `ODOO_SUPPORT_TEAM_ID` | Numeric ID of the Helpdesk team that receives the tickets |
+| `ODOO_SUPPORT_POST_ACTION` | Optional. Name of the Odoo server action that posts a message as the ticket participant. Default `GOAT: post message as ticket participant`. |
+
+Support tickets are on only when the first four settings are all set; with any of them empty, they stay off. The API key is issued by Plan4Better for its own Odoo. Leave all four empty on your own installation unless you have received one.
+
+Ticket messages can carry attachments of up to 55 MiB in one request. The bundled Caddy sets no limit on request bodies. If you put your own proxy or load balancer in front, it must accept bodies of at least 56 MB on `/api/v2/support` and allow generous read timeouts there.
+
 ## Login off {#no-login}
 
 For local tests and demos, GOAT can run without any login:

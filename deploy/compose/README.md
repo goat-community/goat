@@ -85,7 +85,9 @@ More in the docs: [External services](https://goat.plan4better.de/docs/self_host
 
 In `.env`: `NEXT_PUBLIC_MAPTILER_KEY` (satellite basemap), `NEXT_PUBLIC_MAPBOX_TOKEN`
 (place search), `SMTP_*` (email, below), `CATALOG_S3_*` (GOAT data catalog),
-`GEOCODING_URL` / `GEOCODING_AUTHORIZATION`, `OTEL_*` (telemetry export).
+`GEOCODING_URL` / `GEOCODING_AUTHORIZATION`, `ODOO_*` (Odoo connection and support tickets, below),
+`NEXT_PUBLIC_SUPPORT_EMAIL` (address of "Report a problem" without tickets, default `support@plan4better.de`),
+`OTEL_*` (telemetry export).
 Apply changes with `docker compose up -d`.
 
 **Email.** GOAT sends invitations and Keycloak sends password resets through one
@@ -105,6 +107,18 @@ Run `./setup.sh` after changing `SMTP_SECURITY`: it sets `SMTP_STARTTLS` and
 the client secret from `.env` into the realm. GOAT's emails show the name `GOAT` and no
 links by default; `EMAIL_BRAND_NAME`, `EMAIL_LOGO_URL`, `EMAIL_CONTACT_URL` and
 `EMAIL_PRIVACY_URL` add your own name, logo and footer links.
+
+**Support tickets.** Optional and off by default. GOAT can hand problem reports to an
+Odoo Helpdesk; without it the app shows "Report a problem" as an email address plus the
+documentation. Set all four of `ODOO_URL`, `ODOO_DB` (Plan4Better's Odoo, shared by
+GOAT's Odoo integrations), `ODOO_SUPPORT_API_KEY` and `ODOO_SUPPORT_TEAM_ID` to turn it on; with any of them
+empty the `/api/v2/support` routes do not exist. The API key is a secret that Plan4Better
+issues for its own Odoo, so leave all four empty on your own installation unless you have
+received one. `ODOO_SUPPORT_POST_ACTION` names the Odoo server action used to post a
+message as the ticket participant (default `GOAT: post message as ticket participant`).
+Ticket messages can carry up to 55 MiB of attachments in one request: the bundled Caddy
+sets no request body limit, so keep it that way for `/api/v2/support` if you put another
+proxy in front.
 
 More in the docs: [External services → Optional integrations](https://goat.plan4better.de/docs/self_hosting/docker_compose/external_services#integrations)
 

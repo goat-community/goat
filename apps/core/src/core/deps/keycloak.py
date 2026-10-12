@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Any
 
@@ -58,7 +59,9 @@ async def get_keycloak_user(user_id: str) -> dict[str, Any]:
     if admin is None:
         return {}
     try:
-        return admin.get_user(user_id) or {}
+        # python-keycloak is synchronous (requests): off the event loop, so a
+        # slow Keycloak does not stall every other request of the pod.
+        return await asyncio.to_thread(admin.get_user, user_id) or {}
     except KeycloakGetError as e:
         if e.response_code == 404:
             logger.warning("keycloak user %s not found in realm", user_id)

@@ -110,6 +110,17 @@ class StatisticOperation(StrEnum):
     standard_deviation = "standard_deviation"
 
 
+# Operation labels for i18n (maps enum values to translation keys)
+STATISTIC_OPERATION_LABELS: dict[str, str] = {
+    "count": "enums.statistics_operation.count",
+    "sum": "enums.statistics_operation.sum",
+    "min": "enums.statistics_operation.min",
+    "max": "enums.statistics_operation.max",
+    "mean": "enums.statistics_operation.mean",
+    "standard_deviation": "enums.statistics_operation.standard_deviation",
+}
+
+
 class FieldStatistic(BaseModel):
     """Configuration for a statistical operation on a field.
 
@@ -121,14 +132,17 @@ class FieldStatistic(BaseModel):
     operation: StatisticOperation = Field(
         ...,
         description="The statistical operation to perform.",
+        json_schema_extra={"x-ui": {"enum_labels": STATISTIC_OPERATION_LABELS}},
     )
     field: Optional[str] = Field(
         None,
         description="Field name to compute statistics on. Required for all operations except 'count'.",
+        json_schema_extra={"x-ui": {"label_key": "statistic_field"}},
     )
     result_name: Optional[str] = Field(
         None,
         description="Custom name for the result column. If not provided, defaults to '{field}_{operation}' or 'count' for count operations.",
+        json_schema_extra={"x-ui": {"label_key": "statistic_result_name"}},
     )
 
     @model_validator(mode="after")

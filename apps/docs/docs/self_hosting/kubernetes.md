@@ -72,6 +72,14 @@ Login is **off** by default (`global.auth.enabled: false`): every service then a
 - **`global.auth.provisionInvitedUsers: true`** lets an invitation create the Keycloak account, and Keycloak emails a link to set the password. Use it when your realm has self-registration off. Core's Keycloak client then needs the realm-management roles `view-users` and `manage-users`.
 - **`global.caBundle`** names a ConfigMap or Secret with a company CA certificate, for an SMTP relay, a Keycloak or pages the print worker opens that use a certificate from a private CA. The chart mounts it into core, web and the `print`, `tools` and `workflows` workers.
 
+### Support tickets {#support}
+
+Optional and **off by default**. Support tickets hand problem reports from your users to an Odoo Helpdesk. The block `odoo` holds the connection (`odoo.url`, `odoo.db`), `odoo.support` the Helpdesk team (`odoo.support.teamId`) and the API key from a Secret (`odoo.support.existingSecret`). Tickets are on only when all of these are set. The key is issued by Plan4Better for its own Odoo, so leave the block empty on your own installation unless you have received one.
+
+Without tickets, *Report a problem* opens an email to the address in `web.supportEmail`, which is also named in the message shown when support is temporarily unavailable. It defaults to `support@plan4better.de`; set your own address for a white-label installation.
+
+Ticket messages can carry attachments of up to 55 MiB in one request. The Ingress in front of core must accept bodies of at least 56 MB on `/api/v2/support` and allow generous read timeouts. ingress-nginx limits bodies to 1 MB by default; raise it with `nginx.ingress.kubernetes.io/proxy-body-size: "56m"` and `proxy-read-timeout` in `core.ingress.annotations`.
+
 ### Analysis workers {#workers}
 
 The default Windmill worker only handles small jobs. **Analysis tools, dataset imports and workflows need the `tools` and `workflows` workers, and PDF printing needs the `print` worker.** All three are off by default. To use them:

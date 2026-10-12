@@ -14,6 +14,8 @@ from core.core.config import settings
 from core.db.session import session_manager
 from core.endpoints.v2.api import router as api_router_v2
 from core.health import build_prober
+from core.support.body_limit import SupportBodyLimit
+from core.support.deps import close_support_provider
 
 
 @asynccontextmanager
@@ -36,6 +38,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if probing is not None:
         probing.cancel()
         await asyncio.gather(probing, return_exceptions=True)
+    await close_support_provider()
     await session_manager.close()
 
 
@@ -73,6 +76,12 @@ async def value_error_exception_handler(
     )
 
 
+# Added before CORS so that CORS wraps it and a 413 still carries the headers.
+app.add_middleware(
+    SupportBodyLimit,
+    max_bytes=55 * 1024 * 1024,
+    prefix=f"{settings.API_V2_STR}/support",
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

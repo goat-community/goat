@@ -2,6 +2,7 @@ import type { FabProps } from "@mui/material";
 import { Fab } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
@@ -93,6 +94,7 @@ const StyledFab = styled(Fab, {
 }));
 
 const AddSectionButton = ({ position = "top", onClick }: AddSectionButtonProps) => {
+  const { t } = useTranslation("common");
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseEnter = () => setIsHovered(true);
@@ -107,7 +109,7 @@ const AddSectionButton = ({ position = "top", onClick }: AddSectionButtonProps) 
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         size="small"
-        aria-label="add-panel">
+        aria-label={t("add_panel")}>
         <Icon iconName={ICON_NAME.PLUS} htmlColor="inherit" fontSize="small" />
       </StyledFab>
       <Panel position={position} isHovered={isHovered} />

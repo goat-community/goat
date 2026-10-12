@@ -77,7 +77,7 @@ jobs:
     # REQUIRED. The suite passes against PostGIS alone: it self-
     # bootstraps schemas (DROP/CREATE + metadata.create_all in the session
     # fixture), the asset tests are pure-unit, and external services (S3, DNS,
-    # Caddy) are mocked/faked — no MinIO or network needed.
+    # Caddy) are mocked/faked — no S3 or network needed.
     services:
       postgres:
         image: postgis/postgis:16-3.4

@@ -1295,9 +1295,9 @@ export default function WorkflowNodeSettings({
                             }
                           }
 
-                          // Merge the node's values in, as the toolbox does, so conditions
-                          // on routing_mode or the reference area resolve
-                          const oppFormValues = { ...effectiveValues, ...oppValues };
+                          // Card fields resolve their conditions (visibility, per-mode
+                          // limits) against the node's own fields too, as in the toolbox.
+                          const oppFormValues = { ...defaultValues, ...values, ...oppValues };
                           const visibleFields = getVisibleInputs(opportunityFields, oppFormValues);
 
                           return (

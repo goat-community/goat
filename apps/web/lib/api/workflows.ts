@@ -188,6 +188,35 @@ export const duplicateWorkflow = async (
 // ============================================================================
 
 /**
+ * A run processes refused: the workflow's own nodes that hold datasets the
+ * caller may not use, and whether the project or folder it writes to is
+ * refused.
+ */
+export class WorkflowRefusedError extends Error {
+  constructor(
+    public readonly refusedNodes: string[],
+    public readonly destinationRefused: boolean
+  ) {
+    super("Workflow refused");
+    this.name = "WorkflowRefusedError";
+  }
+}
+
+const refusal = (body: string): WorkflowRefusedError | undefined => {
+  try {
+    const detail = (
+      JSON.parse(body) as { detail?: { refused_nodes?: unknown; destination_refused?: unknown } }
+    ).detail;
+    if (detail && Array.isArray(detail.refused_nodes)) {
+      return new WorkflowRefusedError(detail.refused_nodes.map(String), detail.destination_refused === true);
+    }
+  } catch {
+    // Not JSON: an error page or plain text.
+  }
+  return undefined;
+};
+
+/**
  * Execute a workflow via Windmill
  */
 export const executeWorkflow = async (
@@ -203,7 +232,7 @@ export const executeWorkflow = async (
   });
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Failed to execute workflow: ${error}`);
+    throw refusal(error) ?? new Error(`Failed to execute workflow: ${error}`);
   }
   return await response.json();
 };

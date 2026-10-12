@@ -843,6 +843,8 @@ const MapViewer: React.FC<MapProps> = ({
           dragRotate={dragRotate}
           touchZoomRotate={touchZoomRotate}
           attributionControl={false}
+          // MapLibre's own UI strings; the canvas is announced by this title.
+          locale={{ "Map.Title": t("map") }}
           onMoveEnd={onMoveEnd}
           onClick={handleMapClick}
           onTouchStart={handleMapTouchStart}

@@ -27,6 +27,8 @@ INPUTS = {"input_1", "input_2"}
         "SELECT * FROM range(10)",
         "SELECT i FROM input_1, generate_series(1, 3) AS g(i)",
         "SELECT * FROM unnest([1, 2, 3])",
+        "SELECT i.name, j.key, j.value FROM input_1 i, json_each(i.props) AS j",
+        "SELECT * FROM json_tree('{\"a\": [1, 2]}')",
         # Comment markers and keywords inside strings and quoted names.
         "SELECT COALESCE(name, '--') FROM input_1",
         "SELECT * FROM input_1 WHERE note LIKE '%--%' OR note LIKE '%/*%'",
@@ -120,3 +122,68 @@ def test_a_condition_over_columns_passes(expression: str) -> None:
 def test_a_condition_with_a_query_table_or_file_is_refused(expression: str) -> None:
     with pytest.raises(ValueError):
         validate_sql_expression(expression)
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        # Pivot columns taken from the data: DuckDB plans these as two
+        # statements, so they are checked with a stand-in value list.
+        "SELECT * FROM (PIVOT (SELECT name, kind, val FROM input_1) ON kind USING sum(val)) AS r",
+        "PIVOT input_1 ON kind USING sum(val) GROUP BY name",
+        "PIVOT input_1 ON kind",
+        "SELECT * FROM (\n  PIVOT (\n    SELECT a.name, a.kind || '_' || b.code AS col_key, a.val\n"
+        "    FROM input_1 a JOIN input_2 b ON a.id = b.id\n  ) ON col_key USING sum(val)\n) AS result",
+        # Listed values and the SQL-standard form, as before.
+        "PIVOT input_1 ON kind IN ('a', 'b') USING sum(val)",
+        "SELECT * FROM input_1 PIVOT (sum(val) FOR kind IN ('a', 'b'))",
+        # The keyword inside a string or a quoted name is left alone.
+        "SELECT 'PIVOT x ON y' AS note, \"pivot\" FROM input_1",
+    ],
+)
+def test_pivots_over_the_declared_inputs_pass(sql: str) -> None:
+    validate_sql_query(sql, INPUTS)
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "PIVOT (SELECT * FROM secret_table) ON kind USING sum(val)",
+        "PIVOT input_1 ON kind USING sum((SELECT max(x) FROM lake.main.t_other))",
+        "SELECT * FROM (PIVOT read_parquet('/data/x.parquet') ON kind USING sum(val))",
+        "PIVOT input_1 ON (SELECT kind FROM other_table LIMIT 1) USING sum(val)",
+        "PIVOT input_1 ON getenv('HOME') USING sum(val)",
+        "SELECT * FROM json_each((SELECT props FROM secret_table))",
+    ],
+)
+def test_a_pivot_reaching_beyond_the_declared_inputs_is_refused(sql: str) -> None:
+    with pytest.raises(ValueError):
+        validate_sql_query(sql, INPUTS)
+
+
+USING_KEY = (
+    "WITH RECURSIVE g(id, v) USING KEY (id) AS ("
+    " SELECT id, v FROM input_1 UNION SELECT q.id, q.v + 1 FROM recurring.g q WHERE q.v < 3"
+    ") SELECT * FROM g"
+)
+
+
+def test_a_using_key_cte_reads_its_own_recurring_table() -> None:
+    # `recurring.g` is the CTE's previous iteration, not a schema.
+    validate_sql_query(USING_KEY, INPUTS)
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        # Outside the recursive CTE it names, `recurring.` is a schema.
+        "SELECT * FROM recurring.input_1",
+        "WITH g AS (SELECT * FROM input_1) SELECT * FROM recurring.g",
+        USING_KEY.replace("SELECT * FROM g", "SELECT * FROM recurring.g"),
+        # Only the CTE's own name: not another table in that schema.
+        USING_KEY.replace("FROM recurring.g q", "FROM recurring.other q"),
+    ],
+)
+def test_recurring_is_refused_outside_its_own_recursive_cte(sql: str) -> None:
+    with pytest.raises(ValueError):
+        validate_sql_query(sql, INPUTS)

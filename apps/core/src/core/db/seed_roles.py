@@ -243,6 +243,13 @@ RESOURCES_PERMISSIONS = [
     # Content page, the move dialog and the dataset picker list them. What
     # each folder lets a caller see is decided per folder (`effective_role`).
     {
+        # Support tickets. No permissions: any authenticated user; who may see
+        # which ticket is decided per ticket by SupportService (author,
+        # follower, org owner/admin). 404 on self-hosted (settings unset).
+        "url_pattern": "support",
+        "method": ["GET", "POST", "PUT"],
+    },
+    {
         "url_pattern": "folder",
         "method": ["GET"],
         "permissions": [

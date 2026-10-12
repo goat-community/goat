@@ -43,10 +43,26 @@ export const CONTACT_URL =
   publicEnv(process.env.NEXT_PUBLIC_CONTACT_URL)?.trim() ||
   (configuredWebsiteUrl ? `${configuredWebsiteUrl}/en/contact/` : undefined);
 
-/** "Report an issue" mails the product team where `NEXT_PUBLIC_WEBSITE_URL` is set; undefined elsewhere. */
-export const SUPPORT_MAILTO = configuredWebsiteUrl
-  ? "mailto:info@plan4better.de?subject=GOAT%20Support%20Request"
-  : undefined;
+/**
+ * The address "Report a problem" mails (while support tickets are off) and the
+ * "support unavailable" messages name: `NEXT_PUBLIC_SUPPORT_EMAIL`, else
+ * Plan4Better's support address. Set your own for a white-label installation.
+ * A value that is not a plain address (one `@`, none of whitespace, quotes,
+ * angle brackets or the characters that would break a mailto link) is ignored
+ * with a warning.
+ */
+const DEFAULT_SUPPORT_EMAIL = "support@plan4better.de";
+const configuredSupportEmail = (() => {
+  const value = publicEnv(process.env.NEXT_PUBLIC_SUPPORT_EMAIL)?.trim();
+  if (!value) return undefined;
+  if (/^[^\s@"'<>,;?&#%\\()]+@[^\s@"'<>,;?&#%\\()]+$/.test(value)) return value;
+  console.warn(`NEXT_PUBLIC_SUPPORT_EMAIL is not a valid email address; using ${DEFAULT_SUPPORT_EMAIL}.`);
+  return undefined;
+})();
+
+export const SUPPORT_EMAIL = configuredSupportEmail ?? DEFAULT_SUPPORT_EMAIL;
+
+export const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=GOAT%20Support%20Request`;
 
 /** The website's privacy policy for a UI language; undefined without `NEXT_PUBLIC_WEBSITE_URL`. */
 export const privacyPolicyUrl = (lng: string): string | undefined =>

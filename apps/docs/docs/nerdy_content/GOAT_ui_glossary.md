@@ -197,7 +197,11 @@ This glossary lists the English and German labels of the main tools, features an
 | Error | Fehler | Node execution failed |
 | **Variables** | **Variablen** | Workflow-level parameters |
 | Add Variable | Variable hinzufügen | Create a workflow variable |
+| Add description | Beschreibung hinzufügen | Give a workflow variable help text |
 | Default | Standard | Initial parameter value |
+| Description | Beschreibung | Help text of a workflow variable |
+| Edit description | Beschreibung bearbeiten | Change a workflow variable's help text |
+| Label | Bezeichnung | Name users see for a workflow variable |
 | Number | Zahl | Variable type |
 | String | Text | Variable type |
 | Zoom In | Hineinzoomen | Canvas zoom in |

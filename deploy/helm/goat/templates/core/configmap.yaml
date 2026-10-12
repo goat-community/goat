@@ -59,6 +59,22 @@ data:
   {{ $key }}: {{ $value | quote }}
   {{- end }}
   {{- end }}
+  {{- /* Plan4Better's Odoo (the `odoo` block). Empty values are left out: the
+         connection only with `odoo.url`, an integration's settings only when
+         it is configured too (support: `odoo.support.teamId`). */}}
+  {{- $odoo := .Values.odoo | default dict }}
+  {{- $support := $odoo.support | default dict }}
+  {{- $odooPairs := list (list "ODOO_URL" $odoo.url) (list "ODOO_DB" $odoo.db) }}
+  {{- if $support.teamId }}
+  {{- $odooPairs = concat $odooPairs (list (list "ODOO_SUPPORT_TEAM_ID" $support.teamId) (list "ODOO_SUPPORT_POST_ACTION" $support.postAction)) }}
+  {{- end }}
+  {{- range $pair := $odooPairs }}
+  {{- $key := index $pair 0 }}
+  {{- $value := toString (index $pair 1 | default "") }}
+  {{- if and $value $odoo.url (not (include "goat.env.userSet" (dict "values" $.Values.core "key" $key))) }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}
   {{- if and (include "goat.caBundle.enabled" .) (not (include "goat.env.userSet" (dict "values" .Values.core "key" "GOAT_CA_BUNDLE"))) }}
   GOAT_CA_BUNDLE: {{ include "goat.caBundle.path" . | quote }}
   {{- end }}

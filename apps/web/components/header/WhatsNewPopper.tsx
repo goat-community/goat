@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Box, Button, IconButton, Stack, Tooltip, Typography, useTheme } from "@mui/material";
+import { Badge, IconButton, Tooltip } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -12,6 +12,12 @@ import { unreadCount, useReleases } from "@/lib/api/releases";
 
 import { ArrowPopper } from "@/components/ArrowPoper";
 import ReleaseItem from "@/components/dashboard/home/ReleaseItem";
+import {
+  HeaderPopoverFooter,
+  HeaderPopoverFooterAction,
+  HeaderPopoverHeader,
+  HeaderPopoverList,
+} from "@/components/header/HeaderPopover";
 import HeaderPopoverPaper, { HEADER_POPOVER_PLACEMENT } from "@/components/header/HeaderPopoverPaper";
 
 /** H7's header surface for release notes: the changelog feed as a scrollable
@@ -19,7 +25,6 @@ import HeaderPopoverPaper, { HEADER_POPOVER_PLACEMENT } from "@/components/heade
  * no website URL is configured or the feed has no entries. */
 export default function WhatsNewPopper() {
   const { t, i18n } = useTranslation("common");
-  const theme = useTheme();
   const [open, setOpen] = useState(false);
   const locale = i18n.language === "de" ? "de" : "en";
 
@@ -48,41 +53,24 @@ export default function WhatsNewPopper() {
       placement={HEADER_POPOVER_PLACEMENT}
       arrow={false}
       content={
-        <HeaderPopoverPaper sx={{ maxHeight: 480, width: 360 }}>
-          <Box sx={{ p: 2 }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 1, pb: 1.5 }}>
-              <Icon
-                iconName={ICON_NAME.ROCKET}
-                style={{ fontSize: 16 }}
-                htmlColor={theme.palette.primary.main}
-              />
-              <Typography variant="body1" fontWeight="bold">
-                {t("whats_new")}
-              </Typography>
-            </Stack>
-            <Stack spacing={0.25} sx={{ maxHeight: 340, overflowY: "auto" }}>
-              {entries.map((entry) => (
-                <ReleaseItem key={entry.id} entry={entry} />
-              ))}
-            </Stack>
-            <Button
-              fullWidth
-              variant="text"
-              size="small"
-              component="a"
-              href={changelogUrl(locale)}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ mt: 1.5 }}
-              endIcon={<Icon iconName={ICON_NAME.EXTERNAL_LINK} style={{ fontSize: 12 }} />}>
+        <HeaderPopoverPaper>
+          <HeaderPopoverHeader title={t("whats_new")} />
+          <HeaderPopoverList sx={{ maxHeight: 360, overflowY: "auto" }}>
+            {entries.map((entry) => (
+              <ReleaseItem key={entry.id} entry={entry} />
+            ))}
+          </HeaderPopoverList>
+          <HeaderPopoverFooter>
+            <HeaderPopoverFooterAction href={changelogUrl(locale)} newTab>
               {t("view_all_updates")}
-            </Button>
-          </Box>
+              <Icon iconName={ICON_NAME.EXTERNAL_LINK} style={{ fontSize: 11 }} />
+            </HeaderPopoverFooterAction>
+          </HeaderPopoverFooter>
         </HeaderPopoverPaper>
       }>
       <Tooltip title={t("whats_new")}>
-        <IconButton size="small" onClick={handleToggle}>
-          <Badge color="error" badgeContent={unread} max={9} invisible={unread === 0}>
+        <IconButton size="small" onClick={handleToggle} sx={open ? { color: "primary.main" } : undefined}>
+          <Badge color="warning" badgeContent={unread} max={9} invisible={unread === 0}>
             <Icon iconName={ICON_NAME.ROCKET} fontSize="inherit" />
           </Badge>
         </IconButton>

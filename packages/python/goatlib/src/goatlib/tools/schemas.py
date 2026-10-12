@@ -6,10 +6,14 @@ ensuring consistency across buffer, clip, join, layer-import, etc.
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from goatlib.analysis.schemas.ui import ui_field
 from goatlib.i18n import get_translator
+
+# What the web's network selectors answer for the default network
+# (`DEFAULT_NETWORK_BUNDLE` in BundleInput.tsx). It names no bundle.
+DEFAULT_NETWORK_BUNDLE = "default"
 
 
 def get_default_layer_name(layer_key: str, lang: str = "en") -> str:
@@ -38,6 +42,25 @@ class ToolInputBase(BaseModel):
     """
 
     model_config = ConfigDict(populate_by_name=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _default_network_is_no_bundle(cls, data: Any) -> Any:
+        """A network selector set to the default network names no bundle.
+
+        The toolbox leaves the selector's "default" out of a request, but a
+        workflow saves it in its node's config; every tool reads a missing
+        network bundle as the default network.
+        """
+        if isinstance(data, dict):
+            return {
+                key: None
+                if key.endswith("_network_bundle_id")
+                and value == DEFAULT_NETWORK_BUNDLE
+                else value
+                for key, value in data.items()
+            }
+        return data
 
     user_id: str = Field(
         ...,

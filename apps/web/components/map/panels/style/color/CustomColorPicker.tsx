@@ -1,6 +1,7 @@
 import { Box, Divider, Grid, InputAdornment, TextField, debounce, rgbToHex, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
+import { useTranslation } from "react-i18next";
 
 import { hexToRgb, isValidHex, isValidRGB } from "@/lib/utils/helpers";
 
@@ -8,6 +9,7 @@ import type { SingleColorSelectorProps } from "@/types/map/color";
 
 function CustomColorPicker({ selectedColor, onSelectColor }: SingleColorSelectorProps) {
   const theme = useTheme();
+  const { t } = useTranslation("common");
   const rgbColor = hexToRgb(selectedColor);
   const [inputHex, setInputHex] = useState(selectedColor.substring(1));
   const [inputRgb, setInputRgb] = useState({
@@ -116,7 +118,7 @@ function CustomColorPicker({ selectedColor, onSelectColor }: SingleColorSelector
             type="text"
             inputProps={{
               role: "input",
-              "aria-label": "Layer color Hex input",
+              "aria-label": t("layer_color_hex_input"),
               style: { paddingRight: 2 },
             }}
             InputProps={{
@@ -145,7 +147,7 @@ function CustomColorPicker({ selectedColor, onSelectColor }: SingleColorSelector
                 type="text"
                 inputProps={{
                   role: "input",
-                  "aria-label": "Layer color RGB R input",
+                  "aria-label": t("layer_color_rgb_input", { channel: "R" }),
                   style: { paddingLeft: 10, paddingRight: 2 },
                 }}
                 InputProps={{
@@ -165,7 +167,7 @@ function CustomColorPicker({ selectedColor, onSelectColor }: SingleColorSelector
                 type="text"
                 inputProps={{
                   role: "input",
-                  "aria-label": "Layer color RGB G input",
+                  "aria-label": t("layer_color_rgb_input", { channel: "G" }),
                   style: { paddingLeft: 10, paddingRight: 2 },
                 }}
                 InputProps={{
@@ -185,7 +187,7 @@ function CustomColorPicker({ selectedColor, onSelectColor }: SingleColorSelector
                 type="text"
                 inputProps={{
                   role: "input",
-                  "aria-label": "Layer color RGB B input",
+                  "aria-label": t("layer_color_rgb_input", { channel: "B" }),
                   style: { paddingLeft: 10, paddingRight: 2 },
                 }}
                 InputProps={{

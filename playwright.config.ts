@@ -38,7 +38,8 @@ export default defineConfig({
   ],
   outputDir: path.join(outputDir, "results"),
   use: {
-    baseURL: "http://localhost:3000/",
+    // E2E_BASE_URL points the suite at another stack, e.g. a worktree's (goat-stack run)
+    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000/",
     locale: "en-US",
     trace: "retain-on-failure",
     headless,

@@ -132,6 +132,31 @@ email:
   contactUrl: ""                   # EMAIL_CONTACT_URL
   privacyUrl: ""                   # EMAIL_PRIVACY_URL
 
+# ─── Plan4Better's Odoo ────────────────────────────────────────────────────
+# Optional, off by default, SaaS only. GOAT's Odoo integrations share the
+# connection (`url`, `db`); each has its own block and its own API key, which
+# Plan4Better issues for its own Odoo: leave this block empty on your own
+# installation unless you received one. Every key here is rendered into core's
+# environment unless core.config or core.extraEnv sets the same variable.
+odoo:
+  url: ""                          # ODOO_URL, e.g. https://odoo.example.org
+  db: ""                           # ODOO_DB
+  # Support tickets: GOAT hands problem reports to an Odoo Helpdesk. Without
+  # it the app shows "Report a problem" as an email address plus the
+  # documentation, and core serves no /api/v2/support routes. On only when
+  # `odoo.url`, `odoo.db`, `teamId` and the API key (`existingSecret`) are set.
+  # Uploads on /api/v2/support take up to 55 MiB per request: an ingress or
+  # proxy in front of core must allow bodies of at least 56 MB there
+  # (ingress-nginx: `nginx.ingress.kubernetes.io/proxy-body-size: "56m"` on
+  # core.ingress, plus generous `proxy-read-timeout` / `proxy-send-timeout`).
+  support:
+    teamId: ""                     # ODOO_SUPPORT_TEAM_ID, the Helpdesk team's numeric id
+    # Odoo server action that posts a message as the ticket participant
+    postAction: "GOAT: post message as ticket participant"   # ODOO_SUPPORT_POST_ACTION
+    # The API key (ODOO_SUPPORT_API_KEY), from a Secret in the release namespace.
+    existingSecret: ""
+    existingSecretKey: api-key
+
 # ─── Shared data volume ────────────────────────────────────────────────────
 # ONE volume, mounted by seven components. The windmill tools and workflows
 # workers WRITE to it (the catalog mirror via sync_catalog, the geoip database
@@ -262,6 +287,11 @@ core:
   ingress:
     enabled: false                 # consumers turn on as needed
     className: ""
+    # With the `support` block on, this ingress must accept request bodies of
+    # at least 56 MB on /api/v2/support (ingress-nginx defaults to 1 MB), e.g.
+    #   nginx.ingress.kubernetes.io/proxy-body-size: "56m"
+    #   nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    #   nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
     annotations: {}
     hosts: []
     tls: []
@@ -349,6 +379,10 @@ web:
   # plan4better's own feeds.
   websiteUrl: ""                   # NEXT_PUBLIC_WEBSITE_URL
   statusFeedUrl: ""                # NEXT_PUBLIC_STATUS_FEED_URL
+  # Address of "Report a problem" (a mailto link while support tickets are off)
+  # and of the "support unavailable" messages. Empty = support@plan4better.de;
+  # set your own address for a white-label installation.
+  supportEmail: ""                 # NEXT_PUBLIC_SUPPORT_EMAIL
   extraEnv: []
   # Mount extra volumes (e.g. CA bundles for NextAuth to trust self-signed
   # Keycloak certs via NODE_EXTRA_CA_CERTS).

@@ -21,7 +21,7 @@ In GOAT können Sie **eigene Layer erstellen** und **Features direkt auf der Kar
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Im Schritt <b>Felder definieren</b> sehen Sie ein standardmäßiges <code>name</code>-Feld. Klicken Sie auf <code>+ Feld hinzufügen</code>, um weitere Felder hinzuzufügen. Geben Sie für jedes Feld einen <b>Feldnamen</b> ein und wählen Sie den <b>Feldtyp</b>: <code>Text</code> oder <code>Number</code>. Um ein Feld zu entfernen, klicken Sie auf das <code>—</code>-Symbol daneben. Klicken Sie auf <code>Layer erstellen</code>, wenn Sie fertig sind.</div>
+  <div class="content">Im Schritt <b>Felder definieren</b> sehen Sie ein standardmäßiges <code>name</code>-Feld. Klicken Sie auf <code>+ Feld hinzufügen</code>, um weitere Felder hinzuzufügen. Geben Sie für jedes Feld einen <b>Feldnamen</b> ein und wählen Sie den <b>Feldtyp</b>: <code>Text</code>, <code>Zahl</code>, <code>Datum</code>, <code>Boolesch</code>, <code>Laufende Nummer</code> oder <code>UUID (eindeutige Kennung)</code>. Felder vom Typ <code>Laufende Nummer</code> und <code>UUID (eindeutige Kennung)</code> befüllt GOAT für jedes neue Feature selbst (siehe <a href="../data/data_types">Feldtypen</a>); bei einer Laufenden Nummer legen Sie unter <code>Beginnt bei</code> die erste Nummer fest. Um ein Feld zu entfernen, klicken Sie auf das <code>—</code>-Symbol daneben. Klicken Sie auf <code>Layer erstellen</code>, wenn Sie fertig sind.</div>
 </div>
 
 ## Features bearbeiten
@@ -54,7 +54,7 @@ Sobald der Layer erstellt wurde, können Sie Features direkt auf der Karte hinzu
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content">Klicken Sie in der Tabellen-Symbolleiste auf <code>Felder bearbeiten</code>, um den Dialog <b>Felder bearbeiten</b> zu öffnen, und klicken Sie dann auf <code>+ Feld hinzufügen</code>. Ein neues Feld wird der Liste hinzugefügt. Wählen Sie rechts seinen <b>Feldtyp</b> (<code>Text</code>, <code>Number</code>, <code>Date</code>, <code>Boolean</code> oder <code>Formula</code>, ein berechnetes Feld, siehe <a href="#formelfelder">Formelfelder</a> unten) und benennen Sie das Feld in der Liste um. Um ein Feld zu entfernen, klicken Sie auf das <code>—</code>-Symbol daneben. Klicken Sie auf <code>Speichern</code>, wenn Sie fertig sind.</div>
+  <div class="content">Klicken Sie in der Tabellen-Symbolleiste auf <code>Felder bearbeiten</code>, um den Dialog <b>Felder bearbeiten</b> zu öffnen, und klicken Sie dann auf <code>+ Feld hinzufügen</code>. Ein neues Feld wird der Liste hinzugefügt. Wählen Sie rechts seinen <b>Feldtyp</b> (<code>Text</code>, <code>Zahl</code>, <code>Datum</code>, <code>Boolesch</code>, <code>Laufende Nummer</code>, <code>UUID (eindeutige Kennung)</code> oder <code>Formel</code>, ein berechnetes Feld, siehe <a href="#formelfelder">Formelfelder</a> unten). Ein neues Feld vom Typ <code>Laufende Nummer</code> oder <code>UUID (eindeutige Kennung)</code> wird beim Speichern für alle vorhandenen Features befüllt und benennen Sie das Feld in der Liste um. Um ein Feld zu entfernen, klicken Sie auf das <code>—</code>-Symbol daneben. Klicken Sie auf <code>Speichern</code>, wenn Sie fertig sind.</div>
 </div>
 
 <div class="step">

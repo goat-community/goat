@@ -49,6 +49,7 @@ import {
 } from "@/lib/api/templates";
 import { useOrganization } from "@/lib/api/users";
 import { folderPath, restrictedAncestorName, spaceIconFor } from "@/lib/utils/content";
+import { bindsDataset } from "@/lib/utils/templates";
 import type { ContentItem, Space } from "@/lib/validations/content";
 import type { Folder } from "@/lib/validations/folder";
 import type { LayerSharedWith } from "@/lib/validations/layer";
@@ -218,7 +219,7 @@ const ShareDialog = ({ item, space, folders, onClose, onTransfer }: ShareDialogP
   // the owner knows what else to share for the template to actually run.
   const { template } = useTemplate(isTemplate ? item.id : null);
   const shippedDatasetCount = (template?.inputs ?? []).filter(
-    (input) => input.mode === "ship" && input.layer_id !== null && !input.public_read && !input.from_catalog
+    (input) => bindsDataset(input) && input.layer_id !== null && !input.public_read && !input.from_catalog
   ).length;
 
   // `canActOn` already requires owner and rules out a shortcut (which carries

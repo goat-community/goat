@@ -72,6 +72,14 @@ Die Anmeldung ist standardmäßig **aus** (`global.auth.enabled: false`): Alle D
 - **`global.auth.provisionInvitedUsers: true`** lässt eine Einladung das Keycloak-Konto anlegen, und Keycloak schickt einen Link zum Setzen des Passworts. Nutzen Sie es, wenn Ihr Realm keine Selbstregistrierung erlaubt. Der Keycloak-Client von core braucht dann die realm-management-Rollen `view-users` und `manage-users`.
 - **`global.caBundle`** nennt eine ConfigMap oder ein Secret mit dem Zertifikat einer eigenen CA, für ein SMTP-Relay, ein Keycloak oder Seiten, die der Druck-Worker öffnet, deren Zertifikat von einer privaten CA stammt. Das Chart bindet es in core, die Web-App und die Worker `print`, `tools` und `workflows` ein.
 
+### Support-Tickets {#support}
+
+Optional und **standardmäßig aus**. Support-Tickets reichen Problemmeldungen Ihrer Benutzer an einen Odoo-Helpdesk weiter. Der Block `odoo` enthält die Verbindung (`odoo.url`, `odoo.db`), `odoo.support` das Helpdesk-Team (`odoo.support.teamId`) und den API-Schlüssel aus einem Secret (`odoo.support.existingSecret`). Die Tickets sind nur eingeschaltet, wenn all das gesetzt ist. Den Schlüssel stellt Plan4Better für sein eigenes Odoo aus; lassen Sie den Block auf Ihrer eigenen Installation leer, es sei denn, Sie haben einen erhalten.
+
+Ohne Tickets öffnet *Problem melden* eine E-Mail an die Adresse in `web.supportEmail`; sie steht auch in der Meldung, wenn der Support vorübergehend nicht erreichbar ist. Standard ist `support@plan4better.de`; tragen Sie für eine White-Label-Installation Ihre eigene Adresse ein.
+
+Nachrichten zu einem Ticket können Anhänge von bis zu 55 MiB in einer Anfrage enthalten. Das Ingress vor core muss für `/api/v2/support` Anfragekörper von mindestens 56 MB annehmen und großzügige Lese-Timeouts erlauben. ingress-nginx begrenzt Anfragekörper standardmäßig auf 1 MB; erhöhen Sie das mit `nginx.ingress.kubernetes.io/proxy-body-size: "56m"` und `proxy-read-timeout` in `core.ingress.annotations`.
+
 ### Analyse-Worker {#workers}
 
 Der Standard-Worker von Windmill übernimmt nur kleine Jobs. **Analyse-Werkzeuge, Datensatz-Importe und Workflows benötigen die Worker `tools` und `workflows`, der PDF-Druck benötigt den Worker `print`.** Alle drei sind standardmäßig aus. So nutzen Sie sie:
