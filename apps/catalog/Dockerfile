@@ -46,14 +46,15 @@ RUN uv sync --frozen --no-dev --no-editable --no-install-workspace --package=cat
 # cold start. Needs egress, available only in this build stage. It needs
 # nothing from the workspace sources, so it runs before they are copied.
 #
-# catalog only ever opens a bare `duckdb.connect()` over local parquet files
-# (catalog.store._load_extensions) -- no DuckLake attach, no Postgres, no
-# S3/httpfs -- so this bakes just `spatial` (geometry columns/predicates)
-# instead of goatlib's DuckLake-oriented REQUIRED_DUCKDB_EXTENSIONS list
-# (spatial/httpfs/postgres/ducklake), which would bake three extensions this
-# image never loads. `fts` was baked here too until the store dropped its
-# full-text index in favour of scanning the mirror's `search_text` column.
-RUN python -c "import duckdb; con=duckdb.connect(config={'extension_directory':'/opt/duckdb-extensions'}); con.execute('INSTALL spatial')" \
+# catalog opens bare `duckdb.connect()`s, no DuckLake attach and no Postgres:
+# the store over local parquet files needs `spatial`, and the item previews
+# and asset reads over S3 (services/preview.py, services/assets.py) need
+# `spatial` and `httpfs`. So this bakes those two instead of goatlib's
+# DuckLake-oriented REQUIRED_DUCKDB_EXTENSIONS list, which adds two
+# extensions this image never loads. `fts` was baked here too until the store
+# dropped its full-text index in favour of scanning the mirror's
+# `search_text` column.
+RUN python -c "import duckdb; con=duckdb.connect(config={'extension_directory':'/opt/duckdb-extensions'}); [con.execute(f'INSTALL {e}') for e in ('spatial', 'httpfs')]" \
     && chmod -R a+rX /opt/duckdb-extensions
 
 COPY apps/catalog /app/apps/catalog

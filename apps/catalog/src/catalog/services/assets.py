@@ -33,6 +33,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import duckdb
+from goatlib.storage.ducklake import load_extensions
 
 from catalog.config import CatalogSettings
 from catalog.errors import ApiError
@@ -119,10 +120,10 @@ class AssetReader:
             if self._con is not None:
                 return self._con
             con = duckdb.connect()
-            try:
-                con.execute("INSTALL httpfs; LOAD httpfs;")
-            except duckdb.Error:
-                con.execute("LOAD httpfs;")
+            load_extensions(con, "httpfs")
+            # One-shot reads: DuckDB would otherwise keep each S3 object read
+            # in memory for the life of this connection.
+            con.execute("SET enable_external_file_cache=false")
             endpoint = (
                 (self._settings.s3_endpoint_url or "")
                 .replace("https://", "")
