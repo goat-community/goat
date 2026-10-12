@@ -805,6 +805,19 @@ async def test_using_a_project_template_starts_one_copy_job_per_copied_dataset(
         ),
         {"l": planned.id, "p": project_id},
     )
+    # Move the first entry out and back: updating an indexed column stores it
+    # behind the second entry, as rows end up after other writes. Copying the
+    # project must still keep it first.
+    elsewhere = await _create_project(client, home)
+    for source, target in ((project_id, elsewhere), (elsewhere, project_id)):
+        await db_session.execute(
+            text(
+                f"UPDATE {S}.layer_project SET project_id = :target "
+                "WHERE layer_id = :l AND project_id = :source "
+                "AND name <> 'Vorhaben (Kopie)'"
+            ),
+            {"l": planned.id, "source": source, "target": target},
+        )
     await db_session.commit()
     template = await _project_template(
         client,
