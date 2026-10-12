@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
+import { useDateFnsLocale } from "@/i18n/utils";
+
 import type { JobStatusType, JobType } from "@/lib/api/processes";
 
 import { OverflowTypograpy } from "@/components/common/OverflowTypography";
@@ -16,6 +18,8 @@ interface JobProgressItemProps {
   status: JobStatusType;
   errorMessage?: string;
   name: string;
+  /** What the row says the job is; the tool's label when not given. */
+  label?: string;
   date: string;
   /** Optional custom action button to replace the default status icon */
   actionButton?: ReactNode;
@@ -35,7 +39,8 @@ const statusIcons: Record<JobStatusType, ICON_NAME> = {
 export default function JobProgressItem(props: JobProgressItemProps) {
   const { t } = useTranslation("common");
   const theme = useTheme();
-  const { type, status, name, date, inPopover } = props;
+  const dateLocale = useDateFnsLocale();
+  const { type, status, name, label, date, inPopover } = props;
   const [showDetails, setShowDetails] = useState(false);
 
   // OGC status to color mapping
@@ -83,8 +88,7 @@ export default function JobProgressItem(props: JobProgressItemProps) {
                 arrow: true,
               }}>
               <>
-                {t(type)} -{" "}
-                {format(parseISO(date), "hh:mma dd/MM/yyyy").replace("PM", " PM").replace("AM", " AM")}
+                {label ?? t(type)} - {format(parseISO(date), "Pp", { locale: dateLocale })}
               </>
             </OverflowTypograpy>
           </Box>

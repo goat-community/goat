@@ -507,7 +507,7 @@ const ShareWithPublicTab: React.FC<ShareWithPublicTabProps> = ({ project }) => {
                   checked={!!assignedAnalyticsId && sharedProject.tracking_require_consent !== false}
                   disabled={isConsentBusy || !assignedAnalyticsId}
                   onChange={handleConsentToggle}
-                  inputProps={{ "aria-label": "consent-toggle" }}
+                  inputProps={{ "aria-label": t("cookie_consent_banner") }}
                 />
               }
             />

@@ -241,7 +241,7 @@ Once a workflow is set up, you can save it as a **template** so it can be reused
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">In the <code>Inputs</code> table, decide for each input layer whether it <strong>ships with the template</strong> or the template <strong>asks for a layer when used</strong>. A layer that ships is shared with the template so others can run it.</div>
+  <div class="content">In the <code>Inputs</code> table, decide for each input layer whether it <strong>ships with the template</strong> or the template <strong>asks for a layer when used</strong>. A layer that ships is shared with the template so others can run it. For a shipped layer you can also choose <code>Copy for every user (with content)</code> or <code>Empty copy for every user</code>, so that everyone gets their own editable copy instead of your read-only layer (see <a href="../getting_started/start_from_a_template#datasets-in-a-template">Datasets in a template</a>).</div>
 </div>
 
 <div class="step">

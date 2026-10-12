@@ -89,7 +89,8 @@ export type JobType =
   | "bundle_import"
   | "bundle_artifact_rebuild"
   | "bundle_artifact_delete"
-  | "layer_create_filtered";
+  | "layer_create_filtered"
+  | "layer_copy";
 
 /**
  * OGC Job status response

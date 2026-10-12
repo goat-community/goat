@@ -350,6 +350,7 @@ jobs:
             page.pdf(path='/tmp/smoke.pdf')
             b.close()
         "
+        for font in Verdana Garamond Consolas; do fc-list ":family=$font" | grep -q . || { echo "no font stands in for $font"; exit 1; }; done
 
   # The single-server deployment bundle (deploy/compose), pinned to this
   # release's images. Attached to the tag's GitHub release; created as a

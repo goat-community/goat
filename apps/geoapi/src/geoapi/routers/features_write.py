@@ -18,6 +18,12 @@ from goatlib.computed_columns import (
     validate_display_config,
 )
 from goatlib.utils.field_config import coerce_allowed_values
+from goatlib.utils.generated_fields import (
+    GENERATED_STORAGE_TYPES,
+    GeneratedField,
+    generated_entry_settings,
+    is_generated_kind,
+)
 from pydantic import ValidationError
 
 from geoapi.catalog_events import notify_catalog_changed, refresh_local_pins
@@ -44,6 +50,12 @@ from geoapi.services.computed_columns import (
 )
 from geoapi.services.feature_write_service import feature_write_service
 from geoapi.services.layer_service import LayerMetadata, _metadata_cache, layer_service
+from geoapi.services.layer_write_lock import (
+    forget_serial_counter,
+    layer_write_lock,
+    locked_layer_write,
+    rename_serial_counter,
+)
 from geoapi.services.tile_service import tile_service
 from geoapi.tile_cache import invalidate_layer_cache
 
@@ -394,10 +406,15 @@ async def create_features(
     """Create one or more features in a collection.
 
     Accepts a single GeoJSON Feature or a FeatureCollection for bulk creation.
+
+    Generated columns (serial, uuid) are filled by the server; a value the
+    request sends for one is ignored. The write holds the layer's advisory
+    lock, reads the column definitions under it, and advances each serial
+    column's high-water mark, so no number is handed out twice — across pods,
+    after the feature holding the highest one is deleted, and while a column
+    is being turned into a serial.
     """
     metadata = await _get_authorized_metadata(layer_info, user_id)
-
-    field_config = await _load_field_config(layer_info)
 
     try:
         if isinstance(body, BulkFeatureCreate):
@@ -406,25 +423,29 @@ async def create_features(
                 {"geometry": f.geometry, "properties": f.properties}
                 for f in body.features
             ]
-            ids = feature_write_service.create_features_bulk(
-                layer_info=layer_info,
-                features=features_data,
-                column_names=metadata.column_names,
-                geometry_column=metadata.geometry_column,
-                field_config=field_config,
-            )
+            async with locked_layer_write(layer_info.layer_id) as write:
+                ids = feature_write_service.create_features_bulk(
+                    layer_info=layer_info,
+                    features=features_data,
+                    column_names=metadata.column_names,
+                    geometry_column=metadata.geometry_column,
+                    field_config=write.field_config,
+                    serial_counters=write.counters,
+                )
             await _invalidate_caches_and_pmtiles(layer_info)
             return BulkWriteResponse(ids=ids, count=len(ids))
         else:
             # Single creation
-            feature_id = feature_write_service.create_feature(
-                layer_info=layer_info,
-                geometry=body.geometry,
-                properties=body.properties,
-                column_names=metadata.column_names,
-                geometry_column=metadata.geometry_column,
-                field_config=field_config,
-            )
+            async with locked_layer_write(layer_info.layer_id) as write:
+                feature_id = feature_write_service.create_feature(
+                    layer_info=layer_info,
+                    geometry=body.geometry,
+                    properties=body.properties,
+                    column_names=metadata.column_names,
+                    geometry_column=metadata.geometry_column,
+                    field_config=write.field_config,
+                    serial_counters=write.counters,
+                )
             await _invalidate_caches_and_pmtiles(layer_info)
             return FeatureWriteResponse(id=feature_id)
     except ValueError as e:
@@ -445,19 +466,22 @@ async def update_feature(
     body: FeatureUpdate,
     itemId: str = Path(..., description="Feature ID"),
 ) -> FeatureWriteResponse:
-    """Update properties of a feature (partial update)."""
+    """Update properties of a feature (partial update).
+
+    Under the layer's lock, like a create, so a column being turned into a
+    serial cannot be given a duplicate value behind the conversion's back.
+    """
     metadata = await _get_authorized_metadata(layer_info, user_id)
 
-    field_config = await _load_field_config(layer_info)
-
     try:
-        found = feature_write_service.update_feature_properties(
-            layer_info=layer_info,
-            feature_id=itemId,
-            properties=body.properties,
-            column_names=metadata.column_names,
-            field_config=field_config,
-        )
+        async with locked_layer_write(layer_info.layer_id) as write:
+            found = feature_write_service.update_feature_properties(
+                layer_info=layer_info,
+                feature_id=itemId,
+                properties=body.properties,
+                column_names=metadata.column_names,
+                field_config=write.field_config,
+            )
         if not found:
             raise HTTPException(status_code=404, detail="Feature not found")
         await _invalidate_caches_and_pmtiles(layer_info)
@@ -482,21 +506,21 @@ async def replace_feature(
     body: FeatureReplace,
     itemId: str = Path(..., description="Feature ID"),
 ) -> FeatureWriteResponse:
-    """Replace a feature entirely (geometry + properties)."""
+    """Replace a feature entirely (geometry + properties). Under the layer's
+    lock, for the same reason as an update."""
     metadata = await _get_authorized_metadata(layer_info, user_id)
 
-    field_config = await _load_field_config(layer_info)
-
     try:
-        found = feature_write_service.replace_feature(
-            layer_info=layer_info,
-            feature_id=itemId,
-            geometry=body.geometry,
-            properties=body.properties,
-            column_names=metadata.column_names,
-            geometry_column=metadata.geometry_column,
-            field_config=field_config,
-        )
+        async with locked_layer_write(layer_info.layer_id) as write:
+            found = feature_write_service.replace_feature(
+                layer_info=layer_info,
+                feature_id=itemId,
+                geometry=body.geometry,
+                properties=body.properties,
+                column_names=metadata.column_names,
+                geometry_column=metadata.geometry_column,
+                field_config=write.field_config,
+            )
         if not found:
             raise HTTPException(status_code=404, detail="Feature not found")
         await _invalidate_caches_and_pmtiles(layer_info)
@@ -596,6 +620,11 @@ def _resolve_kind_to_sql(
             return "TIMESTAMP WITH TIME ZONE", None, [], False
         if kind == "boolean":
             return "BOOLEAN", None, [], False
+        if is_generated_kind(kind):
+            # Filled by the writer on every create and backfilled once by
+            # add_column — no compute SQL, and not "computed": nothing
+            # recomputes it when the row changes.
+            return GENERATED_STORAGE_TYPES[kind], None, [], False
         if kind == "formula":
             # Formula columns carry a per-column expression and are resolved
             # in the add_column/update_column formula flow, never here.
@@ -676,9 +705,22 @@ async def add_column(
         # "column already exists".
         coerced_allowed_values: list[Any] | None = None
         if body.allowed_values and body.kind is not None:
+            if is_generated_kind(body.kind):
+                raise ValueError(
+                    "A field that is filled automatically cannot have allowed values."
+                )
             coerced_allowed_values = coerce_allowed_values(
                 cfg_kind, body.allowed_values
             )
+        generated_settings: dict[str, Any] | None = None
+        if is_generated_kind(body.kind):
+            if body.default_value is not None:
+                raise ValueError(
+                    "A field that is filled automatically cannot have a default value."
+                )
+            generated_settings = generated_entry_settings(str(body.kind), body.start)
+        elif body.start is not None:
+            raise ValueError("Only a serial field has a start value.")
 
         feature_write_service.add_column_with_sql(
             layer_info=layer_info,
@@ -719,6 +761,8 @@ async def add_column(
             if body.kind == "formula":
                 entry["formula"] = body.formula
                 entry["output_kind"] = output_kind
+            if generated_settings is not None:
+                entry.update(generated_settings)
             if coerced_allowed_values is not None:
                 entry["allowed_values"] = coerced_allowed_values
                 entry["allow_other"] = body.allow_other
@@ -742,6 +786,30 @@ async def add_column(
                     current = await fetch_field_config(conn, UUID(layer_info.layer_id))
                     current[body.name] = entry
                     await write_field_config(conn, layer_info.layer_id, current)
+
+        if generated_settings is not None:
+            # Filled after the entry is written, so every create from here on
+            # assigns values itself, and under the layer's lock, so the
+            # numbering cannot interleave with one. A feature created while
+            # the column had no entry yet is repaired by the next create
+            # (``GeneratedValues`` fills blanks first).
+            #
+            # A new column starts over: whatever mark a dropped column of the
+            # same name left behind is forgotten first, and the last number
+            # the backfill hands out becomes the new column's mark.
+            field = GeneratedField(
+                name=body.name,
+                kind=str(body.kind),
+                start=generated_settings.get("start", 1),
+            )
+            async with layer_write_lock(
+                layer_info.layer_id,
+                {body.name: {"kind": body.kind}},
+                reset=[body.name],
+            ) as counters:
+                feature_write_service.backfill_generated_column(
+                    layer_info, field, counters
+                )
 
         await _invalidate_caches_and_pmtiles(layer_info)
         await _settle_schema_caches(layer_info.layer_id)
@@ -772,8 +840,13 @@ async def update_column(
     describe the column without changing what it is called. Renaming one the
     bundle brought is refused: every tool that reads the layer looks the column
     up by name.
+
+    ``kind`` changes what a column is, on its own: a number column becomes a
+    serial (``_convert_column_kind``) or a serial goes back to a number.
     """
     metadata = await get_write_authorized_metadata(layer_info, user_id)
+    if body.kind is not None or body.start is not None:
+        return await _convert_column_kind(layer_info, metadata, body, columnName)
     if body.new_name:
         await refuse_if_protected(layer_info, columnName, "renamed")
 
@@ -861,6 +934,12 @@ async def update_column(
                 old_name=columnName,
                 new_name=body.new_name,
             )
+            # A renamed serial column keeps counting from where it was; the
+            # old name is free for a new column that starts over.
+            if (config.get(columnName) or {}).get("kind") == "serial":
+                await rename_serial_counter(
+                    layer_info.layer_id, columnName, body.new_name
+                )
 
         # Apply JSONB updates: rename key, update display_config
         pool = layer_service._pool
@@ -929,6 +1008,17 @@ async def update_column(
                     except (ValueError, ValidationError) as e:
                         raise HTTPException(status_code=400, detail=str(e)) from e
 
+                if is_generated_kind(entry.get("kind")) and (
+                    body.default_value is not None or body.allowed_values
+                ):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=(
+                            f"'{columnName}' is filled automatically, so it "
+                            "cannot have a default value or allowed values."
+                        ),
+                    )
+
                 if body.default_value is not None:
                     # Only what future features get. Rewriting rows that already
                     # hold a value is not what changing a default means, and the
@@ -983,6 +1073,154 @@ async def update_column(
         raise HTTPException(status_code=500, detail=f"Failed to update column: {e}")
 
 
+#: Kinds a column's values are derived from, never typed — none of them can be
+#: turned into a serial, which needs values of its own.
+_DERIVED_KINDS = frozenset({"area", "perimeter", "length", "formula"})
+
+
+async def _convert_column_kind(
+    layer_info: LayerInfo,
+    metadata: LayerMetadata,
+    body: ColumnUpdate,
+    column: str,
+) -> ColumnResponse:
+    """Turn a number column into a serial, or a serial back into a number.
+
+    The real case: a hand-typed project number that workflows, filters and
+    dashboards already reference by name. Converting keeps the name and every
+    value; blank rows get numbers after the highest one; the high-water mark
+    starts at the highest value, so new features continue after it and a gap
+    (a deleted 18) is never filled. Refused — before anything changes — for a
+    duplicate, a fraction, a non-number column, a derived or locked column,
+    and any column of a bundle member, whose writes go through the bundle
+    editor.
+
+    Runs under ``locked_layer_write``, the lock every create and update takes
+    before reading the column definitions, and stores the new definition on
+    the lock's own connection before releasing it. So a concurrent write either
+    finished before the checks looked at the column, or sees the serial.
+
+    Back to ``number`` drops the mark; the values and the BIGINT storage stay.
+    """
+    others = [
+        name
+        for name, value in (
+            ("new_name", body.new_name),
+            ("display_config", body.display_config),
+            ("formula", body.formula),
+            ("allowed_values", body.allowed_values),
+            ("allow_other", body.allow_other),
+            ("default_value", body.default_value),
+        )
+        if value is not None
+    ]
+    if others:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Change a column's kind on its own, not together with "
+                f"{', '.join(others)}."
+            ),
+        )
+    if body.kind not in ("serial", "number"):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Only a number column can be turned into a serial number, and a "
+                "serial number back into a number"
+                + (f"; '{body.kind}' is not supported." if body.kind else ".")
+            ),
+        )
+    if body.kind == "number" and body.start is not None:
+        raise HTTPException(status_code=400, detail="Only a serial has a start value.")
+    if await layer_is_bundle_member(layer_info.layer_id):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Columns of a layer that is part of a bundle cannot change their "
+                "kind; the bundle's editor writes them."
+            ),
+        )
+    if column not in metadata.column_names:
+        raise HTTPException(status_code=404, detail=f"Column '{column}' not found")
+
+    try:
+        start = generated_entry_settings("serial", body.start)["start"]
+        async with locked_layer_write(layer_info.layer_id, reset=[column]) as write:
+            entry = dict(write.field_config.get(column) or {})
+            kind = entry.get("kind")
+            if body.kind == "serial":
+                if kind == "serial":
+                    raise HTTPException(
+                        status_code=400, detail=f"'{column}' is already a serial."
+                    )
+                if kind in _DERIVED_KINDS or entry.get("is_computed"):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=(
+                            f"'{column}' is calculated by GOAT, so it cannot "
+                            "become a serial number."
+                        ),
+                    )
+                if entry.get("is_locked") or kind == "uuid":
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"'{column}' cannot become a serial number.",
+                    )
+                result = feature_write_service.convert_to_serial(
+                    layer_info,
+                    GeneratedField(name=column, kind="serial", start=start),
+                    write.counters,
+                )
+                # Merged into what the entry already says. Its display_config
+                # stays as it was: a serial is shown as stored and ignores it,
+                # and converting back to a number gets the formatting back. A
+                # vocabulary or default would fight the numbering and goes.
+                for stale in ("allowed_values", "allow_other", "default_value"):
+                    entry.pop(stale, None)
+                entry.update(
+                    {
+                        "kind": "serial",
+                        "start": start,
+                        "is_computed": False,
+                        "depends_on": entry.get("depends_on") or [],
+                        "display_config": entry.get("display_config") or {},
+                    }
+                )
+                message = (
+                    f"converted; {result['filled']} blank row(s) numbered"
+                    if result["filled"]
+                    else "converted"
+                )
+            else:
+                if kind != "serial":
+                    raise HTTPException(
+                        status_code=400, detail=f"'{column}' is not a serial."
+                    )
+                # The mark was forgotten as the lock was taken (``reset``).
+                entry.pop("start", None)
+                entry["kind"] = "number"
+                entry.setdefault("display_config", {})
+                message = "converted"
+            if write.conn is not None:
+                current = await fetch_field_config(
+                    write.conn, UUID(layer_info.layer_id)
+                )
+                current[column] = entry
+                await write_field_config(write.conn, layer_info.layer_id, current)
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("Convert column error: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to convert column: {e}")
+
+    await _invalidate_caches_and_pmtiles(layer_info)
+    await _settle_schema_caches(layer_info.layer_id)
+    return ColumnResponse(name=column, type=str(body.kind), message=message)
+
+
 @router.delete(
     "/collections/{collectionId}/columns/{columnName}",
     summary="Delete column",
@@ -1021,6 +1259,9 @@ async def delete_column(
             layer_info=layer_info,
             name=columnName,
         )
+        # Its high-water mark goes with it, so a column added later under the
+        # same name starts at its own start rather than after this one's last.
+        await forget_serial_counter(layer_info.layer_id, columnName)
 
         # Remove the JSONB entry as well
         pool = layer_service._pool

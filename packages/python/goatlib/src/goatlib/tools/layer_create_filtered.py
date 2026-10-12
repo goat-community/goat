@@ -29,7 +29,7 @@ from goatlib.analysis.schemas.ui import (
     ui_sections,
 )
 from goatlib.models.io import DatasetMetadata
-from goatlib.tools.base import BaseToolRunner
+from goatlib.tools.base import BaseToolRunner, _get_or_create_event_loop
 from goatlib.tools.schemas import ToolInputBase
 
 logger = logging.getLogger(__name__)
@@ -125,6 +125,68 @@ class LayerCreateFilteredToolRunner(BaseToolRunner["LayerCreateFilteredParams"])
     ) -> str:
         """Mark as standard (not tool output) since this is user data."""
         return "standard"
+
+    def run(self: Self, params: LayerCreateFilteredParams) -> dict[str, Any]:
+        """Create the copy, then carry the source's per-column metadata over."""
+        result = super().run(params)
+        self._copy_field_config(params, result)
+        return result
+
+    def _copy_field_config(
+        self: Self, params: LayerCreateFilteredParams, result: dict[str, Any]
+    ) -> None:
+        """Give the copy the source layer's ``field_config``.
+
+        The copy is the same kind of layer as its source, so a column's
+        vocabulary, default, formatting, computed formula and generated kind
+        still apply to it — a serial number keeps counting, from the source's
+        high-water mark, and a UUID column keeps filling itself, rather than
+        both turning into plain columns users would have to type into.
+
+        The same rule ``bundle_create_filtered`` follows for a bundle's member
+        layers. Never in temp mode, where there is no layer row; a failure is
+        logged, not raised, because the copy and its data are real by now.
+        """
+        if getattr(params, "temp_mode", False):
+            return
+        layer_id = result.get("layer_id")
+        if not layer_id:
+            return
+        try:
+            _get_or_create_event_loop().run_until_complete(
+                self._persist_source_field_config(params.source_layer_id, str(layer_id))
+            )
+        except Exception as e:
+            logger.warning(
+                "Could not copy field_config from %s to %s: %s",
+                params.source_layer_id,
+                layer_id,
+                e,
+            )
+
+    async def _persist_source_field_config(
+        self: Self, source_layer_id: str, layer_id: str
+    ) -> None:
+        """Open a pool, copy the blob, and close it again — `run` closed its own."""
+        await self._init_db_service()
+        try:
+            if self.db_service is None:
+                return
+            source = await self.db_service.get_layer_info(source_layer_id)
+            field_config = (source or {}).get("field_config")
+            if field_config:
+                await self.db_service.set_layer_field_config(layer_id, field_config)
+                # And the serial high-water marks, so the copy never hands out
+                # a number the source handed out and deleted since.
+                if any(
+                    isinstance(e, dict) and e.get("kind") == "serial"
+                    for e in field_config.values()
+                ):
+                    await self.db_service.copy_layer_serial_counters(
+                        source_layer_id, layer_id
+                    )
+        finally:
+            await self._close_db_service()
 
 
 def main(params: LayerCreateFilteredParams) -> dict[str, Any]:

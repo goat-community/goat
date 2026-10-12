@@ -50,8 +50,7 @@ SECTION_RESULT_OEV = UISection(
     id="result",
     order=7,
     icon="save",
-    label="Result Layer",
-    label_de="Ergebnisebene",
+    label_key="result_layer_section",
     depends_on={"reference_area_layer_id": {"$ne": None}},
 )
 
@@ -60,6 +59,11 @@ class CatchmentType(StrEnum):
     """Catchment area type for ÖV-Güteklassen."""
 
     buffer = "buffer"
+
+
+CATCHMENT_TYPE_LABELS: dict[str, str] = {
+    "buffer": "enums.catchment_type.buffer",
+}
 
 
 class OevGueteklassenToolParams(ToolInputBase):
@@ -157,6 +161,7 @@ class OevGueteklassenToolParams(ToolInputBase):
             section="configuration",
             field_order=1,
             label_key="catchment_type",
+            enum_labels=CATCHMENT_TYPE_LABELS,
         ),
     )
     reference_area_layer_id: str = Field(

@@ -28,12 +28,14 @@ const SOURCE_ICON: Record<TemplateSourceFilter, ICON_NAME> = {
   mine: ICON_NAME.USER,
   team: ICON_NAME.USERS,
   org: ICON_NAME.ORGANIZATION,
+  shared: ICON_NAME.SHARE,
 };
 
 /** T7's template source on Home, as one tool pill with a menu: Everyone /
  * GOAT / Mine always, Team only once the caller is in a team space,
- * Organization only once an organization space exists — a personal-only
- * account never sees a source it has nothing behind. */
+ * Organization only once an organization space exists, Shared with me once
+ * either does — a personal-only account never sees a source it has nothing
+ * behind. */
 const TemplateSourceMenu = ({ source, onChange, spaces, compact }: TemplateSourceMenuProps) => {
   const { t } = useTranslation("common");
   const options = templateSourceOptions(spaces).map((option) => ({

@@ -629,3 +629,78 @@ def test_bind_fills_every_node_of_a_dataset_and_keeps_each_filter() -> None:
         assert data["layerId"] == NEW_LAYER_ID
         assert data["projectLayerId"] == 55
         assert data["filter"] == _node(config, node_id)["data"]["filter"]
+
+
+# ---------------------------------------------------------------------------
+# Workflow variables survive the snapshot
+# ---------------------------------------------------------------------------
+
+# A variable with the editor's optional label and description, and one saved
+# before those existed. Their values deliberately equal the dataset's
+# projectLayerId and layerId: freezing and binding rewrite those ids in tool
+# configs, and must never reach into the variables.
+_VARIABLES = [
+    {
+        "id": "var-1",
+        "name": "max_abstand_gruppierung",
+        "label": "Maximaler Abstand",
+        "description": "Größter Abstand zwischen zwei Punkten einer Gruppe.",
+        "type": "number",
+        "defaultValue": 42,
+        "order": 0,
+    },
+    {
+        "id": "var-2",
+        "name": "layer_hint",
+        "type": "string",
+        "defaultValue": LAYER_ID,
+        "order": 1,
+    },
+]
+
+
+def _workflow_config_with_variables() -> dict:
+    config = _workflow_config()
+    config["variables"] = copy.deepcopy(_VARIABLES)
+    return config
+
+
+@pytest.mark.parametrize("mode", ["ship", "ask"])
+def test_freeze_and_bind_keep_variables_with_label_and_description(
+    mode: str,
+) -> None:
+    config = _workflow_config_with_variables()
+    inputs = [
+        TemplateInput(
+            key="node:n1",
+            label="Buildings",
+            mode=mode,
+            layer_id=UUID(LAYER_ID) if mode == "ship" else None,
+            layer_type="feature",
+            geometry_type="polygon",
+        )
+    ]
+
+    frozen = freeze_workflow_config(config, inputs)
+    assert frozen["variables"] == _VARIABLES
+
+    bound, _ = bind_workflow_config(frozen, {"node:n1": (UUID(NEW_LAYER_ID), 55)})
+    assert bound["variables"] == _VARIABLES
+    assert "label" not in bound["variables"][1]
+    assert "description" not in bound["variables"][1]
+
+
+def test_bind_keeps_variables_when_an_input_stays_unresolved() -> None:
+    frozen = freeze_workflow_config(
+        _workflow_config_with_variables(),
+        [
+            TemplateInput(
+                key="node:n1", label="Buildings", mode="ask", layer_type="feature"
+            )
+        ],
+    )
+
+    bound, unresolved = bind_workflow_config(frozen, {})
+
+    assert unresolved == ["node:n1"]
+    assert bound["variables"] == _VARIABLES

@@ -29,6 +29,7 @@ from core.core.authz import Action
 from core.core.config import settings
 from core.crud.crud_bundle import bundle as crud_bundle
 from core.crud.crud_bundle import member_thumbnails
+from core.crud.crud_share import share as crud_share
 from core.db.models._link_model import (
     BundleDependencyLink,
     BundleLayerLink,
@@ -1220,6 +1221,12 @@ async def share_bundle(
 ) -> BundleGrantsResponse:
     """Share a bundle with a team or organization. Owner or editor."""
     await authorize_bundle(async_session, bundle_id, user_id, "write")
+
+    await crud_share.assert_grantees_in_organization(
+        async_session,
+        granted_by=user_id,
+        wanted=[(payload.grantee_type, payload.grantee_id, payload.role)],
+    )
 
     role = (
         await async_session.execute(select(Role).where(Role.name == payload.role))

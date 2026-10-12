@@ -131,7 +131,7 @@ export const InfoChipEditDialog = ({ editor, open, onClose, onPersist }: InfoChi
             <TextField
               size="small"
               fullWidth
-              placeholder="Title"
+              placeholder={t("title")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               autoComplete="off"

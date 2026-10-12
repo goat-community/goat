@@ -91,6 +91,7 @@ const templateUseResultFixture: TemplateUseResult = {
   layout_id: null,
   added_layer_project_ids: [],
   unresolved_inputs: [],
+  copy_jobs: [],
 };
 
 const renderPage = (searchParams?: string) =>

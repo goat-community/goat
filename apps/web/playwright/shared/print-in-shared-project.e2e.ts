@@ -50,7 +50,11 @@ test("an editor of a shared project prints a layout to PDF", async ({ page }) =>
     .click();
   await expect(templates).toBeHidden();
 
-  const download = page.waitForEvent("download", { timeout: 300000 });
+  // Only the PDF: an export of the same user finishing meanwhile downloads too.
+  const download = page.waitForEvent("download", {
+    predicate: (d) => d.suggestedFilename().endsWith(".pdf"),
+    timeout: 300000,
+  });
   await page.getByRole("button", { name: "Print Layout" }).click();
   const file = await download;
   expect(file.suggestedFilename()).toMatch(/\.pdf$/);

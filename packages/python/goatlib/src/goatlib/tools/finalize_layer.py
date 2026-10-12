@@ -14,7 +14,8 @@ replaced in place, whoever runs it, preserving the layer_id, project entries,
 and any user-customized style/tags. A layer shared with a project copy or
 template (inherited from it, or still shown by it) gets a new layer behind the
 same entry instead, so copies and their source never change each other's
-results. Identity is tracked entirely backend-side so workflows can run
+results; the new layer keeps the description, tags and column settings of the
+one it replaces. Identity is tracked entirely backend-side so workflows can run
 without the browser (long runs, remote triggers).
 
 Every run is authorized first: the runner must be able to write the project,
@@ -33,6 +34,7 @@ from typing import Any, Literal
 import asyncpg
 from pydantic import BaseModel, Field
 
+from goatlib.io.bbox_columns import star_excluding, stray_bbox_columns
 from goatlib.tools.authz import authorize_workflow_export
 from goatlib.tools.base import BaseToolRunner, _get_or_create_event_loop
 from goatlib.tools.layer_replace import LayerReplaceMixin
@@ -560,17 +562,19 @@ class FinalizeLayerRunner(LayerReplaceMixin, BaseToolRunner[FinalizeLayerParams]
             if "GEOMETRY" in col_type.upper():
                 geom_col = col_name
                 break
+        # Stray bounding-box copies stay out of the layer (goatlib.io.bbox_columns).
+        columns = star_excluding(stray_bbox_columns(cols))
 
         if geom_col:
             con.execute(f"""
                 CREATE TABLE {table_name} AS
-                SELECT * FROM read_parquet('{parquet_path}')
+                SELECT {columns} FROM read_parquet('{parquet_path}')
                 ORDER BY ST_Hilbert({geom_col})
             """)
         else:
             con.execute(f"""
                 CREATE TABLE {table_name} AS
-                SELECT * FROM read_parquet('{parquet_path}')
+                SELECT {columns} FROM read_parquet('{parquet_path}')
             """)
 
         logger.info(f"Ingested temp layer to DuckLake: {table_name}")

@@ -2,6 +2,7 @@
 
 import { Box, Button, Dialog, IconButton, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { type ReactNode, useId, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
@@ -187,6 +188,7 @@ const MediaPane = ({
   stacked?: boolean;
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation("common");
   const poster = posterOf(media);
   const video = media.kind === "video";
 
@@ -223,7 +225,7 @@ const MediaPane = ({
         )}
         {video && (
           <IconButton
-            aria-label="play"
+            aria-label={t("play")}
             onClick={onPlay}
             sx={{
               position: "absolute",
@@ -269,13 +271,14 @@ const VideoLightbox = ({
   open: boolean;
   onClose: () => void;
 }) => {
+  const { t } = useTranslation("common");
   const youtube = youtubeVideoId(media.src);
   return (
     <Dialog
       open={open}
       onClose={onClose}
       maxWidth={false}
-      aria-label="video"
+      aria-label={t("video")}
       PaperProps={{
         sx: {
           width: "min(1280px, calc(100vw - 48px))",
@@ -290,7 +293,7 @@ const VideoLightbox = ({
         },
       }}>
       <IconButton
-        aria-label="close"
+        aria-label={t("close")}
         onClick={onClose}
         sx={{
           position: "absolute",

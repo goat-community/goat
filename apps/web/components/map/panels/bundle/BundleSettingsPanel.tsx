@@ -95,7 +95,7 @@ const BundleSettingsPanel = ({ projectId }: { projectId: string }) => {
             value={Math.max(tabs.indexOf(activeTab), 0)}
             onChange={(_, index) => handleTabChange(tabs[index])}
             variant="fullWidth"
-            aria-label="Bundle Settings Tabs">
+            aria-label={t("bundle_settings")}>
             {tabs.map((tab) => (
               <Tab key={tab} label={tabLabel[tab]} />
             ))}

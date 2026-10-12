@@ -1384,7 +1384,7 @@ export const ProjectLayerTree = ({
 
   // --- RENDER ---
   if (isLoading && items.length === 0) {
-    return <Box sx={{ p: 2, color: "text.secondary" }}>Loading layers...</Box>;
+    return <Box sx={{ p: 2, color: "text.secondary" }}>{t("loading_layers")}</Box>;
   }
 
   if (!isLoading && items.length === 0) {

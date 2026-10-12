@@ -105,7 +105,7 @@ export const SocialPreviewImagePicker: React.FC<SocialPreviewImagePickerProps> =
           <Box
             component="img"
             src={displayedUrl}
-            alt="social preview"
+            alt={t("social_preview")}
             sx={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         )}

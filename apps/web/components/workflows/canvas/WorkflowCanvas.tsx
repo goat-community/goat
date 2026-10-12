@@ -193,6 +193,10 @@ const EmptyStateIconWrapper = styled(Box)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
+// React Flow's default minZoom (0.5) is too tight to see a large workflow as a
+// whole; zoom-out, wheel/trackpad and fit view all share this limit.
+export const WORKFLOW_CANVAS_MIN_ZOOM = 0.1;
+
 // Custom Controls component with MUI buttons and tooltips
 interface CustomControlsProps {
   isLocked: boolean;
@@ -216,7 +220,7 @@ const CustomControls: React.FC<CustomControlsProps> = ({ isLocked, onToggleLock 
         </ControlButton>
       </Tooltip>
       <Tooltip title={t("fit_view")} placement="right" arrow>
-        <ControlButton onClick={() => fitView()}>
+        <ControlButton onClick={() => fitView({ minZoom: WORKFLOW_CANVAS_MIN_ZOOM })}>
           <FitViewIcon fontSize="small" />
         </ControlButton>
       </Tooltip>
@@ -623,6 +627,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         nodes={localNodes}
         edges={localEdges}
         onInit={handleInit}
+        minZoom={WORKFLOW_CANVAS_MIN_ZOOM}
         onNodesChange={handleNodesChange}
         onNodesDelete={handleNodesDelete}
         onEdgesChange={handleEdgesChange}

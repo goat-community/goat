@@ -167,7 +167,7 @@ const Profile = () => {
                   loading={isProfileUpdateBusy}
                   variant="contained"
                   startIcon={<Icon fontSize="small" iconName={ICON_NAME.SAVE} />}
-                  aria-label="update-profile"
+                  aria-label={t("update")}
                   name="update-profile"
                   disabled={isProfileUpdateBusy || !isDirty || !isValid}
                   type="submit">
@@ -225,7 +225,7 @@ const Profile = () => {
               startIcon={<Icon fontSize="small" iconName={ICON_NAME.TRASH} />}
               variant="outlined"
               color="error"
-              aria-label="delete-account"
+              aria-label={t("delete_account")}
               name="delete-account"
               loading={isDeleteAccountBusy}
               onClick={() => {

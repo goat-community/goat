@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { LayerLegendPanel } from "@/components/map/panels/layer/legend/LayerLegend";
@@ -68,5 +68,27 @@ describe("LayerLegendPanel legend rows", () => {
 
     expect(screen.getByText("clothes")).toBeTruthy();
     expect(container.querySelectorAll("svg")).toHaveLength(3);
+  });
+
+  it("shows a label saved with the no-break spaces of inline editing as wrappable text", () => {
+    renderPanel({ editable: true, textOverrides: { item_1: "Lebensmittel\u00a0und Getränke\u00a0" } });
+
+    expect(screen.getByText("Lebensmittel und Getränke").textContent).toBe("Lebensmittel und Getränke");
+  });
+
+  it("saves an edited label without no-break spaces and only when it changed", () => {
+    const onTextSave = vi.fn();
+    renderPanel({ editable: true, textOverrides: { item_1: "Lebensmittel" }, onTextSave });
+
+    const label = screen.getByText("Lebensmittel");
+    label.textContent = "Lebensmittel\u00a0und Getränke\u00a0";
+    fireEvent.blur(label);
+    expect(onTextSave).toHaveBeenCalledWith("item_1", "Lebensmittel und Getränke");
+
+    onTextSave.mockClear();
+    const unchanged = screen.getByText("supermarket");
+    unchanged.textContent = "supermarket\u00a0";
+    fireEvent.blur(unchanged);
+    expect(onTextSave).not.toHaveBeenCalled();
   });
 });

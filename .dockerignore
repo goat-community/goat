@@ -63,6 +63,8 @@ apps/processes/tests
 # without this every change to the worker Dockerfile rebuilt the processes
 # image. BuildKit still reads a Dockerfile that is ignored here.
 apps/processes/workers
+# ...except the print worker's fontconfig file, which worker-print copies in.
+!apps/processes/workers/fonts
 
 # Large data directories
 data/

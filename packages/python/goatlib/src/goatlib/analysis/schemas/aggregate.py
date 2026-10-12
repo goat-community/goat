@@ -68,6 +68,13 @@ class AggregationAreaType(StrEnum):
     h3_grid = "h3_grid"
 
 
+# Area type labels for i18n (maps enum values to translation keys)
+AGGREGATION_AREA_TYPE_LABELS: dict[str, str] = {
+    "polygon": "enums.aggregation_area_type.polygon",
+    "h3_grid": "enums.aggregation_area_type.h3_grid",
+}
+
+
 # H3 resolution options (3-10 as in GOAT Core)
 H3Resolution = Literal[3, 4, 5, 6, 7, 8, 9, 10]
 
@@ -80,6 +87,7 @@ class AggregateFieldStatistic(FieldStatistic):
         description="Field name to compute statistics on. Required for all operations except 'count'.",
         json_schema_extra={
             "x-ui": {
+                "label_key": "statistic_field",
                 "widget": "field-selector",
                 "widget_options": {
                     "source_layer": "source_layer_id",
@@ -94,6 +102,7 @@ class AggregateFieldStatistic(FieldStatistic):
         description="Custom name for the result column. If not provided, defaults to '{field}_{operation}' or 'count' for count operations.",
         json_schema_extra={
             "x-ui": {
+                "label_key": "statistic_result_name",
                 "widget_options": {"placeholder_template": "{field}_{operation}"},
             }
         },
@@ -142,6 +151,7 @@ class AggregatePointsParams(BaseModel):
         json_schema_extra=ui_field(
             section="area",
             field_order=1,
+            enum_labels=AGGREGATION_AREA_TYPE_LABELS,
         ),
     )
 

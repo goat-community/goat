@@ -209,7 +209,7 @@ const LayerFieldSelector = <T extends boolean = false>(props: SelectorProps<T>) 
           <TextField
             size="small"
             autoFocus
-            placeholder="Search"
+            placeholder={t("search_fields")}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

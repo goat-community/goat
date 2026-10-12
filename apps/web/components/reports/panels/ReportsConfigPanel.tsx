@@ -95,11 +95,11 @@ const PanelContainer = styled(SidePanelContainer)(({ theme }) => ({
   zIndex: 1,
 }));
 
-const DPI_LABELS: Record<(typeof EXPORT_DPI_OPTIONS)[number], string> = {
-  72: "72 (Screen)",
-  150: "150 (Low)",
-  300: "300 (High)",
-  600: "600 (Print)",
+const DPI_LABEL_KEYS: Record<(typeof EXPORT_DPI_OPTIONS)[number], string> = {
+  72: "dpi_label_screen",
+  150: "dpi_label_low",
+  300: "dpi_label_high",
+  600: "dpi_label_print",
 };
 
 interface ReportsConfigPanelProps {
@@ -214,8 +214,9 @@ const ReportsConfigPanel: React.FC<ReportsConfigPanelProps> = ({
     () =>
       EXPORT_DPI_OPTIONS.map((value) => {
         const allowed = isDpiAllowed(currentPageMm, value);
+        const label = `${value} (${t(DPI_LABEL_KEYS[value])})`;
         return {
-          label: allowed ? DPI_LABELS[value] : `${DPI_LABELS[value]} — ${t("too_large")}`,
+          label: allowed ? label : `${label} — ${t("too_large")}`,
           value,
           disabled: !allowed,
         };

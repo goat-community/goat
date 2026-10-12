@@ -429,7 +429,9 @@ def test_a_second_split_lands_on_a_half_not_on_a_free_floating_node():
 
     splits: list[str] = []
 
-    def record_split(con, table, columns, edge_id, fraction, left, right, node, fc):
+    def record_split(
+        con, table, columns, edge_id, fraction, left, right, node, fc, **kwargs
+    ):
         splits.append(edge_id)
 
     with (

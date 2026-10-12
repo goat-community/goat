@@ -56,6 +56,7 @@ def is_temp_layer_id(text: str) -> bool:
 EXTRA_LAYER_FIELDS: dict[str, tuple[str, ...]] = {
     "catchment_area_v2": ("starting_points.layer_id",),
     "layer_create_filtered": ("source_layer_id", "input_layer_id"),
+    "layer_copy": ("source_layer_id",),
     "bundle_create_filtered": ("input_layer_id",),
     "merge": ("input_layer_id",),
     "custom_sql": ("input_layer_id",),
@@ -76,7 +77,12 @@ NOT_LAYER_REFERENCES: dict[str, str] = {
 # Tools that change or remove the layers they name: write, not read.
 LAYER_WRITE_TOOLS = frozenset({"layer_delete", "layer_delete_multi", "layer_update"})
 # Project-layer links (layer_project ids), checked as reads of their layer.
-LAYER_PROJECT_FIELDS: tuple[str, ...] = ("opportunities[].layer_project_id",)
+# `layer_copy` names the entries of its (write-checked) project it points at
+# the copy; the job itself refuses an entry of another project.
+LAYER_PROJECT_FIELDS: tuple[str, ...] = (
+    "opportunities[].layer_project_id",
+    "layer_project_ids[]",
+)
 BUNDLE_READ_FIELDS: tuple[str, ...] = (
     "street_network_bundle_id",
     "pt_network_bundle_id",
@@ -242,20 +248,53 @@ def _layer_shaped_values(data: Any) -> list[Any]:
     return found
 
 
+def empty_copy_of_template(
+    process_id: str, inputs: dict[str, Any]
+) -> tuple[str, str] | None:
+    """(template id, dataset id) when a `layer_copy` job copies only a
+    template dataset's structure ("copy, empty"), else None.
+
+    Such a copy needs no read of the dataset's rows: whoever may read the
+    template may have its empty structure, so the author's dataset stays
+    private. `ensure_empty_copy_of_template` confirms the template really
+    has that dataset as a "copy, empty" input.
+    """
+    if process_id != "layer_copy" or inputs.get("copy_content") is not False:
+        return None
+    template_id, source = inputs.get("template_id"), inputs.get("source_layer_id")
+    if not isinstance(template_id, str) or not isinstance(source, str):
+        return None
+    if not (UUID_RE.fullmatch(template_id) and UUID_RE.fullmatch(source)):
+        return None
+    return template_id, source
+
+
 def tool_references(
     process_id: str, inputs: dict[str, Any], user_id: UUID | None = None
 ) -> References:
     _check_locations(process_id, inputs, user_id)
     refs = References()
     layer_action = "write" if process_id in LAYER_WRITE_TOOLS else "read"
+    empty_copy = empty_copy_of_template(process_id, inputs)
+    # An empty copy reads the template instead of its dataset (see above).
+    skipped = {empty_copy[1]} if empty_copy else set()
+    if empty_copy:
+        refs.add("template", empty_copy[0], "read")
     for path in layer_fields(process_id):
         for value in _values(inputs, path):
-            refs.add_layer(value, layer_action)
+            if value not in skipped:
+                refs.add_layer(value, layer_action)
     for value in _layer_shaped_values(inputs):
-        refs.add_layer(value, layer_action)
-    for path in LAYER_PROJECT_FIELDS:
-        for value in _values(inputs, path):
-            refs.add("layer_project", value)
+        if value not in skipped:
+            refs.add_layer(value, layer_action)
+    # The entries an empty copy repoints still show the dataset, so reading
+    # them would read it; they need no read: the project is checked for
+    # write, and the job only repoints entries of that project that show
+    # exactly this dataset, onto the caller's own copy.
+    if not empty_copy:
+        for path in LAYER_PROJECT_FIELDS:
+            for value in _values(inputs, path):
+                refs.add("layer_project", value)
     for path in BUNDLE_READ_FIELDS:
         for value in _values(inputs, path):
             # The network selectors' answer for the default network, which a
@@ -442,6 +481,41 @@ async def denied_references(
         json.dumps(entries),
     )
     return [dict(row) for row in rows]
+
+
+async def ensure_empty_copy_of_template(template_id: str, layer_id: str) -> None:
+    """404 unless the live template `template_id` has `layer_id` as a "copy"
+    input without its rows: the only case in which `tool_references` lets a
+    `layer_copy` job read the template instead of the dataset."""
+    try:
+        pool = await _get_pool()
+        found = await pool.fetchval(
+            f"""
+            SELECT EXISTS (
+                SELECT 1
+                  FROM {settings.CUSTOMER_SCHEMA}.template t,
+                       jsonb_array_elements(t.inputs) AS i
+                 WHERE t.id = $1::uuid
+                   AND t.deleted_at IS NULL
+                   AND i->>'mode' = 'copy'
+                   AND i->>'layer_id' = $2::uuid::text
+                   AND (i->>'copy_content')::boolean IS FALSE
+            )
+            """,
+            template_id,
+            layer_id,
+        )
+    except Exception:
+        logger.exception("empty-copy check failed")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Access could not be checked",
+        )
+    if not found:
+        logger.info("empty copy refused template=%s layer=%s", template_id, layer_id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found"
+        )
 
 
 async def ensure_allowed(user_id: UUID | None, refs: References) -> None:
