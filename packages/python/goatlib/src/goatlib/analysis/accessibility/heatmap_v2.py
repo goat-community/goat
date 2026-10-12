@@ -40,7 +40,11 @@ from goatlib.analysis.schemas.heatmap_v2 import (
 )
 from goatlib.config.settings import settings
 from goatlib.models.io import DatasetMetadata
-from goatlib.tools._routing_limits import MAX_TIME_ACTIVE_MIN, MAX_TIME_CAR_MIN
+from goatlib.tools._routing_limits import (
+    MAX_TIME_ACTIVE_MIN,
+    MAX_TIME_CAR_MIN,
+    validate_extent,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -75,19 +79,6 @@ _PT_ACCESSEGRESS_RES = 9
 # (reverse-RAPTOR for PT, Dijkstra for street) — CPU-bound, not the temp-disk-
 # bound sampled-opportunity workload the generic cap guards against.
 _CONNECTIVITY_MAX_CELLS = 50_000
-# Cap on reference-area cells for a street closest-average run without a travel
-# budget, one value for active modes and one for car. One traversal from the
-# opportunities covers all the cells, so memory follows the network loaded
-# over the area: measured on a 4 GB worker (Basel + buffers,
-# Baden-Württemberg). The active value is bound by bicycle, whose coarser cells
-# cover ~7x the ground of walking's. Car ran 72,740 cells (Switzerland and
-# surroundings) at k = 1 in 48 s; higher k needs more memory.
-_CLOSEST_AVERAGE_MAX_CELLS: dict[RoutingMode, int] = {
-    RoutingMode.walking: 150_000,
-    RoutingMode.bicycle: 150_000,
-    RoutingMode.pedelec: 150_000,
-    RoutingMode.car: 75_000,
-}
 # Modes a PT leg can be made in — each has its own precomputed table. PT itself
 # is never an access/egress mode.
 _PT_ACCESSEGRESS_MODES = frozenset(
@@ -157,13 +148,26 @@ def _within_area_reach(
     ]
 
 
-def _check_reference_area_cells(n_cells: int, max_cells: int) -> None:
+def _check_reference_area_extent(
+    area_cells: list[tuple[float, float]], routing_mode: RoutingMode
+) -> None:
+    """The travel cost matrix's extent check, with the area's cells as both
+    origins and destinations."""
+    lons = [math.degrees(x / 6378137.0) for x, _ in area_cells]
+    lats = [
+        math.degrees(2 * math.atan(math.exp(y / 6378137.0)) - math.pi / 2)
+        for _, y in area_cells
+    ]
+    validate_extent(routing_mode, lats, lons, lats, lons, "Reference area extent")
+
+
+def _check_reference_area_cells(n_cells: int, max_cells: int | None = None) -> None:
     if not n_cells:
         raise ValueError(
             "The reference area is empty or invalid. "
             "Check that the layer contains valid polygons."
         )
-    if n_cells > max_cells:
+    if max_cells is not None and n_cells > max_cells:
         raise ValueError(
             f"The reference area is too large to analyse: it covers "
             f"{n_cells:,} grid cells, but the maximum is "
@@ -494,15 +498,15 @@ class HeatmapV2Tool(HeatmapToolBase):
         self: Self, params: HeatmapV2Params
     ) -> list[tuple[float, float]]:
         """The reference area's H3 cell centroids (EPSG:3857), after checking
-        the area against the mode's size cap."""
+        the area against the mode's maximum extent."""
         points, _ = self._rasterize_aoi_to_opportunities(
             params.reference_area_path,
             DEFAULT_H3_RESOLUTION[params.routing_mode],
         )
-        _check_reference_area_cells(
-            len(points), _CLOSEST_AVERAGE_MAX_CELLS[params.routing_mode]
-        )
-        return [(x, y) for x, y, _ in points]
+        _check_reference_area_cells(len(points))
+        cells = [(x, y) for x, y, _ in points]
+        _check_reference_area_extent(cells, params.routing_mode)
+        return cells
 
     # ----------------------- opportunity-layer resolution -------------------
 
