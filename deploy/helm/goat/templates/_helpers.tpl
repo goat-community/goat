@@ -309,6 +309,16 @@ clientId | clientSecret | nextauthSecret).
 {{- end }}
 
 {{/*
+AUTH_ALLOWED_CLIENTS for core, geoapi, processes and catalog: the client IDs
+in `global.auth.allowedClients`, comma-separated. Renders "" when the list is
+empty, and the services then accept tokens of every client. Param: root.
+*/}}
+{{- define "goat.auth.allowedClients" -}}
+{{- $g := .Values.global.auth | default dict -}}
+{{- join "," ($g.allowedClients | default list) -}}
+{{- end }}
+
+{{/*
 The AUTH value a service gets: "true" or "false", never empty — no service
 may fall back to its code default (geoapi/processes default to AUTH on).
 */}}
@@ -353,7 +363,8 @@ catalog). Renders `env:` list entries (indent with nindent):
     secretKeyRef;
   - when `fallback` is true, auth is on and no Secret is configured:
     KEYCLOAK_SERVER_URL / REALM_NAME as plain values from
-    core.config.KEYCLOAK_SERVER_URL / core.config.REALM_NAME, when set.
+    core.config.KEYCLOAK_SERVER_URL / core.config.REALM_NAME, when set;
+  - AUTH_ALLOWED_CLIENTS from `global.auth.allowedClients`, when not empty.
 Each entry is skipped when the operator set that key in `<svc>.config` or
 `<svc>.extraEnv` (see goat.env.userSet).
 Params: values, root, fallback (bool).
@@ -381,6 +392,11 @@ Params: values, root, fallback (bool).
   value: {{ index $coreCfg $name | quote }}
 {{- end }}
 {{- end }}
+{{- end }}
+{{- $allowedClients := include "goat.auth.allowedClients" .root }}
+{{- if and $allowedClients (not (include "goat.env.userSet" (dict "values" .values "key" "AUTH_ALLOWED_CLIENTS"))) }}
+- name: AUTH_ALLOWED_CLIENTS
+  value: {{ $allowedClients | quote }}
 {{- end }}
 {{- end }}
 

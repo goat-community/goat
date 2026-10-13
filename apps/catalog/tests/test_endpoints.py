@@ -851,6 +851,70 @@ def test_invalid_token_is_rejected_not_downgraded_to_anonymous(
         assert r.headers["www-authenticate"] == "Bearer"
 
 
+def test_token_of_a_client_outside_the_allow_list_is_rejected_on_public_reads(
+    catalog_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """With AUTH_ALLOWED_CLIENTS set, another client's token is an invalid
+    token like any other: a 401 on the public reads too, never anonymous.
+
+    Real signatures: the catalog's KeycloakAuth trusts a key generated here.
+    """
+    import time
+
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from goatlib.auth import KeycloakAuth
+    from jose import jwt
+
+    from catalog import auth as catalog_auth
+
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    private_pem = key.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    ).decode()
+    public_pem = (
+        key.public_key()
+        .public_bytes(
+            serialization.Encoding.PEM,
+            serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        .decode()
+    )
+
+    def token(azp: str) -> str:
+        now = int(time.time())
+        claims = {"sub": "u", "azp": azp, "iat": now, "exp": now + 300}
+        return jwt.encode(claims, private_pem, algorithm="RS256")
+
+    settings = CatalogSettings(
+        data_dir=catalog_dir, auth=True, auth_allowed_clients="goat-web"
+    )
+    keycloak = KeycloakAuth(
+        settings.keycloak_server_url,
+        settings.realm_name,
+        allowed_clients=settings.auth_allowed_clients,
+    )
+    keycloak._public_key = public_pem
+    cache_key = (
+        settings.keycloak_server_url,
+        settings.realm_name,
+        settings.auth_allowed_clients,
+    )
+    monkeypatch.setitem(catalog_auth._keycloak_auth_cache, cache_key, keycloak)
+
+    app = create_app(settings)
+    with TestClient(app) as authed_client:
+        assert authed_client.get("/stac").status_code == 200
+        allowed = {"Authorization": f"Bearer {token('goat-web')}"}
+        assert authed_client.get("/stac", headers=allowed).status_code == 200
+        other = {"Authorization": f"Bearer {token('other-app')}"}
+        r = authed_client.get("/stac", headers=other)
+        assert r.status_code == 401
+        assert "AUTH_ALLOWED_CLIENTS" not in r.text
+
+
 def test_auth_open_access_when_disabled(client: TestClient) -> None:
     # `client` (conftest) is built with auth=False -- no token needed at all.
     r = client.get("/stac")

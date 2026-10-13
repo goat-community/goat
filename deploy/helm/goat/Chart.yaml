@@ -39,6 +39,12 @@ description: |
   - NEW: `global.auth.allowOrganizationCreation` (ALLOW_ORGANIZATION_CREATION,
     default true): false lets only accounts with the Keycloak realm role
     `superuser` create organizations; everyone else waits for an invitation.
+  - NEW: `global.auth.allowedClients` — the Keycloak clients whose tokens
+    core, geoapi, processes and catalog accept (AUTH_ALLOWED_CLIENTS,
+    matched against the token's `azp`). For a realm shared with other
+    applications, where any client of the realm can otherwise get a token
+    GOAT's APIs accept. Empty (the default) accepts every client, as before,
+    and core refuses to start if the list leaves out its own client.
 
   v0.6.0:
 

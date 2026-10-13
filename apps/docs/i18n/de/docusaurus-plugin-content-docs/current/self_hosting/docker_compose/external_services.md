@@ -105,6 +105,25 @@ Mit Ihrem eigenen Keycloak legt GOAT dort keinen Benutzer an. `smoke.sh` meldet 
 
 Verwendet Ihr Keycloak ein Zertifikat einer privaten CA, lesen Sie [Firmen-CA](./https.md#company-ca).
 
+### Ein Realm, den sich GOAT mit anderen Anwendungen teilt {#keycloak-shared-realm}
+
+Jeder Client eines Realms kann ein Token bekommen, das mit dem Schlüssel des Realms signiert ist, und standardmäßig nehmen die GOAT-APIs ein solches Token auch dann an, wenn Keycloak es für eine andere Anwendung ausgestellt hat. Eine Regel, die nur bestimmte Benutzer bei GOAT anmeldet, etwa eine Gruppenprüfung am Client von GOAT, schützt dann die Anmeldeseite, aber nicht die APIs.
+
+Setzen Sie `AUTH_ALLOWED_CLIENTS` auf die Clients, deren Tokens GOAT annimmt, durch Kommas getrennt:
+
+```bash
+AUTH_ALLOWED_CLIENTS=goat
+```
+
+GOAT prüft dann bei jedem Token den Claim `azp`, also den Client, für den Keycloak es ausgestellt hat, und beantwortet ein Token jedes anderen Clients mit `401`. Die Liste muss `KEYCLOAK_CLIENT_ID` enthalten: Die Web-App meldet Benutzer mit diesem Client an, und der Druck-Worker und die Dienste von GOAT reichen diese Tokens weiter. Ohne ihn könnte niemand GOAT verwenden, daher startet der Container `core` dann nicht und nennt beide Einstellungen. Ergänzen Sie jeden weiteren Client, dessen Tokens die GOAT-APIs erreichen sollen, etwa einen, mit dem sich Ihre eigenen Skripte anmelden. Die Prüfung erfordert keine Änderung am Realm. Übernehmen Sie sie mit `docker compose up -d`.
+
+:::warning Was die Prüfung nicht abdeckt
+Die Prüfung betrifft die Anwendung, für die ein Token ausgestellt wurde, nicht den Benutzer.
+
+- Dürfen nur bestimmte Benutzer GOAT verwenden, etwa die Mitglieder einer Gruppe, setzen Sie das am Client von GOAT für jeden Weg durch, auf dem er Tokens ausstellt: die Anmeldung im Browser und, falls aktiviert, *Direct access grants* (eine direkte Passwort-Anmeldung, die Keycloak über einen eigenen Ablauf abwickelt). Andernfalls schalten Sie *Direct access grants* am Client aus. Sonst könnte ein Benutzer außerhalb der Gruppe über den Weg, den Ihre Regel nicht abdeckt, ein Token des GOAT-Clients bekommen, und die GOAT-APIs würden es annehmen. `smoke.sh` benötigt *Direct access grants* (siehe oben).
+- Die Web-App hält Benutzer mit einem Refresh-Token angemeldet, daher bleibt ein Benutzer, den Sie aus dieser Gruppe entfernen, angemeldet, bis die Sitzung endet. Um sie sofort zu beenden, melden Sie den Benutzer in Keycloak ab, einschließlich seiner Offline-Sitzungen.
+:::
+
 ## E-Mail {#email}
 
 GOAT versendet Einladungen und Keycloak E-Mails zum Zurücksetzen des Passworts über **einen SMTP-Server**. E-Mail ist ausgeschaltet, solange `SMTP_HOST` leer ist.

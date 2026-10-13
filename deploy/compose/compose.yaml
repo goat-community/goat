@@ -53,6 +53,8 @@ x-env-auth: &env-auth
   AUTH: ${AUTH:-True}
   KEYCLOAK_SERVER_URL: ${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080/keycloak}
   REALM_NAME: ${REALM_NAME:-goat}
+  # Empty: tokens of every client of the realm are accepted.
+  AUTH_ALLOWED_CLIENTS: ${AUTH_ALLOWED_CLIENTS:-}
 
 x-env-catalog-s3: &env-catalog-s3
   CATALOG_S3_BUCKET: ${CATALOG_S3_BUCKET:-}

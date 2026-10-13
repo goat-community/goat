@@ -386,6 +386,7 @@ override the key names via the `existingSecretUserKey` /
 | `<service>.auth.existingSecret` / `.existingSecretKeys` | string / map | `""` / `{}` | Per-service Secret / key names; empty inherits `global.auth`. |
 | `global.auth.provisionInvitedUsers` | bool | `false` | Invitations to an email without a Keycloak account create the account, and Keycloak emails a set-password link (`KEYCLOAK_PROVISION_INVITED_USERS`). For realms with self-registration off; core's client needs the realm-management roles `view-users` and `manage-users`. |
 | `global.auth.allowOrganizationCreation` | bool | `true` | Who may create an organization (`ALLOW_ORGANIZATION_CREATION`): `true` anyone who signs in without one; `false` only accounts with the Keycloak realm role `superuser`, everyone else waits for an invitation. Set up your organization, or give an account that role, before switching it off. |
+| `global.auth.allowedClients` | list | `[]` | Keycloak clients whose tokens core, geoapi, processes and catalog accept (`AUTH_ALLOWED_CLIENTS`, matched against the token's `azp`). For a realm shared with other applications; must include GOAT's own client (core refuses to start otherwise). Empty accepts every client of the realm (see "Authentication"). |
 | `global.caBundle.existingConfigMap` / `.existingSecret` / `.key` | string | `""` / `""` / `ca.crt` | A company CA certificate (PEM), mounted at `/etc/goat/ca/ca.pem` in core, web and the print, tools and workflows workers (see "Email and a company CA"). |
 | `email.host` | string | `""` | SMTP server for GOAT's invitations; email is off while empty. |
 | `email.port` / `.security` | int / string | `587` / `starttls` | `security`: `starttls`, `ssl` or `none`. |
@@ -506,6 +507,33 @@ install behind your own access control.
 Examples: `global.auth.enabled: true` with `geoapi.auth.enabled: false` runs
 everything but geoapi with auth; `processes.auth.existingSecret:
 processes-kc` points processes alone at another Secret.
+
+**A realm shared with other applications.** Every client of the realm can get
+a token signed with the realm's key, and without a list GOAT's APIs accept it.
+`global.auth.allowedClients` limits that to the clients you name, matched
+against the token's `azp` claim (the client Keycloak issued it to); a token of
+any other client gets a `401`. The list must include GOAT's own client
+(`client-id` in the Secret): the web app signs users in with it, and the print
+worker and the services pass those tokens on. Without it core refuses to start,
+naming `AUTH_ALLOWED_CLIENTS` and `KEYCLOAK_CLIENT_ID`.
+
+```yaml
+global:
+  auth:
+    allowedClients: [goat-web]
+```
+
+The chart renders it as `AUTH_ALLOWED_CLIENTS` (comma-separated) for core,
+geoapi, processes and catalog, and leaves it out while the list is empty. A
+value in `<service>.config` or `<service>.extraEnv` wins for that service. The
+check works with Keycloak's defaults: no audience mapper is needed.
+
+The list checks which client issued a token, not who the user is. If only some
+users may use GOAT (a group check on GOAT's client, say), that rule must apply
+to every flow the client allows, the browser login and, if enabled, *Direct
+access grants*; otherwise turn those grants off on the client. A user removed
+from the group stays signed in until the session ends in Keycloak (the web app
+holds an offline refresh token).
 
 ## Email and a company CA
 
@@ -893,7 +921,7 @@ about its CPUs.
 
 | Chart version | Adds | Notes |
 |---|---|---|
-| `0.7.0` | Memory requests and limits and CPU requests for every service, and geoapi's and processes' DuckDB budgets to fit them (see "Resource defaults"); `postgresql.cluster.resources`; geoapi and processes run as root, so their DuckLake init can create the catalog directory on a fresh RWX volume; `postgresql.external.ducklakeHost` and `ducklakePort` for DuckLake's catalog connections and `transactionPooler` for the services when `host` is a transaction pooler; `windmill.bootstrap.image` (GOAT's core image instead of `python:3.11-slim` from Docker Hub); `POSTGRES_*` keys in a service's `config` render once and win; `global.auth.allowOrganizationCreation` (`ALLOW_ORGANIZATION_CREATION`: false lets only superusers create organizations) | Pods now have memory limits, geoapi and processes get smaller DuckDB budgets (geoapi two pooled queries instead of four), and geoapi and processes run as root — see "Upgrading 0.6.0 → 0.7.0" |
+| `0.7.0` | Memory requests and limits and CPU requests for every service, and geoapi's and processes' DuckDB budgets to fit them (see "Resource defaults"); `postgresql.cluster.resources`; geoapi and processes run as root, so their DuckLake init can create the catalog directory on a fresh RWX volume; `postgresql.external.ducklakeHost` and `ducklakePort` for DuckLake's catalog connections and `transactionPooler` for the services when `host` is a transaction pooler; `windmill.bootstrap.image` (GOAT's core image instead of `python:3.11-slim` from Docker Hub); `POSTGRES_*` keys in a service's `config` render once and win; `global.auth.allowOrganizationCreation` (`ALLOW_ORGANIZATION_CREATION`: false lets only superusers create organizations); `global.auth.allowedClients` (`AUTH_ALLOWED_CLIENTS` for core, geoapi, processes and catalog: only tokens issued to the listed Keycloak clients are accepted) | Pods now have memory limits, geoapi and processes get smaller DuckDB budgets (geoapi two pooled queries instead of four), and geoapi and processes run as root — see "Upgrading 0.6.0 → 0.7.0" |
 | `0.6.0` | `global.s3` (one S3 store for core, geoapi, processes and the workers, uploads and uploaded images); the print, tools and workflows workers get GOAT's database, DuckLake, S3, catalog bucket, `PRINT_BASE_URL` and Keycloak client, with `WHITELIST_ENVS` built by the chart, and job timeouts per worker (`JOB_DEFAULT_TIMEOUT`); the chart's own Redis on the official image instead of the Bitnami sub-chart; `email` (SMTP for invitations, password from a Secret, email branding) with `CLIENT_URL` / `API_URL` derived for the links in emails; `global.auth.provisionInvitedUsers`; `odoo` (Plan4Better's Odoo, optional: the shared connection and `odoo.support` for support tickets, API key from a Secret) and `web.supportEmail`; `global.caBundle` (company CA for core, web and the print, tools and workflows workers) | The S3 and assets placeholders are gone from `core`, `geoapi` and `processes`, and the workers' fixed `WHITELIST_ENVS` is replaced by a built one — see "Upgrading 0.5.1 → 0.6.0" |
 | `0.5.1` | GOAT v3.0.3 (no runtime downloads in the workers, `ROOT_PATH`, `sync_base_data`); `global.auth`: one auth switch + one Keycloak Secret for core, web, geoapi, processes, catalog; `geoapi.auth` / `processes.auth` | Fixes: geoapi + processes ran auth ON at chart defaults (401 on feature edits and every job route) and, with auth on, validated tokens against plan4better's dev Keycloak; a fresh install's processes had no windmill token (every tool run failed until a manual restart); `processes.windmillAutoWire: false` was ignored. No values change needed — see "Upgrading 0.5.0 → 0.5.1" |
 | `0.5.0` | GOAT v3.0.2: `catalog` service (STAC API + MCP); shared `data` volume; single-command fresh install (DuckLake + windmill DB bootstrap moved from hooks to init containers); `REDIS_URL`, web `NEXT_PUBLIC_*` and windmill `WHITELIST_ENVS` fixes; bundled Postgres image moves from CNPG's default major 17 to 18 (`ghcr.io/cloudnative-pg/postgis:18-3.6-system-trixie`) | BREAKING: `helm upgrade` DELETES `<fullname>-windmill-tools-data` and `<fullname>-windmill-workflows-data` unless you first `kubectl annotate` them `helm.sh/resource-policy=keep` (worker `persistence` superseded by `data`, no automatic migration; the upgrade fails until you do or set `windmill.workers.legacyPersistence.acknowledgeDeletion` — see upgrade note 1 below); geoapi + processes now default on |

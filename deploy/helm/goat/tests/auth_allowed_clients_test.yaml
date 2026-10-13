@@ -1,0 +1,141 @@
+suite: auth, clients whose tokens the APIs accept (global.auth.allowedClients)
+# In a realm shared with other applications, any client of the realm can get
+# a token that passes GOAT's signature check. global.auth.allowedClients
+# becomes AUTH_ALLOWED_CLIENTS for every service that verifies tokens: core,
+# geoapi, processes and catalog. Empty (the default) renders nothing, so the
+# services accept every client as before.
+templates:
+  - core/configmap.yaml
+  - geoapi/deployment.yaml
+  - processes/configmap.yaml
+  - processes/deployment.yaml
+  - catalog/deployment.yaml
+set:
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+  global.auth.enabled: true
+  global.auth.existingSecret: kc
+tests:
+  - it: renders nothing by default
+    asserts:
+      - template: core/configmap.yaml
+        notExists:
+          path: data.AUTH_ALLOWED_CLIENTS
+      - template: geoapi/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+          any: true
+      - template: processes/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+          any: true
+      - template: catalog/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+          any: true
+
+  - it: gives the list to core, geoapi, processes and catalog, comma-separated
+    set:
+      global.auth.allowedClients: [goat-web, goat-scripts]
+    asserts:
+      - template: core/configmap.yaml
+        equal:
+          path: data.AUTH_ALLOWED_CLIENTS
+          value: goat-web,goat-scripts
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+            value: goat-web,goat-scripts
+          count: 1
+      - template: processes/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+            value: goat-web,goat-scripts
+          count: 1
+      - template: catalog/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+            value: goat-web,goat-scripts
+          count: 1
+
+  - it: also renders with auth wired to no Secret
+    set:
+      global.auth.existingSecret: ""
+      global.auth.allowedClients: [goat-web]
+    asserts:
+      - template: core/configmap.yaml
+        equal:
+          path: data.AUTH_ALLOWED_CLIENTS
+          value: goat-web
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+            value: goat-web
+          count: 1
+
+  - it: a value set in a service's config or extraEnv wins for that service
+    set:
+      global.auth.allowedClients: [goat-web]
+      core.config.AUTH_ALLOWED_CLIENTS: goat-web,core-only
+      geoapi.extraEnv:
+        - name: AUTH_ALLOWED_CLIENTS
+          value: goat-web,geoapi-only
+      processes.config.AUTH_ALLOWED_CLIENTS: goat-web,processes-only
+    asserts:
+      # ConfigMap keys rendered twice would make the document unparseable, so
+      # `equal` also proves core renders the key once.
+      - template: core/configmap.yaml
+        equal:
+          path: data.AUTH_ALLOWED_CLIENTS
+          value: goat-web,core-only
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+          any: true
+          count: 1
+      - template: geoapi/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+            value: goat-web,geoapi-only
+      - template: processes/configmap.yaml
+        equal:
+          path: data.AUTH_ALLOWED_CLIENTS
+          value: goat-web,processes-only
+      - template: processes/deployment.yaml
+        notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+          any: true
+      - template: catalog/deployment.yaml
+        contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_ALLOWED_CLIENTS
+            value: goat-web
+          count: 1
+
+  - it: refuses a client ID with a comma or whitespace
+    set:
+      global.auth.allowedClients: ["goat-web,other"]
+    asserts:
+      - failedTemplate:
+          errorPattern: "allowedClients"

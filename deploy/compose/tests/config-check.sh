@@ -79,6 +79,8 @@ jq -e '.services.core.environment | .ODOO_URL == "" and .ODOO_DB == "" and .ODOO
 jq -e '.services.core.environment.ODOO_SUPPORT_POST_ACTION == "GOAT: post message as ticket participant"' <<<"$j" >/dev/null || fail "support post action default"
 # The secret goes to core only, never to Windmill workers.
 jq -e '[.services[] | select(.environment | has("ODOO_SUPPORT_API_KEY"))] | length == 1' <<<"$j" >/dev/null || fail "support api key outside core"
+# Token client allow-list off by default: empty for every service that verifies tokens.
+jq -e '[.services | (.core, .geoapi, .processes, .catalog) | .environment.AUTH_ALLOWED_CLIENTS] | all(. == "")' <<<"$j" >/dev/null || fail "allowed clients not empty by default"
 
 variant=support
 d2=$(make_variant --public-url https://goat.example.org --tls auto --acme-email ops@plan4better.de)
@@ -145,6 +147,10 @@ j=$(render "$d"); check_common "$j"
 jq -e '.services | (has("garage") or has("keycloak") or has("garage-init")) | not' <<<"$j" >/dev/null || fail "bundled services still active"
 jq -e '.services.core.environment.S3_ENDPOINT_URL == "https://s3.example.org"' <<<"$j" >/dev/null || fail "external s3"
 jq -e '.services.web.environment.NEXT_PUBLIC_KEYCLOAK_ISSUER == "https://login.example.org/realms/goat"' <<<"$j" >/dev/null || fail "external issuer"
+# A realm shared with other applications: the allow-list reaches every service that verifies tokens.
+echo "AUTH_ALLOWED_CLIENTS=goat,goat-scripts" >> "$d/.env"
+j=$(render "$d"); check_common "$j"
+jq -e '[.services | (.core, .geoapi, .processes, .catalog) | .environment.AUTH_ALLOWED_CLIENTS] | all(. == "goat,goat-scripts")' <<<"$j" >/dev/null || fail "allowed clients not passed to the APIs"
 
 variant=auth-false
 d=$(make_variant --public-url http://localhost --tls off)

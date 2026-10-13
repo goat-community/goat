@@ -33,6 +33,27 @@ check. SQL a user writes goes through `validate_sql_query` /
 `validate_sql_expression` in `utils/sql_validation.py`, which allow the declared
 input aliases only.
 
+## Token verification
+
+core, geoapi, processes and catalog verify Keycloak tokens with one class,
+`KeycloakAuth` in `auth.py`, so a token is accepted or refused the same way by
+every API. It checks the signature against the realm's public key, fetched on
+first use so a service can start before Keycloak is up.
+
+A realm can serve other applications too, and each of their clients can get a
+token signed with the same key. `AUTH_ALLOWED_CLIENTS` (comma-separated client
+IDs) limits the services to tokens issued to those clients, read from the
+token's `azp`. Keycloak always sets `azp` to the client that requested the
+token, while `aud` holds only what audience mappers and client roles add (by
+default just `account`), so checking the audience would need every operator to
+configure their realm first. A refused token raises `JOSEError` like any other
+invalid token, so every service answers `401` without code of its own; the
+caller sees a generic "Invalid authorized party", and the refused client is
+logged. Empty accepts every client; with `AUTH=False` tokens are not verified
+at all. A list must include GOAT's own client, or nobody can use GOAT:
+`require_own_client_allowed` refuses that at startup, in core, the service
+that knows `KEYCLOAK_CLIENT_ID`.
+
 ## Field config and generated fields
 
 A layer's `field_config` (in core's `customer.layer`) says what each column

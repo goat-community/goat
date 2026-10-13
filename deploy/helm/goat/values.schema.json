@@ -61,6 +61,13 @@
             },
             "allowOrganizationCreation": {
               "type": "boolean"
+            },
+            "allowedClients": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[^,\\s]+$"
+              }
             }
           }
         },

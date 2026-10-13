@@ -5,12 +5,14 @@
 # - Caddy off (consumer fronts the chart with their own gateway / Ingress)
 # - Ingress disabled (assumes an API gateway or external Ingress fronts the API)
 # - Company SMTP relay with login and a private CA (Secret + ConfigMap)
+# - A Keycloak realm shared with other applications (token client allow-list)
 
 global:
   storageClass: local-path
   imagePullSecrets: []
   auth:
     provisionInvitedUsers: true
+    allowedClients: [goat-web]
   caBundle:
     existingConfigMap: corporate-ca
     key: ca.crt
