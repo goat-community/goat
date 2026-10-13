@@ -29,7 +29,7 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">In <code>Color based on</code>, select the <strong>text or number field to style by</strong>.</div>
+  <div class="content">In <code>Color based on</code>, select the <strong>text, number or boolean (true/false) field to style by</strong>.</div>
 </div>
 
 <div class="step">
@@ -63,7 +63,7 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">In <code>Color based on</code>, select the <strong>text or number field to style by</strong>.</div>
+  <div class="content">In <code>Color based on</code>, select the <strong>text, number or boolean (true/false) field to style by</strong>.</div>
 </div>
 
 <div class="step">
@@ -199,7 +199,7 @@ GOAT offers four predefined palette types:
 
 ## Data Classification Methods
 
-The <code>Color scale</code> determines how data values map to colors. GOAT offers six data classification methods: **Quantile, Standard Deviation, Equal Interval, Heads and Tails, Custom Breaks, and Custom Ordinal.** For text fields, only Custom Ordinal is available. All the methods default to 7 classes, but you can adjust this number as needed.
+The <code>Color scale</code> determines how data values map to colors. GOAT offers six data classification methods: **Quantile, Standard Deviation, Equal Interval, Heads and Tails, Custom Breaks, and Custom Ordinal.** For text and boolean fields, only Custom Ordinal is available. All the methods default to 7 classes, but you can adjust this number as needed.
 
 ### Quantile
 
@@ -239,9 +239,9 @@ The <code>Color scale</code> determines how data values map to colors. GOAT offe
 
 </div> 
 
-### Custom Ordinal (for **strings**)
+### Custom Ordinal (for **strings** and **booleans**)
 
-**Sorts and visualizes string data** like categories or labels. Since strings lack natural order, **Custom Ordinal lets you define your own ordering rules** for tailored sequences.
+**Sorts and visualizes string data** like categories or labels. Since strings lack natural order, **Custom Ordinal lets you define your own ordering rules** for tailored sequences. A boolean field has the two values `true` and `false`, which you can give a color each.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
 
