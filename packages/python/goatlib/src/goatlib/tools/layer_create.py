@@ -14,7 +14,11 @@ import pyarrow.parquet as pq
 from pydantic import BaseModel, Field, model_validator
 
 from goatlib.models.io import DatasetMetadata
-from goatlib.tools.base import BaseToolRunner, _get_or_create_event_loop
+from goatlib.tools.base import (
+    BaseToolRunner,
+    _get_or_create_event_loop,
+    drops_unrecorded_tables,
+)
 from goatlib.tools.schemas import ToolInputBase
 from goatlib.utils.field_config import coerce_allowed_values
 from goatlib.utils.generated_fields import generated_entry_settings, is_generated_kind
@@ -289,6 +293,7 @@ class LayerCreateToolRunner(BaseToolRunner[LayerCreateParams]):
 
         return table_info
 
+    @drops_unrecorded_tables
     def run(self: Self, params: LayerCreateParams) -> dict:
         """Run layer create with custom output name handling.
 

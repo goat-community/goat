@@ -11,6 +11,7 @@ Run explicitly with:
     uv run pytest tests/integration/test_ducklake_pg_sessions.py -m integration -v
 """
 
+import threading
 import time
 import uuid
 from typing import Any, Callable
@@ -18,7 +19,7 @@ from typing import Any, Callable
 import duckdb
 import pytest
 from goatlib.storage import BaseDuckLakeManager, DuckLakePool
-from goatlib.storage.ducklake import execute_with_retry, fetch_one
+from goatlib.storage.ducklake import QueryTimeoutError, execute_with_retry, fetch_one
 
 pytestmark = pytest.mark.integration
 
@@ -90,8 +91,9 @@ def test_pinned_pool_leaves_no_transaction_open(
 def test_unrelated_timeout_still_releases_the_result(
     lake_env: tuple[Any, BaseDuckLakeManager], pg_session_states: States
 ) -> None:
-    """Only the pool's own query timeout skips the release; a socket or
-    HTTP timeout raised while a cursor is checked out must not."""
+    """Only a query still running past the pool's own timeout skips the
+    release; a socket or HTTP timeout raised while a cursor is checked out
+    must not."""
     settings, _ = lake_env
     name = _application_name()
     pool = DuckLakePool(
@@ -107,6 +109,56 @@ def test_unrelated_timeout_still_releases_the_result(
 
         assert "idle in transaction" not in pg_session_states(name)
     finally:
+        pool.close()
+
+
+def test_timed_out_query_that_keeps_running_keeps_its_cursor(
+    lake_env: tuple[Any, BaseDuckLakeManager], pg_session_states: States
+) -> None:
+    """A lake query that ignores its interrupt past the pool's grace keeps
+    its cursor to itself: the next request gets a fresh one, and the busy
+    cursor's catalog transaction ends once its query does."""
+    settings, _ = lake_env
+    name = _application_name()
+    released = threading.Event()
+
+    def block_until_released(x: int) -> int:
+        released.wait(10)
+        return x
+
+    pool = DuckLakePool(
+        pool_size=1, pin_snapshot=True, refresh_interval=999.0, application_name=name
+    )
+    pool.init(settings)
+    try:
+        pool.apply_to_bases(
+            lambda base: base.create_function(
+                "block_until_released", block_until_released, ["INTEGER"], "INTEGER"
+            )
+        )
+        (busy, _, gen) = pool._pool.queue[0]
+        with pytest.raises(QueryTimeoutError) as excinfo:
+            pool.execute_with_retry(
+                "SELECT block_until_released(x) FROM lake.main.t_first", timeout=0.05
+            )
+        assert all(entry[0] is not busy for entry in list(pool._pool.queue))
+        thread = excinfo.value.query_thread
+        assert thread is not None and thread.is_alive()
+
+        with pool.connection() as con:
+            assert con.execute(COUNT).fetchone() == (1,)
+
+        released.set()
+        thread.join(5)
+        deadline = time.monotonic() + 5
+        while pool._bases[gen][1] != 1:  # the waiter closes the busy cursor
+            assert time.monotonic() < deadline, "busy cursor never closed"
+            time.sleep(0.02)
+        _settle()
+
+        assert "idle in transaction" not in pg_session_states(name)
+    finally:
+        released.set()
         pool.close()
 
 

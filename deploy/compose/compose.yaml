@@ -80,6 +80,9 @@ x-env-windmill-db: &env-windmill-db
 x-env-worker: &env-worker
   <<: [*env-windmill-db, *env-db, *env-s3, *env-catalog-s3]
   MODE: worker
+  # Windmill database connections of a worker (at most; it runs one job at a
+  # time). Not below 3: Windmill 1.607 workers stop at start with fewer.
+  DATABASE_CONNECTIONS: "3"
   DISABLE_NSJAIL: "true"
   PYTHONDONTWRITEBYTECODE: "1"
   ENVIRONMENT: prod
@@ -688,6 +691,9 @@ services:
       <<: *env-windmill-db
       MODE: server
       BASE_URL: http://localhost:${WINDMILL_LOCAL_PORT:-8110}
+      # Windmill database connections of the server (at most); unset, its pool
+      # grows to 50 under load.
+      DATABASE_CONNECTIONS: "10"
     ports:
       - "127.0.0.1:${WINDMILL_LOCAL_PORT:-8110}:8000"
     networks: [goat]
@@ -709,6 +715,7 @@ services:
       <<: *env-windmill-db
       MODE: worker
       WORKER_GROUP: default
+      DATABASE_CONNECTIONS: "3"
       JOB_DEFAULT_TIMEOUT: "300"
       DISABLE_NSJAIL: "true"
     networks: [goat]

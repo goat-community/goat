@@ -29,7 +29,7 @@ from pydantic import BaseModel, Field
 
 from goatlib.io.bbox_columns import is_bbox_struct
 from goatlib.models.project import DEFAULT_INITIAL_VIEW_STATE
-from goatlib.tools.base import SimpleToolRunner
+from goatlib.tools.base import SimpleToolRunner, drops_unrecorded_tables
 from goatlib.tools.project_schemas import (
     EXTERNAL_DATA_TYPES,
     FORMAT_VERSION,
@@ -76,9 +76,11 @@ class ProjectImportOutput(BaseModel):
 
 @dataclass
 class ImportCleanupTracker:
-    """Tracks resources created during import for rollback on failure."""
+    """Tracks the S3 objects an import uploaded, for rollback on failure.
 
-    ducklake_tables: list[str] = field(default_factory=list)
+    Its DuckLake tables are tracked by the runner (`_track_new_table`).
+    """
+
     s3_keys: list[str] = field(default_factory=list)
 
 
@@ -390,7 +392,6 @@ class ProjectImportRunner(SimpleToolRunner):
         parquet_path: Path,
         new_user_id: str,
         new_layer_id: str,
-        tracker: ImportCleanupTracker,
     ) -> None:
         """Create a DuckLake table from a parquet file (excluding bbox column)."""
         if self.settings is None:
@@ -430,7 +431,7 @@ class ProjectImportRunner(SimpleToolRunner):
             f"CREATE TABLE {table_path} AS SELECT {col_list} FROM '{parquet_path}'"
         )
 
-        tracker.ducklake_tables.append(table_path)
+        self._track_new_table(new_layer_id, table_path)
         logger.info("Created DuckLake table: %s", table_path)
 
     def _upload_s3_asset(
@@ -823,12 +824,9 @@ class ProjectImportRunner(SimpleToolRunner):
         if self.settings is None:
             return
 
-        for table_path in tracker.ducklake_tables:
-            try:
-                self.duckdb_con.execute(f"DROP TABLE IF EXISTS {table_path}")
-                logger.info("Cleaned up DuckLake table: %s", table_path)
-            except Exception as e:
-                logger.warning("Failed to drop table %s: %s", table_path, e)
+        # Only tables no layer row points at: rows committed before the
+        # failure keep their data.
+        self.drop_unrecorded_tables()
 
         for s3_key in tracker.s3_keys:
             try:
@@ -840,6 +838,7 @@ class ProjectImportRunner(SimpleToolRunner):
             except Exception as e:
                 logger.warning("Failed to delete S3 object %s: %s", s3_key, e)
 
+    @drops_unrecorded_tables
     def run(self: Self, params: ProjectImportParams) -> dict:
         """Execute the project import."""
         if self.settings is None:
@@ -972,7 +971,6 @@ class ProjectImportRunner(SimpleToolRunner):
                                 parquet_path=parquet_path,
                                 new_user_id=new_user_id,
                                 new_layer_id=new_layer_id,
-                                tracker=tracker,
                             )
                             imported_layer_count += 1
                             if imported_layer_count % recycle_every == 0:

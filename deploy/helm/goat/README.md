@@ -917,11 +917,19 @@ drop them, set `<service>.resources: null`; `{}` keeps the defaults. With a CPU
 limit on geoapi, keep `GEOAPI_DUCKDB_THREADS` × `GEOAPI_DUCKLAKE_POOL_SIZE` at
 about its CPUs.
 
+### Windmill's database connections
+
+Each Windmill container holds at most `DATABASE_CONNECTIONS` connections to its
+database: the server 10 (`windmill.server.config.DATABASE_CONNECTIONS`; unset,
+its pool grows to 50 under load) and every worker 3
+(`windmill.workers.databaseConnections`; a worker runs one job at a time). Not
+below 3 for the workers: Windmill 1.607 workers stop at start with fewer.
+
 ## Compatibility / version history
 
 | Chart version | Adds | Notes |
 |---|---|---|
-| `0.7.0` | Memory requests and limits and CPU requests for every service, and geoapi's and processes' DuckDB budgets to fit them (see "Resource defaults"); `postgresql.cluster.resources`; geoapi and processes run as root, so their DuckLake init can create the catalog directory on a fresh RWX volume; `postgresql.external.ducklakeHost` and `ducklakePort` for DuckLake's catalog connections and `transactionPooler` for the services when `host` is a transaction pooler; `windmill.bootstrap.image` (GOAT's core image instead of `python:3.11-slim` from Docker Hub); `POSTGRES_*` keys in a service's `config` render once and win; `global.auth.allowOrganizationCreation` (`ALLOW_ORGANIZATION_CREATION`: false lets only superusers create organizations); `global.auth.allowedClients` (`AUTH_ALLOWED_CLIENTS` for core, geoapi, processes and catalog: only tokens issued to the listed Keycloak clients are accepted) | Pods now have memory limits, geoapi and processes get smaller DuckDB budgets (geoapi two pooled queries instead of four), and geoapi and processes run as root — see "Upgrading 0.6.0 → 0.7.0" |
+| `0.7.0` | Memory requests and limits and CPU requests for every service, and geoapi's and processes' DuckDB budgets to fit them (see "Resource defaults"); `postgresql.cluster.resources`; geoapi and processes run as root, so their DuckLake init can create the catalog directory on a fresh RWX volume; `postgresql.external.ducklakeHost` and `ducklakePort` for DuckLake's catalog connections and `transactionPooler` for the services when `host` is a transaction pooler; `windmill.bootstrap.image` (GOAT's core image instead of `python:3.11-slim` from Docker Hub); `POSTGRES_*` keys in a service's `config` render once and win; `global.auth.allowOrganizationCreation` (`ALLOW_ORGANIZATION_CREATION`: false lets only superusers create organizations); `global.auth.allowedClients` (`AUTH_ALLOWED_CLIENTS` for core, geoapi, processes and catalog: only tokens issued to the listed Keycloak clients are accepted); Windmill's database pools: the server at most 10 connections, every worker 3 (`windmill.workers.databaseConnections`) | Pods now have memory limits, geoapi and processes get smaller DuckDB budgets (geoapi two pooled queries instead of four), and geoapi and processes run as root — see "Upgrading 0.6.0 → 0.7.0" |
 | `0.6.0` | `global.s3` (one S3 store for core, geoapi, processes and the workers, uploads and uploaded images); the print, tools and workflows workers get GOAT's database, DuckLake, S3, catalog bucket, `PRINT_BASE_URL` and Keycloak client, with `WHITELIST_ENVS` built by the chart, and job timeouts per worker (`JOB_DEFAULT_TIMEOUT`); the chart's own Redis on the official image instead of the Bitnami sub-chart; `email` (SMTP for invitations, password from a Secret, email branding) with `CLIENT_URL` / `API_URL` derived for the links in emails; `global.auth.provisionInvitedUsers`; `odoo` (Plan4Better's Odoo, optional: the shared connection and `odoo.support` for support tickets, API key from a Secret) and `web.supportEmail`; `global.caBundle` (company CA for core, web and the print, tools and workflows workers) | The S3 and assets placeholders are gone from `core`, `geoapi` and `processes`, and the workers' fixed `WHITELIST_ENVS` is replaced by a built one — see "Upgrading 0.5.1 → 0.6.0" |
 | `0.5.1` | GOAT v3.0.3 (no runtime downloads in the workers, `ROOT_PATH`, `sync_base_data`); `global.auth`: one auth switch + one Keycloak Secret for core, web, geoapi, processes, catalog; `geoapi.auth` / `processes.auth` | Fixes: geoapi + processes ran auth ON at chart defaults (401 on feature edits and every job route) and, with auth on, validated tokens against plan4better's dev Keycloak; a fresh install's processes had no windmill token (every tool run failed until a manual restart); `processes.windmillAutoWire: false` was ignored. No values change needed — see "Upgrading 0.5.0 → 0.5.1" |
 | `0.5.0` | GOAT v3.0.2: `catalog` service (STAC API + MCP); shared `data` volume; single-command fresh install (DuckLake + windmill DB bootstrap moved from hooks to init containers); `REDIS_URL`, web `NEXT_PUBLIC_*` and windmill `WHITELIST_ENVS` fixes; bundled Postgres image moves from CNPG's default major 17 to 18 (`ghcr.io/cloudnative-pg/postgis:18-3.6-system-trixie`) | BREAKING: `helm upgrade` DELETES `<fullname>-windmill-tools-data` and `<fullname>-windmill-workflows-data` unless you first `kubectl annotate` them `helm.sh/resource-policy=keep` (worker `persistence` superseded by `data`, no automatic migration; the upgrade fails until you do or set `windmill.workers.legacyPersistence.acknowledgeDeletion` — see upgrade note 1 below); geoapi + processes now default on |
@@ -951,6 +959,11 @@ about its CPUs.
    `runAsNonRoot: true` must set `runAsUser` too, or the pods are refused. On
    a cluster that assigns user ids itself (OpenShift) or forbids root, set
    `geoapi.podSecurityContext.runAsUser: null` and the same for processes.
+4. **Windmill 1.751 and its database pools.** GOAT's images move from Windmill
+   1.607 to 1.751. Its server migrates the Windmill database on start, one
+   way: back that database up before upgrading, and don't go back to older
+   images afterwards. The server holds at most 10 database connections and
+   every worker 3 (see "Windmill's database connections").
 
 ### Upgrading 0.5.1 → 0.6.0
 

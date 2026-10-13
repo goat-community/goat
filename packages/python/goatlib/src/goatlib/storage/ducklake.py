@@ -163,7 +163,18 @@ def fetch_one(
 
 
 class QueryTimeoutError(TimeoutError):
-    """A pooled query ran past its timeout and was interrupted."""
+    """A pooled query ran past its timeout and was interrupted.
+
+    `query_thread` runs the query. DuckDB checks for an interrupt only between
+    steps of a query, so the thread can outlive the error and keep using its
+    connection.
+    """
+
+    def __init__(
+        self, message: str, query_thread: threading.Thread | None = None
+    ) -> None:
+        super().__init__(message)
+        self.query_thread = query_thread
 
 
 def is_connection_error(error: Exception) -> bool:
@@ -1401,6 +1412,43 @@ class DuckLakePool:
             entry[1] += 1
             self._pool.put((cursor, time.time(), self._generation))
 
+    def _close_when_done(
+        self,
+        con: duckdb.DuckDBPyConnection,
+        query_thread: threading.Thread,
+        after_close: Callable[[], None],
+    ) -> None:
+        """Close `con` once `query_thread`, still running a query on it, ends,
+        then run `after_close`.
+
+        Closing waits for the running query, so a waiter thread does it off
+        the request path.
+        """
+
+        def close() -> None:
+            query_thread.join()
+            try:
+                con.close()
+            except Exception:
+                pass
+            try:
+                after_close()
+            except Exception:
+                logger.exception("Settling a timed-out query's connection failed")
+
+        threading.Thread(
+            target=close, name="ducklake-close-timed-out", daemon=True
+        ).start()
+
+    def _add_unpinned_connection(self) -> None:
+        """Pool a new connection in place of a closed one (unpinned pools)."""
+        import time
+
+        if not self._initialized:
+            return
+        con = self._create_connection_with_retry(max_retries=5)
+        self._pool.put((con, time.time(), self._generation))
+
     # A rebuild completed this recently satisfies an allow_same re-apply
     # request (reconnect storms after a PG blip coalesce onto one rebuild).
     REBUILD_DEDUP_SECONDS = 5.0
@@ -1577,11 +1625,12 @@ class DuckLakePool:
 
         con, created_at, gen = self._get_healthy_connection()
         connection_failed = False
-        timed_out = False
+        query_thread: threading.Thread | None = None
         try:
             yield con
         except Exception as e:
-            timed_out = isinstance(e, QueryTimeoutError)
+            if isinstance(e, QueryTimeoutError):
+                query_thread = e.query_thread
             # On connection errors, mark for recreation
             if is_connection_error(e):
                 logger.warning("Connection error during query, will recreate: %s", e)
@@ -1592,25 +1641,41 @@ class DuckLakePool:
                     pass
             raise
         finally:
-            # An interrupted query has already ended its transaction, and its
-            # thread may still be winding down on this cursor.
-            if not connection_failed and not timed_out:
+            # A timed-out query that ignored its interrupt still runs on this
+            # cursor, and a DuckDB connection is not safe for concurrent use:
+            # nothing touches the cursor until a waiter closes it after the
+            # query ends, and it never goes back to the pool.
+            busy = (
+                query_thread
+                if query_thread is not None and query_thread.is_alive()
+                else None
+            )
+            if busy is not None:
+                logger.warning("Timed-out query still running, retiring its connection")
+            elif not connection_failed:
                 release_result(con)
             # Gate on the configured mode, not the pin object: bases exist
             # for every pinned pool even before/while the pin is (re)built.
             if self._pin_snapshot:
-                if connection_failed:
-                    # The failed cursor is already closed: settle its base
+                if connection_failed or busy is not None:
+                    # A failed cursor is already closed: settle its base
                     # accounting, then refill its slot with a cheap cursor
                     # from the current base (atomic; skipped when a rebuild
                     # already replaced this slot).
-                    self._decrement_base(gen)
+                    if connection_failed:
+                        self._decrement_base(gen)
                     try:
                         self._replace_failed_cursor(gen)
                     except Exception as draw_err:
                         # Base itself is unhealthy; reconnect/pin rebuild
                         # heals it and its swap restores full pool size.
                         logger.error("Failed to draw replacement cursor: %s", draw_err)
+                    if busy is not None:
+                        # A busy cursor counts against its base until it is
+                        # closed, which keeps the base open under its query.
+                        self._close_when_done(
+                            con, busy, lambda: self._decrement_base(gen)
+                        )
                 else:
                     stale = False
                     base: duckdb.DuckDBPyConnection | None = None
@@ -1630,6 +1695,11 @@ class DuckLakePool:
                             self._pool.put((con, created_at, gen))
                     if stale and base is not None:
                         self._close_base(base)
+            elif busy is not None:
+                # Each unpinned connection is a DuckDB instance with its own
+                # memory budget: the slot is refilled once the busy one has
+                # closed, keeping the pool at pool_size connections.
+                self._close_when_done(con, busy, self._add_unpinned_connection)
             else:
                 # Unpinned: original behavior.
                 if connection_failed:
@@ -1763,7 +1833,8 @@ class DuckLakePool:
             con.interrupt()
             thread.join(timeout=1.0)  # Give it a moment to clean up
             raise QueryTimeoutError(
-                f"Query exceeded {timeout}s timeout and was interrupted"
+                f"Query exceeded {timeout}s timeout and was interrupted",
+                query_thread=thread,
             )
 
         if "error" in error_container:

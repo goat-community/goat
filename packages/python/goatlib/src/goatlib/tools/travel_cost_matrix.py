@@ -53,7 +53,7 @@ from goatlib.tools._routing_limits import (
     validate_extent,
     validate_leg_budget,
 )
-from goatlib.tools.base import BaseToolRunner
+from goatlib.tools.base import BaseToolRunner, drops_unrecorded_tables
 from goatlib.tools.catchment_area_v2 import (
     ACCESS_EGRESS_MODE_ICONS,
     ACCESS_EGRESS_MODE_LABELS,
@@ -1081,6 +1081,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
         )
         return matrix_output_path, matrix_metadata
 
+    @drops_unrecorded_tables
     def run(self: Self, params: TravelCostMatrixWindmillParams) -> dict[str, Any]:
         """Run analysis and create both matrix table and destination points layers."""
         temp_mode = getattr(params, "temp_mode", False)

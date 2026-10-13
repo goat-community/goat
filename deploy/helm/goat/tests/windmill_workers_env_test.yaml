@@ -148,7 +148,7 @@ tests:
           pattern: (^|,)GEOCODING_AUTHORIZATION(,|$)
       - notMatchRegex:
           path: spec.template.spec.containers[0].env[?(@.name == "WHITELIST_ENVS")].value
-          pattern: (^|,)(DATABASE_URL|MODE|WORKER_GROUP|_WMILL_DB_PASSWORD)(,|$)
+          pattern: (^|,)(DATABASE_URL|DATABASE_CONNECTIONS|MODE|WORKER_GROUP|_WMILL_DB_PASSWORD)(,|$)
 
   - it: a WHITELIST_ENVS in the worker's config replaces the built list
     template: windmill/worker-tools/deployment.yaml
@@ -220,3 +220,24 @@ tests:
       - equal:
           path: data.JOB_DEFAULT_TIMEOUT
           value: "300"
+
+  - it: a worker's own DATABASE_CONNECTIONS wins over the shared one
+    template: windmill/worker-tools/configmap.yaml
+    set:
+      windmill.workers.tools.config.DATABASE_CONNECTIONS: "6"
+    asserts:
+      - equal:
+          path: data.DATABASE_CONNECTIONS
+          value: "6"
+
+  # A worker runs one job at a time; unset, Windmill keeps a larger pool.
+  - it: every worker keeps three Windmill database connections
+    templates:
+      - windmill/worker-print/configmap.yaml
+      - windmill/worker-tools/configmap.yaml
+      - windmill/worker-workflows/configmap.yaml
+      - windmill/worker-default/configmap.yaml
+    asserts:
+      - equal:
+          path: data.DATABASE_CONNECTIONS
+          value: "3"

@@ -22,7 +22,7 @@ from goatlib.analysis.schemas.ui import (
     ui_sections,
 )
 from goatlib.models.io import DatasetMetadata
-from goatlib.tools.base import BaseToolRunner
+from goatlib.tools.base import BaseToolRunner, drops_unrecorded_tables
 from goatlib.tools.schemas import (
     ToolInputBase,
     ToolOutputBase,
@@ -437,6 +437,7 @@ class OriginDestinationToolRunner(BaseToolRunner[OriginDestinationToolParams]):
             },
         }
 
+    @drops_unrecorded_tables
     def run(self: Self, params: OriginDestinationToolParams) -> dict[str, Any]:
         """Run OD analysis and create both lines and points layers.
 
