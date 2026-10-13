@@ -18,6 +18,7 @@ const m = vi.hoisted(() => ({
   reopenSupportTicket: vi.fn(),
   toastError: vi.fn(),
   colleagues: vi.fn(),
+  forgetSupportLists: vi.fn(),
 }));
 const i18n = vi.hoisted(() => ({ language: "en" }));
 vi.mock("react-i18next", () => ({
@@ -46,6 +47,7 @@ vi.mock("@/lib/api/support", () => ({
   postSupportReply: m.postSupportReply,
   resolveSupportTicket: m.resolveSupportTicket,
   reopenSupportTicket: m.reopenSupportTicket,
+  forgetSupportLists: m.forgetSupportLists,
   rateSupportTicket: m.rateSupportTicket,
   updateSupportFollowers: m.updateSupportFollowers,
   downloadSupportAttachment: vi.fn(),
@@ -63,6 +65,7 @@ const detail = (
     category: "bug",
     impact: "blocking",
     customer_name: "Marco",
+    customer_contact_id: 100,
     is_mine: true,
     agent_name: "Lena",
     via: "app",
@@ -223,6 +226,17 @@ describe("TicketView", () => {
     expect(screen.getByText("support_waiting_banner:Jonas")).toBeTruthy();
   });
 
+  it("names the team, not the handler, when no agent wrote the latest message", () => {
+    m.useSupportTicket.mockReturnValue({
+      ticket: detail({ latest_message_author: "Anna", latest_message_is_agent: false }),
+      mutate: m.mutate,
+      isLoading: false,
+    });
+    render(<TicketView ticketRef="00031" />);
+    expect(screen.getByText("support_waiting_banner_team")).toBeTruthy();
+    expect(screen.queryByText("support_waiting_banner:Lena")).toBeNull();
+  });
+
   it("keeps the reply draft per user and ticket", () => {
     localStorage.clear();
     m.useSupportTicket.mockReturnValue({ ticket: detail(), mutate: m.mutate, isLoading: false });
@@ -283,6 +297,8 @@ describe("TicketView", () => {
     await waitFor(() => expect(m.postSupportReply).toHaveBeenCalledWith("00031", "Thanks!", []));
     await waitFor(() => expect(box.value).toBe(""));
     expect(m.mutate).toHaveBeenCalled();
+    // the lists and the badge change with a reply: the list page must not show the old state
+    expect(m.forgetSupportLists).toHaveBeenCalled();
   });
 
   it("offers a rating on resolved tickets", async () => {
@@ -398,6 +414,15 @@ describe("TicketView", () => {
     expect(m.globalMutate).not.toHaveBeenCalled();
   });
 
+  it("drops the cached lists after resolving, so the list page shows the new state", async () => {
+    m.useSupportTicket.mockReturnValue({ ticket: detail(), mutate: m.mutate, isLoading: false });
+    m.resolveSupportTicket.mockResolvedValue(undefined);
+    render(<TicketView ticketRef="00031" />);
+    fireEvent.click(screen.getByRole("button", { name: "support_mark_resolved" }));
+    await waitFor(() => expect(m.forgetSupportLists).toHaveBeenCalled());
+    expect(m.mutate).toHaveBeenCalled();
+  });
+
   it("toasts the error when resolving fails", async () => {
     m.useSupportTicket.mockReturnValue({ ticket: detail(), mutate: m.mutate, isLoading: false });
     m.resolveSupportTicket.mockRejectedValue(new SupportRequestError(503, ""));
@@ -483,7 +508,7 @@ describe("TicketView", () => {
       mutate: m.mutate,
       isLoading: false,
     });
-    m.colleagues.mockReturnValue([{ user_id: "u1", name: "Marco", email: "m@x.de" }]);
+    m.colleagues.mockReturnValue([{ user_id: "u1", name: "Marco", email: "m@x.de", contact_id: 100 }]);
     render(<TicketView ticketRef="00031" />);
     // The server leaves the customer out of the followers: only Anna gets a remove button.
     expect(screen.getAllByRole("button", { name: /^support_remove / })).toHaveLength(1);
@@ -497,13 +522,31 @@ describe("TicketView", () => {
       isLoading: false,
     });
     m.colleagues.mockReturnValue([
-      { user_id: "u1", name: "Marco", email: "m@x.de" },
-      { user_id: "u2", name: "Berta", email: "b@x.de" },
+      { user_id: "u1", name: "Marco", email: "m@x.de", contact_id: 100 },
+      { user_id: "u2", name: "Berta", email: "b@x.de", contact_id: null },
     ]);
     render(<TicketView ticketRef="00031" />);
     fireEvent.mouseDown(screen.getByPlaceholderText("support_add_colleague"));
-    expect(screen.getByRole("option", { name: "Berta" })).toBeTruthy();
-    expect(screen.queryByRole("option", { name: "Marco" })).toBeNull();
+    expect(screen.getByRole("option", { name: /^Berta/ })).toBeTruthy();
+    expect(screen.queryByRole("option", { name: /^Marco/ })).toBeNull();
+  });
+
+  it("tells colleagues with the same name apart by contact and email", () => {
+    m.useSupportTicket.mockReturnValue({
+      ticket: detail({ is_mine: false }),
+      mutate: m.mutate,
+      isLoading: false,
+    });
+    // two people called "Test Test": one already follows (Anna's contact 101 in the fixture)
+    m.colleagues.mockReturnValue([
+      { user_id: "u1", name: "Test Test", email: "one@x.de", contact_id: 101 },
+      { user_id: "u2", name: "Test Test", email: "two@x.de", contact_id: 102 },
+    ]);
+    render(<TicketView ticketRef="00031" />);
+    fireEvent.mouseDown(screen.getByPlaceholderText("support_add_colleague"));
+    const options = screen.getAllByRole("option");
+    expect(options).toHaveLength(1);
+    expect(options[0].textContent).toContain("two@x.de");
   });
 
   it("keeps the thread when a refetch fails but data is present", () => {

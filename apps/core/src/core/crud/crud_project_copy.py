@@ -1,12 +1,12 @@
 """Shallow project copy — new metadata records sharing the same layer data."""
 
 import copy
-import json
 import logging
 import re
 from typing import Any
 from uuid import UUID
 
+from goatlib.utils.builder_config import remap_interactions, remap_layer_project_ids
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -159,8 +159,13 @@ async def copy_project(
     )
     source_groups = list(groups_result.scalars().all())
 
+    # In id order, so the copies' new ids keep the entries' order: code that
+    # takes "the first entry" of a layer (template copy jobs and bindings)
+    # must find the same one in the copy.
     links_result = await async_session.execute(
-        select(LayerProjectLink).where(LayerProjectLink.project_id == project_id)
+        select(LayerProjectLink)
+        .where(LayerProjectLink.project_id == project_id)
+        .order_by(LayerProjectLink.id)
     )
     source_links = list(links_result.scalars().all())
 
@@ -343,9 +348,22 @@ async def copy_project(
     # 8a. Point the copied workflows' dataset nodes at the copy's links
     # ------------------------------------------------------------------
     if old_to_new_link_id:
+        # A layer the copy shows through exactly one entry: a dataset node
+        # naming it without an entry of its own is given that entry.
+        links_by_layer: dict[str, list[int]] = {}
+        for source_link in source_links:
+            assert source_link.id is not None
+            links_by_layer.setdefault(str(source_link.layer_id), []).append(
+                old_to_new_link_id[source_link.id]
+            )
+        unique_link_by_layer = {
+            layer_id: ids[0]
+            for layer_id, ids in links_by_layer.items()
+            if len(ids) == 1
+        }
         for new_workflow in new_workflows:
             new_workflow.config = _remap_dataset_node_links(
-                new_workflow.config, old_to_new_link_id
+                new_workflow.config, old_to_new_link_id, unique_link_by_layer
             )
             async_session.add(new_workflow)
 
@@ -403,7 +421,9 @@ async def copy_project(
 
 
 def _remap_dataset_node_links(
-    config: dict[str, Any] | None, old_to_new_link_id: dict[int, int]
+    config: dict[str, Any] | None,
+    old_to_new_link_id: dict[int, int],
+    unique_link_by_layer: dict[str, int] | None = None,
 ) -> dict[str, Any] | None:
     """Point dataset nodes' `projectLayerId` at the copy's links, and the
     copies of those ids that tool configs keep.
@@ -414,6 +434,13 @@ def _remap_dataset_node_links(
     then falls back to the node's `layerId`. Tool configs are rewritten for
     the node's own link ids only — the same rewrite template binding and the
     editor's "Replace datasets" apply — so unrelated numbers stay.
+
+    A node that names its layer without an entry of the source project (no
+    `projectLayerId`, as nodes saved before entries were recorded do) is
+    given the copy's entry for that layer when the copy shows the layer
+    through exactly one (`unique_link_by_layer`). The runner reads it the
+    same either way, but only a node with an entry follows a new layer put
+    behind it later: a workflow re-run's copy-on-write, a template's copy.
     """
     if not isinstance(config, dict):
         return config
@@ -428,6 +455,8 @@ def _remap_dataset_node_links(
         if isinstance(link_id, int) and link_id in old_to_new_link_id:
             data["projectLayerId"] = old_to_new_link_id[link_id]
             replacements.append((link_id, old_to_new_link_id[link_id]))
+        elif unique_link_by_layer and str(data.get("layerId")) in unique_link_by_layer:
+            data["projectLayerId"] = unique_link_by_layer[str(data["layerId"])]
     _rewrite_tool_configs(nodes, replacements)
     return remapped
 
@@ -506,35 +535,15 @@ def _remap_builder_config(
 
     Widget configs reference layer_project link IDs (integers) and
     layer_project_group IDs (integers); both get new auto-increment IDs when
-    a project is copied. Link IDs are rewritten on the serialized config;
-    group IDs live in widget config keys (`group_icon_<id>`) and `group_info`
-    object keys, which are rewritten on the deserialized tree. Mirrors the
-    import path (`goatlib.tools.project_import`).
+    a project is copied. Link IDs are rewritten only where a widget names one
+    (`goatlib.utils.builder_config`), so other numbers keep their value; group
+    IDs live in widget config keys (`group_icon_<id>`) and `group_info` object
+    keys. Mirrors the import path (`goatlib.tools.project_import`).
     """
-    config_str = json.dumps(config)
-
-    # Replace "layer_project_id": 66 patterns (sort by descending ID to avoid
-    # partial matches, e.g. replacing "6" inside "66")
-    for old_id, new_id in sorted(lp_id_map.items(), key=lambda x: -x[0]):
-        config_str = config_str.replace(
-            f'"layer_project_id": {old_id}', f'"layer_project_id": {new_id}'
-        )
-        config_str = config_str.replace(
-            f'"layer_project_id":{old_id}', f'"layer_project_id":{new_id}'
-        )
-
-    # Also remap integers in arrays (e.g. downloadable_layers: [66, 67])
-    for old_id, new_id in sorted(lp_id_map.items(), key=lambda x: -x[0]):
-        config_str = re.sub(
-            rf"(?<=[\[,\s]){old_id}(?=[,\]\s])",
-            str(new_id),
-            config_str,
-        )
-
-    remapped: dict[str, Any] = json.loads(config_str)
+    remapped: dict[str, Any] = remap_layer_project_ids(config, lp_id_map)
     if group_id_map:
         remapped = _remap_group_ids_in_config(remapped, group_id_map)
-    return remapped
+    return remap_interactions(remapped, lp_id_map, group_id_map or {})  # type: ignore[no-any-return]
 
 
 def _remap_group_ids_in_config(node: Any, group_id_map: dict[int, int]) -> Any:

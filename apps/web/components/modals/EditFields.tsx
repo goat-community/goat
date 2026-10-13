@@ -95,6 +95,7 @@ const EditFieldsModal: React.FC<EditFieldsModalProps> = ({
           type?: string;
           formula?: string;
           output_kind?: string;
+          start?: number;
         };
         return {
           id: name,
@@ -107,6 +108,7 @@ const EditFieldsModal: React.FC<EditFieldsModalProps> = ({
           allow_other: s.allow_other ?? false,
           formula: s.formula,
           output_kind: s.output_kind,
+          ...(s.kind === "serial" && s.start !== undefined ? { start: s.start } : {}),
         };
       });
 
@@ -139,6 +141,34 @@ const EditFieldsModal: React.FC<EditFieldsModalProps> = ({
 
   // Existing fields whose type cannot be changed
   const lockedFieldIds = useMemo(() => new Set(originalFields.map((f) => f.id)), [originalFields]);
+
+  // ...except between number and serial: an existing number column (a
+  // hand-typed project number, say) can become a serial, keeping its name and
+  // values, and a serial can go back. Not on a bundle member (its columns are
+  // protected), whose writes go through the bundle editor.
+  const kindChoicesByField = useMemo(() => {
+    if (originalFields.some((f) => f.is_protected)) return {};
+    const choices: Record<string, FieldKind[]> = {};
+    for (const f of originalFields) {
+      if (f.kind === "number" || f.kind === "serial") choices[f.id] = ["number", "serial"];
+    }
+    return choices;
+  }, [originalFields]);
+
+  // Existing fields whose kind is about to change: [field, original kind].
+  const kindChanges = useMemo(
+    () =>
+      fields.flatMap((f) => {
+        const orig = originalMap.get(f.id);
+        return orig && orig.kind !== f.kind ? [{ field: f, from: orig.kind }] : [];
+      }),
+    [fields, originalMap]
+  );
+  const startEditableFieldIds = useMemo(
+    () => new Set(kindChanges.filter((c) => c.field.kind === "serial").map((c) => c.field.id)),
+    [kindChanges]
+  );
+  const [convertConfirmOpen, setConvertConfirmOpen] = useState(false);
 
   const handleFieldsChange = useCallback((updated: FieldDefinition[]) => {
     setFields(updated);
@@ -183,7 +213,14 @@ const EditFieldsModal: React.FC<EditFieldsModalProps> = ({
     }
   }, [pendingDeleteId, fields, layerId, selectedFieldId, t, revalidateLayer]);
 
-  const handleSave = async () => {
+  const handleSave = async (confirmed = false) => {
+    // Changing what a column is cannot be undone by Cancel: say what happens
+    // to its values first.
+    if (kindChanges.length > 0 && !confirmed) {
+      setConvertConfirmOpen(true);
+      return;
+    }
+    setConvertConfirmOpen(false);
     try {
       setIsSaving(true);
 
@@ -201,11 +238,36 @@ const EditFieldsModal: React.FC<EditFieldsModalProps> = ({
               ? { allowed_values: field.allowed_values, allow_other: !!field.allow_other }
               : {}),
             ...(field.kind === "formula" ? { formula: field.formula } : {}),
+            // Existing rows are numbered from here, in feature order.
+            ...(field.kind === "serial" && field.start !== undefined ? { start: field.start } : {}),
           });
         } else {
           const orig = originalMap.get(field.id);
           if (orig && orig.name !== field.name) {
             await renameColumn(layerId, orig.name, field.name);
+          }
+          // A kind change travels on its own; the server keeps the column's
+          // name, values and formatting and drops what no longer applies, so
+          // nothing else is sent for this field.
+          if (orig && orig.kind !== field.kind) {
+            try {
+              await patchColumn(layerId, field.name, {
+                kind: field.kind,
+                ...(field.kind === "serial" && field.start !== undefined ? { start: field.start } : {}),
+              });
+            } catch (error) {
+              // The server says why — duplicates, fractions — in words the
+              // user can act on.
+              toast.error(
+                t("convert_field_failed", {
+                  name: field.name,
+                  message: error instanceof Error ? error.message : "",
+                })
+              );
+              revalidateLayer();
+              return;
+            }
+            continue;
           }
           // Formula change: the backend revalidates, re-infers the result
           // type and recomputes the whole column.
@@ -253,6 +315,7 @@ const EditFieldsModal: React.FC<EditFieldsModalProps> = ({
       const orig = originalMap.get(f.id);
       if (!orig) return true; // new field
       if (orig.name !== f.name) return true;
+      if (orig.kind !== f.kind) return true;
       if ((orig.formula ?? "") !== (f.formula ?? "")) return true;
       if (
         JSON.stringify(orig.allowed_values ?? []) !== JSON.stringify(f.allowed_values ?? []) ||
@@ -278,7 +341,7 @@ const EditFieldsModal: React.FC<EditFieldsModalProps> = ({
           <AppDialogFooter
             onCancel={onClose}
             primaryLabel={t("save")}
-            onPrimary={() => void handleSave()}
+            onPrimary={() => void handleSave(false)}
             primaryDisabled={!hasChanges || isSaving}
           />
         }>
@@ -289,10 +352,28 @@ const EditFieldsModal: React.FC<EditFieldsModalProps> = ({
           onSelectField={setSelectedFieldId}
           onRemoveOverride={handleRemoveRequest}
           lockedFieldIds={lockedFieldIds}
+          kindChoicesByField={kindChoicesByField}
+          startEditableFieldIds={startEditableFieldIds}
           geometryType={layerGeometryType}
           layerId={layerId}
         />
       </AppDialog>
+
+      <ConfirmModal
+        open={convertConfirmOpen}
+        title={t("convert_field_title")}
+        body={kindChanges
+          .map(({ field }) =>
+            t(field.kind === "serial" ? "convert_to_serial_confirm" : "convert_to_number_confirm", {
+              name: field.name,
+            })
+          )
+          .join(" ")}
+        closeText={t("cancel")}
+        confirmText={t("convert_field")}
+        onClose={() => setConvertConfirmOpen(false)}
+        onConfirm={() => void handleSave(true)}
+      />
 
       <ConfirmModal
         open={deleteConfirmOpen}

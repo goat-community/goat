@@ -7,20 +7,28 @@
 #   docker build --target worker-tools -t windmill-worker-tools .
 #   docker build --target worker-print -t windmill-worker-print .
 
-ARG WINDMILL_IMAGE_TAG='1.607.0'
+ARG WINDMILL_IMAGE_TAG='1.751.0'
 ARG PYTHON_VERSION=3.11
+# The uv the official image of WINDMILL_IMAGE_TAG ships (`uv --version` in it):
+# Windmill calls uv with flags older releases reject.
+ARG UV_VERSION=0.11.24
 # Python versions Windmill itself asks uv for on top of PYTHON_VERSION. Any it
 # can't find in /tmp/windmill/cache/py_runtime it downloads from GitHub at
-# runtime, which breaks air-gapped installs. For Windmill 1.607.0 that is
+# runtime, which breaks air-gapped installs. For Windmill 1.751.0 that is
 # 3.12: its "latest stable" default (PyVAlias::default), preinstalled at every
 # worker start and used by the dependency job's cache prefill. Re-check when
 # bumping WINDMILL_IMAGE_TAG (ls /tmp/windmill/cache/py_runtime in the official
-# image shows what that release expects).
+# image shows what that release expects). From 1.752 on the official images
+# build on Debian 13 and the windmill binary needs its glibc (2.39), which the
+# Debian 12 worker base below doesn't have.
 ARG WINDMILL_EXTRA_PYTHON_VERSIONS="3.12"
 ARG TIPPECANOE_VERSION=2.79.0
 # Pinned because worker-print installs the browser before goatlib and the
 # package after it (see there); both steps must name the same release.
 ARG PLAYWRIGHT_VERSION=1.63.0
+
+# uv, by UV_VERSION (COPY --from takes no build arguments, a stage does)
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
 
 # =============================================================================
 # Stage: Server - API, UI, scheduler (official image)
@@ -83,7 +91,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     cmake \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /usr/local/bin/uv
+COPY --from=uv /uv /usr/local/bin/uv
 
 # CMakeLists downloads the nigiri SDK from the `latest-cpp` release, whose
 # assets are replaced on every nigiri release. Fetching it here instead makes
@@ -123,7 +131,7 @@ RUN curl -fsSL https://github.com/felt/tippecanoe/archive/refs/tags/${TIPPECANOE
 # =============================================================================
 FROM linux-base AS playwright-build
 
-COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /usr/local/bin/uv
+COPY --from=uv /uv /usr/local/bin/uv
 
 # Its Python lives under /opt/playwright as well, so mounting that one
 # directory gives a working CLI.
@@ -147,7 +155,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /usr/local/bin/uv
+COPY --from=uv /uv /usr/local/bin/uv
 WORKDIR /app
 
 # Python versions Windmill asks for besides the venv's (see
@@ -192,7 +200,7 @@ COPY --from=windmill /usr/src/app/windmill ${APP}/windmill
 RUN ln -s ${APP}/windmill /usr/local/bin/windmill
 
 # Copy uv for runtime package management
-COPY --from=ghcr.io/astral-sh/uv:0.9.2 /uv /usr/local/bin/uv
+COPY --from=uv /uv /usr/local/bin/uv
 
 # Point Windmill's uv-managed Python directory at ours. Windmill ignores
 # PYTHON_PATH when it resolves a Python version: at every worker start and in
@@ -300,6 +308,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN --mount=type=bind,from=playwright-build,source=/opt/playwright,target=/opt/playwright \
     /opt/playwright/venv/bin/playwright install --with-deps --only-shell chromium \
     && rm -rf /var/lib/apt/lists/*
+
+# Open fonts standing in for the layout font picker's choices the image has
+# no file of, each under that font's name (fonts/60-goat-print-fonts.conf
+# says which and why): without them a layout prints in another font, wider or
+# narrower than in the editor. The cache is rebuilt after the configuration,
+# which renames the fonts when they are scanned.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    fonts-dejavu-core \
+    fonts-ebgaramond \
+    fonts-inconsolata \
+    && rm -rf /var/lib/apt/lists/*
+COPY apps/processes/workers/fonts/60-goat-print-fonts.conf /etc/fonts/conf.d/60-goat-print-fonts.conf
+RUN fc-cache -f
 
 # Python, venv and extensions last (see worker-base)
 COPY --from=python-build $UV_PYTHON_INSTALL_DIR $UV_PYTHON_INSTALL_DIR

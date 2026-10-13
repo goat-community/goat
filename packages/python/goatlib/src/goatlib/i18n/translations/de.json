@@ -125,20 +125,20 @@
       "description": "Fortbewegungsart auf dem letzten Abschnitt von der Haltestelle zum Ziel"
     },
     "input_layer_1": {
-      "label": "Eingabeebene 1",
-      "description": "Erste Eingabeebene (aus dem Workflow verbunden)"
+      "label": "Eingabe-Layer 1",
+      "description": "Erster Eingabe-Layer (im Workflow verbunden)"
     },
     "input_layer_2": {
-      "label": "Eingabeebene 2",
-      "description": "Zweite Eingabeebene (aus dem Workflow verbunden)"
+      "label": "Eingabe-Layer 2",
+      "description": "Zweiter Eingabe-Layer (im Workflow verbunden)"
     },
     "input_layer_3": {
-      "label": "Eingabeebene 3",
-      "description": "Dritte Eingabeebene (aus dem Workflow verbunden)"
+      "label": "Eingabe-Layer 3",
+      "description": "Dritter Eingabe-Layer (im Workflow verbunden)"
     },
     "sql_query": {
       "label": "SQL-Abfrage",
-      "description": "SQL-SELECT-Anweisung, die auf den Eingabeebenen ausgeführt wird"
+      "description": "SQL-SELECT-Anweisung, die auf den Eingabe-Layern ausgeführt wird"
     },
     "pt_network_bundle_id": {
       "label": "ÖPNV-Netz-Bundle",
@@ -219,6 +219,18 @@
     "opportunities": {
       "label": "Gelegenheiten",
       "description": "Liste der Gelegenheitsdatensätze mit Gravitationsparametern"
+    },
+    "opportunity_layer_1": {
+      "label": "Gelegenheit 1",
+      "description": "Layer mit den Gelegenheiten, auf der Leinwand verbunden"
+    },
+    "opportunity_layer_2": {
+      "label": "Gelegenheit 2",
+      "description": "Layer mit den Gelegenheiten, auf der Leinwand verbunden"
+    },
+    "opportunity_layer_3": {
+      "label": "Gelegenheit 3",
+      "description": "Layer mit den Gelegenheiten, auf der Leinwand verbunden"
     },
     "input_path": {
       "label": "Eingabe-Layer",
@@ -737,8 +749,8 @@
       "description": "Felder zur Gruppierung von Objekten beim Auflösen"
     },
     "result_layer_name": {
-      "label": "Name der Ergebnislayer",
-      "description": "Benutzerdefinierter Name für die Ergebnis-Layer"
+      "label": "Name des Ergebnis-Layers",
+      "description": "Benutzerdefinierter Name für den Ergebnis-Layer"
     },
     "add_join_fields": {
       "label": "Verknüpfungsfelder hinzufügen",
@@ -749,24 +761,24 @@
       "description": "Wählen Sie, welche Felder der Verknüpfungsebene in die Ausgabe übernommen werden."
     },
     "summary_layer_name": {
-      "label": "Name der Zusammenfassungsebene",
-      "description": "Benutzerdefinierter Name für die Cluster-Zusammenfassungsebene"
+      "label": "Name des Zusammenfassungs-Layers",
+      "description": "Benutzerdefinierter Name für den Cluster-Zusammenfassungs-Layer"
     },
     "starting_points_layer_name": {
-      "label": "Name des Startpunkte-Layer",
-      "description": "Benutzerdefinierter Name für die Startpunkte-Layer"
+      "label": "Name des Startpunkte-Layers",
+      "description": "Benutzerdefinierter Name für den Startpunkte-Layer"
     },
     "lines_layer_name": {
-      "label": "Name des Linien-Layer",
-      "description": "Benutzerdefinierter Name für die Linien-Layer"
+      "label": "Name des Linien-Layers",
+      "description": "Benutzerdefinierter Name für den Linien-Layer"
     },
     "points_layer_name": {
-      "label": "Name der Punkte-Layer",
-      "description": "Benutzerdefinierter Name für die Punkte-Layer"
+      "label": "Name des Punkte-Layers",
+      "description": "Benutzerdefinierter Name für den Punkte-Layer"
     },
     "stations_layer_name": {
-      "label": "Name des Stationen-Layer",
-      "description": "Benutzerdefinierter Name für die Stationen-Layer"
+      "label": "Name des Stationen-Layers",
+      "description": "Benutzerdefinierter Name für den Stationen-Layer"
     },
     "destinations_layer_name": {
       "label": "Name des Zielpunkte-Layers",
@@ -807,6 +819,46 @@
     "reference_field": {
       "label": "Referenzfeld",
       "description": "Spalte zur Identifizierung der einzelnen Startpunkte; wird ins Ergebnis geschrieben, damit ein Einzugsgebiet dem Startpunkt zugeordnet werden kann, aus dem es berechnet wurde"
+    },
+    "polygon_difference": {
+      "label": "Pufferringe erstellen (Differenz)",
+      "description": "Erstellt ringförmige Polygone aus der Differenz zwischen aufeinanderfolgenden Pufferabständen (wie die Ringe eines Einzugsgebiets). Erfordert, dass „Überlappende Puffer zusammenführen“ aktiviert ist."
+    },
+    "input_paths": {
+      "label": "Eingabe-Layer",
+      "description": "Zusammenzuführende Layer (mindestens 2 – im Workflow über die Anschlüsse des Knotens verbunden)."
+    },
+    "input_path_1": {
+      "label": "Eingabe-Layer 1",
+      "description": "Erster Eingabe-Layer (im Workflow verbunden)"
+    },
+    "input_path_2": {
+      "label": "Eingabe-Layer 2",
+      "description": "Zweiter Eingabe-Layer (im Workflow verbunden)"
+    },
+    "add_source_column": {
+      "label": "Quellspalte hinzufügen",
+      "description": "Fügt die Spalte „layer_source“ hinzu, die angibt, aus welchem Eingabe-Layer jedes Objekt stammt."
+    },
+    "validate_geometry_types": {
+      "label": "Geometrietypen prüfen",
+      "description": "Prüft, ob alle Layer kompatible Geometrietypen haben (z. B. nur Punkte, nur Linien oder nur Polygone)."
+    },
+    "promote_to_multi": {
+      "label": "In Multi-Geometrien umwandeln",
+      "description": "Wandelt einteilige Geometrien in mehrteilige (Multi-)Geometrien um."
+    },
+    "starting_points": {
+      "label": "Startpunkte",
+      "description": "Startpunkt(e) für das Einzugsgebiet."
+    },
+    "statistic_field": {
+      "label": "Feld",
+      "description": "Feld, für das die Statistik berechnet wird. Für alle Operationen außer „Anzahl“ erforderlich."
+    },
+    "statistic_result_name": {
+      "label": "Name der Ergebnisspalte",
+      "description": "Eigener Name für die Ergebnisspalte. Ohne Angabe wird „{field}_{operation}“ bzw. bei „Anzahl“ „count“ verwendet."
     }
   },
   "enums": {
@@ -941,7 +993,7 @@
       "polygon": "Polygon",
       "network": "Netzwerk",
       "hexagonal_grid": "Sechseckiges Gitter",
-      "rectangular_grid": "Sechseckiges Gitter",
+      "rectangular_grid": "Rechteckiges Gitter",
       "point_grid": "Punktraster"
     },
     "aggregation_area_type": {
@@ -953,7 +1005,17 @@
       "sum": "Summe",
       "mean": "Mittelwert",
       "min": "Minimum",
-      "max": "Maximum"
+      "max": "Maximum",
+      "standard_deviation": "Standardabweichung"
+    },
+    "potential_type": {
+      "field": "Feld",
+      "constant": "Konstant",
+      "expression": "Ausdruck"
+    },
+    "potential_expression": {
+      "area": "Fläche",
+      "perimeter": "Umfang"
     }
   },
   "tools": {
@@ -1100,7 +1162,11 @@
     },
     "merge": {
       "title": "Zusammenführen (Merge)",
-      "description": "Parameter für das Merge-Werkzeug. Standardmäßig werden Felder mit gleichem Namen zusammengeführt, während eingabespezifische Felder im Ergebnis erhalten bleiben."
+      "description": "Führt mehrere Layer zu einem Layer zusammen. Felder mit gleichem Namen werden standardmäßig zusammengeführt; Felder, die nur in einzelnen Layern vorkommen, bleiben im Ergebnis erhalten."
+    },
+    "custom_sql": {
+      "title": "Benutzerdefiniertes SQL",
+      "description": "Schreiben Sie eigene SQL-Abfragen, um verbundene Datensätze zu transformieren, zu verknüpfen und neue Datensätze abzuleiten."
     }
   },
   "groups": {

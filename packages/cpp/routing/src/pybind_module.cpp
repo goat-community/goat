@@ -169,6 +169,7 @@ PYBIND11_MODULE(_routing, m)
         .def_readwrite("speed_km_h",      &routing::HeatmapConfig::speed_km_h)
         .def_readwrite("edge_dir",        &routing::HeatmapConfig::edge_dir)
         .def_readwrite("node_dir",        &routing::HeatmapConfig::node_dir)
+        .def_readwrite("area_cell_centroids", &routing::HeatmapConfig::area_cell_centroids)
         // Formula
         .def_readwrite("heatmap_type",    &routing::HeatmapConfig::heatmap_type)
         .def_readwrite("decay",           &routing::HeatmapConfig::decay)
@@ -203,6 +204,8 @@ PYBIND11_MODULE(_routing, m)
         .def_readwrite("max_min",        &routing::preprocessing::AccessEgressConfig::max_min)
         .def_readwrite("speed_km_h",     &routing::preprocessing::AccessEgressConfig::speed_km_h)
         .def_readwrite("chunk_size",     &routing::preprocessing::AccessEgressConfig::chunk_size)
+        .def_readwrite("chunk_max_span_m", &routing::preprocessing::AccessEgressConfig::chunk_max_span_m)
+        .def_readwrite("fold_samples",   &routing::preprocessing::AccessEgressConfig::fold_samples)
         .def_readwrite("spacing_m",      &routing::preprocessing::AccessEgressConfig::spacing_m);
 
     // Long C++ work releases the GIL for its duration.

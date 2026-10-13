@@ -424,8 +424,10 @@ def upgrade() -> None:
     # but *acquiring* the lock is not: one long-lived reader (a pinned geoapi
     # connection, a running tool) blocks it, and then every query on the table
     # queues behind the waiting migration. Fail fast instead and let the
-    # operator retry — set before the first lock this revision takes.
-    op.execute("SET lock_timeout = '5s'")
+    # operator retry — set before the first lock this revision takes. LOCAL:
+    # behind a transaction pooler a session setting would outlive the
+    # migration on a server connection other clients get next.
+    op.execute("SET LOCAL lock_timeout = '5s'")
 
     _create_bundle_tables()
     _bundle_status_shape()

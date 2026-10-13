@@ -11,4 +11,6 @@ UNGRADED_RELEVANCE = 1
 
 RELEVANCE_RANK_SQL = f'COALESCE("{TOPIC_SCORE_FIELD}", {UNGRADED_RELEVANCE})'
 
-BBOX_AREA_SQL = "COALESCE((bbox_xmax - bbox_xmin) * (bbox_ymax - bbox_ymin), 0)"
+#: How much ground a row covers, the tiebreak behind the topic score. Read off
+#: the footprint: an envelope over-claims, and a table has none and scores 0.
+BBOX_AREA_SQL = "COALESCE(ST_Area(geometry), 0)"

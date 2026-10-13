@@ -87,6 +87,16 @@ class WorkflowResult(BaseModel):
     )
 
 
+def variable_map(variables: list[dict[str, Any]]) -> dict[str, Any]:
+    """Each workflow variable's value, keyed by the name references use.
+
+    A variable is resolved by ``name`` alone: the editor's optional ``label``
+    and ``description`` are display-only and ride along in the payload
+    without affecting a run. Entries without a name are skipped.
+    """
+    return {v["name"]: v.get("defaultValue") for v in variables if v.get("name")}
+
+
 # Regex to match {{@variable_name}} references
 VARIABLE_PATTERN = re.compile(r"\{\{@([a-zA-Z_][a-zA-Z0-9_]*)\}\}")
 
@@ -514,6 +524,23 @@ def convert_filter_to_cql(filter_config: dict) -> dict | None:
     return {"op": logical_op, "args": cql_args}
 
 
+def export_style(
+    export_data: dict[str, Any], source_result: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    """The style an export's result gets when it becomes a new layer.
+
+    A template remembers how its author styled each export's result
+    (``outputStyle``, see core's ``with_output_styles``); that look wins
+    over the source tool's default. An export that overwrites an earlier
+    result keeps that layer's own style either way (finalize_layer).
+    """
+    remembered = export_data.get("outputStyle")
+    if isinstance(remembered, dict) and remembered:
+        return remembered
+    source_properties = (source_result or {}).get("properties")
+    return source_properties if isinstance(source_properties, dict) else None
+
+
 def build_tool_inputs(
     node: dict,
     edges: list[dict],
@@ -533,12 +560,9 @@ def build_tool_inputs(
     inputs: dict[str, Any] = dict(node_data.get("config", {}))
 
     # Substitute workflow variables in config values
-    if params.variables:
-        var_map = {
-            v["name"]: v.get("defaultValue") for v in params.variables if v.get("name")
-        }
-        if var_map:
-            inputs = substitute_variables_in_config(inputs, var_map)
+    var_map = variable_map(params.variables)
+    if var_map:
+        inputs = substitute_variables_in_config(inputs, var_map)
 
     # Coerce scalar values to lists where the tool schema expects arrays
     process_id = node_data.get("processId")
@@ -784,11 +808,7 @@ async def _connect() -> tuple[asyncpg.Connection, str]:
 
     settings = ToolSettings.from_env()
     conn = await asyncpg.connect(
-        host=settings.postgres_server,
-        port=settings.postgres_port,
-        user=settings.postgres_user,
-        password=settings.postgres_password,
-        database=settings.postgres_db,
+        **settings.postgres_connect_args(),
     )
     return conn, settings.customer_schema
 
@@ -902,9 +922,7 @@ def main(
     errors: list[dict] = []
 
     # Variable map for If-node condition evaluation
-    if_var_map: dict[str, Any] = {
-        v["name"]: v.get("defaultValue") for v in params.variables if v.get("name")
-    }
+    if_var_map = variable_map(params.variables)
 
     # Execute each tool node
     # Child jobs have parent_job set automatically, so backend can query
@@ -1102,10 +1120,9 @@ def main(
                     "overwrite_previous": overwrite_previous,
                 }
 
-                # Pass style properties from the source tool's result
-                source_properties = source_result.get("properties")
-                if source_properties:
-                    finalize_inputs["properties"] = source_properties
+                properties = export_style(export_data, source_result)
+                if properties:
+                    finalize_inputs["properties"] = properties
 
                 job_id, result = run_tool_node(
                     export_node_id, "finalize_layer", finalize_inputs

@@ -37,7 +37,7 @@ Ihre zuletzt geöffneten Projekte, die neuesten zuerst. Jedes zeigt, wann Sie zu
 
 ## Mit einer Vorlage starten
 
-Mit Vorlagen beginnen Sie mit einem bereits eingerichteten Projekt, Workflow oder Layout. Filtern Sie die Reihe nach Art (`Alle Vorlagen`, `Workflow`, `Projekt` oder `Layout`) und danach, woher die Vorlage stammt: `Alle`, `GOAT`, `Meine`, `Team` oder `Organisation`. Über `Alle Vorlagen` gelangen Sie zur vollständigen Übersicht.
+Mit Vorlagen beginnen Sie mit einem bereits eingerichteten Projekt, Workflow oder Layout. Filtern Sie die Reihe nach Art (`Alle Vorlagen`, `Workflow`, `Projekt` oder `Layout`) und danach, woher die Vorlage stammt: `Alle`, `GOAT`, `Meine`, `Team`, `Organisation` oder `Mit mir geteilt`. Über `Alle Vorlagen` gelangen Sie zur vollständigen Übersicht.
 
 ## Aktuelle Datensätze
 

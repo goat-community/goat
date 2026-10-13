@@ -52,7 +52,9 @@ from processes.models.processes import (
 )
 from processes.services.access import (
     analytics_references,
+    empty_copy_of_template,
     ensure_allowed,
+    ensure_empty_copy_of_template,
     tool_references,
 )
 from processes.services.analytics_registry import (
@@ -767,6 +769,9 @@ async def execute_process(
     await ensure_allowed(
         user_id, tool_references(tool_info.name, execute_request.inputs, user_id)
     )
+    empty_copy = empty_copy_of_template(tool_info.name, execute_request.inputs)
+    if empty_copy:
+        await ensure_empty_copy_of_template(*empty_copy)
 
     # Use the windmill_path from the registry (ensures correct casing)
     script_path = tool_info.windmill_path

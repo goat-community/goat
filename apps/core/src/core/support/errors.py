@@ -29,6 +29,11 @@ class SupportCompanyRefused(SupportRejected):
     """The ticket system refused the company a new contact was to belong to."""
 
 
+class SupportStaffEmail(SupportRejected):
+    """The ticket system refused a contact with a staff member's email (current or
+    former staff): staff use the ticket system itself, not GOAT's support pages."""
+
+
 class SupportRateLimited(SupportError):  # noqa: N818
     """Too many tickets or replies in the last hour (→ 429)."""
 

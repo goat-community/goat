@@ -70,6 +70,20 @@ class BooleanDisplayConfig(_BaseDisplayConfig):
     """No display config for boolean columns yet."""
 
 
+class SerialDisplayConfig(_BaseDisplayConfig):
+    """No display config for serial numbers yet.
+
+    Deliberately not the number options: thousands separators or abbreviation
+    would show an identifier as "1.2k". A later ``format`` (prefix, padding) is
+    a setting on the field_config entry, not display config — see
+    ``goatlib.utils.generated_fields``.
+    """
+
+
+class UuidDisplayConfig(_BaseDisplayConfig):
+    """No display config for UUID columns."""
+
+
 class DatetimeDisplayConfig(_BaseDisplayConfig):
     """Datetime columns — IANA ``tz`` (default UTC) + optional display format."""
 
@@ -85,6 +99,8 @@ _DISPLAY_CONFIG_MODELS: dict[str, type[_BaseDisplayConfig]] = {
     "length": LengthDisplayConfig,
     "datetime": DatetimeDisplayConfig,
     "boolean": BooleanDisplayConfig,
+    "serial": SerialDisplayConfig,
+    "uuid": UuidDisplayConfig,
 }
 
 

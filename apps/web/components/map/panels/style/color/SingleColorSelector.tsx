@@ -55,7 +55,7 @@ const SingleColorSelector = (props: SingleColorSelectorProps) => {
         onChange={handleSelectionTypeChange}>
         <ToggleButton
           value={SingleColorType.Picker}
-          aria-labelledby="Color picker button"
+          aria-label={t("color_picker")}
           sx={{ overflow: "hidden" }}>
           <Typography variant="caption" color="inherit">
             {t("color_picker")}
@@ -64,7 +64,7 @@ const SingleColorSelector = (props: SingleColorSelectorProps) => {
         <ToggleButton
           sx={{ overflow: "hidden" }}
           value={SingleColorType.Preset}
-          aria-labelledby="Preset colors button">
+          aria-label={t("preset_colors")}>
           <Typography variant="caption" color="inherit">
             {t("preset_colors")}
           </Typography>

@@ -199,7 +199,7 @@ const MarkerGallery = (props: MarkerGalleryProps) => {
               <Stack key={`${group.name}-${groupIndex}`} direction="column" sx={{ mb: 2 }} spacing={2}>
                 <Stack>
                   <Typography variant="body2" fontWeight="bold">
-                    {group.name}
+                    {t(group.labelKey, { defaultValue: group.name })}
                   </Typography>
                   <Divider sx={{ mb: 1 }} />
                 </Stack>

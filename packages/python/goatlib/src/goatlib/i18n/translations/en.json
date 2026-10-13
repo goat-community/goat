@@ -224,6 +224,18 @@
       "label": "Opportunities",
       "description": "List of opportunity datasets with gravity parameters"
     },
+    "opportunity_layer_1": {
+      "label": "Opportunity layer 1",
+      "description": "Layer with the opportunities, connected on the canvas"
+    },
+    "opportunity_layer_2": {
+      "label": "Opportunity layer 2",
+      "description": "Layer with the opportunities, connected on the canvas"
+    },
+    "opportunity_layer_3": {
+      "label": "Opportunity layer 3",
+      "description": "Layer with the opportunities, connected on the canvas"
+    },
     "input_path": {
       "label": "Input layer",
       "description": "Select the input layer for analysis"
@@ -795,6 +807,46 @@
     "reference_field": {
       "label": "Reference field",
       "description": "Column identifying each starting point, written to the result so a catchment can be traced back to the point it was computed from"
+    },
+    "polygon_difference": {
+      "label": "Create buffer rings (difference)",
+      "description": "Creates ring-shaped polygons from the difference between consecutive buffer distances (like catchment area rings). Requires \"Merge overlapping buffers\" to be enabled."
+    },
+    "input_paths": {
+      "label": "Input layers",
+      "description": "Layers to merge (at least 2; in a workflow they are connected via the node's handles)."
+    },
+    "input_path_1": {
+      "label": "Input layer 1",
+      "description": "First input layer (connected from the workflow)"
+    },
+    "input_path_2": {
+      "label": "Input layer 2",
+      "description": "Second input layer (connected from the workflow)"
+    },
+    "add_source_column": {
+      "label": "Add source column",
+      "description": "Adds the column \"layer_source\", which shows the input layer each feature comes from."
+    },
+    "validate_geometry_types": {
+      "label": "Validate geometry types",
+      "description": "Checks that all layers have compatible geometry types (e.g. only points, only lines or only polygons)."
+    },
+    "promote_to_multi": {
+      "label": "Convert to multi-geometries",
+      "description": "Converts single-part geometries to multi-part geometries."
+    },
+    "starting_points": {
+      "label": "Starting points",
+      "description": "Starting point(s) for the catchment area."
+    },
+    "statistic_field": {
+      "label": "Field",
+      "description": "Field the statistic is computed on. Required for all operations except \"Count\"."
+    },
+    "statistic_result_name": {
+      "label": "Result column name",
+      "description": "Custom name for the result column. If empty, \"{field}_{operation}\" is used, or \"count\" for \"Count\"."
     }
   },
   "enums": {
@@ -929,7 +981,7 @@
       "polygon": "Polygon",
       "network": "Network",
       "hexagonal_grid": "Hexagonal grid",
-      "rectangular_grid": "Hexagonal grid",
+      "rectangular_grid": "Rectangular grid",
       "point_grid": "Point grid"
     },
     "aggregation_area_type": {
@@ -941,7 +993,17 @@
       "sum": "Sum",
       "mean": "Mean",
       "min": "Minimum",
-      "max": "Maximum"
+      "max": "Maximum",
+      "standard_deviation": "Standard deviation"
+    },
+    "potential_type": {
+      "field": "Field",
+      "constant": "Constant",
+      "expression": "Expression"
+    },
+    "potential_expression": {
+      "area": "Area",
+      "perimeter": "Perimeter"
     }
   },
   "tools": {
@@ -1088,7 +1150,11 @@
     },
     "merge": {
       "title": "Merge",
-      "description": "Parameters for merge tool. By default, fields with the same name are mapped together, while fields unique to inputs are retained in the output."
+      "description": "Combines several layers into one layer. Fields with the same name are mapped together by default; fields that exist in only some of the layers are kept in the result."
+    },
+    "custom_sql": {
+      "title": "Custom SQL",
+      "description": "Write custom SQL queries to transform, join, and derive new datasets from connected inputs."
     }
   },
   "groups": {

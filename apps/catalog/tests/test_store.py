@@ -372,54 +372,26 @@ def test_nuts_swap_is_picked_up_without_a_catalog_version(tmp_path: Path) -> Non
 
 
 # --------------------------------------------------------------------------
-# Extension loading (C2): baked-dir LOAD-only path vs. dev INSTALL fallback
+# Extension loading: the shared goatlib helper (baked dir or INSTALL first)
 # --------------------------------------------------------------------------
 
 
-class _RecordingConnection:
-    """A fake connection that just records every ``execute()`` SQL string --
-    stands in for a real ``duckdb.DuckDBPyConnection`` so these tests never
-    need a real baked extension directory on disk."""
-
-    def __init__(self) -> None:
-        self.executed: list[str] = []
-
-    def execute(self, sql: str, *args: Any, **kwargs: Any) -> None:
-        self.executed.append(sql)
-
-
-def test_load_extensions_load_only_when_baked(
+def test_load_extensions_uses_the_shared_helper(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """When ``configure_baked_extensions`` reports a baked extension dir
-    (``DUCKDB_EXTENSION_DIRECTORY`` set -- the prod image), ``_load_extensions``
-    must only ``LOAD``, never ``INSTALL``: an ``INSTALL`` would otherwise
-    reach out to extensions.duckdb.org on every single store build (every
-    process start AND every catalog reload), even though the image already
-    baked both extensions in at build time (see the Dockerfile bake step)."""
+    """The store loads ``spatial`` through goatlib's ``load_extensions``, which
+    only loads from the image's baked directory and never downloads there
+    (its own tests cover both branches)."""
     write_catalog(tmp_path)
     store = CatalogStore(CatalogSettings(data_dir=tmp_path))
 
-    monkeypatch.setattr("catalog.store.configure_baked_extensions", lambda con: True)
-    con = _RecordingConnection()
-    store._load_extensions(con)  # type: ignore[arg-type]
+    calls: list[tuple[Any, ...]] = []
+    monkeypatch.setattr(
+        "catalog.store.load_extensions", lambda con, *ext: calls.append(ext)
+    )
+    store._load_extensions(object())  # type: ignore[arg-type]
 
-    assert con.executed == ["LOAD spatial;"]
-    assert not any("INSTALL" in sql for sql in con.executed)
-
-
-def test_load_extensions_installs_when_not_baked(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Local dev (no baked dir): falls back to the normal INSTALL+LOAD path."""
-    write_catalog(tmp_path)
-    store = CatalogStore(CatalogSettings(data_dir=tmp_path))
-
-    monkeypatch.setattr("catalog.store.configure_baked_extensions", lambda con: False)
-    con = _RecordingConnection()
-    store._load_extensions(con)  # type: ignore[arg-type]
-
-    assert con.executed == ["INSTALL spatial;", "LOAD spatial;"]
+    assert calls == [("spatial",)]
 
 
 def test_store_query_concurrent_threads(tmp_path: Path) -> None:

@@ -120,7 +120,109 @@ namespace routing::data
         filter.h3_3_cells.assign(h3_3_set.begin(), h3_3_set.end());
         filter.h3_6_cells.assign(h3_6_set.begin(), h3_6_set.end());
         filter.bbox = box;
+        filter.cells_cover_points = true;
         return filter;
+    }
+
+    std::vector<std::vector<size_t>> group_points_by_extent(
+        duckdb::Connection &con,
+        std::vector<Point3857> const &points,
+        double max_span_m)
+    {
+        std::vector<std::vector<size_t>> groups;
+        if (points.empty())
+            return groups;
+        if (max_span_m <= 0.0)
+        {
+            groups.emplace_back(points.size());
+            for (size_t i = 0; i < points.size(); ++i)
+                groups.back()[i] = i;
+            return groups;
+        }
+
+        con.Query("CREATE OR REPLACE TEMP TABLE _group_pts "
+                  "(k UBIGINT, lat DOUBLE, lng DOUBLE)");
+        {
+            duckdb::Appender appender(con, "_group_pts");
+            for (size_t i = 0; i < points.size(); ++i)
+                appender.AppendRow(static_cast<uint64_t>(i),
+                                   to_latitude(points[i].y),
+                                   to_longitude(points[i].x));
+        }
+        auto bins = con.Query(
+            "SELECT k, h3_latlng_to_cell(lat, lng, 6)::UBIGINT FROM _group_pts");
+        con.Query("DROP TABLE IF EXISTS _group_pts");
+        if (bins->HasError())
+            throw std::runtime_error("Point binning failed: " + bins->GetError());
+        std::vector<uint64_t> cell_of(points.size());
+        for (size_t row = 0; row < bins->RowCount(); ++row)
+            cell_of[bins->GetValue(0, row).GetValue<uint64_t>()] =
+                bins->GetValue(1, row).GetValue<uint64_t>();
+
+        std::vector<size_t> order(points.size());
+        for (size_t i = 0; i < order.size(); ++i)
+            order[i] = i;
+        std::stable_sort(order.begin(), order.end(), [&](size_t a, size_t b) {
+            return cell_of[a] < cell_of[b];
+        });
+
+        // Whether points spanning `b` stay within max_span_m of ground, judged
+        // at the latitude furthest from the equator like the load margin.
+        auto within_span = [&](Bbox3857 const &b) {
+            double const furthest_y =
+                std::abs(b.max_y) > std::abs(b.min_y) ? b.max_y : b.min_y;
+            double const limit = ground_to_mercator(max_span_m, furthest_y);
+            return (b.max_x - b.min_x) <= limit && (b.max_y - b.min_y) <= limit;
+        };
+        auto grow = [](Bbox3857 &b, Bbox3857 const &o) {
+            b.min_x = std::min(b.min_x, o.min_x);
+            b.min_y = std::min(b.min_y, o.min_y);
+            b.max_x = std::max(b.max_x, o.max_x);
+            b.max_y = std::max(b.max_y, o.max_y);
+        };
+
+        Bbox3857 group_box{};
+        for (size_t i = 0; i < order.size();)
+        {
+            size_t j = i;
+            auto const &p = points[order[i]];
+            Bbox3857 cell_box{p.x, p.y, p.x, p.y};
+            while (j < order.size() && cell_of[order[j]] == cell_of[order[i]])
+            {
+                auto const &q = points[order[j]];
+                grow(cell_box, Bbox3857{q.x, q.y, q.x, q.y});
+                ++j;
+            }
+            Bbox3857 merged = group_box;
+            if (!groups.empty())
+                grow(merged, cell_box);
+            if (groups.empty() || !within_span(merged))
+            {
+                groups.emplace_back();
+                group_box = cell_box;
+            }
+            else
+            {
+                group_box = merged;
+            }
+            groups.back().insert(groups.back().end(), order.begin() + i,
+                                 order.begin() + j);
+            i = j;
+        }
+        return groups;
+    }
+
+    std::string short_h3_6_sql(std::string const &x_3857,
+                               std::string const &y_3857)
+    {
+        constexpr uint64_t kMaskH3_6 = 0x000fffffff000000ULL;
+        std::ostringstream sql;
+        sql << std::setprecision(17) << "((h3_latlng_to_cell("
+            << "DEGREES(2.0 * ATAN(EXP((" << y_3857 << ") / " << kEarthRadius
+            << "))) - 90.0, "
+            << "DEGREES((" << x_3857 << ") / " << kEarthRadius << "), 6)"
+            << "::bigint & " << kMaskH3_6 << ") >> 24)::int";
+        return sql.str();
     }
 
     SpatialFilter compute_spatial_filter_bbox(duckdb::Connection &con,
@@ -188,6 +290,80 @@ namespace routing::data
         filter.h3_3_cells.assign(h3_3_set.begin(), h3_3_set.end());
         filter.h3_6_cells.assign(h3_6_set.begin(), h3_6_set.end());
         filter.bbox = Bbox3857{min_x, min_y, max_x, max_y};
+        return filter;
+    }
+
+    SpatialFilter compute_spatial_filter_polygon(duckdb::Connection &con,
+                                                 std::vector<Point3857> const &ring,
+                                                 int ring_k)
+    {
+        if (ring.empty())
+            return {};
+
+        Bbox3857 box{ring[0].x, ring[0].y, ring[0].x, ring[0].y};
+        std::ostringstream vertices;
+        vertices << std::setprecision(17);
+        for (size_t i = 0; i < ring.size(); ++i)
+        {
+            box.min_x = std::min(box.min_x, ring[i].x);
+            box.min_y = std::min(box.min_y, ring[i].y);
+            box.max_x = std::max(box.max_x, ring[i].x);
+            box.max_y = std::max(box.max_y, ring[i].y);
+            if (i)
+                vertices << ",";
+            vertices << "(" << to_latitude(ring[i].y) << ","
+                     << to_longitude(ring[i].x) << ")";
+        }
+
+        std::ostringstream sql;
+        sql << std::setprecision(17)
+            << "WITH pts(lat, lng) AS (VALUES " << vertices.str() << "), "
+            << "seed AS (SELECT h3_latlng_to_cell(lat, lng, 6) AS c FROM pts";
+        // A ring of fewer than three points has no interior.
+        if (ring.size() >= 3)
+        {
+            sql << " UNION SELECT unnest(h3_polygon_wkt_to_cells_experimental('POLYGON((";
+            for (size_t i = 0; i <= ring.size(); ++i)
+            {
+                auto const &p = ring[i % ring.size()];
+                if (i)
+                    sql << ",";
+                sql << to_longitude(p.x) << " " << to_latitude(p.y);
+            }
+            sql << "))', 6, 'CONTAINMENT_OVERLAPPING'))";
+        }
+        constexpr uint64_t kMaskH3_3 = 0x000ffff000000000ULL;
+        constexpr uint64_t kMaskH3_6 = 0x000fffffff000000ULL;
+        sql << "), cells AS (SELECT DISTINCT unnest(h3_grid_disk(c, " << ring_k
+            << ")) AS cell FROM seed) "
+            << "SELECT ((cell::bigint & " << kMaskH3_3 << ") >> 36)::int AS h3_3, "
+            << "((cell::bigint & " << kMaskH3_6 << ") >> 24)::int AS h3_6 "
+            << "FROM cells";
+
+        auto result = con.Query(sql.str());
+        if (result->HasError())
+            throw std::runtime_error(
+                "H3 polygon cell computation failed: " + result->GetError());
+
+        SpatialFilter filter;
+        std::set<int32_t> h3_3_set, h3_6_set;
+        for (size_t row = 0; row < result->RowCount(); ++row)
+        {
+            h3_3_set.insert(result->GetValue(0, row).GetValue<int32_t>());
+            h3_6_set.insert(result->GetValue(1, row).GetValue<int32_t>());
+        }
+        filter.h3_3_cells.assign(h3_3_set.begin(), h3_3_set.end());
+        filter.h3_6_cells.assign(h3_6_set.begin(), h3_6_set.end());
+
+        // The bbox equivalent, for datasets without H3 columns: as wide as the
+        // ring growth, plus one edge length because overlapping cells reach
+        // past the polygon.
+        double const furthest_y =
+            std::abs(box.max_y) > std::abs(box.min_y) ? box.max_y : box.min_y;
+        double const margin =
+            ground_to_mercator((ring_k + 1) * kH3Res6EdgeLengthM, furthest_y);
+        filter.bbox = Bbox3857{box.min_x - margin, box.min_y - margin,
+                               box.max_x + margin, box.max_y + margin};
         return filter;
     }
 

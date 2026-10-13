@@ -19,8 +19,13 @@ from core.support.types import EmailProof
 _client: SupportOdooClient | None = None
 _provider: OdooSupportProvider | None = None
 _cache = TTLCache()
-_ticket_limiter = RateLimiter(limit=10, window=3600)
+# New tickets: a burst guard; the limit users meet is MAX_OPEN_TICKETS (service).
+_ticket_limiter = RateLimiter(limit=20, window=3600)
 _reply_limiter = RateLimiter(limit=60, window=3600)
+# Resolve / reopen: each stage change emails the ticket's followers.
+_status_limiter = RateLimiter(limit=20, window=3600)
+# Ticket reads that reach Odoo (detail, actions, downloads, request_id lookups).
+_read_limiter = RateLimiter(limit=120, window=300)
 
 
 def require_support_enabled() -> None:
@@ -79,6 +84,8 @@ async def get_support_service(
         reply_limiter=_reply_limiter,
         email_proof=email_proof,
         keycloak_user=get_keycloak_user,
+        status_limiter=_status_limiter,
+        read_limiter=_read_limiter,
     )
 
 

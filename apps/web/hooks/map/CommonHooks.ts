@@ -59,6 +59,7 @@ const useLayerFields = (
           format?: string;
           is_computed?: boolean;
           is_locked?: boolean;
+          is_generated?: boolean;
           allowed_values?: (string | number)[];
           allow_other?: boolean;
           default_value?: string | number | boolean | null;
@@ -72,6 +73,7 @@ const useLayerFields = (
           kind: v.kind,
           is_computed: v.is_computed ?? false,
           is_locked: v.is_locked ?? false,
+          is_generated: v.is_generated ?? false,
           allowed_values: v.allowed_values,
           allow_other: v.allow_other ?? false,
           default_value: v.default_value,

@@ -52,8 +52,10 @@ Die gesamte Konfiguration steht in der Datei `.env` im Ordner des Pakets. `setup
 | `KEYCLOAK_CLIENT_SECRET` | von setup.sh gesetzt | Secret dieses Clients |
 | `KEYCLOAK_ADMIN_PASSWORD` | von setup.sh gesetzt | Passwort des Benutzers `admin` in der Keycloak-Admin-Konsole |
 | `KEYCLOAK_PROVISION_INVITED_USERS` | `true` | Legt das Anmeldekonto in Keycloak an, wenn jemand eingeladen wird, dessen E-Mail-Adresse noch keines hat |
+| `ALLOW_ORGANIZATION_CREATION` | `true` | `true`: Wer sich ohne Organisation anmeldet, kann eine einrichten. `false`: Das können nur Konten mit der Keycloak-Realm-Rolle `superuser`; alle anderen warten auf eine Einladung. Siehe [Wer Organisationen einrichtet](./operations.md#organizations). |
 | `KEYCLOAK_DB_PASSWORD` | von setup.sh gesetzt | Datenbank-Passwort des mitgelieferten Keycloak |
 | `KEYCLOAK_PUBLIC_URL`, `KEYCLOAK_INTERNAL_URL` | *(auskommentiert)* | Ihr eigenes Keycloak; siehe [Eigenes Keycloak](./external_services.md#keycloak) |
+| `AUTH_ALLOWED_CLIENTS` | *(auskommentiert)* | Keycloak-Clients, deren Tokens die GOAT-APIs annehmen, durch Kommas getrennt; leer nimmt Tokens aller Clients des Realms an. Eine Liste muss `KEYCLOAK_CLIENT_ID` enthalten. Siehe [Ein Realm, den sich GOAT mit anderen Anwendungen teilt](./external_services.md#keycloak-shared-realm) |
 
 ## Objektspeicher (S3) {#storage}
 
@@ -77,6 +79,8 @@ Die Speichervorgaben passen zu einer Maschine mit 16 GB. Als Faustregel setzen S
 | `POSTGRES_MAX_CONNECTIONS` | `200` | PostgreSQL `max_connections` |
 | `POSTGRES_POOL_SIZE` | `5` | Größe des Verbindungspools der Core API |
 | `POSTGRES_MAX_OVERFLOW` | `10` | Zusätzliche Verbindungen, die die Core API über den Pool hinaus öffnen darf |
+
+Die Dienste von GOAT benennen ihre Datenbanksitzungen nach sich selbst (`goat-core`, `goat-geoapi`, `goat-processes`, `goat-tools`, …), sodass `pg_stat_activity` zeigt, welcher Dienst eine Verbindung hält. Auf der Windmill-Datenbank gehören die Sitzungen ohne `goat-`-Namen Windmill selbst. Windmill hält höchstens 10 Verbindungen zu seiner Datenbank für den Server und 3 für jeden Worker (`DATABASE_CONNECTIONS` in `compose.yaml`).
 
 ## Jobs (Windmill) {#jobs}
 

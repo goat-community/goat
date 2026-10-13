@@ -16,6 +16,11 @@ def access_check_sql(schema: str) -> str:
     or when `can` grants it (which includes a catalog layer's public read).
     A `layer_project` reference is checked as a read of its layer. A
     reference whose id does not resolve is returned as denied.
+
+    A tool puts its result in the folder of the project it runs in, which
+    belongs to the project's owner. Writing there is allowed to whoever may
+    edit a project the same request names and that lives in that folder,
+    so an editor of a shared project can run tools in it.
     """
     return f"""
 WITH refs AS (
@@ -46,5 +51,13 @@ SELECT kind, raw_id, action
                    @> jsonb_build_array(jsonb_build_object('layer_id', ref_id::text))
         ))
         OR COALESCE({schema}.can(checked_kind, ref_id, $1::uuid, checked_action), FALSE)
+        OR (checked_kind = 'folder' AND checked_action = 'write' AND EXISTS (
+            SELECT 1
+              FROM resolved named
+              JOIN {schema}.project p ON p.id = named.ref_id
+             WHERE named.checked_kind = 'project'
+               AND p.folder_id = resolved.ref_id
+               AND COALESCE({schema}.can('project', p.id, $1::uuid, 'write'), FALSE)
+        ))
     )
 """

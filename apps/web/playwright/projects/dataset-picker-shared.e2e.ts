@@ -6,6 +6,8 @@ import {
   ensureSharedTeam,
   locateContentCard,
 } from "../fixtures/content";
+import { POINTS_FILE, deleteDataset, uploadDataset } from "../fixtures/datasets";
+import { apiAs } from "../fixtures/users";
 
 /**
  * A dataset shared with a team is offered by the project's Add Layer picker
@@ -17,20 +19,17 @@ import {
  * holds the picker to it with real data, across the share dialog, the feed
  * and the picker.
  *
- * The account is expected to already hold a dataset; the spec shares the
- * first one it finds and takes the share back at the end.
+ * The spec uploads a dataset of its own to share and deletes it at the end:
+ * a dataset another spec made would be deleted by that spec meanwhile.
  */
 test("a dataset shared with a team is offered by the picker under the team's space", async ({ page }) => {
   // Shares, creates a project, picks, then cleans both up: longer than the default.
   test.setTimeout(240_000);
   await ensureSharedTeam(page);
 
-  // Datasets on the Content page carry their layer type as a label.
-  await page.goto("/content");
-  const datasets = page.locator(".content-card").filter({ hasText: /Feature|Table|Raster/ });
-  await expect(datasets.first()).toBeVisible({ timeout: 15000 });
-  const datasetName = (await datasets.first().locator("[title]").first().getAttribute("title")) as string;
-  expect(datasetName, "a dataset to share").toBeTruthy();
+  const datasetName = `E2E Shared Dataset ${Date.now()}`;
+  const api = await apiAs("owner");
+  const datasetId = await uploadDataset(api, datasetName, POINTS_FILE);
 
   // Share with the team: Teams tab, the team row's role button, a role, Done.
   const setTeamRole = async (role: RegExp) => {
@@ -78,6 +77,7 @@ test("a dataset shared with a team is offered by the picker under the team's spa
     await page.keyboard.press("Escape");
   } finally {
     await deleteContentItem(page, projectName);
-    await setTeamRole(/^No access/i);
+    await deleteDataset(api, datasetId);
+    await api.dispose();
   }
 });

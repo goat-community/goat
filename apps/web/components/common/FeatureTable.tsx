@@ -4,6 +4,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { Box, Collapse, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Skeleton } from "@mui/material";
 import { Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { DatasetCollectionItems, FieldKind } from "@/lib/validations/layer";
 import { resolveDisplayKind } from "@/lib/validations/layer";
@@ -78,6 +79,7 @@ const FeatureRow = ({
   formatCellValue,
   getColumnWidth,
 }: FeatureRowProps) => {
+  const { t } = useTranslation("common");
   const [open, setOpen] = useState(false);
 
   return (
@@ -85,7 +87,7 @@ const FeatureRow = ({
       <TableRow>
         {objectFields.length > 0 && (
           <TableCell>
-            <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+            <IconButton aria-label={t("expand_row")} size="small" onClick={() => setOpen(!open)}>
               {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </IconButton>
           </TableCell>
@@ -127,7 +129,7 @@ const FeatureRow = ({
                         </Typography>
                       </Stack>
                       {jsonDataRows ? (
-                        <Table size="small" aria-label={`${field.name} values`}>
+                        <Table size="small" aria-label={t("field_values", { field: field.name })}>
                           <TableHead>
                             <TableRow>
                               {Object.keys(jsonDataRows[0]).map((key) => (

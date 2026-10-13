@@ -22,6 +22,8 @@ ALL_KINDS: list[tuple[str, str | None]] = [
     ("area", "polygon"),
     ("perimeter", "polygon"),
     ("length", "line"),
+    ("serial", None),
+    ("uuid", None),
 ]
 
 # Kinds with their own creation flow: not resolvable via _resolve_kind_to_sql

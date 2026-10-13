@@ -14,9 +14,14 @@ import pyarrow.parquet as pq
 from pydantic import BaseModel, Field, model_validator
 
 from goatlib.models.io import DatasetMetadata
-from goatlib.tools.base import BaseToolRunner, _get_or_create_event_loop
+from goatlib.tools.base import (
+    BaseToolRunner,
+    _get_or_create_event_loop,
+    drops_unrecorded_tables,
+)
 from goatlib.tools.schemas import ToolInputBase
 from goatlib.utils.field_config import coerce_allowed_values
+from goatlib.utils.generated_fields import generated_entry_settings, is_generated_kind
 
 logger = logging.getLogger(__name__)
 
@@ -29,20 +34,25 @@ GEOMETRY_TYPE_MAP: dict[str, str] = {
 
 # Storage type per field kind, matching what geoapi's `_resolve_kind_to_sql` gives a
 # column added to an existing layer: string→VARCHAR, number→DOUBLE,
-# datetime→TIMESTAMPTZ, boolean→BOOLEAN. Creation used to know only the first two,
-# so a datetime field became text and a boolean the strings "true"/"false".
+# datetime→TIMESTAMPTZ, boolean→BOOLEAN, serial→BIGINT, uuid→VARCHAR. Creation
+# used to know only the first two, so a datetime field became text and a boolean
+# the strings "true"/"false".
 FIELD_TYPE_MAP: dict[str, pa.DataType] = {
     "string": pa.string(),
     "number": pa.float64(),
     "datetime": pa.timestamp("us", tz="UTC"),
     "boolean": pa.bool_(),
+    "serial": pa.int64(),
+    "uuid": pa.string(),
 }
 
 #: Kinds a new layer can carry. Computed kinds (area/perimeter/length) and formula
 #: are deliberately absent: they need the compute SQL geoapi builds when a column is
 #: added to a layer that already exists, which creation does not run — the column
-#: would be created and never filled.
-FieldKind = Literal["string", "number", "datetime", "boolean"]
+#: would be created and never filled. The generated kinds (serial, uuid) need no
+#: such step: the layer starts empty, and geoapi assigns a value to every feature
+#: created in it (``goatlib.utils.generated_fields``).
+FieldKind = Literal["string", "number", "datetime", "boolean", "serial", "uuid"]
 
 
 class FieldDefinition(BaseModel):
@@ -66,6 +76,11 @@ class FieldDefinition(BaseModel):
         description="Treat allowed_values as suggestions rather than the only "
         "values a write may set",
     )
+    start: int | None = Field(
+        None,
+        description="First number of a serial field (default 1). Only for "
+        "kind='serial'.",
+    )
 
     @property
     def storage_kind(self: Self) -> str:
@@ -81,6 +96,17 @@ class FieldDefinition(BaseModel):
         written once the layer is there, and a failure then leaves a real
         column the user cannot correct from the create dialog.
         """
+        if is_generated_kind(self.storage_kind):
+            if self.allowed_values:
+                raise ValueError(
+                    f"'{self.name}' is filled automatically, so it cannot have "
+                    "allowed values."
+                )
+            # Raises for a start on a uuid field or a start that is no
+            # whole number, before the layer exists.
+            generated_entry_settings(self.storage_kind, self.start)
+        elif self.start is not None:
+            raise ValueError(f"Only a serial field has a start value ('{self.name}').")
         if self.allowed_values:
             self.allowed_values = coerce_allowed_values(
                 self.storage_kind, self.allowed_values
@@ -99,6 +125,8 @@ class FieldDefinition(BaseModel):
             "depends_on": [],
             "display_config": {},
         }
+        if is_generated_kind(self.storage_kind):
+            entry.update(generated_entry_settings(self.storage_kind, self.start))
         if self.allowed_values:
             entry["allowed_values"] = self.allowed_values
             entry["allow_other"] = self.allow_other
@@ -265,6 +293,7 @@ class LayerCreateToolRunner(BaseToolRunner[LayerCreateParams]):
 
         return table_info
 
+    @drops_unrecorded_tables
     def run(self: Self, params: LayerCreateParams) -> dict:
         """Run layer create with custom output name handling.
 

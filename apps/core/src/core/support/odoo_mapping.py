@@ -78,6 +78,16 @@ def is_customer_facing(
     return subtype_id is not None and subtype_id in public_subtype_ids
 
 
+# Direction controls (LRM/RLM, embeddings, overrides, isolates, ALM): a name
+# like "invoice\u202efdp.exe" would show as "invoiceexe.pdf".
+_BIDI = re.compile("[\u200e\u200f\u202a-\u202e\u2066-\u2069\u061c]")
+
+
+def file_name(value: object) -> str:
+    """An attachment's name for display and download, without direction controls."""
+    return _BIDI.sub("", str(value or "")) or "file"
+
+
 def strip_odoo_images(body: str) -> str:
     """Drop images whose URL carries an Odoo path or access token (v1 does not proxy them)."""
     return _ODOO_IMG.sub("", body or "")

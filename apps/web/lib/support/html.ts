@@ -1,8 +1,10 @@
 import DOMPurify from "dompurify";
 
 // Client-only: DOMParser and DOMPurify need a window, so call this from client components.
-// Odoo message bodies: agents' replies and customers' emails. No images
-// (their URLs carry Odoo tokens and core strips them anyway), no styles.
+// Odoo message bodies: agents' replies and customers' emails, which anyone can
+// write. This sanitizer is the only HTML boundary: core strips Odoo's own
+// images but does not clean HTML. No images, no styles, links to http(s) and
+// mailto only (no relative links, which would open inside GOAT).
 const ALLOWED_TAGS = [
   "#text",
   "p",
@@ -40,6 +42,7 @@ const ALLOWED_TAGS = [
   "h6",
 ];
 const ALLOWED_ATTR = ["href", "target", "rel", "colspan", "rowspan"];
+const ALLOWED_URI_REGEXP = /^(?:https?:|mailto:)/i;
 // Odoo's mail parser marks signatures and quoted history with these attributes.
 const QUOTE_SELECTOR = "[data-o-mail-quote], [data-o-mail-quote-container]";
 
@@ -54,7 +57,14 @@ const stripDataAttributes = (root: Element) => {
 };
 
 export const prepareSupportHtml = (html: string): { main: string; quoted: string } => {
-  const clean = DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR, ALLOW_DATA_ATTR: true });
+  // Without a DOM (server rendering) DOMPurify returns its input unchanged.
+  if (!DOMPurify.isSupported) return { main: "", quoted: "" };
+  const clean = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS,
+    ALLOWED_ATTR,
+    ALLOWED_URI_REGEXP,
+    ALLOW_DATA_ATTR: true,
+  });
   const doc = new DOMParser().parseFromString(`<body>${clean}</body>`, "text/html");
   // Before the quotes are extracted, so links inside `quoted` get the same treatment.
   doc.body.querySelectorAll("a").forEach((a) => {

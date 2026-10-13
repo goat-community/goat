@@ -1295,8 +1295,10 @@ export default function WorkflowNodeSettings({
                             }
                           }
 
-                          // Get visible fields based on current opportunity values
-                          const visibleFields = getVisibleInputs(opportunityFields, oppValues);
+                          // Card fields resolve their conditions (visibility, per-mode
+                          // limits) against the node's own fields too, as in the toolbox.
+                          const oppFormValues = { ...defaultValues, ...values, ...oppValues };
+                          const visibleFields = getVisibleInputs(opportunityFields, oppFormValues);
 
                           return (
                             <Box key={opp.handle}>
@@ -1319,7 +1321,7 @@ export default function WorkflowNodeSettings({
                                     input={field}
                                     value={oppValues[field.name] ?? field.defaultValue}
                                     onChange={(value) => handleInputChange(`${prefix}${field.name}`, value)}
-                                    formValues={oppValues}
+                                    formValues={oppFormValues}
                                     schemaDefs={process.$defs}
                                     layerDatasetIds={{
                                       ...layerDatasetIds,

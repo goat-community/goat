@@ -132,6 +132,7 @@ def _ticket_out(item: TicketListItem, me: int | None) -> TicketOut:
         category=t.category,
         impact=t.impact,
         customer_name=t.customer_name,
+        customer_contact_id=t.customer_contact_id,
         is_mine=me is not None and t.customer_contact_id == me,
         agent_name=t.agent_name,
         via=t.via,
@@ -347,6 +348,8 @@ async def colleagues(
     service: SupportService = Depends(get_support_service),
 ) -> list[ColleagueOut]:
     return [
-        ColleagueOut(user_id=m.user_id, name=m.name, email=m.email)
+        ColleagueOut(
+            user_id=m.user_id, name=m.name, email=m.email, contact_id=m.contact_id
+        )
         for m in await _call(service.colleagues(user_id))
     ]

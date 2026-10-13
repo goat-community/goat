@@ -48,12 +48,19 @@ Variablen verwenden die Syntax `{{@variable_name}}` und können in die meisten W
 
 <div class="step">
   <div class="step-number">6</div>
+  <div class="content">Geben Sie optional eine <strong>Bezeichnung</strong> ein. Die Bezeichnung sehen Nutzende anstelle des technischen Namens, überall dort, wo sie die Variable auswählen oder ihren Wert setzen (z. B. <code>Maximaler Abstand der Gruppierung</code> für <code>max_abstand_gruppierung</code>). Ausdrücke und SQL verwenden weiterhin den Namen. Für einen Hilfetext klicken Sie auf das Sprechblasen-Symbol neben der Variable, geben eine <strong>Beschreibung</strong> ein (bis zu 500 Zeichen) und klicken neben das Feld, um sie zu übernehmen; mit <code>Esc</code> verwerfen Sie die Änderung. Ein ausgefülltes Symbol zeigt, dass eine Variable eine Beschreibung hat; beim Darüberfahren erscheint der Text.</div>
+</div>
+
+<div class="step">
+  <div class="step-number">7</div>
   <div class="content">Klicken Sie auf <strong>Fertig</strong>, um zu speichern. Um eine Variable zu löschen, klicken Sie auf das Löschen-Symbol daneben.</div>
 </div>
 
 ## Variablen in Werkzeugparametern verwenden
 
 Klicken Sie auf das <code>{"{}"}</code>-Symbol in einem kompatiblen Parameterfeld und wählen Sie die gewünschte Variable aus dem Menü. Nach dem Einfügen zeigt das Feld den Variablenverweis (z. B. <code>{"{{@variable_name}}"}</code>) grün hervorgehoben an. Das signalisiert, dass das Feld durch eine Variable gesteuert wird.
+
+Eine Variable mit Bezeichnung wird mit ihrer Bezeichnung aufgeführt, der Verweis steht daneben, und ihre Beschreibung erscheint, wenn Sie mit der Maus darüberfahren. Ein Feld, das eine Variable mit Bezeichnung enthält, zeigt die Bezeichnung darunter an. Wenn Sie <code>{"{{@"}</code> in ein Feld tippen, berücksichtigen die Vorschläge Namen und Bezeichnungen; im SQL-Editor suchen sie nach Namen und zeigen die Bezeichnung neben dem Namen.
 
 :::tip
 Verwenden Sie beschreibende Namen, die den Zweck des Parameters klar angeben: `puffer_abstand` statt `abstand`, `poi_typ` statt `typ`.
@@ -75,7 +82,7 @@ Workflows mit Variablen können direkt aus der Kartenansicht ausgeführt werden,
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">Ein Abschnitt <strong>Variablen</strong> zeigt alle im Workflow definierten Variablen. Geben Sie die gewünschten Werte für diesen Durchlauf ein.</div>
+  <div class="content">Ein Abschnitt <strong>Variablen</strong> zeigt alle im Workflow definierten Variablen. Geben Sie die gewünschten Werte für diesen Durchlauf ein. Jedes Feld trägt die Bezeichnung der Variable (oder ihren Namen, wenn sie keine hat), ihre Beschreibung steht unter dem Feld.</div>
 </div>
 
 <div class="step">

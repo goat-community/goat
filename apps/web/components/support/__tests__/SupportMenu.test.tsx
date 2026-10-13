@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { enGB } from "date-fns/locale";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SupportTicket } from "@/lib/validations/support";
@@ -34,6 +35,9 @@ vi.mock("@/lib/api/support", () => ({
 }));
 vi.mock("@/lib/api/users", () => ({ useUserProfile: () => ({ userProfile: profile.value }) }));
 vi.mock("@/i18n/utils", () => ({ useDateFnsLocale: () => enGB }));
+vi.mock("@/components/dashboard/common/CountPill", () => ({
+  default: ({ children }: { children: ReactNode }) => <span data-testid="count-pill">{children}</span>,
+}));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: pushMock }), usePathname: () => "/map/abc" }));
 
 const ticket = (ref: string, over: Partial<SupportTicket> = {}): SupportTicket => ({
@@ -43,6 +47,7 @@ const ticket = (ref: string, over: Partial<SupportTicket> = {}): SupportTicket =
   category: "bug",
   impact: null,
   customer_name: "Me",
+  customer_contact_id: null,
   is_mine: true,
   agent_name: "Anna",
   via: "app",
@@ -188,6 +193,7 @@ describe("SupportMenu", () => {
     render(<SupportMenu />);
     fireEvent.click(trigger());
     expect(screen.getByText("support_tickets")).toBeTruthy();
+    expect(screen.queryByTestId("count-pill")).toBeNull(); // no empty pill next to it
     expect(screen.getByText("support_documentation")).toBeTruthy();
     expect(refreshMock).not.toHaveBeenCalled();
     fireEvent.click(screen.getByText("support_report_problem"));

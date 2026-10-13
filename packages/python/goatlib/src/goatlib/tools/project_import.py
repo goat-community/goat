@@ -27,8 +27,9 @@ from uuid import uuid4
 import asyncpg
 from pydantic import BaseModel, Field
 
+from goatlib.io.bbox_columns import is_bbox_struct
 from goatlib.models.project import DEFAULT_INITIAL_VIEW_STATE
-from goatlib.tools.base import SimpleToolRunner
+from goatlib.tools.base import SimpleToolRunner, drops_unrecorded_tables
 from goatlib.tools.project_schemas import (
     EXTERNAL_DATA_TYPES,
     FORMAT_VERSION,
@@ -42,6 +43,7 @@ from goatlib.tools.project_schemas import (
     ExportWorkflow,
 )
 from goatlib.tools.schemas import ToolInputBase
+from goatlib.utils.builder_config import remap_interactions, remap_layer_project_ids
 from goatlib.utils.layer import layer_schema_name, layer_table_path
 
 logger = logging.getLogger(__name__)
@@ -74,9 +76,11 @@ class ProjectImportOutput(BaseModel):
 
 @dataclass
 class ImportCleanupTracker:
-    """Tracks resources created during import for rollback on failure."""
+    """Tracks the S3 objects an import uploaded, for rollback on failure.
 
-    ducklake_tables: list[str] = field(default_factory=list)
+    Its DuckLake tables are tracked by the runner (`_track_new_table`).
+    """
+
     s3_keys: list[str] = field(default_factory=list)
 
 
@@ -291,34 +295,15 @@ class ProjectImportRunner(SimpleToolRunner):
 
         Widget configs reference layer_project link IDs (integers) and
         layer_project_group IDs (integers) which both change on import.
-        For layer_project IDs, walks the serialized JSON and rewrites
-        `"layer_project_id": <int>` plus integers in arrays. For group IDs,
-        walks the deserialized tree and rewrites widget config keys of the
+        Link IDs are rewritten only where a widget names one
+        (`goatlib.utils.builder_config`), so other numbers keep their value.
+        For group IDs, walks the tree and rewrites widget config keys of the
         form `group_icon_<id>` and `group_info` object keys.
         """
-        config_str = json.dumps(config)
-        # Replace integer IDs carefully — match "layer_project_id": 66 patterns
-        # and also array references like [66, 67, 68]
-        for old_id, new_id in sorted(lp_id_map.items(), key=lambda x: -len(str(x[0]))):
-            # Replace in "layer_project_id": 66 (with and without space)
-            config_str = config_str.replace(
-                f'"layer_project_id": {old_id}', f'"layer_project_id": {new_id}'
-            )
-            config_str = config_str.replace(
-                f'"layer_project_id":{old_id}', f'"layer_project_id":{new_id}'
-            )
-        # Also remap downloadable_layers arrays and target_layers
-        for old_id, new_id in sorted(lp_id_map.items(), key=lambda x: -len(str(x[0]))):
-            # In arrays like [66, 67, 68] — careful with boundaries
-            config_str = re.sub(
-                rf"(?<=[[\s,]){old_id}(?=[,\]\s])",
-                str(new_id),
-                config_str,
-            )
-        remapped = json.loads(config_str)
+        remapped = remap_layer_project_ids(config, lp_id_map)
         if group_id_map:
             remapped = self._remap_group_ids_in_config(remapped, group_id_map)
-        return remapped  # type: ignore[no-any-return]
+        return remap_interactions(remapped, lp_id_map, group_id_map or {})  # type: ignore[no-any-return]
 
     def _remap_basemap_layer_config(
         self: Self,
@@ -407,7 +392,6 @@ class ProjectImportRunner(SimpleToolRunner):
         parquet_path: Path,
         new_user_id: str,
         new_layer_id: str,
-        tracker: ImportCleanupTracker,
     ) -> None:
         """Create a DuckLake table from a parquet file (excluding bbox column)."""
         if self.settings is None:
@@ -419,7 +403,8 @@ class ProjectImportRunner(SimpleToolRunner):
         # Ensure schema exists
         self.duckdb_con.execute(f"CREATE SCHEMA IF NOT EXISTS lake.{schema}")
 
-        # Read parquet columns, exclude bbox, sanitize names
+        # Read parquet columns, exclude bounding-box columns
+        # (goatlib.io.bbox_columns), sanitize names
         columns_result = self.duckdb_con.execute(
             f"DESCRIBE SELECT * FROM '{parquet_path}'"
         ).fetchall()
@@ -427,20 +412,26 @@ class ProjectImportRunner(SimpleToolRunner):
         columns = []
         for col in columns_result:
             name = col[0]
-            if name == "bbox":
+            if name == "bbox" or is_bbox_struct(str(col[1])):
                 continue
             if not safe_col_re.match(name):
                 logger.warning("Skipping unsafe column name: %r", name)
                 continue
-            columns.append(name)
-        col_list = ", ".join(f'"{c}"' for c in columns)
+            # DuckDB writes no GeoParquet metadata for an empty table, so an
+            # exported empty layer (e.g. one users draw into) reads back with
+            # its geometry as WKB BLOB. Restore the geometry type.
+            if name == "geometry" and str(col[1]).upper() == "BLOB":
+                columns.append('ST_GeomFromWKB("geometry") AS "geometry"')
+                continue
+            columns.append(f'"{name}"')
+        col_list = ", ".join(columns)
 
         # Create table from parquet
         self.duckdb_con.execute(
             f"CREATE TABLE {table_path} AS SELECT {col_list} FROM '{parquet_path}'"
         )
 
-        tracker.ducklake_tables.append(table_path)
+        self._track_new_table(new_layer_id, table_path)
         logger.info("Created DuckLake table: %s", table_path)
 
     def _upload_s3_asset(
@@ -519,11 +510,7 @@ class ProjectImportRunner(SimpleToolRunner):
                     reports.append(ExportReportLayout.model_validate(json.load(f)))
 
         conn = await asyncpg.connect(
-            host=self.settings.postgres_server,
-            port=self.settings.postgres_port,
-            user=self.settings.postgres_user,
-            password=self.settings.postgres_password,
-            database=self.settings.postgres_db,
+            **self.settings.postgres_connect_args(),
         )
 
         try:
@@ -837,12 +824,9 @@ class ProjectImportRunner(SimpleToolRunner):
         if self.settings is None:
             return
 
-        for table_path in tracker.ducklake_tables:
-            try:
-                self.duckdb_con.execute(f"DROP TABLE IF EXISTS {table_path}")
-                logger.info("Cleaned up DuckLake table: %s", table_path)
-            except Exception as e:
-                logger.warning("Failed to drop table %s: %s", table_path, e)
+        # Only tables no layer row points at: rows committed before the
+        # failure keep their data.
+        self.drop_unrecorded_tables()
 
         for s3_key in tracker.s3_keys:
             try:
@@ -854,6 +838,7 @@ class ProjectImportRunner(SimpleToolRunner):
             except Exception as e:
                 logger.warning("Failed to delete S3 object %s: %s", s3_key, e)
 
+    @drops_unrecorded_tables
     def run(self: Self, params: ProjectImportParams) -> dict:
         """Execute the project import."""
         if self.settings is None:
@@ -986,7 +971,6 @@ class ProjectImportRunner(SimpleToolRunner):
                                 parquet_path=parquet_path,
                                 new_user_id=new_user_id,
                                 new_layer_id=new_layer_id,
-                                tracker=tracker,
                             )
                             imported_layer_count += 1
                             if imported_layer_count % recycle_every == 0:

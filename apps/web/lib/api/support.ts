@@ -79,15 +79,20 @@ export const isSupportEnabled = (data: unknown, error: unknown): boolean => {
  * the tab regains focus, and the user's own writes revalidate it at once (`revalidateSupport`).
  * Core answers repeats from a short per-user cache. Errors are not retried; the next load or
  * focus asks again.
+ *
+ * While the first answer is on its way, support counts as on, so the support entries show at once
+ * and the counts follow. The answer can take a moment (core may ask Odoo); a 404 (support off)
+ * comes back at once, without Odoo, and turns the entries off again.
  */
 export const useSupportSummary = ({ enabled: active = true }: { enabled?: boolean } = {}) => {
-  const { data, error } = useAuthedSWR<SupportSummary>(
+  const { data, error, isLoading } = useAuthedSWR<SupportSummary>(
     active ? `${SUPPORT_API_BASE_URL}/summary` : null,
     fetcher,
     { revalidateOnFocus: true, shouldRetryOnError: false }
   );
   const notConfigured = active && !!error && asRequestError(error)?.status === 404;
-  return { summary: data, enabled: active && isSupportEnabled(data, error), notConfigured };
+  const enabled = active && (isSupportEnabled(data, error) || (!!isLoading && !error));
+  return { summary: data, enabled, notConfigured };
 };
 
 const SUPPORT_TICKETS_URL = `${SUPPORT_API_BASE_URL}/tickets`;
@@ -120,6 +125,18 @@ export const revalidateSupportTickets = (
     if (!scope || !state) return false;
     return include(scope, state);
   });
+
+/**
+ * After the user changed a ticket (status, reply): drops the cached ticket lists, so the list page
+ * loads them fresh instead of showing the old state first, and refetches the summary (badge).
+ */
+export const forgetSupportLists = (): Promise<unknown> =>
+  Promise.all([
+    globalMutate((key) => Array.isArray(key) && key[0] === SUPPORT_TICKETS_URL, undefined, {
+      revalidate: true,
+    }),
+    globalMutate(`${SUPPORT_API_BASE_URL}/summary`),
+  ]);
 
 export const useSupportTickets = (scope: TicketScope, state: TicketState) => {
   const { data, error, isLoading, mutate } = useAuthedSWR<SupportTicket[]>(

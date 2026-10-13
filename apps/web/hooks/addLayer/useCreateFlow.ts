@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { createEmptyLayer } from "@/lib/api/layers";
 import { useJobs } from "@/lib/api/processes";
 import { addRunningJobIds } from "@/lib/store/jobs/slice";
-import type { CreateEmptyLayerInput, FieldDefinition } from "@/lib/validations/layer";
+import type { CreatableFieldKind, CreateEmptyLayerInput, FieldDefinition } from "@/lib/validations/layer";
 import { createEmptyLayerSchema, isCreatableKind } from "@/lib/validations/layer";
 
 import { useAppDispatch } from "@/hooks/store/ContextHooks";
@@ -122,13 +122,15 @@ export const useCreateFlow = ({
             .filter((field) => isCreatableKind(field.kind))
             .map((field) => ({
               name: field.name,
-              kind: field.kind as "string" | "number" | "datetime" | "boolean",
+              kind: field.kind as CreatableFieldKind,
               // The vocabulary travels with the field: it is the one part of a
               // column the create dialog can ask for that storage type does not
               // carry, so dropping it here loses it silently.
               ...(field.allowed_values?.length
                 ? { allowed_values: field.allowed_values, allow_other: !!field.allow_other }
                 : {}),
+              // Where a serial number starts counting; the server defaults to 1.
+              ...(field.kind === "serial" && field.start !== undefined ? { start: field.start } : {}),
             })),
         },
         projectId

@@ -95,7 +95,7 @@ export default function OrganizationInviteJoin(props: { params: Promise<{ invite
                     </Typography>
                     <Avatar
                       sx={{ width: 50, height: 50 }}
-                      alt={invitation?.payload?.avatar || "Org"}
+                      alt={invitation?.payload?.name || t("organization")}
                       src={invitation?.payload?.avatar}
                     />
                   </Stack>

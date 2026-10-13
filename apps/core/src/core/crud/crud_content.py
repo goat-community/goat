@@ -32,6 +32,7 @@ from core.schemas.content import (
     ResourceType,
     SharedWith,
 )
+from core.schemas.template import DATASET_MODES
 from core.templates.snapshot import kinds_for
 
 _ORDER_COLUMNS: dict[str, str] = {
@@ -1036,7 +1037,7 @@ class CRUDContent:
                 )
             ships_data = any(
                 isinstance(inp, dict)
-                and inp.get("mode") == "ship"
+                and inp.get("mode") in DATASET_MODES
                 and (inp.get("from_catalog") or inp.get("public_read"))
                 for inp in (r.inputs or [])
             )

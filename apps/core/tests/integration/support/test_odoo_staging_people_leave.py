@@ -2,8 +2,8 @@
 
 Staff who leave (user archived or deleted), customer contacts that are archived,
 deleted or merged, and colleagues whose stored contact was merged away. Needs
-the bridge key (ODOO_SUPPORT_API_KEY) and an admin key (ODOO_ADMIN_KEY, as for
-scripts/odoo/support_bridge_setup.py): the admin plays Odoo's staff (creates a
+the bridge key (ODOO_SUPPORT_API_KEY) and an admin key (ODOO_ADMIN_KEY): the
+admin plays Odoo's staff (creates a
 throwaway internal user, archives, deletes, merges) and removes every record a
 test created. The service runs on an in-memory store, so neither GOAT's
 database nor its caches are involved.
@@ -113,6 +113,11 @@ def _provider(client: SupportOdooClient) -> OdooSupportProvider:
 
 
 def _service(provider: OdooSupportProvider, store: MemoryStore) -> SupportService:
+    async def keycloak(user_id: str) -> dict[str, Any]:
+        """Keycloak verified everyone's stored email."""
+        user = await store.load_user(uuid.UUID(user_id))
+        return {"email": user.email, "emailVerified": True}
+
     return SupportService(
         provider,
         store,
@@ -120,6 +125,7 @@ def _service(provider: OdooSupportProvider, store: MemoryStore) -> SupportServic
         ticket_limiter=RateLimiter(50, 3600),
         reply_limiter=RateLimiter(50, 3600),
         email_proof=EmailProof(verified_email=None, trust_stored=True),
+        keycloak_user=keycloak,
     )
 
 
@@ -336,7 +342,7 @@ async def test_customer_contact_archived_deleted_or_merged(
     assert detail is not None and detail.messages[-1].author_contact_id == target
 
 
-async def test_colleague_whose_contact_was_merged_gets_a_new_one(
+async def test_colleague_whose_contact_was_merged_is_linked_to_the_survivor(
     admin: Admin, client: SupportOdooClient
 ) -> None:
     provider = _provider(client)
@@ -359,13 +365,11 @@ async def test_colleague_whose_contact_was_merged_gets_a_new_one(
     me = store.add_user(email="me@example.invalid", contact_id=me_contact)
     anna = store.add_user(email=anna_email, name="GOAT IT Anna", contact_id=stale)
     await _service(provider, store).update_followers(me.id, ref, (anna.id,), ())
-    fresh = (await store.load_user(anna.id)).contact_id
-    assert fresh is not None
-    admin.track("res.partner", fresh)
-    assert fresh not in (stale, other)  # colleagues are never matched by email
+    # her email is verified: she is linked to the surviving contact of it
+    assert (await store.load_user(anna.id)).contact_id == other
     detail = await provider.get_ticket(ref)
     assert detail is not None
-    assert fresh in {f.contact_id for f in detail.followers if not f.is_internal}
+    assert other in {f.contact_id for f in detail.followers if not f.is_internal}
 
 
 async def test_customer_email_changed_in_odoo_keeps_the_link(

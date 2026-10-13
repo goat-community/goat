@@ -80,9 +80,16 @@ export const postOrganizationSchema = organizationBaseSchema.extend({
   newsletter_subscribe: z.boolean(),
 });
 
+// Whether the signed-in user may set up an organization (core's
+// ALLOW_ORGANIZATION_CREATION; superusers always may).
+export const organizationCreationSchema = z.object({
+  allowed: z.boolean(),
+});
+
 export type Organization = z.infer<typeof organizationSchema>;
 export type OrganizationMember = z.infer<typeof organizationMemberSchema>;
 export type OrganizationUpdate = z.infer<typeof organizationUpdateSchema>;
 export type InvitationCreate = z.infer<typeof invitationCreateSchema>;
 export type PostOrganization = z.infer<typeof postOrganizationSchema>;
 export type OrganizationMemberQueryParams = z.infer<typeof organizationMemberQueryParams>;
+export type OrganizationCreation = z.infer<typeof organizationCreationSchema>;

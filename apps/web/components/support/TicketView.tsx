@@ -31,6 +31,7 @@ import { useDateFnsLocale } from "@/i18n/utils";
 import {
   SUPPORT_API_BASE_URL,
   downloadSupportAttachment,
+  forgetSupportLists,
   postSupportReply,
   rateSupportTicket,
   reopenSupportTicket,
@@ -421,10 +422,9 @@ const SidePanel = ({ detail, onChanged }: { detail: SupportTicketDetail; onChang
   const { colleagues } = useSupportColleagues();
   const tk = detail.ticket;
   const [busy, setBusy] = useState(false);
-  // Matching by name: the ticket's customer is shown on their own line, not among the followers.
-  const addable = colleagues.filter(
-    (c) => c.name !== tk.customer_name && !detail.followers.some((f) => f.name === c.name)
-  );
+  // By contact, not name: two colleagues can share a name. The customer has their own line.
+  const onTicket = new Set([tk.customer_contact_id, ...detail.followers.map((f) => f.contact_id)]);
+  const addable = colleagues.filter((c) => c.contact_id === null || !onTicket.has(c.contact_id));
   const change = async (
     update: { add_user_ids?: string[]; remove_contact_ids?: number[] },
     leave = false
@@ -433,6 +433,7 @@ const SidePanel = ({ detail, onChanged }: { detail: SupportTicketDetail; onChang
     setBusy(true);
     try {
       await updateSupportFollowers(tk.ref, update);
+      void forgetSupportLists(); // leaving a ticket removes it from your list
       // Removing yourself ends your access; a refetch would only show "not found".
       if (leave) router.push("/support");
       else onChanged();
@@ -496,6 +497,19 @@ const SidePanel = ({ detail, onChanged }: { detail: SupportTicketDetail; onChang
             sx={{ mt: "12px" }}
             options={addable}
             getOptionLabel={(c) => c.name}
+            getOptionKey={(c) => c.user_id}
+            renderOption={({ key, ...props }, c) => (
+              <li key={key} {...props}>
+                <Stack sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 14 }} noWrap>
+                    {c.name}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: "text.secondary" }} noWrap>
+                    {c.email}
+                  </Typography>
+                </Stack>
+              </li>
+            )}
             value={null}
             blurOnSelect
             disabled={busy}
@@ -630,9 +644,9 @@ const TicketView = ({ ticketRef }: { ticketRef: string }) => {
       const result = await postSupportReply(tk.ref, reply, files);
       clearReply();
       setFiles([]);
-      toast.success(t("support_reply_sent"));
       if (result.failed_files.length)
         toast.warning(t("support_failed_files", { files: result.failed_files.join(", ") }));
+      void forgetSupportLists();
       await mutate();
     } catch (e) {
       toast.error(supportErrorMessage(t, e, { action: true }));
@@ -648,6 +662,7 @@ const TicketView = ({ ticketRef }: { ticketRef: string }) => {
     setStatusBusy(true);
     try {
       await (action === "resolve" ? resolveSupportTicket(tk.ref) : reopenSupportTicket(tk.ref));
+      void forgetSupportLists();
       await mutate();
     } catch (e) {
       toast.error(supportErrorMessage(t, e, { action: true }));
@@ -741,7 +756,9 @@ const TicketView = ({ ticketRef }: { ticketRef: string }) => {
             }}>
             {tk.needs_my_reply && (
               <InlineNotice icon={ICON_NAME.CLOCK} tone="warning">
-                {t("support_waiting_banner", { agent: supportReplyAgent(tk, t("support_goat_team")) })}
+                {supportReplyAgent(tk)
+                  ? t("support_waiting_banner", { agent: supportReplyAgent(tk) })
+                  : t("support_waiting_banner_team")}
               </InlineNotice>
             )}
             {!detail.on_ticket && (

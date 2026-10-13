@@ -54,6 +54,43 @@ Resolve the postgres HOST.
 {{- end -}}
 
 {{/*
+postgresql.external.ducklakeHost when it applies (external Postgres whose
+`host` is a transaction pooler): the database itself, for DuckLake's catalog
+connections. Empty otherwise.
+*/}}
+{{- define "goat.postgresql.ducklakeHostOverride" -}}
+{{- if not .Values.postgresql.cluster.enabled -}}
+{{- .Values.postgresql.external.ducklakeHost -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Resolve the host for DuckLake's catalog connections: the override above, or
+the same host as everything else.
+*/}}
+{{- define "goat.postgresql.ducklakeHost" -}}
+{{- include "goat.postgresql.ducklakeHostOverride" . | default (include "goat.postgresql.host" .) -}}
+{{- end -}}
+
+{{/*
+postgresql.external.ducklakePort when it applies (external Postgres whose
+pooler listens on another port than the database). Empty otherwise.
+*/}}
+{{- define "goat.postgresql.ducklakePortOverride" -}}
+{{- if and (not .Values.postgresql.cluster.enabled) .Values.postgresql.external.ducklakePort -}}
+{{- .Values.postgresql.external.ducklakePort | toString -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Resolve the port for DuckLake's catalog connections: the override above, or
+the same port as everything else.
+*/}}
+{{- define "goat.postgresql.ducklakePort" -}}
+{{- include "goat.postgresql.ducklakePortOverride" . | default (include "goat.postgresql.port" .) -}}
+{{- end -}}
+
+{{/*
 Postgres database name. Same for bundled and external in v1.
 */}}
 {{- define "goat.postgresql.database" -}}
@@ -65,6 +102,52 @@ Postgres port.
 */}}
 {{- define "goat.postgresql.port" -}}
 {{- default 5432 .Values.postgresql.external.port | toString -}}
+{{- end -}}
+
+{{/*
+"true" when postgresql.external.host is a pooler in transaction mode
+(postgresql.external.transactionPooler; external Postgres only), else empty.
+Connections that hold a session past a transaction can't go through such a
+pooler: DuckLake's catalog needs ducklakeHost, and Windmill its own database
+connection.
+*/}}
+{{- define "goat.postgresql.transactionPooler" -}}
+{{- if and (not .Values.postgresql.cluster.enabled) .Values.postgresql.external.transactionPooler -}}
+{{- if not .Values.postgresql.external.ducklakeHost -}}
+{{- fail "postgresql.external.transactionPooler needs postgresql.external.ducklakeHost: DuckLake's catalog connections stay open for as long as a service runs and must reach the database itself, not the pooler" -}}
+{{- end -}}
+{{- if and .Values.windmill.server.enabled .Values.windmill.db.reuseGoatConnection -}}
+{{- fail "postgresql.external.transactionPooler needs windmill.db.reuseGoatConnection: false and windmill.db.external pointing at the database itself: Windmill holds sessions a transaction pooler breaks" -}}
+{{- end -}}
+true
+{{- end -}}
+{{- end -}}
+
+{{/*
+The Postgres connection keys a service ConfigMap carries, space-separated.
+The ConfigMaps skip them in their `config` range and render them through
+goat.postgresql.configEnv, so a key set in `config` renders once.
+*/}}
+{{- define "goat.postgresql.configKeys" -}}
+POSTGRES_SERVER POSTGRES_DB POSTGRES_PORT POSTGRES_TRANSACTION_POOLER
+{{- end -}}
+
+{{/*
+The Postgres connection in a service ConfigMap: the chart's, or a key of the
+same name in the service's `config`. Params: root, config.
+*/}}
+{{- define "goat.postgresql.configEnv" -}}
+{{- $c := .config | default dict -}}
+POSTGRES_SERVER: {{ $c.POSTGRES_SERVER | default (include "goat.postgresql.host" .root) | quote }}
+POSTGRES_DB: {{ $c.POSTGRES_DB | default (include "goat.postgresql.database" .root) | quote }}
+POSTGRES_PORT: {{ $c.POSTGRES_PORT | default (include "goat.postgresql.port" .root) | quote }}
+{{- if hasKey $c "POSTGRES_TRANSACTION_POOLER" }}
+POSTGRES_TRANSACTION_POOLER: {{ $c.POSTGRES_TRANSACTION_POOLER | toString | quote }}
+{{- else }}
+{{- with include "goat.postgresql.transactionPooler" .root }}
+POSTGRES_TRANSACTION_POOLER: {{ . | quote }}
+{{- end }}
+{{- end }}
 {{- end -}}
 
 {{/*

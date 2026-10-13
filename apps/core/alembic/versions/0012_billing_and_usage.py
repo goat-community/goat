@@ -13,8 +13,8 @@ Every step checks the catalog first (a fresh database gets the end state from
 scripts/initial_data.py, which every deploy runs after the migrations. See
 docs/odoo-entitlement-contract.md.
 
-Revision ID: 0011_billing_and_usage
-Revises: 0010_support_tickets
+Revision ID: 0012_billing_and_usage
+Revises: 0011_layer_serial_counter
 """
 
 import sys
@@ -31,8 +31,8 @@ if _ALEMBIC_DIR not in sys.path:
 
 import helpers as h  # noqa: E402
 
-revision = "0011_billing_and_usage"
-down_revision = "0010_support_tickets"
+revision = "0012_billing_and_usage"
+down_revision = "0011_layer_serial_counter"
 branch_labels = None
 depends_on = None
 

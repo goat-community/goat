@@ -529,8 +529,8 @@ def test_fetch_latest_snapshot_id_installs_postgres_before_load(
             executed.append(sql)
             return self
 
-        def fetchone(self) -> tuple[int]:
-            return (5,)
+        def fetchall(self) -> list[tuple[int]]:
+            return [(5,)]
 
         def close(self) -> None:
             pass
@@ -552,8 +552,8 @@ def test_fetch_latest_snapshot_id_holds_poll_lock() -> None:
             observed["locked"] = p._poll_lock.locked()
             return self
 
-        def fetchone(self) -> tuple[int]:
-            return (7,)
+        def fetchall(self) -> list[tuple[int]]:
+            return [(7,)]
 
         def close(self) -> None:
             pass

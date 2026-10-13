@@ -41,6 +41,8 @@ class TicketOut(BaseModel):
     category: Category
     impact: Impact | None
     customer_name: str | None
+    # The customer's contact: the people panel leaves them out of "add colleague".
+    customer_contact_id: int | None
     is_mine: bool
     agent_name: str | None
     via: Via
@@ -93,3 +95,5 @@ class ColleagueOut(BaseModel):
     user_id: UUID
     name: str
     email: str
+    # Matches a follower (FollowerOut.contact_id); None until they get a contact.
+    contact_id: int | None

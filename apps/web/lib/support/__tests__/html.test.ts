@@ -33,6 +33,16 @@ describe("prepareSupportHtml", () => {
     expect(quoted).toContain("sig");
   });
 
+  it("keeps http(s) and mailto links only, not relative or protocol-relative ones", () => {
+    const { main } = prepareSupportHtml(
+      '<a href="/settings">a</a><a href="//evil.example.com/x">b</a><a href="data:text/html,x">c</a><a href="https://ok.example.org">d</a>'
+    );
+    expect(main).not.toContain("/settings");
+    expect(main).not.toContain("evil.example.com");
+    expect(main).not.toContain("data:");
+    expect(main).toContain('href="https://ok.example.org"');
+  });
+
   it("drops javascript: hrefs", () => {
     const { main } = prepareSupportHtml('<a href="javascript:alert(1)">click</a>');
     expect(main).toContain("click");

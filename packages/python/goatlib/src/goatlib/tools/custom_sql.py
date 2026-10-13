@@ -29,6 +29,7 @@ from goatlib.analysis.schemas.ui import (
 from goatlib.models.io import DatasetMetadata
 from goatlib.tools.base import BaseToolRunner
 from goatlib.tools.schemas import ToolInputBase
+from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 from goatlib.utils.sql_validation import validate_sql_query
 
 logger = logging.getLogger(__name__)
@@ -203,6 +204,7 @@ class CustomSqlToolRunner(BaseToolRunner[CustomSqlToolParams]):
             return {}
 
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             # Spatial extension is optional — needed only for geometry columns
             try:
@@ -290,8 +292,20 @@ class CustomSqlToolRunner(BaseToolRunner[CustomSqlToolParams]):
                 f"numbers, and underscores, and start with a letter or underscore"
             )
 
+        # DuckDB writes no GeoParquet metadata for an empty table, so an empty
+        # input (e.g. an intermediate workflow result without rows) reads back
+        # with its geometry as WKB BLOB and spatial functions on it fail to
+        # bind. Restore the geometry type.
+        columns = con.execute(
+            f"DESCRIBE SELECT * FROM read_parquet('{parquet_path}')"
+        ).fetchall()
+        select = "*"
+        if any(c[0] == "geometry" and str(c[1]).upper() == "BLOB" for c in columns):
+            select = '* REPLACE (ST_GeomFromWKB("geometry") AS "geometry")'
+
         con.execute(
-            f"CREATE VIEW \"{alias}\" AS SELECT * FROM read_parquet('{parquet_path}')"
+            f'CREATE VIEW "{alias}" AS SELECT {select} '
+            f"FROM read_parquet('{parquet_path}')"
         )
         logger.info(f"Registered view '{alias}' from {parquet_path}")
 
@@ -315,6 +329,7 @@ class CustomSqlToolRunner(BaseToolRunner[CustomSqlToolParams]):
 
         # Create a fresh in-memory DuckDB for isolated execution
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
 

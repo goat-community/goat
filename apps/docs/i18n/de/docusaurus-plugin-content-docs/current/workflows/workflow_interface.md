@@ -239,7 +239,7 @@ Sobald ein Workflow eingerichtet ist, können Sie ihn als **Vorlage** speichern,
 
 <div class="step">
   <div class="step-number">4</div>
-  <div class="content">Entscheiden Sie in der <code>Eingaben</code>-Tabelle für jeden Eingabe-Layer, ob er <strong>mit der Vorlage mitgeliefert</strong> wird oder die Vorlage <strong>bei der Verwendung nach einem Layer fragt</strong>. Ein mitgelieferter Layer wird zusammen mit der Vorlage geteilt, damit andere sie ausführen können.</div>
+  <div class="content">Entscheiden Sie in der <code>Eingaben</code>-Tabelle für jeden Eingabe-Layer, ob er <strong>mit der Vorlage mitgeliefert</strong> wird oder die Vorlage <strong>bei der Verwendung nach einem Layer fragt</strong>. Ein mitgelieferter Layer wird zusammen mit der Vorlage geteilt, damit andere sie ausführen können. Für einen mitgelieferten Layer können Sie auch <code>Kopie für jeden Nutzer (mit Inhalt)</code> oder <code>Leere Kopie für jeden Nutzer</code> wählen, damit alle eine eigene bearbeitbare Kopie statt Ihres schreibgeschützten Layers erhalten (siehe <a href="../getting_started/start_from_a_template#datensätze-in-einer-vorlage">Datensätze in einer Vorlage</a>).</div>
 </div>
 
 <div class="step">

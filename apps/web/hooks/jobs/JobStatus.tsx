@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { getJobResult, useJobs } from "@/lib/api/processes";
 import { setRunningJobIds } from "@/lib/store/jobs/slice";
 import { claimJobAnnouncement } from "@/lib/utils/jobAnnouncement";
+import { jobLabel } from "@/lib/utils/jobLabel";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
@@ -81,7 +82,7 @@ export function useJobStatus(onSuccess?: () => void, onFailed?: () => void) {
         if (job.status === "running" || job.status === "accepted") return;
 
         dispatch(setRunningJobIds(runningJobIds.filter((id) => id !== job.jobID)));
-        const type = t(job.processID) || "";
+        const type = jobLabel(job, t);
         let announce: (() => void) | undefined;
 
         if (job.status === "successful") {

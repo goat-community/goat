@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import type { StyleSpecification } from "maplibre-gl";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 import { Icon } from "@p4b/ui/components/Icon";
 
@@ -64,7 +65,7 @@ interface ElementContentRendererProps {
  * Chart configs have: type, setup (title, layer_project_id, ...), options (...)
  * We use type assertion since report element config is stored as Record<string, any>
  */
-const toChartConfig = (element: ReportElement): WidgetChartConfig => {
+const toChartConfig = (element: ReportElement, defaultTitle: string): WidgetChartConfig => {
   const chartType = element.type as (typeof chartTypes.Values)[keyof typeof chartTypes.Values];
 
   // If config is already in the correct format (has setup and options), use it directly
@@ -79,7 +80,7 @@ const toChartConfig = (element: ReportElement): WidgetChartConfig => {
   // Return default config with proper type
   return {
     type: chartType,
-    setup: { title: "Chart" },
+    setup: { title: defaultTitle },
     options: {},
   } as WidgetChartConfig;
 };
@@ -141,11 +142,12 @@ const toElementConfig = (element: ReportElement): WidgetElementConfig => {
  * Renders chart elements (histogram, categories, pie) using WidgetChart from builder
  */
 export const ChartElementRenderer: React.FC<ElementRendererProps> = ({ element, viewOnly = true }) => {
+  const { t } = useTranslation("common");
   if (!isChartElementType(element.type)) {
     return null;
   }
 
-  const chartConfig = toChartConfig(element);
+  const chartConfig = toChartConfig(element, t("chart"));
 
   return <WidgetChart config={chartConfig} viewOnly={viewOnly} />;
 };

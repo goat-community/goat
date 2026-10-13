@@ -57,7 +57,7 @@ porting"). The original design notes for usage are local; ask Majk for them.
 - core: `webhooks/odoo/entitlement` and `webhooks/trial` (shared secret), `apply_entitlement`,
   nullable quotas (`NULL` = unlimited), `organization.extras`, feature gating by extras in
   `check_organization.sql`, `white_label` in `seed_roles`; Stripe and plan code removed.
-- One migration for billing and usage, `0011_billing_and_usage` (after support's `0010`).
+- One migration for billing and usage, `0012_billing_and_usage` (after `0011_layer_serial_counter` from main).
 - goatlib: the `odoo_entitlement_push` and `trial_expiry` tasks, registered in the task registry.
 - web: one-step organization signup, quota display for unlimited values, features gated by extras,
   billing page and plan cards removed.
@@ -71,7 +71,8 @@ porting"). The original design notes for usage are local; ask Majk for them.
 
 ## Changed while porting
 
-- Both old migrations became one, `0011_billing_and_usage` with `down_revision = "0010_support_tickets"`,
+- Both old migrations became one, `0011_billing_and_usage` with `down_revision = "0010_support_tickets"`
+  (renumbered to `0012` after main's `0011_layer_serial_counter`),
   guarded like the others: the organization part first, then the ledger (downgrade the other way round).
 - Settings follow the Odoo conventions from support (module docstring of `core.odoo`): the task reads
   `ODOO_URL`, `ODOO_DB`, `ODOO_BILLING_USER`, `ODOO_BILLING_API_KEY`; `odoo_setup.py` reads `ODOO_URL`,
@@ -90,7 +91,7 @@ porting"). The original design notes for usage are local; ask Majk for them.
 
 ## Open before it can ship
 
-1. **Check migration `0011_billing_and_usage` against production.** It drops `plan_name`, `stripe_id` and the six signup
+1. **Check migration `0012_billing_and_usage` against production.** It drops `plan_name`, `stripe_id` and the six signup
    columns, and makes quotas nullable. Look at the production data first (anything still read from those
    columns, anything to keep in the CRM).
 2. **XML-RPC goes away.** `/xmlrpc` and `/jsonrpc` are deprecated since Odoo 19 and scheduled for removal. The

@@ -61,7 +61,7 @@ The harvesting pipeline publishes to the catalog bucket and GOAT consumes it. Wh
 
 `GET /stac` responses carry an `ETag` and a short `Cache-Control`, so conditional requests answer `304` while a generation is unchanged.
 
-Auth follows the repo-wide `AUTH` switch (JWT via Keycloak when enabled). `/stac` reads are **public**: no credentials means anonymous, but an invalid or expired token is a `401` rather than a silent downgrade. `/mcp` always requires credentials when auth is on.
+Auth follows the repo-wide `AUTH` switch (JWT via Keycloak when enabled). `/stac` reads are **public**: no credentials means anonymous, but an invalid or expired token is a `401` rather than a silent downgrade. `/mcp` always requires credentials when auth is on. With `AUTH_ALLOWED_CLIENTS` set, a token issued to any other client of the realm counts as invalid, so it gets the same `401` as any invalid token, on the public reads too.
 
 ## Running Locally
 

@@ -20,6 +20,7 @@ export const supportTicketSchema = z.object({
   category: supportCategorySchema,
   impact: supportImpactSchema.nullable(),
   customer_name: z.string().nullable(),
+  customer_contact_id: z.number().nullable().default(null),
   is_mine: z.boolean(),
   agent_name: z.string().nullable(),
   via: supportViaSchema,
@@ -84,7 +85,13 @@ export const supportWriteResultSchema = z.object({
   message_id: z.number().nullable(),
   failed_files: z.array(z.string()),
 });
-export const supportColleagueSchema = z.object({ user_id: z.string(), name: z.string(), email: z.string() });
+export const supportColleagueSchema = z.object({
+  user_id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  // matches a follower's contact_id; null until they get a contact
+  contact_id: z.number().nullable().default(null),
+});
 
 export type SupportStatus = z.infer<typeof supportStatusSchema>;
 export type SupportCategory = z.infer<typeof supportCategorySchema>;

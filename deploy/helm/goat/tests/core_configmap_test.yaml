@@ -67,3 +67,35 @@ tests:
       - equal:
           path: data.GOAT_PROCESSES_URL
           value: http://my-processes:8300
+  - it: lets anyone create an organization by default
+    template: core/configmap.yaml
+    asserts:
+      - equal:
+          path: data.ALLOW_ORGANIZATION_CREATION
+          value: "true"
+  - it: leaves creating organizations to superusers with global.auth.allowOrganizationCreation false
+    template: core/configmap.yaml
+    set:
+      global.auth.allowOrganizationCreation: false
+    asserts:
+      - equal:
+          path: data.ALLOW_ORGANIZATION_CREATION
+          value: "false"
+  - it: ALLOW_ORGANIZATION_CREATION set in core.config wins
+    template: core/configmap.yaml
+    set:
+      global.auth.allowOrganizationCreation: true
+      core.config.ALLOW_ORGANIZATION_CREATION: "false"
+    asserts:
+      - equal:
+          path: data.ALLOW_ORGANIZATION_CREATION
+          value: "false"
+  - it: ALLOW_ORGANIZATION_CREATION set in core.extraEnv is not rendered twice
+    template: core/configmap.yaml
+    set:
+      core.extraEnv:
+        - name: ALLOW_ORGANIZATION_CREATION
+          value: "false"
+    asserts:
+      - notExists:
+          path: data.ALLOW_ORGANIZATION_CREATION

@@ -314,6 +314,10 @@ class TestOevGueteklasseFrequencyIntervals:
                     3::INTEGER AS route_type,
                     12::INTEGER AS trip_count
             """)
+            tool.con.execute(
+                "CREATE TABLE gtfs_stations "
+                "(stop_id VARCHAR, stop_name VARCHAR, geom GEOMETRY)"
+            )
 
             tool._calculate_station_categories(config, time_window)
             row = tool.con.execute("""

@@ -334,6 +334,64 @@ class TestProjectImportRunner:
         assert result["sections"][0]["layerId"] == new_uuid_1
         assert result["sections"][1]["layerId"] == new_uuid_2
 
+    def test_remap_builder_config_keeps_numbers_that_are_not_link_ids(
+        self, runner: ProjectImportRunner
+    ) -> None:
+        """Only fields that name a project entry are remapped; a panel's
+        shadow or opacity that equals an old link id keeps its value."""
+        config = {
+            "interface": [
+                {
+                    "config": {"appearance": {"shadow": 5, "opacity": 1}},
+                    "widgets": [
+                        {
+                            "config": {
+                                "layer_project_id": 5,
+                                "options": {"downloadable_layers": [1, 5]},
+                            }
+                        }
+                    ],
+                }
+            ]
+        }
+
+        result = runner._remap_builder_config(config, {1: 29, 5: 48})
+
+        panel = result["interface"][0]
+        assert panel["config"]["appearance"] == {"shadow": 5, "opacity": 1}
+        widget = panel["widgets"][0]["config"]
+        assert widget["layer_project_id"] == 48
+        assert widget["options"]["downloadable_layers"] == [29, 48]
+
+    def test_remap_builder_config_remaps_interaction_rules(
+        self, runner: ProjectImportRunner
+    ) -> None:
+        """An imported dashboard's rules point at the imported entries and
+        groups, as in a copy (core's crud_project_copy)."""
+        config = {
+            "interactions": [
+                {
+                    "id": "sync",
+                    "trigger": {"type": "visibility_changed", "sourceId": 1},
+                    "action": {"type": "sync_visibility"},
+                    "mapping": [{"sourceId": 2, "actionParams": {}}],
+                },
+                {
+                    "id": "tabs",
+                    "trigger": {"type": "group_activated"},
+                    "action": {"type": "switch_tab", "targetWidgetId": "w"},
+                    "mapping": [{"sourceId": 7, "actionParams": {"tabId": "a"}}],
+                },
+            ]
+        }
+
+        result = runner._remap_builder_config(config, {1: 29, 2: 30}, {7: 70})
+
+        sync, tabs = result["interactions"]
+        assert sync["trigger"]["sourceId"] == 29
+        assert sync["mapping"][0]["sourceId"] == 30
+        assert tabs["mapping"][0]["sourceId"] == 70
+
     def test_remap_builder_config_remaps_group_icon_keys(
         self, runner: ProjectImportRunner
     ) -> None:
@@ -472,23 +530,29 @@ class TestProjectImportRunner:
         assert meta.custom_basemaps == basemaps
 
     def test_cleanup_on_failure(self, runner: ProjectImportRunner) -> None:
-        """DuckLake tables dropped, S3 objects deleted."""
+        """DuckLake tables without a layer row dropped, S3 objects deleted.
+
+        A table whose layer row exists stays: the rows were committed before
+        the failure (or the commit's reply was lost), and dropping it would
+        leave an imported layer without data.
+        """
+        orphaned = "11111111-1111-1111-1111-111111111111"
+        recorded = "22222222-2222-2222-2222-222222222222"
+        runner._track_new_table(orphaned, "lake.main.t_layer1")
+        runner._track_new_table(recorded, "lake.main.t_layer2")
+        runner._recorded_layer_ids = lambda ids: {recorded} & set(ids)
         tracker = ImportCleanupTracker()
-        tracker.ducklake_tables = [
-            "lake.user_abc.t_layer1",
-            "lake.user_abc.t_layer2",
-        ]
         tracker.s3_keys = ["assets/user/file1.png", "assets/user/file2.png"]
 
         runner._cleanup_on_failure(tracker)
 
-        # Verify DuckDB DROP TABLE calls
         drop_calls = [
-            c
+            str(c)
             for c in runner._duckdb_con.execute.call_args_list
             if "DROP TABLE" in str(c)
         ]
-        assert len(drop_calls) == 2
+        assert len(drop_calls) == 1
+        assert "lake.main.t_layer1" in drop_calls[0]
 
         # Verify S3 delete_object calls
         assert runner._s3_client.delete_object.call_count == 2
@@ -1513,3 +1577,73 @@ class TestImportWorkflowExportLinks:
         }
         dataset_node = workflow_args[5]["nodes"][0]  # type: ignore[index]
         assert dataset_node["data"]["projectLayerId"] == 5001
+
+
+class TestImportDucklakeLayerGeometry:
+    """An exported empty layer must come back as a layer users can draw into."""
+
+    @pytest.fixture
+    def con(self) -> Any:
+        import duckdb
+
+        con = duckdb.connect()
+        con.execute("INSTALL spatial; LOAD spatial")
+        con.execute("ATTACH ':memory:' AS lake")
+        yield con
+        con.close()
+
+    def _import(self, con: Any, parquet_path: Path) -> dict[str, str]:
+        runner = ProjectImportRunner()
+        runner.settings = MagicMock()
+        runner._duckdb_con = con
+        layer_id = "0f0e8a4c-5d1f-4c1b-9a51-0d8f2c7e4a10"
+        runner._import_ducklake_layer(parquet_path, "user", layer_id)
+        schema, table = runner._new_layer_tables[layer_id].split(".")[1:]
+        return dict(
+            con.execute(
+                "SELECT column_name, data_type FROM information_schema.columns "
+                "WHERE table_catalog = 'lake' AND table_schema = ? AND table_name = ?",
+                [schema, table],
+            ).fetchall()
+        )
+
+    def test_an_empty_layer_keeps_its_geometry_type(
+        self, con: Any, tmp_path: Path
+    ) -> None:
+        """DuckDB writes no GeoParquet metadata for an empty table, so the
+        geometry of an empty exported layer reads back as WKB BLOB."""
+        con.execute(
+            "CREATE TABLE src AS SELECT 'x' AS name, ST_Point(1, 1) AS geometry "
+            "WHERE false"
+        )
+        parquet_path = tmp_path / "data.parquet"
+        con.execute(f"COPY src TO '{parquet_path}' (FORMAT PARQUET)")
+        assert (
+            con.execute(f"DESCRIBE SELECT * FROM '{parquet_path}'").fetchall()[1][1]
+            == "BLOB"
+        )
+
+        types = self._import(con, parquet_path)
+
+        assert types["geometry"].startswith("GEOMETRY")
+        assert types["name"] == "VARCHAR"
+
+    def test_a_layer_with_features_keeps_its_geometry(
+        self, con: Any, tmp_path: Path
+    ) -> None:
+        con.execute(
+            "CREATE TABLE src AS SELECT 'x' AS name, ST_Point(7.1, 50.7) AS geometry"
+        )
+        parquet_path = tmp_path / "data.parquet"
+        con.execute(f"COPY src TO '{parquet_path}' (FORMAT PARQUET)")
+
+        types = self._import(con, parquet_path)
+
+        assert types["geometry"].startswith("GEOMETRY")
+        table = con.execute(
+            "SELECT table_schema, table_name FROM information_schema.tables "
+            "WHERE table_catalog = 'lake'"
+        ).fetchone()
+        assert con.execute(
+            f'SELECT ST_AsText(geometry) FROM lake."{table[0]}"."{table[1]}"'
+        ).fetchall() == [("POINT (7.1 50.7)",)]

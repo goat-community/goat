@@ -172,7 +172,7 @@ jobs:
         cd /app
         export AUTH=false
         python -c "import catalog.main"
-        python -c "import duckdb, os; c = duckdb.connect(config={'extension_directory': os.environ['DUCKDB_EXTENSION_DIRECTORY'], 'autoinstall_known_extensions': False}); c.execute('LOAD spatial')"
+        python -c "import duckdb, os; c = duckdb.connect(config={'extension_directory': os.environ['DUCKDB_EXTENSION_DIRECTORY'], 'autoinstall_known_extensions': False}); c.execute('LOAD spatial'); c.execute('LOAD httpfs')"
 
   release-docker-processes:
     needs: [file-changes, lint, test]
@@ -350,6 +350,7 @@ jobs:
             page.pdf(path='/tmp/smoke.pdf')
             b.close()
         "
+        for font in Verdana Garamond Consolas; do fc-list ":family=$font" | grep -q . || { echo "no font stands in for $font"; exit 1; }; done
 
   # The single-server deployment bundle (deploy/compose), pinned to this
   # release's images. Attached to the tag's GitHub release; created as a

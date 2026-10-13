@@ -19,6 +19,7 @@ from .favorite import Favorite
 from .folder import Folder
 from .invitation import Invitation
 from .layer import Layer
+from .layer_serial_counter import LayerSerialCounter
 from .organization import Organization
 from .organization_analytics import OrganizationAnalytics
 from .organization_domain import OrganizationDomain

@@ -13,10 +13,17 @@ needsAuth(test);
 test.use({ storageState: { cookies: [], origins: [] } });
 test.describe.configure({ retries: 0 });
 
-/** Opens a dropdown by its label and picks an option. */
+/** Opens a dropdown by its label and picks an option, until the field shows
+ * it: MUI drops a click that lands while its menu is still opening, and the
+ * menu then stays open over the rest of the form. */
 const choose = async (page: import("@playwright/test").Page, label: RegExp, option: string) => {
-  await page.getByRole("combobox", { name: label }).click();
-  await page.getByRole("option", { name: option, exact: true }).click();
+  const field = page.getByRole("combobox", { name: label });
+  await expect(async () => {
+    await page.keyboard.press("Escape"); // a menu a dropped click left open
+    await field.click();
+    await page.getByRole("option", { name: option, exact: true }).click({ timeout: 5000 });
+    await expect(field).toHaveText(option, { timeout: 2000 });
+  }).toPass({ timeout: 30000 });
 };
 
 test("a user without an organization creates one on first login", async ({ page }) => {

@@ -5,6 +5,7 @@
  * applying any CQL filters from the project layer.
  */
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useDatasetCollectionItems } from "@/lib/api/layers";
 import { generateFeaturePages } from "@/lib/print/atlas-utils";
@@ -73,6 +74,7 @@ export function useAtlasFeatures({
   currentPageIndex = 0,
   atlasMaxPages,
 }: UseAtlasFeaturesOptions): UseAtlasFeaturesResult {
+  const { t } = useTranslation("common");
   // Find the coverage layer from project layers
   const coverageLayer = useMemo(() => {
     if (!atlasConfig?.enabled || atlasConfig?.coverage?.type !== "feature") {
@@ -127,12 +129,16 @@ export function useAtlasFeatures({
     }
 
     const featureCoverage = atlasConfig.coverage as AtlasFeatureCoverage;
-    const labelTemplate = atlasConfig.page_label?.template || "Page {page_number} of {total_pages}";
+    // The default label is shown on the canvas and printed, so it follows the
+    // reader's language; the placeholders stay as the template syntax.
+    const labelTemplate =
+      atlasConfig.page_label?.template ||
+      t("atlas_page_label_default", { defaultValue: "Page {page_number} of {total_pages}" });
 
     // Enforce max page limit
     const effectiveFeatures = features.slice(0, atlasMaxPages);
     return generateFeaturePages(featureCoverage, effectiveFeatures, labelTemplate);
-  }, [atlasConfig, features]);
+  }, [atlasConfig, features, t]);
 
   // Get current page
   const currentPage = useMemo<AtlasPage | null>(() => {

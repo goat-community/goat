@@ -15,7 +15,12 @@ from pydantic import BaseModel, Field
 
 from processes.deps.auth import get_user_id
 from processes.ducklake import ducklake_manager
-from processes.services.access import References, ensure_allowed, workflow_references
+from processes.services.access import (
+    References,
+    ensure_allowed,
+    ensure_workflow_allowed,
+    workflow_references,
+)
 from processes.services.windmill_client import WindmillClient, WindmillError
 
 logger = logging.getLogger(__name__)
@@ -112,9 +117,12 @@ async def execute_workflow(
     """
     # The runner reads with service credentials: the caller must be able to
     # read every dataset and configured layer, and write where it writes.
-    await ensure_allowed(
+    await ensure_workflow_allowed(
         user_id,
-        workflow_references(request.nodes, request.project_id, request.folder_id),
+        workflow_references(
+            request.nodes, request.project_id, request.folder_id, edges=request.edges
+        ),
+        request.nodes,
     )
 
     # Build job inputs

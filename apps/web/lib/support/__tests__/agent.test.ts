@@ -5,20 +5,17 @@ import { supportReplyAgent } from "../agent";
 const ticket = (o: object) => ({
   latest_message_is_agent: true,
   latest_message_author: "Jonas",
-  agent_name: "Lena",
   ...o,
 });
 
 describe("supportReplyAgent", () => {
   it("names the agent who wrote the latest message", () => {
-    expect(supportReplyAgent(ticket({}), "GOAT team")).toBe("Jonas");
+    expect(supportReplyAgent(ticket({}))).toBe("Jonas");
   });
 
-  it("falls back to the handler, then the team", () => {
-    expect(supportReplyAgent(ticket({ latest_message_author: null }), "GOAT team")).toBe("Lena");
-    expect(supportReplyAgent(ticket({ latest_message_is_agent: false }), "GOAT team")).toBe("Lena");
-    expect(supportReplyAgent(ticket({ latest_message_author: null, agent_name: null }), "GOAT team")).toBe(
-      "GOAT team"
-    );
+  it("names nobody when the latest message is not an agent's", () => {
+    // e.g. the stage was set to "Waiting on Customer" without a message: the handler asked nothing
+    expect(supportReplyAgent(ticket({ latest_message_is_agent: false }))).toBeNull();
+    expect(supportReplyAgent(ticket({ latest_message_author: null }))).toBeNull();
   });
 });

@@ -73,4 +73,26 @@ describe("useCreateFlow", () => {
       ],
     });
   });
+
+  it("creates serial and uuid fields, a serial with its start", async () => {
+    created.length = 0;
+    const { result } = renderHook(() => useCreateFlow({ projectId: "p1" }));
+    act(() =>
+      result.current.create.setFields([
+        { id: "1", name: "vorhaben_id", kind: "serial", is_computed: false, display_config: {}, start: 1000 },
+        { id: "2", name: "nr", kind: "serial", is_computed: false, display_config: {} },
+        { id: "3", name: "uid", kind: "uuid", is_computed: false, display_config: {} },
+      ])
+    );
+    await act(async () => {
+      await result.current.action.run();
+    });
+    const { fields } = created[0] as { fields: Record<string, unknown>[] };
+    expect(fields).toEqual([
+      { name: "vorhaben_id", kind: "serial", start: 1000 },
+      // No start: the server's default (1) applies.
+      { name: "nr", kind: "serial" },
+      { name: "uid", kind: "uuid" },
+    ]);
+  });
 });

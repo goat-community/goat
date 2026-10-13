@@ -63,4 +63,4 @@ class GeoAPIDuckLakePool(DuckLakePool):
 
 
 # Singleton pool instance
-ducklake_pool = GeoAPIDuckLakePool(pool_size=2)
+ducklake_pool = GeoAPIDuckLakePool(pool_size=2, application_name="goat-geoapi-ducklake")

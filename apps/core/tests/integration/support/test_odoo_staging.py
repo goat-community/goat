@@ -3,13 +3,15 @@
 The bridge has no unlink right on res.partner or helpdesk.ticket (by design),
 so the "[TEST] ..." tickets and the @example.invalid contacts these tests
 create stay on staging. Contacts are created by the server action (op
-"contact"); the bridge itself can only read res.partner.
+"contact"); the bridge itself only reads the contacts GOAT created or matched.
+Looking up a customer company needs an admin key (ODOO_ADMIN_KEY).
 """
 
 import json
 import os
 import uuid
 from collections.abc import AsyncIterator
+from typing import Any
 
 import aiohttp
 import pytest
@@ -120,33 +122,54 @@ async def test_duplicate_text_within_a_minute_posts_once(
     assert first.message_id == second.message_id
 
 
-async def _raw(model: str, method: str, **kw: object) -> int:
-    """HTTP status of a JSON-2 call the core client's allow-list would refuse."""
+async def _raw_json(
+    model: str, method: str, key: str | None = None, **kw: Any
+) -> tuple[int, Any]:
+    """Status and body of a plain JSON-2 call, past the core client's allow-list;
+    with the bridge key unless `key` is given."""
     async with aiohttp.ClientSession() as session:
         async with session.post(
             f"{URL.rstrip('/')}/json/2/{model}/{method}",
             data=json.dumps(kw),
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"bearer {os.environ['ODOO_SUPPORT_API_KEY']}",
+                "Authorization": f"bearer {key or os.environ['ODOO_SUPPORT_API_KEY']}",
                 "X-Odoo-Database": os.environ["ODOO_DB"],
             },
         ) as response:
-            return response.status
+            return response.status, await response.json(content_type=None)
+
+
+async def _raw(model: str, method: str, **kw: Any) -> int:
+    """HTTP status of a JSON-2 call the core client's allow-list would refuse."""
+    return (await _raw_json(model, method, **kw))[0]
+
+
+async def _admin(model: str, method: str, **kw: object) -> Any:
+    """A JSON-2 call with the admin key, for looking things up the bridge cannot."""
+    key = os.environ.get("ODOO_ADMIN_KEY")
+    if not key:
+        pytest.skip("needs an admin key (ODOO_ADMIN_KEY)")
+    status, body = await _raw_json(model, method, key=key, **kw)
+    assert status < 400, body
+    return body
 
 
 async def test_contacts_come_from_the_action_only(
     provider: OdooSupportProvider,
 ) -> None:
     email = f"goat-it-{uuid.uuid4().hex[:8]}@example.invalid"
-    odoo = provider._odoo  # noqa: SLF001
-    companies = await odoo.call(
+    own = {
+        c["partner_id"][0]
+        for c in await _admin("res.company", "search_read", fields=["partner_id"])
+    }
+    companies = await _admin(
         "res.partner",
         "search_read",
         domain=[
             ["is_company", "=", True],
             ["partner_share", "=", True],
-            ["ref_company_ids", "=", False],
+            ["id", "not in", sorted(own)],
             ["child_ids", "not any", [["partner_share", "=", False]]],
         ],
         fields=["id"],
@@ -170,23 +193,17 @@ async def test_contacts_come_from_the_action_only(
         break
     if contact is None:
         pytest.skip("no customer company without (former) staff on staging")
-    (row,) = await odoo.call(
+    (row,) = await _admin(
         "res.partner",
         "read",
         ids=[contact],
-        fields=["parent_id", "lang", "is_company", "partner_share"],
+        fields=["parent_id", "lang", "is_company", "partner_share", "goat_contact"],
     )
     assert row["parent_id"][0] == company and row["lang"] == "en_US"
     assert row["is_company"] is False and row["partner_share"] is True
+    assert row["goat_contact"] is True
     # own company (a res.company partner) and individuals are no parents
-    (own,) = await odoo.call(
-        "res.partner",
-        "search_read",
-        domain=[["ref_company_ids", "!=", False]],
-        fields=["id"],
-        limit=1,
-    )
-    for parent in (own["id"], contact):
+    for parent in (min(own), contact):
         with pytest.raises(SupportCompanyRefused):
             await provider.create_contact(
                 name="GOAT IT Bad Parent",
@@ -200,16 +217,87 @@ async def test_contacts_come_from_the_action_only(
         await _raw("res.partner", "write", ids=[contact], vals={"email": "e@x.invalid"})
         == 403
     )
+    # nor read any contact but its own, followers or ratings
+    for partner in (company, contact):
+        assert await _raw("res.partner", "read", ids=[partner], fields=["name"]) == 403
+    status, found = await _raw_json(
+        "res.partner", "search", domain=[["id", "in", [company, contact]]]
+    )
+    assert (status, found) == (200, [])
+    for model in ("mail.followers", "rating.rating"):
+        assert await _raw(model, "search", domain=[]) == 403
+
+
+async def test_the_bridge_writes_only_what_goat_writes(
+    provider: OdooSupportProvider,
+) -> None:
+    email = f"goat-it-{uuid.uuid4().hex[:8]}@example.invalid"
+    contact = await provider.create_contact(
+        name="GOAT IT Limits", email=email, lang="en", company_id=None
+    )
+    team = int(os.environ.get("ODOO_SUPPORT_TEAM_ID", "1"))
+    ticket = await provider.create_ticket(
+        NewTicket(
+            subject="[TEST] bridge limits",
+            description_html="<p>x</p>",
+            category="other",
+            impact=None,
+            customer_contact_id=contact,
+            org_id=None,
+            user_id="it",
+            request_id=uuid.uuid4().hex,
+        )
+    )
+    bridge = await provider.bridge_contact_id()
+    vals = {"name": "[TEST] refused", "team_id": team, "partner_id": bridge}
+    # not a GOAT contact, a field GOAT never sets, a field GOAT never changes
+    assert await _raw("helpdesk.ticket", "create", vals_list=[vals]) >= 400
+    assert (
+        await _raw(
+            "helpdesk.ticket",
+            "create",
+            vals_list=[dict(vals, partner_id=contact, partner_email="x@x.invalid")],
+        )
+        >= 400
+    )
+    assert (
+        await _raw("helpdesk.ticket", "write", ids=[ticket.id], vals={"name": "x"})
+        >= 400
+    )
+    # no mail of its own: GOAT posts through the server action
+    assert (
+        await _raw(
+            "helpdesk.ticket",
+            "message_post",
+            ids=[ticket.id],
+            body="x",
+            outgoing_email_to="anyone@example.invalid",
+        )
+        == 403
+    )
+    await provider.stamp_org([ticket.id], "it-org")
+    await provider.stamp_org([ticket.id], "it-org")
+    assert (
+        await _raw(
+            "helpdesk.ticket",
+            "write",
+            ids=[ticket.id],
+            vals={"x_goat_organization_id": "another-org"},
+        )
+        >= 400
+    )
 
 
 async def test_the_bridge_knows_its_own_partner(
     provider: OdooSupportProvider,
 ) -> None:
-    # find_contacts_by_email excludes this id (unit-tested); on staging the
-    # bridge partner has no email, so only the lookup itself is checked here.
+    # The server action's find op never returns this partner (module-tested);
+    # on staging the bridge partner has no email, so only the lookup is checked.
     bridge = await provider.bridge_contact_id()
     assert bridge
-    (row,) = await provider._odoo.call(  # noqa: SLF001
+    status, rows = await _raw_json(
         "res.partner", "read", ids=[bridge], fields=["name", "partner_share"]
     )
-    assert row["name"] == "GOAT Support Bridge" and row["partner_share"] is True
+    assert status == 200, rows
+    (row,) = rows
+    assert row["name"] == "GOAT Support Bot" and row["partner_share"] is True

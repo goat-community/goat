@@ -7,7 +7,7 @@ from core.support.odoo_client import OdooRejected
 from core.support.odoo_provider import OdooSupportProvider
 from core.support.types import NewTicket, TicketQuery, UploadedFile
 
-from .fakes import STAGES, TAGS, action_ops, base_odoo, ticket_record
+from .fakes import STAGES, TAGS, action_ops, base_odoo, op_calls, ticket_record
 
 pytestmark = pytest.mark.unit
 
@@ -21,53 +21,32 @@ def _provider(odoo: Any) -> OdooSupportProvider:
     )
 
 
-async def test_find_contact_uses_exact_normalized_email() -> None:
-    odoo = base_odoo().on(
-        "res.partner",
-        "search_read",
-        lambda kw: [
-            {
-                "id": 7,
-                "email_normalized": "first_last@stadt.de",
-                "parent_id": False,
-                "write_date": "2026-01-01 00:00:00",
-            },
-        ],
-    )
+async def test_find_contact_asks_the_server_action_with_normalized_emails() -> None:
+    odoo = base_odoo(contacts={"first_last@stadt.de": 7})
     found = await _provider(odoo).find_contacts_by_email(["  First_Last@Stadt.DE "])
     assert found == {"first_last@stadt.de": 7}
-    (call,) = odoo.calls_to("res.partner", "search_read")
-    assert ["email_normalized", "in", ["first_last@stadt.de"]] in call["domain"]
-    assert ["partner_share", "=", True] in call["domain"]  # never internal partners
-    assert all(
-        leaf[1] not in ("ilike", "=ilike", "like")
-        for leaf in call["domain"]
-        if isinstance(leaf, list)
-    )
-
-
-async def test_find_contact_prefers_the_orgs_company() -> None:
-    odoo = base_odoo().on(
-        "res.partner",
-        "search_read",
-        lambda kw: [
-            {
-                "id": 8,
-                "email_normalized": "a@x.de",
-                "parent_id": False,
-                "write_date": "2026-09-01 00:00:00",
-            },
-            {
-                "id": 9,
-                "email_normalized": "a@x.de",
-                "parent_id": [500, "Stadt"],
-                "write_date": "2026-01-01 00:00:00",
-            },
-        ],
-    )
-    assert await _provider(odoo).find_contacts_by_email(
+    (ask,) = op_calls(odoo, "find")
+    assert ask["goat_emails"] == ["first_last@stadt.de"]
+    assert ask["goat_prefer_company_id"] == 0
+    found = await _provider(odoo).find_contacts_by_email(
         ["a@x.de"], prefer_company_id=500
-    ) == {"a@x.de": 9}
+    )
+    assert found == {}
+    assert op_calls(odoo, "find")[1]["goat_prefer_company_id"] == 500
+    # contacts are never read directly: the bridge reads only GOAT contacts
+    assert not [c for c in odoo.calls if c[0] == "res.partner"]
+
+
+async def test_find_contact_sends_at_most_fifty_emails_at_once() -> None:
+    odoo = base_odoo(contacts={"a7@x.de": 7, "a77@x.de": 77})
+    emails = [f"a{n}@x.de" for n in range(120)]
+    found = await _provider(odoo).find_contacts_by_email(emails)
+    assert found == {"a7@x.de": 7, "a77@x.de": 77}
+    asks = [a["goat_emails"] for a in op_calls(odoo, "find")]
+    assert [len(a) for a in asks] == [50, 50, 20]
+    assert sorted(e for a in asks for e in a) == sorted(emails)
+    assert await _provider(odoo).find_contacts_by_email([" ", ""]) == {}
+    assert len(op_calls(odoo, "find")) == 3
 
 
 async def test_create_contact_goes_through_the_server_action() -> None:
@@ -98,25 +77,25 @@ async def test_create_contact_goes_through_the_server_action() -> None:
     )
 
 
-async def test_find_contact_never_returns_the_bridges_own_partner() -> None:
-    odoo = base_odoo().on("res.partner", "search_read", lambda kw: [])
-    provider = _provider(odoo)
-    await provider.find_contacts_by_email(["goat-support-bridge@plan4better.de"])
-    await provider.find_contacts_by_email(["a@x.de"])
-    for call in odoo.calls_to("res.partner", "search_read"):
-        assert ["id", "!=", 43402] in call["domain"]
-    # looked up once per process
+async def test_the_bridges_own_partner_is_looked_up_once() -> None:
+    provider = _provider(odoo := base_odoo())
+    assert await provider.bridge_contact_id() == 43402
+    assert await provider.bridge_contact_id() == 43402
     assert len(odoo.calls_to("res.users", "context_get")) == 1
     assert odoo.calls_to("res.users", "read") == [
         {"ids": [16], "fields": ["partner_id"]}
     ]
-    assert await provider.bridge_contact_id() == 43402
 
 
 async def test_list_builds_an_or_domain_including_followed_tickets() -> None:
     odoo = (
-        base_odoo()
-        .on("mail.followers", "search_read", lambda kw: [{"res_id": 29}])
+        base_odoo(
+            people={
+                300: {"name": "Lena", "staff": True},
+                100: {"name": "Marco", "staff": False},
+            }
+        )
+        .on_op("followed", lambda ctx: {"goat_ticket_ids": [29]})
         .on("helpdesk.ticket", "search_read", lambda kw: [ticket_record()])
         .on(
             "mail.message",
@@ -149,14 +128,6 @@ async def test_list_builds_an_or_domain_including_followed_tickets() -> None:
                     "is_internal": False,
                     "subtype_id": DISCUSSION,
                 },
-            ],
-        )
-        .on(
-            "res.partner",
-            "read",
-            lambda kw: [
-                {"id": 300, "partner_share": False},
-                {"id": 100, "partner_share": True},
             ],
         )
     )
@@ -209,7 +180,27 @@ async def test_stage_names_are_read_in_english() -> None:
     ]
 
 
-def _detail_odoo(extra_messages: list[dict[str, Any]] | None = None) -> Any:
+DETAIL_PEOPLE = {
+    100: ("Marco", False),
+    300: ("Lena", True),
+    2: ("OdooBot", True),
+    26: ("Majk", True),
+    101: ("Anna", False),
+}
+
+
+def _detail_people(photos: dict[int, Any] | None = None) -> dict[int, dict[str, Any]]:
+    """What the "people" op knows about _detail_odoo's partners; `photos` by id."""
+    return {
+        i: {"name": n, "staff": s, "photo": (photos or {}).get(i)}
+        for i, (n, s) in DETAIL_PEOPLE.items()
+    }
+
+
+def _detail_odoo(
+    extra_messages: list[dict[str, Any]] | None = None,
+    photos: dict[int, Any] | None = None,
+) -> Any:
     messages = [
         {
             "id": 60,
@@ -244,7 +235,7 @@ def _detail_odoo(extra_messages: list[dict[str, Any]] | None = None) -> Any:
         *(extra_messages or []),
     ]
     return (
-        base_odoo()
+        base_odoo(people=_detail_people(photos))
         .on("helpdesk.ticket", "search_read", lambda kw: [ticket_record()])
         .on("mail.message", "search_read", lambda kw: messages)
         .on(
@@ -255,30 +246,7 @@ def _detail_odoo(extra_messages: list[dict[str, Any]] | None = None) -> Any:
                 for a in kw["ids"]
             ],
         )
-        .on(
-            "mail.followers",
-            "search_read",
-            lambda kw: [
-                {"partner_id": [100, "Marco"]},
-                {"partner_id": [26, "Majk"]},
-                {"partner_id": [101, "Anna"]},
-            ],
-        )
-        .on(
-            "res.partner",
-            "read",
-            lambda kw: [
-                {"id": i, "name": n, "partner_share": s}
-                for i, n, s in [
-                    (100, "Marco", True),
-                    (300, "Lena", False),
-                    (2, "OdooBot", False),
-                    (26, "Majk", False),
-                    (101, "Anna", True),
-                ]
-                if i in kw["ids"]
-            ],
-        )
+        .on_op("followers", lambda ctx: {"goat_partner_ids": [100, 26, 101]})
     )
 
 
@@ -483,17 +451,12 @@ async def test_get_unknown_ticket_is_none() -> None:
 
 async def test_create_ticket_writes_stamps_tag_and_priority() -> None:
     odoo = (
-        base_odoo()
+        base_odoo(people={100: {"name": "Marco", "staff": False}})
         .on("helpdesk.ticket", "create", lambda kw: [40])
         .on(
             "helpdesk.ticket",
             "read",
             lambda kw: [ticket_record(id=40, ticket_ref="00040", stage_id=[1, "New"])],
-        )
-        .on(
-            "res.partner",
-            "read",
-            lambda kw: [{"id": 100, "name": "Marco", "partner_share": True}],
         )
     )
     new = NewTicket(
@@ -601,26 +564,14 @@ async def test_download_decodes_the_file() -> None:
 # Odoo's many2one name of an individual is "Company, Name"; the partner's own
 # `name` is the plain one. Everywhere a person is shown the plain name is used.
 def _prefixed_odoo(messages: list[dict[str, Any]], **record: Any) -> Any:
-    partners = {
-        100: ("Marco Albrecht", True),
-        26: ("Majk Shkurti", False),
+    people = {
+        100: {"name": "Marco Albrecht", "staff": False},
+        26: {"name": "Majk Shkurti", "staff": True},
     }
     return (
         _goat_ticket_odoo(messages, partner_id=[100, "Stadt, Marco Albrecht"], **record)
-        .on(
-            "mail.followers",
-            "search_read",
-            lambda kw: [{"partner_id": [26, "Test, Majk Shkurti"]}],
-        )
-        .on(
-            "res.partner",
-            "read",
-            lambda kw: [
-                {"id": i, "name": n, "partner_share": s}
-                for i, (n, s) in partners.items()
-                if i in kw["ids"]
-            ],
-        )
+        .on_op("followers", lambda ctx: {"goat_partner_ids": [26]})
+        .on("ir.actions.server", "run", action_ops(people=people))
     )
 
 
@@ -635,18 +586,19 @@ async def test_people_are_shown_with_their_plain_name_not_the_display_name() -> 
     assert detail.ticket.customer_name == "Marco Albrecht"
     assert detail.ticket.latest_message_author == "Majk Shkurti"
     assert [f.name for f in detail.followers] == ["Majk Shkurti"]
-    # one partner read serves authors, followers and the customer
-    (read,) = [
-        kw
-        for kw in odoo.calls_to("res.partner", "read")
-        if kw["fields"] != ["image_128"]
-    ]
-    assert read["ids"] == [26, 100]
+    # one "people" ask serves authors, followers and the customer
+    (ask,) = [c for c in op_calls(odoo, "people") if not c["goat_with_photos"]]
+    assert ask["goat_partner_ids"] == [26, 100]
 
 
 async def test_list_shows_plain_names_for_the_customer_and_latest_author() -> None:
     odoo = (
-        base_odoo()
+        base_odoo(
+            people={
+                100: {"name": "Marco Albrecht", "staff": False},
+                26: {"name": "Majk Shkurti", "staff": True},
+            }
+        )
         .on(
             "helpdesk.ticket",
             "search_read",
@@ -667,32 +619,24 @@ async def test_list_shows_plain_names_for_the_customer_and_latest_author() -> No
                 }
             ],
         )
-        .on(
-            "res.partner",
-            "read",
-            lambda kw: [
-                {"id": 100, "name": "Marco Albrecht", "partner_share": True},
-                {"id": 26, "name": "Majk Shkurti", "partner_share": False},
-            ],
-        )
     )
     (t,) = await _provider(odoo).list_tickets(TicketQuery((100,), None, None, None))
     assert (t.customer_name, t.latest_message_author) == (
         "Marco Albrecht",
         "Majk Shkurti",
     )
-    assert len(odoo.calls_to("res.partner", "read")) == 1
+    assert len(op_calls(odoo, "people")) == 1
 
 
 async def test_a_missing_partner_name_falls_back_to_the_many2one_name() -> None:
     reply = _msg(62, [26, "Test, Majk Shkurti"], "<p>Hi</p>", "2026-09-28 11:00:00", [])
     odoo = (
         _goat_ticket_odoo([reply])
-        .on("mail.followers", "search_read", lambda kw: [])
+        .on_op("followers", lambda ctx: {"goat_partner_ids": []})
         .on(
-            "res.partner",
-            "read",
-            lambda kw: [{"id": 26, "name": False, "partner_share": False}],
+            "ir.actions.server",
+            "run",
+            action_ops(people={26: {"name": False, "staff": True}}),
         )
     )
     detail = await _provider(odoo).get_ticket("00031")
@@ -730,7 +674,7 @@ async def test_a_message_whose_author_was_deleted_is_unknown_not_an_agent() -> N
 
 async def test_create_ticket_names_the_customer_plainly() -> None:
     odoo = (
-        base_odoo()
+        base_odoo(people={100: {"name": "Marco Albrecht", "staff": False}})
         .on("helpdesk.ticket", "create", lambda kw: [77])
         .on(
             "helpdesk.ticket",
@@ -739,25 +683,19 @@ async def test_create_ticket_names_the_customer_plainly() -> None:
                 ticket_record(id=77, partner_id=[100, "Stadt, Marco Albrecht"])
             ],
         )
-        .on(
-            "res.partner",
-            "read",
-            lambda kw: [{"id": 100, "name": "Marco Albrecht", "partner_share": True}],
-        )
     )
     new = NewTicket("S", "<p>d</p>", "bug", None, 100, None, "u", "r")
     ticket = await _provider(odoo).create_ticket(new)
     assert ticket.customer_name == "Marco Albrecht"
 
 
-async def test_contacts_exist_asks_for_active_partners_only() -> None:
-    odoo = base_odoo().on("res.partner", "search_read", lambda kw: [{"id": 100}])
+async def test_contacts_exist_asks_the_server_action() -> None:
+    odoo = base_odoo(goat_contacts=(100,))
     assert await _provider(odoo).contacts_exist([100, 101, 100]) == {100}
-    (call,) = odoo.calls_to("res.partner", "search_read")
-    assert call["domain"] == [["id", "in", [100, 101]], ["active", "=", True]]
-    assert call["fields"] == ["id"]
+    (ask,) = op_calls(odoo, "exist")
+    assert ask["goat_partner_ids"] == [100, 101]
     assert await _provider(odoo).contacts_exist([]) == set()
-    assert len(odoo.calls_to("res.partner", "search_read")) == 1
+    assert len(op_calls(odoo, "exist")) == 1
 
 
 # ----------------------------------------------------------------- staff photos
@@ -773,23 +711,11 @@ def _b64(data: bytes) -> str:
 
 def _photo_odoo(photos: dict[int, Any]) -> Any:
     """_detail_odoo, with image_128 answered from `photos` (False = none)."""
-    odoo = _detail_odoo()
-    share_read = odoo._handlers[("res.partner", "read")]
-
-    def read(kw: dict[str, Any]) -> list[dict[str, Any]]:
-        if kw["fields"] == ["image_128"]:
-            return [{"id": i, "image_128": photos.get(i, False)} for i in kw["ids"]]
-        return share_read(kw)
-
-    return odoo.on("res.partner", "read", read)
+    return _detail_odoo(photos=photos)
 
 
 def _photo_reads(odoo: Any) -> list[dict[str, Any]]:
-    return [
-        kw
-        for kw in odoo.calls_to("res.partner", "read")
-        if kw["fields"] == ["image_128"]
-    ]
+    return [c for c in op_calls(odoo, "people") if c["goat_with_photos"]]
 
 
 async def test_staff_photo_is_inlined_and_customers_never_get_one() -> None:
@@ -799,7 +725,7 @@ async def test_staff_photo_is_inlined_and_customers_never_get_one() -> None:
     assert detail is not None
     assert detail.avatars == {300: f"data:image/jpeg;base64,{_b64(JPEG)}"}
     (call,) = _photo_reads(odoo)
-    assert call["ids"] == [300]
+    assert call["goat_partner_ids"] == [300]
 
 
 async def test_photo_type_comes_from_the_bytes() -> None:
@@ -840,17 +766,15 @@ async def test_photos_and_missing_photos_are_cached() -> None:
             "attachment_ids": [],
         }
     ]
-    odoo = _photo_odoo({300: _b64(JPEG)})
-    # same messages plus one by staff partner 26, who has no photo
-    messages = _detail_odoo(extra)._handlers[("mail.message", "search_read")]
-    odoo.on("mail.message", "search_read", messages)
+    # the same messages plus one by staff partner 26, who has no photo
+    odoo = _detail_odoo(extra, photos={300: _b64(JPEG)})
     provider = _provider(odoo)
     first = await provider.get_ticket("00031")
     second = await provider.get_ticket("00031")
     assert first is not None and second is not None
     assert set(first.avatars) == set(second.avatars) == {300}
-    (call,) = _photo_reads(odoo)  # one read for both partners, none the second time
-    assert call["ids"] == [26, 300]
+    (call,) = _photo_reads(odoo)  # one ask for both partners, none the second time
+    assert call["goat_partner_ids"] == [26, 300]
 
 
 async def test_cache_expires_after_an_hour(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -871,15 +795,15 @@ async def test_cache_expires_after_an_hour(monkeypatch: pytest.MonkeyPatch) -> N
 
 async def test_a_failed_photo_read_does_not_break_the_ticket_nor_get_cached() -> None:
     odoo = _photo_odoo({300: _b64(JPEG)})
-    ok_read = odoo._handlers[("res.partner", "read")]
+    ok_run = odoo._handlers[("ir.actions.server", "run")]
     failing = [True]
 
-    def read(kw: dict[str, Any]) -> Any:
-        if kw["fields"] == ["image_128"] and failing[0]:
-            raise OdooRejected(403, "odoo.exceptions.AccessError", "no")
-        return ok_read(kw)
+    def run(kw: dict[str, Any]) -> Any:
+        if kw["context"].get("goat_with_photos") and failing[0]:
+            raise OdooRejected(403, "odoo.exceptions.UserError", "no")
+        return ok_run(kw)
 
-    odoo.on("res.partner", "read", read)
+    odoo.on("ir.actions.server", "run", run)
     provider = _provider(odoo)
     detail = await provider.get_ticket("00031")
     assert detail is not None and detail.avatars == {}
@@ -913,24 +837,18 @@ async def test_no_staff_author_means_no_photo_read() -> None:
 
 # ------------------------------------------------- staff who left (archived/deleted)
 # Odoo recomputes partner_share from active users only: the partner of an archived
-# or deleted staff user is a share partner. The server action's "staff" op knows.
-FORMER = 400  # former staff: partner_share True, named by the staff op
+# or deleted staff user is a share partner. The server action's ops know better.
+FORMER = 400  # former staff: partner_share True, staff for the server action
 
 
 def _former_staff_odoo(staff: tuple[int, ...] = (FORMER,)) -> Any:
-    names = {100: ("Marco", True), FORMER: ("Lena (left)", True), 26: ("Majk", False)}
-
-    def read(kw: dict[str, Any]) -> list[dict[str, Any]]:
-        if kw["fields"] == ["image_128"]:
-            return [{"id": i, "image_128": _b64(JPEG)} for i in kw["ids"]]
-        return [
-            {"id": i, "name": names[i][0], "partner_share": names[i][1]}
-            for i in kw["ids"]
-            if i in names
-        ]
-
+    people = {
+        100: {"name": "Marco", "staff": False, "photo": _b64(JPEG)},
+        FORMER: {"name": "Lena (left)", "staff": False, "photo": _b64(JPEG)},
+        26: {"name": "Majk", "staff": True, "photo": _b64(JPEG)},
+    }
     return (
-        base_odoo(staff=staff)
+        base_odoo(staff=staff, people=people)
         .on(
             "helpdesk.ticket",
             "search_read",
@@ -962,12 +880,7 @@ def _former_staff_odoo(staff: tuple[int, ...] = (FORMER,)) -> Any:
                 reverse=kw["order"] == "id desc",
             ),
         )
-        .on(
-            "mail.followers",
-            "search_read",
-            lambda kw: [{"partner_id": [p, "x"]} for p in (100, FORMER, 26)],
-        )
-        .on("res.partner", "read", read)
+        .on_op("followers", lambda ctx: {"goat_partner_ids": [100, FORMER, 26]})
     )
 
 
@@ -994,8 +907,9 @@ async def test_former_staff_stay_agents_internal_followers_with_a_photo() -> Non
         (26, True),
     }
     assert set(detail.avatars) == {FORMER}
-    # only share partners are asked; partner_share False is staff already
-    assert _staff_asks(odoo) == [[100, FORMER]]
+    # one "people" ask names everyone and tells staff apart
+    assert op_calls(odoo, "people")[0]["goat_partner_ids"] == [26, 100, FORMER]
+    assert _staff_asks(odoo) == []
 
 
 async def test_list_counts_a_reply_of_former_staff_as_an_agent_reply() -> None:
@@ -1004,71 +918,35 @@ async def test_list_counts_a_reply_of_former_staff_as_an_agent_reply() -> None:
     assert t.latest_message_id == 61 and t.latest_message_is_agent is True
 
 
-async def test_who_is_staff_is_cached_per_partner() -> None:
+async def test_people_answers_fill_the_staff_cache() -> None:
     odoo = _former_staff_odoo()
     provider = _provider(odoo)
     await provider.get_ticket("00031")
-    await provider.get_ticket("00031")
-    assert _staff_asks(odoo) == [[100, FORMER]]
+    assert await provider._staff([100, FORMER, 26]) == {FORMER, 26}
+    assert _staff_asks(odoo) == []
 
 
-async def test_a_failed_staff_lookup_falls_back_to_partner_share_uncached() -> None:
+async def test_a_failed_people_lookup_fails_the_read() -> None:
     odoo = _former_staff_odoo()
-    failing = [True]
-
-    def run(kw: dict[str, Any]) -> Any:
-        if failing[0]:
-            raise SupportUnavailable("timeout")
-        return {"goat_staff_ids": [FORMER]}
-
-    odoo.on("ir.actions.server", "run", run)
-    provider = _provider(odoo)
-    detail = await provider.get_ticket("00031")
-    assert detail is not None and detail.messages[-1].is_agent is False
-    failing[0] = False
-    detail = await provider.get_ticket("00031")
-    assert detail is not None and detail.messages[-1].is_agent is True
-
-
-async def test_former_staff_are_never_found_by_email_and_lookups_fail_closed() -> None:
-    rows = [
-        {
-            "id": FORMER,
-            "email_normalized": "lena@p4b.de",
-            "parent_id": False,
-            "write_date": "2026-09-02 00:00:00",
-        },
-        {
-            "id": 101,
-            "email_normalized": "anna@x.de",
-            "parent_id": False,
-            "write_date": "2026-09-01 00:00:00",
-        },
-    ]
-    odoo = base_odoo(staff=(FORMER,)).on("res.partner", "search_read", lambda kw: rows)
-    found = await _provider(odoo).find_contacts_by_email(["lena@p4b.de", "anna@x.de"])
-    assert found == {"anna@x.de": 101}
 
     def down(kw: dict[str, Any]) -> Any:
         raise SupportUnavailable("timeout")
 
     odoo.on("ir.actions.server", "run", down)
     with pytest.raises(SupportUnavailable):
+        await _provider(odoo).get_ticket("00031")
+    with pytest.raises(SupportUnavailable):
         await _provider(odoo).find_contacts_by_email(["lena@p4b.de"])
-
-
-async def test_a_stored_link_to_former_staff_does_not_count_as_a_live_contact() -> None:
-    odoo = base_odoo(staff=(FORMER,)).on(
-        "res.partner", "search_read", lambda kw: [{"id": FORMER}, {"id": 100}]
-    )
-    assert await _provider(odoo).contacts_exist([FORMER, 100]) == {100}
-
-
-async def test_a_missing_server_action_makes_the_staff_lookup_unavailable() -> None:
-    odoo = base_odoo().on("ir.actions.server", "search", lambda kw: [])
-    odoo.on("res.partner", "search_read", lambda kw: [{"id": 100}])
     with pytest.raises(SupportUnavailable):
         await _provider(odoo).contacts_exist([100])
+
+
+async def test_a_missing_server_action_makes_the_contact_lookups_unavailable() -> None:
+    odoo = base_odoo().on("ir.actions.server", "search", lambda kw: [])
+    with pytest.raises(SupportUnavailable):
+        await _provider(odoo).contacts_exist([100])
+    with pytest.raises(SupportUnavailable):
+        await _provider(odoo).find_contacts_by_email(["a@x.de"])
 
 
 # ------------------------------------------------------------ assigned agent
@@ -1086,7 +964,11 @@ def _agent_odoo(
     """_photo_odoo whose only team message is none: the agent has not written yet."""
     odoo = _photo_odoo({300: _b64(JPEG)})
     odoo.on("mail.message", "search_read", lambda kw: [])
-    odoo.on("ir.actions.server", "run", action_ops(staff, agent_partner))
+    odoo.on(
+        "ir.actions.server",
+        "run",
+        action_ops(staff, agent_partner, people=_detail_people({300: _b64(JPEG)})),
+    )
     odoo.on("helpdesk.ticket", "search_read", lambda kw: [ticket_record(**record)])
     return odoo
 
@@ -1159,12 +1041,13 @@ async def test_a_failed_agent_lookup_falls_back_silently_and_is_not_cached(
 ) -> None:
     odoo = _agent_odoo()
     provider = _provider(odoo)
+    ops = odoo._handlers[("ir.actions.server", "run")]
     failing = [True]
 
     def run(kw: dict[str, Any]) -> Any:
-        if failing[0]:
+        if kw["context"]["goat_op"] == "agent" and failing[0]:
             raise error
-        return {"goat_agent_partner_id": 300}
+        return ops(kw)
 
     odoo.on("ir.actions.server", "run", run)
     detail = await provider.get_ticket("00031")
@@ -1191,7 +1074,7 @@ async def test_a_server_action_without_the_agent_op_is_not_asked_for_ten_minutes
     provider = _provider(odoo)
     now = [0.0]
     provider._agent_partners = TTLCache(now=lambda: now[0])
-    staff = action_ops((300,), 300)
+    staff = odoo._handlers[("ir.actions.server", "run")]
 
     def run(kw: dict[str, Any]) -> Any:
         if kw["context"]["goat_op"] == "agent":
@@ -1270,8 +1153,8 @@ async def test_create_contact_sends_a_clean_name_the_action_accepts() -> None:
 
 
 # ------------------------------------------------------------------- rating
-def _rating_odoo(rows: list[dict[str, Any]]) -> Any:
-    return base_odoo().on("rating.rating", "search_read", lambda kw: rows)
+def _rating_odoo(value: Any) -> Any:
+    return base_odoo().on_op("my_rating", lambda ctx: {"goat_rating": value})
 
 
 @pytest.mark.parametrize(
@@ -1279,20 +1162,28 @@ def _rating_odoo(rows: list[dict[str, Any]]) -> Any:
     [(1.0, "ko"), (3.0, "ok"), (5.0, "top"), (0.0, None), (2.0, None), (False, None)],
 )
 async def test_my_rating_maps_odoos_values(value: Any, expected: str | None) -> None:
-    odoo = _rating_odoo([{"id": 7, "rating": value}])
+    odoo = _rating_odoo(value)
     assert await _provider(odoo).my_rating(31, 100) == expected
 
 
 async def test_my_rating_asks_for_this_contacts_consumed_rating_of_this_ticket() -> (
     None
 ):
-    odoo = _rating_odoo([])
+    odoo = _rating_odoo(False)
     assert await _provider(odoo).my_rating(31, 100) is None
-    (call,) = odoo.calls_to("rating.rating", "search_read")
-    assert call["domain"] == [
-        ["res_model", "=", "helpdesk.ticket"],
-        ["res_id", "=", 31],
-        ["partner_id", "=", 100],
-        ["consumed", "=", True],
-    ]
-    assert call["limit"] == 1 and "rating" in call["fields"]
+    (ask,) = op_calls(odoo, "my_rating")
+    assert (ask["active_model"], ask["active_id"]) == ("helpdesk.ticket", 31)
+    assert ask["goat_partner_id"] == 100
+
+
+async def test_a_staff_email_is_its_own_error() -> None:
+    from core.support.errors import SupportStaffEmail
+
+    def run(kw: dict[str, Any]) -> Any:
+        raise OdooRejected(422, "odoo.exceptions.UserError", "email belongs to staff")
+
+    provider = _provider(base_odoo().on("ir.actions.server", "run", run))
+    with pytest.raises(SupportStaffEmail):
+        await provider.create_contact(
+            name="Lena", email="lena@plan4better.example", lang="en", company_id=None
+        )

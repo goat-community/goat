@@ -9,6 +9,7 @@
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { Autocomplete, Chip, InputAdornment, Stack, TextField, Tooltip } from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import type { ProcessedInput } from "@/types/map/ogc-processes";
 
@@ -24,6 +25,7 @@ interface ChipsInputProps {
 }
 
 export default function ChipsInput({ input, value, onChange, disabled, formValues = {}, onValidationChange }: ChipsInputProps) {
+  const { t } = useTranslation("common");
   const [inputValue, setInputValue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -66,17 +68,30 @@ export default function ChipsInput({ input, value, onChange, disabled, formValue
     return vals.join(",");
   }, [steps, activeLimit]);
 
-  // Regenerate chips when the computed result changes (steps or limit changed)
+  // Regenerate chips when the computed result changes (steps or limit changed),
+  // or when the form empties them from outside — a reset to defaults that
+  // leaves steps and limit as they were changes no computed result.
   const prevComputedKeyRef = useRef<string | undefined>(
     value && value.length > 0 ? computedKey : undefined
   );
+  const isEmpty = !value || value.length === 0;
+  const wasEmptyRef = useRef(isEmpty);
+  const clearedByUserRef = useRef(false);
+  const emitChange = useCallback(
+    (next: number[] | undefined) => {
+      clearedByUserRef.current = !next || next.length === 0;
+      onChange(next);
+    },
+    [onChange]
+  );
   useEffect(() => {
+    const clearedFromOutside = isEmpty && !wasEmptyRef.current && !clearedByUserRef.current;
+    wasEmptyRef.current = isEmpty;
     if (computedKey === undefined) return;
-    if (prevComputedKeyRef.current === computedKey) return;
+    if (prevComputedKeyRef.current === computedKey && !clearedFromOutside) return;
     prevComputedKeyRef.current = computedKey;
-    const vals = computedKey.split(",").map(Number);
-    onChange(vals);
-  }, [computedKey, onChange]);
+    emitChange(computedKey.split(",").map(Number));
+  }, [computedKey, isEmpty, emitChange]);
 
   const chips = value ?? [];
 
@@ -85,10 +100,10 @@ export default function ChipsInput({ input, value, onChange, disabled, formValue
     if (vals.length === 0 || activeLimit === undefined) return null;
     const lastChip = vals[vals.length - 1];
     if (lastChip !== activeLimit) {
-      return `The last step size must equal the limit (${activeLimit})`;
+      return t("last_step_must_equal_limit", { limit: activeLimit });
     }
     return null;
-  }, [activeLimit]);
+  }, [activeLimit, t]);
 
   // Clear error when chips become valid (e.g. after regeneration)
   useEffect(() => {
@@ -110,7 +125,7 @@ export default function ChipsInput({ input, value, onChange, disabled, formValue
     if (activeLimit !== undefined && num > activeLimit) return;
     if (chips.length >= maxChips) return;
     const next = [...new Set([...chips, num])].sort((a, b) => a - b);
-    onChange(next);
+    emitChange(next);
     updateError(next);
   };
 
@@ -123,7 +138,7 @@ export default function ChipsInput({ input, value, onChange, disabled, formValue
     const unique = [...new Set(parsed)].sort((a, b) => a - b);
     const limited = unique.slice(0, maxChips);
     const result = limited.length > 0 ? limited : undefined;
-    onChange(result);
+    emitChange(result);
     updateError(result ?? []);
     setInputValue("");
   };
@@ -166,7 +181,7 @@ export default function ChipsInput({ input, value, onChange, disabled, formValue
           <TextField
             {...params}
             error={!!error}
-            placeholder={chips.length >= maxChips ? "" : "Type value + Enter"}
+            placeholder={chips.length >= maxChips ? "" : t("type_value_enter")}
             InputProps={{
               ...params.InputProps,
               ...(error

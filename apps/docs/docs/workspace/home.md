@@ -37,7 +37,7 @@ Your most recently opened projects, newest first, each showing when you last wor
 
 ## Start from a template
 
-Templates let you begin with a project, workflow or layout that is already set up. Filter the row by kind (`All templates`, `Workflow`, `Project` or `Layout`) and by who the template came from: `Everyone`, `GOAT`, `Mine`, `Team` or `Organization`. Click `All templates` to browse the full shelf.
+Templates let you begin with a project, workflow or layout that is already set up. Filter the row by kind (`All templates`, `Workflow`, `Project` or `Layout`) and by who the template came from: `Everyone`, `GOAT`, `Mine`, `Team`, `Organization` or `Shared with me`. Click `All templates` to browse the full shelf.
 
 ## Recent Datasets
 

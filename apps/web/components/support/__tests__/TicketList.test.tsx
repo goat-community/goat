@@ -41,6 +41,7 @@ const ticket = (o: Partial<SupportTicket>): SupportTicket => ({
   category: "bug",
   impact: "blocking",
   customer_name: "Marco",
+  customer_contact_id: 100,
   is_mine: true,
   agent_name: "Lena",
   via: "app",
@@ -64,6 +65,26 @@ const setLists = (open: SupportTicket[], closed: SupportTicket[] = []) =>
   }));
 
 describe("TicketList", () => {
+  it("shows neither tabs nor 'no tickets yet' until both lists are known", () => {
+    useSupportTicketsMock.mockImplementation((_scope: string, state: string) => ({
+      tickets: state === "open" ? [] : undefined, // closed still loading
+      error: undefined,
+      isLoading: state !== "open",
+      mutate: vi.fn(),
+    }));
+    render(<TicketList />);
+    expect(screen.getByRole("progressbar")).toBeTruthy();
+    expect(screen.queryByRole("tab")).toBeNull();
+    expect(screen.queryByText("support_empty_title")).toBeNull();
+  });
+
+  it("says 'no tickets yet' only when both lists came back empty", () => {
+    setLists([], []);
+    render(<TicketList />);
+    expect(screen.getByText("support_empty_title")).toBeTruthy();
+    expect(screen.queryByRole("tab")).toBeNull();
+  });
+
   beforeEach(() => {
     useSupportTicketsMock.mockReset();
     pushMock.mockReset();
@@ -125,6 +146,20 @@ describe("TicketList", () => {
     ]);
     render(<TicketList />);
     expect(screen.getByText("support_banner_one:Jonas")).toBeTruthy();
+  });
+
+  it("names no agent in the banner when none wrote the latest message", () => {
+    setLists([
+      ticket({
+        needs_my_reply: true,
+        agent_name: "Lena",
+        latest_message_author: "Anna",
+        latest_message_is_agent: false,
+      }),
+    ]);
+    render(<TicketList />);
+    expect(screen.getByText(/^support_banner_one_team/)).toBeTruthy();
+    expect(screen.queryByText(/Lena/)).toBeNull();
   });
 
   it.each([0, 500])("treats status %i as unavailable, not as an empty list", (status) => {

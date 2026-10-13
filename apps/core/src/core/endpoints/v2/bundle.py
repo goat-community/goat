@@ -29,6 +29,7 @@ from core.core.authz import Action
 from core.core.config import settings
 from core.crud.crud_bundle import bundle as crud_bundle
 from core.crud.crud_bundle import member_thumbnails
+from core.crud.crud_share import share as crud_share
 from core.db.models._link_model import (
     BundleDependencyLink,
     BundleLayerLink,
@@ -480,6 +481,17 @@ async def import_bundle(
                     f"'{filename}' is not a recognised bundle upload "
                     "(expected a *gtfs*.zip, or a zip containing Overture "
                     "segments and connectors GeoParquet)"
+                ),
+            )
+        # Refused here, not by the job: past this size the import cannot be
+        # built at all, and the bundle it would create would only fail.
+        spec = get_spec(bundle_type)
+        if spec.max_upload_bytes and os.path.getsize(tmp_path) > spec.max_upload_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"{spec.name} upload too large. Limit is "
+                    f"{spec.max_upload_bytes // 1024 // 1024} MB."
                 ),
             )
     finally:
@@ -1209,6 +1221,12 @@ async def share_bundle(
 ) -> BundleGrantsResponse:
     """Share a bundle with a team or organization. Owner or editor."""
     await authorize_bundle(async_session, bundle_id, user_id, "write")
+
+    await crud_share.assert_grantees_in_organization(
+        async_session,
+        granted_by=user_id,
+        wanted=[(payload.grantee_type, payload.grantee_id, payload.role)],
+    )
 
     role = (
         await async_session.execute(select(Role).where(Role.name == payload.role))

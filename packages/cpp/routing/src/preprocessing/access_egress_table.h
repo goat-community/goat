@@ -27,7 +27,23 @@ namespace routing::preprocessing
         // comes from per-edge OSM maxspeed, so its speed only sizes the
         // network-load buffer.
         double speed_km_h = 0.0;
-        int chunk_size = 4000;      // served stops per spatial batch
+        // Served stops per batch, used only without an extent bound
+        // (chunk_max_span_m <= 0): with one, a chunk is a spatial group and
+        // its samples are bounded by fold_samples instead.
+        int chunk_size = 4000;
+        // Largest ground extent (m) of a chunk's stops, along either axis.
+        // A chunk loads the street network around all of its stops, so its
+        // memory follows the area its stops cover rather than their number:
+        // a sparse regional feed fits 4000 stops into a much larger area than
+        // a city does. <= 0 → no extent bound: chunk_size chunks in grid
+        // order, as before this setting existed. Wider spans reload less of
+        // the network across chunks; at 50 km central Paris, the densest
+        // feed measured, peaks at ~1.3 GB.
+        double chunk_max_span_m = 50000.0;
+        // Samples staged before they are folded into cells, between stops.
+        // Bounds what one chunk stages however dense its streets and stops
+        // are; the result does not depend on it. <= 0 → the built-in default.
+        long long fold_samples = 0;
         double spacing_m = 20.0;    // long-edge interpolation sample spacing
     };
 

@@ -320,9 +320,11 @@ async def test_colleagues_exclude_me(
     client: AsyncClient, world: tuple[FakeProvider, MemoryStore]
 ) -> None:
     _, store = world
-    store.add_user(email="anna@x.de", name="Anna Keller")
+    store.add_user(email="anna@x.de", name="Anna Keller", contact_id=101)
     body = (await client.get(f"{BASE}/colleagues")).json()
     assert [c["email"] for c in body] == ["anna@x.de"]
+    # the web matches colleagues to followers by contact, not by name
+    assert body[0]["contact_id"] == 101
 
 
 async def test_download_header_is_injection_safe(

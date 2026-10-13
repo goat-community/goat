@@ -49,6 +49,25 @@ class OrganizationUpdateMemberRole(SQLModel):
     role: OrganizationMemberRoleUpdateEnum
 
 
+class OrganizationCreationRead(BaseModel):
+    """Whether the caller may set up an organization
+    (`ALLOW_ORGANIZATION_CREATION`, superusers always may)."""
+
+    allowed: bool
+
+
+class OrganizationPermanentlyDeleted(BaseModel):
+    """What `DELETE /organizations/{id}/permanent` removed."""
+
+    id: UUID
+    # The former member, whose account stays without an organization; None
+    # when the organization had no member left.
+    user_id: UUID | None
+    # Billing is not touched: a subscription stays in Odoo under this
+    # company until someone ends it there.
+    odoo_company_id: int | None
+
+
 class OrganizationUser(BaseModel):
     id: UUID
     firstname: str | None

@@ -204,6 +204,10 @@ class RoleSpec(BaseModel):
     # or in both — each is optional alone, but a feed with neither declares no
     # service at all.
     required_group: Optional[str] = None
+    # The role this member is regenerated from, for a member that is a view of
+    # another rather than data of its own — a feed's shape lines are drawn from
+    # its shape points. Such a member is never written back to the source.
+    derived_from: Optional[str] = None
     # Whether a user may edit this member layer's features. False until someone
     # has decided what saving it means for the bundle's derived artifacts.
     editable: bool = False
@@ -363,6 +367,11 @@ class BundleTypeSpec(BaseModel):
     # clipped feed would be a broken one.
     supports_filtered_copy: bool = False
     dependencies: Tuple[DependencySpec, ...] = ()
+    # Largest upload this type accepts, in bytes; None leaves only the generic
+    # dataset limit. Set where an import step has to hold the whole source in
+    # memory: a GTFS timetable is built in one go, at about 1.7x the feed's
+    # uncompressed stop_times, so a feed past this cannot be built on a worker.
+    max_upload_bytes: Optional[int] = None
 
     def role(self, key: str) -> Optional[RoleSpec]:
         return next((r for r in self.roles if r.key == key), None)
@@ -462,6 +471,9 @@ SPECS: Dict[BundleTypeName, BundleTypeSpec] = {
             "A public-transport network imported from a GTFS feed. Member layers "
             "correspond to the GTFS files."
         ),
+        # ~1.4 GB of stop_times at a typical 7:1 zip ratio, a ~2.4 GB timetable
+        # build: inside a 4 GB worker, which holds nothing else at that point.
+        max_upload_bytes=200 * 1024 * 1024,
         # The published GTFS file set, at the requirement level the specification
         # states. A feed brings what it brings: everything optional here is
         # imported when present and skipped when not, so a tool that wants
@@ -490,7 +502,16 @@ SPECS: Dict[BundleTypeName, BundleTypeSpec] = {
                 required_group="service",
             ),
             # Optional
-            RoleSpec(key="shapes", label="Shapes", geometry="line"),
+            # One row per shape point, as published: the line geometry cannot
+            # hold the sequence or the distance travelled.
+            RoleSpec(key="shapes", label="Shapes", geometry="none"),
+            RoleSpec(
+                key="shape_lines",
+                label="Shape lines",
+                geometry="line",
+                derived_from="shapes",
+                description="The shape points joined into one line per shape.",
+            ),
             RoleSpec(key="frequencies", label="Frequencies", geometry="none"),
             RoleSpec(key="transfers", label="Transfers", geometry="none"),
             RoleSpec(key="pathways", label="Pathways", geometry="none"),

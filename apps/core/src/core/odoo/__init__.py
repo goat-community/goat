@@ -19,8 +19,9 @@ billing next):
   `organization.odoo_company_id` (res.partner of the customer company) link
   GOAT records to Odoo. Odoo records that belong to a GOAT organization carry
   its id in `x_goat_organization_id` (helpdesk.ticket, sale.order).
-- Odoo-side setup (users, groups, fields, server actions) lives in versioned
-  scripts under `scripts/odoo/`, dry run by default.
+- Odoo-side setup (users, groups, rights, fields, server actions) lives in Odoo
+  modules in Plan4Better's Odoo.sh repository, one per integration (support:
+  `goat_support`), installed and tested there with the code.
 """
 
 from core.odoo.client import OdooClient

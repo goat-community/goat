@@ -55,7 +55,7 @@ const ImageElementActionButtons = ({
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > ASSETS_MAX_FILE_SIZE_MB * 1024 * 1024) {
-        toast.error(`${t(" maximum_image_size_is")} ${ASSETS_MAX_FILE_SIZE_MB}MB`);
+        toast.error(`${t("maximum_image_size_is")} ${ASSETS_MAX_FILE_SIZE_MB}MB`);
         e.target.value = ""; // reset input
         return;
       }

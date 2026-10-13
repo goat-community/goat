@@ -122,3 +122,11 @@ def test_many2one_helpers() -> None:
     assert m.many2one_name([7, "Lena"]) == "Lena"
     assert m.many2one_id(False) is None
     assert m.many2one_name(False) is None
+
+
+def test_file_names_lose_direction_controls() -> None:
+    assert m.file_name("invoice\u202efdp.exe") == "invoicefdp.exe"
+    assert m.file_name("a\u2066b\u2069\u200fc.pdf") == "abc.pdf"
+    assert m.file_name("\u202e") == "file"
+    assert m.file_name(False) == "file"
+    assert m.file_name("Karte_ÄÖÜ.png") == "Karte_ÄÖÜ.png"

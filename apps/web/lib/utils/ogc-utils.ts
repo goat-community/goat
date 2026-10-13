@@ -4,6 +4,8 @@
  * Transforms OGC input descriptions into UI-friendly structures
  * with support for sections, field ordering, and conditional visibility.
  */
+import type { TFunction } from "i18next";
+
 import { OPPORTUNITY_LAYER_HANDLES } from "@/types/map/ogc-processes";
 import type {
   InferredInputType,
@@ -308,18 +310,22 @@ export function isConnectionValid(outputType: DataTypeInfo, inputType: DataTypeI
 }
 
 /**
- * Format data type info for display
+ * Format data type info for display. With `t`, the type and geometry names
+ * are given in the reader's language; without it they stay the raw values.
  */
-export function formatDataType(info: DataTypeInfo): string {
+export function formatDataType(info: DataTypeInfo, t?: TFunction): string {
+  const label = (key: string, fallback: string) => (t ? t(key, { defaultValue: fallback }) : fallback);
+
   if (!info.dataType) {
-    return "any";
+    return label("data_type_any", "any");
   }
 
   if (info.dataType === "vector" && info.geometryTypes && info.geometryTypes.length > 0) {
-    return `vector (${info.geometryTypes.join(", ")})`;
+    const geometries = info.geometryTypes.map((geometry) => label(geometry.toLowerCase(), geometry));
+    return `${label("data_type_vector", "vector")} (${geometries.join(", ")})`;
   }
 
-  return info.dataType;
+  return label(`data_type_${info.dataType}`, info.dataType);
 }
 
 /**
@@ -707,7 +713,11 @@ export function applyDynamicDefaults(
  * Validate inputs against process schema
  * Returns array of error messages, empty if valid
  */
-export function validateInputs(process: OGCProcessDescription, values: Record<string, unknown>): string[] {
+export function validateInputs(
+  process: OGCProcessDescription,
+  values: Record<string, unknown>,
+  requiredMessage: (title: string) => string = (title) => `${title} is required`
+): string[] {
   const errors: string[] = [];
 
   for (const [name, input] of Object.entries(process.inputs)) {
@@ -718,7 +728,7 @@ export function validateInputs(process: OGCProcessDescription, values: Record<st
     if (isRequired && (value === undefined || value === null || value === "")) {
       // Skip hidden inputs that will be added automatically
       if (!HIDDEN_INPUT_NAMES.includes(name)) {
-        errors.push(`${input.title} is required`);
+        errors.push(requiredMessage(input.title));
       }
     }
   }

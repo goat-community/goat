@@ -1,9 +1,12 @@
-"""SupportProvider on Odoo Helpdesk, as the portal user "GOAT Support Bridge".
+"""SupportProvider on Odoo Helpdesk, as the bridge portal user ("GOAT Support Bot").
 
 The bridge cannot read ir.model, cannot post as someone else and cannot create
 or edit contacts: customer posts, ratings and new contacts go through the server
-action created by scripts/odoo/support_bridge_setup.py. Odoo stores log notes and automatic mails
-as comment / non-internal messages with an internal subtype, and the bridge
+action of the goat_support Odoo module. It reads no contacts, followers or
+ratings either, so finding contacts by email, checking stored links, names and
+photos of ticket participants, followers, followed tickets and ratings are
+server action ops as well. Odoo stores log notes and automatic mails as
+comment / non-internal messages with an internal subtype, and the bridge
 cannot read internal subtypes, so "customer facing" is an allow-list of public
 subtypes (see odoo_mapping.is_customer_facing), not only a message_type check.
 
@@ -23,7 +26,11 @@ from datetime import datetime, timedelta
 from typing import Any, Literal
 
 from core.support import odoo_mapping as m
-from core.support.errors import SupportCompanyRefused, SupportUnavailable
+from core.support.errors import (
+    SupportCompanyRefused,
+    SupportStaffEmail,
+    SupportUnavailable,
+)
 from core.support.odoo_client import OdooRejected, SupportOdooClient
 from core.support.throttle import TTLCache
 from core.support.types import (
@@ -67,8 +74,10 @@ STAFF_TTL = 600.0
 AGENT_TTL = 600.0
 # A server action from before the "agent" op answers "unknown operation": asked again after this.
 AGENT_OP_MISSING_TTL = 600.0
-# The server action's "staff" op refuses larger batches.
+# The server action's partner ops (staff, people, exist) refuse larger batches.
 STAFF_BATCH = 1000
+# The server action's "find" op takes this many emails at once.
+FIND_BATCH = 50
 # The contact op refuses longer names.
 CONTACT_NAME_MAX = 200
 
@@ -193,16 +202,26 @@ class OdooSupportProvider:
             self._bridge_partner_id = partner
         return self._bridge_partner_id
 
-    async def _share_flags(
-        self, partner_ids: Sequence[int]
-    ) -> dict[int, dict[str, Any]]:
-        ids = sorted({p for p in partner_ids if p})
-        if not ids:
-            return {}
-        rows = await self._odoo.call(
-            "res.partner", "read", ids=ids, fields=["name", "partner_share"]
+    async def _run_op(
+        self, op: str, ticket_id: int | None = None, **values: Any
+    ) -> dict[str, Any]:
+        """One read-only operation of the server action, `values` as its context,
+        on `ticket_id` when given."""
+        try:
+            action = await self._post_action()
+        except LookupError as exc:
+            raise SupportUnavailable(str(exc)) from exc
+        context: dict[str, Any] = {"goat_op": op, **values}
+        if ticket_id is not None:
+            context |= {
+                "active_model": "helpdesk.ticket",
+                "active_id": ticket_id,
+                "active_ids": [ticket_id],
+            }
+        result = await self._odoo.call(
+            "ir.actions.server", "run", ids=[action], context=context
         )
-        return {r["id"]: r for r in rows}
+        return result or {}
 
     async def _staff(self, partner_ids: Iterable[int]) -> set[int]:
         """Which of these partners are or were staff (an internal user or an
@@ -214,19 +233,10 @@ class OdooSupportProvider:
         ids = sorted({p for p in partner_ids if p})
         missing = [p for p in ids if self._staff_flags.get(("staff", p)) is None]
         if missing:
-            try:
-                action = await self._post_action()
-            except LookupError as exc:
-                raise SupportUnavailable(str(exc)) from exc
             for start in range(0, len(missing), STAFF_BATCH):
                 batch = missing[start : start + STAFF_BATCH]
-                result = await self._odoo.call(
-                    "ir.actions.server",
-                    "run",
-                    ids=[action],
-                    context={"goat_op": "staff", "goat_partner_ids": batch},
-                )
-                staff = {int(i) for i in (result or {}).get("goat_staff_ids") or []}
+                result = await self._run_op("staff", goat_partner_ids=batch)
+                staff = {int(i) for i in result.get("goat_staff_ids") or []}
                 for pid in batch:
                     self._staff_flags.set(("staff", pid), pid in staff, STAFF_TTL)
         return {p for p in ids if self._staff_flags.get(("staff", p))}
@@ -237,7 +247,7 @@ class OdooSupportProvider:
         The bridge cannot read users, and the partner is only known from the
         ticket's messages once the agent has written. Cosmetic (the photo of
         "Handled by"): a failure gives None and caches nothing, except that a
-        server action without the op (Odoo set up by an older script) is not
+        server action without the op (an older goat_support module) is not
         asked again for AGENT_OP_MISSING_TTL.
         """
         if self._agent_partners.get(("agent_op_missing",)):
@@ -262,7 +272,7 @@ class OdooSupportProvider:
                 if exc.message == "unknown operation":
                     logger.warning(
                         "support: the Odoo server action has no 'agent' op; "
-                        "re-run support_bridge_setup.py"
+                        "update the goat_support module in Odoo"
                     )
                     self._agent_partners.set(
                         ("agent_op_missing",), True, AGENT_OP_MISSING_TTL
@@ -296,45 +306,50 @@ class OdooSupportProvider:
             logger.warning("support: reading who is staff failed: %r", exc)
             return False
 
-    async def _people(self, partner_ids: Sequence[int]) -> dict[int, dict[str, Any]]:
-        """Names plus a "staff" flag per partner.
+    async def _people(
+        self, partner_ids: Sequence[int], *, photos: bool = False
+    ) -> dict[int, dict[str, Any]]:
+        """Plain name and "staff" flag (current or former staff) per partner,
+        plus `photo` (base64) for staff with a photo when asked for.
 
-        Customer-side (partner_share) partners are asked about once more: they
-        may be former staff. That answer only shapes what the thread shows, so
-        a failure falls back to partner_share alone; the server action refuses
-        to post as former staff either way.
+        From the server action's "people" op, which answers for partners taking
+        part in a GOAT ticket and for GOAT contacts only; others are left out
+        (their names fall back to the many2one's).
         """
-        rows = await self._share_flags(partner_ids)
-        shared = [pid for pid, r in rows.items() if r.get("partner_share")]
-        try:
-            former = await self._staff(shared)
-        except (OdooRejected, SupportUnavailable) as exc:
-            logger.warning("support: reading who is staff failed: %r", exc)
-            former = set()
-        for pid, row in rows.items():
-            row["staff"] = not row.get("partner_share") or pid in former
-        return rows
+        ids = sorted({p for p in partner_ids if p})
+        people: dict[int, dict[str, Any]] = {}
+        for start in range(0, len(ids), STAFF_BATCH):
+            result = await self._run_op(
+                "people",
+                goat_partner_ids=ids[start : start + STAFF_BATCH],
+                goat_with_photos=photos,
+            )
+            for person in result.get("goat_people") or []:
+                people[int(person["id"])] = person
+                self._staff_flags.set(
+                    ("staff", int(person["id"])), bool(person["staff"]), STAFF_TTL
+                )
+        return people
 
     async def _staff_avatars(self, partner_ids: Sequence[int]) -> dict[int, str]:
         """Data-URI photos of staff partners; people without a real photo are left out.
 
-        Only `image_128` is read (avatar_128 would return a generated SVG for
-        people without a photo). Both photos and "no photo" are cached for an
-        hour. The photos are cosmetic: a failed read gives none and is not cached.
+        The "people" op sends `image_128` of staff only (avatar_128 would be a
+        generated SVG for people without a photo). Both photos and "no photo"
+        are cached for an hour. The photos are cosmetic: a failed read gives
+        none and is not cached.
         """
         ids = sorted({p for p in partner_ids if p})
         missing = [p for p in ids if self._avatars.get(("avatar", p)) is None]
         if missing:
             try:
-                rows = await self._odoo.call(
-                    "res.partner", "read", ids=missing, fields=["image_128"]
-                )
+                people = await self._people(missing, photos=True)
             except (OdooRejected, SupportUnavailable) as exc:
                 logger.warning("support: reading staff photos failed: %r", exc)
             else:
                 found = {
-                    int(r["id"]): m.photo_data_uri(r.get("image_128")) or ""
-                    for r in rows
+                    pid: m.photo_data_uri(person.get("photo")) or ""
+                    for pid, person in people.items()
                 }
                 for pid in missing:
                     self._avatars.set(("avatar", pid), found.get(pid, ""), AVATAR_TTL)
@@ -346,56 +361,33 @@ class OdooSupportProvider:
     async def find_contacts_by_email(
         self, emails: Sequence[str], prefer_company_id: int | None = None
     ) -> dict[str, int]:
+        """Customer contacts by email, from the server action's "find" op: never
+        staff (current or former), companies or the bridge; per email the one in
+        `prefer_company_id`, else the most recently written. Odoo marks them as
+        GOAT contacts, which the bridge may then read and open tickets for.
+        """
         normalized = sorted({e.strip().lower() for e in emails if e and e.strip()})
-        if not normalized:
-            return {}
-        domain: list[Any] = [
-            ["email_normalized", "in", normalized],
-            ["is_company", "=", False],
-            # customer partners only: staff partners auto-follow every ticket
-            ["partner_share", "=", True],
-        ]
-        bridge = await self.bridge_contact_id()
-        if bridge:
-            # a portal user, so partner_share: never hand its partner to a customer
-            domain.append(["id", "!=", bridge])
-        rows = await self._odoo.call(
-            "res.partner",
-            "search_read",
-            domain=domain,
-            fields=["email_normalized", "parent_id", "write_date"],
-            order="write_date desc",
-        )
-        # partner_share alone is not enough: former staff are share partners too,
-        # and following every ticket they made them see. Fails closed.
-        staff = await self._staff([r["id"] for r in rows])
         found: dict[str, int] = {}
-        for row in rows:  # most recently written first
-            if row["id"] in staff:
-                continue
-            email = row["email_normalized"]
-            if (
-                prefer_company_id
-                and m.many2one_id(row.get("parent_id")) == prefer_company_id
-            ):
-                found[email] = row["id"]
-            else:
-                found.setdefault(email, row["id"])
+        for start in range(0, len(normalized), FIND_BATCH):
+            result = await self._run_op(
+                "find",
+                goat_emails=normalized[start : start + FIND_BATCH],
+                goat_prefer_company_id=prefer_company_id or 0,
+            )
+            for email, contact_id in (result.get("goat_contacts") or {}).items():
+                found[str(email)] = int(contact_id)
         return found
 
     async def contacts_exist(self, contact_ids: Sequence[int]) -> set[int]:
+        """The GOAT contacts among these that are active and not (former) staff."""
         ids = sorted({c for c in contact_ids if c})
-        if not ids:
-            return set()
-        rows = await self._odoo.call(
-            "res.partner",
-            "search_read",
-            domain=[["id", "in", ids], ["active", "=", True]],
-            fields=["id"],
-        )
-        alive = {int(r["id"]) for r in rows}
-        # a link to someone who turned out to be (former) staff is no customer contact
-        return alive - await self._staff(alive)
+        alive: set[int] = set()
+        for start in range(0, len(ids), STAFF_BATCH):
+            result = await self._run_op(
+                "exist", goat_partner_ids=ids[start : start + STAFF_BATCH]
+            )
+            alive |= {int(i) for i in result.get("goat_contact_ids") or []}
+        return alive
 
     async def create_contact(
         self,
@@ -427,6 +419,8 @@ class OdooSupportProvider:
         except OdooRejected as exc:
             if exc.message == "invalid parent company":
                 raise SupportCompanyRefused(str(exc)) from exc
+            if exc.message == "email belongs to staff":
+                raise SupportStaffEmail(str(exc)) from exc
             raise
         return int(result["goat_contact_id"])
 
@@ -478,19 +472,12 @@ class OdooSupportProvider:
         if query.customer_ids:
             alternatives.append(["partner_id", "in", list(query.customer_ids)])
         if query.follower_contact_id:
-            followed = await self._odoo.call(
-                "mail.followers",
-                "search_read",
-                domain=[
-                    ["res_model", "=", "helpdesk.ticket"],
-                    ["partner_id", "=", query.follower_contact_id],
-                ],
-                fields=["res_id"],
+            result = await self._run_op(
+                "followed", goat_partner_id=query.follower_contact_id
             )
+            followed = sorted({int(i) for i in result.get("goat_ticket_ids") or []})
             if followed:
-                alternatives.append(
-                    ["id", "in", sorted({f["res_id"] for f in followed})]
-                )
+                alternatives.append(["id", "in", followed])
         if query.org_id:
             alternatives.append(["x_goat_organization_id", "=", query.org_id])
         if not alternatives:
@@ -605,17 +592,12 @@ class OdooSupportProvider:
             ):
                 attachments[row["id"]] = AttachmentMeta(
                     row["id"],
-                    row["name"],
+                    m.file_name(row["name"]),
                     row["mimetype"] or "",
                     int(row["file_size"] or 0),
                 )
-        followers_raw = await self._odoo.call(
-            "mail.followers",
-            "search_read",
-            domain=[["res_model", "=", "helpdesk.ticket"], ["res_id", "=", rec["id"]]],
-            fields=["partner_id"],
-        )
-        follower_ids = [m.many2one_id(f["partner_id"]) or 0 for f in followers_raw]
+        result = await self._run_op("followers", rec["id"])
+        follower_ids = [int(i) for i in result.get("goat_partner_ids") or []]
         shares = await self._people(
             [m.many2one_id(msg["author_id"]) or 0 for msg in visible]
             + follower_ids
@@ -746,7 +728,7 @@ class OdooSupportProvider:
             "helpdesk.ticket", "read", ids=[ticket_id], fields=TICKET_FIELDS
         )
         try:
-            partners = await self._share_flags([new.customer_contact_id])
+            partners = await self._people([new.customer_contact_id])
         except (OdooRejected, SupportUnavailable) as exc:
             # the ticket exists: the name falls back to the many2one's
             logger.warning("support: reading the customer's name failed: %r", exc)
@@ -851,22 +833,10 @@ class OdooSupportProvider:
         )
 
     async def my_rating(self, ticket_id: int, contact_id: int) -> Rating | None:
-        rows = await self._odoo.call(
-            "rating.rating",
-            "search_read",
-            domain=[
-                ["res_model", "=", "helpdesk.ticket"],
-                ["res_id", "=", ticket_id],
-                ["partner_id", "=", contact_id],
-                ["consumed", "=", True],
-            ],
-            fields=["rating"],
-            order="write_date desc, id desc",
-            limit=1,
-        )
-        if not rows:
+        result = await self._run_op("my_rating", ticket_id, goat_partner_id=contact_id)
+        if not result.get("goat_rating"):
             return None
-        value = int(round(float(rows[0].get("rating") or 0)))
+        value = int(round(float(result["goat_rating"])))
         return next((r for r, v in RATING_VALUE.items() if v == value), None)
 
     async def download(self, attachment_id: int) -> tuple[AttachmentMeta, bytes]:
@@ -878,7 +848,7 @@ class OdooSupportProvider:
         )
         meta = AttachmentMeta(
             row["id"],
-            row["name"],
+            m.file_name(row["name"]),
             row["mimetype"] or "application/octet-stream",
             int(row["file_size"] or 0),
         )

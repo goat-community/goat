@@ -286,4 +286,22 @@ TASK_REGISTRY: tuple[TaskDefinition, ...] = (
         schedule="0 0 1 * * *",  # daily at 01:00 UTC
         worker_tag="tools",
     ),
+    TaskDefinition(
+        name="ducklake_orphan_tables",
+        display_name="DuckLake Orphan Tables",
+        description=(
+            "Report DuckLake layer tables (t_<id>) no layer record points to, "
+            "left by tool runs killed between writing their table and saving "
+            "the layer. Changes nothing unless drop_tables is set; then drops "
+            "only orphans older than a day."
+        ),
+        module_path="goatlib.tasks.ducklake_orphan_tables",
+        params_class_name="DuckLakeOrphanTablesParams",
+        windmill_path="f/goat/tasks/ducklake_orphan_tables",
+        # Daily at 05:00 UTC, outside the 00:00-01:00 maintenance window. The
+        # schedule starts with no arguments, so it only reports; dropping is
+        # set on the schedule or a manual run, and a sync keeps those args.
+        schedule="0 0 5 * * *",
+        worker_tag="tools",
+    ),
 )

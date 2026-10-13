@@ -2,6 +2,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { FormControl, IconButton, InputAdornment, OutlinedInput, Typography, useTheme } from "@mui/material";
 import type { InputBaseComponentProps } from "@mui/material";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
@@ -51,6 +52,7 @@ const TextFieldInput: React.FC<TextFieldInputProps> = ({
   autoFocus,
   inputProps,
 }) => {
+  const { t } = useTranslation("common");
   const theme = useTheme();
   const [focused, setFocused] = useState(false);
   return (
@@ -137,7 +139,11 @@ const TextFieldInput: React.FC<TextFieldInputProps> = ({
             !!value &&
             clearable && (
               <InputAdornment position="end" sx={{ mr: 2 }}>
-                <IconButton size="small" aria-label="clear input" onClick={() => onChange("")} edge="end">
+                <IconButton
+                  size="small"
+                  aria-label={t("clear_input")}
+                  onClick={() => onChange("")}
+                  edge="end">
                   <ClearIcon />
                 </IconButton>
               </InputAdornment>

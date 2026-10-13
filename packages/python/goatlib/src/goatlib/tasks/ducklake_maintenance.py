@@ -42,6 +42,7 @@ from typing import Any, Self
 
 from pydantic import BaseModel, Field
 
+from goatlib.config.postgres import TASKS_APPLICATION_NAME
 from goatlib.storage import BaseDuckLakeManager
 from goatlib.tools.base import ToolSettings
 
@@ -200,7 +201,9 @@ class DuckLakeMaintenanceTask:
             if not self.settings:
                 raise RuntimeError("Call init_from_env() before run()")
             # Read-write: we mutate the catalog (expire) and delete files.
-            self._manager = BaseDuckLakeManager(read_only=False)
+            self._manager = BaseDuckLakeManager(
+                read_only=False, application_name=TASKS_APPLICATION_NAME
+            )
             self._manager.init_from_params(
                 postgres_uri=self.settings.ducklake_postgres_uri,
                 storage_path=self.settings.ducklake_data_dir,

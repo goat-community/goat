@@ -29,8 +29,10 @@ if TYPE_CHECKING:
 
     import duckdb
 
+from goatlib.config.postgres import TASKS_APPLICATION_NAME
 from goatlib.io.pmtiles import PMTilesConfig, PMTilesGenerator
 from goatlib.storage import BaseDuckLakeManager
+from goatlib.storage.ducklake import catalog_libpq
 from goatlib.tools.base import ToolSettings
 
 logger = logging.getLogger(__name__)
@@ -189,7 +191,9 @@ class PMTilesSyncTask:
         if self._manager is None:
             if not self.settings:
                 raise RuntimeError("Call init_from_env() before running task")
-            self._manager = BaseDuckLakeManager(read_only=True)
+            self._manager = BaseDuckLakeManager(
+                read_only=True, application_name=TASKS_APPLICATION_NAME
+            )
             self._manager.init_from_params(
                 postgres_uri=self.settings.ducklake_postgres_uri,
                 storage_path=self.settings.ducklake_data_dir,
@@ -228,8 +232,15 @@ class PMTilesSyncTask:
         password = unquote(parsed.password or "")
         dbname = parsed.path.lstrip("/") if parsed.path else ""
 
-        libpq_str = (
-            f"host={host} port={port} dbname={dbname} user={user} password={password}"
+        libpq_str = catalog_libpq(
+            {
+                "host": host,
+                "port": str(port),
+                "dbname": dbname,
+                "user": user,
+                "password": password,
+            },
+            TASKS_APPLICATION_NAME,
         )
         con.execute(f"ATTACH '{libpq_str}' AS pg (TYPE postgres, READ_ONLY)")
 

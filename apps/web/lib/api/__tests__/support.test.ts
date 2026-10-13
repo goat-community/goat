@@ -191,6 +191,16 @@ describe("support api", () => {
       expect(renderHook(() => useSupportSummary()).result.current.enabled).toBe(true);
     });
 
+    it("counts as on while the first answer is on its way, so the entries show at once", () => {
+      useAuthedSWRMock.mockReturnValue({ data: undefined, error: undefined, isLoading: true });
+      expect(renderHook(() => useSupportSummary()).result.current.enabled).toBe(true);
+      // nothing asked yet (logged out): off
+      useAuthedSWRMock.mockReturnValue({ data: undefined, error: undefined, isLoading: false });
+      expect(renderHook(() => useSupportSummary()).result.current.enabled).toBe(false);
+      useAuthedSWRMock.mockReturnValue({ data: undefined, error: undefined, isLoading: true });
+      expect(renderHook(() => useSupportSummary({ enabled: false })).result.current.enabled).toBe(false);
+    });
+
     it("never polls: it loads on mount and on focus, and does not retry errors", () => {
       useAuthedSWRMock.mockReturnValue({ data: undefined, error: undefined });
       renderHook(() => useSupportSummary());

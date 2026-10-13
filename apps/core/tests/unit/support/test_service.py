@@ -1,7 +1,7 @@
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from core.support.errors import (
@@ -16,6 +16,7 @@ from core.support.odoo_client import OdooRejected
 from core.support.service import (
     KEYCLOAK_VERDICT_TTL,
     LIST_TTL,
+    MAX_OPEN_TICKETS,
     KeycloakUser,
     NewTicketInput,
     SupportService,
@@ -49,6 +50,17 @@ class FakeKeycloak:
         return self.users.get(user_id, {})
 
 
+class VerifiedKeycloak:
+    """Keycloak that verified every user's stored email (the usual case)."""
+
+    def __init__(self, store: MemoryStore) -> None:
+        self._store = store
+
+    async def __call__(self, user_id: str) -> dict[str, Any]:
+        user = await self._store.load_user(UUID(user_id))
+        return {"email": user.email, "emailVerified": True}
+
+
 TRUSTED = EmailProof(verified_email=None, trust_stored=True)
 UNVERIFIED = EmailProof(verified_email=None)
 
@@ -69,7 +81,7 @@ def _service(
         ticket_limiter=RateLimiter(tickets, 3600),
         reply_limiter=RateLimiter(60, 3600),
         email_proof=proof,
-        keycloak_user=keycloak,
+        keycloak_user=keycloak or VerifiedKeycloak(store),
     )
 
 
@@ -859,25 +871,25 @@ async def test_creating_a_contact_clears_the_no_contact_answer() -> None:
     assert service._cache.get(("no_contact", me.id, "new@x.de")) is None  # noqa: SLF001
 
 
-async def test_colleague_without_contact_gets_a_new_one_never_an_email_match() -> None:
-    provider, store = FakeProvider(), MemoryStore()
-    store.companies[ORG] = 500
+async def test_colleague_with_an_unverified_email_is_refused_and_nothing_written() -> (
+    None
+):
+    provider, store, keycloak = FakeProvider(), MemoryStore(), FakeKeycloak()
     me = store.add_user(email="m@x.de", contact_id=100)
-    # an Odoo contact with Anna's (unverified) GOAT email exists, e.g. someone else's
-    provider.contacts["anna@x.de"] = 101
-    anna = store.add_user(email="anna@x.de", name="Anna Keller")
-    await _service(provider, store).create(me.id, _input(colleague_ids=(anna.id,)))
-    assert provider.email_lookups == []
-    (created,) = provider.created_contacts
-    assert created == {
-        "name": "Anna Keller",
-        "email": "anna@x.de",
-        "lang": "de",
-        "company_id": 500,
-    }
-    new_id = (await store.load_user(anna.id)).contact_id
-    assert new_id not in (None, 101)
-    assert provider.follower_changes == [("add", 41, (new_id,))]
+    # Anna's GOAT email may be anyone's: an Odoo contact with it exists, e.g. a
+    # stranger's, and Odoo would email that address about the ticket
+    provider.contacts["victim@customer.de"] = 101
+    anna = store.add_user(email="victim@customer.de", name="Anna Keller")
+    keycloak.add(anna.id, email="victim@customer.de", verified=False)
+    service = _service(provider, store, keycloak=keycloak)
+    with pytest.raises(SupportInvalid, match="colleague_email_not_verified"):
+        await service.create(me.id, _input(colleague_ids=(anna.id,)))
+    provider.add(make_ticket(customer_contact_id=100))
+    with pytest.raises(SupportInvalid, match="colleague_email_not_verified"):
+        await service.update_followers(me.id, "00031", (anna.id,), ())
+    assert provider.created == [] and provider.created_contacts == []
+    assert provider.email_lookups == [] and provider.follower_changes == []
+    assert (await store.load_user(anna.id)).contact_id is None
 
 
 async def test_adding_yourself_as_colleague_creates_no_contact() -> None:
@@ -910,7 +922,7 @@ async def test_bridge_partner_is_never_a_follower() -> None:
     provider.add(
         make_ticket(),
         followers=(
-            Follower(7, "GOAT Support Bridge", False),
+            Follower(7, "GOAT Support Bot", False),
             Follower(101, "A", False),
         ),
     )
@@ -1091,21 +1103,20 @@ async def test_a_contact_that_was_just_linked_is_not_checked_again() -> None:
 
 
 # ------------------------------------- a colleague's stored contact that is gone
-async def test_colleague_with_a_merged_contact_gets_a_new_one_when_added() -> None:
+async def test_colleague_with_a_merged_contact_is_linked_again_when_added() -> None:
     provider, store = FakeProvider(), MemoryStore()
     store.companies[ORG] = 500
     me = store.add_user(email="m@x.de", contact_id=100)
     anna = store.add_user(email="anna@x.de", name="Anna Keller", contact_id=101)
     provider.dead_contacts = {101}  # merged away in Odoo
-    provider.contacts["anna@x.de"] = 102  # the surviving one: never matched by email
+    provider.contacts["anna@x.de"] = 102  # the surviving one, of her verified email
     provider.add(make_ticket(customer_contact_id=100))
     await _service(provider, store).update_followers(me.id, "00031", (anna.id,), ())
-    new_id = (await store.load_user(anna.id)).contact_id
-    assert new_id not in (None, 101, 102)
     assert store.cleared == [anna.id]
-    assert [c["email"] for c in provider.created_contacts] == ["anna@x.de"]
-    assert provider.follower_changes == [("add", 31, (new_id,))]
-    assert provider.email_lookups == []
+    assert (await store.load_user(anna.id)).contact_id == 102
+    assert provider.created_contacts == []
+    assert provider.follower_changes == [("add", 31, (102,))]
+    assert provider.email_lookups == [("anna@x.de",)]
 
 
 async def test_colleagues_named_on_a_new_ticket_are_checked_in_one_batch() -> None:
@@ -1198,53 +1209,44 @@ async def test_keycloak_email_is_compared_case_insensitively() -> None:
     assert (await store.load_user(anna.id)).contact_id == 101
 
 
-async def test_verified_colleague_whose_goat_email_differs_gets_a_new_contact() -> None:
-    c = _colleague_setup(kc_email="old@x.de")
-    provider, store, service, me, anna = c.provider, c.store, c.service, c.me, c.anna
-    provider.contacts["anna@x.de"] = 101  # the (unverified) GOAT email's owner
-    provider.contacts["old@x.de"] = 102
-    await service.create(me.id, _input(colleague_ids=(anna.id,)))
-    assert provider.email_lookups == []
-    assert [c["email"] for c in provider.created_contacts] == ["anna@x.de"]
-    new_id = (await store.load_user(anna.id)).contact_id
-    assert new_id not in (None, 101, 102)
+async def _refused(c: Setup) -> None:
+    c.provider.contacts["anna@x.de"] = 101
+    with pytest.raises(SupportInvalid, match="colleague_email_not_verified"):
+        await c.service.create(c.me.id, _input(colleague_ids=(c.anna.id,)))
+    assert c.provider.email_lookups == [] and c.provider.created_contacts == []
+    assert c.provider.created == []
+    assert (await c.store.load_user(c.anna.id)).contact_id is None
+    # refused before the ticket limit counted anything
+    assert c.service._ticket_limiter.hit((c.me.id, "ticket"))  # noqa: SLF001
+    assert len(c.service._ticket_limiter._hits[(c.me.id, "ticket")]) == 1  # noqa: SLF001
+
+
+async def test_colleague_whose_goat_email_is_not_the_verified_one_is_refused() -> None:
+    await _refused(_colleague_setup(kc_email="old@x.de"))
 
 
 @pytest.mark.parametrize("verified", [False, None, "true", 1])
-async def test_unverified_colleague_gets_a_new_contact(verified: object) -> None:
-    c = _colleague_setup(verified=verified)
-    provider, store, service, me, anna = c.provider, c.store, c.service, c.me, c.anna
-    provider.contacts["anna@x.de"] = 101
-    await service.create(me.id, _input(colleague_ids=(anna.id,)))
-    assert provider.email_lookups == []
-    assert [c["email"] for c in provider.created_contacts] == ["anna@x.de"]
-    assert (await store.load_user(anna.id)).contact_id not in (None, 101)
+async def test_unverified_colleague_is_refused(verified: object) -> None:
+    await _refused(_colleague_setup(verified=verified))
 
 
-async def test_keycloak_without_an_answer_gives_a_new_contact_and_is_not_cached(
+async def test_keycloak_without_an_answer_refuses_and_is_not_cached(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     c = _colleague_setup(kc_email=None)
-    provider, service, me, anna = c.provider, c.service, c.me, c.anna
-    provider.contacts["anna@x.de"] = 101
     with caplog.at_level("INFO"):
-        await service.create(me.id, _input(colleague_ids=(anna.id,)))
-    assert provider.email_lookups == []
-    assert [c["email"] for c in provider.created_contacts] == ["anna@x.de"]
+        await _refused(c)
     assert "no keycloak data" in caplog.text
-    assert service._cache.get(("keycloak_email", anna.id)) is None  # noqa: SLF001
+    assert c.service._cache.get(("keycloak_email", c.anna.id)) is None  # noqa: SLF001
 
 
-async def test_a_raising_keycloak_lookup_falls_back_to_a_new_contact() -> None:
+async def test_a_raising_keycloak_lookup_refuses() -> None:
     c = _colleague_setup()
-    provider, store, service, me, anna = c.provider, c.store, c.service, c.me, c.anna
 
     async def broken(user_id: str) -> dict[str, Any]:
         raise ConnectionError("keycloak down")
 
-    service = _service(provider, store, keycloak=broken)
-    await service.create(me.id, _input(colleague_ids=(anna.id,)))
-    assert [c["email"] for c in provider.created_contacts] == ["anna@x.de"]
+    await _refused(replace(c, service=_service(c.provider, c.store, keycloak=broken)))
 
 
 async def test_verified_colleague_without_an_odoo_match_gets_a_new_contact() -> None:
@@ -1267,14 +1269,13 @@ async def test_keycloak_verdict_is_cached_for_ten_minutes() -> None:
         provider, store, cache=TTLCache(now=lambda: clock[0]), keycloak=keycloak
     )
     provider.add(make_ticket(customer_contact_id=100))
-    await service.update_followers(me.id, "00031", (anna.id,), ())
-    # the first add stored a new contact; clear it to make her "missing" again
-    await store.clear_contact_id(anna.id)
-    await service.update_followers(me.id, "00031", (anna.id,), ())
+    for _ in range(2):
+        with pytest.raises(SupportInvalid):
+            await service.update_followers(me.id, "00031", (anna.id,), ())
     assert keycloak.calls == [str(anna.id)]
     clock[0] += KEYCLOAK_VERDICT_TTL + 1
-    await store.clear_contact_id(anna.id)
-    await service.update_followers(me.id, "00031", (anna.id,), ())
+    with pytest.raises(SupportInvalid):
+        await service.update_followers(me.id, "00031", (anna.id,), ())
     assert keycloak.calls == [str(anna.id)] * 2
 
 
@@ -1293,3 +1294,108 @@ async def test_keycloak_is_asked_once_per_colleague_missing_a_contact() -> None:
     assert provider.email_lookups == [("anna@x.de", "ben@x.de")]  # one batch
     assert provider.created_contacts == []
     assert provider.follower_changes == [("add", 41, (101, 102))]
+
+
+# ------------------------------------------------------------- shared limits
+async def test_a_user_has_a_limited_number_of_open_tickets_of_their_own() -> None:
+    provider, store = FakeProvider(), MemoryStore()
+    me = store.add_user(email="m@x.de", contact_id=100)
+    for n in range(MAX_OPEN_TICKETS - 1):
+        provider.add(
+            make_ticket(id=100 + n, ref=f"{100 + n:05d}", customer_contact_id=100)
+        )
+    # followed only, and closed ones: not counted
+    provider.add(make_ticket(id=300, ref="00300", customer_contact_id=555))
+    provider.add(
+        make_ticket(id=301, ref="00301", customer_contact_id=100, status="solved")
+    )
+    service = _service(provider, store, tickets=50)
+    await service.create(me.id, _input(request_id="r1"))  # the last one allowed
+    with pytest.raises(SupportInvalid, match="too_many_open_tickets"):
+        await service.create(me.id, _input(request_id="r2"))
+    assert len(provider.created) == 1
+
+
+async def test_stage_changes_and_ticket_reads_are_limited() -> None:
+    provider, store = FakeProvider(), MemoryStore()
+    me = store.add_user(email="m@x.de", contact_id=100)
+    provider.add(make_ticket(customer_contact_id=100))
+    service = SupportService(
+        provider,
+        store,
+        cache=TTLCache(),
+        ticket_limiter=RateLimiter(10, 3600),
+        reply_limiter=RateLimiter(60, 3600),
+        email_proof=TRUSTED,
+        keycloak_user=VerifiedKeycloak(store),
+        status_limiter=RateLimiter(2, 3600),
+        read_limiter=RateLimiter(5, 300),
+    )
+    # the fake keeps the ticket open, so it can be resolved again
+    await service.resolve(me.id, "00031")
+    await service.resolve(me.id, "00031")
+    with pytest.raises(SupportRateLimited):
+        await service.resolve(me.id, "00031")
+    assert len(provider.statuses) == 2
+    # 3 ticket reads so far (one per action); the limit is 5
+    await service.get(me.id, "00031")
+    await service.get(me.id, "00031")
+    with pytest.raises(SupportRateLimited):
+        await service.get(me.id, "00031")
+
+
+# ------------------------------------------------------------- staff emails
+async def test_staff_cannot_open_tickets_from_goat_and_learn_why() -> None:
+    provider, store = FakeProvider(), MemoryStore()
+    me = store.add_user(email="lena@plan4better.example")
+    provider.staff_emails = {"lena@plan4better.example"}
+    with pytest.raises(SupportInvalid, match="staff_email"):
+        await _service(provider, store).create(me.id, _input())
+    assert provider.created == []
+
+
+async def test_a_staff_colleague_is_refused_with_its_own_reason() -> None:
+    provider, store = FakeProvider(), MemoryStore()
+    me = store.add_user(email="m@x.de", contact_id=100)
+    cyrine = store.add_user(email="cyrine@plan4better.example", name="Cyrine")
+    provider.staff_emails = {"cyrine@plan4better.example"}
+    with pytest.raises(SupportInvalid, match="colleague_is_staff"):
+        await _service(provider, store).create(
+            me.id, _input(colleague_ids=(cyrine.id,))
+        )
+    assert provider.created == [] and provider.follower_changes == []
+
+
+# ---------------------------------------------- lists across pods (own caches)
+async def test_lists_are_read_fresh_and_only_the_summary_is_cached() -> None:
+    provider, store = FakeProvider(), MemoryStore()
+    me = store.add_user(email="m@x.de", contact_id=100)
+    provider.add(make_ticket(customer_contact_id=100))
+    service = _service(provider, store)
+    await service.list(me.id, "mine", "open")
+    calls = provider.list_calls
+    await service.list(me.id, "mine", "open")
+    assert provider.list_calls == calls + 1  # opened lists always ask the ticket system
+    calls = provider.list_calls
+    await service.summary(me.id)
+    await service.summary(me.id)
+    # the summary reuses the lists: "open" from the fresh read above, "closed" once
+    assert provider.list_calls == calls + 1
+
+
+async def test_a_resolve_on_one_pod_shows_on_another_pods_lists() -> None:
+    provider, store = FakeProvider(), MemoryStore()
+    me = store.add_user(email="m@x.de", contact_id=100)
+    provider.add(make_ticket(customer_contact_id=100))
+    pod_a, pod_b = _service(provider, store), _service(provider, store)  # own caches
+    assert [i.ticket.ref for i in await pod_b.list(me.id, "mine", "open")] == ["00031"]
+    assert await pod_b.list(me.id, "mine", "closed") == []
+    await pod_a.resolve(me.id, "00031")
+    detail = provider.tickets["00031"]
+    provider.tickets["00031"] = replace(
+        detail, ticket=replace(detail.ticket, status="solved")
+    )  # what Odoo now answers
+    assert await pod_b.list(me.id, "mine", "open") == []
+    assert [i.ticket.ref for i in await pod_b.list(me.id, "mine", "closed")] == [
+        "00031"
+    ]

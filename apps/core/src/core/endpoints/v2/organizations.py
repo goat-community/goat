@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
 from core.crud.crud_invitation import invitation as crud_invitation
+from core.crud.crud_organization import OrganizationNotDeletableError
 from core.crud.crud_organization import organization as crud_organization
 from core.crud.crud_user import user as crud_user
 from core.db.models import Organization
@@ -17,7 +18,13 @@ from core.db.models.invitation import Invitation, InvitationStatusEnum, Invitati
 from core.db.models.organization import OrganizationRolesEnum
 from core.db.models.user import User
 from core.deps import keycloak as keycloak_deps
-from core.deps.auth import auth_z, require_superuser, token_is_superuser, user_token
+from core.deps.auth import (
+    auth_z,
+    can_create_organization,
+    require_superuser,
+    token_is_superuser,
+    user_token,
+)
 from core.endpoints.deps import get_db
 from core.schemas.email import EmailTemplateContent
 from core.schemas.invitations import (
@@ -27,6 +34,7 @@ from core.schemas.invitations import (
 )
 from core.schemas.organization import (
     OrganizationCreate,
+    OrganizationPermanentlyDeleted,
     OrganizationRead,
     OrganizationUpdate,
     OrganizationUpdateMemberRole,
@@ -92,9 +100,15 @@ async def create_organization(
     request: Request,
 ) -> Any:
     """
-    Create a new organization
+    Create a new organization. With `ALLOW_ORGANIZATION_CREATION` off, only
+    superusers may; everyone else joins through an invitation.
     """
     user_id = user_token["sub"]  # always the caller
+    if not can_create_organization(user_token):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Organizations are set up by an administrator. Ask to be invited to an existing one.",
+        )
     db_user = await crud_user.get(db=db, id=user_id)
     if db_user and db_user.organization_id:
         raise HTTPException(
@@ -166,6 +180,53 @@ async def delete_organization(
     await crud_organization.delete_organization(
         db=db, organization_obj=organization_obj
     )
+
+
+@router.delete(
+    "/{organization_id}/permanent",
+    summary="Delete an organization permanently (superusers only)",
+    response_model=OrganizationPermanentlyDeleted,
+    dependencies=[Depends(require_superuser)],
+)
+async def delete_organization_permanently(
+    *,
+    organization_id: UUID,
+) -> OrganizationPermanentlyDeleted:
+    """Remove an organization that holds nothing but the user who set it up,
+    e.g. someone who signed in before their invitation existed. The user
+    keeps their account and personal space, has no organization afterwards
+    and can be invited. An organization whose last member is gone can be
+    removed the same way. `DELETE /organizations/{organization_id}` only
+    suspends an organization.
+
+    Answers 409 unless the organization has at most one member and nothing
+    in it: no content in its space or in the member's personal space (trash
+    included), no teams, pending invitations, custom domains or analytics
+    settings. Billing is not touched: a subscription of the Odoo company named
+    by `odoo_company_id` stays in Odoo until it is ended there; its
+    entitlement pushes find no organization and are refused.
+    """
+    try:
+        deleted = await crud_organization.delete_permanently(
+            organization_id=organization_id
+        )
+    except OrganizationNotDeletableError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only an organization with at most one member and nothing in it "
+            f"can be deleted permanently. Found {exc}.",
+        ) from exc
+    if deleted is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found",
+        )
+    logger.info(
+        "organization %s deleted permanently, former member: %s",
+        deleted.id,
+        deleted.user_id,
+    )
+    return deleted
 
 
 #### ORGANIZATION USERS ###

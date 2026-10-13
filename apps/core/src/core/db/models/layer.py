@@ -293,7 +293,9 @@ class Layer(LayerBase, GeospatialAttributes, DateTimeBase, table=True):
             "Per-column metadata keyed by column name. "
             "Each entry has shape "
             '{"kind": str, "is_computed": bool, "is_locked": bool, '
-            '"depends_on": [str], "display_config": {...}}. '
+            '"depends_on": [str], "display_config": {...}}, plus per-kind '
+            'settings next to "kind" (a formula\'s "formula", a serial\'s '
+            '"start"; see goatlib.utils.generated_fields). '
             "Columns with no entry use default config inferred from the "
             "DuckDB type."
         ),

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PROJECTS_API_BASE_URL } from "@/lib/api/projects";
-import { refreshWorkflow, updateWorkflow } from "@/lib/api/workflows";
+import { WorkflowRefusedError, executeWorkflow, refreshWorkflow, updateWorkflow } from "@/lib/api/workflows";
 
 const { fetchMock, mutateMock } = vi.hoisted(() => ({ fetchMock: vi.fn(), mutateMock: vi.fn() }));
 vi.mock("@/lib/api/fetcher", () => ({ apiRequestAuth: fetchMock, fetcher: vi.fn() }));
@@ -41,5 +41,44 @@ describe("workflows api cache invalidation", () => {
   it("refreshWorkflow invalidates the array key the read hook uses", () => {
     refreshWorkflow(PROJECT_ID, WORKFLOW_ID);
     expect(mutateMock).toHaveBeenCalledWith(itemKey);
+  });
+});
+
+describe("executeWorkflow refusals", () => {
+  const request = { project_id: PROJECT_ID, nodes: [], edges: [] } as unknown as Parameters<
+    typeof executeWorkflow
+  >[1];
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+  });
+
+  it("turns a refusal into the nodes it names", async () => {
+    const body = {
+      detail: { message: "Resource not found", refused_nodes: ["schools"], destination_refused: false },
+    };
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 404,
+      text: () => Promise.resolve(JSON.stringify(body)),
+    });
+
+    const refused = await executeWorkflow(WORKFLOW_ID, request).catch((e: unknown) => e);
+
+    expect(refused).toBeInstanceOf(WorkflowRefusedError);
+    expect((refused as WorkflowRefusedError).refusedNodes).toEqual(["schools"]);
+    expect((refused as WorkflowRefusedError).destinationRefused).toBe(false);
+  });
+
+  it("keeps any other failure as it was", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: () => Promise.resolve("Internal Server Error"),
+    });
+
+    await expect(executeWorkflow(WORKFLOW_ID, request)).rejects.toThrow(
+      "Failed to execute workflow: Internal Server Error"
+    );
   });
 });

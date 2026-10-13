@@ -6,6 +6,11 @@ from typing import Annotated, Optional
 
 from goatlib.api.root_path import normalize_root_path
 from goatlib.auth import AuthFlag, require_keycloak_url
+from goatlib.config.postgres import (
+    ducklake_postgres_endpoint,
+    parse_transaction_pooler,
+    transaction_pooler_enabled,
+)
 from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode
 
@@ -58,6 +63,12 @@ class Settings(BaseSettings):
     REALM_NAME: str = Field(
         default="p4b",
         validation_alias=AliasChoices("GEOAPI_REALM_NAME", "REALM_NAME"),
+    )
+    # Comma-separated Keycloak client IDs whose tokens are accepted (the
+    # token's `azp`); empty accepts every client of the realm. Bare name only,
+    # like the other services.
+    AUTH_ALLOWED_CLIENTS: str = Field(
+        default="", validation_alias="AUTH_ALLOWED_CLIENTS"
     )
 
     # PostgreSQL settings for DuckLake catalog
@@ -173,14 +184,23 @@ class Settings(BaseSettings):
     # CORS settings
     CORS_ORIGINS: list[str] = ["*"]
 
-    # Direct PostgreSQL host for DuckLake attaches. These sessions are
-    # long-lived and idle-in-transaction, so routing them through a
-    # transaction pooler only burns its slots; point this at the primary
-    # (e.g. the CNPG rw service) to keep the pooler for app queries.
-    # Unset = same host as POSTGRES_SERVER.
-    DUCKLAKE_POSTGRES_SERVER: str = os.getenv(
-        "DUCKLAKE_POSTGRES_SERVER", ""
-    ) or os.getenv("POSTGRES_SERVER", "localhost")
+    # Direct PostgreSQL host and port for DuckLake attaches. They keep their
+    # catalog connections for as long as they live and are not verified behind
+    # a transaction pooler; point these at the primary (e.g. the CNPG rw
+    # service) to keep the pooler for app queries.
+    # Unset = same host and port as POSTGRES_SERVER / POSTGRES_PORT.
+    # POSTGRES_SERVER is a pooler in transaction mode (bare name, no prefix):
+    # the query pool then caches no prepared statements and sends no
+    # keepalive settings (goatlib.config.postgres.asyncpg_connect_args).
+    POSTGRES_TRANSACTION_POOLER: bool = transaction_pooler_enabled()
+
+    @field_validator("POSTGRES_TRANSACTION_POOLER", mode="before")
+    @classmethod
+    def _parse_transaction_pooler(cls, value: object) -> bool:
+        return parse_transaction_pooler(value)
+
+    DUCKLAKE_POSTGRES_SERVER: str = os.getenv("DUCKLAKE_POSTGRES_SERVER", "")
+    DUCKLAKE_POSTGRES_PORT: str = os.getenv("DUCKLAKE_POSTGRES_PORT", "")
 
     @model_validator(mode="after")
     def _require_keycloak(self) -> "Settings":
@@ -195,7 +215,13 @@ class Settings(BaseSettings):
     @property
     def DUCKLAKE_POSTGRES_DATABASE_URI(self) -> str:
         """PostgreSQL URI for DuckLake catalog attaches (direct, unpooled)."""
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.DUCKLAKE_POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        host, port = ducklake_postgres_endpoint(
+            self.POSTGRES_SERVER,
+            self.POSTGRES_PORT,
+            self.DUCKLAKE_POSTGRES_SERVER,
+            self.DUCKLAKE_POSTGRES_PORT,
+        )
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{host}:{port}/{self.POSTGRES_DB}"
 
     model_config = {"env_prefix": "GEOAPI_", "case_sensitive": True}
 
