@@ -152,9 +152,12 @@ describe("support api", () => {
   });
 
   describe("support feature probe", () => {
-    it("is off until something was received, and on 404", () => {
+    it("is off until something was received", () => {
       expect(isSupportEnabled(undefined, undefined)).toBe(false);
-      expect(isSupportEnabled(undefined, { status: 404, info: { detail: "Not Found" } })).toBe(false);
+    });
+
+    it("is off when the summary says support is not configured", () => {
+      expect(isSupportEnabled({ enabled: false, needs_reply: 0, unread: 0 }, undefined)).toBe(false);
     });
 
     it("is off without a valid session (401/403)", () => {
@@ -168,20 +171,20 @@ describe("support api", () => {
     });
 
     it("stays on for data and for server errors such as Odoo being down", () => {
-      expect(isSupportEnabled({ needs_reply: 0, unread: 0 }, undefined)).toBe(true);
+      expect(isSupportEnabled({ enabled: true, needs_reply: 0, unread: 0 }, undefined)).toBe(true);
       expect(isSupportEnabled(undefined, { status: 503, info: { detail: "support_unavailable" } })).toBe(
         true
       );
       expect(isSupportEnabled(undefined, { status: 500 })).toBe(true);
       expect(isSupportEnabled(undefined, new SyntaxError("not json"))).toBe(true);
       // a transient error after a successful poll keeps the last data
-      expect(isSupportEnabled({ needs_reply: 1, unread: 0 }, { status: 503 })).toBe(true);
+      expect(isSupportEnabled({ enabled: true, needs_reply: 1, unread: 0 }, { status: 503 })).toBe(true);
     });
 
     it("useSupportSummary exposes the flag", () => {
       useAuthedSWRMock.mockReturnValue({
-        data: undefined,
-        error: { status: 404, info: { detail: "Not Found" } },
+        data: { enabled: false, needs_reply: 0, unread: 0 },
+        error: undefined,
       });
       expect(renderHook(() => useSupportSummary()).result.current.enabled).toBe(false);
       useAuthedSWRMock.mockReturnValue({
@@ -221,9 +224,17 @@ describe("support api", () => {
       expect(useAuthedSWRMock.mock.calls.at(-1)?.[0]).toMatch(/\/api\/v2\/support\/summary$/);
     });
 
-    it("reports a 404 as not configured", () => {
-      useAuthedSWRMock.mockReturnValue({ data: undefined, error: { status: 404, info: { detail: "x" } } });
+    it("reports not configured when the summary says support is off", () => {
+      useAuthedSWRMock.mockReturnValue({
+        data: { enabled: false, needs_reply: 0, unread: 0 },
+        error: undefined,
+      });
       expect(renderHook(() => useSupportSummary()).result.current.notConfigured).toBe(true);
+      useAuthedSWRMock.mockReturnValue({
+        data: { enabled: true, needs_reply: 0, unread: 0 },
+        error: undefined,
+      });
+      expect(renderHook(() => useSupportSummary()).result.current.notConfigured).toBe(false);
       useAuthedSWRMock.mockReturnValue({ data: undefined, error: { status: 503, info: {} } });
       expect(renderHook(() => useSupportSummary()).result.current.notConfigured).toBe(false);
     });

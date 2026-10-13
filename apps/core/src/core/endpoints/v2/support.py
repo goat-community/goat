@@ -1,4 +1,5 @@
-"""Support tickets (Odoo Helpdesk). SaaS only: 404 while unconfigured.
+"""Support tickets (Odoo Helpdesk). SaaS only: while unconfigured, the summary
+says so (`enabled: false`) and every other route answers 404.
 
 Visibility is enforced by SupportService on every call; the authz resource
 entry `support` only requires an authenticated user.
@@ -60,6 +61,9 @@ from core.support.types import Category, Impact, UploadedFile
 logger = logging.getLogger(__name__)
 
 router = APIRouter(dependencies=[Depends(require_support_enabled), Depends(auth_z)])
+# The summary is how the web learns whether support is on, so it answers while
+# support is unconfigured too. Mounted next to `router` (api.py).
+summary_router = APIRouter(dependencies=[Depends(auth_z)])
 
 MAX_FILES = 10
 MAX_FILE_BYTES = 10 * 1024 * 1024
@@ -196,13 +200,15 @@ def _write_out(result: WriteResult) -> WriteResultOut:
     )
 
 
-@router.get("/summary", response_model=SummaryOut)
+@summary_router.get("/summary", response_model=SummaryOut)
 async def get_summary(
     user_id: UUID = Depends(get_user_id),
-    service: SupportService = Depends(get_support_service),
+    service: SupportService | None = Depends(get_support_service),
 ) -> SummaryOut:
+    if service is None:
+        return SummaryOut(enabled=False, needs_reply=0, unread=0)
     s = await _call(service.summary(user_id))
-    return SummaryOut(needs_reply=s.needs_reply, unread=s.unread)
+    return SummaryOut(enabled=True, needs_reply=s.needs_reply, unread=s.unread)
 
 
 @router.get("/tickets", response_model=list[TicketOut])

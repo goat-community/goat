@@ -15,8 +15,8 @@ web:
   # No ingress in this smoke profile, so these must be set explicitly or the
   # web UI white-screens (see C1 in the whole-branch review / README). The
   # exact hostnames don't need to be browser-reachable for this smoke test —
-  # the assertion only checks that the entrypoint substituted them in place
-  # of the literal APP_NEXT_PUBLIC_* sentinels.
+  # the assertion only checks that the entrypoint had a value for each
+  # literal APP_NEXT_PUBLIC_* sentinel.
   publicUrls:
     api: "http://goat-smoke.test/api"
     geoapi: "http://goat-smoke.test/geoapi"

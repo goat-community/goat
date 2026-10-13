@@ -52,9 +52,9 @@ kubectl -n goat port-forward svc/goat-catalog   8400:80
 > ⚠️ **A bare `helm install` with no URLs white-screens the web UI.** The
 > browser calls core, geoapi, processes and catalog directly, so it needs
 > their *public* (browser-reachable) URLs; the web image ships literal
-> `APP_NEXT_PUBLIC_*_URL` placeholders that its entrypoint replaces only
-> with values it is given, and an unreplaced `NEXT_PUBLIC_API_URL` makes
-> `new URL(...)` throw on first load. Set the four `web.publicUrls.*` as above
+> `APP_NEXT_PUBLIC_*_URL` placeholders that its entrypoint replaces with
+> the values it is given (and blanks otherwise), and a missing
+> `NEXT_PUBLIC_API_URL` makes `new URL(...)` throw on first load. Set the four `web.publicUrls.*` as above
 > (the port-forward addresses), or give `core`/`geoapi`/`processes`/`catalog`
 > an ingress with a host — each URL is then derived from it (see "Key
 > values"). The install NOTES print a WARNING when `api` cannot be resolved.

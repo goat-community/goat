@@ -381,10 +381,11 @@ web:
   #
   # IMPORTANT: if `api` stays empty AND core.ingress has no hosts, the web
   # UI WILL NOT LOAD. The browser bundle is built with literal
-  # APP_NEXT_PUBLIC_* sentinels that the entrypoint only rewrites for
-  # variables it can resolve; an unresolved NEXT_PUBLIC_API_URL reaches
-  # client JS as that sentinel string, and `new URL(..., NEXT_PUBLIC_API_URL)`
-  # throws at module load, white-screening the app. Set at least `api` here,
+  # APP_NEXT_PUBLIC_* sentinels that the entrypoint rewrites with the values
+  # it is given and blanks otherwise; an unresolved NEXT_PUBLIC_API_URL
+  # reaches client JS empty (older images: as the sentinel string), and
+  # `new URL(..., NEXT_PUBLIC_API_URL)` throws at module load,
+  # white-screening the app. Set at least `api` here,
   # or give `core` an ingress with a host, before relying on this default.
   publicUrls:
 
