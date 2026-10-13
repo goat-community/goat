@@ -75,7 +75,7 @@ Input: the issue number, after the reviewer has agreed on it.
    - Screenshots and recordings can't be taken from here. Leave the old ones in place and list them in the PR.
    - Use one commit per item: `docs(<area>): …`.
 4. Check: `pnpm install --filter @p4b/docs...` then `pnpm --filter @p4b/docs build`. The build must pass; it fails on broken links. If you added any images, also run `bash scripts/check-file-sizes.sh origin/main`.
-5. Push with `git push -u origin docs/release-<NEW>`, then `gh pr create --draft --base main --title "docs: update for <BASE>..<NEW> (EN + DE)"`. Body:
+5. Push to the fork, since direct pushes to `plan4better/goat` are refused: add it if needed (`git remote add fork https://github.com/cnarbaitzsarsur/goat.git`), then `git push -u fork docs/release-<NEW>` and `gh pr create --repo plan4better/goat --head cnarbaitzsarsur:docs/release-<NEW> --draft --base main --title "docs: update for <BASE>..<NEW> (EN + DE)"`. Body:
    - `Closes #<issue>`
    - **Changed:** one bullet per item, naming the components and i18n keys it was checked against.
    - **Needs a person:** stale media (file path + what changed), and anywhere you departed from the issue, with the reason.
