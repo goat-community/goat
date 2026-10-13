@@ -693,7 +693,7 @@ services:
       BASE_URL: http://localhost:${WINDMILL_LOCAL_PORT:-8110}
       # Windmill database connections of the server (at most); unset, its pool
       # grows to 50 under load.
-      DATABASE_CONNECTIONS: "5"
+      DATABASE_CONNECTIONS: "10"
     ports:
       - "127.0.0.1:${WINDMILL_LOCAL_PORT:-8110}:8000"
     networks: [goat]

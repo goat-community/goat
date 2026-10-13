@@ -3,8 +3,8 @@ templates:
   - windmill/server/configmap.yaml
 tests:
   # Unset, the server grows its pool to 50 connections and keeps them.
-  - it: the server keeps five Windmill database connections
+  - it: the server keeps ten Windmill database connections
     asserts:
       - equal:
           path: data.DATABASE_CONNECTIONS
-          value: "5"
+          value: "10"

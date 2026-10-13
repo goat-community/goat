@@ -45,7 +45,7 @@ description: |
     applications, where any client of the realm can otherwise get a token
     GOAT's APIs accept. Empty (the default) accepts every client, as before,
     and core refuses to start if the list leaves out its own client.
-  - Windmill's database pools: the server holds at most 5 connections
+  - Windmill's database pools: the server holds at most 10 connections
     (`windmill.server.config.DATABASE_CONNECTIONS`; unset, its pool grows to
     50) and every worker 3 (`windmill.workers.databaseConnections`).
 

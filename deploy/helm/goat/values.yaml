@@ -874,7 +874,7 @@ windmill:
       BASE_URL: "http://localhost:8000"
       # Windmill database connections of the server (at most); unset, its pool
       # grows to 50 under load.
-      DATABASE_CONNECTIONS: "5"
+      DATABASE_CONNECTIONS: "10"
     extraEnv: []
     resources:
       requests:
