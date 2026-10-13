@@ -247,6 +247,10 @@ Sobald ein Workflow eingerichtet ist, können Sie ihn als **Vorlage** speichern,
   <div class="content">Klicken Sie auf <code>Speichern</code>.</div>
 </div>
 
+:::tip Ihr Styling kommt mit
+Wenn Sie einen Export-Knoten ausgeführt und seinen Ergebnis-Layer gestylt haben, übernimmt die Vorlage dieses Styling. Wer die Vorlage nutzt, sieht Ihr Styling schon beim ersten Ausführen. Ein Export, der ein früheres Ergebnis überschreibt, behält das Styling dieses Layers.
+:::
+
 :::info Aktualisieren statt duplizieren
 Wenn aus diesem Workflow bereits eine Vorlage gespeichert wurde, können Sie sie **aus der Quelle aktualisieren** mit der aktuellen Version, anstatt ein Duplikat zu erstellen. Da die Eingaben Teil des gespeicherten Snapshots sind, verwenden Sie <code>Vorlage aus Quelle aktualisieren</code>, um sie zu ändern.
 :::

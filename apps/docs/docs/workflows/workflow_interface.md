@@ -249,6 +249,10 @@ Once a workflow is set up, you can save it as a **template** so it can be reused
   <div class="content">Click <code>Save</code>.</div>
 </div>
 
+:::tip Your styling comes along
+If you have run an export node and styled its result layer, the template keeps that style. People who use the template get your styling on their first run. An export that overwrites an earlier result keeps that layer's own style.
+:::
+
 :::info Update instead of duplicate
 If a template was already saved from this workflow, you can **update it from the source** with the current version instead of creating a duplicate. Because the inputs are part of the saved snapshot, use <code>Update template from source</code> to change them.
 :::
