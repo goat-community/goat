@@ -1016,6 +1016,18 @@
     "potential_expression": {
       "area": "Fläche",
       "perimeter": "Umfang"
+    },
+    "overture_type": {
+      "places": "Orte",
+      "divisions": "Verwaltungsgebiete",
+      "buildings": "Gebäude",
+      "land_use": "Landnutzung",
+      "land": "Naturflächen",
+      "water_areas": "Gewässer (Flächen)",
+      "waterways": "Gewässer (Linien)",
+      "infrastructure_points": "Infrastruktur (Punkte)",
+      "infrastructure_lines": "Infrastruktur (Linien)",
+      "infrastructure_areas": "Infrastruktur (Flächen)"
     }
   },
   "tools": {

@@ -13,7 +13,6 @@ import BundleInput from "@/components/map/panels/toolbox/generic/inputs/BundleIn
 import ChipsInput from "@/components/map/panels/toolbox/generic/inputs/ChipsInput";
 import DateInput from "@/components/map/panels/toolbox/generic/inputs/DateInput";
 import EnumInput from "@/components/map/panels/toolbox/generic/inputs/EnumInput";
-import OsmTagInput from "./OsmTagInput";
 import FieldInput from "@/components/map/panels/toolbox/generic/inputs/FieldInput";
 import FieldStatisticsInput from "@/components/map/panels/toolbox/generic/inputs/FieldStatisticsInput";
 import LayerInput from "@/components/map/panels/toolbox/generic/inputs/LayerInput";
@@ -111,18 +110,6 @@ export default function GenericInput({
           formValues={safeFormValues}
           layerDatasetIds={layerDatasetIds}
           predictedColumns={predictedColumns}
-        />
-      );
-
-    case "osm-tag":
-      return (
-        <OsmTagInput
-          input={input}
-          value={value}
-          onChange={onChange}
-          disabled={disabled}
-          formValues={safeFormValues}
-          layerDatasetIds={layerDatasetIds}
         />
       );
 

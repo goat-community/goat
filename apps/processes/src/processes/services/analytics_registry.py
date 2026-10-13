@@ -58,29 +58,40 @@ class UniqueValuesProcessInput(UniqueValuesInput):
     collection: str = Field(description="Layer ID (UUID)")
 
 
-class OsmTagValuesProcessInput(BaseModel):
-    """Which OSM tag keys, or which values of one key, occur in an area."""
+class MirrorValuesProcessInput(BaseModel):
+    """Which attributes, or which values of one attribute, occur in the mirror for an area."""
 
-    collection: str = Field(description="Reference area layer ID (UUID)")
-    source: str = Field("osm", description="Which mirror: osm or overture")
+    area: dict = Field(description="GeoJSON polygon the question is about")
+    source: str = Field(
+        "osm", description="Which mirrored source, e.g. osm or overture"
+    )
     feature_type: str = Field(
         "points", description="OSM layer, or Overture type when source is overture"
     )
     key: str | None = Field(
-        None, description="Tag key whose values to list; omitted lists the keys"
+        None, description="Attribute whose values to list; omitted lists the attributes"
     )
     limit: int = Field(100, ge=1, le=1000, description="Maximum entries")
+    quick: bool = Field(
+        False, description="Read a small sample first, without counts, for a fast list"
+    )
 
 
-class OsmTagValue(BaseModel):
+class MirrorValue(BaseModel):
     value: str
     count: int
 
 
-class OsmTagValuesResult(BaseModel):
+class MirrorValuesResult(BaseModel):
     key: str | None = None
     total: int = 0
-    values: list[OsmTagValue] = Field(default_factory=list)
+    sampled: bool = Field(
+        False, description="Counts are of a capped sample of the area, not totals"
+    )
+    complete: bool = Field(
+        False, description="A quick read that saw the whole area: no full read needed"
+    )
+    values: list[MirrorValue] = Field(default_factory=list)
 
 
 class ClassBreaksProcessInput(ClassBreaksInput):
@@ -174,15 +185,15 @@ ANALYTICS_DEFINITIONS: dict[str, dict[str, Any]] = {
         "tool_key": "unique_values",
         "hidden": True,
     },
-    "osm-tag-values": {
-        "title": "OSM Tag Values",
+    "mirror-values": {
+        "title": "Mirror Values",
         "description": (
-            "Tag keys, or the values of one key, present in a reference area"
+            "Attributes, or the values of one attribute, in the mirror for an area"
         ),
-        "input_model": OsmTagValuesProcessInput,
-        "output_model": OsmTagValuesResult,
+        "input_model": MirrorValuesProcessInput,
+        "output_model": MirrorValuesResult,
         "keywords": ["analytics", "osm", "tags", "values"],
-        "tool_key": "osm_tag_values",
+        "tool_key": "mirror_values",
         "hidden": True,
     },
     "class-breaks": {

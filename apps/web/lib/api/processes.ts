@@ -531,28 +531,33 @@ export async function getUniqueValues(
   return executeProcess<UniqueValuesInput, UniqueValuesOutput>("unique-values", inputs);
 }
 
-export type OsmTagValue = { value: string; count: number };
-export type OsmTagValuesOutput = { key: string | null; total: number; values: OsmTagValue[] };
+export type MirrorValue = { value: string; count: number };
+export type MirrorValuesOutput = {
+  key: string | null;
+  total: number;
+  /** The area holds more than the tool reads, so the counts are of a sample, not totals. */
+  sampled?: boolean;
+  /** A quick read that saw the whole area, so its counts are final. */
+  complete?: boolean;
+  values: MirrorValue[];
+};
 
-/**
- * Tag keys, or the values of one key, present inside a reference area.
- *
- * The area is a layer rather than the attribute source: the answer comes from
- * the OSM mirror clipped to it, which is why this is not `unique-values`.
- */
-export async function getOsmTagValues(
-  referenceAreaLayerId: string,
+/** Attributes, or the values of one attribute, in the mirror for an area: OSM tags or Overture columns. */
+export async function getMirrorValues(
+  area: GeoJSON.Polygon | GeoJSON.MultiPolygon,
   featureType: string,
   key?: string,
   limit = 200,
-  source = "osm"
-): Promise<OsmTagValuesOutput> {
-  return executeProcess<Record<string, unknown>, OsmTagValuesOutput>("osm-tag-values", {
-    collection: referenceAreaLayerId,
+  source = "osm",
+  quick = false
+): Promise<MirrorValuesOutput> {
+  return executeProcess<Record<string, unknown>, MirrorValuesOutput>("mirror-values", {
+    area,
     source,
     feature_type: featureType,
     ...(key ? { key } : {}),
     limit,
+    ...(quick ? { quick } : {}),
   });
 }
 

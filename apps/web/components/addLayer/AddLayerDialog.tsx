@@ -13,12 +13,14 @@ import { useCatalogFlow } from "@/hooks/addLayer/useCatalogFlow";
 import { useConnectFlow } from "@/hooks/addLayer/useConnectFlow";
 import { useCreateFlow } from "@/hooks/addLayer/useCreateFlow";
 import { useDatasetPickerFlow } from "@/hooks/addLayer/useDatasetPickerFlow";
+import { useFetchFlow } from "@/hooks/addLayer/useFetchFlow";
 import { useUploadFlow } from "@/hooks/addLayer/useUploadFlow";
 
 import CatalogBody from "@/components/addLayer/CatalogBody";
 import ConnectBody from "@/components/addLayer/ConnectBody";
 import CreateBody from "@/components/addLayer/CreateBody";
 import DatasetPickerBody from "@/components/addLayer/DatasetPickerBody";
+import FetchBody from "@/components/addLayer/FetchBody";
 import UploadBody from "@/components/addLayer/UploadBody";
 import { type AddLayerSourceId, addLayerSource } from "@/components/addLayer/sources";
 import AppDialog, { AppDialogFooter } from "@/components/common/AppDialog";
@@ -164,6 +166,28 @@ const CatalogDialog = ({ projectId, onClose }: { projectId?: string; onClose: ()
  * The user's own datasets. The flow owns the selection, so browsing the shelf
  * — searching, entering a folder, changing space — leaves it untouched.
  */
+const FetchDialog = ({
+  projectId,
+  defaultFolderId,
+  onClose,
+}: {
+  projectId?: string;
+  defaultFolderId?: string;
+  onClose: () => void;
+}) => {
+  const { map } = useMap();
+  const [viewport] = useState<[number, number, number, number] | undefined>(() => {
+    const bounds = map?.getBounds();
+    return bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()] : undefined;
+  });
+  const controller = useFetchFlow({ projectId, defaultFolderId, viewport, onDone: onClose });
+  return (
+    <AddLayerFrame sourceId="fetch" controller={controller} onClose={onClose}>
+      <FetchBody controller={controller} />
+    </AddLayerFrame>
+  );
+};
+
 const MyDatasetsDialog = ({ projectId, onClose }: { projectId?: string; onClose: () => void }) => {
   const theme = useTheme();
   // The frame full-screens below `sm` (AppDialog's default), and a full-screen
@@ -216,6 +240,8 @@ const AddLayerDialog = ({
   if (source === "connect")
     return <ConnectDialog projectId={projectId} defaultFolderId={defaultFolderId} onClose={onClose} />;
   if (source === "explorer") return <MyDatasetsDialog projectId={projectId} onClose={onClose} />;
+  if (source === "fetch")
+    return <FetchDialog projectId={projectId} defaultFolderId={defaultFolderId} onClose={onClose} />;
   return null;
 };
 

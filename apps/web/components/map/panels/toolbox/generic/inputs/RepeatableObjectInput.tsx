@@ -86,8 +86,6 @@ export function processObjectProperties(
       inputType = "layer";
     } else if (uiMeta?.widget === "field-selector" || propName.endsWith("_field")) {
       inputType = "field";
-    } else if (uiMeta?.widget === "osm-tag-key" || uiMeta?.widget === "osm-tag-value") {
-      inputType = "osm-tag";
     } else if (resolvedSchema.enum) {
       inputType = "enum";
     } else if (resolvedSchema.type === "boolean") {

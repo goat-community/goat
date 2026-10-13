@@ -287,33 +287,27 @@ class AnalyticsService:
 
         return result.model_dump()
 
-    def osm_tag_values(
+    def mirror_values(
         self,
-        collection: str,
+        area: dict,
         feature_type: str = "points",
         key: str | None = None,
         limit: int = 100,
         source: str = "osm",
+        quick: bool = False,
     ) -> dict[str, Any]:
-        """Tag keys, or one key's values, occurring inside a reference area.
+        """Attributes, or one attribute's values, in the mirror for an area."""
+        from goatlib.tools.data_integration import mirror_values
 
-        The layer bounds the question rather than being read for its own
-        attributes: the answer comes from the OSM mirror, clipped to it.
-        """
-        from goatlib.tools.data_integration import tag_values
-
-        table_name = self._get_table_name(collection)
-        with self._connection(table_name) as con:
-            return tag_values(
+        with ducklake_manager.connection() as con:
+            return mirror_values(
                 con,
-                area_table=table_name,
+                area=area,
                 feature_type=feature_type,
                 key=key,
                 limit=limit,
-                # Keyed by the layer, so the parsed tags are built once per area
-                # rather than once per question asked about it.
-                cache_key=collection,
                 source_name=source,
+                quick=quick,
             )
 
     def class_breaks(
