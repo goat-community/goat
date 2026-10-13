@@ -57,7 +57,15 @@ async def test_load_user_with_org_role_and_language(
         store = SqlSupportStore(db_session)
         user = await store.load_user(fixture_create_user)
         assert user.org_id == org_id and user.is_org_admin and user.contact_id is None
-        assert user.name == "Green GOAT" and user.lang in ("en", "de")
+        # The default user's name depends on which test created the row: the
+        # fixture or a request through the default identity.
+        first, last = (
+            await db_session.execute(
+                text(f'SELECT firstname, lastname FROM {S}."user" WHERE id = :u'),
+                {"u": fixture_create_user},
+            )
+        ).one()
+        assert user.name == f"{first} {last}" and user.lang in ("en", "de")
         assert await store.org_company_id(org_id) == 500
         members = {m.email: m for m in await store.org_members(org_id)}
         assert members["Anna.Keller@Stadt.de"].contact_id == 77
