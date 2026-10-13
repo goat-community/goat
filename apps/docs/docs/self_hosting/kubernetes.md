@@ -43,7 +43,7 @@ The chart does **not** include:
 - **Object storage.** GOAT needs an external S3-compatible storage.
 - **Keycloak.** If users should log in, you need an external Keycloak.
 
-You can also point the chart at an existing PostgreSQL or Redis instead of the bundled ones; the chart README lists the SQL your PostgreSQL needs. If `postgresql.external.host` is a connection pooler in transaction mode, set `postgresql.external.ducklakeHost` to the database itself: DuckLake keeps its catalog connections open, so they bypass the pooler. The database must listen on the same port as the pooler; a pooler on another port is not supported yet.
+You can also point the chart at an existing PostgreSQL or Redis instead of the bundled ones; the chart README lists the SQL your PostgreSQL needs. If `postgresql.external.host` is a connection pooler in transaction mode, set `postgresql.external.transactionPooler: true` (`POSTGRES_TRANSACTION_POOLER`), so GOAT prepares no statements on the server and sends no settings the pooler might refuse, and set `postgresql.external.ducklakeHost` to the database itself: DuckLake keeps its catalog connections open, so they bypass the pooler. If the pooler listens on another port than the database (PgBouncer's default is 6432), also set `postgresql.external.ducklakePort` to the database's port.
 
 Every service has memory requests and limits by default, and a CPU request without a limit. The chart README lists them; raise them under `<service>.resources` if a service needs more, for example geoapi on a large catalog, and set requests and limits together.
 

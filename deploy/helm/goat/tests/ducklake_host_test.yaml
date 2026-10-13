@@ -24,6 +24,67 @@ tests:
     asserts:
       - notExists:
           path: data.DUCKLAKE_POSTGRES_SERVER
+      - notExists:
+          path: data.DUCKLAKE_POSTGRES_PORT
+
+  # A pooler often listens on another port than the database (PgBouncer's
+  # 6432, the database's 5432).
+  - it: geoapi and processes use ducklakePort when set
+    templates:
+      - geoapi/configmap.yaml
+      - processes/configmap.yaml
+    set:
+      postgresql.external.port: 6432
+      postgresql.external.ducklakeHost: "primary.example.com"
+      postgresql.external.ducklakePort: 5432
+    asserts:
+      - equal:
+          path: data.POSTGRES_PORT
+          value: "6432"
+      - equal:
+          path: data.DUCKLAKE_POSTGRES_PORT
+          value: "5432"
+
+  - it: the DuckLake init gets ducklakePort as POSTGRES_PORT too
+    template: geoapi/deployment.yaml
+    set:
+      postgresql.external.port: 6432
+      postgresql.external.ducklakePort: 5432
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: POSTGRES_PORT
+            value: "5432"
+
+  - it: the workers get POSTGRES_TRANSACTION_POOLER with transactionPooler
+    template: windmill/worker-tools/deployment.yaml
+    set:
+      postgresql.external.transactionPooler: true
+      postgresql.external.ducklakeHost: "primary.example.com"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_TRANSACTION_POOLER
+            value: "true"
+
+  - it: the workers use ducklakePort when set, and `port` otherwise
+    template: windmill/worker-tools/deployment.yaml
+    set:
+      postgresql.external.port: 6432
+      postgresql.external.ducklakePort: 5432
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DUCKLAKE_POSTGRES_PORT
+            value: "5432"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_PORT
+            value: "6432"
 
   - it: geoapi, processes and their DuckLake init use ducklakeHost when set
     templates:
@@ -84,6 +145,11 @@ tests:
           any: true
           content:
             name: POSTGRES_SERVER
+      - notContains:
+          path: spec.template.spec.initContainers[0].env
+          any: true
+          content:
+            name: POSTGRES_PORT
 
   - it: the workers use ducklakeHost when set
     template: windmill/worker-tools/deployment.yaml
@@ -104,3 +170,8 @@ tests:
           content:
             name: DUCKLAKE_POSTGRES_SERVER
             value: pooler.example.com
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DUCKLAKE_POSTGRES_PORT
+            value: "5432"

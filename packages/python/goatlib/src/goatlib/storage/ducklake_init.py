@@ -27,7 +27,10 @@ import sys
 
 import duckdb
 
-from goatlib.config.postgres import DUCKLAKE_INIT_APPLICATION_NAME
+from goatlib.config.postgres import (
+    DUCKLAKE_INIT_APPLICATION_NAME,
+    ducklake_postgres_endpoint,
+)
 from goatlib.storage.ducklake import (
     REQUIRED_DUCKDB_EXTENSIONS,
     catalog_libpq,
@@ -48,6 +51,7 @@ def bootstrap_from_env() -> None:
                                  services' DuckLake attaches use, e.g. the
                                  primary behind a transaction pooler)
         POSTGRES_PORT           (default: "5432")
+        DUCKLAKE_POSTGRES_PORT  (default: POSTGRES_PORT; that host's port)
         POSTGRES_USER           (default: "postgres")
         POSTGRES_DB             (default: "goat")
         DUCKLAKE_DATA_DIR       (default: "/app/data/ducklake")
@@ -61,10 +65,12 @@ def bootstrap_from_env() -> None:
     Raises SystemExit(1) on missing POSTGRES_PASSWORD, otherwise prints
     progress to stdout and returns normally on success.
     """
-    pg_host = os.environ.get("DUCKLAKE_POSTGRES_SERVER") or os.environ.get(
-        "POSTGRES_SERVER", "db"
+    pg_host, pg_port = ducklake_postgres_endpoint(
+        os.environ.get("POSTGRES_SERVER", "db"),
+        os.environ.get("POSTGRES_PORT", "5432"),
+        os.environ.get("DUCKLAKE_POSTGRES_SERVER"),
+        os.environ.get("DUCKLAKE_POSTGRES_PORT"),
     )
-    pg_port = os.environ.get("POSTGRES_PORT", "5432")
     pg_user = os.environ.get("POSTGRES_USER", "postgres")
     pg_password = os.environ.get("POSTGRES_PASSWORD")
     pg_db = os.environ.get("POSTGRES_DB", "goat")

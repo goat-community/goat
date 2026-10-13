@@ -3,6 +3,7 @@ from typing import Literal
 from uuid import UUID
 
 from goatlib.auth import AuthFlag, require_keycloak_url
+from goatlib.config.postgres import parse_transaction_pooler
 from pydantic import PostgresDsn, ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -42,6 +43,15 @@ class Settings(BaseSettings):
     # under load before requests wait for a free one.
     POSTGRES_POOL_SIZE: int = 5
     POSTGRES_MAX_OVERFLOW: int = 10
+    # POSTGRES_SERVER is a connection pooler in transaction mode: queries then
+    # prepare nothing on the server (see db/session.engine_connect_args).
+    POSTGRES_TRANSACTION_POOLER: bool = False
+
+    @field_validator("POSTGRES_TRANSACTION_POOLER", mode="before")
+    @classmethod
+    def _parse_transaction_pooler(cls: type["Settings"], value: object) -> bool:
+        return parse_transaction_pooler(value)
+
     ASYNC_SQLALCHEMY_DATABASE_URI: str | None = None
 
     @field_validator("ASYNC_SQLALCHEMY_DATABASE_URI", mode="after")

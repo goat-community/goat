@@ -825,10 +825,13 @@ windmill:
     tokenSecret:
       name: ""           # default: <release>-windmill-token
       key: token
+    # Image the bootstrap Job runs in. The script needs only Python's
+    # standard library, so it runs in `core.image`; keys set here win over it.
+    image: {}
 
   # Optional: sync goatlib's bundled tools/tasks (Python scripts) into the
   # windmill workspace. Off by default — needs the `windmill-worker-tools`
-  # image which is larger than `python:3.11-slim`. Turn on if you want
+  # image, which is larger than the core image. Turn on if you want
   # plan4better's tools pre-loaded after install.
   scriptSync:
     enabled: false
@@ -1223,10 +1226,21 @@ postgresql:
     # The database itself, for DuckLake's catalog connections (geoapi,
     # processes, their DuckLake init and the workers), when `host` points at a
     # transaction pooler: those connections stay open for as long as a service
-    # runs and are not verified behind one. It must listen on `port`, which
-    # they share: a pooler on another port is not supported yet. "" = `host`.
+    # runs and are not verified behind one. Sets DUCKLAKE_POSTGRES_SERVER.
+    # "" = `host`.
     ducklakeHost: ""
     port: 5432
+    # The database's port for those connections, when the pooler listens on
+    # another one (PgBouncer's 6432, the database's 5432). Sets
+    # DUCKLAKE_POSTGRES_PORT. null = `port`.
+    ducklakePort: null
+    # `host` is a connection pooler in transaction mode (PgBouncer, Supavisor,
+    # a CNPG Pooler): core, geoapi, processes and the workers then prepare no
+    # statements on the server and send no startup settings a pooler might
+    # refuse, so a pooler with stock settings works. Sets
+    # POSTGRES_TRANSACTION_POOLER. Needs `ducklakeHost`, and Windmill on its
+    # own database connection (windmill.db.reuseGoatConnection: false).
+    transactionPooler: false
     database: goat
     existingSecret: ""             # required when cluster.enabled: false
     existingSecretUserKey: username

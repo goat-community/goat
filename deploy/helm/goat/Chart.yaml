@@ -19,12 +19,23 @@ description: |
   - geoapi and processes run as root (`podSecurityContext.runAsUser: 0`),
     like the Windmill workers, so their DuckLake init can create the
     catalog directory on a fresh RWX volume that belongs to root.
-  - NEW: `postgresql.external.ducklakeHost` — the database itself for
-    DuckLake's catalog connections (geoapi, processes, their DuckLake init
-    and the print, tools and workflows workers) when
-    `postgresql.external.host` is a transaction pooler on the database's
-    port. Empty = `host`. The DuckLake init also gets it as POSTGRES_SERVER,
-    for images whose bootstrap reads only that.
+  - NEW: `postgresql.external.ducklakeHost` and `ducklakePort` — the
+    database itself for DuckLake's catalog connections (geoapi, processes,
+    their DuckLake init and the print, tools and workflows workers) when
+    `postgresql.external.host` is a transaction pooler. Unset = `host` and
+    `port`. The DuckLake init also gets them as POSTGRES_SERVER and
+    POSTGRES_PORT, for images whose bootstrap reads only those.
+  - NEW: `postgresql.external.transactionPooler` (POSTGRES_TRANSACTION_POOLER)
+    — `host` is a pooler in transaction mode: core, geoapi, processes and
+    the workers prepare no statements on the server and send no keepalive
+    startup settings, so a pooler with stock settings works.
+  - NEW: `windmill.bootstrap.image` — the Windmill bootstrap Job runs in
+    GOAT's core image (`core.image`, with `global.imageRegistry` and
+    `global.imagePullSecrets`) instead of `python:3.11-slim` from Docker Hub,
+    the one image that bypassed the registry settings.
+  - POSTGRES_SERVER, POSTGRES_DB or POSTGRES_PORT set in `core.config`,
+    `geoapi.config` or `processes.config` wins and renders once; before, the
+    ConfigMap carried the key twice and the chart's value won.
 
   v0.6.0:
 

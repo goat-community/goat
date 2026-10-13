@@ -14,6 +14,30 @@ from sqlmodel import SQLModel
 from core.core.config import settings
 
 
+def engine_connect_args(url: str) -> dict:
+    """`connect_args` for core's engines (the app's and the migrations').
+
+    The session name operators see in pg_stat_activity: asyncpg takes server
+    settings separately, psycopg as a libpq keyword. Behind a pooler in
+    transaction mode a statement prepared on the server may be gone, or taken,
+    on the next query's server connection, so psycopg prepares nothing there.
+    SQLAlchemy's asyncpg dialect prepares every statement in a round trip of
+    its own and can't be kept from it, so it is refused behind such a pooler.
+    """
+    driver = make_url(url).get_driver_name()
+    if driver == "asyncpg":
+        if settings.POSTGRES_TRANSACTION_POOLER:
+            raise ValueError(
+                "POSTGRES_TRANSACTION_POOLER needs the psycopg driver "
+                "(postgresql+psycopg://) in ASYNC_SQLALCHEMY_DATABASE_URI"
+            )
+        return {"server_settings": {"application_name": "goat-core"}}
+    args: dict = {"application_name": "goat-core"}
+    if settings.POSTGRES_TRANSACTION_POOLER:
+        args["prepare_threshold"] = None
+    return args
+
+
 class DatabaseSessionManager:
     def __init__(self) -> None:
         self._engine: AsyncEngine | None = None
@@ -23,16 +47,9 @@ class DatabaseSessionManager:
         if not host:
             raise ValueError("Database host must be provided")
 
-        # The name operators see for these sessions in pg_stat_activity;
-        # asyncpg takes server settings separately, psycopg as a libpq keyword.
-        connect_args: dict = (
-            {"server_settings": {"application_name": "goat-core"}}
-            if make_url(host).get_driver_name() == "asyncpg"
-            else {"application_name": "goat-core"}
-        )
         self._engine = create_async_engine(
             host,
-            connect_args=connect_args,
+            connect_args=engine_connect_args(host),
             isolation_level="AUTOCOMMIT",
             pool_pre_ping=True,  # Check connection health before using
             pool_recycle=300,  # Recycle connections every 5 minutes

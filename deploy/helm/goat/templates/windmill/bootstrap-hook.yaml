@@ -39,10 +39,17 @@ spec:
     spec:
       restartPolicy: OnFailure
       serviceAccountName: {{ $name }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- /* GOAT's core image (the script needs only Python's standard
+             library); keys set in windmill.bootstrap.image win. */}}
+      {{- $image := merge (deepCopy (.Values.windmill.bootstrap.image | default dict)) .Values.core.image }}
       containers:
         - name: bootstrap
-          image: python:3.11-slim
-          imagePullPolicy: IfNotPresent
+          image: {{ include "goat.image" (dict "image" $image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ $image.pullPolicy | default "IfNotPresent" }}
           env:
             - name: WINDMILL_URL
               value: "http://{{ $serverSvc }}"

@@ -48,7 +48,12 @@ import duckdb
 
 from goatlib.bundles.artifacts.storage import resolve_artifact
 from goatlib.config.io import DEFAULT_MAX_UPLOAD_BYTES
-from goatlib.config.postgres import TOOLS_APPLICATION_NAME
+from goatlib.config.postgres import (
+    TOOLS_APPLICATION_NAME,
+    asyncpg_connect_args,
+    ducklake_postgres_endpoint,
+    transaction_pooler_enabled,
+)
 from goatlib.io.bbox_columns import star_excluding, stray_bbox_columns
 from goatlib.io.config import (
     PARQUET_COMPRESSION,
@@ -124,6 +129,10 @@ class ToolSettings:
     ducklake_postgres_uri: str
     ducklake_catalog_schema: str
     ducklake_data_dir: str
+
+    # postgres_server is a pooler in transaction mode
+    # (POSTGRES_TRANSACTION_POOLER; see goatlib.config.postgres).
+    postgres_transaction_pooler: bool = False
 
     # Tiles storage (separate from source data - cache/derived data)
     tiles_data_dir: str = "/app/data/tiles"
@@ -223,7 +232,7 @@ class ToolSettings:
             "user": self.postgres_user,
             "password": self.postgres_password,
             "database": self.postgres_db,
-            "server_settings": {"application_name": application_name},
+            **asyncpg_connect_args(application_name, self.postgres_transaction_pooler),
         }
 
     @classmethod
@@ -270,13 +279,18 @@ class ToolSettings:
 
         # DuckLake attaches keep their catalog connections for the whole job
         # and are not verified behind a transaction pooler. When
-        # DUCKLAKE_POSTGRES_SERVER is set they connect straight to that host
-        # (e.g. the CNPG primary); otherwise behavior is unchanged.
-        ducklake_pg_server = cls._get_secret("DUCKLAKE_POSTGRES_SERVER", "")
-        if ducklake_pg_server:
+        # DUCKLAKE_POSTGRES_SERVER or DUCKLAKE_POSTGRES_PORT is set they connect
+        # straight to that endpoint (e.g. the CNPG primary); otherwise
+        # behavior is unchanged.
+        ducklake_server = cls._get_secret("DUCKLAKE_POSTGRES_SERVER", "")
+        ducklake_port = cls._get_secret("DUCKLAKE_POSTGRES_PORT", "")
+        if ducklake_server or ducklake_port:
+            ducklake_host, ducklake_port = ducklake_postgres_endpoint(
+                pg_server, pg_port, ducklake_server, ducklake_port
+            )
             ducklake_uri = (
                 f"postgresql://{pg_user}:{pg_password}"
-                f"@{ducklake_pg_server}:{pg_port}/{pg_db}"
+                f"@{ducklake_host}:{ducklake_port}/{pg_db}"
             )
         else:
             ducklake_uri = cls._get_secret("POSTGRES_DATABASE_URI", default_uri)
@@ -287,6 +301,7 @@ class ToolSettings:
             postgres_user=pg_user,
             postgres_password=pg_password,
             postgres_db=pg_db,
+            postgres_transaction_pooler=transaction_pooler_enabled(),
             ducklake_postgres_uri=ducklake_uri,
             ducklake_catalog_schema=cls._get_secret(
                 "DUCKLAKE_CATALOG_SCHEMA", "ducklake"

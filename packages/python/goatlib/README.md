@@ -100,6 +100,14 @@ runner's DuckLake connection.
 Sessions carry an `application_name` (`goat-geoapi-ducklake`, `goat-tools`,
 …) so operators can tell them apart in `pg_stat_activity`.
 
+Behind a connection pooler in transaction mode (`POSTGRES_TRANSACTION_POOLER`)
+each query may run on another server connection, and a pooler with stock
+settings neither tracks prepared statements nor passes on startup parameters it
+doesn't know. `goatlib.config.postgres.asyncpg_connect_args` then turns off
+asyncpg's statement cache and the keepalive settings; every tool and task
+connection goes through it (`ToolSettings.postgres_connect_args`). DuckLake's
+catalog connections go to the database itself (`DUCKLAKE_POSTGRES_SERVER`).
+
 ## Development
 
 The repo is a uv workspace — sync everything from the repo root:

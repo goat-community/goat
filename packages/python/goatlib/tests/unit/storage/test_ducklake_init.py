@@ -29,7 +29,12 @@ def connection(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> _RecordingConn
     con = _RecordingConnection()
     monkeypatch.setattr(ducklake_init.duckdb, "connect", lambda: con)
     monkeypatch.setenv("DUCKDB_EXTENSION_DIRECTORY", str(tmp_path / "extensions"))
-    for name in ("S3_ENDPOINT_URL", "DUCKLAKE_POSTGRES_SERVER"):
+    for name in (
+        "S3_ENDPOINT_URL",
+        "DUCKLAKE_POSTGRES_SERVER",
+        "DUCKLAKE_POSTGRES_PORT",
+        "POSTGRES_PORT",
+    ):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("POSTGRES_SERVER", "pooler")
     monkeypatch.setenv("POSTGRES_PASSWORD", "secret")
@@ -70,3 +75,16 @@ def test_the_bootstrap_session_is_named_and_loads_baked_extensions(
 
     assert "application_name=goat-ducklake-init" in _attach(connection)
     assert not [sql for sql in connection.executed if sql.startswith("INSTALL")]
+
+
+@pytest.mark.unit
+def test_the_catalog_uses_the_direct_port_when_set(
+    connection: _RecordingConnection, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("POSTGRES_PORT", "6432")
+    monkeypatch.setenv("DUCKLAKE_POSTGRES_SERVER", "primary")
+    monkeypatch.setenv("DUCKLAKE_POSTGRES_PORT", "5432")
+
+    ducklake_init.bootstrap_from_env()
+
+    assert "host=primary port=5432 " in _attach(connection)
