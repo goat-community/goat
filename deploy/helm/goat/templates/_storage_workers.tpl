@@ -128,7 +128,7 @@ rendered goat.worker.appEnv).
 {{- if include "goat.caBundle.enabled" .root -}}
 {{- $names = append $names "GOAT_CA_BUNDLE" -}}
 {{- end -}}
-{{- $windmill := list "MODE" "WORKER_GROUP" "WORKER_TAGS" "WHITELIST_ENVS" "DISABLE_NSJAIL" "JOB_DEFAULT_TIMEOUT" "DATABASE_URL" "_WMILL_DB_USER" "_WMILL_DB_PASSWORD" -}}
+{{- $windmill := list "MODE" "WORKER_GROUP" "WORKER_TAGS" "WHITELIST_ENVS" "DISABLE_NSJAIL" "JOB_DEFAULT_TIMEOUT" "DATABASE_URL" "DATABASE_CONNECTIONS" "_WMILL_DB_USER" "_WMILL_DB_PASSWORD" -}}
 {{- $out := list -}}
 {{- range ($names | uniq | sortAlpha) -}}
 {{- if not (has . $windmill) -}}{{- $out = append $out . -}}{{- end -}}

@@ -58,6 +58,12 @@ check_common() {
     and (($p.PROCESSES_DUCKDB_MEMORY_LIMIT // "1.2GB" | bytes) * 3
         < ($s.processes.deploy.resources.limits.memory | bytes) * 0.75)
   ' <<<"$json" >/dev/null || fail "geoapi or processes DuckDB budgets exceed 3/4 of their memory limits"
+  # Windmill holds a bounded pool per container: unset, the server's grows to
+  # 50; workers below 3 stop at start on Windmill 1.607.
+  jq -e '.services["windmill-server"].environment.DATABASE_CONNECTIONS | tonumber | . >= 1 and . <= 10' <<<"$json" >/dev/null || fail "windmill-server without a bounded DATABASE_CONNECTIONS"
+  for w in windmill-worker-default windmill-worker-tools windmill-worker-workflows windmill-worker-print; do
+    jq -e --arg w "$w" '.services[$w].environment.DATABASE_CONNECTIONS | tonumber | . >= 3' <<<"$json" >/dev/null || fail "$w DATABASE_CONNECTIONS below 3 or unset"
+  done
 }
 
 variant=auto

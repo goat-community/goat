@@ -872,6 +872,9 @@ windmill:
       MODE: "server"
       # BASE_URL is set per-environment via `set` or per-consumer values
       BASE_URL: "http://localhost:8000"
+      # Windmill database connections of the server (at most); unset, its pool
+      # grows to 50 under load.
+      DATABASE_CONNECTIONS: "5"
     extraEnv: []
     resources:
       requests:
@@ -929,6 +932,11 @@ windmill:
   # set in `config` or `extraEnv` wins over the chart's; a WHITELIST_ENVS set
   # there replaces the built list.
   workers:
+    # Windmill database connections of every worker (at most; a worker runs
+    # one job at a time). A worker's own `config` or `extraEnv`
+    # DATABASE_CONNECTIONS wins. Not below 3: Windmill 1.607 workers stop at
+    # start with fewer.
+    databaseConnections: 3
     # Upgrade guard for the 0.4.x per-worker PVCs (<fullname>-windmill-tools-data,
     # <fullname>-windmill-workflows-data). At `data.enabled: true` this chart no
     # longer renders them, so `helm upgrade` from 0.4.x DELETES them and their

@@ -17,8 +17,11 @@ from goatlib.tasks.sync_windmill import WindmillTaskSyncer
 SCHEDULED = next(t for t in TASK_REGISTRY if t.schedule)
 
 
-def _syncer(existing: dict[str, Any] | None) -> tuple[WindmillTaskSyncer, list]:
-    """A syncer against a fake Windmill holding `existing` as the schedule."""
+def _syncer(
+    existing: dict[str, Any] | None, after: dict[str, Any] | None = None
+) -> tuple[WindmillTaskSyncer, list]:
+    """A syncer against a fake Windmill holding `existing` as the schedule, and
+    `after` once it was updated (default: the update as sent)."""
     sent: list[tuple[str, dict[str, Any]]] = []
 
     def handle(request: httpx.Request) -> httpx.Response:
@@ -26,6 +29,8 @@ def _syncer(existing: dict[str, Any] | None) -> tuple[WindmillTaskSyncer, list]:
         if "/schedules/get/" in path:
             if existing is None:
                 return httpx.Response(404)
+            if sent:
+                return httpx.Response(200, json=after or {**existing, **sent[-1][1]})
             return httpx.Response(200, json=existing)
         sent.append((path, json.loads(request.content)))
         return httpx.Response(200, json={})
@@ -67,6 +72,42 @@ def test_an_update_keeps_a_pause_and_error_handling() -> None:
     ((_, body),) = sent
     assert {k: body[k] for k in kept} == kept
     assert body["schedule"] == SCHEDULED.schedule
+
+
+@pytest.mark.unit
+def test_an_update_keeps_who_the_schedule_runs_as() -> None:
+    syncer, sent = _syncer(
+        {"args": {}, "schedule": "0 0 1 * * *", "permissioned_as": "u/operator"}
+    )
+
+    syncer._create_or_update_schedule(SCHEDULED)
+
+    ((_, body),) = sent
+    assert body["permissioned_as"] == "u/operator"
+    assert body["preserve_permissioned_as"] is True
+
+
+@pytest.mark.unit
+def test_a_schedule_without_a_run_as_user_sends_none() -> None:
+    syncer, sent = _syncer({"args": {}, "schedule": "0 0 1 * * *"})
+
+    syncer._create_or_update_schedule(SCHEDULED)
+
+    ((_, body),) = sent
+    assert "permissioned_as" not in body
+    assert "preserve_permissioned_as" not in body
+
+
+@pytest.mark.unit
+def test_a_run_as_user_windmill_did_not_keep_is_reported(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    existing = {"args": {}, "schedule": "0 0 1 * * *", "permissioned_as": "u/operator"}
+    syncer, _ = _syncer(existing, after={**existing, "permissioned_as": "u/syncer"})
+
+    syncer._create_or_update_schedule(SCHEDULED)
+
+    assert "now runs as u/syncer instead of u/operator" in caplog.text
 
 
 @pytest.mark.unit

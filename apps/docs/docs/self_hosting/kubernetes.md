@@ -93,6 +93,7 @@ The default Windmill worker only handles small jobs. **Analysis tools, dataset i
 - The `tools` and `workflows` workers are pinned to nodes labelled `node.kubernetes.io/server-usage: geodata` with the toleration `geodata=true:NoSchedule`. Prepare such nodes, or override `nodeSelector` and `tolerations` for these workers. Otherwise their pods stay `Pending` and `helm install --wait` times out.
 - The chart gives these workers what GOAT's jobs need: the GOAT database, the S3 store, the catalog bucket, the address of the web app for printing and, with login on, the Keycloak client the print worker signs in with. Windmill passes only the variables listed in `WHITELIST_ENVS` on to the jobs; the chart builds that list, including every variable you add to a worker's `config` or `extraEnv`.
 - Enable `windmill.scriptSync.enabled` to register GOAT's analysis tools and tasks in Windmill after the install. It is off by default.
+- Each Windmill container holds at most a few connections to its database: the server 5 and every worker 3 (`windmill.server.config.DATABASE_CONNECTIONS`, `windmill.workers.databaseConnections`). Upgrading to a GOAT release with a newer Windmill migrates the Windmill database on start, one way: back it up first.
 
 ### Storage for several nodes {#rwx}
 
