@@ -69,6 +69,12 @@ def token_is_superuser(user_token: Dict[str, Any]) -> bool:
     return "superuser" in (user_token.get("realm_access", {}).get("roles") or [])
 
 
+def can_create_organization(user_token: Dict[str, Any]) -> bool:
+    """Whether the caller may set up an organization: anyone while
+    ALLOW_ORGANIZATION_CREATION is on, only superusers while it is off."""
+    return settings.ALLOW_ORGANIZATION_CREATION or token_is_superuser(user_token)
+
+
 def require_superuser(user_token: Dict[str, Any] = Depends(user_token)) -> None:
     """401 unless the caller's token carries the `superuser` realm role.
 

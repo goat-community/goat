@@ -64,6 +64,25 @@ class OrganizationUpdateMemberRole(SQLModel):
     role: OrganizationMemberRoleUpdateEnum
 
 
+class OrganizationCreationRead(BaseModel):
+    """Whether the caller may set up an organization
+    (`ALLOW_ORGANIZATION_CREATION`, superusers always may)."""
+
+    allowed: bool
+
+
+class OrganizationPermanentlyDeleted(BaseModel):
+    """What `DELETE /organizations/{id}/permanent` removed."""
+
+    id: UUID
+    # The former member, whose account stays without an organization; None
+    # when the organization had no member left.
+    user_id: UUID | None
+    # Billing is not touched: with Stripe on, the customer and its trial
+    # subscription stay in Stripe under this id.
+    stripe_id: str | None
+
+
 class OrganizationUser(BaseModel):
     id: UUID
     firstname: str | None

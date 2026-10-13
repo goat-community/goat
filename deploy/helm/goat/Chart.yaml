@@ -36,6 +36,9 @@ description: |
   - POSTGRES_SERVER, POSTGRES_DB or POSTGRES_PORT set in `core.config`,
     `geoapi.config` or `processes.config` wins and renders once; before, the
     ConfigMap carried the key twice and the chart's value won.
+  - NEW: `global.auth.allowOrganizationCreation` (ALLOW_ORGANIZATION_CREATION,
+    default true): false lets only accounts with the Keycloak realm role
+    `superuser` create organizations; everyone else waits for an invitation.
 
   v0.6.0:
 

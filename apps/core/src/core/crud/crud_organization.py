@@ -3,8 +3,8 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 from fastapi import HTTPException, status
+from sqlalchemy import and_, func, not_, or_, select, update
 from sqlalchemy import delete as sql_delete
-from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, load_only
 from sqlalchemy.orm.attributes import flag_modified
@@ -16,23 +16,28 @@ from core.crud.crud_invitation import invitation as crud_invitations
 from core.crud.crud_role import role as crud_role
 from core.crud.crud_space import space as crud_space
 from core.db.models import Organization, UserRoleLink
-from core.db.models._link_model import ResourceGrant
+from core.db.models._link_model import ContentShortcut, ResourceGrant
 from core.db.models.bundle import Bundle
 from core.db.models.folder import Folder
 from core.db.models.invitation import Invitation, InvitationStatusEnum
 from core.db.models.layer import Layer
 from core.db.models.organization import OrganizationRolesEnum
+from core.db.models.organization_analytics import OrganizationAnalytics
+from core.db.models.organization_domain import OrganizationDomain
 from core.db.models.project import Project
 from core.db.models.role import Role
 from core.db.models.space import Space, SpaceKind
+from core.db.models.team import Team
 from core.db.models.template import Template
 from core.db.models.user import User
+from core.db.session import session_manager
 from core.deps.keycloak import get_keycloak_user
 from core.schemas import OrganizationUpdate
 from core.schemas.email import EmailTemplateContent
 from core.schemas.organization import (
     OrganizationCreate,
     OrganizationMemberRoleUpdateEnum,
+    OrganizationPermanentlyDeleted,
     OrganizationUser,
     TrialPlanTypeEnum,
 )
@@ -53,6 +58,14 @@ SELF_HOSTED_PLAN_METADATA = {
     "editors": settings.DEFAULT_QUOTA_EDITORS,
     "viewers": settings.DEFAULT_QUOTA_VIEWERS,
 }
+
+
+class OrganizationNotDeletableError(Exception):
+    """What keeps an organization from being deleted permanently, as
+    "<what>: <count>" items (see `delete_permanently`)."""
+
+    def __init__(self, found: list[str]) -> None:
+        super().__init__(", ".join(found))
 
 
 class CRUDOrganization(CRUDBase[Organization, OrganizationCreate, OrganizationUpdate]):
@@ -180,6 +193,161 @@ class CRUDOrganization(CRUDBase[Organization, OrganizationCreate, OrganizationUp
             )
 
         return organization_obj
+
+    async def delete_permanently(
+        self, *, organization_id: UUID
+    ) -> OrganizationPermanentlyDeleted | None:
+        """Remove an organization that holds nothing but the user who set it
+        up, and leave that user without an organization, so they can be
+        invited. An organization whose last member is gone can be removed
+        the same way. None for an unknown organization.
+
+        Refused (`OrganizationNotDeletableError`) unless the organization has
+        at most one member and nothing in it: no folder, layer, project,
+        bundle, template or shortcut in its space or in the member's personal
+        space, trash included, and no teams, pending invitations, custom
+        domains or analytics settings. The root folders GOAT creates by
+        itself (a live `home` folder without parent) do not count. The
+        member keeps their account and personal space.
+
+        Everything runs in one transaction (`session_manager.transaction`):
+        the checks under row locks, then the writes, so a failure part way
+        leaves the organization as it was. The member's `organization_id` is
+        cleared before the organization row goes because that foreign key
+        cascades: deleting the organization with the member still in it
+        would delete the account. The organization's space with its root
+        folder, its past invitations and its credit usage go with the row by
+        foreign key; grants, which name their resource and grantee without
+        one, are deleted here. Billing is not touched.
+        """
+        async with session_manager.transaction() as connection:
+            organization = (
+                await connection.execute(
+                    select(Organization.id, Organization.stripe_id)
+                    .where(Organization.id == organization_id)
+                    .with_for_update()
+                )
+            ).one_or_none()
+            if organization is None:
+                return None
+            member_ids = list(
+                (
+                    await connection.execute(
+                        select(User.id)
+                        .where(User.organization_id == organization_id)
+                        .with_for_update()
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            team_ids = select(Team.id).where(Team.organization_id == organization_id)
+            # The spaces that go with the organization: its own and its teams'.
+            removed_space_ids = or_(
+                Space.organization_id == organization_id,
+                Space.team_id.in_(team_ids),
+            )
+            space_ids = list(
+                (
+                    await connection.execute(
+                        select(Space.id)
+                        .where(or_(removed_space_ids, Space.user_id.in_(member_ids)))
+                        .with_for_update()
+                    )
+                )
+                .scalars()
+                .all()
+            )
+
+            async def count(model: Any, *where: Any) -> int:
+                return int(
+                    (
+                        await connection.execute(
+                            select(func.count()).select_from(model).where(*where)
+                        )
+                    ).scalar_one()
+                )
+
+            def in_scope(model: Any) -> Any:
+                return or_(model.space_id.in_(space_ids), model.user_id.in_(member_ids))
+
+            found = [f"members: {len(member_ids)}"] if len(member_ids) > 1 else []
+            counts = {
+                "folders": await count(
+                    Folder,
+                    in_scope(Folder),
+                    not_(
+                        and_(
+                            Folder.parent_id.is_(None),
+                            Folder.name == "home",
+                            Folder.deleted_at.is_(None),
+                        )
+                    ),
+                ),
+                "layers": await count(Layer, in_scope(Layer)),
+                "projects": await count(Project, in_scope(Project)),
+                "bundles": await count(Bundle, in_scope(Bundle)),
+                "templates": await count(Template, in_scope(Template)),
+                "shortcuts": await count(
+                    ContentShortcut, ContentShortcut.space_id.in_(space_ids)
+                ),
+                "teams": await count(Team, Team.organization_id == organization_id),
+                "pending invitations": await count(
+                    Invitation,
+                    Invitation.organization_id == organization_id,
+                    Invitation.status == InvitationStatusEnum.pending,
+                ),
+                "custom domains": await count(
+                    OrganizationDomain,
+                    OrganizationDomain.organization_id == organization_id,
+                ),
+                "analytics settings": await count(
+                    OrganizationAnalytics,
+                    OrganizationAnalytics.organization_id == organization_id,
+                ),
+            }
+            found += [f"{what}: {n}" for what, n in counts.items() if n]
+            if found:
+                raise OrganizationNotDeletableError(found)
+
+            member_id = member_ids[0] if member_ids else None
+            if member_id is not None:
+                await connection.execute(
+                    update(User)
+                    .where(User.id == member_id)
+                    .values(organization_id=None)
+                )
+                await crud_role.remove_organization_roles(connection, member_id)
+            # Grants to the organization, and grants on the folders that go
+            # with its spaces (with no content left, only their root folders).
+            await connection.execute(
+                sql_delete(ResourceGrant).where(
+                    or_(
+                        and_(
+                            ResourceGrant.grantee_type == "organization",
+                            ResourceGrant.grantee_id == organization_id,
+                        ),
+                        and_(
+                            ResourceGrant.resource_type == "folder",
+                            ResourceGrant.resource_id.in_(
+                                select(Folder.id).where(
+                                    Folder.space_id.in_(
+                                        select(Space.id).where(removed_space_ids)
+                                    )
+                                )
+                            ),
+                        ),
+                    )
+                )
+            )
+            await connection.execute(
+                sql_delete(Organization).where(Organization.id == organization_id)
+            )
+        return OrganizationPermanentlyDeleted(
+            id=organization_id,
+            user_id=member_id,
+            stripe_id=organization.stripe_id or None,
+        )
 
     async def update_organization_profile(
         self,

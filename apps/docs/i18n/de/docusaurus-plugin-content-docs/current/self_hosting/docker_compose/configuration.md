@@ -52,6 +52,7 @@ Die gesamte Konfiguration steht in der Datei `.env` im Ordner des Pakets. `setup
 | `KEYCLOAK_CLIENT_SECRET` | von setup.sh gesetzt | Secret dieses Clients |
 | `KEYCLOAK_ADMIN_PASSWORD` | von setup.sh gesetzt | Passwort des Benutzers `admin` in der Keycloak-Admin-Konsole |
 | `KEYCLOAK_PROVISION_INVITED_USERS` | `true` | Legt das Anmeldekonto in Keycloak an, wenn jemand eingeladen wird, dessen E-Mail-Adresse noch keines hat |
+| `ALLOW_ORGANIZATION_CREATION` | `true` | `true`: Wer sich ohne Organisation anmeldet, kann eine einrichten. `false`: Das können nur Konten mit der Keycloak-Realm-Rolle `superuser`; alle anderen warten auf eine Einladung. Siehe [Wer Organisationen einrichtet](./operations.md#organizations). |
 | `KEYCLOAK_DB_PASSWORD` | von setup.sh gesetzt | Datenbank-Passwort des mitgelieferten Keycloak |
 | `KEYCLOAK_PUBLIC_URL`, `KEYCLOAK_INTERNAL_URL` | *(auskommentiert)* | Ihr eigenes Keycloak; siehe [Eigenes Keycloak](./external_services.md#keycloak) |
 

@@ -71,6 +71,8 @@ jq -e '.services | has("garage") and has("keycloak")' <<<"$j" >/dev/null || fail
 # Email off by default; Keycloak gets an empty server and no login.
 jq -e '.services.core.environment.SMTP_HOST == "" and .services.keycloak.environment.GOAT_SMTP_HOST == ""' <<<"$j" >/dev/null || fail "smtp host not empty by default"
 jq -e '.services.keycloak.environment.GOAT_SMTP_AUTH == ""' <<<"$j" >/dev/null || fail "keycloak smtp auth on without a user"
+# Anyone may create an organization unless the setting says otherwise.
+jq -e '.services.core.environment.ALLOW_ORGANIZATION_CREATION == "true"' <<<"$j" >/dev/null || fail "organization creation not open by default"
 
 # Odoo connection and support tickets off by default: all four settings empty, default post action.
 jq -e '.services.core.environment | .ODOO_URL == "" and .ODOO_DB == "" and .ODOO_SUPPORT_API_KEY == "" and .ODOO_SUPPORT_TEAM_ID == ""' <<<"$j" >/dev/null || fail "odoo settings not empty by default"
@@ -111,6 +113,12 @@ jq -e '.services.web.environment.NEXT_PUBLIC_SUPPORT_EMAIL == ""' <<<"$j" >/dev/
 echo "NEXT_PUBLIC_SUPPORT_EMAIL=help@example.org" >> "$d/.env"
 j=$(render "$d"); check_common "$j"
 jq -e '.services.web.environment.NEXT_PUBLIC_SUPPORT_EMAIL == "help@example.org"' <<<"$j" >/dev/null || fail "support email not passed to web"
+
+variant=organization-creation
+d=$(make_variant --public-url https://goat.example.org --tls off)
+echo "ALLOW_ORGANIZATION_CREATION=false" >> "$d/.env"
+j=$(render "$d"); check_common "$j"
+jq -e '.services.core.environment.ALLOW_ORGANIZATION_CREATION == "false"' <<<"$j" >/dev/null || fail "organization creation setting not passed to core"
 
 variant=off-ip-port
 d=$(make_variant --public-url http://10.0.0.5:8080 --tls off)

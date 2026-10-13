@@ -23,6 +23,16 @@ Self-registration is switched off in the bundled realm, so GOAT creates the logi
 
 Accounts can also be created directly in the admin console; the invitation then only adds the person to the organization. With your own Keycloak, GOAT creates the accounts there as well, provided its service account may manage users; set `KEYCLOAK_PROVISION_INVITED_USERS=false` to turn this off.
 
+### Who sets up organizations {#organizations}
+
+A user belongs to exactly one organization. Whoever signs in without an organization and without a pending invitation is asked to set one up, so a person who signs in before their invitation was sent ends up in an organization of their own and can no longer be invited.
+
+To prevent this, set `ALLOW_ORGANIZATION_CREATION=false`. Only accounts with the Keycloak realm role `superuser` can then create organizations; everyone else sees the page <code>Waiting for an invitation</code> until an invitation arrives, which then opens by itself. The bundled realm gives no account that role, so set up your organization before you switch creation off, or create the realm role `superuser` in the admin console and assign it to your account.
+
+If someone already set up an organization by mistake, a superuser can delete it permanently with `DELETE /api/v2/organizations/{organization_id}/permanent` (`GET /api/v2/organizations` lists all organizations with their ids). This works only while the organization has at most one member and nothing in it: no content in its space or in the member's personal space (trash included), no teams, no pending invitations, no custom domains and no analytics settings. Otherwise GOAT answers `409` and names what is left. The person keeps their account and can then be invited. An organization whose last member is gone can be deleted the same way. <code>Delete Organization</code> in the organization settings only suspends an organization.
+
+Billing is not touched. With Stripe billing on, the organization's Stripe customer and its subscription stay in Stripe; the answer names the customer in `stripe_id`. Cancel that customer in Stripe. Until then, Stripe's events for it find no organization to change, and its former owner gets no email.
+
 :::tip Restrict the admin console
 List the networks that may open `/keycloak/admin` in `GOAT_ADMIN_ALLOW_CIDRS`, for example your office network. Requests from other addresses get `403`. The default allows every address.
 

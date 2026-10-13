@@ -52,6 +52,7 @@ Apply changes with `docker compose up -d`.
 | `KEYCLOAK_CLIENT_SECRET` | set by setup.sh | Secret of that client |
 | `KEYCLOAK_ADMIN_PASSWORD` | set by setup.sh | Password of the user `admin` in the Keycloak admin console |
 | `KEYCLOAK_PROVISION_INVITED_USERS` | `true` | Create the login account in Keycloak when someone is invited whose email has none yet |
+| `ALLOW_ORGANIZATION_CREATION` | `true` | `true`: anyone who signs in without an organization can set one up. `false`: only accounts with the Keycloak realm role `superuser` can; everyone else waits for an invitation. See [Who sets up organizations](./operations.md#organizations). |
 | `KEYCLOAK_DB_PASSWORD` | set by setup.sh | Database password of the bundled Keycloak |
 | `KEYCLOAK_PUBLIC_URL`, `KEYCLOAK_INTERNAL_URL` | *(commented out)* | Your own Keycloak; see [Your own Keycloak](./external_services.md#keycloak) |
 

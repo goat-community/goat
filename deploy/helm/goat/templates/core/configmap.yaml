@@ -48,6 +48,9 @@ data:
   {{- if not (include "goat.env.userSet" (dict "values" .Values.core "key" "KEYCLOAK_PROVISION_INVITED_USERS")) }}
   KEYCLOAK_PROVISION_INVITED_USERS: {{ ternary "true" "false" (eq (toString .Values.global.auth.provisionInvitedUsers) "true") | quote }}
   {{- end }}
+  {{- if not (include "goat.env.userSet" (dict "values" .Values.core "key" "ALLOW_ORGANIZATION_CREATION")) }}
+  ALLOW_ORGANIZATION_CREATION: {{ ternary "false" "true" (eq (toString .Values.global.auth.allowOrganizationCreation) "false") | quote }}
+  {{- end }}
   {{- /* Email (the `email` block). Empty values are left out: core treats
          an unset SMTP_HOST as email off. */}}
   {{- $email := .Values.email | default dict }}

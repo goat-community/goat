@@ -16,6 +16,7 @@ const protectedPaths = [
   "/onboarding/organization/create",
   "/onboarding/organization/suspended",
   "/onboarding/organization/invite",
+  "/onboarding/organization/waiting",
 ];
 
 const publicPaths = ["/map/public", "/print"];

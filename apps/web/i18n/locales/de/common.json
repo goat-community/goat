@@ -1952,6 +1952,9 @@
   "organization_subscribe_to_newsletter": "Bleiben Sie auf dem Laufenden über unsere neuesten Updates",
   "organization_suspended": "Organisation suspendiert",
   "organization_suspended_message": "Es tut uns leid, aber Ihre Organisation wurde suspendiert. \nFür weitere Informationen wenden Sie sich bitte an den Support.",
+  "waiting_for_invitation": "Warten auf eine Einladung",
+  "waiting_for_invitation_message": "Ihr Konto gehört noch zu keiner Organisation. Bitten Sie einen Admin Ihrer Organisation, {{email}} einzuladen. Sobald die Einladung verschickt wurde, öffnet sie sich hier.",
+  "check_again": "Erneut prüfen",
   "organization_type_label": "Organisationstyp",
   "organization_type_options": {
     "education": "Bildung",

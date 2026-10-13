@@ -147,6 +147,9 @@ More in the docs: [Operations → Routing base data](https://goat.plan4better.de
   live in Keycloak at
   `<GOAT URL>/keycloak/admin` (user `admin`, password `KEYCLOAK_ADMIN_PASSWORD` in
   `.env`). Restrict that page with `GOAT_ADMIN_ALLOW_CIDRS`.
+- **Organizations** are set up by whoever signs in without one. With
+  `ALLOW_ORGANIZATION_CREATION=false` only accounts with the Keycloak realm role
+  `superuser` may, and everyone else waits for an invitation.
 - **Job engine (Windmill)** is reachable only from the server itself:
   `ssh -L 8110:127.0.0.1:8110 <server>` and open http://localhost:8110
   (user `admin@windmill.dev`, password `WINDMILL_ADMIN_PASSWORD`).

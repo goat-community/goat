@@ -58,6 +58,9 @@
             },
             "provisionInvitedUsers": {
               "type": "boolean"
+            },
+            "allowOrganizationCreation": {
+              "type": "boolean"
             }
           }
         },
