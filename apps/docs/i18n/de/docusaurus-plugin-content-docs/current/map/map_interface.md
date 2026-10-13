@@ -27,7 +27,7 @@ sidebar_position: 1
 - <code>Projekt-Modus Umschalter</code>: <strong>Wechseln Sie zwischen</strong> den Karten-, Workflows-, Layouts- und Dashboard-Oberflächen.
 - <code>Projekt teilen</code>: <strong>Verwalten Sie die Freigabeoptionen</strong>.
 - <code>Support</code>: <strong>Öffnen Sie Ihre Support-Tickets, melden Sie ein Problem oder öffnen Sie die Dokumentation</strong>. Siehe [Support](../support/support.md).
-- <code>Job Status</code>: <strong>Zeigen Sie den Status</strong> laufender und abgeschlossener Aufgaben an.
+- <code>Job Status</code>: <strong>Zeigen Sie den Status</strong> laufender und abgeschlossener Aufgaben an. Das Symbol erscheint, sobald Sie eine Aufgabe gestartet haben.
 - <code>Benutzerprofil</code>: <strong>Zugriff auf Kontoeinstellungen</strong> und abmelden.
 
 

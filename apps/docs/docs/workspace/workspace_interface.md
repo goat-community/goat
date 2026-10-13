@@ -27,5 +27,5 @@ By clicking on the <code>user's profile</code> button, you can see your name, yo
 ### Support
 Click the <code>Support</code> icon in the upper right corner to open your support tickets, report a problem or open the documentation. See [Support](../support/support.md).
 
-### Job Status
-When you click on the <code>Job Status</code> in the upper right corner of the Workspace, you will see the status of your tasks in GOAT. *Tasks* are operations like data upload or geoanalysis.
+### Job status
+Once you start a task, the <code>Job status</code> icon appears in the upper right corner of the Workspace. Click it to see the status of your tasks in GOAT. *Tasks* are operations like data upload or geoanalysis. Without recent tasks, the icon is hidden.

@@ -28,4 +28,4 @@ Durch Klicken auf die Schaltfläche <code>Benutzerprofil</code> können Sie Ihre
 Klicken Sie auf das Symbol <code>Support</code> in der oberen rechten Ecke, um Ihre Support-Tickets zu öffnen, ein Problem zu melden oder die Dokumentation zu öffnen. Siehe [Support](../support/support.md).
 
 ### Job Status
-Wenn Sie auf den <code>Job Status</code> in der oberen rechten Ecke des **Workspace** klicken, sehen Sie den Status Ihrer Aufgaben in GOAT. *Aufgaben* sind Vorgänge wie **Daten**-Upload oder Geoanalyse.
+Sobald Sie eine Aufgabe starten, erscheint das Symbol <code>Job Status</code> in der oberen rechten Ecke des **Workspace**. Klicken Sie darauf, um den Status Ihrer Aufgaben in GOAT zu sehen. *Aufgaben* sind Vorgänge wie **Daten**-Upload oder Geoanalyse. Ohne aktuelle Aufgaben ist das Symbol ausgeblendet.

@@ -26,7 +26,7 @@ sidebar_position: 1
 - <code>Project mode toggle</code>: <strong>Switch between</strong> the Map, Workflows, Layouts and Dashboard interfaces.
 - <code>Share Project</code>: <strong>Manage the sharing options</strong>.
 - <code>Support</code>: <strong>Open your support tickets, report a problem or open the documentation</strong>. See [Support](../support/support.md).
-- <code>Job Status</code>: <strong>View the status</strong> of ongoing and completed tasks.
+- <code>Job status</code>: <strong>View the status</strong> of ongoing and completed tasks. The icon appears once you have started a task.
 - <code>User profile</code>: <strong>Access account settings</strong> and log out.
 
 
