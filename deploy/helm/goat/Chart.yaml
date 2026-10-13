@@ -6,6 +6,7 @@ description: |
 
   v0.7.0:
 
+  - Tracks GOAT v3.0.9 (Windmill 1.751): every image defaults to v3.0.9.
   - Every service gets memory requests and limits and a CPU request, no
     CPU limit, the limits GOAT's own production runs with.
     `<service>.resources: null` drops them; `{}` merges with the defaults.
@@ -251,7 +252,7 @@ description: |
     AUTH switch.
 type: application
 version: 0.7.0
-appVersion: "v3.0.3"   # GOAT release every image defaults to; override per service with <service>.image.tag
+appVersion: "v3.0.9"   # GOAT release every image defaults to; override per service with <service>.image.tag
 icon: https://goat.plan4better.de/favicon.ico
 home: https://github.com/plan4better/goat/tree/main/deploy/helm/goat
 sources:
