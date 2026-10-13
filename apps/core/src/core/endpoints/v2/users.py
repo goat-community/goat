@@ -317,19 +317,20 @@ async def update_profile(
         )
     admin = await keycloak_admin()
     if admin:
+        # Only the Keycloak-managed fields that changed: the profile form sends
+        # every field on each save, so a picture change with the name as it
+        # was must not depend on the service account's write access.
         keycloak_payload = {}
-        if user.firstname:
+        if user.firstname and user.firstname != db_user.firstname:
             keycloak_payload["firstName"] = user.firstname
-        if user.lastname:
+        if user.lastname and user.lastname != db_user.lastname:
             keycloak_payload["lastName"] = user.lastname
         if user.email and user.email != db_user.email:
             keycloak_payload["email"] = user.email
             keycloak_payload["emailVerified"] = False
-        # Only touch Keycloak when a Keycloak-managed field actually changed, so
-        # avatar-only edits never depend on the service account's write access.
-        # A failed write (e.g. the service account lacks manage-users) surfaces
-        # as a clean error and stops the request before the DB is updated, so
-        # name/email never desync from the identity provider.
+        # A failed write (e.g. the service account lacks manage-users) stops
+        # the request before the DB is updated, so name and email never
+        # disagree with the identity provider.
         if keycloak_payload:
             try:
                 admin.update_user(
@@ -342,7 +343,7 @@ async def update_profile(
                 )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail="Name and email can't be updated right now. Other profile changes are unaffected.",
+                    detail="Name and email can't be changed right now, so nothing was saved. Other changes save when the name and email stay as they are.",
                 )
     if user.avatar and user.avatar.startswith("data:image"):
         extension = get_image_extension_from_base64(user.avatar)
