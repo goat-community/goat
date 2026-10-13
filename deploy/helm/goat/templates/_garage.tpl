@@ -19,6 +19,16 @@ service reads: `global.s3`, with the keys left empty filled for Garage.
 {{- end }}
 
 {{/*
+The web app's public URL, or empty when only the chart's placeholder
+NEXTAUTH_URL (http://localhost:3000) gives one: links to uploads built on it
+would point at the viewer's own machine.
+*/}}
+{{- define "goat.garage.webUrl" -}}
+{{- $web := include "goat.web.publicUrl" . | trimSuffix "/" -}}
+{{- if ne $web "http://localhost:3000" -}}{{ $web }}{{- end -}}
+{{- end }}
+
+{{/*
 The effective object storage settings, as YAML (read with fromYaml):
 `global.s3`, and with garage.enabled every key left empty filled for the
 bundled Garage. The public URLs default to the web app's host, where
@@ -28,13 +38,14 @@ garage.ingress (or the operator) routes /<bucket> to Garage's S3 API and
 {{- define "goat.s3.settings" -}}
 {{- $s3 := deepCopy (.Values.global.s3 | default dict) -}}
 {{- if .Values.garage.enabled -}}
-{{- $web := include "goat.web.publicUrl" . | trimSuffix "/" -}}
+{{- if $s3.endpointUrl -}}
+{{- fail "garage.enabled runs GOAT's own S3 store, but global.s3.endpointUrl names another one: turn garage off, or leave global.s3.endpointUrl empty" -}}
+{{- end -}}
+{{- $web := include "goat.garage.webUrl" . -}}
 {{- $bucket := $s3.bucket | default "goat-uploads" -}}
 {{- $_ := set $s3 "bucket" $bucket -}}
-{{- if not $s3.endpointUrl -}}
 {{- $_ := set $s3 "endpointUrl" (printf "http://%s:3900" (include "goat.garage.fullname" .)) -}}
 {{- $_ := set $s3 "forcePathStyle" true -}}
-{{- end -}}
 {{- $_ := set $s3 "provider" ($s3.provider | default "garage") -}}
 {{- $_ := set $s3 "region" ($s3.region | default "garage") -}}
 {{- if and (not $s3.publicEndpointUrl) $web -}}

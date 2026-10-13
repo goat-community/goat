@@ -59,9 +59,10 @@ spec:
                 secretKeyRef:
                   name: {{ $s3.existingSecret }}
                   key: {{ $keys.secretAccessKey | default "secret-access-key" }}
-            # Origin allowed by the uploads bucket's CORS rule.
+            # Origin allowed by the uploads bucket's CORS rule: the page
+            # browsers upload from.
             - name: GOAT_PUBLIC_URL
-              value: {{ $s3.publicEndpointUrl | quote }}
+              value: {{ include "goat.garage.webUrl" . | default $s3.publicEndpointUrl | quote }}
             - name: UPLOADS_BUCKET
               value: {{ $s3.bucket | quote }}
             - name: ASSETS_BUCKET

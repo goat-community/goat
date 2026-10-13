@@ -162,7 +162,8 @@ odoo:
   db: ""                           # ODOO_DB
   # Support tickets: GOAT hands problem reports to an Odoo Helpdesk. Without
   # it the app shows "Report a problem" as an email address plus the
-  # documentation, and core serves no /api/v2/support routes. On only when
+  # documentation, and every /api/v2/support route but /summary answers 404
+  # (/summary says support is off). On only when
   # `odoo.url`, `odoo.db`, `teamId` and the API key (`existingSecret`) are set.
   # Uploads on /api/v2/support take up to 55 MiB per request: an ingress or
   # proxy in front of core must allow bodies of at least 56 MB there

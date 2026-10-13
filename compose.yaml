@@ -286,7 +286,10 @@ services:
     restart: "no"
     networks:
       - goat
-    entrypoint: ["python", "-m", "goatlib.storage.garage_init"]
+    # The script from this checkout: the :latest image may predate it.
+    entrypoint: ["python", "/init/garage_init.py"]
+    volumes:
+      - ./packages/python/goatlib/src/goatlib/storage/garage_init.py:/init/garage_init.py:ro
     environment:
       GARAGE_ADMIN_URL: http://garage:3903
       GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN}

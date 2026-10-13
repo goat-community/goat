@@ -592,7 +592,8 @@ yourself in that service's `config` or `extraEnv` wins.
 
 Optional and off by default. GOAT can hand problem reports to an Odoo
 Helpdesk; with the block empty the app shows "Report a problem" as an email
-address plus the documentation, and core serves no `/api/v2/support` routes.
+address plus the documentation, and every `/api/v2/support` route answers 404
+except `/api/v2/support/summary`, which tells the app that support is off.
 It is on only when `odoo.url`, `odoo.db`, `odoo.support.teamId` and the API
 key are all set. The key is a secret that Plan4Better issues for its own
 Odoo, so leave the `odoo` block empty on your own installation unless you
@@ -687,7 +688,8 @@ fills every key of `global.s3` you leave empty.
 | `assets.publicUrl` | the web app's URL + `/goat-assets` |
 
 A Job after every install and upgrade (`goatlib.storage.garage_init`, in
-core's image) assigns Garage's layout, creates both buckets, imports the key
+core's image, which ships it from GOAT v3.0.9 on; older images fail the Job)
+assigns Garage's layout, creates both buckets, imports the key
 pair and sets the uploads bucket's CORS rule. Set `global.s3.existingSecret`
 to bring your own key pair; it has to be in Garage's format.
 

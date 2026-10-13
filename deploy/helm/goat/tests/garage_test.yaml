@@ -125,24 +125,35 @@ tests:
                 name: RELEASE-NAME-goat-garage-s3
                 key: access-key-id
 
-  - it: leaves an S3 the operator set in global.s3 to the operator
+  - it: refuses Garage next to an S3 endpoint of the operator's own
     set:
       garage.enabled: true
-      global.s3.bucket: "mine"
       global.s3.endpointUrl: "https://s3.example.com"
-      global.s3.assets.publicUrl: "https://assets.example.com"
-    template: core/deployment.yaml
+    template: garage/bootstrap-job.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "garage.enabled runs GOAT's own S3 store, but global.s3.endpointUrl names another one: turn garage off, or leave global.s3.endpointUrl empty"
+
+  - it: refuses Garage when only the placeholder NEXTAUTH_URL names the web app
+    set:
+      garage.enabled: true
+      web.auth.publicUrl: ""
+    template: garage/bootstrap-job.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "garage.enabled needs the public URL browsers reach the uploads at: set web.auth.publicUrl or web.ingress (or global.s3.publicEndpointUrl)"
+
+  - it: allows the web app's origin in the uploads bucket's CORS rule
+    set:
+      garage.enabled: true
+      global.s3.publicEndpointUrl: "https://s3.example.com"
+    template: garage/bootstrap-job.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: S3_ENDPOINT_URL
-            value: "https://s3.example.com"
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: S3_BUCKET_NAME
-            value: "mine"
+            name: GOAT_PUBLIC_URL
+            value: "https://goat.example.com"
 
   - it: bootstraps the buckets after install and upgrade
     set:
