@@ -132,6 +132,10 @@
                 },
                 "publicUrl": {
                   "type": "string"
+                },
+                "servedByCore": {
+                  "type": "boolean",
+                  "description": "ASSETS_SERVED_BY_CORE: uploaded images in global.s3.bucket under assets/, served by core, for a store without a publicly readable bucket."
                 }
               }
             }

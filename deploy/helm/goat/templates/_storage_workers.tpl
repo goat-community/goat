@@ -26,8 +26,13 @@ the AWS_* key pair it uses for it).
 {{- $fromSecret := list (list "S3_ACCESS_KEY_ID" $idKey) (list "S3_SECRET_ACCESS_KEY" $secretKey) -}}
 {{- if .assets -}}
 {{- $a := $s3.assets | default dict -}}
+{{- if $a.servedByCore -}}
+{{- /* Assets in the data bucket, served by core: no assets bucket or keys. */ -}}
+{{- $plain = concat $plain (list (list "ASSETS_SERVED_BY_CORE" "true") (list "ASSETS_URL" $a.publicUrl)) -}}
+{{- else -}}
 {{- $plain = concat $plain (list (list "AWS_REGION" $s3.region) (list "AWS_S3_ASSETS_BUCKET" $a.bucket) (list "ASSETS_URL" $a.publicUrl) (list "ASSETS_S3_ENDPOINT_URL" $s3.endpointUrl) (list "ASSETS_S3_FORCE_PATH_STYLE" $pathStyle)) -}}
 {{- $fromSecret = concat $fromSecret (list (list "AWS_ACCESS_KEY_ID" $idKey) (list "AWS_SECRET_ACCESS_KEY" $secretKey)) -}}
+{{- end -}}
 {{- end -}}
 {{- range $plain -}}
 {{- $name := index . 0 -}}

@@ -28,6 +28,8 @@ _ENV_UNDER_TEST = [
     "ASSETS_S3_FORCE_PATH_STYLE",
     "AWS_S3_ASSETS_BUCKET",
     "AWS_REGION",
+    "ASSETS_SERVED_BY_CORE",
+    "API_V2_STR",
 ]
 
 
@@ -50,6 +52,15 @@ def test_defaults() -> None:
     assert s.POSTGRES_MAX_OVERFLOW == 10
     assert s.ASSETS_S3_ENDPOINT_URL is None
     assert s.ASSETS_S3_FORCE_PATH_STYLE is False
+
+
+def test_assets_served_by_core_default_to_cores_route(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ASSETS_SERVED_BY_CORE", "true")
+    monkeypatch.setenv("CLIENT_URL", "https://goat.example.org/")
+    monkeypatch.setenv("API_V2_STR", "/core/api/v2")
+    assert Settings().ASSETS_URL == "https://goat.example.org/core/api/v2/asset/file"
 
 
 def test_self_host_defaults() -> None:

@@ -75,5 +75,6 @@ All settings and their defaults are in `src/core/core/config.py`. The ones that 
 - `STRIPE_SECRET_KEY`: billing is active only when it is set; otherwise the `DEFAULT_PLAN_*` / `DEFAULT_QUOTA_*` values apply.
 - `SMTP_HOST`: emails are sent only when it is set.
 - `ODOO_URL`, `ODOO_DB` (shared by the Odoo integrations), `ODOO_SUPPORT_API_KEY`, `ODOO_SUPPORT_TEAM_ID`: support tickets are on only when all four are set. Otherwise `GET /api/v2/support/summary` answers `enabled: false`, which is how the web app learns that support is off, and every other `/api/v2/support` route answers 404.
+- `ASSETS_SERVED_BY_CORE`: for a store without a publicly readable bucket. Uploaded images go to the data bucket under `assets/`, and the anonymous `GET /api/v2/asset/file/<key>` redirects to a short-lived signed URL; it signs keys under `assets/` only, never user uploads. `ASSETS_URL` then defaults to that route on `CLIENT_URL`'s host.
 - `CUSTOM_DOMAIN_CNAME_TARGET`: empty turns custom domains off.
 - `ALLOW_ORGANIZATION_CREATION` (default true): false lets only superusers create organizations, so nobody who signs in before their invitation sets up one of their own. The web app learns it from `GET /users/me/organization-creation` and shows a page that waits for an invitation instead of the setup form.

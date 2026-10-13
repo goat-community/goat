@@ -65,6 +65,7 @@ Die gesamte Konfiguration steht in der Datei `.env` im Ordner des Pakets. `setup
 | `GARAGE_RPC_SECRET`, `GARAGE_ADMIN_TOKEN` | von setup.sh gesetzt | Interne Geheimnisse des mitgelieferten Garage |
 | `S3_ENDPOINT_URL`, `S3_PUBLIC_ENDPOINT_URL`, `S3_REGION`, `S3_BUCKET_NAME`, `S3_FORCE_PATH_STYLE` | *(auskommentiert)* | Ihr eigener S3-Speicher; siehe [Eigener S3-Speicher](./external_services.md#s3) |
 | `ASSETS_S3_ENDPOINT_URL`, `ASSETS_BUCKET_NAME`, `ASSETS_URL` | *(auskommentiert)* | Der öffentlich lesbare Bucket für Profilbilder und Bilder in Ihrem eigenen S3-Speicher |
+| `ASSETS_SERVED_BY_CORE` | `false` | `true`: Bilder im Upload-Bucket, von GOAT ausgeliefert, für S3 ohne öffentlichen Bucket |
 
 ## Datenbank {#database}
 
