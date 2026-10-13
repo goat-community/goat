@@ -38,7 +38,7 @@ For **Docs**, check before you claim it: grep the old label, the feature name an
 
 ### The issue
 
-Open it with `gh issue create --title "docs-release: $BASE..$NEW" --assignee @me`. Body:
+Open it with `gh issue create --repo plan4better/goat --title "docs-release: $BASE..$NEW"` (no `--assignee`: the account may not assign issues). Body:
 
 ```markdown
 Releases <BASE>..<NEW> ([compare](https://github.com/plan4better/goat/compare/<BASE>...<NEW>)).
