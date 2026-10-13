@@ -25,7 +25,7 @@ from goatlib.analysis.schemas.ui import (
     ui_sections,
 )
 from goatlib.models.io import DatasetMetadata
-from goatlib.tools.base import BaseToolRunner
+from goatlib.tools.base import BaseToolRunner, drops_unrecorded_tables
 from goatlib.tools.pt_network import ensure_pt_date, fetch_gtfs_tables
 from goatlib.tools.schemas import (
     ToolInputBase,
@@ -360,6 +360,7 @@ class OevGueteklassenToolRunner(BaseToolRunner[OevGueteklassenToolParams]):
         )
         return output_path, metadata
 
+    @drops_unrecorded_tables
     def run(self: Self, params: OevGueteklassenToolParams) -> dict:
         """Run tool and create both polygon and station layers."""
         import asyncio

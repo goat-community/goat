@@ -530,23 +530,29 @@ class TestProjectImportRunner:
         assert meta.custom_basemaps == basemaps
 
     def test_cleanup_on_failure(self, runner: ProjectImportRunner) -> None:
-        """DuckLake tables dropped, S3 objects deleted."""
+        """DuckLake tables without a layer row dropped, S3 objects deleted.
+
+        A table whose layer row exists stays: the rows were committed before
+        the failure (or the commit's reply was lost), and dropping it would
+        leave an imported layer without data.
+        """
+        orphaned = "11111111-1111-1111-1111-111111111111"
+        recorded = "22222222-2222-2222-2222-222222222222"
+        runner._track_new_table(orphaned, "lake.main.t_layer1")
+        runner._track_new_table(recorded, "lake.main.t_layer2")
+        runner._recorded_layer_ids = lambda ids: {recorded} & set(ids)
         tracker = ImportCleanupTracker()
-        tracker.ducklake_tables = [
-            "lake.user_abc.t_layer1",
-            "lake.user_abc.t_layer2",
-        ]
         tracker.s3_keys = ["assets/user/file1.png", "assets/user/file2.png"]
 
         runner._cleanup_on_failure(tracker)
 
-        # Verify DuckDB DROP TABLE calls
         drop_calls = [
-            c
+            str(c)
             for c in runner._duckdb_con.execute.call_args_list
             if "DROP TABLE" in str(c)
         ]
-        assert len(drop_calls) == 2
+        assert len(drop_calls) == 1
+        assert "lake.main.t_layer1" in drop_calls[0]
 
         # Verify S3 delete_object calls
         assert runner._s3_client.delete_object.call_count == 2
@@ -1590,11 +1596,9 @@ class TestImportDucklakeLayerGeometry:
         runner = ProjectImportRunner()
         runner.settings = MagicMock()
         runner._duckdb_con = con
-        tracker = ImportCleanupTracker()
-        runner._import_ducklake_layer(
-            parquet_path, "user", "0f0e8a4c-5d1f-4c1b-9a51-0d8f2c7e4a10", tracker
-        )
-        schema, table = tracker.ducklake_tables[0].split(".")[1:]
+        layer_id = "0f0e8a4c-5d1f-4c1b-9a51-0d8f2c7e4a10"
+        runner._import_ducklake_layer(parquet_path, "user", layer_id)
+        schema, table = runner._new_layer_tables[layer_id].split(".")[1:]
         return dict(
             con.execute(
                 "SELECT column_name, data_type FROM information_schema.columns "

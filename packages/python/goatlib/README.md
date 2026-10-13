@@ -94,6 +94,21 @@ table rather than through parquet, so an empty copy keeps its GEOMETRY column
 (an advisory lock per project and source, and a `template_copy` stamp on the
 copy and its entries), and a failed run leaves the entries on the source.
 
+## Tables of failed runs
+
+A run writes a new layer's DuckLake table before it saves the layer record, so
+a run that fails in between would leave a table nothing points to. The `run`
+of every runner that writes layer tables is wrapped in `drops_unrecorded_tables`
+(`tools/base.py`): on failure it drops the tables the run created, but only
+those Postgres confirms no layer row points to. A row committed before the
+failure keeps its table; so does every table when Postgres cannot be asked, or
+when the run failed on a lost connection or an interrupt, after which a record
+may still turn up. A table is only tracked once the run itself created it, so
+a failed update or overwrite never touches an existing layer's table. A
+cancelled Windmill job is killed without a SIGTERM first, so nothing in the
+run can clean up after it; the `ducklake_orphan_tables` task reports the
+tables left behind and, when asked to, drops those older than a day.
+
 ## DuckLake catalog connections
 
 Every DuckLake read runs a few catalog queries inside a Postgres transaction,

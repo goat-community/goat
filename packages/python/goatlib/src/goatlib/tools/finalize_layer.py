@@ -37,7 +37,11 @@ from pydantic import BaseModel, Field
 from goatlib.io.bbox_columns import star_excluding, stray_bbox_columns
 from goatlib.storage.ducklake import fetch_one
 from goatlib.tools.authz import authorize_workflow_export
-from goatlib.tools.base import BaseToolRunner, _get_or_create_event_loop
+from goatlib.tools.base import (
+    BaseToolRunner,
+    _get_or_create_event_loop,
+    drops_unrecorded_tables,
+)
 from goatlib.tools.layer_replace import LayerReplaceMixin
 from goatlib.tools.schemas import ToolInputBase
 from goatlib.tools.workflow_dataset_nodes import retarget_dataset_nodes
@@ -573,6 +577,7 @@ class FinalizeLayerRunner(LayerReplaceMixin, BaseToolRunner[FinalizeLayerParams]
                 CREATE TABLE {table_name} AS
                 SELECT {columns} FROM read_parquet('{parquet_path}')
             """)
+        self._track_new_table(new_layer_id, table_name)
 
         logger.info(f"Ingested temp layer to DuckLake: {table_name}")
 
@@ -726,6 +731,7 @@ class FinalizeLayerRunner(LayerReplaceMixin, BaseToolRunner[FinalizeLayerParams]
 
         return new_layer_id
 
+    @drops_unrecorded_tables
     def run(self, params: FinalizeLayerParams) -> FinalizeLayerOutput:
         """Run the finalize layer tool.
 

@@ -34,11 +34,15 @@ Example:
 """
 
 import asyncio
+import functools
 import logging
 import os
+import sys
 import tempfile
 import uuid as uuid_module
 from abc import ABC, abstractmethod
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Generic, Self, TypeVar
@@ -84,6 +88,52 @@ logger = logging.getLogger(__name__)
 TOOLS_CATALOG_CONNECTIONS = 3
 
 TParams = TypeVar("TParams", bound=ToolInputBase)
+TRun = TypeVar("TRun", bound=Callable[..., Any])
+
+#: Failures after which a write the run had sent may still have committed:
+#: the connection went away or the wait was cut short before the reply came.
+#: A server-side error, by contrast, means the statement did not commit.
+_OUTCOME_UNKNOWN = (
+    asyncpg.PostgresConnectionError,
+    asyncpg.InterfaceError,
+    ConnectionError,
+    TimeoutError,
+    asyncio.CancelledError,
+    KeyboardInterrupt,
+    SystemExit,
+)
+
+
+def _write_outcome_unknown(error: BaseException | None) -> bool:
+    """True when `error`, or an error it came from, is in `_OUTCOME_UNKNOWN`."""
+    seen: set[int] = set()
+    while error is not None and id(error) not in seen:
+        if isinstance(error, _OUTCOME_UNKNOWN):
+            return True
+        seen.add(id(error))
+        error = error.__cause__ or error.__context__
+    return False
+
+
+def drops_unrecorded_tables(run: TRun) -> TRun:
+    """Make a runner's `run` drop, when it fails, the tables it created for
+    layers it never recorded (`SimpleToolRunner.drop_unrecorded_tables`).
+
+    Catches only what reaches Python: an error, or an interrupt. A cancelled
+    Windmill job is killed outright, without a SIGTERM first, so nothing here
+    runs for it; the `ducklake_orphan_tables` task finds those tables.
+    """
+
+    @functools.wraps(run)
+    def guarded(self: "SimpleToolRunner", *args: Any, **kwargs: Any) -> Any:
+        try:
+            return run(self, *args, **kwargs)
+        except BaseException:
+            self.drop_unrecorded_tables()
+            raise
+
+    guarded.drops_unrecorded_tables = True  # type: ignore[attr-defined]
+    return guarded  # type: ignore[return-value]
 
 
 def _catalog_layer_parquet(layer_id: str) -> "Path | None":
@@ -373,6 +423,9 @@ class SimpleToolRunner:
         #: layer_id -> parquet path of every catalog view resolved so far
         self._catalog_views: dict[str, Path] = {}
         self._s3_client: Any | None = None
+        #: layer_id -> DuckLake table this run created for a new layer
+        #: (`_track_new_table`); what a failed run may drop again.
+        self._new_layer_tables: dict[str, str] = {}
 
     @staticmethod
     def _configure_logging_for_windmill() -> None:
@@ -801,6 +854,131 @@ class SimpleToolRunner:
         except Exception as e:
             logger.warning("Failed to look up owner for layer %s: %s", layer_id, e)
             return None
+
+    def _track_new_table(self: Self, layer_id: str, table_path: str) -> None:
+        """Remember a DuckLake table this run created for a new layer.
+
+        Only for a table that is the run's own: right after its CREATE TABLE
+        succeeded, or named after a layer id the run generated itself. An
+        existing layer's table is never tracked, so a failed update or
+        overwrite cannot drop it.
+        """
+        self._new_layer_tables[layer_id] = table_path
+
+    def drop_unrecorded_tables(self: Self) -> None:
+        """Drop the tables this run created for layers that have no record.
+
+        A run writes a new layer's table before it saves the layer's record;
+        failing in between used to leave the table in DuckLake with nothing
+        pointing at it. Never raises, so it cannot hide the failure that
+        called it.
+        """
+        self._drop_new_tables(list(self._new_layer_tables))
+
+    def _drop_new_tables(self: Self, layer_ids: list[str]) -> None:
+        """Drop the tracked tables of `layer_ids` that no layer row points at.
+
+        Postgres decides, not the step the run failed at: a row committed
+        before the failure keeps its table, trashed rows included. Every table
+        stays, for the `ducklake_orphan_tables` task to report, when Postgres
+        cannot be asked, or when the failure being handled (`sys.exc_info()`)
+        leaves open whether a record write committed: a commit can still turn
+        visible after its connection was lost, for instance while it waits
+        for a synchronous replica.
+        """
+        tracked = self._new_layer_tables
+        tables = {i: tracked[i] for i in layer_ids if i in tracked}
+        if not tables:
+            return
+        if _write_outcome_unknown(sys.exc_info()[1]):
+            logger.warning(
+                "The run failed on a lost connection or an interrupt, so a "
+                "record of layers %s may yet appear; keeping tables %s",
+                sorted(tables),
+                sorted(tables.values()),
+            )
+            for layer_id in tables:
+                tracked.pop(layer_id, None)
+            return
+        try:
+            recorded = self._recorded_layer_ids(list(tables))
+        except Exception:  # noqa: BLE001 - the run's own failure is what matters
+            logger.exception(
+                "Could not check whether layers %s have records; keeping their "
+                "tables %s",
+                sorted(tables),
+                sorted(tables.values()),
+            )
+            # Asked once: an outer guard of the same run would only wait on
+            # the same unreachable server again.
+            for layer_id in tables:
+                tracked.pop(layer_id, None)
+            return
+        for layer_id, table in tables.items():
+            if layer_id in recorded:
+                # The record points at the table: it is the layer's data now.
+                tracked.pop(layer_id, None)
+                continue
+            try:
+                self._drop_table_with_retry(table)
+            except Exception:  # noqa: BLE001
+                logger.exception("Could not drop %s of a failed run", table)
+                continue
+            tracked.pop(layer_id, None)
+            logger.info("Dropped %s: its run failed before the layer was saved", table)
+            self._delete_new_pmtiles(layer_id)
+
+    def _drop_table_with_retry(self: Self, table: str) -> None:
+        """DROP on the run's connection, or on a fresh one when that fails:
+        the run's failure may have been the connection itself."""
+        try:
+            self.duckdb_con.execute(f"DROP TABLE IF EXISTS {table}")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                "Dropping %s failed, retrying on a new connection: %s", table, e
+            )
+            self.recycle_duckdb_connection()
+            self.duckdb_con.execute(f"DROP TABLE IF EXISTS {table}")
+
+    def _delete_new_pmtiles(self: Self, layer_id: str) -> None:
+        """Remove the tiles a failed run built for a layer it never recorded."""
+        try:
+            from goatlib.io.pmtiles import PMTilesGenerator
+
+            assert self.settings is not None
+            PMTilesGenerator(
+                tiles_data_dir=self.settings.tiles_data_dir
+            ).delete_pmtiles(layer_id)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Could not delete the PMTiles of layer %s: %s", layer_id, e)
+
+    def _recorded_layer_ids(self: Self, layer_ids: list[str]) -> set[str]:
+        """The ids among `layer_ids` that a layer row has, trashed or not."""
+        if self.settings is None:
+            raise RuntimeError("Settings not initialized")
+        settings = self.settings
+
+        async def fetch() -> set[str]:
+            # Short: when Postgres is what failed, the run should not hang on
+            # it again; the tables then stay for the orphan-tables task.
+            conn = await asyncpg.connect(**settings.postgres_connect_args(), timeout=15)
+            try:
+                rows = await conn.fetch(
+                    f"SELECT id FROM {settings.customer_schema}.layer "  # noqa: S608
+                    "WHERE id = ANY($1::uuid[])",
+                    [uuid_module.UUID(i) for i in layer_ids],
+                    timeout=15,
+                )
+            finally:
+                await conn.close(timeout=5)
+            return {str(row["id"]) for row in rows}
+
+        # A thread with its own event loop: the failure may surface inside a
+        # running loop (layer_copy's copy is async), where no second loop can
+        # run.
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            found = pool.submit(lambda: asyncio.run(fetch())).result()
+        return {i for i in layer_ids if str(uuid_module.UUID(i)) in found}
 
     def cleanup(self: Self) -> None:
         """Clean up resources."""
@@ -1434,6 +1612,7 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
             )
             return None
 
+    @drops_unrecorded_tables
     def run(self: Self, params: TParams) -> dict[str, Any]:
         """Main entry point - runs the full tool workflow.
 
@@ -1742,6 +1921,7 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
                     logger.info(
                         "Created DuckLake table: %s from %s", table_name, parquet_path
                     )
+                self._track_new_table(layer_id, table_name)
 
                 # Get table info
                 table_info = self._get_table_info(con, table_name)
