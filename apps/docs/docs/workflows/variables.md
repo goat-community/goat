@@ -48,7 +48,7 @@ Variables use the syntax `{{@variable_name}}` and can be inserted into most tool
 
 <div class="step">
   <div class="step-number">6</div>
-  <div class="content">Optionally enter a <strong>Label</strong>. The label is what people see instead of the technical name, wherever they pick the variable or set its value (e.g. <code>Maximum grouping distance</code> for <code>max_grouping_distance</code>). Expressions and SQL keep using the name. To add help text, click the speech bubble icon next to the variable, type a <strong>Description</strong> (up to 500 characters) and click beside the box to keep it; <code>Esc</code> discards the change. A filled icon shows that a variable has a description, and hovering over it shows the text.</div>
+  <div class="content">Optionally enter a <strong>Label</strong>. The label is what people see instead of the technical name, wherever they pick the variable or set its value (e.g. <code>Maximum grouping distance</code> for <code>max_grouping_distance</code>). Expressions and SQL keep using the name. To add help text, click the speech bubble <img src={require('/img/icons/chat-bubble.png').default} alt="Description" style={{ maxHeight: '20px', maxWidth: '20px', verticalAlign: 'middle'}}/> next to the variable, type a <strong>Description</strong> (up to 500 characters) and click beside the box to keep it; <code>Esc</code> discards the change. A filled icon <img src={require('/img/icons/chat-bubble-filled.png').default} alt="Description added" style={{ maxHeight: '20px', maxWidth: '20px', verticalAlign: 'middle'}}/> shows that a variable has a description, and hovering over it shows the text.</div>
 </div>
 
 <div class="step">
