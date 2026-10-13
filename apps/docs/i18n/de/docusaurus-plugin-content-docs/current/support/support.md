@@ -46,7 +46,8 @@ Auf Installationen ohne Support-Tickets öffnet <code>Problem melden</code> stat
 
 <div class="step">
    <div class="step-number">5</div>
-   <div class="content">Ergänzen Sie bei Bedarf weiteren Kontext:
+   <div class="content">
+   Ergänzen Sie bei Bedarf weiteren Kontext:
       <ul>
          <li><code>Zugehöriges Projekt</code>: das Projekt, um das es geht. Bei Tickets zu Konto & Abrechnung wird es nicht abgefragt.</li>
          <li><code>Anhänge</code>: Screenshots, exportierte Layer oder Logs. Bis zu 10 Dateien, je 10 MB und zusammen höchstens 50 MB.</li>

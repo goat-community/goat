@@ -46,7 +46,8 @@ On installations without support tickets, <code>Report a problem</code> opens an
 
 <div class="step">
    <div class="step-number">5</div>
-   <div class="content">Optionally, add more context:
+   <div class="content">
+   Optionally, add more context:
       <ul>
          <li><code>Related project</code>: the project the ticket is about. Not asked for account and billing tickets.</li>
          <li><code>Attachments</code>: screenshots, exported layers or logs. Up to 10 files, 10 MB each and 50 MB in total.</li>
