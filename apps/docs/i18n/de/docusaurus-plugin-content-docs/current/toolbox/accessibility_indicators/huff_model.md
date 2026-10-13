@@ -160,7 +160,7 @@ Idealerweise sammeln Sie Daten zu tatsächlichen Kundenbesuchen oder Marktanteil
 
 <div class="step">
   <div class="step-number">13</div>
-  <div class="content">Legen Sie den <code>Name der Ergebnislayer</code> für den Ausgabe-Huff-Modell-Layer fest.</div>
+  <div class="content">Legen Sie den <code>Name des Ergebnis-Layers</code> für den Ausgabe-Huff-Modell-Layer fest.</div>
 </div>
 
 <div class="step">

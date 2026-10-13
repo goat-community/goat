@@ -31,7 +31,7 @@ Die Seitenleiste schränkt die Liste ein, in dieser Reihenfolge:
 
 - **Meine Favoriten anzeigen**: nur die Datensätze, die Sie mit einem Stern gespeichert haben
 - **Ort**: `Räumlichen Filter setzen` schränkt den Katalog auf Datensätze ein, die ein Gebiet abdecken, beschrieben auf [drei Wegen](#raeumlicher-filter)
-- **Kategorie**: das Thema des Datensatzes, etwa Transportation, Environment, People, Landuse oder Hazards. Die Seitenleiste zeigt alle Kategorien, die der Katalog derzeit enthält
+- **Kategorie**: das Thema des Datensatzes, etwa Verkehr, Umwelt, Bevölkerung oder Landnutzung. Die Seitenleiste zeigt alle Kategorien, die der Katalog derzeit enthält
 - **Datenart**: ob der Datensatz ein Feature-Layer, eine Tabelle, ein Raster oder ein Datenpaket ist
 - **Geometrie**: welche Art von Form seine Objekte haben
 - **Datengeber**: wer den Datensatz bereitstellt

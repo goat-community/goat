@@ -112,7 +112,7 @@ Die folgenden **Operationen** stehen zur Verfügung:
 
 <div class="step">
   <div class="step-number">9</div>
-  <div class="content">Ändern Sie optional das Feld <code>Name der Ergebnislayer</code> (Standard: <b>Punkte aggregieren</b>).</div>
+  <div class="content">Ändern Sie optional das Feld <code>Name des Ergebnis-Layers</code> (Standard: <b>Punkte aggregieren</b>).</div>
 </div>
 
 <div class="step">
