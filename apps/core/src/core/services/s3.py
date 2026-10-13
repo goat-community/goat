@@ -11,6 +11,13 @@ from goatlib.storage.s3_config import boto_client_kwargs
 
 logger = logging.getLogger(__name__)
 
+# Where assets live in the data bucket with ASSETS_SERVED_BY_CORE. The route
+# that serves them signs keys under this prefix only, never user uploads.
+ASSETS_PREFIX = "assets/"
+# Lifetime of the signed URL the asset route redirects to; browsers cache the
+# redirect for half of it, so a cached one never points at an expired URL.
+ASSET_URL_EXPIRES = 3600
+
 
 class S3Service:
     """Core's S3 access.
@@ -70,13 +77,21 @@ class S3Service:
             ),
         )
 
+    def _asset_location(self, s3_key: str) -> tuple[Any, str | None, str]:
+        """Client, bucket and key of an asset: the assets bucket, or the data
+        bucket under ASSETS_PREFIX with ASSETS_SERVED_BY_CORE."""
+        if settings.ASSETS_SERVED_BY_CORE:
+            return self.s3_client, settings.S3_BUCKET_NAME, ASSETS_PREFIX + s3_key
+        return self.assets_client, settings.AWS_S3_ASSETS_BUCKET, s3_key
+
     def upload_asset(self, fileobj: BinaryIO, s3_key: str, content_type: str) -> None:
         """Upload a file object to the assets bucket (avatars, documents)."""
+        client, bucket, key = self._asset_location(s3_key)
         try:
-            self.assets_client.upload_fileobj(
+            client.upload_fileobj(
                 Fileobj=fileobj,
-                Bucket=settings.AWS_S3_ASSETS_BUCKET,
-                Key=s3_key,
+                Bucket=bucket,
+                Key=key,
                 ExtraArgs={"ContentType": content_type},
             )
         except (ClientError, BotoCoreError) as e:
@@ -88,15 +103,34 @@ class S3Service:
 
     def delete_asset(self, s3_key: str) -> None:
         """Delete an object from the assets bucket."""
+        client, bucket, key = self._asset_location(s3_key)
         try:
-            self.assets_client.delete_object(
-                Bucket=settings.AWS_S3_ASSETS_BUCKET, Key=s3_key
-            )
+            client.delete_object(Bucket=bucket, Key=key)
         except (ClientError, BotoCoreError) as e:
             logger.error(f"Asset delete failed for {s3_key}: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to delete asset: {e}",
+            )
+
+    def asset_download_url(self, s3_key: str) -> str:
+        """A short-lived signed GET URL of an asset in the data bucket
+        (ASSETS_SERVED_BY_CORE), on the endpoint browsers reach."""
+        client = self._public_client if self._public_client else self.s3_client
+        try:
+            return client.generate_presigned_url(
+                "get_object",
+                Params={
+                    "Bucket": settings.S3_BUCKET_NAME,
+                    "Key": ASSETS_PREFIX + s3_key,
+                },
+                ExpiresIn=ASSET_URL_EXPIRES,
+            )
+        except (ClientError, BotoCoreError) as e:
+            logger.error(f"Asset URL signing failed for {s3_key}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to sign the asset URL",
             )
 
     def generate_presigned_put(

@@ -25,3 +25,10 @@ tests:
     asserts:
       - isKind:
           of: ConfigMap
+
+  - it: needs no assets URL when core serves the images
+    set:
+      global.s3.assets.servedByCore: true
+    asserts:
+      - isKind:
+          of: ConfigMap

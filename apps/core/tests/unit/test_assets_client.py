@@ -74,3 +74,81 @@ async def test_avatar_url_is_built_from_assets_url(
     avatar = update_mock.call_args.kwargs["obj_in"].avatar
     assert key.startswith(f"img/users/{settings.ENVIRONMENT}/avatar_{USER_ID}_T")
     assert avatar == f"http://10.0.0.5:8080/goat-assets/{key}"
+
+
+@pytest.mark.unit
+def test_assets_served_by_core_live_in_the_data_bucket(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "ASSETS_SERVED_BY_CORE", True)
+    monkeypatch.setattr(settings, "S3_BUCKET_NAME", "goat")
+    service = S3Service()
+    service.s3_client = MagicMock()
+    service.assets_client = MagicMock()
+    service.upload_asset(MagicMock(), "img/users/a.png", "image/png")
+    service.delete_asset("img/users/a.png")
+    service.s3_client.upload_fileobj.assert_called_once()
+    assert service.s3_client.upload_fileobj.call_args.kwargs["Bucket"] == "goat"
+    assert (
+        service.s3_client.upload_fileobj.call_args.kwargs["Key"]
+        == "assets/img/users/a.png"
+    )
+    service.s3_client.delete_object.assert_called_once_with(
+        Bucket="goat", Key="assets/img/users/a.png"
+    )
+    service.assets_client.upload_fileobj.assert_not_called()
+
+
+@pytest.mark.unit
+async def test_asset_route_redirects_to_a_signed_url_under_assets(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from core.endpoints.v2 import asset
+
+    monkeypatch.setattr(settings, "ASSETS_SERVED_BY_CORE", True)
+    signer = MagicMock(return_value="https://goat.example.org/goat/assets/x?sig")
+    monkeypatch.setattr(asset.s3_service, "asset_download_url", signer)
+
+    response = await asset.asset_file("img/users/a.png")
+    assert response.status_code == 307
+    assert response.headers["location"] == "https://goat.example.org/goat/assets/x?sig"
+    assert response.headers["cache-control"].startswith("public, max-age=")
+    signer.assert_called_once_with("img/users/a.png")
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "served, key",
+    [
+        (False, "img/a.png"),
+        (True, "../users/x/upload.zip"),
+        (True, "img//a.png"),
+        (True, ""),
+    ],
+)
+async def test_asset_route_answers_404(
+    monkeypatch: pytest.MonkeyPatch, served: bool, key: str
+) -> None:
+    from core.endpoints.v2 import asset
+    from fastapi import HTTPException
+
+    monkeypatch.setattr(settings, "ASSETS_SERVED_BY_CORE", served)
+    with pytest.raises(HTTPException) as err:
+        await asset.asset_file(key)
+    assert err.value.status_code == 404
+
+
+@pytest.mark.unit
+def test_asset_url_is_signed_for_the_prefixed_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "S3_BUCKET_NAME", "goat")
+    service = S3Service()
+    service._public_client = MagicMock()
+    service._public_client.generate_presigned_url.return_value = "signed"
+    assert service.asset_download_url("img/a.png") == "signed"
+    service._public_client.generate_presigned_url.assert_called_once_with(
+        "get_object",
+        Params={"Bucket": "goat", "Key": "assets/img/a.png"},
+        ExpiresIn=3600,
+    )

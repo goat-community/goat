@@ -37,6 +37,10 @@ ANONYMOUS = {
     ("GET", "project/{project_id}/public"): "the published, public view of a project",
     (
         "GET",
+        "asset/file/{key:path}",
+    ): "uploaded images, public as an assets bucket is (ASSETS_SERVED_BY_CORE)",
+    (
+        "GET",
         "custom-domain-config",
     ): "the web app's middleware resolves a host before any login",
     (

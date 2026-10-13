@@ -65,6 +65,7 @@ Apply changes with `docker compose up -d`.
 | `GARAGE_RPC_SECRET`, `GARAGE_ADMIN_TOKEN` | set by setup.sh | Internal secrets of the bundled Garage |
 | `S3_ENDPOINT_URL`, `S3_PUBLIC_ENDPOINT_URL`, `S3_REGION`, `S3_BUCKET_NAME`, `S3_FORCE_PATH_STYLE` | *(commented out)* | Your own S3; see [Your own S3 storage](./external_services.md#s3) |
 | `ASSETS_S3_ENDPOINT_URL`, `ASSETS_BUCKET_NAME`, `ASSETS_URL` | *(commented out)* | The publicly readable bucket for avatars and images on your own S3 |
+| `ASSETS_SERVED_BY_CORE` | `false` | `true`: images in the uploads bucket, served by GOAT, for S3 without a public bucket |
 
 ## Database {#database}
 

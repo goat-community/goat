@@ -121,10 +121,13 @@ global:
     # Uploaded images (project and dataset thumbnails, avatars, dashboard
     # images), in the same store: core serves them from `publicUrl`, the
     # bucket's public URL, so the bucket must be publicly readable. With an
-    # `endpointUrl` set, `publicUrl` is required.
+    # `endpointUrl` set, `publicUrl` is required. A store without a publicly
+    # readable bucket: `servedByCore: true` keeps the images in `bucket`
+    # above under `assets/`, and core serves them through its API.
     assets:
       bucket: goat-assets          # AWS_S3_ASSETS_BUCKET
       publicUrl: ""                # ASSETS_URL, e.g. https://assets.example.org
+      servedByCore: false          # ASSETS_SERVED_BY_CORE
 
 # ─── Email ─────────────────────────────────────────────────────────────────
 # The SMTP server core sends invitations and notifications through. Email is

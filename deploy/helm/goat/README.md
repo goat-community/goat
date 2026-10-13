@@ -404,6 +404,7 @@ override the key names via the `existingSecretUserKey` /
 | `global.s3.provider` / `.endpointUrl` / `.publicEndpointUrl` / `.region` / `.forcePathStyle` | string / bool | `""` / `false` | The store: provider (`minio` forces path-style URLs), in-cluster endpoint (empty = AWS), browser-facing endpoint for upload links, region, path-style URLs. |
 | `global.s3.existingSecret` / `.existingSecretKeys` | string / map | `""` / `access-key-id`, `secret-access-key` | Secret with the access key pair. |
 | `global.s3.assets.bucket` / `.publicUrl` | string | `goat-assets` / `""` | Bucket for uploaded images in the same store and its public URL (`ASSETS_URL`); `publicUrl` is required with an `endpointUrl`. |
+| `global.s3.assets.servedByCore` | bool | `false` | For a store without a publicly readable bucket: images go to `global.s3.bucket` under `assets/`, and core serves them (`ASSETS_SERVED_BY_CORE`). |
 | `web.enabled` | bool | `true` | Deploy `goat-web` (Next.js frontend). |
 | `web.ingress.enabled` | bool | `false` | Create Ingress for the web UI (requires `hosts` populated). |
 | `geoapi.enabled` | bool | `true` | Deploy `goat-geoapi`. Its `ducklake-init` init container creates the DuckLake catalog (see below). |
@@ -663,6 +664,13 @@ uploaded images straight from `assets.publicUrl`, so that bucket must be
 publicly readable. Outside AWS (`endpointUrl` set) `assets.publicUrl` is
 required: core refuses to start without it, and the chart stops the install
 first. On AWS it defaults to `https://<bucket>.s3.<region>.amazonaws.com`.
+
+When the store has no publicly readable bucket, set `assets.servedByCore:
+true` instead (GOAT v3.0.9 or later). Images then go to `global.s3.bucket`
+under `assets/`, and links point at core's `/asset/file/<key>`, which answers
+with a redirect to a short-lived signed URL on `publicEndpointUrl`. The links
+default to core's API path on `CLIENT_URL`'s host; with core on another host,
+set `assets.publicUrl` to `<core's public URL><API_V2_STR>/asset/file`.
 
 A variable set in a service's own `config` or `extraEnv` wins, for example
 `core.config.ASSETS_URL` for a CDN in front of the images, or an assets
