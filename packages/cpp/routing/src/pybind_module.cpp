@@ -204,6 +204,8 @@ PYBIND11_MODULE(_routing, m)
         .def_readwrite("max_min",        &routing::preprocessing::AccessEgressConfig::max_min)
         .def_readwrite("speed_km_h",     &routing::preprocessing::AccessEgressConfig::speed_km_h)
         .def_readwrite("chunk_size",     &routing::preprocessing::AccessEgressConfig::chunk_size)
+        .def_readwrite("chunk_max_span_m", &routing::preprocessing::AccessEgressConfig::chunk_max_span_m)
+        .def_readwrite("fold_samples",   &routing::preprocessing::AccessEgressConfig::fold_samples)
         .def_readwrite("spacing_m",      &routing::preprocessing::AccessEgressConfig::spacing_m);
 
     // Long C++ work releases the GIL for its duration.

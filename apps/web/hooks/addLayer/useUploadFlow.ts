@@ -239,6 +239,13 @@ export const useUploadFlow = ({
         setFileError(`${t("invalid_file_type")}: ${ACCEPTED_FILE_TYPES.join(", ")}`);
         return;
       }
+      const nextType = detectBundleType(next);
+      if (nextType?.maxSizeMiB && next.size > nextType.maxSizeMiB * 1024 * 1024) {
+        setFileError(
+          t("bundle_upload_too_large", { type: t(nextType.labelKey), mb: nextType.maxSizeMiB })
+        );
+        return;
+      }
       setFileValue(next);
       // The suggested name goes into the form, not just onto the screen: with no field
       // registered for it, a name that only existed as display text left the form invalid

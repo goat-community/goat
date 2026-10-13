@@ -3249,6 +3249,7 @@
   "thumbnail_invalid_type": "Choose a PNG, JPEG or WebP image.",
   "reset_to_generated": "Reset to generated",
   "bundle_upload_note_pt_network_gtfs": "Public Transport Network bundles must be linked to a Street Network bundle in order for GOAT to connect stops with streets. Select a Street Network bundle that covers the same region to continue.",
+  "bundle_upload_too_large": "Choose a {{type}} file of {{mb}} MiB or less.",
   "street_network_bundle": "Street Network bundle",
   "default_network": "Default (Europe)",
   "default_pt_network": "Default",

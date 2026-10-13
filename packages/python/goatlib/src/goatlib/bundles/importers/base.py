@@ -9,7 +9,7 @@ the per-type importer's job. Register one importer per
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from pydantic import BaseModel
 
@@ -18,6 +18,22 @@ from goatlib.models.bundle import (
     BundleTypeSpec,
     get_spec,
 )
+
+#: Memory one DuckDB connection of an import may use before spilling to disk.
+#: Several run in the same worker process during an import, alongside builds
+#: that hold memory DuckDB does not account for (a PT timetable, a street
+#: graph), so each gets a fixed share rather than DuckDB's default of most of
+#: the machine. Same budget as the Overture writer's sort.
+DUCKDB_MEMORY_LIMIT = "1GB"
+
+
+def bound_duckdb(con: Any, spill_dir: str) -> Any:
+    """Bound ``con`` to ``DUCKDB_MEMORY_LIMIT``, spilling into ``spill_dir``.
+    Returns the connection, so a fresh one can be bounded where it is made."""
+    con.execute(f"SET memory_limit='{DUCKDB_MEMORY_LIMIT}'")
+    con.execute("SET temp_directory='" + spill_dir.replace("'", "''") + "'")
+    return con
+
 
 LayerKind = Literal["feature", "table"]
 GeometryType = Literal["point", "line", "polygon"]
@@ -30,8 +46,8 @@ class ExtractedLayer(BaseModel):
     name: str
     layer_type: LayerKind
     geometry_type: Optional[GeometryType] = None
-    # Local file the runner hands to IOConverter → DuckLake (GeoJSON for
-    # geometry roles, CSV for attribute tables).
+    # Local file the runner ingests into DuckLake: parquet as is, anything else
+    # through IOConverter first.
     file_path: str
 
 

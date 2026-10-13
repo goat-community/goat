@@ -52,7 +52,7 @@ Street networks power GOAT's [Walking](../routing/walking), [Cycling](../routing
 
 A **Public Transport Network** describes the stops, lines and timetables of a transit system. GOAT provides a built-in network, and you can import your own whenever you want to analyse a service you control: your own feed, or a timetable you are planning.
 
-Your data must follow the **[GTFS](https://www.plan4better.de/en/glossary/gtfs)** format, packed into a `.zip` whose name contains `gtfs`, for example `gtfs.zip` or `vbb_gtfs.zip`.
+Your data must follow the **[GTFS](https://www.plan4better.de/en/glossary/gtfs)** format, packed into a `.zip` whose name contains `gtfs`, for example `gtfs.zip` or `vbb_gtfs.zip`. The `.zip` can be at most **200 MiB**: GOAT builds the timetable from the whole feed at once, so larger feeds cannot be imported.
 
 The member layers follow the GTFS feed itself: **Stops**, **Routes**, **Trips** and **Stop times** are always present, and **Agency**, **Calendar** and **Shapes** are added when the feed provides them.
 

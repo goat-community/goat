@@ -179,6 +179,11 @@ namespace routing::data
         // query's bbox instead: a node reachable from a starting point cannot lie
         // outside it. Comparing the stored columns rather than the projected
         // aliases lets DuckDB skip row groups on their statistics.
+        //
+        // One bbox over scattered points also holds everything between them,
+        // so a point filter then narrows to its own cells as well, derived
+        // from the node's coordinates: the same area the H3 columns select on
+        // the global network.
         std::string node_bbox_predicate;
         if (filter.bbox)
         {
@@ -190,6 +195,13 @@ namespace routing::data
                  << " BETWEEN " << b.min_x << " AND " << b.max_x << " AND "
                  << (stored ? "y_3857" : node_y_expr)
                  << " BETWEEN " << b.min_y << " AND " << b.max_y;
+            if (filter.cells_cover_points && !h3_6_cells.empty())
+            {
+                pred << " AND "
+                     << short_h3_6_sql(stored ? "x_3857" : node_x_expr,
+                                       stored ? "y_3857" : node_y_expr)
+                     << " IN " << sql_int_list(h3_6_cells);
+            }
             node_bbox_predicate = pred.str();
         }
 

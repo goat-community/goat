@@ -52,7 +52,7 @@ Straßennetze sind die Grundlage für das Routing zu [Fuß](../routing/walking),
 
 Ein **ÖPNV-Netz** beschreibt die Haltestellen, Linien und Fahrpläne eines Verkehrssystems. GOAT stellt ein integriertes Netz bereit, und Sie können Ihr eigenes importieren, wenn Sie ein Angebot analysieren möchten, das Sie selbst verwalten: Ihren eigenen Feed oder einen Fahrplan, den Sie planen.
 
-Ihre Daten müssen dem **[GTFS](https://www.plan4better.de/de/glossar/gtfs)**-Format entsprechen, verpackt in einer `.zip`-Datei, deren Name `gtfs` enthält, zum Beispiel `gtfs.zip` oder `vbb_gtfs.zip`.
+Ihre Daten müssen dem **[GTFS](https://www.plan4better.de/de/glossar/gtfs)**-Format entsprechen, verpackt in einer `.zip`-Datei, deren Name `gtfs` enthält, zum Beispiel `gtfs.zip` oder `vbb_gtfs.zip`. Die `.zip`-Datei darf höchstens **200 MiB** groß sein: GOAT erstellt den Fahrplan aus dem gesamten Feed auf einmal, daher lassen sich größere Feeds nicht importieren.
 
 Die enthaltenen Layer entsprechen dem GTFS-Feed selbst: **Stops**, **Routes**, **Trips** und **Stop times** sind immer vorhanden, **Agency**, **Calendar** und **Shapes** kommen hinzu, sofern der Feed sie bereitstellt.
 

@@ -114,12 +114,6 @@ void validate(HeatmapConfig const &cfg)
 // EPSG:3857 to (lng, lat).
 constexpr double kHalfCirc = 40075016.68557849 / 2.0;
 
-// DuckDB buffer-manager budget for the heatmap pipeline (GB). Set below
-// total RAM since nigiri's timetable (~1.7 GB) lives outside DuckDB; with a
-// spill directory configured, requests that exceed this spill to disk
-// instead of OOM-killing the worker on a shared host.
-constexpr int kHeatmapDuckDbMemoryLimitGb = 4;
-
 inline double merc_x_to_lng(double x) { return (x / kHalfCirc) * 180.0; }
 inline double merc_y_to_lat(double y)
 {
@@ -1077,8 +1071,9 @@ void run_street(HeatmapConfig const &cfg, duckdb::Connection &con,
     // emit callback decides whether to reduce (heatmap) or export (OD matrix).
 }
 
-// Configure the DuckDB connection: extensions + a bounded memory limit with a
-// spill directory (the PT intermediates can otherwise exhaust RAM).
+// Configure the DuckDB connection: extensions + a spill directory (the PT
+// intermediates can otherwise exhaust RAM). The memory limit is DuckDB's own
+// default, a share of the container's memory.
 void configure_connection(HeatmapConfig const &cfg, duckdb::Connection &con,
                           PhaseTimer &timer)
 {
@@ -1089,8 +1084,6 @@ void configure_connection(HeatmapConfig const &cfg, duckdb::Connection &con,
             std::filesystem::path(cfg.output_path).parent_path();
         if (spill.empty())
             spill = std::filesystem::temp_directory_path(ec);
-        con.Query("SET memory_limit='" +
-                  std::to_string(kHeatmapDuckDbMemoryLimitGb) + "GB'");
         con.Query("SET temp_directory='" + spill.string() + "'");
     }
     std::fprintf(stderr, "[Pipeline] DuckDB init: %.0f ms\n",
