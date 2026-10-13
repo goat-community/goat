@@ -64,6 +64,12 @@ spec:
                   key: {{ include "goat.postgresql.passwordKey" . }}
             - name: MIGRATE_WAIT_FOR_DB_SECONDS
               value: {{ .Values.core.migrate.waitForDbSeconds | quote }}
+            # core's settings validate at import: the hook needs the Keycloak
+            # env and core.extraEnv the Deployment gets.
+            {{- include "goat.core.authEnv" (dict "root" $) | trim | nindent 12 }}
+            {{- with .Values.core.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           command: ["bash", "-c"]
           args:
             - |

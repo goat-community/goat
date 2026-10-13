@@ -75,9 +75,8 @@ def _form(**overrides: str) -> dict[str, str]:
     return data
 
 
-async def test_everything_is_404_when_disabled(
-    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
+@pytest.fixture
+def disabled(monkeypatch: pytest.MonkeyPatch) -> None:
     for name in (
         "ODOO_URL",
         "ODOO_DB",
@@ -85,15 +84,34 @@ async def test_everything_is_404_when_disabled(
         "ODOO_SUPPORT_TEAM_ID",
     ):
         monkeypatch.setattr(settings, name, None)
-    for path in ("/summary", "/tickets", "/tickets/00031", "/colleagues"):
+
+
+async def test_everything_but_the_summary_is_404_when_disabled(
+    client: AsyncClient, disabled: None
+) -> None:
+    for path in ("/tickets", "/tickets/00031", "/colleagues"):
         assert (await client.get(BASE + path)).status_code == 404
     assert (await client.post(f"{BASE}/tickets", data=_form())).status_code == 404
+
+
+async def test_summary_says_support_is_off_when_disabled(
+    client: AsyncClient, disabled: None
+) -> None:
+    from core.support import deps
+
+    await deps.close_support_provider()
+    r = await client.get(f"{BASE}/summary")
+    assert r.status_code == 200
+    assert r.json() == {"enabled": False, "needs_reply": 0, "unread": 0}
+    # nothing is built for an Odoo that is not configured
+    assert deps._provider is None and deps._client is None
 
 
 async def test_summary_and_list(
     client: AsyncClient, world: tuple[FakeProvider, MemoryStore]
 ) -> None:
     assert (await client.get(f"{BASE}/summary")).json() == {
+        "enabled": True,
         "needs_reply": 0,
         "unread": 0,
     }

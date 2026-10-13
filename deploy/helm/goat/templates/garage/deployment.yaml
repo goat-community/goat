@@ -1,0 +1,112 @@
+{{- if .Values.garage.enabled -}}
+{{- $ctx := dict "context" . "component" "garage" -}}
+{{- $g := .Values.garage -}}
+{{- /* One node on two ReadWriteOnce volumes; Recreate so two never run. */}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "goat.garage.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "goat.serviceSelectorLabels" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" $ctx | nindent 8 }}
+        {{- with $g.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        # Rolls the pod when the ConfigMap it reads changes.
+        checksum/config: {{ include (print $.Template.BasePath "/garage/configmap.yaml") $ | sha256sum }}
+        {{- with $g.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $g.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: garage
+          image: {{ include "goat.image" (dict "image" $g.image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ $g.image.pullPolicy }}
+          {{- with $g.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: GARAGE_RPC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.garage.secretName" . }}
+                  key: rpc-secret
+            - name: GARAGE_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.garage.secretName" . }}
+                  key: admin-token
+          ports:
+            - name: s3
+              containerPort: 3900
+            - name: web
+              containerPort: 3902
+            - name: admin
+              containerPort: 3903
+          readinessProbe:
+            exec:
+              command: ["/garage", "status"]
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: s3
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          {{- with $g.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/garage.toml
+              subPath: garage.toml
+              readOnly: true
+            - name: meta
+              mountPath: /var/lib/garage/meta
+            - name: data
+              mountPath: /var/lib/garage/data
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "goat.garage.fullname" . }}
+        - name: meta
+          persistentVolumeClaim:
+            claimName: {{ include "goat.garage.fullname" . }}-meta
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "goat.garage.fullname" . }}-data
+      {{- with $g.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $g.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $g.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end -}}

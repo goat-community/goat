@@ -149,7 +149,7 @@ const SupportActionRows = ({
   );
 };
 
-/** Header entry for support tickets, or for an email to the team where there are none; nothing on installations without support (404). */
+/** Header entry for support tickets, or for an email to the team where there are none; nothing on installations without support. */
 const SupportMenu = () => {
   const { t } = useTranslation("common");
   const router = useRouter();
@@ -161,7 +161,7 @@ const SupportMenu = () => {
     closed: [],
   });
   const trigger = useRef<HTMLButtonElement>(null);
-  // Without support tickets (404, logged out, no answer yet) there is nothing to count.
+  // Without support tickets (support off, logged out, no answer yet) there is nothing to count.
   const needsReply = enabled ? (summary?.needs_reply ?? 0) : 0;
   const unread = enabled ? (summary?.unread ?? 0) : 0;
   const countLabel = supportCountLabel(t, { needsReply, unread });

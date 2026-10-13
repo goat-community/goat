@@ -1,0 +1,45 @@
+suite: config checksum on pods
+# A changed ConfigMap must roll the pods that read it: envFrom is read only
+# at container start, so without the checksum a `helm upgrade` that changes
+# only settings leaves the old values running.
+templates:
+  - core/deployment.yaml
+  - windmill/worker-tools/deployment.yaml
+  - core/configmap.yaml
+  - windmill/worker-tools/configmap.yaml
+set:
+  postgresql.cluster.enabled: false
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+  windmill.db.external.host: "pg.example.com"
+  windmill.db.external.existingSecret: "wm-secret"
+tests:
+  - it: core's pods carry the checksum of core's ConfigMap
+    template: core/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/config"]
+          pattern: "^[0-9a-f]{64}$"
+
+  - it: keeps the operator's podAnnotations next to the checksum
+    template: core/deployment.yaml
+    set:
+      core.podAnnotations:
+        example.org/team: "gis"
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["example.org/team"]
+          value: gis
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/config"]
+          pattern: "^[0-9a-f]{64}$"
+
+  - it: a worker's pods carry the checksum of the worker's ConfigMap
+    template: windmill/worker-tools/deployment.yaml
+    set:
+      data.enabled: true
+      windmill.workers.tools.enabled: true
+    asserts:
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/config"]
+          pattern: "^[0-9a-f]{64}$"

@@ -10,6 +10,8 @@ templates:
   - processes/configmap.yaml
   - processes/deployment.yaml
   - catalog/deployment.yaml
+  - geoapi/configmap.yaml          # read by the pod checksum
+  - catalog/configmap.yaml          # read by the pod checksum
 set:
   postgresql.external.host: "pg.example.com"
   postgresql.external.existingSecret: "pg-secret"

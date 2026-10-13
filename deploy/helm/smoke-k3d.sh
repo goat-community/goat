@@ -190,13 +190,15 @@ echo "==> Asserting the web bundle has no unresolved APP_NEXT_PUBLIC_*_URL senti
 # install ship with a white-screening web UI (C1 in the 0.5.0 whole-branch
 # review). The web image ships its client bundle with literal
 # APP_NEXT_PUBLIC_<NAME> placeholders; its entrypoint seds each one it has a
-# NEXT_PUBLIC_<NAME> env var for, in place, under /app/apps/web/.next, then
-# execs node. The placeholders live in the JS chunks under .next/static, NOT
-# in the served HTML: the previous version of this check grepped `/`'s HTML,
-# which contains none even on a broken install, so it could never fail.
-# Only the four service URLs are asserted: APP_URL, MAPBOX_TOKEN,
-# STATUS_FEED_URL and WEBSITE_URL are legitimately unset in the smoke
-# profile and stay as placeholders.
+# NEXT_PUBLIC_<NAME> env var for, in place, under /app/apps/web/.next, blanks
+# the rest (logging `Clearing APP_NEXT_PUBLIC_<NAME>` for each; older images
+# leave them in place), then execs node. So the check reads that log, and the
+# bundle for older images. The placeholders live in the JS chunks under
+# .next/static, NOT in the served HTML: the previous version of this check
+# grepped `/`'s HTML, which contains none even on a broken install, so it
+# could never fail. Only the four service URLs are asserted: APP_URL,
+# MAPBOX_TOKEN, STATUS_FEED_URL and WEBSITE_URL are legitimately unset in the
+# smoke profile.
 WEB_POD=$(kubectl -n "$NS" get pod -l app.kubernetes.io/component=web \
   -o jsonpath='{.items[0].metadata.name}')
 if [ -z "$WEB_POD" ]; then
@@ -236,6 +238,13 @@ if [ -n "$SENTINEL_FILES" ]; then
   echo "$SENTINEL_FILES"
   kubectl -n "$NS" exec "$WEB_POD" -- sh -c \
     "grep -rhoE 'APP_NEXT_PUBLIC_(API|GEOAPI|PROCESSES|CATALOG)_URL' $WEB_STATIC | sort | uniq -c" || true
+  exit 1
+fi
+CLEARED=$(kubectl -n "$NS" logs "$WEB_POD" 2>/dev/null \
+  | grep -E '^Clearing APP_NEXT_PUBLIC_(API|GEOAPI|PROCESSES|CATALOG)_URL$' || true)
+if [ -n "$CLEARED" ]; then
+  echo "FAIL: the web entrypoint had no value for:"
+  echo "$CLEARED"
   exit 1
 fi
 echo "    web $WEB_STATIC ($JS_COUNT JS chunks) -> no unresolved API/GEOAPI/PROCESSES/CATALOG sentinel"

@@ -253,7 +253,7 @@ services:
     image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/windmill-worker-tools:${GOAT_VERSION:-latest}
     restart: "no"
     logging: *logging
-    entrypoint: ["python", "/init/garage-init.py"]
+    entrypoint: ["python", "-m", "goatlib.storage.garage_init"]
     environment:
       GARAGE_ADMIN_URL: http://garage:3903
       GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN}
@@ -263,8 +263,6 @@ services:
       GOAT_PUBLIC_URL: ${GOAT_PUBLIC_URL}
       UPLOADS_BUCKET: ${S3_BUCKET_NAME:-goat-uploads}
       ASSETS_BUCKET: ${ASSETS_BUCKET_NAME:-goat-assets}
-    volumes:
-      - ./init/garage:/init:ro
     networks: [goat]
     depends_on:
       garage:

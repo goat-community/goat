@@ -60,20 +60,21 @@ const asRequestError = (error: unknown): SupportRequestError | undefined => {
 };
 
 /**
- * Support is on once data arrived, or when the error is a server/network one
- * (5xx, status 0: Odoo down, offline) that should keep the entry visible. 404
- * (not configured) and 401/403 (no valid session) keep it off.
+ * Support is on once a summary arrived, unless it says otherwise (`enabled:
+ * false` on installations without support tickets), or when the error is a
+ * server/network one (5xx, status 0: Odoo down, offline) that should keep the
+ * entry visible. Other errors (401/403: no valid session) keep it off.
  */
-export const isSupportEnabled = (data: unknown, error: unknown): boolean => {
-  if (data !== undefined) return true;
+export const isSupportEnabled = (data: SupportSummary | undefined, error: unknown): boolean => {
+  if (data !== undefined) return data.enabled !== false;
   if (error === undefined || error === null) return false;
   const status = asRequestError(error)?.status ?? 0;
   return status >= 500 || status === 0;
 };
 
 /**
- * Header badge and feature probe: 404 = support is off on this installation (`notConfigured`).
- * `enabled: false` (e.g. logged out) skips the request entirely.
+ * Header badge and feature probe: the summary says whether support is on at this installation
+ * (`notConfigured` when it is off). `enabled: false` (e.g. logged out) skips the request entirely.
  *
  * No polling: replies reach users by email. The summary loads when the page loads and again when
  * the tab regains focus, and the user's own writes revalidate it at once (`revalidateSupport`).
@@ -81,7 +82,7 @@ export const isSupportEnabled = (data: unknown, error: unknown): boolean => {
  * focus asks again.
  *
  * While the first answer is on its way, support counts as on, so the support entries show at once
- * and the counts follow. The answer can take a moment (core may ask Odoo); a 404 (support off)
+ * and the counts follow. The answer can take a moment (core may ask Odoo); where support is off it
  * comes back at once, without Odoo, and turns the entries off again.
  */
 export const useSupportSummary = ({ enabled: active = true }: { enabled?: boolean } = {}) => {
@@ -90,7 +91,7 @@ export const useSupportSummary = ({ enabled: active = true }: { enabled?: boolea
     fetcher,
     { revalidateOnFocus: true, shouldRetryOnError: false }
   );
-  const notConfigured = active && !!error && asRequestError(error)?.status === 404;
+  const notConfigured = active && data?.enabled === false;
   const enabled = active && (isSupportEnabled(data, error) || (!!isLoading && !error));
   return { summary: data, enabled, notConfigured };
 };

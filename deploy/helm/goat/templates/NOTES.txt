@@ -12,8 +12,8 @@ workers and caddy are opt-in).
 WARNING: the web UI will NOT LOAD. None of web.publicUrls.api, a core.ingress
 with hosts, or web.config.NEXT_PUBLIC_API_URL is set, so NEXT_PUBLIC_API_URL
 cannot be resolved.
-The browser bundle keeps its literal APP_NEXT_PUBLIC_API_URL sentinel and
-throws building `new URL(...)` calls on first load (white screen). Set
+The browser bundle gets no API URL and throws building `new URL(...)` calls
+on first load (white screen). Set
 web.publicUrls.api (and .geoapi / .processes / .catalog) to the services'
 public URLs, or give core.ingress a host, then upgrade. See README "Quick start".
 {{- end }}

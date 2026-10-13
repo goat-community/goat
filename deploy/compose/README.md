@@ -119,7 +119,7 @@ links by default; `EMAIL_BRAND_NAME`, `EMAIL_LOGO_URL`, `EMAIL_CONTACT_URL` and
 Odoo Helpdesk; without it the app shows "Report a problem" as an email address plus the
 documentation. Set all four of `ODOO_URL`, `ODOO_DB` (Plan4Better's Odoo, shared by
 GOAT's Odoo integrations), `ODOO_SUPPORT_API_KEY` and `ODOO_SUPPORT_TEAM_ID` to turn it on; with any of them
-empty the `/api/v2/support` routes do not exist. The API key is a secret that Plan4Better
+empty the `/api/v2/support` routes answer 404, except `/api/v2/support/summary`, which tells the app that support is off. The API key is a secret that Plan4Better
 issues for its own Odoo, so leave all four empty on your own installation unless you have
 received one. `ODOO_SUPPORT_POST_ACTION` names the Odoo server action used to post a
 message as the ticket participant (default `GOAT: post message as ticket participant`).

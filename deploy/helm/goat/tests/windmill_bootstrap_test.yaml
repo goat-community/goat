@@ -12,6 +12,7 @@ templates:
   - windmill/bootstrap-rbac.yaml
   - windmill/bootstrap-script-configmap.yaml
   - processes/deployment.yaml
+  - processes/configmap.yaml          # read by the pod checksum
 release:
   name: goat
 set:

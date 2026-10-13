@@ -162,7 +162,8 @@ odoo:
   db: ""                           # ODOO_DB
   # Support tickets: GOAT hands problem reports to an Odoo Helpdesk. Without
   # it the app shows "Report a problem" as an email address plus the
-  # documentation, and core serves no /api/v2/support routes. On only when
+  # documentation, and every /api/v2/support route but /summary answers 404
+  # (/summary says support is off). On only when
   # `odoo.url`, `odoo.db`, `teamId` and the API key (`existingSecret`) are set.
   # Uploads on /api/v2/support take up to 55 MiB per request: an ingress or
   # proxy in front of core must allow bodies of at least 56 MB there
@@ -381,10 +382,11 @@ web:
   #
   # IMPORTANT: if `api` stays empty AND core.ingress has no hosts, the web
   # UI WILL NOT LOAD. The browser bundle is built with literal
-  # APP_NEXT_PUBLIC_* sentinels that the entrypoint only rewrites for
-  # variables it can resolve; an unresolved NEXT_PUBLIC_API_URL reaches
-  # client JS as that sentinel string, and `new URL(..., NEXT_PUBLIC_API_URL)`
-  # throws at module load, white-screening the app. Set at least `api` here,
+  # APP_NEXT_PUBLIC_* sentinels that the entrypoint rewrites with the values
+  # it is given and blanks otherwise; an unresolved NEXT_PUBLIC_API_URL
+  # reaches client JS empty (older images: as the sentinel string), and
+  # `new URL(..., NEXT_PUBLIC_API_URL)` throws at module load,
+  # white-screening the app. Set at least `api` here,
   # or give `core` an ingress with a host, before relying on this default.
   publicUrls:
 
@@ -1312,3 +1314,51 @@ redis:
     database: 0
     existingSecret: ""             # omit for an unauthenticated Redis
     existingSecretPasswordKey: password
+
+# ─── Garage (optional S3 store) ──────────────────────────────────────────────
+# A single-node Garage (S3-compatible object store) in the release, for an
+# installation without an S3 store of its own, as in the compose bundle. Off
+# by default. On, it is GOAT's S3: the chart fills every key of `global.s3`
+# left empty (bucket goat-uploads, endpoint, provider, region, path-style,
+# the key pair, and the public URLs on the web app's host: /<bucket> for
+# uploads, /<assets bucket> for images), and a Job on each install and
+# upgrade creates the buckets and imports the key pair. Browsers reach Garage
+# through those two paths: `ingress.enabled` adds them to the web host
+# (ingress-nginx); with another controller, route them yourself (README,
+# "Garage").
+garage:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: dxflrs/garage
+    tag: v2.4.1
+    pullPolicy: IfNotPresent
+  # Garage's rpc secret and admin token (keys rpc-secret, admin-token). Empty:
+  # generated on install and kept on every upgrade. Set one when a tool renders
+  # the chart without cluster access (Argo CD, `helm template`). The S3 key
+  # pair is global.s3.existingSecret, or generated the same way when empty.
+  existingSecret: ""
+  persistence:
+    meta:
+      size: 1Gi
+      storageClassName: ""         # empty: global.storageClass
+    data:
+      size: 50Gi                   # uploads and images
+      storageClassName: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  ingress:
+    enabled: false                 # /<bucket> and /<assets bucket> on web.ingress's host and TLS
+    className: ""                  # empty: web.ingress.className; ingress-nginx only
+    annotations: {}                # added to both Ingresses
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  podLabels: {}

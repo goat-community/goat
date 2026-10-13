@@ -1,0 +1,22 @@
+# CI fixture: GOAT's S3 is the bundled Garage (garage.enabled).
+# - Postgres in-cluster via CloudNativePG, bundled Redis
+# - global.s3 left empty: the chart fills it for Garage
+# - Uploads and images on the web host through garage.ingress (ingress-nginx)
+
+web:
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: goat.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: goat-tls
+        hosts: [goat.example.com]
+
+garage:
+  enabled: true
+  ingress:
+    enabled: true

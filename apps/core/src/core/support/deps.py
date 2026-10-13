@@ -34,8 +34,9 @@ def require_support_enabled() -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
 
 
-async def get_support_provider() -> SupportProvider:
-    return _odoo_provider()
+async def get_support_provider() -> SupportProvider | None:
+    """None while the support settings are unset: no Odoo client is built."""
+    return _odoo_provider() if settings.support_enabled else None
 
 
 def _odoo_provider() -> OdooSupportProvider:
@@ -73,9 +74,13 @@ def get_email_proof(request: Request) -> EmailProof:
 
 async def get_support_service(
     async_session: AsyncSession = Depends(get_db),
-    provider: SupportProvider = Depends(get_support_provider),
+    provider: SupportProvider | None = Depends(get_support_provider),
     email_proof: EmailProof = Depends(get_email_proof),
-) -> SupportService:
+) -> SupportService | None:
+    """None while the support settings are unset. Only the summary sees that:
+    every other route answers 404 first (`require_support_enabled`)."""
+    if provider is None:
+        return None
     return SupportService(
         provider,
         SqlSupportStore(async_session),

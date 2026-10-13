@@ -77,6 +77,8 @@ export const supportTicketDetailSchema = z.object({
 });
 
 export const supportSummarySchema = z.object({
+  // False on installations without support tickets; the counts are 0 then
+  enabled: z.boolean(),
   needs_reply: z.number(),
   unread: z.number(),
 });

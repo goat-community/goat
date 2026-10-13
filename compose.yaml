@@ -286,7 +286,10 @@ services:
     restart: "no"
     networks:
       - goat
-    entrypoint: ["python", "/init/garage-init.py"]
+    # The script from this checkout: the :latest image may predate it.
+    entrypoint: ["python", "/init/garage_init.py"]
+    volumes:
+      - ./packages/python/goatlib/src/goatlib/storage/garage_init.py:/init/garage_init.py:ro
     environment:
       GARAGE_ADMIN_URL: http://garage:3903
       GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN}
@@ -297,8 +300,6 @@ services:
       GARAGE_CORS_ORIGINS: ${GARAGE_CORS_ORIGINS:-}
       UPLOADS_BUCKET: ${S3_BUCKET_NAME:-goat}
       ASSETS_BUCKET: ${AWS_S3_ASSETS_BUCKET:-goat-assets}
-    volumes:
-      - ./deploy/compose/init/garage:/init:ro
     depends_on:
       garage:
         condition: service_healthy

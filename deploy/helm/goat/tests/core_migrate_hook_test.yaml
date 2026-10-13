@@ -60,3 +60,88 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  # core's settings refuse AUTH on without KEYCLOAK_SERVER_URL, so the hook
+  # needs the Keycloak env the Deployment gets from the auth Secret.
+  - it: gets core's Keycloak settings from the auth Secret
+    set:
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      global.auth.enabled: true
+      global.auth.existingSecret: "kc-secret"
+    template: core/migrate-hook.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: kc-secret
+                key: server-url
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REALM_NAME
+            valueFrom:
+              secretKeyRef:
+                name: kc-secret
+                key: realm
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: kc-secret
+                key: client-id
+
+  - it: gets core.extraEnv, which then wins over the auth Secret
+    set:
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      global.auth.enabled: true
+      global.auth.existingSecret: "kc-secret"
+      core.extraEnv:
+        - name: KEYCLOAK_SERVER_URL
+          value: "https://idm.example.com"
+    template: core/migrate-hook.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            value: "https://idm.example.com"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: kc-secret
+                key: server-url
+
+  - it: has no Keycloak env with auth off
+    set:
+      postgresql.cluster.enabled: false
+      postgresql.external.host: "pg.example.com"
+      postgresql.external.existingSecret: "pg-secret"
+      global.auth.enabled: false
+      global.auth.existingSecret: "kc-secret"
+    template: core/migrate-hook.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: KEYCLOAK_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: kc-secret
+                key: server-url
