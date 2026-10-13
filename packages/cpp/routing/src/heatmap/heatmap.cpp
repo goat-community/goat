@@ -74,6 +74,15 @@ void validate(HeatmapConfig const &cfg)
         throw std::runtime_error("output_path is required");
     if (cfg.max_cost <= 0.0)
         throw std::runtime_error("max_cost must be positive");
+    // An unlimited budget is bounded by the area network instead, which only
+    // the street ClosestAverage path loads.
+    if (std::isinf(cfg.max_cost) &&
+        (cfg.heatmap_type != HeatmapType::ClosestAverage ||
+         cfg.mode == RoutingMode::PublicTransport ||
+         cfg.area_cell_centroids.empty()))
+        throw std::runtime_error(
+            "An unlimited max_cost needs a street-mode ClosestAverage "
+            "with area_cell_centroids");
     if (cfg.mode == RoutingMode::PublicTransport)
     {
         // PT goes through run_pt (reverse RAPTOR + precomputed access/egress
@@ -128,7 +137,8 @@ void build_reach_per_opp(duckdb::Connection &con,
                          std::string const &node_dir, int32_t h3_resolution,
                          double spacing_m, std::string const &out_table,
                          std::vector<std::pair<int32_t, int32_t>> const &seed_offsets,
-                         PhaseTimer &timer, int32_t closest_k = 1)
+                         PhaseTimer &timer, int32_t closest_k = 1,
+                         std::vector<Point3857> const *area_cells = nullptr)
 {
     network::HeatmapNetworkPrepInput prep_in{
         .opportunities = opp_points,
@@ -138,6 +148,7 @@ void build_reach_per_opp(duckdb::Connection &con,
         .speed_km_h = speed_km_h,
         .edge_dir = edge_dir,
         .node_dir = node_dir,
+        .area_cells = area_cells,
     };
     auto prep = network::prepare_radial_street_network(con, prep_in);
     std::fprintf(
@@ -609,9 +620,10 @@ void reduce_and_export(HeatmapConfig const &cfg, duckdb::Connection &con,
             sql << "WITH joined AS ("
                 << "  SELECT po.cell, po.min_cost, om.opp_count AS cnt "
                 << "  FROM _hm_per_opp po "
-                << "  JOIN _hm_opp_meta om USING (opp_idx) "
-                << "  WHERE po.min_cost <= " << cfg.max_cost
-                << "), ranked AS ("
+                << "  JOIN _hm_opp_meta om USING (opp_idx) ";
+            if (std::isfinite(cfg.max_cost))
+                sql << "  WHERE po.min_cost <= " << cfg.max_cost;
+            sql << "), ranked AS ("
                 << "  SELECT cell, min_cost, cnt, "
                 << "         COALESCE(SUM(cnt) OVER ("
                 << "             PARTITION BY cell ORDER BY min_cost "
@@ -1045,7 +1057,8 @@ void run_street(HeatmapConfig const &cfg, duckdb::Connection &con,
     build_reach_per_opp(con, opp_points, cfg.mode, cfg.cost_type, cfg.max_cost,
                         cfg.speed_km_h, cfg.edge_dir, cfg.node_dir,
                         h3_resolution, kHeatmapSampleSpacingM, "_hm_per_opp",
-                        seed_offsets, timer, closest_k);
+                        seed_offsets, timer, closest_k,
+                        &cfg.area_cell_centroids);
     if (collapse_to_nearest)
     {
         // One synthetic meta row to match the single emitted opp_idx. weight and

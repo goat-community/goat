@@ -9,6 +9,7 @@
 #include "../kernel/snap.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <duckdb.hpp>
 #include <stdexcept>
@@ -27,6 +28,9 @@ namespace
 constexpr double kBboxMarginM = 10000.0;
 constexpr double kDetailBufferM = 5000.0;
 constexpr double kTieredLoadExtentThresholdM = 10000.0;
+// Extra rings of H3 res-6 cells grown around the cells overlapping the area's
+// hull; those already reach past it, so none are needed.
+constexpr int kAreaCoverRings = 0;
 
 // Build a minimal RequestConfig for downstream helpers (cost compute,
 // snapping) that only consume mode/cost_type/max_cost/speed.
@@ -42,6 +46,52 @@ RequestConfig make_rcfg(StreetMatrixPrepInput const &in)
     rcfg.starting_points = in.origins;  // never read past this point
     rcfg.steps = 1;
     return rcfg;
+}
+
+// Convex hull (Andrew's monotone chain), counter-clockwise, no repeated end.
+std::vector<Point3857> convex_hull(std::vector<Point3857> pts)
+{
+    std::sort(pts.begin(), pts.end(), [](auto const &a, auto const &b) {
+        return a.x < b.x || (a.x == b.x && a.y < b.y);
+    });
+    if (pts.size() < 3)
+        return pts;
+    auto cross = [](Point3857 const &o, Point3857 const &a, Point3857 const &b) {
+        return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    };
+    std::vector<Point3857> hull(2 * pts.size());
+    size_t k = 0;
+    for (size_t i = 0; i < pts.size(); ++i)
+    {
+        while (k >= 2 && cross(hull[k - 2], hull[k - 1], pts[i]) <= 0) --k;
+        hull[k++] = pts[i];
+    }
+    for (size_t i = pts.size() - 1, t = k + 1; i > 0; --i)
+    {
+        while (k >= t && cross(hull[k - 2], hull[k - 1], pts[i - 1]) <= 0) --k;
+        hull[k++] = pts[i - 1];
+    }
+    hull.resize(k - 1);
+    return hull;
+}
+
+// Cost, build and snap a loaded edge set — the tail shared by the radial and
+// the area load.
+RadialNetworkPrep finish_radial_network(std::vector<Edge> edges,
+                                        RequestConfig const &cfg)
+{
+    if (edges.empty())
+        throw std::runtime_error(
+            "No edges loaded. Check edge_dir and H3 cell coverage.");
+
+    kernel::compute_costs(edges, cfg);
+
+    RadialNetworkPrep out;
+    out.net = kernel::build_sub_network(edges);
+    // Snap after the network is finalized: snap_origins may insert connector
+    // nodes / split edges, so any adjacency list must be built afterwards.
+    out.snapped_nodes = kernel::snap_origins(out.net, cfg.starting_points, cfg);
+    return out;
 }
 
 } // namespace
@@ -60,19 +110,7 @@ RadialNetworkPrep prepare_radial_network(
     auto edges = data::load_edges(
         con, cfg.edge_dir, cfg.node_dir,
         cfg.starting_points, buffer_m, classes, cfg.mode, load_geometry);
-
-    if (edges.empty())
-        throw std::runtime_error(
-            "No edges loaded. Check edge_dir and H3 cell coverage.");
-
-    kernel::compute_costs(edges, cfg);
-
-    RadialNetworkPrep out;
-    out.net = kernel::build_sub_network(edges);
-    // Snap after the network is finalized: snap_origins may insert connector
-    // nodes / split edges, so any adjacency list must be built afterwards.
-    out.snapped_nodes = kernel::snap_origins(out.net, cfg.starting_points, cfg);
-    return out;
+    return finish_radial_network(std::move(edges), cfg);
 }
 
 StreetMatrixPrep prepare_street_matrix_network(
@@ -186,11 +224,54 @@ HeatmapNetworkPrep prepare_radial_street_network(
     rcfg.steps = 1;
 
     // Geometry needed: the sampler interpolates along each edge's polyline.
-    auto core = prepare_radial_network(con, rcfg, /*load_geometry=*/true);
+    bool const over_area = in.area_cells && !in.area_cells->empty();
+    RadialNetworkPrep core;
+    if (over_area)
+    {
+        std::array<double, 4> b{in.area_cells->front().x,
+                                in.area_cells->front().y,
+                                in.area_cells->front().x,
+                                in.area_cells->front().y};
+        for (auto const &p : *in.area_cells)
+        {
+            b[0] = std::min(b[0], p.x);
+            b[1] = std::min(b[1], p.y);
+            b[2] = std::max(b[2], p.x);
+            b[3] = std::max(b[3], p.y);
+        }
+        RequestConfig bcfg = rcfg;
+        bcfg.cost_type = CostType::Time;
+        bcfg.max_cost = in.mode == RoutingMode::Car ? input::kMaxTimeCarMin
+                                                     : input::kMaxTimeActiveMin;
+        double const buffer_m = input::buffer_distance(bcfg);
+        // The buffer bounds which opportunities count; the network covers the
+        // hull of the area and those, so routes to them stay connected while
+        // the area's bbox corners stay unloaded.
+        double const margin = data::ground_to_mercator(
+            buffer_m, std::abs(b[3]) > std::abs(b[1]) ? b[3] : b[1]);
+        std::vector<Point3857> extent = *in.area_cells;
+        for (auto const &p : in.opportunities)
+            if (p.x >= b[0] - margin && p.x <= b[2] + margin &&
+                p.y >= b[1] - margin && p.y <= b[3] + margin)
+                extent.push_back(p);
+        auto const filter = data::compute_spatial_filter_polygon(
+            con, convex_hull(std::move(extent)), kAreaCoverRings);
+        core = finish_radial_network(
+            data::load_edges(con, in.edge_dir, in.node_dir, filter,
+                             input::valid_classes(in.mode), in.mode,
+                             /*load_geometry=*/true),
+            rcfg);
+    }
+    else
+    {
+        core = prepare_radial_network(con, rcfg, /*load_geometry=*/true);
+    }
 
     HeatmapNetworkPrep out;
     out.net = std::move(core.net);
     out.opportunity_nodes = std::move(core.snapped_nodes);
+    if (over_area)
+        kernel::snap_origins(out.net, *in.area_cells, rcfg);
     out.fwd_adj = kernel::build_adjacency_list(out.net);
     out.rev_adj = kernel::build_reverse_adjacency_list(out.net);
     return out;

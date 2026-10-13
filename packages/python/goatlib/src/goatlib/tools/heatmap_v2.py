@@ -371,6 +371,30 @@ class OpportunityV2PointGravity(OpportunityV2PointBase):
 class OpportunityV2PointClosestAverage(OpportunityV2PointBase):
     """Closest-Average opportunity card: re-exposes n_destinations."""
 
+    # A street-mode run with a reference area has no budget (the area bounds
+    # the network), so the limit only shows without one, or for PT. The area
+    # sits behind show_advanced and is not submitted while that is off.
+    max_cost: int = Field(
+        default=DEFAULT_MAX_TIME_ACTIVE_MIN,
+        gt=0,
+        description="Upper limit for this opportunity, in the selected measure type: travel time or travel distance.",
+        json_schema_extra=ui_field(
+            section="opportunities",
+            field_order=2,
+            label_key="limit",
+            description_key="limit",
+            visible_when={
+                "input_path": {"$ne": None},
+                "$or": [
+                    {"reference_area_layer_id": {"$exists": False}},
+                    {"routing_mode": "pt"},
+                    {"show_advanced": {"$ne": True}},
+                ],
+            },
+            widget_options=budget_widget_options(),
+        ),
+    )
+
     n_destinations: int = Field(
         default=1,
         title="Number of Destinations",
@@ -945,9 +969,16 @@ class HeatmapV2WindmillParams(ToolInputBase):
             fixed.append(o)
         return {**resolve_leg_names(data), "opportunities": fixed}
 
+    def budget_replaced_by_reference_area(self: Self) -> bool:
+        """Whether the reference area stands in for the per-opportunity
+        budget, which the form then hides. Only closest average does that."""
+        return False
+
     @model_validator(mode="after")
     def _check_opportunity_budgets(self: Self) -> Self:
         validate_cost_type(self.routing_mode, self.cost_type)
+        if self.budget_replaced_by_reference_area():
+            return self
         for o in self.opportunities or []:
             validate_budget(self.routing_mode, self.cost_type, o.max_cost)
         return self
@@ -1071,6 +1102,12 @@ class HeatmapClosestAverageV2WindmillParams(
             max_items=3,
         ),
     )
+
+    def budget_replaced_by_reference_area(self: Self) -> bool:
+        return bool(self.reference_area_layer_id) and (
+            self.routing_mode != HeatmapRoutingMode.pt
+        )
+
     result_layer_name: str | None = Field(
         default=get_default_layer_name("heatmap_closest_average", "en"),
         json_schema_extra=ui_field(

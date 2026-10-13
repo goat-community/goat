@@ -96,7 +96,7 @@ Optionally, enable <code>Advanced options</code> to configure additional setting
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Select a <code>Reference area</code> - a polygon layer that represents your study area. When set, the heatmap extends to cover all H3 cells within that polygon, with inaccessible cells assigned a value of <code>NULL</code> to expose [coverage gaps](https://www.plan4better.de/en/glossary/service-gaps) and underserved areas.</div>
+  <div class="content">Select a <code>Reference area</code> - a polygon layer that represents your study area. The heatmap then covers all H3 cells within that polygon. For `Walk`, `Bicycle`, `Pedelec` and `Car`, it also replaces the travel cost <code>Limit</code>: destinations outside the area also count if they lie within the distance reachable in the mode's maximum travel time (45 minutes, 90 for `Car`); the street network is loaded for the area and those destinations, and every cell gets its actual average travel cost, however far away the destinations are. A cell without a street of its own is reached via the nearest street, including the walk from the cell's centre; only cells more than 500 m from any street keep the value <code>NULL</code>. The diagonal of the area's bounding box may be at most 100 km (300 km for `Car`), the same maximum as in the Travel Cost Matrix. For `Public Transport`, the <code>Limit</code> still applies.</div>
 </div>
 
 <div class="step">
@@ -113,7 +113,7 @@ Optionally, enable <code>Advanced options</code> to configure additional setting
 
 <div class="step">
   <div class="step-number">8</div>
-  <div class="content">Enter a cost <code>Limit</code> in minutes or metres for your heatmap. This will be used according to your previously selected transport mode and cost type.</div>
+  <div class="content">Enter a cost <code>Limit</code> in minutes or metres for your heatmap. This will be used according to your previously selected transport mode and cost type. The field is not shown when a reference area replaces the limit (step 5).</div>
 </div>
 
 :::tip Hint
@@ -166,7 +166,7 @@ When multiple edges (streets) of the road network intersect a hexagonal cell, th
 
 ### Calculation
 
-**After combining all opportunity layers** (for example, schools, shops, or parks), the tool **creates a grid made of hexagonal cells around the area**. **It only includes cells where at least one opportunity can be reached based on the selected** **routing type** (e.g., walking, cycling) and **travel cost limit** (e.g., 15 minutes).
+**After combining all opportunity layers** (for example, schools, shops, or parks), the tool **creates a grid made of hexagonal cells around the area**. **It only includes cells where at least one opportunity can be reached based on the selected** **routing type** (e.g., walking, cycling) and **travel cost limit** (e.g., 15 minutes). With a reference area and a street-based routing type, there is no limit: the grid covers the reference area and the street network within its bounding box.
 
 Then, for each cell, it calculates the average travel cost to the **nearest n destinations** (as set in the settings).
 

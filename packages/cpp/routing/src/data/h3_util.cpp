@@ -191,4 +191,78 @@ namespace routing::data
         return filter;
     }
 
+    SpatialFilter compute_spatial_filter_polygon(duckdb::Connection &con,
+                                                 std::vector<Point3857> const &ring,
+                                                 int ring_k)
+    {
+        if (ring.empty())
+            return {};
+
+        Bbox3857 box{ring[0].x, ring[0].y, ring[0].x, ring[0].y};
+        std::ostringstream vertices;
+        vertices << std::setprecision(17);
+        for (size_t i = 0; i < ring.size(); ++i)
+        {
+            box.min_x = std::min(box.min_x, ring[i].x);
+            box.min_y = std::min(box.min_y, ring[i].y);
+            box.max_x = std::max(box.max_x, ring[i].x);
+            box.max_y = std::max(box.max_y, ring[i].y);
+            if (i)
+                vertices << ",";
+            vertices << "(" << to_latitude(ring[i].y) << ","
+                     << to_longitude(ring[i].x) << ")";
+        }
+
+        std::ostringstream sql;
+        sql << std::setprecision(17)
+            << "WITH pts(lat, lng) AS (VALUES " << vertices.str() << "), "
+            << "seed AS (SELECT h3_latlng_to_cell(lat, lng, 6) AS c FROM pts";
+        // A ring of fewer than three points has no interior.
+        if (ring.size() >= 3)
+        {
+            sql << " UNION SELECT unnest(h3_polygon_wkt_to_cells_experimental('POLYGON((";
+            for (size_t i = 0; i <= ring.size(); ++i)
+            {
+                auto const &p = ring[i % ring.size()];
+                if (i)
+                    sql << ",";
+                sql << to_longitude(p.x) << " " << to_latitude(p.y);
+            }
+            sql << "))', 6, 'CONTAINMENT_OVERLAPPING'))";
+        }
+        constexpr uint64_t kMaskH3_3 = 0x000ffff000000000ULL;
+        constexpr uint64_t kMaskH3_6 = 0x000fffffff000000ULL;
+        sql << "), cells AS (SELECT DISTINCT unnest(h3_grid_disk(c, " << ring_k
+            << ")) AS cell FROM seed) "
+            << "SELECT ((cell::bigint & " << kMaskH3_3 << ") >> 36)::int AS h3_3, "
+            << "((cell::bigint & " << kMaskH3_6 << ") >> 24)::int AS h3_6 "
+            << "FROM cells";
+
+        auto result = con.Query(sql.str());
+        if (result->HasError())
+            throw std::runtime_error(
+                "H3 polygon cell computation failed: " + result->GetError());
+
+        SpatialFilter filter;
+        std::set<int32_t> h3_3_set, h3_6_set;
+        for (size_t row = 0; row < result->RowCount(); ++row)
+        {
+            h3_3_set.insert(result->GetValue(0, row).GetValue<int32_t>());
+            h3_6_set.insert(result->GetValue(1, row).GetValue<int32_t>());
+        }
+        filter.h3_3_cells.assign(h3_3_set.begin(), h3_3_set.end());
+        filter.h3_6_cells.assign(h3_6_set.begin(), h3_6_set.end());
+
+        // The bbox equivalent, for datasets without H3 columns: as wide as the
+        // ring growth, plus one edge length because overlapping cells reach
+        // past the polygon.
+        double const furthest_y =
+            std::abs(box.max_y) > std::abs(box.min_y) ? box.max_y : box.min_y;
+        double const margin =
+            ground_to_mercator((ring_k + 1) * kH3Res6EdgeLengthM, furthest_y);
+        filter.bbox = Bbox3857{box.min_x - margin, box.min_y - margin,
+                               box.max_x + margin, box.max_y + margin};
+        return filter;
+    }
+
 } // namespace routing::data

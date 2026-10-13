@@ -169,6 +169,7 @@ PYBIND11_MODULE(_routing, m)
         .def_readwrite("speed_km_h",      &routing::HeatmapConfig::speed_km_h)
         .def_readwrite("edge_dir",        &routing::HeatmapConfig::edge_dir)
         .def_readwrite("node_dir",        &routing::HeatmapConfig::node_dir)
+        .def_readwrite("area_cell_centroids", &routing::HeatmapConfig::area_cell_centroids)
         // Formula
         .def_readwrite("heatmap_type",    &routing::HeatmapConfig::heatmap_type)
         .def_readwrite("decay",           &routing::HeatmapConfig::decay)

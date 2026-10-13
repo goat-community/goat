@@ -53,4 +53,10 @@ namespace routing::data
                                               double max_x, double max_y,
                                               double margin_meters);
 
+    // Cover a polygon (EPSG:3857 ring, open): the res-6 cells overlapping it
+    // or holding a vertex, grown by `ring_k` rings, plus the equivalent bbox.
+    SpatialFilter compute_spatial_filter_polygon(duckdb::Connection &con,
+                                                 std::vector<Point3857> const &ring,
+                                                 int ring_k);
+
 } // namespace routing::data
