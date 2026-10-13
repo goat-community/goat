@@ -17,7 +17,7 @@ from typing import Any, TypedDict
 import duckdb
 from goatlib.storage import (
     cap_catalog_connections,
-    configure_baked_extensions,
+    load_extensions,
     uri_with_application_name,
 )
 
@@ -135,9 +135,7 @@ def _get_connection() -> duckdb.DuckDBPyConnection:
     global _con
     if _con is None:
         con = duckdb.connect()
-        if not configure_baked_extensions(con):
-            con.execute("INSTALL postgres;")
-        con.execute("LOAD postgres;")
+        load_extensions(con, "postgres")
         cap_catalog_connections(con, 1)
         uri = uri_with_application_name(
             settings.POSTGRES_DATABASE_URI, "goat-processes"
