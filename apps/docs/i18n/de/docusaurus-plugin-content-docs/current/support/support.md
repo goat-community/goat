@@ -77,7 +77,7 @@ Ein Ticket ist sichtbar für Sie, die hinzugefügten Kolleginnen und Kollegen un
 ## Ihre Tickets verfolgen
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/support/support_tickets_de.webp').default} alt="Die Seite Support vor dem ersten Ticket" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
+  <img src={require('/img/support/support_tickets_de.webp').default} alt="Die Seite Support mit offenen Tickets und ihrem Status" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
 </div>
 
 Die Seite <code>Support</code> listet Ihre Tickets unter <code>Offen</code> und <code>Geschlossen</code>. Suchen Sie nach Betreff oder Ticketnummer. Jedes Ticket zeigt seinen Status:

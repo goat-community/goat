@@ -77,7 +77,7 @@ A ticket is visible to you, the colleagues you add and your organization admins.
 ## Follow your tickets
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/support/support_tickets.webp').default} alt="The Support page before the first ticket" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
+  <img src={require('/img/support/support_tickets.webp').default} alt="The Support page with open tickets and their status" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
 </div>
 
 The <code>Support</code> page lists your tickets under <code>Open</code> and <code>Closed</code>. Search by subject or ticket number. Each ticket shows its status:
