@@ -43,6 +43,8 @@ ssh -L 8110:127.0.0.1:8110 <server>
 
 **Parallele Analysen:** `GOAT_TOOLS_WORKERS` (Vorgabe `2`) legt fest, wie viele Analyse-Jobs gleichzeitig laufen. Jeder Tools-Worker darf bis zu 4 GB Arbeitsspeicher nutzen; wählen Sie den Wert passend zu Ihrem Server.
 
+**Arbeitsspeicher je Dienst:** `compose.yaml` gibt jedem Dienst ein Speicherlimit. geoapi und processes setzen dort außerdem die Speicherbudgets von DuckDB (`GEOAPI_DUCKLAKE_POOL_SIZE`, `GEOAPI_DUCKDB_MEMORY_LIMIT`, `PROCESSES_DUCKDB_MEMORY_LIMIT`), sodass sie unter dieses Limit passen: DuckDB lagert Arbeit erst auf die Festplatte aus, wenn es sein eigenes Budget erreicht, und ein Dienst über seinem Limit wird beendet. Um einem Dienst mehr Speicher zu geben, erhöhen Sie Limit und Budgets gemeinsam in einer `compose.override.yaml`.
+
 ## Routing-Basisdaten {#base-data}
 
 Einzugsgebiete, Heatmaps und die ÖV-Werkzeuge benötigen ein **Straßennetz** und **ÖV-Daten**. Diese werden nicht automatisch heruntergeladen: Der vollständige Satz umfasst mehrere zehn GB, deshalb wählen Sie die Region, in der Sie arbeiten, mit einem Begrenzungsrechteck (`min_lon,min_lat,max_lon,max_lat`).

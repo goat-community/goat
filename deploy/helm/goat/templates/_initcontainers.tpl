@@ -120,6 +120,17 @@ component's values block).
         secretKeyRef:
           name: {{ include "goat.postgresql.secretName" $root }}
           key: {{ include "goat.postgresql.passwordKey" $root }}
+    {{- /* The bootstrap in GOAT images up to v3.0.8 connects through
+         POSTGRES_SERVER and POSTGRES_PORT only, so the DuckLake host and port
+         are handed to it under those names too (env beats the ConfigMap). */}}
+    {{- with ($v.config.DUCKLAKE_POSTGRES_SERVER | default (include "goat.postgresql.ducklakeHostOverride" $root)) }}
+    - name: POSTGRES_SERVER
+      value: {{ . | quote }}
+    {{- end }}
+    {{- with ($v.config.DUCKLAKE_POSTGRES_PORT | default (include "goat.postgresql.ducklakePortOverride" $root)) }}
+    - name: POSTGRES_PORT
+      value: {{ . | quote }}
+    {{- end }}
     {{- with $v.extraEnv }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

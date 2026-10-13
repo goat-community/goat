@@ -57,6 +57,25 @@ def configure_baked_extensions(con: "duckdb.DuckDBPyConnection") -> bool:
     return True
 
 
+def load_extensions(con: "duckdb.DuckDBPyConnection", *extensions: str) -> None:
+    """Load DuckDB `extensions`, from the image's baked directory when set.
+
+    Installing reaches out to extensions.duckdb.org, which the images must not
+    depend on: with a baked directory the extensions are only loaded. Without
+    one (local development) all are installed before any is loaded, since a
+    loaded httpfs would carry the later downloads; an install that fails
+    offline still leaves a cached copy to load.
+    """
+    if not configure_baked_extensions(con):
+        for extension in extensions:
+            try:
+                con.execute(f"INSTALL {extension}")
+            except duckdb.Error as e:
+                logger.warning("Could not install extension %s: %s", extension, e)
+    for extension in extensions:
+        con.execute(f"LOAD {extension}")
+
+
 # Connection error patterns that should trigger a retry/reconnect
 CONNECTION_ERROR_PATTERNS = [
     "ssl syscall error",

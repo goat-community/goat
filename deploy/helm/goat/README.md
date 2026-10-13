@@ -2,7 +2,7 @@
 
 Helm chart for deploying GOAT (Geo Open Accessibility Tool) on Kubernetes.
 
-## Scope (v0.6.0)
+## Scope (v0.7.0)
 
 | Service | Default | Notes |
 |---|---|---|
@@ -19,7 +19,7 @@ Helm chart for deploying GOAT (Geo Open Accessibility Tool) on Kubernetes.
 
 ```sh
 helm install goat oci://ghcr.io/plan4better/charts/goat \
-  --version 0.5.1 \
+  --version 0.7.0 \
   --namespace goat --create-namespace \
   --values your-values.yaml
 ```
@@ -218,6 +218,11 @@ Secrets in the namespace, `get/patch/update` scoped to the token Secret's
 name, and `get/patch` on the `processes` Deployment only (omitted with
 `processes.windmillAutoWire: false`).
 
+The hook runs in GOAT's core image (`core.image`, so `global.imageRegistry`,
+`global.imagePullSecrets` and the GOAT version apply as for core), since the
+script needs only Python's standard library. Keys set in
+`windmill.bootstrap.image` win over `core.image`.
+
 Set `windmill.bootstrap.enabled: false` if you bootstrap windmill out-of-band
 (e.g. via your own provisioning pipeline) — the hook then doesn't run.
 
@@ -248,18 +253,19 @@ credentials, `<component>.extraEnv` and `data` mount as the service. It
 works against the chart-managed CNPG cluster or an external Postgres alike.
 
 The catalog location is pinned explicitly, so the init container creates it
-exactly where the services look: the geoapi and processes ConfigMaps both
-carry
+exactly where the services look: the geoapi and processes ConfigMaps and the
+print, tools and workflows workers all carry
 
 | Env var | Default | Set by |
 |---|---|---|
+| `DUCKLAKE_POSTGRES_SERVER` | the Postgres host (geoapi and processes: unset, so they use `POSTGRES_SERVER`) | `postgresql.external.ducklakeHost` |
+| `DUCKLAKE_POSTGRES_PORT` | the Postgres port (geoapi and processes: unset, so they use `POSTGRES_PORT`) | `postgresql.external.ducklakePort` |
 | `DUCKLAKE_DATA_DIR` | `/app/data/ducklake` | `ducklakeBootstrap.dataDir` |
 | `DUCKLAKE_CATALOG_SCHEMA` | `ducklake` | `ducklakeBootstrap.catalogSchema` |
 
 (the same defaults GOAT's own `geoapi`/`processes` settings use). A
 `geoapi.config.*` / `processes.config.*` key of the same name wins for that
-component. The windmill workers read their DuckLake settings from their own
-`extraEnv`/config — keep them pointed at the same schema and data dir.
+component, and a worker's own `config` or `extraEnv` wins for that worker.
 
 The init container retries for a couple of minutes (Postgres may still be
 starting). One failure is not retried: a **DuckLake catalog version
@@ -406,13 +412,18 @@ override the key names via the `existingSecretUserKey` /
 | `core.migrate.waitForDbSeconds` | int | `300` | How long the migrate hook waits for Postgres on fresh installs. |
 | `postgresql.cluster.enabled` | bool | `true` | Create CNPG Cluster CR. |
 | `postgresql.cluster.image` | string | `ghcr.io/cloudnative-pg/postgis:18-3.6-system-trixie` | Postgres image for the bundled CNPG Cluster. **New in 0.5.0.** CNPG's own default image has no PostGIS, which GOAT's schema requires, so the bundled-Postgres path does not work without a PostGIS-capable image here; `""` falls back to the operator's own default (broken for this chart's `postInitApplicationSQL`). |
+| `postgresql.cluster.resources` | object | requests 512Mi / 100m, no limit | Resources of the bundled Postgres. **New in 0.7.0.** |
 | `postgresql.operator.enabled` | bool | `true` | Install CNPG operator sub-chart. |
 | `postgresql.external.host` | string | `""` | External Postgres host; required if cluster disabled. |
+| `postgresql.external.ducklakeHost` | string | `""` | The database itself for DuckLake's catalog connections (geoapi, processes, their DuckLake init, the workers) when `host` is a transaction pooler. `""` = `host`. |
+| `postgresql.external.ducklakePort` | int | `null` | The database's port for those connections when the pooler listens on another one (PgBouncer's 6432, the database's 5432). `null` = `port`. |
+| `postgresql.external.transactionPooler` | bool | `false` | `host` is a pooler in transaction mode: core, geoapi, processes and the workers prepare no statements on the server and send no keepalive startup settings (`POSTGRES_TRANSACTION_POOLER`), so a pooler with stock settings works. Needs `ducklakeHost`, and Windmill on its own database connection (`windmill.db.reuseGoatConnection: false`); the chart refuses otherwise. |
 | `postgresql.external.existingSecret` | string | `""` | K8s Secret with `username`+`password`. |
 | `redis.enabled` | bool | `true` | Bundled Redis, geoapi's cache: the official `redis` image, nothing kept on disk, least recently used keys evicted at `redis.maxmemory` (`256mb`). |
 | `redis.image.repository` / `.tag` | string | `redis` / `7.4-alpine` | The official Redis image, the one the Docker Compose bundle runs. |
 | `redis.auth.existingSecret` / `.existingSecretPasswordKey` | string | `""` / `redis-password` | Secret with the password; empty = generated on install and kept on upgrades. Set one when Argo CD or `helm template` renders the chart. |
 | `windmill.server.enabled` | bool | `true` | Deploy windmill server (workflow engine). |
+| `windmill.bootstrap.image` | object | `{}` = `core.image` | Image of the post-install bootstrap Job; keys set here win over `core.image`. **New in 0.7.0;** before, `python:3.11-slim` from Docker Hub, fixed. |
 | `windmill.workers.default.enabled` | bool | `true` | Deploy default windmill worker. |
 | `windmill.workers.default.replicaCount` | int | `1` | Scale workers via this knob. |
 | `windmill.workers.print.enabled` | bool | `false` | Heavier worker for PDF/atlas generation (chromium). |
@@ -643,6 +654,16 @@ layers.
 | processes | `/app/data` | read-write |
 | windmill tools, workflows | `/app/data` | read-write |
 
+**Who may write it.** geoapi, processes and the windmill workers all write to
+the volume. The workers run as root, and a fresh RWX volume (NFS, CephFS)
+belongs to root, so geoapi and processes, and their DuckLake init container,
+run as root too (`podSecurityContext.runAsUser: 0`, as in the compose bundle).
+`fsGroup` is not applied by many NFS drivers, so it is no way around this. A
+cluster that enforces the restricted pod security standard needs a volume all
+of them may write, and `geoapi.podSecurityContext` / `processes.podSecurityContext`
+set to that user. Set `runAsUser` itself: `{}` merges with the default and
+keeps root.
+
 > ⚠️ **Multi-node clusters need `ReadWriteMany`.** The default is
 > `ReadWriteOnce`, which works out of the box on single-node and
 > default-StorageClass clusters. On more than one node an RWO volume can only be
@@ -831,16 +852,76 @@ helm unittest deploy/helm/goat/
 helm template my-release deploy/helm/goat/ -f deploy/helm/goat/ci/values-external-deps.yaml
 ```
 
+## Resource defaults
+
+Every service has memory requests and limits, and a CPU request without a
+limit (a CPU limit throttles). The limits are the ones GOAT's own production
+runs with. DuckDB spills to disk only when it reaches its own `memory_limit`,
+and a service holds several DuckDB connections with a budget each, so the
+budgets stay under 3/4 of each limit, leaving room for what DuckDB keeps
+outside them: `geoapi.config` sets geoapi's (`GEOAPI_DUCKLAKE_POOL_SIZE`,
+`GEOAPI_DUCKDB_MEMORY_LIMIT`), `processes.config` the budget of each of its
+three connections (`PROCESSES_DUCKDB_MEMORY_LIMIT`), and catalog's store has
+`CATALOG_DUCKDB_MEMORY_LIMIT`. Raise a budget and its limit together. In the
+tools and workflows workers a job's analysis gets half the container's limit
+and its DuckLake connection a quarter, so there the budgets follow the limit.
+
+| Service | Request (memory / CPU) | Memory limit |
+|---|---|---|
+| core, web | 256Mi / 100m | 1Gi |
+| geoapi | 1Gi / 250m | 4Gi |
+| processes, catalog | 512Mi / 100m | 4Gi |
+| windmill server | 256Mi / 100m | 2Gi |
+| windmill default and workflows workers | 256Mi / 100m | 1Gi |
+| windmill print worker | 512Mi / 100m | 4Gi |
+| windmill tools worker | 1Gi / 250m | 4Gi |
+| bundled Postgres (`postgresql.cluster.resources`) | 512Mi / 100m | none |
+
+A default install requests about 3.8Gi of memory and 1 CPU. A rollout starts
+each new pod before it stops the old one, so keep a pod's request free on top
+(1Gi for geoapi).
+
+Override them per service under `<service>.resources`. Helm merges what you
+set with these defaults: set requests and limits together, since a lower limit
+alone keeps the default request and a request above a limit is rejected. To
+drop them, set `<service>.resources: null`; `{}` keeps the defaults. With a CPU
+limit on geoapi, keep `GEOAPI_DUCKDB_THREADS` × `GEOAPI_DUCKLAKE_POOL_SIZE` at
+about its CPUs.
+
 ## Compatibility / version history
 
 | Chart version | Adds | Notes |
 |---|---|---|
+| `0.7.0` | Memory requests and limits and CPU requests for every service, and geoapi's and processes' DuckDB budgets to fit them (see "Resource defaults"); `postgresql.cluster.resources`; geoapi and processes run as root, so their DuckLake init can create the catalog directory on a fresh RWX volume; `postgresql.external.ducklakeHost` and `ducklakePort` for DuckLake's catalog connections and `transactionPooler` for the services when `host` is a transaction pooler; `windmill.bootstrap.image` (GOAT's core image instead of `python:3.11-slim` from Docker Hub); `POSTGRES_*` keys in a service's `config` render once and win | Pods now have memory limits, geoapi and processes get smaller DuckDB budgets (geoapi two pooled queries instead of four), and geoapi and processes run as root — see "Upgrading 0.6.0 → 0.7.0" |
 | `0.6.0` | `global.s3` (one S3 store for core, geoapi, processes and the workers, uploads and uploaded images); the print, tools and workflows workers get GOAT's database, DuckLake, S3, catalog bucket, `PRINT_BASE_URL` and Keycloak client, with `WHITELIST_ENVS` built by the chart, and job timeouts per worker (`JOB_DEFAULT_TIMEOUT`); the chart's own Redis on the official image instead of the Bitnami sub-chart; `email` (SMTP for invitations, password from a Secret, email branding) with `CLIENT_URL` / `API_URL` derived for the links in emails; `global.auth.provisionInvitedUsers`; `odoo` (Plan4Better's Odoo, optional: the shared connection and `odoo.support` for support tickets, API key from a Secret) and `web.supportEmail`; `global.caBundle` (company CA for core, web and the print, tools and workflows workers) | The S3 and assets placeholders are gone from `core`, `geoapi` and `processes`, and the workers' fixed `WHITELIST_ENVS` is replaced by a built one — see "Upgrading 0.5.1 → 0.6.0" |
 | `0.5.1` | GOAT v3.0.3 (no runtime downloads in the workers, `ROOT_PATH`, `sync_base_data`); `global.auth`: one auth switch + one Keycloak Secret for core, web, geoapi, processes, catalog; `geoapi.auth` / `processes.auth` | Fixes: geoapi + processes ran auth ON at chart defaults (401 on feature edits and every job route) and, with auth on, validated tokens against plan4better's dev Keycloak; a fresh install's processes had no windmill token (every tool run failed until a manual restart); `processes.windmillAutoWire: false` was ignored. No values change needed — see "Upgrading 0.5.0 → 0.5.1" |
 | `0.5.0` | GOAT v3.0.2: `catalog` service (STAC API + MCP); shared `data` volume; single-command fresh install (DuckLake + windmill DB bootstrap moved from hooks to init containers); `REDIS_URL`, web `NEXT_PUBLIC_*` and windmill `WHITELIST_ENVS` fixes; bundled Postgres image moves from CNPG's default major 17 to 18 (`ghcr.io/cloudnative-pg/postgis:18-3.6-system-trixie`) | BREAKING: `helm upgrade` DELETES `<fullname>-windmill-tools-data` and `<fullname>-windmill-workflows-data` unless you first `kubectl annotate` them `helm.sh/resource-policy=keep` (worker `persistence` superseded by `data`, no automatic migration; the upgrade fails until you do or set `windmill.workers.legacyPersistence.acknowledgeDeletion` — see upgrade note 1 below); geoapi + processes now default on |
 | `0.4.0` | automatic schema migrations (`core.migrate.*` hook); `NEXT_PUBLIC_AUTH_DISABLED` → `NEXT_PUBLIC_AUTH` | BREAKING: flip the web auth flag in your values |
 | `0.2.0` | windmill (server + 4 workers), caddy (custom-domains) | Both off by default for opt-in; one knob each to enable |
 | `0.1.0` | initial — core, web, geoapi, processes templates | First public release |
+
+### Upgrading 0.6.0 → 0.7.0
+
+1. **Memory limits.** Every service gets the requests and limits in "Resource
+   defaults". A deployment whose pods used more (geoapi on a large catalog,
+   big analyses in the tools worker) should raise `<service>.resources` before
+   upgrading, or set it to `null` to keep running without limits. Values that
+   set only a limit, or only a request, now merge with the other default; a
+   request above its limit fails the upgrade, so set both.
+2. **DuckDB budgets.** `geoapi.config` now sets
+   `GEOAPI_DUCKLAKE_POOL_SIZE: "2"` and `GEOAPI_DUCKDB_MEMORY_LIMIT: "768MB"`,
+   and `processes.config` `PROCESSES_DUCKDB_MEMORY_LIMIT: "1GB"`, so DuckDB fits
+   the 4Gi limits; before, the code defaults applied (a pool of 4 at 1GB,
+   1.2GB). With more memory, raise the limit and the budgets together.
+3. **geoapi and processes run as root.** Before, they ran as the image's
+   non-root user, and their DuckLake init failed with a `PermissionError` on a
+   fresh root-owned RWX volume. To keep a non-root user, set
+   `geoapi.podSecurityContext.runAsUser` and
+   `processes.podSecurityContext.runAsUser`, and make sure that user may write
+   the whole data volume, files the workers created included. Values that set
+   `runAsNonRoot: true` must set `runAsUser` too, or the pods are refused. On
+   a cluster that assigns user ids itself (OpenShift) or forbids root, set
+   `geoapi.podSecurityContext.runAsUser: null` and the same for processes.
 
 ### Upgrading 0.5.1 → 0.6.0
 

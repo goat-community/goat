@@ -35,6 +35,8 @@ from typing import Any, Self
 import duckdb
 from pydantic import BaseModel, Field
 
+from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
+
 logger = logging.getLogger(__name__)
 
 # Default temporary data root
@@ -230,6 +232,7 @@ class TempLayerWriter:
         con = duckdb_con
         if con is None:
             con = duckdb.connect()
+            set_memory_share(con, JOB_WORK_MEMORY_SHARE)
             con.execute("INSTALL spatial; LOAD spatial;")
 
         try:
@@ -331,6 +334,7 @@ class TempLayerWriter:
             con = duckdb_con
             if con is None:
                 con = duckdb.connect()
+                set_memory_share(con, JOB_WORK_MEMORY_SHARE)
                 con.execute("INSTALL spatial; LOAD spatial;")
 
             # Export to GeoJSON (required by tippecanoe)

@@ -12,13 +12,13 @@ Für Kubernetes-Cluster gibt es ein Helm-Chart für GOAT, veröffentlicht unter 
 Für einen einzelnen Server ist das [Docker-Compose-Paket](./docker_compose/installation.md) der empfohlene Weg. Es enthält den Anmeldeserver, den Objektspeicher und HTTPS, die das Helm-Chart Ihnen überlässt.
 :::
 
-Diese Seite beschreibt die Chart-Version **0.6.0**, die standardmäßig GOAT **v3.0.3** installiert.
+Diese Seite beschreibt die Chart-Version **0.7.0**, die standardmäßig GOAT **v3.0.3** installiert.
 
 ## Installation {#install}
 
 ```bash
 helm install goat oci://ghcr.io/plan4better/charts/goat \
-  --version 0.6.0 \
+  --version 0.7.0 \
   --namespace goat --create-namespace \
   --values your-values.yaml \
   --wait --timeout 25m
@@ -43,7 +43,9 @@ Das Chart enthält **nicht**:
 - **Objektspeicher.** GOAT benötigt einen externen S3-kompatiblen Speicher.
 - **Keycloak.** Wenn sich Benutzer anmelden sollen, benötigen Sie ein externes Keycloak.
 
-Statt der mitgelieferten Instanzen können Sie das Chart auch auf ein bestehendes PostgreSQL oder Redis richten; die README des Charts listet das SQL auf, das Ihr PostgreSQL benötigt.
+Statt der mitgelieferten Instanzen können Sie das Chart auch auf ein bestehendes PostgreSQL oder Redis richten; die README des Charts listet das SQL auf, das Ihr PostgreSQL benötigt. Ist `postgresql.external.host` ein Connection-Pooler im Transaktionsmodus, setzen Sie `postgresql.external.transactionPooler: true` (`POSTGRES_TRANSACTION_POOLER`), damit GOAT keine Anweisungen auf dem Server vorbereitet und keine Einstellungen sendet, die der Pooler ablehnen könnte, und setzen Sie `postgresql.external.ducklakeHost` auf die Datenbank selbst: DuckLake hält seine Katalogverbindungen offen, deshalb umgehen sie den Pooler. Lauscht der Pooler an einem anderen Port als die Datenbank (PgBouncer standardmäßig an 6432), setzen Sie zusätzlich `postgresql.external.ducklakePort` auf den Port der Datenbank.
+
+Jeder Dienst hat standardmäßig Speicher-Requests und -Limits sowie einen CPU-Request ohne Limit. Die README des Charts listet sie auf; braucht ein Dienst mehr, etwa geoapi bei einem großen Katalog, erhöhen Sie sie unter `<service>.resources` und setzen Sie Requests und Limits gemeinsam.
 
 ## Was Sie einstellen müssen {#required-values}
 
@@ -92,6 +94,8 @@ Der Standard-Worker von Windmill übernimmt nur kleine Jobs. **Analyse-Werkzeuge
 ### Speicher für mehrere Nodes {#rwx}
 
 Das gemeinsame Daten-Volume verwendet standardmäßig `ReadWriteOnce`, was auf einem einzelnen Node funktioniert. In einem Cluster mit mehreren Nodes setzen Sie `data.accessMode: ReadWriteMany` mit einer RWX-fähigen Storage-Class (`data.storageClassName`) oder stellen mit `data.existingClaim` Ihren eigenen Claim bereit.
+
+geoapi, processes und die Windmill-Worker schreiben alle in dieses Volume, und ein neues RWX-Volume gehört root, deshalb laufen sie als root. Erlaubt Ihr Cluster das nicht, finden Sie die Alternative in der README des Charts („The shared data volume“).
 
 ## Weiterführende Informationen {#further-reading}
 

@@ -387,6 +387,9 @@
             },
             "postgresGID": {
               "type": "integer"
+            },
+            "resources": {
+              "type": "object"
             }
           }
         },
@@ -394,6 +397,9 @@
           "type": "object",
           "properties": {
             "host": {
+              "type": "string"
+            },
+            "ducklakeHost": {
               "type": "string"
             },
             "port": {
@@ -421,6 +427,16 @@
                 "verify-ca",
                 "verify-full"
               ]
+            },
+            "ducklakePort": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "transactionPooler": {
+              "type": "boolean"
             }
           }
         }
@@ -1275,6 +1291,36 @@
                 "acknowledgeDeletion": {
                   "type": "boolean",
                   "description": "true lets `helm upgrade` delete unprotected 0.4.x windmill-{tools,workflows}-data claims (and their data) instead of failing."
+                }
+              }
+            }
+          }
+        },
+        "bootstrap": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": "object",
+              "properties": {
+                "registry": {
+                  "type": "string"
+                },
+                "repository": {
+                  "type": "string"
+                },
+                "tag": {
+                  "type": "string"
+                },
+                "pullPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ]
                 }
               }
             }

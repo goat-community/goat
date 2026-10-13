@@ -19,8 +19,9 @@ What it does, in order, idempotently:
      The pod template carries a fingerprint of the token (first 16 hex of
      its sha256), so a reused token doesn't restart anything.
 
-The script uses only the Python stdlib so no `pip install` is needed,
-keeping the Job image (`python:3.11-slim`) minimal and fast.
+The script uses only the Python stdlib, so any image with Python 3 runs it;
+the Job uses GOAT's core image (windmill.bootstrap.image), which comes from
+the same registry as the rest of GOAT and is already on the nodes.
 */}}
 {{- if and .Values.windmill.server.enabled .Values.windmill.bootstrap.enabled -}}
 apiVersion: v1

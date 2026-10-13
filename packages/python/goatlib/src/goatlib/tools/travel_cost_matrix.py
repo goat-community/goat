@@ -69,6 +69,7 @@ from goatlib.tools.catchment_area_v2 import (
 )
 from goatlib.tools.pt_network import ensure_pt_date, pt_date_field
 from goatlib.tools.schemas import ToolInputBase, ToolOutputBase, get_default_layer_name
+from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 
 logger = logging.getLogger(__name__)
 
@@ -785,6 +786,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
     ) -> tuple[list[float], list[float], list[str]]:
         """Extract lat/lon coordinates and IDs from a GeoParquet point layer."""
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
 
@@ -845,6 +847,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
     ) -> None:
         """Compute geodesic distances (WGS84 ellipsoid) between all O-D pairs."""
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
 
@@ -887,6 +890,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
     ) -> None:
         """Join min travel cost onto the original destination layer."""
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
 

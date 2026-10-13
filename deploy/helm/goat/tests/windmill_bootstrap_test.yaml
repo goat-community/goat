@@ -137,3 +137,39 @@ tests:
           any: true
           content:
             name: WINDMILL_TOKEN
+
+  # The script needs only Python's standard library; the Job runs in GOAT's
+  # core image, so it comes from the same registry as everything else.
+  - it: the hook runs in GOAT's core image at the chart's version
+    template: windmill/bootstrap-hook.yaml
+    chart:
+      appVersion: v9.9.9
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/plan4better/goat/core:v9.9.9
+
+  - it: the hook follows core.image, global.imageRegistry and its own overrides
+    template: windmill/bootstrap-hook.yaml
+    set:
+      global.imageRegistry: registry.example.com
+      core.image.tag: v1.2.3
+      windmill.bootstrap.image.pullPolicy: Always
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: registry.example.com/plan4better/goat/core:v1.2.3
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+
+  - it: the hook pulls with global.imagePullSecrets like every other pod
+    template: windmill/bootstrap-hook.yaml
+    set:
+      global.imagePullSecrets:
+        - name: regcred
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets
+          value:
+            - name: regcred

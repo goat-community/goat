@@ -44,6 +44,10 @@ spec:
   postgresGID: {{ . }}
   {{- end }}
   primaryUpdateStrategy: unsupervised
+  {{- with .Values.postgresql.cluster.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   storage:
     size: {{ .Values.postgresql.cluster.storage.size }}
     {{- with (default .Values.global.storageClass .Values.postgresql.cluster.storage.storageClass) }}

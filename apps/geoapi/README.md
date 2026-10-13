@@ -46,8 +46,9 @@ Tiles and features are the latency-critical path every map view hits. Keeping th
 ## Gotchas
 
 - **Settings use the `GEOAPI_` prefix.** A bare name works only for the settings that read it explicitly (for example `AUTH`, `KEYCLOAK_SERVER_URL`, `POSTGRES_*`, `DUCKLAKE_DATA_DIR`, `DUCKLAKE_PIN_SNAPSHOT`, `REDIS_URL`, `GOAT_PROCESSES_URL`, `ENFORCE_READ_AUTHZ`); everything else, such as `DUCKLAKE_POOL_SIZE` or the timeouts, must be set as `GEOAPI_<NAME>`. All settings are in `src/geoapi/config.py`.
-- Point `DUCKLAKE_POSTGRES_SERVER` at Postgres directly, not through a transaction pooler: DuckLake attaches keep their catalog connections for as long as they live and are not verified behind one.
-- Memory per pod is roughly `GEOAPI_DUCKDB_MEMORY_LIMIT × GEOAPI_DUCKLAKE_POOL_SIZE`, because pooled cursors share one DuckDB instance. Set `GEOAPI_DUCKDB_THREADS` to the container's CPU limit.
+- Point `DUCKLAKE_POSTGRES_SERVER` (and `DUCKLAKE_POSTGRES_PORT` when it differs) at Postgres directly, not through a transaction pooler: DuckLake attaches keep their catalog connections for as long as they live and are not verified behind one.
+- When `POSTGRES_SERVER` is a pooler in transaction mode, set `POSTGRES_TRANSACTION_POOLER`: the query pool then caches no prepared statements and sends no TCP keepalive settings, which a pooler with stock settings refuses at connect.
+- DuckDB's memory budget per pod is `GEOAPI_DUCKDB_MEMORY_LIMIT × (GEOAPI_DUCKLAKE_POOL_SIZE + 2)`: pooled cursors share one DuckDB instance budgeted for the whole pool, and the read and write connections get one budget each. Keep it under the container's memory limit with room for the catalog metadata each connection keeps outside that budget; DuckDB spills only at its own budget, so above the limit the pod is killed first. Keep `GEOAPI_DUCKDB_THREADS × GEOAPI_DUCKLAKE_POOL_SIZE` at about the container's CPUs.
 - Updating a row inserted in the same DuckLake transaction leaves it with a transaction-local rowid that breaks MVT feature ids; `bundle_edit_service.py` writes derived columns in the insert itself for that reason.
 - Never enumerate all DuckLake tables (`information_schema`, `SHOW TABLES`) on a request path: it loads every table's metadata, which takes very long on a large catalog.
 

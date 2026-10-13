@@ -42,6 +42,22 @@ check_common() {
   jq -e '[.services[] | .logging.options["max-size"]] | all' <<<"$json" >/dev/null || fail "service without log rotation"
   # Public URL never ends with a slash.
   jq -e '.services.web.environment.NEXTAUTH_URL | endswith("/") | not' <<<"$json" >/dev/null || fail "trailing slash in public url"
+  # DuckDB spills to disk only at its own budget, so geoapi's and processes'
+  # budgets stay under 3/4 of their memory limits: geoapi's pool shares one
+  # connection budgeted POOL_SIZE x MEMORY_LIMIT, plus its read and write
+  # connections; processes keeps three connections. Unset values are the
+  # services' code defaults.
+  jq -e '
+    def bytes: tostring | capture("^(?<n>[0-9.]+) *(?<u>[A-Za-z]*)$")
+      | (.n | tonumber) * ({"": 1, "KB": 1e3, "MB": 1e6, "GB": 1e9, "KiB": 1024, "MiB": 1048576, "GiB": 1073741824}[.u]);
+    .services as $s
+    | ($s.geoapi.environment) as $g
+    | ($s.processes.environment) as $p
+    | (($g.GEOAPI_DUCKDB_MEMORY_LIMIT // "1GB" | bytes) * (($g.GEOAPI_DUCKLAKE_POOL_SIZE // "4" | tonumber) + 2)
+        < ($s.geoapi.deploy.resources.limits.memory | bytes) * 0.75)
+    and (($p.PROCESSES_DUCKDB_MEMORY_LIMIT // "1.2GB" | bytes) * 3
+        < ($s.processes.deploy.resources.limits.memory | bytes) * 0.75)
+  ' <<<"$json" >/dev/null || fail "geoapi or processes DuckDB budgets exceed 3/4 of their memory limits"
 }
 
 variant=auto

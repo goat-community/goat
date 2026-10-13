@@ -69,7 +69,7 @@ values block).
 {{- define "goat.worker.appEnv" -}}
 {{- $r := .root -}}
 {{- $v := .values -}}
-{{- $plain := list (list "POSTGRES_SERVER" (include "goat.postgresql.host" $r)) (list "POSTGRES_PORT" (include "goat.postgresql.port" $r)) (list "POSTGRES_DB" (include "goat.postgresql.database" $r)) (list "DUCKLAKE_POSTGRES_SERVER" (include "goat.postgresql.host" $r)) (list "DUCKLAKE_DATA_DIR" $r.Values.ducklakeBootstrap.dataDir) (list "DUCKLAKE_CATALOG_SCHEMA" $r.Values.ducklakeBootstrap.catalogSchema) -}}
+{{- $plain := list (list "POSTGRES_SERVER" (include "goat.postgresql.host" $r)) (list "POSTGRES_PORT" (include "goat.postgresql.port" $r)) (list "POSTGRES_DB" (include "goat.postgresql.database" $r)) (list "POSTGRES_TRANSACTION_POOLER" (include "goat.postgresql.transactionPooler" $r)) (list "DUCKLAKE_POSTGRES_SERVER" (include "goat.postgresql.ducklakeHost" $r)) (list "DUCKLAKE_POSTGRES_PORT" (include "goat.postgresql.ducklakePort" $r)) (list "DUCKLAKE_DATA_DIR" $r.Values.ducklakeBootstrap.dataDir) (list "DUCKLAKE_CATALOG_SCHEMA" $r.Values.ducklakeBootstrap.catalogSchema) -}}
 {{- if $r.Values.web.enabled -}}
 {{- $plain = append $plain (list "PRINT_BASE_URL" (printf "http://%s" (include "goat.serviceFullname" (dict "context" $r "component" "web")))) -}}
 {{- end -}}

@@ -1,0 +1,94 @@
+suite: Postgres connection in the service ConfigMaps
+# The chart sets POSTGRES_SERVER/DB/PORT from postgresql.*; a key of the same
+# name in <service>.config wins and renders once.
+templates:
+  - core/configmap.yaml
+  - geoapi/configmap.yaml
+  - processes/configmap.yaml
+set:
+  postgresql.cluster.enabled: false
+  postgresql.external.host: "pooler.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+tests:
+  - it: the services use the chart's Postgres by default
+    asserts:
+      - equal:
+          path: data.POSTGRES_SERVER
+          value: pooler.example.com
+      - equal:
+          path: data.POSTGRES_PORT
+          value: "5432"
+      - equal:
+          path: data.POSTGRES_DB
+          value: goat
+
+  - it: a config key of the same name wins, rendered once
+    set:
+      core.config.POSTGRES_SERVER: "core-db.example.com"
+      geoapi.config.POSTGRES_SERVER: "geoapi-db.example.com"
+      geoapi.config.POSTGRES_PORT: "6543"
+      processes.config.POSTGRES_DB: "goat_processes"
+    asserts:
+      - equal:
+          path: data.POSTGRES_SERVER
+          value: core-db.example.com
+        template: core/configmap.yaml
+      - equal:
+          path: data.POSTGRES_SERVER
+          value: geoapi-db.example.com
+        template: geoapi/configmap.yaml
+      - equal:
+          path: data.POSTGRES_PORT
+          value: "6543"
+        template: geoapi/configmap.yaml
+      - equal:
+          path: data.POSTGRES_DB
+          value: goat_processes
+        template: processes/configmap.yaml
+
+  # A pooler in transaction mode with stock settings: the services then
+  # prepare nothing on the server and send no keepalive startup settings.
+  - it: transactionPooler reaches every service
+    set:
+      postgresql.external.transactionPooler: true
+      postgresql.external.ducklakeHost: "primary.example.com"
+    asserts:
+      - equal:
+          path: data.POSTGRES_TRANSACTION_POOLER
+          value: "true"
+
+  - it: no POSTGRES_TRANSACTION_POOLER by default
+    asserts:
+      - notExists:
+          path: data.POSTGRES_TRANSACTION_POOLER
+
+  - it: a service's own false wins over transactionPooler
+    template: core/configmap.yaml
+    set:
+      postgresql.external.transactionPooler: true
+      postgresql.external.ducklakeHost: "primary.example.com"
+      core.config.POSTGRES_TRANSACTION_POOLER: false
+    asserts:
+      - equal:
+          path: data.POSTGRES_TRANSACTION_POOLER
+          value: "false"
+
+  # DuckLake's catalog connections stay open for as long as a service runs.
+  - it: transactionPooler without ducklakeHost is refused
+    template: processes/configmap.yaml
+    set:
+      postgresql.external.transactionPooler: true
+    asserts:
+      - failedTemplate:
+          errorPattern: needs postgresql.external.ducklakeHost
+
+  - it: transactionPooler with Windmill on GOAT's connection is refused
+    template: processes/configmap.yaml
+    set:
+      postgresql.external.transactionPooler: true
+      postgresql.external.ducklakeHost: "primary.example.com"
+      windmill.server.enabled: true
+      windmill.db.reuseGoatConnection: true
+    asserts:
+      - failedTemplate:
+          errorPattern: needs windmill.db.reuseGoatConnection

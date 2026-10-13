@@ -43,6 +43,8 @@ Then open `http://localhost:8110` and sign in as `admin@windmill.dev` with the p
 
 **Parallel analyses:** `GOAT_TOOLS_WORKERS` (default `2`) sets how many analysis jobs run at the same time. Each tools worker may use up to 4 GB of RAM, so size it to your server.
 
+**Memory per service:** `compose.yaml` gives each service a memory limit. geoapi and processes also set DuckDB's memory budgets there (`GEOAPI_DUCKLAKE_POOL_SIZE`, `GEOAPI_DUCKDB_MEMORY_LIMIT`, `PROCESSES_DUCKDB_MEMORY_LIMIT`) so that they fit under it: DuckDB moves work to disk only when it reaches its own budget, and a service above its limit is stopped. To give a service more memory, raise its limit and its budgets together in a `compose.override.yaml`.
+
 ## Routing base data {#base-data}
 
 Catchment areas, heatmaps and the public transport tools need a **street network** and **public transport data**. They are not downloaded automatically: the full set is tens of GB, so you choose the region you work in with a bounding box (`min_lon,min_lat,max_lon,max_lat`).

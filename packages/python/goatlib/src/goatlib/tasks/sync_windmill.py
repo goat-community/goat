@@ -22,6 +22,31 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# The fields Windmill's schedule update writes (EditSchedule, as of Windmill
+# v1.607). It replaces each one it does not receive, so an update sends them all
+# back. Check the list when upgrading Windmill.
+SCHEDULE_UPDATE_FIELDS = (
+    "args",
+    "summary",
+    "description",
+    "on_failure",
+    "on_failure_times",
+    "on_failure_exact",
+    "on_failure_extra_args",
+    "on_recovery",
+    "on_recovery_times",
+    "on_recovery_extra_args",
+    "on_success",
+    "on_success_extra_args",
+    "ws_error_handler_muted",
+    "retry",
+    "no_flow_overlap",
+    "tag",
+    "paused_until",
+    "cron_version",
+    "dynamic_skip",
+)
+
 
 def generate_task_script(task_def: TaskDefinition) -> str:
     """Generate a Windmill script for a task.
@@ -130,19 +155,30 @@ class WindmillTaskSyncer:
             )
 
             if check_response.status_code == 200:
-                # Schedule exists, update it. `enabled` is deliberately not
-                # sent: whether a schedule runs is decided in the Windmill UI,
-                # and a sync must not switch one back on — or off — behind
-                # whoever set it.
+                # Schedule exists: update its cron and nothing else. Whether
+                # it runs, the arguments it runs with (a data mirror, a
+                # bounding box), a pause, error handlers and retries are set
+                # in the Windmill UI, and a sync must not reset them behind
+                # whoever set them. The update never touches `enabled`.
+                existing = check_response.json()
+                if (
+                    existing.get("schedule") == task_def.schedule
+                    and existing.get("timezone") == "UTC"
+                ):
+                    # Unchanged. An update would also clear and re-queue the
+                    # next run.
+                    return {"path": schedule_path, "schedule": task_def.schedule}
+                update = {
+                    field: existing[field]
+                    for field in SCHEDULE_UPDATE_FIELDS
+                    if field in existing
+                }
+                update["args"] = existing.get("args") or {}
+                update["schedule"] = task_def.schedule
+                update["timezone"] = "UTC"
                 response = self.client.post(
                     f"{self.base_url}/api/w/{self.workspace}/schedules/update/{schedule_path}",
-                    json={
-                        "schedule": task_def.schedule,
-                        "script_path": task_def.windmill_path,
-                        "is_flow": False,
-                        "args": {},
-                        "timezone": "UTC",
-                    },
+                    json=update,
                 )
             else:
                 # Create new schedule

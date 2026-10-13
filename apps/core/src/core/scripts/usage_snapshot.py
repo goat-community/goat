@@ -37,6 +37,7 @@ import time
 from typing import Any, Awaitable, Callable
 
 import asyncpg
+from goatlib.config.postgres import asyncpg_connect_args
 from goatobs import setup_observability
 from opentelemetry import metrics as otel_metrics
 from opentelemetry.metrics import CallbackOptions, Observation
@@ -595,7 +596,9 @@ async def _connect_windmill() -> asyncpg.Connection:
     # Drop the query string (sslmode etc.) — asyncpg parses DSN itself.
     dsn = dsn.split("?", 1)[0]
     return await asyncpg.connect(
-        dsn=dsn, timeout=10, server_settings={"application_name": "goat-core"}
+        dsn=dsn,
+        timeout=10,
+        **asyncpg_connect_args("goat-core", settings.POSTGRES_TRANSACTION_POOLER),
     )
 
 

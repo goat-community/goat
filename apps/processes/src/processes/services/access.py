@@ -26,6 +26,7 @@ from uuid import UUID
 
 import asyncpg
 from fastapi import HTTPException, status
+from goatlib.config.postgres import asyncpg_connect_args
 from goatlib.tools.registry import TOOL_REGISTRY
 from goatlib.tools.schemas import DEFAULT_NETWORK_BUNDLE
 
@@ -463,7 +464,9 @@ async def _get_pool() -> asyncpg.Pool:
             # included, so the first request after a quiet minute reconnects.
             max_inactive_connection_lifetime=60,
             command_timeout=10,
-            server_settings={"application_name": "goat-processes"},
+            **asyncpg_connect_args(
+                "goat-processes", settings.POSTGRES_TRANSACTION_POOLER
+            ),
         )
     return _pool
 
