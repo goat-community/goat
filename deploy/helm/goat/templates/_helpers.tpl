@@ -401,6 +401,34 @@ Params: values, root, fallback (bool).
 {{- end }}
 
 {{/*
+core's Keycloak env from the auth Secret (core.auth / global.auth), for the
+core Deployment and its migrate hook alike: core refuses to start with AUTH
+on and no KEYCLOAK_SERVER_URL, and the ConfigMap leaves the Keycloak keys out
+when they come from the Secret. A key set in core.extraEnv is left to
+extraEnv; AUTH set in core.config / core.extraEnv is left to that value.
+Renders nothing unless a Secret is wired. Param: root.
+*/}}
+{{- define "goat.core.authEnv" -}}
+{{- $auth := dict "values" .root.Values.core "root" .root -}}
+{{- if include "goat.auth.wired" $auth }}
+{{- $secret := include "goat.auth.secretName" $auth }}
+{{- if not (include "goat.env.userSet" (dict "values" .root.Values.core "key" "AUTH")) }}
+- name: AUTH
+  value: "true"
+{{- end }}
+{{- range $pair := list (list "KEYCLOAK_SERVER_URL" "serverUrl") (list "REALM_NAME" "realm") (list "KEYCLOAK_CLIENT_ID" "clientId") (list "KEYCLOAK_CLIENT_SECRET" "clientSecret") }}
+{{- if not (include "goat.env.inExtraEnv" (dict "values" $.root.Values.core "key" (index $pair 0))) }}
+- name: {{ index $pair 0 }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $secret }}
+      key: {{ include "goat.auth.secretKey" (merge (dict "key" (index $pair 1)) $auth) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
 The AUTH value a service's container ends up with, including an operator's
 explicit AUTH in `<svc>.config` or `<svc>.extraEnv` (lowercased; "custom"
 for an extraEnv valueFrom). For the mixed-auth warning in NOTES.txt.

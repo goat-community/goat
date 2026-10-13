@@ -1312,3 +1312,51 @@ redis:
     database: 0
     existingSecret: ""             # omit for an unauthenticated Redis
     existingSecretPasswordKey: password
+
+# ─── Garage (optional S3 store) ──────────────────────────────────────────────
+# A single-node Garage (S3-compatible object store) in the release, for an
+# installation without an S3 store of its own, as in the compose bundle. Off
+# by default. On, it is GOAT's S3: the chart fills every key of `global.s3`
+# left empty (bucket goat-uploads, endpoint, provider, region, path-style,
+# the key pair, and the public URLs on the web app's host: /<bucket> for
+# uploads, /<assets bucket> for images), and a Job on each install and
+# upgrade creates the buckets and imports the key pair. Browsers reach Garage
+# through those two paths: `ingress.enabled` adds them to the web host
+# (ingress-nginx); with another controller, route them yourself (README,
+# "Garage").
+garage:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: dxflrs/garage
+    tag: v2.4.1
+    pullPolicy: IfNotPresent
+  # Garage's rpc secret and admin token (keys rpc-secret, admin-token). Empty:
+  # generated on install and kept on every upgrade. Set one when a tool renders
+  # the chart without cluster access (Argo CD, `helm template`). The S3 key
+  # pair is global.s3.existingSecret, or generated the same way when empty.
+  existingSecret: ""
+  persistence:
+    meta:
+      size: 1Gi
+      storageClassName: ""         # empty: global.storageClass
+    data:
+      size: 50Gi                   # uploads and images
+      storageClassName: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  ingress:
+    enabled: false                 # /<bucket> and /<assets bucket> on web.ingress's host and TLS
+    className: ""                  # empty: web.ingress.className; ingress-nginx only
+    annotations: {}                # added to both Ingresses
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  podLabels: {}

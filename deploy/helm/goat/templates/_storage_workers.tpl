@@ -1,12 +1,12 @@
 {{/*
 ──── Object storage (global.s3) ─────────────────────────────────────────────
 The S3 store GOAT keeps uploads in, and core's assets bucket. Nothing is
-rendered until `global.s3.bucket` is set. Each service gets it as env
+rendered until `global.s3.bucket` is set (or garage.enabled, see _garage.tpl). Each service gets it as env
 entries; a variable the service sets itself in `<svc>.config` or
 `<svc>.extraEnv` wins and is rendered nowhere else.
 */}}
 {{- define "goat.s3.enabled" -}}
-{{- if (.Values.global.s3 | default dict).bucket -}}true{{- end -}}
+{{- if (include "goat.s3.settings" . | fromYaml).bucket -}}true{{- end -}}
 {{- end }}
 
 {{/*
@@ -15,7 +15,7 @@ S3 env entries (a YAML list, indent with nindent). Params: root, values
 the AWS_* key pair it uses for it).
 */}}
 {{- define "goat.s3.env" -}}
-{{- $s3 := .root.Values.global.s3 | default dict -}}
+{{- $s3 := include "goat.s3.settings" .root | fromYaml -}}
 {{- if $s3.bucket -}}
 {{- $v := .values -}}
 {{- $pathStyle := ternary "true" "false" (eq (toString $s3.forcePathStyle) "true") -}}

@@ -17,6 +17,14 @@ templates:
   - postgresql/cluster.yaml
   - geoapi/configmap.yaml
   - processes/configmap.yaml
+  - core/configmap.yaml          # read by the pod checksum
+  - web/configmap.yaml          # read by the pod checksum
+  - catalog/configmap.yaml          # read by the pod checksum
+  - windmill/server/configmap.yaml          # read by the pod checksum
+  - windmill/worker-default/configmap.yaml          # read by the pod checksum
+  - windmill/worker-print/configmap.yaml          # read by the pod checksum
+  - windmill/worker-tools/configmap.yaml          # read by the pod checksum
+  - windmill/worker-workflows/configmap.yaml          # read by the pod checksum
 set:
   windmill.workers.print.enabled: true
   windmill.workers.tools.enabled: true

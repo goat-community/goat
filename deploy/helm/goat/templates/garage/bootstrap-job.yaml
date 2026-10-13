@@ -1,0 +1,75 @@
+{{- /*
+Creates the buckets in Garage, imports the S3 key pair GOAT uses and sets the
+uploads bucket's CORS rule (goatlib.storage.garage_init, as in the compose
+bundle). Idempotent, so it runs after every install and upgrade. It waits
+for Garage's admin API itself; no other resource waits for this Job.
+*/}}
+{{- if .Values.garage.enabled -}}
+{{- $ctx := dict "context" . "component" "garage-init" -}}
+{{- $s3 := include "goat.s3.settings" . | fromYaml -}}
+{{- if not $s3.publicEndpointUrl -}}
+{{- fail "garage.enabled needs the public URL browsers reach the uploads at: set web.auth.publicUrl or web.ingress (or global.s3.publicEndpointUrl)" -}}
+{{- end -}}
+{{- $keys := $s3.existingSecretKeys | default dict -}}
+{{- $svc := include "goat.garage.fullname" . -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "goat.serviceFullname" $ctx }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+  annotations:
+    "helm.sh/hook": "post-install,post-upgrade"
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "goat.serviceSelectorLabels" $ctx | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: garage-init
+          image: {{ include "goat.image" (dict "image" .Values.core.image "global" .Values.global "root" $) }}
+          imagePullPolicy: {{ .Values.core.image.pullPolicy }}
+          command: ["python", "-m", "goatlib.storage.garage_init"]
+          env:
+            - name: GARAGE_ADMIN_URL
+              value: "http://{{ $svc }}:3903"
+            - name: GARAGE_S3_URL
+              value: "http://{{ $svc }}:3900"
+            - name: GARAGE_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goat.garage.secretName" . }}
+                  key: admin-token
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $s3.existingSecret }}
+                  key: {{ $keys.accessKeyId | default "access-key-id" }}
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $s3.existingSecret }}
+                  key: {{ $keys.secretAccessKey | default "secret-access-key" }}
+            # Origin allowed by the uploads bucket's CORS rule.
+            - name: GOAT_PUBLIC_URL
+              value: {{ $s3.publicEndpointUrl | quote }}
+            - name: UPLOADS_BUCKET
+              value: {{ $s3.bucket | quote }}
+            - name: ASSETS_BUCKET
+              value: {{ $s3.assets.bucket | quote }}
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+{{- end -}}

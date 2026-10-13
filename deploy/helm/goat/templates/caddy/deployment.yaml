@@ -22,10 +22,12 @@ spec:
         {{- with .Values.caddy.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.caddy.podAnnotations }}
       annotations:
+        # Rolls the pods when the ConfigMap they read changes.
+        checksum/config: {{ include (print $.Template.BasePath "/caddy/configmap.yaml") $ | sha256sum }}
+        {{- with .Values.caddy.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:

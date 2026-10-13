@@ -40,7 +40,7 @@ A first install pulls several large images, which is why the timeout is long. A 
 
 The chart does **not** include:
 
-- **Object storage.** GOAT needs an external S3-compatible storage.
+- **Object storage.** GOAT needs an S3-compatible store: your own, or the Garage the chart can run for you.
 - **Keycloak.** If users should log in, you need an external Keycloak.
 
 You can also point the chart at an existing PostgreSQL or Redis instead of the bundled ones; the chart README lists the SQL your PostgreSQL needs. If `postgresql.external.host` is a connection pooler in transaction mode, set `postgresql.external.transactionPooler: true` (`POSTGRES_TRANSACTION_POOLER`), so GOAT prepares no statements on the server and sends no settings the pooler might refuse, and set `postgresql.external.ducklakeHost` to the database itself: DuckLake keeps its catalog connections open, so they bypass the pooler. If the pooler listens on another port than the database (PgBouncer's default is 6432), also set `postgresql.external.ducklakePort` to the database's port.
@@ -62,6 +62,8 @@ Without these URLs, the web app shows a blank page.
 Describe your S3 store once in `global.s3`: the bucket for uploads, the provider, endpoint, region and whether it needs path-style URLs, and a Secret with the access key pair (`global.s3.existingSecret`). Core, geoapi, processes and the analysis workers (below) all get these settings.
 
 Uploaded images, such as project and dataset thumbnails, avatars and dashboard images, go to a second bucket in the same store (`global.s3.assets.bucket`). Browsers load them straight from that bucket, so make it publicly readable and set its public URL in `global.s3.assets.publicUrl`. Outside AWS the URL is required. GOAT's own artwork ships in the web app and needs neither.
+
+Without a store of your own, set `garage.enabled: true`: the chart runs a single-node Garage, as the Docker Compose bundle does, creates both buckets and a key pair, and fills `global.s3` for it. Browsers reach it on the web app's host, uploads at `/<bucket>` and images at `/<assets bucket>`; `garage.ingress.enabled: true` sets up both routes for ingress-nginx. With another ingress controller, route them yourself (see the chart's README). It is one node without replication: back up its data volume.
 
 ### Login {#auth}
 

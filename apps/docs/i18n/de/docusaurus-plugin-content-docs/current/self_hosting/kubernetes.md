@@ -40,7 +40,7 @@ Eine erste Installation lädt mehrere große Images, daher der lange Timeout. Ei
 
 Das Chart enthält **nicht**:
 
-- **Objektspeicher.** GOAT benötigt einen externen S3-kompatiblen Speicher.
+- **Objektspeicher.** GOAT benötigt einen S3-kompatiblen Speicher: Ihren eigenen oder das Garage, das das Chart für Sie betreiben kann.
 - **Keycloak.** Wenn sich Benutzer anmelden sollen, benötigen Sie ein externes Keycloak.
 
 Statt der mitgelieferten Instanzen können Sie das Chart auch auf ein bestehendes PostgreSQL oder Redis richten; die README des Charts listet das SQL auf, das Ihr PostgreSQL benötigt. Ist `postgresql.external.host` ein Connection-Pooler im Transaktionsmodus, setzen Sie `postgresql.external.transactionPooler: true` (`POSTGRES_TRANSACTION_POOLER`), damit GOAT keine Anweisungen auf dem Server vorbereitet und keine Einstellungen sendet, die der Pooler ablehnen könnte, und setzen Sie `postgresql.external.ducklakeHost` auf die Datenbank selbst: DuckLake hält seine Katalogverbindungen offen, deshalb umgehen sie den Pooler. Lauscht der Pooler an einem anderen Port als die Datenbank (PgBouncer standardmäßig an 6432), setzen Sie zusätzlich `postgresql.external.ducklakePort` auf den Port der Datenbank.
@@ -62,6 +62,8 @@ Ohne diese URLs zeigt die Web-App eine leere Seite.
 Beschreiben Sie Ihren S3-Speicher einmal in `global.s3`: den Bucket für Uploads, Anbieter, Endpunkt, Region, ob der Speicher Pfad-URLs (path style) braucht, und ein Secret mit dem Zugangsschlüssel-Paar (`global.s3.existingSecret`). core, geoapi, processes und die Analyse-Worker (siehe unten) erhalten alle diese Einstellungen.
 
 Hochgeladene Bilder, etwa Vorschaubilder von Projekten und Datensätzen, Profilbilder und Bilder in Dashboards, liegen in einem zweiten Bucket desselben Speichers (`global.s3.assets.bucket`). Browser laden sie direkt aus diesem Bucket; machen Sie ihn deshalb öffentlich lesbar und tragen Sie seine öffentliche URL in `global.s3.assets.publicUrl` ein. Außerhalb von AWS ist die URL Pflicht. GOATs eigene Grafiken liefert die Web-App selbst aus; sie brauchen beides nicht.
+
+Ohne eigenen Speicher setzen Sie `garage.enabled: true`: Das Chart betreibt dann ein Garage mit einem Knoten, wie das Docker-Compose-Paket, legt beide Buckets und ein Schlüsselpaar an und füllt `global.s3` dafür aus. Browser erreichen es über den Host der Web-App, Uploads unter `/<bucket>` und Bilder unter `/<assets bucket>`; `garage.ingress.enabled: true` richtet beide Routen für ingress-nginx ein. Mit einem anderen Ingress-Controller richten Sie sie selbst ein (siehe README des Charts). Es ist ein einzelner Knoten ohne Replikation: Sichern Sie sein Datenvolume.
 
 ### Anmeldung {#auth}
 

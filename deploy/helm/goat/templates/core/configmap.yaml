@@ -1,7 +1,7 @@
 {{- if .Values.core.enabled -}}
-{{- $s3 := .Values.global.s3 | default dict -}}
+{{- $s3 := include "goat.s3.settings" . | fromYaml -}}
 {{- if and $s3.bucket $s3.endpointUrl (not ($s3.assets | default dict).publicUrl) (not (include "goat.env.userSet" (dict "values" .Values.core "key" "ASSETS_URL"))) -}}
-{{- fail "global.s3.assets.publicUrl is required with global.s3.endpointUrl: core serves uploaded images from the assets bucket's public URL (or set core.config.ASSETS_URL)" -}}
+{{- fail "global.s3.assets.publicUrl is required with global.s3.endpointUrl (or garage.enabled without web.auth.publicUrl or web.ingress): core serves uploaded images from the assets bucket's public URL (or set core.config.ASSETS_URL)" -}}
 {{- end -}}
 {{- $auth := dict "values" .Values.core "root" . -}}
 {{- $authWired := include "goat.auth.wired" $auth -}}
