@@ -207,6 +207,14 @@ namespace routing
         double speed_km_h = 5.0;
         std::string edge_dir;
         std::string node_dir;       // empty → inferred from edge_dir
+        // Street modes: reference-area cell centroids (EPSG:3857). When set,
+        // the network loads over their area instead of around the
+        // opportunities, and each is snapped in (500 m, as connectivity's
+        // origins) so a cell without a street gets its cost via the nearest
+        // one. Lets ClosestAverage run with an unlimited (+inf) max_cost.
+        // Opportunities outside the area count within the mode's maximum
+        // travel time (limit x speed, as a radial load).
+        std::vector<Point3857> area_cell_centroids;
 
         // Formula
         HeatmapType heatmap_type = HeatmapType::Gravity;

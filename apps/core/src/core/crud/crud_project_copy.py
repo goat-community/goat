@@ -159,8 +159,13 @@ async def copy_project(
     )
     source_groups = list(groups_result.scalars().all())
 
+    # In id order, so the copies' new ids keep the entries' order: code that
+    # takes "the first entry" of a layer (template copy jobs and bindings)
+    # must find the same one in the copy.
     links_result = await async_session.execute(
-        select(LayerProjectLink).where(LayerProjectLink.project_id == project_id)
+        select(LayerProjectLink)
+        .where(LayerProjectLink.project_id == project_id)
+        .order_by(LayerProjectLink.id)
     )
     source_links = list(links_result.scalars().all())
 

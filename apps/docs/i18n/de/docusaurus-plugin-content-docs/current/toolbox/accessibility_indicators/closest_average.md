@@ -98,7 +98,7 @@ Optional können Sie <code>Erweiterte Optionen</code> aktivieren, um weitere Ein
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Wählen Sie ein <code>Referenzgebiet</code>: einen Polygon-Layer, der Ihr Untersuchungsgebiet darstellt. Wenn festgelegt, erweitert sich die Heatmap auf alle H3-Zellen innerhalb dieses Polygons; nicht erreichbare Zellen erhalten den Wert <code>NULL</code> und zeigen so [Versorgungslücken](https://www.plan4better.de/de/glossar/versorgungsluecken) und unterversorgte Gebiete auf.</div>
+  <div class="content">Wählen Sie ein <code>Referenzgebiet</code>: einen Polygon-Layer, der Ihr Untersuchungsgebiet darstellt. Die Heatmap umfasst dann alle H3-Zellen innerhalb dieses Polygons. Für `Zu Fuß`, `Fahrrad`, `Pedelec` und `Auto` ersetzt es außerdem das <code>Limit</code>: Ziele außerhalb des Gebiets zählen ebenfalls, wenn sie innerhalb der Strecke liegen, die in der maximalen Reisezeit des Verkehrsmittels (45 Minuten, 90 für `Auto`) erreichbar ist; das Straßennetz wird für das Gebiet und diese Ziele geladen, und jede Zelle erhält ihre tatsächlichen durchschnittlichen Reisekosten, unabhängig davon, wie weit die Ziele entfernt sind. Eine Zelle ohne eigene Straße wird über die nächstgelegene Straße erreicht, einschließlich des Wegs vom Zellmittelpunkt dorthin; nur Zellen, die mehr als 500 m von jeder Straße entfernt sind, behalten den Wert <code>NULL</code>. Die Diagonale des umschließenden Rechtecks des Gebiets darf höchstens 100 km betragen (300 km für `Auto`), wie bei der Reisekostenmatrix. Für `Öffentlicher Verkehr` gilt das <code>Limit</code> weiterhin.</div>
 </div>
 
 <div class="step">
@@ -115,7 +115,7 @@ Optional können Sie <code>Erweiterte Optionen</code> aktivieren, um weitere Ein
 
 <div class="step">
   <div class="step-number">8</div>
-  <div class="content">Geben Sie ein <code>Limit</code> in Minuten oder Metern für Ihre Heatmap ein. Dieses wird entsprechend dem zuvor gewählten Verkehrsmittel und der gewählten Maßeinheit verwendet.</div>
+  <div class="content">Geben Sie ein <code>Limit</code> in Minuten oder Metern für Ihre Heatmap ein. Dieses wird entsprechend dem zuvor gewählten Verkehrsmittel und der gewählten Maßeinheit verwendet. Das Feld wird nicht angezeigt, wenn ein Referenzgebiet das Limit ersetzt (Schritt 5).</div>
 </div>
 
 :::tip Hint
@@ -169,7 +169,7 @@ Wenn mehrere Kanten (Straßen) des Straßennetzes eine sechseckige Zelle schneid
 
 ### Berechnung
 
-**Nachdem alle Gelegenheits-Layer kombiniert wurden** (z.B. Schulen, Geschäfte oder Parks), erstellt das Tool **ein Gitter aus sechseckigen Zellen um das Gebiet**. **Es werden nur Zellen einbezogen, in denen mindestens eine Gelegenheit basierend auf dem gewählten** **Verkehrsmittel** (z.B. zu Fuß, Fahrrad) und **Reisekostenlimit** (z.B. 15 Minuten) erreichbar ist.
+**Nachdem alle Gelegenheits-Layer kombiniert wurden** (z.B. Schulen, Geschäfte oder Parks), erstellt das Tool **ein Gitter aus sechseckigen Zellen um das Gebiet**. **Es werden nur Zellen einbezogen, in denen mindestens eine Gelegenheit basierend auf dem gewählten** **Verkehrsmittel** (z.B. zu Fuß, Fahrrad) und **Reisekostenlimit** (z.B. 15 Minuten) erreichbar ist. Mit einem Referenzgebiet und einem straßenbasierten Verkehrsmittel gibt es kein Limit: Das Gitter umfasst das Referenzgebiet und das Straßennetz innerhalb seines umschließenden Rechtecks.
 
 Dann werden für jede Zelle die durchschnittlichen Reisekosten zu den **nächsten n Zielen** (wie in den Einstellungen festgelegt) berechnet.
 

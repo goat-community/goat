@@ -353,51 +353,59 @@ class BundleCreateFilteredRunner(BundleImportRunner):
         )
 
         layer_id = str(uuid4())
-        info = self._ingest_to_ducklake(
-            user_id=user_id, layer_id=layer_id, parquet_path=Path(parquet)
-        )
-        geometry_type = normalize_geometry_type(info.get("geometry_type"))
-        await db.create_layer(
-            layer_id=layer_id,
-            user_id=user_id,
-            folder_id=folder_id,
-            # Named the way the importer names members — "<bundle> <Role>" —
-            # from the spec's own label rather than by pulling the old name
-            # apart.
-            name=f"{bundle_name} {(spec.role(role).label if spec.role(role) else role)}",
-            layer_type=source.get("type") or "feature",
-            feature_layer_type=source.get("feature_layer_type"),
-            geometry_type=geometry_type,
-            extent_wkt=info.get("extent_wkt"),
-            feature_count=info.get("feature_count", 0),
-            size=info.get("size", 0),
-            # The same style the original's members were created with, from
-            # the same rule — a clipped copy of a street network should not
-            # arrive in different colours from the network it came from.
-            properties=(
-                get_bundle_style(spec.type, role, geometry_type)
-                if geometry_type
-                else None
-            ),
-        )
-        # The copy is the same kind of layer as the original, so it keeps the
-        # per-column metadata: computed columns, locked flags, vocabularies and
-        # defaults all still apply to it.
-        #
-        # The role's own contract goes UNDER whatever the source layer stores.
-        # Two things follow from that order. A copy of a bundle imported before
-        # the contract existed comes out with it anyway — which is what lets a
-        # filtered copy of a legacy bundle behave like a fresh import, rather
-        # than inheriting the gap that makes its edges layer uneditable. And
-        # anything the user authored on the source — a column's display config,
-        # a vocabulary they extended — still wins, because their entry is the
-        # one that overwrites.
-        field_config = self._merged_field_config(
-            role_field_config(spec.role(role)), source.get("field_config")
-        )
-        if field_config:
-            await db.set_layer_field_config(layer_id, field_config)
-        await db.add_layer_to_bundle(bundle_id=bundle_id, layer_id=layer_id, role=role)
+        try:
+            info = self._ingest_to_ducklake(
+                user_id=user_id, layer_id=layer_id, parquet_path=Path(parquet)
+            )
+            geometry_type = normalize_geometry_type(info.get("geometry_type"))
+            await db.create_layer(
+                layer_id=layer_id,
+                user_id=user_id,
+                folder_id=folder_id,
+                # Named the way the importer names members — "<bundle> <Role>" —
+                # from the spec's own label rather than by pulling the old name
+                # apart.
+                name=f"{bundle_name} {(spec.role(role).label if spec.role(role) else role)}",
+                layer_type=source.get("type") or "feature",
+                feature_layer_type=source.get("feature_layer_type"),
+                geometry_type=geometry_type,
+                extent_wkt=info.get("extent_wkt"),
+                feature_count=info.get("feature_count", 0),
+                size=info.get("size", 0),
+                # The same style the original's members were created with, from
+                # the same rule — a clipped copy of a street network should not
+                # arrive in different colours from the network it came from.
+                properties=(
+                    get_bundle_style(spec.type, role, geometry_type)
+                    if geometry_type
+                    else None
+                ),
+            )
+            # The copy is the same kind of layer as the original, so it keeps the
+            # per-column metadata: computed columns, locked flags, vocabularies and
+            # defaults all still apply to it.
+            #
+            # The role's own contract goes UNDER whatever the source layer stores.
+            # Two things follow from that order. A copy of a bundle imported before
+            # the contract existed comes out with it anyway — which is what lets a
+            # filtered copy of a legacy bundle behave like a fresh import, rather
+            # than inheriting the gap that makes its edges layer uneditable. And
+            # anything the user authored on the source — a column's display config,
+            # a vocabulary they extended — still wins, because their entry is the
+            # one that overwrites.
+            field_config = self._merged_field_config(
+                role_field_config(spec.role(role)), source.get("field_config")
+            )
+            if field_config:
+                await db.set_layer_field_config(layer_id, field_config)
+            await db.add_layer_to_bundle(
+                bundle_id=bundle_id, layer_id=layer_id, role=role
+            )
+        except Exception:
+            # Not in the caller's `imported` yet, so `_rollback_bundle` would
+            # leave its table (and a row written before the failure) behind.
+            await self._cleanup_layers(db, user_id, [layer_id])
+            raise
         return ImportedLayer(
             role=role,
             layer_id=layer_id,

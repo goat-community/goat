@@ -27,17 +27,22 @@ from catalog.errors import ApiError
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
-_keycloak_auth_cache: dict[tuple[str, str], KeycloakAuth] = {}
+_keycloak_auth_cache: dict[tuple[str, str, str], KeycloakAuth] = {}
 
 
 def _get_keycloak_auth(settings: CatalogSettings) -> KeycloakAuth:
-    key = (settings.keycloak_server_url, settings.realm_name)
+    key = (
+        settings.keycloak_server_url,
+        settings.realm_name,
+        settings.auth_allowed_clients,
+    )
     auth = _keycloak_auth_cache.get(key)
     if auth is None:
         auth = KeycloakAuth(
             keycloak_url=settings.keycloak_server_url,
             realm=settings.realm_name,
             verify_signature=True,
+            allowed_clients=settings.auth_allowed_clients,
         )
         _keycloak_auth_cache[key] = auth
     return auth

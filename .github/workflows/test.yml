@@ -195,6 +195,21 @@ jobs:
     timeout-minutes: 20
     # REQUIRED. Data-dependent tests skip when their fixtures are absent;
     # travel-time matrices auto-download from assets.plan4better.de.
+    # Postgres is only for the DuckLake catalog tests (see their step).
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: rds
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: goat
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v7
@@ -249,11 +264,26 @@ jobs:
           uv sync --frozen --all-packages --all-extras --no-install-package routing
           uv pip install --no-deps .routing-wheel/*.whl
       - name: 🧪 pytest (unit, utils, io)
-        # tests/integration is excluded on purpose: it needs a DuckLake catalog
-        # and Postgres fixtures this job has no services for. tests/benchmarks
-        # holds manually-run scripts, not tests. -n 4: one worker per runner CPU.
+        # The rest of tests/integration needs a populated DuckLake catalog and
+        # data fixtures this job does not have. tests/benchmarks holds
+        # manually-run scripts, not tests. -n 4: one worker per runner CPU.
         run: uv run --no-sync pytest tests/unit tests/utils tests/io -n 4
         working-directory: packages/python/goatlib
+      - name: 🧪 pytest (DuckLake catalog on Postgres)
+        # These need only Postgres: each test makes a throwaway catalog schema
+        # and drops it afterwards. They fail rather than skip when Postgres is
+        # unreachable in CI.
+        run: >-
+          uv run --no-sync pytest -m integration
+          tests/integration/test_pinned_reads_pg.py
+          tests/integration/test_ducklake_pg_sessions.py
+        working-directory: packages/python/goatlib
+        env:
+          POSTGRES_SERVER: localhost
+          POSTGRES_PORT: "5432"
+          POSTGRES_USER: rds
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: goat
 
   goatobs:
     name: goatobs (pytest)

@@ -26,7 +26,7 @@ class LazyDuckLakeWriteManager(BaseDuckLakeManager):
     """Write manager that defers connection creation until first use."""
 
     def __init__(self) -> None:
-        super().__init__(read_only=False)
+        super().__init__(read_only=False, application_name="goat-geoapi-ducklake")
         self._lazy_init_lock = threading.Lock()
 
     def _ensure_initialized(self) -> None:

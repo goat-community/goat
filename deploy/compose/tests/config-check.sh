@@ -42,6 +42,28 @@ check_common() {
   jq -e '[.services[] | .logging.options["max-size"]] | all' <<<"$json" >/dev/null || fail "service without log rotation"
   # Public URL never ends with a slash.
   jq -e '.services.web.environment.NEXTAUTH_URL | endswith("/") | not' <<<"$json" >/dev/null || fail "trailing slash in public url"
+  # DuckDB spills to disk only at its own budget, so geoapi's and processes'
+  # budgets stay under 3/4 of their memory limits: geoapi's pool shares one
+  # connection budgeted POOL_SIZE x MEMORY_LIMIT, plus its read and write
+  # connections; processes keeps three connections. Unset values are the
+  # services' code defaults.
+  jq -e '
+    def bytes: tostring | capture("^(?<n>[0-9.]+) *(?<u>[A-Za-z]*)$")
+      | (.n | tonumber) * ({"": 1, "KB": 1e3, "MB": 1e6, "GB": 1e9, "KiB": 1024, "MiB": 1048576, "GiB": 1073741824}[.u]);
+    .services as $s
+    | ($s.geoapi.environment) as $g
+    | ($s.processes.environment) as $p
+    | (($g.GEOAPI_DUCKDB_MEMORY_LIMIT // "1GB" | bytes) * (($g.GEOAPI_DUCKLAKE_POOL_SIZE // "4" | tonumber) + 2)
+        < ($s.geoapi.deploy.resources.limits.memory | bytes) * 0.75)
+    and (($p.PROCESSES_DUCKDB_MEMORY_LIMIT // "1.2GB" | bytes) * 3
+        < ($s.processes.deploy.resources.limits.memory | bytes) * 0.75)
+  ' <<<"$json" >/dev/null || fail "geoapi or processes DuckDB budgets exceed 3/4 of their memory limits"
+  # Windmill holds a bounded pool per container: unset, the server's grows to
+  # 50; workers below 3 stop at start on Windmill 1.607.
+  jq -e '.services["windmill-server"].environment.DATABASE_CONNECTIONS | tonumber | . >= 1 and . <= 20' <<<"$json" >/dev/null || fail "windmill-server without a bounded DATABASE_CONNECTIONS"
+  for w in windmill-worker-default windmill-worker-tools windmill-worker-workflows windmill-worker-print; do
+    jq -e --arg w "$w" '.services[$w].environment.DATABASE_CONNECTIONS | tonumber | . >= 3' <<<"$json" >/dev/null || fail "$w DATABASE_CONNECTIONS below 3 or unset"
+  done
 }
 
 variant=auto
@@ -55,12 +77,16 @@ jq -e '.services | has("garage") and has("keycloak")' <<<"$j" >/dev/null || fail
 # Email off by default; Keycloak gets an empty server and no login.
 jq -e '.services.core.environment.SMTP_HOST == "" and .services.keycloak.environment.GOAT_SMTP_HOST == ""' <<<"$j" >/dev/null || fail "smtp host not empty by default"
 jq -e '.services.keycloak.environment.GOAT_SMTP_AUTH == ""' <<<"$j" >/dev/null || fail "keycloak smtp auth on without a user"
+# Anyone may create an organization unless the setting says otherwise.
+jq -e '.services.core.environment.ALLOW_ORGANIZATION_CREATION == "true"' <<<"$j" >/dev/null || fail "organization creation not open by default"
 
 # Odoo connection and support tickets off by default: all four settings empty, default post action.
 jq -e '.services.core.environment | .ODOO_URL == "" and .ODOO_DB == "" and .ODOO_SUPPORT_API_KEY == "" and .ODOO_SUPPORT_TEAM_ID == ""' <<<"$j" >/dev/null || fail "odoo settings not empty by default"
 jq -e '.services.core.environment.ODOO_SUPPORT_POST_ACTION == "GOAT: post message as ticket participant"' <<<"$j" >/dev/null || fail "support post action default"
 # The secret goes to core only, never to Windmill workers.
 jq -e '[.services[] | select(.environment | has("ODOO_SUPPORT_API_KEY"))] | length == 1' <<<"$j" >/dev/null || fail "support api key outside core"
+# Token client allow-list off by default: empty for every service that verifies tokens.
+jq -e '[.services | (.core, .geoapi, .processes, .catalog) | .environment.AUTH_ALLOWED_CLIENTS] | all(. == "")' <<<"$j" >/dev/null || fail "allowed clients not empty by default"
 
 variant=support
 d2=$(make_variant --public-url https://goat.example.org --tls auto --acme-email ops@plan4better.de)
@@ -96,6 +122,12 @@ echo "NEXT_PUBLIC_SUPPORT_EMAIL=help@example.org" >> "$d/.env"
 j=$(render "$d"); check_common "$j"
 jq -e '.services.web.environment.NEXT_PUBLIC_SUPPORT_EMAIL == "help@example.org"' <<<"$j" >/dev/null || fail "support email not passed to web"
 
+variant=organization-creation
+d=$(make_variant --public-url https://goat.example.org --tls off)
+echo "ALLOW_ORGANIZATION_CREATION=false" >> "$d/.env"
+j=$(render "$d"); check_common "$j"
+jq -e '.services.core.environment.ALLOW_ORGANIZATION_CREATION == "false"' <<<"$j" >/dev/null || fail "organization creation setting not passed to core"
+
 variant=off-ip-port
 d=$(make_variant --public-url http://10.0.0.5:8080 --tls off)
 j=$(render "$d"); check_common "$j"
@@ -121,6 +153,10 @@ j=$(render "$d"); check_common "$j"
 jq -e '.services | (has("garage") or has("keycloak") or has("garage-init")) | not' <<<"$j" >/dev/null || fail "bundled services still active"
 jq -e '.services.core.environment.S3_ENDPOINT_URL == "https://s3.example.org"' <<<"$j" >/dev/null || fail "external s3"
 jq -e '.services.web.environment.NEXT_PUBLIC_KEYCLOAK_ISSUER == "https://login.example.org/realms/goat"' <<<"$j" >/dev/null || fail "external issuer"
+# A realm shared with other applications: the allow-list reaches every service that verifies tokens.
+echo "AUTH_ALLOWED_CLIENTS=goat,goat-scripts" >> "$d/.env"
+j=$(render "$d"); check_common "$j"
+jq -e '[.services | (.core, .geoapi, .processes, .catalog) | .environment.AUTH_ALLOWED_CLIENTS] | all(. == "goat,goat-scripts")' <<<"$j" >/dev/null || fail "allowed clients not passed to the APIs"
 
 variant=auth-false
 d=$(make_variant --public-url http://localhost --tls off)

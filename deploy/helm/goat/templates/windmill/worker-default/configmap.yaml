@@ -10,4 +10,7 @@ data:
   {{- range $k, $v := .Values.windmill.workers.default.config }}
   {{ $k }}: {{ $v | quote }}
   {{- end }}
+  {{- if not (include "goat.env.userSet" (dict "values" .Values.windmill.workers.default "key" "DATABASE_CONNECTIONS")) }}
+  DATABASE_CONNECTIONS: {{ .Values.windmill.workers.databaseConnections | quote }}
+  {{- end }}
 {{- end }}

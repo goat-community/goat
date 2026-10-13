@@ -19,6 +19,8 @@ _ENV = (
     "REALM_NAME",
     "GEOAPI_REALM_NAME",
     "GEOAPI_HIDDEN_FIELDS",
+    "AUTH_ALLOWED_CLIENTS",
+    "GEOAPI_AUTH_ALLOWED_CLIENTS",
 )
 
 
@@ -105,3 +107,15 @@ def test_read_authz_enforcement_is_off_unless_set(
     monkeypatch.delenv("GEOAPI_ENFORCE_READ_AUTHZ", raising=False)
     monkeypatch.delenv("ENFORCE_READ_AUTHZ", raising=False)
     assert Settings().ENFORCE_READ_AUTHZ is False
+
+
+def test_allowed_clients_default_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AUTH", "false")
+    assert Settings().AUTH_ALLOWED_CLIENTS == ""
+
+
+def test_allowed_clients_reads_the_bare_name(monkeypatch: pytest.MonkeyPatch) -> None:
+    """One name for every service: the GEOAPI_ prefix does not apply."""
+    monkeypatch.setenv("AUTH", "false")
+    monkeypatch.setenv("AUTH_ALLOWED_CLIENTS", "goat-web,goat-scripts")
+    assert Settings().AUTH_ALLOWED_CLIENTS == "goat-web,goat-scripts"

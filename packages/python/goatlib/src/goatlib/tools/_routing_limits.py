@@ -10,6 +10,7 @@ and `max_value_from`; `validate_budget` enforces the same bounds server-side for
 callers that bypass the UI.
 """
 
+import math
 from typing import Any
 
 # The access/egress leg cap is owned by the analysis layer — that is what
@@ -343,3 +344,50 @@ def resolve_budget_input(
     if not fill_default:
         return data
     return {**data, "max_cost": resolve_budget_default(mode, cost)}
+
+
+# Maximum distance between the farthest corners of a routed request's points,
+# per routing mode, in metres.
+MAX_EXTENT_M: dict[str, int] = {
+    "walking": 100_000,
+    "bicycle": 100_000,
+    "pedelec": 100_000,
+    "car": 300_000,
+    "pt": 300_000,
+}
+
+
+def validate_extent(
+    routing_mode: Any,
+    origin_lats: list[float],
+    origin_lons: list[float],
+    dest_lats: list[float],
+    dest_lons: list[float],
+    label: str = "Origin-destination extent",
+) -> None:
+    """Reject a request whose origins and destinations lie further apart than
+    the mode can route. Raises ValueError."""
+    # The farthest O-D pair is bounded by the distance between the
+    # farthest corners of the origin and destination bounding boxes.
+    earth_radius_m = 6371000.0
+    o_min_lat, o_max_lat = min(origin_lats), max(origin_lats)
+    o_min_lon, o_max_lon = min(origin_lons), max(origin_lons)
+    d_min_lat, d_max_lat = min(dest_lats), max(dest_lats)
+    d_min_lon, d_max_lon = min(dest_lons), max(dest_lons)
+
+    # Max lat/lon span between the two bbox extremes
+    lat_span = max(abs(o_max_lat - d_min_lat), abs(d_max_lat - o_min_lat))
+    lon_span = max(abs(o_max_lon - d_min_lon), abs(d_max_lon - o_min_lon))
+    avg_lat = math.radians((o_min_lat + o_max_lat + d_min_lat + d_max_lat) / 4.0)
+    dy = math.radians(lat_span) * earth_radius_m
+    dx = math.radians(lon_span) * earth_radius_m * math.cos(avg_lat)
+    extent_m = math.sqrt(dx * dx + dy * dy)
+
+    max_reach_m = MAX_EXTENT_M.get(_val(routing_mode), 300_000)
+    if extent_m > max_reach_m:
+        raise ValueError(
+            f"{label} ({extent_m / 1000:.0f} km) exceeds "
+            f"the maximum reachable distance for {_val(routing_mode)} "
+            f"({max_reach_m / 1000:.0f} km). "
+            f"Reduce the area or choose a different mode."
+        )

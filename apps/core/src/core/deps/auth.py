@@ -4,18 +4,14 @@ from typing import Any, Dict
 from core.core.config import settings
 from core.endpoints.deps import get_current_token_claims, get_db
 from fastapi import Depends, HTTPException, Request, status
-from goatlib.auth import JOSEError, KeycloakAuth
+from goatlib.auth import JOSEError, create_keycloak_auth
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
 # Initialize Keycloak auth using goatlib
-_keycloak_auth = KeycloakAuth(
-    keycloak_url=settings.KEYCLOAK_SERVER_URL,
-    realm=settings.REALM_NAME,
-    verify_signature=settings.AUTH,
-)
+_keycloak_auth = create_keycloak_auth(settings)
 
 ISSUER_URL = _keycloak_auth.issuer_url
 
@@ -67,6 +63,12 @@ def token_is_superuser(user_token: Dict[str, Any]) -> bool:
     no dependency injection, for handlers that branch on the role instead
     of refusing the request."""
     return "superuser" in (user_token.get("realm_access", {}).get("roles") or [])
+
+
+def can_create_organization(user_token: Dict[str, Any]) -> bool:
+    """Whether the caller may set up an organization: anyone while
+    ALLOW_ORGANIZATION_CREATION is on, only superusers while it is off."""
+    return settings.ALLOW_ORGANIZATION_CREATION or token_is_superuser(user_token)
 
 
 def require_superuser(user_token: Dict[str, Any] = Depends(user_token)) -> None:

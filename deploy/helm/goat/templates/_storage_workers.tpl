@@ -69,7 +69,7 @@ values block).
 {{- define "goat.worker.appEnv" -}}
 {{- $r := .root -}}
 {{- $v := .values -}}
-{{- $plain := list (list "POSTGRES_SERVER" (include "goat.postgresql.host" $r)) (list "POSTGRES_PORT" (include "goat.postgresql.port" $r)) (list "POSTGRES_DB" (include "goat.postgresql.database" $r)) (list "DUCKLAKE_POSTGRES_SERVER" (include "goat.postgresql.host" $r)) (list "DUCKLAKE_DATA_DIR" $r.Values.ducklakeBootstrap.dataDir) (list "DUCKLAKE_CATALOG_SCHEMA" $r.Values.ducklakeBootstrap.catalogSchema) -}}
+{{- $plain := list (list "POSTGRES_SERVER" (include "goat.postgresql.host" $r)) (list "POSTGRES_PORT" (include "goat.postgresql.port" $r)) (list "POSTGRES_DB" (include "goat.postgresql.database" $r)) (list "POSTGRES_TRANSACTION_POOLER" (include "goat.postgresql.transactionPooler" $r)) (list "DUCKLAKE_POSTGRES_SERVER" (include "goat.postgresql.ducklakeHost" $r)) (list "DUCKLAKE_POSTGRES_PORT" (include "goat.postgresql.ducklakePort" $r)) (list "DUCKLAKE_DATA_DIR" $r.Values.ducklakeBootstrap.dataDir) (list "DUCKLAKE_CATALOG_SCHEMA" $r.Values.ducklakeBootstrap.catalogSchema) -}}
 {{- if $r.Values.web.enabled -}}
 {{- $plain = append $plain (list "PRINT_BASE_URL" (printf "http://%s" (include "goat.serviceFullname" (dict "context" $r "component" "web")))) -}}
 {{- end -}}
@@ -128,7 +128,7 @@ rendered goat.worker.appEnv).
 {{- if include "goat.caBundle.enabled" .root -}}
 {{- $names = append $names "GOAT_CA_BUNDLE" -}}
 {{- end -}}
-{{- $windmill := list "MODE" "WORKER_GROUP" "WORKER_TAGS" "WHITELIST_ENVS" "DISABLE_NSJAIL" "JOB_DEFAULT_TIMEOUT" "DATABASE_URL" "_WMILL_DB_USER" "_WMILL_DB_PASSWORD" -}}
+{{- $windmill := list "MODE" "WORKER_GROUP" "WORKER_TAGS" "WHITELIST_ENVS" "DISABLE_NSJAIL" "JOB_DEFAULT_TIMEOUT" "DATABASE_URL" "DATABASE_CONNECTIONS" "_WMILL_DB_USER" "_WMILL_DB_PASSWORD" -}}
 {{- $out := list -}}
 {{- range ($names | uniq | sortAlpha) -}}
 {{- if not (has . $windmill) -}}{{- $out = append $out . -}}{{- end -}}

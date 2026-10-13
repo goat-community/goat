@@ -50,7 +50,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import duckdb
-from goatlib.storage.ducklake import configure_baked_extensions
+from goatlib.storage.ducklake import load_extensions
 
 from catalog.config import CatalogSettings
 from catalog.services.registry import QueryableRegistry, build_registry
@@ -253,25 +253,11 @@ class CatalogStore:
         return (version_mtime, version_text, mtime, size)
 
     def _load_extensions(self, con: duckdb.DuckDBPyConnection) -> None:
-        """Load the ``spatial`` extension this store needs.
-
-        ``configure_baked_extensions`` (shared with the other services --
-        see ``goatlib.storage.ducklake``) points the connection at the
-        image's baked ``DUCKDB_EXTENSION_DIRECTORY`` when it's set: in that
-        case the extension is already on local disk (see the Dockerfile's
-        bake step) and only needs ``LOAD``, never ``INSTALL`` -- an ``INSTALL``
-        here would otherwise reach out to extensions.duckdb.org on every
-        single store build (every process start AND every catalog reload),
-        defeating the whole point of baking them in. Unset (local dev),
-        this falls back to the normal download-on-INSTALL path.
+        """Load the ``spatial`` extension this store needs, from the image's
+        baked directory when set (``goatlib.storage.ducklake.load_extensions``).
         """
         try:
-            baked = configure_baked_extensions(con)
-            if baked:
-                con.execute("LOAD spatial;")
-            else:
-                con.execute("INSTALL spatial;")
-                con.execute("LOAD spatial;")
+            load_extensions(con, "spatial")
         except duckdb.Error as exc:
             raise RuntimeError(
                 "Failed to install/load the DuckDB 'spatial' extension. "

@@ -71,6 +71,12 @@ class CatalogSettings(BaseSettings):
         default="p4b",
         validation_alias=AliasChoices("CATALOG_REALM_NAME", "REALM_NAME"),
     )
+    # Comma-separated Keycloak client IDs whose tokens are accepted (the
+    # token's `azp`); empty accepts every client of the realm. Like `auth`,
+    # this reads the bare repo-wide name.
+    auth_allowed_clients: str = Field(
+        default="", validation_alias="AUTH_ALLOWED_CLIENTS"
+    )
 
     # CORS origins for the browser-facing API (mirrors geoapi/processes'
     # `CORS_ORIGINS`, api spec/I2): bare env var by default like

@@ -22,6 +22,32 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# The fields Windmill's schedule update writes (EditSchedule, as of Windmill
+# v1.751). It replaces each one it does not receive, so an update sends them all
+# back. Check the list when upgrading Windmill.
+SCHEDULE_UPDATE_FIELDS = (
+    "args",
+    "summary",
+    "description",
+    "on_failure",
+    "on_failure_times",
+    "on_failure_exact",
+    "on_failure_extra_args",
+    "on_recovery",
+    "on_recovery_times",
+    "on_recovery_extra_args",
+    "on_success",
+    "on_success_extra_args",
+    "ws_error_handler_muted",
+    "retry",
+    "no_flow_overlap",
+    "tag",
+    "paused_until",
+    "cron_version",
+    "dynamic_skip",
+    "labels",
+)
+
 
 def generate_task_script(task_def: TaskDefinition) -> str:
     """Generate a Windmill script for a task.
@@ -130,20 +156,38 @@ class WindmillTaskSyncer:
             )
 
             if check_response.status_code == 200:
-                # Schedule exists, update it. `enabled` is deliberately not
-                # sent: whether a schedule runs is decided in the Windmill UI,
-                # and a sync must not switch one back on — or off — behind
-                # whoever set it.
+                # Schedule exists: update its cron and nothing else. Whether
+                # it runs, the arguments it runs with (a data mirror, a
+                # bounding box), a pause, error handlers and retries are set
+                # in the Windmill UI, and a sync must not reset them behind
+                # whoever set them. The update never touches `enabled`.
+                existing = check_response.json()
+                if (
+                    existing.get("schedule") == task_def.schedule
+                    and existing.get("timezone") == "UTC"
+                ):
+                    # Unchanged. An update would also clear and re-queue the
+                    # next run.
+                    return {"path": schedule_path, "schedule": task_def.schedule}
+                update = {
+                    field: existing[field]
+                    for field in SCHEDULE_UPDATE_FIELDS
+                    if field in existing
+                }
+                update["args"] = existing.get("args") or {}
+                update["schedule"] = task_def.schedule
+                update["timezone"] = "UTC"
+                # The update otherwise runs the schedule as whoever syncs it.
+                if existing.get("permissioned_as"):
+                    update["permissioned_as"] = existing["permissioned_as"]
+                    update["preserve_permissioned_as"] = True
                 response = self.client.post(
                     f"{self.base_url}/api/w/{self.workspace}/schedules/update/{schedule_path}",
-                    json={
-                        "schedule": task_def.schedule,
-                        "script_path": task_def.windmill_path,
-                        "is_flow": False,
-                        "args": {},
-                        "timezone": "UTC",
-                    },
+                    json=update,
                 )
+                response.raise_for_status()
+                if existing.get("permissioned_as"):
+                    self._warn_if_run_as_changed(schedule_path, existing)
             else:
                 # Create new schedule
                 response = self.client.post(
@@ -155,6 +199,26 @@ class WindmillTaskSyncer:
         except Exception as e:
             logger.warning(f"Could not create schedule for {task_def.name}: {e}")
             return None
+
+    def _warn_if_run_as_changed(
+        self: Self, schedule_path: str, existing: dict[str, Any]
+    ) -> None:
+        """Windmill keeps a schedule's run-as user on update only for an admin
+        token; otherwise the schedule now runs as the syncing user."""
+        after = self.client.get(
+            f"{self.base_url}/api/w/{self.workspace}/schedules/get/{schedule_path}",
+        )
+        if after.status_code != 200:
+            return
+        now = after.json().get("permissioned_as")
+        if now != existing["permissioned_as"]:
+            logger.warning(
+                "Schedule %s now runs as %s instead of %s: the sync's token may "
+                "not keep a schedule's user (it needs an admin)",
+                schedule_path,
+                now,
+                existing["permissioned_as"],
+            )
 
     def sync_task(
         self: Self, task_def: TaskDefinition, dry_run: bool = False

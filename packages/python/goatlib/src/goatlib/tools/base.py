@@ -34,11 +34,15 @@ Example:
 """
 
 import asyncio
+import functools
 import logging
 import os
+import sys
 import tempfile
 import uuid as uuid_module
 from abc import ABC, abstractmethod
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Generic, Self, TypeVar
@@ -48,6 +52,12 @@ import duckdb
 
 from goatlib.bundles.artifacts.storage import resolve_artifact
 from goatlib.config.io import DEFAULT_MAX_UPLOAD_BYTES
+from goatlib.config.postgres import (
+    TOOLS_APPLICATION_NAME,
+    asyncpg_connect_args,
+    ducklake_postgres_endpoint,
+    transaction_pooler_enabled,
+)
 from goatlib.io.bbox_columns import star_excluding, stray_bbox_columns
 from goatlib.io.config import (
     PARQUET_COMPRESSION,
@@ -56,9 +66,15 @@ from goatlib.io.config import (
 )
 from goatlib.models.bundle import BundleArtifactState, artifact_state
 from goatlib.models.io import DatasetMetadata
+from goatlib.storage.ducklake import (
+    cap_catalog_connections,
+    fetch_one,
+    uri_with_application_name,
+)
 from goatlib.storage.s3_config import apply_duckdb_s3_settings, boto_client_kwargs
 from goatlib.tools.db import ToolDatabaseService
 from goatlib.tools.schemas import ToolInputBase, ToolOutputBase
+from goatlib.utils.container_memory import JOB_DUCKLAKE_MEMORY_SHARE, set_memory_share
 from goatlib.utils.layer import (
     layer_id_to_table_name,
     layer_schema_name,
@@ -68,7 +84,56 @@ from goatlib.utils.layer import (
 
 logger = logging.getLogger(__name__)
 
+# Catalog connections a tool run's DuckLake attach keeps between reads.
+TOOLS_CATALOG_CONNECTIONS = 3
+
 TParams = TypeVar("TParams", bound=ToolInputBase)
+TRun = TypeVar("TRun", bound=Callable[..., Any])
+
+#: Failures after which a write the run had sent may still have committed:
+#: the connection went away or the wait was cut short before the reply came.
+#: A server-side error, by contrast, means the statement did not commit.
+_OUTCOME_UNKNOWN = (
+    asyncpg.PostgresConnectionError,
+    asyncpg.InterfaceError,
+    ConnectionError,
+    TimeoutError,
+    asyncio.CancelledError,
+    KeyboardInterrupt,
+    SystemExit,
+)
+
+
+def _write_outcome_unknown(error: BaseException | None) -> bool:
+    """True when `error`, or an error it came from, is in `_OUTCOME_UNKNOWN`."""
+    seen: set[int] = set()
+    while error is not None and id(error) not in seen:
+        if isinstance(error, _OUTCOME_UNKNOWN):
+            return True
+        seen.add(id(error))
+        error = error.__cause__ or error.__context__
+    return False
+
+
+def drops_unrecorded_tables(run: TRun) -> TRun:
+    """Make a runner's `run` drop, when it fails, the tables it created for
+    layers it never recorded (`SimpleToolRunner.drop_unrecorded_tables`).
+
+    Catches only what reaches Python: an error, or an interrupt. A cancelled
+    Windmill job is killed outright, without a SIGTERM first, so nothing here
+    runs for it; the `ducklake_orphan_tables` task finds those tables.
+    """
+
+    @functools.wraps(run)
+    def guarded(self: "SimpleToolRunner", *args: Any, **kwargs: Any) -> Any:
+        try:
+            return run(self, *args, **kwargs)
+        except BaseException:
+            self.drop_unrecorded_tables()
+            raise
+
+    guarded.drops_unrecorded_tables = True  # type: ignore[attr-defined]
+    return guarded  # type: ignore[return-value]
 
 
 def _catalog_layer_parquet(layer_id: str) -> "Path | None":
@@ -114,6 +179,10 @@ class ToolSettings:
     ducklake_postgres_uri: str
     ducklake_catalog_schema: str
     ducklake_data_dir: str
+
+    # postgres_server is a pooler in transaction mode
+    # (POSTGRES_TRANSACTION_POOLER; see goatlib.config.postgres).
+    postgres_transaction_pooler: bool = False
 
     # Tiles storage (separate from source data - cache/derived data)
     tiles_data_dir: str = "/app/data/tiles"
@@ -199,6 +268,23 @@ class ToolSettings:
             ),
         )
 
+    def postgres_connect_args(
+        self: Self, application_name: str = TOOLS_APPLICATION_NAME
+    ) -> dict[str, Any]:
+        """Keyword arguments for asyncpg.connect and asyncpg.create_pool.
+
+        `application_name` is what operators see for the session in
+        pg_stat_activity.
+        """
+        return {
+            "host": self.postgres_server,
+            "port": int(self.postgres_port),
+            "user": self.postgres_user,
+            "password": self.postgres_password,
+            "database": self.postgres_db,
+            **asyncpg_connect_args(application_name, self.postgres_transaction_pooler),
+        }
+
     @classmethod
     def _get_secret(cls: type[Self], name: str, default: str = "") -> str:
         """Get a secret value from Windmill or environment variable.
@@ -241,15 +327,20 @@ class ToolSettings:
             f"postgresql://{pg_user}:{pg_password}@{pg_server}:{pg_port}/{pg_db}"
         )
 
-        # DuckLake attaches hold idle-in-transaction sessions for the whole
-        # job, which pins transaction-pooler slots for nothing. When
-        # DUCKLAKE_POSTGRES_SERVER is set they connect straight to that host
-        # (e.g. the CNPG primary); otherwise behavior is unchanged.
-        ducklake_pg_server = cls._get_secret("DUCKLAKE_POSTGRES_SERVER", "")
-        if ducklake_pg_server:
+        # DuckLake attaches keep their catalog connections for the whole job
+        # and are not verified behind a transaction pooler. When
+        # DUCKLAKE_POSTGRES_SERVER or DUCKLAKE_POSTGRES_PORT is set they connect
+        # straight to that endpoint (e.g. the CNPG primary); otherwise
+        # behavior is unchanged.
+        ducklake_server = cls._get_secret("DUCKLAKE_POSTGRES_SERVER", "")
+        ducklake_port = cls._get_secret("DUCKLAKE_POSTGRES_PORT", "")
+        if ducklake_server or ducklake_port:
+            ducklake_host, ducklake_port = ducklake_postgres_endpoint(
+                pg_server, pg_port, ducklake_server, ducklake_port
+            )
             ducklake_uri = (
                 f"postgresql://{pg_user}:{pg_password}"
-                f"@{ducklake_pg_server}:{pg_port}/{pg_db}"
+                f"@{ducklake_host}:{ducklake_port}/{pg_db}"
             )
         else:
             ducklake_uri = cls._get_secret("POSTGRES_DATABASE_URI", default_uri)
@@ -260,6 +351,7 @@ class ToolSettings:
             postgres_user=pg_user,
             postgres_password=pg_password,
             postgres_db=pg_db,
+            postgres_transaction_pooler=transaction_pooler_enabled(),
             ducklake_postgres_uri=ducklake_uri,
             ducklake_catalog_schema=cls._get_secret(
                 "DUCKLAKE_CATALOG_SCHEMA", "ducklake"
@@ -331,6 +423,9 @@ class SimpleToolRunner:
         #: layer_id -> parquet path of every catalog view resolved so far
         self._catalog_views: dict[str, Path] = {}
         self._s3_client: Any | None = None
+        #: layer_id -> DuckLake table this run created for a new layer
+        #: (`_track_new_table`); what a failed run may drop again.
+        self._new_layer_tables: dict[str, str] = {}
 
     @staticmethod
     def _configure_logging_for_windmill() -> None:
@@ -369,6 +464,8 @@ class SimpleToolRunner:
         for ext in ["spatial", "httpfs", "postgres", "ducklake"]:
             con.execute(f"INSTALL {ext}; LOAD {ext};")
 
+        set_memory_share(con, JOB_DUCKLAKE_MEMORY_SHARE)
+
         if self.settings.s3_endpoint_url:
             apply_duckdb_s3_settings(
                 con,
@@ -381,8 +478,15 @@ class SimpleToolRunner:
             )
 
         storage_path = self.settings.ducklake_data_dir
+        catalog_uri = uri_with_application_name(
+            self.settings.ducklake_postgres_uri, TOOLS_APPLICATION_NAME
+        )
+        # Tools run DuckDB on every core of the node. A job reads few tables, so
+        # reconnecting for the odd parallel catalog read beats holding a
+        # node's worth of catalog connections for the whole job.
+        cap_catalog_connections(con, TOOLS_CATALOG_CONNECTIONS)
         con.execute(f"""
-            ATTACH 'ducklake:postgres:{self.settings.ducklake_postgres_uri}' AS lake (
+            ATTACH 'ducklake:postgres:{catalog_uri}' AS lake (
                 DATA_PATH '{storage_path}',
                 METADATA_SCHEMA '{self.settings.ducklake_catalog_schema}',
                 OVERRIDE_DATA_PATH true
@@ -655,7 +759,9 @@ class SimpleToolRunner:
                 self.duckdb_con,
                 layer_id,
                 self.settings.ducklake_catalog_schema,
-                self.settings.ducklake_postgres_uri,
+                uri_with_application_name(
+                    self.settings.ducklake_postgres_uri, TOOLS_APPLICATION_NAME
+                ),
             )
         except Exception as e:
             logger.warning(
@@ -702,11 +808,7 @@ class SimpleToolRunner:
             raise RuntimeError("Settings not initialized")
 
         return await asyncpg.create_pool(
-            host=self.settings.postgres_server,
-            port=self.settings.postgres_port,
-            user=self.settings.postgres_user,
-            password=self.settings.postgres_password,
-            database=self.settings.postgres_db,
+            **self.settings.postgres_connect_args(),
             min_size=1,
             max_size=5,
         )
@@ -752,6 +854,131 @@ class SimpleToolRunner:
         except Exception as e:
             logger.warning("Failed to look up owner for layer %s: %s", layer_id, e)
             return None
+
+    def _track_new_table(self: Self, layer_id: str, table_path: str) -> None:
+        """Remember a DuckLake table this run created for a new layer.
+
+        Only for a table that is the run's own: right after its CREATE TABLE
+        succeeded, or named after a layer id the run generated itself. An
+        existing layer's table is never tracked, so a failed update or
+        overwrite cannot drop it.
+        """
+        self._new_layer_tables[layer_id] = table_path
+
+    def drop_unrecorded_tables(self: Self) -> None:
+        """Drop the tables this run created for layers that have no record.
+
+        A run writes a new layer's table before it saves the layer's record;
+        failing in between used to leave the table in DuckLake with nothing
+        pointing at it. Never raises, so it cannot hide the failure that
+        called it.
+        """
+        self._drop_new_tables(list(self._new_layer_tables))
+
+    def _drop_new_tables(self: Self, layer_ids: list[str]) -> None:
+        """Drop the tracked tables of `layer_ids` that no layer row points at.
+
+        Postgres decides, not the step the run failed at: a row committed
+        before the failure keeps its table, trashed rows included. Every table
+        stays, for the `ducklake_orphan_tables` task to report, when Postgres
+        cannot be asked, or when the failure being handled (`sys.exc_info()`)
+        leaves open whether a record write committed: a commit can still turn
+        visible after its connection was lost, for instance while it waits
+        for a synchronous replica.
+        """
+        tracked = self._new_layer_tables
+        tables = {i: tracked[i] for i in layer_ids if i in tracked}
+        if not tables:
+            return
+        if _write_outcome_unknown(sys.exc_info()[1]):
+            logger.warning(
+                "The run failed on a lost connection or an interrupt, so a "
+                "record of layers %s may yet appear; keeping tables %s",
+                sorted(tables),
+                sorted(tables.values()),
+            )
+            for layer_id in tables:
+                tracked.pop(layer_id, None)
+            return
+        try:
+            recorded = self._recorded_layer_ids(list(tables))
+        except Exception:  # noqa: BLE001 - the run's own failure is what matters
+            logger.exception(
+                "Could not check whether layers %s have records; keeping their "
+                "tables %s",
+                sorted(tables),
+                sorted(tables.values()),
+            )
+            # Asked once: an outer guard of the same run would only wait on
+            # the same unreachable server again.
+            for layer_id in tables:
+                tracked.pop(layer_id, None)
+            return
+        for layer_id, table in tables.items():
+            if layer_id in recorded:
+                # The record points at the table: it is the layer's data now.
+                tracked.pop(layer_id, None)
+                continue
+            try:
+                self._drop_table_with_retry(table)
+            except Exception:  # noqa: BLE001
+                logger.exception("Could not drop %s of a failed run", table)
+                continue
+            tracked.pop(layer_id, None)
+            logger.info("Dropped %s: its run failed before the layer was saved", table)
+            self._delete_new_pmtiles(layer_id)
+
+    def _drop_table_with_retry(self: Self, table: str) -> None:
+        """DROP on the run's connection, or on a fresh one when that fails:
+        the run's failure may have been the connection itself."""
+        try:
+            self.duckdb_con.execute(f"DROP TABLE IF EXISTS {table}")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                "Dropping %s failed, retrying on a new connection: %s", table, e
+            )
+            self.recycle_duckdb_connection()
+            self.duckdb_con.execute(f"DROP TABLE IF EXISTS {table}")
+
+    def _delete_new_pmtiles(self: Self, layer_id: str) -> None:
+        """Remove the tiles a failed run built for a layer it never recorded."""
+        try:
+            from goatlib.io.pmtiles import PMTilesGenerator
+
+            assert self.settings is not None
+            PMTilesGenerator(
+                tiles_data_dir=self.settings.tiles_data_dir
+            ).delete_pmtiles(layer_id)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Could not delete the PMTiles of layer %s: %s", layer_id, e)
+
+    def _recorded_layer_ids(self: Self, layer_ids: list[str]) -> set[str]:
+        """The ids among `layer_ids` that a layer row has, trashed or not."""
+        if self.settings is None:
+            raise RuntimeError("Settings not initialized")
+        settings = self.settings
+
+        async def fetch() -> set[str]:
+            # Short: when Postgres is what failed, the run should not hang on
+            # it again; the tables then stay for the orphan-tables task.
+            conn = await asyncpg.connect(**settings.postgres_connect_args(), timeout=15)
+            try:
+                rows = await conn.fetch(
+                    f"SELECT id FROM {settings.customer_schema}.layer "  # noqa: S608
+                    "WHERE id = ANY($1::uuid[])",
+                    [uuid_module.UUID(i) for i in layer_ids],
+                    timeout=15,
+                )
+            finally:
+                await conn.close(timeout=5)
+            return {str(row["id"]) for row in rows}
+
+        # A thread with its own event loop: the failure may surface inside a
+        # running loop (layer_copy's copy is async), where no second loop can
+        # run.
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            found = pool.submit(lambda: asyncio.run(fetch())).result()
+        return {i for i in layer_ids if str(uuid_module.UUID(i)) in found}
 
     def cleanup(self: Self) -> None:
         """Clean up resources."""
@@ -1221,9 +1448,9 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
         # and metadata-catalog failures bubble up unchanged so they're not
         # misdiagnosed as missing layers.
         try:
-            check_result = self.duckdb_con.execute(
-                f"SELECT COUNT(*) FROM {table_name} LIMIT 1"
-            ).fetchone()
+            check_result = fetch_one(
+                self.duckdb_con, f"SELECT COUNT(*) FROM {table_name} LIMIT 1"
+            )
             logger.debug(f"Table {table_name} exists with data check: {check_result}")
         except duckdb.CatalogException as e:
             raise ValueError(
@@ -1385,6 +1612,7 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
             )
             return None
 
+    @drops_unrecorded_tables
     def run(self: Self, params: TParams) -> dict[str, Any]:
         """Main entry point - runs the full tool workflow.
 
@@ -1693,6 +1921,7 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
                     logger.info(
                         "Created DuckLake table: %s from %s", table_name, parquet_path
                     )
+                self._track_new_table(layer_id, table_name)
 
                 # Get table info
                 table_info = self._get_table_info(con, table_name)
@@ -1740,7 +1969,7 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
         columns = {row[0]: row[1] for row in cols}
 
         # Get row count
-        count_result = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()
+        count_result = fetch_one(con, f"SELECT COUNT(*) FROM {table_name}")
         feature_count = count_result[0] if count_result else 0
 
         # Detect geometry column
@@ -1756,24 +1985,30 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
 
         if geom_col:
             # Get geometry type
-            type_result = con.execute(f"""
+            type_result = fetch_one(
+                con,
+                f"""
                 SELECT DISTINCT ST_GeometryType({geom_col})
                 FROM {table_name}
                 WHERE {geom_col} IS NOT NULL
                 LIMIT 1
-            """).fetchone()
+            """,
+            )
             if type_result:
                 geometry_type = type_result[0]
 
             # Get extent using ST_Extent_Agg (the correct aggregate function in DuckDB spatial)
-            extent_result = con.execute(f"""
+            extent_result = fetch_one(
+                con,
+                f"""
                 SELECT
                     ST_XMin(ST_Extent_Agg({geom_col})),
                     ST_YMin(ST_Extent_Agg({geom_col})),
                     ST_XMax(ST_Extent_Agg({geom_col})),
                     ST_YMax(ST_Extent_Agg({geom_col}))
                 FROM {table_name}
-            """).fetchone()
+            """,
+            )
             if extent_result and all(v is not None for v in extent_result):
                 extent = list(extent_result)
                 extent_wkt = (
@@ -1810,7 +2045,9 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
             Snapshot ID if found, None otherwise
         """
         try:
-            result = self.duckdb_con.execute(f"""
+            result = fetch_one(
+                self.duckdb_con,
+                f"""
                 SELECT t.begin_snapshot
                 FROM __ducklake_metadata_lake.ducklake.ducklake_table t
                 JOIN __ducklake_metadata_lake.ducklake.ducklake_schema s
@@ -1818,7 +2055,8 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
                 WHERE s.schema_name = '{schema_name}'
                 AND t.table_name = '{table_name}'
                 AND t.end_snapshot IS NULL
-            """).fetchone()
+            """,
+            )
 
             if result:
                 return result[0]
@@ -1925,11 +2163,7 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
             return  # Already initialized
 
         self._db_pool = await asyncpg.create_pool(
-            host=self.settings.postgres_server,
-            port=self.settings.postgres_port,
-            user=self.settings.postgres_user,
-            password=self.settings.postgres_password,
-            database=self.settings.postgres_db,
+            **self.settings.postgres_connect_args(),
             min_size=1,
             max_size=5,
         )

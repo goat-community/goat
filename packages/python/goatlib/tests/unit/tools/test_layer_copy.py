@@ -184,14 +184,40 @@ class TestCopyTable:
         table = runner.get_layer_table_path("33333333-3333-3333-3333-333333333333")
         assert list(_columns(con, table)) == ["name", "units", "geometry"]
 
-    def test_a_failed_copy_can_be_dropped(self, con: Any) -> None:
-        _, table = _copy(con, copy_content=True)
-        runner = _runner(con)
-        runner._drop_table("11111111-1111-1111-1111-111111111111")
-        assert con.execute(
+    def _copy_tables(self, con: Any) -> int:
+        return con.execute(
             "SELECT COUNT(*) FROM information_schema.tables "
             "WHERE table_catalog = 'lake' AND table_name = 't_11111111111111111111111111111111'"
-        ).fetchone() == (0,)
+        ).fetchone()[0]
+
+    def test_a_failed_copy_can_be_dropped(self, con: Any) -> None:
+        layer_id = "11111111-1111-1111-1111-111111111111"
+        _, table = _copy(con, copy_content=True, layer_id=layer_id)
+        runner = _runner(con)
+        runner._track_new_table(layer_id, table)
+        runner._recorded_layer_ids = lambda ids: set()
+        runner._drop_table(layer_id)
+        assert self._copy_tables(con) == 0
+
+    def test_a_copy_whose_row_was_committed_is_kept(self, con: Any) -> None:
+        """The commit went through but its reply was lost: the row points at
+        the table, so dropping it would leave the entries on a layer without
+        data."""
+        layer_id = "11111111-1111-1111-1111-111111111111"
+        _, table = _copy(con, copy_content=True, layer_id=layer_id)
+        runner = _runner(con)
+        runner._track_new_table(layer_id, table)
+        runner._recorded_layer_ids = lambda ids: set(ids)
+        runner._drop_table(layer_id)
+        assert self._copy_tables(con) == 1
+
+    def test_only_the_runs_own_table_is_dropped(self, con: Any) -> None:
+        layer_id = "11111111-1111-1111-1111-111111111111"
+        _copy(con, copy_content=True, layer_id=layer_id)
+        runner = _runner(con)
+        runner._recorded_layer_ids = lambda ids: set()
+        runner._drop_table(layer_id)
+        assert self._copy_tables(con) == 1
 
 
 class TestHelpers:

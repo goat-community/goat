@@ -275,15 +275,18 @@ def resolve_layer_schema(
         The schema name, or None when the catalog has no such table — which
         is the normal answer for a layer whose table has not been created yet.
     """
+    from goatlib.storage.ducklake import fetch_one
+
     con.execute(f"ATTACH IF NOT EXISTS 'postgres:{postgres_uri}' AS pgmeta (READ_ONLY)")
-    row = con.execute(
+    row = fetch_one(
+        con,
         f"SELECT s.schema_name "
         f"FROM pgmeta.{catalog_schema}.ducklake_table t "
         f"JOIN pgmeta.{catalog_schema}.ducklake_schema s "
         f"ON s.schema_id = t.schema_id AND s.end_snapshot IS NULL "
         f"WHERE t.table_name = ? AND t.end_snapshot IS NULL",
         [layer_id_to_table_name(layer_id)],
-    ).fetchone()
+    )
     return row[0] if row else None
 
 
@@ -338,6 +341,13 @@ def get_schema_for_layer(
         f"WHERE t.table_name = ? AND t.end_snapshot IS NULL"
     )
 
+    from goatlib.storage.ducklake import uri_with_application_name
+
+    pg_uri = ducklake_manager.postgres_uri
+    application_name = getattr(ducklake_manager, "application_name", None)
+    if application_name:
+        pg_uri = uri_with_application_name(pg_uri, application_name)
+
     last_error = None
     result = None
 
@@ -345,9 +355,7 @@ def get_schema_for_layer(
         try:
             with ducklake_manager.connection() as con:
                 con.execute(
-                    "ATTACH IF NOT EXISTS "
-                    f"'postgres:{ducklake_manager.postgres_uri}' "
-                    "AS pgmeta (READ_ONLY)"
+                    f"ATTACH IF NOT EXISTS 'postgres:{pg_uri}' AS pgmeta (READ_ONLY)"
                 )
                 result = con.execute(query, [table_name]).fetchone()
             break

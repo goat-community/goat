@@ -69,6 +69,25 @@ global:
     # default) leaves account creation to the realm's own registration page.
     provisionInvitedUsers: false
 
+    # Who may create an organization (ALLOW_ORGANIZATION_CREATION). true:
+    # anyone who signs in without one. false: only accounts with the Keycloak
+    # realm role `superuser`; everyone else waits on a page until they are
+    # invited. Set up your organization, or give an account that role, before
+    # switching it off.
+    allowOrganizationCreation: true
+
+    # Clients whose tokens core, geoapi, processes and catalog accept
+    # (AUTH_ALLOWED_CLIENTS), matched against the token's `azp`: the client
+    # Keycloak issued it to. In a realm shared with other applications, any
+    # client of the realm can otherwise get a token GOAT's APIs accept. The
+    # list must include GOAT's own client (the Secret's client-id), or core
+    # refuses to start: the web app signs users in with it, and the print
+    # worker and the services pass those tokens on. It checks the client, not
+    # the user: a group restriction on GOAT's client must cover every flow
+    # the client allows. Empty (the default) accepts every client. A key set
+    # in a service's `config` or `extraEnv` wins for that service.
+    allowedClients: []             # e.g. [goat-web]
+
   # ── Company CA ───────────────────────────────────────────────────────────
   # A private CA certificate (PEM) the services trust in addition to the
   # public CAs: core for the SMTP relay (GOAT_CA_BUNDLE), web for Keycloak
@@ -276,7 +295,12 @@ core:
     waitForDbSeconds: 300
     resources: {}
 
-  resources: {}                    # request/limit; empty = no enforcement
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
 
   service:
     type: ClusterIP
@@ -399,7 +423,12 @@ web:
     # NEXTAUTH_URL is the public URL of the web frontend (e.g. https://goat.civitas.test).
     # When set, overrides the placeholder in web.config.NEXTAUTH_URL.
     publicUrl: ""
-  resources: {}
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
   service:
     type: ClusterIP
     port: 80
@@ -465,6 +494,14 @@ geoapi:
     # Read-authorization gate for tile/feature/metadata endpoints. Shadow mode
     # (false) only logs would-be denials; turn on once that log is quiet.
     ENFORCE_READ_AUTHZ: "false"
+    # DuckDB memory: the tile pool's shared connection gets POOL_SIZE x
+    # MEMORY_LIMIT, and the read and write connections MEMORY_LIMIT each.
+    # Together they stay under 3/4 of `resources.limits.memory`, leaving room
+    # for the catalog metadata each connection keeps outside that budget;
+    # DuckDB spills only at its own budget. Two pooled queries, not one: the
+    # pool serves on while a connection is recycled. Raise them with the limit.
+    GEOAPI_DUCKLAKE_POOL_SIZE: "2"
+    GEOAPI_DUCKDB_MEMORY_LIMIT: "768MB"
   extraEnv: []
   # OIDC/Keycloak — per-service override of `global.auth` (see there). NEW in
   # 0.5.1: before, the chart set no AUTH here, so the geoapi code default
@@ -481,7 +518,16 @@ geoapi:
   # cert and Python requests/httpx need to trust it via REQUESTS_CA_BUNDLE).
   extraVolumes: []
   extraVolumeMounts: []
-  resources: {}
+  # Memory grows with the DuckLake catalog: each long-lived DuckLake connection
+  # caches its metadata, on top of the DuckDB budgets in `config`. No CPU
+  # limit: with one, keep GEOAPI_DUCKDB_THREADS x GEOAPI_DUCKLAKE_POOL_SIZE
+  # at about its CPUs.
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 250m
+    limits:
+      memory: 4Gi
   service:
     type: ClusterIP
     port: 80
@@ -493,7 +539,13 @@ geoapi:
     annotations: {}
     hosts: []
     tls: []
-  podSecurityContext: {}
+  # Root, like compose and the Windmill workers: they all write the shared data
+  # volume, and a fresh RWX volume (NFS, CephFS) belongs to root. fsGroup is
+  # not applied on many NFS drivers. Pod level, so the DuckLake init container
+  # runs as root too. A cluster enforcing the restricted pod security standard
+  # must override this and provide a volume all of them may write.
+  podSecurityContext:
+    runAsUser: 0
   securityContext: {}
   nodeSelector: {}
   tolerations: []
@@ -540,6 +592,10 @@ processes:
     # gateway may strip the prefix or pass it through. Leave unset when the
     # service has its own host.
     # ROOT_PATH: "/processes"
+    # Each of the three DuckDB connections (analytics, SQL previews, layer
+    # search) gets this budget; together they stay under 3/4 of
+    # `resources.limits.memory`. Raise it with the limit.
+    PROCESSES_DUCKDB_MEMORY_LIMIT: "1GB"
   extraEnv: []
   # OIDC/Keycloak — per-service override of `global.auth` (see there). NEW in
   # 0.5.1: before, the chart set no AUTH here, so the processes code default
@@ -561,7 +617,14 @@ processes:
   # cert and Python requests/httpx need to trust it via REQUESTS_CA_BUNDLE).
   extraVolumes: []
   extraVolumeMounts: []
-  resources: {}
+  # Three DuckDB connections of PROCESSES_DUCKDB_MEMORY_LIMIT (`config`) each,
+  # plus the service.
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 100m
+    limits:
+      memory: 4Gi
   service:
     type: ClusterIP
     port: 80
@@ -573,7 +636,9 @@ processes:
     annotations: {}
     hosts: []
     tls: []
-  podSecurityContext: {}
+  # Root, like geoapi (see geoapi.podSecurityContext).
+  podSecurityContext:
+    runAsUser: 0
   securityContext: {}
   nodeSelector: {}
   tolerations: []
@@ -668,7 +733,14 @@ catalog:
   extraEnv: []
   extraVolumes: []
   extraVolumeMounts: []
-  resources: {}
+  # CATALOG_DUCKDB_MEMORY_LIMIT (config) for the store, a second store while
+  # the mirror reloads, the preview and asset reads and the service itself.
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 100m
+    limits:
+      memory: 4Gi
   service:
     type: ClusterIP
     port: 80
@@ -772,10 +844,13 @@ windmill:
     tokenSecret:
       name: ""           # default: <release>-windmill-token
       key: token
+    # Image the bootstrap Job runs in. The script needs only Python's
+    # standard library, so it runs in `core.image`; keys set here win over it.
+    image: {}
 
   # Optional: sync goatlib's bundled tools/tasks (Python scripts) into the
   # windmill workspace. Off by default — needs the `windmill-worker-tools`
-  # image which is larger than `python:3.11-slim`. Turn on if you want
+  # image, which is larger than the core image. Turn on if you want
   # plan4better's tools pre-loaded after install.
   scriptSync:
     enabled: false
@@ -797,8 +872,16 @@ windmill:
       MODE: "server"
       # BASE_URL is set per-environment via `set` or per-consumer values
       BASE_URL: "http://localhost:8000"
+      # Windmill database connections of the server (at most); unset, its pool
+      # grows to 50 under load.
+      DATABASE_CONNECTIONS: "10"
     extraEnv: []
-    resources: {}
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 2Gi
     service:
       type: ClusterIP
       port: 80
@@ -849,6 +932,11 @@ windmill:
   # set in `config` or `extraEnv` wins over the chart's; a WHITELIST_ENVS set
   # there replaces the built list.
   workers:
+    # Windmill database connections of every worker (at most; a worker runs
+    # one job at a time). A worker's own `config` or `extraEnv`
+    # DATABASE_CONNECTIONS wins. Not below 3: Windmill 1.607 workers stop at
+    # start with fewer.
+    databaseConnections: 3
     # Upgrade guard for the 0.4.x per-worker PVCs (<fullname>-windmill-tools-data,
     # <fullname>-windmill-workflows-data). At `data.enabled: true` this chart no
     # longer renders them, so `helm upgrade` from 0.4.x DELETES them and their
@@ -876,7 +964,12 @@ windmill:
         # Seconds a job may run before Windmill cancels it.
         JOB_DEFAULT_TIMEOUT: "300"
       extraEnv: []
-      resources: {}
+      resources:
+        requests:
+          memory: 256Mi
+          cpu: 100m
+        limits:
+          memory: 1Gi
       podSecurityContext: {}
       securityContext: {}
       nodeSelector: {}
@@ -900,7 +993,13 @@ windmill:
         WORKER_TAGS: "print"
         JOB_DEFAULT_TIMEOUT: "300"
       extraEnv: []
-      resources: {}
+      # Headless Chromium renders the prints, large layouts at high DPI.
+      resources:
+        requests:
+          memory: 512Mi
+          cpu: 100m
+        limits:
+          memory: 4Gi
       podSecurityContext: {}
       securityContext: {}
       nodeSelector: {}
@@ -927,7 +1026,15 @@ windmill:
         # Analyses on large datasets run long.
         JOB_DEFAULT_TIMEOUT: "2500"
       extraEnv: []
-      resources: {}
+      # Analysis tools hold whole layers in DuckDB. A job's analysis gets half
+      # of this limit and its DuckLake connection a quarter, and they spill to
+      # disk beyond that: raise it for analyses on large layers.
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 250m
+        limits:
+          memory: 4Gi
       podSecurityContext: {}
       securityContext: {}
       nodeSelector:
@@ -964,7 +1071,12 @@ windmill:
         # A workflow waits for the tool jobs it starts.
         JOB_DEFAULT_TIMEOUT: "1800"
       extraEnv: []
-      resources: {}
+      resources:
+        requests:
+          memory: 256Mi
+          cpu: 100m
+        limits:
+          memory: 1Gi
       podSecurityContext: {}
       securityContext: {}
       nodeSelector:
@@ -1127,12 +1239,35 @@ postgresql:
     storage:
       size: 20Gi
       storageClass: ""             # falls back to global.storageClass
+    # A request, so Postgres is not the first pod a node under memory pressure
+    # evicts. No limit: an OOM kill would take every GOAT service down with it.
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 100m
 
     backup:
       enabled: false
   external:
     host: ""
+    # The database itself, for DuckLake's catalog connections (geoapi,
+    # processes, their DuckLake init and the workers), when `host` points at a
+    # transaction pooler: those connections stay open for as long as a service
+    # runs and are not verified behind one. Sets DUCKLAKE_POSTGRES_SERVER.
+    # "" = `host`.
+    ducklakeHost: ""
     port: 5432
+    # The database's port for those connections, when the pooler listens on
+    # another one (PgBouncer's 6432, the database's 5432). Sets
+    # DUCKLAKE_POSTGRES_PORT. null = `port`.
+    ducklakePort: null
+    # `host` is a connection pooler in transaction mode (PgBouncer, Supavisor,
+    # a CNPG Pooler): core, geoapi, processes and the workers then prepare no
+    # statements on the server and send no startup settings a pooler might
+    # refuse, so a pooler with stock settings works. Sets
+    # POSTGRES_TRANSACTION_POOLER. Needs `ducklakeHost`, and Windmill on its
+    # own database connection (windmill.db.reuseGoatConnection: false).
+    transactionPooler: false
     database: goat
     existingSecret: ""             # required when cluster.enabled: false
     existingSecretUserKey: username

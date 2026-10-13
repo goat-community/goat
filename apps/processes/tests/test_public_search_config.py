@@ -185,3 +185,21 @@ def test_cache_cap_evicts_oldest_when_full(monkeypatch: pytest.MonkeyPatch) -> N
         get_public_search_layers(str(uuid.uuid4()))
 
     assert len(psc._cache) <= psc.CACHE_MAX
+
+
+def test_the_connection_loads_postgres_through_goatlib(monkeypatch) -> None:
+    """Extensions come from the image's baked directory; goatlib's
+    load_extensions never downloads there."""
+    loaded: list[tuple[str, ...]] = []
+
+    class _Con:
+        def execute(self, *_):
+            return self
+
+    monkeypatch.setattr(psc.duckdb, "connect", lambda: _Con())
+    monkeypatch.setattr(psc, "load_extensions", lambda con, *ext: loaded.append(ext))
+    monkeypatch.setattr(psc, "cap_catalog_connections", lambda con, n: None)
+
+    psc._get_connection()
+
+    assert loaded == [("postgres",)]

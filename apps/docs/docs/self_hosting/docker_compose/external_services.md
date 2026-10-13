@@ -105,6 +105,25 @@ With your own Keycloak, GOAT creates no user there. `smoke.sh` signs in with `GO
 
 If your Keycloak uses a certificate from a private CA, see [Company CA](./https.md#company-ca).
 
+### A realm shared with other applications {#keycloak-shared-realm}
+
+Every client of a realm can get a token signed with the realm's key, and by default GOAT's APIs accept such a token even when Keycloak issued it to another application. A rule that lets only some users sign in to GOAT, such as a group check on GOAT's client, then guards the login page but not the APIs.
+
+Set `AUTH_ALLOWED_CLIENTS` to the clients whose tokens GOAT accepts, comma-separated:
+
+```bash
+AUTH_ALLOWED_CLIENTS=goat
+```
+
+GOAT then checks each token's `azp` claim, the client Keycloak issued it to, and answers a token of any other client with `401`. The list must include `KEYCLOAK_CLIENT_ID`: the web app signs users in with that client, and the print worker and GOAT's services pass those tokens on. Without it nobody could use GOAT, so the `core` container refuses to start and names both settings. Add any other client whose tokens should reach GOAT's APIs, such as one your own scripts sign in with. The check needs no change to the realm. Apply it with `docker compose up -d`.
+
+:::warning What the check does not cover
+The check is about the application a token was issued to, not about the user.
+
+- If only some users may use GOAT, for example the members of a group, enforce that on GOAT's client for every way it issues tokens: the browser login and, if enabled, *Direct access grants* (a direct password login, which Keycloak runs through its own flow). Otherwise turn *Direct access grants* off on the client. A user outside the group could else get a token of GOAT's client through the grant your rule does not cover, and GOAT's APIs would accept it. `smoke.sh` needs *Direct access grants* (see above).
+- The web app keeps users signed in with a refresh token, so a user removed from that group stays signed in until the session ends. To end it at once, sign the user out in Keycloak, including the user's offline sessions.
+:::
+
 ## Email {#email}
 
 GOAT sends invitations, and Keycloak sends password resets, through **one SMTP server**. Email is off while `SMTP_HOST` is empty.

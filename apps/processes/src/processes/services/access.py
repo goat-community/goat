@@ -26,6 +26,7 @@ from uuid import UUID
 
 import asyncpg
 from fastapi import HTTPException, status
+from goatlib.config.postgres import asyncpg_connect_args
 from goatlib.tools.registry import TOOL_REGISTRY
 from goatlib.tools.schemas import DEFAULT_NETWORK_BUNDLE
 
@@ -458,7 +459,14 @@ async def _get_pool() -> asyncpg.Pool:
             database=settings.POSTGRES_DB,
             min_size=1,
             max_size=4,
+            # Close a connection once it has sat idle for a minute rather
+            # than five. asyncpg closes idle ones down to none, min_size
+            # included, so the first request after a quiet minute reconnects.
+            max_inactive_connection_lifetime=60,
             command_timeout=10,
+            **asyncpg_connect_args(
+                "goat-processes", settings.POSTGRES_TRANSACTION_POOLER
+            ),
         )
     return _pool
 

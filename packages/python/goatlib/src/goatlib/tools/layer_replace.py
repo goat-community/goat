@@ -22,6 +22,7 @@ import asyncpg
 import duckdb
 
 from goatlib.io.bbox_columns import star_excluding, stray_bbox_columns
+from goatlib.storage.ducklake import fetch_one
 
 logger = logging.getLogger(__name__)
 
@@ -180,7 +181,7 @@ class LayerReplaceMixin:
         cols = con.execute(f"DESCRIBE {table_name}").fetchall()
         columns = {row[0]: row[1] for row in cols}
 
-        count_result = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()
+        count_result = fetch_one(con, f"SELECT COUNT(*) FROM {table_name}")
         feature_count = count_result[0] if count_result else 0
 
         geometry_type = None
@@ -189,19 +190,25 @@ class LayerReplaceMixin:
 
         for col_name, col_type in columns.items():
             if "GEOMETRY" in col_type.upper():
-                type_result = con.execute(f"""
+                type_result = fetch_one(
+                    con,
+                    f"""
                     SELECT ST_GeometryType({col_name})
                     FROM {table_name}
                     WHERE {col_name} IS NOT NULL
                     LIMIT 1
-                """).fetchone()
+                """,
+                )
                 if type_result:
                     geometry_type = type_result[0]
 
-                extent_result = con.execute(f"""
+                extent_result = fetch_one(
+                    con,
+                    f"""
                     SELECT ST_Extent({col_name})::VARCHAR
                     FROM {table_name}
-                """).fetchone()
+                """,
+                )
                 if extent_result and extent_result[0]:
                     extent = extent_result[0]
                     try:

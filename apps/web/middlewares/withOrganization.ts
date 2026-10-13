@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { isAuthDisabled } from "@/lib/utils/auth-flag";
 import { publicEnv } from "@/lib/utils/public-env";
 import type { InvitationPaginated } from "@/lib/validations/invitation";
+import type { OrganizationCreation } from "@/lib/validations/organization";
 
 import { refreshAccessToken } from "@/app/api/auth/[...nextauth]/options";
 import type { MiddlewareFactory } from "@/middlewares/types";
@@ -77,15 +78,15 @@ export const withOrganization: MiddlewareFactory = (next) => {
         }
       }
 
-      // Check for invitations
-      const invitationRes = await fetch(
-        `${USERS_API_BASE_URL}/invitations?type=organization&status=pending`,
-        {
-          headers: {
-            Authorization: `Bearer ${_token.access_token}`,
-          },
-        }
-      );
+      // No organization: a pending invitation opens, otherwise the setup form,
+      // unless core lets only administrators create organizations. Both are
+      // asked at once. A failed answer about creation counts as none: the form
+      // is shown, and core refuses the creation itself.
+      const headers = { Authorization: `Bearer ${_token.access_token}` };
+      const [invitationRes, creationRes] = await Promise.all([
+        fetch(`${USERS_API_BASE_URL}/invitations?type=organization&status=pending`, { headers }),
+        fetch(`${USERS_API_BASE_URL}/me/organization-creation`, { headers }).catch(() => null),
+      ]);
 
       if (invitationRes.ok) {
         const invitations: InvitationPaginated = await invitationRes.json();
@@ -94,6 +95,13 @@ export const withOrganization: MiddlewareFactory = (next) => {
           return NextResponse.redirect(
             new URL(`${basePath}/onboarding/organization/invite/${firstInvitationId}`, origin)
           );
+        }
+      }
+
+      if (creationRes?.ok) {
+        const creation: OrganizationCreation = await creationRes.json();
+        if (creation?.allowed === false) {
+          return NextResponse.redirect(new URL(`${basePath}/onboarding/organization/waiting`, origin));
         }
       }
     } catch (error) {
