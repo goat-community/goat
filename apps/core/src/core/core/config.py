@@ -90,6 +90,11 @@ class Settings(BaseSettings):
     # realms where people cannot register themselves. The client above needs
     # the manage-users role and must accept CLIENT_URL as a redirect URI.
     KEYCLOAK_PROVISION_INVITED_USERS: bool = False
+    # Who may create an organization. True: anyone signed in without one.
+    # False: only superusers (Keycloak realm role `superuser`); everyone else
+    # joins through an invitation, and the web app shows them a waiting page
+    # instead of the setup form. The AUTH=False identity is a superuser.
+    ALLOW_ORGANIZATION_CREATION: bool = True
     # Default identity used when AUTH=False (local dev / self-hosted without
     # Keycloak). Requests without a bearer token act as this user; the user and
     # its organization are seeded by initial_data.

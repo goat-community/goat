@@ -21,11 +21,18 @@ from core.db.models._link_model import UserRoleLink
 from core.db.models.invitation import Invitation, InvitationStatusEnum, InvitationType
 from core.db.models.organization import Organization
 from core.db.models.user import User
-from core.deps.auth import auth, auth_z, token_is_superuser, user_token
+from core.deps.auth import (
+    auth,
+    auth_z,
+    can_create_organization,
+    token_is_superuser,
+    user_token,
+)
 from core.deps.keycloak import get_keycloak_user, keycloak_admin
 from core.endpoints.deps import get_db, get_user_id
 from core.schemas.common import OrderEnum
 from core.schemas.onboarding import OnboardingFacts
+from core.schemas.organization import OrganizationCreationRead
 from core.schemas.user import UserProfileUpdate, UserRead, UserUpdate, request_examples
 from core.services.s3 import s3_service
 from core.utils.other import decode_base64_file, get_image_extension_from_base64
@@ -269,6 +276,20 @@ async def get_onboarding(
     """Facts Home derives its stage and checklist from, over every space
     the caller is a member of."""
     return await crud_onboarding.facts(async_session, user_id)
+
+
+@router.get(
+    "/me/organization-creation",
+    summary="Whether the caller may create an organization",
+    response_model=OrganizationCreationRead,
+)
+async def get_organization_creation(
+    user_token: dict = Depends(user_token),
+) -> OrganizationCreationRead:
+    """A user without an organization gets the setup form when this is true,
+    and a page that waits for an invitation when it is false. No `auth_z`:
+    the caller has no organization yet."""
+    return OrganizationCreationRead(allowed=can_create_organization(user_token))
 
 
 @router.patch(

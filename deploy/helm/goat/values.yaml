@@ -69,6 +69,13 @@ global:
     # default) leaves account creation to the realm's own registration page.
     provisionInvitedUsers: false
 
+    # Who may create an organization (ALLOW_ORGANIZATION_CREATION). true:
+    # anyone who signs in without one. false: only accounts with the Keycloak
+    # realm role `superuser`; everyone else waits on a page until they are
+    # invited. Set up your organization, or give an account that role, before
+    # switching it off.
+    allowOrganizationCreation: true
+
   # ── Company CA ───────────────────────────────────────────────────────────
   # A private CA certificate (PEM) the services trust in addition to the
   # public CAs: core for the SMTP relay (GOAT_CA_BUNDLE), web for Keycloak

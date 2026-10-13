@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +11,8 @@ from core.endpoints.deps import get_db
 from core.schemas.email import EmailTemplateContent
 from core.utils.email import send_email
 from core.utils.i18n import trans as _
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -79,7 +83,18 @@ async def listen_stripe_webhooks(
     elif event_type == "invoice.payment_failed":
         print("Invoice payment failed: for customer %s" % data_object["customer"])
     elif event_type == "customer.subscription.trial_will_end":
-        if data_object["default_payment_method"] is None:
+        # A customer whose organization was deleted permanently stays in Stripe
+        # until someone cancels it there; it gets no trial email.
+        organization = await crud_organization.get_by_key(
+            db, key="stripe_id", value=data_object["customer"]
+        )
+        if not organization:
+            logger.info(
+                "stripe trial_will_end for customer %s: no organization is billed "
+                "under it, no email",
+                data_object["customer"],
+            )
+        elif data_object["default_payment_method"] is None:
             email_content = EmailTemplateContent(
                 artwork_url=f"{settings.email_artwork_url}/img/email/subscription_about_to_end.png",
                 title=_("Your trial is about to end"),

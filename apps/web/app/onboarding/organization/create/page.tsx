@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type * as z from "zod";
 
@@ -26,6 +26,7 @@ import AuthContainer from "@p4b/ui/components/AuthContainer";
 import AuthLayout from "@p4b/ui/components/AuthLayout";
 
 import { createOrganization } from "@/lib/api/organizations";
+import { useOrganizationCreation } from "@/lib/api/users";
 import { ORG_DEFAULT_AVATAR } from "@/lib/constants";
 import { postOrganizationSchema } from "@/lib/validations/organization";
 
@@ -53,6 +54,17 @@ export default function OrganizationOnBoarding() {
     orgSizeOptions,
     orgUseCaseOptions,
   } = useOrganizationSetup();
+  // Where only administrators create organizations, everyone else waits for
+  // an invitation. Without an answer the form is shown; core refuses the
+  // creation itself.
+  const { organizationCreation, isError: creationError } = useOrganizationCreation();
+  const mayCreate = organizationCreation?.allowed === true || !!creationError;
+
+  useEffect(() => {
+    if (organizationCreation?.allowed === false) {
+      router.replace("/onboarding/organization/waiting");
+    }
+  }, [organizationCreation?.allowed, router]);
 
   const [isBusy, setIsBusy] = useState<boolean>(false);
   const [responseResult, setResponseResult] = useState<ResponseResult>({
@@ -139,7 +151,7 @@ export default function OrganizationOnBoarding() {
 
   return (
     <AuthLayout>
-      {status == "authenticated" && (
+      {status == "authenticated" && mayCreate && (
         <AuthContainer
           headerTitle={
             <>

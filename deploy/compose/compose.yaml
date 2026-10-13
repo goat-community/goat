@@ -453,6 +453,8 @@ services:
       # Self-registration is off, so inviting an unknown email creates its
       # Keycloak account (only with AUTH on).
       KEYCLOAK_PROVISION_INVITED_USERS: ${KEYCLOAK_PROVISION_INVITED_USERS:-true}
+      # false: only superusers create organizations; everyone else is invited
+      ALLOW_ORGANIZATION_CREATION: ${ALLOW_ORGANIZATION_CREATION:-true}
       CLIENT_URL: ${GOAT_PUBLIC_URL}
       API_URL: ${GOAT_PUBLIC_URL}/api/v2
       POSTGRES_POOL_SIZE: ${POSTGRES_POOL_SIZE:-5}

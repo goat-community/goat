@@ -81,6 +81,26 @@ class DatabaseSessionManager:
             finally:
                 await connection.close()
 
+    @contextlib.asynccontextmanager
+    async def transaction(self) -> AsyncIterator[AsyncConnection]:
+        """A connection whose statements commit together when the block
+        ends, and are rolled back together if it raises.
+
+        The engine runs in AUTOCOMMIT, where each statement commits on its
+        own and a rollback undoes nothing. This connection runs READ
+        COMMITTED instead, so it holds a real transaction; the pool restores
+        the engine's AUTOCOMMIT when the connection is returned.
+        """
+        if self._engine is None:
+            raise Exception("DatabaseSessionManager is not initialized")
+
+        async with self._engine.connect() as connection:
+            connection = await connection.execution_options(
+                isolation_level="READ COMMITTED"
+            )
+            async with connection.begin():
+                yield connection
+
     async def close(self) -> None:
         if self._engine is None:
             raise Exception("DatabaseSessionManager is not initialized")

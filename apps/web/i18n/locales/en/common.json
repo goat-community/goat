@@ -1854,6 +1854,9 @@
   "organization_subscribe_to_newsletter": "Stay in touch with our latest updates",
   "organization_suspended": "Organization Suspended",
   "organization_suspended_message": "We are sorry, but your organization has been suspended. Please contact support for more information.",
+  "waiting_for_invitation": "Waiting for an invitation",
+  "waiting_for_invitation_message": "Your account is not part of an organization yet. Ask an admin of your organization to invite {{email}}. Once the invitation has been sent, it opens here.",
+  "check_again": "Check again",
   "organization_type_label": "Organization type",
   "organization_type_options": {
     "education": "Education",

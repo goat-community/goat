@@ -1,24 +1,39 @@
-import useSWR from "swr";
+import useSWR, { type SWRConfiguration } from "swr";
 
 import { API_BASE_URL } from "@/lib/constants";
 
 import { apiRequestAuth, fetcher } from "@/lib/api/fetcher";
 import { useAuthedSWR } from "@/lib/api/useAuthedSWR";
 import type { InvitationPaginated } from "@/lib/validations/invitation";
-import type { Organization } from "@/lib/validations/organization";
+import type { Organization, OrganizationCreation } from "@/lib/validations/organization";
 import type { GetInvitationsQueryParams, User, UserUpdate } from "@/lib/validations/user";
 
 export const USERS_API_BASE_URL = new URL("api/v2/users", API_BASE_URL).href;
 
 // Hooks
 
-export const useOrganization = () => {
+export const useOrganization = (config?: SWRConfiguration<Organization>) => {
   const { data, isLoading, error, mutate, isValidating } = useAuthedSWR<Organization>(
     `${USERS_API_BASE_URL}/organization`,
-    fetcher
+    fetcher,
+    config
   );
   return {
     organization: data,
+    isLoading,
+    isError: error,
+    mutate,
+    isValidating,
+  };
+};
+
+export const useOrganizationCreation = () => {
+  const { data, isLoading, error, mutate, isValidating } = useAuthedSWR<OrganizationCreation>(
+    `${USERS_API_BASE_URL}/me/organization-creation`,
+    fetcher
+  );
+  return {
+    organizationCreation: data,
     isLoading,
     isError: error,
     mutate,
