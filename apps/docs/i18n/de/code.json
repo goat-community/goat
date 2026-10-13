@@ -394,12 +394,12 @@
     "message": "Schritt-für-Schritt-Übungen, die Sie durch GOAT führen.",
     "description": "Description of a section card on the docs landing page"
   },
-  "goat.home.card.troubleshooting.title": {
-    "message": "Fehlerbehebung",
+  "goat.home.card.support.title": {
+    "message": "Support",
     "description": "Title of a section card on the docs landing page"
   },
-  "goat.home.card.troubleshooting.description": {
-    "message": "Lösungen für fehlgeschlagene Jobs und andere häufige Probleme.",
+  "goat.home.card.support.description": {
+    "message": "Stellen Sie dem GOAT-Team eine Frage oder melden Sie ein Problem mit einem Support-Ticket.",
     "description": "Description of a section card on the docs landing page"
   },
   "glossary.preview.label": {

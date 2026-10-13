@@ -36,7 +36,7 @@ const SECTIONS = [
   {
     key: "section-help",
     label: "Help",
-    dirs: ["troubleshooting", "further_reading", "nerdy_content"],
+    dirs: ["support", "further_reading", "nerdy_content"],
   },
 ];
 
