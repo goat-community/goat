@@ -24,5 +24,8 @@ Die Liste unten erklärt die Navigations-Symbolleiste im **Workspace**.
 ### Benutzerprofil 
 Durch Klicken auf die Schaltfläche <code>Benutzerprofil</code> können Sie Ihren Namen, Ihre Organisation und die `Abmelden`-Schaltfläche sehen.
 
+### Support
+Klicken Sie auf das Symbol <code>Support</code> in der oberen rechten Ecke, um Ihre Support-Tickets zu öffnen, ein Problem zu melden oder die Dokumentation zu öffnen. Siehe [Support](../support/support.md).
+
 ### Job Status
 Wenn Sie auf den <code>Job Status</code> in der oberen rechten Ecke des **Workspace** klicken, sehen Sie den Status Ihrer Aufgaben in GOAT. *Aufgaben* sind Vorgänge wie **Daten**-Upload oder Geoanalyse.
