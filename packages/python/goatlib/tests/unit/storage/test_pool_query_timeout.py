@@ -133,6 +133,16 @@ def test_pinned_busy_cursor_keeps_a_superseded_base_open(
         "_create_base_with_retry",
         lambda snapshot_version=None: duckdb.connect(),
     )
+    # Probing the base while the waiter closes it would be concurrent use of
+    # one connection: wait for the pool's own close to return instead.
+    closed_bases: list[duckdb.DuckDBPyConnection] = []
+    close_base = pinned_pool._close_base
+
+    def record_close(base: duckdb.DuckDBPyConnection) -> None:
+        close_base(base)
+        closed_bases.append(base)
+
+    monkeypatch.setattr(pinned_pool, "_close_base", record_close)
     busy, error = time_out_blocking_query(pinned_pool)
     assert all(e[0] is not busy for e in pool_entries(pinned_pool))
     thread = running_thread(error)
@@ -146,7 +156,8 @@ def test_pinned_busy_cursor_keeps_a_superseded_base_open(
     released.set()
     thread.join(5)
     # The waiter closes the cursor, then the base it held open.
-    wait_until(lambda: is_closed(old_base))
+    wait_until(lambda: any(b is old_base for b in closed_bases))
+    assert is_closed(old_base)
     assert 0 not in pinned_pool._bases
     assert is_closed(busy)
 
