@@ -476,13 +476,13 @@ geoapi:
     # (false) only logs would-be denials; turn on once that log is quiet.
     ENFORCE_READ_AUTHZ: "false"
     # DuckDB memory: the tile pool's shared connection gets POOL_SIZE x
-    # MEMORY_LIMIT, and the read and write connections MEMORY_LIMIT each, so
-    # these fit `resources.limits.memory` with room for the catalog metadata
-    # each connection keeps outside that budget. Two pooled queries, not one:
-    # the pool serves on while a connection is recycled. Raise the memory limit
-    # with them.
+    # MEMORY_LIMIT, and the read and write connections MEMORY_LIMIT each.
+    # Together they stay under 3/4 of `resources.limits.memory`, leaving room
+    # for the catalog metadata each connection keeps outside that budget;
+    # DuckDB spills only at its own budget. Two pooled queries, not one: the
+    # pool serves on while a connection is recycled. Raise them with the limit.
     GEOAPI_DUCKLAKE_POOL_SIZE: "2"
-    GEOAPI_DUCKDB_MEMORY_LIMIT: "1GB"
+    GEOAPI_DUCKDB_MEMORY_LIMIT: "768MB"
   extraEnv: []
   # OIDC/Keycloak — per-service override of `global.auth` (see there). NEW in
   # 0.5.1: before, the chart set no AUTH here, so the geoapi code default
@@ -573,6 +573,10 @@ processes:
     # gateway may strip the prefix or pass it through. Leave unset when the
     # service has its own host.
     # ROOT_PATH: "/processes"
+    # Each of the three DuckDB connections (analytics, SQL previews, layer
+    # search) gets this budget; together they stay under 3/4 of
+    # `resources.limits.memory`. Raise it with the limit.
+    PROCESSES_DUCKDB_MEMORY_LIMIT: "1GB"
   extraEnv: []
   # OIDC/Keycloak — per-service override of `global.auth` (see there). NEW in
   # 0.5.1: before, the chart set no AUTH here, so the processes code default
@@ -594,8 +598,8 @@ processes:
   # cert and Python requests/httpx need to trust it via REQUESTS_CA_BUNDLE).
   extraVolumes: []
   extraVolumeMounts: []
-  # Three DuckDB connections (analytics, SQL previews, layer search) of
-  # PROCESSES_DUCKDB_MEMORY_LIMIT (1.2GB by default) each, plus the service.
+  # Three DuckDB connections of PROCESSES_DUCKDB_MEMORY_LIMIT (`config`) each,
+  # plus the service.
   resources:
     requests:
       memory: 512Mi
@@ -992,9 +996,9 @@ windmill:
         # Analyses on large datasets run long.
         JOB_DEFAULT_TIMEOUT: "2500"
       extraEnv: []
-      # Analysis tools hold whole layers in DuckDB, which an analysis caps at
-      # 4GB. That leaves little room under this limit for the job's other
-      # DuckDB connection and Python: raise it for analyses on large layers.
+      # Analysis tools hold whole layers in DuckDB. A job's analysis gets half
+      # of this limit and its DuckLake connection a quarter, and they spill to
+      # disk beyond that: raise it for analyses on large layers.
       resources:
         requests:
           memory: 1Gi

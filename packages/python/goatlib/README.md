@@ -91,6 +91,12 @@ thread plus one; a lower cap makes DuckDB reconnect for every first read of a
 table. Tool runs, which read few tables, keep a small fixed number, and
 attaches that run one small query at a time (the snapshot poll) keep one.
 
+DuckDB spills to disk only at its own `memory_limit`, and a connection without
+one takes 80% of the container. A job's connections therefore take shares of
+the container's memory limit (`goatlib.utils.container_memory`): half for its
+work connection (an analysis, or a tool's own DuckDB), a quarter for the
+runner's DuckLake connection.
+
 Sessions carry an `application_name` (`goat-geoapi-ducklake`, `goat-tools`,
 …) so operators can tell them apart in `pg_stat_activity`.
 

@@ -38,6 +38,7 @@ from pydantic import Field
 
 from goatlib.tools.base import SimpleToolRunner
 from goatlib.tools.schemas import ToolInputBase
+from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 from goatlib.utils.layer import catalog_tiles_dir, layer_id_to_table_name
 
 logger = logging.getLogger(__name__)
@@ -191,6 +192,7 @@ class CatalogMaterializeRunner(SimpleToolRunner):
         out_path = out_dir / f"{layer_id_to_table_name(layer_id)}.parquet"
 
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
             with tempfile.TemporaryDirectory(dir=out_dir) as tmp:
@@ -278,6 +280,7 @@ class CatalogMaterializeRunner(SimpleToolRunner):
         geom_col_sql = geom_col.replace('"', '""')
 
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
             view = f"cat_{layer_id_to_table_name(layer_id)}"

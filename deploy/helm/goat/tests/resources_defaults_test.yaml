@@ -16,6 +16,7 @@ templates:
   - windmill/worker-workflows/deployment.yaml
   - postgresql/cluster.yaml
   - geoapi/configmap.yaml
+  - processes/configmap.yaml
 set:
   windmill.workers.print.enabled: true
   windmill.workers.tools.enabled: true
@@ -50,6 +51,13 @@ tests:
           value: "2"
       - equal:
           path: data.GEOAPI_DUCKDB_MEMORY_LIMIT
+          value: 768MB
+
+  - it: processes' DuckDB budget is set to fit its memory limit
+    template: processes/configmap.yaml
+    asserts:
+      - equal:
+          path: data.PROCESSES_DUCKDB_MEMORY_LIMIT
           value: 1GB
   - it: resources null turns them off
     template: geoapi/deployment.yaml

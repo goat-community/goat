@@ -151,6 +151,9 @@ More in the docs: [Operations → Routing base data](https://goat.plan4better.de
   `ssh -L 8110:127.0.0.1:8110 <server>` and open http://localhost:8110
   (user `admin@windmill.dev`, password `WINDMILL_ADMIN_PASSWORD`).
 - **Parallel analyses:** `GOAT_TOOLS_WORKERS` (each worker may use up to 4 GB).
+- **Memory per service:** each service's limit is in `compose.yaml`; geoapi's and
+  processes' DuckDB budgets are set next to it to fit under it. Raise a limit and
+  its budgets together, in a `compose.override.yaml`.
 - **Logs:** `docker compose logs -f <service>`; they rotate automatically.
 
 More in the docs: [Operations](https://goat.plan4better.de/docs/self_hosting/docker_compose/operations)

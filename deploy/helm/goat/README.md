@@ -848,13 +848,14 @@ helm template my-release deploy/helm/goat/ -f deploy/helm/goat/ci/values-externa
 Every service has memory requests and limits, and a CPU request without a
 limit (a CPU limit throttles). The limits are the ones GOAT's own production
 runs with. DuckDB spills to disk only when it reaches its own `memory_limit`,
-and a service holds several DuckDB connections with a budget each, so each
-limit covers those budgets: `geoapi.config` sets geoapi's
-(`GEOAPI_DUCKLAKE_POOL_SIZE`, `GEOAPI_DUCKDB_MEMORY_LIMIT`), processes keeps
-three connections of `PROCESSES_DUCKDB_MEMORY_LIMIT`, catalog's store has
-`CATALOG_DUCKDB_MEMORY_LIMIT`. Raise a budget and its limit together. The
-tools worker is the tight one: an analysis caps DuckDB at 4GB, so raise its
-limit for analyses on large layers.
+and a service holds several DuckDB connections with a budget each, so the
+budgets stay under 3/4 of each limit, leaving room for what DuckDB keeps
+outside them: `geoapi.config` sets geoapi's (`GEOAPI_DUCKLAKE_POOL_SIZE`,
+`GEOAPI_DUCKDB_MEMORY_LIMIT`), `processes.config` the budget of each of its
+three connections (`PROCESSES_DUCKDB_MEMORY_LIMIT`), and catalog's store has
+`CATALOG_DUCKDB_MEMORY_LIMIT`. Raise a budget and its limit together. In the
+tools and workflows workers a job's analysis gets half the container's limit
+and its DuckLake connection a quarter, so there the budgets follow the limit.
 
 | Service | Request (memory / CPU) | Memory limit |
 |---|---|---|
@@ -898,10 +899,11 @@ about its CPUs.
    upgrading, or set it to `null` to keep running without limits. Values that
    set only a limit, or only a request, now merge with the other default; a
    request above its limit fails the upgrade, so set both.
-2. **geoapi's DuckDB pool.** `geoapi.config` now sets
-   `GEOAPI_DUCKLAKE_POOL_SIZE: "2"` and `GEOAPI_DUCKDB_MEMORY_LIMIT: "1GB"`, so
-   DuckDB fits the 4Gi limit; the code default pool was 4. With more memory,
-   raise the limit and the pool size together.
+2. **DuckDB budgets.** `geoapi.config` now sets
+   `GEOAPI_DUCKLAKE_POOL_SIZE: "2"` and `GEOAPI_DUCKDB_MEMORY_LIMIT: "768MB"`,
+   and `processes.config` `PROCESSES_DUCKDB_MEMORY_LIMIT: "1GB"`, so DuckDB fits
+   the 4Gi limits; before, the code defaults applied (a pool of 4 at 1GB,
+   1.2GB). With more memory, raise the limit and the budgets together.
 3. **geoapi and processes run as root.** Before, they ran as the image's
    non-root user, and their DuckLake init failed with a `PermissionError` on a
    fresh root-owned RWX volume. To keep a non-root user, set

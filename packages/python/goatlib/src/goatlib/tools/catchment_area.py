@@ -45,6 +45,7 @@ from goatlib.analysis.schemas.ui import (
 from goatlib.models.io import DatasetMetadata
 from goatlib.tools.base import BaseToolRunner
 from goatlib.tools.schemas import ToolInputBase, get_default_layer_name
+from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 
 logger = logging.getLogger(__name__)
 
@@ -916,6 +917,7 @@ class CatchmentAreaToolRunner(BaseToolRunner[CatchmentAreaWindmillParams]):
 
         # Create a temporary DuckDB connection for geometry operations
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         con.execute("INSTALL spatial; LOAD spatial;")
 
         # Build a VALUES clause with all points

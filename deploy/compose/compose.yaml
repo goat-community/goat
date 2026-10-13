@@ -532,7 +532,13 @@ services:
       <<: [*env-db, *env-s3, *env-auth, *env-service]
       ROOT_PATH: /geoapi
       REDIS_URL: redis://redis:6379/0
-      GEOAPI_DUCKDB_MEMORY_LIMIT: 1GB
+      # DuckDB spills to disk only at its own budget, so the budgets fit the
+      # memory limit below: the pool's shared connection gets POOL_SIZE x
+      # MEMORY_LIMIT, the read and write connections MEMORY_LIMIT each, and
+      # the rest is left for the catalog metadata and Python. Raise them
+      # together.
+      GEOAPI_DUCKLAKE_POOL_SIZE: "2"
+      GEOAPI_DUCKDB_MEMORY_LIMIT: 512MB
     volumes:
       - goat-data:/app/data
     networks: [goat]
@@ -548,7 +554,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2g
+          memory: 3g
 
   processes:
     <<: *restart
@@ -562,6 +568,9 @@ services:
       WINDMILL_TOKEN_FILE: /app/data/windmill/.token
       TRAVELTIME_MATRICES_DIR: /app/data/traveltime_matrices
       PRINT_BASE_URL: http://web:3000
+      # Three DuckDB connections (analytics, SQL previews, layer search) get
+      # this budget each; together they fit the memory limit below.
+      PROCESSES_DUCKDB_MEMORY_LIMIT: 384MB
     volumes:
       - goat-data:/app/data
     networks: [goat]
@@ -577,7 +586,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1536m
+          memory: 2g
 
   catalog:
     <<: *restart
