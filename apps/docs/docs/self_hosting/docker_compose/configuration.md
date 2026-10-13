@@ -55,6 +55,7 @@ Apply changes with `docker compose up -d`.
 | `ALLOW_ORGANIZATION_CREATION` | `true` | `true`: anyone who signs in without an organization can set one up. `false`: only accounts with the Keycloak realm role `superuser` can; everyone else waits for an invitation. See [Who sets up organizations](./operations.md#organizations). |
 | `KEYCLOAK_DB_PASSWORD` | set by setup.sh | Database password of the bundled Keycloak |
 | `KEYCLOAK_PUBLIC_URL`, `KEYCLOAK_INTERNAL_URL` | *(commented out)* | Your own Keycloak; see [Your own Keycloak](./external_services.md#keycloak) |
+| `AUTH_ALLOWED_CLIENTS` | *(commented out)* | Keycloak clients whose tokens GOAT's APIs accept, comma-separated; empty accepts every client of the realm. A list must include `KEYCLOAK_CLIENT_ID`. See [A realm shared with other applications](./external_services.md#keycloak-shared-realm) |
 
 ## Object storage (S3) {#storage}
 

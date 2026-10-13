@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     AUTH: AuthFlag = True
     KEYCLOAK_SERVER_URL: str = ""
     REALM_NAME: str = "p4b"
+    # Comma-separated Keycloak client IDs whose tokens are accepted (the
+    # token's `azp`); empty accepts every client of the realm.
+    AUTH_ALLOWED_CLIENTS: str = ""
 
     @model_validator(mode="after")
     def _require_keycloak(self) -> "Settings":

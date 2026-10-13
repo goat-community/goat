@@ -55,6 +55,7 @@ Die gesamte Konfiguration steht in der Datei `.env` im Ordner des Pakets. `setup
 | `ALLOW_ORGANIZATION_CREATION` | `true` | `true`: Wer sich ohne Organisation anmeldet, kann eine einrichten. `false`: Das können nur Konten mit der Keycloak-Realm-Rolle `superuser`; alle anderen warten auf eine Einladung. Siehe [Wer Organisationen einrichtet](./operations.md#organizations). |
 | `KEYCLOAK_DB_PASSWORD` | von setup.sh gesetzt | Datenbank-Passwort des mitgelieferten Keycloak |
 | `KEYCLOAK_PUBLIC_URL`, `KEYCLOAK_INTERNAL_URL` | *(auskommentiert)* | Ihr eigenes Keycloak; siehe [Eigenes Keycloak](./external_services.md#keycloak) |
+| `AUTH_ALLOWED_CLIENTS` | *(auskommentiert)* | Keycloak-Clients, deren Tokens die GOAT-APIs annehmen, durch Kommas getrennt; leer nimmt Tokens aller Clients des Realms an. Eine Liste muss `KEYCLOAK_CLIENT_ID` enthalten. Siehe [Ein Realm, den sich GOAT mit anderen Anwendungen teilt](./external_services.md#keycloak-shared-realm) |
 
 ## Objektspeicher (S3) {#storage}
 

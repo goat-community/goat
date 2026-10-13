@@ -76,6 +76,18 @@ global:
     # switching it off.
     allowOrganizationCreation: true
 
+    # Clients whose tokens core, geoapi, processes and catalog accept
+    # (AUTH_ALLOWED_CLIENTS), matched against the token's `azp`: the client
+    # Keycloak issued it to. In a realm shared with other applications, any
+    # client of the realm can otherwise get a token GOAT's APIs accept. The
+    # list must include GOAT's own client (the Secret's client-id), or core
+    # refuses to start: the web app signs users in with it, and the print
+    # worker and the services pass those tokens on. It checks the client, not
+    # the user: a group restriction on GOAT's client must cover every flow
+    # the client allows. Empty (the default) accepts every client. A key set
+    # in a service's `config` or `extraEnv` wins for that service.
+    allowedClients: []             # e.g. [goat-web]
+
   # ── Company CA ───────────────────────────────────────────────────────────
   # A private CA certificate (PEM) the services trust in addition to the
   # public CAs: core for the SMTP relay (GOAT_CA_BUNDLE), web for Keycloak

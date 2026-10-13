@@ -64,6 +64,12 @@ class Settings(BaseSettings):
         default="p4b",
         validation_alias=AliasChoices("GEOAPI_REALM_NAME", "REALM_NAME"),
     )
+    # Comma-separated Keycloak client IDs whose tokens are accepted (the
+    # token's `azp`); empty accepts every client of the realm. Bare name only,
+    # like the other services.
+    AUTH_ALLOWED_CLIENTS: str = Field(
+        default="", validation_alias="AUTH_ALLOWED_CLIENTS"
+    )
 
     # PostgreSQL settings for DuckLake catalog
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")

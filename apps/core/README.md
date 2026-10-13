@@ -26,6 +26,8 @@ The full, current route list is the OpenAPI document at `/api/docs`. The livenes
 
 ## Authorization
 
+A token counts only once it verifies: signed with the realm's key and, when `AUTH_ALLOWED_CLIENTS` is set, issued to one of those clients (goatlib's `KeycloakAuth`, see `packages/python/goatlib/README.md`). Every route that needs a login verifies it through `core.deps.auth.decode_token`, so a token of another application of the realm gets a 401 before either layer below runs.
+
 Two layers, both in SQL:
 
 1. **Route level.** `auth_z` calls the `authorization()` SQL function, which looks the request up in the seeded `customer.resource` table and applies the organization's quotas. **A new route needs a seeded pattern in `RESOURCES_PERMISSIONS` (`src/core/db/seed_roles.py`), or it answers 401 when auth is on.**
@@ -68,6 +70,7 @@ cd apps/core && uv run pytest tests/ -n 4
 All settings and their defaults are in `src/core/core/config.py`. The ones that change behaviour rather than just connect to something:
 
 - `AUTH` (on unless set to false) and `KEYCLOAK_SERVER_URL`, which is required while auth is on.
+- `AUTH_ALLOWED_CLIENTS`: empty accepts a token of every client of the realm; set, only tokens issued to the listed clients. Read the same way by geoapi, processes and catalog. A list without `KEYCLOAK_CLIENT_ID` would refuse every user, so core refuses to start with it (core is the only service that knows its client).
 - `GOAT_PROCESSES_URL`: without it, bundle import answers 503, and a catalog dataset added to a project stays pending because its materialize job cannot start.
 - `STRIPE_SECRET_KEY`: billing is active only when it is set; otherwise the `DEFAULT_PLAN_*` / `DEFAULT_QUOTA_*` values apply.
 - `SMTP_HOST`: emails are sent only when it is set.

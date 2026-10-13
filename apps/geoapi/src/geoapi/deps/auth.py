@@ -9,18 +9,14 @@ from uuid import UUID
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
-from goatlib.auth import JOSEError, KeycloakAuth
+from goatlib.auth import JOSEError, create_keycloak_auth
 
 from geoapi.config import settings
 
 logger = logging.getLogger(__name__)
 
 # Initialize Keycloak auth using goatlib
-_keycloak_auth = KeycloakAuth(
-    keycloak_url=settings.KEYCLOAK_SERVER_URL,
-    realm=settings.REALM_NAME,
-    verify_signature=settings.AUTH,
-)
+_keycloak_auth = create_keycloak_auth(settings)
 
 ISSUER_URL = _keycloak_auth.issuer_url
 

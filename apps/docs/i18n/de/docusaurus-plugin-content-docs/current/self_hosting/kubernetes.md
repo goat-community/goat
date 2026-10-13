@@ -67,6 +67,8 @@ Hochgeladene Bilder, etwa Vorschaubilder von Projekten und Datensätzen, Profilb
 
 Die Anmeldung ist standardmäßig **aus** (`global.auth.enabled: false`): Alle Dienste handeln dann als ein Standardbenutzer, stellen Sie eine solche Installation also hinter Ihre eigene Zugriffskontrolle. Um die Anmeldung einzuschalten, setzen Sie `global.auth.enabled: true` und `global.auth.existingSecret` auf ein Secret mit den Schlüsseln `server-url`, `realm`, `client-id`, `client-secret` und `nextauth-secret`. Ein Secret versorgt alle fünf Dienste.
 
+Verwenden andere Anwendungen denselben Realm, bestehen deren Tokens ebenfalls die Signaturprüfung von GOAT. Setzen Sie `global.auth.allowedClients` auf die Clients, deren Tokens GOAT annimmt, zum Beispiel `[goat-web]`; core, geoapi, processes und catalog beantworten dann ein Token jedes anderen Clients mit `401`. Die Liste muss den Client von GOAT selbst enthalten (`client-id` im Secret): Die Web-App meldet Benutzer mit ihm an, und der Druck-Worker und die Dienste reichen diese Tokens weiter. Ohne ihn startet core nicht. Die Liste prüft, welcher Client ein Token ausgestellt hat, nicht, wer der Benutzer ist: Dürfen nur bestimmte Benutzer GOAT verwenden, setzen Sie das am Client von GOAT für jeden Ablauf durch, den er erlaubt, oder schalten Sie seine *Direct access grants* aus. Siehe [Ein Realm, den sich GOAT mit anderen Anwendungen teilt](./docker_compose/external_services.md#keycloak-shared-realm).
+
 ### E-Mail und Einladungen {#email}
 
 - **`email`** legt den SMTP-Server fest, über den core Einladungen verschickt, mit dem Passwort aus einem Secret (`email.existingSecret`). Die Links in diesen E-Mails entstehen aus den öffentlichen URLs von Web-App und API.

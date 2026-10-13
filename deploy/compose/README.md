@@ -76,6 +76,13 @@ More in the docs: [HTTPS and addresses](https://goat.plan4better.de/docs/self_ho
   `KEYCLOAK_CLIENT_SECRET`. The client must be confidential, with redirect URI
   `<GOAT URL>/*`, and its service account needs the realm-management roles
   `view-users` and `manage-users`.
+- **A realm shared with other applications:** every client of the realm can get
+  a token that GOAT's APIs would accept. Set `AUTH_ALLOWED_CLIENTS` to the
+  clients GOAT should accept tokens from, comma-separated. It must include
+  `KEYCLOAK_CLIENT_ID`; core refuses to start otherwise. A token issued to any
+  other client then gets a `401`. The list checks the client, not the user: a
+  group restriction on GOAT's client must cover every flow the client allows
+  (or turn its direct access grants off).
 - **No login at all** (local demos only): `AUTH=False`. Everybody acts as one
   built-in administrator.
 

@@ -2,7 +2,7 @@ import os
 from typing import Literal
 from uuid import UUID
 
-from goatlib.auth import AuthFlag, require_keycloak_url
+from goatlib.auth import AuthFlag, require_keycloak_url, require_own_client_allowed
 from goatlib.config.postgres import parse_transaction_pooler
 from pydantic import PostgresDsn, ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -85,6 +85,13 @@ class Settings(BaseSettings):
     REALM_NAME: str | None = "p4b"
     KEYCLOAK_CLIENT_ID: str | None = None
     KEYCLOAK_CLIENT_SECRET: str | None = None
+    # Comma-separated Keycloak client IDs: with AUTH on, a token is accepted
+    # only if it was issued to one of them (its `azp` claim). Empty accepts
+    # tokens of every client of the realm. Read the same way by geoapi,
+    # processes and catalog (goatlib.auth.KeycloakAuth). A non-empty list
+    # must include KEYCLOAK_CLIENT_ID, or core refuses to start (see
+    # _require_keycloak).
+    AUTH_ALLOWED_CLIENTS: str = ""
     # With AUTH on: inviting an email that has no account in the realm creates
     # the Keycloak user and has Keycloak email a "set your password" link, for
     # realms where people cannot register themselves. The client above needs
@@ -395,6 +402,9 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _require_keycloak(self) -> "Settings":
         require_keycloak_url(self.AUTH, self.KEYCLOAK_SERVER_URL)
+        require_own_client_allowed(
+            self.AUTH, self.AUTH_ALLOWED_CLIENTS, self.KEYCLOAK_CLIENT_ID
+        )
         return self
 
     model_config = SettingsConfigDict(case_sensitive=True)

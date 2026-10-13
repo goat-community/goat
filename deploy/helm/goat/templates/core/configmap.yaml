@@ -51,6 +51,12 @@ data:
   {{- if not (include "goat.env.userSet" (dict "values" .Values.core "key" "ALLOW_ORGANIZATION_CREATION")) }}
   ALLOW_ORGANIZATION_CREATION: {{ ternary "false" "true" (eq (toString .Values.global.auth.allowOrganizationCreation) "false") | quote }}
   {{- end }}
+  {{- /* Token client allow-list (global.auth.allowedClients); left out while
+         empty, so core accepts every client of the realm. */}}
+  {{- $allowedClients := include "goat.auth.allowedClients" . }}
+  {{- if and $allowedClients (not (include "goat.env.userSet" (dict "values" .Values.core "key" "AUTH_ALLOWED_CLIENTS"))) }}
+  AUTH_ALLOWED_CLIENTS: {{ $allowedClients | quote }}
+  {{- end }}
   {{- /* Email (the `email` block). Empty values are left out: core treats
          an unset SMTP_HOST as email off. */}}
   {{- $email := .Values.email | default dict }}

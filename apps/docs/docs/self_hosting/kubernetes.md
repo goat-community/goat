@@ -67,6 +67,8 @@ Uploaded images, such as project and dataset thumbnails, avatars and dashboard i
 
 Login is **off** by default (`global.auth.enabled: false`): every service then acts as one default user, so put such an installation behind your own access control. To switch login on, set `global.auth.enabled: true` and `global.auth.existingSecret` to a Secret with the keys `server-url`, `realm`, `client-id`, `client-secret` and `nextauth-secret`. One Secret serves all five services.
 
+If other applications use the same realm, their tokens also pass GOAT's signature check. Set `global.auth.allowedClients` to the clients whose tokens GOAT accepts, for example `[goat-web]`, and core, geoapi, processes and catalog answer a token of any other client with `401`. The list must include GOAT's own client (`client-id` in the Secret): the web app signs users in with it, and the print worker and the services pass those tokens on. Without it core refuses to start. The list checks which client issued a token, not who the user is: if only some users may use GOAT, enforce that on GOAT's client for every flow it allows, or turn its *Direct access grants* off. See [A realm shared with other applications](./docker_compose/external_services.md#keycloak-shared-realm).
+
 ### Email and invitations {#email}
 
 - **`email`** sets the SMTP server core sends invitations through, with the password from a Secret (`email.existingSecret`). The links in these emails are built from the public web and API URLs.
