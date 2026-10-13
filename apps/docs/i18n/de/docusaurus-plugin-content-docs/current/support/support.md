@@ -69,6 +69,7 @@ Auf Installationen ohne Support-Tickets öffnet <code>Problem melden</code> stat
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <img src={require('/img/support/support_new_ticket_de.webp').default} alt="Das Formular Neues Support-Ticket" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
 </div>
+<p> </p>
 
 :::tip
 Ein Ticket ist sichtbar für Sie, die hinzugefügten Kolleginnen und Kollegen und die Admins Ihrer Organisation.

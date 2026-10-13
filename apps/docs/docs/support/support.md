@@ -69,6 +69,7 @@ On installations without support tickets, <code>Report a problem</code> opens an
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
   <img src={require('/img/support/support_new_ticket.webp').default} alt="The New support ticket form" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
 </div>
+<p> </p>
 
 :::tip
 A ticket is visible to you, the colleagues you add and your organization admins.
