@@ -16,6 +16,10 @@ Klicken Sie rechts in der oberen Leiste auf das Symbol <code>Support</code>. Auf
 - <code>Problem melden</code>: **öffnet das Formular für ein neues Ticket**.
 - <code>Dokumentation</code>: **öffnet diese Dokumentation** in einem neuen Tab.
 
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <img src={require('/img/support/support_menu_de.webp').default} alt="Das Support-Menü mit Support-Tickets, Problem melden und Dokumentation" style={{ maxHeight: "auto", maxWidth: "50%", objectFit: "cover"}}/>
+</div>
+
 Tickets, die Ihre Aufmerksamkeit brauchen, stehen oben im Menü, sodass Sie sie direkt öffnen können.
 
 :::info
@@ -62,11 +66,19 @@ Auf Installationen ohne Support-Tickets öffnet <code>Problem melden</code> stat
    <div class="content">Klicken Sie auf <code>Ticket senden</code>. Das Ticket öffnet sich, und <b>Sie erhalten eine Bestätigung per E-Mail</b>.</div>
 </div>
 
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <img src={require('/img/support/support_new_ticket_de.webp').default} alt="Das Formular Neues Support-Ticket" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
+</div>
+
 :::tip
 Ein Ticket ist sichtbar für Sie, die hinzugefügten Kolleginnen und Kollegen und die Admins Ihrer Organisation.
 :::
 
 ## Ihre Tickets verfolgen
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <img src={require('/img/support/support_tickets_de.webp').default} alt="Die Seite Support vor dem ersten Ticket" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
+</div>
 
 Die Seite <code>Support</code> listet Ihre Tickets unter <code>Offen</code> und <code>Geschlossen</code>. Suchen Sie nach Betreff oder Ticketnummer. Jedes Ticket zeigt seinen Status:
 

@@ -16,6 +16,10 @@ Click the <code>Support</code> icon in the upper bar, on the right. On a phone, 
 - <code>Report a problem</code>: **opens the form for a new ticket**.
 - <code>Documentation</code>: **opens this documentation** in a new tab.
 
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <img src={require('/img/support/support_menu.webp').default} alt="The Support menu with Support tickets, Report a problem and Documentation" style={{ maxHeight: "auto", maxWidth: "50%", objectFit: "cover"}}/>
+</div>
+
 Tickets that need your attention are listed at the top of the menu, so you can open them directly.
 
 :::info
@@ -62,11 +66,19 @@ On installations without support tickets, <code>Report a problem</code> opens an
    <div class="content">Click <code>Submit ticket</code>. The ticket opens, and <b>you get a confirmation by email</b>.</div>
 </div>
 
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <img src={require('/img/support/support_new_ticket.webp').default} alt="The New support ticket form" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
+</div>
+
 :::tip
 A ticket is visible to you, the colleagues you add and your organization admins.
 :::
 
 ## Follow your tickets
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+  <img src={require('/img/support/support_tickets.webp').default} alt="The Support page before the first ticket" style={{ maxHeight: "auto", maxWidth: "100%", objectFit: "cover"}}/>
+</div>
 
 The <code>Support</code> page lists your tickets under <code>Open</code> and <code>Closed</code>. Search by subject or ticket number. Each ticket shows its status:
 
