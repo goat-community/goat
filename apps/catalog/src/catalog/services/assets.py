@@ -38,6 +38,7 @@ from goatlib.storage.ducklake import load_extensions
 from catalog.config import CatalogSettings
 from catalog.errors import ApiError
 from catalog.services.preview import object_key
+from catalog.services.s3_secret import create_s3_secret
 
 logger = logging.getLogger(__name__)
 
@@ -124,25 +125,7 @@ class AssetReader:
             # One-shot reads: DuckDB would otherwise keep each S3 object read
             # in memory for the life of this connection.
             con.execute("SET enable_external_file_cache=false")
-            endpoint = (
-                (self._settings.s3_endpoint_url or "")
-                .replace("https://", "")
-                .replace("http://", "")
-            )
-            con.execute(
-                """
-                CREATE OR REPLACE SECRET catalog_assets (
-                    TYPE s3, KEY_ID ?, SECRET ?, ENDPOINT ?, REGION ?,
-                    URL_STYLE 'path'
-                )
-                """,
-                [
-                    self._settings.s3_access_key_id,
-                    self._settings.s3_secret_access_key,
-                    endpoint,
-                    self._settings.s3_region,
-                ],
-            )
+            create_s3_secret(con, "catalog_assets", self._settings)
             self._con = con
             return con
 
