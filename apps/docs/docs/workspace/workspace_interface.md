@@ -1,5 +1,5 @@
 ---
-description: "The Workspace navigation bar with Home, Content, Catalog and Settings, plus the user profile menu and the Job status view of your uploads and analyses."
+description: "The Workspace navigation bar with Home, Content, Catalog and Settings, and the user controls: Getting started, What's New, Support, Job status and the account menu."
 sidebar_position: 1
 ---
 
@@ -21,11 +21,11 @@ The list below explains the navigation toolbar in the Workspace.
 - <img src={require('/img/icons/catalog.png').default} alt="Catalog" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Catalog</code>: Here, you can browse all the datasets available within GOAT
 - <img src={require('/img/icons/settings.png').default} alt="Settings" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Settings</code>: The page where you can edit your profile and preferences settings
 
-### User's profile 
-By clicking on the <code>user's profile</code> button, you can see your name, your organization, and the `Logout` button.
+### User Controls {#user-controls}
+The icons in the upper right corner of the Workspace, from left to right:
 
-### Support
-Click the <code>Support</code> icon in the upper right corner to open your support tickets, report a problem or open the documentation. See [Support](../support/support.md).
-
-### Job status
-Once you start a task, the <code>Job status</code> icon appears in the upper right corner of the Workspace. Click it to see the status of your tasks in GOAT. *Tasks* are operations like data upload or geoanalysis. Without recent tasks, the icon is hidden.
+- <img src={require('/img/icons/getting-started.png').default} alt="Getting started" style={{ maxHeight: "20px", objectFit: "contain", verticalAlign: "middle" }}/> <code>Getting started</code>: Shows how many of the first steps you have completed, for example 5/6. Click it to see the checklist: <code>Create your first project</code>, <code>Bring in some data</code>, <code>Add a layer from the catalog</code>, <code>Run your first analysis</code>, <code>Build a workflow</code> and <code>Invite your team</code>. Click an open step to go straight to it, or click <code>I'm ready, skip onboarding</code> to hide the checklist. Once you have completed all steps, it disappears.
+- <img src={require('/img/icons/whats-new.png').default} alt="What's New" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", verticalAlign: "middle" }}/> <code>What's New</code>: The latest GOAT updates. A number on the rocket shows how many you haven't seen yet. Click <code>View all updates</code> to open the full changelog on the Plan4Better website.
+- <img src={require('/img/icons/support.png').default} alt="Support" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", verticalAlign: "middle" }}/> <code>Support</code>: Open your support tickets, report a problem or open the documentation. See [Support](../support/support.md).
+- <img src={require('/img/icons/job-status.png').default} alt="Job status" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", verticalAlign: "middle" }}/> <code>Job status</code>: The status of your tasks, such as data uploads or analyses. The icon appears once you have started a task and is hidden when there are no recent tasks.
+- <img src={require('/img/icons/user-profile.png').default} alt="Account menu" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", verticalAlign: "middle" }}/> <code>Account menu</code>: Your name, your organization and role, and the <code>Logout</code> button.

@@ -1,5 +1,5 @@
 ---
-description: "Die Navigationsleiste des Workspace mit Startseite, Inhalt, Katalog und Einstellungen sowie das Benutzerprofil und der Job Status für Uploads und Analysen."
+description: "Die Navigationsleiste des Workspace mit Startseite, Inhalt, Katalog und Einstellungen sowie die Benutzersteuerung: Erste Schritte, Neuigkeiten, Support, Job Status und Kontomenü."
 sidebar_position: 1
 ---
 
@@ -21,11 +21,11 @@ Die Liste unten erklärt die Navigations-Symbolleiste im **Workspace**.
 - <img src={require('/img/icons/catalog.png').default} alt="Katalog" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Katalog</code>: Hier können Sie alle verfügbaren **Datensätze** in GOAT durchsuchen
 - <img src={require('/img/icons/settings.png').default} alt="Einstellungen" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Einstellungen</code>: Die Seite, auf der Sie Ihr Profil und Ihre Einstellungen bearbeiten können
 
-### Benutzerprofil 
-Durch Klicken auf die Schaltfläche <code>Benutzerprofil</code> können Sie Ihren Namen, Ihre Organisation und die `Abmelden`-Schaltfläche sehen.
+### Benutzersteuerung {#user-controls}
+Die Symbole in der oberen rechten Ecke des **Workspace**, von links nach rechts:
 
-### Support
-Klicken Sie auf das Symbol <code>Support</code> in der oberen rechten Ecke, um Ihre Support-Tickets zu öffnen, ein Problem zu melden oder die Dokumentation zu öffnen. Siehe [Support](../support/support.md).
-
-### Job Status
-Sobald Sie eine Aufgabe starten, erscheint das Symbol <code>Job Status</code> in der oberen rechten Ecke des **Workspace**. Klicken Sie darauf, um den Status Ihrer Aufgaben in GOAT zu sehen. *Aufgaben* sind Vorgänge wie **Daten**-Upload oder Geoanalyse. Ohne aktuelle Aufgaben ist das Symbol ausgeblendet.
+- <img src={require('/img/icons/getting-started.png').default} alt="Erste Schritte" style={{ maxHeight: "20px", objectFit: "contain", verticalAlign: "middle" }}/> <code>Erste Schritte</code>: Zeigt, wie viele der ersten Schritte Sie erledigt haben, zum Beispiel 5/6. Klicken Sie darauf, um die Checkliste zu sehen: <code>Erstes Projekt erstellen</code>, <code>Daten einbringen</code>, <code>Layer aus dem Katalog hinzufügen</code>, <code>Führen Sie Ihre erste Analyse durch</code>, <code>Erstellen Sie einen Workflow</code> und <code>Team einladen</code>. Klicken Sie auf einen offenen Schritt, um direkt dorthin zu gelangen, oder auf <code>Ich bin bereit, Einführung überspringen</code>, um die Checkliste auszublenden. Sobald Sie alle Schritte erledigt haben, verschwindet sie.
+- <img src={require('/img/icons/whats-new.png').default} alt="Neuigkeiten" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", verticalAlign: "middle" }}/> <code>Neuigkeiten</code>: Die neuesten GOAT-Updates. Eine Zahl an der Rakete zeigt, wie viele Sie noch nicht gesehen haben. Klicken Sie auf <code>Alle Updates ansehen</code>, um das vollständige Changelog auf der Plan4Better-Website zu öffnen.
+- <img src={require('/img/icons/support.png').default} alt="Support" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", verticalAlign: "middle" }}/> <code>Support</code>: Öffnen Sie Ihre Support-Tickets, melden Sie ein Problem oder öffnen Sie die Dokumentation. Siehe [Support](../support/support.md).
+- <img src={require('/img/icons/job-status.png').default} alt="Job Status" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", verticalAlign: "middle" }}/> <code>Job Status</code>: Der Status Ihrer Aufgaben, etwa Daten-Uploads oder Analysen. Das Symbol erscheint, sobald Sie eine Aufgabe gestartet haben, und ist ausgeblendet, wenn es keine aktuellen Aufgaben gibt.
+- <img src={require('/img/icons/user-profile.png').default} alt="Kontomenü" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover", verticalAlign: "middle" }}/> <code>Kontomenü</code>: Ihr Name, Ihre Organisation und Rolle sowie die Schaltfläche <code>Abmelden</code>.
