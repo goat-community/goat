@@ -3453,12 +3453,14 @@
   "fetch_features_sql_needed": "Schreiben Sie eine Bedingung oder wechseln Sie zurück zum Baukasten",
   "fetch_features_started": "„{{name}}“ wird abgerufen. Der Layer erscheint, sobald der Job fertig ist.",
   "fetch_features_reduce_area": "Über 1.000.000 Features hier. Darüber bricht der Abruf ab: Filter hinzufügen oder ein kleineres Gebiet wählen.",
-  "fetch_features_counting": "Wird in diesem Gebiet gezählt …",
   "fetch_features_save_to_heading": "Ordner oder Team",
   "fetch_features_team_root": "Team-Hauptordner",
   "fetch_features_source_goat": "GOAT-Straßennetz",
   "fetch_features_network_default_name": "GOAT-Straßennetz",
   "fetch_features_road_classes": "Straßenklassen",
   "fetch_features_road_classes_hint": "Alle Klassen, wenn keine gewählt ist. Gespeichert als Straßennetz-Bundle mit Routing-Graph, nutzbar in den Routing-Werkzeugen; das Routing darauf berücksichtigt keine Steigung.",
-  "fetch_features_network_started": "Das Straßennetz „{{name}}“ wird erstellt. Es erscheint, sobald der Job fertig ist."
+  "fetch_features_network_started": "Das Straßennetz „{{name}}“ wird erstellt. Es erscheint, sobald der Job fertig ist.",
+  "fetch_features_type_land_points": "Land",
+  "fetch_features_type_land_lines": "Land",
+  "fetch_features_type_water_points": "Gewässer"
 }

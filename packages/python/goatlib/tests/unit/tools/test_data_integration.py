@@ -122,6 +122,9 @@ def test_only_indexed_files_touching_the_area(tmp_path) -> None:
     ov = module.SOURCES["overture"]
     assert (ov.unit_of("waterways"), ov.layer_of("waterways"), ov.geometry_of("waterways")) == ("base", "water", "line")
     assert "LINESTRING" in ov.geometry_filter("waterways") and "POLYGON" not in ov.geometry_filter("waterways")
+    # A split mirror holds the geometry in the layer: no geometry is read then.
+    assert ov.split_layer_of("waterways") == "water_line" and ov.split_layer_of("places") is None
+    assert ov.geometry_filter("waterways", ["s3://m/base/v/austria/water_line.parquet"]) == "TRUE"
     assert src.geometry_filter("points") == "TRUE"
 
     # No pointer yet means no data here, not a crash.
@@ -164,3 +167,21 @@ def test_the_area_and_the_sql_are_checked(tmp_path) -> None:
     for bad in ["1=1; DROP TABLE t", "osm_id IN (SELECT 1)", "read_parquet('x') IS NULL"]:
         with pytest.raises(ValueError, match="not allowed"):
             module.checked_where(con, [str(data)], src, bad)
+
+    # Tags as hstore text in one country and as a native map in another, as
+    # mid-republish: both answer the same filter, and keys list the same way.
+    text, mapped = tmp_path / "text.parquet", tmp_path / "map.parquet"
+    env = (11.5, 48.1, 11.6, 48.2)
+    bbox = "{'xmin': 11.5, 'ymin': 48.1, 'xmax': 11.5, 'ymax': 48.1}"
+    con.execute(f"""COPY (SELECT 1 AS osm_id, '"amenity"=>"school","name"=>"A"' AS all_tags,
+        {bbox} AS bbox, ST_Point(11.5, 48.1) AS geom) TO '{text}' (FORMAT PARQUET)""")
+    con.execute(f"""COPY (SELECT 2 AS osm_id, MAP {{'amenity': 'school'}} AS tags,
+        {bbox} AS bbox, ST_Point(11.5, 48.1) AS geom) TO '{mapped}' (FORMAT PARQUET)""")
+    f = [TagFilter(key="amenity", values=["school"])]
+    for files, storage in (([str(text)], "text"), ([str(mapped)], "map"), ([str(text), str(mapped)], "both")):
+        assert module.tag_storage(module.mirror_columns(con, files)) == storage
+        pre, exact = module.filter_sql(f, src, storage=storage)
+        hits = con.execute(f"SELECT osm_id FROM ({module.candidates_sql(files, src, env, pre, storage)}) WHERE {exact}").fetchall()
+        assert len(hits) == len(files)
+        keys, _ = module._count_tags(con, module._raw_tags_sql(files, env, "TRUE", storage), None, 10, storage)
+        assert keys[0] == ("amenity", len(files))

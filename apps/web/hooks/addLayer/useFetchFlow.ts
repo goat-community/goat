@@ -49,8 +49,8 @@ export const ROAD_CLASSES = [
 
 /** Overture's types grouped by the geometry each one yields, as the tool maps them. */
 export const OVERTURE_GROUPS: { geometry: "point" | "line" | "polygon"; types: string[] }[] = [
-  { geometry: "point", types: ["places", "infrastructure_points"] },
-  { geometry: "line", types: ["waterways", "infrastructure_lines"] },
+  { geometry: "point", types: ["places", "land_points", "water_points", "infrastructure_points"] },
+  { geometry: "line", types: ["waterways", "land_lines", "infrastructure_lines"] },
   {
     geometry: "polygon",
     types: ["buildings", "divisions", "land_use", "land", "water_areas", "infrastructure_areas"],

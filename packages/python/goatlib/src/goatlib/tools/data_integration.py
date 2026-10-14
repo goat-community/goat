@@ -76,8 +76,11 @@ OVERTURE_TYPES: dict[str, tuple[str, str]] = {
     "buildings": ("buildings/building", "polygon"),
     "land_use": ("base/land_use", "polygon"),
     "land": ("base/land", "polygon"),
+    "land_points": ("base/land", "point"),
+    "land_lines": ("base/land", "line"),
     "water_areas": ("base/water", "polygon"),
     "waterways": ("base/water", "line"),
+    "water_points": ("base/water", "point"),
     "infrastructure_points": ("base/infrastructure", "point"),
     "infrastructure_lines": ("base/infrastructure", "line"),
     "infrastructure_areas": ("base/infrastructure", "polygon"),
@@ -130,13 +133,28 @@ class Source:
     def layer_of(self, type_key: str) -> str:
         return type_key if self.tagged else OVERTURE_TYPES[type_key][0].split("/")[1]
 
-    def geometry_filter(self, type_key: str) -> str:
+    def split_layer_of(self, type_key: str) -> str | None:
+        """The layer holding only this option's geometry, where the mirror splits one.
+
+        The base theme mixes geometries in a type, so the mirror writes each as its
+        own layer -- ``water_polygon``, ``water_line`` -- and nothing has to read a
+        geometry to tell them apart.
+        """
+        if self.tagged or self.unit_of(type_key) not in MIXED_THEMES:
+            return None
+        return f"{self.layer_of(type_key)}_{self.geometry_of(type_key)}"
+
+    def geometry_filter(self, type_key: str, files: list[str] | None = None) -> str:
         """SQL keeping only this option's geometry type.
 
         Only where a type mixes them: OSM layers and most Overture types hold one
         already, and the test reads the geometry column, the largest in the file.
+        Files of a split layer hold one geometry too.
         """
         if self.tagged or self.unit_of(type_key) not in MIXED_THEMES:
+            return "TRUE"
+        split = self.split_layer_of(type_key)
+        if files and all(f.endswith(f"/{split}.parquet") for f in files):
             return "TRUE"
         kinds = ", ".join(f"'{k}'" for k in GEOMETRY_TYPES[self.geometry_of(type_key)])
         return f'ST_GeometryType("{self.geom}")::VARCHAR IN ({kinds})'
@@ -219,6 +237,42 @@ TAGS_SQL = """CAST(TRY_CAST('{' || replace(replace(replace(replace(
     chr(9), '\\t') || '}' AS JSON) AS MAP(VARCHAR, VARCHAR))"""
 
 
+def mirror_columns(con: "Any", files: list[str]) -> dict[str, str]:
+    """Every column the files hold, across all of them, with its type."""
+    listed = ", ".join(f"'{_quote(f)}'" for f in files)
+    return {
+        str(r[0]): str(r[1])
+        for r in con.execute(
+            f"DESCRIBE SELECT * FROM read_parquet([{listed}], union_by_name = true)"
+        ).fetchall()
+    }
+
+
+def tag_storage(columns: dict[str, str]) -> str:
+    """How the files hold OSM tags: a native `tags` map, the hstore `all_tags`
+    text, or "both" while a republish has reached some countries only."""
+    mapped = columns.get("tags", "").startswith("MAP")
+    if mapped and "all_tags" in columns:
+        return "both"
+    return "map" if mapped else "text"
+
+
+def _tags_from(storage: str, parsed: str = TAGS_SQL) -> str:
+    """The tags as a map, whichever way the files hold them."""
+    if storage == "map":
+        return "tags"
+    return parsed if storage == "text" else f"coalesce(tags, {parsed})"
+
+
+def _has_key_sql(key: str, storage: str) -> str:
+    """Whether a feature carries a key, tested on the stored tags unparsed."""
+    text = f"regexp_matches(all_tags, '\"{_quote(re.escape(key))}\"=>')"
+    mapped = f"map_contains(tags, '{_quote(key)}')"
+    if storage == "map":
+        return mapped
+    return text if storage == "text" else f"coalesce({mapped}, {text})"
+
+
 def ensure_s3(con: "Any") -> None:
     """Point a connection at our object storage.
 
@@ -290,12 +344,25 @@ def covering(
     # One read over every index: they are remote, and one round trip per
     # country made a large area cost ten seconds before any data was touched.
     listed = ", ".join(f"'{_quote(i)}'" for i in bases)
-    rows = con.execute(
-        f"SELECT filename, path FROM read_parquet([{listed}], filename = true, union_by_name = true) "
-        "WHERE layer = ? AND xmin <= ? AND xmax >= ? AND ymin <= ? AND ymax >= ? "
+    # The split layer where the mirror has one, the combined layer of an older
+    # version otherwise -- per index, so a pointer mid-switch still reads.
+    split = source.split_layer_of(type_key)
+    layers = (
+        [split, source.layer_of(type_key)] if split else [source.layer_of(type_key)]
+    )
+    found = con.execute(
+        f"SELECT filename, path, layer FROM read_parquet([{listed}], filename = true, union_by_name = true) "
+        f"WHERE layer IN ({', '.join('?' for _ in layers)}) "
+        "AND xmin <= ? AND xmax >= ? AND ymin <= ? AND ymax >= ? "
         "ORDER BY filename, path",
-        [source.layer_of(type_key), xmax, xmin, ymax, ymin],
+        [*layers, xmax, xmin, ymax, ymin],
     ).fetchall()
+    has_split = {index for index, _, layer in found if layer == split}
+    rows = [
+        (index, p)
+        for index, p, layer in found
+        if layer == split or index not in has_split
+    ]
     files = [f"{index.removesuffix('/_index.parquet')}/{p}" for index, p in rows]
     read = [bases[i] for i in bases if any(index == i for index, _ in rows)]
     return files, read
@@ -344,13 +411,8 @@ def checked_where(con: "Any", files: list[str], source: Source, where: str) -> s
     """A user's own condition, held to what goatlib allows in an expression."""
     from goatlib.utils.expressions.validator import ExpressionValidator
 
-    columns = [
-        str(r[0])
-        for r in con.execute(
-            f"DESCRIBE SELECT * FROM read_parquet('{_quote(files[0])}')"
-        ).fetchall()
-    ]
-    if source.tagged:
+    columns = list(mirror_columns(con, files))
+    if source.tagged and "tags" not in columns:
         columns.append("tags")
     result = ExpressionValidator(columns, source.geom).validate(where)
     if not result.valid:
@@ -404,7 +466,11 @@ def overture_plain_columns(columns: dict[str, str], alias: str = "c") -> list[st
 
 
 def candidates_sql(
-    files: list[str], source: Source, envelope: tuple, prefilter: str
+    files: list[str],
+    source: Source,
+    envelope: tuple,
+    prefilter: str,
+    storage: str = "text",
 ) -> str:
     """One read over every covering file. Features at a continent seam can arrive
     twice; the caller de-duplicates by id."""
@@ -417,9 +483,12 @@ def candidates_sql(
         if prefilter == "TRUE"
         else f"CASE WHEN {prefilter} THEN {TAGS_SQL} END"
     )
-    projection = (
-        f"* EXCLUDE (all_tags), all_tags, {parsed} AS tags" if source.tagged else "*"
-    )
+    if not source.tagged or storage == "map":
+        projection = "*"
+    elif storage == "text":
+        projection = f"* EXCLUDE (all_tags), all_tags, {parsed} AS tags"
+    else:
+        projection = f"* EXCLUDE (tags), {_tags_from(storage, parsed)} AS tags"
     listed = ", ".join(f"'{_quote(f)}'" for f in files)
     return f"""SELECT {projection}
         FROM read_parquet([{listed}], union_by_name = true, filename = true)
@@ -450,7 +519,7 @@ def _column_values(
     capped = f"""SELECT * FROM read_parquet([{listed}], union_by_name = true)
         WHERE bbox.xmin <= {xmax} AND bbox.xmax >= {xmin}
           AND bbox.ymin <= {ymax} AND bbox.ymax >= {ymin}
-          AND {source.geometry_filter(type_key)}
+          AND {source.geometry_filter(type_key, files)}
         LIMIT {SUGGESTION_ROWS}"""
     if key is None:
         fields = OVERTURE_FIELDS.get(OVERTURE_TYPES[type_key][0], {})
@@ -577,28 +646,34 @@ def _sweep_tag_cache(root: Path) -> None:
                 pass
 
 
-def _raw_tags_sql(files: list[str], envelope: tuple, prefilter: str) -> str:
-    """Every feature's unparsed tags in the envelope, for suggestions only."""
+def _raw_tags_sql(
+    files: list[str], envelope: tuple, prefilter: str, storage: str = "text"
+) -> str:
+    """Every feature's tags in the envelope, for suggestions only: the hstore
+    text left unparsed, or the map as stored."""
     xmin, ymin, xmax, ymax = envelope
     listed = ", ".join(f"'{_quote(f)}'" for f in files)
-    return f"""SELECT all_tags FROM read_parquet([{listed}], union_by_name = true)
+    picked = "all_tags" if storage == "text" else f"{_tags_from(storage)} AS tags"
+    return f"""SELECT {picked} FROM read_parquet([{listed}], union_by_name = true)
         WHERE bbox.xmin <= {xmax} AND bbox.xmax >= {xmin}
           AND bbox.ymin <= {ymax} AND bbox.ymax >= {ymin} AND {prefilter}"""
 
 
 def _count_tags(
-    con: "Any", source: str, key: str | None, limit: int
+    con: "Any", source: str, key: str | None, limit: int, storage: str = "text"
 ) -> tuple[list, int]:
     """The commonest keys or values, and how many were counted before the limit.
 
     Read from the raw hstore text with a regex: parsing every feature's tags
     into a map was most of a ten-second first call, and a list needs no map.
+    Files holding a native map are read as one.
     """
-    picked = (
-        """unnest(regexp_extract_all(all_tags, '"([^"]+)"=>', 1))"""
-        if key is None
-        else f"""regexp_extract(all_tags, '"{_quote(re.escape(key))}"=>"((?:[^"\\\\]|\\\\.)*)"', 1)"""
-    )
+    if storage != "text":
+        picked = "unnest(map_keys(tags))" if key is None else f"tags['{_quote(key)}']"
+    elif key is None:
+        picked = """unnest(regexp_extract_all(all_tags, '"([^"]+)"=>', 1))"""
+    else:
+        picked = f"""regexp_extract(all_tags, '"{_quote(re.escape(key))}"=>"((?:[^"\\\\]|\\\\.)*)"', 1)"""
     # A colon marks a sub-attribute by OSM convention -- `addr:street`,
     # `contact:phone`, `crossing:markings` describe a feature rather than say
     # what it is, and they crowd out the keys worth querying: in Munich the six
@@ -644,6 +719,7 @@ def mirror_values(
 
     if not src.tagged:
         return _column_values(con, src, files, feature_type, envelope, key, limit)
+    storage = tag_storage(mirror_columns(con, files))
 
     # Every feature's tags in the area, parsed once and kept. Building it is the
     # slow part -- the whole area is read and every hstore parsed -- and the
@@ -658,7 +734,7 @@ def mirror_values(
     if quick and not (cache is not None and cache.exists()):
         con.execute(
             "CREATE OR REPLACE TEMP TABLE quick_tags AS "
-            f"{_raw_tags_sql(files, envelope, 'TRUE')} LIMIT {QUICK_ROWS}"
+            f"{_raw_tags_sql(files, envelope, 'TRUE', storage)} LIMIT {QUICK_ROWS}"
         )
         complete = (
             con.execute("SELECT count(*) FROM quick_tags").fetchone()[0] < QUICK_ROWS
@@ -671,7 +747,7 @@ def mirror_values(
             tmp = cache.with_suffix(".tmp.parquet")
             con.execute(f"COPY quick_tags TO '{tmp}' (FORMAT PARQUET)")
             os.replace(tmp, cache)
-        rows, _ = _count_tags(con, "SELECT all_tags FROM quick_tags", key, limit)
+        rows, _ = _count_tags(con, "SELECT * FROM quick_tags", key, limit, storage)
         con.execute("DROP TABLE quick_tags")
         return {
             "key": key,
@@ -685,34 +761,38 @@ def mirror_values(
             cache.touch()
         except OSError:
             pass
-        source = f"SELECT all_tags FROM read_parquet('{cache}')"
+        source = f"SELECT * FROM read_parquet('{cache}')"
     else:
         # The envelope by each feature's bbox, not the area itself and not even
         # ST_Intersects: a key present just outside the boundary is present
         # inside it too. The extract still clips exactly; this only decides
         # what the dropdowns offer.
-        source = f"{_raw_tags_sql(files, envelope, 'TRUE')} LIMIT {SUGGESTION_ROWS}"
+        source = (
+            f"{_raw_tags_sql(files, envelope, 'TRUE', storage)} "
+            f"LIMIT {SUGGESTION_ROWS}"
+        )
         if cache is not None:
             tmp = cache.with_suffix(".tmp.parquet")
             con.execute(f"COPY ({source}) TO '{tmp}' (FORMAT PARQUET)")
             os.replace(tmp, cache)
-            source = f"SELECT all_tags FROM read_parquet('{cache}')"
+            source = f"SELECT * FROM read_parquet('{cache}')"
 
     # A capped read makes counts of a sample, not of the area; the caller is
     # told, so it never shows a sample's number as a total.
     sampled = (
         con.execute(f"SELECT count(*) FROM ({source})").fetchone()[0] >= SUGGESTION_ROWS
     )
-    rows, _ = _count_tags(con, source, key, limit)
+    rows, _ = _count_tags(con, source, key, limit, storage)
     if key is not None and not rows:
         # A key too rare for the sample: read only features carrying it.
-        quoted_key = _quote(re.escape(key))
-        prefilter = f"regexp_matches(all_tags, '\"{quoted_key}\"=>')"
+        prefilter = _has_key_sql(key, storage)
         rows, seen = _count_tags(
             con,
-            f"{_raw_tags_sql(files, envelope, prefilter)} LIMIT {RARE_KEY_ROWS}",
+            f"{_raw_tags_sql(files, envelope, prefilter, storage)} "
+            f"LIMIT {RARE_KEY_ROWS}",
             key,
             limit,
+            storage,
         )
         sampled = seen >= RARE_KEY_ROWS
     return {
@@ -775,8 +855,11 @@ class DataIntegrationParams(ToolInputBase):
         "buildings",
         "land_use",
         "land",
+        "land_points",
+        "land_lines",
         "water_areas",
         "waterways",
+        "water_points",
         "infrastructure_points",
         "infrastructure_lines",
         "infrastructure_areas",
@@ -866,18 +949,24 @@ def filter_sql(
     source: Source,
     match_mode: str = "all",
     type_key: str = "places",
+    storage: str = "text",
 ) -> tuple[str, str]:
     """(cheap prefilter before parsing, exact test after)."""
     joiner = " AND " if match_mode == "all" else " OR "
     if source.tagged:
-        return _tag_sql(filters, joiner)
+        return _tag_sql(filters, joiner, storage)
     return _column_sql(filters, joiner, source, type_key)
 
 
-def _tag_sql(filters: List[TagFilter], joiner: str = " AND ") -> tuple[str, str]:
+def _tag_sql(
+    filters: List[TagFilter], joiner: str = " AND ", storage: str = "text"
+) -> tuple[str, str]:
     """(cheap prefilter on the raw text, exact test on the parsed map)."""
     if not filters:
         return "TRUE", "TRUE"
+    if storage != "text":
+        # A stored map needs no parsing, so nothing to spare it from.
+        return "TRUE", _tag_sql(filters, joiner)[1]
     pre, exact = [], []
     for f in filters:
         key = _quote(re.escape(f.key))
@@ -922,21 +1011,17 @@ class DataIntegrationRunner(BaseToolRunner[DataIntegrationParams]):
         if not files:
             raise ValueError("The mirror holds no data for this area.")
 
+        columns = mirror_columns(con, files)
+        storage = tag_storage(columns)
         if params.where:
             prefilter, exact = "TRUE", checked_where(con, files, src, params.where)
         else:
             prefilter, exact = filter_sql(
-                params.tag_filters, src, params.match_mode, type_key
+                params.tag_filters, src, params.match_mode, type_key, storage
             )
-        prefilter = f"({prefilter}) AND {src.geometry_filter(type_key)}"
+        prefilter = f"({prefilter}) AND {src.geometry_filter(type_key, files)}"
         out = temp_dir / "output.parquet"
         staged = temp_dir / "staged.parquet"
-        columns = {
-            str(r[0]): str(r[1])
-            for r in con.execute(
-                f"DESCRIBE SELECT * FROM read_parquet('{_quote(files[0])}')"
-            ).fetchall()
-        }
         # GDAL fills osm_id only for relations on the polygon layer; a polygon
         # from a way has its id in osm_way_id and osm_id NULL. Keyed on osm_id
         # alone, every way-polygon fell into one group and one row was kept.
@@ -945,8 +1030,16 @@ class DataIntegrationRunner(BaseToolRunner[DataIntegrationParams]):
             if src.tagged and "osm_way_id" in columns
             else f'c."{src.id_column}"'
         )
-        if src.tagged:
+        if src.tagged and storage == "text":
             selected = "c.* EXCLUDE (tags, bbox, filename)"
+        elif src.tagged:
+            # Back to one text column, as from the hstore files: the tile writer
+            # drops a map, and the popup would show no tags at all.
+            dropped = "tags, all_tags" if storage == "both" else "tags"
+            selected = (
+                f"c.* EXCLUDE ({dropped}, bbox, filename), "
+                "CAST(to_json(c.tags) AS VARCHAR) AS all_tags"
+            )
         else:
             plain = overture_plain_columns(columns)
             # Right after the id, so they are the first thing a popup shows; the
@@ -964,7 +1057,7 @@ class DataIntegrationRunner(BaseToolRunner[DataIntegrationParams]):
         con.execute(f"""
             COPY (
                 WITH area AS (SELECT ST_Union_Agg("{area_geom}") AS g FROM {area}),
-                candidates AS ({candidates_sql(files, src, envelope, prefilter)})
+                candidates AS ({candidates_sql(files, src, envelope, prefilter, storage)})
                 SELECT {selected}, c.filename AS _mirror_file
                 FROM candidates c, area
                 WHERE {exact} AND ST_Intersects(c."{src.geom}", area.g)

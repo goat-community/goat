@@ -446,11 +446,9 @@ const FilterRow = ({
               helperText={
                 keys.failed
                   ? t("osm_tag_failed")
-                  : keys.counting
-                    ? t("fetch_features_counting")
-                    : keys.sampled
-                      ? t("fetch_features_reduce_area")
-                      : undefined
+                  : keys.sampled && !keys.counting
+                    ? t("fetch_features_reduce_area")
+                    : undefined
               }
             />
           )}

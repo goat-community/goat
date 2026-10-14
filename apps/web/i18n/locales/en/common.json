@@ -3453,12 +3453,14 @@
   "fetch_features_sql_needed": "Write a condition, or switch back to the builder",
   "fetch_features_started": "Fetching “{{name}}”. It appears when the job is done.",
   "fetch_features_reduce_area": "Over 1,000,000 features here. A fetch stops above that: add a filter or choose a smaller area.",
-  "fetch_features_counting": "Counting in this area …",
   "fetch_features_save_to_heading": "Folder or team",
   "fetch_features_team_root": "Team root",
   "fetch_features_source_goat": "GOAT street network",
   "fetch_features_network_default_name": "GOAT street network",
   "fetch_features_road_classes": "Road classes",
   "fetch_features_road_classes_hint": "All classes when none is selected. Saved as a street network bundle with its routing graph, ready for the routing tools; routing on it ignores slope.",
-  "fetch_features_network_started": "Building the street network “{{name}}”. It appears when the job is done."
+  "fetch_features_network_started": "Building the street network “{{name}}”. It appears when the job is done.",
+  "fetch_features_type_land_points": "Land",
+  "fetch_features_type_land_lines": "Land",
+  "fetch_features_type_water_points": "Water"
 }
