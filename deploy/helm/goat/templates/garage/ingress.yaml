@@ -1,0 +1,56 @@
+{{- /*
+Browsers reach Garage on the web app's host, as in the compose bundle:
+/<bucket> to the S3 API unchanged (presigned uploads are signed over host
+and path), /<assets bucket> to the website endpoint with the prefix
+stripped and the bucket's website host, for public reads of images. The
+annotations are ingress-nginx's.
+*/}}
+{{- if and .Values.garage.enabled .Values.garage.ingress.enabled -}}
+{{- if not (and .Values.web.ingress.enabled .Values.web.ingress.hosts) -}}
+{{- fail "garage.ingress.enabled puts Garage on the web app's host: set web.ingress.enabled and web.ingress.hosts" -}}
+{{- end -}}
+{{- $ctx := dict "context" . "component" "garage" -}}
+{{- $s3 := include "goat.s3.settings" . | fromYaml -}}
+{{- $class := .Values.garage.ingress.className | default .Values.web.ingress.className -}}
+{{- $svc := include "goat.garage.fullname" . -}}
+{{- $routes := list
+      (dict "suffix" "s3" "path" (printf "/%s" $s3.bucket) "pathType" "Prefix" "port" 3900
+            "annotations" (dict "nginx.ingress.kubernetes.io/proxy-body-size" "0"))
+      (dict "suffix" "assets" "path" (printf "/%s(/|$)(.*)" $s3.assets.bucket) "pathType" "ImplementationSpecific" "port" 3902
+            "annotations" (dict "nginx.ingress.kubernetes.io/use-regex" "true"
+                                "nginx.ingress.kubernetes.io/rewrite-target" "/$2"
+                                "nginx.ingress.kubernetes.io/upstream-vhost" (printf "%s.web.garage.internal" $s3.assets.bucket))) -}}
+{{- range $r := $routes }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $svc }}-{{ $r.suffix }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+  annotations:
+    {{- toYaml (merge (deepCopy ($.Values.garage.ingress.annotations | default dict)) $r.annotations) | nindent 4 }}
+spec:
+  {{- with $class }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with $.Values.web.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range $.Values.web.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          - path: {{ $r.path }}
+            pathType: {{ $r.pathType }}
+            backend:
+              service:
+                name: {{ $svc }}
+                port:
+                  number: {{ $r.port }}
+    {{- end }}
+{{- end }}
+{{- end -}}

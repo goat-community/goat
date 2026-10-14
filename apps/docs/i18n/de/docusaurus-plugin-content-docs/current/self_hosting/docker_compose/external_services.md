@@ -46,7 +46,7 @@ Richten Sie Ihren eigenen Speicher ein, bevor Sie GOAT zum ersten Mal starten. D
   ]
   ```
 
-- **Assets-Bucket** (`ASSETS_BUCKET_NAME`, Vorgabe `goat-assets`) für Profilbilder und Bilder. Er muss ohne Zugangsdaten unter der Adresse lesbar sein, die Sie als `ASSETS_URL` eintragen.
+- **Assets-Bucket** (`ASSETS_BUCKET_NAME`, Vorgabe `goat-assets`) für Profilbilder und Bilder. Er muss ohne Zugangsdaten unter der Adresse lesbar sein, die Sie als `ASSETS_URL` eintragen. Erlaubt Ihr Speicher keinen öffentlich lesbaren Bucket, lassen Sie ihn weg: Setzen Sie `ASSETS_SERVED_BY_CORE=true` und `ASSETS_URL=<GOAT_PUBLIC_URL>/api/v2/asset/file`. GOAT legt die Bilder dann im Upload-Bucket unter `assets/` ab und liefert sie selbst aus.
 
 Auf beide Buckets wird mit demselben Zugangsschlüssel zugegriffen.
 
@@ -65,6 +65,7 @@ Entfernen Sie `garage` aus `COMPOSE_PROFILES` und setzen Sie:
 | `ASSETS_S3_ENDPOINT_URL` | Endpunkt des Assets-Buckets; Vorgabe ist `S3_ENDPOINT_URL` |
 | `ASSETS_BUCKET_NAME` | Der Assets-Bucket |
 | `ASSETS_URL` | Öffentliche Adresse des Assets-Buckets, z. B. `https://assets.example.org` |
+| `ASSETS_SERVED_BY_CORE` | `true` legt die Bilder im Upload-Bucket ab und lässt GOAT sie ausliefern, für Speicher ohne öffentlichen Bucket |
 
 `GARAGE_RPC_SECRET` und `GARAGE_ADMIN_TOKEN` werden ohne das mitgelieferte Garage nicht verwendet.
 
@@ -104,6 +105,25 @@ Mit Ihrem eigenen Keycloak legt GOAT dort keinen Benutzer an. `smoke.sh` meldet 
 :::
 
 Verwendet Ihr Keycloak ein Zertifikat einer privaten CA, lesen Sie [Firmen-CA](./https.md#company-ca).
+
+### Ein Realm, den sich GOAT mit anderen Anwendungen teilt {#keycloak-shared-realm}
+
+Jeder Client eines Realms kann ein Token bekommen, das mit dem Schlüssel des Realms signiert ist, und standardmäßig nehmen die GOAT-APIs ein solches Token auch dann an, wenn Keycloak es für eine andere Anwendung ausgestellt hat. Eine Regel, die nur bestimmte Benutzer bei GOAT anmeldet, etwa eine Gruppenprüfung am Client von GOAT, schützt dann die Anmeldeseite, aber nicht die APIs.
+
+Setzen Sie `AUTH_ALLOWED_CLIENTS` auf die Clients, deren Tokens GOAT annimmt, durch Kommas getrennt:
+
+```bash
+AUTH_ALLOWED_CLIENTS=goat
+```
+
+GOAT prüft dann bei jedem Token den Claim `azp`, also den Client, für den Keycloak es ausgestellt hat, und beantwortet ein Token jedes anderen Clients mit `401`. Die Liste muss `KEYCLOAK_CLIENT_ID` enthalten: Die Web-App meldet Benutzer mit diesem Client an, und der Druck-Worker und die Dienste von GOAT reichen diese Tokens weiter. Ohne ihn könnte niemand GOAT verwenden, daher startet der Container `core` dann nicht und nennt beide Einstellungen. Ergänzen Sie jeden weiteren Client, dessen Tokens die GOAT-APIs erreichen sollen, etwa einen, mit dem sich Ihre eigenen Skripte anmelden. Die Prüfung erfordert keine Änderung am Realm. Übernehmen Sie sie mit `docker compose up -d`.
+
+:::warning Was die Prüfung nicht abdeckt
+Die Prüfung betrifft die Anwendung, für die ein Token ausgestellt wurde, nicht den Benutzer.
+
+- Dürfen nur bestimmte Benutzer GOAT verwenden, etwa die Mitglieder einer Gruppe, setzen Sie das am Client von GOAT für jeden Weg durch, auf dem er Tokens ausstellt: die Anmeldung im Browser und, falls aktiviert, *Direct access grants* (eine direkte Passwort-Anmeldung, die Keycloak über einen eigenen Ablauf abwickelt). Andernfalls schalten Sie *Direct access grants* am Client aus. Sonst könnte ein Benutzer außerhalb der Gruppe über den Weg, den Ihre Regel nicht abdeckt, ein Token des GOAT-Clients bekommen, und die GOAT-APIs würden es annehmen. `smoke.sh` benötigt *Direct access grants* (siehe oben).
+- Die Web-App hält Benutzer mit einem Refresh-Token angemeldet, daher bleibt ein Benutzer, den Sie aus dieser Gruppe entfernen, angemeldet, bis die Sitzung endet. Um sie sofort zu beenden, melden Sie den Benutzer in Keycloak ab, einschließlich seiner Offline-Sitzungen.
+:::
 
 ## E-Mail {#email}
 
@@ -151,7 +171,7 @@ Die Bilder in den E-Mails kommen von GOATs öffentlicher URL (`<öffentliche URL
 
 ## Support-Tickets {#support}
 
-GOAT kann Problemmeldungen und Fragen seiner Benutzer an einen Odoo-Helpdesk weiterreichen, wo sie als Tickets mit Antworten erscheinen. Das ist optional und **standardmäßig aus**. Ohne diese Einstellungen zeigt *Problem melden* in der App eine E-Mail-Adresse und den Link *Dokumentation*, und die Routen unter `/api/v2/support` existieren nicht. Die Adresse ist standardmäßig `support@plan4better.de`; Ihre eigene legen Sie mit `NEXT_PUBLIC_SUPPORT_EMAIL` fest, siehe [Konfigurationsreferenz](./configuration.md#integrations).
+GOAT kann Problemmeldungen und Fragen seiner Benutzer an einen Odoo-Helpdesk weiterreichen, wo sie als Tickets mit Antworten erscheinen. Das ist optional und **standardmäßig aus**. Ohne diese Einstellungen zeigt *Problem melden* in der App eine E-Mail-Adresse und den Link *Dokumentation*, und die Routen unter `/api/v2/support` antworten mit 404, außer `/api/v2/support/summary`, die der App mitteilt, dass der Support aus ist. Die Adresse ist standardmäßig `support@plan4better.de`; Ihre eigene legen Sie mit `NEXT_PUBLIC_SUPPORT_EMAIL` fest, siehe [Konfigurationsreferenz](./configuration.md#integrations).
 
 | Einstellung | Bedeutung |
 |---|---|

@@ -14,6 +14,7 @@ ducklake_manager = BaseDuckLakeManager(
     read_only=True,
     pin_snapshot=settings.DUCKLAKE_PIN_SNAPSHOT,
     refresh_interval=settings.DUCKLAKE_SNAPSHOT_REFRESH_SECONDS,
+    application_name="goat-processes-ducklake",
 )
 
 # Separate singleton for preview-sql queries.
@@ -23,6 +24,7 @@ preview_ducklake_manager = BaseDuckLakeManager(
     read_only=True,
     pin_snapshot=settings.DUCKLAKE_PIN_SNAPSHOT,
     refresh_interval=settings.DUCKLAKE_SNAPSHOT_REFRESH_SECONDS,
+    application_name="goat-processes-ducklake",
 )
 
 # Separate singleton for layer-search.
@@ -33,4 +35,5 @@ search_ducklake_manager = BaseDuckLakeManager(
     read_only=True,
     pin_snapshot=settings.DUCKLAKE_PIN_SNAPSHOT,
     refresh_interval=settings.DUCKLAKE_SNAPSHOT_REFRESH_SECONDS,
+    application_name="goat-processes-ducklake",
 )

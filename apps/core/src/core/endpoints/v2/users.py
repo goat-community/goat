@@ -8,7 +8,7 @@ from fastapi.params import Query
 from fastapi_pagination import Page
 from fastapi_pagination import Params as PaginationParams
 from keycloak.exceptions import KeycloakError
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core.config import settings
@@ -20,11 +20,19 @@ from core.crud.crud_user import user as crud_user
 from core.db.models._link_model import UserRoleLink
 from core.db.models.invitation import Invitation, InvitationStatusEnum, InvitationType
 from core.db.models.organization import Organization
-from core.deps.auth import auth, auth_z, token_is_superuser, user_token
+from core.db.models.user import User
+from core.deps.auth import (
+    auth,
+    auth_z,
+    can_create_organization,
+    token_is_superuser,
+    user_token,
+)
 from core.deps.keycloak import get_keycloak_user, keycloak_admin
 from core.endpoints.deps import get_db, get_user_id
 from core.schemas.common import OrderEnum
 from core.schemas.onboarding import OnboardingFacts
+from core.schemas.organization import OrganizationCreationRead
 from core.schemas.user import UserProfileUpdate, UserRead, UserUpdate, request_examples
 from core.services.s3 import s3_service
 from core.utils.other import decode_base64_file, get_image_extension_from_base64
@@ -93,16 +101,41 @@ async def accept_invitation(
 
     if invitation.type == InvitationType.organization:
         user_id = user_token["sub"]
-        organization_id = invitation.payload["organization_id"]
-        role = invitation.payload["role"]
         user = await crud_user.create_if_not_exists(user_id=user_id, db_session=db)
-        organization_obj = await crud_organization.get(db=db, id=organization_id)
-        user.organization = organization_obj
-        # Add Roles to the user as organization owner
-        role = await crud_role.get_by_key(db=db, key="name", value=role)
-        role = role[0]
-        user_role = UserRoleLink(role=role, user=user)
-        db.add(user_role)
+        organization_obj = await crud_organization.get(
+            db=db, id=invitation.payload["organization_id"]
+        )
+        roles = await crud_role.get_by_key(
+            db=db, key="name", value=invitation.payload["role"]
+        )
+        # Everything is checked before the first write: statements commit one
+        # by one, so a later failure would leave the user half moved.
+        if organization_obj is None or organization_obj.suspended or not roles:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Invitation not found",
+            )
+        # A user belongs to one organization. Creating the invitation checks
+        # this, but the invitee may have set up an organization of their own
+        # since. One conditional update claims the user, so of two
+        # invitations accepted at once only one can.
+        claimed = (
+            await db.execute(
+                update(User)
+                .where(User.id == user.id, User.organization_id.is_(None))
+                .values(organization_id=organization_obj.id)
+                .returning(User.id)
+            )
+        ).scalar_one_or_none()
+        if claimed is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User already has an organization",
+            )
+        # Any organization role the user still holds would count in the one
+        # they join: they get only the role they were invited with.
+        await crud_role.remove_organization_roles(db, user.id)
+        db.add(UserRoleLink(role=roles[0], user=user))
         await db.commit()
 
     await crud_invitation.update(
@@ -245,6 +278,20 @@ async def get_onboarding(
     return await crud_onboarding.facts(async_session, user_id)
 
 
+@router.get(
+    "/me/organization-creation",
+    summary="Whether the caller may create an organization",
+    response_model=OrganizationCreationRead,
+)
+async def get_organization_creation(
+    user_token: dict = Depends(user_token),
+) -> OrganizationCreationRead:
+    """A user without an organization gets the setup form when this is true,
+    and a page that waits for an invitation when it is false. No `auth_z`:
+    the caller has no organization yet."""
+    return OrganizationCreationRead(allowed=can_create_organization(user_token))
+
+
 @router.patch(
     "/profile",
     summary="Update user profile",
@@ -270,19 +317,20 @@ async def update_profile(
         )
     admin = await keycloak_admin()
     if admin:
+        # Only the Keycloak-managed fields that changed: the profile form sends
+        # every field on each save, so a picture change with the name as it
+        # was must not depend on the service account's write access.
         keycloak_payload = {}
-        if user.firstname:
+        if user.firstname and user.firstname != db_user.firstname:
             keycloak_payload["firstName"] = user.firstname
-        if user.lastname:
+        if user.lastname and user.lastname != db_user.lastname:
             keycloak_payload["lastName"] = user.lastname
         if user.email and user.email != db_user.email:
             keycloak_payload["email"] = user.email
             keycloak_payload["emailVerified"] = False
-        # Only touch Keycloak when a Keycloak-managed field actually changed, so
-        # avatar-only edits never depend on the service account's write access.
-        # A failed write (e.g. the service account lacks manage-users) surfaces
-        # as a clean error and stops the request before the DB is updated, so
-        # name/email never desync from the identity provider.
+        # A failed write (e.g. the service account lacks manage-users) stops
+        # the request before the DB is updated, so name and email never
+        # disagree with the identity provider.
         if keycloak_payload:
             try:
                 admin.update_user(
@@ -295,7 +343,7 @@ async def update_profile(
                 )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail="Name and email can't be updated right now. Other profile changes are unaffected.",
+                    detail="Name and email can't be changed right now, so nothing was saved. Other changes save when the name and email stay as they are.",
                 )
     if user.avatar and user.avatar.startswith("data:image"):
         extension = get_image_extension_from_base64(user.avatar)

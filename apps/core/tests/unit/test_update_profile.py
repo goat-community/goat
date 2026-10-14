@@ -76,3 +76,36 @@ async def test_name_change_keycloak_ok_updates_db() -> None:
     admin.update_user.assert_called_once()
     update_mock.assert_awaited_once()
     assert result == "DB_UPDATED"
+
+
+@pytest.mark.unit
+async def test_unchanged_name_and_email_skip_keycloak() -> None:
+    """The profile form sends every field: a save with the name and email as
+    they were, plus a new picture, must not need Keycloak's write access."""
+    admin = _kc_403()  # would raise if called
+    user_update = UserProfileUpdate(
+        firstname="A",
+        lastname="B",
+        email="old@example.com",
+        avatar="data:image/png;base64,aGVsbG8=",
+    )
+    with (
+        patch.object(users, "get_image_extension_from_base64", return_value="png"),
+        patch.object(users, "decode_base64_file", return_value=b"x"),
+    ):
+        result, update_mock = await _call(user_update, admin)
+    admin.update_user.assert_not_called()
+    update_mock.assert_awaited_once()
+    assert result == "DB_UPDATED"
+
+
+@pytest.mark.unit
+async def test_only_the_changed_name_field_goes_to_keycloak() -> None:
+    admin = _kc_ok()
+    await _call(
+        UserProfileUpdate(firstname="A", lastname="New", email="old@example.com"),
+        admin,
+    )
+    admin.update_user.assert_called_once_with(
+        user_id=USER_ID, payload={"lastName": "New"}
+    )

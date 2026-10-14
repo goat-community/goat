@@ -5,6 +5,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -14,7 +15,10 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 const ENTRYPOINT = path.resolve(__dirname, "../../entrypoint.sh");
-const BUNDLE = 'x="APP_NEXT_PUBLIC_API_URL";y="APP_NEXT_PUBLIC_MAPBOX_TOKEN";z="APP_NEXT_PUBLIC_API_URL_V2"';
+/** Placeholders, and the bare prefix `publicEnv` compares values against. */
+const BUNDLE =
+  'x="APP_NEXT_PUBLIC_API_URL";y="APP_NEXT_PUBLIC_MAPBOX_TOKEN";z="APP_NEXT_PUBLIC_API_URL_V2";' +
+  'p=v.startsWith("APP_NEXT_PUBLIC_")';
 
 /** Applets the entrypoint calls, linked to busybox so a run sees the same
  * sed/tar/grep semantics as the node:alpine image. */
@@ -77,9 +81,19 @@ describe.each(shells())("entrypoint.sh under $name", (shell) => {
     expect(bundle()).not.toContain("old.test");
   });
 
-  it("leaves the placeholder of an unset variable", () => {
+  it("leaves the placeholder of an unset variable empty", () => {
     run({ NEXT_PUBLIC_API_URL: "https://h.test" });
-    expect(bundle()).toContain('y="APP_NEXT_PUBLIC_MAPBOX_TOKEN"');
+    expect(bundle()).toContain('y="";');
+  });
+
+  it("leaves no placeholder behind when nothing is set, and logs each one it clears", () => {
+    const out = run({});
+    expect(bundle()).toBe('x="";y="";z="";p=v.startsWith("APP_NEXT_PUBLIC_")');
+    expect(out.split("\n").filter((line) => line.startsWith("Clearing "))).toEqual([
+      "Clearing APP_NEXT_PUBLIC_API_URL",
+      "Clearing APP_NEXT_PUBLIC_API_URL_V2",
+      "Clearing APP_NEXT_PUBLIC_MAPBOX_TOKEN",
+    ]);
   });
 
   it("replaces a name that extends another as a whole", () => {
@@ -104,5 +118,24 @@ describe.each(shells())("entrypoint.sh under $name", (shell) => {
   it("runs the given command", () => {
     const out = run({}, ["echo", "started"]);
     expect(out.trim().split("\n").pop()).toBe("started");
+  });
+});
+
+/** What the bundle is compiled from: the entrypoint rewrites all of it. */
+const APP_SOURCES = ["app", "components", "hooks", "lib", "middlewares"];
+const FULL_PLACEHOLDER_LITERAL = /(["'`])APP_NEXT_PUBLIC_[A-Za-z0-9_]+\1/;
+
+describe("app source", () => {
+  // A full placeholder name in the source is rewritten with the value too, so
+  // a comparison against it always matches once the variable is set. Tell the
+  // placeholder apart by its bare prefix instead (`publicEnv`).
+  it("spells no full placeholder name, which the entrypoint would rewrite", () => {
+    const webDir = path.resolve(__dirname, "../..");
+    const offenders = APP_SOURCES.flatMap((dir) =>
+      readdirSync(path.join(webDir, dir), { recursive: true, encoding: "utf8" })
+        .filter((file) => /\.(ts|tsx|js|mjs)$/.test(file) && !/(^|\/)__tests__\//.test(file))
+        .map((file) => path.join(dir, file))
+    ).filter((file) => FULL_PLACEHOLDER_LITERAL.test(readFileSync(path.join(webDir, file), "utf8")));
+    expect(offenders).toEqual([]);
   });
 });

@@ -6,6 +6,7 @@ from logging.config import fileConfig
 from alembic import context
 from core._dotenv import load_dotenv  # noqa: F401
 from core.core.config import settings
+from core.db.session import engine_connect_args
 from core.db.models import *  # noqa: F403
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -99,6 +100,7 @@ async def run_async_migrations() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=engine_connect_args(_db_url),
     )
 
     async with connectable.connect() as connection:

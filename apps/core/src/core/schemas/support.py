@@ -71,6 +71,8 @@ class TicketDetailOut(BaseModel):
 
 
 class SummaryOut(BaseModel):
+    # False while support is unconfigured; the counts are 0 then
+    enabled: bool
     needs_reply: int
     unread: int
 

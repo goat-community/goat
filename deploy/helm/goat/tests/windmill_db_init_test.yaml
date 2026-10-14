@@ -5,6 +5,11 @@ templates:
   - windmill/worker-print/deployment.yaml
   - windmill/worker-tools/deployment.yaml
   - windmill/worker-workflows/deployment.yaml
+  - windmill/server/configmap.yaml          # read by the pod checksum
+  - windmill/worker-default/configmap.yaml          # read by the pod checksum
+  - windmill/worker-print/configmap.yaml          # read by the pod checksum
+  - windmill/worker-tools/configmap.yaml          # read by the pod checksum
+  - windmill/worker-workflows/configmap.yaml          # read by the pod checksum
 tests:
   - it: windmill server gets a windmill-db-init init container from the CNPG Postgres image
     template: windmill/server/deployment.yaml

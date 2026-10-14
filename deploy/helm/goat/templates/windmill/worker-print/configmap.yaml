@@ -10,6 +10,9 @@ data:
   {{- range $k, $v := .Values.windmill.workers.print.config }}
   {{ $k }}: {{ $v | quote }}
   {{- end }}
+  {{- if not (include "goat.env.userSet" (dict "values" .Values.windmill.workers.print "key" "DATABASE_CONNECTIONS")) }}
+  DATABASE_CONNECTIONS: {{ .Values.windmill.workers.databaseConnections | quote }}
+  {{- end }}
   {{- if and (include "goat.caBundle.enabled" .) (not (include "goat.env.userSet" (dict "values" .Values.windmill.workers.print "key" "GOAT_CA_BUNDLE"))) }}
   GOAT_CA_BUNDLE: {{ include "goat.caBundle.path" . | quote }}
   {{- end }}

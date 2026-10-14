@@ -57,6 +57,17 @@ describe("useUploadFlow", () => {
     expect(result.current.action.disabled).toBe(true);
   });
 
+  it("refuses a GTFS feed over its size limit before uploading it", () => {
+    const { result } = renderHook(() => useUploadFlow({}));
+    const big = file("vbb_gtfs.zip");
+    // The size alone matters; nothing has to be read.
+    Object.defineProperty(big, "size", { value: 200 * 1024 * 1024 + 1 });
+    act(() => result.current.upload.setFile(big));
+    expect(result.current.upload.file).toBeUndefined();
+    expect(result.current.upload.fileError).toBe("bundle_upload_too_large");
+    expect(result.current.action.disabled).toBe(true);
+  });
+
   it("does not change shape for a workbook", () => {
     // Its header row and worksheet are settings: they open in their own dialog.
     const { result } = renderHook(() => useUploadFlow({}));

@@ -1952,6 +1952,9 @@
   "organization_subscribe_to_newsletter": "Bleiben Sie auf dem Laufenden über unsere neuesten Updates",
   "organization_suspended": "Organisation suspendiert",
   "organization_suspended_message": "Es tut uns leid, aber Ihre Organisation wurde suspendiert. \nFür weitere Informationen wenden Sie sich bitte an den Support.",
+  "waiting_for_invitation": "Warten auf eine Einladung",
+  "waiting_for_invitation_message": "Ihr Konto gehört noch zu keiner Organisation. Bitten Sie einen Admin Ihrer Organisation, {{email}} einzuladen. Sobald die Einladung verschickt wurde, öffnet sie sich hier.",
+  "check_again": "Erneut prüfen",
   "organization_type_label": "Organisationstyp",
   "organization_type_options": {
     "education": "Bildung",
@@ -3246,6 +3249,7 @@
   "thumbnail_invalid_type": "Wählen Sie ein PNG-, JPEG- oder WebP-Bild.",
   "reset_to_generated": "Auf generiertes Bild zurücksetzen",
   "bundle_upload_note_pt_network_gtfs": "Datenpakete für ÖPNV-Netze müssen mit einem Straßennetz-Datenpaket verknüpft werden, damit GOAT Haltestellen mit Straßen verbinden kann. Wählen Sie ein Straßennetz-Datenpaket, das dieselbe Region abdeckt, um fortzufahren.",
+  "bundle_upload_too_large": "Wählen Sie eine Datei für {{type}} mit höchstens {{mb}} MiB.",
   "street_network_bundle": "Straßennetz-Datenpaket",
   "default_network": "Standard (Europa)",
   "default_pt_network": "Standard",

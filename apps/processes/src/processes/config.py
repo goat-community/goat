@@ -5,6 +5,11 @@ from typing import Optional
 
 from goatlib.api.root_path import normalize_root_path
 from goatlib.auth import AuthFlag, require_keycloak_url
+from goatlib.config.postgres import (
+    ducklake_postgres_endpoint,
+    parse_transaction_pooler,
+    transaction_pooler_enabled,
+)
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings
 
@@ -58,6 +63,9 @@ class Settings(BaseSettings):
     AUTH: AuthFlag = True
     KEYCLOAK_SERVER_URL: str = ""
     REALM_NAME: str = "p4b"
+    # Comma-separated Keycloak client IDs whose tokens are accepted (the
+    # token's `azp`); empty accepts every client of the realm.
+    AUTH_ALLOWED_CLIENTS: str = ""
 
     @model_validator(mode="after")
     def _require_keycloak(self) -> "Settings":
@@ -71,12 +79,20 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT", "5432"))
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "goat")
 
-    # Direct PostgreSQL host for DuckLake attaches (long-lived,
-    # idle-in-transaction sessions that waste transaction-pooler slots).
-    # Unset = same host as POSTGRES_SERVER.
-    DUCKLAKE_POSTGRES_SERVER: str = os.getenv(
-        "DUCKLAKE_POSTGRES_SERVER", ""
-    ) or os.getenv("POSTGRES_SERVER", "localhost")
+    # Direct PostgreSQL host and port for DuckLake attaches (long-lived catalog
+    # connections, not verified behind a transaction pooler).
+    # Unset = same host and port as POSTGRES_SERVER / POSTGRES_PORT.
+    # POSTGRES_SERVER is a pooler in transaction mode: the query pool then
+    # caches no prepared statements (goatlib.config.postgres).
+    POSTGRES_TRANSACTION_POOLER: bool = transaction_pooler_enabled()
+
+    @field_validator("POSTGRES_TRANSACTION_POOLER", mode="before")
+    @classmethod
+    def _parse_transaction_pooler(cls, value: object) -> bool:
+        return parse_transaction_pooler(value)
+
+    DUCKLAKE_POSTGRES_SERVER: str = os.getenv("DUCKLAKE_POSTGRES_SERVER", "")
+    DUCKLAKE_POSTGRES_PORT: str = os.getenv("DUCKLAKE_POSTGRES_PORT", "")
 
     @property
     def POSTGRES_DATABASE_URI(self) -> str:
@@ -86,7 +102,13 @@ class Settings(BaseSettings):
     @property
     def DUCKLAKE_POSTGRES_DATABASE_URI(self) -> str:
         """PostgreSQL URI for DuckLake catalog attaches (direct, unpooled)."""
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.DUCKLAKE_POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        host, port = ducklake_postgres_endpoint(
+            self.POSTGRES_SERVER,
+            self.POSTGRES_PORT,
+            self.DUCKLAKE_POSTGRES_SERVER,
+            self.DUCKLAKE_POSTGRES_PORT,
+        )
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{host}:{port}/{self.POSTGRES_DB}"
 
     # Schema settings
     CUSTOMER_SCHEMA: str = os.getenv("CUSTOMER_SCHEMA", "customer")

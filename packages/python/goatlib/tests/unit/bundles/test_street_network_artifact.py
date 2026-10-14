@@ -621,7 +621,7 @@ def test_a_bundle_is_styled_as_a_backdrop_with_one_part_picked_out() -> None:
     assert nodes["radius"] == 3
 
     stops = get_bundle_style(BundleTypeName.pt_network_gtfs, "stops", "point")
-    shapes = get_bundle_style(BundleTypeName.pt_network_gtfs, "shapes", "line")
+    shapes = get_bundle_style(BundleTypeName.pt_network_gtfs, "shape_lines", "line")
     assert stops["color"] == grey
     assert stops["radius"] == 4
     # Haloed, and `stroked` on — the renderer draws a width of 0 without it,

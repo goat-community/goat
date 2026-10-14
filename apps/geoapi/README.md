@@ -41,13 +41,15 @@ Tiles and features are the latency-critical path every map view hits. Keeping th
 - A layer of a published project is readable by anyone. Otherwise `customer.can('layer', …, 'read')` in core's database decides. **Read authorization runs in shadow mode by default** (`GEOAPI_ENFORCE_READ_AUTHZ=false`, also read as `ENFORCE_READ_AUTHZ`, the name the Helm chart sets): a denial is only logged as `read_authz.would_deny`, and the layer is served anyway.
 - Writes need a user and pass `customer.layer_write_allowed`. Features of a bundle member layer are edited through the bundle routes, though columns may still be added to it; catalog layers cannot be edited.
 - Download needs no token but only works for layers of a published project.
+- A token must verify, and with `AUTH_ALLOWED_CLIENTS` set it must be issued to one of those clients (goatlib's `KeycloakAuth`). A token that fails is a 401 where a user is required; where a token is optional, the request runs as anonymous.
 - With `AUTH=False`, requests without a token run as the built-in development user.
 
 ## Gotchas
 
-- **Settings use the `GEOAPI_` prefix.** A bare name works only for the settings that read it explicitly (for example `AUTH`, `KEYCLOAK_SERVER_URL`, `POSTGRES_*`, `DUCKLAKE_DATA_DIR`, `DUCKLAKE_PIN_SNAPSHOT`, `REDIS_URL`, `GOAT_PROCESSES_URL`, `ENFORCE_READ_AUTHZ`); everything else, such as `DUCKLAKE_POOL_SIZE` or the timeouts, must be set as `GEOAPI_<NAME>`. All settings are in `src/geoapi/config.py`.
-- Point `DUCKLAKE_POSTGRES_SERVER` at Postgres directly, not through a transaction pooler: DuckLake attaches are long-lived and sit idle in a transaction.
-- Memory per pod is roughly `GEOAPI_DUCKDB_MEMORY_LIMIT × GEOAPI_DUCKLAKE_POOL_SIZE`, because pooled cursors share one DuckDB instance. Set `GEOAPI_DUCKDB_THREADS` to the container's CPU limit.
+- **Settings use the `GEOAPI_` prefix.** A bare name works only for the settings that read it explicitly (for example `AUTH`, `AUTH_ALLOWED_CLIENTS`, `KEYCLOAK_SERVER_URL`, `POSTGRES_*`, `DUCKLAKE_DATA_DIR`, `DUCKLAKE_PIN_SNAPSHOT`, `REDIS_URL`, `GOAT_PROCESSES_URL`, `ENFORCE_READ_AUTHZ`); everything else, such as `DUCKLAKE_POOL_SIZE` or the timeouts, must be set as `GEOAPI_<NAME>`. All settings are in `src/geoapi/config.py`.
+- Point `DUCKLAKE_POSTGRES_SERVER` (and `DUCKLAKE_POSTGRES_PORT` when it differs) at Postgres directly, not through a transaction pooler: DuckLake attaches keep their catalog connections for as long as they live and are not verified behind one.
+- When `POSTGRES_SERVER` is a pooler in transaction mode, set `POSTGRES_TRANSACTION_POOLER`: the query pool then caches no prepared statements and sends no TCP keepalive settings, which a pooler with stock settings refuses at connect.
+- DuckDB's memory budget per pod is `GEOAPI_DUCKDB_MEMORY_LIMIT × (GEOAPI_DUCKLAKE_POOL_SIZE + 2)`: pooled cursors share one DuckDB instance budgeted for the whole pool, and the read and write connections get one budget each. Keep it under the container's memory limit with room for the catalog metadata each connection keeps outside that budget; DuckDB spills only at its own budget, so above the limit the pod is killed first. Keep `GEOAPI_DUCKDB_THREADS × GEOAPI_DUCKLAKE_POOL_SIZE` at about the container's CPUs.
 - Updating a row inserted in the same DuckLake transaction leaves it with a transaction-local rowid that breaks MVT feature ids; `bundle_edit_service.py` writes derived columns in the insert itself for that reason.
 - Never enumerate all DuckLake tables (`information_schema`, `SHOW TABLES`) on a request path: it loads every table's metadata, which takes very long on a large catalog.
 

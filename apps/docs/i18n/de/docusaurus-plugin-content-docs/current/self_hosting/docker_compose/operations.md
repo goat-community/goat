@@ -23,6 +23,16 @@ Die Selbstregistrierung ist im mitgelieferten Realm ausgeschaltet, deshalb legt 
 
 Konten lassen sich auch direkt in der Admin-Konsole anlegen; die Einladung fügt die Person dann nur der Organisation hinzu. Mit Ihrem eigenen Keycloak legt GOAT die Konten dort ebenfalls an, sofern sein Service-Account Benutzer verwalten darf; mit `KEYCLOAK_PROVISION_INVITED_USERS=false` schalten Sie das ab.
 
+### Wer Organisationen einrichtet {#organizations}
+
+Ein Benutzer gehört zu genau einer Organisation. Wer sich ohne Organisation und ohne offene Einladung anmeldet, wird gebeten, eine einzurichten. Wer sich also anmeldet, bevor die Einladung verschickt wurde, landet in einer eigenen Organisation und kann danach nicht mehr eingeladen werden.
+
+Um das zu verhindern, setzen Sie `ALLOW_ORGANIZATION_CREATION=false`. Dann können nur Konten mit der Keycloak-Realm-Rolle `superuser` Organisationen anlegen; alle anderen sehen die Seite <code>Warten auf eine Einladung</code>, bis eine Einladung eintrifft, die sich dann von selbst öffnet. Der mitgelieferte Realm gibt diese Rolle keinem Konto. Richten Sie Ihre Organisation deshalb ein, bevor Sie das Anlegen abschalten, oder legen Sie in der Admin-Konsole die Realm-Rolle `superuser` an und weisen Sie sie Ihrem Konto zu.
+
+Hat jemand bereits versehentlich eine Organisation eingerichtet, kann ein Superuser sie mit `DELETE /api/v2/organizations/{organization_id}/permanent` endgültig löschen (`GET /api/v2/organizations` listet alle Organisationen mit ihren IDs). Das geht nur, solange die Organisation höchstens ein Mitglied hat und nichts enthält: keine Inhalte in ihrem Bereich oder im persönlichen Bereich des Mitglieds (Papierkorb eingeschlossen), keine Teams, keine offenen Einladungen, keine eigenen Domains und keine Analytics-Einstellungen. Andernfalls antwortet GOAT mit `409` und nennt, was noch vorhanden ist. Die Person behält ihr Konto und kann danach eingeladen werden. Eine Organisation, deren letztes Mitglied nicht mehr existiert, lässt sich auf dieselbe Weise löschen. <code>Organisation löschen</code> in den Organisationseinstellungen sperrt eine Organisation nur.
+
+Die Abrechnung bleibt unberührt. Ist die Abrechnung über Stripe eingeschaltet, bleiben der Stripe-Kunde der Organisation und sein Abonnement in Stripe bestehen; die Antwort nennt den Kunden in `stripe_id`. Kündigen Sie diesen Kunden in Stripe. Bis dahin finden die Ereignisse, die Stripe für ihn schickt, keine Organisation mehr, und der bisherige Inhaber erhält keine E-Mail.
+
 :::tip Admin-Konsole einschränken
 Tragen Sie die Netze, die `/keycloak/admin` öffnen dürfen, in `GOAT_ADMIN_ALLOW_CIDRS` ein, zum Beispiel Ihr Büronetz. Anfragen von anderen Adressen erhalten `403`. Die Vorgabe erlaubt jede Adresse.
 
@@ -42,6 +52,8 @@ ssh -L 8110:127.0.0.1:8110 <server>
 Öffnen Sie dann `http://localhost:8110` und melden Sie sich als `admin@windmill.dev` mit dem Passwort `WINDMILL_ADMIN_PASSWORD` aus `.env` an. Der Port wird mit `WINDMILL_LOCAL_PORT` eingestellt.
 
 **Parallele Analysen:** `GOAT_TOOLS_WORKERS` (Vorgabe `2`) legt fest, wie viele Analyse-Jobs gleichzeitig laufen. Jeder Tools-Worker darf bis zu 4 GB Arbeitsspeicher nutzen; wählen Sie den Wert passend zu Ihrem Server.
+
+**Arbeitsspeicher je Dienst:** `compose.yaml` gibt jedem Dienst ein Speicherlimit. geoapi und processes setzen dort außerdem die Speicherbudgets von DuckDB (`GEOAPI_DUCKLAKE_POOL_SIZE`, `GEOAPI_DUCKDB_MEMORY_LIMIT`, `PROCESSES_DUCKDB_MEMORY_LIMIT`), sodass sie unter dieses Limit passen: DuckDB lagert Arbeit erst auf die Festplatte aus, wenn es sein eigenes Budget erreicht, und ein Dienst über seinem Limit wird beendet. Um einem Dienst mehr Speicher zu geben, erhöhen Sie Limit und Budgets gemeinsam in einer `compose.override.yaml`.
 
 ## Routing-Basisdaten {#base-data}
 

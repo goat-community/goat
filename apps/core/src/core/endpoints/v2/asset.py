@@ -15,6 +15,7 @@ from fastapi import (
     UploadFile,
     status,
 )
+from fastapi.responses import RedirectResponse
 from pydantic import UUID4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,7 +26,7 @@ from core.db.models.asset import AssetType, UploadedAsset
 from core.deps.auth import auth_z
 from core.endpoints.deps import get_db, get_user_id
 from core.schemas.asset import AssetRead, AssetUpdate
-from core.services.s3 import s3_service
+from core.services.s3 import ASSET_URL_EXPIRES, s3_service
 
 router = APIRouter()
 
@@ -67,6 +68,21 @@ async def _check_folder_access(
     access to it (any grant — viewer or above — is enough; asset placement
     itself is not role-gated beyond that)."""
     await authz.require(async_session, "folder", folder_id, user_id, "read")
+
+
+@router.get("/file/{key:path}", include_in_schema=False)
+async def asset_file(key: str) -> RedirectResponse:
+    """An uploaded asset, with ASSETS_SERVED_BY_CORE: a redirect to a
+    short-lived signed URL. Public, as an assets bucket would be: public
+    projects and dashboards show these images to visitors without a login."""
+    parts = key.split("/")
+    if not settings.ASSETS_SERVED_BY_CORE or not key or "" in parts or ".." in parts:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+    return RedirectResponse(
+        s3_service.asset_download_url(key),
+        status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+        headers={"Cache-Control": f"public, max-age={ASSET_URL_EXPIRES // 2}"},
+    )
 
 
 @router.post(

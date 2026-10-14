@@ -11,8 +11,12 @@ import duckdb
 from goatlib.analysis.schemas.base import GeometryType
 from goatlib.io.utils import Metadata, download_if_remote, get_metadata
 from goatlib.models.io import DatasetMetadata
+from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 
 logger = logging.getLogger(__name__)
+
+# An analysis's budget without a container limit (local runs).
+ANALYSIS_MEMORY_DEFAULT = "4GB"
 
 
 class AnalysisTool:
@@ -50,7 +54,7 @@ class AnalysisTool:
         """Configure DuckDB with necessary extensions and settings."""
         self.con.execute("INSTALL spatial; LOAD spatial;")
         self.con.execute("INSTALL httpfs; LOAD httpfs;")
-        self.con.execute("SET memory_limit='4GB';")
+        set_memory_share(self.con, JOB_WORK_MEMORY_SHARE, ANALYSIS_MEMORY_DEFAULT)
 
     @staticmethod
     def _get_routing_module() -> Any:

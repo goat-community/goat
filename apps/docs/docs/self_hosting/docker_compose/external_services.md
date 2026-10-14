@@ -46,7 +46,7 @@ Set up your own storage before you start GOAT for the first time. Data already i
   ]
   ```
 
-- **Assets bucket** (`ASSETS_BUCKET_NAME`, default `goat-assets`) for avatars and images. It must be readable without credentials at the address you set as `ASSETS_URL`.
+- **Assets bucket** (`ASSETS_BUCKET_NAME`, default `goat-assets`) for avatars and images. It must be readable without credentials at the address you set as `ASSETS_URL`. If your storage allows no publicly readable bucket, skip it: set `ASSETS_SERVED_BY_CORE=true` and `ASSETS_URL=<GOAT_PUBLIC_URL>/api/v2/asset/file`. GOAT then keeps the images in the uploads bucket under `assets/` and serves them itself.
 
 Both buckets are accessed with the same access key.
 
@@ -65,6 +65,7 @@ Remove `garage` from `COMPOSE_PROFILES`, then set:
 | `ASSETS_S3_ENDPOINT_URL` | Endpoint of the assets bucket; defaults to `S3_ENDPOINT_URL` |
 | `ASSETS_BUCKET_NAME` | The assets bucket |
 | `ASSETS_URL` | Public address of the assets bucket, e.g. `https://assets.example.org` |
+| `ASSETS_SERVED_BY_CORE` | `true` keeps the images in the uploads bucket and lets GOAT serve them, for storage without a public bucket |
 
 `GARAGE_RPC_SECRET` and `GARAGE_ADMIN_TOKEN` are not used without the bundled Garage.
 
@@ -104,6 +105,25 @@ With your own Keycloak, GOAT creates no user there. `smoke.sh` signs in with `GO
 :::
 
 If your Keycloak uses a certificate from a private CA, see [Company CA](./https.md#company-ca).
+
+### A realm shared with other applications {#keycloak-shared-realm}
+
+Every client of a realm can get a token signed with the realm's key, and by default GOAT's APIs accept such a token even when Keycloak issued it to another application. A rule that lets only some users sign in to GOAT, such as a group check on GOAT's client, then guards the login page but not the APIs.
+
+Set `AUTH_ALLOWED_CLIENTS` to the clients whose tokens GOAT accepts, comma-separated:
+
+```bash
+AUTH_ALLOWED_CLIENTS=goat
+```
+
+GOAT then checks each token's `azp` claim, the client Keycloak issued it to, and answers a token of any other client with `401`. The list must include `KEYCLOAK_CLIENT_ID`: the web app signs users in with that client, and the print worker and GOAT's services pass those tokens on. Without it nobody could use GOAT, so the `core` container refuses to start and names both settings. Add any other client whose tokens should reach GOAT's APIs, such as one your own scripts sign in with. The check needs no change to the realm. Apply it with `docker compose up -d`.
+
+:::warning What the check does not cover
+The check is about the application a token was issued to, not about the user.
+
+- If only some users may use GOAT, for example the members of a group, enforce that on GOAT's client for every way it issues tokens: the browser login and, if enabled, *Direct access grants* (a direct password login, which Keycloak runs through its own flow). Otherwise turn *Direct access grants* off on the client. A user outside the group could else get a token of GOAT's client through the grant your rule does not cover, and GOAT's APIs would accept it. `smoke.sh` needs *Direct access grants* (see above).
+- The web app keeps users signed in with a refresh token, so a user removed from that group stays signed in until the session ends. To end it at once, sign the user out in Keycloak, including the user's offline sessions.
+:::
 
 ## Email {#email}
 
@@ -151,7 +171,7 @@ The images in the emails come from GOAT's public URL (`<public URL>/assets`), or
 
 ## Support tickets {#support}
 
-GOAT can hand problem reports and questions from its users to an Odoo Helpdesk, where they appear as tickets with replies. This is optional and **off by default**. Without it, *Report a problem* in the app shows an email address and the *Documentation* link, and the routes under `/api/v2/support` do not exist. The address defaults to `support@plan4better.de`; set your own with `NEXT_PUBLIC_SUPPORT_EMAIL`, see the [configuration reference](./configuration.md#integrations).
+GOAT can hand problem reports and questions from its users to an Odoo Helpdesk, where they appear as tickets with replies. This is optional and **off by default**. Without it, *Report a problem* in the app shows an email address and the *Documentation* link, and the routes under `/api/v2/support` answer 404, except `/api/v2/support/summary`, which tells the app that support is off. The address defaults to `support@plan4better.de`; set your own with `NEXT_PUBLIC_SUPPORT_EMAIL`, see the [configuration reference](./configuration.md#integrations).
 
 | Setting | Meaning |
 |---|---|

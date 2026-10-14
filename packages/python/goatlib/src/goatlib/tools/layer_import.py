@@ -28,7 +28,11 @@ from goatlib.io.converter import IOConverter
 from goatlib.io.formats import RASTER_EXTS
 from goatlib.io.ingest import convert_all, first_line
 from goatlib.models.io import ConversionReport, DatasetMetadata
-from goatlib.tools.base import BaseToolRunner, _get_or_create_event_loop
+from goatlib.tools.base import (
+    BaseToolRunner,
+    _get_or_create_event_loop,
+    drops_unrecorded_tables,
+)
 from goatlib.tools.schemas import ToolInputBase, ToolOutputBase
 
 if TYPE_CHECKING:
@@ -349,6 +353,7 @@ class LayerImportRunner(BaseToolRunner[LayerImportParams]):
 
         return output_path, metadata
 
+    @drops_unrecorded_tables
     def run(self: Self, params: LayerImportParams) -> dict:
         """Run layer import, importing every dataset the source contains.
 
@@ -514,29 +519,35 @@ class LayerImportRunner(BaseToolRunner[LayerImportParams]):
             params, metadata, parquet_path=parquet
         )
 
-        table_info = self._ingest_to_ducklake(
-            user_id=params.user_id, layer_id=layer_id, parquet_path=parquet
-        )
-        if table_info.get("geometry_type"):
-            pmtiles_path = self._generate_pmtiles(
-                user_id=params.user_id,
-                layer_id=layer_id,
-                table_name=table_info["table_name"],
-                geometry_column=table_info.get("geometry_column", "geometry"),
+        try:
+            table_info = self._ingest_to_ducklake(
+                user_id=params.user_id, layer_id=layer_id, parquet_path=parquet
             )
-            if pmtiles_path:
-                table_info["pmtiles_path"] = str(pmtiles_path)
+            if table_info.get("geometry_type"):
+                pmtiles_path = self._generate_pmtiles(
+                    user_id=params.user_id,
+                    layer_id=layer_id,
+                    table_name=table_info["table_name"],
+                    geometry_column=table_info.get("geometry_column", "geometry"),
+                )
+                if pmtiles_path:
+                    table_info["pmtiles_path"] = str(pmtiles_path)
 
-        result_info = loop.run_until_complete(
-            self._create_db_records(
-                output_layer_id=layer_id,
-                params=params,
-                output_name=name,
-                metadata=metadata,
-                table_info=table_info,
-                custom_properties=custom_properties,
+            result_info = loop.run_until_complete(
+                self._create_db_records(
+                    output_layer_id=layer_id,
+                    params=params,
+                    output_name=name,
+                    metadata=metadata,
+                    table_info=table_info,
+                    custom_properties=custom_properties,
+                )
             )
-        )
+        except BaseException:
+            # Dropped here rather than when the job ends: the job goes on with
+            # the other datasets and succeeds.
+            self._drop_new_tables([layer_id])
+            raise
 
         geometry_type = table_info.get("geometry_type")
         return ToolOutputBase(

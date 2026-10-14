@@ -33,10 +33,12 @@ from dataclasses import dataclass
 from typing import Any
 
 import duckdb
+from goatlib.storage.ducklake import load_extensions
 
 from catalog.config import CatalogSettings
 from catalog.errors import ApiError
 from catalog.services.preview import object_key
+from catalog.services.s3_secret import create_s3_secret
 
 logger = logging.getLogger(__name__)
 
@@ -119,30 +121,11 @@ class AssetReader:
             if self._con is not None:
                 return self._con
             con = duckdb.connect()
-            try:
-                con.execute("INSTALL httpfs; LOAD httpfs;")
-            except duckdb.Error:
-                con.execute("LOAD httpfs;")
-            configured = self._settings.s3_endpoint_url or ""
-            endpoint = configured.replace("https://", "").replace("http://", "")
-            # Same reason as the preview reader: DuckDB's s3 secret defaults to
-            # USE_SSL true, so a plaintext endpoint is reassembled as
-            # `https://<host>` and every read fails. Stated, not defaulted.
-            use_ssl = not configured.startswith("http://")
-            con.execute(
-                f"""
-                CREATE OR REPLACE SECRET catalog_assets (
-                    TYPE s3, KEY_ID ?, SECRET ?, ENDPOINT ?, REGION ?,
-                    URL_STYLE 'path', USE_SSL {'true' if use_ssl else 'false'}
-                )
-                """,
-                [
-                    self._settings.s3_access_key_id,
-                    self._settings.s3_secret_access_key,
-                    endpoint,
-                    self._settings.s3_region,
-                ],
-            )
+            load_extensions(con, "httpfs")
+            # One-shot reads: DuckDB would otherwise keep each S3 object read
+            # in memory for the life of this connection.
+            con.execute("SET enable_external_file_cache=false")
+            create_s3_secret(con, "catalog_assets", self._settings)
             self._con = con
             return con
 

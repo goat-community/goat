@@ -43,8 +43,9 @@ from goatlib.analysis.schemas.ui import (
     ui_sections,
 )
 from goatlib.models.io import DatasetMetadata
-from goatlib.tools.base import BaseToolRunner
+from goatlib.tools.base import BaseToolRunner, drops_unrecorded_tables
 from goatlib.tools.schemas import ToolInputBase, get_default_layer_name
+from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 
 logger = logging.getLogger(__name__)
 
@@ -916,6 +917,7 @@ class CatchmentAreaToolRunner(BaseToolRunner[CatchmentAreaWindmillParams]):
 
         # Create a temporary DuckDB connection for geometry operations
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         con.execute("INSTALL spatial; LOAD spatial;")
 
         # Build a VALUES clause with all points
@@ -937,6 +939,7 @@ class CatchmentAreaToolRunner(BaseToolRunner[CatchmentAreaWindmillParams]):
         con.close()
         logger.info("Created starting points GeoParquet with %d points", len(latitudes))
 
+    @drops_unrecorded_tables
     def run(self: Self, params: CatchmentAreaWindmillParams) -> dict:
         """Run tool and create both polygon and starting points layers."""
         import asyncio

@@ -52,8 +52,10 @@ Apply changes with `docker compose up -d`.
 | `KEYCLOAK_CLIENT_SECRET` | set by setup.sh | Secret of that client |
 | `KEYCLOAK_ADMIN_PASSWORD` | set by setup.sh | Password of the user `admin` in the Keycloak admin console |
 | `KEYCLOAK_PROVISION_INVITED_USERS` | `true` | Create the login account in Keycloak when someone is invited whose email has none yet |
+| `ALLOW_ORGANIZATION_CREATION` | `true` | `true`: anyone who signs in without an organization can set one up. `false`: only accounts with the Keycloak realm role `superuser` can; everyone else waits for an invitation. See [Who sets up organizations](./operations.md#organizations). |
 | `KEYCLOAK_DB_PASSWORD` | set by setup.sh | Database password of the bundled Keycloak |
 | `KEYCLOAK_PUBLIC_URL`, `KEYCLOAK_INTERNAL_URL` | *(commented out)* | Your own Keycloak; see [Your own Keycloak](./external_services.md#keycloak) |
+| `AUTH_ALLOWED_CLIENTS` | *(commented out)* | Keycloak clients whose tokens GOAT's APIs accept, comma-separated; empty accepts every client of the realm. A list must include `KEYCLOAK_CLIENT_ID`. See [A realm shared with other applications](./external_services.md#keycloak-shared-realm) |
 
 ## Object storage (S3) {#storage}
 
@@ -63,6 +65,7 @@ Apply changes with `docker compose up -d`.
 | `GARAGE_RPC_SECRET`, `GARAGE_ADMIN_TOKEN` | set by setup.sh | Internal secrets of the bundled Garage |
 | `S3_ENDPOINT_URL`, `S3_PUBLIC_ENDPOINT_URL`, `S3_REGION`, `S3_BUCKET_NAME`, `S3_FORCE_PATH_STYLE` | *(commented out)* | Your own S3; see [Your own S3 storage](./external_services.md#s3) |
 | `ASSETS_S3_ENDPOINT_URL`, `ASSETS_BUCKET_NAME`, `ASSETS_URL` | *(commented out)* | The publicly readable bucket for avatars and images on your own S3 |
+| `ASSETS_SERVED_BY_CORE` | `false` | `true`: images in the uploads bucket, served by GOAT, for S3 without a public bucket |
 
 ## Database {#database}
 
@@ -77,6 +80,8 @@ The memory defaults suit a 16 GB machine. As a rule of thumb, set `POSTGRES_SHAR
 | `POSTGRES_MAX_CONNECTIONS` | `200` | PostgreSQL `max_connections` |
 | `POSTGRES_POOL_SIZE` | `5` | Connection pool size of the Core API |
 | `POSTGRES_MAX_OVERFLOW` | `10` | Extra connections the Core API may open beyond the pool |
+
+GOAT's services name their database sessions after themselves (`goat-core`, `goat-geoapi`, `goat-processes`, `goat-tools`, …), so `pg_stat_activity` shows which one holds a connection. On the Windmill database, sessions without a `goat-` name are Windmill's own. Windmill holds at most 10 connections to its database for the server and 3 for every worker (`DATABASE_CONNECTIONS` in `compose.yaml`).
 
 ## Jobs (Windmill) {#jobs}
 

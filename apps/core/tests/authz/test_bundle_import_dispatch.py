@@ -293,3 +293,93 @@ async def test_the_predicate_only_admits_a_dispatch_that_cannot_have_run() -> No
     assert dispatch_never_started(asyncio.TimeoutError()) is False
     assert dispatch_never_started(ClientOSError("reset while waiting")) is False
     assert dispatch_never_started(RuntimeError(str(uuid4()))) is False
+
+
+def _upload_of(monkeypatch: pytest.MonkeyPatch, size: int) -> None:
+    """A GTFS upload of `size` bytes: the download writes a sparse file of
+    that size, so the size check sees it without the test holding the data."""
+
+    def _download(_bucket: str, _key: str, path: str) -> None:
+        with open(path, "wb") as fh:
+            fh.truncate(size)
+
+    monkeypatch.setattr(bundle_endpoints.s3_service, "download_file", _download)
+    monkeypatch.setattr(
+        bundle_endpoints,
+        "infer_bundle_type",
+        lambda *_a, **_kw: BundleTypeName.pt_network_gtfs,
+    )
+
+
+@pytest.mark.asyncio
+async def test_a_gtfs_upload_over_the_limit_is_refused_before_anything_is_created(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    authz_sql: None,
+    roles: dict[str, UUID],
+    make_user: Callable[..., Awaitable[User]],
+    make_org: Callable[[], Awaitable[Organization]],
+    make_folder: Callable[..., Awaitable[Folder]],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A feed past the type's limit cannot be built on a worker, so it is
+    refused here, where the person uploading it gets the answer — not left to a
+    job that would create a bundle only to fail it."""
+    from goatlib.models.bundle import get_spec
+
+    limit = get_spec(BundleTypeName.pt_network_gtfs).max_upload_bytes
+    assert limit
+    org = await make_org()
+    owner = await make_user(org.id)
+    folder = await make_folder(owner, "Imports")
+    await db_session.commit()
+    _upload_of(monkeypatch, limit + 1)
+
+    async def _must_not_run(**_kw: Any) -> str:
+        raise AssertionError("an oversized upload must not be dispatched")
+
+    monkeypatch.setattr(bundle_endpoints, "execute_process", _must_not_run)
+
+    response = await client.post(
+        f"{settings.API_V2_STR}/bundle/import",
+        json=_payload(owner, folder),
+        headers=_bearer(owner.id),
+    )
+    assert response.status_code == 400, response.text
+    assert "too large" in response.json()["detail"]
+    assert await _shells(db_session, folder) == 0
+
+
+@pytest.mark.asyncio
+async def test_a_gtfs_upload_at_the_limit_is_accepted(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    authz_sql: None,
+    roles: dict[str, UUID],
+    make_user: Callable[..., Awaitable[User]],
+    make_org: Callable[[], Awaitable[Organization]],
+    make_folder: Callable[..., Awaitable[Folder]],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from goatlib.models.bundle import get_spec
+
+    limit = get_spec(BundleTypeName.pt_network_gtfs).max_upload_bytes
+    assert limit
+    org = await make_org()
+    owner = await make_user(org.id)
+    folder = await make_folder(owner, "Imports")
+    await db_session.commit()
+    _upload_of(monkeypatch, limit)
+
+    async def _started(**_kw: Any) -> str:
+        return "job-1"
+
+    monkeypatch.setattr(bundle_endpoints, "execute_process", _started)
+
+    response = await client.post(
+        f"{settings.API_V2_STR}/bundle/import",
+        json=_payload(owner, folder),
+        headers=_bearer(owner.id),
+    )
+    assert response.status_code == 202, response.text
+    assert await _shells(db_session, folder) == 1

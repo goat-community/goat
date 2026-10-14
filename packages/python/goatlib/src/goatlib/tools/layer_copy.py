@@ -62,6 +62,7 @@ from goatlib.tools.base import (
     BaseToolRunner,
     _catalog_layer_parquet,
     _get_or_create_event_loop,
+    drops_unrecorded_tables,
 )
 from goatlib.tools.schemas import ToolInputBase
 from goatlib.tools.workflow_dataset_nodes import (
@@ -427,11 +428,7 @@ class LayerCopyRunner(BaseToolRunner[LayerCopyParams]):
         if self.settings is None:
             raise RuntimeError("Settings not initialized")
         return await asyncpg.connect(
-            host=self.settings.postgres_server,
-            port=self.settings.postgres_port,
-            user=self.settings.postgres_user,
-            password=self.settings.postgres_password,
-            database=self.settings.postgres_db,
+            **self.settings.postgres_connect_args(),
         )
 
     def _copy_table(
@@ -460,12 +457,9 @@ class LayerCopyRunner(BaseToolRunner[LayerCopyParams]):
         return info
 
     def _drop_table(self: Self, layer_id: str) -> None:
-        try:
-            self.duckdb_con.execute(
-                f"DROP TABLE IF EXISTS {self.get_layer_table_path(layer_id)}"
-            )
-        except Exception:  # noqa: BLE001 - the original failure is what matters
-            logger.exception("Could not remove the table of failed copy %s", layer_id)
+        """Drop the copy this run wrote, unless its layer row exists after
+        all (a commit whose reply was lost). Never raises."""
+        self._drop_new_tables([layer_id])
 
     async def _mark_failed(
         self: Self,
@@ -542,6 +536,9 @@ class LayerCopyRunner(BaseToolRunner[LayerCopyParams]):
                         copy_id = str(uuid.uuid4())
                         # Set first: a table half-written still gets dropped.
                         written = copy_id
+                        self._track_new_table(
+                            copy_id, self.get_layer_table_path(copy_id)
+                        )
                         info = self._copy_table(
                             params.source_layer_id, copy_id, params.copy_content
                         )
@@ -608,6 +605,7 @@ class LayerCopyRunner(BaseToolRunner[LayerCopyParams]):
             )
         return output
 
+    @drops_unrecorded_tables
     def run(self: Self, params: LayerCopyParams) -> dict[str, Any]:
         output = _get_or_create_event_loop().run_until_complete(self.copy(params))
         return output.model_dump()

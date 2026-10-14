@@ -1,0 +1,27 @@
+{{- if .Values.garage.enabled -}}
+{{- $ctx := dict "context" . "component" "garage" -}}
+{{- range $vol := list "meta" "data" }}
+{{- $p := index $.Values.garage.persistence $vol }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "goat.garage.fullname" $ }}-{{ $vol }}
+  namespace: {{ $.Release.Namespace }}
+  # Turning Garage off or uninstalling the release keeps the stored files;
+  # Helm adopts the claim again when Garage is turned back on.
+  annotations:
+    "helm.sh/resource-policy": keep
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ $p.size }}
+  {{- with (default $.Values.global.storageClass $p.storageClassName) }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}
+{{- end -}}

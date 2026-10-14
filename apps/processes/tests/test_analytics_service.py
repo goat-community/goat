@@ -397,3 +397,26 @@ class TestCatalogLayers:
             result = service.class_breaks(self.LAYER_ID, "level", "quantile", 2)
 
         assert result["breaks"]
+
+
+def test_validate_sql_loads_spatial_through_goatlib(monkeypatch) -> None:
+    """Extensions come from the image's baked directory; goatlib's
+    load_extensions never downloads there."""
+    from goatlib.storage import load_extensions as real_load
+
+    import processes.services.analytics_service as module
+
+    loaded: list[tuple[str, ...]] = []
+
+    def record(con, *ext):
+        loaded.append(ext)
+        real_load(con, *ext)
+
+    monkeypatch.setattr(module, "load_extensions", record)
+
+    result = AnalyticsService().validate_sql(
+        "SELECT name FROM t", {"t": {"name": "VARCHAR"}}
+    )
+
+    assert result["valid"], result
+    assert loaded == [("spatial",)]

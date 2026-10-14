@@ -30,7 +30,7 @@ from goatlib.analysis.statistics import (
     calculate_unique_values,
     search_layer_features,
 )
-from goatlib.storage import build_cql_filter, configure_baked_extensions
+from goatlib.storage import build_cql_filter, load_extensions
 from goatlib.utils.layer import (
     catalog_layer_parquet,
     catalog_layer_relation,
@@ -685,9 +685,7 @@ class AnalyticsService:
 
         con = duckdb.connect()
         try:
-            if not configure_baked_extensions(con):
-                con.execute("INSTALL spatial;")
-            con.execute("LOAD spatial;")
+            load_extensions(con, "spatial")
 
             for alias, columns in table_schemas.items():
                 if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", alias):

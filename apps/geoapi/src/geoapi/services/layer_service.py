@@ -11,6 +11,7 @@ from uuid import UUID
 
 import asyncpg
 from cachetools import TTLCache
+from goatlib.config.postgres import asyncpg_connect_args
 
 from geoapi.config import settings
 from geoapi.dependencies import LayerInfo, normalize_layer_id
@@ -225,14 +226,17 @@ class LayerService:
             database=settings.POSTGRES_DB,
             min_size=2,
             max_size=10,
+            # Close a connection once it has sat idle for a minute rather
+            # than five. asyncpg closes idle ones down to none, min_size
+            # included, so the first request after a quiet minute reconnects.
+            max_inactive_connection_lifetime=60,
             # Connection health settings
             command_timeout=60,
-            # Server settings for keepalive (PostgreSQL)
-            server_settings={
-                "tcp_keepalives_idle": "30",
-                "tcp_keepalives_interval": "5",
-                "tcp_keepalives_count": "5",
-            },
+            # Session name and server-side keepalives (none behind a
+            # transaction pooler)
+            **asyncpg_connect_args(
+                "goat-geoapi", settings.POSTGRES_TRANSACTION_POOLER, keepalives=True
+            ),
         )
 
     async def close(self) -> None:

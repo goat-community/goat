@@ -25,10 +25,12 @@ spec:
         {{- with .Values.processes.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.processes.podAnnotations }}
       annotations:
+        # Rolls the pods when the ConfigMap they read changes.
+        checksum/config: {{ include (print $.Template.BasePath "/processes/configmap.yaml") $ | sha256sum }}
+        {{- with .Values.processes.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
     spec:
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:

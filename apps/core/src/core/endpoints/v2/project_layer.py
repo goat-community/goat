@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
+from goatlib.config.postgres import asyncpg_connect_args
 from pydantic import UUID4
 
 from core.core.config import settings
@@ -239,7 +240,10 @@ async def add_catalog_items_to_project(
     if refusal:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=refusal)
 
-    conn = await asyncpg.connect(dsn)
+    conn = await asyncpg.connect(
+        dsn,
+        **asyncpg_connect_args("goat-core", settings.POSTGRES_TRANSACTION_POOLER),
+    )
     try:
         for catalog_id in item_ids:
             result = await promote(

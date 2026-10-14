@@ -6,7 +6,7 @@ The main backend: who may do what, and the metadata of everything a user works w
 
 Core owns the Postgres schema (`customer` by default) and serves it under `/api/v2`:
 
-- **People and organizations**: users, organizations, teams, members and invitations, custom domains, organization analytics.
+- **People and organizations**: users, organizations, teams, members and invitations, custom domains, organization analytics. A user belongs to one organization. `DELETE /organizations/{id}` only suspends one; `DELETE /organizations/{id}/permanent` (superusers) removes an organization that has at most one member and nothing in it, so that member can be invited elsewhere (`crud_organization.delete_permanently` lists what counts). Its Stripe customer stays in Stripe until someone cancels it there; the Stripe webhook sends no trial email to a customer no organization is billed under (at signup the customer exists a moment before its organization, so other events still do their Stripe-side work).
 - **Content and access**: spaces, folders, the unified content feed, trash and transfer, favourites, sharing grants.
 - **Projects**: projects and their layers, layer groups, workflows, report layouts, publishing.
 - **Datasets**: layer and bundle metadata, upload URLs, templates, user assets.
@@ -26,6 +26,8 @@ The full, current route list is the OpenAPI document at `/api/docs`. The livenes
 
 ## Authorization
 
+A token counts only once it verifies: signed with the realm's key and, when `AUTH_ALLOWED_CLIENTS` is set, issued to one of those clients (goatlib's `KeycloakAuth`, see `packages/python/goatlib/README.md`). Every route that needs a login verifies it through `core.deps.auth.decode_token`, so a token of another application of the realm gets a 401 before either layer below runs.
+
 Two layers, both in SQL:
 
 1. **Route level.** `auth_z` calls the `authorization()` SQL function, which looks the request up in the seeded `customer.resource` table and applies the organization's quotas. **A new route needs a seeded pattern in `RESOURCES_PERMISSIONS` (`src/core/db/seed_roles.py`), or it answers 401 when auth is on.**
@@ -35,7 +37,9 @@ With `AUTH=False` both layers let everything through and every request runs as t
 
 ## Gotchas
 
-- **The engine runs in AUTOCOMMIT** (`src/core/db/session.py`). Every statement commits on its own and `rollback()` undoes nothing, so a multi-statement write can half-apply. Code that writes several rows validates everything first and orders its statements so a crash leaves an explainable state (see `crud_transfer.py`, `crud_share.py`).
+- **The engine runs in AUTOCOMMIT** (`src/core/db/session.py`). Every statement commits on its own and `rollback()` undoes nothing, so a multi-statement write can half-apply. Code that writes several rows validates everything first and orders its statements so a crash leaves an explainable state (see `crud_transfer.py`, `crud_share.py`). Where no order is safe, `session_manager.transaction()` gives a connection with a real transaction: the permanent organization delete takes the member out of the organization before deleting it (`user.organization_id` cascades, so the other order would delete the account), and a failure between the two must not leave an organization without its member.
+- **Behind a connection pooler in transaction mode set `POSTGRES_TRANSACTION_POOLER`.** psycopg prepares a statement on the server once it ran a few times on a connection, and the next query may land on a server connection where it is missing or already taken; with the setting it prepares nothing (`engine_connect_args` in `src/core/db/session.py`, used by the migrations too). It needs the psycopg driver, the default.
+- **Organization roles are not tied to an organization.** `user_role` holds only the user and the role, and a user belongs to one organization (`user.organization_id`). Accepting an invitation therefore refuses a user who already has an organization and replaces their organization roles with the invited one (`crud_role.remove_organization_roles`). Anything else that moves a user into or out of an organization must do the same (the permanent organization delete does), or an owner role carries over.
 - **Migrations, unlike requests, run in one transaction** (`alembic/env.py`). Revisions 0003 and 0005 rely on that to swap tables and functions atomically.
 - **Alembic starts from a squashed baseline.** `init` creates the tables from the models; functions, triggers, roles and seed data come from `src/core/scripts/initial_data.py`, which every deploy runs after `alembic upgrade head`. The numbered revisions are guarded (`alembic/helpers.py`), so they do nothing on a fresh database and still upgrade an older one.
 - **A team or organization space contains what is shared into it.** `GET /content?view=space` at such a space's root lists the space's own items *and* the items other spaces granted to its team or organization, sorted and paged together (`crud_content.py`, `_space_view_sql`). Any surface that lists a space must use this one view, not combine views itself: the Content page and the dataset picker once disagreed exactly because the "shared into" part lived in the page.
@@ -66,8 +70,11 @@ cd apps/core && uv run pytest tests/ -n 4
 All settings and their defaults are in `src/core/core/config.py`. The ones that change behaviour rather than just connect to something:
 
 - `AUTH` (on unless set to false) and `KEYCLOAK_SERVER_URL`, which is required while auth is on.
+- `AUTH_ALLOWED_CLIENTS`: empty accepts a token of every client of the realm; set, only tokens issued to the listed clients. Read the same way by geoapi, processes and catalog. A list without `KEYCLOAK_CLIENT_ID` would refuse every user, so core refuses to start with it (core is the only service that knows its client).
 - `GOAT_PROCESSES_URL`: without it, bundle import answers 503, and a catalog dataset added to a project stays pending because its materialize job cannot start.
 - `STRIPE_SECRET_KEY`: billing is active only when it is set; otherwise the `DEFAULT_PLAN_*` / `DEFAULT_QUOTA_*` values apply.
 - `SMTP_HOST`: emails are sent only when it is set.
-- `ODOO_URL`, `ODOO_DB` (shared by the Odoo integrations), `ODOO_SUPPORT_API_KEY`, `ODOO_SUPPORT_TEAM_ID`: support tickets are on only when all four are set; otherwise `/api/v2/support` answers 404.
+- `ODOO_URL`, `ODOO_DB` (shared by the Odoo integrations), `ODOO_SUPPORT_API_KEY`, `ODOO_SUPPORT_TEAM_ID`: support tickets are on only when all four are set. Otherwise `GET /api/v2/support/summary` answers `enabled: false`, which is how the web app learns that support is off, and every other `/api/v2/support` route answers 404.
+- `ASSETS_SERVED_BY_CORE`: for a store without a publicly readable bucket. Uploaded images go to the data bucket under `assets/`, and the anonymous `GET /api/v2/asset/file/<key>` redirects to a short-lived signed URL; it signs keys under `assets/` only, never user uploads. `ASSETS_URL` then defaults to that route on `CLIENT_URL`'s host.
 - `CUSTOM_DOMAIN_CNAME_TARGET`: empty turns custom domains off.
+- `ALLOW_ORGANIZATION_CREATION` (default true): false lets only superusers create organizations, so nobody who signs in before their invitation sets up one of their own. The web app learns it from `GET /users/me/organization-creation` and shows a page that waits for an invitation instead of the setup form.

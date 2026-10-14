@@ -39,6 +39,7 @@ It was split from geoapi so that long-running analysis can never block tile and 
 - **User SQL reads its declared inputs and nothing else.** `preview-sql`, `validate-sql`, the `custom_sql` tool and the workflow if node run on a connection with DuckLake attached, so goatlib's validators (`packages/python/goatlib/src/goatlib/utils/sql_validation.py`) allow only the declared aliases and the query's own CTEs, and refuse qualified tables, files, table functions and the file, settings and catalog functions. `preview-sql` resolves a temp-layer id only in the caller's own temp directory.
 - **Some sync analytics are public**, so anonymous viewers of a published dashboard get their statistics, for layers of a published project only. `layer-search` and `preview-sql` are allowed anonymously only when scoped to a published project's own layers; `validate-sql` always needs a token.
 - **Beta tools** are hidden from `GET /processes` unless the caller's email domain is listed in the Windmill variable named by `BETA_USER_EMAIL_DOMAINS_WM_PATH`.
+- **A token must verify**, and with `AUTH_ALLOWED_CLIENTS` set it must be issued to one of those clients (goatlib's `KeycloakAuth`). core and geoapi start jobs here with the caller's own token, so no service account needs to be on the list.
 - With `AUTH=False` every caller is the built-in development user and sees that user's jobs.
 
 ## Gotchas
@@ -51,6 +52,8 @@ It was split from geoapi so that long-running analysis can never block tile and 
 - `TRAVELTIME_MATRICES_DIR` is passed to jobs as a path, so it must be valid on the **worker's** filesystem, not on the processes container.
 - `WINDMILL_TOKEN` is read from the process environment, then from the file named by `WINDMILL_TOKEN_FILE`, then from `/app/data/windmill/.token`. A `WINDMILL_TOKEN` line in a `.env` file is not picked up.
 - Settings declared with an `os.getenv(...)` default (for example `WINDMILL_URL`, `PROCESSES_DUCKDB_MEMORY_LIMIT`) read that environment name only from the real environment, not from `.env`.
+- The three DuckDB connections that query layers (analytics, SQL previews, layer search) get `PROCESSES_DUCKDB_MEMORY_LIMIT` each; the small ones for published-project lookups and SQL validation hold no layer data. DuckDB spills only at its own budget, so keep three budgets well under the container's memory limit, or the pod is killed before DuckDB spills.
+- When `POSTGRES_SERVER` is a pooler in transaction mode, set `POSTGRES_TRANSACTION_POOLER`: the query pool then caches no prepared statements, which a pooler with stock settings loses track of. DuckLake keeps its own, direct host (`DUCKLAKE_POSTGRES_SERVER`).
 - The default `WINDMILL_URL` (`http://windmill-server:8000`) only resolves inside the compose network. A run on the host must point it at the published Windmill port.
 
 ## Development

@@ -1,0 +1,229 @@
+suite: garage (bundled S3)
+templates:
+  - garage/deployment.yaml
+  - garage/configmap.yaml
+  - garage/secret.yaml
+  - garage/pvc.yaml
+  - garage/service.yaml
+  - garage/bootstrap-job.yaml
+  - garage/ingress.yaml
+  - core/deployment.yaml
+  - core/configmap.yaml
+set:
+  postgresql.cluster.enabled: false
+  postgresql.external.host: "pg.example.com"
+  postgresql.external.existingSecret: "pg-secret"
+  web.auth.publicUrl: "https://goat.example.com"
+tests:
+  - it: renders nothing while off
+    set:
+      garage.enabled: false
+    template: garage/deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: runs one Garage node with its config, secrets and volumes
+    set:
+      garage.enabled: true
+    template: garage/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/dxflrs/garage:v2.4.1
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+      - matchRegex:
+          path: spec.template.metadata.annotations["checksum/config"]
+          pattern: "^[0-9a-f]{64}$"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GARAGE_ADMIN_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-goat-garage
+                key: admin-token
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: data
+            persistentVolumeClaim:
+              claimName: RELEASE-NAME-goat-garage-data
+
+  - it: keeps both volumes when Garage is turned off or the release removed
+    set:
+      garage.enabled: true
+    template: garage/pvc.yaml
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.annotations["helm.sh/resource-policy"]
+          value: keep
+
+  - it: generates the S3 key pair in Garage's format when global.s3 names none
+    set:
+      garage.enabled: true
+    template: garage/secret.yaml
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-garage-s3
+      - matchRegex:
+          path: stringData["access-key-id"]
+          pattern: "^GK[0-9a-f]{24}$"
+      - matchRegex:
+          path: stringData["secret-access-key"]
+          pattern: "^[0-9a-f]{64}$"
+
+  - it: takes the key pair from global.s3.existingSecret when set
+    set:
+      garage.enabled: true
+      global.s3.existingSecret: "my-s3"
+    template: garage/secret.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-goat-garage
+
+  - it: makes Garage core's S3, with the public URLs on the web host
+    set:
+      garage.enabled: true
+    template: core/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_ENDPOINT_URL
+            value: "http://RELEASE-NAME-goat-garage:3900"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_BUCKET_NAME
+            value: "goat-uploads"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_PUBLIC_ENDPOINT_URL
+            value: "https://goat.example.com"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ASSETS_URL
+            value: "https://goat.example.com/goat-assets"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-goat-garage-s3
+                key: access-key-id
+
+  - it: refuses Garage next to an S3 endpoint of the operator's own
+    set:
+      garage.enabled: true
+      global.s3.endpointUrl: "https://s3.example.com"
+    template: garage/bootstrap-job.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "garage.enabled runs GOAT's own S3 store, but global.s3.endpointUrl names another one: turn garage off, or leave global.s3.endpointUrl empty"
+
+  - it: refuses Garage when only the placeholder NEXTAUTH_URL names the web app
+    set:
+      garage.enabled: true
+      web.auth.publicUrl: ""
+    template: garage/bootstrap-job.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "garage.enabled needs the public URL browsers reach the uploads at: set web.auth.publicUrl or web.ingress (or global.s3.publicEndpointUrl)"
+
+  - it: allows the web app's origin in the uploads bucket's CORS rule
+    set:
+      garage.enabled: true
+      global.s3.publicEndpointUrl: "https://s3.example.com"
+    template: garage/bootstrap-job.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GOAT_PUBLIC_URL
+            value: "https://goat.example.com"
+
+  - it: bootstraps the buckets after install and upgrade
+    set:
+      garage.enabled: true
+    template: garage/bootstrap-job.yaml
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: post-install,post-upgrade
+      - equal:
+          path: spec.template.spec.containers[0].command
+          value: ["python", "-m", "goatlib.storage.garage_init"]
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: UPLOADS_BUCKET
+            value: "goat-uploads"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GOAT_PUBLIC_URL
+            value: "https://goat.example.com"
+
+  - it: refuses Garage without a public URL for the uploads
+    set:
+      garage.enabled: true
+      web.auth.publicUrl: ""
+      web.config.NEXTAUTH_URL: ""
+    template: garage/bootstrap-job.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "garage.enabled needs the public URL browsers reach the uploads at: set web.auth.publicUrl or web.ingress (or global.s3.publicEndpointUrl)"
+
+  - it: routes uploads and images on the web host
+    set:
+      garage.enabled: true
+      garage.ingress.enabled: true
+      web.ingress.enabled: true
+      web.ingress.className: nginx
+      web.ingress.hosts:
+        - host: goat.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    template: garage/ingress.yaml
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /goat-uploads
+        documentIndex: 0
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 3900
+        documentIndex: 0
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/upstream-vhost"]
+          value: goat-assets.web.garage.internal
+        documentIndex: 1
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 3902
+        documentIndex: 1
+
+  - it: refuses the Ingress without the web app's Ingress
+    set:
+      garage.enabled: true
+      garage.ingress.enabled: true
+    template: garage/ingress.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "garage.ingress.enabled puts Garage on the web app's host: set web.ingress.enabled and web.ingress.hosts"

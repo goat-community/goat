@@ -4,6 +4,69 @@ description: |
   Helm chart for GOAT (Geo Open Accessibility Tool) — a WebGIS platform for
   spatial analysis, accessibility modeling, and collaborative mapping.
 
+  v0.7.0:
+
+  - Tracks GOAT v3.0.9 (Windmill 1.751): every image defaults to v3.0.9.
+  - Every service gets memory requests and limits and a CPU request, no
+    CPU limit, the limits GOAT's own production runs with.
+    `<service>.resources: null` drops them; `{}` merges with the defaults.
+    See "Resource defaults" in the README.
+  - `geoapi.config` sets GEOAPI_DUCKLAKE_POOL_SIZE "2" and
+    GEOAPI_DUCKDB_MEMORY_LIMIT "768MB", `processes.config`
+    PROCESSES_DUCKDB_MEMORY_LIMIT "1GB": DuckDB's budgets stay under 3/4 of
+    the 4Gi limits (the code defaults are a pool of 4 at 1GB, and 1.2GB).
+  - NEW: `postgresql.cluster.resources` — the bundled Postgres gets a
+    memory and CPU request, no limit.
+  - geoapi and processes run as root (`podSecurityContext.runAsUser: 0`),
+    like the Windmill workers, so their DuckLake init can create the
+    catalog directory on a fresh RWX volume that belongs to root.
+  - NEW: `postgresql.external.ducklakeHost` and `ducklakePort` — the
+    database itself for DuckLake's catalog connections (geoapi, processes,
+    their DuckLake init and the print, tools and workflows workers) when
+    `postgresql.external.host` is a transaction pooler. Unset = `host` and
+    `port`. The DuckLake init also gets them as POSTGRES_SERVER and
+    POSTGRES_PORT, for images whose bootstrap reads only those.
+  - NEW: `postgresql.external.transactionPooler` (POSTGRES_TRANSACTION_POOLER)
+    — `host` is a pooler in transaction mode: core, geoapi, processes and
+    the workers prepare no statements on the server and send no keepalive
+    startup settings, so a pooler with stock settings works.
+  - NEW: `windmill.bootstrap.image` — the Windmill bootstrap Job runs in
+    GOAT's core image (`core.image`, with `global.imageRegistry` and
+    `global.imagePullSecrets`) instead of `python:3.11-slim` from Docker Hub,
+    the one image that bypassed the registry settings.
+  - POSTGRES_SERVER, POSTGRES_DB or POSTGRES_PORT set in `core.config`,
+    `geoapi.config` or `processes.config` wins and renders once; before, the
+    ConfigMap carried the key twice and the chart's value won.
+  - NEW: `global.auth.allowOrganizationCreation` (ALLOW_ORGANIZATION_CREATION,
+    default true): false lets only accounts with the Keycloak realm role
+    `superuser` create organizations; everyone else waits for an invitation.
+  - NEW: `global.auth.allowedClients` — the Keycloak clients whose tokens
+    core, geoapi, processes and catalog accept (AUTH_ALLOWED_CLIENTS,
+    matched against the token's `azp`). For a realm shared with other
+    applications, where any client of the realm can otherwise get a token
+    GOAT's APIs accept. Empty (the default) accepts every client, as before,
+    and core refuses to start if the list leaves out its own client.
+  - NEW: `global.s3.assets.servedByCore` (ASSETS_SERVED_BY_CORE, GOAT v3.0.9
+    on) — for a store without a publicly readable bucket: uploaded images go
+    to `global.s3.bucket` under `assets/` and core serves them, so no assets
+    bucket or `assets.publicUrl` is needed.
+  - Windmill's database pools: the server holds at most 10 connections
+    (`windmill.server.config.DATABASE_CONNECTIONS`; unset, its pool grows to
+    50) and every worker 3 (`windmill.workers.databaseConnections`).
+  - core's migrate hook gets core's Keycloak settings (AUTH, KEYCLOAK_SERVER_URL,
+    REALM_NAME, client ID and secret from the auth Secret) and `core.extraEnv`,
+    like the core Deployment. With auth on, GOAT v3.0.5 and later refused to
+    start the migration without KEYCLOAK_SERVER_URL, so installs and upgrades
+    failed at the hook.
+  - Every Deployment's pods carry a checksum of the ConfigMap they read
+    (`checksum/config`), so a `helm upgrade` that changes only settings rolls
+    them. Before, the pods kept the old values until restarted by hand.
+  - NEW: `garage` — an optional single-node Garage as GOAT's S3 store, as in
+    the compose bundle (off by default). It fills every empty key of
+    `global.s3`; a Job after install and upgrade creates the buckets and
+    imports the key pair; `garage.ingress` routes uploads and images on the
+    web host (ingress-nginx).
+
   v0.6.0:
 
   - NEW: `global.s3` — ONE S3 store (bucket, provider, endpoint, public
@@ -188,8 +251,8 @@ description: |
     `NEXT_PUBLIC_AUTH` (inverted meaning), matching the upstream single
     AUTH switch.
 type: application
-version: 0.6.0
-appVersion: "v3.0.3"   # GOAT release every image defaults to; override per service with <service>.image.tag
+version: 0.7.0
+appVersion: "v3.0.9"   # GOAT release every image defaults to; override per service with <service>.image.tag
 icon: https://goat.plan4better.de/favicon.ico
 home: https://github.com/plan4better/goat/tree/main/deploy/helm/goat
 sources:

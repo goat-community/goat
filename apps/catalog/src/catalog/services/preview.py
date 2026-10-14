@@ -51,9 +51,11 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 import duckdb
+from goatlib.storage.ducklake import load_extensions
 
 from catalog.config import CatalogSettings
 from catalog.errors import ApiError
+from catalog.services.s3_secret import create_s3_secret
 
 logger = logging.getLogger(__name__)
 
@@ -251,33 +253,12 @@ class PreviewReader:
             if self._con is not None:
                 return self._con
             con = duckdb.connect()
-            for extension in ("spatial", "httpfs"):
-                try:
-                    con.execute(f"INSTALL {extension}; LOAD {extension};")
-                except duckdb.Error:
-                    con.execute(f"LOAD {extension};")
-            configured = self._settings.s3_endpoint_url or ""
-            endpoint = configured.replace("https://", "").replace("http://", "")
-            # The scheme has to survive the strip. DuckDB's s3 secret defaults to
-            # USE_SSL true, so a plaintext endpoint was reassembled as
-            # `https://<host>` and every read failed with "SSL connect error" --
-            # which is what a local MinIO looks like when the scheme is dropped
-            # on the floor. Stated explicitly rather than left to the default.
-            use_ssl = not configured.startswith("http://")
-            con.execute(
-                f"""
-                CREATE OR REPLACE SECRET catalog_data (
-                    TYPE s3, KEY_ID ?, SECRET ?, ENDPOINT ?, REGION ?,
-                    URL_STYLE 'path', USE_SSL {'true' if use_ssl else 'false'}
-                )
-                """,
-                [
-                    self._settings.s3_access_key_id,
-                    self._settings.s3_secret_access_key,
-                    endpoint,
-                    self._settings.s3_region,
-                ],
-            )
+            load_extensions(con, "spatial", "httpfs")
+            # Previews are one-shot reads with their own disk cache. DuckDB
+            # would otherwise keep each S3 row group read in memory for the
+            # life of this connection.
+            con.execute("SET enable_external_file_cache=false")
+            create_s3_secret(con, "catalog_data", self._settings)
             self._con = con
             return con
 

@@ -125,6 +125,10 @@ export interface BundleTypeDef {
    *  one file becomes, and why it asks for what it asks for. Per type, since
    *  no two of them import the same way. */
   uploadNoteKey?: string;
+  /** Largest file this type accepts, in MiB. Mirrors the type's
+   *  `max_upload_bytes` on the backend, which refuses a larger upload anyway;
+   *  checked here so nobody uploads a file only to have it refused. */
+  maxSizeMiB?: number;
 }
 
 export const BUNDLE_TYPES: BundleTypeDef[] = [
@@ -138,6 +142,8 @@ export const BUNDLE_TYPES: BundleTypeDef[] = [
     },
     requiresStreetNetwork: true,
     uploadNoteKey: "bundle_upload_note_pt_network_gtfs",
+    // The timetable is built from the whole feed at once.
+    maxSizeMiB: 200,
   },
   {
     type: "street_network",

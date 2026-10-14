@@ -53,6 +53,8 @@ x-env-auth: &env-auth
   AUTH: ${AUTH:-True}
   KEYCLOAK_SERVER_URL: ${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080/keycloak}
   REALM_NAME: ${REALM_NAME:-goat}
+  # Empty: tokens of every client of the realm are accepted.
+  AUTH_ALLOWED_CLIENTS: ${AUTH_ALLOWED_CLIENTS:-}
 
 x-env-catalog-s3: &env-catalog-s3
   CATALOG_S3_BUCKET: ${CATALOG_S3_BUCKET:-}
@@ -78,6 +80,9 @@ x-env-windmill-db: &env-windmill-db
 x-env-worker: &env-worker
   <<: [*env-windmill-db, *env-db, *env-s3, *env-catalog-s3]
   MODE: worker
+  # Windmill database connections of a worker (at most; it runs one job at a
+  # time). Not below 3: Windmill 1.607 workers stop at start with fewer.
+  DATABASE_CONNECTIONS: "3"
   DISABLE_NSJAIL: "true"
   PYTHONDONTWRITEBYTECODE: "1"
   ENVIRONMENT: prod
@@ -248,7 +253,7 @@ services:
     image: ${GOAT_REGISTRY:-ghcr.io/plan4better/goat}/windmill-worker-tools:${GOAT_VERSION:-latest}
     restart: "no"
     logging: *logging
-    entrypoint: ["python", "/init/garage-init.py"]
+    entrypoint: ["python", "-m", "goatlib.storage.garage_init"]
     environment:
       GARAGE_ADMIN_URL: http://garage:3903
       GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN}
@@ -258,8 +263,6 @@ services:
       GOAT_PUBLIC_URL: ${GOAT_PUBLIC_URL}
       UPLOADS_BUCKET: ${S3_BUCKET_NAME:-goat-uploads}
       ASSETS_BUCKET: ${ASSETS_BUCKET_NAME:-goat-assets}
-    volumes:
-      - ./init/garage:/init:ro
     networks: [goat]
     depends_on:
       garage:
@@ -453,6 +456,8 @@ services:
       # Self-registration is off, so inviting an unknown email creates its
       # Keycloak account (only with AUTH on).
       KEYCLOAK_PROVISION_INVITED_USERS: ${KEYCLOAK_PROVISION_INVITED_USERS:-true}
+      # false: only superusers create organizations; everyone else is invited
+      ALLOW_ORGANIZATION_CREATION: ${ALLOW_ORGANIZATION_CREATION:-true}
       CLIENT_URL: ${GOAT_PUBLIC_URL}
       API_URL: ${GOAT_PUBLIC_URL}/api/v2
       POSTGRES_POOL_SIZE: ${POSTGRES_POOL_SIZE:-5}
@@ -465,6 +470,7 @@ services:
       AWS_ACCESS_KEY_ID: ${ASSETS_S3_ACCESS_KEY_ID:-${S3_ACCESS_KEY_ID}}
       AWS_SECRET_ACCESS_KEY: ${ASSETS_S3_SECRET_ACCESS_KEY:-${S3_SECRET_ACCESS_KEY}}
       AWS_REGION: ${S3_REGION:-garage}
+      ASSETS_SERVED_BY_CORE: ${ASSETS_SERVED_BY_CORE:-false}
       # Product artwork: served by the web app under /assets unless a mirror
       # is set
       STATIC_ASSETS_URL: ${STATIC_ASSETS_URL:-}
@@ -532,7 +538,13 @@ services:
       <<: [*env-db, *env-s3, *env-auth, *env-service]
       ROOT_PATH: /geoapi
       REDIS_URL: redis://redis:6379/0
-      GEOAPI_DUCKDB_MEMORY_LIMIT: 1GB
+      # DuckDB spills to disk only at its own budget, so the budgets fit the
+      # memory limit below: the pool's shared connection gets POOL_SIZE x
+      # MEMORY_LIMIT, the read and write connections MEMORY_LIMIT each, and
+      # the rest is left for the catalog metadata and Python. Raise them
+      # together.
+      GEOAPI_DUCKLAKE_POOL_SIZE: "2"
+      GEOAPI_DUCKDB_MEMORY_LIMIT: 512MB
     volumes:
       - goat-data:/app/data
     networks: [goat]
@@ -548,7 +560,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2g
+          memory: 3g
 
   processes:
     <<: *restart
@@ -562,6 +574,9 @@ services:
       WINDMILL_TOKEN_FILE: /app/data/windmill/.token
       TRAVELTIME_MATRICES_DIR: /app/data/traveltime_matrices
       PRINT_BASE_URL: http://web:3000
+      # Three DuckDB connections (analytics, SQL previews, layer search) get
+      # this budget each; together they fit the memory limit below.
+      PROCESSES_DUCKDB_MEMORY_LIMIT: 384MB
     volumes:
       - goat-data:/app/data
     networks: [goat]
@@ -577,7 +592,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1536m
+          memory: 2g
 
   catalog:
     <<: *restart
@@ -675,6 +690,9 @@ services:
       <<: *env-windmill-db
       MODE: server
       BASE_URL: http://localhost:${WINDMILL_LOCAL_PORT:-8110}
+      # Windmill database connections of the server (at most); unset, its pool
+      # grows to 50 under load.
+      DATABASE_CONNECTIONS: "10"
     ports:
       - "127.0.0.1:${WINDMILL_LOCAL_PORT:-8110}:8000"
     networks: [goat]
@@ -696,6 +714,7 @@ services:
       <<: *env-windmill-db
       MODE: worker
       WORKER_GROUP: default
+      DATABASE_CONNECTIONS: "3"
       JOB_DEFAULT_TIMEOUT: "300"
       DISABLE_NSJAIL: "true"
     networks: [goat]

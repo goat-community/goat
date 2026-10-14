@@ -1,7 +1,7 @@
 {{- if .Values.core.enabled -}}
-{{- $s3 := .Values.global.s3 | default dict -}}
-{{- if and $s3.bucket $s3.endpointUrl (not ($s3.assets | default dict).publicUrl) (not (include "goat.env.userSet" (dict "values" .Values.core "key" "ASSETS_URL"))) -}}
-{{- fail "global.s3.assets.publicUrl is required with global.s3.endpointUrl: core serves uploaded images from the assets bucket's public URL (or set core.config.ASSETS_URL)" -}}
+{{- $s3 := include "goat.s3.settings" . | fromYaml -}}
+{{- if and $s3.bucket $s3.endpointUrl (not ($s3.assets | default dict).publicUrl) (not ($s3.assets | default dict).servedByCore) (not (include "goat.env.userSet" (dict "values" .Values.core "key" "ASSETS_URL"))) -}}
+{{- fail "global.s3.assets.publicUrl is required with global.s3.endpointUrl (or garage.enabled without web.auth.publicUrl or web.ingress): core serves uploaded images from the assets bucket's public URL (or set core.config.ASSETS_URL, or global.s3.assets.servedByCore for a store without a public bucket)" -}}
 {{- end -}}
 {{- $auth := dict "values" .Values.core "root" . -}}
 {{- $authWired := include "goat.auth.wired" $auth -}}
@@ -13,20 +13,19 @@ metadata:
   labels:
     {{- include "goat.serviceLabels" (dict "context" . "component" "core") | nindent 4 }}
 data:
+  {{- $pgKeys := splitList " " (include "goat.postgresql.configKeys" .) }}
   {{- range $k, $v := .Values.core.config }}
   {{- /* Omit the Keycloak placeholders when auth is wired to a Secret (the
-         deployment sets them from it), and GOAT_PROCESSES_URL (emitted by the
-         auto-wire below so it isn't rendered twice when an operator sets it
-         explicitly) */}}
-  {{- if or (and $authWired (has $k (list "KEYCLOAK_SERVER_URL" "REALM_NAME" "KEYCLOAK_CLIENT_ID" "KEYCLOAK_CLIENT_SECRET"))) (eq $k "GOAT_PROCESSES_URL") -}}
+         deployment sets them from it), and GOAT_PROCESSES_URL and the Postgres
+         connection (emitted below so they aren't rendered twice when an
+         operator sets them explicitly) */}}
+  {{- if or (and $authWired (has $k (list "KEYCLOAK_SERVER_URL" "REALM_NAME" "KEYCLOAK_CLIENT_ID" "KEYCLOAK_CLIENT_SECRET"))) (has $k (append $pgKeys "GOAT_PROCESSES_URL")) -}}
   {{- /* skip */ -}}
   {{- else }}
   {{ $k }}: {{ $v | quote }}
   {{- end }}
   {{- end }}
-  POSTGRES_SERVER: {{ include "goat.postgresql.host" $ | quote }}
-  POSTGRES_DB: {{ include "goat.postgresql.database" $ | quote }}
-  POSTGRES_PORT: {{ include "goat.postgresql.port" $ | quote }}
+  {{- include "goat.postgresql.configEnv" (dict "root" $ "config" .Values.core.config) | nindent 2 }}
   {{- /* Wired: AUTH=true comes from the deployment env. Set explicitly in
          core.config / core.extraEnv: that value is used as is. */}}
   {{- if not (or $authWired (include "goat.env.userSet" (dict "values" .Values.core "key" "AUTH"))) }}
@@ -48,6 +47,15 @@ data:
   {{- end }}
   {{- if not (include "goat.env.userSet" (dict "values" .Values.core "key" "KEYCLOAK_PROVISION_INVITED_USERS")) }}
   KEYCLOAK_PROVISION_INVITED_USERS: {{ ternary "true" "false" (eq (toString .Values.global.auth.provisionInvitedUsers) "true") | quote }}
+  {{- end }}
+  {{- if not (include "goat.env.userSet" (dict "values" .Values.core "key" "ALLOW_ORGANIZATION_CREATION")) }}
+  ALLOW_ORGANIZATION_CREATION: {{ ternary "false" "true" (eq (toString .Values.global.auth.allowOrganizationCreation) "false") | quote }}
+  {{- end }}
+  {{- /* Token client allow-list (global.auth.allowedClients); left out while
+         empty, so core accepts every client of the realm. */}}
+  {{- $allowedClients := include "goat.auth.allowedClients" . }}
+  {{- if and $allowedClients (not (include "goat.env.userSet" (dict "values" .Values.core "key" "AUTH_ALLOWED_CLIENTS"))) }}
+  AUTH_ALLOWED_CLIENTS: {{ $allowedClients | quote }}
   {{- end }}
   {{- /* Email (the `email` block). Empty values are left out: core treats
          an unset SMTP_HOST as email off. */}}

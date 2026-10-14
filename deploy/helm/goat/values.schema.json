@@ -58,6 +58,16 @@
             },
             "provisionInvitedUsers": {
               "type": "boolean"
+            },
+            "allowOrganizationCreation": {
+              "type": "boolean"
+            },
+            "allowedClients": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[^,\\s]+$"
+              }
             }
           }
         },
@@ -122,6 +132,10 @@
                 },
                 "publicUrl": {
                   "type": "string"
+                },
+                "servedByCore": {
+                  "type": "boolean",
+                  "description": "ASSETS_SERVED_BY_CORE: uploaded images in global.s3.bucket under assets/, served by core, for a store without a publicly readable bucket."
                 }
               }
             }
@@ -387,6 +401,9 @@
             },
             "postgresGID": {
               "type": "integer"
+            },
+            "resources": {
+              "type": "object"
             }
           }
         },
@@ -394,6 +411,9 @@
           "type": "object",
           "properties": {
             "host": {
+              "type": "string"
+            },
+            "ducklakeHost": {
               "type": "string"
             },
             "port": {
@@ -421,6 +441,16 @@
                 "verify-ca",
                 "verify-full"
               ]
+            },
+            "ducklakePort": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "transactionPooler": {
+              "type": "boolean"
             }
           }
         }
@@ -1277,6 +1307,40 @@
                   "description": "true lets `helm upgrade` delete unprotected 0.4.x windmill-{tools,workflows}-data claims (and their data) instead of failing."
                 }
               }
+            },
+            "databaseConnections": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "bootstrap": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "image": {
+              "type": "object",
+              "properties": {
+                "registry": {
+                  "type": "string"
+                },
+                "repository": {
+                  "type": "string"
+                },
+                "tag": {
+                  "type": "string"
+                },
+                "pullPolicy": {
+                  "type": "string",
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ]
+                }
+              }
             }
           }
         }
@@ -1295,6 +1359,78 @@
         "dataDir": {
           "type": "string",
           "minLength": 1
+        }
+      }
+    },
+    "garage": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "registry": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "type": "string"
+            }
+          }
+        },
+        "existingSecret": {
+          "type": "string"
+        },
+        "persistence": {
+          "type": "object",
+          "properties": {
+            "meta": {
+              "type": "object",
+              "properties": {
+                "size": {
+                  "type": "string"
+                },
+                "storageClassName": {
+                  "type": "string"
+                }
+              }
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "size": {
+                  "type": "string"
+                },
+                "storageClassName": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "resources": {
+          "type": "object"
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "className": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object"
+            }
+          }
         }
       }
     }

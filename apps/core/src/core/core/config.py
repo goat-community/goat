@@ -2,7 +2,8 @@ import os
 from typing import Literal
 from uuid import UUID
 
-from goatlib.auth import AuthFlag, require_keycloak_url
+from goatlib.auth import AuthFlag, require_keycloak_url, require_own_client_allowed
+from goatlib.config.postgres import parse_transaction_pooler
 from pydantic import PostgresDsn, ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -42,6 +43,15 @@ class Settings(BaseSettings):
     # under load before requests wait for a free one.
     POSTGRES_POOL_SIZE: int = 5
     POSTGRES_MAX_OVERFLOW: int = 10
+    # POSTGRES_SERVER is a connection pooler in transaction mode: queries then
+    # prepare nothing on the server (see db/session.engine_connect_args).
+    POSTGRES_TRANSACTION_POOLER: bool = False
+
+    @field_validator("POSTGRES_TRANSACTION_POOLER", mode="before")
+    @classmethod
+    def _parse_transaction_pooler(cls: type["Settings"], value: object) -> bool:
+        return parse_transaction_pooler(value)
+
     ASYNC_SQLALCHEMY_DATABASE_URI: str | None = None
 
     @field_validator("ASYNC_SQLALCHEMY_DATABASE_URI", mode="after")
@@ -75,11 +85,23 @@ class Settings(BaseSettings):
     REALM_NAME: str | None = "p4b"
     KEYCLOAK_CLIENT_ID: str | None = None
     KEYCLOAK_CLIENT_SECRET: str | None = None
+    # Comma-separated Keycloak client IDs: with AUTH on, a token is accepted
+    # only if it was issued to one of them (its `azp` claim). Empty accepts
+    # tokens of every client of the realm. Read the same way by geoapi,
+    # processes and catalog (goatlib.auth.KeycloakAuth). A non-empty list
+    # must include KEYCLOAK_CLIENT_ID, or core refuses to start (see
+    # _require_keycloak).
+    AUTH_ALLOWED_CLIENTS: str = ""
     # With AUTH on: inviting an email that has no account in the realm creates
     # the Keycloak user and has Keycloak email a "set your password" link, for
     # realms where people cannot register themselves. The client above needs
     # the manage-users role and must accept CLIENT_URL as a redirect URI.
     KEYCLOAK_PROVISION_INVITED_USERS: bool = False
+    # Who may create an organization. True: anyone signed in without one.
+    # False: only superusers (Keycloak realm role `superuser`); everyone else
+    # joins through an invitation, and the web app shows them a waiting page
+    # instead of the setup form. The AUTH=False identity is a superuser.
+    ALLOW_ORGANIZATION_CREATION: bool = True
     # Default identity used when AUTH=False (local dev / self-hosted without
     # Keycloak). Requests without a bearer token act as this user; the user and
     # its organization are seeded by initial_data.
@@ -150,13 +172,19 @@ class Settings(BaseSettings):
     AWS_S3_ASSETS_BUCKET: str | None = "goat-assets"
     ASSETS_S3_ENDPOINT_URL: str | None = None
     ASSETS_S3_FORCE_PATH_STYLE: bool = False
+    # For a store with no publicly readable bucket: assets live in the data
+    # bucket under `assets/`, and core serves them at
+    # {API_V2_STR}/asset/file/<key> by redirecting to a short-lived signed URL.
+    # The AWS_* and ASSETS_S3_* settings above are then unused.
+    ASSETS_SERVED_BY_CORE: bool = False
 
     # ------------------------------------------------------------------
     # Assets / thumbnails
     # ------------------------------------------------------------------
     # Public base URL of the assets bucket: user uploads are served from
     # ``{ASSETS_URL}/{s3_key}``. Unset, a bucket on AWS is served from its own
-    # public URL; a bucket behind ASSETS_S3_ENDPOINT_URL needs it set.
+    # public URL; a bucket behind ASSETS_S3_ENDPOINT_URL needs it set. With
+    # ASSETS_SERVED_BY_CORE it defaults to core's route on CLIENT_URL's host.
     ASSETS_URL: str | None = None
     # Base URL of the product artwork (email images, default thumbnails and
     # avatars), for a mirror or CDN. Unset, the artwork the web app ships is
@@ -227,6 +255,11 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _default_assets_url(self) -> "Settings":
         if self.ASSETS_URL:
+            return self
+        if self.ASSETS_SERVED_BY_CORE:
+            self.ASSETS_URL = (
+                f"{self.CLIENT_URL.rstrip('/')}{self.API_V2_STR}/asset/file"
+            )
             return self
         if self.ASSETS_S3_ENDPOINT_URL:
             raise ValueError(
@@ -380,6 +413,9 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _require_keycloak(self) -> "Settings":
         require_keycloak_url(self.AUTH, self.KEYCLOAK_SERVER_URL)
+        require_own_client_allowed(
+            self.AUTH, self.AUTH_ALLOWED_CLIENTS, self.KEYCLOAK_CLIENT_ID
+        )
         return self
 
     model_config = SettingsConfigDict(case_sensitive=True)

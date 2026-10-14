@@ -808,11 +808,7 @@ async def _connect() -> tuple[asyncpg.Connection, str]:
 
     settings = ToolSettings.from_env()
     conn = await asyncpg.connect(
-        host=settings.postgres_server,
-        port=settings.postgres_port,
-        user=settings.postgres_user,
-        password=settings.postgres_password,
-        database=settings.postgres_db,
+        **settings.postgres_connect_args(),
     )
     return conn, settings.customer_schema
 

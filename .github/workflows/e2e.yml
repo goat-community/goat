@@ -203,7 +203,7 @@ jobs:
           GOAT_PUBLIC_URL: http://localhost:3000
           UPLOADS_BUCKET: goat
           ASSETS_BUCKET: goat-assets
-        run: uv run --no-sync python deploy/compose/init/garage/garage-init.py
+        run: uv run --no-sync python -m goatlib.storage.garage_init
 
       - name: 🗄️ Database, seed data, DuckLake catalog
         run: |

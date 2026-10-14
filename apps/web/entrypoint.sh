@@ -1,6 +1,7 @@
 #!/bin/sh
 # Replaces the APP_NEXT_PUBLIC_* placeholders the image is built with by the
-# container's NEXT_PUBLIC_* values, then runs the given command.
+# container's NEXT_PUBLIC_* values (empty for a variable that is not set), then
+# runs the given command.
 set -eu
 
 WEB_DIR="${WEB_DIR:-/app/apps/web}"
@@ -40,6 +41,17 @@ for name in $names; do
   grep -rlF "APP_$name" "$NEXT_DIR" | while IFS= read -r file; do
     sed -i "s|APP_$name|$escaped|g" "$file"
   done
+done
+
+# What is left belongs to variables the container does not set (or skipped
+# above). Each becomes empty, which the app reads as "not set": left in place,
+# the placeholder's name would be taken for a value, e.g. fetched as a URL.
+# The bare APP_NEXT_PUBLIC_ prefix the app compares values against is kept.
+grep -rhoE 'APP_NEXT_PUBLIC_[A-Za-z0-9_]+' "$NEXT_DIR" | sort -u | while IFS= read -r placeholder; do
+  echo "Clearing $placeholder"
+done
+grep -rl 'APP_NEXT_PUBLIC_[A-Za-z0-9_]' "$NEXT_DIR" | while IFS= read -r file; do
+  sed -i 's/APP_NEXT_PUBLIC_[A-Za-z0-9_][A-Za-z0-9_]*//g' "$file"
 done
 
 echo "Starting Nextjs"

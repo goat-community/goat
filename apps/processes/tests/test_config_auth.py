@@ -14,7 +14,7 @@ OFF = ["false", "False", "0", "no", "off"]
 
 @pytest.fixture(autouse=True)
 def _clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    for name in ("AUTH", "KEYCLOAK_SERVER_URL", "REALM_NAME"):
+    for name in ("AUTH", "KEYCLOAK_SERVER_URL", "REALM_NAME", "AUTH_ALLOWED_CLIENTS"):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -57,3 +57,14 @@ def test_keycloak_reads_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
     s = _settings()
     assert s.KEYCLOAK_SERVER_URL == "http://kc"
     assert s.REALM_NAME == "goat"
+
+
+def test_allowed_clients_default_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AUTH", "false")
+    assert _settings().AUTH_ALLOWED_CLIENTS == ""
+
+
+def test_allowed_clients_reads_env_var(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AUTH", "false")
+    monkeypatch.setenv("AUTH_ALLOWED_CLIENTS", "goat-web,goat-scripts")
+    assert _settings().AUTH_ALLOWED_CLIENTS == "goat-web,goat-scripts"

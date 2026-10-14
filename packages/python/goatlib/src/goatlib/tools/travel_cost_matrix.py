@@ -8,7 +8,6 @@ via the local C++ routing backend. Produces two outputs:
 
 import asyncio
 import logging
-import math
 import tempfile
 import uuid as uuid_module
 from pathlib import Path
@@ -51,9 +50,10 @@ from goatlib.tools._routing_limits import (
     resolve_leg_budget_input,
     validate_budget,
     validate_cost_type,
+    validate_extent,
     validate_leg_budget,
 )
-from goatlib.tools.base import BaseToolRunner
+from goatlib.tools.base import BaseToolRunner, drops_unrecorded_tables
 from goatlib.tools.catchment_area_v2 import (
     ACCESS_EGRESS_MODE_ICONS,
     ACCESS_EGRESS_MODE_LABELS,
@@ -69,6 +69,7 @@ from goatlib.tools.catchment_area_v2 import (
 )
 from goatlib.tools.pt_network import ensure_pt_date, pt_date_field
 from goatlib.tools.schemas import ToolInputBase, ToolOutputBase, get_default_layer_name
+from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 
 logger = logging.getLogger(__name__)
 
@@ -785,6 +786,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
     ) -> tuple[list[float], list[float], list[str]]:
         """Extract lat/lon coordinates and IDs from a GeoParquet point layer."""
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
 
@@ -845,6 +847,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
     ) -> None:
         """Compute geodesic distances (WGS84 ellipsoid) between all O-D pairs."""
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
 
@@ -887,6 +890,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
     ) -> None:
         """Join min travel cost onto the original destination layer."""
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
 
@@ -974,40 +978,10 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
                 f"Reduce the number of origins or destinations."
             )
 
-        # Compute max possible O-D distance using bbox corners.
-        # The farthest O-D pair is bounded by the distance between the
-        # farthest corners of the origin and destination bounding boxes.
-        earth_radius_m = 6371000.0
-        o_min_lat, o_max_lat = min(origin_lats), max(origin_lats)
-        o_min_lon, o_max_lon = min(origin_lons), max(origin_lons)
-        d_min_lat, d_max_lat = min(dest_lats), max(dest_lats)
-        d_min_lon, d_max_lon = min(dest_lons), max(dest_lons)
-
-        # Max lat/lon span between the two bbox extremes
-        lat_span = max(abs(o_max_lat - d_min_lat), abs(d_max_lat - o_min_lat))
-        lon_span = max(abs(o_max_lon - d_min_lon), abs(d_max_lon - o_min_lon))
-        avg_lat = math.radians((o_min_lat + o_max_lat + d_min_lat + d_max_lat) / 4.0)
-        dy = math.radians(lat_span) * earth_radius_m
-        dx = math.radians(lon_span) * earth_radius_m * math.cos(avg_lat)
-        extent_m = math.sqrt(dx * dx + dy * dy)
-
-        # Validate max extent for routed modes.
         if params.routing_mode != RoutingMode.flight_distance:
-            max_reach_m = {
-                RoutingMode.walking: 100_000,
-                RoutingMode.bicycle: 100_000,
-                RoutingMode.pedelec: 100_000,
-                RoutingMode.car: 300_000,
-                RoutingMode.pt: 300_000,
-            }.get(params.routing_mode, 300_000)
-
-            if extent_m > max_reach_m:
-                raise ValueError(
-                    f"Origin-destination extent ({extent_m / 1000:.0f} km) exceeds "
-                    f"the maximum reachable distance for {params.routing_mode.value} "
-                    f"({max_reach_m / 1000:.0f} km). "
-                    f"Reduce the area or choose a different mode."
-                )
+            validate_extent(
+                params.routing_mode, origin_lats, origin_lons, dest_lats, dest_lons
+            )
 
         if params.routing_mode == RoutingMode.flight_distance:
             # Geodesic distance — no routing needed.
@@ -1107,6 +1081,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
         )
         return matrix_output_path, matrix_metadata
 
+    @drops_unrecorded_tables
     def run(self: Self, params: TravelCostMatrixWindmillParams) -> dict[str, Any]:
         """Run analysis and create both matrix table and destination points layers."""
         temp_mode = getattr(params, "temp_mode", False)

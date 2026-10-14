@@ -1,0 +1,24 @@
+{{- if .Values.garage.enabled -}}
+{{- $ctx := dict "context" . "component" "garage" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "goat.garage.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "goat.serviceLabels" $ctx | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "goat.serviceSelectorLabels" $ctx | nindent 4 }}
+  ports:
+    - name: s3
+      port: 3900
+      targetPort: s3
+    - name: web
+      port: 3902
+      targetPort: web
+    - name: admin
+      port: 3903
+      targetPort: admin
+{{- end -}}

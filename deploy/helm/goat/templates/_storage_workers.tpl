@@ -1,12 +1,12 @@
 {{/*
 ──── Object storage (global.s3) ─────────────────────────────────────────────
 The S3 store GOAT keeps uploads in, and core's assets bucket. Nothing is
-rendered until `global.s3.bucket` is set. Each service gets it as env
+rendered until `global.s3.bucket` is set (or garage.enabled, see _garage.tpl). Each service gets it as env
 entries; a variable the service sets itself in `<svc>.config` or
 `<svc>.extraEnv` wins and is rendered nowhere else.
 */}}
 {{- define "goat.s3.enabled" -}}
-{{- if (.Values.global.s3 | default dict).bucket -}}true{{- end -}}
+{{- if (include "goat.s3.settings" . | fromYaml).bucket -}}true{{- end -}}
 {{- end }}
 
 {{/*
@@ -15,7 +15,7 @@ S3 env entries (a YAML list, indent with nindent). Params: root, values
 the AWS_* key pair it uses for it).
 */}}
 {{- define "goat.s3.env" -}}
-{{- $s3 := .root.Values.global.s3 | default dict -}}
+{{- $s3 := include "goat.s3.settings" .root | fromYaml -}}
 {{- if $s3.bucket -}}
 {{- $v := .values -}}
 {{- $pathStyle := ternary "true" "false" (eq (toString $s3.forcePathStyle) "true") -}}
@@ -26,8 +26,13 @@ the AWS_* key pair it uses for it).
 {{- $fromSecret := list (list "S3_ACCESS_KEY_ID" $idKey) (list "S3_SECRET_ACCESS_KEY" $secretKey) -}}
 {{- if .assets -}}
 {{- $a := $s3.assets | default dict -}}
+{{- if $a.servedByCore -}}
+{{- /* Assets in the data bucket, served by core: no assets bucket or keys. */ -}}
+{{- $plain = concat $plain (list (list "ASSETS_SERVED_BY_CORE" "true") (list "ASSETS_URL" $a.publicUrl)) -}}
+{{- else -}}
 {{- $plain = concat $plain (list (list "AWS_REGION" $s3.region) (list "AWS_S3_ASSETS_BUCKET" $a.bucket) (list "ASSETS_URL" $a.publicUrl) (list "ASSETS_S3_ENDPOINT_URL" $s3.endpointUrl) (list "ASSETS_S3_FORCE_PATH_STYLE" $pathStyle)) -}}
 {{- $fromSecret = concat $fromSecret (list (list "AWS_ACCESS_KEY_ID" $idKey) (list "AWS_SECRET_ACCESS_KEY" $secretKey)) -}}
+{{- end -}}
 {{- end -}}
 {{- range $plain -}}
 {{- $name := index . 0 -}}
@@ -69,7 +74,7 @@ values block).
 {{- define "goat.worker.appEnv" -}}
 {{- $r := .root -}}
 {{- $v := .values -}}
-{{- $plain := list (list "POSTGRES_SERVER" (include "goat.postgresql.host" $r)) (list "POSTGRES_PORT" (include "goat.postgresql.port" $r)) (list "POSTGRES_DB" (include "goat.postgresql.database" $r)) (list "DUCKLAKE_POSTGRES_SERVER" (include "goat.postgresql.host" $r)) (list "DUCKLAKE_DATA_DIR" $r.Values.ducklakeBootstrap.dataDir) (list "DUCKLAKE_CATALOG_SCHEMA" $r.Values.ducklakeBootstrap.catalogSchema) -}}
+{{- $plain := list (list "POSTGRES_SERVER" (include "goat.postgresql.host" $r)) (list "POSTGRES_PORT" (include "goat.postgresql.port" $r)) (list "POSTGRES_DB" (include "goat.postgresql.database" $r)) (list "POSTGRES_TRANSACTION_POOLER" (include "goat.postgresql.transactionPooler" $r)) (list "DUCKLAKE_POSTGRES_SERVER" (include "goat.postgresql.ducklakeHost" $r)) (list "DUCKLAKE_POSTGRES_PORT" (include "goat.postgresql.ducklakePort" $r)) (list "DUCKLAKE_DATA_DIR" $r.Values.ducklakeBootstrap.dataDir) (list "DUCKLAKE_CATALOG_SCHEMA" $r.Values.ducklakeBootstrap.catalogSchema) -}}
 {{- if $r.Values.web.enabled -}}
 {{- $plain = append $plain (list "PRINT_BASE_URL" (printf "http://%s" (include "goat.serviceFullname" (dict "context" $r "component" "web")))) -}}
 {{- end -}}
@@ -128,7 +133,7 @@ rendered goat.worker.appEnv).
 {{- if include "goat.caBundle.enabled" .root -}}
 {{- $names = append $names "GOAT_CA_BUNDLE" -}}
 {{- end -}}
-{{- $windmill := list "MODE" "WORKER_GROUP" "WORKER_TAGS" "WHITELIST_ENVS" "DISABLE_NSJAIL" "JOB_DEFAULT_TIMEOUT" "DATABASE_URL" "_WMILL_DB_USER" "_WMILL_DB_PASSWORD" -}}
+{{- $windmill := list "MODE" "WORKER_GROUP" "WORKER_TAGS" "WHITELIST_ENVS" "DISABLE_NSJAIL" "JOB_DEFAULT_TIMEOUT" "DATABASE_URL" "DATABASE_CONNECTIONS" "_WMILL_DB_USER" "_WMILL_DB_PASSWORD" -}}
 {{- $out := list -}}
 {{- range ($names | uniq | sortAlpha) -}}
 {{- if not (has . $windmill) -}}{{- $out = append $out . -}}{{- end -}}

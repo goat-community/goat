@@ -14,4 +14,5 @@ ducklake_manager = BaseDuckLakeManager(
     read_only=True,
     pin_snapshot=settings.DUCKLAKE_PIN_SNAPSHOT,
     refresh_interval=settings.DUCKLAKE_SNAPSHOT_REFRESH_SECONDS,
+    application_name="goat-geoapi-ducklake",
 )

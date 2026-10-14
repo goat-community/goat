@@ -477,7 +477,7 @@ BUNDLE_ROLE_STYLES: dict[tuple[str, str], dict[str, Any]] = {
         "stroke_color": hex_to_rgb(BUNDLE_POINT_HALO_WHITE),
         "stroke_width": 2,
     },
-    ("pt_network_gtfs", "shapes"): {
+    ("pt_network_gtfs", "shape_lines"): {
         "color": hex_to_rgb(BUNDLE_ACCENT_RED),
         "stroke_color": hex_to_rgb(BUNDLE_ACCENT_RED),
         "stroke_width": 3,

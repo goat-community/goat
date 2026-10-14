@@ -76,6 +76,13 @@ More in the docs: [HTTPS and addresses](https://goat.plan4better.de/docs/self_ho
   `KEYCLOAK_CLIENT_SECRET`. The client must be confidential, with redirect URI
   `<GOAT URL>/*`, and its service account needs the realm-management roles
   `view-users` and `manage-users`.
+- **A realm shared with other applications:** every client of the realm can get
+  a token that GOAT's APIs would accept. Set `AUTH_ALLOWED_CLIENTS` to the
+  clients GOAT should accept tokens from, comma-separated. It must include
+  `KEYCLOAK_CLIENT_ID`; core refuses to start otherwise. A token issued to any
+  other client then gets a `401`. The list checks the client, not the user: a
+  group restriction on GOAT's client must cover every flow the client allows
+  (or turn its direct access grants off).
 - **No login at all** (local demos only): `AUTH=False`. Everybody acts as one
   built-in administrator.
 
@@ -112,7 +119,7 @@ links by default; `EMAIL_BRAND_NAME`, `EMAIL_LOGO_URL`, `EMAIL_CONTACT_URL` and
 Odoo Helpdesk; without it the app shows "Report a problem" as an email address plus the
 documentation. Set all four of `ODOO_URL`, `ODOO_DB` (Plan4Better's Odoo, shared by
 GOAT's Odoo integrations), `ODOO_SUPPORT_API_KEY` and `ODOO_SUPPORT_TEAM_ID` to turn it on; with any of them
-empty the `/api/v2/support` routes do not exist. The API key is a secret that Plan4Better
+empty the `/api/v2/support` routes answer 404, except `/api/v2/support/summary`, which tells the app that support is off. The API key is a secret that Plan4Better
 issues for its own Odoo, so leave all four empty on your own installation unless you have
 received one. `ODOO_SUPPORT_POST_ACTION` names the Odoo server action used to post a
 message as the ticket participant (default `GOAT: post message as ticket participant`).
@@ -147,10 +154,16 @@ More in the docs: [Operations → Routing base data](https://goat.plan4better.de
   live in Keycloak at
   `<GOAT URL>/keycloak/admin` (user `admin`, password `KEYCLOAK_ADMIN_PASSWORD` in
   `.env`). Restrict that page with `GOAT_ADMIN_ALLOW_CIDRS`.
+- **Organizations** are set up by whoever signs in without one. With
+  `ALLOW_ORGANIZATION_CREATION=false` only accounts with the Keycloak realm role
+  `superuser` may, and everyone else waits for an invitation.
 - **Job engine (Windmill)** is reachable only from the server itself:
   `ssh -L 8110:127.0.0.1:8110 <server>` and open http://localhost:8110
   (user `admin@windmill.dev`, password `WINDMILL_ADMIN_PASSWORD`).
 - **Parallel analyses:** `GOAT_TOOLS_WORKERS` (each worker may use up to 4 GB).
+- **Memory per service:** each service's limit is in `compose.yaml`; geoapi's and
+  processes' DuckDB budgets are set next to it to fit under it. Raise a limit and
+  its budgets together, in a `compose.override.yaml`.
 - **Logs:** `docker compose logs -f <service>`; they rotate automatically.
 
 More in the docs: [Operations](https://goat.plan4better.de/docs/self_hosting/docker_compose/operations)

@@ -29,7 +29,11 @@ from goatlib.analysis.schemas.ui import (
     ui_sections,
 )
 from goatlib.models.io import DatasetMetadata
-from goatlib.tools.base import BaseToolRunner, _get_or_create_event_loop
+from goatlib.tools.base import (
+    BaseToolRunner,
+    _get_or_create_event_loop,
+    drops_unrecorded_tables,
+)
 from goatlib.tools.schemas import ToolInputBase
 
 logger = logging.getLogger(__name__)
@@ -126,6 +130,7 @@ class LayerCreateFilteredToolRunner(BaseToolRunner["LayerCreateFilteredParams"])
         """Mark as standard (not tool output) since this is user data."""
         return "standard"
 
+    @drops_unrecorded_tables
     def run(self: Self, params: LayerCreateFilteredParams) -> dict[str, Any]:
         """Create the copy, then carry the source's per-column metadata over."""
         result = super().run(params)

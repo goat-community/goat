@@ -3,6 +3,9 @@ templates:
   - core/deployment.yaml
   - geoapi/deployment.yaml
   - processes/deployment.yaml
+  - core/configmap.yaml          # read by the pod checksum
+  - geoapi/configmap.yaml          # read by the pod checksum
+  - processes/configmap.yaml          # read by the pod checksum
 set:
   postgresql.external.host: "pg.example.com"
   postgresql.external.existingSecret: "pg-secret"
@@ -165,3 +168,26 @@ tests:
               secretKeyRef:
                 name: goat-s3
                 key: access-key-id
+
+  - it: lets core serve the images from the data bucket, without an assets bucket
+    set:
+      global.s3.bucket: goat-uploads
+      global.s3.endpointUrl: https://s3.example.org
+      global.s3.assets.servedByCore: true
+    template: core/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: ASSETS_SERVED_BY_CORE
+            value: "true"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AWS_S3_ASSETS_BUCKET
+            value: goat-assets
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          any: true
+          content:
+            name: AWS_ACCESS_KEY_ID

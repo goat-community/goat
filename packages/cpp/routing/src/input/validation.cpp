@@ -54,15 +54,16 @@ namespace routing::input
                 cfg.speed_km_h <= 0)
                 throw std::invalid_argument(
                     "speed_km_h required for active mobility time mode");
-            if (cfg.mode == RoutingMode::Walking && cfg.max_cost > 45)
+            if (cfg.mode == RoutingMode::Walking &&
+                cfg.max_cost > kMaxTimeActiveMin)
                 throw std::invalid_argument(
                     "Walking max travel time cannot exceed 45 min");
             if ((cfg.mode == RoutingMode::Bicycle ||
                  cfg.mode == RoutingMode::Pedelec) &&
-                cfg.max_cost > 45)
+                cfg.max_cost > kMaxTimeActiveMin)
                 throw std::invalid_argument(
                     "Cycling max travel time cannot exceed 45 min");
-            if (cfg.mode == RoutingMode::Car && cfg.max_cost > 90)
+            if (cfg.mode == RoutingMode::Car && cfg.max_cost > kMaxTimeCarMin)
                 throw std::invalid_argument(
                     "Car max travel time cannot exceed 90 min");
         }

@@ -29,6 +29,7 @@ from goatlib.analysis.schemas.ui import (
 from goatlib.models.io import DatasetMetadata
 from goatlib.tools.base import BaseToolRunner
 from goatlib.tools.schemas import ToolInputBase
+from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 from goatlib.utils.sql_validation import validate_sql_query
 
 logger = logging.getLogger(__name__)
@@ -203,6 +204,7 @@ class CustomSqlToolRunner(BaseToolRunner[CustomSqlToolParams]):
             return {}
 
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             # Spatial extension is optional — needed only for geometry columns
             try:
@@ -327,6 +329,7 @@ class CustomSqlToolRunner(BaseToolRunner[CustomSqlToolParams]):
 
         # Create a fresh in-memory DuckDB for isolated execution
         con = duckdb.connect()
+        set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
 

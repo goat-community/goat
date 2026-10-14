@@ -4,6 +4,9 @@ templates:
   - geoapi/deployment.yaml
   - processes/deployment.yaml
   - data/pvc.yaml
+  - catalog/configmap.yaml          # read by the pod checksum
+  - geoapi/configmap.yaml          # read by the pod checksum
+  - processes/configmap.yaml          # read by the pod checksum
 tests:
   - it: a bare install deploys the catalog
     template: catalog/deployment.yaml
@@ -37,3 +40,16 @@ tests:
     asserts:
       - hasDocuments:
           count: 1
+  - it: geoapi, processes and their DuckLake init run as root, to write the shared data volume
+    templates:
+      - geoapi/deployment.yaml
+      - processes/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 0
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: ducklake-init
+      - notExists:
+          path: spec.template.spec.initContainers[0].securityContext
