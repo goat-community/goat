@@ -92,7 +92,7 @@ Alles, was mit Ihnen geteilt wurde, persönlich oder über ein Team oder die Org
 Sie können einen Inhalt **an ein Team oder eine Organisation übergeben**, sodass er nicht mehr Ihnen persönlich gehört. Dies funktioniert für Datensätze, Projekte, Ordner, Datenpakete und Vorlagen, die Ihnen in **Meine Inhalte** gehören; bei Inhalten in einem Team- oder Organisationsbereich erscheint die Option nicht. Unter [Inhalt](../workspace/content.md#teilen-und-übertragen-sind-zweierlei) steht, wie sich das vom Teilen unterscheidet.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/sharing/transfer_ownership_de.webp').default} alt="Rechte übertragen im Tab Teams des Teilen-Dialogs" style={{ maxHeight: "480px", maxWidth: "480px", objectFit: "contain"}}/>
+  <img src={require('/img/sharing/transfer_ownership_de.webp').default} alt="Rechte übertragen im Tab Teams des Teilen-Dialogs" style={{ maxHeight: "450px", maxWidth: "480px", objectFit: "contain"}}/>
 </div>
 <p> </p>
 

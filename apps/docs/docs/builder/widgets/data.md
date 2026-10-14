@@ -42,7 +42,7 @@ This widget is an interactive element, which **allows the user to filter the dat
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_filter.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_filter.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 ## Table
@@ -159,7 +159,7 @@ Choose from different statistic methods to be computed on a layer.
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_number.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_number.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 ## Rich Text

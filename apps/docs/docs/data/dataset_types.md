@@ -14,7 +14,7 @@ On GOAT, you can work with datasets from Plan4Better’s catalog, upload your ow
 Feature datasets store **spatial features like points, lines, or polygons**. On GOAT you can upload data from **Shapefiles**, **Geopackages**, **GeoJSON**, **KML**, **ZIP**, or **Parquet** files, or add a **WFS** external URL. For raster external sources (WMS, WMTS, XYZ Tiles, COG), see [Raster Datasets](#rasters-datasets) below. You can visualize, style, and analyze these datasets using the different tools from the toolbox.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/data/spatial.webp').default} alt="Spatial features in GOAT" style={{ maxHeight: "750px", maxWidth: "750px", objectFit: "cover"}}/>
+  <img src={require('/img/data/spatial.webp').default} alt="Spatial features in GOAT" style={{ maxHeight: "450px", maxWidth: "750px", objectFit: "cover"}}/>
   <p style={{ textAlign: 'center', fontStyle: 'italic', marginTop: '8px', color: '#666' }}> Example of spatial features displayed in GOAT</p>
 </div>
 
@@ -31,7 +31,7 @@ GOAT recognizes two types of feature datasets based on their source:
 **Tables** are **non-spatial datasets** without geographic reference points, so they can't be visualized on the map. Import them in **CSV** or **XLSX** formats for analysis and data management.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/data/table.webp').default} alt="Non-spatial datasets in GOAT" style={{ maxHeight: "750px", maxWidth: "750px", objectFit: "cover"}}/>
+  <img src={require('/img/data/table.webp').default} alt="Non-spatial datasets in GOAT" style={{ maxHeight: "450px", maxWidth: "750px", objectFit: "cover"}}/>
   <p style={{ textAlign: 'center', fontStyle: 'italic', marginTop: '8px', color: '#666' }}> Example of a table displayed in GOAT</p>
 </div>
 
@@ -77,7 +77,7 @@ Raster styling depends on the external service (e.g., GeoServer). You can’t ch
 :::
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/data/raster.webp').default} alt="Raster datasets in GOAT" style={{ maxHeight: "750px", maxWidth: "750px", objectFit: "cover"}}/>
+  <img src={require('/img/data/raster.webp').default} alt="Raster datasets in GOAT" style={{ maxHeight: "450px", maxWidth: "750px", objectFit: "cover"}}/>
   <p style={{ textAlign: 'center', fontStyle: 'italic', marginTop: '8px', color: '#666' }}> Example of a raster layer displayed in GOAT</p>
 
 </div>

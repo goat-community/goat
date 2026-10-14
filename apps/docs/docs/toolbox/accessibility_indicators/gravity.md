@@ -229,7 +229,7 @@ Want to create visually compelling maps that tell a clear story? Learn how to cu
 The example below shows how the changes in the opportunity settings can affect the gravity heatmap. Its destination potential is based on the total number of hourly public transport departures from a stop.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-<img src={require('/img/toolbox/accessibility_indicators/heatmaps/gravity_based/gravity_calculation_comparison.webp').default} alt="gravity-no-destination-potential" style={{ maxHeight: "500px", maxWidth: "auto"}}/>
+<img src={require('/img/toolbox/accessibility_indicators/heatmaps/gravity_based/gravity_calculation_comparison.webp').default} alt="gravity-no-destination-potential" style={{ maxHeight: "450px", maxWidth: "auto"}}/>
 </div>
 
 <p></p>
