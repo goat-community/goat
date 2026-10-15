@@ -2702,6 +2702,7 @@
   "total": "Gesamt",
   "visible_fields": "Sichtbare Felder",
   "widget": "Widget",
+  "widget_cannot_be_shown": "Dieses Widget kann nicht angezeigt werden. Prüfen Sie seine Einstellungen oder entfernen Sie es.",
   "value_labels": "Wertbeschriftungen",
   "value_must_be_greater_than_or_equal_to": "Der Wert muss größer sein als oder gleich",
   "value_must_be_less_than_or_equal_to": "Der Wert muss geringer sein als oder gleich",
