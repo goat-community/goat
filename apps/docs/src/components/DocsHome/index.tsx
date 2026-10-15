@@ -183,12 +183,12 @@ function useCards(): Card[] {
       }),
     },
     {
-      to: "/troubleshooting",
+      to: "/support",
       icon: "help",
-      title: translate({ id: "goat.home.card.troubleshooting.title", message: "Troubleshooting" }),
+      title: translate({ id: "goat.home.card.support.title", message: "Support" }),
       description: translate({
-        id: "goat.home.card.troubleshooting.description",
-        message: "Solutions for failed jobs and other common issues.",
+        id: "goat.home.card.support.description",
+        message: "Ask the GOAT team a question or report a problem with a support ticket.",
       }),
     },
   ];

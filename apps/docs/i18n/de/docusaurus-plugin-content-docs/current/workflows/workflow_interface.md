@@ -84,7 +84,7 @@ Dieser Tab enthält kategorisierte Werkzeuge, die für die Workflow-Konstruktion
 
 - **Daten I/O**
   - <code>+ Datensatz hinzufügen</code>: Erstellt Datensatz-Knoten
-  - <code>Als Datensatz speichern</code>: Speichert Workflow-Ergebnisse als permanente Datensätze. Konfigurieren Sie den **Dataset-Namen**, aktivieren Sie **Zum Projekt hinzufügen**, um das Ergebnis automatisch zur Projektlayerliste hinzuzufügen, und aktivieren Sie **Bei erneutem Ausführen überschreiben**, um das zuvor exportierte Dataset bei jeder Ausführung des Workflows zu ersetzen, anstatt einen neuen Datensatz zu erstellen.
+  - <code>Als Datensatz speichern</code>: Speichert Workflow-Ergebnisse als permanente Datensätze. Konfigurieren Sie den **Datensatznamen** (Feld <code>Datensatzname</code>), aktivieren Sie **Zum Projekt hinzufügen**, um das Ergebnis automatisch zur Projektlayerliste hinzuzufügen, und aktivieren Sie **Bei erneutem Ausführen überschreiben**, um das zuvor exportierte Dataset bei jeder Ausführung des Workflows zu ersetzen, anstatt einen neuen Datensatz zu erstellen.
 
 :::tip Gute Praxis
 Vergeben Sie für jeden **Als Datensatz speichern**-Knoten einen aussagekräftigen Namen und aktivieren Sie **Bei erneutem Ausführen überschreiben**, wenn Sie denselben Workflow mehrfach ausführen. So bleibt Ihr Projekt übersichtlich und es entstehen keine doppelten Layer nach jeder Ausführung.
@@ -246,6 +246,10 @@ Sobald ein Workflow eingerichtet ist, können Sie ihn als **Vorlage** speichern,
   <div class="step-number">5</div>
   <div class="content">Klicken Sie auf <code>Speichern</code>.</div>
 </div>
+
+:::tip Ihr Styling kommt mit
+Wenn Sie einen Export-Knoten ausgeführt und seinen Ergebnis-Layer gestylt haben, übernimmt die Vorlage dieses Styling. Wer die Vorlage nutzt, sieht Ihr Styling schon beim ersten Ausführen. Ein Export, der ein früheres Ergebnis überschreibt, behält das Styling dieses Layers.
+:::
 
 :::info Aktualisieren statt duplizieren
 Wenn aus diesem Workflow bereits eine Vorlage gespeichert wurde, können Sie sie **aus der Quelle aktualisieren** mit der aktuellen Version, anstatt ein Duplikat zu erstellen. Da die Eingaben Teil des gespeicherten Snapshots sind, verwenden Sie <code>Vorlage aus Quelle aktualisieren</code>, um sie zu ändern.

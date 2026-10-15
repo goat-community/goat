@@ -186,6 +186,7 @@ Häufige Probleme und Lösungen:
 - **Unbekannte Spalte**: Überprüfen Sie Spaltennamen in Ihren Eingabedatensätzen; die Liste **Tabellen** im Tab **Aufbau** zeigt die Spalten jeder Tabelle
 - **Geometriefehler**: Überprüfen Sie, ob Geometriespalten gültig und ordnungsgemäß formatiert sind
 - **Only SELECT statements are allowed**: Schreiben Sie eine einzelne `SELECT`-Abfrage (optional beginnend mit `WITH`); Anweisungen, die Daten verändern, wie `CREATE`, `INSERT`, `UPDATE` oder `DELETE`, werden abgelehnt
+- **Function not allowed** oder **Table function not allowed**: Die Abfrage ruft eine Funktion auf, die Dateien, andere Datenbanken oder Einstellungen liest, oder eine nicht erlaubte Tabellenfunktion; siehe die Einschränkungen unten
 - **Lang laufende Abfrage**: Teilen Sie komplexe Abfragen in kleinere Schritte auf
 
 ## Ausgabe und Integration
@@ -210,6 +211,8 @@ Abfragen in Benutzerdefiniertes SQL unterstützen [Workflow-Variablen](variables
 - Maximal 3 verbundene Eingaben und 2 zusätzliche Layer pro Knoten Benutzerdefiniertes SQL
 - Nur eine einzelne `SELECT`-Anweisung ist erlaubt
 - Ergebnisse ohne Geometriespalte werden als Tabelle erstellt und können nicht auf der Karte angezeigt werden
-- Einige erweiterte DuckDB-Funktionen sind möglicherweise nicht verfügbar
+- Eine Abfrage liest nur ihre verbundenen Eingaben (`input_1` bis `input_3`), den **Tabellenalias** jedes zusätzlichen Layers und die Tabellen, die sie selbst mit `WITH` definiert
+- Dateien (zum Beispiel mit `read_parquet`), Tabellen mit Schemaangabe, andere Datenbanken und Einstellungen können nicht gelesen werden, und `SHOW`, `DESCRIBE` und `SUMMARIZE` werden abgelehnt
+- Von den Tabellenfunktionen sind nur `range`, `generate_series`, `unnest`, `json_each` und `json_tree` erlaubt
 
 Für komplexere Analyseanforderungen erwägen Sie die Verwendung mehrerer Knoten Benutzerdefiniertes SQL oder die Kombination mit anderen Workflow-Werkzeugen.

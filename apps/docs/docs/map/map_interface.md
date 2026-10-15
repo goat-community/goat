@@ -18,15 +18,15 @@ sidebar_position: 1
 </div> 
 
 #### Left Side
-- <code>Project menu</code>: <strong>Click to return</strong> to the home page, edit project metadata, delete the project, lock the map extent, report an issue, or read the privacy policy.
+- <code>Project menu</code>: <strong>Click to return</strong> to the home page, edit project metadata, delete the project, lock the map extent, or read the privacy policy.
 - <code>Project Name</code>: <strong>Double-click to edit</strong> the project name.
 - <code>Last Saved</code>: <strong>Shows the timestamp</strong> of the last saved change.
 
 #### Right Side
 - <code>Project mode toggle</code>: <strong>Switch between</strong> the Map, Workflows, Layouts and Dashboard interfaces.
 - <code>Share Project</code>: <strong>Manage the sharing options</strong>.
-- <code>Documentation</code>: <strong>Access the GOAT documentation</strong>.
-- <code>Job Status</code>: <strong>View the status</strong> of ongoing and completed tasks.
+- <code>Support</code>: <strong>Open your support tickets, report a problem or open the documentation</strong>. See [Support](../support/support.md).
+- <code>Job status</code>: <strong>View the status</strong> of ongoing and completed tasks. The icon appears once you have started a task.
 - <code>User profile</code>: <strong>Access account settings</strong> and log out.
 
 

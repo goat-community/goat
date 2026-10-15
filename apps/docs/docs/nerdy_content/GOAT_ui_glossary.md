@@ -571,7 +571,7 @@ This glossary lists the English and German labels of the main tools, features an
 | English | German | Description |
 |---------|--------|-------------|
 | **Preferences** | **Einstellungen** | User account preferences |
-| Theme | Theme | UI color theme |
+| Theme | Erscheinungsbild | UI color theme |
 | Light | Hell | Light color theme |
 | Dark | Dunkel | Dark color theme |
 | Language | Sprache | Interface language |
@@ -588,7 +588,7 @@ This glossary lists the English and German labels of the main tools, features an
 | Reference area | Referenzgebiet | Reference data layer |
 | Input layer | Eingabe-Layer | Source data layer |
 | Result layer | Ergebnis-Layer | Result data layer |
-| Result layer name | Name der Ergebnislayer | Name of the result layer |
+| Result layer name | Name des Ergebnis-Layers | Name of the result layer |
 | CRS | CRS | Coordinate Reference System |
 | Output CRS | Ausgabe-CRS | Coordinate reference system of the result |
 | EPSG Code | EPSG-Code | Standard spatial reference identifier |

@@ -99,7 +99,7 @@ The Travel Cost Matrix is designed for **batch computation across many origins a
 
 :::tip Hint
 
-Calculation time scales with the number of O-D pairs. Check the [status bar](../../workspace/workspace_interface.md#job-status) for progress.
+Calculation time scales with the number of O-D pairs. Check the [status bar](../../workspace/workspace_interface.md#user-controls) for progress.
 
 :::
 
