@@ -32,6 +32,18 @@ Die folgenden Schritte werden an den Daten durchgeführt, um ein **schnelles** u
 2.  **Geospatial Indexing:**  Nutzung des  **[Uber H3 auf Gitter basierendes](https://www.plan4better.de/de/glossar/h3-gitter)**  Indexing für effizientes Routing.
 3.  **Extrahieren von Beschränkungen:** Identifizieren von Einweg-Zugangsbeschränkungen zusätzlich zu den Geschwindigkeitsbegrenzungen für beide Richtungen der Kante (`Maximalgeschwindigkeit vorwärts` and `Maximalgeschwindigkeit rückwärts`).
 
+Wo die Daten für eine Richtung keine Geschwindigkeitsbegrenzung angeben, verwendet GOAT die Standardgeschwindigkeit der Straßenklasse:
+
+| Klasse | Standard (km/h) |
+|---|---|
+| `motorway` | 80 |
+| `trunk` | 60 |
+| `primary` | 50 |
+| `secondary` | 50 |
+| `tertiary` | 50 |
+| `residential` | 30 |
+| `living_street` | 30 |
+
 ### Routing-Prozess-Schritte
 
 #### Extraktion von Teilnetzen
