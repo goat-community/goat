@@ -12,13 +12,13 @@ GOAT has a Helm chart for Kubernetes clusters, published at `oci://ghcr.io/plan4
 For a single server, the [Docker Compose bundle](./docker_compose/installation.md) is the recommended path. It includes the login server, object storage and HTTPS, which the Helm chart leaves to you.
 :::
 
-This page describes chart version **0.7.0**, which installs GOAT **v3.0.3** by default.
+This page describes chart version **0.8.0**, which installs GOAT **v3.0.9** by default.
 
 ## Install {#install}
 
 ```bash
 helm install goat oci://ghcr.io/plan4better/charts/goat \
-  --version 0.7.0 \
+  --version 0.8.0 \
   --namespace goat --create-namespace \
   --values your-values.yaml \
   --wait --timeout 25m
@@ -87,13 +87,17 @@ Without tickets, *Report a problem* opens an email to the address in `web.suppor
 
 Ticket messages can carry attachments of up to 55 MiB in one request. The Ingress in front of core must accept bodies of at least 56 MB on `/api/v2/support` and allow generous read timeouts. ingress-nginx limits bodies to 1 MB by default; raise it with `nginx.ingress.kubernetes.io/proxy-body-size: "56m"` and `proxy-read-timeout` in `core.ingress.annotations`.
 
+### OpenStreetMap and Overture Maps {#open-data-mirror}
+
+Optional. The OpenStreetMap and Overture Maps panes under *Add layer › Connect service* read from a mirror of both datasets in an S3 bucket, which a separate pipeline builds; it is not part of the chart. Point `openData.mirror.osmUri` and `openData.mirror.overtureUri` at the root of each mirror, for example `s3://my-bucket/mirror/osm` (`OSM_MIRROR_URI`, `OVERTURE_MIRROR_URI`). If the mirror sits in another store than `global.s3`, also set `openData.mirror.s3.bucket`, `.endpointUrl`, `.region` (default `us-east-1`) and a Secret with its key pair (`openData.mirror.s3.existingSecret`, keys `access_key` and `secret_key`, renamed with `.accessKeyIdKey` and `.secretAccessKeyKey`). These credentials are used for that bucket only. The chart hands the settings to processes and the `tools`, `workflows` and `print` workers. Left empty, the two panes find no data; see [OpenStreetMap and Overture Maps](./docker_compose/external_services.md#open-data-mirror).
+
 ### Analysis workers {#workers}
 
 The default Windmill worker only handles small jobs. **Analysis tools, dataset imports and workflows need the `tools` and `workflows` workers, and PDF printing needs the `print` worker.** All three are off by default. To use them:
 
 - Enable them with `windmill.workers.tools.enabled`, `windmill.workers.workflows.enabled` and `windmill.workers.print.enabled`.
 - The `tools` and `workflows` workers are pinned to nodes labelled `node.kubernetes.io/server-usage: geodata` with the toleration `geodata=true:NoSchedule`. Prepare such nodes, or override `nodeSelector` and `tolerations` for these workers. Otherwise their pods stay `Pending` and `helm install --wait` times out.
-- The chart gives these workers what GOAT's jobs need: the GOAT database, the S3 store, the catalog bucket, the address of the web app for printing and, with login on, the Keycloak client the print worker signs in with. Windmill passes only the variables listed in `WHITELIST_ENVS` on to the jobs; the chart builds that list, including every variable you add to a worker's `config` or `extraEnv`.
+- The chart gives these workers what GOAT's jobs need: the GOAT database, the S3 store, the catalog bucket, the OpenStreetMap and Overture mirror, the address of the web app for printing and, with login on, the Keycloak client the print worker signs in with. Windmill passes only the variables listed in `WHITELIST_ENVS` on to the jobs; the chart builds that list, including every variable you add to a worker's `config` or `extraEnv`.
 - Enable `windmill.scriptSync.enabled` to register GOAT's analysis tools and tasks in Windmill after the install. It is off by default.
 - Each Windmill container holds at most a few connections to its database: the server 10 and every worker 3 (`windmill.server.config.DATABASE_CONNECTIONS`, `windmill.workers.databaseConnections`). Upgrading to a GOAT release with a newer Windmill migrates the Windmill database on start, one way: back it up first.
 

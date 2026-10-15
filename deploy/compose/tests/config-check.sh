@@ -95,9 +95,13 @@ ODOO_URL=https://odoo.example.org
 ODOO_DB=odoo-db
 ODOO_SUPPORT_API_KEY=bridge-key
 ODOO_SUPPORT_TEAM_ID=7
+OSM_MIRROR_URI=s3://mirror/osm
 VARS
 j2=$(render "$d2"); check_common "$j2"
 jq -e '.services.core.environment | .ODOO_URL == "https://odoo.example.org" and .ODOO_DB == "odoo-db" and .ODOO_SUPPORT_API_KEY == "bridge-key" and .ODOO_SUPPORT_TEAM_ID == "7"' <<<"$j2" >/dev/null || fail "odoo settings not passed to core"
+# The open-data mirror reaches processes and the tools worker, empty by default.
+jq -e '[.services.processes, .services["windmill-worker-tools"]] | all(.environment.OSM_MIRROR_URI == "s3://mirror/osm")' <<<"$j2" >/dev/null || fail "mirror uri not passed"
+jq -e '.services.processes.environment.OSM_MIRROR_URI == ""' <<<"$j" >/dev/null || fail "mirror uri not empty by default"
 # The edge proxy must not cap request bodies (support uploads take up to 55 MiB).
 ! grep -q "^[[:space:]]*request_body" "$here/init/caddy/Caddyfile" || fail "Caddyfile caps the request body"
 

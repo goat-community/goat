@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any, List, Literal, Self
 from urllib.parse import urlparse
 
+from cachetools import TTLCache
 from pydantic import BaseModel, ConfigDict, Field
 
 from goatlib.analysis.schemas.ui import (
@@ -39,11 +40,15 @@ logger = logging.getLogger(__name__)
 #: Where the harvester leaves its snapshots. Configurable because the mirror is
 #: not part of this deployment -- it is written by goat-data, and only the two
 #: agree on the location.
-MIRROR_URI = os.environ.get("OSM_MIRROR_URI", "s3://goat/mirror/osm")
-OVERTURE_MIRROR_URI = os.environ.get("OVERTURE_MIRROR_URI", "s3://goat/mirror/overture")
+#: Empty or unset (Windmill hands an unset one on as "") means no mirror.
+MIRROR_URI = os.environ.get("OSM_MIRROR_URI", "")
+OVERTURE_MIRROR_URI = os.environ.get("OVERTURE_MIRROR_URI", "")
 
 #: Above this the extract fails rather than writing a layer cut at an arbitrary row.
 MAX_FEATURES = 1_000_000
+
+#: Above this many features in the area a fetch is refused, whatever its filters.
+MAX_READ = 5_000_000
 
 #: Features read to suggest keys and values: the fetch limit, so any area small
 #: enough to fetch whole gets exact counts. Reading every feature of a large map
@@ -75,6 +80,7 @@ OVERTURE_TYPES: dict[str, tuple[str, str]] = {
     "divisions": ("divisions/division_area", "polygon"),
     "buildings": ("buildings/building", "polygon"),
     "land_use": ("base/land_use", "polygon"),
+    "land_use_lines": ("base/land_use", "line"),
     "land": ("base/land", "polygon"),
     "land_points": ("base/land", "point"),
     "land_lines": ("base/land", "line"),
@@ -238,14 +244,23 @@ TAGS_SQL = """CAST(TRY_CAST('{' || replace(replace(replace(replace(
 
 
 def mirror_columns(con: "Any", files: list[str]) -> dict[str, str]:
-    """Every column the files hold, across all of them, with its type."""
-    listed = ", ".join(f"'{_quote(f)}'" for f in files)
-    return {
-        str(r[0]): str(r[1])
-        for r in con.execute(
-            f"DESCRIBE SELECT * FROM read_parquet([{listed}], union_by_name = true)"
-        ).fetchall()
-    }
+    """Every column the files hold, with its type; read once per file."""
+    with _cache_lock:
+        known = {f: _schemas[f] for f in files if f in _schemas}
+    for f in files:
+        if f not in known:
+            known[f] = {
+                str(r[0]): str(r[1])
+                for r in con.execute(
+                    f"DESCRIBE SELECT * FROM read_parquet('{_quote(f)}')"
+                ).fetchall()
+            }
+            with _cache_lock:
+                _schemas[f] = known[f]
+    out: dict[str, str] = {}
+    for f in files:
+        out.update(known[f])
+    return out
 
 
 def tag_storage(columns: dict[str, str]) -> str:
@@ -301,7 +316,7 @@ def ensure_s3(con: "Any") -> None:
     m_bucket = (os.environ.get("MIRROR_S3_BUCKET") or "").strip()
     if m_endpoint and m_bucket:
         u = urlparse(m_endpoint)
-        con.execute(f"""CREATE OR REPLACE SECRET goat_mirror (
+        con.execute(f"""CREATE SECRET IF NOT EXISTS goat_mirror (
             TYPE s3, KEY_ID '{_quote(os.environ.get("MIRROR_S3_ACCESS_KEY_ID", ""))}',
             SECRET '{_quote(os.environ.get("MIRROR_S3_SECRET_ACCESS_KEY", ""))}',
             ENDPOINT '{_quote(u.netloc)}', USE_SSL {str(u.scheme == "https").lower()},
@@ -309,8 +324,21 @@ def ensure_s3(con: "Any") -> None:
             SCOPE 's3://{_quote(m_bucket)}')""")
 
 
+#: How long a missing ``_values.parquet`` is trusted to stay missing.
+RECHECK_SECONDS = 60
+# Keyed by versioned paths, which never change; the pointer is read every time.
+_indexes: TTLCache[str, list[tuple]] = TTLCache(maxsize=1000, ttl=3600)
+_footers: TTLCache[str, list[tuple]] = TTLCache(maxsize=5000, ttl=3600)
+_schemas: TTLCache[str, dict[str, str]] = TTLCache(maxsize=5000, ttl=3600)
+_counts: TTLCache[tuple, list[tuple[str, int]]] = TTLCache(maxsize=20000, ttl=3600)
+_no_counts: TTLCache[str, bool] = TTLCache(maxsize=1000, ttl=RECHECK_SECONDS)
+_cache_lock = threading.Lock()
+
+
 def pointer(con: "Any", source: Source) -> dict:
     """Which version of each unit is current: one small object the mirror writes last."""
+    if not source.mirror:
+        return {}
     try:
         row = con.execute(
             f"SELECT content FROM read_text('{source.mirror}/_current.json')"
@@ -321,6 +349,67 @@ def pointer(con: "Any", source: Source) -> dict:
     return (json.loads(row[0]) if row else {}).get("units", {})
 
 
+def _index_rows(con: "Any", paths: list[str]) -> dict[str, list[tuple]]:
+    """Every row of each index, read once per path, in one read for the new ones."""
+    with _cache_lock:
+        known = {p: _indexes[p] for p in paths if p in _indexes}
+    missing = [p for p in paths if p not in known]
+    if missing:
+        listed = ", ".join(f"'{_quote(p)}'" for p in missing)
+        fresh: dict[str, list[tuple]] = {p: [] for p in missing}
+        for index, *row in con.execute(
+            "SELECT filename, path, layer, rows, xmin, ymin, xmax, ymax "
+            f"FROM read_parquet([{listed}], filename = true, union_by_name = true) "
+            "ORDER BY filename, path"
+        ).fetchall():
+            fresh.setdefault(index, []).append(tuple(row))
+        with _cache_lock:
+            _indexes.update(fresh)
+        known.update(fresh)
+    return {p: known.get(p, []) for p in paths}
+
+
+def row_groups(con: "Any", files: list[str]) -> list[tuple]:
+    """(file, first row, rows, xmin, ymin, xmax, ymax) per row group, from the footers."""
+    with _cache_lock:
+        known = {f: _footers[f] for f in files if f in _footers}
+    missing = [f for f in files if f not in known]
+    if missing:
+        listed = ", ".join(f"'{_quote(f)}'" for f in missing)
+        stat = "max(CASE WHEN path_in_schema = 'bbox, {0}' THEN TRY_CAST(stats_{1} AS DOUBLE) END)"
+        fresh: dict[str, list[tuple]] = {f: [] for f in missing}
+        for f, _, n, *bounds in con.execute(f"""
+            SELECT file_name, row_group_id, any_value(row_group_num_rows),
+                {stat.format("xmin", "min")}, {stat.format("ymin", "min")},
+                {stat.format("xmax", "max")}, {stat.format("ymax", "max")}
+            FROM parquet_metadata([{listed}])
+            GROUP BY file_name, row_group_id ORDER BY file_name, row_group_id
+        """).fetchall():
+            groups = fresh.setdefault(f, [])
+            first = groups[-1][1] + groups[-1][2] if groups else 0
+            groups.append((f, first, int(n), *bounds))
+        with _cache_lock:
+            _footers.update(fresh)
+        known.update(fresh)
+    return [g for f in files for g in known.get(f, [])]
+
+
+def _group_rows(groups: list[tuple], envelope: tuple) -> int:
+    """Features in the envelope: each row group's rows times its share inside."""
+    xmin, ymin, xmax, ymax = envelope
+    total = 0.0
+    for _, _, n, gx0, gy0, gx1, gy1 in groups:
+        if gx0 is None:
+            continue
+        w = min(xmax, gx1) - max(xmin, gx0)
+        h = min(ymax, gy1) - max(ymin, gy0)
+        if w < 0 or h < 0:
+            continue
+        area = (gx1 - gx0) * (gy1 - gy0)
+        total += n if area <= 0 else n * max(w, 0) * max(h, 0) / area
+    return int(total)
+
+
 def covering(
     con: "Any", units: dict, source: Source, type_key: str, envelope: tuple
 ) -> tuple[list[str], list[tuple[str, str]]]:
@@ -328,6 +417,19 @@ def covering(
 
     Decided from each version's index, which holds every file's actual bounds, so
     no data file or footer is opened to decide."""
+    return _files_of(*_indexed(con, units, source, type_key, envelope))
+
+
+def _files_of(bases: dict, rows: list) -> tuple[list[str], list[tuple[str, str]]]:
+    files = [f"{index.removesuffix('/_index.parquet')}/{p}" for index, p, *_ in rows]
+    read = [bases[i] for i in bases if any(r[0] == i for r in rows)]
+    return files, read
+
+
+def _indexed(
+    con: "Any", units: dict, source: Source, type_key: str, envelope: tuple
+) -> tuple[dict, list]:
+    """Every index entry for this type that touches the envelope, with its rows and bounds."""
     xmin, ymin, xmax, ymax = envelope
     wanted = source.unit_of(type_key)
     bases: dict[str, tuple[str, str]] = {}
@@ -340,32 +442,34 @@ def covering(
         base = f"{source.mirror}/{unit}/{state['version']}"
         bases[f"{base}/_index.parquet"] = (unit, state["version"])
     if not bases:
-        return [], []
+        return {}, []
     # One read over every index: they are remote, and one round trip per
     # country made a large area cost ten seconds before any data was touched.
-    listed = ", ".join(f"'{_quote(i)}'" for i in bases)
     # The split layer where the mirror has one, the combined layer of an older
     # version otherwise -- per index, so a pointer mid-switch still reads.
     split = source.split_layer_of(type_key)
     layers = (
         [split, source.layer_of(type_key)] if split else [source.layer_of(type_key)]
     )
-    found = con.execute(
-        f"SELECT filename, path, layer FROM read_parquet([{listed}], filename = true, union_by_name = true) "
-        f"WHERE layer IN ({', '.join('?' for _ in layers)}) "
-        "AND xmin <= ? AND xmax >= ? AND ymin <= ? AND ymax >= ? "
-        "ORDER BY filename, path",
-        [*layers, xmax, xmin, ymax, ymin],
-    ).fetchall()
-    has_split = {index for index, _, layer in found if layer == split}
+    by_index = _index_rows(con, list(bases))
+    found = sorted(
+        (index, p, layer, n, x0, y0, x1, y1)
+        for index, entries in by_index.items()
+        for p, layer, n, x0, y0, x1, y1 in entries
+        if layer in layers
+        and None not in (x0, y0, x1, y1)
+        and x0 <= xmax
+        and x1 >= xmin
+        and y0 <= ymax
+        and y1 >= ymin
+    )
+    has_split = {r[0] for r in found if r[2] == split}
     rows = [
-        (index, p)
-        for index, p, layer in found
+        (index, p, n or 0, *bounds)
+        for index, p, layer, n, *bounds in found
         if layer == split or index not in has_split
     ]
-    files = [f"{index.removesuffix('/_index.parquet')}/{p}" for index, p in rows]
-    read = [bases[i] for i in bases if any(index == i for index, _ in rows)]
-    return files, read
+    return bases, rows
 
 
 def area_geom_column(con: "Any", area_table: str) -> str:
@@ -379,6 +483,23 @@ def area_geom_column(con: "Any", area_table: str) -> str:
         if "GEOMETRY" in str(row[1]).upper():
             return str(row[0])
     raise ValueError("The area has no geometry column, so there is no area to read.")
+
+
+def area_boxes(con: "Any", area_table: str) -> list[tuple]:
+    """Each separate part's bounding box: regions far apart are not one big box."""
+    geom = area_geom_column(con, area_table)
+    return [
+        tuple(r)
+        for r in con.execute(
+            f"SELECT ST_XMin(g), ST_YMin(g), ST_XMax(g), ST_YMax(g) FROM "
+            f'(SELECT unnest(ST_Dump("{geom}")).geom AS g FROM {area_table})'
+        ).fetchall()
+    ]
+
+
+def _area_rows(groups: list[tuple], boxes: list[tuple]) -> int:
+    """Features in the area, part by part."""
+    return sum(_group_rows(groups, b) for b in boxes)
 
 
 def area_envelope(con: "Any", area_table: str) -> tuple:
@@ -509,8 +630,8 @@ def _column_values(
 ) -> dict:
     """The same answer for a typed source, without any of the machinery.
 
-    No hstore to parse, so no cache either: the keys are the file's own columns,
-    read from its footer, and the values are a plain count over one column.
+    No hstore to parse, so no cache either: the values are a plain count over one
+    column.
     """
     # By each feature's bbox only, as for OSM: the exact test reads the geometry
     # column and changes nothing a dropdown shows.
@@ -521,21 +642,6 @@ def _column_values(
           AND bbox.ymin <= {ymax} AND bbox.ymax >= {ymin}
           AND {source.geometry_filter(type_key, files)}
         LIMIT {SUGGESTION_ROWS}"""
-    if key is None:
-        fields = OVERTURE_FIELDS.get(OVERTURE_TYPES[type_key][0], {})
-        counted = ", ".join(f"count({sql})" for sql in fields.values())
-        row = con.execute(f"SELECT count(*), {counted} FROM ({capped})").fetchone()
-        return {
-            "key": None,
-            "total": len(fields),
-            "sampled": bool(row) and row[0] >= SUGGESTION_ROWS,
-            "values": [
-                {"value": name, "count": int(n)}
-                for name, n in zip(fields, row[1:] if row else [])
-                if n
-            ],
-        }
-
     column = source.field_sql(type_key, key)
     rows = con.execute(f"""
         SELECT {column} AS value, count(*) AS count, sum(count(*)) OVER () AS seen
@@ -689,6 +795,145 @@ def _count_tags(
     return [(v, n) for v, n, _ in rows], int(rows[0][2]) if rows else 0
 
 
+def _built_counts(
+    con: "Any", values_file: str, paths: list[str], key: str | None
+) -> list[tuple[str, int]] | None:
+    """One version's built counts for some of its files; None without ``_values.parquet``."""
+    with _cache_lock:
+        if values_file in _no_counts:
+            return None
+        known = {
+            p: _counts[(values_file, p, key)]
+            for p in paths
+            if (values_file, p, key) in _counts
+        }
+    missing = [p for p in paths if p not in known]
+    if missing:
+        picked = "key" if key is None else "value"
+        which = (
+            "value IS NULL"
+            if key is None
+            else f"key = '{_quote(key)}' AND value IS NOT NULL"
+        )
+        try:
+            rows = con.execute(f"""
+                SELECT path, {picked}, sum(count)::BIGINT FROM read_parquet('{_quote(values_file)}')
+                WHERE {which} AND path IN ({", ".join(f"'{_quote(p)}'" for p in missing)})
+                GROUP BY path, {picked}
+            """).fetchall()
+        except Exception as e:  # noqa: BLE001 - a version built before the file existed
+            logger.info("no value counts at %s: %s", values_file, e)
+            with _cache_lock:
+                _no_counts[values_file] = True
+            return None
+        fresh: dict[str, list[tuple[str, int]]] = {p: [] for p in missing}
+        for p, v, n in rows:
+            fresh[p].append((v, int(n)))
+        with _cache_lock:
+            for p, found in fresh.items():
+                _counts[(values_file, p, key)] = found
+        known.update(fresh)
+    return [vn for p in paths for vn in known[p]]
+
+
+def _build_values(
+    con: "Any", indexed: tuple[dict, list], key: str | None
+) -> list[tuple[str, int]] | None:
+    """Values (or keys) summed over the view's files from the built counts; None if none."""
+    by_file: dict[str, list[str]] = {}
+    for index, p, *_ in indexed[1]:
+        by_file.setdefault(
+            index.removesuffix("_index.parquet") + "_values.parquet", []
+        ).append(p)
+    found = [_built_counts(con, f, ps, key) for f, ps in by_file.items()]
+    if all(rows is None for rows in found):
+        return None
+    total: dict[str, int] = {}
+    for rows in found:
+        for v, n in rows or []:
+            total[v] = total.get(v, 0) + int(n)
+    return sorted(total.items(), key=lambda kv: (-kv[1], kv[0]))
+
+
+#: Columns of an OSM file that are not tags.
+NOT_TAGS = {
+    "osm_id",
+    "osm_way_id",
+    "name",
+    "ref",
+    "address",
+    "is_in",
+    "z_order",
+    "all_tags",
+}
+
+
+def _big_view_keys(
+    con: "Any", groups: list[tuple], envelope: tuple, estimate: int
+) -> dict:
+    """The tags a view over the cap offers: the files' tag columns, without counts."""
+    xmin, ymin, xmax, ymax = envelope
+    files = list(
+        dict.fromkeys(
+            g[0]
+            for g in groups
+            if g[3] is None
+            or (g[3] <= xmax and g[5] >= xmin and g[4] <= ymax and g[6] >= ymin)
+        )
+    )
+    tags = sorted(
+        {
+            c
+            for f in files
+            for c, t in mirror_columns(con, [f]).items()
+            if t.upper() == "VARCHAR" and c not in NOT_TAGS
+        }
+    )
+    return {
+        "key": None,
+        "total": len(tags),
+        "sampled": True,
+        "complete": True,
+        "estimate": estimate,
+        "values": [{"value": c, "count": 0} for c in tags],
+    }
+
+
+def check_read_size(con: "Any", files: list[str], boxes: list[tuple]) -> None:
+    """Refuse an area holding more features than a fetch reads in reasonable time."""
+    held = _area_rows(row_groups(con, files), boxes)
+    if held > MAX_READ:
+        raise ValueError(
+            f"The area is too large to read: about {held:,} features, more than "
+            f"{MAX_READ:,}. Choose a smaller area."
+        )
+
+
+def _key_column(con: "Any", files: list[str], key: str) -> bool:
+    """Whether every file holds this tag as its own column, beside the full tags."""
+    return all(
+        mirror_columns(con, [f]).get(key, "").upper() == "VARCHAR" for f in files
+    )
+
+
+def _column_counts(
+    con: "Any", files: list[str], envelope: tuple, key: str, limit: int
+) -> tuple[list, int]:
+    """A tag's commonest values from its own column, and how many were counted."""
+    xmin, ymin, xmax, ymax = envelope
+    listed = ", ".join(f"'{_quote(f)}'" for f in files)
+    column = '"' + key.replace('"', '""') + '"'
+    rows = con.execute(f"""
+        SELECT value, count(*) AS count, sum(count(*)) OVER () AS seen FROM (
+            SELECT {column} AS value FROM read_parquet([{listed}], union_by_name = true)
+            WHERE bbox.xmin <= {xmax} AND bbox.xmax >= {xmin}
+              AND bbox.ymin <= {ymax} AND bbox.ymax >= {ymin} AND {column} IS NOT NULL
+            LIMIT {SUGGESTION_ROWS}
+        ) GROUP BY value ORDER BY count DESC, value LIMIT {int(limit)}
+    """).fetchall()
+    return [(v, n) for v, n, _ in rows], int(rows[0][2]) if rows else 0
+
+
 def mirror_values(
     con: "Any",
     *,
@@ -710,15 +955,55 @@ def mirror_values(
     """
     import hashlib
 
-    ensure_s3(con)
     src = SOURCES[source_name]
-    envelope = area_envelope(con, area_table(con, area))
-    files, parts = covering(con, pointer(con, src), src, feature_type, envelope)
+    ensure_s3(con)
+    table = area_table(con, area)
+    envelope = area_envelope(con, table)
+    boxes = area_boxes(con, table)
+    indexed = _indexed(con, pointer(con, src), src, feature_type, envelope)
+    files, parts = _files_of(*indexed)
     if not files:
-        return {"key": key, "total": 0, "values": []}
+        return {"key": key, "total": 0, "values": [], "estimate": 0}
+    if quick and (src.tagged or key is not None):
+        built = _build_values(con, indexed, key)
+        if built is not None:
+            # Per-country counts: shown without numbers, exact ones follow under the cap.
+            in_view = _area_rows(row_groups(con, files), boxes)
+            big = in_view > SUGGESTION_ROWS
+            values = [{"value": str(v), "count": 0} for v, _ in built[: int(limit)]]
+            return {
+                "key": key,
+                "total": len(values),
+                "sampled": big,
+                "complete": big,
+                "estimate": in_view if key is None else None,
+                "values": values,
+            }
+    # With the key list: lets the form refuse an area over the cap before a fetch.
+    estimate = None
+    if key is None:
+        groups = row_groups(con, files)
+        estimate = _area_rows(groups, boxes)
+        if src.tagged and estimate > SUGGESTION_ROWS:
+            return _big_view_keys(con, groups, envelope, estimate)
 
+    if not src.tagged and key is None:
+        # The curated fields, without reading the area.
+        fields = OVERTURE_FIELDS.get(OVERTURE_TYPES[feature_type][0], {})
+        return {
+            "key": None,
+            "total": len(fields),
+            "sampled": False,
+            "complete": True,
+            "estimate": estimate,
+            "values": [{"value": name, "count": 0} for name in fields],
+        }
     if not src.tagged:
-        return _column_values(con, src, files, feature_type, envelope, key, limit)
+        # Read whole already: a quick ask needs no second, full one.
+        return {
+            **_column_values(con, src, files, feature_type, envelope, key, limit),
+            "complete": True,
+        }
     storage = tag_storage(mirror_columns(con, files))
 
     # Every feature's tags in the area, parsed once and kept. Building it is the
@@ -731,6 +1016,21 @@ def mirror_values(
         cache = _tag_cache_path(cache_key, feature_type, parts, envelope)
     except OSError as e:
         logger.warning("tag cache disabled: %s", e)
+    if (
+        key is not None
+        and not (cache is not None and cache.exists())
+        and _key_column(con, files, key)
+    ):
+        # Uncached, a tag with its own column is counted from that column alone.
+        rows, seen = _column_counts(con, files, envelope, key, limit)
+        return {
+            "key": key,
+            "total": len(rows),
+            "sampled": seen >= SUGGESTION_ROWS,
+            "complete": True,
+            "estimate": estimate,
+            "values": [{"value": v, "count": n} for v, n in rows],
+        }
     if quick and not (cache is not None and cache.exists()):
         con.execute(
             "CREATE OR REPLACE TEMP TABLE quick_tags AS "
@@ -744,7 +1044,8 @@ def mirror_values(
         # A capped one is never cached -- a partial read must not stand in for
         # the full list.
         if complete and cache is not None:
-            tmp = cache.with_suffix(".tmp.parquet")
+            # Per thread: the key and value lists may build the same cache at once.
+            tmp = cache.with_suffix(f".{threading.get_ident()}.tmp.parquet")
             con.execute(f"COPY quick_tags TO '{tmp}' (FORMAT PARQUET)")
             os.replace(tmp, cache)
         rows, _ = _count_tags(con, "SELECT * FROM quick_tags", key, limit, storage)
@@ -754,6 +1055,7 @@ def mirror_values(
             "total": len(rows),
             "sampled": not complete,
             "complete": complete,
+            "estimate": estimate,
             "values": [{"value": v, "count": n} for v, n in rows],
         }
     if cache is not None and cache.exists():
@@ -772,7 +1074,7 @@ def mirror_values(
             f"LIMIT {SUGGESTION_ROWS}"
         )
         if cache is not None:
-            tmp = cache.with_suffix(".tmp.parquet")
+            tmp = cache.with_suffix(f".{threading.get_ident()}.tmp.parquet")
             con.execute(f"COPY ({source}) TO '{tmp}' (FORMAT PARQUET)")
             os.replace(tmp, cache)
             source = f"SELECT * FROM read_parquet('{cache}')"
@@ -799,6 +1101,7 @@ def mirror_values(
         "key": key,
         "total": len(rows),
         "sampled": sampled,
+        "estimate": estimate,
         "values": [{"value": v, "count": n} for v, n in rows],
     }
 
@@ -854,6 +1157,7 @@ class DataIntegrationParams(ToolInputBase):
         "divisions",
         "buildings",
         "land_use",
+        "land_use_lines",
         "land",
         "land_points",
         "land_lines",
@@ -1010,6 +1314,7 @@ class DataIntegrationRunner(BaseToolRunner[DataIntegrationParams]):
         files, parts = covering(con, pointer(con, src), src, type_key, envelope)
         if not files:
             raise ValueError("The mirror holds no data for this area.")
+        check_read_size(con, files, area_boxes(con, area))
 
         columns = mirror_columns(con, files)
         storage = tag_storage(columns)
@@ -1086,6 +1391,11 @@ class DataIntegrationRunner(BaseToolRunner[DataIntegrationParams]):
         staged.unlink(missing_ok=True)
         count = con.execute(f"SELECT count(*) FROM read_parquet('{out}')").fetchone()
         features = int(count[0]) if count else 0
+        # An empty layer has no geometry type and names no source: refused, not made.
+        if not features:
+            raise ValueError(
+                "No features match in this area. Pick another area or loosen the filters."
+            )
         if features > MAX_FEATURES:
             raise ValueError(
                 f"The area holds more than {MAX_FEATURES:,} matching features. "

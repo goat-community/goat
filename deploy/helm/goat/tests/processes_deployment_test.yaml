@@ -24,6 +24,21 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].ports[0].containerPort
           value: 8000
+  - it: gets the open-data mirror for the Connect service value lists
+    set:
+      openData.mirror.osmUri: s3://mirror/osm
+    template: processes/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OSM_MIRROR_URI
+            value: s3://mirror/osm
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIRROR_S3_BUCKET
+          any: true
   - it: not rendered when processes.enabled false
     set:
       processes.enabled: false

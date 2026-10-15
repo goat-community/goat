@@ -693,20 +693,6 @@ TOOL_REGISTRY: tuple[ToolDefinition, ...] = (
         toolbox_hidden=True,
     ),
     ToolDefinition(
-        name="street_network_extract",
-        display_name="Street Network Extract",
-        description=(
-            "Create a street network bundle from the GOAT routing network for an "
-            "area, with its routable artifact"
-        ),
-        module_path="goatlib.tools.street_network_extract",
-        params_class_name="StreetNetworkExtractParams",
-        windmill_path="f/goat/tools/street_network_extract",
-        category="data",
-        keywords=("bundle", "street", "network", "routing", "extract"),
-        toolbox_hidden=True,
-    ),
-    ToolDefinition(
         name="bundle_artifact_rebuild",
         display_name="Bundle Artifact Rebuild",
         description="Rebuild a bundle's derived artifacts from its member layers",

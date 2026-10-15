@@ -11,7 +11,7 @@ import { ICON_NAME } from "@p4b/ui/components/Icon";
  * nothing else decides which entries exist.
  */
 
-export type AddLayerSourceId = "upload" | "explorer" | "catalog" | "create" | "connect" | "fetch";
+export type AddLayerSourceId = "upload" | "explorer" | "catalog" | "create" | "connect";
 
 /**
  * The two things a source can be: data that does not exist in GOAT yet, or data that does.
@@ -83,23 +83,15 @@ export const ADD_LAYER_SOURCES: AddLayerSource[] = [
   },
   {
     id: "connect",
+    // A rail of what can be connected — a web service, or open data GOAT hosts — beside
+    // the chosen one.
     labelKey: "connect_service",
     group: "new",
     icon: ICON_NAME.LINK,
     // A layer list beside a preview map, both reaching the frame's edges; a folder is all
     // it needs, so the Content page offers it too.
     wide: true,
-    width: "min(1100px, 94vw)",
-  },
-  {
-    id: "fetch",
-    labelKey: "fetch_features",
-    // Data GOAT already hosts, like the catalog, so it sits with existing data; it needs
-    // no project because the area is drawn, not taken from a layer.
-    group: "existing",
-    icon: ICON_NAME.MAP_LOCATION,
-    wide: true,
-    width: "min(1100px, 94vw)",
+    width: "min(1200px, 94vw)",
   },
 ];
 

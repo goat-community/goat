@@ -539,6 +539,8 @@ export type MirrorValuesOutput = {
   sampled?: boolean;
   /** A quick read that saw the whole area, so its counts are final. */
   complete?: boolean;
+  /** Features in the area, guessed from the mirror's index; with the attribute list only. */
+  estimate?: number | null;
   values: MirrorValue[];
 };
 

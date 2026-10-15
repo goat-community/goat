@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Alert,
   Autocomplete,
   Box,
   Button,
@@ -30,11 +31,12 @@ import { formatBuffer } from "@/lib/catalog/spatial";
 import {
   type AreaMode,
   type FetchFlow,
-  type FetchSource,
+  type Geometry,
+  MAX_FEATURES,
   OSM_TYPES,
-  OVERTURE_GROUPS,
-  ROAD_CLASSES,
+  OVERTURE_THEMES,
   type TagFilter,
+  roundBox,
 } from "@/hooks/addLayer/useFetchFlow";
 import { useCatalogBasemapStyle } from "@/hooks/catalog/useCatalogBasemapStyle";
 
@@ -44,6 +46,8 @@ import DetailMapAttribution from "@/components/dashboard/common/DetailMapAttribu
 
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 const SHAPE_COLOR = "#2BB381";
+/** How far in from the preview's edges the map-view box is drawn, in pixels. */
+const VIEW_INSET = 28;
 
 const SectionLabel = ({ children, action }: { children: ReactNode; action?: ReactNode }) => (
   <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2, minHeight: 30 }}>
@@ -72,6 +76,10 @@ const useTagOptions = (flow: FetchFlow["fetch"], key?: string, prefetch = false)
   const [sampled, setSampled] = useState(false);
   const askedFor = useRef<string | null>(null);
   const question = flow.area ? JSON.stringify([flow.area, flow.source, flow.featureType, key ?? null]) : null;
+  // What the list is a list of. Only a change here empties it: a new area keeps showing
+  // the last answer until its own arrives, since a pan rarely changes the values much.
+  const subject = JSON.stringify([flow.source, flow.featureType, key ?? null]);
+  const shownFor = useRef(subject);
 
   const load = useCallback(() => {
     if (!question || !flow.area || askedFor.current === question) return;
@@ -87,6 +95,10 @@ const useTagOptions = (flow: FetchFlow["fetch"], key?: string, prefetch = false)
           if (askedFor.current !== current) return;
           setOptions(result.values ?? []);
           setSampled(!!result.sampled);
+          // A full read that hit the cap saw more features than a fetch takes,
+          // whatever the index guessed: the guess runs low where features cluster.
+          if (!key && result.estimate != null)
+            flow.setEstimate(result.sampled ? Math.max(result.estimate, MAX_FEATURES + 1) : result.estimate);
         })
         .catch((error) => {
           console.error("mirror-values failed", error);
@@ -97,10 +109,6 @@ const useTagOptions = (flow: FetchFlow["fetch"], key?: string, prefetch = false)
           setLoading(false);
           setCounting(false);
         });
-    if (flow.source !== "osm" || key) {
-      void full();
-      return;
-    }
     // One after the other, and the full read only if the area is still the
     // one asked about: a pan would otherwise leave two requests per view
     // running on a server that answers four at a time.
@@ -110,7 +118,9 @@ const useTagOptions = (flow: FetchFlow["fetch"], key?: string, prefetch = false)
         if (askedFor.current !== current) return;
         setOptions(result.values ?? []);
         setLoading(false);
-        // The quick read saw the whole area: its counts are final.
+        if (result.estimate != null) flow.setEstimate(result.estimate);
+        // Final: the quick read saw the whole area, or a big view's list came
+        // from the mirror's own counts (shown without numbers).
         if (result.complete) {
           setSampled(false);
           setCounting(false);
@@ -121,7 +131,7 @@ const useTagOptions = (flow: FetchFlow["fetch"], key?: string, prefetch = false)
       .catch(() => {
         if (askedFor.current === current) void full();
       });
-  }, [question, flow.area, flow.featureType, flow.source, key]);
+  }, [question, flow, key]);
   const latestLoad = useRef(load);
   latestLoad.current = load;
 
@@ -130,15 +140,18 @@ const useTagOptions = (flow: FetchFlow["fetch"], key?: string, prefetch = false)
   // send the same question twice.
   useEffect(() => {
     askedFor.current = null;
-    setOptions([]);
-    setSampled(false);
+    if (shownFor.current !== subject) {
+      shownFor.current = subject;
+      setOptions([]);
+      setSampled(false);
+    }
     setCounting(false);
     setLoading(false);
     if (!prefetch || !question) return;
     // The map view changes on every pan; wait until it rests before asking.
     const timer = setTimeout(() => latestLoad.current(), 400);
     return () => clearTimeout(timer);
-  }, [question, prefetch]);
+  }, [question, prefetch, subject]);
 
   return { options, loading, counting, failed, sampled, load };
 };
@@ -162,15 +175,13 @@ const AreaSection = ({ flow }: { flow: FetchFlow["fetch"] }) => {
   };
 
   const summary =
-    areaMode === "view"
-      ? null
-      : spatial?.kind !== areaMode
-        ? t("fetch_features_area_none")
-        : spatial.kind === "region"
-          ? spatial.nutsIds.map((id) => flow.regionNames[id] ?? id).join(", ")
-          : spatial.kind === "point"
-            ? `${spatial.label ?? t("catalog_spatial_point")} · ${formatBuffer(spatial.km)}`
-            : t("catalog_spatial_area", { count: spatial.ring.length });
+    spatial?.kind !== areaMode
+      ? t("fetch_features_area_none")
+      : spatial.kind === "region"
+        ? spatial.nutsIds.map((id) => flow.regionNames[id] ?? id).join(", ")
+        : spatial.kind === "point"
+          ? `${spatial.label ?? t("catalog_spatial_point")} · ${formatBuffer(spatial.km)}`
+          : t("catalog_spatial_area", { count: spatial.ring.length });
 
   return (
     <Box>
@@ -204,32 +215,32 @@ const AreaSection = ({ flow }: { flow: FetchFlow["fetch"] }) => {
           </Box>
         ))}
       </Stack>
-      <Stack
-        direction="row"
-        spacing={2.5}
-        alignItems="center"
-        sx={{
-          mt: 2.5,
-          px: 3,
-          py: 2.5,
-          borderRadius: 2,
-          border: `1px solid ${theme.palette.divider}`,
-          backgroundColor: theme.palette.action.hover,
-        }}>
-        <Icon
-          iconName={areaMode === "view" ? ICON_NAME.EXPAND : ICON_NAME.LOCATION}
-          style={{ fontSize: 14 }}
-          htmlColor={theme.palette.primary.main}
-        />
-        <Typography variant="caption" color="text.secondary" sx={{ flex: 1, lineHeight: 1.45 }}>
-          {areaMode === "view" ? t("fetch_features_area_view_hint") : summary}
-        </Typography>
-        {areaMode !== "view" && (
+      {areaMode !== "view" && (
+        <Stack
+          direction="row"
+          spacing={2.5}
+          alignItems="center"
+          sx={{
+            mt: 2.5,
+            px: 3,
+            py: 2.5,
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.action.hover,
+          }}>
+          <Icon
+            iconName={ICON_NAME.LOCATION}
+            style={{ fontSize: 14 }}
+            htmlColor={theme.palette.primary.main}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ flex: 1, lineHeight: 1.45 }}>
+            {summary}
+          </Typography>
           <Button size="small" onClick={() => setEditing(areaMode)}>
             {spatial?.kind === areaMode ? t("edit") : t("fetch_features_area_choose")}
           </Button>
-        )}
-      </Stack>
+        </Stack>
+      )}
       <CatalogSpatialDialog
         open={!!editing}
         initial={editing && spatial?.kind === editing ? spatial : null}
@@ -245,105 +256,79 @@ const AreaSection = ({ flow }: { flow: FetchFlow["fetch"] }) => {
   );
 };
 
-const SourceSection = ({ flow }: { flow: FetchFlow["fetch"] }) => {
+const GEOMETRIES: Geometry[] = ["point", "line", "polygon"];
+
+/** One row per layer the source offers, one picked: a layer has one geometry and one source. */
+const LayerList = ({ flow }: { flow: FetchFlow["fetch"] }) => {
   const { t } = useTranslation("common");
   const theme = useTheme();
-  const sources: FetchSource[] = ["osm", "overture", "goat"];
-  return (
-    <Box>
-      <SectionLabel>{t("fetch_features_source")}</SectionLabel>
-      <Box
-        role="radiogroup"
-        sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 2.5 }}>
-        {sources.map((source) => {
-          const on = flow.source === source;
-          return (
-            <Box
-              key={source}
-              component="button"
-              type="button"
-              role="radio"
-              aria-checked={on}
-              onClick={() => flow.setSource(source)}
-              sx={{
-                textAlign: "left",
-                font: "inherit",
-                cursor: "pointer",
-                p: 3,
-                borderRadius: 2.5,
-                color: "text.primary",
-                border: `1px solid ${on ? theme.palette.primary.main : theme.palette.divider}`,
-                boxShadow: on ? `inset 0 0 0 1px ${theme.palette.primary.main}` : "none",
-                backgroundColor: on ? alpha(theme.palette.primary.main, 0.06) : "transparent",
-              }}>
-              <Typography variant="body2" fontWeight={800}>
-                {t(`fetch_features_source_${source}`)}
-              </Typography>
-            </Box>
-          );
-        })}
-      </Box>
-    </Box>
-  );
-};
-
-const OSM_GEOMETRY: Record<string, "point" | "line" | "polygon"> = {
-  points: "point",
-  lines: "line",
-  multipolygons: "polygon",
-};
-
-/** One geometry switch for every source; Overture then offers its themes of that geometry. */
-/** The routing network has no feature types or tags: only which road classes to keep. */
-const NetworkSection = ({ flow }: { flow: FetchFlow["fetch"] }) => {
-  const { t } = useTranslation("common");
-  const toggle = (value: string) =>
-    flow.setRoadClasses(
-      flow.roadClasses.includes(value)
-        ? flow.roadClasses.filter((c) => c !== value)
-        : [...flow.roadClasses, value]
-    );
-  return (
-    <Box>
-      <SectionLabel>{t("fetch_features_road_classes")}</SectionLabel>
-      <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1.5}>
-        {ROAD_CLASSES.map((value) => {
-          const on = flow.roadClasses.includes(value);
-          return (
-            <Chip
-              key={value}
-              label={value.replace(/_/g, " ")}
-              color={on ? "primary" : "default"}
-              variant={on ? "filled" : "outlined"}
-              onClick={() => toggle(value)}
-              sx={{ fontStyle: "normal", fontWeight: on ? 700 : 500 }}
-            />
-          );
-        })}
-      </Stack>
-      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2, lineHeight: 1.5 }}>
-        {t("fetch_features_road_classes_hint")}
-      </Typography>
-    </Box>
-  );
-};
-
-const TypeSection = ({ flow }: { flow: FetchFlow["fetch"] }) => {
-  const { t } = useTranslation("common");
   const isOsm = flow.source === "osm";
-  const group = OVERTURE_GROUPS.find((g) => g.types.includes(flow.overtureType)) ?? OVERTURE_GROUPS[0];
-  const geometry = isOsm ? OSM_GEOMETRY[flow.osmType] : group.geometry;
+  const current = OVERTURE_THEMES.find((entry) => Object.values(entry.types).includes(flow.overtureType));
+  const rows = isOsm
+    ? OSM_TYPES.map((type) => ({
+        id: type,
+        title: t(`fetch_features_type_${type}`),
+        on: flow.osmType === type,
+        pick: () => flow.setOsmType(type),
+      }))
+    : OVERTURE_THEMES.map((entry) => ({
+        id: entry.id,
+        title: t(`fetch_features_theme_${entry.id}`),
+        on: current?.id === entry.id,
+        // A mixed theme opens on its areas, the geometry most of its features have.
+        pick: () => flow.setOvertureType(entry.types.polygon ?? Object.values(entry.types)[0] ?? ""),
+      }));
+  return (
+    <Stack role="radiogroup" spacing={0.5} sx={{ p: 2 }}>
+      {rows.map((row) => (
+        <Box
+          key={row.id}
+          component="button"
+          type="button"
+          role="radio"
+          aria-checked={row.on}
+          onClick={row.pick}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 3,
+            px: 2.5,
+            py: 2,
+            border: "none",
+            borderRadius: 2,
+            cursor: "pointer",
+            textAlign: "left",
+            font: "inherit",
+            color: "text.primary",
+            backgroundColor: row.on ? alpha(theme.palette.primary.main, 0.08) : "transparent",
+          }}>
+          <Box
+            sx={{
+              width: 18,
+              height: 18,
+              flexShrink: 0,
+              boxSizing: "border-box",
+              borderRadius: "50%",
+              border: row.on
+                ? `5px solid ${theme.palette.primary.main}`
+                : `2px solid ${theme.palette.text.disabled}`,
+            }}
+          />
+          <Typography variant="body2" fontWeight={700}>
+            {row.title}
+          </Typography>
+        </Box>
+      ))}
+    </Stack>
+  );
+};
 
-  const pickGeometry = (next: "point" | "line" | "polygon") => {
-    if (isOsm) {
-      const type = OSM_TYPES.find((candidate) => OSM_GEOMETRY[candidate] === next);
-      if (type) flow.setOsmType(type);
-    } else {
-      const target = OVERTURE_GROUPS.find((g) => g.geometry === next);
-      if (target) flow.setOvertureType(target.types[0]);
-    }
-  };
-
+/** Overture's mixed themes hold points, lines and areas together; a layer takes one. */
+const GeometrySwitch = ({ flow }: { flow: FetchFlow["fetch"] }) => {
+  const { t } = useTranslation("common");
+  const theme = OVERTURE_THEMES.find((entry) => Object.values(entry.types).includes(flow.overtureType));
+  if (flow.source !== "overture" || !theme || Object.keys(theme.types).length < 2) return null;
+  const geometry = GEOMETRIES.find((g) => theme.types[g] === flow.overtureType);
   return (
     <Box>
       <SectionLabel>{t("fetch_features_type")}</SectionLabel>
@@ -353,30 +338,16 @@ const TypeSection = ({ flow }: { flow: FetchFlow["fetch"] }) => {
         size="small"
         color="primary"
         value={geometry}
-        onChange={(_, value) => value && pickGeometry(value)}>
-        {(["point", "line", "polygon"] as const).map((value) => (
+        onChange={(_, value: Geometry | null) => {
+          const type = value && theme.types[value];
+          if (type) flow.setOvertureType(type);
+        }}>
+        {GEOMETRIES.filter((g) => theme.types[g]).map((value) => (
           <ToggleButton key={value} value={value} sx={{ textTransform: "none", fontWeight: 700 }}>
             {t(`fetch_features_geometry_${value}`)}
           </ToggleButton>
         ))}
       </ToggleButtonGroup>
-      {!isOsm && (
-        <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1.5} sx={{ mt: 2.5 }}>
-          {group.types.map((type) => {
-            const on = flow.overtureType === type;
-            return (
-              <Chip
-                key={type}
-                label={t(`fetch_features_type_${type}`)}
-                color={on ? "primary" : "default"}
-                variant={on ? "filled" : "outlined"}
-                onClick={() => flow.setOvertureType(type)}
-                sx={{ fontStyle: "normal", fontWeight: on ? 700 : 500 }}
-              />
-            );
-          })}
-        </Stack>
-      )}
     </Box>
   );
 };
@@ -446,7 +417,7 @@ const FilterRow = ({
               helperText={
                 keys.failed
                   ? t("osm_tag_failed")
-                  : keys.sampled && !keys.counting
+                  : keys.sampled && !keys.counting && !filter.values.length
                     ? t("fetch_features_reduce_area")
                     : undefined
               }
@@ -483,7 +454,7 @@ const FilterRow = ({
               helperText={
                 values.failed
                   ? t("osm_tag_failed")
-                  : values.sampled
+                  : values.sampled && !filter.values.length
                     ? t("fetch_features_reduce_area")
                     : !filter.values.length && filter.key.trim()
                       ? t("osm_tag_value_optional")
@@ -546,23 +517,6 @@ const FilterSection = ({ flow }: { flow: FetchFlow["fetch"] }) => {
                 : "categories['primary'] IN ('restaurant', 'cafe')"
             }
             inputProps={{ spellCheck: false, style: { fontFamily: MONO, fontSize: 13 } }}
-            InputProps={{
-              startAdornment: (
-                <Typography
-                  component="span"
-                  sx={{
-                    fontFamily: MONO,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "primary.main",
-                    mr: 1.5,
-                    alignSelf: "flex-start",
-                    pt: 0.25,
-                  }}>
-                  WHERE
-                </Typography>
-              ),
-            }}
           />
           <Typography variant="caption" color="text.secondary">
             {t(flow.source === "osm" ? "fetch_features_sql_hint_osm" : "fetch_features_sql_hint_overture")}
@@ -658,13 +612,19 @@ const AreaPreview = ({ flow }: { flow: FetchFlow["fetch"] }) => {
         attributionControl={false}
         initialViewState={
           flow.viewBox
-            ? { bounds: flow.viewBox, fitBoundsOptions: { padding: 0 } }
+            ? { bounds: flow.viewBox, fitBoundsOptions: { padding: VIEW_INSET } }
             : { longitude: 10.4, latitude: 51.1, zoom: 4 }
         }
         onMoveEnd={(event) => {
           if (!isView) return;
-          const bounds = event.target.getBounds();
-          flow.setViewBox([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
+          // The box drawn over the map, not the map's own edges: what is fetched is what
+          // the box shows.
+          const map = event.target;
+          const { clientWidth, clientHeight } = map.getContainer();
+          const sw = map.unproject([VIEW_INSET, clientHeight - VIEW_INSET]);
+          const ne = map.unproject([clientWidth - VIEW_INSET, VIEW_INSET]);
+          const next = roundBox([sw.lng, sw.lat, ne.lng, ne.lat]);
+          if (next.join() !== flow.viewBox?.join()) flow.setViewBox(next);
         }}
         style={{ width: "100%", height: "100%" }}
         mapStyle={basemapStyle}>
@@ -678,6 +638,18 @@ const AreaPreview = ({ flow }: { flow: FetchFlow["fetch"] }) => {
         </Source>
         <DetailMapAttribution />
       </MapLibre>
+      {isView && (
+        <Box
+          sx={{
+            position: "absolute",
+            inset: VIEW_INSET,
+            pointerEvents: "none",
+            border: `2px dashed ${SHAPE_COLOR}`,
+            borderRadius: 1,
+            backgroundColor: alpha(SHAPE_COLOR, 0.06),
+          }}
+        />
+      )}
       <Box
         sx={{
           position: "absolute",
@@ -697,42 +669,63 @@ const AreaPreview = ({ flow }: { flow: FetchFlow["fetch"] }) => {
   );
 };
 
-/** Features from map data GOAT hosts, for an area: where, from which source, which ones. */
+/** Open data GOAT hosts, for an area: which layer, which features, where. */
 const FetchBody = ({ controller }: { controller: FetchFlow }) => {
   const { t } = useTranslation("common");
   const theme = useTheme();
   const { fetch: flow } = controller;
 
   return (
-    <Stack sx={{ minHeight: 0 }}>
+    <Stack sx={{ minHeight: 0, flex: 1 }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        alignItems="center"
+        sx={{ px: 6, py: 3, borderBottom: `1px solid ${theme.palette.divider}` }}>
+        <Typography variant="body1" fontWeight={800}>
+          {t(`fetch_features_source_${flow.source}`)}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
+          {t(`fetch_features_licence_${flow.source}`)}
+        </Typography>
+        <Typography
+          variant="caption"
+          fontWeight={700}
+          color="text.secondary"
+          sx={{ px: 2.5, py: 0.5, borderRadius: 999, border: `1px solid ${theme.palette.divider}` }}>
+          {t("connect_service_copy")}
+        </Typography>
+      </Stack>
       <Box
         sx={{
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
-          height: { xs: "auto", md: 560 },
+          flex: 1,
           minHeight: 0,
         }}>
-        <Stack
-          spacing={5}
+        <Box
           sx={{
-            width: { xs: "100%", md: 440 },
+            width: { xs: "100%", md: 380 },
             flexShrink: 0,
-            p: 5,
             overflowY: "auto",
             borderRight: { md: `1px solid ${theme.palette.divider}` },
           }}>
+          <LayerList flow={flow} />
+          <Stack spacing={5} sx={{ p: 5, borderTop: `1px solid ${theme.palette.divider}` }}>
+            {/* Here, not over the map: a line there resized the map, which moved the area. */}
+            {flow.tooBig && (
+              <Alert severity="warning" sx={{ py: 0.5 }}>
+                {t(flow.tooLarge ? "fetch_features_area_too_large" : "fetch_features_reduce_area")}
+              </Alert>
+            )}
+            <GeometrySwitch flow={flow} />
+            <FilterSection flow={flow} />
+          </Stack>
+        </Box>
+        <Stack spacing={3} sx={{ flex: 1, minWidth: 0, p: 4 }}>
           <AreaSection flow={flow} />
-          <SourceSection flow={flow} />
-          {flow.source === "goat" ? (
-            <NetworkSection flow={flow} />
-          ) : (
-            <>
-              <TypeSection flow={flow} />
-              <FilterSection flow={flow} />
-            </>
-          )}
+          <AreaPreview flow={flow} />
         </Stack>
-        <AreaPreview flow={flow} />
       </Box>
       <Stack
         direction={{ xs: "column", sm: "row" }}

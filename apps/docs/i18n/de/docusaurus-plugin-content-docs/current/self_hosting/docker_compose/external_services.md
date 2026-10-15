@@ -208,7 +208,17 @@ GOAT funktioniert ohne jede dieser Integrationen. Jede schaltet eine Funktion fr
 | `NEXT_PUBLIC_MAPTILER_KEY` | Die Satelliten-/Hybrid-Grundkarte von MapTiler | Diese Grundkarte wird ausgeblendet; die anderen Grundkarten funktionieren |
 | `NEXT_PUBLIC_MAPBOX_TOKEN` | Die Ortssuche im Suchfeld der Karte (über Mapbox) | Das Suchfeld findet keine Orte |
 | `CATALOG_S3_BUCKET`, `CATALOG_S3_ENDPOINT_URL`, `CATALOG_S3_ACCESS_KEY_ID`, `CATALOG_S3_SECRET_ACCESS_KEY`, `CATALOG_S3_REGION` | Den GOAT-Datenkatalog: ein schreibgeschützter Bucket mit den harmonisierten Datensätzen, der regelmäßig gespiegelt wird | Der Katalog bleibt leer, und seine Synchronisierung ist ausgeschaltet |
+| `OSM_MIRROR_URI`, `OVERTURE_MIRROR_URI`, `MIRROR_S3_*` | Die Bereiche OpenStreetMap und Overture Maps unter *Layer hinzufügen › Dienst verbinden*, gelesen aus einem Spiegel in S3 ([Details](#open-data-mirror)) | Die beiden Bereiche finden keine Daten; sonst ändert sich nichts |
 | `GEOCODING_URL`, `GEOCODING_AUTHORIZATION` | Den Geocoding-Dienst, den Analyse-Werkzeuge verwenden | Analyseschritte, die Geocoding benötigen, können nicht laufen |
 | `OTEL_ENABLED`, `OTEL_EXPORTER_OTLP_ENDPOINT` | Den Export von Traces, Metriken und Logs an Ihren OpenTelemetry-Collector | Es wird nichts exportiert |
 
 Die Links, die in der App erscheinen, und die Quelle der Produktgrafiken finden Sie in der [Konfigurationsreferenz](./configuration.md#integrations). Die Quelle der Routing-Basisdaten ist unter [Routing-Basisdaten](./operations.md#base-data) beschrieben.
+
+### OpenStreetMap und Overture Maps {#open-data-mirror}
+
+Die Bereiche OpenStreetMap und Overture Maps unter *Layer hinzufügen › Dienst verbinden* kopieren die Features eines Gebiets in einen GOAT-Layer. Sie lesen aus einem Spiegel beider Datensätze, der als GeoParquet in einem S3-Bucket liegt. Der Spiegel gehört nicht zu einer GOAT-Installation; er wird von einer eigenen Pipeline erzeugt. Zwei Teile von GOAT lesen ihn: `processes` füllt die Attribut- und Wertelisten im Dialog, und der Windmill-Worker `tools` führt das Kopieren aus.
+
+- `OSM_MIRROR_URI` und `OVERTURE_MIRROR_URI` zeigen auf das Wurzelverzeichnis des jeweiligen Spiegels, zum Beispiel `s3://my-bucket/mirror/osm` und `s3://my-bucket/mirror/overture`.
+- Liegt der Spiegel in GOATs eigenem S3-Speicher, genügt das: GOAT liest ihn mit den Zugangsdaten aus `S3_*`. Liegt er in einem anderen Speicher, setzen Sie zusätzlich `MIRROR_S3_ENDPOINT_URL`, `MIRROR_S3_BUCKET`, `MIRROR_S3_REGION` (standardmäßig `us-east-1`), `MIRROR_S3_ACCESS_KEY_ID` und `MIRROR_S3_SECRET_ACCESS_KEY`. Diese Zugangsdaten gelten nur für diesen Bucket; alle anderen S3-Zugriffe verwenden weiter `S3_*`.
+
+Die Lizenz wird an jedem neuen Layer vermerkt: ODbL 1.0 für OpenStreetMap, CDLA-Permissive 2.0 für Overture-Orte und ODbL 1.0 für die übrigen Overture-Typen.

@@ -113,7 +113,9 @@ def test_only_indexed_files_touching_the_area(tmp_path) -> None:
     env = (11.5, 48.1, 11.6, 48.2)
     files, read = module.covering(con, units, src, "points", env)
     assert files == [f"{base}/points/part-00000.parquet"] and read == [("europe", "20261005")]
-
+    # A version's index is read once: deleted, the same files still come back.
+    (base / "_index.parquet").unlink()
+    assert module.covering(con, units, src, "points", env)[0] == files
     # The bbox predicate is what skips row groups; ST_Intersects alone reads them all.
     sql = module.candidates_sql(files, src, env, "TRUE")
     assert "bbox.xmin <= 11.6" in sql and "bbox.ymax >= 48.1" in sql
@@ -129,6 +131,7 @@ def test_only_indexed_files_touching_the_area(tmp_path) -> None:
 
     # No pointer yet means no data here, not a crash.
     assert module.pointer(con, module.Source(str(tmp_path / "nowhere"), "geom", "osm_id", True)) == {}
+    assert module.pointer(con, module.Source("", "geom", "osm_id", True)) == {}
 
     # Overture's nested name and sources become plain columns the tiles keep:
     # distinct datasets in order, licences without the missing one, NULL when absent.
@@ -185,3 +188,66 @@ def test_the_area_and_the_sql_are_checked(tmp_path) -> None:
         assert len(hits) == len(files)
         keys, _ = module._count_tags(con, module._raw_tags_sql(files, env, "TRUE", storage), None, 10, storage)
         assert keys[0] == ("amenity", len(files))
+
+    # A tag the files also hold as a column is counted from that column, if every file has it.
+    col = tmp_path / "col.parquet"
+    con.execute(f"""COPY (SELECT i AS osm_id, CASE WHEN i < 3 THEN 'primary' WHEN i < 4 THEN 'bus_stop' END AS highway,
+        {bbox} AS bbox FROM range(6) t(i)) TO '{col}' (FORMAT PARQUET)""")
+    assert module._key_column(con, [str(col)], "highway") and not module._key_column(con, [str(col), str(text)], "highway")
+    assert module._column_counts(con, [str(col)], env, "highway", 10) == ([("primary", 3), ("bus_stop", 1)], 4)
+
+
+def test_a_big_view(tmp_path, monkeypatch) -> None:
+    import json
+
+    import duckdb
+
+    con = duckdb.connect()
+    con.execute("INSTALL spatial; LOAD spatial;")
+    base = tmp_path / "de" / "v1"
+    base.mkdir(parents=True)
+    (tmp_path / "_current.json").write_text(json.dumps({"units": {"de": {"version": "v1"}}}))
+    # 40,000 points over 0.3°, sorted along y: 20 row groups of 2,048.
+    con.execute(f"""COPY (SELECT i AS osm_id, 'P' || i AS name, CASE WHEN i % 4 = 0 THEN 'bus_stop' END AS highway,
+            MAP {{'surface': CASE WHEN i % 2 = 0 THEN 'asphalt' ELSE 'gravel' END}} AS tags,
+            {{'xmin': x, 'ymin': y, 'xmax': x, 'ymax': y}} AS bbox, ST_Point(x, y) AS geom
+        FROM (SELECT i, 11 + (i % 200) * 0.0015 AS x, 48 + (i // 200) * 0.0015 AS y FROM range(40000) t(i))
+        ORDER BY y, x) TO '{base}/points.parquet' (FORMAT PARQUET, ROW_GROUP_SIZE 2048)""")
+    con.execute(f"""COPY (SELECT 'points.parquet' AS path, 'points' AS layer, 40000 AS rows,
+        11.0 AS xmin, 48.0 AS ymin, 11.3 AS xmax, 48.3 AS ymax) TO '{base}/_index.parquet' (FORMAT PARQUET)""")
+    monkeypatch.setitem(module.SOURCES, "osm", module.Source(str(tmp_path), "geom", "osm_id", True))
+    monkeypatch.setattr(module, "SUGGESTION_ROWS", 10_000)
+    square = {"type": "Polygon", "coordinates": [[[11.0, 48.0], [11.3, 48.0], [11.3, 48.3], [11.0, 48.3], [11.0, 48.0]]]}
+    files = [str(base / "points.parquet")]
+
+    # The size from row-group bounds: the whole square holds all 40,000.
+    assert abs(module._group_rows(module.row_groups(con, files), (11.0, 48.0, 11.3, 48.3)) - 40_000) < 2_100
+
+    # Over the cap the tag list is the files' tag columns, without counts.
+    keys = module.mirror_values(con, area=square, feature_type="points", source_name="osm", quick=True)
+    assert [v["value"] for v in keys["values"]] == ["highway"] and keys["complete"] and keys["estimate"] > 10_000
+
+    # With the build's counts the quick ask answers from them; a backfilled file is seen after the recheck.
+    module._no_counts.clear()
+    con.execute(f"""COPY (SELECT * FROM (VALUES
+        ('points.parquet', 'points', 'highway', NULL, 10000), ('points.parquet', 'points', 'highway', 'bus_stop', 10000),
+        ('points.parquet', 'points', 'surface', NULL, 40000), ('points.parquet', 'points', 'surface', 'asphalt', 20000),
+        ('points.parquet', 'points', 'surface', 'gravel', 19000)
+        ) t(path, layer, key, value, count)) TO '{base}/_values.parquet' (FORMAT PARQUET)""")
+    keys = module.mirror_values(con, area=square, feature_type="points", source_name="osm", quick=True)
+    assert [v["value"] for v in keys["values"]] == ["surface", "highway"] and keys["complete"]
+    surface = module.mirror_values(con, area=square, feature_type="points", key="surface", source_name="osm", quick=True)
+    assert [v["value"] for v in surface["values"]] == ["asphalt", "gravel"] and surface["complete"]
+    corner = {"type": "Polygon", "coordinates": [[[11.0, 48.0], [11.01, 48.0], [11.01, 48.01], [11.0, 48.01], [11.0, 48.0]]]}
+    small = module.mirror_values(con, area=corner, feature_type="points", key="surface", source_name="osm", quick=True)
+    assert not small["complete"]
+
+    # Over the read limit a fetch is refused before reading, whatever its filters.
+    monkeypatch.setattr(module, "MAX_READ", 30_000)
+    with pytest.raises(ValueError, match="too large to read"):
+        module.check_read_size(con, files, [(11.0, 48.0, 11.3, 48.3)])
+    module.check_read_size(con, files, [(11.0, 48.0, 11.1, 48.1)])
+    # Two small parts far apart count as two small boxes, not the box around both.
+    two = {"type": "MultiPolygon", "coordinates": [[[[11.0, 48.0], [11.02, 48.0], [11.02, 48.02], [11.0, 48.02], [11.0, 48.0]]],
+                                                   [[[11.28, 48.28], [11.3, 48.28], [11.3, 48.3], [11.28, 48.3], [11.28, 48.28]]]]}
+    module.check_read_size(con, files, module.area_boxes(con, module.area_table(con, two)))

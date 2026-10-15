@@ -91,6 +91,9 @@ class MirrorValuesResult(BaseModel):
     complete: bool = Field(
         False, description="A quick read that saw the whole area: no full read needed"
     )
+    estimate: int | None = Field(
+        None, description="Features in the area, guessed from the mirror's index"
+    )
     values: list[MirrorValue] = Field(default_factory=list)
 
 

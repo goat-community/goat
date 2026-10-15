@@ -180,6 +180,24 @@ odoo:
     existingSecret: ""
     existingSecretKey: api-key
 
+# OpenStreetMap and Overture mirror read by Add layer › Connect service
+# (GeoParquet, made outside GOAT). processes and the print, tools and
+# workflows workers get OSM_MIRROR_URI / OVERTURE_MIRROR_URI and, with
+# `s3.bucket` set, MIRROR_S3_*. Empty URIs = those two panes find no data.
+openData:
+  mirror:
+    osmUri: ""                     # e.g. s3://my-bucket/mirror/osm
+    overtureUri: ""                # e.g. s3://my-bucket/mirror/overture
+    # Only when the mirror is in another store than global.s3; the keys are
+    # used for that bucket alone.
+    s3:
+      bucket: ""
+      endpointUrl: ""
+      region: "us-east-1"
+      existingSecret: ""           # K8s Secret holding the two keys below
+      accessKeyIdKey: access_key
+      secretAccessKeyKey: secret_key
+
 # ─── Shared data volume ────────────────────────────────────────────────────
 # ONE volume, mounted by seven components. The windmill tools and workflows
 # workers WRITE to it (the catalog mirror via sync_catalog, the geoip database
@@ -598,8 +616,8 @@ processes:
     # service has its own host.
     # ROOT_PATH: "/processes"
     # Each of the three DuckDB connections (analytics, SQL previews, layer
-    # search) gets this budget; together they stay under 3/4 of
-    # `resources.limits.memory`. Raise it with the limit.
+    # search) gets this budget; with the mirror lists' fixed 256 MB they stay
+    # around 3/4 of `resources.limits.memory`. Raise it with the limit.
     PROCESSES_DUCKDB_MEMORY_LIMIT: "1GB"
   extraEnv: []
   # OIDC/Keycloak — per-service override of `global.auth` (see there). NEW in
@@ -623,7 +641,7 @@ processes:
   extraVolumes: []
   extraVolumeMounts: []
   # Three DuckDB connections of PROCESSES_DUCKDB_MEMORY_LIMIT (`config`) each,
-  # plus the service.
+  # 256 MB for the open-data mirror lists, plus the service.
   resources:
     requests:
       memory: 512Mi

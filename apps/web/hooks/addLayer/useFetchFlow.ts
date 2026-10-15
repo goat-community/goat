@@ -18,7 +18,7 @@ import { useShareNotice } from "@/hooks/addLayer/useShareNotice";
 import { useCatalogNutsGeometries } from "@/hooks/catalog/useCatalogNutsGeometries";
 import { useAppDispatch } from "@/hooks/store/ContextHooks";
 
-export type FetchSource = "osm" | "overture" | "goat";
+export type FetchSource = "osm" | "overture";
 export type AreaMode = "view" | "region" | "point" | "polygon";
 export type FilterMode = "builder" | "sql";
 export type MatchMode = "all" | "any";
@@ -27,34 +27,46 @@ export type TagFilter = { id: number; key: string; values: string[] };
 
 export const OSM_TYPES = ["points", "lines", "multipolygons"] as const;
 
-/** The street network bundle's road classes, as goatlib's ROUTING_CLASSES lists them. */
-export const ROAD_CLASSES = [
-  "motorway",
-  "trunk",
-  "primary",
-  "secondary",
-  "tertiary",
-  "residential",
-  "living_street",
-  "unclassified",
-  "service",
-  "pedestrian",
-  "footway",
-  "steps",
-  "path",
-  "track",
-  "cycleway",
-  "bridleway",
-] as const;
+/** The tool's own cap: a fetch over it stops, so the form refuses one far above it. */
+export const MAX_FEATURES = 1_000_000;
+/** Above this many features in the area a fetch is refused whatever its filters: all are read. */
+export const MAX_READ = 5_000_000;
 
-/** Overture's types grouped by the geometry each one yields, as the tool maps them. */
-export const OVERTURE_GROUPS: { geometry: "point" | "line" | "polygon"; types: string[] }[] = [
-  { geometry: "point", types: ["places", "land_points", "water_points", "infrastructure_points"] },
-  { geometry: "line", types: ["waterways", "land_lines", "infrastructure_lines"] },
+export type Geometry = "point" | "line" | "polygon";
+
+/**
+ * Overture's themes as Overture names them, with the tool's type for each geometry a theme
+ * holds. A layer has one geometry, so a mixed theme asks which one.
+ */
+export const OVERTURE_THEMES: { id: string; types: Partial<Record<Geometry, string>> }[] = [
+  { id: "places", types: { point: "places" } },
+  { id: "buildings", types: { polygon: "buildings" } },
+  { id: "divisions", types: { polygon: "divisions" } },
+  { id: "land_use", types: { polygon: "land_use", line: "land_use_lines" } },
+  { id: "land", types: { polygon: "land", line: "land_lines", point: "land_points" } },
   {
-    geometry: "polygon",
-    types: ["buildings", "divisions", "land_use", "land", "water_areas", "infrastructure_areas"],
+    id: "water",
+    types: { polygon: "water_areas", line: "waterways", point: "water_points" },
   },
+  {
+    id: "infrastructure",
+    types: {
+      polygon: "infrastructure_areas",
+      line: "infrastructure_lines",
+      point: "infrastructure_points",
+    },
+  },
+];
+
+/**
+ * A view's bounds widened to the next 0.01°, so a fit, a resize or a nudge of the map does
+ * not count as a new area and restart every question asked about it.
+ */
+export const roundBox = ([w, s, e, n]: Bbox): Bbox => [
+  Math.floor(w * 100) / 100,
+  Math.floor(s * 100) / 100,
+  Math.ceil(e * 100) / 100,
+  Math.ceil(n * 100) / 100,
 ];
 
 const bboxPolygon = ([w, s, e, n]: Bbox): GeoJSON.Polygon => ({
@@ -92,8 +104,11 @@ export type FetchFlowState = {
   area?: GeoJSON.Polygon | GeoJSON.MultiPolygon;
   source: FetchSource;
   setSource: (source: FetchSource) => void;
-  roadClasses: string[];
-  setRoadClasses: (classes: string[]) => void;
+  /** The area holds far more than a fetch takes, and no filter with values narrows it. */
+  tooBig: boolean;
+  /** The area holds more than a fetch reads in reasonable time, filters or not. */
+  tooLarge: boolean;
+  setEstimate: (estimate: number | undefined) => void;
   osmType: string;
   setOsmType: (type: string) => void;
   overtureType: string;
@@ -123,12 +138,15 @@ export const useFetchFlow = ({
   projectId,
   defaultFolderId,
   viewport,
+  initialSource = "osm",
   onDone,
 }: {
   projectId?: string;
   defaultFolderId?: string;
   /** The map's bounds when the dialog opened; absent where there is no map. */
   viewport?: Bbox;
+  /** The source picked in Connect service. */
+  initialSource?: FetchSource;
   onDone?: () => void;
 }): FetchFlow => {
   const { t } = useTranslation("common");
@@ -143,9 +161,9 @@ export const useFetchFlow = ({
   const folders = getWritableDestinations(allFolders, spaces);
 
   const [areaMode, setAreaMode] = useState<AreaMode>(viewport ? "view" : "region");
-  const [viewBox, setViewBox] = useState<Bbox | undefined>(viewport);
+  const [viewBox, setViewBox] = useState<Bbox | undefined>(viewport && roundBox(viewport));
   const [spatial, setSpatial] = useState<CatalogSpatialFilter | null>(null);
-  const [source, setSource] = useState<FetchSource>("osm");
+  const [source, setSource] = useState<FetchSource>(initialSource);
   const [osmType, setOsmType] = useState("points");
   const [overtureType, setOvertureType] = useState("places");
   const [filterMode, setFilterMode] = useState<FilterMode>("builder");
@@ -153,9 +171,7 @@ export const useFetchFlow = ({
   const [filtersBySource, setFiltersBySource] = useState<Record<FetchSource, TagFilter[]>>({
     osm: [],
     overture: [],
-    goat: [],
   });
-  const [roadClasses, setRoadClasses] = useState<string[]>([]);
   const [sql, setSql] = useState("");
   const [customName, setCustomName] = useState<string | null>(null);
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>();
@@ -188,8 +204,7 @@ export const useFetchFlow = ({
     return spatialGeometry(spatial);
   }, [areaMode, viewBox, spatial, geometries]);
 
-  const isNetwork = source === "goat";
-  const featureType = source === "osm" ? osmType : source === "overture" ? overtureType : "network";
+  const featureType = source === "osm" ? osmType : overtureType;
   const filters = filtersBySource[source];
   const setFilters = useCallback(
     (update: (current: TagFilter[]) => TagFilter[]) =>
@@ -211,17 +226,14 @@ export const useFetchFlow = ({
     [setFilters]
   );
 
-  const suggestedName = isNetwork
-    ? t("fetch_features_network_default_name")
-    : `${t(`fetch_features_source_short_${source}`)} ${t(`fetch_features_type_${featureType}`).toLowerCase()}`;
+  const suggestedName = `${t(`fetch_features_source_short_${source}`)} ${t(`fetch_features_type_${featureType}`).toLowerCase()}`;
   const name = customName ?? suggestedName;
 
   const reset = useCallback(() => {
     setAreaMode(viewport ? "view" : "region");
-    setViewBox(viewport);
+    setViewBox(viewport && roundBox(viewport));
     setSpatial(null);
-    setFiltersBySource({ osm: [], overture: [], goat: [] });
-    setRoadClasses([]);
+    setFiltersBySource({ osm: [], overture: [] });
     setSql("");
     setCustomName(null);
     setIsBusy(false);
@@ -230,44 +242,51 @@ export const useFetchFlow = ({
   }, [viewport]);
 
   const usedFilters = filters.filter((f) => f.key.trim());
-  const sqlMissing = !isNetwork && filterMode === "sql" && !sql.trim();
+  const sqlMissing = filterMode === "sql" && !sql.trim();
+  // Kept with the area, source and layer it was counted for: another one has none yet.
+  const sizedFor = useMemo(() => JSON.stringify([area, source, featureType]), [area, source, featureType]);
+  const [sized, setSized] = useState<{ for: string; estimate?: number }>();
+  const estimate = sized?.for === sizedFor ? sized.estimate : undefined;
+  const setEstimate = useCallback(
+    (next: number | undefined) => setSized({ for: sizedFor, estimate: next }),
+    [sizedFor]
+  );
+  // Only values narrow: a tag alone (highway) over a large area still passes the
+  // cap. With "any", one tag without values keeps the result that broad. A SQL
+  // condition is taken as narrowing: only the fetch can tell.
+  const withValues = usedFilters.filter((f) => f.values.length > 0);
+  const narrowed =
+    filterMode === "sql"
+      ? !!sql.trim()
+      : withValues.length > 0 && (match === "all" || withValues.length === usedFilters.length);
+  const tooLarge = (estimate ?? 0) > MAX_READ;
+  const tooBig = tooLarge || (!narrowed && (estimate ?? 0) > MAX_FEATURES);
 
   const submit = useCallback(async () => {
-    if (!area || !selectedFolder || !name.trim() || sqlMissing) return;
+    if (!area || !selectedFolder || !name.trim() || sqlMissing || tooBig) return;
     try {
       setIsBusy(true);
-      const job = isNetwork
-        ? await executeProcessAsync("street_network_extract", {
-            user_id: userProfile?.id,
-            project_id: projectId,
-            folder_id: selectedFolder.id,
-            result_bundle_name: name.trim(),
-            area,
-            ...(roadClasses.length ? { classes: roadClasses } : {}),
-          })
-        : await executeProcessAsync("data_integration", {
-            user_id: userProfile?.id,
-            project_id: projectId,
-            folder_id: selectedFolder.id,
-            result_layer_name: name.trim(),
-            source,
-            feature_type: osmType,
-            overture_type: overtureType,
-            area,
-            ...(filterMode === "sql"
-              ? { where: sql.trim() }
-              : {
-                  match_mode: match,
-                  tag_filters: usedFilters.map(({ key, values }) => ({ key: key.trim(), values })),
-                }),
-          });
+      const job = await executeProcessAsync("data_integration", {
+        user_id: userProfile?.id,
+        project_id: projectId,
+        folder_id: selectedFolder.id,
+        result_layer_name: name.trim(),
+        source,
+        feature_type: osmType,
+        overture_type: overtureType,
+        area,
+        ...(filterMode === "sql"
+          ? { where: sql.trim() }
+          : {
+              match_mode: match,
+              tag_filters: usedFilters.map(({ key, values }) => ({ key: key.trim(), values })),
+            }),
+      });
       if (job?.jobID) {
         mutateJobs();
         dispatch(addRunningJobIds([job.jobID]));
       }
-      toast.info(
-        t(isNetwork ? "fetch_features_network_started" : "fetch_features_started", { name: name.trim() })
-      );
+      toast.info(t("fetch_features_started", { name: name.trim() }));
       refreshContentFeed();
       reset();
       onDone?.();
@@ -281,11 +300,10 @@ export const useFetchFlow = ({
     selectedFolder,
     name,
     sqlMissing,
+    tooBig,
     userProfile?.id,
     projectId,
     source,
-    isNetwork,
-    roadClasses,
     osmType,
     overtureType,
     filterMode,
@@ -301,13 +319,17 @@ export const useFetchFlow = ({
 
   const reason = !area
     ? t("fetch_features_area_needed")
-    : sqlMissing
-      ? t("fetch_features_sql_needed")
-      : !name.trim()
-        ? t("connect_service_name_needed")
-        : !selectedFolder
-          ? t("connect_service_folder_needed")
-          : undefined;
+    : tooLarge
+      ? t("fetch_features_area_too_large")
+      : tooBig
+        ? t("fetch_features_reduce_area")
+        : sqlMissing
+          ? t("fetch_features_sql_needed")
+          : !name.trim()
+            ? t("connect_service_name_needed")
+            : !selectedFolder
+              ? t("connect_service_folder_needed")
+              : undefined;
 
   return {
     isBusy,
@@ -334,8 +356,9 @@ export const useFetchFlow = ({
         setSource(next);
         setCustomName(null);
       },
-      roadClasses,
-      setRoadClasses,
+      tooBig,
+      tooLarge,
+      setEstimate,
       osmType,
       setOsmType: (next: string) => {
         setOsmType(next);

@@ -55,6 +55,9 @@ tests:
       catalog.s3.bucket: goat-catalog
       catalog.s3.existingSecret: catalog-s3
       ducklakeBootstrap.dataDir: /app/data/lake
+      openData.mirror.osmUri: s3://mirror/osm
+      openData.mirror.s3.bucket: mirror
+      openData.mirror.s3.existingSecret: mirror-s3
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -87,6 +90,19 @@ tests:
           content:
             name: DUCKLAKE_DATA_DIR
             value: /app/data/lake
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: OSM_MIRROR_URI
+            value: s3://mirror/osm
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MIRROR_S3_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: mirror-s3
+                key: secret_key
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
@@ -129,6 +145,7 @@ tests:
     template: windmill/worker-workflows/deployment.yaml
     set:
       global.s3.bucket: goat-uploads
+      openData.mirror.overtureUri: s3://mirror/overture
       windmill.workers.workflows.config.GEOCODING_URL: https://geocoder.example.org
       windmill.workers.workflows.extraEnv:
         - name: GEOCODING_AUTHORIZATION
@@ -146,6 +163,9 @@ tests:
       - matchRegex:
           path: spec.template.spec.containers[0].env[?(@.name == "WHITELIST_ENVS")].value
           pattern: (^|,)GEOCODING_AUTHORIZATION(,|$)
+      - matchRegex:
+          path: spec.template.spec.containers[0].env[?(@.name == "WHITELIST_ENVS")].value
+          pattern: (^|,)OVERTURE_MIRROR_URI(,|$)
       - notMatchRegex:
           path: spec.template.spec.containers[0].env[?(@.name == "WHITELIST_ENVS")].value
           pattern: (^|,)(DATABASE_URL|DATABASE_CONNECTIONS|MODE|WORKER_GROUP|_WMILL_DB_PASSWORD)(,|$)

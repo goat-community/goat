@@ -57,12 +57,45 @@ the AWS_* key pair it uses for it).
 {{- end }}
 
 {{/*
+The open-data mirror env of processes or a worker (openData.mirror): the two
+URIs and, with s3.bucket set, the mirror's own store. Unset values render
+nothing. Params: root, values (the service's values block).
+*/}}
+{{- define "goat.mirror.env" -}}
+{{- $v := .values -}}
+{{- $m := .root.Values.openData.mirror | default dict -}}
+{{- $s3 := $m.s3 | default dict -}}
+{{- $plain := list (list "OSM_MIRROR_URI" $m.osmUri) (list "OVERTURE_MIRROR_URI" $m.overtureUri) -}}
+{{- if $s3.bucket -}}
+{{- $plain = concat $plain (list (list "MIRROR_S3_BUCKET" $s3.bucket) (list "MIRROR_S3_ENDPOINT_URL" $s3.endpointUrl) (list "MIRROR_S3_REGION" $s3.region)) -}}
+{{- end -}}
+{{- range $plain -}}
+{{- $value := toString (index . 1 | default "") -}}
+{{- if and $value (not (include "goat.env.userSet" (dict "values" $v "key" (index . 0)))) }}
+- name: {{ index . 0 }}
+  value: {{ $value | quote }}
+{{- end -}}
+{{- end -}}
+{{- if and $s3.bucket $s3.existingSecret -}}
+{{- range list (list "MIRROR_S3_ACCESS_KEY_ID" $s3.accessKeyIdKey) (list "MIRROR_S3_SECRET_ACCESS_KEY" $s3.secretAccessKeyKey) -}}
+{{- if not (include "goat.env.userSet" (dict "values" $v "key" (index . 0))) }}
+- name: {{ index . 0 }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $s3.existingSecret }}
+      key: {{ index . 1 }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 ──── Windmill workers that run GOAT's jobs (print, tools, workflows) ────────
 Windmill runs GOAT's tools, imports, workflows and prints as scripts inside
 these workers, and hands a script only the variables named in
 WHITELIST_ENVS. The chart gives each of these workers what goatlib reads:
 the GOAT database and DuckLake, S3 (global.s3), the catalog bucket
-(catalog.s3), the web app the print worker renders (PRINT_BASE_URL) and the
+(catalog.s3), the open-data mirror (openData.mirror), the web app the print worker renders (PRINT_BASE_URL) and the
 Keycloak client it logs in with (global.auth). A variable set in the
 worker's `config` or `extraEnv` wins.
 */}}
@@ -111,6 +144,7 @@ values block).
 {{- end -}}
 {{- end -}}
 {{- include "goat.s3.env" (dict "root" $r "values" $v "assets" false) -}}
+{{- include "goat.mirror.env" (dict "root" $r "values" $v) -}}
 {{- end }}
 
 {{/*

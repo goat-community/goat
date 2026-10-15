@@ -12,13 +12,13 @@ Für Kubernetes-Cluster gibt es ein Helm-Chart für GOAT, veröffentlicht unter 
 Für einen einzelnen Server ist das [Docker-Compose-Paket](./docker_compose/installation.md) der empfohlene Weg. Es enthält den Anmeldeserver, den Objektspeicher und HTTPS, die das Helm-Chart Ihnen überlässt.
 :::
 
-Diese Seite beschreibt die Chart-Version **0.7.0**, die standardmäßig GOAT **v3.0.3** installiert.
+Diese Seite beschreibt die Chart-Version **0.8.0**, die standardmäßig GOAT **v3.0.9** installiert.
 
 ## Installation {#install}
 
 ```bash
 helm install goat oci://ghcr.io/plan4better/charts/goat \
-  --version 0.7.0 \
+  --version 0.8.0 \
   --namespace goat --create-namespace \
   --values your-values.yaml \
   --wait --timeout 25m
@@ -87,13 +87,17 @@ Ohne Tickets öffnet *Problem melden* eine E-Mail an die Adresse in `web.support
 
 Nachrichten zu einem Ticket können Anhänge von bis zu 55 MiB in einer Anfrage enthalten. Das Ingress vor core muss für `/api/v2/support` Anfragekörper von mindestens 56 MB annehmen und großzügige Lese-Timeouts erlauben. ingress-nginx begrenzt Anfragekörper standardmäßig auf 1 MB; erhöhen Sie das mit `nginx.ingress.kubernetes.io/proxy-body-size: "56m"` und `proxy-read-timeout` in `core.ingress.annotations`.
 
+### OpenStreetMap und Overture Maps {#open-data-mirror}
+
+Optional. Die Bereiche OpenStreetMap und Overture Maps unter *Layer hinzufügen › Dienst verbinden* lesen aus einem Spiegel beider Datensätze in einem S3-Bucket, den eine eigene Pipeline erzeugt; er gehört nicht zum Chart. Setzen Sie `openData.mirror.osmUri` und `openData.mirror.overtureUri` auf das Wurzelverzeichnis des jeweiligen Spiegels, zum Beispiel `s3://my-bucket/mirror/osm` (`OSM_MIRROR_URI`, `OVERTURE_MIRROR_URI`). Liegt der Spiegel in einem anderen Speicher als `global.s3`, setzen Sie zusätzlich `openData.mirror.s3.bucket`, `.endpointUrl`, `.region` (standardmäßig `us-east-1`) und ein Secret mit seinem Zugangsschlüssel-Paar (`openData.mirror.s3.existingSecret`, Schlüssel `access_key` und `secret_key`, umbenennbar mit `.accessKeyIdKey` und `.secretAccessKeyKey`). Diese Zugangsdaten gelten nur für diesen Bucket. Das Chart gibt die Einstellungen an processes und die Worker `tools`, `workflows` und `print` weiter. Bleiben sie leer, finden die beiden Bereiche keine Daten; siehe [OpenStreetMap und Overture Maps](./docker_compose/external_services.md#open-data-mirror).
+
 ### Analyse-Worker {#workers}
 
 Der Standard-Worker von Windmill übernimmt nur kleine Jobs. **Analyse-Werkzeuge, Datensatz-Importe und Workflows benötigen die Worker `tools` und `workflows`, der PDF-Druck benötigt den Worker `print`.** Alle drei sind standardmäßig aus. So nutzen Sie sie:
 
 - Schalten Sie sie mit `windmill.workers.tools.enabled`, `windmill.workers.workflows.enabled` und `windmill.workers.print.enabled` ein.
 - Die Worker `tools` und `workflows` sind an Nodes mit dem Label `node.kubernetes.io/server-usage: geodata` und der Toleration `geodata=true:NoSchedule` gebunden. Bereiten Sie solche Nodes vor oder überschreiben Sie `nodeSelector` und `tolerations` für diese Worker. Andernfalls bleiben ihre Pods im Zustand `Pending`, und `helm install --wait` läuft in den Timeout.
-- Das Chart gibt diesen Workern, was GOATs Jobs brauchen: die GOAT-Datenbank, den S3-Speicher, den Katalog-Bucket, die Adresse der Web-App für den Druck und, bei eingeschalteter Anmeldung, den Keycloak-Client, mit dem sich der Druck-Worker anmeldet. Windmill reicht nur die Variablen an die Jobs weiter, die in `WHITELIST_ENVS` stehen; das Chart stellt diese Liste zusammen, einschließlich jeder Variable, die Sie in `config` oder `extraEnv` eines Workers ergänzen.
+- Das Chart gibt diesen Workern, was GOATs Jobs brauchen: die GOAT-Datenbank, den S3-Speicher, den Katalog-Bucket, den Spiegel von OpenStreetMap und Overture, die Adresse der Web-App für den Druck und, bei eingeschalteter Anmeldung, den Keycloak-Client, mit dem sich der Druck-Worker anmeldet. Windmill reicht nur die Variablen an die Jobs weiter, die in `WHITELIST_ENVS` stehen; das Chart stellt diese Liste zusammen, einschließlich jeder Variable, die Sie in `config` oder `extraEnv` eines Workers ergänzen.
 - Schalten Sie `windmill.scriptSync.enabled` ein, um GOATs Analyse-Werkzeuge und Aufgaben nach der Installation in Windmill zu registrieren. Die Einstellung ist standardmäßig aus.
 - Jeder Windmill-Container hält höchstens wenige Verbindungen zu seiner Datenbank: der Server 10 und jeder Worker 3 (`windmill.server.config.DATABASE_CONNECTIONS`, `windmill.workers.databaseConnections`). Ein Update auf ein GOAT-Release mit neuerem Windmill migriert die Windmill-Datenbank beim Start, und zwar nur vorwärts: Sichern Sie sie vorher.
 

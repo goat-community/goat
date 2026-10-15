@@ -48,6 +48,7 @@ from processes.dependencies import (
 )
 from processes.ducklake import (
     ducklake_manager,
+    mirror_cursor,
     preview_ducklake_manager,
     search_ducklake_manager,
 )
@@ -299,7 +300,7 @@ class AnalyticsService:
         """Attributes, or one attribute's values, in the mirror for an area."""
         from goatlib.tools.data_integration import mirror_values
 
-        with ducklake_manager.connection() as con:
+        with mirror_cursor() as con:
             return mirror_values(
                 con,
                 area=area,

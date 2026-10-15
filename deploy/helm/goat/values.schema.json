@@ -223,6 +223,48 @@
         }
       }
     },
+    "openData": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mirror": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "osmUri": {
+              "type": "string"
+            },
+            "overtureUri": {
+              "type": "string"
+            },
+            "s3": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "bucket": {
+                  "type": "string"
+                },
+                "endpointUrl": {
+                  "type": "string"
+                },
+                "region": {
+                  "type": "string"
+                },
+                "existingSecret": {
+                  "type": "string"
+                },
+                "accessKeyIdKey": {
+                  "type": "string"
+                },
+                "secretAccessKeyKey": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "data": {
       "type": "object",
       "properties": {

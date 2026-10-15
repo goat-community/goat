@@ -105,6 +105,8 @@ GOAT's services name their database sessions after themselves (`goat-core`, `goa
 | `NEXT_PUBLIC_MAPTILER_KEY` | empty | MapTiler key for the satellite/hybrid basemap (hidden when empty) |
 | `NEXT_PUBLIC_MAPBOX_TOKEN` | empty | Mapbox token for the place search |
 | `CATALOG_S3_BUCKET`, `CATALOG_S3_ENDPOINT_URL`, `CATALOG_S3_ACCESS_KEY_ID`, `CATALOG_S3_SECRET_ACCESS_KEY`, `CATALOG_S3_REGION` | empty | The GOAT data catalog (read-only bucket with the harmonised datasets) |
+| `OSM_MIRROR_URI`, `OVERTURE_MIRROR_URI` | empty | `s3://` addresses of the OpenStreetMap and Overture Maps mirrors that *Add layer › Connect service* copies features from, for example `s3://my-bucket/mirror/osm`. While empty, those two panes find no data. See [OpenStreetMap and Overture Maps](./external_services.md#open-data-mirror). |
+| `MIRROR_S3_ENDPOINT_URL`, `MIRROR_S3_BUCKET`, `MIRROR_S3_REGION`, `MIRROR_S3_ACCESS_KEY_ID`, `MIRROR_S3_SECRET_ACCESS_KEY` | empty | Only when the mirror sits in another S3 store than GOAT's own (`S3_*`). The region defaults to `us-east-1`. |
 | `GEOCODING_URL`, `GEOCODING_AUTHORIZATION` | empty | Geocoding service used by analysis tools |
 | `NEXT_PUBLIC_WEBSITE_URL` | empty | A website that publishes GOAT's blog and changelog feeds. It fills the news on the Home page and provides the welcome video and the privacy link in the menu; while empty, none of these are shown. |
 | `NEXT_PUBLIC_STATUS_FEED_URL` | empty | Status feed shown in the app |
