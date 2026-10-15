@@ -26,6 +26,9 @@ on:
       catalog:
         type: boolean
         default: false
+      assistant:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -187,6 +190,28 @@ jobs:
       - name: 🗄️ alembic check (no model drift)
         run: uv run --no-sync alembic check
         working-directory: apps/core
+      # The authz functions (initial_data's first step) and the assistant's
+      # grant list against them: customer.can runs with the caller's
+      # privileges, so a role with apps/assistant/sql/grants.sql must be able
+      # to run it. Needs a migrated database with those functions, which only
+      # this job has; the assistant job's schema holds just the assistant
+      # tables. The job's user is a superuser (the image's POSTGRES_USER), and
+      # this Postgres is throwaway, so the test may create its NOLOGIN role.
+      - name: 🗄️ SQL functions
+        run: >-
+          uv run --no-sync python -c "import asyncio;
+          from core.core.config import settings;
+          from core.db.session import session_manager;
+          from core.db.sql.init_functions import init_functions;
+          session_manager.init(settings.ASYNC_SQLALCHEMY_DATABASE_URI);
+          asyncio.run(init_functions())"
+        working-directory: apps/core
+      - name: 🔐 assistant grants cover customer.can
+        env:
+          ASSISTANT_TEST_ROLES: "1"
+          ASSISTANT_GRANTS_CHECK_DSN: postgresql://rds:postgres@localhost:5432/goat
+        run: uv run --no-sync pytest tests/test_db_grants.py -v -p no:cacheprovider
+        working-directory: apps/assistant
 
   goatlib:
     name: goatlib (pytest)
@@ -373,3 +398,75 @@ jobs:
         # -n 4: one worker per runner CPU.
         run: uv run --no-sync pytest tests/ -n 4
         working-directory: apps/catalog
+
+  assistant:
+    name: assistant (pytest)
+    if: ${{ inputs.assistant }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # REQUIRED. Every test needs Postgres (the conftest builds the assistant
+    # tables from core's models in a schema per worker); the bus tests marked
+    # `integration` need Redis. mypy runs here rather than in lint.yml because
+    # strict mode needs the package's dependencies, which only this job installs.
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: rds
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: goat
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      POSTGRES_SERVER: localhost
+      POSTGRES_USER: rds
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: goat
+      POSTGRES_PORT: "5432"
+      REDIS_URL: redis://localhost:6379/0
+      AUTH: "False"
+      # Postgres here is throwaway and its user a superuser, so the tests that
+      # create a cluster-wide role (the privilege check against roles with no,
+      # partial and full grants) run; they are skipped anywhere else.
+      ASSISTANT_TEST_ROLES: "1"
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v7
+      - name: 🐍 Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.9.2"
+          enable-cache: true
+          prune-cache: true
+      - name: 🐍 Install dependencies
+        run: uv sync --frozen --all-packages --all-extras --no-install-package gdal --no-install-package routing
+      # From apps/assistant: from the repository root mypy resolves `assistant.*`
+      # imports to Any (explicit_package_bases without a mypy_path). evals/ and
+      # e2e/ are checked wherever they exist.
+      - name: 🔬 mypy (strict)
+        run: |
+          dirs=src
+          for d in evals e2e; do
+            if [ -d "$d" ]; then dirs="$dirs $d"; fi
+          done
+          uv run --no-sync mypy $dirs
+        working-directory: apps/assistant
+      - name: 🧪 pytest
+        # -n 4: one worker per runner CPU; conftest gives each worker its own
+        # schema. The eval runner is outside testpaths and never runs here.
+        run: uv run --no-sync pytest tests/ -n 4
+        working-directory: apps/assistant
