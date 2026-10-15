@@ -32,6 +32,7 @@ vi.mock("@/hooks/store/ContextHooks", () => ({
   useAppSelector: () => undefined,
 }));
 vi.mock("@/components/header/Toolbar", () => ({
+  TOOLBAR_HEIGHT: 52,
   Toolbar: ({
     LeftToolbarChild,
     RightToolbarChild,

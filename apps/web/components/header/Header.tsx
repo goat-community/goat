@@ -1,7 +1,18 @@
 "use client";
 
 import Info from "@mui/icons-material/Info";
-import { Box, Button, Chip, Link, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  Link,
+  Stack,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import Divider from "@mui/material/Divider";
 import { format, formatDistance, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
@@ -14,6 +25,7 @@ import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 import { useDateFnsLocale } from "@/i18n/utils";
 
 import { useOrganization, useUserProfile } from "@/lib/api/users";
+import { useDockState } from "@/lib/assistant/store";
 import { CONTACT_URL, privacyPolicyUrl } from "@/lib/constants";
 import { setSelectedLayers } from "@/lib/store/layer/slice";
 import { setMapMode } from "@/lib/store/map/slice";
@@ -24,6 +36,7 @@ import { useAuthZ } from "@/hooks/auth/AuthZ";
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
 
 import UserInfoMenu from "@/components/UserInfoMenu";
+import AskAiButton from "@/components/assistant/AskAiButton";
 import EditableTypography from "@/components/common/EditableTypography";
 import type { PopperMenuItem } from "@/components/common/PopperMenu";
 import MoreMenu from "@/components/common/PopperMenu";
@@ -38,7 +51,7 @@ import ProjectShareDialog from "@/components/modals/content/ProjectShareDialog";
 import SupportMenu from "@/components/support/SupportMenu";
 import SaveTemplateDialog from "@/components/templates/SaveTemplateDialog";
 
-import { Toolbar } from "./Toolbar";
+import { TOOLBAR_HEIGHT, Toolbar } from "./Toolbar";
 
 export type HeaderProps = {
   title?: string;
@@ -54,22 +67,42 @@ export type HeaderProps = {
 
 export default function Header(props: HeaderProps) {
   const theme = useTheme();
+  // Icon only in the project editor (its centred mode toggle leaves little width) and on small screens.
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const compactAskAi = !!props.mapHeader || isSmallScreen;
+  // The docked dock takes width from the page (below md it opens full screen): the project
+  // header's right-hand buttons show their icons alone, so they stay clear of the mode toggle.
+  const dock = useDockState();
+  const dockDocked = dock.enabled && dock.open && !dock.expanded && !isSmallScreen;
+  const compactProjectActions = !!props.mapHeader && dockDocked;
   const { map } = useMap();
   const { t, i18n } = useTranslation(["common"]);
-  const { onMenuIconClick, showHambugerMenu, height = 52, title, project, onProjectUpdate, viewOnly } = props;
+  const {
+    onMenuIconClick,
+    showHambugerMenu,
+    height = TOOLBAR_HEIGHT,
+    title,
+    project,
+    onProjectUpdate,
+    viewOnly,
+  } = props;
   const { organization } = useOrganization();
   const { isOrgAdmin } = useAuthZ();
   const { userProfile } = useUserProfile();
   const isLoggedIn = !!userProfile;
   const dateLocale = useDateFnsLocale();
+  /** The trial notice as plain text: the compact header names it on its icon. */
+  const trialEndsLabel = (renewal: string) =>
+    t("common:your_trial_will_end_in", {
+      expire_date: formatDistance(new Date(renewal), new Date(), { locale: dateLocale }),
+    });
   const lng = i18n.language === "de" ? "/de" : "";
   const dispatch = useAppDispatch();
-  // Below `md` the header has no room for another icon: the support entry moves into the user menu.
-  // The header icon is hidden there by CSS, so the server-rendered first paint (before this media
-  // query is known) never shows it on a phone; the user menu entries only render once opened.
-  const phone = useMediaQuery(theme.breakpoints.down("md"));
-  // Shown to everyone, read-only viewers included: without support tickets (or logged out) it
-  // offers an email and the docs.
+  // Below `md` (`isSmallScreen`) the header has no room for another icon: the support entry moves
+  // into the user menu. The header icon is hidden there by CSS, so the server-rendered first paint
+  // (before the media query is known) never shows it on a phone; the user menu entries only render
+  // once opened. Shown to everyone, read-only viewers included: without support tickets (or logged
+  // out) it offers an email and the docs.
   const supportEntry = (
     <Box sx={{ display: { xs: "none", md: "inline-flex" } }}>
       <SupportMenu />
@@ -218,6 +251,8 @@ export default function Header(props: HeaderProps) {
         showHambugerMenu={showHambugerMenu}
         onMenuIconClick={onMenuIconClick}
         height={height}
+        // The project menu (logo and chevron) or the logo link: never truncated away.
+        leftMinWidth={props.mapHeader ? 64 : 32}
         LeftToolbarChild={
           <>
             {!props.mapHeader && (
@@ -327,7 +362,18 @@ export default function Header(props: HeaderProps) {
           <>
             {!props.viewOnly && (
               <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
-                {organization && organization.on_trial && isOrgAdmin && (
+                {organization && organization.on_trial && isOrgAdmin && compactProjectActions && (
+                  <Tooltip title={trialEndsLabel(organization.plan_renewal_date)}>
+                    <IconButton
+                      size="small"
+                      color="warning"
+                      aria-label={trialEndsLabel(organization.plan_renewal_date)}
+                      onClick={CONTACT_URL ? () => window.open(CONTACT_URL, "_blank") : undefined}>
+                      <Info fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+                {organization && organization.on_trial && isOrgAdmin && !compactProjectActions && (
                   <Chip
                     icon={<Info />}
                     variant="outlined"
@@ -361,19 +407,35 @@ export default function Header(props: HeaderProps) {
                 {props.mapHeader && (
                   <>
                     <Divider orientation="vertical" flexItem />
-                    <Stack sx={{ px: 4 }} spacing={2} direction="row">
-                      <Button
-                        startIcon={
+                    {compactProjectActions ? (
+                      <Tooltip title={t("common:share")}>
+                        <IconButton
+                          size="small"
+                          aria-label={t("common:share")}
+                          onClick={() => setShowShareDialog(true)}
+                          sx={{
+                            bgcolor: "primary.main",
+                            color: "primary.contrastText",
+                            "&:hover": { bgcolor: "primary.dark" },
+                          }}>
                           <Icon iconName={ICON_NAME.GLOBE} style={{ fontSize: 16, color: "inherit" }} />
-                        }
-                        onClick={() => setShowShareDialog(true)}
-                        variant="contained"
-                        size="small">
-                        <Typography variant="body2" color="inherit" fontWeight="bold">
-                          {t("common:share")}
-                        </Typography>
-                      </Button>
-                    </Stack>
+                        </IconButton>
+                      </Tooltip>
+                    ) : (
+                      <Stack sx={{ px: 4 }} spacing={2} direction="row">
+                        <Button
+                          startIcon={
+                            <Icon iconName={ICON_NAME.GLOBE} style={{ fontSize: 16, color: "inherit" }} />
+                          }
+                          onClick={() => setShowShareDialog(true)}
+                          variant="contained"
+                          size="small">
+                          <Typography variant="body2" color="inherit" fontWeight="bold">
+                            {t("common:share")}
+                          </Typography>
+                        </Button>
+                      </Stack>
+                    )}
                     <Divider orientation="vertical" flexItem />
                   </>
                 )}
@@ -381,17 +443,19 @@ export default function Header(props: HeaderProps) {
                 {!props.mapHeader && <OnboardingTray />}
                 {!props.mapHeader && <StatusDot />}
                 {!props.mapHeader && <WhatsNewPopper />}
+                <AskAiButton compact={compactAskAi} />
                 {supportEntry}
                 <JobsPopper />
                 <Divider orientation="vertical" flexItem />
-                <UserInfoMenu withSupport={phone} />
+                <UserInfoMenu withSupport={isSmallScreen} />
               </Stack>
             )}
             {props.viewOnly && isLoggedIn && (
               <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
+                <AskAiButton compact={compactAskAi} />
                 {supportEntry}
                 <Divider orientation="vertical" flexItem />
-                <UserInfoMenu withSupport={phone} />
+                <UserInfoMenu withSupport={isSmallScreen} />
               </Stack>
             )}
           </>

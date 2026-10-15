@@ -1,0 +1,40 @@
+"use client";
+
+import { createContext, useContext } from "react";
+
+import type { AddedToProject } from "@/lib/assistant/addToProject";
+import type { ResultItem } from "@/lib/assistant/items";
+
+/** What message parts can ask the dock to do; the dock provides it. */
+export interface DockActions {
+  /** The catalog record's page (a new tab inside a project, so the project stays open). */
+  openRecord: (id: string) => void;
+  /** A project of the user's, in a new tab inside a project, so the open one stays open. */
+  openProject: (projectId: string) => void;
+  /** A project's workflow or print layout in its editor (a new tab inside another project). */
+  openInProjectMode: (projectId: string, mode: "workflows" | "reports", itemId: string) => void;
+  /** The existing dataset window (summary, data, map): a dataset's "All details". */
+  previewDataset: (layerId: string) => void;
+  /** The existing bundle window: a bundle's "All details". */
+  previewBundle: (bundleId: string) => void;
+  /** Selects a layer of the open project and fits the map to it. */
+  zoomToLayer: (layerProjectId: number) => void;
+  /** Adds what a card stands for to a project (default: the open one); throws when it fails. */
+  addToProject: (item: ResultItem, projectId?: string) => Promise<AddedToProject>;
+  /** Opens a project; binds an unbound conversation first when asked, and scrolls to a proposal. */
+  openInProject: (
+    projectId: string,
+    options?: { bindConversationId?: string; partId?: string; projectName?: string | null }
+  ) => Promise<void>;
+  /** A catalog link with a search and filters in its URL. */
+  openCatalog: (href: string) => void;
+  newConversationHere: () => void;
+}
+
+export const DockActionsContext = createContext<DockActions | null>(null);
+
+export function useDockActions(): DockActions {
+  const actions = useContext(DockActionsContext);
+  if (!actions) throw new Error("useDockActions is used outside the assistant dock");
+  return actions;
+}

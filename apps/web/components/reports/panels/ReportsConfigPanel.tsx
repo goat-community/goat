@@ -62,6 +62,7 @@ import type { TemplateRead, TemplateUseResult } from "@/lib/validations/template
 
 import type { SelectorItem } from "@/types/map/common";
 
+import type { LayoutRequest } from "@/hooks/map/useMapUrlIntent";
 import { useAtlasFeatures } from "@/hooks/reports/useAtlasFeatures";
 import { usePrintConfig } from "@/hooks/reports/usePrintConfig";
 import { type ExportFormat, useExportReport } from "@/hooks/useExportReport";
@@ -107,10 +108,11 @@ interface ReportsConfigPanelProps {
   projectLayers?: ProjectLayer[];
   selectedReport: ReportLayout | null;
   onSelectReport: (report: ReportLayout | null) => void;
-  /** A template result's `?layout=<id>` (T7), threaded down from the map
-   * page's useMapUrlIntent via ReportsLayout. Preferred over `reportLayouts[0]`
-   * by the auto-select-on-load effect below when it matches a loaded layout. */
-  initialLayoutId?: string | null;
+  /** A `?layout=<id>` to select (a template result or the assistant), kept by
+   * the map page's useMapUrlIntent and threaded down via ReportsLayout. Each
+   * request is applied once when it matches a loaded layout, also over the
+   * layout that is open, and is preferred over `reportLayouts[0]` on load. */
+  layoutRequest?: LayoutRequest | null;
 }
 
 const ReportsConfigPanel: React.FC<ReportsConfigPanelProps> = ({
@@ -118,7 +120,7 @@ const ReportsConfigPanel: React.FC<ReportsConfigPanelProps> = ({
   projectLayers = [],
   selectedReport,
   onSelectReport,
-  initialLayoutId = null,
+  layoutRequest = null,
 }) => {
   const { t } = useTranslation("common");
 
@@ -327,26 +329,30 @@ const ReportsConfigPanel: React.FC<ReportsConfigPanelProps> = ({
     }
   }, [selectedReportId, reportLayouts, onSelectReport]);
 
-  // Auto-select first report when layouts load, or show the template browser if none exist.
-  // A template result's `?layout=<id>` (initialLayoutId) wins over `reportLayouts[0]` when it
-  // matches one of the loaded layouts; otherwise this falls back to today's behavior.
+  // Select a requested layout once, also over the one that is open; a request
+  // that matches no loaded layout is dropped, and later list changes (a save, a
+  // rename) don't bring it back. Otherwise auto-select the first report when
+  // layouts load, or show the template browser if none exist. The applied
+  // request is state, not a ref, so an effect that runs twice (React's
+  // development checks) takes the same branch both times.
+  const [appliedRequest, setAppliedRequest] = useState<LayoutRequest | null>(null);
   useEffect(() => {
-    if (reportLayouts && reportLayouts.length > 0 && !selectedReportId) {
-      const preferred = initialLayoutId
-        ? reportLayouts.find((report) => report.id === initialLayoutId)
-        : undefined;
-      setSelectedReportId((preferred ?? reportLayouts[0]).id);
-    } else if (
-      reportLayouts &&
-      reportLayouts.length === 0 &&
-      !isLoading &&
-      !hasShownTemplatePickerRef.current
-    ) {
+    if (!reportLayouts) return;
+    if (layoutRequest && appliedRequest !== layoutRequest) {
+      setAppliedRequest(layoutRequest);
+      if (reportLayouts.some((report) => report.id === layoutRequest.id)) {
+        setSelectedReportId(layoutRequest.id);
+        return;
+      }
+    }
+    if (reportLayouts.length > 0 && !selectedReportId) {
+      setSelectedReportId(reportLayouts[0].id);
+    } else if (reportLayouts.length === 0 && !isLoading && !hasShownTemplatePickerRef.current) {
       // No layouts exist, open the template browser automatically
       hasShownTemplatePickerRef.current = true;
       setTemplateBrowserOpen(true);
     }
-  }, [reportLayouts, selectedReportId, isLoading, initialLayoutId]);
+  }, [reportLayouts, selectedReportId, isLoading, layoutRequest, appliedRequest]);
 
   // A template picked from the browser hands off to UseTemplateFlow, which
   // inserts the layout into this project (T7: layouts carry no ask inputs,

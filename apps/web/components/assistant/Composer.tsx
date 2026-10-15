@@ -1,0 +1,203 @@
+"use client";
+
+import ArrowUpwardRounded from "@mui/icons-material/ArrowUpwardRounded";
+import StopRounded from "@mui/icons-material/StopRounded";
+import { Box, Chip, IconButton, InputBase, Stack, Tooltip, Typography, alpha, useTheme } from "@mui/material";
+import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import type { ContextChip } from "@/lib/assistant/chips";
+import type { SourceRef } from "@/lib/assistant/types";
+
+import SourcePicker from "@/components/assistant/SourcePicker";
+import ContextChips, { chipSx } from "@/components/assistant/messages/ContextChips";
+import { focusRing, mutedText } from "@/components/assistant/styles";
+import { MAX_SOURCES } from "@/components/assistant/useComposerContext";
+import { surfaceShadows } from "@/components/dashboard/common/surfaceShadows";
+
+export interface ComposerProps {
+  draft: string;
+  onDraftChange: (value: string) => void;
+  onSend: () => void;
+  /** Shown while an answer runs: instead of Send, or next to it with `queueWhileBusy`. */
+  onStop?: () => void;
+  busy: boolean;
+  /** Send stays available while an answer runs; the parent queues the message. */
+  queueWhileBusy?: boolean;
+  disabled?: boolean;
+  chips: ContextChip[];
+  onRemoveChip: (key: string) => void;
+  mentionsEnabled: boolean;
+  onAddSource: (source: SourceRef) => void;
+  /** The message carries as many sources as it may: no further picks. */
+  sourcesFull?: boolean;
+  excludeProjectId?: string;
+  big?: boolean;
+}
+
+/** The longest message the assistant service accepts (its MAX_MESSAGE_CHARS). */
+export const MAX_MESSAGE_CHARS = 32768;
+
+/** A trailing "@word" at the end of the draft opens the source picker. */
+const MENTION = /(^|\s)@([^\s@]*)$/;
+
+export default function Composer(props: ComposerProps) {
+  const { t } = useTranslation("common");
+  const theme = useTheme();
+  // A callback ref into state: the picker can anchor to the box from the first
+  // render after mount, which a plain ref would not trigger.
+  const [box, setBox] = useState<HTMLDivElement | null>(null);
+  const input = useRef<HTMLTextAreaElement | null>(null);
+  const footer = useRef<HTMLDivElement | null>(null);
+  const [chipAnchor, setChipAnchor] = useState<HTMLElement | null>(null);
+  const canPick = props.mentionsEnabled && !props.sourcesFull;
+  const mention = canPick ? MENTION.exec(props.draft) : null;
+  const pickerAnchor = chipAnchor ?? (mention ? box : null);
+  const canSend = (!props.busy || !!props.queueWhileBusy) && !props.disabled && props.draft.trim().length > 0;
+  const withoutMention = () => props.draft.replace(MENTION, "$1");
+  const closePicker = () => {
+    setChipAnchor(null);
+    if (mention) props.onDraftChange(withoutMention());
+  };
+  const sendButtonSx = {
+    width: 32,
+    height: 32,
+    p: 0,
+    flexShrink: 0,
+    bgcolor: "primary.main",
+    color: "primary.contrastText",
+    "&:hover": { bgcolor: "primary.dark" },
+    "&.Mui-disabled": { bgcolor: "action.disabledBackground", color: "action.disabled" },
+    ...focusRing(theme),
+  };
+  const canStop = props.busy && !!props.onStop;
+  // Next to Send, Stop steps back to a neutral outline: Send keeps its place and its accent.
+  const stopButtonSx = props.queueWhileBusy
+    ? {
+        ...sendButtonSx,
+        bgcolor: "background.paper",
+        color: "text.primary",
+        border: 1,
+        borderColor: "divider",
+        "&:hover": { bgcolor: "action.hover", borderColor: alpha(theme.palette.text.primary, 0.24) },
+      }
+    : sendButtonSx;
+  const stopButton = canStop && (
+    <IconButton aria-label={t("stop")} onClick={props.onStop} sx={stopButtonSx}>
+      <StopRounded sx={{ fontSize: 18 }} />
+    </IconButton>
+  );
+  const sendButton = (!canStop || props.queueWhileBusy) && (
+    <IconButton aria-label={t("assistant_send")} disabled={!canSend} onClick={props.onSend} sx={sendButtonSx}>
+      <ArrowUpwardRounded sx={{ fontSize: 18 }} />
+    </IconButton>
+  );
+  const hasContext = props.chips.length > 0 || props.mentionsEnabled;
+  return (
+    <Box>
+      {/* One box: the text on top, the message's context and Send in a row at its foot. */}
+      <Box
+        ref={setBox}
+        onMouseDown={(event) => {
+          // A click on the box's padding or its empty bottom row puts the caret in the text.
+          if (event.target === event.currentTarget || event.target === footer.current) {
+            event.preventDefault();
+            input.current?.focus();
+          }
+        }}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          cursor: "text",
+          border: 1,
+          borderColor: "divider",
+          borderRadius: "14px",
+          bgcolor: "background.paper",
+          boxShadow: surfaceShadows(theme).rest,
+          p: props.big ? "14px 10px 10px 16px" : "10px 8px 8px 14px",
+          transition: theme.transitions.create(["border-color", "box-shadow"], { duration: 140 }),
+          "&:hover": { borderColor: alpha(theme.palette.text.primary, 0.24) },
+          "&:focus-within": {
+            borderColor: "primary.main",
+            boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.12)}`,
+          },
+        }}>
+        <InputBase
+          multiline
+          minRows={props.big ? 2 : 1}
+          maxRows={8}
+          fullWidth
+          inputRef={input}
+          value={props.draft}
+          disabled={props.disabled}
+          placeholder={t(
+            props.mentionsEnabled
+              ? "assistant_composer_placeholder_mentions"
+              : "assistant_composer_placeholder"
+          )}
+          inputProps={{ "aria-label": t("assistant_composer_placeholder"), maxLength: MAX_MESSAGE_CHARS }}
+          onChange={(event) => props.onDraftChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+              event.preventDefault();
+              if (canSend) props.onSend();
+            }
+          }}
+          sx={{
+            p: 0,
+            pr: "6px",
+            fontSize: props.big ? 15 : 13.5,
+            lineHeight: "20px",
+            color: "text.primary",
+            "& textarea::placeholder": { color: mutedText(theme), opacity: 1 },
+          }}
+        />
+        <Stack ref={footer} direction="row" alignItems="flex-end" gap="8px">
+          <Stack
+            role={hasContext ? "group" : undefined}
+            aria-label={hasContext ? t("assistant_context_label") : undefined}
+            direction="row"
+            flexWrap="wrap"
+            alignItems="center"
+            gap="6px"
+            sx={{ flex: 1, minWidth: 0, pb: "5px", cursor: "default" }}>
+            <ContextChips chips={props.chips} onRemove={props.onRemoveChip} />
+            {props.mentionsEnabled && (
+              // At the limit the chip is disabled; the tooltip says why (a disabled element gets no hover).
+              <Tooltip title={props.sourcesFull ? t("assistant_sources_full", { count: MAX_SOURCES }) : ""}>
+                <Box component="span" sx={{ display: "inline-flex" }}>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={t("assistant_add_source")}
+                    disabled={props.sourcesFull}
+                    onClick={(event) => setChipAnchor(event.currentTarget)}
+                    sx={(theme) => ({ ...chipSx(theme), borderStyle: "dashed", color: mutedText })}
+                  />
+                </Box>
+              </Tooltip>
+            )}
+          </Stack>
+          {stopButton}
+          {sendButton}
+        </Stack>
+      </Box>
+      <Typography sx={{ mt: "8px", px: "2px", fontSize: 11.5, lineHeight: 1.45, color: mutedText }}>
+        {t("assistant_scope_note")}
+      </Typography>
+      {canPick && pickerAnchor && (
+        <SourcePicker
+          anchorEl={pickerAnchor}
+          query={mention?.[2] ?? ""}
+          excludeProjectId={props.excludeProjectId}
+          onClose={closePicker}
+          onPick={(source) => {
+            props.onAddSource(source);
+            closePicker();
+          }}
+        />
+      )}
+    </Box>
+  );
+}

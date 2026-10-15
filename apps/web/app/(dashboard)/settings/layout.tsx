@@ -21,6 +21,8 @@ import { useTranslation } from "react-i18next";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
+import { ASSISTANT_BASE_URL } from "@/lib/constants";
+
 import { useAuthZ } from "@/hooks/auth/AuthZ";
 
 import PageHeader from "@/components/dashboard/common/PageHeader";
@@ -53,7 +55,10 @@ const SettingsLayout = (props: SettingsLayoutProps) => {
         link: "/settings/organization",
         icon: ICON_NAME.ORGANIZATION,
         label: t("organization"),
-        current: pathname?.includes("/organization") && !pathname?.includes("/white-label"),
+        current:
+          pathname?.includes("/organization") &&
+          !pathname?.includes("/white-label") &&
+          !pathname?.includes("/organization/ai"),
         auth: isOrgAdmin,
       },
       {
@@ -63,6 +68,17 @@ const SettingsLayout = (props: SettingsLayoutProps) => {
         current: pathname?.includes("/white-label"),
         auth: isOrgAdmin,
       },
+      ...(ASSISTANT_BASE_URL
+        ? [
+            {
+              link: "/settings/organization/ai",
+              icon: ICON_NAME.SPARKLES,
+              label: t("ai_settings_nav"),
+              current: pathname?.includes("/organization/ai"),
+              auth: isOrgAdmin,
+            },
+          ]
+        : []),
       {
         link: "/settings/usage",
         icon: ICON_NAME.CHART_PIE,

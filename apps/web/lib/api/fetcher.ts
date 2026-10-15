@@ -28,7 +28,7 @@ function getTokenExpiry(token: string): number | null {
  * Get access token from session or localStorage (for print mode)
  * Print mode uses localStorage to pass token from Playwright
  */
-const getAccessToken = async (): Promise<string | null> => {
+export const getAccessToken = async (): Promise<string | null> => {
   // Fallback to localStorage for print mode (Playwright injects token here)
   if (typeof window !== "undefined") {
     const printToken = localStorage.getItem("print_access_token");

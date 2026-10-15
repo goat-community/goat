@@ -39,6 +39,7 @@ import {
 } from "@/lib/validations/project";
 import { widgetSchemaMap } from "@/lib/validations/widget";
 
+import { useProjectAssistantSurface } from "@/hooks/assistant/useProjectAssistantSurface";
 import { useAuthZ } from "@/hooks/auth/AuthZ";
 import { useBrandedTheme } from "@/hooks/dashboard/useBrandedTheme";
 import { JobStatusWatcher } from "@/hooks/jobs/JobStatus";
@@ -82,9 +83,9 @@ export default function MapPage(props: { params: Promise<{ projectId: string }> 
   // A template result (T7) can land here as `?mode=workflows&workflow=<id>` /
   // `?mode=reports&layout=<id>` — see templateResultHref in
   // hooks/templates/useUseTemplate.ts. Workflow selection is handled inside
-  // the hook (Redux); layoutId is threaded down to ReportsLayout below since
+  // the hook (Redux); layoutRequest is threaded down to ReportsLayout below since
   // the Reports panel keeps its selection in local component state.
-  const { layoutId } = useMapUrlIntent(projectId);
+  const { layoutRequest } = useMapUrlIntent(projectId);
 
   const {
     project: _project,
@@ -181,6 +182,17 @@ export default function MapPage(props: { params: Promise<{ projectId: string }> 
     }
     return isOrgEditor;
   }, [project?.my_role, projectFolder, isOrgEditor]);
+
+  // The assistant's read-only project surface (spec §10): context per mode, map views in Map mode.
+  useProjectAssistantSurface({
+    projectId,
+    project,
+    failed: !!projectError,
+    mapRef,
+    mapMode,
+    isEditor: !!isProjectEditor,
+    layers: allProjectLayersIncludingTables,
+  });
 
   const isLoading = useMemo(
     () =>
@@ -542,7 +554,7 @@ export default function MapPage(props: { params: Promise<{ projectId: string }> 
                         project={project}
                         projectLayers={projectLayers}
                         onProjectUpdate={handleProjectUpdate}
-                        initialLayoutId={layoutId}
+                        layoutRequest={layoutRequest}
                       />
                     )}
                     {mapMode === "workflows" && (

@@ -22,6 +22,7 @@ import type {
 } from "@/lib/validations/reportLayout";
 
 import { useBasemap } from "@/hooks/map/MapHooks";
+import type { LayoutRequest } from "@/hooks/map/useMapUrlIntent";
 
 import ReportsCanvas from "./canvas/ReportsCanvas";
 import { reportElementIconMap } from "./elements/ReportElementIconMap";
@@ -33,10 +34,9 @@ export interface ReportsLayoutProps {
   projectLayers?: ProjectLayer[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onProjectUpdate?: (key: string, value: any, refresh?: boolean) => void;
-  /** A template result's `?layout=<id>` (T7), parsed by the map page's
-   * useMapUrlIntent — preferred over `reportLayouts[0]` by the panel's
-   * auto-select-on-load effect when present and found in the list. */
-  initialLayoutId?: string | null;
+  /** A `?layout=<id>` to select (a template result or the assistant), kept by
+   * the map page's useMapUrlIntent and applied once by the panel. */
+  layoutRequest?: LayoutRequest | null;
 }
 
 // Dragging element preview (shown during drag)
@@ -96,7 +96,7 @@ const ReportsLayout: React.FC<ReportsLayoutProps> = ({
   project,
   projectLayers = [],
   onProjectUpdate: _onProjectUpdate,
-  initialLayoutId = null,
+  layoutRequest = null,
 }) => {
   const { t } = useTranslation("common");
   // Shared state for the selected report layout
@@ -388,7 +388,7 @@ const ReportsLayout: React.FC<ReportsLayoutProps> = ({
           projectLayers={projectLayers}
           selectedReport={selectedReport}
           onSelectReport={handleSelectReport}
-          initialLayoutId={initialLayoutId}
+          layoutRequest={layoutRequest}
         />
 
         {/* Middle Section - Canvas */}

@@ -1,0 +1,146 @@
+import type { DynamicToolUIPart } from "ai";
+import { describe, expect, it } from "vitest";
+
+import { type ItemActionContext, cardBehaviour } from "@/lib/assistant/itemActions";
+import { type ResultItem, shownGroups, uniqueGroups } from "@/lib/assistant/items";
+
+const part = (toolName: string, output: unknown): DynamicToolUIPart => ({
+  type: "dynamic-tool",
+  toolName,
+  toolCallId: "c1",
+  state: "output-available",
+  input: {},
+  output,
+});
+
+const ids = (item: ResultItem) => `${item.kind}:${item.id}`;
+const NONE = () => null;
+const NOWHERE: ItemActionContext = { projectId: null, canAddToProject: false, layerOfDataset: NONE };
+const IN_P1: ItemActionContext = { projectId: "p1", canAddToProject: true, layerOfDataset: NONE };
+
+describe("result items", () => {
+  it("reads the user's own items, dropping kinds and rows it does not know", () => {
+    const groups = shownGroups(
+      part("core_show_items", {
+        groups: [
+          {
+            title: "Projekte",
+            items: [
+              { kind: "project", id: "p1", name: "Radverkehr", note: "Radnetz" },
+              { kind: "layer", id: "11", project_id: "p1", project_name: "Radverkehr", name: "Radwege" },
+              // A layer needs its project; an unknown kind is skipped.
+              { kind: "layer", id: "12", name: "Ohne Projekt" },
+              { kind: "workflow", id: "w1", name: "Später" },
+              "kaputt",
+            ],
+          },
+        ],
+        not_found: [],
+      })
+    );
+    expect(groups).toHaveLength(1);
+    expect(groups[0].title).toBe("Projekte");
+    expect(groups[0].items.map(ids)).toEqual(["project:p1", "layer:11"]);
+    expect(groups[0].items[1]).toMatchObject({
+      projectId: "p1",
+      projectName: "Radverkehr",
+      title: "Radwege",
+    });
+  });
+
+  it("reads catalog records, grouped or stored flat before the groups", () => {
+    const grouped = shownGroups(
+      part("catalog_show_records", {
+        groups: [{ records: [{ id: "ds-1", title: "Netz", type: "feature", publisher: "Berlin" }] }],
+      })
+    );
+    expect(grouped[0].items[0]).toMatchObject({
+      kind: "catalog",
+      title: "Netz",
+      detail: "feature",
+      publisher: "Berlin",
+    });
+    const flat = shownGroups(part("catalog_show_records", { shown: [{ id: "x" }] }));
+    expect(flat[0].items[0]).toMatchObject({ kind: "catalog", id: "x", title: "x" });
+    expect(shownGroups(part("catalog_search", { results: [{ id: "x" }] }))).toEqual([]);
+  });
+
+  it("shows each item once, with a layer's id unique only within its project", () => {
+    const layer = (id: string, projectId: string): ResultItem => ({
+      kind: "layer",
+      id,
+      projectId,
+      title: id,
+    });
+    const groups = uniqueGroups([
+      { items: [layer("11", "p1"), layer("11", "p2")] },
+      { items: [layer("11", "p1"), { kind: "project", id: "11", title: "P" }] },
+    ]);
+    expect(groups.map((group) => group.items.length)).toEqual([2, 1]);
+  });
+});
+
+describe("card behaviour", () => {
+  const project: ResultItem = { kind: "project", id: "p2", title: "P" };
+  const dataset: ResultItem = { kind: "dataset", id: "d1", datasetId: "d1", title: "D" };
+  const layer: ResultItem = { kind: "layer", id: "11", projectId: "p1", datasetId: "d9", title: "L" };
+  const elsewhere: ResultItem = { kind: "layer", id: "40", projectId: "p2", datasetId: "d4", title: "E" };
+  const locked: ResultItem = { ...elsewhere, datasetId: null, locked: true };
+  const catalog: ResultItem = { kind: "catalog", id: "ds-1", title: "C" };
+  const bundle: ResultItem = { kind: "bundle", id: "b1", title: "B" };
+  const of = (item: ResultItem, context: ItemActionContext) => {
+    const { action, preview, layer: target } = cardBehaviour(item, context);
+    return { action: action?.id ?? null, preview, layer: target };
+  };
+
+  it("opens a project, but not the one the page shows, and has no preview", () => {
+    expect(of(project, NOWHERE)).toEqual({ action: "open_project", preview: false, layer: undefined });
+    expect(of({ ...project, id: "p1" }, IN_P1)).toEqual({ action: null, preview: false, layer: undefined });
+  });
+
+  it("zooms to anything already in the open project, without a preview", () => {
+    expect(of(layer, IN_P1)).toEqual({ action: "zoom_to_layer", preview: false, layer: 11 });
+    // A dataset the open project shows as layer 77.
+    const showing: ItemActionContext = { ...IN_P1, layerOfDataset: (id) => (id === "d1" ? 77 : null) };
+    expect(of(dataset, showing)).toEqual({ action: "zoom_to_layer", preview: false, layer: 77 });
+  });
+
+  it("adds other data to an editable open project, with a preview", () => {
+    for (const item of [dataset, elsewhere, catalog, bundle]) {
+      expect(of(item, IN_P1)).toEqual({ action: "add_to_project", preview: true, layer: undefined });
+    }
+  });
+
+  it("opens a workflow or layout in its project's editor, without a preview", () => {
+    const workflow: ResultItem = { kind: "workflow", id: "w1", projectId: "p2", title: "W" };
+    const layout: ResultItem = { kind: "layout", id: "l1", projectId: "p1", title: "L" };
+    expect(of(workflow, IN_P1)).toEqual({ action: "open_workflow", preview: false, layer: undefined });
+    expect(of(layout, IN_P1)).toEqual({ action: "open_layout", preview: false, layer: undefined });
+  });
+
+  it("reads a workflow or layout only with its project", () => {
+    const groups = shownGroups(
+      part("core_show_items", {
+        groups: [
+          {
+            items: [
+              { kind: "workflow", id: "w1", project_id: "p1", project_name: "Allach", name: "Fahrrad" },
+              { kind: "layout", id: "l1", name: "Ohne Projekt" },
+            ],
+          },
+        ],
+      })
+    );
+    expect(groups[0].items).toEqual([
+      expect.objectContaining({ kind: "workflow", id: "w1", projectId: "p1", projectName: "Allach" }),
+    ]);
+  });
+
+  it("asks for the project outside an editable one, and offers nothing for a locked layer", () => {
+    for (const item of [dataset, elsewhere, catalog, bundle]) {
+      expect(of(item, NOWHERE)).toEqual({ action: "add_to_other_project", preview: true, layer: undefined });
+    }
+    expect(of(dataset, { ...IN_P1, canAddToProject: false }).action).toBe("add_to_other_project");
+    expect(of(locked, IN_P1)).toEqual({ action: null, preview: false, layer: undefined });
+  });
+});

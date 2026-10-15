@@ -7,6 +7,7 @@
  */
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { StrictMode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Project } from "@/lib/validations/project";
@@ -282,7 +283,7 @@ describe("ReportsConfigPanel — template browser integration", () => {
     expect(toastSuccessMock).toHaveBeenCalled();
   }, 15000);
 
-  it("prefers initialLayoutId (a template result's ?layout=<id>) over reportLayouts[0] on load", () => {
+  it("prefers a requested layout (?layout=<id>) over reportLayouts[0] on load", () => {
     const layoutB: ReportLayout = { ...layoutA, id: "layout-b", name: "Layout B" };
     useReportLayoutsMock.mockReturnValue({
       reportLayouts: [layoutA, layoutB],
@@ -298,14 +299,70 @@ describe("ReportsConfigPanel — template browser integration", () => {
         project={project}
         selectedReport={null}
         onSelectReport={onSelectReport}
-        initialLayoutId="layout-b"
+        layoutRequest={{ id: "layout-b" }}
       />
     );
 
     expect(onSelectReport).toHaveBeenCalledWith(expect.objectContaining({ id: "layout-b" }));
   });
 
-  it("falls back to reportLayouts[0] when initialLayoutId doesn't match a loaded layout", () => {
+  it("selects the requested layout also when React runs the effects twice", () => {
+    const layoutB: ReportLayout = { ...layoutA, id: "layout-b", name: "Layout B" };
+    useReportLayoutsMock.mockReturnValue({
+      reportLayouts: [layoutA, layoutB],
+      isLoading: false,
+      isError: undefined,
+      mutate: mutateMock,
+      isValidating: false,
+    });
+    const onSelectReport = vi.fn();
+
+    render(
+      <StrictMode>
+        <ReportsConfigPanel
+          project={project}
+          selectedReport={null}
+          onSelectReport={onSelectReport}
+          layoutRequest={{ id: "layout-b" }}
+        />
+      </StrictMode>
+    );
+
+    expect(onSelectReport).toHaveBeenLastCalledWith(expect.objectContaining({ id: "layout-b" }));
+  });
+
+  it("switches to a new request while another layout is open, and only once", () => {
+    const layoutB: ReportLayout = { ...layoutA, id: "layout-b", name: "Layout B" };
+    useReportLayoutsMock.mockReturnValue({
+      reportLayouts: [layoutA, layoutB],
+      isLoading: false,
+      isError: undefined,
+      mutate: mutateMock,
+      isValidating: false,
+    });
+    const onSelectReport = vi.fn();
+    const panel = (layoutRequest: { id: string } | null) => (
+      <ReportsConfigPanel
+        project={project}
+        selectedReport={null}
+        onSelectReport={onSelectReport}
+        layoutRequest={layoutRequest}
+      />
+    );
+    const { rerender } = render(panel(null));
+    expect(onSelectReport).toHaveBeenLastCalledWith(expect.objectContaining({ id: "layout-a" }));
+
+    const request = { id: "layout-b" };
+    rerender(panel(request));
+    expect(onSelectReport).toHaveBeenLastCalledWith(expect.objectContaining({ id: "layout-b" }));
+
+    // The user picks another layout; the same request object doesn't pull it back.
+    fireEvent.click(screen.getByText("Layout A"));
+    rerender(panel(request));
+    expect(onSelectReport).toHaveBeenLastCalledWith(expect.objectContaining({ id: "layout-a" }));
+  });
+
+  it("falls back to reportLayouts[0] when the requested layout isn't loaded", () => {
     const onSelectReport = vi.fn();
 
     render(
@@ -313,7 +370,7 @@ describe("ReportsConfigPanel — template browser integration", () => {
         project={project}
         selectedReport={null}
         onSelectReport={onSelectReport}
-        initialLayoutId="missing-id"
+        layoutRequest={{ id: "missing-id" }}
       />
     );
 
