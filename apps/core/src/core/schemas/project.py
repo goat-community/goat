@@ -236,6 +236,41 @@ class LayerProjectIds(BaseModel):
     )
 
 
+class ProjectLayerSearchHit(BaseModel):
+    """One layer, in a project the caller can read, whose name matches a search."""
+
+    project_id: UUID = Field(..., description="Project ID")
+    project_name: str = Field(..., description="Project name")
+    project_updated_at: datetime | None = Field(
+        None, description="When the project last changed"
+    )
+    layer_project_id: int = Field(..., description="Layer Project ID")
+    layer_name: str = Field(..., description="Layer name within the project")
+    dataset_name: str | None = Field(
+        None,
+        description="Name of the underlying dataset; withheld for a locked layer",
+    )
+    layer_type: str = Field(..., description="feature, table or raster")
+    geometry_type: str | None = Field(
+        None, description="Geometry type of a feature layer"
+    )
+    locked: bool = Field(
+        False,
+        description=(
+            "The caller has no access to this dataset of his own (D7), as the "
+            "project's layer list marks it: matched on its name in the project "
+            "only, and its dataset's name is withheld."
+        ),
+    )
+
+
+class ProjectLayerSearchPage(BaseModel):
+    items: list[ProjectLayerSearchHit]
+    total: int
+    page: int
+    size: int
+
+
 class IFeatureBaseProject(CQLQuery):
     group: str | None = Field(None, description="Layer group name")
     charts: dict[str, Any] | None = Field(None, description="Layer chart properties")

@@ -17,6 +17,10 @@ from core.crud.crud_role import role as crud_role
 from core.crud.crud_space import space as crud_space
 from core.db.models import Organization, UserRoleLink
 from core.db.models._link_model import ContentShortcut, ResourceGrant
+from core.db.models.assistant import (
+    AssistantConnection,
+    AssistantOrganizationSettings,
+)
 from core.db.models.bundle import Bundle
 from core.db.models.folder import Folder
 from core.db.models.invitation import Invitation, InvitationStatusEnum
@@ -218,7 +222,9 @@ class CRUDOrganization(CRUDBase[Organization, OrganizationCreate, OrganizationUp
         would delete the account. The organization's space with its root
         folder, its past invitations and its credit usage go with the row by
         foreign key; grants, which name their resource and grantee without
-        one, are deleted here. Billing is not touched.
+        one, and the organization's AI settings and model connections (with
+        their stored API keys), which name it without one too, are deleted
+        here. Billing is not touched.
         """
         async with session_manager.transaction() as connection:
             organization = (
@@ -338,6 +344,17 @@ class CRUDOrganization(CRUDBase[Organization, OrganizationCreate, OrganizationUp
                             ),
                         ),
                     )
+                )
+            )
+            # Settings first: they may name a connection as the active one.
+            await connection.execute(
+                sql_delete(AssistantOrganizationSettings).where(
+                    AssistantOrganizationSettings.organization_id == organization_id
+                )
+            )
+            await connection.execute(
+                sql_delete(AssistantConnection).where(
+                    AssistantConnection.organization_id == organization_id
                 )
             )
             await connection.execute(

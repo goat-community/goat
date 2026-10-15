@@ -76,6 +76,9 @@ class Settings(BaseSettings):
     # Schemas
     # ------------------------------------------------------------------
     SCHEMA: str = "customer"
+    #: Schema of the AI assistant's tables (apps/assistant). Owned by this
+    #: migration chain, read and written only by the assistant service.
+    ASSISTANT_SCHEMA: str = "assistant"
 
     # ------------------------------------------------------------------
     # Auth / Keycloak

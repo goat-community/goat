@@ -25,6 +25,7 @@ from core.schemas.project import (
     ILayerProjectGroupRead,
     IRasterProjectRead,
     ITableProjectRead,
+    ProjectLayerSearchPage,
 )
 from core.schemas.project import (
     request_examples as project_request_examples,
@@ -391,6 +392,44 @@ async def add_bundle_to_project(
         async_session, project_id=project_id, bundle_id=bundle_id, user_id=user_id
     )
     return group
+
+
+@router.get(
+    "/layers/search",
+    summary="Search the layers of every project the caller can read",
+    response_model=ProjectLayerSearchPage,
+    response_model_exclude_none=True,
+    status_code=200,
+    dependencies=[Depends(auth_z)],
+)
+async def search_project_layers(
+    async_session: AsyncSession = Depends(get_db),
+    user_id: UUID = Depends(get_user_id),
+    search: str = Query(
+        ...,
+        min_length=2,
+        max_length=200,
+        description=(
+            "Text the layer's name in the project, or its dataset's name, "
+            "contains; case-insensitive, % and _ are taken literally"
+        ),
+    ),
+    page: int = Query(1, ge=1, le=1000, description="Page number, at most 1000"),
+    size: int = Query(20, ge=1, le=50, description="Hits per page, at most 50"),
+) -> ProjectLayerSearchPage:
+    """Find layers by name across every project the caller can read: own
+    projects, projects shared with the caller directly, through a team or the
+    organisation, or through a shared folder. Trashed projects and datasets
+    are left out. Returns names and IDs only, never the data; a layer locked
+    in the project's layer list shows no more here."""
+    term = search.strip()
+    if len(term) < 2:
+        raise HTTPException(
+            status_code=422, detail="search needs at least 2 characters besides spaces"
+        )
+    return await crud_layer_project.search(
+        async_session, user_id=user_id, search=term, page=page, size=size
+    )
 
 
 @router.get(
