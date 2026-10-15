@@ -16,7 +16,7 @@ Add text to your dashboard. You can **customize it with the appearing buttons**:
 - Change the **alignment, add links,** adjust the **letter color** or **add highlight.**
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_text.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_text.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 ## Divider
@@ -24,7 +24,7 @@ Add text to your dashboard. You can **customize it with the appearing buttons**:
 The divider widget adds a **horizontal line** to your dashboard, which can be used to visually separate different sections or elements within the dashboard.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_divider.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_divider.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 ## Image
@@ -32,7 +32,7 @@ The divider widget adds a **horizontal line** to your dashboard, which can be us
 **Upload an image from your computer** to your dashboard. Under `Info` you can add a `Description` shown below the image and an `Alternative text` for accessibility. Enable `Padding` under Options to add inner spacing around the image.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/builder/builder_image.webp').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <img src={require('/img/builder/builder_image.webp').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 ## Tabs
@@ -118,5 +118,5 @@ Check out our **[Gallery](https://www.plan4better.de/en/gallery)** for further d
 ::::
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_viewer_dashboard.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_viewer_dashboard.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div>

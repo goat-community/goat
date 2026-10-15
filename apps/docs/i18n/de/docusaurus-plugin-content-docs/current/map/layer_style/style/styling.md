@@ -150,7 +150,7 @@ Für Punkt-Layer können Sie benutzerdefinierte Marker anstelle von Grundformen 
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-  <Video src={require('/img/map/styling/custom_marker.mp4').default} alt="Benutzerdefinierte Marker-Auswahl" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/map/styling/custom_marker.mp4').default} alt="Benutzerdefinierte Marker-Auswahl" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div>
 <p></p>
 

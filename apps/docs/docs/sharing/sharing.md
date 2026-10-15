@@ -95,7 +95,7 @@ Everything shared with you, personally or through a team or the organization, ap
 You can **hand an item over to a team or organization** so that it no longer belongs to you personally. This works for datasets, projects, folders, bundles and templates that you own in your **My Content**; for items in a team or organization space, the option does not appear. [Content](../workspace/content.md#sharing-and-transferring-are-different) explains how this differs from sharing.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/sharing/transfer_ownership.webp').default} alt="Transfer ownership on the Teams tab of the Share dialog" style={{ maxHeight: "480px", maxWidth: "480px", objectFit: "contain"}}/>
+  <img src={require('/img/sharing/transfer_ownership.webp').default} alt="Transfer ownership on the Teams tab of the Share dialog" style={{ maxHeight: "450px", maxWidth: "480px", objectFit: "contain"}}/>
 </div>
 <p> </p>
 

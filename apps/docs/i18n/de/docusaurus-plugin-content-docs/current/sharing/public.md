@@ -60,7 +60,7 @@ Sobald das Projekt veröffentlicht ist, bietet der Tab <code>Öffentlich</code> 
 Um zu steuern, wie weit Nutzer die Karte verschieben und herauszoomen können, können Sie die Kartenausdehnung sperren.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/sharing/sharing_lock_extent.mp4').default} alt="Öffentliches Teilen in GOAT" style={{ maxHeight: "750px", maxWidth: "750px", objectFit: "cover"}}/>
+  <Video src={require('/img/sharing/sharing_lock_extent.mp4').default} alt="Öffentliches Teilen in GOAT" style={{ maxHeight: "450px", maxWidth: "750px", objectFit: "cover"}}/>
 </div>
 <p> </p>
 

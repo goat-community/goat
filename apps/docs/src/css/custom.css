@@ -723,12 +723,36 @@ a.card:hover {
   min-width: 7rem;
 }
 
+/* Pictures fit the column, but a smaller max-width set on the image itself
+   (e.g. a 420px menu screenshot) wins on desktop: forcing every image to the
+   full column blew narrow screenshots up to twice their size. */
 .theme-doc-markdown img,
 .theme-doc-markdown video,
 .theme-doc-markdown picture,
 .theme-doc-markdown svg:not([class*="icon"]) {
-  max-width: 100% !important;
+  max-width: 100%;
   height: auto;
+}
+
+/* No picture taller than 450px, so one image never fills the screen: a
+   full-width 16:9 screenshot (about 430px tall) is unaffected, a tall menu or
+   chart shrinks and keeps its proportions. Most images set an invalid inline
+   `maxHeight: "auto"`, which the browser drops, so this applies to them; a
+   valid smaller inline max-height (icons, a 300px crop) still wins. */
+.theme-doc-markdown img,
+.theme-doc-markdown video {
+  max-height: 450px;
+  width: auto;
+}
+
+/* On a narrow screen every picture fits the column, whatever its own limit. */
+@media (max-width: 996px) {
+  .theme-doc-markdown img,
+  .theme-doc-markdown video,
+  .theme-doc-markdown picture,
+  .theme-doc-markdown svg:not([class*="icon"]) {
+    max-width: 100% !important;
+  }
 }
 
 /* Inline UI icons: the rule above would override their inline size, so
