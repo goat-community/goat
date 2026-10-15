@@ -648,6 +648,34 @@ This glossary lists the English and German labels of the main tools, features an
 | Mitre Limit | Gehrungsgrenze | Mitre join limit parameter |
 | Curve Smoothness | Kurvenglättung | Number of segments for curves |
 
+## AI Assistant
+
+| English | German | Description |
+|---------|--------|-------------|
+| **AI** | **KI** | GOAT's AI features and the AI page in the organization settings |
+| AI assistant | KI-Assistent | The assistant that answers questions in GOAT |
+| GOAT AI (included) | GOAT AI (inklusive) | The built-in model connection |
+| Active connection | Aktive Verbindung | The model connection the organization uses |
+| Test connection | Verbindung testen | Checks authentication, streaming and tool calling of a connection |
+| Data policy | Datenrichtlinie | What the assistant may send to the model |
+| Standard | Standard | Data policy level: everything a member can see |
+| Restricted | Eingeschränkt | Data policy level: field names, types, counts and statistics only |
+| Provider | Anbieter | The model provider of a connection |
+| Model ID | Modell-ID | The model name as the provider uses it |
+| API key | API-Schlüssel | The credential of a connection |
+| Ask AI | KI fragen | Button in the upper bar that opens the AI assistant |
+| Conversation | Unterhaltung | One exchange with the AI assistant, listed in its history |
+| New conversation | Neue Unterhaltung | Starts an empty conversation |
+| This project | Dieses Projekt | History filter: conversations of the open project |
+| Context | Kontext | What a message tells the assistant about the open page |
+| Source | Quelle | Another project the assistant may read, added with @ |
+| Suggestion card | Vorschlag | A change the assistant suggests; nothing happens until you apply it |
+| Apply to page | Auf Seite anwenden | Applies catalog filters suggested by the assistant |
+| Apply to map | Auf Karte anwenden | Moves the map to the view the assistant suggests |
+| Open in project to review | Im Projekt öffnen und prüfen | Opens the project a suggestion applies to |
+| Answer details | Details zur Antwort | Model, provider and token counts of an answer |
+| Steps | Schritte | The tools the assistant used for an answer |
+
 ## Data Formats
 
 | English | German | Description |
