@@ -13,7 +13,7 @@ Standard library only.
 
 import re
 from typing import TYPE_CHECKING
-from urllib.parse import parse_qsl, unquote, urlsplit
+from urllib.parse import parse_qsl, quote, unquote, urlsplit
 
 if TYPE_CHECKING:
     import duckdb
@@ -21,7 +21,9 @@ if TYPE_CHECKING:
 # `password=...` in a libpq connection string, quoted or not.
 _LIBPQ_PASSWORD = re.compile(r"(?:^|\s+)password\s*=\s*('(?:[^'\\]|\\.)*'|[^\s']\S*)")
 # The password of `scheme://user:password@host` in any text.
-_URL_PASSWORD = re.compile(r"(\b[a-z][a-z0-9+.-]*://[^:@/\s'\"]*:)[^@\s'\"/]+@", re.I)
+_URL_PASSWORD = re.compile(r"(\b[a-z][a-z0-9+.-]*://[^:@/\s'\"]*:)[^@\s'\"]+@", re.I)
+# A URI's user info, as libpq reads it: up to its first `@`, before any `/`.
+_URI_USERINFO = re.compile(r"([^@/]*)@")
 # The value after a key ending in `password` (`password=`, `PGPASSWORD=`,
 # `'password': `, SQL's `PASSWORD '...'`) in any text.
 _KEY_PASSWORD = re.compile(
@@ -31,7 +33,18 @@ _KEY_PASSWORD = re.compile(
 )
 
 
-def _libpq_value(value: str) -> str:
+def postgres_uri(
+    user: str, password: str, host: str, port: int | str, dbname: str
+) -> str:
+    """A Postgres URI with its user, password and database percent-encoded,
+    so any character in them survives."""
+    return (
+        f"postgresql://{quote(user, safe='')}:{quote(password, safe='')}"
+        f"@{host}:{port}/{quote(dbname, safe='')}"
+    )
+
+
+def libpq_value(value: str) -> str:
     """A libpq value, quoted when it is empty or holds a space, a quote or a
     backslash."""
     if value and not re.search(r"[\s'\\]", value):
@@ -46,21 +59,24 @@ def without_password(dsn: str) -> tuple[str, str | None]:
     A URI that loses its password comes back as a libpq string: DuckDB merges
     its Postgres secret into a libpq string only.
     """
-    if "://" in dsn:
-        url = urlsplit(dsn)
-        if url.password is None:
+    scheme, separator, rest = dsn.partition("://")
+    if separator:
+        userinfo = _URI_USERINFO.match(rest)
+        if userinfo is None or ":" not in userinfo.group(1):
             return dsn, None
+        user, _, password = userinfo.group(1).partition(":")
+        url = urlsplit(f"{scheme}://{rest[userinfo.end() :]}")
         params = {
             "host": url.hostname,
             "port": str(url.port) if url.port else None,
-            "user": unquote(url.username) if url.username else None,
+            "user": unquote(user) or None,
             "dbname": unquote(url.path.lstrip("/")) or None,
             **dict(parse_qsl(url.query)),
         }
         target = " ".join(
-            f"{key}={_libpq_value(value)}" for key, value in params.items() if value
+            f"{key}={libpq_value(value)}" for key, value in params.items() if value
         )
-        return target, unquote(url.password)
+        return target, unquote(password)
     found = _LIBPQ_PASSWORD.search(dsn)
     if found is None:
         return dsn, None

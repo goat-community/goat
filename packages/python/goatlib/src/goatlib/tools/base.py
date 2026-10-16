@@ -75,7 +75,7 @@ from goatlib.storage.s3_config import apply_duckdb_s3_settings, boto_client_kwar
 from goatlib.tools.db import ToolDatabaseService
 from goatlib.tools.schemas import ToolInputBase, ToolOutputBase
 from goatlib.utils.container_memory import JOB_DUCKLAKE_MEMORY_SHARE, set_memory_share
-from goatlib.utils.credentials import postgres_attach_target
+from goatlib.utils.credentials import postgres_attach_target, postgres_uri
 from goatlib.utils.layer import (
     layer_id_to_table_name,
     layer_schema_name,
@@ -324,9 +324,7 @@ class ToolSettings:
         pg_password = cls._get_secret("POSTGRES_PASSWORD", "postgres")
 
         # Build default URI from components (uses db hostname, not localhost)
-        default_uri = (
-            f"postgresql://{pg_user}:{pg_password}@{pg_server}:{pg_port}/{pg_db}"
-        )
+        default_uri = postgres_uri(pg_user, pg_password, pg_server, pg_port, pg_db)
 
         # DuckLake attaches keep their catalog connections for the whole job
         # and are not verified behind a transaction pooler. When
@@ -339,9 +337,8 @@ class ToolSettings:
             ducklake_host, ducklake_port = ducklake_postgres_endpoint(
                 pg_server, pg_port, ducklake_server, ducklake_port
             )
-            ducklake_uri = (
-                f"postgresql://{pg_user}:{pg_password}"
-                f"@{ducklake_host}:{ducklake_port}/{pg_db}"
+            ducklake_uri = postgres_uri(
+                pg_user, pg_password, ducklake_host, ducklake_port, pg_db
             )
         else:
             ducklake_uri = cls._get_secret("POSTGRES_DATABASE_URI", default_uri)

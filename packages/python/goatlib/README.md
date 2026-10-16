@@ -142,7 +142,9 @@ connection's Postgres secret, which every Postgres connection of that DuckDB
 connection uses, and hands back the rest as a libpq string, the only form
 DuckDB merges the secret into. One DuckDB connection therefore holds one
 Postgres password. Error text that processes or a workflow run hands on goes
-through `redact_credentials`.
+through `redact_credentials`. Postgres URIs are built with `postgres_uri`,
+which percent-encodes the user, password and database, and libpq strings quote
+their values, so a password may hold any character.
 
 Behind a connection pooler in transaction mode (`POSTGRES_TRANSACTION_POOLER`)
 each query may run on another server connection, and a pooler with stock

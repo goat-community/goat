@@ -5,6 +5,7 @@ import duckdb
 import pytest
 from goatlib.utils.credentials import (
     postgres_attach_target,
+    postgres_uri,
     redact_credentials,
     without_password,
 )
@@ -153,3 +154,48 @@ def test_credentials_are_removed_from_a_connection_error() -> None:
 )
 def test_every_form_of_a_password_in_text_is_redacted(text: str, expected: str) -> None:
     assert redact_credentials(text) == expected
+
+
+SPECIAL = '$t3st!PW""x Y09?a@b#c%d/e:f$$2026$$\''
+
+
+def test_a_built_uri_keeps_any_password_intact() -> None:
+    uri = postgres_uri("goat", SPECIAL, "db", 5432, "goat")
+
+    assert without_password(uri) == ("host=db port=5432 user=goat dbname=goat", SPECIAL)
+
+
+# libpq ends a URI's user info at its first `@` or `/`: a password written
+# into it as it is may hold `?` and `#`, not `@` or `/`.
+@pytest.mark.parametrize(
+    ("dsn", "password"),
+    [
+        ("postgresql://goat:a?b@db:5432/goat", "a?b"),
+        ("postgresql://goat:x#y:z@db/goat?application_name=x", "x#y:z"),
+        ("postgresql://goat:pw@db/goat?options=a@b", "pw"),
+    ],
+)
+def test_a_password_written_into_a_uri_as_it_is_still_comes_out(
+    dsn: str, password: str
+) -> None:
+    target, found = without_password(dsn)
+
+    assert found == password
+    assert "host=db" in target
+    assert password not in target
+
+
+def test_a_libpq_string_from_the_catalog_keeps_any_password_intact() -> None:
+    from goatlib.storage.ducklake import catalog_libpq
+
+    libpq = catalog_libpq({"host": "db", "user": "goat", "password": SPECIAL}, None)
+
+    target, found = without_password(libpq)
+    assert found == SPECIAL
+    assert target.startswith("host=db user=goat ")
+
+
+def test_a_password_with_slashes_is_redacted_in_a_uri() -> None:
+    assert redact_credentials("at postgresql://goat:p/q?r@db/goat") == (
+        "at postgresql://goat:***@db/goat"
+    )

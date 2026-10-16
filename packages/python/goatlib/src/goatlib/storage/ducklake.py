@@ -19,7 +19,7 @@ import duckdb
 from goatlib.storage.pin_errors import is_pin_miss_error
 from goatlib.storage.s3_config import apply_duckdb_s3_settings
 from goatlib.storage.snapshot_pin import SnapshotPin
-from goatlib.utils.credentials import postgres_attach_target
+from goatlib.utils.credentials import libpq_value, postgres_attach_target
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ def catalog_libpq(params: dict[str, str], application_name: str | None) -> str:
     params = {**params, **POSTGRES_KEEPALIVE_PARAMS}
     if application_name:
         params["application_name"] = application_name
-    return " ".join(f"{k}={v}" for k, v in params.items())
+    return " ".join(f"{k}={libpq_value(str(v))}" for k, v in params.items())
 
 
 def uri_with_application_name(uri: str, application_name: str) -> str:

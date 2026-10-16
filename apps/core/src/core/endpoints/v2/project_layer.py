@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from goatlib.config.postgres import asyncpg_connect_args
+from goatlib.utils.credentials import postgres_uri
 from pydantic import UUID4
 
 from core.core.config import settings
@@ -214,9 +215,12 @@ async def add_catalog_items_to_project(
     # Promote writes with goatlib (shared implementation with the workers), so
     # it speaks plain asyncpg rather than this request's SQLAlchemy session.
     # A promote is rare (miss-path only) — one short-lived connection is fine.
-    dsn = (
-        f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
-        f"@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+    dsn = postgres_uri(
+        settings.POSTGRES_USER,
+        settings.POSTGRES_PASSWORD,
+        settings.POSTGRES_SERVER,
+        settings.POSTGRES_PORT,
+        settings.POSTGRES_DB,
     )
     layer_ids: List[UUID4] = []
     reused_link_ids: List[int] = []

@@ -11,6 +11,7 @@ from goatlib.config.postgres import (
     parse_transaction_pooler,
     transaction_pooler_enabled,
 )
+from goatlib.utils.credentials import postgres_uri
 from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode
 
@@ -210,7 +211,13 @@ class Settings(BaseSettings):
     @property
     def POSTGRES_DATABASE_URI(self) -> str:
         """Construct PostgreSQL URI."""
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        return postgres_uri(
+            self.POSTGRES_USER,
+            self.POSTGRES_PASSWORD,
+            self.POSTGRES_SERVER,
+            self.POSTGRES_PORT,
+            self.POSTGRES_DB,
+        )
 
     @property
     def DUCKLAKE_POSTGRES_DATABASE_URI(self) -> str:
@@ -221,7 +228,9 @@ class Settings(BaseSettings):
             self.DUCKLAKE_POSTGRES_SERVER,
             self.DUCKLAKE_POSTGRES_PORT,
         )
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{host}:{port}/{self.POSTGRES_DB}"
+        return postgres_uri(
+            self.POSTGRES_USER, self.POSTGRES_PASSWORD, host, port, self.POSTGRES_DB
+        )
 
     model_config = {"env_prefix": "GEOAPI_", "case_sensitive": True}
 
