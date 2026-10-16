@@ -25,6 +25,7 @@ from goatlib.tools.workflow_dataset_nodes import (
     project_layer_ids,
     with_current_layer_ids,
 )
+from goatlib.utils.credentials import redact_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +38,9 @@ _NUMBERED_OPPORTUNITY = re.compile(r"opportunity_layer_(\d+)_id")
 
 
 def _sanitize_error_msg(msg: str) -> str:
-    """Remove usernames from Windmill cancellation error messages."""
-    return _CANCEL_USER_RE.sub("cancelled", msg)
+    """A step's error text without the username of a Windmill cancellation
+    and without credentials."""
+    return redact_credentials(_CANCEL_USER_RE.sub("cancelled", msg))
 
 
 class WorkflowNode(BaseModel):

@@ -19,6 +19,7 @@ import duckdb
 from goatlib.storage.pin_errors import is_pin_miss_error
 from goatlib.storage.s3_config import apply_duckdb_s3_settings
 from goatlib.storage.snapshot_pin import SnapshotPin
+from goatlib.utils.credentials import libpq_value, postgres_attach_target
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +110,7 @@ def catalog_libpq(params: dict[str, str], application_name: str | None) -> str:
     params = {**params, **POSTGRES_KEEPALIVE_PARAMS}
     if application_name:
         params["application_name"] = application_name
-    return " ".join(f"{k}={v}" for k, v in params.items())
+    return " ".join(f"{k}={libpq_value(str(v))}" for k, v in params.items())
 
 
 def uri_with_application_name(uri: str, application_name: str) -> str:
@@ -751,7 +752,8 @@ class BaseDuckLakeManager:
             options.append(f"SNAPSHOT_VERSION {snapshot_version}")
         options_str = ", ".join(options)
 
-        attach_sql = f"ATTACH 'ducklake:postgres:{libpq_str}' AS lake ({options_str})"
+        target = postgres_attach_target(con, libpq_str)
+        attach_sql = f"ATTACH 'ducklake:postgres:{target}' AS lake ({options_str})"
         con.execute(attach_sql)
         mode = "read-only" if self._read_only else "read-write"
         logger.info("DuckLake catalog attached (%s)", mode)
@@ -787,8 +789,9 @@ class BaseDuckLakeManager:
                         libpq = catalog_libpq(
                             self._parse_postgres_uri(), self._application_name
                         )
+                        target = postgres_attach_target(con, libpq)
                         con.execute(
-                            f"ATTACH '{libpq}' AS pincat (TYPE postgres, READ_ONLY)"
+                            f"ATTACH '{target}' AS pincat (TYPE postgres, READ_ONLY)"
                         )
                         self._poll_con = con
                     rows = self._poll_con.execute(query).fetchall()
@@ -1133,8 +1136,9 @@ class DuckLakePool:
                         libpq = catalog_libpq(
                             self._parse_postgres_uri(), self._application_name
                         )
+                        target = postgres_attach_target(con, libpq)
                         con.execute(
-                            f"ATTACH '{libpq}' AS pincat (TYPE postgres, READ_ONLY)"
+                            f"ATTACH '{target}' AS pincat (TYPE postgres, READ_ONLY)"
                         )
                         self._poll_con = con
                     rows = self._poll_con.execute(query).fetchall()
@@ -1251,7 +1255,8 @@ class DuckLakePool:
             options.append(f"SNAPSHOT_VERSION {snapshot_version}")
         options_str = ", ".join(options)
 
-        attach_sql = f"ATTACH 'ducklake:postgres:{libpq_str}' AS lake ({options_str})"
+        target = postgres_attach_target(con, libpq_str)
+        attach_sql = f"ATTACH 'ducklake:postgres:{target}' AS lake ({options_str})"
         con.execute(attach_sql)
 
         return con

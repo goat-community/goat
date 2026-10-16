@@ -51,6 +51,7 @@ from pydantic import BaseModel, Field
 from goatlib.config.postgres import TASKS_APPLICATION_NAME
 from goatlib.storage import BaseDuckLakeManager
 from goatlib.tools.base import ToolSettings
+from goatlib.utils.credentials import postgres_attach_target
 
 logger = logging.getLogger(__name__)
 
@@ -215,7 +216,10 @@ class DuckLakeCompactTask:
             # candidate selection (the ducklake-attached "lake" namespace
             # doesn't expose the metadata tables; the manager's own attach
             # only covers "lake.<schema>.<table>" queries).
-            uri = self.settings.ducklake_postgres_uri  # type: ignore[union-attr]
+            uri = postgres_attach_target(
+                con,
+                self.settings.ducklake_postgres_uri,  # type: ignore[union-attr]
+            )
             con.execute(f"ATTACH IF NOT EXISTS 'postgres:{uri}' AS pg (READ_ONLY)")
 
             # Candidate filter: a table is a candidate iff it has at

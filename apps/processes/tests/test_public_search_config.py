@@ -203,3 +203,29 @@ def test_the_connection_loads_postgres_through_goatlib(monkeypatch) -> None:
     psc._get_connection()
 
     assert loaded == [("postgres",)]
+
+
+def test_the_connection_keeps_the_password_out_of_its_attach(monkeypatch) -> None:
+    executed: list[tuple] = []
+
+    class _Con:
+        def execute(self, sql, *parameters):
+            executed.append((sql, parameters))
+            return self
+
+    monkeypatch.setattr(psc, "_con", None)
+    monkeypatch.setattr(psc.duckdb, "connect", lambda: _Con())
+    monkeypatch.setattr(psc, "load_extensions", lambda con, *ext: None)
+    monkeypatch.setattr(psc, "cap_catalog_connections", lambda con, n: None)
+    monkeypatch.setattr(
+        type(psc.settings),
+        "POSTGRES_DATABASE_URI",
+        property(lambda _: "postgresql://goat:hunter2@db:5432/goat"),
+    )
+
+    psc._get_connection()
+
+    (attach,) = [sql for sql, _ in executed if sql.startswith("ATTACH")]
+    assert "hunter2" not in attach
+    secret = ("CREATE OR REPLACE SECRET (TYPE postgres, PASSWORD ?)", (["hunter2"],))
+    assert secret in executed

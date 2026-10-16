@@ -136,6 +136,16 @@ runner's DuckLake connection.
 Sessions carry an `application_name` (`goat-geoapi-ducklake`, `goat-tools`,
 …) so operators can tell them apart in `pg_stat_activity`.
 
+No attach puts a password into its connection string:
+`goatlib.utils.credentials.postgres_attach_target` moves it into the DuckDB
+connection's Postgres secret, which every Postgres connection of that DuckDB
+connection uses, and hands back the rest as a libpq string, the only form
+DuckDB merges the secret into. One DuckDB connection therefore holds one
+Postgres password. Error text that processes or a workflow run hands on goes
+through `redact_credentials`. Postgres URIs are built with `postgres_uri`,
+which percent-encodes the user, password and database, and libpq strings quote
+their values, so a password may hold any character.
+
 Behind a connection pooler in transaction mode (`POSTGRES_TRANSACTION_POOLER`)
 each query may run on another server connection, and a pooler with stock
 settings neither tracks prepared statements nor passes on startup parameters it

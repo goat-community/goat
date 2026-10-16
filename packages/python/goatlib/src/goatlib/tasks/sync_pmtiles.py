@@ -34,6 +34,7 @@ from goatlib.io.pmtiles import PMTilesConfig, PMTilesGenerator
 from goatlib.storage import BaseDuckLakeManager
 from goatlib.storage.ducklake import catalog_libpq
 from goatlib.tools.base import ToolSettings
+from goatlib.utils.credentials import postgres_attach_target
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +243,8 @@ class PMTilesSyncTask:
             },
             TASKS_APPLICATION_NAME,
         )
-        con.execute(f"ATTACH '{libpq_str}' AS pg (TYPE postgres, READ_ONLY)")
+        target = postgres_attach_target(con, libpq_str)
+        con.execute(f"ATTACH '{target}' AS pg (TYPE postgres, READ_ONLY)")
 
     def get_geometry_layers(
         self: Self,

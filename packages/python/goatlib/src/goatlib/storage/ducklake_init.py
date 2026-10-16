@@ -37,6 +37,7 @@ from goatlib.storage.ducklake import (
     load_extensions,
 )
 from goatlib.storage.s3_config import apply_duckdb_s3_settings, duckdb_s3_endpoint
+from goatlib.utils.credentials import postgres_attach_target
 
 
 def bootstrap_from_env() -> None:
@@ -117,6 +118,7 @@ def bootstrap_from_env() -> None:
     )
 
     print("Attaching DuckLake catalog...")
+    pg_uri = postgres_attach_target(con, pg_uri)
     # No READ_ONLY → DuckDB creates the catalog if missing, otherwise no-op.
     con.execute(
         f"ATTACH 'ducklake:postgres:{pg_uri}' AS lake ("

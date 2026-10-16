@@ -1,5 +1,6 @@
 import os
 from typing import Literal
+from urllib.parse import quote
 from uuid import UUID
 
 from goatlib.auth import AuthFlag, require_keycloak_url, require_own_client_allowed
@@ -61,11 +62,17 @@ class Settings(BaseSettings):
     ) -> str:
         if value:
             return value
+        # Percent-encoded, so any character in them survives; SQLAlchemy
+        # decodes them again.
+        user, password = (
+            info.data.get("POSTGRES_USER"),
+            info.data.get("POSTGRES_PASSWORD"),
+        )
         return str(
             PostgresDsn.build(
                 scheme="postgresql+psycopg",
-                username=info.data.get("POSTGRES_USER"),
-                password=info.data.get("POSTGRES_PASSWORD"),
+                username=quote(user, safe="") if user else user,
+                password=quote(password, safe="") if password else password,
                 host=info.data.get("POSTGRES_SERVER"),
                 port=info.data.get("POSTGRES_PORT"),
                 path=f"{info.data.get('POSTGRES_DB') or ''}",
