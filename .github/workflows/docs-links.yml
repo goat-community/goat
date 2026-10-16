@@ -41,6 +41,7 @@ jobs:
           # link checkers with 403, 406 or 429 although the page exists.
           args: >-
             --no-progress
+            --exclude-loopback
             --root-dir ${{ github.workspace }}/apps/docs/static
             --scheme https --scheme http
             --accept 100..=103,200..=299,403,406,429
