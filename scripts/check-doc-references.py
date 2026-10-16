@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail when a README or CLAUDE.md names a file or setting the code no longer has.
+"""Fail when a README or AGENTS.md names a file or setting the code no longer has.
 
 Docs rot silently: a renamed module or a removed setting leaves its mention
 behind, and nothing notices until someone follows it. This checks the two
@@ -27,9 +27,10 @@ ROOT = Path(__file__).resolve().parent.parent
 # Docs to check. A README listed with a service directory also gets its
 # setting names checked against that directory and goatlib.
 DOCS: dict[str, str | None] = {
-    "CLAUDE.md": None,
-    "apps/docs/CLAUDE.md": None,
-    "apps/web/CLAUDE.md": None,
+    # Agent instructions. apps/web/AGENTS.md is left out: `next dev` writes it
+    # and it names files under node_modules, which the check's checkout lacks.
+    "AGENTS.md": None,
+    "apps/docs/AGENTS.md": None,
     "apps/core/README.md": "apps/core",
     "apps/geoapi/README.md": "apps/geoapi",
     "apps/processes/README.md": "apps/processes",
