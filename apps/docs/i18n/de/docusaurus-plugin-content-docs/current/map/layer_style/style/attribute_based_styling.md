@@ -29,7 +29,7 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">In <code>Farbe basierend auf</code> wählen Sie das <strong>Text- oder Zahlenfeld zum Stylen</strong> aus.</div>
+  <div class="content">In <code>Farbe basierend auf</code> wählen Sie das <strong>Text-, Zahlen- oder Boolean-Feld (wahr/falsch) zum Stylen</strong> aus.</div>
 </div>
 
 <div class="step">
@@ -61,7 +61,7 @@ import TabItem from '@theme/TabItem';
 
 <div class="step">
   <div class="step-number">3</div>
-  <div class="content">In <code>Farbe basierend auf</code> wählen Sie das <strong>Text- oder Zahlenfeld zum Stylen</strong> aus.</div>
+  <div class="content">In <code>Farbe basierend auf</code> wählen Sie das <strong>Text-, Zahlen- oder Boolean-Feld (wahr/falsch) zum Stylen</strong> aus.</div>
 </div>
 
 <div class="step">
@@ -186,7 +186,7 @@ GOAT bietet vier vordefinierte Palettentypen:
 
 ## Datenklassifizierungsmethoden
 
-Die <code>Farbskala</code> bestimmt, wie Datenwerte auf Farben abgebildet werden. GOAT bietet sechs Datenklassifizierungsmethoden: **Quantil, Standardabweichung, Gleiches Intervall, Heads und Tails, Benutzerdefinierte Schritte und Benutzerdefinierte Ordinalskala.** Für Textfelder steht nur Benutzerdefinierte Ordinalskala zur Verfügung. Alle Methoden haben standardmäßig 7 Klassen, aber Sie können diese Anzahl nach Bedarf anpassen.
+Die <code>Farbskala</code> bestimmt, wie Datenwerte auf Farben abgebildet werden. GOAT bietet sechs Datenklassifizierungsmethoden: **Quantil, Standardabweichung, Gleiches Intervall, Heads und Tails, Benutzerdefinierte Schritte und Benutzerdefinierte Ordinalskala.** Für Text- und Boolean-Felder steht nur Benutzerdefinierte Ordinalskala zur Verfügung. Alle Methoden haben standardmäßig 7 Klassen, aber Sie können diese Anzahl nach Bedarf anpassen.
 
 ### Quantil
 
@@ -226,9 +226,9 @@ Die <code>Farbskala</code> bestimmt, wie Datenwerte auf Farben abgebildet werden
 
 </div> 
 
-### Benutzerdefinierte Ordinalskala (für **Strings**)
+### Benutzerdefinierte Ordinalskala (für **Strings** und **Boolean-Werte**)
 
-**Sortiert und visualisiert String-Daten** wie Kategorien oder Labels. Da Strings keine natürliche Ordnung haben, **ermöglicht Benutzerdefinierte Ordinalskala Ihnen, Ihre eigenen Ordnungsregeln zu definieren** für maßgeschneiderte Sequenzen.
+**Sortiert und visualisiert String-Daten** wie Kategorien oder Labels. Da Strings keine natürliche Ordnung haben, **ermöglicht Benutzerdefinierte Ordinalskala Ihnen, Ihre eigenen Ordnungsregeln zu definieren** für maßgeschneiderte Sequenzen. Ein Boolean-Feld hat die zwei Werte `true` und `false`, denen Sie je eine Farbe geben können.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
 

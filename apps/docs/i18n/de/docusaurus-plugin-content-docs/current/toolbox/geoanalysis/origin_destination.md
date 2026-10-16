@@ -78,7 +78,7 @@ Das folgende Beispiel zeigt eine *Eingabetabelle (Matrix-Layer)* und die resulti
 
 :::tip Hinweis
 
-Je nach Komplexität der QZ-Matrix kann die Berechnung einige Minuten dauern. Die [Statusleiste](../../workspace/workspace_interface.md#job-status) zeigt den aktuellen Fortschritt an.
+Je nach Komplexität der QZ-Matrix kann die Berechnung einige Minuten dauern. Die [Statusleiste](../../workspace/workspace_interface.md#user-controls) zeigt den aktuellen Fortschritt an.
 
 :::
 

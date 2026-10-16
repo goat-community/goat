@@ -51,9 +51,9 @@ Der Leinwand-Arbeitsbereich ist der Ort, wo Sie Knoten per Drag-and-Drop bewegen
 
 **Leinwand-Ansichtsleiste**: Befindet sich in der unteren linken Ecke der Leinwand:
 -  <img src={require('/img/icons/plus.png').default} alt="Hineinzoomen" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Hineinzoomen</code>: <strong>Vergrößert</strong> die Leinwand-Vergrößerung für detaillierte Arbeit
--  <img src={require('/img/icons/minus.png').default} alt="Herauszoomen" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Herauszoomen</code>: <strong>Verringert</strong> die Leinwand-Vergrößerung, um mehr vom Workflow zu sehen
+-  <img src={require('/img/icons/minus.png').default} alt="Rauszoomen" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Rauszoomen</code>: <strong>Verringert</strong> die Leinwand-Vergrößerung, um mehr vom Workflow zu sehen
 -  <img src={require('/img/icons/fit-view.png').default} alt="Ansicht anpassen" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Ansicht anpassen</code>: <strong>Passt die Ansicht an</strong>, um den gesamten Workflow auf einmal anzuzeigen
--  <img src={require('/img/icons/lock.png').default} alt="Ansicht sperren" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Ansicht sperren</code>: <strong>Verhindert versehentliches Schwenken und Zoomen</strong> der Leinwand
+-  <img src={require('/img/icons/lock.png').default} alt="Sperren" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Sperren</code>: <strong>Verhindert versehentliche Änderungen</strong>: Solange die Leinwand gesperrt ist, lassen sich Knoten und Textkarten nicht verschieben, verbinden oder löschen. Schwenken und Zoomen funktionieren weiterhin. Mit <code>Entsperren</code> können Sie wieder bearbeiten
   
 **Symbolleisten-Steuerung**: Befindet sich am mittleren unteren Rand der Leinwand:
 - <img src={require('/img/icons/cursor.png').default} alt="Auswählen" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Auswählen</code>: <strong>Standard-Cursor</strong> zum Auswählen und Bewegen von Knoten
@@ -68,6 +68,25 @@ Der Leinwand-Arbeitsbereich ist der Ort, wo Sie Knoten per Drag-and-Drop bewegen
 **Datenansicht-Steuerung**: Befindet sich am unteren Rand der Leinwand. Wählen Sie einen Knoten aus, um das Panel zu aktivieren. Es zeigt die Daten des Layers dieses Knotens:
 - <code>Tabelle</code>: Öffnet die Attributtabelle des ausgewählten Knotens
 - <code>Karte</code>: Öffnet eine Kartenvorschau des Layers des ausgewählten Knotens (nur verfügbar, wenn der Layer Geometrie enthält)
+
+### Tastenkürzel
+
+Unter macOS verwenden Sie `⌘` statt `Strg`.
+
+| Tastenkürzel | Aktion |
+|---|---|
+| `Entf` oder `Rücktaste` | Ausgewählten Knoten, ausgewählte Textkarte oder Verbindung löschen |
+| `Strg+Z` | Letzte Änderung rückgängig machen |
+| `Strg+Umschalt+Z` oder `Strg+Y` | Zuletzt rückgängig gemachte Änderung wiederholen |
+| `Strg` + Klick | Knoten oder Textkarte zur Auswahl hinzufügen |
+| Pfeiltasten | Ausgewählten Knoten oder ausgewählte Textkarte verschieben |
+| `Esc` | Auswahl aufheben |
+
+Mit der Maus ziehen Sie auf einer leeren Stelle der Leinwand, um sie zu verschieben, und scrollen, um zu zoomen.
+
+- Rückgängig und Wiederholen wirken nicht, während Sie in einem Feld tippen, etwa in einer Textkarte oder einer Werkzeugeinstellung.
+- Das Verschieben von Knoten und Textkarten lässt sich noch nicht rückgängig machen.
+- Solange die Leinwand mit <code>Sperren</code> gesperrt ist, löscht `Entf` nichts.
 
 ### Werkzeuge und Konfigurations-Panel
 Das rechte Panel ändert sich je nachdem, ob ein Knoten ausgewählt ist oder nicht. Wenn kein Knoten ausgewählt ist, wird das **Werkzeuge und Verlauf Panel** sichtbar. Wenn ein Werkzeug-Knoten ausgewählt ist, erscheint das **Konfigurations-Panel**, und wenn ein Datensatz-Knoten ausgewählt ist, erscheint das **Datensatz-Panel**.
@@ -84,7 +103,7 @@ Dieser Tab enthält kategorisierte Werkzeuge, die für die Workflow-Konstruktion
 
 - **Daten I/O**
   - <code>+ Datensatz hinzufügen</code>: Erstellt Datensatz-Knoten
-  - <code>Als Datensatz speichern</code>: Speichert Workflow-Ergebnisse als permanente Datensätze. Konfigurieren Sie den **Dataset-Namen**, aktivieren Sie **Zum Projekt hinzufügen**, um das Ergebnis automatisch zur Projektlayerliste hinzuzufügen, und aktivieren Sie **Bei erneutem Ausführen überschreiben**, um das zuvor exportierte Dataset bei jeder Ausführung des Workflows zu ersetzen, anstatt einen neuen Datensatz zu erstellen.
+  - <code>Als Datensatz speichern</code>: Speichert Workflow-Ergebnisse als permanente Datensätze. Konfigurieren Sie den **Datensatznamen** (Feld <code>Datensatzname</code>), aktivieren Sie **Zum Projekt hinzufügen**, um das Ergebnis automatisch zur Projektlayerliste hinzuzufügen, und aktivieren Sie **Bei erneutem Ausführen überschreiben**, um das zuvor exportierte Dataset bei jeder Ausführung des Workflows zu ersetzen, anstatt einen neuen Datensatz zu erstellen.
 
 :::tip Gute Praxis
 Vergeben Sie für jeden **Als Datensatz speichern**-Knoten einen aussagekräftigen Namen und aktivieren Sie **Bei erneutem Ausführen überschreiben**, wenn Sie denselben Workflow mehrfach ausführen. So bleibt Ihr Projekt übersichtlich und es entstehen keine doppelten Layer nach jeder Ausführung.
@@ -246,6 +265,10 @@ Sobald ein Workflow eingerichtet ist, können Sie ihn als **Vorlage** speichern,
   <div class="step-number">5</div>
   <div class="content">Klicken Sie auf <code>Speichern</code>.</div>
 </div>
+
+:::tip Ihr Styling kommt mit
+Wenn Sie einen Export-Knoten ausgeführt und seinen Ergebnis-Layer gestylt haben, übernimmt die Vorlage dieses Styling. Wer die Vorlage nutzt, sieht Ihr Styling schon beim ersten Ausführen. Ein Export, der ein früheres Ergebnis überschreibt, behält das Styling dieses Layers.
+:::
 
 :::info Aktualisieren statt duplizieren
 Wenn aus diesem Workflow bereits eine Vorlage gespeichert wurde, können Sie sie **aus der Quelle aktualisieren** mit der aktuellen Version, anstatt ein Duplikat zu erstellen. Da die Eingaben Teil des gespeicherten Snapshots sind, verwenden Sie <code>Vorlage aus Quelle aktualisieren</code>, um sie zu ändern.

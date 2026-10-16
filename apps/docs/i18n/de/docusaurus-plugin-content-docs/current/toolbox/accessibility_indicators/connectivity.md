@@ -109,7 +109,7 @@ Optional können Sie <code>Erweiterte Optionen</code> aktivieren, um weitere Ein
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">Legen Sie den <code>Name der Ergebnislayer</code> für den Ausgabe-Heatmap-Layer fest.</div>
+  <div class="content">Legen Sie den <code>Name des Ergebnis-Layers</code> für den Ausgabe-Heatmap-Layer fest.</div>
 </div>
 
 <div class="step">

@@ -113,7 +113,7 @@ Der Bereich <code>Konfiguration</code> wird verfügbar, sobald ein Eingabe-Layer
 
 <div class="step">
   <div class="step-number">9</div>
-  <div class="content">Ändern Sie optional das Feld <code>Name der Ergebnislayer</code> (Standard: <b>Puffer</b>).</div>
+  <div class="content">Ändern Sie optional das Feld <code>Name des Ergebnis-Layers</code> (Standard: <b>Puffer</b>).</div>
 </div>
 
 <div class="step">

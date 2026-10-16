@@ -69,7 +69,7 @@ The categories widget allows you to visualize the distribution of a categorical 
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_categories.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_categories.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 ## Histogram
@@ -119,7 +119,7 @@ The histogram widget allows you to visualize the **distribution of a numeric fie
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_histogram.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_histogram.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 ## Pie chart
@@ -182,7 +182,7 @@ Results will be visualized in **percentage**.
 
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_pie_chart.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_pie_chart.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 ::::tip

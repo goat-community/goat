@@ -11,7 +11,9 @@ Standards and best practices for GOAT documentation.
 - Use the glossary.md to write the right terms from GOAT UI and to make the german translations.
 
 ### Images
-- Center images with consistent styling (maxHeight: "400px")
+- Center images with consistent styling.
+- No picture or recording is taller than 450px. The site stylesheet enforces this, so you don't need a `maxHeight`; never set one above 450px.
+- For a narrow screenshot (a menu, a dialog, a panel), set `maxWidth` to about half the file's pixel width, so it shows at the size it has in GOAT (screenshots are taken at 2x).
 - Use descriptive alt text
 
 ### Others

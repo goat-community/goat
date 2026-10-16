@@ -70,7 +70,7 @@ Das Kategorien-Widget ermöglicht es Ihnen, die Verteilung eines kategorischen F
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_categories.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_categories.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 <p></p>
@@ -122,7 +122,7 @@ Das Histogramm-Widget ermöglicht es Ihnen, die **Verteilung eines numerischen F
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_histogram.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_histogram.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 
@@ -184,7 +184,7 @@ Ergebnisse werden in **Prozent** visualisiert.
 
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_pie_chart.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_pie_chart.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 

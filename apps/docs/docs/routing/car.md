@@ -32,6 +32,18 @@ The following steps are performed on the data to enable  **quick**  and  **accur
 2.  **Geospatial Indexing:**  Utilizing  **[Uber's H3 grid-based](https://www.plan4better.de/en/glossary/h3-grid)**  indexing for efficient routing.
 3.  **Extracting Restrictions:**  Identifying one-way access restrictions in addition to speed limits for both directions of the edge (`maxspeed_forward` and `maxspeed_backward`).
 
+Where the data states no speed limit for a direction, GOAT uses the default speed of the street class:
+
+| Class | Default (km/h) |
+|---|---|
+| `motorway` | 80 |
+| `trunk` | 60 |
+| `primary` | 50 |
+| `secondary` | 50 |
+| `tertiary` | 50 |
+| `residential` | 30 |
+| `living_street` | 30 |
+
 ### Routing Process Steps
 
 #### Sub-network Extraction

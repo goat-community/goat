@@ -87,8 +87,10 @@ const config = {
     [
       "@docusaurus/plugin-client-redirects",
       {
-        // Earlier addresses of the first-steps tutorial pages.
+        // Earlier addresses of the first-steps tutorial pages, and the
+        // Troubleshooting page the Support page replaced.
         redirects: [
+          { from: "/troubleshooting", to: "/support" },
           { from: "/tutorials/goat-first-steps", to: "/tutorials/first-steps" },
           ...[
             "start-here",

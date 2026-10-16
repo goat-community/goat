@@ -14,7 +14,7 @@ Auf GOAT können Sie mit Datensätzen aus Plan4Betters Katalog arbeiten, Ihre ei
 Feature-Datensätze speichern **räumliche Features wie Punkte, Linien oder Polygone**. Auf GOAT können Sie Daten aus **Shapefiles**, **GeoPackages**, **GeoJSON**, **KML**, **ZIP** oder **Parquet**-Dateien hochladen oder eine **WFS**-externe-URL hinzufügen. Für externe Raster-Quellen (WMS, WMTS, XYZ-Kacheln, COG) siehe [Raster-Datensätze](#raster-datensätze) unten. Sie können diese Datensätze mit den verschiedenen Werkzeugen aus der Werkzeugkiste visualisieren, gestalten und analysieren.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/data/spatial_de.webp').default} alt="Räumliche Features in GOAT" style={{ maxHeight: "750px", maxWidth: "750px", objectFit: "cover"}}/>
+  <img src={require('/img/data/spatial_de.webp').default} alt="Räumliche Features in GOAT" style={{ maxHeight: "450px", maxWidth: "750px", objectFit: "cover"}}/>
   <p style={{ textAlign: 'center', fontStyle: 'italic', marginTop: '8px', color: '#666' }}> Beispiel für räumliche Features, die in GOAT angezeigt werden</p>
 </div>
 
@@ -31,7 +31,7 @@ GOAT erkennt zwei Typen von Feature-Datensätzen basierend auf ihrer Quelle:
 **Tabellen** sind **nicht-räumliche Datensätze** ohne geografische Referenzpunkte, daher können sie nicht auf der Karte visualisiert werden. Importieren Sie sie in **CSV**- oder **XLSX**-Formaten für Analyse und Datenmanagement.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/data/table.webp').default} alt="Nicht-räumliche Datensätze in GOAT" style={{ maxHeight: "750px", maxWidth: "750px", objectFit: "cover"}}/>
+  <img src={require('/img/data/table.webp').default} alt="Nicht-räumliche Datensätze in GOAT" style={{ maxHeight: "450px", maxWidth: "750px", objectFit: "cover"}}/>
   <p style={{ textAlign: 'center', fontStyle: 'italic', marginTop: '8px', color: '#666' }}> Beispiel einer in GOAT angezeigten Tabelle</p>
 </div>
 
@@ -77,7 +77,7 @@ Raster-Styling hängt vom externen Service ab (z.B. GeoServer). Sie können das 
 :::
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/data/raster_de.webp').default} alt="Raster-Datensätze in GOAT" style={{ maxHeight: "750px", maxWidth: "750px", objectFit: "cover"}}/>
+  <img src={require('/img/data/raster_de.webp').default} alt="Raster-Datensätze in GOAT" style={{ maxHeight: "450px", maxWidth: "750px", objectFit: "cover"}}/>
   <p style={{ textAlign: 'center', fontStyle: 'italic', marginTop: '8px', color: '#666' }}> Beispiel eines in GOAT angezeigten Raster-Layers</p>
 
 </div>

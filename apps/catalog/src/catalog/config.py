@@ -42,7 +42,7 @@ class CatalogSettings(BaseSettings):
     duckdb_memory_limit: str | None = None
     duckdb_threads: int | None = None
 
-    # The repo-wide single switch (see CLAUDE.md): unlike every other field
+    # The repo-wide single switch (see AGENTS.md): unlike every other field
     # here, this reads the bare `AUTH` env var, NOT `CATALOG_AUTH` -- an
     # explicit validation_alias bypasses env_prefix for just this field
     # (CATALOG_AUTH is kept as a fallback alias for a catalog-only override).

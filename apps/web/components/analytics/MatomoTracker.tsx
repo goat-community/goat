@@ -26,7 +26,9 @@ interface Props {
   projectName?: string;
   /** When true, inject `_paq.push(['requireConsent'])` so the tracker
    * defers events until the visitor's consent banner calls
-   * `_paq.push(['rememberConsentGiven'])`. */
+   * `_paq.push(['rememberConsentGiven'])`. When false there is no banner,
+   * so the tracker runs cookieless (`disableCookies`): nothing is stored
+   * on the device, which is what lets it count without consent (§25 TDDDG). */
   requireConsent?: boolean;
 }
 
@@ -77,10 +79,12 @@ export function MatomoTracker({
   const projectIdJson = JSON.stringify(projectId);
   const titleJson = JSON.stringify(projectName ?? "");
   const scriptSrcJson = JSON.stringify(scriptSrc);
-  // `requireConsent` MUST be pushed BEFORE `trackPageView`, per Matomo's
-  // tracking-consent guide. Otherwise the first pageview races the
-  // consent gate and is sent immediately.
-  const consentLine = requireConsent ? "_paq.push(['requireConsent']);" : "";
+  // `requireConsent` / `disableCookies` MUST be pushed BEFORE `trackPageView`.
+  // Otherwise the first pageview races the consent gate, or sets `_pk_id` /
+  // `_pk_ses` before cookies are switched off. Done in code rather than
+  // relying on the Matomo instance's "force tracking without cookies" setting,
+  // so a dashboard without a banner can never set cookies.
+  const consentLine = requireConsent ? "_paq.push(['requireConsent']);" : "_paq.push(['disableCookies']);";
 
   return (
     <Script id="matomo-tracker" strategy="afterInteractive">

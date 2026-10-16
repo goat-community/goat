@@ -53,7 +53,7 @@ The canvas workspace is where you can drag and drop nodes, zoom, pan, and select
 -  <img src={require('/img/icons/plus.png').default} alt="Zoom In" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Zoom In</code>: <strong>Increase</strong> the canvas magnification for detailed work
 -  <img src={require('/img/icons/minus.png').default} alt="Zoom Out" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Zoom Out</code>: <strong>Decrease</strong> the canvas magnification to see more of the workflow
 -  <img src={require('/img/icons/fit-view.png').default} alt="Fit View" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Fit View</code>: <strong>Adjust the view</strong> to display the entire workflow at once
--  <img src={require('/img/icons/lock.png').default} alt="Lock View" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Lock View</code>: <strong>Prevent accidental panning and zooming</strong> of the canvas
+-  <img src={require('/img/icons/lock.png').default} alt="Lock" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Lock</code>: <strong>Prevent accidental changes</strong>: while the canvas is locked, nodes and text cards can't be moved, connected or deleted. Panning and zooming still work. Click <code>Unlock</code> to edit again
   
 **Toolbar Controls**: Located at the middle bottom of the canvas:
 - <img src={require('/img/icons/cursor.png').default} alt="Select" style={{ maxHeight: "20px", maxWidth: "20px", objectFit: "cover"}}/> <code>Select</code>: <strong>Default cursor</strong> for selecting and moving nodes
@@ -68,6 +68,25 @@ The canvas workspace is where you can drag and drop nodes, zoom, pan, and select
 **Data View Controls**: Located at the bottom of the canvas. Select a node to activate the panel. It shows the data of that node's layer:
 - <code>Table</code>: Opens the attribute table of the selected node's layer
 - <code>Map</code>: Opens a map preview of the selected node's layer (only available if the layer has geometry)
+
+### Keyboard shortcuts
+
+On macOS, use `⌘` instead of `Ctrl`.
+
+| Shortcut | Action |
+|---|---|
+| `Delete` or `Backspace` | Delete the selected node, text card or connection |
+| `Ctrl+Z` | Undo the last change |
+| `Ctrl+Shift+Z` or `Ctrl+Y` | Redo the last undone change |
+| `Ctrl` + click | Add a node or text card to the selection |
+| Arrow keys | Move the selected node or text card |
+| `Esc` | Clear the selection |
+
+With the mouse, drag on an empty part of the canvas to pan, and scroll to zoom.
+
+- Undo and redo don't apply while you type in a field, such as a text card or a tool setting.
+- Moving nodes and text cards can't be undone yet.
+- While the canvas is locked with <code>Lock</code>, `Delete` doesn't remove anything.
 
 ### Tools and Configuration panel
 The right panel changes depending if there is a node selected or not. If no node is selected then the **Tools and History panel** will be visible. If a tool node is selected, the **Configuration panel** will appear, and if a dataset node is selected the **Dataset panel** will appear.
@@ -248,6 +267,10 @@ Once a workflow is set up, you can save it as a **template** so it can be reused
   <div class="step-number">5</div>
   <div class="content">Click <code>Save</code>.</div>
 </div>
+
+:::tip Your styling comes along
+If you have run an export node and styled its result layer, the template keeps that style. People who use the template get your styling on their first run. An export that overwrites an earlier result keeps that layer's own style.
+:::
 
 :::info Update instead of duplicate
 If a template was already saved from this workflow, you can **update it from the source** with the current version instead of creating a duplicate. Because the inputs are part of the saved snapshot, use <code>Update template from source</code> to change them.

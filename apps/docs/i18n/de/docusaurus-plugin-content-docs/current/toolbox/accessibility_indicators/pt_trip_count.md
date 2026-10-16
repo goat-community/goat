@@ -60,7 +60,7 @@ Die Berechnung der Anzahl Abfahrten ist für Gebiete verfügbar, in denen [GTFS-
 
 <div class="step">
   <div class="step-number">5</div>
-  <div class="content">Legen Sie den <code>Name der Ergebnislayer</code> für den Ausgabe-Layer fest.</div>
+  <div class="content">Legen Sie den <code>Name des Ergebnis-Layers</code> für den Ausgabe-Layer fest.</div>
 </div>
 
 <div class="step">

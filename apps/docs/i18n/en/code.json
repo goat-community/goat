@@ -394,12 +394,12 @@
     "message": "Step-by-step exercises that walk you through GOAT.",
     "description": "Description of a section card on the docs landing page"
   },
-  "goat.home.card.troubleshooting.title": {
-    "message": "Troubleshooting",
+  "goat.home.card.support.title": {
+    "message": "Support",
     "description": "Title of a section card on the docs landing page"
   },
-  "goat.home.card.troubleshooting.description": {
-    "message": "Solutions for failed jobs and other common issues.",
+  "goat.home.card.support.description": {
+    "message": "Ask the GOAT team a question or report a problem with a support ticket.",
     "description": "Description of a section card on the docs landing page"
   }
 }

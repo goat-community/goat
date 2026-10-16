@@ -139,7 +139,7 @@ For point layers, you can use custom markers instead of basic shapes.
 </div>
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-  <Video src={require('/img/map/styling/custom_marker.mp4').default} alt="Custom marker selection" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/map/styling/custom_marker.mp4').default} alt="Custom marker selection" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div>
 <p></p>
 

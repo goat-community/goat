@@ -19,15 +19,15 @@ sidebar_position: 1
 </div> 
 
 #### Linke Seite
-- <code>Projektmenü</code>: <strong>Klicken Sie, um zurückzukehren</strong> zur Startseite, Projektmetadaten zu bearbeiten, das Projekt zu löschen, den Kartenausschnitt zu sperren, ein Problem zu melden oder die Datenschutzrichtlinie zu lesen.
+- <code>Projektmenü</code>: <strong>Klicken Sie, um zurückzukehren</strong> zur Startseite, Projektmetadaten zu bearbeiten, das Projekt zu löschen, den Kartenausschnitt zu sperren oder die Datenschutzrichtlinie zu lesen.
 - <code>Projektname</code>: <strong>Doppelklicken Sie, um zu bearbeiten</strong> den Projektnamen.
 - <code>Zuletzt gespeichert</code>: <strong>Zeigt den Zeitstempel</strong> der letzten gespeicherten Änderung.
 
 #### Rechte Seite
 - <code>Projekt-Modus Umschalter</code>: <strong>Wechseln Sie zwischen</strong> den Karten-, Workflows-, Layouts- und Dashboard-Oberflächen.
 - <code>Projekt teilen</code>: <strong>Verwalten Sie die Freigabeoptionen</strong>.
-- <code>Dokumentation</code>: <strong>Zugriff auf die GOAT-Dokumentation</strong>.
-- <code>Job Status</code>: <strong>Zeigen Sie den Status</strong> laufender und abgeschlossener Aufgaben an.
+- <code>Support</code>: <strong>Öffnen Sie Ihre Support-Tickets, melden Sie ein Problem oder öffnen Sie die Dokumentation</strong>. Siehe [Support](../support/support.md).
+- <code>Job Status</code>: <strong>Zeigen Sie den Status</strong> laufender und abgeschlossener Aufgaben an. Das Symbol erscheint, sobald Sie eine Aufgabe gestartet haben.
 - <code>Benutzerprofil</code>: <strong>Zugriff auf Kontoeinstellungen</strong> und abmelden.
 
 

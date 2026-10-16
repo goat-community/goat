@@ -199,7 +199,7 @@ Eine visuelle Erklärung, wie die Sensitivität die Berechnung beeinflusst, find
 
 <div class="step">
   <div class="step-number">12</div>
-  <div class="content">Legen Sie den <code>Name der Ergebnislayer</code> für den Ausgabe-Heatmap-Layer fest.</div>
+  <div class="content">Legen Sie den <code>Name des Ergebnis-Layers</code> für den Ausgabe-Heatmap-Layer fest.</div>
 </div>
 
 <div class="step">

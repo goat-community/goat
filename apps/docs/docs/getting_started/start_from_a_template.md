@@ -58,7 +58,7 @@ When you save a project as a template (`Save project as template…` in the **Pr
 
 A raster dataset, or one read from an external service, has no features to copy, so it can only be shipped. In a workflow template you can also switch a dataset off so that the template asks for a layer when it is used.
 
-When someone uses the template, GOAT first creates the project or workflow with your dataset and then makes their copies in the background; you can follow them under [Job status](../workspace/workspace_interface.md#job-status). Until a copy is ready, the dataset is shown read-only. Once it is ready, it takes the place of your dataset everywhere in their project: on the map, in the dashboard and in workflows.
+When someone uses the template, GOAT first creates the project or workflow with your dataset and then makes their copies in the background; you can follow them under [Job status](../workspace/workspace_interface.md#user-controls). Until a copy is ready, the dataset is shown read-only. Once it is ready, it takes the place of your dataset everywhere in their project: on the map, in the dashboard and in workflows.
 
 :::info
 A copy is made from your dataset **as it is when the template is used**. Changes you make to your dataset afterwards do not reach copies that already exist, and changes others make to their copy never reach your dataset. Everyone who may use the template can read the datasets it ships or copies with content, however the template was shared with them, also through a shared folder. A dataset that was only shared with you to view is not passed on this way. An empty copy only takes the columns, geometry type and styling, so your dataset itself stays private: it is not shared and never becomes public.

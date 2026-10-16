@@ -105,14 +105,14 @@ jobs:
             /*.md
             /.gitignore
             /scripts/
-            /apps/*/CLAUDE.md
+            /apps/*/AGENTS.md
             /apps/*/README.md
             /apps/core/
             /apps/geoapi/
             /apps/processes/
             /apps/catalog/
             /packages/python/goatlib/
-      - name: 📚 READMEs and CLAUDE.md name only files and settings that exist
+      - name: 📚 READMEs and AGENTS.md name only files and settings that exist
         run: python3 scripts/check-doc-references.py
 
   compose-bundle:

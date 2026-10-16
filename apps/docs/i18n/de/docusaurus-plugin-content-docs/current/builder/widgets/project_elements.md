@@ -19,7 +19,7 @@ Fügen Sie Text zu Ihrem Dashboard hinzu. Sie können ihn mit den erscheinenden 
 - Ändern Sie die **Ausrichtung**, **fügen Sie Links hinzu**, passen Sie die **Buchstabenfarbe** an oder **fügen Sie Hervorhebungen hinzu**.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_text.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_text.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 ### Trennlinie
@@ -27,7 +27,7 @@ Fügen Sie Text zu Ihrem Dashboard hinzu. Sie können ihn mit den erscheinenden 
 Das Widget Trennlinie **fügt eine horizontale Linie zu Ihrem Dashboard hinzu**, die verwendet werden kann, um verschiedene Abschnitte oder Elemente innerhalb des Dashboards visuell zu trennen.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <Video src={require('/img/builder/builder_divider.mp4').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <Video src={require('/img/builder/builder_divider.mp4').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div> 
 
 
@@ -36,7 +36,7 @@ Das Widget Trennlinie **fügt eine horizontale Linie zu Ihrem Dashboard hinzu**,
 **Laden Sie ein Bild** von Ihrem Computer in Ihr Dashboard hoch. Unter `Info` können Sie eine `Beschreibung` hinzufügen, die unterhalb des Bildes angezeigt wird, sowie einen `Alternativer Text` für die Barrierefreiheit. Aktivieren Sie `Innenabstand` unter Optionen, um einen inneren Abstand um das Bild hinzuzufügen.
 
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src={require('/img/builder/builder_image.webp').default} alt="recent datasets" style={{ maxHeight: "500px", maxWidth: "auto", objectFit: "cover"}}/>
+  <img src={require('/img/builder/builder_image.webp').default} alt="recent datasets" style={{ maxHeight: "450px", maxWidth: "auto", objectFit: "cover"}}/>
 </div>
 
 ## Tabs

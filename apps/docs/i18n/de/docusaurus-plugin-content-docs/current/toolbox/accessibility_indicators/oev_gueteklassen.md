@@ -76,12 +76,12 @@ Die Berechnung der ÖV-Güteklassen ist für Gebiete verfügbar, in denen [GTFS-
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">Legen Sie den <code>Name der Ergebnislayer</code> für den Ausgabe-ÖV-Güteklassen-Layer fest.</div>
+  <div class="content">Legen Sie den <code>Name des Ergebnis-Layers</code> für den Ausgabe-ÖV-Güteklassen-Layer fest.</div>
 </div>
 
 <div class="step">
   <div class="step-number">8</div>
-  <div class="content">Legen Sie den <code>Name des Stationen-Layer</code> für den Ausgabe-Stationen-Layer fest.</div>
+  <div class="content">Legen Sie den <code>Name des Stationen-Layers</code> für den Ausgabe-Stationen-Layer fest.</div>
 </div>
 
 <div class="step">

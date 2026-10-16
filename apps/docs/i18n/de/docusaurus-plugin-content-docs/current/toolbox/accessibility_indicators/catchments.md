@@ -156,12 +156,12 @@ Für jeden Modus können Sie die **maximale Reisezeit oder Entfernung** sowie di
 
 <div class="step">
   <div class="step-number">6</div>
-  <div class="content">Legen Sie den <code>Name der Ergebnislayer</code> für den Ausgabe-Einzugsgebiet-Layer fest.</div>
+  <div class="content">Legen Sie den <code>Name des Ergebnis-Layers</code> für den Ausgabe-Einzugsgebiet-Layer fest.</div>
 </div>
 
 <div class="step">
   <div class="step-number">7</div>
-  <div class="content">Legen Sie den <code>Name des Startpunkte-Layer</code> für den Ausgabe-Startpunkte-Layer fest.</div>
+  <div class="content">Legen Sie den <code>Name des Startpunkte-Layers</code> für den Ausgabe-Startpunkte-Layer fest.</div>
 </div>
 
 <div class="step">

@@ -186,6 +186,7 @@ Common issues and solutions:
 - **Unknown column**: Check column names in your input datasets; the **Tables** list on the **Build** tab shows the columns of each table
 - **Geometry error**: Verify geometry columns are valid and properly formatted
 - **Only SELECT statements are allowed**: Write a single `SELECT` query (optionally starting with `WITH`); statements that change data, such as `CREATE`, `INSERT`, `UPDATE` or `DELETE`, are rejected
+- **Function not allowed** or **Table function not allowed**: The query calls a function that reads files, other databases or settings, or a table function that isn't allowed; see the Limitations below
 - **Long-running query**: Break complex queries into smaller steps
 
 ## Output and Integration
@@ -210,6 +211,8 @@ Custom SQL queries support [workflow variables](variables.md) using the `{{@vari
 - Maximum of 3 connected inputs and 2 additional layers per Custom SQL node
 - Only a single `SELECT` statement is allowed
 - Results without a geometry column are created as a table and cannot be shown on the map
-- Some advanced DuckDB functions may not be available
+- A query reads only its connected inputs (`input_1` to `input_3`), the **Table Alias** of each additional layer and the tables it defines itself with `WITH`
+- Files (for example with `read_parquet`), tables named with a schema, other databases and settings can't be read, and `SHOW`, `DESCRIBE` and `SUMMARIZE` are refused
+- Of the table functions, only `range`, `generate_series`, `unnest`, `json_each` and `json_tree` are allowed
 
 For more complex analysis requirements, consider using multiple Custom SQL nodes or combining with other workflow tools.
