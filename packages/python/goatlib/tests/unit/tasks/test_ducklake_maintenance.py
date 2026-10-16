@@ -57,7 +57,7 @@ class _FakeConn:
         self._bytes_calls = 0
         self._cleanup_calls = 0
 
-    def execute(self, sql: str) -> "_FakeConn":
+    def execute(self, sql: str, *_: Any) -> "_FakeConn":
         self.calls.append(sql.strip())
         return self
 
@@ -101,6 +101,7 @@ def _make_task(con: _FakeConn) -> DuckLakeMaintenanceTask:
     """Build a task with mocked manager + settings (no env / network)."""
     task = DuckLakeMaintenanceTask()
     task.settings = MagicMock()
+    task.settings.ducklake_postgres_uri = "postgresql://goat:pw@db:5432/goat"
     fake_manager = MagicMock()
     fake_manager.connection.return_value = _fake_connection_cm(con)
     task._manager = fake_manager

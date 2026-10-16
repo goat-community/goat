@@ -20,6 +20,7 @@ from goatlib.storage import (
     load_extensions,
     uri_with_application_name,
 )
+from goatlib.utils.credentials import postgres_attach_target
 
 from processes.config import settings
 
@@ -140,6 +141,7 @@ def _get_connection() -> duckdb.DuckDBPyConnection:
         uri = uri_with_application_name(
             settings.POSTGRES_DATABASE_URI, "goat-processes"
         )
+        uri = postgres_attach_target(con, uri)
         con.execute(f"ATTACH '{uri}' AS pubcfg (TYPE postgres, READ_ONLY)")
         _con = con
     return _con
