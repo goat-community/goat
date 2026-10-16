@@ -12,6 +12,12 @@ The `catalog` service is database-less: it serves a local parquet mirror under `
 
 Docs-writing rules and diagram exports live in `apps/docs/CLAUDE.md`; adding or syncing an analytics tool is covered by the `windmill` skill.
 
+## Working rules
+
+- Prefer the simplest change that solves the actual problem. Extend an existing pattern before adding a new one; no new dependency, service or moving part without a concrete reason.
+- On a task with several steps, keep a short checklist in the replies (done, in progress, next) and update it as you go.
+- No em dashes (—) or en dashes (–) inside sentences: not in UI copy, docs, commit messages or PR text. In code comments, match the file you are in.
+
 ## Gotchas
 
 - Sync Python with `uv sync --all-packages`: a plain `uv sync` prunes the workspace members' dependencies.
