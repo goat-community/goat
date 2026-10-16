@@ -39,7 +39,7 @@ Docs-writing rules and diagram exports live in `apps/docs/AGENTS.md`; adding or 
 
 ## Service READMEs Follow Every Change
 
-- **MUST: a change to a service's purpose, design decisions, storage model, access rules or the gotchas its README lists updates that README in the same change** (`apps/{core,geoapi,processes,catalog}/README.md`, `packages/python/goatlib/README.md`). READMEs hold the "why" and point to the sources of truth (registries, `config.py`, `/api/docs`) instead of copying lists of tools, settings or routes; keep it that way.
+- A change to a service's purpose, design decisions, storage model, access rules or the gotchas its README lists updates that README in the same change (`apps/{core,geoapi,processes,catalog}/README.md`, `packages/python/goatlib/README.md`). READMEs hold the "why" and point to the sources of truth (registries, `config.py`, `/api/docs`) instead of copying lists of tools, settings or routes; keep it that way.
 - The `doc-references` PR check (`scripts/check-doc-references.py`) fails when a README or AGENTS.md names a file or setting that no longer exists. Run it locally after renaming or removing either.
 
 ## Commit Convention

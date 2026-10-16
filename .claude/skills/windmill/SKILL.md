@@ -48,10 +48,10 @@ specific Windmill worker (e.g. `print`).
 ## How Tools Execute
 
 1. Frontend calls the `processes` service API to start a tool
-2. `processes` creates a job in `customer.job` and submits it to Windmill
+2. `processes` submits it to Windmill as a job (`f/goat/tools/<tool>`)
 3. Windmill runs the generated Python script, which imports from `goatlib.tools`
 4. The tool class (`BaseToolRunner` subclass) reads input from DuckLake, processes, writes output to DuckLake
-5. Job status is tracked in `customer.job` (pending → running → finished/failed)
+5. The client polls `processes` (`GET /jobs/{jobId}`) for status and result; job state lives in Windmill, not in the GOAT database
 
 ## Adding / Changing a Tool
 
@@ -66,12 +66,7 @@ uv run python -m goatlib.tools.sync_windmill
 
 ## Checking Jobs
 
-Via Windmill MCP, or via the database (see the `db` skill for connection):
-
-```sql
-SELECT id, type, status, created_at, payload->>'tool_type' AS tool
-FROM customer.job ORDER BY created_at DESC LIMIT 10;
-```
+Via Windmill MCP, or the processes API (`GET /jobs`, `GET /jobs/{jobId}`). GOAT's own database has no job table.
 
 ## Key Code Paths
 

@@ -1,6 +1,6 @@
 ---
 name: db
-description: Use when inspecting, debugging, or understanding the GOAT PostgreSQL database — querying projects, layers, users, orgs, teams, roles, jobs, or checking data state during local dev.
+description: Use when inspecting, debugging, or understanding the GOAT PostgreSQL database — querying projects, layers, users, orgs, teams, roles, or checking data state during local dev.
 ---
 
 # Database Query
@@ -30,7 +30,7 @@ docker exec -e PGPASSWORD=$POSTGRES_PASSWORD "$DBC" psql -h 127.0.0.1 -U $POSTGR
 
 | Schema | Purpose |
 |--------|---------|
-| `customer` | Everything: users, orgs, teams, roles/permissions, projects, layers, jobs, workflows |
+| `customer` | Everything: users, orgs, teams, roles/permissions, projects, layers, workflows |
 | `ducklake` | DuckLake catalog (managed by geoapi, don't modify directly) |
 
 ## Key Tables & Relationships
@@ -48,18 +48,16 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='customer' O
 - **team** (id uuid) — belongs to org. name, avatar
 - **role** (id uuid) — permission roles; RBAC via **permission**, **role_permission**, **user_role**, **resource**, **resource_grant**, **resource_permission**
 - **user_team** — M2M user ↔ team; **invitation** — pending org/team invites
-- **layer_organization / layer_team / layer_user** — layer sharing with role
-- **project_organization / project_team / project_user** — project sharing with role
+- Sharing of layers, projects and every other resource is one table, **resource_grant**: resource_type + resource_id, grantee_type + grantee_id (user, team or organization), role_id. `customer.effective_role(resource_type, resource_id, user_id)` resolves the role a user ends up with
 
 ### Projects & layers (`customer`)
 - **project** (id uuid) — user_id, folder_id, layer_order[], basemap, tags[]
-- **layer** (id uuid) — user_id, folder_id. Key fields: name, type, data_type, tool_type, job_id, feature_layer_type, feature_layer_geometry_type, extent (geometry), properties (jsonb), other_properties (jsonb — holds `catalog_item` / `catalog_materialize` for promoted catalog layers), field_config (jsonb, per-column metadata), url, size, in_catalog, tags[], catalog_external_uid, catalog_version
+- **layer** (id uuid) — user_id, folder_id. Key fields: name, type, data_type, tool_type, job_id, feature_layer_type, feature_layer_geometry_type, extent (geometry), properties (jsonb), other_properties (jsonb — holds `catalog_item` / `catalog_materialize` for promoted catalog layers), field_config (jsonb, per-column metadata), url, size, public_read, tags[], catalog_external_uid, catalog_version
 - **layer_project** (id int) — M2M layer ↔ project. name, properties (jsonb style config), other_properties, query (jsonb filters), charts, order, layer_project_group_id
 - **layer_project_group** (id int) — layer groups. project_id, parent_id (self-ref nesting), order
 - **folder** (id uuid) — user_id, name
-- **job** (id uuid) — user_id. type, status, payload (jsonb)
 - **workflow** (id uuid) — project_id, name, config (jsonb), is_default
-- **report** / **report_layout** (id uuid) — project_id, name, config (jsonb), is_default
+- **report_layout** (id uuid) — project_id, name, config (jsonb), is_default
 - **project_public** — public sharing config: password, config (jsonb snapshot)
 - **user_project** — user ↔ project with initial_view_state (jsonb)
 - **system_setting** — per-user: client_theme, preferred_language, unit
@@ -81,18 +79,13 @@ FROM customer.layer_project lp
 JOIN customer.layer l ON l.id = lp.layer_id
 WHERE lp.project_id = 'PROJECT_UUID'
 ORDER BY lp.order;
-
--- Job status
-SELECT id, type, status, created_at, payload->>'tool_type' AS tool
-FROM customer.job ORDER BY created_at DESC LIMIT 10;
-
 ```
 
 ## Important Notes
 
 - Layer **metadata** lives in PostgreSQL (`customer.layer`), layer **data** lives in DuckLake (managed by geoapi)
+- Tool jobs are not in this database: they are Windmill jobs that the `processes` service submits and reads (see the `windmill` skill)
 - `layer_project.properties` = style/rendering config (jsonb); `layer_project.query` = active filters (jsonb)
-- Scenarios are **gone** (2026-08-27): the feature, the three tables and `project.active_scenario_id` were all removed. `scenario_feature` was the last table using generic columns (`integer_attr1..25`); nothing in GOAT uses that scheme any more
 - A **catalog layer has no owner**: `layer.user_id` and `layer.folder_id` are NULL for promoted catalog layers. Joins from `layer` to `user` must be LEFT joins or those rows vanish
 - A public dashboard reads the `project_public.config` snapshot, not the live project — re-publish to reflect changes
 - Always use READ-ONLY queries. Never INSERT/UPDATE/DELETE unless explicitly asked
