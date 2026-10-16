@@ -24,6 +24,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
 from goatlib.tools.registry import TOOL_REGISTRY
+from goatlib.utils.credentials import redact_credentials
 from pydantic import ValidationError
 
 from processes.config import settings
@@ -78,8 +79,9 @@ _CANCEL_USER_RE = re.compile(r"cancelled by \S+")
 
 
 def _sanitize_error_msg(msg: str) -> str:
-    """Remove usernames from Windmill cancellation error messages."""
-    return _CANCEL_USER_RE.sub("cancelled", msg)
+    """Error text fit for a caller: without the username of a Windmill
+    cancellation and without credentials."""
+    return redact_credentials(_CANCEL_USER_RE.sub("cancelled", msg))
 
 
 router = APIRouter(tags=["Processes"])
@@ -324,25 +326,31 @@ def _execute_analytics_sync(
     except HTTPException:
         raise
     except ValueError as e:
-        logger.warning(f"Invalid parameter for {process_id}: {e}")
+        logger.warning(
+            f"Invalid parameter for {process_id}: {_sanitize_error_msg(str(e))}"
+        )
         raise HTTPException(
             status_code=400,
             detail={
                 "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/invalid-parameter",
                 "title": "Invalid parameter",
                 "status": 400,
-                "detail": str(e),
+                "detail": _sanitize_error_msg(str(e)),
             },
         )
     except Exception as e:
-        logger.error(f"Analytics execution failed for {process_id}: {e}")
+        logger.error(
+            f"Analytics execution failed for {process_id}: {_sanitize_error_msg(str(e))}"
+        )
         # layer-search is unauthenticated: never echo the raw exception message
         # back to the caller (defense in depth — the service layer already
         # sanitizes its own known failure modes, e.g. DB connection errors that
-        # can carry credentials). Other analytics processes are authenticated
-        # or long-established, so their str(e) behavior is left unchanged.
+        # can carry credentials). Other analytics processes show it without
+        # credentials.
         detail_message = (
-            "search temporarily unavailable" if process_id == "layer-search" else str(e)
+            "search temporarily unavailable"
+            if process_id == "layer-search"
+            else _sanitize_error_msg(str(e))
         )
         raise HTTPException(
             status_code=500,
@@ -633,7 +641,7 @@ async def execute_process(
                     "type": OGC_EXCEPTION_INVALID_PARAMETER,
                     "title": "Invalid parameter",
                     "status": 422,
-                    "detail": str(e),
+                    "detail": _sanitize_error_msg(str(e)),
                 },
             )
         if search_input.layers is not None and user_id is None:
@@ -874,7 +882,7 @@ async def execute_process(
                 "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/job-execution-failed",
                 "title": "Execution failed",
                 "status": 500,
-                "detail": str(e),
+                "detail": _sanitize_error_msg(str(e)),
             },
         )
 
@@ -1101,7 +1109,7 @@ async def list_jobs(
                 "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/internal-error",
                 "title": "Internal error",
                 "status": 500,
-                "detail": str(e),
+                "detail": _sanitize_error_msg(str(e)),
             },
         )
 
@@ -1184,7 +1192,7 @@ async def get_job_status(
                 "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/internal-error",
                 "title": "Internal error",
                 "status": 500,
-                "detail": str(e),
+                "detail": _sanitize_error_msg(str(e)),
             },
         )
 
@@ -1244,7 +1252,7 @@ async def get_job_results(
                     "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/job-failed",
                     "title": "Job failed",
                     "status": 500,
-                    "detail": str(error_msg),
+                    "detail": _sanitize_error_msg(str(error_msg)),
                 },
             )
 
@@ -1274,7 +1282,7 @@ async def get_job_results(
                 "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/internal-error",
                 "title": "Internal error",
                 "status": 500,
-                "detail": str(e),
+                "detail": _sanitize_error_msg(str(e)),
             },
         )
 
@@ -1375,7 +1383,7 @@ async def dismiss_job(
                 "type": "http://www.opengis.net/def/exceptions/ogcapi-processes-1/1.0/internal-error",
                 "title": "Internal error",
                 "status": 500,
-                "detail": str(e),
+                "detail": _sanitize_error_msg(str(e)),
             },
         )
 

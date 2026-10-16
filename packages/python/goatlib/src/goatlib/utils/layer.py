@@ -12,6 +12,8 @@ from typing import Protocol
 
 from cachetools import TTLCache
 
+from goatlib.utils.credentials import postgres_attach_target
+
 logger = logging.getLogger(__name__)
 
 
@@ -277,7 +279,8 @@ def resolve_layer_schema(
     """
     from goatlib.storage.ducklake import fetch_one
 
-    con.execute(f"ATTACH IF NOT EXISTS 'postgres:{postgres_uri}' AS pgmeta (READ_ONLY)")
+    target = postgres_attach_target(con, postgres_uri)
+    con.execute(f"ATTACH IF NOT EXISTS 'postgres:{target}' AS pgmeta (READ_ONLY)")
     row = fetch_one(
         con,
         f"SELECT s.schema_name "
@@ -354,8 +357,9 @@ def get_schema_for_layer(
     for attempt in range(max_retries + 1):
         try:
             with ducklake_manager.connection() as con:
+                target = postgres_attach_target(con, pg_uri)
                 con.execute(
-                    f"ATTACH IF NOT EXISTS 'postgres:{pg_uri}' AS pgmeta (READ_ONLY)"
+                    f"ATTACH IF NOT EXISTS 'postgres:{target}' AS pgmeta (READ_ONLY)"
                 )
                 result = con.execute(query, [table_name]).fetchone()
             break

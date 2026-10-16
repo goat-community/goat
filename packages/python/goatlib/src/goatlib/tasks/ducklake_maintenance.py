@@ -45,6 +45,7 @@ from pydantic import BaseModel, Field
 from goatlib.config.postgres import TASKS_APPLICATION_NAME
 from goatlib.storage import BaseDuckLakeManager
 from goatlib.tools.base import ToolSettings
+from goatlib.utils.credentials import postgres_attach_target
 
 logger = logging.getLogger(__name__)
 
@@ -274,7 +275,10 @@ class DuckLakeMaintenanceTask:
                 )
                 would_prune = 0
                 if params.prune_schema_versions:
-                    uri = self.settings.ducklake_postgres_uri  # type: ignore[union-attr]
+                    uri = postgres_attach_target(
+                        con,
+                        self.settings.ducklake_postgres_uri,  # type: ignore[union-attr]
+                    )
                     con.execute(
                         f"ATTACH IF NOT EXISTS 'postgres:{uri}' AS pg (READ_ONLY)"
                     )
@@ -323,7 +327,10 @@ class DuckLakeMaintenanceTask:
             # aren't counted there).
             # Read-write: the schema-versions prune below deletes catalog
             # rows directly (no DuckLake function exposes this).
-            uri = self.settings.ducklake_postgres_uri  # type: ignore[union-attr]
+            uri = postgres_attach_target(
+                con,
+                self.settings.ducklake_postgres_uri,  # type: ignore[union-attr]
+            )
             con.execute(f"ATTACH IF NOT EXISTS 'postgres:{uri}' AS pg")
 
             files_deleted = 0

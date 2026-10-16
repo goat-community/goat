@@ -50,7 +50,7 @@ class _FakeConn:
         # so fetchall() can look up its canned result.
         self._last_merge: tuple[str, str] | None = None
 
-    def execute(self, sql: str) -> "_FakeConn":
+    def execute(self, sql: str, *_: Any) -> "_FakeConn":
         self.calls.append(sql.strip())
         if "ducklake_merge_adjacent_files" in sql:
             # Parse positional table + named schema => '<schema>' from SQL.

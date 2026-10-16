@@ -75,6 +75,7 @@ from goatlib.storage.s3_config import apply_duckdb_s3_settings, boto_client_kwar
 from goatlib.tools.db import ToolDatabaseService
 from goatlib.tools.schemas import ToolInputBase, ToolOutputBase
 from goatlib.utils.container_memory import JOB_DUCKLAKE_MEMORY_SHARE, set_memory_share
+from goatlib.utils.credentials import postgres_attach_target
 from goatlib.utils.layer import (
     layer_id_to_table_name,
     layer_schema_name,
@@ -485,6 +486,7 @@ class SimpleToolRunner:
         # reconnecting for the odd parallel catalog read beats holding a
         # node's worth of catalog connections for the whole job.
         cap_catalog_connections(con, TOOLS_CATALOG_CONNECTIONS)
+        catalog_uri = postgres_attach_target(con, catalog_uri)
         con.execute(f"""
             ATTACH 'ducklake:postgres:{catalog_uri}' AS lake (
                 DATA_PATH '{storage_path}',
