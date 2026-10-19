@@ -57,6 +57,7 @@ import {
 import type { ProjectLayer } from "@/lib/validations/project";
 import type { ExportNodeData, WorkflowNode } from "@/lib/validations/workflow";
 
+import type { SelectorItem } from "@/types/map/common";
 import { OPPORTUNITY_LAYER_HANDLES } from "@/types/map/ogc-processes";
 import type { ProcessedSection } from "@/types/map/ogc-processes";
 
@@ -67,6 +68,7 @@ import { useProjectBundleKinds } from "@/hooks/map/useProjectBundleKinds";
 import Container from "@/components/map/panels/Container";
 import SectionHeader from "@/components/map/panels/common/SectionHeader";
 import SectionOptions from "@/components/map/panels/common/SectionOptions";
+import Selector from "@/components/map/panels/common/Selector";
 import ToolsHeader from "@/components/map/panels/common/ToolsHeader";
 import { DEFAULT_NETWORK_BUNDLE } from "@/components/map/panels/toolbox/generic/inputs/BundleInput";
 import OevStationConfigInput from "@/components/map/panels/toolbox/generic/inputs/OevStationConfigInput";
@@ -74,10 +76,14 @@ import {
   getObjectDefaults,
   processObjectProperties,
 } from "@/components/map/panels/toolbox/generic/inputs/RepeatableObjectInput";
-import { useWorkflowExecutionContext } from "@/components/workflows/context/WorkflowExecutionContext";
+import {
+  type NodeExecutionInfo,
+  useWorkflowExecutionContext,
+} from "@/components/workflows/context/WorkflowExecutionContext";
 import SaveDatasetDialog from "@/components/workflows/dialogs/SaveDatasetDialog";
 import VariableAwareInput from "@/components/workflows/inputs/VariableAwareInput";
 import DatasetNodeSettings from "@/components/workflows/panels/DatasetNodeSettings";
+import ExportExistingTargetSettings from "@/components/workflows/panels/ExportExistingTargetSettings";
 import IfNodeSettings from "@/components/workflows/panels/IfNodeSettings";
 import SqlToolSettings from "@/components/workflows/panels/SqlToolSettings";
 
@@ -1007,6 +1013,7 @@ export default function WorkflowNodeSettings({
         node={node}
         exportData={exportData}
         nodeStatus={nodeStatus}
+        executionInfo={executionInfo}
         upstreamInfo={upstreamInfo}
         onBack={onBack}
       />
@@ -1476,6 +1483,7 @@ interface ExportNodeSettingsInlineProps {
   node: WorkflowNode;
   exportData: ExportNodeData;
   nodeStatus: string | undefined;
+  executionInfo?: NodeExecutionInfo;
   upstreamInfo: { label: string } | null;
   onBack: () => void;
 }
@@ -1484,6 +1492,7 @@ function ExportNodeSettingsInline({
   node,
   exportData,
   nodeStatus,
+  executionInfo,
   upstreamInfo,
   onBack,
 }: ExportNodeSettingsInlineProps) {
@@ -1496,6 +1505,24 @@ function ExportNodeSettingsInline({
   const [datasetName, setDatasetName] = useState(exportData.datasetName || "");
   const [addToProject, setAddToProject] = useState(exportData.addToProject);
   const [overwritePrevious, setOverwritePrevious] = useState(exportData.overwritePrevious);
+  const isExisting = exportData.destination === "existing";
+  const rowsAppended = executionInfo?.rowsAppended;
+
+  const saveToItems: SelectorItem[] = useMemo(
+    () => [
+      { value: "new", label: t("export_mode_new"), icon: ICON_NAME.PLUS },
+      { value: "existing", label: t("export_mode_existing"), icon: ICON_NAME.LAYERS },
+    ],
+    [t]
+  );
+
+  // Several fields at once (the "Add to existing" settings)
+  const saveChanges = useCallback(
+    (changes: Partial<ExportNodeData>) => {
+      dispatch(updateNode({ id: node.id, changes: { data: { ...node.data, ...changes } } }));
+    },
+    [dispatch, node.id, node.data]
+  );
 
   // Persist a field change to Redux (side effect, not driving UI)
   const syncToRedux = useCallback(
@@ -1594,25 +1621,43 @@ function ExportNodeSettingsInline({
             </Stack>
           )}
 
-          {/* Dataset name */}
-          <Stack spacing={1} sx={{ mb: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              {t("dataset_name")} *
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              required
-              placeholder={t("enter_dataset_name")}
-              value={datasetName}
-              onChange={handleDatasetNameChange}
-              error={!datasetName.trim()}
-              helperText={!datasetName.trim() ? t("dataset_name_required") : undefined}
-              inputProps={{
-                style: { fontSize: "0.875rem" },
+          {/* New dataset, or add the rows to an existing one */}
+          <Box sx={{ mb: 2 }}>
+            <Selector
+              selectedItems={saveToItems.find((item) => item.value === (isExisting ? "existing" : "new"))}
+              setSelectedItems={(item) => {
+                const picked = Array.isArray(item) ? item[0] : item;
+                if (picked) saveChanges({ destination: picked.value as "new" | "existing" });
               }}
+              items={saveToItems}
+              label={t("export_save_to")}
+              tooltip={t("export_save_to_help")}
             />
-          </Stack>
+          </Box>
+
+          {isExisting && <ExportExistingTargetSettings data={exportData} onChange={saveChanges} />}
+
+          {/* Dataset name */}
+          {!isExisting && (
+            <Stack spacing={1} sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                {t("dataset_name")} *
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                required
+                placeholder={t("enter_dataset_name")}
+                value={datasetName}
+                onChange={handleDatasetNameChange}
+                error={!datasetName.trim()}
+                helperText={!datasetName.trim() ? t("dataset_name_required") : undefined}
+                inputProps={{
+                  style: { fontSize: "0.875rem" },
+                }}
+              />
+            </Stack>
+          )}
 
           {/* Options */}
           <FormControlLabel
@@ -1621,14 +1666,32 @@ function ExportNodeSettingsInline({
             sx={{ ml: 0, mb: 0.5 }}
           />
 
-          <FormControlLabel
-            control={<Checkbox checked={overwritePrevious} onChange={handleOverwriteChange} size="small" />}
-            label={<Typography variant="body2">{t("overwrite_on_rerun")}</Typography>}
-            sx={{ ml: 0 }}
-          />
+          {!isExisting && (
+            <FormControlLabel
+              control={<Checkbox checked={overwritePrevious} onChange={handleOverwriteChange} size="small" />}
+              label={<Typography variant="body2">{t("overwrite_on_rerun")}</Typography>}
+              sx={{ ml: 0 }}
+            />
+          )}
+
+          {/* Result of adding to an existing dataset */}
+          {isExisting && nodeStatus === "completed" && rowsAppended !== undefined && (
+            <Box sx={{ mt: 3, mb: 2 }}>
+              <Typography variant="body2" fontWeight="bold" color="text.secondary" sx={{ mb: 1 }}>
+                {t("result")}
+              </Typography>
+              <Divider sx={{ mb: 1.5 }} />
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <CheckCircleIcon sx={{ fontSize: 16, color: "success.main" }} />
+                <Typography variant="body2" color="success.main" fontWeight="bold">
+                  {t("append_rows_appended", { count: rowsAppended })}
+                </Typography>
+              </Stack>
+            </Box>
+          )}
 
           {/* Completed state info */}
-          {nodeStatus === "completed" && exportData.exportedLayerId && (
+          {!isExisting && nodeStatus === "completed" && exportData.exportedLayerId && (
             <Box sx={{ mt: 3, mb: 2 }}>
               <Typography variant="body2" fontWeight="bold" color="text.secondary" sx={{ mb: 1 }}>
                 {t("result")}

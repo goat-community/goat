@@ -53,22 +53,19 @@ from goatlib.utils.generated_fields import (
     generated_fields,
     needs_write_lock,
 )
+from goatlib.utils.layer_lock import LAYER_LOCK_NAMESPACE, layer_lock_key
 
 from geoapi.services.computed_columns import fetch_field_config
 from geoapi.services.layer_service import layer_service
 
 logger = logging.getLogger(__name__)
 
-#: Namespaces the advisory-lock key, so it cannot collide with another feature
-#: that hashes a layer id into an advisory lock.
-LOCK_NAMESPACE = "goat.layer_serial:"
+#: The lock key's namespace and spelling live in goatlib, so "Update dataset"
+#: and the workflow's "Append to dataset" node take the very same lock.
+LOCK_NAMESPACE = LAYER_LOCK_NAMESPACE
+_lock_key = layer_lock_key
 
 COUNTER_TABLE = "customer.layer_serial_counter"
-
-
-def _lock_key(layer_id: str) -> str:
-    """The layer id in one spelling, whichever form the caller holds."""
-    return LOCK_NAMESPACE + layer_id.replace("-", "").lower()
 
 
 async def _lock(conn: Any, layer_id: str) -> None:

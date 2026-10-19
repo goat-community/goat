@@ -8,6 +8,7 @@ export interface NodeExecutionInfo {
   status: NodeExecutionStatus;
   startedAt?: number; // Unix timestamp in seconds
   durationMs?: number; // Duration in milliseconds (set when completed)
+  rowsAppended?: number; // Append nodes: rows the run appended
 }
 
 interface WorkflowExecutionContextValue {
