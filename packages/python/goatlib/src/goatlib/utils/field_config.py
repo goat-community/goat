@@ -5,8 +5,9 @@ a column is added to a layer that already exists or a row is edited by hand,
 the layer-create tool when a layer is declared with its columns up front, and
 finalize_layer when a workflow's "Save as dataset" adds rows to an existing
 dataset. A column created or filled either way has to mean the same thing
-afterwards, so the rules for building an entry and for writing rows (computed
-columns, locked columns, defaults, allowed values) live in one place.
+afterwards, so the rules for building an entry and the ones a tool needs to
+write rows (computed, locked and default columns, allowed values) live in one
+place. Checks only geoapi's hand edits run stay in geoapi.
 """
 
 from typing import Any
@@ -139,100 +140,3 @@ def column_defaults(field_config: dict[str, Any] | None) -> dict[str, Any]:
         for name, entry in (field_config or {}).items()
         if isinstance(entry, dict) and entry.get("default_value") is not None
     }
-
-
-def apply_defaults(
-    field_config: dict[str, Any] | None,
-    properties: dict[str, Any],
-    blank_is_absent: bool = False,
-) -> dict[str, Any]:
-    """Fill in what a feature did not state. Returns a new dict.
-
-    Creation only, for the per-feature paths. An update that omits a column
-    means "leave it alone", so applying defaults there would silently reset
-    columns the caller never mentioned.
-
-    ``blank_is_absent`` is the second rule, for a write that replaces a row
-    whole: a null or an empty string then means the column was left blank
-    rather than deliberately cleared, so it takes the default too. The bundle
-    editor writes that way — it sends the whole edge back on every save, and an
-    edge with no class is not a routable street. Without the flag an explicit
-    null stays null, because clearing a column is a choice and a default that
-    overrode it could not be cleared at all.
-
-    This is the only thing that applies a default. A column created with one
-    also carries a DuckDB ``DEFAULT``, which would cover an INSERT that omitted
-    it, but every write goes through here and names the column explicitly — so
-    the ``field_config`` entry is the default of record and the DDL default is
-    never consulted.
-    """
-    return fill_defaults(
-        column_defaults(field_config), properties, blank_is_absent=blank_is_absent
-    )
-
-
-def fill_defaults(
-    defaults: dict[str, Any],
-    properties: dict[str, Any],
-    blank_is_absent: bool = False,
-) -> dict[str, Any]:
-    """``apply_defaults`` against an already-derived default map.
-
-    Separate so a bulk write derives the map once for the whole request rather
-    than once per feature.
-    """
-    filled = dict(properties)
-    for name, value in defaults.items():
-        if name not in filled or (blank_is_absent and filled[name] in (None, "")):
-            filled[name] = value
-    return filled
-
-
-def validate_allowed_values(
-    field_config: dict[str, Any] | None, properties: dict[str, Any]
-) -> None:
-    """Refuse a write that sets a constrained column to something else.
-
-    Refused rather than dropped, which is how a computed or locked column is
-    handled: those the caller was never invited to set, so ignoring the value is
-    right. Here the caller *is* invited to set it and got it wrong, and silently
-    keeping the old value would look like a successful edit.
-
-    A null clears the column, which is not a vocabulary violation — a column
-    with no value is a different thing from one holding a value nobody allows.
-    """
-    check_allowed_values(allowed_value_columns(field_config), properties)
-
-
-def check_allowed_values(
-    constrained: dict[str, list[Any]], properties: dict[str, Any]
-) -> None:
-    """``validate_allowed_values`` against an already-derived vocabulary map.
-
-    Separate for the same reason as ``fill_defaults``: a bulk write derives the
-    map once rather than once per feature.
-    """
-    for name, value in properties.items():
-        if value is None or name not in constrained:
-            continue
-        if value not in constrained[name]:
-            allowed = ", ".join(str(v) for v in constrained[name])
-            raise ValueError(
-                f"'{value}' is not an accepted value for '{name}'. "
-                f"Accepted: {allowed}."
-            )
-
-
-def select_recompute_specs(
-    specs: list[ComputedColumnSpec],
-    changed_source_cols: set[str],
-) -> list[ComputedColumnSpec]:
-    """Return the subset whose dependencies overlap the changed cols."""
-    if not changed_source_cols:
-        return []
-    return [
-        s
-        for s in specs
-        if DEPENDS_ON_ANY in s.depends_on
-        or changed_source_cols.intersection(s.depends_on)
-    ]

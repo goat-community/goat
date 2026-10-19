@@ -251,6 +251,7 @@ def test_refuses_raster_target(tmp_path: Path) -> None:
     assert "append" not in h.log
 
 
+
 def test_add_to_project_off_leaves_project_alone(tmp_path: Path) -> None:
     h = _Harness(tmp_path, [_target()])
     h.run(_params(add_to_project=False))

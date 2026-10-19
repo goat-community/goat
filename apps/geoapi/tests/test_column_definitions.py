@@ -12,10 +12,10 @@ from uuid import UUID
 
 import pytest
 from fastapi import HTTPException
-from goatlib.utils.field_config import validate_allowed_values
 
 from geoapi.dependencies import LayerInfo
 from geoapi.models import ColumnCreate, ColumnUpdate
+from geoapi.services.computed_columns import validate_allowed_values
 from geoapi.services.layer_service import LayerMetadata, LayerService
 
 OWNER = UUID("11111111-1111-1111-1111-111111111111")

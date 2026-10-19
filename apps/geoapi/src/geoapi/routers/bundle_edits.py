@@ -38,10 +38,6 @@ from goatlib.models.bundle import (
     RoleSpec,
     get_spec,
 )
-from goatlib.utils.field_config import (
-    apply_defaults,
-    validate_allowed_values,
-)
 from goatlib.utils.generated_fields import (
     GeneratedValues,
     SerialCounters,
@@ -63,6 +59,10 @@ from geoapi.routers.features_write import (
     get_write_authorized_metadata,
 )
 from geoapi.services import bundle_edit_service as writer
+from geoapi.services.computed_columns import (
+    apply_defaults,
+    validate_allowed_values,
+)
 from geoapi.services.layer_service import layer_service
 from geoapi.services.layer_write_lock import layer_write_lock
 
