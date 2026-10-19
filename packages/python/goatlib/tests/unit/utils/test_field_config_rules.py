@@ -1,6 +1,6 @@
 """The field-config rules goatlib shares with geoapi's feature writes."""
 
-from goatlib.utils.field_rules import (
+from goatlib.utils.field_config import (
     allowed_value_columns,
     column_defaults,
     parse_computed_columns,

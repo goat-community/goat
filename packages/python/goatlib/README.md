@@ -74,7 +74,7 @@ the table's maximum and the column's high-water mark (core's
 `layer_serial_counter`, read and advanced under the per-layer lock in
 `goatlib.utils.layer_lock`: by geoapi's feature writes, and by `finalize_layer`
 when a workflow's "Save as dataset" adds rows to an existing dataset, which
-follows the same field rules as a hand edit (`goatlib.utils.field_rules`).
+follows the same field rules as a hand edit (`goatlib.utils.field_config`).
 `layer_create_filtered` copies the source's marks along with its
 `field_config`; a copy made any other way (project export and import) has no
 mark and continues from its own highest number.

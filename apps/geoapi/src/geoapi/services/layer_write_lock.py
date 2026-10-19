@@ -53,25 +53,14 @@ from goatlib.utils.generated_fields import (
     generated_fields,
     needs_write_lock,
 )
-from goatlib.utils.layer_lock import LAYER_LOCK_NAMESPACE, layer_lock_key
+from goatlib.utils.layer_lock import lock_layer
 
 from geoapi.services.computed_columns import fetch_field_config
 from geoapi.services.layer_service import layer_service
 
 logger = logging.getLogger(__name__)
 
-#: The lock key's namespace and spelling live in goatlib, so "Update dataset"
-#: and the workflow's "Append to dataset" node take the very same lock.
-LOCK_NAMESPACE = LAYER_LOCK_NAMESPACE
-_lock_key = layer_lock_key
-
 COUNTER_TABLE = "customer.layer_serial_counter"
-
-
-async def _lock(conn: Any, layer_id: str) -> None:
-    await conn.execute(
-        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", _lock_key(layer_id)
-    )
 
 
 async def _read_marks(conn: Any, layer_id: str, names: list[str]) -> dict[str, int]:
@@ -151,7 +140,7 @@ async def layer_write_lock(
     serials = [f.name for f in fields if f.kind == "serial"]
     async with pool.acquire() as conn:
         async with conn.transaction():
-            await _lock(conn, layer_id)
+            await lock_layer(conn, layer_id)
             await _forget_marks(conn, layer_id, reset)
             counters.high_water = await _read_marks(conn, layer_id, serials)
             yield counters
@@ -204,7 +193,7 @@ async def locked_layer_write(
         return
     async with pool.acquire() as conn:
         async with conn.transaction():
-            await _lock(conn, layer_id)
+            await lock_layer(conn, layer_id)
             await _forget_marks(conn, layer_id, reset)
             field_config = await fetch_field_config(conn, UUID(layer_id))
             write = LayerWrite(field_config=field_config, conn=conn)
@@ -225,7 +214,7 @@ async def forget_serial_counter(layer_id: str, name: str) -> None:
         return
     async with pool.acquire() as conn:
         async with conn.transaction():
-            await _lock(conn, layer_id)
+            await lock_layer(conn, layer_id)
             await _forget_marks(conn, layer_id, [name])
 
 
@@ -240,7 +229,7 @@ async def rename_serial_counter(layer_id: str, old: str, new: str) -> None:
         return
     async with pool.acquire() as conn:
         async with conn.transaction():
-            await _lock(conn, layer_id)
+            await lock_layer(conn, layer_id)
             await _forget_marks(conn, layer_id, [new])
             try:
                 async with conn.transaction():

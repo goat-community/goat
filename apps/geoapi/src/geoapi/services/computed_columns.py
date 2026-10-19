@@ -1,12 +1,10 @@
-"""Helpers for handling computed columns within feature_write_service.
+"""Reading and writing a layer's `field_config` JSONB in PG.
 
-`parse_computed_columns` turns the layer's `field_config` JSONB blob
-into a list of specs (name + dependency-set + compute SQL fragment).
-`select_recompute_specs` filters those specs against a set of changed
-source columns. `fetch_field_config` reads the JSONB from PG.
+`fetch_field_config` reads it, `write_field_config` stores it. The rules the
+config sets for writes (computed columns, defaults, allowed values, locked
+columns) live in `goatlib.utils.field_config`, shared with goatlib's tools.
 
-This module knows nothing about HTTP. Task D1 wires these helpers into
-INSERT/UPDATE statements on customer layer tables.
+This module knows nothing about HTTP.
 """
 
 import json
@@ -15,19 +13,6 @@ from typing import Any
 from uuid import UUID
 
 import asyncpg
-from goatlib.utils.field_rules import (  # noqa: F401  (re-exported)
-    DEPENDS_ON_ANY,
-    ComputedColumnSpec,
-    allowed_value_columns,
-    apply_defaults,
-    check_allowed_values,
-    column_defaults,
-    fill_defaults,
-    locked_column_names,
-    parse_computed_columns,
-    select_recompute_specs,
-    validate_allowed_values,
-)
 
 logger = logging.getLogger(__name__)
 

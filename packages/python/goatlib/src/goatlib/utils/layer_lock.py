@@ -1,5 +1,5 @@
 """The per-layer write lock, shared by geoapi's feature writes and the
-workflow's "Append to dataset" node.
+workflow's "Save as dataset" into an existing dataset.
 
 Dependency-free on purpose: geoapi installs goatlib without its "full" extra.
 

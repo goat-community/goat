@@ -25,22 +25,22 @@ from typing import Any, Generator
 from unittest.mock import patch
 
 import duckdb
-from goatlib.utils.field_config import coerce_allowed_values
+from goatlib.utils.field_config import (
+    DEPENDS_ON_ANY,
+    ComputedColumnSpec,
+    allowed_value_columns,
+    apply_defaults,
+    coerce_allowed_values,
+    locked_column_names,
+    parse_computed_columns,
+    select_recompute_specs,
+    validate_allowed_values,
+)
 
 from geoapi.dependencies import LayerInfo
 from geoapi.routers.metadata import (
     _apply_field_config_to_properties,
     _kind_from_json_type,
-)
-from geoapi.services.computed_columns import (
-    DEPENDS_ON_ANY,
-    ComputedColumnSpec,
-    allowed_value_columns,
-    apply_defaults,
-    locked_column_names,
-    parse_computed_columns,
-    select_recompute_specs,
-    validate_allowed_values,
 )
 from geoapi.services.feature_write_service import FeatureWriteService
 

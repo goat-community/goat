@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ContentItem } from "@/lib/validations/content";
 
-import { canAppendTo } from "@/components/workflows/panels/ExportExistingTargetSettings";
+import { canAppendTo } from "@/components/workflows/panels/WorkflowNodeSettings";
 
 const item = (over: Partial<ContentItem> & Record<string, unknown>) =>
   ({

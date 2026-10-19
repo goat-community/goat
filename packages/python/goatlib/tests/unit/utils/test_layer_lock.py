@@ -1,11 +1,11 @@
-"""The per-layer write lock shared by geoapi's feature writes, "Update
-dataset" and the workflow's "Append to dataset" node."""
+"""The per-layer write lock shared by geoapi's feature writes and the
+workflow's "Save as dataset" into an existing dataset."""
 
 import asyncio
 from typing import Any
 
 import pytest
-from goatlib.tools.append_rows import (
+from goatlib.utils.layer_lock import (
     LAYER_LOCK_NAMESPACE,
     hold_layer_lock,
     layer_lock_key,

@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from goatlib.io.bbox_columns import BBOX_COLUMN, is_bbox_struct
-from goatlib.utils.field_rules import (
+from goatlib.utils.field_config import (
     allowed_value_columns,
     column_defaults,
     locked_column_names,
@@ -19,12 +19,6 @@ from goatlib.utils.field_rules import (
 from goatlib.utils.generated_fields import (
     SerialCounters,
     generated_fields,
-)
-from goatlib.utils.layer_lock import (  # noqa: F401  (re-exported)
-    LAYER_LOCK_NAMESPACE,
-    hold_layer_lock,
-    layer_lock_key,
-    lock_layer,
 )
 
 #: Maintained by the storage, never written by the append (as in geoapi).
