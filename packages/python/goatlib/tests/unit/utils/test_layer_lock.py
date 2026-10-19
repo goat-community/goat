@@ -7,9 +7,11 @@ from typing import Any
 import pytest
 from goatlib.utils.layer_lock import (
     LAYER_LOCK_NAMESPACE,
+    advance_marks,
     hold_layer_lock,
     layer_lock_key,
     lock_layer,
+    read_marks,
 )
 
 LAYER = "0A1B2C3D-0000-4000-8000-00000000ABCD"
@@ -87,3 +89,49 @@ def test_hold_layer_lock_releases_on_error() -> None:
     finally:
         loop.close()
     assert conn.log == ["begin", "lock", "rollback", "close"]
+
+
+class _NoCounterTableError(Exception):
+    sqlstate = "42P01"  # what asyncpg's UndefinedTableError carries
+
+
+class _MarkConn:
+    """A connection whose counter table is missing, or another error."""
+
+    def __init__(self, exc: Exception) -> None:
+        self.exc = exc
+
+    def transaction(self) -> Any:
+        class _Tx:
+            async def __aenter__(self) -> None:
+                return None
+
+            async def __aexit__(self, *exc: Any) -> bool:
+                return False
+
+        return _Tx()
+
+    async def fetch(self, *args: Any) -> list[Any]:
+        raise self.exc
+
+    async def executemany(self, *args: Any) -> None:
+        raise self.exc
+
+
+def test_missing_counter_table_falls_back_without_asyncpg() -> None:
+    conn = _MarkConn(_NoCounterTableError())
+    assert asyncio.run(read_marks(conn, LAYER, ["nr"], "s.layer_serial_counter")) == {}
+    asyncio.run(advance_marks(conn, LAYER, {"nr": 3}, "s.layer_serial_counter"))
+
+
+def test_other_errors_are_not_swallowed() -> None:
+    conn = _MarkConn(RuntimeError("connection lost"))
+    with pytest.raises(RuntimeError):
+        asyncio.run(read_marks(conn, LAYER, ["nr"], "s.layer_serial_counter"))
+    with pytest.raises(RuntimeError):
+        asyncio.run(advance_marks(conn, LAYER, {"nr": 3}, "s.layer_serial_counter"))
+
+
+def test_asyncpg_undefined_table_is_recognised() -> None:
+    asyncpg = pytest.importorskip("asyncpg")
+    assert asyncpg.UndefinedTableError.sqlstate == "42P01"

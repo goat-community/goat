@@ -1596,20 +1596,8 @@ function ExportNodeSettingsInline({
 
   // Persist a field change to Redux (side effect, not driving UI)
   const syncToRedux = useCallback(
-    (field: keyof ExportNodeData, value: unknown) => {
-      dispatch(
-        updateNode({
-          id: node.id,
-          changes: {
-            data: {
-              ...node.data,
-              [field]: value,
-            },
-          },
-        })
-      );
-    },
-    [dispatch, node.id, node.data]
+    (field: keyof ExportNodeData, value: unknown) => saveChanges({ [field]: value }),
+    [saveChanges]
   );
 
   const handleDatasetNameChange = useCallback(

@@ -32,7 +32,7 @@ from goatlib.tools.append_rows import (
 from goatlib.tools.base import _get_or_create_event_loop
 from goatlib.utils.generated_fields import SerialCounters, generated_fields
 from goatlib.utils.layer import table_path_parts
-from goatlib.utils.layer_lock import hold_layer_lock
+from goatlib.utils.layer_lock import advance_marks, hold_layer_lock, read_marks
 
 logger = logging.getLogger(__name__)
 
@@ -86,26 +86,17 @@ class ExistingDatasetMixin:
             "write_allowed": bool(row["write_allowed"]),
         }
 
+    def _counter_table(self) -> str:
+        return f"{self.settings.customer_schema}.layer_serial_counter"
+
     async def _read_marks(
         self, conn: Any, layer_id: str, names: list[str]
     ) -> dict[str, int]:
-        """The layer's serial high-water marks, read under its lock (as
-        geoapi's feature writes do); none when the counter table is missing."""
+        """The layer's serial high-water marks, read under its lock, the way
+        geoapi's feature writes read them (``goatlib.utils.layer_lock``)."""
         if not names or self.settings is None:
             return {}
-        try:
-            async with conn.transaction():
-                rows = await conn.fetch(
-                    f"SELECT field_name, last_value FROM "
-                    f"{self.settings.customer_schema}.layer_serial_counter "
-                    "WHERE layer_id = $1::uuid AND field_name = ANY($2::text[])",
-                    layer_id,
-                    names,
-                )
-        except asyncpg.UndefinedTableError:
-            logger.warning("layer_serial_counter is missing; serials continue from max")
-            return {}
-        return {row["field_name"]: int(row["last_value"]) for row in rows}
+        return await read_marks(conn, layer_id, names, self._counter_table())
 
     async def _advance_marks(
         self, conn: Any, layer_id: str, assigned: dict[str, int]
@@ -113,19 +104,7 @@ class ExistingDatasetMixin:
         """Store the highest numbers handed out; a mark never moves down."""
         if not assigned or self.settings is None:
             return
-        try:
-            async with conn.transaction():
-                await conn.executemany(
-                    f"INSERT INTO {self.settings.customer_schema}.layer_serial_counter "
-                    "AS c (layer_id, field_name, last_value, updated_at) "
-                    "VALUES ($1::uuid, $2, $3, now()) "
-                    "ON CONFLICT (layer_id, field_name) DO UPDATE SET "
-                    "last_value = greatest(c.last_value, excluded.last_value), "
-                    "updated_at = now()",
-                    [(layer_id, name, value) for name, value in assigned.items()],
-                )
-        except asyncpg.UndefinedTableError:
-            logger.warning("layer_serial_counter is missing; mark not stored")
+        await advance_marks(conn, layer_id, assigned, self._counter_table())
 
     def _layer_write_lock(self, layer_id: str) -> Iterator[None]:
         """The layer's write lock (see ``goatlib.utils.layer_lock``)."""
