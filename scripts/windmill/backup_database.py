@@ -24,6 +24,7 @@ import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 # ── Configuration ────────────────────────────────────────────────────
 
@@ -63,7 +64,7 @@ def _get_secret(name: str, default: str = "") -> str:
 
 def _get_s3_client(
     s3_access_key: str = "", s3_secret_key: str = "", s3_endpoint_url: str = ""
-):  # noqa: ANN202
+) -> Any:
     """Create boto3 S3 client with provider-specific config."""
     import boto3
     from botocore.client import Config
@@ -392,7 +393,7 @@ def main(
         ver = subprocess.run(
             [pg_dump_path, "--version"],
             capture_output=True,
-            env=_pg_env(pg_password),
+            env=_pg_env(),
             timeout=10,
         )
         if ver.returncode == 0:
